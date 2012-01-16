@@ -137,11 +137,14 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
         # dissolve
         if surface_type == 'PAINT':
             split = layout.split(percentage=0.35)
-            split.label(text="Wetmap drying:")
+            split.prop(surface, "use_drying", text="Dry:")
 
             col = split.column()
+            col.active = surface.use_drying
             split = col.split(percentage=0.7)
-            split.prop(surface, "dry_speed", text="Time")
+            col = split.column(align=True)
+            col.prop(surface, "dry_speed", text="Time")
+            col.prop(surface, "color_dry_threshold")
             split.prop(surface, "use_dry_log", text="Slow")
 
         if surface_type != 'WAVE':
@@ -179,7 +182,10 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
             col.prop(surface, "wave_spring")
 
         layout.separator()
-        layout.prop(surface, "brush_group", text="Brush Group")
+        layout.prop(surface, "brush_group")
+        row = layout.row()
+        row.prop(surface, "brush_influence_scale")
+        row.prop(surface, "brush_radius_scale")
 
 
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):

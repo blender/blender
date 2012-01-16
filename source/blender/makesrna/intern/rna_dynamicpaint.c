@@ -395,6 +395,10 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0, 10000.0);
 	RNA_def_property_ui_range(prop, 1.0, 10000.0, 5, 0);
 	RNA_def_property_ui_text(prop, "Dissolve Speed", "Approximately in how many frames should dissolve happen");
+
+	prop= RNA_def_property(srna, "use_drying", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_USE_DRYING);
+	RNA_def_property_ui_text(prop, "Dry", "Enable to make surface wetness dry over time");
 	
 	prop= RNA_def_property(srna, "dry_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1.0, 10000.0);
@@ -443,6 +447,20 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Anti-aliasing", "Use 5x multisampling to smoothen paint edges");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
+	prop= RNA_def_property(srna, "brush_influence_scale", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "influence_scale");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Influence Scale", "Adjust influence brush objects have on this surface");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+
+	prop= RNA_def_property(srna, "brush_radius_scale", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "radius_scale");
+	RNA_def_property_range(prop, 0.0, 10.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Radius Scale", "Adjust radius of proximity brushes or particles for this surface");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+
 	/*
 	*	Initial Color
 	*/
@@ -454,6 +472,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW|ND_MODIFIER, "rna_DynamicPaintSurface_initialcolortype");
 
 	prop= RNA_def_property(srna, "init_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Color", "Initial color of the surface");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
@@ -494,6 +513,12 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.001, 10.0);
 	RNA_def_property_ui_range(prop, 0.01, 5.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Spread Speed", "How fast spread effect moves on the canvas surface");
+
+	prop= RNA_def_property(srna, "color_dry_threshold", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "color_dry_threshold");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Color Dry", "The wetness level when colors start to shift to the background");
 
 	prop= RNA_def_property(srna, "color_spread_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "color_spread_speed");

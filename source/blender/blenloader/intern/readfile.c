@@ -12974,8 +12974,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
-	/* put compatibility code here until next subversion bump */
+
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 3))
 	{
 		{
 			/* convert extended ascii to utf-8 for text editor */
@@ -12994,6 +12994,32 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 		}
+		{
+			/* set new dynamic paint values */
+			Object *ob;
+			for(ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for(md= ob->modifiers.first; md; md= md->next) {
+					if (md->type == eModifierType_DynamicPaint) {
+						DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+						if(pmd->canvas)
+						{
+							DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+							for (; surface; surface=surface->next) {
+								surface->color_dry_threshold = 1.0f;
+								surface->influence_scale = 1.0f;
+								surface->radius_scale = 1.0f;
+								surface->flags |= MOD_DPAINT_USE_DRYING;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

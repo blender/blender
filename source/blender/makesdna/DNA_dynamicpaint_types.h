@@ -55,6 +55,7 @@ struct PaintSurfaceData;
 
 #define MOD_DPAINT_WAVE_OPEN_BORDERS (1<<7) /* passes waves through mesh edges */
 #define MOD_DPAINT_DISP_INCREMENTAL (1<<8) /* builds displace on top of earlier values */
+#define MOD_DPAINT_USE_DRYING (1<<9) /* use drying */
 
 #define MOD_DPAINT_OUT1 (1<<10) /* output primary surface */
 #define MOD_DPAINT_OUT2 (1<<11) /* output secondary surface */
@@ -69,8 +70,8 @@ struct PaintSurfaceData;
 
 /* effect */
 #define MOD_DPAINT_EFFECT_DO_SPREAD (1<<0) /* do spread effect */
-#define MOD_DPAINT_EFFECT_DO_DRIP (1<<1) /* do spread effect */
-#define MOD_DPAINT_EFFECT_DO_SHRINK (1<<2) /* do spread effect */
+#define MOD_DPAINT_EFFECT_DO_DRIP (1<<1) /* do drip effect */
+#define MOD_DPAINT_EFFECT_DO_SHRINK (1<<2) /* do shrink effect */
 
 /* preview_id */
 #define MOD_DPAINT_SURFACE_PREV_PAINT 0
@@ -114,15 +115,17 @@ typedef struct DynamicPaintSurface {
 	char init_layername[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
 
 	int dry_speed, diss_speed;
+	float color_dry_threshold;
 	float depth_clamp, disp_factor;
 
 	float spread_speed, color_spread_speed, shrink_speed;
 	float drip_vel, drip_acc;
 
+	/* per surface brush settings */
+	float influence_scale, radius_scale;
+
 	/* wave settings */
 	float wave_damping, wave_speed, wave_timescale, wave_spring;
-
-	int pad_;
 
 	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	char image_output_path[240];  /* 240 = FILE_MAX */
