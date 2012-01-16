@@ -235,7 +235,7 @@ void ED_operatormacros_object(void)
 	if(ot) {
 		ot->description = "Duplicate selected objects and move them";
 		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
-		RNA_boolean_set(otmacro->ptr, "linked", 1);
+		RNA_boolean_set(otmacro->ptr, "linked", TRUE);
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}

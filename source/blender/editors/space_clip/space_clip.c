@@ -463,10 +463,14 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	/* selection */
-	WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
-	WM_keymap_add_item(keymap, "CLIP_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CLIP_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "CLIP_MT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -530,8 +534,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	/* selection */
-	WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 
 	/* delete */
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", DELKEY, KM_PRESS, 0, 0);

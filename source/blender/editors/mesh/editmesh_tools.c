@@ -4278,7 +4278,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BKE_mesh_end_editmesh(obedit->data, em);
 
 //	RNA_enum_set(op->ptr, "proportional", 0);
-//	RNA_boolean_set(op->ptr, "mirror", 0);
+//	RNA_boolean_set(op->ptr, "mirror", FALSE);
 //	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;

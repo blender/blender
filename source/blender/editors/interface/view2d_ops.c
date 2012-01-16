@@ -1689,7 +1689,8 @@ void UI_view2d_operatortypes(void)
 void UI_view2d_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "View2D", 0, 0);
-	
+	wmKeyMapItem *kmi;
+
 	/* scrollers */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", MIDDLEMOUSE, KM_PRESS, 0, 0);
@@ -1750,8 +1751,10 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	
-	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", PAGEDOWNKEY, KM_PRESS, 0, 0)->ptr, "page", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", PAGEUPKEY, KM_PRESS, 0, 0)->ptr, "page", 1);
+	kmi = WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "page", TRUE);
+	kmi = WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", PAGEUPKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "page", TRUE);
 	
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);

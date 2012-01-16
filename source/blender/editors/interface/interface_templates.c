@@ -1957,10 +1957,10 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 		tot= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 		
 		/* Normally clicking only selects one layer */
-		RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, cur, 1);
+		RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, cur, TRUE);
 		for(i = 0; i < tot; ++i) {
 			if(i != cur)
-				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, 0);
+				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, FALSE);
 		}
 	}
 	

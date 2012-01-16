@@ -320,7 +320,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 	int len= RNA_property_array_length(ptr, prop);
 
 	if(!shift) {
-		RNA_property_boolean_set_index(ptr, prop, index, 1);
+		RNA_property_boolean_set_index(ptr, prop, index, TRUE);
 
 		for(i=0; i<len; i++)
 			if(i != index)
@@ -2783,7 +2783,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 
 		WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
 		RNA_string_set(&op_ptr, "operator", op->type->idname);
-		RNA_boolean_set(&op_ptr, "remove_active", 1);
+		RNA_boolean_set(&op_ptr, "remove_active", TRUE);
 		op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMOUT, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 	}
 
