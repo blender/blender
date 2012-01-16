@@ -67,3 +67,7 @@ endif()
 if(WITH_LIBMV)
 	add_subdirectory(libmv)
 endif()
+
+if(WITH_CARVE)
+	add_subdirectory(carve)
+endif()

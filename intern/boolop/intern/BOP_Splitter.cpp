@@ -34,7 +34,6 @@
 #include "BOP_Tag.h"
 
 #include <iostream>
-using namespace std;
 
 /**
  * Returns the split point resulting from intersect a plane and a mesh face  

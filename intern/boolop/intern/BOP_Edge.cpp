@@ -105,7 +105,6 @@ bool BOP_Edge::removeFace(BOP_Index i)
 #ifdef BOP_DEBUG
 
 #include <iostream>
-using namespace std;
 
 /**
  * Implements operator <<.

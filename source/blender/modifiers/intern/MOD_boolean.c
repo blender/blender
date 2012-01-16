@@ -47,7 +47,6 @@
 #include "MOD_boolean_util.h"
 #include "MOD_util.h"
 
-
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;

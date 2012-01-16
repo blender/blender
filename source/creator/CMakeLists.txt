@@ -876,6 +876,10 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
 	endif()
 
+	if(WITH_CARVE)
+		list(APPEND BLENDER_SORTED_LIBS extern_carve)
+	endif()
+
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})
 		set(REMLIB ${SORTLIB})
 		foreach(SEARCHLIB ${BLENDER_LINK_LIBS})

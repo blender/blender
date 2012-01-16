@@ -208,6 +208,9 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
 
+# Mesh boolean lib
+option(WITH_CARVE         "Enable Carve library to handle mesh boolean operations" ON)
+
 # Misc
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)
@@ -300,9 +303,13 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
-# auto enable openimageio and boost for cycles
+# auto enable openimageio for cycles
 if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
+endif()
+
+# auto enable boost for cycles and carve
+if(WITH_CYCLES OR WITH_CARVE)
 	set(WITH_BOOST ON)
 endif()
 
