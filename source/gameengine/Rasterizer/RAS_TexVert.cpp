@@ -104,7 +104,7 @@ void RAS_TexVert::SetFlag(const short flag)
 
 void RAS_TexVert::SetUnit(const unsigned int u)
 {
-	m_unit = u<=MAX_UNIT?u:MAX_UNIT;
+	m_unit = u <= (unsigned int) MAX_UNIT ? u: (unsigned int)MAX_UNIT;
 }
 
 void RAS_TexVert::SetNormal(const MT_Vector3& normal)

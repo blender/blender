@@ -888,11 +888,11 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
+#if 0
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)
 				{
 					// XXX animato
-#if 0
 					Ipo* ipo = blenderObject->ipo;
 					
 					//create the curves, if not existing
@@ -903,17 +903,11 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotX"));
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotY"));
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ"));
-#endif
 				}
+#endif
 			}
-
 		}
-		
-	
 	}
-
-
-
 }
 
 #ifdef WITH_PYTHON
