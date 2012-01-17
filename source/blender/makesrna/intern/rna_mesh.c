@@ -425,6 +425,24 @@ static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 	(&mcol[3].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
 
+static void rna_MeshLoopColor_color_get(PointerRNA *ptr, float *values)
+{
+	MLoopCol *mcol= (MLoopCol *)ptr->data;
+
+	values[2]= (&mcol->r)[0]/255.0f;
+	values[1]= (&mcol->r)[1]/255.0f;
+	values[0]= (&mcol->r)[2]/255.0f;
+}
+
+static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
+{
+	MLoopCol *mcol= (MLoopCol *)ptr->data;
+
+	(&mcol->r)[2]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
+	(&mcol->r)[1]= (char)(CLAMPIS(values[1]*255.0f, 0, 255));
+	(&mcol->r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
+}
+
 static int rna_Mesh_texspace_editable(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
@@ -1791,19 +1809,23 @@ static void rna_def_mloopcol(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Render", "Sets the layer as active for rendering");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-#if 0
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MeshColor");
+	RNA_def_property_struct_type(prop, "MeshLoopColor");
 	RNA_def_property_ui_text(prop, "Data", "");
 	RNA_def_property_collection_funcs(prop, "rna_MeshLoopColorLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshLoopColorLayer_data_length", NULL, NULL, NULL);
 
-	srna= RNA_def_struct(brna, "MeshColor", NULL);
-	RNA_def_struct_sdna(srna, "MCol");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Color", "Vertex colors for a face in a Mesh");
+
+	srna= RNA_def_struct(brna, "MeshLoopColor", NULL);
+	RNA_def_struct_sdna(srna, "MLoopCol");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Color", "Vertex loop colors in a Mesh");
 	RNA_def_struct_path_func(srna, "rna_MeshColor_path");
 
+	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_funcs(prop, "rna_MeshLoopColor_color_get", "rna_MeshLoopColor_color_set", NULL);
+	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-#endif
 }
 
 static void rna_def_mproperties(BlenderRNA *brna)
