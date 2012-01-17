@@ -226,7 +226,7 @@ int txt_extended_ascii_as_utf8(char **str)
 
 	while ((*str)[i]) {
 		if((bad_char= BLI_utf8_invalid_byte(*str+i, length)) == -1)
-		    break;
+			break;
 
 		added++;
 		i+= bad_char + 1;
