@@ -629,10 +629,11 @@ elseif(APPLE)
 	)
 
 	# python
-	if(WITH_PYTHON)
+	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
 		# the python zip is first extract as part of the build process,
 		# and then later installed as part of make install. this is much
 		# quicker, and means we can easily exclude files on copy
+		# Not needed for PYTHON_MODULE or WEB_PLUGIN due uses  Pyhon framework
 		add_custom_target(
 			extractpyzip
 			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/python)
