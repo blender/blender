@@ -48,6 +48,7 @@
 
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
