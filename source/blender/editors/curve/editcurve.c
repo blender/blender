@@ -6857,10 +6857,9 @@ static void *undo_check_lastsel(void *lastsel, Nurb *nu, Nurb *newnu)
 	return NULL;
 }
 
-static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *obe)
+static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 {
-	Object *obedit= obe;
-	Curve *cu= (Curve*)obedit->data;
+	Curve *cu= cu_v;
 	UndoCurve *undoCurve= ucu;
 	ListBase *undobase= &undoCurve->nubase;
 	ListBase *editbase= curve_editnurbs(cu);
@@ -6903,13 +6902,15 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *obe)
 
 	cu->lastsel= lastsel;
 	cu->actnu= undoCurve->actnu;
-
+	/* BMESH_TODO */
+#if 0
 	ED_curve_updateAnimPaths(obedit);
+#endif
 }
 
-static void *editCurve_to_undoCurve(void *UNUSED(edata), void *obdata)
+static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
 {
-	Curve *cu= obdata;
+	Curve *cu= cu_v;
 	ListBase *nubase= curve_editnurbs(cu);
 	UndoCurve *undoCurve;
 	EditNurb *editnurb= cu->editnurb, tmpEditnurb;
