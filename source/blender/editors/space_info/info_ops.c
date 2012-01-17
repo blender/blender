@@ -124,7 +124,7 @@ static const EnumPropertyItem unpack_all_method_items[] = {
 	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use files in original location (create when necessary)", ""},
 	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write files to original location (overwrite existing files)", ""},
 	{PF_KEEP, "KEEP", 0, "Disable AutoPack, keep all packed files", ""},
-	{PF_ASK, "ASK", 0, "Ask for each file", ""},
+	/* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
 	{0, NULL, 0, NULL, NULL}};
 
 static int unpack_all_exec(bContext *C, wmOperator *op)
