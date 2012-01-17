@@ -166,9 +166,10 @@ class BRUSH_OT_active_index_set(Operator):
         if attr is None:
             return {'CANCELLED'}
 
+        toolsettings = context.tool_settings
         for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
             if i == self.index:
-                getattr(context.tool_settings, self.mode).brush = brush
+                getattr(toolsettings, self.mode).brush = brush
                 return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -1768,4 +1769,3 @@ class WM_OT_addon_expand(Operator):
         info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = not info["show_expanded"]
         return {'FINISHED'}
-

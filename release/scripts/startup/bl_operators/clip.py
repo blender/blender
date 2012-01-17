@@ -76,6 +76,7 @@ def CLIP_camera_for_clip(context, clip):
 
     return camera
 
+
 def CLIP_track_view_selected(sc, track):
     if track.select_anchor:
         return True
@@ -118,7 +119,7 @@ class CLIP_OT_track_to_empty(Operator):
         constraint.track = track.name
         constraint.use_3d_position = False
         constraint.object = tracking_object.name
-        constraint.camera = CLIP_camera_for_clip(context, clip);
+        constraint.camera = CLIP_camera_for_clip(context, clip)
 
     def execute(self, context):
         sc = context.space_data
@@ -127,7 +128,7 @@ class CLIP_OT_track_to_empty(Operator):
 
         for track in tracking_object.tracks:
             if CLIP_track_view_selected(sc, track):
-                self._link_track(context, clip, tracking_object ,track)
+                self._link_track(context, clip, tracking_object, track)
 
         return {'FINISHED'}
 

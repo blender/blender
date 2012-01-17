@@ -706,8 +706,8 @@ class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
 
         layout.prop(brush, "image_tool", text="")
 
@@ -823,18 +823,16 @@ class IMAGE_UV_sculpt(bpy.types.Panel):
         split = layout.split()
         col = split.column()
 
-        col.prop(context.tool_settings, "uv_sculpt_lock_borders");
-        col.prop(context.tool_settings, "uv_sculpt_all_islands");
-        
+        col.prop(toolsettings, "uv_sculpt_lock_borders")
+        col.prop(toolsettings, "uv_sculpt_all_islands")
+
         split = layout.split()
         col = split.column()
 
-        col.prop(context.tool_settings, "uv_sculpt_tool");
-        
-        if context.tool_settings.uv_sculpt_tool == 'RELAX':
-            col.prop(context.tool_settings, "uv_relax_method");
- 
-        
+        col.prop(toolsettings, "uv_sculpt_tool")
+
+        if toolsettings.uv_sculpt_tool == 'RELAX':
+            col.prop(toolsettings, "uv_relax_method")
 
 
 if __name__ == "__main__":  # only for live edit.
