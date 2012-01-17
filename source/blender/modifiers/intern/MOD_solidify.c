@@ -586,7 +586,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			int eidx= new_edge_arr[i];
 			int fidx= edge_users[eidx];
 			int flip, k1, k2;
-			MLoop *ml2;
 
 			if(fidx >= numFaces) {
 				fidx -= numFaces;
@@ -603,38 +602,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			mp->loopstart = j+numLoops*2;
 			mp->flag = mpoly[fidx].flag;
 			mp->totloop = 4;
-			
-			ml2 = mloop + mpoly[fidx].loopstart;
-			for (k1=0; k1<mpoly[fidx].totloop; k1++, ml2++) {
-				if (ml2->e == eidx)
-					break;
-			}
-			
-			if (k1 == mpoly[fidx].totloop) {
-				fprintf(stderr, "%s: solidify bad k1==totloop (bmesh internal error)\n", __func__);
-			}
-			
-			if (ed->v2 == mloop[mpoly[fidx].loopstart+k1].v) {
-				k2 = (k1 + mp->totloop + 1)%mp->totloop;
-				SWAP(int, k1, k2);
-			}
-			else if (ed->v1 == mloop[mpoly[fidx].loopstart+k1].v) {
-				k2 = (k1+1)%mp->totloop;
-			}
-			else {
-				fprintf(stderr, "%s: solidify bad edge/vert\n", __func__);
-				k2 = k1;
-			}
-			
-			k1 += mpoly[fidx].loopstart;
-			k2 += mpoly[fidx].loopstart;
-			
+
+			k1 = mpoly[fidx].loopstart + ((edge_order[eidx] + mp->totloop + 1) % mp->totloop);
+			k2 = mpoly[fidx].loopstart + ((edge_order[eidx] % mp->totloop));
+
+			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j+0, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+1, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+2, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j+3, 1);
+
 			if(flip) {
-				CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j, 1);
-				CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+1, 1);
-				CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+2, 1);
-				CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j+3, 1);
-				
 				ml[j].v = ed->v1;
 				ml[j++].e = eidx;
 				
@@ -648,22 +625,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				ml[j++].e = numEdges*2 + old_vert_arr[ed->v1];
 			}
 			else {
-				CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j, 1);
-				CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+1, 1);
-				CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+2, 1);
-				CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j+3, 1);
+				ml[j].v = ed->v2;
+				ml[j++].e = eidx;
+
+				ml[j].v = ed->v1;
+				ml[j++].e = numEdges*2 + old_vert_arr[ed->v1];
 
 				ml[j].v = ed->v1+numVerts;
 				ml[j++].e = eidx+numEdges;
 
 				ml[j].v = ed->v2+numVerts;
 				ml[j++].e = numEdges*2 + old_vert_arr[ed->v2];
-				
-				ml[j].v = ed->v2;
-				ml[j++].e = eidx;
-				
-				ml[j].v = ed->v1;
-				ml[j++].e = numEdges*2 + old_vert_arr[ed->v1];
 			}
 			
 			if (edge_origIndex) {
