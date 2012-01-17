@@ -46,8 +46,8 @@ void			free_text		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
 struct Text*	add_empty_text	(const char *name);
-int             txt_extended_ascii_as_utf8(char **str);
-int	            reopen_text		(struct Text *text);
+int				txt_extended_ascii_as_utf8(char **str);
+int				reopen_text		(struct Text *text);
 struct Text*	add_text		(const char *file, const char *relpath); 
 struct Text*	copy_text		(struct Text *ta);
 void			unlink_text		(struct Main *bmain, struct Text *text);
@@ -60,8 +60,8 @@ void	txt_order_cursors	(struct Text *text);
 int		txt_find_string		(struct Text *text, const char *findstr, int wrap, int match_case);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
-int     txt_utf8_offset_to_index(char *str, int offset);
-int     txt_utf8_index_to_offset(char *str, int index);
+int		txt_utf8_offset_to_index(char *str, int offset);
+int		txt_utf8_index_to_offset(char *str, int index);
 void	txt_move_up			(struct Text *text, short sel);
 void	txt_move_down		(struct Text *text, short sel);
 void	txt_move_left		(struct Text *text, short sel);
@@ -162,8 +162,8 @@ int text_check_whitespace(char ch);
  * by 4 character length ID + the text
  * block itself + the 4 character length
  * ID (repeat) and opcode (repeat)) */
-#define UNDO_DBLOCK	    027 /* Delete block */
-#define UNDO_IBLOCK	    030 /* Insert block */
+#define UNDO_DBLOCK     027 /* Delete block */
+#define UNDO_IBLOCK     030 /* Insert block */
 
 /* Misc */
 #define UNDO_SWAP       031	/* Swap cursors */

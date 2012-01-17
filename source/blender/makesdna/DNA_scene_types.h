@@ -671,10 +671,20 @@ typedef struct GameData {
 #define GAME_MAT_MULTITEX	1
 #define GAME_MAT_GLSL		2
 
-/* *************************************************************** */
+/* UV Paint */
+#define UV_SCULPT_LOCK_BORDERS				1
+#define UV_SCULPT_ALL_ISLANDS				2
+
+#define UV_SCULPT_TOOL_PINCH				1
+#define UV_SCULPT_TOOL_RELAX				2
+#define UV_SCULPT_TOOL_GRAB					3
+
+#define UV_SCULPT_TOOL_RELAX_LAPLACIAN	1
+#define UV_SCULPT_TOOL_RELAX_HC			2
+
 /* Markers */
 
-typedef struct TimeMarker {
+typedef struct TimeMarker {	
 	struct TimeMarker *next, *prev;
 	int frame;
 	char name[64];
@@ -780,6 +790,9 @@ typedef struct Sculpt {
 	int pad;
 } Sculpt;
 
+typedef struct UvSculpt {
+	Paint paint;
+} UvSculpt;
 /* ------------------------------------------- */
 /* Vertex Paint */
 
@@ -855,6 +868,7 @@ typedef struct ToolSettings {
 	VPaint *vpaint;		/* vertex paint */
 	VPaint *wpaint;		/* weight paint */
 	Sculpt *sculpt;
+	UvSculpt *uvsculpt;	/* uv smooth */
 	
 	/* Vertex groups */
 	float vgroup_weight;
@@ -894,7 +908,7 @@ typedef struct ToolSettings {
 	short uvcalc_mapalign;
 	short uvcalc_flag;
 	short uv_flag, uv_selectmode;
-	short uv_pad;
+	short uv_subsurf_level;
 	
 	/* Grease Pencil */
 	short gpencil_flags;
@@ -966,10 +980,14 @@ typedef struct ToolSettings {
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
 
+	/* UV painting */
+	int use_uv_sculpt;
+	int uv_sculpt_settings;
+	int uv_sculpt_tool;
+	int uv_relax_method;
 	/* XXX: these sculpt_paint_* fields are deprecated, use the
 	   unified_paint_settings field instead! */
-	short sculpt_paint_settings DNA_DEPRECATED;
-	short pad1;
+	short sculpt_paint_settings DNA_DEPRECATED;	short pad1;
 	int sculpt_paint_unified_size DNA_DEPRECATED;
 	float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
 	float sculpt_paint_unified_alpha DNA_DEPRECATED;
@@ -1421,6 +1439,7 @@ typedef enum SculptFlags {
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
+#define UVCALC_USESUBSURF			8	/* Use mesh data after subsurf to compute UVs*/
 
 /* toolsettings->uv_flag */
 #define UV_SYNC_SELECTION	1

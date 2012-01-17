@@ -103,6 +103,10 @@ void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_project_image(struct wmOperatorType *ot);
 void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 
+/* uv sculpting */
+int uv_sculpt_poll(struct bContext *C);
+
+void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 
 /* paint_utils.c */
 

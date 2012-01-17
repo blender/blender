@@ -178,6 +178,30 @@ int space_image_main_area_poll(bContext *C)
 	return 0;
 }
 
+/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode */
+int space_image_main_area_not_uv_brush_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+
+	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+	if(sima && !toolsettings->uvsculpt)
+		return 1;
+
+	return 0;
+}
+
+static int space_image_image_sample_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	Object *obedit= CTX_data_edit_object(C);
+	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+
+	if(obedit){
+		if(ED_space_image_show_uvedit(sima, obedit) && (toolsettings->use_uv_sculpt))
+			return 0;
+	}
+	return space_image_main_area_poll(C);
+}
 /********************** view pan operator *********************/
 
 typedef struct ViewPanData {
@@ -1949,7 +1973,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->invoke= image_sample_invoke;
 	ot->modal= image_sample_modal;
 	ot->cancel= image_sample_cancel;
-	ot->poll= space_image_main_area_poll;
+	ot->poll= space_image_image_sample_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -2086,7 +2110,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	ot->invoke= image_sample_invoke;
 	ot->modal= image_sample_modal;
 	ot->cancel= image_sample_cancel;
-	ot->poll= space_image_main_area_poll;
+	ot->poll= space_image_main_area_not_uv_brush_poll;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves");

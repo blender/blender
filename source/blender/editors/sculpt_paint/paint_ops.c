@@ -340,6 +340,39 @@ static void BRUSH_OT_image_tool_set(wmOperatorType *ot)
 }
 
 
+static int brush_uv_sculpt_tool_set_exec(bContext *C, wmOperator *op)
+{
+	Brush *brush;
+	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	ts->uv_sculpt_tool = RNA_enum_get(op->ptr, "tool");
+	brush = ts->uvsculpt->paint.brush;
+	/* To update toolshelf */
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+
+	return OPERATOR_FINISHED;
+}
+
+static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
+{
+	/* from rna_scene.c */
+	extern EnumPropertyItem uv_sculpt_tool_items[];
+	/* identifiers */
+	ot->name = "UV Sculpt Tool Set";
+	ot->description = "Set the uv sculpt tool";
+	ot->idname = "BRUSH_OT_uv_sculpt_tool_set";
+
+	/* api callbacks */
+	ot->exec = brush_uv_sculpt_tool_set_exec;
+	ot->poll = uv_sculpt_poll;
+
+	/* flags */
+	ot->flag = 0;
+
+	/* props */
+	ot->prop = RNA_def_enum(ot->srna, "tool", uv_sculpt_tool_items, 0, "Tool", "");
+}
+
 /**************************** registration **********************************/
 
 void ED_operatortypes_paint(void)
@@ -355,6 +388,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(BRUSH_OT_vertex_tool_set);
 	WM_operatortype_append(BRUSH_OT_weight_tool_set);
 	WM_operatortype_append(BRUSH_OT_image_tool_set);
+	WM_operatortype_append(BRUSH_OT_uv_sculpt_tool_set);
 
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);
@@ -372,6 +406,9 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_weight_from_bones);
 	WM_operatortype_append(PAINT_OT_weight_sample);
 	WM_operatortype_append(PAINT_OT_weight_sample_group);
+
+	/* uv */
+	WM_operatortype_append(SCULPT_OT_uv_sculpt_stroke);
 
 	/* vertex selection */
 	WM_operatortype_append(PAINT_OT_vert_select_all);
@@ -619,4 +656,22 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+
+	keymap= WM_keymap_find(keyconf, "UV Sculpt", 0, 0);
+	keymap->poll= uv_sculpt_poll;
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_uv_sculpt");
+
+	WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "temp_relax", 1);
+
+	ed_keymap_paint_brush_size(keymap, "tool_settings.uv_sculpt.brush.size");
+	ed_keymap_paint_brush_radial_control(keymap, "uv_sculpt", 0);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_uv_sculpt_tool_set", SKEY, KM_PRESS, 0, 0)->ptr, "tool", UV_SCULPT_TOOL_RELAX);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_uv_sculpt_tool_set", PKEY, KM_PRESS, 0, 0)->ptr, "tool", UV_SCULPT_TOOL_PINCH);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_uv_sculpt_tool_set", GKEY, KM_PRESS, 0, 0)->ptr, "tool", UV_SCULPT_TOOL_GRAB);
+
 }

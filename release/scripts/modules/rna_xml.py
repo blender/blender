@@ -141,7 +141,7 @@ def rna2xml(fw=print_ln,
                                     return number_to_str(s, subsubvalue_type)
                                 else:
                                     return " ".join([str_recursive(si) for si in s])
-                            
+
                             array_value = " ".join(str_recursive(v) for v in subvalue_rna)
 
                         node_attrs.append("%s=\"%s\"" % (prop, array_value))
@@ -308,12 +308,12 @@ def xml2rna(root_xml,
     rna2xml_node(root_xml, root_rna)
 
 
-
 # -----------------------------------------------------------------------------
 # Utility function used by presets.
 # The idea is you can run a preset like a script with a few args.
 #
 # This roughly matches the operator 'bpy.ops.script.python_file_run'
+
 
 def _get_context_val(context, path):
     path_full = "context." + path
@@ -327,6 +327,7 @@ def _get_context_val(context, path):
         value = Ellipsis
 
     return value
+
 
 def xml_file_run(context, filepath, rna_map):
 

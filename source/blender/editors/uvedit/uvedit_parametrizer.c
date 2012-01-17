@@ -91,7 +91,7 @@ typedef struct PVert {
 	} u;
 
 	struct PEdge *edge;
-	float *co;
+	float co[3];
 	float uv[2];
 	unsigned char flag;
 
@@ -655,11 +655,15 @@ static void p_face_backup_uvs(PFace *f)
 {
 	PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 
-	if (e1->orig_uv && e2->orig_uv && e3->orig_uv) {
+	if (e1->orig_uv) {
 		e1->old_uv[0] = e1->orig_uv[0];
 		e1->old_uv[1] = e1->orig_uv[1];
+	}
+	if (e2->orig_uv) {
 		e2->old_uv[0] = e2->orig_uv[0];
 		e2->old_uv[1] = e2->orig_uv[1];
+	}
+	if (e3->orig_uv) {
 		e3->old_uv[0] = e3->orig_uv[0];
 		e3->old_uv[1] = e3->orig_uv[1];
 	}
@@ -669,11 +673,15 @@ static void p_face_restore_uvs(PFace *f)
 {
 	PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 
-	if (e1->orig_uv && e2->orig_uv && e3->orig_uv) {
+	if (e1->orig_uv) {
 		e1->orig_uv[0] = e1->old_uv[0];
 		e1->orig_uv[1] = e1->old_uv[1];
+	}
+	if (e2->orig_uv) {
 		e2->orig_uv[0] = e2->old_uv[0];
 		e2->orig_uv[1] = e2->old_uv[1];
+	}
+	if (e3->orig_uv) {
 		e3->orig_uv[0] = e3->old_uv[0];
 		e3->orig_uv[1] = e3->old_uv[1];
 	}
@@ -684,7 +692,7 @@ static void p_face_restore_uvs(PFace *f)
 static PVert *p_vert_add(PHandle *handle, PHashKey key, float *co, PEdge *e)
 {
 	PVert *v = (PVert*)BLI_memarena_alloc(handle->arena, sizeof *v);
-	v->co = co;
+	copy_v3_v3(v->co, co);
 	v->u.key = key;
 	v->edge = e;
 	v->flag = 0;
@@ -708,7 +716,7 @@ static PVert *p_vert_copy(PChart *chart, PVert *v)
 {
 	PVert *nv = (PVert*)BLI_memarena_alloc(chart->handle->arena, sizeof *nv);
 
-	nv->co = v->co;
+	copy_v3_v3(nv->co, v->co);
 	nv->uv[0] = v->uv[0];
 	nv->uv[1] = v->uv[1];
 	nv->u.key = v->u.key;

@@ -297,6 +297,10 @@ void free_scene(Scene *sce)
 			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
 		}
+		if(sce->toolsettings->uvsculpt) {
+			free_paint(&sce->toolsettings->uvsculpt->paint);
+			MEM_freeN(sce->toolsettings->uvsculpt);
+		}
 		free_paint(&sce->toolsettings->imapaint.paint);
 
 		MEM_freeN(sce->toolsettings);

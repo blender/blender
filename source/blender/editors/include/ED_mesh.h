@@ -182,6 +182,12 @@ int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short
 
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 
+struct UvElementMap *EDBM_make_uv_element_map(struct BMEditMesh *em, int selected, int doIslands);
+void		EDBM_free_uv_element_map(struct UvElementMap *vmap);
+
+void		EDBM_add_data_layer(struct BMEditMesh *em, struct CustomData *data, int type, const char *name);
+void		EDBM_free_data_layer(struct BMEditMesh *em, struct CustomData *data, int type);
+
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
 
 int EDBM_texFaceCheck(struct BMEditMesh *em);

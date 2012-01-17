@@ -418,9 +418,9 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         rd = context.scene.render
 
         layout.active = rd.use_stamp
-        
+
         layout.prop(rd, "stamp_font_size", text="Font Size")
-        
+
         row = layout.row()
         row.column().prop(rd, "stamp_foreground", slider=True)
         row.column().prop(rd, "stamp_background", slider=True)
@@ -433,7 +433,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         col.prop(rd, "use_stamp_render_time", text="RenderTime")
         col.prop(rd, "use_stamp_frame", text="Frame")
         col.prop(rd, "use_stamp_scene", text="Scene")
-        
+
         col = split.column()
         col.prop(rd, "use_stamp_camera", text="Camera")
         col.prop(rd, "use_stamp_lens", text="Lens")

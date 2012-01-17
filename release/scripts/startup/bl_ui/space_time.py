@@ -28,7 +28,7 @@ class TIME_HT_header(Header):
         layout = self.layout
 
         scene = context.scene
-        tools = context.tool_settings
+        toolsettings = context.tool_settings
         screen = context.screen
 
         row = layout.row(align=True)
@@ -80,11 +80,11 @@ class TIME_HT_header(Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
-        row.prop(tools, "use_keyframe_insert_keyingset", text="", toggle=True)
-        if screen.is_animation_playing and tools.use_keyframe_insert_auto:
+        row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
+        row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
+        if screen.is_animation_playing and toolsettings.use_keyframe_insert_auto:
             subsub = row.row()
-            subsub.prop(tools, "use_record_with_nla", toggle=True)
+            subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
 
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
@@ -193,10 +193,10 @@ class TIME_MT_autokey(Menu):
 
     def draw(self, context):
         layout = self.layout
-        tools = context.tool_settings
+        toolsettings = context.tool_settings
 
-        layout.prop_enum(tools, "auto_keying_mode", 'ADD_REPLACE_KEYS')
-        layout.prop_enum(tools, "auto_keying_mode", 'REPLACE_KEYS')
+        layout.prop_enum(toolsettings, "auto_keying_mode", 'ADD_REPLACE_KEYS')
+        layout.prop_enum(toolsettings, "auto_keying_mode", 'REPLACE_KEYS')
 
 
 def marker_menu_generic(layout):

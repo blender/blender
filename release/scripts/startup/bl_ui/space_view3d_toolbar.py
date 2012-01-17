@@ -453,18 +453,18 @@ class PaintPanel():
 
     @staticmethod
     def paint_settings(context):
-        ts = context.tool_settings
+        toolsettings = context.tool_settings
 
         if context.sculpt_object:
-            return ts.sculpt
+            return toolsettings.sculpt
         elif context.vertex_paint_object:
-            return ts.vertex_paint
+            return toolsettings.vertex_paint
         elif context.weight_paint_object:
-            return ts.weight_paint
+            return toolsettings.weight_paint
         elif context.image_paint_object:
-            return ts.image_paint
+            return toolsettings.image_paint
         elif context.particle_edit_object:
-            return ts.particle_edit
+            return toolsettings.particle_edit
 
         return None
 
@@ -487,6 +487,7 @@ class PaintPanel():
         ptr = ups if ups.use_unified_strength else brush
         parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
 
+
 class VIEW3D_PT_tools_brush(PaintPanel, Panel):
     bl_label = "Brush"
 
@@ -497,6 +498,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        toolsettings = context.tool_settings
         settings = self.paint_settings(context)
         brush = settings.brush
 
@@ -541,7 +543,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
 
             row = col.row(align=True)
 
-            ups = context.tool_settings.unified_paint_settings
+            ups = toolsettings.unified_paint_settings
             if ((ups.use_unified_size and ups.use_locked_size) or
                 ((not ups.use_unified_size) and brush.use_locked_size)):
                 self.prop_unified_size(row, context, brush, "use_locked_size", icon='LOCKED')
@@ -675,9 +677,9 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
 
         # Weight Paint Mode #
         elif context.weight_paint_object and brush:
-            layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
-            layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
-            layout.prop(context.tool_settings, "use_multipaint", text="Multi-Paint")
+            layout.prop(toolsettings, "vertex_group_weight", text="Weight", slider=True)
+            layout.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
+            layout.prop(toolsettings, "use_multipaint", text="Multi-Paint")
 
             col = layout.column()
 
@@ -956,8 +958,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
-        sculpt = tool_settings.sculpt
+        toolsettings = context.tool_settings
+        sculpt = toolsettings.sculpt
 
         layout.label(text="Lock:")
         row = layout.row(align=True)
@@ -1003,11 +1005,11 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        ts = context.tool_settings
-        return ((context.sculpt_object and ts.sculpt) or
-                (context.vertex_paint_object and ts.vertex_paint) or
-                (context.weight_paint_object and ts.weight_paint) or
-                (context.image_paint_object and ts.image_paint))
+        toolsettings = context.tool_settings
+        return ((context.sculpt_object and toolsettings.sculpt) or
+                (context.vertex_paint_object and toolsettings.vertex_paint) or
+                (context.weight_paint_object and toolsettings.weight_paint) or
+                (context.image_paint_object and toolsettings.image_paint))
 
     def draw(self, context):
         layout = self.layout
@@ -1102,8 +1104,8 @@ class VIEW3D_PT_tools_vertexpaint(PaintPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
-        vpaint = tool_settings.vertex_paint
+        toolsettings = context.tool_settings
+        vpaint = toolsettings.vertex_paint
 
         col = layout.column()
         #col.prop(vpaint, "mode", text="")
@@ -1141,8 +1143,9 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
 
         ob = context.active_object
         mesh = ob.data
-        ipaint = context.tool_settings.image_paint
-        settings = context.tool_settings.image_paint
+        toolsettings = context.tool_settings
+        ipaint = toolsettings.image_paint
+        settings = toolsettings.image_paint
         use_projection = ipaint.use_projection
 
         col = layout.column()
@@ -1198,8 +1201,6 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
 
     def draw(self, context):
         layout = self.layout
-
-        tool_settings = context.tool_settings
 
         col = layout.column()
         self.unified_paint_settings(col, context)

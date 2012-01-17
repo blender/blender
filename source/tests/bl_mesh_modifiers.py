@@ -31,10 +31,11 @@
 import math
 
 USE_QUICK_RENDER = False
-
+IS_BMESH = hasattr(__import__("bpy").types, "LoopColors")
 
 # -----------------------------------------------------------------------------
 # utility funcs
+
 
 def render_gl(context, filepath, shade):
 
@@ -61,13 +62,14 @@ def render_gl(context, filepath, shade):
 
     ctx_viewport_shade(context, shade)
 
+    #~ # stop to inspect!
+    #~ if filepath == "test_cube_shell_solidify_subsurf_wp_wire":
+        #~ assert(0)
+    #~ else:
+        #~ return
+
     bpy.ops.render.opengl(write_still=True,
                           view_context=True)
-
-
-    # stop to inspect!
-    #~ if filepath == "test_cube_like_subsurf_single_wp_wire":
-        #~ assert(0)
 
 
 def render_gl_all_modes(context, obj, filepath=""):
@@ -201,8 +203,12 @@ def defaults_object(obj):
         mesh.show_normal_vertex = True
 
         # lame!
-        for face in mesh.faces:
-            face.use_smooth = True
+        if IS_BMESH:
+            for poly in mesh.polygons:
+                poly.use_smooth = True
+        else:
+            for face in mesh.faces:
+                face.use_smooth = True
 
 
 def defaults_modifier(mod):
@@ -212,6 +218,18 @@ def defaults_modifier(mod):
 
 # -----------------------------------------------------------------------------
 # models (utils)
+
+
+if IS_BMESH:
+    def mesh_bmesh_poly_elems(poly, elems):
+        vert_start = poly.loop_start
+        vert_total = poly.loop_total
+        return elems[vert_start:vert_start + vert_total]
+
+    def mesh_bmesh_poly_vertices(poly):
+        return [loop.vertex_index
+                for loop in mesh_bmesh_poly_elems(poly, poly.id_data.loops)]
+
 
 def mesh_bounds(mesh):
     xmin = ymin = zmin = +100000000.0
@@ -231,23 +249,67 @@ def mesh_bounds(mesh):
 
 
 def mesh_uv_add(obj):
+
+    uvs = ((0.0, 0.0),
+           (0.0, 1.0),
+           (1.0, 1.0),
+           (1.0, 0.0))
+
     uv_lay = obj.data.uv_textures.new()
-    for uv in uv_lay.data:
-        uv.uv1 = 0.0, 0.0
-        uv.uv2 = 0.0, 1.0
-        uv.uv3 = 1.0, 1.0
-        uv.uv4 = 1.0, 0.0
+
+    if IS_BMESH:
+        # XXX, odd that we need to do this. until uvs and texface
+        # are separated we will need to keep it
+        uv_loops = obj.data.uv_loop_layers[-1]
+        uv_list = uv_loops.data[:]
+        for poly in obj.data.polygons:
+            poly_uvs = mesh_bmesh_poly_elems(poly, uv_list)
+            for i, c in enumerate(poly_uvs):
+                c.uv = uvs[i % 4]
+    else:
+        for uv in uv_lay.data:
+            uv.uv1 = uvs[0]
+            uv.uv2 = uvs[1]
+            uv.uv3 = uvs[2]
+            uv.uv4 = uvs[3]
 
     return uv_lay
 
 
 def mesh_vcol_add(obj, mode=0):
+
+    colors = ((0.0, 0.0, 0.0),  # black
+              (1.0, 0.0, 0.0),  # red
+              (0.0, 1.0, 0.0),  # green
+              (0.0, 0.0, 1.0),  # blue
+              (1.0, 1.0, 0.0),  # yellow
+              (0.0, 1.0, 1.0),  # cyan
+              (1.0, 0.0, 1.0),  # magenta
+              (1.0, 1.0, 1.0),  # white
+              )
+
+    def colors_get(i):
+        return colors[i % len(colors)]
+
     vcol_lay = obj.data.vertex_colors.new()
-    for col in vcol_lay.data:
-        col.color1 = 1.0, 0.0, 0.0
-        col.color2 = 0.0, 1.0, 0.0
-        col.color3 = 0.0, 0.0, 1.0
-        col.color4 = 0.0, 0.0, 0.0
+
+    mesh = obj.data
+
+    if IS_BMESH:
+        col_list = vcol_lay.data[:]
+        for poly in mesh.polygons:
+            face_verts = mesh_bmesh_poly_vertices(poly)
+            poly_cols = mesh_bmesh_poly_elems(poly, col_list)
+            for i, c in enumerate(poly_cols):
+                c.color = colors[i % 4]
+    else:
+        for i, col in enumerate(vcol_lay.data):
+            face_verts = mesh.faces[i].vertices
+            col.color1 = colors_get(face_verts[0])
+            col.color2 = colors_get(face_verts[1])
+            col.color3 = colors_get(face_verts[2])
+            if len(face_verts) == 4:
+                col.color4 = colors_get(face_verts[3])
 
     return vcol_lay
 
@@ -364,13 +426,19 @@ def modifier_hook_add(scene, obj, use_vgroup=True):
     # no nice way to add hooks from py api yet
     # assume object mode, hook first face!
     mesh = obj.data
-    
+
     if use_vgroup:
         for v in mesh.vertices:
             v.select = True
     else:
         for v in mesh.vertices:
             v.select = False
+
+        if IS_BMESH:
+            face_verts = mesh_bmesh_poly_vertices(mesh.polygons[0])
+        else:
+            face_verts = mesh.faces[0].vertices[:]
+
         for i in mesh.faces[0].vertices:
             mesh.vertices[i].select = True
 
@@ -406,7 +474,11 @@ def modifier_build_add(scene, obj):
     defaults_modifier(mod)
 
     # ensure we display some faces
-    totface = len(obj.data.faces)
+    if IS_BMESH:
+        totface = len(obj.data.polygons)
+    else:
+        totface = len(obj.data.faces)
+
     mod.frame_start = totface // 2
     mod.frame_duration = totface
 

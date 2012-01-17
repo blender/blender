@@ -20,6 +20,7 @@
 #include <list>
 #include <iterator>
 #include <limits>
+#include <cstddef>
 
 #include <carve/polyline_decl.hpp>
 

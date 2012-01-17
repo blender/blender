@@ -37,6 +37,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_scene_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -142,6 +143,12 @@ static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA
 }
 
 static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	GPU_free_images();
+	rna_userdef_update(bmain, scene, ptr);
+}
+
+static void rna_userdef_gl_use_16bit_textures(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	GPU_free_images();
 	rna_userdef_update(bmain, scene, ptr);
@@ -1623,6 +1630,42 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Scope region background color", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "preview_stitch_face", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "preview_stitch_face");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stitch preview face color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "preview_stitch_edge", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "preview_stitch_edge");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stitch preview edge color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "preview_stitch_vert", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "preview_stitch_vert");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stitch preview vertex color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "preview_stitch_stitchable", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "preview_stitch_stitchable");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stitch preview stitchable color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "preview_stitch_unstitchable", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "preview_stitch_unstitchable");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stitch preview unstitchable color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "preview_stitch_active", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "preview_stitch_active");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stitch preview active island", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
@@ -2899,6 +2942,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mipmaps",
 	                         "Scale textures for the 3D View (looks nicer but uses more memory and slows image reloading)");
 	RNA_def_property_update(prop, 0, "rna_userdef_mipmap_update");
+
+	prop= RNA_def_property(srna, "use_16bit_textures", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_16bit_textures", 1);
+	RNA_def_property_ui_text(prop, "16 Bit Float Textures", "Use 16 bit per component texture for float images");
+	RNA_def_property_update(prop, 0, "rna_userdef_gl_use_16bit_textures");
 
 	prop= RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);

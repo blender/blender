@@ -2077,6 +2077,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if(tos->sculpt) {
 			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
 		}
+		if(tos->uvsculpt) {
+			writestruct(wd, DATA, "UvSculpt", 1, tos->uvsculpt);
+		}
 
 		// write_paint(wd, &tos->imapaint.paint);
 

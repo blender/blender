@@ -427,12 +427,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	}
 }
 
-static void draw_uvs_other(Scene *scene, Object *obedit, MTexPoly *activetf)
+static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)
 {
 	Base *base;
-	Image *curimage;
-
-	curimage= (activetf)? activetf->tpage: NULL;
 
 	glColor3ub(96, 96, 96);
 
@@ -468,6 +465,36 @@ static void draw_uvs_other(Scene *scene, Object *obedit, MTexPoly *activetf)
 	}
 }
 
+static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
+{
+	Mesh *me= ob->data;
+	Image *curimage = ED_space_image(sima);
+
+	if(sima->flag & SI_DRAW_OTHER)
+		draw_uvs_other(scene, ob, curimage);
+
+	glColor3ub(112, 112, 112);
+
+	if(me->mtface) {
+		MPoly *mface= me->mpoly;
+		MTexPoly *tface= me->mtpoly;
+		MLoopUV *mloopuv;
+		int a, b;
+
+		for(a=me->totpoly; a>0; a--, tface++, mface++) {
+			if(tface->tpage == curimage) {
+				glBegin(GL_LINE_LOOP);
+
+				mloopuv = me->mloopuv + mface->loopstart;
+				for (b=0; b<mface->totloop; b++, mloopuv++) {
+					glVertex2fv(mloopuv->uv);
+				}
+				glEnd();
+			}
+		}
+	}
+}
+
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
@@ -485,6 +512,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges;
 	Image *ima= sima->image;
 
+#if 0 /* BMESH_TODO */
+	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
+#else
+	StitchPreviewer *stitch_preview = NULL;
+#endif
+
 	em= me->edit_btmesh;
 	activetf= EDBM_get_active_mtexpoly(em, &efa_act, 0); /* will be set to NULL if hidden */
 	activef = BM_get_actFace(em->bm, 0);
@@ -497,8 +530,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		interpedges= (ts->uv_selectmode == UV_SELECT_VERTEX);
 	
 	/* draw other uvs */
-	if(sima->flag & SI_DRAW_OTHER)
-		draw_uvs_other(scene, obedit, activetf);
+	if(sima->flag & SI_DRAW_OTHER) {
+		Image *curimage= (activetf)? activetf->tpage: NULL;
+
+		draw_uvs_other(scene, obedit, curimage);
+	}
 
 	/* 1. draw shadow mesh */
 	
@@ -575,7 +611,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		}
 		
 	}
-	
+
 	/* 3. draw active face stippled */
 
 	if(activef) {
@@ -846,23 +882,80 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		bglEnd();	
 	}
 
+	/* finally draw stitch preview */
+	if(stitch_preview) {
+		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+		glEnableClientState(GL_VERTEX_ARRAY);
+
+		glEnable(GL_BLEND);
+
+		UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris*3);
+
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_quads);
+		glDrawArrays(GL_QUADS, 0, stitch_preview->num_static_quads*4);
+
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_tris);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		/*UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);*/
+
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_quads);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
+		glDrawArrays(GL_QUADS, 0, stitch_preview->num_quads*4);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
+		glDrawArrays(GL_QUADS, 0, stitch_preview->num_quads*4);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		/*UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
+		glDrawArrays(GL_QUADS, 0, stitch_preview->num_quads*4);*/
+
+		glDisable(GL_BLEND);
+
+		/* draw vert preview */
+		glPointSize(pointsize*2.0);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
+		glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);
+
+		UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
+		glDrawArrays(GL_POINTS, 0, stitch_preview->num_unstitchable);
+
+		glPopClientAttrib();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
 	glPointSize(1.0);
 }
 
-void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedit)
+void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedit, Object *obact)
 {
-	int show_uvedit, show_uvshadow;
+	ToolSettings *toolsettings = scene->toolsettings;
+	int show_uvedit, show_uvshadow, show_texpaint_uvshadow;
 
+	show_texpaint_uvshadow = (obact && obact->type == OB_MESH && obact->mode == OB_MODE_TEXTURE_PAINT);
 	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 	show_uvshadow= ED_space_image_show_uvshadow(sima, obedit);
 
-	if(show_uvedit || show_uvshadow) {
+	if(show_uvedit || show_uvshadow || show_texpaint_uvshadow) {
 		if(show_uvshadow)
 			draw_uvs_shadow(obedit);
-		else
+		else if(show_uvedit)
 			draw_uvs(sima, scene, obedit);
+		else
+			draw_uvs_texpaint(sima, scene, obact);
 
-		if(show_uvedit)
+		if(show_uvedit && !(toolsettings->use_uv_sculpt))
 			drawcursor_sima(sima, ar);
 	}
 }
