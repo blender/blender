@@ -778,8 +778,9 @@ class IMAGE_UV_sculpt_curve(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.uv_sculpt
-        brush = toolsettings.brush
+        toolsettings = context.tool_settings
+        uvsculpt = toolsettings.uv_sculpt
+        brush = uvsculpt.brush
 
         layout.template_curve_mapping(brush, "curve")
 
@@ -806,8 +807,9 @@ class IMAGE_UV_sculpt(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.uv_sculpt
-        brush = toolsettings.brush
+        toolsettings = context.tool_settings
+        uvsculpt = toolsettings.uv_sculpt
+        brush = uvsculpt.brush
 
         if brush:
             col = layout.column()
