@@ -2300,6 +2300,18 @@ void flushTransSeq(TransInfo *t)
 		seq_prev= seq;
 	}
 
+
+	if (ELEM(t->mode, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) { /* originally TFM_TIME_EXTEND, transform changes */
+		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
+		seq= seqbasep->first;
+
+		while(seq) {
+			if (seq->type == SEQ_META && seq->flag & SELECT)
+				calc_sequence(t->scene, seq);
+			seq= seq->next;
+		}
+	}
+
 	/* need to do the overlap check in a new loop otherwise adjacent strips
 	 * will not be updated and we'll get false positives */
 	seq_prev= NULL;
@@ -2318,17 +2330,6 @@ void flushTransSeq(TransInfo *t)
 			}
 		}
 		seq_prev= seq;
-	}
-
-	if (t->mode == TFM_SEQ_SLIDE) { /* originally TFM_TIME_EXTEND, transform changes */
-		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
-		seq= seqbasep->first;
-
-		while(seq) {
-			if (seq->type == SEQ_META && seq->flag & SELECT)
-				calc_sequence(t->scene, seq);
-			seq= seq->next;
-		}
 	}
 }
 
