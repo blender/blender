@@ -279,10 +279,10 @@ void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct AR
 	int winx, int winy, float viewmat[][4], float winmat[][4]);
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag, char err_out[256]);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, char err_out[256]);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, char err_out[256]);
 
 
-Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
+struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, short do_clip);
 int ED_view3d_lock(struct RegionView3D *rv3d);
 

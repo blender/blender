@@ -53,6 +53,7 @@ void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoo
 void ED_space_image_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings);
+void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings);
 
 void ED_image_size(struct Image *ima, int *width, int *height);
 void ED_image_aspect(struct Image *ima, float *aspx, float *aspy);

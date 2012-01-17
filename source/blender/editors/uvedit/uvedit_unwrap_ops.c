@@ -40,6 +40,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -48,12 +49,15 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#include "BKE_cdderivedmesh.h"
+#include "BKE_subsurf.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_report.h"
 
 #include "PIL_time.h"
 
@@ -268,6 +272,201 @@ static ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short imp
 	}
 
 	param_construct_end(handle, fill, implicit);
+
+	return handle;
+}
+
+
+static void texface_from_original_index(EditFace *editFace, MTFace *texFace, int index, float **uv, ParamBool *pin, ParamBool *select, Scene *scene)
+{
+	int i, nverts = (editFace->v4)? 4: 3;
+
+	*uv = NULL;
+	*pin = 0;
+	*select = 1;
+
+	if(index == ORIGINDEX_NONE)
+		return;
+
+	for(i = 0; i < nverts; i++) {
+		if((*(&editFace->v1 + i))->tmp.t == index) {
+			*uv = texFace->uv[i];
+			*pin = ((texFace->unwrap & TF_PIN_MASK(i)) != 0);
+			*select = (uvedit_uv_selected(scene, editFace, texFace, i) != 0);
+		}
+	}
+}
+
+/* unwrap handle initialization for subsurf aware-unwrapper. The many modifications required to make the original function(see above)
+ * work justified the existence of a new function. */
+static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *editMesh, short fill, short sel, short correct_aspect)
+{
+	ParamHandle *handle;
+	/* index pointers */
+	MFace *face;
+	MEdge *edge;
+	EditVert *editVert;
+	MTFace *texface;
+	EditFace *editFace, **editFaceTmp;
+	EditEdge *editEdge, **editEdgeTmp;
+	int i;
+
+	/* modifier initialization data, will  control what type of subdivision will happen*/
+	SubsurfModifierData smd = {{0}};
+	/* Used to hold subsurfed Mesh */
+	DerivedMesh *derivedMesh, *initialDerived;
+	/* holds original indices for subsurfed mesh */
+	int *origVertIndices, *origFaceIndices, *origEdgeIndices;
+	/* Holds vertices of subsurfed mesh */
+	MVert *subsurfedVerts;
+	MEdge *subsurfedEdges;
+	MFace *subsurfedFaces;
+	MTFace *subsurfedTexfaces;
+	/* number of vertices and faces for subsurfed mesh*/
+	int numOfEdges, numOfFaces;
+
+	/* holds a map to editfaces for every subsurfed MFace. These will be used to get hidden/ selected flags etc. */
+	EditFace **faceMap;
+	/* Mini container to hold all EditFaces so that they may be indexed easily and fast. */
+	EditFace **editFaceArray;
+	/* similar to the above, we need a way to map edges to their original ones */
+	EditEdge **edgeMap;
+	EditEdge **editEdgeArray;
+
+	handle = param_construct_begin();
+
+	if(correct_aspect) {
+		EditFace *eface = EM_get_actFace(editMesh, 1);
+
+		if(eface) {
+			float aspx, aspy;
+			texface= CustomData_em_get(&editMesh->fdata, eface->data, CD_MTFACE);
+
+			ED_image_uv_aspect(texface->tpage, &aspx, &aspy);
+		
+			if(aspx!=aspy)
+				param_aspect_ratio(handle, aspx, aspy);
+		}
+	}
+
+	/* number of subdivisions to perform */
+	smd.levels = scene->toolsettings->uv_subsurf_level;
+	smd.subdivType = ME_CC_SUBSURF;
+		
+	initialDerived = CDDM_from_editmesh(editMesh, NULL);
+	derivedMesh = subsurf_make_derived_from_derived(initialDerived, &smd,
+		0, NULL, 0, 0, 1);
+
+	initialDerived->release(initialDerived);
+
+	/* get the derived data */
+	subsurfedVerts = derivedMesh->getVertArray(derivedMesh);
+	subsurfedEdges = derivedMesh->getEdgeArray(derivedMesh);
+	subsurfedFaces = derivedMesh->getFaceArray(derivedMesh);
+
+	origVertIndices = derivedMesh->getVertDataArray(derivedMesh, CD_ORIGINDEX);
+	origEdgeIndices = derivedMesh->getEdgeDataArray(derivedMesh, CD_ORIGINDEX);
+	origFaceIndices = derivedMesh->getFaceDataArray(derivedMesh, CD_ORIGINDEX);
+
+	subsurfedTexfaces = derivedMesh->getFaceDataArray(derivedMesh, CD_MTFACE);
+
+	numOfEdges = derivedMesh->getNumEdges(derivedMesh);
+	numOfFaces = derivedMesh->getNumFaces(derivedMesh);
+
+	faceMap = MEM_mallocN(numOfFaces*sizeof(EditFace *), "unwrap_edit_face_map");
+	editFaceArray = MEM_mallocN(editMesh->totface*sizeof(EditFace *), "unwrap_editFaceArray");
+
+	/* fill edit face array with edit faces */
+	for(editFace = editMesh->faces.first, editFaceTmp = editFaceArray; editFace; editFace= editFace->next, editFaceTmp++)
+		*editFaceTmp = editFace;
+
+	/* map subsurfed faces to original editFaces */
+	for(i = 0; i < numOfFaces; i++)
+		faceMap[i] = editFaceArray[origFaceIndices[i]];
+
+	MEM_freeN(editFaceArray);
+
+	edgeMap = MEM_mallocN(numOfEdges*sizeof(EditEdge *), "unwrap_edit_edge_map");
+	editEdgeArray = MEM_mallocN(editMesh->totedge*sizeof(EditEdge *), "unwrap_editEdgeArray");
+
+	/* fill edit edge array with edit edges */
+	for(editEdge = editMesh->edges.first, editEdgeTmp = editEdgeArray; editEdge; editEdge= editEdge->next, editEdgeTmp++)
+		*editEdgeTmp = editEdge;
+
+	/* map subsurfed edges to original editEdges */
+	for(i = 0; i < numOfEdges; i++) {
+		/* not all edges correspond to an old edge */
+		edgeMap[i] = (origEdgeIndices[i] != -1)?
+			editEdgeArray[origEdgeIndices[i]] : NULL;
+	}
+
+	MEM_freeN(editEdgeArray);
+
+	/* we need the editvert indices too */
+	for(editVert = editMesh->verts.first, i=0; editVert; editVert = editVert->next, i++)
+		editVert->tmp.t = i;
+
+	/* Prepare and feed faces to the solver */
+	for(i = 0; i < numOfFaces; i++) {
+		ParamKey key, vkeys[4];
+		ParamBool pin[4], select[4];
+		float *co[4];
+		float *uv[4];
+		EditFace *origFace = faceMap[i];
+		MTFace *origtexface = (MTFace *)CustomData_em_get(&editMesh->fdata, origFace->data, CD_MTFACE);
+		
+		face = subsurfedFaces+i;
+
+		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+			if(origFace->h)
+				continue;
+		}
+		else {
+			if((origFace->h) || (sel && (origFace->f & SELECT)==0))
+				continue;
+		}
+
+		/* Now we feed the rest of the data from the subsurfed faces */
+		texface= subsurfedTexfaces+i;
+
+		/* We will not check for v4 here. Subsurfed mfaces always have 4 vertices. */
+		key = (ParamKey)face;
+		vkeys[0] = (ParamKey)face->v1;
+		vkeys[1] = (ParamKey)face->v2;
+		vkeys[2] = (ParamKey)face->v3;
+		vkeys[3] = (ParamKey)face->v4;
+
+		co[0] = subsurfedVerts[face->v1].co;
+		co[1] = subsurfedVerts[face->v2].co;
+		co[2] = subsurfedVerts[face->v3].co;
+		co[3] = subsurfedVerts[face->v4].co;
+		
+		/* This is where all the magic is done. If the vertex exists in the, we pass the original uv pointer to the solver, thus
+		 * flushing the solution to the edit mesh. */
+		texface_from_original_index(origFace, origtexface, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene);
+		texface_from_original_index(origFace, origtexface, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene);
+		texface_from_original_index(origFace, origtexface, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene);
+		texface_from_original_index(origFace, origtexface, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene);
+
+		param_face_add(handle, key, 4, vkeys, co, uv, pin, select);
+	}
+
+	/* these are calculated from original mesh too */
+	for(edge = subsurfedEdges, i = 0; i < numOfEdges; i++, edge++) {
+		if((edgeMap[i] != NULL) && edgeMap[i]->seam) {
+			ParamKey vkeys[2];
+			vkeys[0] = (ParamKey)edge->v1;
+			vkeys[1] = (ParamKey)edge->v2;
+			param_edge_set_seam(handle, vkeys);
+		}
+	}
+
+	param_construct_end(handle, fill, 0);
+
+	/* cleanup */
+	MEM_freeN(faceMap);
+	MEM_freeN(edgeMap);
+	derivedMesh->release(derivedMesh);
 
 	return handle;
 }
@@ -582,13 +781,17 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	short abf = scene->toolsettings->unwrapper == 0;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
+	short use_subsurf = scene->toolsettings->uvcalc_flag & UVCALC_USESUBSURF;
 
 	if(!ED_uvedit_test(obedit)) {
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return;
 	}
 
-	liveHandle = construct_param_handle(scene, em, 0, fillholes, 0, 1);
+	if(use_subsurf)
+		liveHandle = construct_param_handle_subsurfed(scene, em, fillholes, 0, 1);
+	else
+		liveHandle = construct_param_handle(scene, em, 0, fillholes, 0, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -900,14 +1103,17 @@ static void uv_map_clip_correct(EditMesh *em, wmOperator *op)
 /* assumes UV Map is checked, doesn't run update funcs */
 void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 {
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ParamHandle *handle;
 
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	const short fill_holes= scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	const short correct_aspect= !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
-	short implicit= 0;
+	const short use_subsurf = scene->toolsettings->uvcalc_flag & UVCALC_USESUBSURF;
 
-	handle= construct_param_handle(scene, em, implicit, fill_holes, sel, correct_aspect);
+	if(use_subsurf)
+		handle = construct_param_handle_subsurfed(scene, em, fill_holes, sel, correct_aspect);
+	else
+		handle= construct_param_handle(scene, em, 0, fill_holes, sel, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, scene->toolsettings->unwrapper == 0);
 	param_lscm_solve(handle);
@@ -930,6 +1136,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	int method = RNA_enum_get(op->ptr, "method");
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
+	int use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
+	int subsurf_level = RNA_int_get(op->ptr, "uv_subsurf_level");
+	float obsize[3], unitsize[3] = {1.0f, 1.0f, 1.0f};
 	short implicit= 0;
 
 	if(!uvedit_have_selection(scene, em, implicit)) {
@@ -944,14 +1153,23 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	mat4_to_size(obsize, obedit->obmat);
+	if(!compare_v3v3(obsize, unitsize, 1e-4f))
+		BKE_report(op->reports, RPT_INFO, "Object scale is not 1.0. Unwrap will operate on a non-scaled version of the mesh.");
+
 	/* remember last method for live unwrap */
 	scene->toolsettings->unwrapper = method;
+	
+	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
 	if(fill_holes)		scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
 	else				scene->toolsettings->uvcalc_flag &= ~UVCALC_FILLHOLES;
 
 	if(correct_aspect)	scene->toolsettings->uvcalc_flag &= ~UVCALC_NO_ASPECT_CORRECT;
 	else				scene->toolsettings->uvcalc_flag |=  UVCALC_NO_ASPECT_CORRECT;
+
+	if(use_subsurf)		scene->toolsettings->uvcalc_flag |= UVCALC_USESUBSURF;
+	else				scene->toolsettings->uvcalc_flag &= ~UVCALC_USESUBSURF;
 
 	/* execute unwrap */
 	ED_unwrap_lscm(scene, obedit, TRUE);
@@ -986,6 +1204,8 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	                "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
 	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
 	                "Map UVs taking image aspect ratio into account");
+	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data", "Map UV's taking vertex position after subsurf into account");
+	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target", "Number of times to subdivide before calculating UV's", 1, 6);
 }
 
 /**************** Project From View operator **************/

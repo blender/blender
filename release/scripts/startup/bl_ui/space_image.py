@@ -52,7 +52,8 @@ class IMAGE_MT_view(Menu):
         layout.prop(sima, "use_realtime_update")
         if show_uvedit:
             layout.prop(toolsettings, "show_uv_local_view")
-            layout.prop(uv, "show_other_objects")
+
+        layout.prop(uv, "show_other_objects")
 
         layout.separator()
 
@@ -146,9 +147,11 @@ class IMAGE_MT_image(Menu):
                     if ima.source in {'FILE', 'GENERATED'} and ima.type != 'OPEN_EXR_MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
 
-            layout.separator()
+            if not context.tool_settings.use_uv_sculpt:
+                layout.separator()
+                layout.prop(sima, "use_image_paint")
 
-            layout.prop(sima, "use_image_paint")
+            layout.separator()
 
 
 class IMAGE_MT_image_invert(Menu):
@@ -256,6 +259,10 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
+        layout.prop(toolsettings, "use_uv_sculpt")
+
+        layout.separator()
+
         layout.prop(uv, "use_live_unwrap")
         layout.operator("uv.unwrap")
         layout.operator("uv.pin", text="Unpin").clear = True
@@ -267,6 +274,8 @@ class IMAGE_MT_uvs(Menu):
         layout.operator("uv.average_islands_scale")
         layout.operator("uv.minimize_stretch")
         layout.operator("uv.stitch")
+        layout.operator("uv.mark_seam")
+        layout.operator("uv.seams_from_islands")
         layout.operator("mesh.faces_mirror_uv")
 
         layout.separator()
@@ -752,6 +761,81 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
         row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+
+class IMAGE_UV_sculpt_curve(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "UV Sculpt Curve"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_uvedit and context.tool_settings.use_uv_sculpt and not (sima.show_paint and toolsettings.brush)
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings.uv_sculpt
+        brush = toolsettings.brush
+
+        layout.template_curve_mapping(brush, "curve")
+
+        row = layout.row(align=True)
+        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+
+
+class IMAGE_UV_sculpt(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "UV Sculpt"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_uvedit and context.tool_settings.use_uv_sculpt and not (sima.show_paint and toolsettings.brush)
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings.uv_sculpt
+        brush = toolsettings.brush
+
+        if brush:
+            col = layout.column()
+
+            row = col.row(align=True)
+            row.prop(brush, "size", slider=True)
+            row.prop(brush, "use_pressure_size", toggle=True, text="")
+
+            row = col.row(align=True)
+            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "use_pressure_strength", toggle=True, text="")
+
+        split = layout.split()
+        col = split.column()
+
+        col.prop(context.tool_settings, "uv_sculpt_lock_borders");
+        col.prop(context.tool_settings, "uv_sculpt_all_islands");
+        
+        split = layout.split()
+        col = split.column()
+
+        col.prop(context.tool_settings, "uv_sculpt_tool");
+        
+        if context.tool_settings.uv_sculpt_tool == 'RELAX':
+            col.prop(context.tool_settings, "uv_relax_method");
+ 
+        
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

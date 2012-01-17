@@ -416,6 +416,7 @@ extern StructRNA RNA_Scopes;
 extern StructRNA RNA_Screen;
 extern StructRNA RNA_ScrewModifier;
 extern StructRNA RNA_Sculpt;
+extern StructRNA RNA_SelectedUvElement;
 extern StructRNA RNA_Sensor;
 extern StructRNA RNA_Sequence;
 extern StructRNA RNA_SequenceColorBalance;

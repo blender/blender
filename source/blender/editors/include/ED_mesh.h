@@ -155,6 +155,9 @@ struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_
 struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
 void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
+struct UvElementMap *EM_make_uv_element_map(struct EditMesh *em, int selected, int doIslands);
+void		EM_free_uv_element_map(struct UvElementMap *vmap);
+
 void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type, const char *name);
 void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 

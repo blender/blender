@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Antony Riakiotakis.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -94,6 +94,28 @@ int ED_uvedit_test(Object *obedit)
 	return ret;
 }
 
+static int ED_operator_uvedit_can_uv_sculpt(struct bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	ToolSettings *toolsettings = CTX_data_tool_settings(C);
+	Object *obedit= CTX_data_edit_object(C);
+
+	return ED_space_image_show_uvedit(sima, obedit) && !(toolsettings->use_uv_sculpt);
+}
+
+static int ED_operator_uvmap_mesh(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(ob && ob->type==OB_MESH) {
+		Mesh *me = ob->data;
+
+		if(CustomData_get_layer(&me->fdata, CD_MTFACE) != NULL)
+			return 1;
+	}
+
+	return 0;
+}
 /**************************** object active image *****************************/
 
 static int is_image_texture_node(bNode *node)
@@ -400,7 +422,7 @@ void uvedit_uv_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 
 /*********************** live unwrap utilities ***********************/
 
-static void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
+void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
 {
 	if(sima && (sima->flag & SI_LIVE_UNWRAP)) {
 		ED_uvedit_live_unwrap_begin(scene, obedit);
@@ -527,15 +549,7 @@ static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, 
 
 /************************** find nearest ****************************/
 
-typedef struct NearestHit {
-	EditFace *efa;
-	MTFace *tf;
-
-	int vert, uv;
-	int edge, vert2;
-} NearestHit;
-
-static void find_nearest_uv_edge(Scene *scene, Image *ima, EditMesh *em, float co[2], NearestHit *hit)
+void uv_find_nearest_edge(Scene *scene, Image *ima, EditMesh *em, float co[2], NearestHit *hit)
 {
 	MTFace *tf;
 	EditFace *efa;
@@ -633,7 +647,7 @@ static int nearest_uv_between(MTFace *tf, int nverts, int id, float co[2], float
 	return (c1*c2 >= 0.0f);
 }
 
-static void find_nearest_uv_vert(Scene *scene, Image *ima, EditMesh *em, float co[2], float penalty[2], NearestHit *hit)
+void uv_find_nearest_vert(Scene *scene, Image *ima, EditMesh *em, float co[2], float penalty[2], NearestHit *hit)
 {
 	EditFace *efa;
 	EditVert *eve;
@@ -747,6 +761,17 @@ static UvMapVert *uv_vertex_map_get(UvVertMap *vmap, EditFace *efa, int a)
 			return first;
 	}
 	
+	return NULL;
+}
+
+UvElement *ED_get_uv_element(UvElementMap *map, EditFace *efa, int index)
+{
+	UvElement *element = map->vert[(*(&efa->v1 + index))->tmp.l];
+
+	for(; element; element = element->next)
+		if(element->face == efa)
+			return element;
+
 	return NULL;
 }
 
@@ -1296,197 +1321,6 @@ static void UV_OT_weld(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 }
 
-/* ******************** stitch operator **************** */
-
-/* just for averaging UVs */
-typedef struct UVVertAverage {
-	float uv[2];
-	int count;
-} UVVertAverage;
-
-static int stitch_exec(bContext *C, wmOperator *op)
-{
-	SpaceImage *sima;
-	Scene *scene;
-	Object *obedit;
-	EditMesh *em;
-	EditFace *efa;
-	EditVert *eve;
-	Image *ima;
-	MTFace *tf;
-
-	scene= CTX_data_scene(C);
-	obedit= CTX_data_edit_object(C);
-	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
-	ima= CTX_data_edit_image(C);
-	sima= CTX_wm_space_image(C);
-	
-	if(RNA_boolean_get(op->ptr, "use_limit")) {
-		UvVertMap *vmap;
-		UvMapVert *vlist, *iterv;
-		float newuv[2], limit[2];
-		int a, vtot;
-
-		limit[0]= RNA_float_get(op->ptr, "limit");
-		limit[1]= limit[0];
-
-		EM_init_index_arrays(em, 0, 0, 1);
-		vmap= EM_make_uv_vert_map(em, 1, 0, limit);
-
-		if(vmap == NULL) {
-			BKE_mesh_end_editmesh(obedit->data, em);
-			return OPERATOR_CANCELLED;
-		}
-
-		for(a=0, eve= em->verts.first; eve; a++, eve= eve->next) {
-			vlist= EM_get_uv_map_vert(vmap, a);
-
-			while(vlist) {
-				newuv[0]= 0; newuv[1]= 0;
-				vtot= 0;
-
-				for(iterv=vlist; iterv; iterv=iterv->next) {
-					if((iterv != vlist) && iterv->separate)
-						break;
-
-					efa = EM_get_face_for_index(iterv->f);
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					
-					if(uvedit_uv_selected(scene, efa, tf, iterv->tfindex)) {
-						newuv[0] += tf->uv[iterv->tfindex][0];
-						newuv[1] += tf->uv[iterv->tfindex][1];
-						vtot++;
-					}
-				}
-
-				if(vtot > 1) {
-					newuv[0] /= vtot; newuv[1] /= vtot;
-
-					for(iterv=vlist; iterv; iterv=iterv->next) {
-						if((iterv != vlist) && iterv->separate)
-							break;
-
-						efa = EM_get_face_for_index(iterv->f);
-						tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-						if(uvedit_uv_selected(scene, efa, tf, iterv->tfindex)) {
-							tf->uv[iterv->tfindex][0]= newuv[0];
-							tf->uv[iterv->tfindex][1]= newuv[1];
-						}
-					}
-				}
-
-				vlist= iterv;
-			}
-		}
-
-		EM_free_uv_vert_map(vmap);
-		EM_free_index_arrays();
-	}
-	else {
-		UVVertAverage *uv_average, *uvav;
-		int count;
-
-		// index and count verts
-		for(count=0, eve=em->verts.first; eve; count++, eve= eve->next)
-			eve->tmp.l = count;
-		
-		uv_average= MEM_callocN(sizeof(UVVertAverage)*count, "Stitch");
-		
-		// gather uv averages per vert
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(uvedit_uv_selected(scene, efa, tf, 0)) {
-					uvav = uv_average + efa->v1->tmp.l;
-					uvav->count++;
-					uvav->uv[0] += tf->uv[0][0];
-					uvav->uv[1] += tf->uv[0][1];
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 1)) {
-					uvav = uv_average + efa->v2->tmp.l;
-					uvav->count++;
-					uvav->uv[0] += tf->uv[1][0];
-					uvav->uv[1] += tf->uv[1][1];
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 2)) {
-					uvav = uv_average + efa->v3->tmp.l;
-					uvav->count++;
-					uvav->uv[0] += tf->uv[2][0];
-					uvav->uv[1] += tf->uv[2][1];
-				}
-
-				if(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) {
-					uvav = uv_average + efa->v4->tmp.l;
-					uvav->count++;
-					uvav->uv[0] += tf->uv[3][0];
-					uvav->uv[1] += tf->uv[3][1];
-				}
-			}
-		}
-		
-		// apply uv welding
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(uvedit_uv_selected(scene, efa, tf, 0)) {
-					uvav = uv_average + efa->v1->tmp.l;
-					tf->uv[0][0] = uvav->uv[0]/uvav->count;
-					tf->uv[0][1] = uvav->uv[1]/uvav->count;
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 1)) {
-					uvav = uv_average + efa->v2->tmp.l;
-					tf->uv[1][0] = uvav->uv[0]/uvav->count;
-					tf->uv[1][1] = uvav->uv[1]/uvav->count;
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 2)) {
-					uvav = uv_average + efa->v3->tmp.l;
-					tf->uv[2][0] = uvav->uv[0]/uvav->count;
-					tf->uv[2][1] = uvav->uv[1]/uvav->count;
-				}
-
-				if(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) {
-					uvav = uv_average + efa->v4->tmp.l;
-					tf->uv[3][0] = uvav->uv[0]/uvav->count;
-					tf->uv[3][1] = uvav->uv[1]/uvav->count;
-				}
-			}
-		}
-
-		MEM_freeN(uv_average);
-	}
-
-	uvedit_live_unwrap_update(sima, scene, obedit);
-	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-}
-
-static void UV_OT_stitch(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Stitch";
-	ot->description= "Stitch selected UV vertices by proximity";
-	ot->idname= "UV_OT_stitch";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* api callbacks */
-	ot->exec= stitch_exec;
-	ot->poll= ED_operator_uvedit;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance");
-	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates", -FLT_MAX, FLT_MAX);
-}
-
 /* ******************** (de)select all operator **************** */
 
 static void select_all_perform(bContext *C, int action)
@@ -1660,7 +1494,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	/* find nearest element */
 	if(loop) {
 		/* find edge */
-		find_nearest_uv_edge(scene, ima, em, co, &hit);
+		uv_find_nearest_edge(scene, ima, em, co, &hit);
 		if(hit.efa == NULL) {
 			BKE_mesh_end_editmesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
@@ -1668,7 +1502,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	}
 	else if(selectmode == UV_SELECT_VERTEX) {
 		/* find vertex */
-		find_nearest_uv_vert(scene, ima, em, co, penalty, &hit);
+		uv_find_nearest_vert(scene, ima, em, co, penalty, &hit);
 		if(hit.efa == NULL) {
 			BKE_mesh_end_editmesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
@@ -1683,7 +1517,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	}
 	else if(selectmode == UV_SELECT_EDGE) {
 		/* find edge */
-		find_nearest_uv_edge(scene, ima, em, co, &hit);
+		uv_find_nearest_edge(scene, ima, em, co, &hit);
 		if(hit.efa == NULL) {
 			BKE_mesh_end_editmesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
@@ -1723,7 +1557,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		else hitv[3]= 0xFFFFFFFF;
 	}
 	else if(selectmode == UV_SELECT_ISLAND) {
-		find_nearest_uv_vert(scene, ima, em, co, NULL, &hit);
+		uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 
 		if(hit.efa==NULL) {
 			BKE_mesh_end_editmesh(obedit->data, em);
@@ -2015,7 +1849,7 @@ static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, i
 			RNA_float_get_array(op->ptr, "location", co);
 		}
 
-		find_nearest_uv_vert(scene, ima, em, co, NULL, &hit);
+		uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 		hit_p= &hit;
 	}
 
@@ -3312,6 +3146,180 @@ static void UV_OT_tile_set(wmOperatorType *ot)
 	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate", 0, 10);
 }
 
+
+static int seams_from_islands_exec(bContext *C, wmOperator *op)
+{
+	UvVertMap *vmap;
+	Object *ob = CTX_data_edit_object(C);
+	Mesh *me= (Mesh*)ob->data;
+	EditMesh *em;
+	EditEdge *editedge;
+	float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
+	char mark_seams = RNA_boolean_get(op->ptr, "mark_seams");
+	char mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
+
+	em = BKE_mesh_get_editmesh(me);
+
+	if(!EM_texFaceCheck(em)) {
+		BKE_mesh_end_editmesh(ob->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	/* This code sets editvert->tmp.l to the index. This will be useful later on. */
+	EM_init_index_arrays(em, 0, 0, 1);
+	vmap = EM_make_uv_vert_map(em, 0, 0, limit);
+
+	for(editedge = em->edges.first; editedge; editedge = editedge->next) {
+		/* flags to determine if we uv is separated from first editface match */
+		char separated1 = 0, separated2;
+		/* set to denote edge must be flagged as seam */
+		char faces_separated = 0;
+		/* flag to keep track if uv1 is disconnected from first editface match */
+		char v1coincident = 1;
+		/* For use with v1coincident. v1coincident will change only if we've had commonFaces */
+		int commonFaces = 0;
+
+		EditFace *efa1, *efa2;
+
+		UvMapVert *mv1, *mvinit1, *mv2, *mvinit2, *mviter;
+		/* mv2cache stores the first of the list of coincident uv's for later comparison
+		 * mv2sep holds the last separator and is copied to mv2cache when a hit is first found */
+		UvMapVert *mv2cache = NULL, *mv2sep = NULL;
+
+		mvinit1 = vmap->vert[editedge->v1->tmp.l];
+		if(mark_seams)
+			editedge->seam = 0;
+
+		for(mv1 = mvinit1; mv1 && !faces_separated; mv1 = mv1->next) {
+			if(mv1->separate && commonFaces)
+				v1coincident = 0;
+
+			separated2 = 0;
+			efa1 = EM_get_face_for_index(mv1->f);
+			mvinit2 = vmap->vert[editedge->v2->tmp.l];
+
+			for(mv2 = mvinit2; mv2; mv2 = mv2->next) {
+				if(mv2->separate)
+					mv2sep = mv2;
+
+				efa2 = EM_get_face_for_index(mv2->f);
+				if(efa1 == efa2) {
+					/* if v1 is not coincident no point in comparing */
+					if(v1coincident) {
+						/* have we found previously anything? */
+						if(mv2cache) {
+							/* flag seam unless proved to be coincident with previous hit */
+							separated2 = 1;
+							for(mviter = mv2cache; mviter; mviter = mviter->next) {
+								if(mviter->separate && mviter != mv2cache)
+									break;
+								/* coincident with previous hit, do not flag seam */
+								if(mviter == mv2)
+									separated2 = 0;
+							}
+						}
+						/* First hit case, store the hit in the cache */
+						else {
+							mv2cache = mv2sep;
+							commonFaces = 1;
+						}
+					}
+					else
+						separated1 = 1;
+
+					if(separated1 || separated2) {
+						faces_separated = 1;
+						break;
+					}
+				}
+			}
+		}
+
+		if(faces_separated) {
+			if(mark_seams)
+				editedge->seam = 1;
+			if(mark_sharp)
+				editedge->sharp = 1;
+		}
+	}
+
+	me->drawflag |= ME_DRAWSEAMS;
+
+	EM_free_uv_vert_map(vmap);
+	EM_free_index_arrays();
+	BKE_mesh_end_editmesh(me, em);
+
+	DAG_id_tag_update(&me->id, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+
+static void UV_OT_seams_from_islands(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Seams From Islands";
+	ot->description= "Set mesh seams according to island setup in the UV editor";
+	ot->idname= "UV_OT_seams_from_islands";
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->exec= seams_from_islands_exec;
+	ot->poll= ED_operator_uvedit;
+
+	RNA_def_boolean(ot->srna, "mark_seams", 1, "Mark Seams", "Mark boundary edges as seams");
+	RNA_def_boolean(ot->srna, "mark_sharp", 0, "Mark Sharp", "Mark boundary edges as sharp");
+}
+
+static int mark_seam_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Mesh *me= (Mesh*)ob->data;
+	EditMesh *em= BKE_mesh_get_editmesh(me);
+	EditFace *efa;
+
+	for(efa = em->faces.first; efa; efa = efa->next) {
+		MTFace *mt = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		int i, nverts = efa->v4? 4 : 3;
+
+		for(i = 0; i < nverts; i++)
+			if(uvedit_edge_selected(scene, efa, mt, i))
+				(*(&efa->e1 + i))->seam = 1;
+	}
+
+	me->drawflag |= ME_DRAWSEAMS;
+
+	if(scene->toolsettings->edge_mode_live_unwrap)
+		ED_unwrap_lscm(scene, ob, FALSE);
+
+	BKE_mesh_end_editmesh(me, em);
+
+	DAG_id_tag_update(&me->id, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+static void UV_OT_mark_seam(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mark Seams";
+	ot->description= "Mark selected UV edges as seams";
+	ot->idname= "UV_OT_mark_seam";
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->exec= mark_seam_exec;
+	ot->poll= ED_operator_uvedit;
+}
+
+
 /* ************************** registration **********************************/
 
 void ED_operatortypes_uvedit(void)
@@ -3331,6 +3339,8 @@ void ED_operatortypes_uvedit(void)
 
 	WM_operatortype_append(UV_OT_align);
 	WM_operatortype_append(UV_OT_stitch);
+	WM_operatortype_append(UV_OT_seams_from_islands);
+	WM_operatortype_append(UV_OT_mark_seam);
 	WM_operatortype_append(UV_OT_weld);
 	WM_operatortype_append(UV_OT_pin);
 
@@ -3357,7 +3367,14 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	
 	keymap= WM_keymap_find(keyconf, "UV Editor", 0, 0);
-	keymap->poll= ED_operator_uvedit;
+	keymap->poll= ED_operator_uvedit_can_uv_sculpt;
+
+	/* Uv sculpt toggle */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_uv_sculpt");
+
+	/* Mark edge seam */
+	WM_keymap_add_item(keymap, "UV_OT_mark_seam", EKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* pick selection */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0)->ptr, "extend", FALSE);
