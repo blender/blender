@@ -634,14 +634,12 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		/* Allocate initial selection for grab tool */
 		if(ts->uv_sculpt_tool == UV_SCULPT_TOOL_GRAB){
 			float radius, radius_root;
-			unsigned int tool;
 			UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 			SpaceImage *sima;
 			int width, height;
 			float aspectRatio;
 			float alpha, zoomx, zoomy;
 			Brush *brush = paint_brush(sculptdata->uvsculpt);
-			tool = CTX_data_scene(C)->toolsettings->uv_sculpt_tool;
 
 			alpha = brush_alpha(scene, brush);
 

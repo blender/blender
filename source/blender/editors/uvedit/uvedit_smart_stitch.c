@@ -1097,7 +1097,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	state->selection_size = 0;
 
 	/* Load old selection if redoing operator with different settings */
-	if(RNA_property_is_set(op->ptr, "selection")){
+	if(RNA_struct_property_is_set(op->ptr, "selection")){
 		int faceIndex, elementIndex;
 		UvElement *element;
 
