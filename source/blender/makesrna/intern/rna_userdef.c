@@ -2945,7 +2945,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_16bit_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_16bit_textures", 1);
-	RNA_def_property_ui_text(prop, "16 Bit Float Textures", "Use 16 bit per component texture for float images.");
+	RNA_def_property_ui_text(prop, "16 Bit Float Textures", "Use 16 bit per component texture for float images");
 	RNA_def_property_update(prop, 0, "rna_userdef_gl_use_16bit_textures");
 
 	prop= RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);

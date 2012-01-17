@@ -4650,7 +4650,8 @@ static int uv_sculpt_brush_poll(bContext *C)
 	int ret;
 	Object *obedit = CTX_data_edit_object(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
-	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *toolsettings = scene->toolsettings;
 
 	if(!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
 		return 0;
@@ -5162,7 +5163,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		float pixel_size;
 		float alpha= 0.5f;
 
-		ts = CTX_data_scene(C)->toolsettings;
+		ts = scene->toolsettings;
 
 		if(use_zoom && !ts->use_uv_sculpt){
 			pixel_size = MAX2(size * zoomx, size * zoomy);
@@ -5202,14 +5203,16 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 
 static void toggle_paint_cursor(bContext *C, int enable)
 {
-	ToolSettings *settings= CTX_data_scene(C)->toolsettings;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *settings= scene->toolsettings;
 
 	if(settings->imapaint.paintcursor && !enable) {
-		WM_paint_cursor_end(CTX_wm_manager(C), settings->imapaint.paintcursor);
+		WM_paint_cursor_end(wm, settings->imapaint.paintcursor);
 		settings->imapaint.paintcursor = NULL;
 	}
 	else if(enable)
-		settings->imapaint.paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, brush_drawcursor, NULL);
+		settings->imapaint.paintcursor= WM_paint_cursor_activate(wm, image_paint_poll, brush_drawcursor, NULL);
 }
 
 /* enable the paint cursor if it isn't already.

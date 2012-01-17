@@ -149,6 +149,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_use_spatial_splits")
         sub.prop(cscene, "use_cache")
 
+
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
     bl_options = {'DEFAULT_CLOSED'}
@@ -708,7 +709,7 @@ def draw_device(self, context):
     scene = context.scene
     layout = self.layout
 
-    if scene.render.engine == "CYCLES":
+    if scene.render.engine == 'CYCLES':
         cscene = scene.cycles
 
         layout.prop(cscene, "feature_set")
@@ -719,6 +720,7 @@ def draw_device(self, context):
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
 
+
 def draw_pause(self, context):
     layout = self.layout
     scene = context.scene
@@ -726,7 +728,7 @@ def draw_pause(self, context):
     if scene.render.engine == "CYCLES":
         view = context.space_data
 
-        if view.viewport_shade == "RENDERED":
+        if view.viewport_shade == 'RENDERED':
             cscene = scene.cycles
             layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
 

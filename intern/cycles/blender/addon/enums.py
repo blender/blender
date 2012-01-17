@@ -21,8 +21,8 @@
 from . import engine
 
 devices = (
-	("CPU", "CPU", "Use CPU for rendering"),
-	("GPU", "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"))
+    ("CPU", "CPU", "Use CPU for rendering"),
+    ("GPU", "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"))
 
 feature_set = (
     ("SUPPORTED", "Supported", "Only use finished and supported features"),
