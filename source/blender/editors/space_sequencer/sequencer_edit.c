@@ -3034,10 +3034,10 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UN
 
 	/* set default display depending on seq type */
 	if(seq->type == SEQ_IMAGE) {
-		RNA_boolean_set(op->ptr, "filter_movie", 0);
+		RNA_boolean_set(op->ptr, "filter_movie", FALSE);
 	}
 	else {
-		RNA_boolean_set(op->ptr, "filter_image", 0);
+		RNA_boolean_set(op->ptr, "filter_image", FALSE);
 	}
 
 	WM_event_add_fileselect(C, op);

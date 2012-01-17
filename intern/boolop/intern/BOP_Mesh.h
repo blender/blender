@@ -40,10 +40,10 @@
 #include "BOP_Face.h"
 #include "DNA_listBase.h"
 
-typedef vector<BOP_Vertex *> BOP_Vertexs;
-typedef vector<BOP_Edge *> BOP_Edges;
-typedef vector<BOP_Vertex *>::iterator BOP_IT_Vertexs;
-typedef vector<BOP_Edge *>::iterator BOP_IT_Edges;
+typedef std::vector<BOP_Vertex *> BOP_Vertexs;
+typedef std::vector<BOP_Edge *> BOP_Edges;
+typedef std::vector<BOP_Vertex *>::iterator BOP_IT_Vertexs;
+typedef std::vector<BOP_Edge *>::iterator BOP_IT_Edges;
 
 #ifdef HASH
 typedef struct EdgeEntry {

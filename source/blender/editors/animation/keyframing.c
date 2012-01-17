@@ -1200,7 +1200,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 	else {
 		/* just call the exec() on the active keyingset */
 		RNA_enum_set(op->ptr, "type", 0);
-		RNA_boolean_set(op->ptr, "confirm_success", 1);
+		RNA_boolean_set(op->ptr, "confirm_success", TRUE);
 		
 		return op->type->exec(C, op);
 	}

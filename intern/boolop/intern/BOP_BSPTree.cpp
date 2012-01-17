@@ -33,7 +33,6 @@
 #include "BOP_BSPTree.h"
 #include <vector>
 #include <iostream>
-using namespace std;
 
 /**
  * Constructs a new BSP tree.

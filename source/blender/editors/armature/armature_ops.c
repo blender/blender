@@ -182,7 +182,7 @@ void ED_operatormacros_armature(void)
 	if(ot) {
 		ot->description= "Create new bones from the selected joints and move them";
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
-		RNA_boolean_set(otmacro->ptr, "forked", 0);
+		RNA_boolean_set(otmacro->ptr, "forked", FALSE);
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
@@ -193,7 +193,7 @@ void ED_operatormacros_armature(void)
 	if(ot) {
 		ot->description= "Create new bones from the selected joints and move them";
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
-		RNA_boolean_set(otmacro->ptr, "forked", 1);
+		RNA_boolean_set(otmacro->ptr, "forked", TRUE);
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}

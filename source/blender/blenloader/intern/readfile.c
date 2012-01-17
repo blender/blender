@@ -137,6 +137,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
@@ -13049,6 +13050,49 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ups->unprojected_radius= ts->sculpt_paint_unified_unprojected_radius;
 				ups->alpha= ts->sculpt_paint_unified_alpha;
 				ups->flag= ts->sculpt_paint_settings;
+			}
+		}
+	}
+
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 3))
+	{
+		{
+			/* convert extended ascii to utf-8 for text editor */
+			Text *text;
+			for (text= main->text.first; text; text= text->id.next)
+				if(!(text->flags & TXT_ISEXT)) {
+					TextLine *tl;
+					
+					for (tl= text->lines.first; tl; tl= tl->next) {
+						int added= txt_extended_ascii_as_utf8(&tl->line);
+						tl->len+= added;
+						
+						/* reset cursor position if line was changed */
+						if (added && tl == text->curl)
+							text->curc = 0;
+					}
+				}
+		}
+		{
+			/* set new dynamic paint values */
+			Object *ob;
+			for(ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for(md= ob->modifiers.first; md; md= md->next) {
+					if (md->type == eModifierType_DynamicPaint) {
+						DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+						if(pmd->canvas)
+						{
+							DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+							for (; surface; surface=surface->next) {
+								surface->color_dry_threshold = 1.0f;
+								surface->influence_scale = 1.0f;
+								surface->radius_scale = 1.0f;
+								surface->flags |= MOD_DPAINT_USE_DRYING;
+							}
+						}
+					}
+				}
 			}
 		}
 	}

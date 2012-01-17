@@ -35,7 +35,6 @@
 #include "MT_assert.h"
 #include "MT_MinMax.h"
 #include <iostream>
-using namespace std;
 
 /**
  * Constructs a new BSP node.
@@ -707,13 +706,13 @@ int BOP_BSPNode::splitTriangle(MT_Point3* res,
  */
 void BOP_BSPNode::print(unsigned int deep)
 {
-	cout << "(" << deep << "," << m_plane << ")," << endl;
+	std::cout << "(" << deep << "," << m_plane << ")," << std::endl;
 	if (m_inChild != NULL)
 		m_inChild->print(deep + 1);
 	else
-		cout << "(" << deep+1 << ",None)," << endl;
+		std::cout << "(" << deep+1 << ",None)," << std::endl;
 	if (m_outChild != NULL)
 		m_outChild->print(deep + 1);
 	else
-		cout << "(" << deep+1 << ",None)," << endl;
+		std::cout << "(" << deep+1 << ",None)," << std::endl;
 }

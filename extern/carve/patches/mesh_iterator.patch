@@ -1,0 +1,21 @@
+diff -r c8cbec41cd35 include/carve/mesh.hpp
+--- a/include/carve/mesh.hpp	Thu Dec 01 15:51:44 2011 -0500
++++ b/include/carve/mesh.hpp	Thu Jan 12 00:19:58 2012 +0600
+@@ -719,13 +719,13 @@
+         void rev(size_t n);
+         void adv(int n);
+ 
+-        FaceIter operator++(int) { FaceIter tmp = *this; fwd(1); return tmp; }
+-        FaceIter operator+(int v) { FaceIter tmp = *this; adv(v); return tmp; }
++        FaceIter operator++(int) { FaceIter tmp = *this; tmp.fwd(1); return tmp; }
++        FaceIter operator+(int v) { FaceIter tmp = *this; tmp.adv(v); return tmp; }
+         FaceIter &operator++() { fwd(1); return *this; }
+         FaceIter &operator+=(int v) { adv(v); return *this; }
+ 
+-        FaceIter operator--(int) { FaceIter tmp = *this; rev(1); return tmp; }
+-        FaceIter operator-(int v) { FaceIter tmp = *this; adv(-v); return tmp; }
++        FaceIter operator--(int) { FaceIter tmp = *this; tmp.rev(1); return tmp; }
++        FaceIter operator-(int v) { FaceIter tmp = *this; tmp.adv(-v); return tmp; }
+         FaceIter &operator--() { rev(1); return *this; }
+         FaceIter &operator-=(int v) { adv(-v); return *this; }
+ 

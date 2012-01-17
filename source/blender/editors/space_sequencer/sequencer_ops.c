@@ -136,9 +136,11 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
-	
-	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, 0, 0)->ptr, "type", SEQ_CUT_SOFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", SEQ_CUT_HARD);
+
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "type", SEQ_CUT_SOFT);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_enum_set(kmi->ptr, "type", SEQ_CUT_HARD);
 	
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_mute", HKEY, KM_PRESS, 0, 0);
 		RNA_boolean_set(kmi->ptr, "unselected", FALSE);
@@ -212,8 +214,10 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	/* 2.4x method, now use Alt for handles and select the side based on which handle was selected */
 	/*
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "linked_left", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "linked_right", 1);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "linked_left", TRUE);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "linked_right", TRUE);
 	
 	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "linked_left", TRUE);
@@ -263,8 +267,10 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	

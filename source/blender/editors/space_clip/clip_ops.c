@@ -999,5 +999,5 @@ void ED_operatormacros_clip(void)
 	ot->description = "Add new marker and slide it with mouse until mouse button release";
 	WM_operatortype_macro_define(ot, "CLIP_OT_add_marker");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_boolean_set(otmacro->ptr, "release_confirm", 1);
+	RNA_boolean_set(otmacro->ptr, "release_confirm", TRUE);
 }

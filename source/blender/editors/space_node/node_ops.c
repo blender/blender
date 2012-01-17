@@ -114,8 +114,10 @@ void ED_operatormacros_node(void)
 	/* modified operator call for duplicating with input links */
 	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Duplicate selected nodes keeping input links and move them";
+
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
-		RNA_boolean_set(mot->ptr, "keep_inputs", 1);
+	RNA_boolean_set(mot->ptr, "keep_inputs", TRUE);
+
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
@@ -144,11 +146,12 @@ void node_keymap(struct wmKeyConfig *keyconf)
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0)->ptr, "tweak", 1);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0);
+		RNA_boolean_set(kmi->ptr, "tweak", TRUE);
 	
 	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -163,10 +166,12 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, KM_ALT, 0);
 		RNA_float_set(kmi->ptr, "factor", 1.2f);
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_sample", ACTIONMOUSE, KM_PRESS, KM_ALT, 0);
-	
-	WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, KM_CTRL, 0)->ptr, "replace", 1);
-	
+
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "replace", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "replace", TRUE);
+
 	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	/* modified operator call for duplicating with input links */
@@ -180,7 +185,10 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_show_cyclic_dependencies", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "tweak", FALSE);
+
 	WM_keymap_add_item(keymap, "NODE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete_reconnect", XKEY, KM_PRESS, KM_CTRL, 0);

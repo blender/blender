@@ -272,8 +272,8 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	/* ensure we have a 3d view */
 
 	if(!ED_view3d_context_activate(C)) {
-		RNA_boolean_set(op->ptr, "view_context", 0);
-		is_view_context= 0;
+		RNA_boolean_set(op->ptr, "view_context", FALSE);
+		is_view_context = 0;
 	}
 
 	/* only one render job at a time */

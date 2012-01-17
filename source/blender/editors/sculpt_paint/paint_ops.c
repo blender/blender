@@ -583,8 +583,10 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT|KM_CTRL, 0)->ptr, "deselect", 1);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */
@@ -609,8 +611,10 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_face_select_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "PAINT_OT_face_select_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_hide", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
