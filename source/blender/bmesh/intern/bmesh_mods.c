@@ -408,16 +408,20 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 	BMEdge *ne = NULL;
 	BMVert *tv = bmesh_edge_getothervert(ke, kv);
 
+	BMEdge *e2;
+	BMVert *tv2;
 
 	BMIter iter;
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
 	BMFace **faces = NULL, *f;
 	BLI_array_staticdeclare(faces, 8);
+
 	void *src[2];
 	float w[2];
 
 	/* Only intended to be called for 2-valence vertices */
 	BLI_assert(bmesh_disk_count(kv) <= 2);
+
 
 	w[0] = 1.0f - fac;
 	w[1] = fac;
@@ -441,19 +445,13 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 		BLI_array_append(faces, f);
 	}
 
-	/* Collapse between 2+ faces */
-	if (faces && BLI_array_count(faces) > 1) {
-		BMFace *f2;
-		BMEdge *e2;
-		BMVert *tv2;
+	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
-		/* only call when making real changes */
-		BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
+	e2 = bmesh_disk_nextedge(ke, kv);
+	tv2 = BM_OtherEdgeVert(e2, kv);
 
-		e2 = bmesh_disk_nextedge(ke, kv);
-		tv2 = BM_OtherEdgeVert(e2, kv);
-
-		f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
+	if (BLI_array_count(faces) > 1) {
+		BMFace *f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
 		if (f2) {
 			BMLoop *nl = NULL;
 			if (BM_Split_Face(bm, f2, tv, tv2, &nl, NULL)) {
@@ -461,7 +459,12 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 			}
 		}
 	}
-	/* else we cant do anything! */
+	else { /* single face or no faces */
+		/* same as BM_Collapse_Vert_Edges() however we already
+		 * have vars to perform this operation so dont call. */
+		bmesh_jekv(bm, ke, kv);
+		ne = BM_Edge_Exist(tv, tv2);
+	}
 
 	BLI_array_free(faces);
 
@@ -472,8 +475,7 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 /**
  *			BM_Collapse_Vert_Edges
  *
- * Collapses a vertex onto another vertex it shares an edge with. Fac defines
- * the amount of interpolation for Custom Data.
+ * Collapses a vertex onto another vertex it shares an edge with.
  *
  * Note that this is not a general edge collapse function.
  *
