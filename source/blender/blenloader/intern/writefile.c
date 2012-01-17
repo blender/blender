@@ -1790,9 +1790,6 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 				/* restore */
 				mesh->mpoly = backup_mesh.mpoly;
-				mesh->totface = backup_mesh.totface;
-				mesh->totpoly = backup_mesh.totpoly;
-				mesh->totloop = backup_mesh.totloop;
 				/* -- */
 				mesh->mface = backup_mesh.mface;
 				/* -- */
@@ -1803,6 +1800,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->pdata= backup_mesh.pdata;
 				/* -- */
 				mesh->ldata= backup_mesh.ldata;
+				/* -- */
+				mesh->totface = backup_mesh.totface;
+				mesh->totpoly = backup_mesh.totpoly;
+				mesh->totloop = backup_mesh.totloop;
 				/* -- */
 				mesh_update_customdata_pointers(mesh, FALSE);
 				/* --*/
