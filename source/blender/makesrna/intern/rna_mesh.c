@@ -2263,7 +2263,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a UV map layer to Mesh");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
-	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
+	parm= RNA_def_pointer(func, "layer", "MeshTexturePolyLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 
 /*
