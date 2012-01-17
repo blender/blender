@@ -267,9 +267,10 @@ void BPY_python_start(int argc, const char **argv)
 	
 	pyrna_alloc_types();
 
+#ifndef WITH_PYTHON_MODULE
+	/* py module runs atexit when bpy is freed */
 	BPY_atexit_register(); /* this can init any time */
 
-#ifndef WITH_PYTHON_MODULE
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 #endif
@@ -288,7 +289,9 @@ void BPY_python_end(void)
 
 	bpy_intern_string_exit();
 
+#ifndef WITH_PYTHON_MODULE
 	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
+#endif
 
 	Py_Finalize();
 	

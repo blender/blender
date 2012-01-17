@@ -523,7 +523,7 @@ static short apply_targetless_ik(Object *ob)
 static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
 	Bone *bone= pchan->bone;
-	float pmat[3][3], omat[3][3], bmat[3][3];
+	float pmat[3][3], omat[3][3];
 	float cmat[3][3], tmat[3][3];
 	float vec[3];
 
@@ -577,39 +577,71 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		copy_qt_qt(td->ext->iquat, pchan->quat);
 	}
 	td->ext->rotOrder= pchan->rotmode;
-	
+
 
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
+	/* New code, using "generic" pchan_to_pose_mat(). */
+	{
+		float rotscale_mat[4][4], loc_mat[4][4];
+
+		pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
+		if (t->mode == TFM_TRANSLATION)
+			copy_m3_m4(pmat, loc_mat);
+		else
+			copy_m3_m4(pmat, rotscale_mat);
+
+		if (constraints_list_needinv(t, &pchan->constraints)) {
+			copy_m3_m4(tmat, pchan->constinv);
+			invert_m3_m3(cmat, tmat);
+			mul_serie_m3(td->mtx, pmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);
+		}
+		else
+			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL,NULL,NULL,NULL,NULL);
+	}
+
+	/* XXX Old code. Will remove it later. */
+#if 0
 	if (ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
 		unit_m3(bmat);
 	else
 		copy_m3_m3(bmat, pchan->bone->bone_mat);
 
 	if (pchan->parent) {
-		if(pchan->bone->flag & BONE_HINGE)
+		if(pchan->bone->flag & BONE_HINGE) {
 			copy_m3_m4(pmat, pchan->parent->bone->arm_mat);
-		else
+			if(!(pchan->bone->flag & BONE_NO_SCALE)) {
+				float tsize[3], tsmat[3][3];
+				mat4_to_size(tsize, pchan->parent->pose_mat);
+				size_to_mat3(tsmat, tsize);
+				mul_m3_m3m3(pmat, tsmat, pmat);
+			}
+		}
+		else {
 			copy_m3_m4(pmat, pchan->parent->pose_mat);
+			if(pchan->bone->flag & BONE_NO_SCALE)
+				normalize_m3(pmat);
+		}
 
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, NULL,NULL,NULL,NULL);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, NULL,NULL,NULL,NULL);
 		}
 		else
-			mul_serie_m3(td->mtx, bmat, pmat, omat, NULL,NULL,NULL,NULL,NULL);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, NULL,NULL,NULL,NULL,NULL);
 	}
 	else {
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);
 		}
 		else
-			mul_m3_m3m3(td->mtx, omat, bmat);  // Mat3MulMat3 has swapped args!
+			mul_m3_m3m3(td->mtx, omat, bmat);
 	}
+# endif
 
 	invert_m3_m3(td->smtx, td->mtx);
 
@@ -2325,6 +2357,18 @@ void flushTransSeq(TransInfo *t)
 		seq_prev= seq;
 	}
 
+
+	if (ELEM(t->mode, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) { /* originally TFM_TIME_EXTEND, transform changes */
+		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
+		seq= seqbasep->first;
+
+		while(seq) {
+			if (seq->type == SEQ_META && seq->flag & SELECT)
+				calc_sequence(t->scene, seq);
+			seq= seq->next;
+		}
+	}
+
 	/* need to do the overlap check in a new loop otherwise adjacent strips
 	 * will not be updated and we'll get false positives */
 	seq_prev= NULL;
@@ -2343,17 +2387,6 @@ void flushTransSeq(TransInfo *t)
 			}
 		}
 		seq_prev= seq;
-	}
-
-	if (t->mode == TFM_SEQ_SLIDE) { /* originally TFM_TIME_EXTEND, transform changes */
-		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
-		seq= seqbasep->first;
-
-		while(seq) {
-			if (seq->type == SEQ_META && seq->flag & SELECT)
-				calc_sequence(t->scene, seq);
-			seq= seq->next;
-		}
 	}
 }
 

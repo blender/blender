@@ -1611,6 +1611,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	MenuEntry *entry;
 	const char *instr= arg_str;
 	int columns, rows, a, b;
+	int column_start= 0, column_end= 0;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
@@ -1654,17 +1655,30 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	/* create items */
 	split= uiLayoutSplit(layout, 0, 0);
 
-	for(a=0, b=0; a<md->nitems; a++, b++) {
+	for(a=0; a<md->nitems; a++) {
+		if(a == column_end) {
+			/* start new column, and find out where it ends in advance, so we
+			   can flip the order of items properly per column */
+			column_start= a;
+			column_end= md->nitems;
+
+			for(b=a+1; b<md->nitems; b++) {
+				entry= &md->items[b];
+
+				/* new column on N rows or on separation label */
+				if(((b-a) % rows == 0) || (entry->sepr && entry->str[0])) {
+					column_end = b;
+					break;
+				}
+			}
+
+			column= uiLayoutColumn(split, 0);
+		}
+
 		if(block->flag & UI_BLOCK_NO_FLIP)
 			entry= &md->items[a];
 		else
-			entry= &md->items[md->nitems-a-1];
-		
-		/* new column on N rows or on separation label */
-		if((b % rows == 0) || (entry->sepr && entry->str[0])) {
-			column= uiLayoutColumn(split, 0);
-			b= 0;
-		}
+			entry= &md->items[column_start + column_end-1-a];
 
 		if(entry->sepr) {
 			uiItemL(column, entry->str, entry->icon);

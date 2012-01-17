@@ -46,10 +46,10 @@
 
 #include "PIL_time.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
-#include "BLI_array.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
@@ -59,7 +59,6 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_array_mallocn.h"
 #include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
 
@@ -268,8 +267,8 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
 			
 			BLI_array_growone(edges);
-			VECCOPY(edges[tot][0], co[0]);
-			VECCOPY(edges[tot][1], co[1]);
+			copy_v3_v3(edges[tot][0], co[0]);
+			copy_v3_v3(edges[tot][1], co[1]);
 			tot++;
 		}
 	}

@@ -8,9 +8,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if !defined(__MINGW32__)
 inline int strcasecmp(const char *a, const char *b) {
   return _stricmp(a,b);
 }
+#endif
 
 inline void srandom(unsigned long input) {
   srand(input);
