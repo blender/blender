@@ -601,10 +601,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			DM_copy_poly_data(dm, result, fidx, (numFaces * 2) + i, 1);
 			mp->loopstart = j+numLoops*2;
 			mp->flag = mpoly[fidx].flag;
-			mp->totloop = 4;
 
-			k1 = mpoly[fidx].loopstart + ((edge_order[eidx] + mp->totloop + 1) % mp->totloop);
-			k2 = mpoly[fidx].loopstart + ((edge_order[eidx] % mp->totloop));
+			/* notice we use 'mp->totloop' which is later overwritten,
+			 * we could lookup the original face but theres no point since this is a copy
+			 * and will have the same value, just take care when changing order of assignment */
+			k1 = mpoly[fidx].loopstart + ((edge_order[eidx] + 1) % mp->totloop);
+			k2 = mpoly[fidx].loopstart +  (edge_order[eidx]);
+
+			mp->totloop = 4;
 
 			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops*2+j+0, 1);
 			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops*2+j+1, 1);
