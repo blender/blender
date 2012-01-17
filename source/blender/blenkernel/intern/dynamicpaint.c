@@ -4190,7 +4190,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 			/*	Loop through neighbouring points	*/
 			for (i=0; i<numOfNeighs; i++) {
 				int n_index = sData->adj_data->n_index[index]+i;
-				float w_factor, p_alpha = pPoint->e_alpha;
+				float w_factor /* , p_alpha = pPoint->e_alpha */ /* UNUSED */;
 				PaintPoint *ePoint = &prevPoint[sData->adj_data->n_target[n_index]];
 				float speed_scale = (bNeighs[n_index].dist<eff_scale) ? 1.0f : eff_scale/bNeighs[n_index].dist;
 				float color_mix = (MIN3(ePoint->wetness, pPoint->wetness, 1.0f))*0.25f*surface->color_spread_speed;
