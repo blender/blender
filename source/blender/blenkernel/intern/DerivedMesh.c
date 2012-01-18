@@ -700,7 +700,7 @@ DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
 	if (vertCos)
 		CDDM_apply_vert_coords(dm, vertCos);
 
-	CDDM_calc_normals_mapping(dm);
+	CDDM_calc_normals(dm);
 
 	return dm;
 }
@@ -817,7 +817,7 @@ static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMEditMesh *em, int lay
 		if(free) MEM_freeN(orco);
 	}
 
-	CDDM_calc_normals_mapping(dm);
+	CDDM_calc_normals(dm);
 
 	return dm;
 }
@@ -1253,7 +1253,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			
 			if(deformedVerts) {
 				CDDM_apply_vert_coords(*deform_r, deformedVerts);
-				CDDM_calc_normals_mapping(*deform_r);
+				CDDM_calc_normals(*deform_r);
 			}
 		}
 	} else {
@@ -1337,7 +1337,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				/* XXX, this covers bug #23673, but we may need normal calc for other types */
 				if(dm && dm->type == DM_TYPE_CDDM) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals_mapping(dm);
+					CDDM_calc_normals(dm);
 				}
 			}
 
@@ -1359,7 +1359,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					dm = tdm;
 
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals_mapping(dm);
+					CDDM_calc_normals(dm);
 				}
 			} else {
 				dm = CDDM_from_mesh(me, ob);
@@ -1369,7 +1369,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				if(deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals_mapping(dm);
+					CDDM_calc_normals(dm);
 				}
 
 				/* Constructive modifiers need to have an origindex
@@ -1488,7 +1488,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		dm->release(dm);
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
-		CDDM_calc_normals_mapping(finaldm);
+		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm, draw_flag);
@@ -1510,7 +1510,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		}
 
 		if(recalc_normals)
-			CDDM_calc_normals_mapping(finaldm);
+			CDDM_calc_normals(finaldm);
 		
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm, draw_flag);
@@ -1672,7 +1672,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 					dm = tdm;
 
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals_mapping(dm);
+					CDDM_calc_normals(dm);
 				} else if(cage_r && dm == *cage_r) {
 					/* dm may be changed by this modifier, so we need to copy it
 					 */
@@ -1680,11 +1680,11 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				}
 
 			} else {
-				dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, TRUE);
+				dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
 
 				if(deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
-					CDDM_calc_normals_mapping(dm);
+					CDDM_calc_normals(dm);
 				}
 			}
 
