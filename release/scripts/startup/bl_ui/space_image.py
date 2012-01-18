@@ -19,6 +19,11 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from .properties_paint_common import UnifiedPaintPanel
+
+class ImagePaintPanel(UnifiedPaintPanel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
 
 
 class BrushButtonsPanel():
@@ -641,7 +646,7 @@ class IMAGE_PT_view_properties(Panel):
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
 
-class IMAGE_PT_paint(Panel):
+class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Paint"
@@ -666,13 +671,13 @@ class IMAGE_PT_paint(Panel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
-            row.prop(brush, "use_pressure_size", toggle=True, text="")
+            self.prop_unified_size(row, context, brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_pressure_strength", toggle=True, text="")
-
+            self.prop_unified_strength(row, context, brush, "strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "use_pressure_strength")
+            
             row = col.row(align=True)
             row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
@@ -763,7 +768,7 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class IMAGE_UV_sculpt_curve(bpy.types.Panel):
+class IMAGE_UV_sculpt_curve(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "UV Sculpt Curve"
@@ -793,7 +798,7 @@ class IMAGE_UV_sculpt_curve(bpy.types.Panel):
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
 
 
-class IMAGE_UV_sculpt(bpy.types.Panel):
+class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "UV Sculpt"
@@ -815,13 +820,13 @@ class IMAGE_UV_sculpt(bpy.types.Panel):
             col = layout.column()
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
-            row.prop(brush, "use_pressure_size", toggle=True, text="")
+            self.prop_unified_size(row, context, brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_pressure_strength", toggle=True, text="")
-
+            self.prop_unified_strength(row, context, brush, "strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "use_pressure_strength")
+            
         split = layout.split()
         col = split.column()
 

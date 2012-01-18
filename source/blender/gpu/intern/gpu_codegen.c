@@ -653,7 +653,7 @@ static char *code_generate_vertex(ListBase *nodes)
 
 int GPU_bicubic_bump_support(void)
 {
-	return GLEW_ARB_texture_gather && GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0;
+	return GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0;
 }
 
 void GPU_code_generate_glsl_lib(void)
@@ -669,7 +669,6 @@ void GPU_code_generate_glsl_lib(void)
 	if(GPU_bicubic_bump_support()){
 		BLI_dynstr_append(ds, "/* These are needed for high quality bump mapping */\n"
 				"#version 130\n"
-				"#extension GL_ARB_texture_gather: enable\n"
 				"#extension GL_ARB_texture_query_lod: enable\n"
 				"#define BUMP_BICUBIC\n");
 	}

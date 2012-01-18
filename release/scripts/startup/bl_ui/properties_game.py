@@ -244,7 +244,7 @@ class RenderButtonsPanel():
         return (rd.engine in cls.COMPAT_ENGINES)
 
 
-class RENDER_PT_embedded(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_embedded(RenderButtonsPanel, Panel):
     bl_label = "Embedded Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 

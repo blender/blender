@@ -225,7 +225,7 @@ int txt_extended_ascii_as_utf8(char **str)
 	int length = strlen(*str);
 
 	while ((*str)[i]) {
-		if((bad_char= BLI_utf8_invalid_byte(*str+i, length)) == -1)
+		if((bad_char= BLI_utf8_invalid_byte(*str+i, length-i)) == -1)
 			break;
 
 		added++;
@@ -238,7 +238,7 @@ int txt_extended_ascii_as_utf8(char **str)
 		i= 0;
 		
 		while ((*str)[i]) {
-			if((bad_char= BLI_utf8_invalid_byte((*str)+i, length)) == -1) {
+			if((bad_char= BLI_utf8_invalid_byte((*str)+i, length-i)) == -1) {
 				memcpy(newstr+mi, (*str)+i, length - i + 1);
 				break;
 			}
