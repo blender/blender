@@ -19,47 +19,11 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from .properties_paint_common import UnifiedPaintPanel
 
-class PaintPanel():
+class ImagePaintPanel(UnifiedPaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-
-    @staticmethod
-    def paint_settings(context):
-        toolsettings = context.tool_settings
-
-        if context.sculpt_object:
-            return toolsettings.sculpt
-        elif context.vertex_paint_object:
-            return toolsettings.vertex_paint
-        elif context.weight_paint_object:
-            return toolsettings.weight_paint
-        elif context.image_paint_object:
-            return toolsettings.image_paint
-        elif context.particle_edit_object:
-            return toolsettings.particle_edit
-
-        return None
-
-    @staticmethod
-    def unified_paint_settings(parent, context):
-        ups = context.tool_settings.unified_paint_settings
-        parent.label(text="Unified Settings:")
-        parent.prop(ups, "use_unified_size", text="Size")
-        parent.prop(ups, "use_unified_strength", text="Strength")
-
-    @staticmethod
-    def prop_unified_size(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
-        ups = context.tool_settings.unified_paint_settings
-        ptr = ups if ups.use_unified_size else brush
-        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
-
-    @staticmethod
-    def prop_unified_strength(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
-        ups = context.tool_settings.unified_paint_settings
-        ptr = ups if ups.use_unified_strength else brush
-        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
-
 
 
 class BrushButtonsPanel():
@@ -682,7 +646,7 @@ class IMAGE_PT_view_properties(Panel):
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
 
-class IMAGE_PT_paint(Panel, PaintPanel):
+class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Paint"
@@ -834,7 +798,7 @@ class IMAGE_UV_sculpt_curve(bpy.types.Panel):
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
 
 
-class IMAGE_UV_sculpt(bpy.types.Panel, PaintPanel):
+class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "UV Sculpt"

@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
+from .properties_paint_common import UnifiedPaintPanel
 
 
 class View3DPanel():
@@ -447,48 +448,12 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 # ********** default tools for paint modes ****************
 
 
-class PaintPanel():
+class View3DPaintPanel(UnifiedPaintPanel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-    @staticmethod
-    def paint_settings(context):
-        toolsettings = context.tool_settings
 
-        if context.sculpt_object:
-            return toolsettings.sculpt
-        elif context.vertex_paint_object:
-            return toolsettings.vertex_paint
-        elif context.weight_paint_object:
-            return toolsettings.weight_paint
-        elif context.image_paint_object:
-            return toolsettings.image_paint
-        elif context.particle_edit_object:
-            return toolsettings.particle_edit
-
-        return None
-
-    @staticmethod
-    def unified_paint_settings(parent, context):
-        ups = context.tool_settings.unified_paint_settings
-        parent.label(text="Unified Settings:")
-        parent.prop(ups, "use_unified_size", text="Size")
-        parent.prop(ups, "use_unified_strength", text="Strength")
-
-    @staticmethod
-    def prop_unified_size(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
-        ups = context.tool_settings.unified_paint_settings
-        ptr = ups if ups.use_unified_size else brush
-        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
-
-    @staticmethod
-    def prop_unified_strength(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
-        ups = context.tool_settings.unified_paint_settings
-        ptr = ups if ups.use_unified_strength else brush
-        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
-
-
-class VIEW3D_PT_tools_brush(PaintPanel, Panel):
+class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
     bl_label = "Brush"
 
     @classmethod
@@ -715,7 +680,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             #row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
 
-class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
+class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -794,7 +759,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
             sub.prop(brush, "texture_overlay_alpha", text="Alpha")
 
 
-class VIEW3D_PT_tools_brush_tool(PaintPanel, Panel):
+class VIEW3D_PT_tools_brush_tool(Panel, View3DPaintPanel):
     bl_label = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -828,7 +793,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, Panel):
         row.prop(brush, "use_paint_image", text="", icon='TPAINT_HLT')
 
 
-class VIEW3D_PT_tools_brush_stroke(PaintPanel, Panel):
+class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
     bl_label = "Stroke"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -920,7 +885,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, Panel):
             #    row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
 
-class VIEW3D_PT_tools_brush_curve(PaintPanel, Panel):
+class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
     bl_label = "Curve"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -947,7 +912,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, Panel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class VIEW3D_PT_sculpt_options(PaintPanel, Panel):
+class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -975,7 +940,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, Panel):
         self.unified_paint_settings(layout, context)
 
 
-class VIEW3D_PT_sculpt_symmetry(PaintPanel, Panel):
+class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -999,7 +964,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, Panel):
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
 
 
-class VIEW3D_PT_tools_brush_appearance(PaintPanel, Panel):
+class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     bl_label = "Appearance"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1061,7 +1026,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.operator("object.vertex_group_fix", text="Fix Deforms")
 
 
-class VIEW3D_PT_tools_weightpaint_options(PaintPanel, Panel):
+class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
     bl_context = "weightpaint"
     bl_label = "Options"
 
@@ -1097,7 +1062,7 @@ class VIEW3D_PT_tools_weightpaint_options(PaintPanel, Panel):
 # ********** default tools for vertex-paint ****************
 
 
-class VIEW3D_PT_tools_vertexpaint(PaintPanel, Panel):
+class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
     bl_context = "vertexpaint"
     bl_label = "Options"
 
@@ -1191,7 +1156,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         col.operator("image.save_dirty", text="Save All Edited")
 
 
-class VIEW3D_PT_imagepaint_options(PaintPanel):
+class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
 
