@@ -2520,9 +2520,8 @@ static int set_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	float dist= RNA_float_get(op->ptr, "distance");
 
-	if(dist==0.0f)
+	if(!RNA_struct_property_is_set(op->ptr, "distance"))
 		RNA_float_set(op->ptr, "distance", clip->tracking.settings.dist);
 
 	return set_scale_exec(C, op);
@@ -2573,9 +2572,8 @@ static int set_solution_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	float dist= RNA_float_get(op->ptr, "distance");
 
-	if(dist==0.0f)
+	if(!RNA_struct_property_is_set(op->ptr, "distance"))
 		RNA_float_set(op->ptr, "distance", clip->tracking.settings.object_distance);
 
 	return set_solution_scale_exec(C, op);
