@@ -184,7 +184,7 @@ typedef struct bPoseChannel {
 	IDProperty 			*prop;		/* User-Defined Properties on this PoseChannel */			
 	
 	ListBase			constraints;/* Constraints that act on this PoseChannel */
-	char				name[32];	/* Channels need longer names than normal blender objects */
+	char				name[64];	/* need to match bone name length: MAXBONENAME */
 	
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				ikflag;		/* settings for IK bones */
@@ -345,7 +345,7 @@ typedef struct bPose {
 	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 	
 	bAnimVizSettings avs;		/* settings for visualization of bone animation */
-	char proxy_act_bone[32];    /* proxy active bone name*/
+	char proxy_act_bone[64];    /* proxy active bone name, MAXBONENAME */
 } bPose;
 
 
@@ -669,7 +669,7 @@ typedef struct bActionChannel {
 	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
 	
 	int		flag;			/* settings accessed via bitmapping */
-	char	name[32];		/* channel name */
+	char	name[64];		/* channel name, MAX_NAME */
 	int		temp;			/* temporary setting - may be used to indicate group that channel belongs to during syncing  */
 } bActionChannel;
 

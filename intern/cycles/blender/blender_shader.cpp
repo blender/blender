@@ -364,6 +364,13 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			node = wave;
 			break;
 		}
+		case BL::ShaderNode::type_TEX_CHECKER: {
+			BL::ShaderNodeTexChecker b_checker_node(b_node);
+			CheckerTextureNode *checker = new CheckerTextureNode();
+			get_tex_mapping(&checker->tex_mapping, b_checker_node.texture_mapping());
+			node = checker;
+			break;
+		}
 		case BL::ShaderNode::type_TEX_NOISE: {
 			BL::ShaderNodeTexNoise b_noise_node(b_node);
 			NoiseTextureNode *noise = new NoiseTextureNode();

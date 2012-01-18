@@ -55,6 +55,7 @@
 #include "BKE_texture.h"
 #include "BKE_report.h"
 #include "BKE_displist.h"
+#include "BKE_scene.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -139,7 +140,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
-				char name_ui[32];
+				char name_ui[MAX_ID_NAME];
 				name_uiprefix_id(name_ui, id);
 
 				iconid= ui_id_icon_get((bContext*)C, id, 1);
@@ -180,7 +181,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		/* fake button, it holds space for search items */
 		uiDefBut(block, LABEL, 0, "", 10, 15, w, h, NULL, 0, 0, 0, 0, NULL);
 		
-		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, w, 19, template.prv_rows, template.prv_cols, "");
+		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, 19, template.prv_rows, template.prv_cols, "");
 		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	}
 	/* list view */
@@ -188,7 +189,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		/* fake button, it holds space for search items */
 		uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 		
-		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, 0, 0, "");
+		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
 		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	}
 		
@@ -412,11 +413,11 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		}
 
 		if(id->us > 1) {
-			char str[32];
+			char numstr[32];
 
-			BLI_snprintf(str, sizeof(str), "%d", id->us);
+			BLI_snprintf(numstr, sizeof(numstr), "%d", id->us);
 
-			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0,
+			but= uiDefBut(block, BUT, 0, numstr, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0,
 			              TIP_("Display number of users of this data (click to make a single-user copy)"));
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
@@ -1620,7 +1621,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, struct ARegion *ar, void *cu
 	uiBut *bt;
 	float width= 8*UI_UNIT_X;
 
-	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS);
+	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, 16, width+8, 6*UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
@@ -1679,7 +1680,7 @@ static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap
 	uiBlock *block;
 	short yco= 0, menuwidth=10*UI_UNIT_X;
 
-	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, IFACE_("Reset View"),			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 1, "");
@@ -1701,7 +1702,7 @@ static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void 
 	uiBlock *block;
 	short yco= 0, menuwidth=10*UI_UNIT_X;
 
-	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, IFACE_("Reset View"),		0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 1, "");
@@ -1956,10 +1957,10 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 		tot= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 		
 		/* Normally clicking only selects one layer */
-		RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, cur, 1);
+		RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, cur, TRUE);
 		for(i = 0; i < tot; ++i) {
 			if(i != cur)
-				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, 0);
+				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, FALSE);
 		}
 	}
 	
@@ -2125,6 +2126,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if(RNA_struct_is_a(itemptr->type, &RNA_MaterialSlot)) {
 		/* provision to draw active node name */
 		Material *ma, *manode;
+		Scene *scene= CTX_data_scene(C);
 		Object *ob= (Object*)ptr->id.data;
 		int index= (Material**)itemptr->data - ob->mat;
 		
@@ -2132,7 +2134,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiItemL(sub, name, icon);
 		
 		ma= give_current_material(ob, index+1);
-		if(ma) {
+		if (ma && !scene_use_new_shading_nodes(scene)){
 			manode= give_node_material(ma);
 			if(manode) {
 				char str[MAX_ID_NAME + 12];
@@ -2279,7 +2281,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	uiBlock *block;
 	uiBut *but;
 	Panel *pa;
-	char *name, str[32];
+	const char *name;
+	char numstr[32];
 	int rnaicon=0, icon=0, i= 0, activei= 0, len= 0, items, found, min, max;
 
 	/* validate arguments */
@@ -2370,7 +2373,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 					uiItemL(row, (name)? name: "", icon);
 
 					if(name)
-						MEM_freeN(name);
+						MEM_freeN((void *)name);
 				}
 
 				i++;
@@ -2383,8 +2386,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			uiItemL(row, "", ICON_NONE);
 
 		/* next/prev button */
-		BLI_snprintf(str, sizeof(str), "%d :", i);
-		but= uiDefIconTextButR_prop(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activeprop, 0, 0, 0, 0, 0, "");
+		BLI_snprintf(numstr, sizeof(numstr), "%d :", i);
+		but= uiDefIconTextButR_prop(block, NUM, 0, 0, numstr, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activeprop, 0, 0, 0, 0, 0, "");
 		if(i == 0)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
@@ -2468,12 +2471,15 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 				int len= strlen(ot->name);
 				
 				/* display name for menu, can hold hotkey */
-				BLI_strncpy(name, ot->name, 256);
+				BLI_strncpy(name, ot->name, sizeof(name));
 				
 				/* check for hotkey */
-				if(len < 256-6) {
-					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE, &name[len+1], 256-len-1))
+				if(len < sizeof(name)-6) {
+					if (WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE,
+					                                 &name[len+1], sizeof(name)-len-1))
+					{
 						name[len]= '|';
+					}
 				}
 				
 				if(0==uiSearchItemAdd(items, name, ot, 0))

@@ -1248,8 +1248,6 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
-
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3]) 
@@ -1591,7 +1589,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				mesh_loops_to_mface_corners(fdata, ldata, pdata,
 				                            lindex, k, i, 3,
 				                            numTex, numCol, hasWCol);
-				test_index_face(mf, fdata, totface, 3);
+				test_index_face(mf, fdata, k, 3);
 			}
 			else {
 				/*sort loop indices to ensure winding is correct*/
@@ -1611,7 +1609,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				mesh_loops_to_mface_corners(fdata, ldata, pdata,
 				                            lindex, k, i, 4,
 				                            numTex, numCol, hasWCol);
-				test_index_face(mf, fdata, totface, 4);
+				test_index_face(mf, fdata, k, 4);
 			}
 
 			mf->edcode= 0;

@@ -144,7 +144,7 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual);
+		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
 
 	/**
 	 * Ends full screen mode.
@@ -308,7 +308,7 @@ protected:
 	 * @return Indication of success.
 	 */
 	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window** window,
-		const bool stereoVisual);
+		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
 
 	/** The display manager (platform dependant). */
 	GHOST_DisplayManager* m_displayManager;

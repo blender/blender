@@ -53,7 +53,7 @@ struct VBVHNode
  * Push nodes (used on dfs)
  */
 template<class Node>
-inline static void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, int &stack_pos)
+inline static void bvh_node_push_childs(Node *node, Isect *UNUSED(isec), Node **stack, int &stack_pos)
 {
 	Node *child = node->child;
 

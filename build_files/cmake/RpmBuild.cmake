@@ -13,7 +13,7 @@ if(NOT DEFINED RPMBUILD)
 
 	if(RPMBUILD)
 		message(STATUS "RPM Build Found: ${RPMBUILD}")
-	else(RPMBUILD) 
+	else() 
 		message(STATUS "RPM Build Not Found (rpmbuild). RPM generation will not be available")
 	endif()
 
@@ -21,6 +21,6 @@ endif()
 
 if(RPMBUILD)
 	set(RPMBUILD_FOUND TRUE)
-else(RPMBUILD) 
+else() 
 	set(RPMBUILD_FOUND FALSE)
 endif()

@@ -52,7 +52,8 @@
 /* callbacks */
 static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports);
 static void end_avi(void);
-static int append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports);
+static int append_avi(RenderData *rd, int start_frame, int frame, int *pixels,
+                      int rectx, int recty, ReportList *reports);
 static void filepath_avi(char *string, RenderData *rd);
 
 /* ********************** general blender movie support ***************************** */
@@ -121,7 +122,6 @@ bMovieHandle *BKE_get_movie_handle(const char imtype)
 
 
 static AviMovie *avi=NULL;
-static int sframe;
 
 static void filepath_avi (char *string, RenderData *rd)
 {
@@ -150,7 +150,6 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	
 	filepath_avi(name, rd);
 
-	sframe = (rd->sfra);
 	x = rectx;
 	y = recty;
 
@@ -183,7 +182,8 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	return 1;
 }
 
-static int append_avi(RenderData *UNUSED(rd), int frame, int *pixels, int rectx, int recty, ReportList *UNUSED(reports))
+static int append_avi(RenderData *UNUSED(rd), int start_frame, int frame, int *pixels,
+                      int rectx, int recty, ReportList *UNUSED(reports))
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;
@@ -212,8 +212,8 @@ static int append_avi(RenderData *UNUSED(rd), int frame, int *pixels, int rectx,
 		}
 	}
 	
-	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, rectot, rectx*recty*4);
-//	printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
+	AVI_write_frame (avi, (frame-start_frame), AVI_FORMAT_RGB32, rectot, rectx*recty*4);
+//	printf ("added frame %3d (frame %3d in avi): ", frame, frame-start_frame);
 
 	return 1;
 }

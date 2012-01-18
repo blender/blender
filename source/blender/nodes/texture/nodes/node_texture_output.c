@@ -103,8 +103,8 @@ static void unique_name(bNode *node)
 			} else {
 				suffix = 0;
 				new_len = len + 4;
-				if(new_len > 31)
-					new_len = 31;
+				if(new_len > (sizeof(tno->name) - 1))
+					new_len = (sizeof(tno->name) - 1);
 			}
 			
 			new_name = MEM_mallocN(new_len + 1, "new_name");

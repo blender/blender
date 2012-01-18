@@ -106,7 +106,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	device->task_add(task);
 	device->task_wait();
 
-	device->mem_copy_from(d_output, 0, sizeof(float3)*d_output.size());
+	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float3));
 	device->mem_free(d_input);
 	device->mem_free(d_output);
 

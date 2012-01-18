@@ -198,6 +198,8 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_MATRIX (1<<4)
 #define BLF_ASPECT (1<<5)
 
+#define BLF_DRAW_STR_DUMMY_MAX 1024
+
 // XXX, bad design
 extern int blf_mono_font;
 extern int blf_mono_font_render; // dont mess drawing with render threads.

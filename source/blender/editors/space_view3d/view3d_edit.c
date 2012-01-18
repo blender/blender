@@ -921,6 +921,22 @@ static int view3d_camera_active_poll(bContext *C)
 	return 0;
 }
 
+/* test for unlocked camera view in quad view */
+static int view3d_camera_user_poll(bContext *C)
+{
+	View3D *v3d;
+	ARegion *ar;
+
+	if (ED_view3d_context_user_region(C, &v3d, &ar)) {
+		RegionView3D *rv3d = ar->regiondata;
+		if(rv3d->persp==RV3D_CAMOB) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static int viewrotate_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
@@ -1585,8 +1601,8 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	v3d= sa->spacedata.first;
 	rv3d= ar->regiondata;
 
-	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
-	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
+	mx= RNA_struct_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
+	my= RNA_struct_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
 	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
 
@@ -1667,12 +1683,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vod= op->customdata;
 
 	/* if one or the other zoom position aren't set, set from event */
-	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my")) {
+	if (!RNA_struct_property_is_set(op->ptr, "mx") || !RNA_struct_property_is_set(op->ptr, "my")) {
 		RNA_int_set(op->ptr, "mx", event->x);
 		RNA_int_set(op->ptr, "my", event->y);
 	}
 
-	if(RNA_property_is_set(op->ptr, "delta")) {
+	if(RNA_struct_property_is_set(op->ptr, "delta")) {
 		viewzoom_exec(C, op);
 	}
 	else {
@@ -1880,12 +1896,12 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vod= op->customdata;
 
 	/* if one or the other zoom position aren't set, set from event */
-	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my")) {
+	if (!RNA_struct_property_is_set(op->ptr, "mx") || !RNA_struct_property_is_set(op->ptr, "my")) {
 		RNA_int_set(op->ptr, "mx", event->x);
 		RNA_int_set(op->ptr, "my", event->y);
 	}
 
-	if(RNA_property_is_set(op->ptr, "delta")) {
+	if(RNA_struct_property_is_set(op->ptr, "delta")) {
 		viewdolly_exec(C, op);
 	}
 	else {
@@ -2257,12 +2273,17 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	float xfac, yfac;
 	float size[2];
+
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
 
@@ -2289,7 +2310,7 @@ void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view3d_center_camera_exec;
-	ot->poll= view3d_camera_active_poll;
+	ot->poll= view3d_camera_user_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2543,11 +2564,16 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
 static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
 
-	view3d_set_1_to_1_viewborder(scene, ar, CTX_wm_view3d(C));
+	View3D *v3d;
+	ARegion *ar;
 
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+
+	view3d_set_1_to_1_viewborder(scene, ar, v3d);
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return OPERATOR_FINISHED;
 }
@@ -2561,7 +2587,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view3d_zoom_1_to_1_camera_exec;
-	ot->poll= view3d_camera_active_poll;
+	ot->poll= view3d_camera_user_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2653,12 +2679,16 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar, float q1, float
 
 static int viewnumpad_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar= ED_view3d_context_region_unlock(C);
-	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
 	Scene *scene= CTX_data_scene(C);
-	static int perspo=RV3D_PERSP;
+	static int perspo = RV3D_PERSP;
 	int viewnum, align_active, nextperspo;
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
 
 	viewnum = RNA_enum_get(op->ptr, "type");
 	align_active = RNA_boolean_get(op->ptr, "align_active");
@@ -2783,7 +2813,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_rv3d_unlock_poll;
+	ot->poll= ED_operator_rv3d_user_region_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2801,11 +2831,15 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d= CTX_wm_view3d(C);
-	ARegion *ar= ED_view3d_context_region_unlock(C);
-	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
 	float phi, q1[4], new_quat[4];
 	int orbitdir;
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
 
 	orbitdir = RNA_enum_get(op->ptr, "type");
 
@@ -2852,7 +2886,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_rv3d_unlock_poll;
+	ot->poll= ED_operator_rv3d_user_region_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2909,8 +2943,13 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ARegion *ar= ED_view3d_context_region_unlock(C);
-	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
+	View3D *v3d_dummy;
+	ARegion *ar;
+	RegionView3D *rv3d;
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d_dummy, &ar);
+	rv3d = ar->regiondata;
 
 	if(rv3d->viewlock==0) {
 		if(rv3d->persp!=RV3D_ORTHO)
@@ -2932,7 +2971,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewpersportho_exec;
-	ot->poll= ED_operator_rv3d_unlock_poll;
+	ot->poll= ED_operator_rv3d_user_region_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2960,16 +2999,16 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 	View3D *v3d= CTX_wm_view3d(C);
 	Image *ima= NULL;
 	BGpic *bgpic;
-	char name[32];
+	char name[MAX_ID_NAME-2];
 	
 	/* check input variables */
-	if(RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
 		ima= BKE_add_image_file(path);
 	}
-	else if(RNA_property_is_set(op->ptr, "name")) {
+	else if(RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);
 	}
@@ -3007,7 +3046,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	ot->flag   = 0;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign");
+	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME-2, "Name", "Image name to assign");
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 

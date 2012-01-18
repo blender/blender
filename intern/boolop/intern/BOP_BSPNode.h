@@ -37,8 +37,8 @@
 #include "BOP_Tag.h"
 #include "BOP_Face.h"
 
-typedef vector<MT_Point3> BOP_BSPPoints;
-typedef vector<MT_Point3>::const_iterator BOP_IT_BSPPoints;
+typedef std::vector<MT_Point3> BOP_BSPPoints;
+typedef std::vector<MT_Point3>::const_iterator BOP_IT_BSPPoints;
 
 class BOP_BSPNode
 {

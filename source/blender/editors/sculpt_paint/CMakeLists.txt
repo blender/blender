@@ -27,6 +27,7 @@ set(INC
 	../../imbuf
 	../../makesdna
 	../../makesrna
+	../uvedit
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
@@ -45,6 +46,7 @@ set(SRC
 	paint_vertex.c
 	sculpt.c
 	sculpt_undo.c
+	sculpt_uv.c
 
 	paint_intern.h
 	sculpt_intern.h

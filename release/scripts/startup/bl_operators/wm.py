@@ -166,9 +166,10 @@ class BRUSH_OT_active_index_set(Operator):
         if attr is None:
             return {'CANCELLED'}
 
+        toolsettings = context.tool_settings
         for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
             if i == self.index:
-                getattr(context.tool_settings, self.mode).brush = brush
+                getattr(toolsettings, self.mode).brush = brush
                 return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -1178,7 +1179,7 @@ class WM_OT_copy_prev_settings(Operator):
         return {'CANCELLED'}
 
 
-class WM_OT_blenderplayer_start(bpy.types.Operator):
+class WM_OT_blenderplayer_start(Operator):
     '''Launch the Blenderplayer with the current blendfile'''
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"
@@ -1767,62 +1768,4 @@ class WM_OT_addon_expand(Operator):
 
         info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = not info["show_expanded"]
-        return {'FINISHED'}
-
-
-# -----------------------------------------------------------------------------
-# Theme IO
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 )
-
-
-class WM_OT_theme_import(Operator, ImportHelper):
-    bl_idname = "wm.theme_import"
-    bl_label = "Import Theme"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    filename_ext = ".xml"
-    filter_glob = StringProperty(default="*.xml", options={'HIDDEN'})
-
-    def execute(self, context):
-        import rna_xml
-        import xml.dom.minidom
-
-        filepath = self.filepath
-
-        xml_nodes = xml.dom.minidom.parse(filepath)
-        theme_xml = xml_nodes.getElementsByTagName("Theme")[0]
-
-        # XXX, why always 0?, allow many?
-        theme = context.user_preferences.themes[0]
-
-        rna_xml.xml2rna(theme_xml,
-                        root_rna=theme,
-                        )
-
-        return {'FINISHED'}
-
-
-class WM_OT_theme_export(Operator, ExportHelper):
-    bl_idname = "wm.theme_export"
-    bl_label = "Export Theme"
-
-    filename_ext = ".xml"
-    filter_glob = StringProperty(default="*.xml", options={'HIDDEN'})
-
-    def execute(self, context):
-        import rna_xml
-
-        filepath = self.filepath
-        file = open(filepath, 'w', encoding='utf-8')
-
-        # XXX, why always 0?, allow many?
-        theme = context.user_preferences.themes[0]
-
-        rna_xml.rna2xml(file.write,
-                        root_rna=theme,
-                        method='ATTR',
-                        )
-
         return {'FINISHED'}

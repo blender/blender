@@ -160,7 +160,6 @@ def build_info(use_c=True, use_cxx=True, ignore_prefix_list=None):
 def queue_processes(process_funcs, job_total=-1):
     """ Takes a list of function arg pairs, each function must return a process
     """
-    import sys
 
     if job_total == -1:
         import multiprocessing

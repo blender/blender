@@ -75,20 +75,20 @@ void clip_draw_curfra_label(SpaceClip *sc, float x, float y)
 {
 	uiStyle *style= UI_GetStyle();
 	int fontid= style->widget.uifont_id;
-	char str[32];
-	float fontsize, fontwidth;
+	char numstr[32];
+	float font_dims[2] = {0.0f, 0.0f};
 
 	/* frame number */
 	BLF_size(fontid, 11.0f, U.dpi);
-	BLI_snprintf(str, sizeof(str), "%d", sc->user.framenr);
-	fontsize= BLF_height(fontid, str);
-	fontwidth= BLF_width(fontid, str);
+	BLI_snprintf(numstr, sizeof(numstr), "%d", sc->user.framenr);
 
-	glRecti(x, y, x+fontwidth+6, y+fontsize+4);
+	BLF_width_and_height(fontid, numstr, &font_dims[0], &font_dims[1]);
+
+	glRecti(x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
 
 	UI_ThemeColor(TH_TEXT);
 	BLF_position(fontid, x+2.0f, y+2.0f, 0.0f);
-	BLF_draw(fontid, str, strlen(str));
+	BLF_draw(fontid, numstr, sizeof(numstr));
 }
 
 static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
@@ -250,9 +250,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(0.0f, 0.0f);
-			glVertex2f(ibuf->x, 0.0f);
-			glVertex2f(ibuf->x, ibuf->y);
-			glVertex2f(0.0f, ibuf->y);
+			glVertex2f(width, 0.0f);
+			glVertex2f(width, height);
+			glVertex2f(0.0f, height);
 		glEnd();
 
 		glPopMatrix();
@@ -805,13 +805,13 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
 	BLF_position(fontid, pos[0], pos[1], 0.0f);
-	BLF_draw(fontid, str, strlen(str));
+	BLF_draw(fontid, str, sizeof(str));
 	pos[1]-= fontsize;
 
 	if(track->flag&TRACK_HAS_BUNDLE) {
 		BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
 		BLF_position(fontid, pos[0], pos[1], 0.0f);
-		BLF_draw(fontid, str, strlen(str));
+		BLF_draw(fontid, str, sizeof(str));
 		pos[1]-= fontsize;
 	}
 
@@ -1259,14 +1259,24 @@ void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		float smat[4][4], ismat[4][4];
 
 		ibuf= ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
-		BKE_tracking_stabdata_to_mat4(width, height, sc->loc, sc->scale, sc->angle, sc->stabmat);
 
-		unit_m4(smat);
-		smat[0][0]= 1.0f/width;
-		smat[1][1]= 1.0f/height;
-		invert_m4_m4(ismat, smat);
+		if(ibuf) {
+			float loc[2];
 
-		mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
+			if(width != ibuf->x)
+				mul_v2_v2fl(loc, sc->loc, (float)width / ibuf->x);
+			else
+				copy_v2_v2(loc, sc->loc);
+
+			BKE_tracking_stabdata_to_mat4(width, height, loc, sc->scale, sc->angle, sc->stabmat);
+
+			unit_m4(smat);
+			smat[0][0]= 1.0f/width;
+			smat[1][1]= 1.0f/height;
+			invert_m4_m4(ismat, smat);
+
+			mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
+		}
 	} else {
 		ibuf= ED_space_clip_get_buffer(sc);
 

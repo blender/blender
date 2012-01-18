@@ -50,7 +50,8 @@
    because function is too long. Since this is code that is called billions
    of times we really do want to inline. */
 
-MALWAYS_INLINE RayObject* rayface_from_coords(RayFace *rayface, void *ob, void *face, float *v1, float *v2, float *v3, float *v4)
+MALWAYS_INLINE RayObject* rayface_from_coords(RayFace *rayface, void *ob, void *face,
+                                              float *v1, float *v2, float *v3, float *v4)
 {
 	rayface->ob = ob;
 	rayface->face = face;
@@ -118,7 +119,7 @@ MALWAYS_INLINE int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRe
 		return (is->lay & obi->lay);
 }
 
-MALWAYS_INLINE int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, VlakRen *vlr)
+MALWAYS_INLINE int vlr_check_intersect_solid(Isect *UNUSED(is), ObjectInstanceRen* UNUSED(obi), VlakRen *vlr)
 {
 	/* solid material types only */
 	if (vlr->mat->material_type == MA_TYPE_SURFACE)
@@ -127,7 +128,7 @@ MALWAYS_INLINE int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, 
 		return 0;
 }
 
-MALWAYS_INLINE int vlr_check_bake(Isect *is, ObjectInstanceRen* obi, VlakRen *vlr)
+MALWAYS_INLINE int vlr_check_bake(Isect *is, ObjectInstanceRen* obi, VlakRen *UNUSED(vlr))
 {
 	return (obi->obr->ob != is->userdata);
 }

@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
@@ -64,6 +65,7 @@
 #include "BKE_anim.h" /* for the curve calculation part */
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_bvhutils.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
@@ -3950,6 +3952,7 @@ static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void
 	
 	func(con, (ID**)&data->clip, userdata);
 	func(con, (ID**)&data->camera, userdata);
+	func(con, (ID**)&data->depth_ob, userdata);
 }
 
 static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -3985,7 +3988,6 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 	if (data->flag & FOLLOWTRACK_USE_3D_POSITION) {
 		if (track->flag & TRACK_HAS_BUNDLE) {
-			MovieTracking *tracking= &clip->tracking;
 			float obmat[4][4], mat[4][4];
 
 			copy_m4_m4(obmat, cob->matrix);
@@ -4008,9 +4010,8 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 		}
-	} 
+	}
 	else {
-		MovieClipUser user;
 		MovieTrackingMarker *marker;
 		float vec[3], disp[3], axis[3], mat[4][4];
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
@@ -4035,8 +4036,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			CameraParams params;
 			float pos[2], rmat[4][4];
 
-			user.framenr= scene->r.cfra;
-			marker= BKE_tracking_get_marker(track, user.framenr);
+			marker= BKE_tracking_get_marker(track, scene->r.cfra);
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -4077,6 +4077,34 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 				mult_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
 				copy_v3_v3(cob->matrix[3], disp);
+			}
+
+			if(data->depth_ob && data->depth_ob->derivedFinal) {
+				Object *depth_ob= data->depth_ob;
+				BVHTreeFromMesh treeData= NULL_BVHTreeFromMesh;
+				BVHTreeRayHit hit;
+				float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
+				int result;
+
+				invert_m4_m4(imat, depth_ob->obmat);
+
+				mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
+				mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
+
+				sub_v3_v3v3(ray_nor, ray_end, ray_start);
+
+				bvhtree_from_mesh_faces(&treeData, depth_ob->derivedFinal, 0.0f, 4, 6);
+
+				hit.dist= FLT_MAX;
+				hit.index= -1;
+
+				result= BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
+
+				if(result != -1) {
+					mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+				}
+
+				free_bvhtree_from_mesh(&treeData);
 			}
 		}
 	}

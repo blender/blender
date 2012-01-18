@@ -145,4 +145,7 @@ void CLIP_OT_clean_tracks(struct wmOperatorType *ot);
 void CLIP_OT_tracking_object_new(struct wmOperatorType *ot);
 void CLIP_OT_tracking_object_remove(struct wmOperatorType *ot);
 
+void CLIP_OT_copy_tracks(struct wmOperatorType *ot);
+void CLIP_OT_paste_tracks(struct wmOperatorType *ot);
+
 #endif /* ED_CLIP_INTERN_H */

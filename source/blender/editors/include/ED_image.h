@@ -53,6 +53,7 @@ void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoo
 void ED_space_image_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings);
+void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings);
 
 void ED_image_size(struct Image *ima, int *width, int *height);
 void ED_image_aspect(struct Image *ima, float *aspx, float *aspy);
@@ -65,6 +66,9 @@ int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit)
 
 /* UI level image (texture) updating... render calls own stuff (too) */
 void ED_image_update_frame(const struct Main *mainp, int cfra);
+
+void ED_image_draw_info(struct ARegion *ar, int color_manage, int channels,
+                        int x, int y, const char cp[4], const float fp[4], int *zp, float *zpf);
 
 #endif /* ED_IMAGE_H */
 

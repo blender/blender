@@ -49,7 +49,7 @@ typedef struct Bone {
 	IDProperty 		*prop;			/* User-Defined Properties on this Bone */
 	struct Bone		*parent;		/*	Parent (ik parent if appropriate flag is set		*/
 	ListBase		childbase;		/*	Children	*/
-	char			name[32];		/*  Name of the bone - must be unique within the armature */
+	char			name[64];		/*  Name of the bone - must be unique within the armature, MAXBONENAME */
 
 	float			roll;   /*  roll is input for editmode, length calculated */
 	float			head[3];		
@@ -200,6 +200,6 @@ typedef enum eBone_Flag {
 	BONE_NO_LOCAL_LOCATION		= (1<<22)	/* bone location is in armature space */
 } eBone_Flag;
 
-#define MAXBONENAME 32
+#define MAXBONENAME 64
 
 #endif

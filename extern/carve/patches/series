@@ -1,0 +1,6 @@
+strict_flags.patch
+includes.patch
+win32.patch
+mesh_iterator.patch
+mingw.patch
+gcc46.patch

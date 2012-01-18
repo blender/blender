@@ -44,32 +44,18 @@ public:
 	list<SubDevice> devices;
 	device_ptr unique_ptr;
 
-	MultiDevice(bool background_)
+	MultiDevice(DeviceInfo& info, bool background_)
 	: unique_ptr(1)
 	{
 		Device *device;
+		background = background_;
 
-		/* add CPU device */
-		device = Device::create(DEVICE_CPU, background);
-		devices.push_back(SubDevice(device));
-
-#ifdef WITH_CUDA
-		/* try to add GPU device */
-		device = Device::create(DEVICE_CUDA, background);
-		if(device) {
+		foreach(DeviceInfo& subinfo, info.multi_devices) {
+			device = Device::create(subinfo, background);
 			devices.push_back(SubDevice(device));
 		}
-		else
-#endif
-		{
-#ifdef WITH_OPENCL
-			device = Device::create(DEVICE_OPENCL, background);
-			if(device)
-				devices.push_back(SubDevice(device));
-#endif
-		}
 
-#ifdef WITH_NETWORK
+#if 0 //def WITH_NETWORK
 		/* try to add network devices */
 		ServerDiscovery discovery(true);
 		time_sleep(1.0);
@@ -77,7 +63,7 @@ public:
 		list<string> servers = discovery.get_server_list();
 
 		foreach(string& server, servers) {
-			device = device_network_create(server.c_str());
+			device = device_network_create(info, server.c_str());
 			if(device)
 				devices.push_back(SubDevice(device));
 		}
@@ -98,6 +84,19 @@ public:
 		}
 
 		return true;
+	}
+
+	const string& error_message()
+	{
+		foreach(SubDevice& sub, devices) {
+			if(sub.device->error_message() != "") {
+				if(error_msg == "")
+					error_msg = sub.device->error_message();
+				break;
+			}
+		}
+
+		return error_msg;
 	}
 
 	string description()
@@ -164,15 +163,18 @@ public:
 		mem.device_pointer = tmp;
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
 		device_ptr tmp = mem.device_pointer;
+		int i = 0, sub_h = h/devices.size();
 
-		/* todo: how does this work? */
 		foreach(SubDevice& sub, devices) {
+			int sy = y + i*sub_h;
+			int sh = (i == (int)devices.size() - 1)? h - sub_h*i: sub_h;
+
 			mem.device_pointer = sub.ptr_map[tmp];
-			sub.device->mem_copy_from(mem, offset, size);
-			break;
+			sub.device->mem_copy_from(mem, sy, w, sh, elem);
+			i++;
 		}
 
 		mem.device_pointer = tmp;
@@ -274,7 +276,7 @@ public:
 		mem.device_pointer = tmp;
 	}
 
-	void draw_pixels(device_memory& rgba, int y, int w, int h, int width, int height, bool transparent)
+	void draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int width, int height, bool transparent)
 	{
 		device_ptr tmp = rgba.device_pointer;
 		int i = 0, sub_h = h/devices.size();
@@ -284,10 +286,11 @@ public:
 			int sy = y + i*sub_h;
 			int sh = (i == (int)devices.size() - 1)? h - sub_h*i: sub_h;
 			int sheight = (i == (int)devices.size() - 1)? height - sub_height*i: sub_height;
+			int sdy = dy + i*sub_height;
 			/* adjust math for w/width */
 
 			rgba.device_pointer = sub.ptr_map[tmp];
-			sub.device->draw_pixels(rgba, sy, w, sh, width, sheight, transparent);
+			sub.device->draw_pixels(rgba, sy, w, sh, sdy, width, sheight, transparent);
 			i++;
 		}
 
@@ -327,9 +330,109 @@ public:
 	}
 };
 
-Device *device_multi_create(bool background)
+Device *device_multi_create(DeviceInfo& info, bool background)
 {
-	return new MultiDevice(background);
+	return new MultiDevice(info, background);
+}
+
+static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool with_display, const char *id_fmt, int num)
+{
+	DeviceInfo info;
+
+	/* create map to find duplicate descriptions */
+	map<string, int> dupli_map;
+	map<string, int>::iterator dt;
+	int num_added = 0, num_display = 0;
+
+	foreach(DeviceInfo& subinfo, devices) {
+		if(subinfo.type == type) {
+			if(subinfo.display_device) {
+				if(with_display)
+					num_display++;
+				else
+					continue;
+			}
+
+			string key = subinfo.description;
+
+			if(dupli_map.find(key) == dupli_map.end())
+				dupli_map[key] = 1;
+			else
+				dupli_map[key]++;
+
+			info.multi_devices.push_back(subinfo);
+			if(subinfo.display_device)
+				info.display_device = true;
+			num_added++;
+		}
+	}
+
+	if(num_added <= 1 || (with_display && num_display == 0))
+		return;
+
+	/* generate string */
+	stringstream desc;
+	vector<string> last_tokens;
+	bool first = true;
+
+	for(dt = dupli_map.begin(); dt != dupli_map.end(); dt++) {
+		if(!first) desc << " + ";
+		first = false;
+
+		/* get name and count */
+		string name = dt->first;
+		int count = dt->second;
+
+		/* strip common prefixes */
+		vector<string> tokens;
+		string_split(tokens, dt->first);
+
+		if(tokens.size() > 1) {
+			int i;
+
+			for(i = 0; i < tokens.size() && i < last_tokens.size(); i++)
+				if(tokens[i] != last_tokens[i])
+					break;
+
+			name = "";
+			for(; i < tokens.size(); i++) {
+				name += tokens[i];
+				if(i != tokens.size() - 1)
+					name += " ";
+			}
+		}
+
+		last_tokens = tokens;
+
+		/* add */
+		if(count > 1)
+			desc << name << " (" << count << "x)";
+		else
+			desc << name;
+	}
+
+	/* add info */
+	info.type = DEVICE_MULTI;
+	info.description = desc.str();
+	info.id = string_printf(id_fmt, num);
+	info.display_device = with_display;
+	info.num = 0;
+
+	if(with_display)
+		devices.push_back(info);
+	else
+		devices.insert(devices.begin(), info);
+}
+
+void device_multi_info(vector<DeviceInfo>& devices)
+{
+	int num = 0;
+	device_multi_add(devices, DEVICE_CUDA, false, "CUDA_MULTI_%d", num++);
+	device_multi_add(devices, DEVICE_CUDA, true, "CUDA_MULTI_%d", num++);
+
+	num = 0;
+	device_multi_add(devices, DEVICE_OPENCL, false, "OPENCL_MULTI_%d", num++);
+	device_multi_add(devices, DEVICE_OPENCL, true, "OPENCL_MULTI_%d", num++);
 }
 
 CCL_NAMESPACE_END

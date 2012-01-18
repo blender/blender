@@ -152,7 +152,7 @@ void projectf(bglMats *mats, const float v[3], float p[2])
 	p[1]= uy;
 }
 
-float paint_calc_object_space_radius(ViewContext *vc, float center[3],
+float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 				     float pixel_radius)
 {
 	Object *ob = vc->obact;

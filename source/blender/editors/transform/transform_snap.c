@@ -445,18 +445,18 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	resetSnapping(t);
 	
 	/* if snap property exists */
-	if (op && RNA_struct_find_property(op->ptr, "snap") && RNA_property_is_set(op->ptr, "snap"))
+	if (op && RNA_struct_find_property(op->ptr, "snap") && RNA_struct_property_is_set(op->ptr, "snap"))
 	{
 		if (RNA_boolean_get(op->ptr, "snap"))
 		{
 			t->modifiers |= MOD_SNAP;
 
-			if (RNA_property_is_set(op->ptr, "snap_target"))
+			if (RNA_struct_property_is_set(op->ptr, "snap_target"))
 			{
 				snap_target = RNA_enum_get(op->ptr, "snap_target");
 			}
 			
-			if (RNA_property_is_set(op->ptr, "snap_point"))
+			if (RNA_struct_property_is_set(op->ptr, "snap_point"))
 			{
 				RNA_float_get_array(op->ptr, "snap_point", t->tsnap.snapPoint);
 				t->tsnap.status |= SNAP_FORCED|POINT_INIT;

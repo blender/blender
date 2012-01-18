@@ -76,7 +76,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tcmd->flag = cmd->flag;
 	tcmd->type = cmd->type;
 	tcmd->object = cmd->object;
-	BLI_strncpy(tcmd->defgrp_name, cmd->defgrp_name, 32);
+	BLI_strncpy(tcmd->defgrp_name, cmd->defgrp_name, sizeof(tcmd->defgrp_name));
 }
 
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))

@@ -155,15 +155,16 @@ void tracking_segment_end_cb(void *UNUSED(userdata))
 }
 
 static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
-			MovieTrackingMarker *marker, int UNUSED(coord), float val)
+			MovieTrackingMarker *marker, int coord, float val)
 {
 	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } *data = userdata;
-	int sel= 0;
+	int sel= 0, sel_flag;
 
 	if(track!=data->act_track)
 		return;
 
-	sel= (marker->flag&MARKER_GRAPH_SEL) ? 1 : 0;
+	sel_flag= coord == 0 ? MARKER_GRAPH_SEL_X : MARKER_GRAPH_SEL_Y;
+	sel= (marker->flag & sel_flag) ? 1 : 0;
 
 	if(sel == data->sel) {
 		if(sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);

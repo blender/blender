@@ -62,7 +62,7 @@ typedef struct EditBone
 									normal bones when leaving editmode.	*/
 	void	*temp;			/*	Used to store temporary data */
 
-	char	name[32];
+	char	name[64];		/* MAX_NAME */
 	float	roll;			/*	Roll along axis.  We'll ultimately use the axis/angle method
 								for determining the transformation matrix of the bone.  The axis
 								is tail-head while roll provides the angle. Refer to Graphics

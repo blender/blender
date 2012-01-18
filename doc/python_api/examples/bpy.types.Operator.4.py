@@ -22,7 +22,7 @@ class CustomDrawOperator(bpy.types.Operator):
     my_string = bpy.props.StringProperty(name="String Value")
 
     def execute(self, context):
-        print()
+        print("Test", self)
         return {'FINISHED'}
 
     def invoke(self, context, event):

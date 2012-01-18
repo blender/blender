@@ -66,6 +66,11 @@ Paint *paint_get_active(Scene *sce)
 				return &ts->wpaint->paint;
 			case OB_MODE_TEXTURE_PAINT:
 				return &ts->imapaint.paint;
+			case OB_MODE_EDIT:
+				if(ts->use_uv_sculpt)
+					return &ts->uvsculpt->paint;
+				else
+					return &ts->imapaint.paint;
 			}
 		}
 

@@ -273,7 +273,9 @@ class INFO_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_SCREEN'
+        # note, dont use 'EXEC_SCREEN' or operators wont get the 'v3d' context.
+
+        layout.operator_context = 'EXEC_AREA'
 
         #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')
         layout.menu("INFO_MT_mesh_add", icon='OUTLINER_OB_MESH')
@@ -296,7 +298,7 @@ class INFO_MT_add(Menu):
         layout.separator()
 
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
-        layout.operator_context = 'EXEC_SCREEN'
+        layout.operator_context = 'EXEC_AREA'
         layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
         layout.separator()
 

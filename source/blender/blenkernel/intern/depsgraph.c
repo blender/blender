@@ -657,6 +657,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 				if((data->clip || data->flag&FOLLOWTRACK_ACTIVECLIP) && data->track[0])
 					depends_on_camera= 1;
+
+				if(data->depth_ob) {
+					node2 = dag_get_node(dag, data->depth_ob);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
+				}
 			}
 			else if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER)
 				depends_on_camera= 1;

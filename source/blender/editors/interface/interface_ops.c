@@ -494,7 +494,7 @@ struct uiEditSourceStore {
 } uiEditSourceStore;
 
 struct uiEditSourceButStore {
-	char py_dbg_fn[240];
+	char py_dbg_fn[FILE_MAX];
 	int py_dbg_ln;
 } uiEditSourceButStore;
 
@@ -584,7 +584,7 @@ void UI_editsource_active_but_test(uiBut *but)
 /* editsource operator component */
 
 static int editsource_text_edit(bContext *C, wmOperator *op,
-                                char filepath[240], int line)
+                                char filepath[FILE_MAX], int line)
 {
 	struct Main *bmain= CTX_data_main(C);
 	Text *text;

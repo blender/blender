@@ -428,7 +428,7 @@ void init_actuator(bActuator *act)
 	case ACT_CAMERA:
 		act->data= MEM_callocN(sizeof(bCameraActuator), "camact");
 		ca = act->data;
-		ca->axis = ACT_CAMERA_X;
+		ca->axis = OB_POSX;
 		ca->damping = 1.0/32.0;
 		break;
 	case ACT_EDIT_OBJECT:

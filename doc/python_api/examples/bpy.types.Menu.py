@@ -27,8 +27,8 @@ class BasicMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.select_all", text="Select/Deselect All")
-        layout.operator("object.select_inverse", text="Inverse")
+        layout.operator("object.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("object.select_all", text="Inverse").action = 'INVERT'
         layout.operator("object.select_random", text="Random")
 
 

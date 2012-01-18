@@ -1003,7 +1003,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 		}
 	}
 	{	/* second pass: widgets */
-		uiBlock *block= uiBeginBlock(C, ar, "graph channel buttons", UI_EMBOSS);
+		uiBlock *block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 		size_t channel_index = 0;
 		
 		y= (float)ACHANNEL_FIRST;

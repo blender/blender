@@ -35,6 +35,7 @@ def create(engine, data, scene, region=0, v3d=0, rv3d=0):
     import _cycles
 
     data = data.as_pointer()
+    userpref = bpy.context.user_preferences.as_pointer()
     scene = scene.as_pointer()
     if region:
         region = region.as_pointer()
@@ -43,7 +44,7 @@ def create(engine, data, scene, region=0, v3d=0, rv3d=0):
     if rv3d:
         rv3d = rv3d.as_pointer()
 
-    engine.session = _cycles.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
+    engine.session = _cycles.create(engine.as_pointer(), userpref, data, scene, region, v3d, rv3d)
 
 
 def free(engine):

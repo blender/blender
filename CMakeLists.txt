@@ -156,7 +156,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
-	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	OFF)
+	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	ON)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
 	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
 	mark_as_advanced(WITH_XDG_USER_DIRS)
@@ -207,6 +207,9 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
+
+# Mesh boolean lib
+option(WITH_CARVE         "Enable Carve library to handle mesh boolean operations" ON)
 
 # Misc
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
@@ -270,8 +273,8 @@ if(NOT WITH_SDL AND WITH_GHOST_SDL)
 	message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL to be ON")
 endif()
 
-if(NOT WITH_IMAGE_OPENJPEG AND WITH_IMAGE_REDCODE)
-	message(FATAL_ERROR "WITH_IMAGE_REDCODE requires WITH_IMAGE_OPENJPEG")
+if(WITH_IMAGE_REDCODE AND ((NOT WITH_IMAGE_OPENJPEG) OR (NOT WITH_CODEC_FFMPEG)))
+	message(FATAL_ERROR "WITH_IMAGE_REDCODE requires WITH_IMAGE_OPENJPEG and WITH_CODEC_FFMPEG")
 endif()
 
 # python module, needs some different options
@@ -300,9 +303,13 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
-# auto enable openimageio and boost for cycles
+# auto enable openimageio for cycles
 if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
+endif()
+
+# auto enable boost for cycles and carve
+if(WITH_CYCLES OR WITH_CARVE)
 	set(WITH_BOOST ON)
 endif()
 
@@ -461,7 +468,8 @@ if(UNIX AND NOT APPLE)
 		# use lib dir if available and nothing else specified
 		if(LIBDIR AND NOT FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
-			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora theoraenc theoradec vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
+			# XXX, some distros might need 'theoraenc theoradec' too
+			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
 		else()
 			set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
 			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
@@ -619,6 +627,10 @@ if(UNIX AND NOT APPLE)
 	# CLang is the same as GCC for now.
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+	# Solaris CC
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "SunPro") 
+		set(PLATFORM_CFLAGS "-pipe -features=extensions -fPIC -D__FUNCTION__=__func__")
+		
 	# Intel C++ Compiler
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 		# think these next two are broken
@@ -711,8 +723,8 @@ elseif(WIN32)
 
 		add_definitions(/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB)
 
-		set(CMAKE_CXX_FLAGS "/nologo /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013" CACHE STRING "MSVC MT C++ flags " FORCE)
-		set(CMAKE_C_FLAGS   "/nologo /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013 /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_CXX_FLAGS "/nologo /J /W1 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_C_FLAGS   "/nologo /J /W1 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013 /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		if(CMAKE_CL_64)
 			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
@@ -1026,8 +1038,12 @@ elseif(WIN32)
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
-
+		
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
+
+		## DISABLE - causes linking errors 
+		## for re-distrobution, so users dont need mingw installed
+		# set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-libgcc -static-libstdc++")
 
 	endif()
 
@@ -1076,16 +1092,28 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_PYTHON)
-		# we use precompiled libraries for py 3.2 and up by default
+		if(NOT WITH_PYTHON_MODULE)
+			# we use precompiled libraries for py 3.2 and up by default
 
-		# normally cached but not since we include them with blender
-		set(PYTHON_VERSION 3.2)
-		set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
-		# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
-		set(PYTHON_LIBRARY python${PYTHON_VERSION})
-		set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
-		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+			# normally cached but not since we include them with blender
+			set(PYTHON_VERSION 3.2)
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+			# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
+			set(PYTHON_LIBRARY python${PYTHON_VERSION})
+			set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
+			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+		else()
+			# module must be compiled against Python framework
 
+			# normally cached but not since we include them with blender
+			set(PYTHON_VERSION 3.2)
+			set(PYTHON_INCLUDE_DIR "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/include/python${PYTHON_VERSION}m")
+			set(PYTHON_BINARY "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/bin/python${PYTHON_VERSION}")
+			#set(PYTHON_LIBRARY python${PYTHON_VERSION})
+			set(PYTHON_LIBPATH "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config-3.2m")
+			#set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
+		endif()
+		
 		# uncached vars
 		set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 		set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
@@ -1180,7 +1208,11 @@ elseif(APPLE)
 		set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 		set(WITH_INPUT_NDOF OFF)  # unsupported
 	endif()
-
+	
+	if(WITH_PYTHON_MODULE)
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/python")# force cmake to link right framework
+	endif()
+	
 	if(WITH_OPENCOLLADA)
 		set(OPENCOLLADA ${LIBDIR}/opencollada)
 

@@ -644,24 +644,11 @@ static void recalcData_clip(TransInfo *t)
 	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	
-	if(t->state == TRANS_CANCEL) {
-		track= tracksbase->first;
-		while(track) {
-			if(TRACK_VIEW_SELECTED(sc, track)) {
-				MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
-				
-				marker->flag= track->transflag;
-			}
-			
-			track= track->next;
-		}
-	}
-	
 	flushTransTracking(t);
 	
 	track= tracksbase->first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track)) {
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
 			if (t->mode == TFM_TRANSLATION) {
 				if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
 					BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
@@ -1077,7 +1064,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 		
-		if (op && RNA_struct_find_property(op->ptr, "constraint_orientation") && RNA_property_is_set(op->ptr, "constraint_orientation"))
+		if (op && RNA_struct_find_property(op->ptr, "constraint_orientation") && RNA_struct_property_is_set(op->ptr, "constraint_orientation"))
 		{
 			t->current_orientation = RNA_enum_get(op->ptr, "constraint_orientation");
 			
@@ -1100,7 +1087,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 		/* initialize UV transform from */
 		if (op && RNA_struct_find_property(op->ptr, "correct_uv")) {
-			if(RNA_property_is_set(op->ptr, "correct_uv")) {
+			if(RNA_struct_property_is_set(op->ptr, "correct_uv")) {
 				if(RNA_boolean_get(op->ptr, "correct_uv")) {
 					t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
 				}
@@ -1146,7 +1133,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->around = V3D_CENTER;
 	}
 	
-	if (op && RNA_property_is_set(op->ptr, "release_confirm"))
+	if (op && RNA_struct_property_is_set(op->ptr, "release_confirm"))
 	{
 		if (RNA_boolean_get(op->ptr, "release_confirm"))
 		{
@@ -1161,7 +1148,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	if (op && RNA_struct_find_property(op->ptr, "mirror") && RNA_property_is_set(op->ptr, "mirror"))
+	if (op && RNA_struct_find_property(op->ptr, "mirror") && RNA_struct_property_is_set(op->ptr, "mirror"))
 	{
 		if (RNA_boolean_get(op->ptr, "mirror"))
 		{
@@ -1182,7 +1169,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
 	if (op && RNA_struct_find_property(op->ptr, "proportional"))
 	{
-		if (RNA_property_is_set(op->ptr, "proportional"))
+		if (RNA_struct_property_is_set(op->ptr, "proportional"))
 		{
 			switch(RNA_enum_get(op->ptr, "proportional"))
 			{
@@ -1215,7 +1202,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_property_is_set(op->ptr, "proportional_size"))
+		if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_struct_property_is_set(op->ptr, "proportional_size"))
 		{
 			t->prop_size = RNA_float_get(op->ptr, "proportional_size");
 		}
@@ -1232,7 +1219,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			t->prop_size = 1.0f;
 		}
 		
-		if (op && RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && RNA_property_is_set(op->ptr, "proportional_edit_falloff"))
+		if (op && RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && RNA_struct_property_is_set(op->ptr, "proportional_edit_falloff"))
 		{
 			t->prop_mode = RNA_enum_get(op->ptr, "proportional_edit_falloff");
 		}

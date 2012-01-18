@@ -254,13 +254,21 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 		}
 		else if(pset->edittype == PE_TYPE_SOFTBODY && pid->type == PTCACHE_TYPE_SOFTBODY) {
 			if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
+			{
+				pset->flag |= PE_FADE_TIME;
+				// NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
 				PE_create_particle_edit(scene, ob, pid->cache, NULL);
+			}
 			edit = pid->cache->edit;
 			break;
 		}
 		else if(pset->edittype == PE_TYPE_CLOTH && pid->type == PTCACHE_TYPE_CLOTH) {
 			if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
+			{
+				pset->flag |= PE_FADE_TIME;
+				// NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
 				PE_create_particle_edit(scene, ob, pid->cache, NULL);
+			}
 			edit = pid->cache->edit;
 			break;
 		}
@@ -1866,43 +1874,6 @@ void PARTICLE_OT_select_more(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_more_exec;
-	ot->poll= PE_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	PEData data;
-	PTCacheEdit *edit;
-	POINT_P; KEY_K;
-
-	PE_set_data(C, &data);
-
-	edit= PE_get_current(data.scene, data.ob);
-
-	LOOP_VISIBLE_POINTS {
-		LOOP_KEYS {
-			key->flag ^= PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
-		}
-	}
-
-	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
-
-	return OPERATOR_FINISHED;
-}
-
-void PARTICLE_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "PARTICLE_OT_select_inverse";
-
-	/* api callbacks */
-	ot->exec= select_inverse_exec;
 	ot->poll= PE_poll;
 
 	/* flags */
@@ -3659,8 +3630,14 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				PE_update_object(scene, ob, 1);
 		}
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-		
+		if(edit->psys)
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
+		else
+		{
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		}
+
 		bedit->lastmouse[0]= mouse[0];
 		bedit->lastmouse[1]= mouse[1];
 		bedit->first= 0;

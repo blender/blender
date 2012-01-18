@@ -72,10 +72,10 @@ static void text_font_end(SpaceText *UNUSED(st))
 {
 }
 
-static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
+static int text_font_draw(SpaceText *UNUSED(st), int x, int y, const char *str)
 {
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, 65535); /* XXX, use real length */
+	BLF_draw(mono, str, BLF_DRAW_STR_DUMMY_MAX);
 
 	return BLF_width(mono, str);
 }
@@ -92,19 +92,28 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 	return st->cwidth;
 }
 
-int text_font_width(SpaceText *UNUSED(st), const char *str)
+static int text_font_draw_character_utf8(SpaceText *st, int x, int y, const char *c)
 {
-	return BLF_width(mono, str);
+	char str[BLI_UTF8_MAX+1];
+	size_t len = BLI_str_utf8_size(c);
+	memcpy(str, c, len);
+	str[len]= '\0';
+
+	BLF_position(mono, x, y, 0);
+	BLF_draw(mono, str, len);
+
+	return st->cwidth;
 }
 
 /****************** flatten string **********************/
 
-static void flatten_string_append(FlattenString *fs, char c, int accum) 
+static void flatten_string_append(FlattenString *fs, const char *c, int accum, int len) 
 {
-	if(fs->pos>=fs->len && fs->pos>=sizeof(fs->fixedbuf)-1) {
+	int i;
+	
+	if(fs->pos+len > fs->len) {
 		char *nbuf; int *naccum;
-		if(fs->len) fs->len*= 2;
-		else fs->len= sizeof(fs->fixedbuf) * 2;
+		fs->len*= 2;
 
 		nbuf= MEM_callocN(sizeof(*fs->buf)*fs->len, "fs->buf");
 		naccum= MEM_callocN(sizeof(*fs->accum)*fs->len, "fs->accum");
@@ -121,35 +130,45 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 		fs->accum= naccum;
 	}
 	
-	fs->buf[fs->pos]= c;	
-	fs->accum[fs->pos]= accum;
-	
-	fs->pos++;
+	for (i = 0; i < len; i++)
+	{
+		fs->buf[fs->pos+i]= c[i];
+		fs->accum[fs->pos+i]= accum;
+	}
+
+	fs->pos+= len;
 }
 
 int flatten_string(SpaceText *st, FlattenString *fs, const char *in)
 {
-	int r = 0, i = 0;
+	int r, i, total = 0;
 
 	memset(fs, 0, sizeof(FlattenString));
 	fs->buf= fs->fixedbuf;
 	fs->accum= fs->fixedaccum;
-	
-	for(r=0, i=0; *in; r++, in++) {
+	fs->len = sizeof(fs->fixedbuf);
+
+	for(r = 0, i = 0; *in; r++) {
 		if(*in=='\t') {
-			if(fs->pos && *(in-1)=='\t')
-				i= st->tabnumber;
-			else if(st->tabnumber > 0)
-				i= st->tabnumber - (fs->pos%st->tabnumber);
-
+			i= st->tabnumber - (total%st->tabnumber);
+			total+= i;
+			
 			while(i--)
-				flatten_string_append(fs, ' ', r);
+				flatten_string_append(fs, " ", r, 1);
+			
+			in++;
 		}
-		else
-			flatten_string_append(fs, *in, r);
+		else {
+			size_t len= BLI_str_utf8_size(in);
+			flatten_string_append(fs, in, r, len);
+			in += len;
+			total++;
+		}
 	}
+	
+	flatten_string_append(fs, "\0", r, 1);
 
-	return fs->pos;
+	return total;
 }
 
 void flatten_string_free(FlattenString *fs)
@@ -304,9 +323,8 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 	}
 	else orig = 0xFF;
 
-	flatten_string(st, &fs, line->line);
+	len = flatten_string(st, &fs, line->line);
 	str = fs.buf;
-	len = strlen(str);
 	if(!text_check_format_len(line, len)) {
 		flatten_string_free(&fs);
 		return;
@@ -318,7 +336,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 		if(*str == '\\') {
 			*fmt = prev; fmt++; str++;
 			if(*str == '\0') break;
-			*fmt = prev; fmt++; str++;
+			*fmt = prev; fmt++; str += BLI_str_utf8_size(str);
 			continue;
 		}
 		/* Handle continuations */
@@ -339,14 +357,16 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 			}
 
 			*fmt = 'l';
+			str += BLI_str_utf8_size(str) - 1;
 		}
 		/* Not in a string... */
 		else {
 			/* Deal with comments first */
-			if(prev == '#' || *str == '#')
+			if(prev == '#' || *str == '#') {
 				*fmt = '#';
-			/* Strings */
-			else if(*str == '"' || *str == '\'') {
+				str += BLI_str_utf8_size(str) - 1;
+			} else if(*str == '"' || *str == '\'') {
+				/* Strings */
 				find = *str;
 				cont = (*str== '"') ? TXT_DBLQUOTSTR : TXT_SNGQUOTSTR;
 				if(*(str+1) == find && *(str+2) == find) {
@@ -371,14 +391,18 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 					}
 					*fmt = 'n';
 				}
-				else
+				else {
+					str += BLI_str_utf8_size(str) - 1;
 					*fmt = 'q';
+				}
 			/* Punctuation */
 			else if(text_check_delim(*str))
 				*fmt = '!';
 			/* Identifiers and other text (no previous ws. or delims. so text continues) */
-			else if(prev == 'q')
+			else if(prev == 'q') {
+				str += BLI_str_utf8_size(str) - 1;
 				*fmt = 'q';
+			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
 				/* Special vars(v) or built-in keywords(b) */
@@ -395,8 +419,10 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 					}
 					*fmt = prev;
 				}
-				else
+				else {
+					str += BLI_str_utf8_size(str) - 1;
 					*fmt = 'q';
+				}
 			}
 		}
 		prev = *fmt;
@@ -408,14 +434,11 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 	*fmt = '\0'; fmt++;
 	*fmt = cont;
 
-	/* Debugging */
-	//print_format(st, line);
-
 	/* If continuation has changed and we're allowed, process the next line */
 	if(cont!=orig && do_next && line->next) {
 		txt_format_line(st, line->next, do_next);
 	}
-
+	
 	flatten_string_free(&fs);
 }
 
@@ -539,13 +562,14 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 	}
 
 	max= wrap_width(st, ar);
+	cursin = txt_utf8_offset_to_index(linein->line, cursin);
 
 	while(linep) {
 		start= 0;
 		end= max;
 		chop= 1;
 		*offc= 0;
-		for(i=0, j=0; linep->line[j]!='\0'; j++) {
+		for(i=0, j=0; linep->line[j]; j+=BLI_str_utf8_size(linep->line+j)) {
 			int chars;
 
 			/* Mimic replacement of tabs */
@@ -591,6 +615,7 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 	}
 }
 
+/* cursin - mem, offc - view */
 void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *offl, int *offc)
 {
 	int i, j, start, end, chars, max, chop;
@@ -607,8 +632,9 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 	end= max;
 	chop= 1;
 	*offc= 0;
+	cursin = txt_utf8_offset_to_index(linein->line, cursin);
 
-	for(i=0, j=0; linein->line[j]!='\0'; j++) {
+	for(i=0, j=0; linein->line[j]; j += BLI_str_utf8_size(linein->line + j)) {
 
 		/* Mimic replacement of tabs */
 		ch= linein->line[j];
@@ -653,7 +679,7 @@ int text_get_char_pos(SpaceText *st, const char *line, int cur)
 {
 	int a=0, i;
 	
-	for(i=0; i<cur && line[i]; i++) {
+	for(i=0; i<cur && line[i]; i += BLI_str_utf8_size(line + i)) {
 		if(line[i]=='\t')
 			a += st->tabnumber-a%st->tabnumber;
 		else
@@ -662,54 +688,65 @@ int text_get_char_pos(SpaceText *st, const char *line, int cur)
 	return a;
 }
 
-static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char *format, int skip)
+static const char *txt_utf8_get_nth(const char *str, int n)
+{
+	int pos= 0;
+	while (str[pos] && n--) {
+		pos+= BLI_str_utf8_size(str + pos);
+	}
+	return str + pos;
+}
+
+static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w, const char *format, int skip)
 {
 	FlattenString fs;
-	int basex, i, a, len, start, end, max, lines;
+	int basex, i, a, start, end, max, lines; /* view */
+	int mi, ma, mstart, mend;                /* mem */
 	
-	len= flatten_string(st, &fs, str);
+	flatten_string(st, &fs, str);
 	str= fs.buf;
 	max= w/st->cwidth;
 	if(max<8) max= 8;
 	basex= x;
-
 	lines= 1;
-	start= 0;
-	end= max;
-	for(i=0; i<len; i++) {
+	
+	start= 0; mstart= 0;
+	end= max; mend= txt_utf8_get_nth(str, max) - str;
+	
+	for(i=0, mi=0; str[mi]; i++, mi+=BLI_str_utf8_size(str+mi)) {
 		if(i-start >= max) {
 			/* skip hidden part of line */
 			if(skip) {
 				skip--;
-				start= end;
-				end += max;
+				start= end; mstart= mend;
+				end += max; mend= txt_utf8_get_nth(str+mend, max) - str;
 				continue;
 			}
 
 			/* Draw the visible portion of text on the overshot line */
-			for(a=start; a<end; a++) {
+			for(a=start, ma=mstart; a<end; a++, ma+=BLI_str_utf8_size(str+ma)) {
 				if(st->showsyntax && format) format_draw_color(format[a]);
-				x += text_font_draw_character(st, x, y, str[a]);
+				x += text_font_draw_character_utf8(st, x, y, str + ma);
 			}
 			y -= st->lheight;
 			x= basex;
 			lines++;
-			start= end;
-			end += max;
+			start= end; mstart= mend;
+			end += max; mend= txt_utf8_get_nth(str+mend, max) - str;
 
 			if(y<=0) break;
 		}
-		else if(str[i]==' ' || str[i]=='-') {
-			end = i+1;
+		else if(str[mi]==' ' || str[mi]=='-') {
+			end = i+1; mend = mi+1;
 		}
 	}
 
 	/* Draw the remaining text */
-	for(a=start; a<len && y > 0; a++) {
+	for(a=start, ma=mstart; str[ma] && y > 0; a++, ma+=BLI_str_utf8_size(str+ma)) {
 		if(st->showsyntax && format)
 			format_draw_color(format[a]);
 
-		x += text_font_draw_character(st, x, y, str[a]);
+		x += text_font_draw_character_utf8(st, x, y, str+ma);
 	}
 
 	flatten_string_free(&fs);
@@ -717,45 +754,36 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 	return lines;
 }
 
-static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format)
+static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, const char *format)
 {
 	FlattenString fs;
-	int r=0, w= 0, amount;
-	int *acc;
-	char *in;
+	int *acc, r=0;
+	const char *in;
 
-	w= flatten_string(st, &fs, str);
+	int w= flatten_string(st, &fs, str);
 	if(w < cshift) {
 		flatten_string_free(&fs);
 		return 0; /* String is shorter than shift */
 	}
 	
-	in= fs.buf+cshift;
+	in= txt_utf8_get_nth(fs.buf, cshift);
 	acc= fs.accum+cshift;
 	w= w-cshift;
 
 	if(draw) {
-		if(st->showsyntax && format) {
-			int a;
-			format = format+cshift;
+		int amount = maxwidth ? MIN2(w, maxwidth) : w;
 		
-			amount = strlen(in);
-			if(maxwidth)
-				amount= MIN2(amount, maxwidth);
-			
+		if(st->showsyntax && format) {
+			int a, str_shift= 0;
+			format = format+cshift;
+
 			for(a = 0; a < amount; a++) {
 				format_draw_color(format[a]);
-				x += text_font_draw_character(st, x, y, in[a]);
+				x += text_font_draw_character_utf8(st, x, y, in + str_shift);
+				str_shift += BLI_str_utf8_size(in + str_shift);
 			}
 		}
-		else {
-			amount = strlen(in);
-			if(maxwidth)
-				amount= MIN2(amount, maxwidth);
-
-			in[amount]= 0;
-			text_font_draw(st, x, y, in);
-		}
+		else text_font_draw(st, x, y, in);
 	}
 	else {
 		while(w-- && *acc++ < maxwidth)
@@ -976,8 +1004,8 @@ int text_get_visible_lines(SpaceText *st, ARegion *ar, const char *str)
 	max= wrap_width(st, ar);
 	lines= 1;
 	start= 0;
-	end= max;
-	for(i= 0, j= 0; str[j] != '\0'; j++) {
+	end= max; 
+	for(i= 0, j= 0; str[j]; j+=BLI_str_utf8_size(str+j)) {
 		/* Mimic replacement of tabs */
 		ch= str[j];
 		if(ch=='\t') {
@@ -1421,7 +1449,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 
 		BLI_strncpy(str, item->name, SUGG_LIST_WIDTH);
 
-		w = text_font_width(st, str);
+		w = BLF_width(mono, str);
 		
 		if(item == sel) {
 			UI_ThemeColor(TH_SHADE2);
@@ -1496,8 +1524,6 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 				glRecti(x-4, y, ar->winx, y-st->lheight),  y-=st->lheight;
 
 			glRecti(x-4, y, x+toc*st->cwidth, y-st->lheight);  y-=st->lheight;
-
-			(void)y;
 		}
 	}
 	else {
@@ -1569,8 +1595,9 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 {
 	TextLine *startl, *endl, *linep;
 	Text *text = st->text;
-	int b, c, startc, endc, find, stack;
-	int viewc, viewl, offl, offc, x, y;
+	int b, fc, find, stack, viewc, viewl, offl, offc, x, y;
+	int startc, endc, c;
+	
 	char ch;
 
 	// showsyntax must be on or else the format string will be null
@@ -1584,21 +1611,23 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	
 	linep= startl;
 	c= startc;
+	fc= txt_utf8_offset_to_index(linep->line, startc);
 	endl= NULL;
 	endc= -1;
 	find= -b;
 	stack= 0;
 	
 	/* Dont highlight backets if syntax HL is off or bracket in string or comment. */
-	if(!linep->format || linep->format[c] == 'l' || linep->format[c] == '#')
+	if(!linep->format || linep->format[fc] == 'l' || linep->format[fc] == '#')
 		return;
 
 	if(b>0) {
 		/* opening bracket, search forward for close */
-		c++;
+		fc++;
+		c+= BLI_str_utf8_size(linep->line+c);
 		while(linep) {
 			while(c<linep->len) {
-				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
+				if(linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
 					b= text_check_bracket(linep->line[c]);
 					if(b==find) {
 						if(stack==0) {
@@ -1612,19 +1641,22 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 						stack++;
 					}
 				}
-				c++;
+				fc++;
+				c+= BLI_str_utf8_size(linep->line+c);
 			}
 			if(endl) break;
 			linep= linep->next;
 			c= 0;
+			fc= 0;
 		}
 	}
 	else {
 		/* closing bracket, search backward for open */
-		c--;
+		fc--;
+		if (c>0) c -= linep->line+c-BLI_str_prev_char_utf8(linep->line+c);
 		while(linep) {
-			while(c>=0) {
-				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
+			while(fc>=0) {
+				if(linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
 					b= text_check_bracket(linep->line[c]);
 					if(b==find) {
 						if(stack==0) {
@@ -1638,11 +1670,17 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 						stack++;
 					}
 				}
-				c--;
+				fc--;
+				if (c>0) c -= linep->line+c-BLI_str_prev_char_utf8(linep->line+c);
 			}
 			if(endl) break;
 			linep= linep->prev;
-			if(linep) c= linep->len-1;
+			if(linep) {
+				if (linep->format) fc= strlen(linep->format)-1;
+				else fc= -1;
+				if (linep->len) c= BLI_str_prev_char_utf8(linep->line+linep->len)-linep->line;
+				else fc= -1;
+			}
 		}
 	}
 
@@ -1766,7 +1804,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			sprintf(linenr, "%*d", st->linenrs_tot, i + linecount + 1);
+			BLI_snprintf(linenr, sizeof(linenr), "%*d", st->linenrs_tot, i + linecount + 1);
 			/* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
 			text_font_draw(st, TXT_OFFSET - 7, y, linenr);
 

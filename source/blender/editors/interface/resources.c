@@ -410,6 +410,28 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->preview_back;
 				break;	
 
+			case TH_STITCH_PREVIEW_FACE:
+				cp = ts->preview_stitch_face;
+				break;
+
+			case TH_STITCH_PREVIEW_EDGE:
+				cp = ts->preview_stitch_edge;
+				break;
+
+			case TH_STITCH_PREVIEW_VERT:
+				cp = ts->preview_stitch_vert;
+				break;
+
+			case TH_STITCH_PREVIEW_STITCHABLE:
+				cp = ts->preview_stitch_stitchable;
+				break;
+
+			case TH_STITCH_PREVIEW_UNSTITCHABLE:
+				cp = ts->preview_stitch_unstitchable;
+				break;
+			case TH_STITCH_PREVIEW_ACTIVE:
+				cp = ts->preview_stitch_active;
+				break;
 			case TH_MARKER_OUTLINE:
 				cp= ts->marker_outline; break;
 			case TH_MARKER:
@@ -746,6 +768,11 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tima.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
 	SETCOLF(btheme->tima.preview_back, 	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->tima.preview_stitch_face, 0.5, 0.5, 0.0, 0.2);
+	SETCOLF(btheme->tima.preview_stitch_edge, 1.0, 0.0, 1.0, 0.2);
+	SETCOLF(btheme->tima.preview_stitch_vert, 0.0, 0.0, 1.0, 0.2);
+	SETCOLF(btheme->tima.preview_stitch_stitchable, 0.0, 1.0, 0.0, 1.0);
+	SETCOLF(btheme->tima.preview_stitch_unstitchable, 1.0, 0.0, 0.0, 1.0);
 
 	/* space text */
 	btheme->text= btheme->tv3d;
@@ -1679,6 +1706,19 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (bmain->versionfile < 262){
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			SETCOLF(btheme->tima.preview_stitch_face, 0.071, 0.259, 0.694, 0.150);
+			SETCOLF(btheme->tima.preview_stitch_edge, 1.0, 0.522, 0.0, 0.7);
+			SETCOLF(btheme->tima.preview_stitch_vert, 1.0, 0.522, 0.0, 0.5);
+			SETCOLF(btheme->tima.preview_stitch_stitchable, 0.0, 1.0, 0.0, 1.0);
+			SETCOLF(btheme->tima.preview_stitch_unstitchable, 1.0, 0.0, 0.0, 1.0);
+			SETCOLF(btheme->tima.preview_stitch_active, 0.886, 0.824, 0.765, 0.140);
+		}
+		U.use_16bit_textures = 0;
+	}
+	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;

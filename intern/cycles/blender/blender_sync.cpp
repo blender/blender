@@ -236,6 +236,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 		params.bvh_type = (SceneParams::BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
+	params.use_bvh_cache = (background)? RNA_boolean_get(&cscene, "use_cache"): false;
 
 	return params;
 }
@@ -248,16 +249,7 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 	return (background)? false: get_boolean(cscene, "preview_pause");
 }
 
-static bool device_type_available(vector<DeviceType>& types, DeviceType dtype)
-{
-	foreach(DeviceType dt, types)
-		if(dt == dtype)
-			return true;
-
-	return false;
-}
-
-SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background)
+SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background)
 {
 	SessionParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -266,25 +258,26 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 	params.experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
 
 	/* device type */
-	params.device_type = DEVICE_CPU;
+	vector<DeviceInfo>& devices = Device::available_devices();
+	
+	/* device default CPU */
+	params.device = devices[0];
 
 	if(RNA_enum_get(&cscene, "device") != 0) {
-		vector<DeviceType> types = Device::available_types();
-		DeviceType dtype;
-		
-		if(!params.experimental || RNA_enum_get(&cscene, "gpu_type") == 0)
-			dtype = DEVICE_CUDA;
-		else
-			dtype = DEVICE_OPENCL;
+		/* find GPU device with given id */
+		PointerRNA systemptr = b_userpref.system().ptr;
+		PropertyRNA *deviceprop = RNA_struct_find_property(&systemptr, "compute_device");
+		int device_id = b_userpref.system().compute_device();
 
-		if(device_type_available(types, dtype))
-			params.device_type = dtype;
-		else if(params.experimental && device_type_available(types, DEVICE_OPENCL))
-			params.device_type = DEVICE_OPENCL;
-		else if(device_type_available(types, DEVICE_CUDA))
-			params.device_type = DEVICE_CUDA;
+		const char *id;
+
+		if(RNA_property_enum_identifier(NULL, &systemptr, deviceprop, device_id, &id)) {
+			foreach(DeviceInfo& info, devices)
+				if(info.id == id)
+					params.device = info;
+		}
 	}
-			
+
 	/* Background */
 	params.background = background;
 			
@@ -312,6 +305,10 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 	}
 	else
 		params.progressive = true;
+	
+	/* todo: multi device only works with single tiles now */
+	if(params.device.type == DEVICE_MULTI)
+		params.tile_size = INT_MAX;
 
 	return params;
 }

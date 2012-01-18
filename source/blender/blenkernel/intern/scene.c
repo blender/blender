@@ -78,8 +78,6 @@
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
-//XXX #include "nla.h"
-
 #ifdef WIN32
 #else
 #include <sys/time.h>
@@ -298,6 +296,10 @@ void free_scene(Scene *sce)
 		if(sce->toolsettings->sculpt) {
 			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
+		}
+		if(sce->toolsettings->uvsculpt) {
+			free_paint(&sce->toolsettings->uvsculpt->paint);
+			MEM_freeN(sce->toolsettings->uvsculpt);
 		}
 		free_paint(&sce->toolsettings->imapaint.paint);
 

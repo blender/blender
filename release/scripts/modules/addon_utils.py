@@ -38,17 +38,17 @@ addons_fake_modules = {}
 
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
-    paths = _bpy.utils.script_paths("addons")
+    addon_paths = _bpy.utils.script_paths("addons")
 
     # CONTRIB SCRIPTS: good for testing but not official scripts yet
     # if folder addons_contrib/ exists, scripts in there will be loaded too
-    paths += _bpy.utils.script_paths("addons_contrib")
+    addon_paths += _bpy.utils.script_paths("addons_contrib")
 
     # EXTERN SCRIPTS: external projects scripts
     # if folder addons_extern/ exists, scripts in there will be loaded too
-    paths += _bpy.utils.script_paths("addons_extern")
+    addon_paths += _bpy.utils.script_paths("addons_extern")
 
-    return paths
+    return addon_paths
 
 
 def modules(module_cache):
@@ -361,7 +361,6 @@ def module_bl_info(mod, info_basis={"name": "",
                                     "author": "",
                                     "version": (),
                                     "blender": (),
-                                    "api": 0,
                                     "location": "",
                                     "description": "",
                                     "wiki_url": "",

@@ -286,7 +286,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 			if (bfd) BLO_blendfiledata_free(bfd);
 			
-			char basedpath[240];
+			char basedpath[FILE_MAX];
 			// base the actuator filename with respect
 			// to the original file working directory
 

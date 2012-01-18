@@ -233,7 +233,7 @@ struct bSound* sound_new_buffer(struct Main *bmain, struct bSound *source)
 {
 	bSound* sound = NULL;
 
-	char name[25];
+	char name[MAX_ID_NAME+5];
 	strcpy(name, "buf_");
 	strcpy(name + 4, source->id.name);
 
@@ -257,7 +257,7 @@ struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, floa
 {
 	bSound* sound = NULL;
 
-	char name[25];
+	char name[MAX_ID_NAME+5];
 	strcpy(name, "lim_");
 	strcpy(name + 4, source->id.name);
 
@@ -449,6 +449,13 @@ void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence
 	return NULL;
 }
 
+void* sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Sequence* sequence)
+{
+	return sound_scene_add_scene_sound(scene, sequence,
+	                                   sequence->startdisp, sequence->enddisp,
+	                                   sequence->startofs + sequence->anim_startofs);
+}
+
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
 {
 	void* handle = AUD_addSequence(scene->sound_scene, sequence->sound->playback_handle, startframe / FPS, endframe / FPS, frameskip / FPS);
@@ -457,6 +464,13 @@ void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int 
 	AUD_setSequenceAnimData(handle, AUD_AP_PITCH, CFRA, &sequence->pitch, 0);
 	AUD_setSequenceAnimData(handle, AUD_AP_PANNING, CFRA, &sequence->pan, 0);
 	return handle;
+}
+
+void* sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence* sequence)
+{
+	return sound_add_scene_sound(scene, sequence,
+	                             sequence->startdisp, sequence->enddisp,
+	                             sequence->startofs + sequence->anim_startofs);
 }
 
 void sound_remove_scene_sound(struct Scene *scene, void* handle)
@@ -472,6 +486,15 @@ void sound_mute_scene_sound(void* handle, char mute)
 void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, int endframe, int frameskip)
 {
 	AUD_moveSequence(handle, startframe / FPS, endframe / FPS, frameskip / FPS);
+}
+
+void sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence* sequence)
+{
+	if (sequence->scene_sound) {
+		sound_move_scene_sound(scene, sequence->scene_sound,
+		                       sequence->startdisp, sequence->enddisp,
+		                       sequence->startofs + sequence->anim_startofs);
+	}
 }
 
 void sound_update_scene_sound(void* handle, struct bSound* sound)
@@ -781,11 +804,13 @@ void sound_create_scene(struct Scene *UNUSED(scene)) {}
 void sound_destroy_scene(struct Scene *UNUSED(scene)) {}
 void sound_mute_scene(struct Scene *UNUSED(scene), int UNUSED(muted)) {}
 void* sound_scene_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence* UNUSED(sequence), int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
+void* sound_scene_add_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence* UNUSED(sequence)) { return NULL; }
 void* sound_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence* UNUSED(sequence), int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
+void* sound_add_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence* UNUSED(sequence)) { return NULL; }
 void sound_remove_scene_sound(struct Scene *UNUSED(scene), void* UNUSED(handle)) {}
 void sound_mute_scene_sound(void* UNUSED(handle), char UNUSED(mute)) {}
 void sound_move_scene_sound(struct Scene *UNUSED(scene), void* UNUSED(handle), int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) {}
-static void sound_start_play_scene(struct Scene *UNUSED(scene)) {}
+void sound_move_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence)) {}
 void sound_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_stop_scene(struct Scene *UNUSED(scene)) {}
 void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}

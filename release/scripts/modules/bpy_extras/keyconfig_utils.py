@@ -70,6 +70,7 @@ KM_HIERARCHY = [
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
         ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
         ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
+        ('UV Sculpt', 'EMPTY', 'WINDOW', []),
         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
         ]),
 

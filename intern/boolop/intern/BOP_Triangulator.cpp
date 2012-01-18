@@ -32,7 +32,6 @@
  
 #include "BOP_Triangulator.h"
 #include <iostream>
-using namespace std;
 
 void BOP_addFace(BOP_Mesh* mesh, BOP_Faces *faces, BOP_Face* face, BOP_TAG tag);
 void BOP_splitQuad(BOP_Mesh* mesh, MT_Plane3 plane, BOP_Index v1, BOP_Index v2, BOP_Index v3, BOP_Index v4, 

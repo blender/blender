@@ -86,7 +86,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 										CSG_VertexIteratorDescriptor  obBVertices)
 {
 	#ifdef BOP_DEBUG
-	cout << "BEGIN BOP_performBooleanOperation" << endl;
+	std::cout << "BEGIN BOP_performBooleanOperation" << std::endl;
 	#endif
 
 	// Set invert flags depending on boolean operation type:
@@ -124,7 +124,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	*outputMesh = BOP_exportMesh(&meshC, invertMeshC);
 
 	#ifdef BOP_DEBUG
-	cout << "END BOP_performBooleanOperation" << endl;
+	std::cout << "END BOP_performBooleanOperation" << std::endl;
 	#endif
 	
 	return result;
@@ -151,7 +151,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	float t = 0.0f;
 	float c = 0.0f;
 	chrono.start();  
-	cout << "---" << endl;
+	std::cout << "---" << std::endl;
 	#endif
 
 	// Create BSPs trees for mesh A & B
@@ -163,7 +163,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "Create BSP     " << c << endl;	
+	std::cout << "Create BSP     " << c << std::endl;	
 	#endif
 
 	unsigned int numVertices = meshC->getNumVertexs();
@@ -179,7 +179,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "mesh Filter    " << c << endl;	
+	std::cout << "mesh Filter    " << c << std::endl;	
 	#endif
 
 	// Face 2 Face
@@ -187,7 +187,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "Face2Face      " << c << endl;
+	std::cout << "Face2Face      " << c << std::endl;
 	#endif
 
 	// BSP classification
@@ -196,7 +196,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "Classification " << c << endl;
+	std::cout << "Classification " << c << std::endl;
 	#endif
 	
 	// Process overlapped faces
@@ -204,7 +204,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "Remove overlap " << c << endl;
+	std::cout << "Remove overlap " << c << std::endl;
 	#endif
 
 	// Sew two meshes
@@ -212,7 +212,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "Sew            " << c << endl;
+	std::cout << "Sew            " << c << std::endl;
 	#endif
 
 	// Merge faces
@@ -229,13 +229,13 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	static int state = -1;
 	if (G.rt == 100) {
 		if( state != 1 ) {
-			cout << "Boolean code using old merge technique." << endl;
+			std::cout << "Boolean code using old merge technique." << std::endl;
 			state = 1;
 		}
 		BOP_Merge::getInstance().mergeFaces(meshC,numVertices);
 	} else {
 		if( state != 0 ) {
-			cout << "Boolean code using new merge technique." << endl;
+			std::cout << "Boolean code using new merge technique." << std::endl;
 			state = 0;
 		}
 		BOP_Merge2::getInstance().mergeFaces(meshC,numVertices);
@@ -245,8 +245,8 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 
 	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
-	cout << "Merge faces    " << c << endl;
-	cout << "Total          " << t << endl;
+	std::cout << "Merge faces    " << c << std::endl;
+	std::cout << "Total          " << t << std::endl;
 	// Test integrity
 	meshC->testMesh();
 	#endif
@@ -460,7 +460,7 @@ BSP_CSGMesh* BOP_newEmptyMesh()
 	BSP_CSGMesh* mesh = BSP_CSGMesh::New();
 	if (mesh == NULL) return mesh;
 
-	vector<BSP_MVertex>* vertices = new vector<BSP_MVertex>;
+	std::vector<BSP_MVertex>* vertices = new std::vector<BSP_MVertex>;
 	
 	mesh->SetVertices(vertices);
 
@@ -481,8 +481,8 @@ BSP_CSGMesh* BOP_exportMesh(BOP_Mesh*                  mesh,
 	if (outputMesh == NULL) return NULL;
 
 	// vtx index dictionary, to translate indeces from input to output.
-	map<int,unsigned int> dic;
-	map<int,unsigned int>::iterator itDic;
+	std::map<int,unsigned int> dic;
+	std::map<int,unsigned int>::iterator itDic;
 
 	unsigned int count = 0;
 

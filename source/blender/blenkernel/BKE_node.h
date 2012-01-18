@@ -76,7 +76,7 @@ struct Object;
  */
 typedef struct bNodeSocketTemplate {
 	int type, limit;
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
 	PropertySubType subtype;
@@ -95,7 +95,7 @@ typedef void (*NodeSocketButtonFunction)(const struct bContext *C, struct uiBloc
  */
 typedef struct bNodeSocketType {
 	int type;
-	char ui_name[32];
+	char ui_name[64];	/* MAX_NAME */
 	char ui_description[128];
 	int ui_icon;
 	char ui_color[4];
@@ -125,7 +125,7 @@ typedef struct bNodeType {
 	short needs_free;		/* set for allocated types that need to be freed */
 	
 	int type;
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	float width, minwidth, maxwidth;
 	float height, minheight, maxheight;
 	short nclass, flag, compatibility;
@@ -374,6 +374,8 @@ int				nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 
 void			nodeFreePreview(struct bNode *node);
 
+int				nodeSocketIsHidden(struct bNodeSocket *sock);
+
 /* ************** NODE TYPE ACCESS *************** */
 
 struct bNodeTemplate nodeMakeTemplate(struct bNode *node);
@@ -520,6 +522,7 @@ struct ShadeResult;
 #define SH_NODE_VOLUME_TRANSPARENT		161
 #define SH_NODE_VOLUME_ISOTROPIC		162
 #define SH_NODE_GAMMA				163
+#define SH_NODE_TEX_CHECKER			164
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -639,6 +642,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_STABILIZE2D	263
 #define CMP_NODE_TRANSFORM	264
 #define CMP_NODE_MOVIEDISTORTION	265
+#define CMP_NODE_DOUBLEEDGEMASK    266
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

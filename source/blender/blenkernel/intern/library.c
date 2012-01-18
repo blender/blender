@@ -991,7 +991,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 		ID *id;
 		
 		for (i=0, id= lb->first; id; id= id->next, i++) {
-			char buf[32];
+			char numstr[32];
 			
 			if (nr && id==link) *nr= i+1;
 
@@ -1002,12 +1002,12 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 					if ( ((Image *)id)->source==IMA_SRC_VIEWER )
 						continue;
 			
-			get_flags_for_id(id, buf);
+			get_flags_for_id(id, numstr);
 				
-			BLI_dynstr_append(pupds, buf);
+			BLI_dynstr_append(pupds, numstr);
 			BLI_dynstr_append(pupds, id->name+2);
-			BLI_snprintf(buf, sizeof(buf), "%%x%d", i+1);
-			BLI_dynstr_append(pupds, buf);
+			BLI_snprintf(numstr, sizeof(numstr), "%%x%d", i+1);
+			BLI_dynstr_append(pupds, numstr);
 			
 			/* icon */
 			switch(GS(id->name))
@@ -1017,8 +1017,8 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			case ID_IM: /* fall through */
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
-				BLI_snprintf(buf, sizeof(buf), "%%i%d", BKE_icon_getid(id) );
-				BLI_dynstr_append(pupds, buf);
+				BLI_snprintf(numstr, sizeof(numstr), "%%i%d", BKE_icon_getid(id) );
+				BLI_dynstr_append(pupds, numstr);
 				break;
 			default:
 				break;
@@ -1136,10 +1136,12 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
 	int nr= 0, nrtest, a, left_len;
-	char left[32], leftest[32], in_use[32];
+	char in_use[64]; /* use as a boolean array, unrelated to name length */
+
+	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
 
 	/* make sure input name is terminated properly */
-	/* if( strlen(name) > 21 ) name[21]= 0; */
+	/* if( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
 	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {
@@ -1151,20 +1153,20 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		if( idtest == NULL ) return 0;
 
 		/* we have a dup; need to make a new name */
-		/* quick check so we can reuse one of first 32 ids if vacant */
+		/* quick check so we can reuse one of first 64 ids if vacant */
 		memset(in_use, 0, sizeof(in_use));
 
 		/* get name portion, number portion ("name.number") */
 		left_len= BLI_split_name_num(left, &nr, name, '.');
 
 		/* if new name will be too long, truncate it */
-		if(nr > 999 && left_len > 16) {
-			left[16]= 0;
-			left_len= 16;
+		if(nr > 999 && left_len > (MAX_ID_NAME - 8)) {
+			left[MAX_ID_NAME - 8]= 0;
+			left_len= MAX_ID_NAME - 8;
 		}
-		else if(left_len > 17) {
-			left[17]= 0;
-			left_len= 17;
+		else if(left_len > (MAX_ID_NAME - 7)) {
+			left[MAX_ID_NAME - 7]= 0;
+			left_len= MAX_ID_NAME - 7;
 		}
 
 		for(idtest= lb->first; idtest; idtest= idtest->next) {
@@ -1206,11 +1208,11 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			/* otherwise just continue and use a number suffix */
 		}
 		
-		if(nr > 999 && left_len > 16) {
+		if(nr > 999 && left_len > (MAX_ID_NAME - 8)) {
 			/* this would overflow name buffer */
-			left[16] = 0;
-			/* left_len = 16; */ /* for now this isnt used again */
-			memcpy(name, left, sizeof(char) * 17);
+			left[MAX_ID_NAME - 8] = 0;
+			/* left_len = MAX_ID_NAME - 8; */ /* for now this isnt used again */
+			memcpy(name, left, sizeof(char) * (MAX_ID_NAME - 7));
 			continue;
 		}
 		/* this format specifier is from hell... */
@@ -1245,7 +1247,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 
 	strncpy(name, tname, sizeof(name)-1);
 
-	/* if result > 21, strncpy don't put the final '\0' to name.
+	/* if result > MAX_ID_NAME-3, strncpy don't put the final '\0' to name.
 	 * easier to assign each time then to check if its needed */
 	name[sizeof(name)-1]= 0;
 

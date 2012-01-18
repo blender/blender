@@ -422,6 +422,15 @@ processEvents(
 	return anyProcessed;
 }
 
+/* set currently using tablet mode (stylus or eraser) depending on device ID */
+static void setTabletMode(GHOST_WindowX11 * window, XID deviceid)
+{
+	if(deviceid == window->GetXTablet().StylusID)
+		window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
+	else if(deviceid == window->GetXTablet().EraserID)
+		window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
+}
+
 	void
 GHOST_SystemX11::processEvent(XEvent *xe)
 {
@@ -767,10 +776,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case SelectionRequest:
 		{
 			XEvent nxe;
-			Atom target, string, compound_text, c_string;
+			Atom target, utf8_string, string, compound_text, c_string;
 			XSelectionRequestEvent *xse = &xe->xselectionrequest;
 			
 			target = XInternAtom(m_display, "TARGETS", False);
+			utf8_string = XInternAtom(m_display, "UTF8_STRING", False);
 			string = XInternAtom(m_display, "STRING", False);
 			compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
 			c_string = XInternAtom(m_display, "C_STRING", False);
@@ -789,7 +799,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			nxe.xselection.time = xse->time;
 			
 			/*Check to see if the requestor is asking for String*/
-			if(xse->target == string || xse->target == compound_text || xse->target == c_string) {
+			if(xse->target == utf8_string || xse->target == string || xse->target == compound_text || xse->target == c_string) {
 				if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
 					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace,
 					                (unsigned char*)txt_select_buffer, strlen(txt_select_buffer));
@@ -798,13 +808,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                (unsigned char*)txt_cut_buffer, strlen(txt_cut_buffer));
 				}
 			} else if (xse->target == target) {
-				Atom alist[4];
+				Atom alist[5];
 				alist[0] = target;
-				alist[1] = string;
-				alist[2] = compound_text;
-				alist[3] = c_string;
+				alist[1] = utf8_string;
+				alist[2] = string;
+				alist[3] = compound_text;
+				alist[4] = c_string;
 				XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 32, PropModeReplace,
-				                (unsigned char*)alist, 4);
+				                (unsigned char*)alist, 5);
 				XFlush(m_display);
 			} else  {
 				//Change property to None because we do not support anything but STRING
@@ -822,6 +833,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			if(xe->type == window->GetXTablet().MotionEvent) 
 			{
 				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
+
+				/* stroke might begin without leading ProxyIn event,
+				 * this happens when window is opened when stylus is already hovering
+				 * around tablet surface */
+				setTabletMode(window, data->deviceid);
+
 				window->GetXTablet().CommonData.Pressure= 
 					data->axis_data[2]/((float)window->GetXTablet().PressureLevels);
 			
@@ -835,10 +852,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			else if(xe->type == window->GetXTablet().ProxInEvent) 
 			{
 				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
-				if(data->deviceid == window->GetXTablet().StylusID)
-					window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
-				else if(data->deviceid == window->GetXTablet().EraserID)
-					window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
+
+				setTabletMode(window, data->deviceid);
 			}
 			else if(xe->type == window->GetXTablet().ProxOutEvent)
 				window->GetXTablet().CommonData.Active= GHOST_kTabletModeNone;
@@ -1342,7 +1357,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 {
 	Atom sseln;
-	Atom target= m_string;
+	Atom target= m_utf8_string;
 	Window owner;
 
 	// from xclip.c doOut() v0.11

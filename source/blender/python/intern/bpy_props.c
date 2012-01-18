@@ -1423,7 +1423,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return ret;	
 	}
 	else if (PyTuple_GET_SIZE(args) > 1) {
-		PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
+		PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 

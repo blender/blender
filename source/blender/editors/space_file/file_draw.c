@@ -118,7 +118,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	const int separator  = 4;
 
 	/* Additional locals. */
-	char  name[32];
+	char uiblockstr[32];
 	int loadbutton;
 	int fnumbuttons;
 	int min_x       = 10;
@@ -134,8 +134,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	ARegion*		  artmp;
 	
 	/* Initialize UI block. */
-	sprintf(name, "win %p", (void *)ar);
-	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
+	BLI_snprintf(uiblockstr, sizeof(uiblockstr), "win %p", (void *)ar);
+	block = uiBeginBlock(C, ar, uiblockstr, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 
 	/* exception to make space for collapsed region icon */
@@ -450,7 +450,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	struct FileList* files = sfile->files;
 	struct direntry *file;
 	ImBuf *imb;
-	uiBlock *block = uiBeginBlock(C, ar, "FileNames", UI_EMBOSS);
+	uiBlock *block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	int numfiles;
 	int numfiles_layout;
 	int sx, sy;

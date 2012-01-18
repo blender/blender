@@ -103,7 +103,7 @@ public:
 #endif
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
 #if 0
 		RPCSend snd(socket, "mem_copy_from");
@@ -220,11 +220,22 @@ public:
 	}
 };
 
-Device *device_network_create(const char *address)
+Device *device_network_create(DeviceInfo& info, const char *address)
 {
 	return new NetworkDevice(address);
 }
 
+void device_network_info(vector<DeviceInfo>& devices)
+{
+	DeviceInfo info;
+
+	info.type = DEVICE_NETWORK;
+	info.description = "Network Device";
+	info.id = "NETWORK";
+	info.num = 0;
+
+	devices.push_back(info);
+}
 
 void Device::server_run()
 {

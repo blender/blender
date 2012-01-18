@@ -188,7 +188,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 				if(dg) {
 					max+= BLI_snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
-					if(max<320) strcat(defstr, str);
+					if (max < sizeof(str)) strcat(defstr, str);
 				}
 
 				if(tfp->curdef==dvert->dw[i].def_nr) {
@@ -1334,7 +1334,7 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 	View3D *v3d= sa->spacedata.first;
 	int ofsx, ofsy;
 	
-	block= uiBeginBlock(C, ar, "view3d_panel_preview", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_PREVIEW);  // for close and esc
 	

@@ -75,7 +75,7 @@ typedef struct MovieTrackingMarker {
 typedef struct MovieTrackingTrack {
 	struct MovieTrackingTrack *next, *prev;
 
-	char name[24];
+	char name[64];	/* MAX_NAME */
 
 	/* ** setings ** */
 	float pat_min[2], pat_max[2];		/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
@@ -91,12 +91,8 @@ typedef struct MovieTrackingTrack {
 	float bundle_pos[3];			/* reconstructed position */
 	float error;					/* average track reprojection error */
 
-	int pad;
-
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
-	short transflag;					/* transform flags */
-	char pad3[2];
 	float color[3];						/* custom color for track */
 
 	/* tracking algorithm to use; can be KLT or SAD */
@@ -178,7 +174,7 @@ typedef struct MovieTrackingReconstruction {
 typedef struct MovieTrackingObject {
 	struct MovieTrackingObject *next, *prev;
 
-	char name[24];			/* Name of tracking object */
+	char name[64];			/* Name of tracking object, MAX_NAME */
 	int flag;
 	float scale;			/* scale of object solution in amera space */
 
@@ -213,7 +209,8 @@ enum {
 /* MovieTrackingMarker->flag */
 #define MARKER_DISABLED	(1<<0)
 #define MARKER_TRACKED	(1<<1)
-#define MARKER_GRAPH_SEL (1<<2)
+#define MARKER_GRAPH_SEL_X (1<<2)
+#define MARKER_GRAPH_SEL_Y (1<<3)
 
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)

@@ -114,10 +114,7 @@ class SEQUENCER_MT_view(Menu):
 
         layout.operator("sequencer.view_selected")
 
-        if st.show_frames:
-            layout.operator("anim.time_toggle", text="Show Seconds")
-        else:
-            layout.operator("anim.time_toggle", text="Show Frames")
+        layout.prop(st, "show_seconds")
 
         layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':
@@ -148,8 +145,8 @@ class SEQUENCER_MT_select(Menu):
         layout.separator()
         layout.operator_menu_enum("object.select_grouped", "type", text="Grouped")
         layout.operator("sequencer.select_linked")
-        layout.operator("sequencer.select_all_toggle")
-        layout.operator("sequencer.select_inverse")
+        layout.operator("sequencer.select_all").action = 'TOGGLE'
+        layout.operator("sequencer.select_all").action = 'INVERT'
 
 
 class SEQUENCER_MT_marker(Menu):
@@ -285,7 +282,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
-        layout.operator("sequencer.mute")
+        layout.operator("sequencer.mute").unselected = False
         layout.operator("sequencer.unmute")
 
         layout.operator("sequencer.mute", text="Mute Deselected Strips").unselected = True
@@ -625,6 +622,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
         layout = self.layout
 
         strip = act_strip(context)
+        sound = strip.sound
 
         layout.template_ID(strip, "sound", open="sound.open")
 
@@ -632,12 +630,12 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
         layout.prop(strip, "filepath", text="")
 
         row = layout.row()
-        if strip.sound.packed_file:
+        if sound.packed_file:
             row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
         else:
             row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
-        row.prop(strip.sound, "use_memory_cache")
+        row.prop(sound, "use_memory_cache")
 
         layout.prop(strip, "waveform")
         layout.prop(strip, "volume")

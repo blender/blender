@@ -54,7 +54,7 @@ typedef struct bController {
 	short type, flag, inputs, totlinks;
 	short otype, totslinks, pad2, pad3;
 	
-	char name[32];
+	char name[64];
 	void *data;
 	
 	struct bActuator **links;

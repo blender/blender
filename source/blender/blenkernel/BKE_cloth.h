@@ -85,6 +85,7 @@ typedef struct Cloth
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
 	struct EdgeHash 	*edgehash; 		/* used for selfcollisions */
+	int last_frame, pad4;
 } Cloth;
 
 /**

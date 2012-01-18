@@ -228,7 +228,12 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 
 				for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
 					Transform tfm = get_transform(b_dup->matrix());
-					sync_object(*b_ob, b_index, b_dup->object(), tfm, ob_layer);
+					BL::Object b_dup_ob = b_dup->object();
+					bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
+
+					if(!(b_dup->hide() || dup_hide))
+						sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer);
+
 					b_index++;
 				}
 

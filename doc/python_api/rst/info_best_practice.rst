@@ -10,7 +10,7 @@ For your own work this is of course fine, but if you want to collaborate with ot
 Style Conventions
 =================
 
-For Blender 2.5 we have chosen to follow python suggested style guide to avoid mixing styles amongst our own scripts and make it easier to use python scripts from other projects.
+For Blender/Python development we have chosen to follow python suggested style guide to avoid mixing styles amongst our own scripts and make it easier to use python scripts from other projects.
 
 Using our style guide for your own scripts makes it easier if you eventually want to contribute them to blender.
 
@@ -83,7 +83,7 @@ Even though you're not looping on the list data **python is**, so you need to be
 
 Modifying Lists
 ^^^^^^^^^^^^^^^
-In python we can add and remove from a list, This is slower when the list length is modifier, especially at the start of the list, since all the data after the index of modification needs to be moved up or down 1 place.
+In python we can add and remove from a list, This is slower when the list length is modified, especially at the start of the list, since all the data after the index of modification needs to be moved up or down 1 place.
 
 The most simple way to add onto the end of the list is to use ``my_list.append(list_item)`` or ``my_list.extend(some_list)`` and the fastest way to remove an item is ``my_list.pop()`` or ``del my_list[-1]``.
 

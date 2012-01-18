@@ -289,6 +289,17 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Sculpt_update");
 }
 
+
+static void rna_def_uv_sculpt(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "UvSculpt", "Paint");
+	RNA_def_struct_ui_text(srna, "UV Sculpting", "");
+}
+
+
+/* use for weight paint too */
 static void rna_def_vertex_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -297,7 +308,8 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "VertexPaint", "Paint");
 	RNA_def_struct_sdna(srna, "VPaint");
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode");
-	
+
+	/* vertex paint only */
 	prop= RNA_def_property(srna, "use_all_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_AREA);
 	RNA_def_property_ui_text(prop, "All Faces", "Paint on all faces inside brush");
@@ -309,6 +321,11 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_spray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SPRAY);
 	RNA_def_property_ui_text(prop, "Spray", "Keep applying paint effect while holding mouse");
+
+	/* weight paint only */
+	prop= RNA_def_property(srna, "use_group_restrict", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_ONLYVGROUP);
+	RNA_def_property_ui_text(prop, "Restrict", "Restrict painting to verts already apart of the vertex group");
 }
 
 static void rna_def_image_paint(BlenderRNA *brna)
@@ -541,6 +558,7 @@ void RNA_def_sculpt_paint(BlenderRNA *brna)
 {
 	rna_def_paint(brna);
 	rna_def_sculpt(brna);
+	rna_def_uv_sculpt(brna);
 	rna_def_vertex_paint(brna);
 	rna_def_image_paint(brna);
 	rna_def_particle_edit(brna);

@@ -51,6 +51,7 @@
 #include "BLI_listbase.h"		
 #include "BLI_utildefines.h"
 #include "BLI_bpath.h"
+#include "BLI_string.h"
 
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
@@ -1614,7 +1615,7 @@ static void calculate_tface_materialname(char *matname, char *newname, int flag)
 	int digits = integer_getdigits(flag);
 	/* clamp the old name, remove the MA prefix and add the .TF.flag suffix
 	e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
-	sprintf(newname, "%.*s.TF.%0*d", MAX_ID_NAME-(digits+5), matname, digits, flag);
+	BLI_snprintf(newname, MAX_ID_NAME, "%.*s.TF.%0*d", MAX_ID_NAME-(digits+5), matname, digits, flag);
 }
 
 /* returns -1 if no match */
@@ -1661,8 +1662,8 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 	short mat_nr= -1;
 	
 	/* new material, the name uses the flag*/
-	sprintf(idname, "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
-	
+	BLI_snprintf(idname, sizeof(idname), "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
+
 	if ((ma= BLI_findstring(&main->mat, idname+2, offsetof(ID, name)+2))) {
 		mat_nr= mesh_getmaterialnumber(me, ma);
 		/* assign the material to the mesh */

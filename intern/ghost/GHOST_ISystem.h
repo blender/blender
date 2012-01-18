@@ -68,12 +68,27 @@ class GHOST_IEventConsumer;
  * <li> Access to the state of the mouse buttons and the keyboard.</li>
  * <li> Menus for windows with events generated when they are accessed (this is
  *     work in progress).</li>
+ * <li> Video mode switching.</li>
+ * <li> Copy/Paste buffers.</li>
+ * <li> System paths.</li>
  * </ul>
  * Font management has been moved to a separate library.
  *
  * \section platforms Platforms
  *
+ * GHOST supports the following platforms:
+ * <ul>
+ * <li> OSX Cocoa.</li>
+ * <li> OSX Carbon.</li>
+ * <li> Windows.</li>
+ * <li> X11.</li>
+ * <li> SDL1.3 (experemental).</li>
+ * <li> NULL (headless mode).</li>
+ * </ul>
+ *
  * \section Building GHOST
+ *
+ * GHOST is not build standalone however there are tests in intern/ghost/test
  *
  * \section interface Interface
  * GHOST has two programming interfaces:
@@ -255,7 +270,7 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual) = 0;
+		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0) = 0;
 
 	/**
 	 * Ends full screen mode.

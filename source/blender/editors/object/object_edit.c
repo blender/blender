@@ -88,7 +88,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
-
+#include "ED_image.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -108,7 +108,6 @@ static void waitcursor(int UNUSED(val)) {}
 static int pupmenu(const char *UNUSED(msg)) {return 0;}
 
 /* port over here */
-static bContext *evil_C;
 static void error_libdata(void) {}
 
 Object *ED_object_context(bContext *C)
@@ -322,9 +321,6 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		
 //		if(EM_texFaceCheck())
 		
-//		if(retopo_mesh_paint_check())
-//			retopo_end_okee();
-		
 		if(me->edit_mesh->totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;
@@ -517,11 +513,15 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	ToolSettings *toolsettings =  CTX_data_tool_settings(C);
+
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
 		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* had EM_DO_UNDO but op flag calls undo too [#24685] */
 	
+	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), toolsettings);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -594,366 +594,6 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	
 	/* flag */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/* *********************** */
-
-#if 0
-// XXX should be in view3d?
-
-/* context: ob = lamp */
-/* code should be replaced with proper (custom) transform handles for lamp properties */
-static void spot_interactive(Object *ob, int mode)
-{
-	Lamp *la= ob->data;
-	float transfac, dx, dy, ratio, origval;
-	int keep_running= 1, center2d[2];
-	int mval[2], mvalo[2];
-	
-//	getmouseco_areawin(mval);
-//	getmouseco_areawin(mvalo);
-	
-	project_int(ob->obmat[3], center2d);
-	if( center2d[0] > 100000 ) {		/* behind camera */
-//		center2d[0]= curarea->winx/2;
-//		center2d[1]= curarea->winy/2;
-	}
-
-//	helpline(mval, center2d);
-	
-	/* ratio is like scaling */
-	dx = (float)(center2d[0] - mval[0]);
-	dy = (float)(center2d[1] - mval[1]);
-	transfac = (float)sqrt( dx*dx + dy*dy);
-	if(transfac==0.0f) transfac= 1.0f;
-	
-	if(mode==1)	
-		origval= la->spotsize;
-	else if(mode==2)	
-		origval= la->dist;
-	else if(mode==3)	
-		origval= la->clipsta;
-	else	
-		origval= la->clipend;
-	
-	while (keep_running>0) {
-		
-//		getmouseco_areawin(mval);
-		
-		/* essential for idling subloop */
-		if(mval[0]==mvalo[0] && mval[1]==mvalo[1]) {
-			PIL_sleep_ms(2);
-		}
-		else {
-			char str[32];
-			
-			dx = (float)(center2d[0] - mval[0]);
-			dy = (float)(center2d[1] - mval[1]);
-			ratio = (float)(sqrt( dx*dx + dy*dy))/transfac;
-			
-			/* do the trick */
-			
-			if(mode==1) {	/* spot */
-				la->spotsize = ratio*origval;
-				CLAMP(la->spotsize, 1.0f, 180.0f);
-				sprintf(str, "Spot size %.2f\n", la->spotsize);
-			}
-			else if(mode==2) {	/* dist */
-				la->dist = ratio*origval;
-				CLAMP(la->dist, 0.01f, 5000.0f);
-				sprintf(str, "Distance %.2f\n", la->dist);
-			}
-			else if(mode==3) {	/* sta */
-				la->clipsta = ratio*origval;
-				CLAMP(la->clipsta, 0.001f, 5000.0f);
-				sprintf(str, "Distance %.2f\n", la->clipsta);
-			}
-			else if(mode==4) {	/* end */
-				la->clipend = ratio*origval;
-				CLAMP(la->clipend, 0.1f, 5000.0f);
-				sprintf(str, "Clip End %.2f\n", la->clipend);
-			}
-
-			/* cleanup */
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			
-			/* handle shaded mode */
-// XXX			shade_buttons_change_3d();
-
-			/* DRAW */	
-			headerprint(str);
-			force_draw_plus(SPACE_BUTS, 0);
-
-//			helpline(mval, center2d);
-		}
-		
-		while( qtest() ) {
-			short val;
-			unsigned short event= extern_qread(&val);
-			
-			switch (event){
-				case ESCKEY:
-				case RIGHTMOUSE:
-					keep_running= 0;
-					break;
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case PADENTER:
-				case RETKEY:
-					if(val)
-						keep_running= -1;
-					break;
-			}
-		}
-	}
-
-	if(keep_running==0) {
-		if(mode==1)	
-			la->spotsize= origval;
-		else if(mode==2)	
-			la->dist= origval;
-		else if(mode==3)	
-			la->clipsta= origval;
-		else	
-			la->clipend= origval;
-	}
-
-}
-#endif
-
-static void UNUSED_FUNCTION(special_editmenu)(Scene *scene, View3D *v3d)
-{
-// XXX	static short numcuts= 2;
-	Object *ob= OBACT;
-	Object *obedit= NULL; // XXX
-	int nr,ret=0;
-	
-	if(ob==NULL) return;
-	
-	if(obedit==NULL) {
-		
-		if(ob->mode & OB_MODE_POSE) {
-// XXX			pose_special_editmenu();
-		}
-		else if(paint_facesel_test(ob)) {
-			Mesh *me= get_mesh(ob);
-			MTFace *tface;
-			MFace *mface;
-			int a;
-
-			if(me==NULL || me->mtface==NULL) return;
-
-			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|         TwoSide%x6|Clr     Tex%x7|         Shared%x8|         Light%x9|         Invisible%x10|         Collision%x11|         TwoSide%x12");
-			
-			tface= me->mtface;
-			mface= me->mface;
-			for(a=me->totface; a>0; a--, tface++, mface++) {
-				if(mface->flag & ME_FACE_SEL) {
-					switch(nr) {
-					case 1:
-						tface->mode |= TF_TEX; break;
-					case 2:
-						tface->mode |= TF_SHAREDCOL; break;
-					case 3:
-						tface->mode |= TF_LIGHT; break; 
-					case 4:
-						tface->mode |= TF_INVISIBLE; break;
-					case 5:
-						tface->mode |= TF_DYNAMIC; break;
-					case 6:
-						tface->mode |= TF_TWOSIDE; break;
-					case 7:
-						tface->mode &= ~TF_TEX;
-						tface->tpage= NULL;
-						break;
-					case 8:
-						tface->mode &= ~TF_SHAREDCOL; break;
-					case 9:
-						tface->mode &= ~TF_LIGHT; break;
-					case 10:
-						tface->mode &= ~TF_INVISIBLE; break;
-					case 11:
-						tface->mode &= ~TF_DYNAMIC; break;
-					case 12:
-						tface->mode &= ~TF_TWOSIDE; break;
-					}
-				}
-			}
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
-			Mesh *me= get_mesh(ob);
-			
-			if(me==NULL || (me->mcol==NULL && me->mtface==NULL) ) return;
-			
-			nr= pupmenu("Specials%t|Shared VertexCol%x1");
-			if(nr==1) {
-				
-// XXX				do_shared_vertexcol(me);
-				
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			}
-		}
-		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-			Object *par= modifiers_isDeformedByArmature(ob);
-
-			if(par && (par->mode & OB_MODE_POSE)) {
-// XXX				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
-
-// XXX				if(nr==1 || nr==2)
-// XXX					pose_adds_vgroups(ob, (nr == 2));
-			}
-		}
-		else if(ob->mode & OB_MODE_PARTICLE_EDIT) {
-#if 0
-			// XXX
-			ParticleSystem *psys = PE_get_current(ob);
-			ParticleEditSettings *pset = PE_settings();
-
-			if(!psys)
-				return;
-
-			if(pset->selectmode & SCE_SELECT_POINT)
-				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4|Remove Doubles%x5");
-			else
-				nr= pupmenu("Specials%t|Rekey%x1|Remove Doubles%x5");
-			
-			switch(nr) {
-			case 1:
-// XXX				if(button(&pset->totrekey, 2, 100, "Number of Keys:")==0) return;
-				waitcursor(1);
-				PE_rekey();
-				break;
-			case 2:
-				PE_subdivide();
-				break;
-			case 3:
-				PE_select_root();
-				break;
-			case 4:
-				PE_select_tip();
-				break;
-			case 5:
-				PE_remove_doubles();
-				break;
-			}
-			
-			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-			
-			if(nr>0) waitcursor(0);
-#endif
-		}
-		else {
-			Base *base, *base_select= NULL;
-			
-			/* Get the active object mesh. */
-			Mesh *me= get_mesh(ob);
-
-			/* Booleans, if the active object is a mesh... */
-			if (me && ob->id.lib==NULL) {
-				
-				/* Bring up a little menu with the boolean operation choices on. */
-				nr= pupmenu("Boolean Tools%t|Intersect%x1|Union%x2|Difference%x3|Add Intersect Modifier%x4|Add Union Modifier%x5|Add Difference Modifier%x6");
-
-				if (nr > 0) {
-					/* user has made a choice of a menu element.
-					   All of the boolean functions require 2 mesh objects 
-					   we search through the object list to find the other 
-					   selected item and make sure it is distinct and a mesh. */
-
-					for(base= FIRSTBASE; base; base= base->next) {
-						if(TESTBASELIB(v3d, base)) {
-							if(base->object != ob) base_select= base;
-						}
-					}
-
-					if (base_select) {
-						if (get_mesh(base_select->object)) {
-							if(nr <= 3){
-								waitcursor(1);
-// XXX								ret = NewBooleanMesh(BASACT,base_select,nr);
-								if (ret==0) {
-									error("An internal error occurred");
-								} else if(ret==-1) {
-									error("Selected meshes must have faces to perform boolean operations");
-								} else if (ret==-2) {
-									error("Both meshes must be a closed mesh");
-								}
-								waitcursor(0);
-							} else {
-								BooleanModifierData *bmd = NULL;
-								bmd = (BooleanModifierData *)modifier_new(eModifierType_Boolean);
-								BLI_addtail(&ob->modifiers, bmd);
-								modifier_unique_name(&ob->modifiers, (ModifierData*)bmd);
-								bmd->object = base_select->object;
-								bmd->modifier.mode |= eModifierMode_Realtime;
-								switch(nr){
-									case 4: bmd->operation = eBooleanModifierOp_Intersect; break;
-									case 5: bmd->operation = eBooleanModifierOp_Union; break;
-									case 6:	bmd->operation = eBooleanModifierOp_Difference; break;
-								}
-// XXX								do_common_editbuts(B_CHANGEDEP);
-							}								
-						} else {
-							error("Please select 2 meshes");
-						}
-					} else {
-						error("Please select 2 meshes");
-					}
-				}
-
-			}
-			else if (ob->type == OB_FONT) {
-				/* removed until this gets a decent implementation (ton) */
-/*				nr= pupmenu("Split %t|Characters%x1");
-				if (nr > 0) {
-					switch(nr) {
-						case 1: split_font();
-					}
-				}
-*/
-			}			
-		}
-	}
-	else if(obedit->type==OB_MESH) {
-	}
-	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-	}
-	else if(obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Switch Direction%x7|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
-//		if(nr==1)
-// XXX			subdivide_armature(1);
-		if(nr==2) {
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-// XXX			subdivide_armature(numcuts);
-		}
-//		else if(nr==3)
-// XXX			armature_flip_names();
-		else if(ELEM3(nr, 4, 5, 6)) {
-// XXX			armature_autoside_names(nr-4);
-		}
-//		else if(nr == 7)
-// XXX			switch_direction_armature();
-	}
-	else if(obedit->type==OB_LATTICE) {
-		Lattice *lt= obedit->data;
-		static float weight= 1.0f;
-		{ // XXX
-// XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-			Lattice *editlt= lt->editlatt->latt;
-			int a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
-			BPoint *bp= editlt->def;
-			
-			while(a--) {
-				if(bp->f1 & SELECT)
-					bp->weight= weight;
-				bp++;
-			}
-		}
-	}
-
 }
 
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
@@ -1678,102 +1318,6 @@ static void UNUSED_FUNCTION(image_aspect)(Scene *scene, View3D *v3d)
 	
 }
 
-static int vergbaseco(const void *a1, const void *a2)
-{
-	Base **x1, **x2;
-	
-	x1= (Base **) a1;
-	x2= (Base **) a2;
-	
-	if( (*x1)->sy > (*x2)->sy ) return 1;
-	else if( (*x1)->sy < (*x2)->sy) return -1;
-	else if( (*x1)->sx > (*x2)->sx ) return 1;
-	else if( (*x1)->sx < (*x2)->sx ) return -1;
-
-	return 0;
-}
-
-
-static void UNUSED_FUNCTION(auto_timeoffs)(Scene *scene, View3D *v3d)
-{
-	Base *base, **basesort, **bs;
-	float start, delta;
-	int tot=0, a;
-	short offset=25;
-
-	if(BASACT==NULL || v3d==NULL) return;
-// XXX	if(button(&offset, 0, 1000,"Total time")==0) return;
-
-	/* make array of all bases, xco yco (screen) */
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			tot++;
-		}
-	}
-
-	delta= (float)offset/(float)tot;
-	start= OBACT->sf;
-
-	bs= basesort= MEM_mallocN(sizeof(void *)*tot,"autotimeoffs");
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			*bs= base;
-			bs++;
-		}
-	}
-	qsort(basesort, tot, sizeof(void *), vergbaseco);
-
-	bs= basesort;
-	for(a=0; a<tot; a++) {
-		
-		(*bs)->object->sf= start;
-		start+= delta;
-
-		bs++;
-	}
-	MEM_freeN(basesort);
-
-}
-
-static void UNUSED_FUNCTION(ofs_timeoffs)(Scene *scene, View3D *v3d)
-{
-	float offset=0.0f;
-
-	if(BASACT==NULL || v3d==NULL) return;
-	
-// XXX	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
-
-	/* make array of all bases, xco yco (screen) */
-	CTX_DATA_BEGIN(evil_C, Object*, ob, selected_editable_objects) {
-		ob->sf += offset;
-		if (ob->sf < -MAXFRAMEF)		ob->sf = -MAXFRAMEF;
-		else if (ob->sf > MAXFRAMEF)	ob->sf = MAXFRAMEF;
-	}
-	CTX_DATA_END;
-
-}
-
-
-static void UNUSED_FUNCTION(rand_timeoffs)(Scene *scene, View3D *v3d)
-{
-	Base *base;
-	float rand_ofs=0.0f;
-
-	if(BASACT==NULL || v3d==NULL) return;
-	
-// XXX	if(fbutton(&rand_ofs, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
-	
-	rand_ofs *= 2;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			base->object->sf += ((float)BLI_drand()-0.5f) * rand_ofs;
-			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
-			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
-		}
-	}
-
-}
 
 static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
@@ -1936,16 +1480,21 @@ void ED_object_toggle_modes(bContext *C, int mode)
 
 /************************ Game Properties ***********************/
 
-static int game_property_new(bContext *C, wmOperator *UNUSED(op))
+static int game_property_new(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bProperty *prop;
+	char name[MAX_NAME];
+	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
-	prop= new_property(PROP_FLOAT);
+	prop= new_property(type);
 	BLI_addtail(&ob->prop, prop);
+
+	RNA_string_get(op->ptr, "name", name);
+	if (name[0] != '\0') {
+		BLI_strncpy(prop->name, name, sizeof(prop->name));
+	}
+
 	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
@@ -1966,6 +1515,9 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "type", gameproperty_type_items, 2, "Type", "Type of game property to add");
+	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the game property to add");
 }
 
 static int game_property_remove(bContext *C, wmOperator *op)

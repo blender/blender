@@ -831,7 +831,9 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 		if(but->optype) {
 			IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 
-			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
+			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+			                                buf, sizeof(buf)))
+			{
 				UI_MENU_KEY_STR_CAT
 			}
 		}
@@ -846,7 +848,9 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 
 			IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
 
-			if(WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, FALSE, buf, sizeof(buf))) {
+			if(WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, FALSE,
+			                                buf, sizeof(buf)))
+			{
 				UI_MENU_KEY_STR_CAT
 			}
 		}
@@ -2920,7 +2924,7 @@ static void autocomplete_id(bContext *C, char *str, void *arg_v)
 	
 	/* search if str matches the beginning of an ID struct */
 	if(str[0]) {
-		AutoComplete *autocpl= autocomplete_begin(str, 22);
+		AutoComplete *autocpl= autocomplete_begin(str, MAX_ID_NAME-2);
 		ID *id;
 		
 		for(id= listb->first; id; id= id->next)

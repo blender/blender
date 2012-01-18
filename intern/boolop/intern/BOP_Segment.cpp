@@ -242,8 +242,8 @@ unsigned int BOP_Segment::getConfig()
 /**
  * Implements operator <<
  */
-ostream &operator<<(ostream &stream, const BOP_Segment &c)
+std::ostream &operator<<(std::ostream &stream, const BOP_Segment &c)
 {
-	cout << "m_v1: " << c.m_v1 << "(" << c.m_cfg1 << ") m_v2: " << c.m_v2 << "(" << c.m_cfg2 << ")";
+	std::cout << "m_v1: " << c.m_v1 << "(" << c.m_cfg1 << ") m_v2: " << c.m_v2 << "(" << c.m_cfg2 << ")";
 	return stream;
 }

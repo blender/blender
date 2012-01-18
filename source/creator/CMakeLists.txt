@@ -165,7 +165,10 @@ if(WITH_PYTHON_MODULE)
 	add_definitions(-DWITH_PYTHON_MODULE)
 
 	# creates ./bin/bpy.so which can be imported as a python module.
-	add_library(blender SHARED ${SRC})
+	#
+	# note that 'SHARED' works on Linux and Windows,
+	# but not OSX which _must_ be 'MODULE'
+	add_library(blender MODULE ${SRC})
 	set_target_properties(
 		blender
 		PROPERTIES
@@ -174,6 +177,15 @@ if(WITH_PYTHON_MODULE)
 			LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
 	)
+
+	if(APPLE)
+		set_target_properties(
+			blender
+			PROPERTIES
+				LINK_FLAGS_RELEASE "${PLATFORM_LINKFLAGS}"
+				LINK_FLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG}"
+		)
+	endif()
 
 	if(WIN32)
 		# python modules use this
@@ -231,7 +243,11 @@ elseif(WIN32)
 	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
 
 elseif(APPLE)
-	set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
+	if(WITH_PYTHON_MODULE)
+		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
+	else()
+		set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
+	endif()
 
 endif()
 
@@ -613,10 +629,11 @@ elseif(APPLE)
 	)
 
 	# python
-	if(WITH_PYTHON)
+	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
 		# the python zip is first extract as part of the build process,
 		# and then later installed as part of make install. this is much
 		# quicker, and means we can easily exclude files on copy
+		# Not needed for PYTHON_MODULE or WEB_PLUGIN due uses  Pyhon framework
 		add_custom_target(
 			extractpyzip
 			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/python)
@@ -858,6 +875,10 @@ endif()
 
 	if(WITH_CODEC_QUICKTIME)
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
+	endif()
+
+	if(WITH_CARVE)
+		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})

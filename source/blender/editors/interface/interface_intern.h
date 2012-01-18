@@ -444,7 +444,7 @@ extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *r
 /* interface_draw.c */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
-void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha);
+void ui_draw_gradient(rcti *rect, const float hsv[3], int type, float alpha);
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);

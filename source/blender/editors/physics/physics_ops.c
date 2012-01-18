@@ -39,7 +39,10 @@
 #include "ED_physics.h"
 #include "ED_object.h"
 
+#include "BLI_utildefines.h"
+
 #include "physics_intern.h" // own include
+
 
 /***************************** particles ***********************************/
 
@@ -51,7 +54,6 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_select_linked);
 	WM_operatortype_append(PARTICLE_OT_select_less);
 	WM_operatortype_append(PARTICLE_OT_select_more);
-	WM_operatortype_append(PARTICLE_OT_select_inverse);
 
 	WM_operatortype_append(PARTICLE_OT_hide);
 	WM_operatortype_append(PARTICLE_OT_reveal);
@@ -94,33 +96,41 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Particle", 0, 0);
 	keymap->poll= PE_poll;
 	
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+
+	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 
 	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
-	RNA_boolean_set(kmi->ptr, "release_confirm", 1);
+	RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	/* size radial control */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.particle_edit.brush.size");
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.particle_edit.brush.size");
 
 	/* size radial control */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.particle_edit.brush.strength");
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.particle_edit.brush.strength");
 
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_particle_specials", WKEY, KM_PRESS, 0, 0);
 	

@@ -147,6 +147,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Acceleration structure:")
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
+        sub.prop(cscene, "use_cache")
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
@@ -708,22 +709,16 @@ def draw_device(self, context):
     scene = context.scene
     layout = self.layout
 
-    if scene.render.engine == "CYCLES":
+    if scene.render.engine == 'CYCLES':
         cscene = scene.cycles
 
         layout.prop(cscene, "feature_set")
-        experimental = cscene.feature_set == 'EXPERIMENTAL'
 
-        available_devices = engine.available_devices()
-        available_cuda = 'cuda' in available_devices
-        available_opencl = experimental and 'opencl' in available_devices
-
-        if available_cuda or available_opencl:
+        device_type = context.user_preferences.system.compute_device_type
+        if device_type == 'CUDA':
             layout.prop(cscene, "device")
-            if cscene.device == 'GPU' and available_cuda and available_opencl:
-                layout.prop(cscene, "gpu_type")
-        if experimental and cscene.device == 'CPU' and engine.with_osl():
-            layout.prop(cscene, "shading_system")
+        elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
+            layout.prop(cscene, "device")
 
 
 def draw_pause(self, context):
@@ -733,7 +728,7 @@ def draw_pause(self, context):
     if scene.render.engine == "CYCLES":
         view = context.space_data
 
-        if view.viewport_shade == "RENDERED":
+        if view.viewport_shade == 'RENDERED':
             cscene = scene.cycles
             layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
 

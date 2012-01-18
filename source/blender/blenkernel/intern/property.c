@@ -171,7 +171,7 @@ void unique_property(bProperty *first, bProperty *prop, int force)
 			i= 0;
 
 			do { /* ensure we have enough chars for the new number in the name */
-				sprintf(num, "%d", i++);
+				BLI_snprintf(num, sizeof(num), "%d", i++);
 				BLI_strncpy(new_name, base_name, sizeof(prop->name) - strlen(num));
 				strcat(new_name, num);
 			} while(get_property__internal(first, prop, new_name));

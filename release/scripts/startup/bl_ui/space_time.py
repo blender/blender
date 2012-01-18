@@ -28,7 +28,7 @@ class TIME_HT_header(Header):
         layout = self.layout
 
         scene = context.scene
-        tools = context.tool_settings
+        toolsettings = context.tool_settings
         screen = context.screen
 
         row = layout.row(align=True)
@@ -61,7 +61,7 @@ class TIME_HT_header(Header):
             # if using JACK and A/V sync:
             #   hide the play-reversed button
             #   since JACK transport doesn't support reversed playback
-            if (context.user_preferences.system.audio_device == 'JACK' and scene.sync_mode == 'AUDIO_SYNC'):
+            if scene.sync_mode == 'AUDIO_SYNC' and context.user_preferences.system.audio_device == 'JACK':
                 sub = row.row()
                 sub.scale_x = 2.0
                 sub.operator("screen.animation_play", text="", icon='PLAY')
@@ -80,11 +80,11 @@ class TIME_HT_header(Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
-        row.prop(tools, "use_keyframe_insert_keyingset", text="", toggle=True)
-        if screen.is_animation_playing and tools.use_keyframe_insert_auto:
+        row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
+        row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
+        if screen.is_animation_playing and toolsettings.use_keyframe_insert_auto:
             subsub = row.row()
-            subsub.prop(tools, "use_record_with_nla", toggle=True)
+            subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
 
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
@@ -109,7 +109,7 @@ class TIME_MT_view(Menu):
 
         st = context.space_data
 
-        layout.operator("anim.time_toggle")
+        layout.prop(st, "show_seconds")
         layout.operator("time.view_all")
 
         layout.separator()
@@ -193,10 +193,10 @@ class TIME_MT_autokey(Menu):
 
     def draw(self, context):
         layout = self.layout
-        tools = context.tool_settings
+        toolsettings = context.tool_settings
 
-        layout.prop_enum(tools, "auto_keying_mode", 'ADD_REPLACE_KEYS')
-        layout.prop_enum(tools, "auto_keying_mode", 'REPLACE_KEYS')
+        layout.prop_enum(toolsettings, "auto_keying_mode", 'ADD_REPLACE_KEYS')
+        layout.prop_enum(toolsettings, "auto_keying_mode", 'REPLACE_KEYS')
 
 
 def marker_menu_generic(layout):

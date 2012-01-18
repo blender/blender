@@ -306,7 +306,7 @@ typedef struct SeqLoadInfo {
 	int tot_error;
 	int len;		/* only for image strips */
 	char path[512];
-	char name[32];
+	char name[64];
 } SeqLoadInfo;
 
 /* SeqLoadInfo.flag */

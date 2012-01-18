@@ -3,7 +3,6 @@ bl_info = {
     "author": "YourNameHere",
     "version": (1, 0),
     "blender": (2, 5, 5),
-    "api": 33333,
     "location": "View3D > Add > Mesh > New Object",
     "description": "Adds a new Mesh Object",
     "warning": "",

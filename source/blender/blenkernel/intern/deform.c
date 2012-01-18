@@ -476,22 +476,22 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 		switch(name[0]) {
 			case 'l':
 				strcpy(replace, "r");
-				strcpy(suffix, name+1);
+				BLI_strncpy(suffix, name+1, sizeof(suffix));
 				prefix[0]= 0;
 				break;
 			case 'r':
 				strcpy(replace, "l");
-				strcpy(suffix, name+1);
+				BLI_strncpy(suffix, name+1, sizeof(suffix));
 				prefix[0]= 0;
 				break;
 			case 'L':
 				strcpy(replace, "R");
-				strcpy(suffix, name+1);
+				BLI_strncpy(suffix, name+1, sizeof(suffix));
 				prefix[0]= 0;
 				break;
 			case 'R':
 				strcpy(replace, "L");
-				strcpy(suffix, name+1);
+				BLI_strncpy(suffix, name+1, sizeof(suffix));
 				prefix[0]= 0;
 				break;
 		}
@@ -501,29 +501,29 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 		index = BLI_strcasestr(prefix, "right");
 		if (index==prefix || index==prefix+len-5) {
 			if (index[0]=='r')
-				strcpy (replace, "left");
+				strcpy(replace, "left");
 			else {
 				if (index[1]=='I')
-					strcpy (replace, "LEFT");
+					strcpy(replace, "LEFT");
 				else
-					strcpy (replace, "Left");
+					strcpy(replace, "Left");
 			}
 			*index= 0;
-			strcpy (suffix, index+5);
+			BLI_strncpy(suffix, index+5, sizeof(suffix));
 		}
 		else {
 			index = BLI_strcasestr(prefix, "left");
 			if (index==prefix || index==prefix+len-4) {
 				if (index[0]=='l')
-					strcpy (replace, "right");
+					strcpy(replace, "right");
 				else {
 					if (index[1]=='E')
-						strcpy (replace, "RIGHT");
+						strcpy(replace, "RIGHT");
 					else
-						strcpy (replace, "Right");
+						strcpy(replace, "Right");
 				}
 				*index= 0;
-				strcpy (suffix, index+4);
+				BLI_strncpy(suffix, index + 4, sizeof(suffix));
 			}
 		}
 	}

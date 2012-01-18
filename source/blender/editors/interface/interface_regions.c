@@ -409,7 +409,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* operator keymap (not menus, they already have it) */
 		prop= (but->opptr)? but->opptr->data: NULL;
 
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+		                                buf, sizeof(buf)))
+		{
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
 			data->color[data->totline]= 0x888888;
 			data->totline++;
@@ -1609,6 +1611,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	MenuEntry *entry;
 	const char *instr= arg_str;
 	int columns, rows, a, b;
+	int column_start= 0, column_end= 0;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
@@ -1652,17 +1655,30 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	/* create items */
 	split= uiLayoutSplit(layout, 0, 0);
 
-	for(a=0, b=0; a<md->nitems; a++, b++) {
+	for(a=0; a<md->nitems; a++) {
+		if(a == column_end) {
+			/* start new column, and find out where it ends in advance, so we
+			   can flip the order of items properly per column */
+			column_start= a;
+			column_end= md->nitems;
+
+			for(b=a+1; b<md->nitems; b++) {
+				entry= &md->items[b];
+
+				/* new column on N rows or on separation label */
+				if(((b-a) % rows == 0) || (entry->sepr && entry->str[0])) {
+					column_end = b;
+					break;
+				}
+			}
+
+			column= uiLayoutColumn(split, 0);
+		}
+
 		if(block->flag & UI_BLOCK_NO_FLIP)
 			entry= &md->items[a];
 		else
-			entry= &md->items[md->nitems-a-1];
-		
-		/* new column on N rows or on separation label */
-		if((b % rows == 0) || (entry->sepr && entry->str[0])) {
-			column= uiLayoutColumn(split, 0);
-			b= 0;
-		}
+			entry= &md->items[column_start + column_end-1-a];
 
 		if(entry->sepr) {
 			uiItemL(column, entry->str, entry->icon);
@@ -2109,7 +2125,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	uiBut *but= arg_but;
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
+	block= uiBeginBlock(C, handle->region, __func__, UI_EMBOSS);
 	
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
@@ -2299,8 +2315,8 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiStyle *style= UI_GetStyle();
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
-	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
-	pup->block= uiBeginBlock(C, NULL, "ui_button_menu_create", UI_EMBOSSP);
+	pup= MEM_callocN(sizeof(uiPopupMenu), __func__);
+	pup->block= uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	pup->slideout= (but && (but->block->flag & UI_BLOCK_LOOP));
 	pup->but= but;
@@ -2361,7 +2377,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
 	
-	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
+	pup->block= uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
 	pup->block->puphash= ui_popup_menu_hash(title);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);

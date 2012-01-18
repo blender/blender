@@ -130,9 +130,12 @@ typedef struct uiWidgetType {
 static float cornervec[WIDGET_CURVE_RESOLU][2]= {{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169},
 {0.707, 0.293}, {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}};
 
-static float jit[8][2]= {{0.468813 , -0.481430}, {-0.155755 , -0.352820}, 
-{0.219306 , -0.238501},  {-0.393286 , -0.110949}, {-0.024699 , 0.013908}, 
-{0.343805 , 0.147431}, {-0.272855 , 0.269918}, {0.095909 , 0.388710}};
+#define WIDGET_AA_JITTER 8
+static float jit[WIDGET_AA_JITTER][2]= {
+    { 0.468813 , -0.481430}, {-0.155755 , -0.352820},
+    { 0.219306 , -0.238501}, {-0.393286 , -0.110949},
+    {-0.024699 ,  0.013908}, { 0.343805 ,  0.147431},
+    {-0.272855 ,  0.269918}, { 0.095909 ,  0.388710}};
 
 static float num_tria_vert[3][2]= { 
 {-0.352077, 0.532607}, {-0.352077, -0.549313}, {0.330000, -0.008353}};
@@ -165,14 +168,14 @@ static unsigned int check_tria_face[4][3]= {
 
 GLubyte checker_stipple_sml[32*32/8] =
 {
-	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
 };
 
 /* ************************************************* */
@@ -192,7 +195,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glVertexPointer(2, GL_FLOAT, 0, tri_arr);
 
 	/* for each AA step */
-	for(j=0; j<8; j++) {
+	for (j = 0; j < WIDGET_AA_JITTER; j++) {
 		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
@@ -212,7 +215,7 @@ void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float m
 	color[3] *= 0.125f;
 	glColor4fv(color);
 	
-	for(j=0; j<8; j++) {
+	for (j = 0;  j < WIDGET_AA_JITTER; j++) {
 		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 		uiDrawBox(mode, minx, miny, maxx, maxy, rad);
 		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
@@ -749,6 +752,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		float quad_strip[WIDGET_SIZE_MAX*2+2][2]; /* + 2 because the last pair is wrapped */
 		float quad_strip_emboss[WIDGET_SIZE_MAX*2][2]; /* only for emboss */
 
+		const unsigned char tcol[4] = {wcol->outline[0],
+		                               wcol->outline[1],
+		                               wcol->outline[2],
+		                               UCHAR_MAX / WIDGET_AA_JITTER};
+
 		widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
 
 		if(wtb->emboss) {
@@ -757,11 +765,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 
-		for(j=0; j<8; j++) {
+		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 			
 			/* outline */
-			glColor4ub(wcol->outline[0], wcol->outline[1], wcol->outline[2], 32);
+			glColor4ubv(tcol);
 
 			glVertexPointer(2, GL_FLOAT, 0, quad_strip);
 			glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert*2 + 2);
@@ -782,16 +790,20 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	
 	/* decoration */
 	if(wtb->tria1.tot || wtb->tria2.tot) {
+		const unsigned char tcol[4] = {wcol->item[0],
+		                               wcol->item[1],
+		                               wcol->item[2],
+		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
 		/* for each AA step */
-		for(j=0; j<8; j++) {
+		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 
 			if(wtb->tria1.tot) {
-				glColor4ub(wcol->item[0], wcol->item[1], wcol->item[2], 32);
+				glColor4ubv(tcol);
 				widget_trias_draw(&wtb->tria1);
 			}
 			if(wtb->tria2.tot) {
-				glColor4ub(wcol->item[0], wcol->item[1], wcol->item[2], 32);
+				glColor4ubv(tcol);
 				widget_trias_draw(&wtb->tria2);
 			}
 		
@@ -1875,7 +1887,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
-void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
+void ui_draw_gradient(rcti *rect, const float hsv[3], int type, float alpha)
 {
 	int a;
 	float h= hsv[0], s= hsv[1], v= hsv[2];
@@ -2489,10 +2501,8 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	if (color_profile)
 		linearrgb_to_srgb_v3_v3(col, col);
 	
-	wcol->inner[0]= FTOCHAR(col[0]);
-	wcol->inner[1]= FTOCHAR(col[1]);
-	wcol->inner[2]= FTOCHAR(col[2]);
-	wcol->inner[3]= FTOCHAR(col[3]);
+	F4TOCHAR4(col, wcol->inner);
+
 	wcol->shaded = 0;
 	wcol->alpha_check = (wcol->inner[3] < 255);
 
@@ -3264,7 +3274,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
 	rcti trect = *rect;
-	
+	float font_dims[2] = {0.0f, 0.0f};
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
 	
 	wt->state(wt, state);
@@ -3276,10 +3286,12 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		glColor3ubv((unsigned char*)wt->wcol.text);
 	else
 		glColor3ubv((unsigned char*)wt->wcol.text_sel);
-	
+
+	BLF_width_and_height(fstyle->uifont_id, name, &font_dims[0], &font_dims[1]);
+
 	trect.xmin += 0;
-	trect.xmax = trect.xmin + BLF_width(fstyle->uifont_id, name) + 10;
+	trect.xmax = trect.xmin + font_dims[0] + 10;
 	trect.ymin += 10;
-	trect.ymax = trect.ymin + BLF_height(fstyle->uifont_id, name);
+	trect.ymax = trect.ymin + font_dims[1];
 	uiStyleFontDraw(fstyle, &trect, name);
 }

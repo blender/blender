@@ -47,7 +47,6 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
-
 #ifdef _WIN32
 void tstart ( void )
 {}
@@ -377,6 +376,8 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		}
 	
 		implicit_set_positions(clmd);
+
+		clmd->clothObject->last_frame= MINFRAME-1;
 	}
 
 	return 1;
@@ -477,6 +478,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		do_step_cloth(ob, clmd, dm, framenr);
 		cloth_to_object(ob, clmd, result);
 
+		clmd->clothObject->last_frame= framenr;
+
 		return result;
 	}
 
@@ -498,6 +501,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		do_init_cloth(ob, clmd, dm, framenr);
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		clmd->clothObject->last_frame= framenr;
 		return result;
 	}
 
@@ -513,6 +517,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
 			BKE_ptcache_write(&pid, framenr);
 
+		clmd->clothObject->last_frame= framenr;
+
 		return result;
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
@@ -523,6 +529,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_invalidate(cache);
 		return result;
 	}
+
+	if(framenr!=clmd->clothObject->last_frame+1)
+		return result;
 
 	/* if on second frame, write cache for first frame */
 	if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
@@ -540,6 +549,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_write(&pid, framenr);
 
 	cloth_to_object (ob, clmd, result);
+	clmd->clothObject->last_frame= framenr;
 
 	return result;
 }

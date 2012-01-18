@@ -244,7 +244,7 @@ class RenderButtonsPanel():
         return (rd.engine in cls.COMPAT_ENGINES)
 
 
-class RENDER_PT_embedded(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_embedded(RenderButtonsPanel, Panel):
     bl_label = "Embedded Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -274,16 +274,23 @@ class RENDER_PT_game_player(RenderButtonsPanel, Panel):
 
         row = layout.row()
         row.operator("wm.blenderplayer_start", text="Start")
-        row.prop(gs, "show_fullscreen")
+        row.label()
 
         row = layout.row()
         row.label(text="Resolution:")
         row = layout.row(align=True)
         row.prop(gs, "resolution_x", slider=False, text="X")
         row.prop(gs, "resolution_y", slider=False, text="Y")
+        row = layout.row()
+        col = row.column()
+        col.prop(gs, "show_fullscreen")
+        col = row.column()
+        col.prop(gs, "use_desktop")
+        col.active = gs.show_fullscreen
 
         col = layout.column()
         col.label(text="Quality:")
+        col.prop(gs, "samples")
         col = layout.column(align=True)
         col.prop(gs, "depth", text="Bit Depth", slider=False)
         col.prop(gs, "frequency", text="Refresh Rate", slider=False)

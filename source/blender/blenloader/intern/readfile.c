@@ -39,6 +39,7 @@
 #include <fcntl.h> // for open
 #include <string.h> // for strrchr strncmp strstr
 #include <math.h> // for fabs
+#include <stdarg.h> /* for va_start/end */
 
 #ifndef WIN32
 	#include <unistd.h> // for read close
@@ -134,6 +135,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
@@ -248,6 +250,31 @@ typedef struct OldNewMap {
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(FileData *fd, ListBase *lb);
 static void convert_tface_mt(FileData *fd, Main *main);
+
+/* this function ensures that reports are printed,
+ * in the case of libraray linking errors this is important!
+ *
+ * bit kludge but better then doubling up on prints,
+ * we could alternatively have a versions of a report function which foces printing - campbell
+ */
+static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
+{
+	char fixed_buf[1024]; /* should be long enough */
+
+	va_list args;
+
+	va_start(args, format);
+	vsnprintf(fixed_buf, sizeof(fixed_buf), format, args);
+	va_end(args);
+
+	fixed_buf[sizeof(fixed_buf) - 1] = '\0';
+
+	BKE_report(reports, type, fixed_buf);
+
+	if(G.background==0) {
+		printf("%s\n", fixed_buf);
+	}
+}
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -4115,8 +4142,9 @@ static void lib_link_object(FileData *fd, Main *main)
 		ob= ob->id.next;
 	}
 
-	if(warn)
+	if(warn) {
 		BKE_report(fd->reports, RPT_WARNING, "Warning in console");
+	}
 }
 
 
@@ -4687,7 +4715,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 			link_paint(fd, sce, &sce->toolsettings->vpaint->paint);
 			link_paint(fd, sce, &sce->toolsettings->wpaint->paint);
 			link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
-
+			link_paint(fd, sce, &sce->toolsettings->uvsculpt->paint);
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			for(base= sce->base.first; base; base= next) {
@@ -4697,8 +4725,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object= newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if(base->object==NULL) {
-					BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: Object lost from scene:'%s\'\n", sce->id.name+2);
-					if(G.background==0) printf("LIB ERROR: base removed from scene:'%s\'\n", sce->id.name+2);
+					BKE_reportf_wrap(fd->reports, RPT_ERROR,
+					                 "LIB ERROR: Object lost from scene:'%s\'\n",
+					                 sce->id.name+2);
 					BLI_remlink(&sce->base, base);
 					if(base==sce->basact) sce->basact= NULL;
 					MEM_freeN(base);
@@ -4711,7 +4740,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->scene) {
 					seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 					if(seq->scene) {
-						seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+						seq->scene_sound = sound_scene_add_scene_sound_defaults(sce, seq);
 					}
 				}
 				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
@@ -4723,7 +4752,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+						seq->scene_sound = sound_add_scene_sound_defaults(sce, seq);
 					}
 				}
 				seq->anim= NULL;
@@ -4816,6 +4845,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->uvsculpt);
 
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
@@ -5132,7 +5162,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
-						sbuts->ri= NULL;
 						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
 						sbuts->mainbo= sbuts->mainb;
 						sbuts->mainbuser= sbuts->mainb;
@@ -5798,8 +5827,9 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
 		if(newmain->curlib) {
 			if(BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
-				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filepath);
-				BKE_reportf(fd->reports, RPT_WARNING, "Library '%s', '%s' had multiple instances, save and reload!", lib->name, lib->filepath);
+				BKE_reportf_wrap(fd->reports, RPT_WARNING,
+				                 "Library '%s', '%s' had multiple instances, save and reload!",
+				                 lib->name, lib->filepath);
 
 				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
 //				change_idid_adr_fd(fd, lib, newmain->curlib);
@@ -6531,14 +6561,14 @@ static void customdata_version_242(Mesh *me)
 		if (layer->type == CD_MTFACE) {
 			if (layer->name[0] == 0) {
 				if (mtfacen == 0) strcpy(layer->name, "UVMap");
-				else sprintf(layer->name, "UVMap.%.3d", mtfacen);
+				else BLI_snprintf(layer->name, sizeof(layer->name), "UVMap.%.3d", mtfacen);
 			}
 			mtfacen++;
 		}
 		else if (layer->type == CD_MCOL) {
 			if (layer->name[0] == 0) {
 				if (mcoln == 0) strcpy(layer->name, "Col");
-				else sprintf(layer->name, "Col.%.3d", mcoln);
+				else BLI_snprintf(layer->name, sizeof(layer->name), "Col.%.3d", mcoln);
 			}
 			mcoln++;
 		}
@@ -7515,6 +7545,32 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
 	for (link=ntree->links.first; link; link=link->next) {
 		link->fromsock->flag |= SOCK_IN_USE;
 		link->tosock->flag |= SOCK_IN_USE;
+	}
+}
+
+/* set the SOCK_AUTO_HIDDEN flag on collapsed nodes */
+static void do_versions_nodetree_socket_auto_hidden_flags_2_62(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->flag & NODE_HIDDEN) {
+			for (sock=node->inputs.first; sock; sock=sock->next) {
+				if (sock->link==NULL)
+					sock->flag |= SOCK_AUTO_HIDDEN;
+			}
+			for(sock=node->outputs.first; sock; sock= sock->next) {
+				if(nodeCountSocketLinks(ntree, sock)==0)
+					sock->flag |= SOCK_AUTO_HIDDEN;
+			}
+		}
+		else {
+			for(sock=node->inputs.first; sock; sock= sock->next)
+				sock->flag &= ~SOCK_AUTO_HIDDEN;
+			for(sock=node->outputs.first; sock; sock= sock->next)
+				sock->flag &= ~SOCK_AUTO_HIDDEN;
+		}
 	}
 }
 
@@ -9007,8 +9063,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							strcpy(kb->name, "Basis");
 					}
 					else {
-						if(kb->name[0]==0)
-							sprintf(kb->name, "Key %d", index);
+						if (kb->name[0]==0) {
+							BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", index);
+						}
 						kb->adrcode= index++;
 					}
 				}
@@ -10001,7 +10058,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				BLI_addtail(&ob->particlesystem, psys);
 
 				md= modifier_new(eModifierType_ParticleSystem);
-				sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+				BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
 				psmd= (ParticleSystemModifierData*) md;
 				psmd->psys=psys;
 				BLI_addtail(&ob->modifiers, md);
@@ -10848,7 +10905,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.dome.warptext = sce->r.dometext;
 
 			//Stand Alone
-			sce->gm.fullscreen = sce->r.fullscreen;
+			sce->gm.playerflag |= (sce->r.fullscreen?GAME_PLAYER_FULLSCREEN:0);
 			sce->gm.xplay = sce->r.xplay;
 			sce->gm.yplay = sce->r.yplay;
 			sce->gm.freqplay = sce->r.freqplay;
@@ -12750,7 +12807,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 1))
 	{
 		{
 			/* update use flags for node sockets (was only temporary before) */
@@ -12833,6 +12890,137 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		{
+		/* Warn the user if he is using ["Text"] properties for Font objects */
+			Object *ob;
+			bProperty *prop;
+
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				if (ob->type == OB_FONT) {
+					prop = get_ob_property(ob, "Text");
+					if (prop) {
+						BKE_reportf_wrap(fd->reports, RPT_WARNING,
+						                 "Game property name conflict in object: \"%s\".\nText objects reserve the "
+						                 "[\"Text\"] game property to change their content through Logic Bricks.\n",
+						                 ob->id.name+2);
+					}
+				}
+			}
+		}
+		{
+			/* set the SOCK_AUTO_HIDDEN flag on collapsed nodes */
+			Scene *sce;
+			Material *mat;
+			Tex *tex;
+			Lamp *lamp;
+			World *world;
+			bNodeTree *ntree;
+
+			for (sce=main->scene.first; sce; sce=sce->id.next)
+				if (sce->nodetree)
+					do_versions_nodetree_socket_auto_hidden_flags_2_62(sce->nodetree);
+
+			for (mat=main->mat.first; mat; mat=mat->id.next)
+				if (mat->nodetree)
+					do_versions_nodetree_socket_auto_hidden_flags_2_62(mat->nodetree);
+
+			for (tex=main->tex.first; tex; tex=tex->id.next)
+				if (tex->nodetree)
+					do_versions_nodetree_socket_auto_hidden_flags_2_62(tex->nodetree);
+
+			for (lamp=main->lamp.first; lamp; lamp=lamp->id.next)
+				if (lamp->nodetree)
+					do_versions_nodetree_socket_auto_hidden_flags_2_62(lamp->nodetree);
+
+			for (world=main->world.first; world; world=world->id.next)
+				if (world->nodetree)
+					do_versions_nodetree_socket_auto_hidden_flags_2_62(world->nodetree);
+
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_socket_auto_hidden_flags_2_62(ntree);
+		}
+	}
+
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 2))
+	{
+		{
+			/* convert Camera Actuator values to defines */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						if(ba->axis==(float) 'x') ba->axis=OB_POSX;
+						else if (ba->axis==(float)'y') ba->axis=OB_POSY;
+						/* don't do an if/else to avoid imediate subversion bump*/
+//					ba->axis=((ba->axis == (float) 'x')?OB_POSX_X:OB_POSY);
+					}
+				}
+			}
+		}
+
+		{
+			/* convert deprecated sculpt_paint_unified_* fields to
+			   UnifiedPaintSettings */
+			Scene *scene;
+			for(scene= main->scene.first; scene; scene= scene->id.next) {
+				ToolSettings *ts= scene->toolsettings;
+				UnifiedPaintSettings *ups= &ts->unified_paint_settings;
+				ups->size= ts->sculpt_paint_unified_size;
+				ups->unprojected_radius= ts->sculpt_paint_unified_unprojected_radius;
+				ups->alpha= ts->sculpt_paint_unified_alpha;
+				ups->flag= ts->sculpt_paint_settings;
+			}
+		}
+	}
+
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 3))
+	{
+		{
+			/* convert extended ascii to utf-8 for text editor */
+			Text *text;
+			for (text= main->text.first; text; text= text->id.next)
+				if(!(text->flags & TXT_ISEXT)) {
+					TextLine *tl;
+					
+					for (tl= text->lines.first; tl; tl= tl->next) {
+						int added= txt_extended_ascii_as_utf8(&tl->line);
+						tl->len+= added;
+						
+						/* reset cursor position if line was changed */
+						if (added && tl == text->curl)
+							text->curc = 0;
+					}
+				}
+		}
+		{
+			/* set new dynamic paint values */
+			Object *ob;
+			for(ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for(md= ob->modifiers.first; md; md= md->next) {
+					if (md->type == eModifierType_DynamicPaint) {
+						DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+						if(pmd->canvas)
+						{
+							DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+							for (; surface; surface=surface->next) {
+								surface->color_dry_threshold = 1.0f;
+								surface->influence_scale = 1.0f;
+								surface->radius_scale = 1.0f;
+								surface->flags |= MOD_DPAINT_USE_DRYING;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -14285,15 +14473,16 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if(fd==NULL) {
 
 					/* printf and reports for now... its important users know this */
-					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filepath, mainptr->curlib->name);
-					if(!G.background && basefd->reports) printf("read library: '%s', '%s'\n", mainptr->curlib->filepath, mainptr->curlib->name);
+					BKE_reportf_wrap(basefd->reports, RPT_INFO,
+					                 "read library:  '%s', '%s'\n",
+					                 mainptr->curlib->filepath, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 					
 					/* allow typing in a new lib path */
 					if(G.rt==-666) {
 						while(fd==NULL) {
-							char newlib_path[240] = { 0 };
+							char newlib_path[FILE_MAX] = { 0 };
 							printf("Missing library...'\n");
 							printf("	current file: %s\n", G.main->name);
 							printf("	absolute lib: %s\n", mainptr->curlib->filepath);
@@ -14331,8 +14520,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata= NULL;
 
 					if (fd==NULL) {
-						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filepath);
-						if(!G.background && basefd->reports) printf("ERROR: can't find lib %s \n", mainptr->curlib->filepath);
+						BKE_reportf_wrap(basefd->reports, RPT_ERROR,
+						                 "Can't find lib '%s'\n",
+						                 mainptr->curlib->filepath);
 					}
 				}
 				if(fd) {
@@ -14349,8 +14539,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+									BKE_reportf_wrap(fd->reports, RPT_ERROR,
+									                 "LIB ERROR: %s:'%s' missing from '%s'\n",
+									                 BKE_idcode_to_name(GS(id->name)),
+									                 id->name+2, mainptr->curlib->filepath);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
@@ -14386,13 +14578,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf(basefd->reports, RPT_ERROR,
-					            "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
-					            BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-					if (!G.background && basefd->reports) {
-						printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
-						       BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-					}
+					BKE_reportf_wrap(basefd->reports, RPT_ERROR,
+					                 "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
+					                 BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

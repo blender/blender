@@ -101,7 +101,7 @@ void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 PyObject *bpy_text_import(Text *text)
 {
 	char *buf = NULL;
-	char modulename[24];
+	char modulename[MAX_ID_NAME+2];
 	int len;
 
 	if (!text->compiled) {

@@ -359,7 +359,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Mesh *me;
 	Object *obedit;
 	int exitmode= 0;
-	char name[32];
+	char name[MAX_ID_NAME-2];
 	
 	/* Check context */
 	if(base==NULL || base->object->type!=OB_MESH) {
@@ -368,7 +368,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	/* check input variables */
-	if(RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
@@ -429,7 +429,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign");
+	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME-2, "Name", "Image name to assign");
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 

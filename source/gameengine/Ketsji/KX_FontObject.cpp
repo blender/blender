@@ -34,12 +34,23 @@
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
 #include "BLI_math.h"
+#include "StringValue.h"
+
+/* paths needed for font load */
+#include "BLI_blenlib.h"
+#include "BKE_global.h"
+#include "BKE_font.h"
+#include "BKE_main.h"
+#include "DNA_packedFile_types.h"
 
 extern "C" {
 #include "BLF_api.h"
 }
 
 #define BGE_FONT_RES 100
+
+/* proptotype */
+int GetFontId(VFont *font);
 
 std::vector<STR_String> split_string(STR_String str)
 {
@@ -61,6 +72,7 @@ std::vector<STR_String> split_string(STR_String str)
 
 	return text;
 }
+
 KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
 								SG_Callbacks callbacks,
 								RAS_IRenderTools* rendertools,
@@ -76,20 +88,9 @@ KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
 	m_fsize = text->fsize;
 	m_line_spacing = text->linedist;
 	m_offset = MT_Vector3(text->xof, text->yof, 0);
-
-	/* FO_BUILTIN_NAME != "default"	*/
-	/* I hope at some point Blender (2.5x) can have a single font	*/
-	/* with unicode support for ui and OB_FONT			*/
-	/* once we have packed working we can load the FO_BUILTIN_NAME font	*/
-	const char* filepath = text->vfont->name;
-	if (strcmp(FO_BUILTIN_NAME, filepath) == 0)
-		filepath = "default";
-
-	/* XXX - if it's packed it will not work. waiting for bdiego (Diego) fix for that. */
-	m_fontid = BLF_load(filepath);
-	if (m_fontid == -1)
-		m_fontid = BLF_load("default");
-
+	
+	m_fontid = GetFontId(text->vfont);
+	
 	/* initialize the color with the object color and store it in the KX_Object class
 	   This is a workaround waiting for the fix:
 	   [#25487] BGE: Object Color only works when it has a keyed frame */
@@ -113,6 +114,50 @@ void KX_FontObject::ProcessReplica()
 {
 	KX_GameObject::ProcessReplica();
 	KX_GetActiveScene()->AddFont(this);
+}
+
+int GetFontId (VFont *font) {
+	PackedFile *packedfile=NULL;
+	int fontid = -1;
+
+	if (font->packedfile) {
+		packedfile= font->packedfile;
+		fontid= BLF_load_mem(font->name, (unsigned char*)packedfile->data, packedfile->size);
+		
+		if (fontid == -1) {
+			printf("ERROR: packed font \"%s\" could not be loaded.\n", font->name);
+			fontid = BLF_load("default");
+		}
+		return fontid;
+	}
+	
+	/* once we have packed working we can load the FO_BUILTIN_NAME font	*/
+	const char *filepath = font->name;
+	if (strcmp(FO_BUILTIN_NAME, filepath) == 0) {
+		fontid = BLF_load("default");
+		
+		/* XXX the following code is supposed to work (after you add get_builtin_packedfile to BKE_font.h )
+		 * unfortunately it's crashing on blf_glyph.c:173 because gc->max_glyph_width is 0
+		 */
+		// packedfile=get_builtin_packedfile();
+		// fontid= BLF_load_mem(font->name, (unsigned char*)packedfile->data, packedfile->size);
+		// return fontid;
+
+		return BLF_load("default");
+	}
+	
+	/* convert from absolute to relative */
+	char expanded[256]; // font names can be bigger than FILE_MAX (240)
+	BLI_strncpy(expanded, filepath, 256);
+	BLI_path_abs(expanded, G.main->name);
+	
+	fontid = BLF_load(expanded);
+
+	/* fallback */
+	if (fontid == -1)
+		fontid = BLF_load("default");
+	
+	return fontid;
 }
 
 void KX_FontObject::DrawText()
@@ -224,7 +269,18 @@ int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	if(!PyUnicode_Check(value))
 		return PY_SET_ATTR_FAIL;
 	char* chars = _PyUnicode_AsString(value);
-	self->m_text = split_string(STR_String(chars));
+
+	/* Allow for some logic brick control */
+	CValue* tprop = self->GetProperty("Text");
+	if(tprop) {
+		CValue *newstringprop = new CStringValue(STR_String(chars), "Text");
+		self->SetProperty("Text", newstringprop);
+		newstringprop->Release();
+	}
+	else {
+		self->m_text = split_string(STR_String(chars));
+	}
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

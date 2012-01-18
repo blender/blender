@@ -182,9 +182,6 @@ float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 /* obligatory initialize call, disprect is optional */
 void RE_InitState (struct Render *re, struct Render *source, struct RenderData *rd, struct SceneRenderLayer *srl, int winx, int winy, rcti *disprect);
 
-/* use this to change disprect of active render */
-void RE_SetDispRect (struct Render *re, rcti *disprect);
-
 /* set up the viewplane/perspective matrix, three choices */
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetCamera(struct Render *re, struct Object *camera);

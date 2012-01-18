@@ -1,0 +1,15 @@
+diff -r 525472fb477a include/carve/win32.h
+--- a/include/carve/win32.h	Sun Jan 15 23:07:40 2012 -0500
++++ b/include/carve/win32.h	Wed Jan 18 00:40:10 2012 +0600
+@@ -8,9 +8,11 @@
+ #include <string.h>
+ #include <stdlib.h>
+ 
++#if !defined(__MINGW32__)
+ inline int strcasecmp(const char *a, const char *b) {
+   return _stricmp(a,b);
+ }
++#endif
+ 
+ inline void srandom(unsigned long input) {
+   srand(input);

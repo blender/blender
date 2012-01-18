@@ -554,11 +554,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const unsigned char crease_outer= smd->crease_outer * 255.0f;
 		const unsigned char crease_inner= smd->crease_inner * 255.0f;
 
-		const int edge_indices[4][4] = {
-				{1, 0, 0, 1},
-				{2, 1, 1, 2},
-				{3, 2, 2, 3},
-				{0, 3, 3, 0}};
+		const int edge_indices[2][4][4] = {
+		        /* quad */
+		       {{1, 0, 0, 1},
+		        {2, 1, 1, 2},
+		        {3, 2, 2, 3},
+		        {0, 3, 3, 0}},
+		        /* tri */
+		       {{1, 0, 0, 1},
+		        {2, 1, 1, 2},
+		        {0, 2, 2, 0},
+		        {0, 0, 0, 0}} /* unused for tris */
+		        };
 
 		/* add faces & edges */
 		origindex= result->getEdgeDataArray(result, CD_ORIGINDEX);
@@ -581,6 +588,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			int eidx= new_edge_arr[i];
 			int fidx= edge_users[eidx];
 			int flip;
+			int is_tri;
 
 			if(fidx >= numFaces) {
 				fidx -= numFaces;
@@ -595,8 +603,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* copy most of the face settings */
 			DM_copy_face_data(dm, result, fidx, (numFaces * 2) + i, 1);
 
+			is_tri = (orig_mface[fidx].v4 == 0);
+
 			if(flip) {
-				DM_swap_face_data(result, (numFaces * 2) + i, edge_indices[edge_order[eidx]]);
+				DM_swap_face_data(result, (numFaces * 2) + i, edge_indices[is_tri][edge_order[eidx]]);
 
 				mf->v1= ed->v1;
 				mf->v2= ed->v2;
@@ -604,7 +614,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				mf->v4= ed->v1 + numVerts;
 			}
 			else {
-				DM_swap_face_data(result, (numFaces * 2) + i, edge_indices[edge_order[eidx]]);
+				DM_swap_face_data(result, (numFaces * 2) + i, edge_indices[is_tri][edge_order[eidx]]);
 
 				mf->v1= ed->v2;
 				mf->v2= ed->v1;

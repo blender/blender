@@ -645,7 +645,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		/* get the view settings if 'around' isnt set and the view is available */
 		View3D *v3d= CTX_wm_view3d(C);
 		copy_v3_v3(cursor, give_cursor(scene, v3d));
-		if(v3d && !RNA_property_is_set(op->ptr, "center"))
+		if(v3d && !RNA_struct_property_is_set(op->ptr, "center"))
 			around= v3d->around;
 	}
 

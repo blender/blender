@@ -38,9 +38,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.device = EnumProperty(name="Device", description="Device to use for rendering",
             items=enums.devices, default="CPU")
 
-        cls.gpu_type = EnumProperty(name="GPU Type", description="Processing system to use on the GPU",
-            items=enums.gpu_type, default="CUDA")
-
         cls.feature_set = EnumProperty(name="Feature Set", description="Feature set to use for rendering",
             items=enums.feature_set, default="SUPPORTED")
 
@@ -105,6 +102,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_bvh_type = EnumProperty(name="Viewport BVH Type", description="Choose between faster updates, or faster render",
             items=enums.bvh_types, default="DYNAMIC_BVH")
         cls.debug_use_spatial_splits = BoolProperty(name="Use Spatial Splits", description="Use BVH spatial splits: longer builder time, faster render",
+            default=False)
+        cls.use_cache = BoolProperty(name="Cache BVH", description="Cache last built BVH to disk for faster re-render if no geometry changed",
             default=False)
 
     @classmethod

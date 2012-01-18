@@ -132,7 +132,7 @@ static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
 	uiBlock *block;
 	uiLayout *layout;
 	
-	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, NODE_DY, UI_GetStyle()), 0);
@@ -631,7 +631,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 	if (sock->flag & SOCK_DYNAMIC) {
 		bt = uiDefBut(gnode->block, TEX, 0, "", 
 					  sock->locx+xoffset, sock->locy+1+yoffset, 72, NODE_DY,
-					  sock->name, 0, 31, 0, 0, "");
+					  sock->name, 0, sizeof(sock->name), 0, 0, "");
 		if (in_out==SOCK_IN)
 			uiButSetFunc(bt, update_group_input_cb, snode, ngroup);
 		else
@@ -640,7 +640,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 	else {
 		uiDefBut(gnode->block, LABEL, 0, sock->name,
 		         sock->locx+xoffset, sock->locy+1+yoffset, 72, NODE_DY,
-		         NULL, 0, 31, 0, 0, "");
+		         NULL, 0, sizeof(sock->name), 0, 0, "");
 	}
 }
 
@@ -1203,10 +1203,10 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
 		Scene *scene= CTX_data_scene(C);
 		ImageUser *iuser= node->storage;
-		char tstr[32];
+		char numstr[32];
 		const int framenr= BKE_image_user_get_frame(iuser, CFRA, 0);
-		BLI_snprintf(tstr, sizeof(tstr), "Frame: %d", framenr);
-		uiItemL(layout, tstr, ICON_NONE);
+		BLI_snprintf(numstr, sizeof(numstr), "Frame: %d", framenr);
+		uiItemL(layout, numstr, ICON_NONE);
 	}
 
 	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
@@ -1470,6 +1470,18 @@ static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C)
 	row= uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	uiItemR(col, ptr, "factor", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_double_edge_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+
+	col= uiLayoutColumn(layout, 0);
+
+	uiItemL(col, "Inner Edge:", ICON_NONE);
+	uiItemR(col, ptr, "inner_mode", 0, "", ICON_NONE);
+	uiItemL(col, "Buffer Edge:", ICON_NONE);
+	uiItemR(col, ptr, "edge_mode", 0, "", ICON_NONE);
 }
 
 static void node_composit_buts_map_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1926,6 +1938,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_ID_MASK:
 			ntype->uifunc= node_composit_buts_id_mask;
 			break;
+		case CMP_NODE_DOUBLEEDGEMASK:
+			ntype->uifunc= node_composit_buts_double_edge_mask;
+			break;
 		case CMP_NODE_MATH:
 			ntype->uifunc= node_buts_math;
 			break;
@@ -2262,211 +2277,6 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 
 		BKE_image_release_ibuf(ima, lock);
 	}
-}
-
-void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4])
-{
-	char str[256];
-	float dx= 6;
-	/* text colors */
-	/* XXX colored text not allowed in Blender UI */
-	#if 0
-	unsigned char red[3] = {255, 50, 50};
-	unsigned char green[3] = {0, 255, 0};
-	unsigned char blue[3] = {100, 100, 255};
-	#else
-	unsigned char red[3] = {255, 255, 255};
-	unsigned char green[3] = {255, 255, 255};
-	unsigned char blue[3] = {255, 255, 255};
-	#endif
-	float hue=0, sat=0, val=0, lum=0, u=0, v=0;
-	float col[4], finalcol[4];
-
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	/* noisy, high contrast make impossible to read if lower alpha is used. */
-	glColor4ub(0, 0, 0, 190);
-	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
-	glDisable(GL_BLEND);
-
-	BLF_size(blf_mono_font, 11, 72);
-
-	glColor3ub(255, 255, 255);
-	sprintf(str, "X:%-4d  Y:%-4d |", x, y);
-	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
-	BLF_position(blf_mono_font, dx, 6, 0);
-	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-	dx += BLF_width(blf_mono_font, str);
-
-	#if 0	/* XXX no Z value in compo backdrop atm */
-	if(zp) {
-		glColor3ub(255, 255, 255);
-		sprintf(str, " Z:%-.4f |", 0.5f+0.5f*(((float)*zp)/(float)0x7fffffff));
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-	}
-	if(zpf) {
-		glColor3ub(255, 255, 255);
-		sprintf(str, " Z:%-.3f |", *zpf);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-	}
-	#endif
-
-	if(channels >= 3) {
-		glColor3ubv(red);
-		if (fp)
-			sprintf(str, "  R:%-.4f", fp[0]);
-		else if (cp)
-			sprintf(str, "  R:%-3d", cp[0]);
-		else
-			sprintf(str, "  R:-");
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-		
-		glColor3ubv(green);
-		if (fp)
-			sprintf(str, "  G:%-.4f", fp[1]);
-		else if (cp)
-			sprintf(str, "  G:%-3d", cp[1]);
-		else
-			sprintf(str, "  G:-");
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-		
-		glColor3ubv(blue);
-		if (fp)
-			sprintf(str, "  B:%-.4f", fp[2]);
-		else if (cp)
-			sprintf(str, "  B:%-3d", cp[2]);
-		else
-			sprintf(str, "  B:-");
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-		
-		if(channels == 4) {
-			glColor3ub(255, 255, 255);
-			if (fp)
-				sprintf(str, "  A:%-.4f", fp[3]);
-			else if (cp)
-				sprintf(str, "  A:%-3d", cp[3]);
-			else
-				sprintf(str, "- ");
-			BLF_position(blf_mono_font, dx, 6, 0);
-			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-			dx += BLF_width(blf_mono_font, str);
-		}
-	}
-	
-	/* color rectangle */
-	if (channels==1) {
-		if (fp)
-			col[0] = col[1] = col[2] = fp[0];
-		else if (cp)
-			col[0] = col[1] = col[2] = (float)cp[0]/255.0f;
-		else
-			col[0] = col[1] = col[2] = 0.0f;
-	}
-	else if (channels==3) {
-		if (fp)
-			copy_v3_v3(col, fp);
-		else if (cp) {
-			col[0] = (float)cp[0]/255.0f;
-			col[1] = (float)cp[1]/255.0f;
-			col[2] = (float)cp[2]/255.0f;
-		}
-		else
-			zero_v3(col);
-	}
-	else if (channels==4) {
-		if (fp)
-			copy_v4_v4(col, fp);
-		else if (cp) {
-			col[0] = (float)cp[0]/255.0f;
-			col[1] = (float)cp[1]/255.0f;
-			col[2] = (float)cp[2]/255.0f;
-			col[3] = (float)cp[3]/255.0f;
-		}
-		else
-			zero_v4(col);
-	}
-	if (color_manage) {
-		linearrgb_to_srgb_v3_v3(finalcol, col);
-		finalcol[3] = col[3];
-	}
-	else {
-		copy_v4_v4(finalcol, col);
-	}
-	glDisable(GL_BLEND);
-	glColor3fv(finalcol);
-	dx += 5;
-	glBegin(GL_QUADS);
-	glVertex2f(dx, 3);
-	glVertex2f(dx, 17);
-	glVertex2f(dx+30, 17);
-	glVertex2f(dx+30, 3);
-	glEnd();
-	dx += 35;
-
-	glColor3ub(255, 255, 255);
-	if(channels == 1) {
-		if (fp) {
-			rgb_to_hsv(fp[0], fp[0], fp[0], &hue, &sat, &val);
-			rgb_to_yuv(fp[0], fp[0], fp[0], &lum, &u, &v);
-		}
-		else if (cp) {
-			rgb_to_hsv((float)cp[0]/255.0f, (float)cp[0]/255.0f, (float)cp[0]/255.0f, &hue, &sat, &val);
-			rgb_to_yuv((float)cp[0]/255.0f, (float)cp[0]/255.0f, (float)cp[0]/255.0f, &lum, &u, &v);
-		}
-		
-		sprintf(str, "V:%-.4f", val);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-
-		sprintf(str, "   L:%-.4f", lum);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-	}
-	else if(channels >= 3) {
-		if (fp) {
-			rgb_to_hsv(fp[0], fp[1], fp[2], &hue, &sat, &val);
-			rgb_to_yuv(fp[0], fp[1], fp[2], &lum, &u, &v);
-		}
-		else if (cp) {
-			rgb_to_hsv((float)cp[0]/255.0f, (float)cp[1]/255.0f, (float)cp[2]/255.0f, &hue, &sat, &val);
-			rgb_to_yuv((float)cp[0]/255.0f, (float)cp[1]/255.0f, (float)cp[2]/255.0f, &lum, &u, &v);
-		}
-
-		sprintf(str, "H:%-.4f", hue);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-
-		sprintf(str, "  S:%-.4f", sat);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-
-		sprintf(str, "  V:%-.4f", val);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-
-		sprintf(str, "   L:%-.4f", lum);
-		BLF_position(blf_mono_font, dx, 6, 0);
-		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str);
-	}
-
-	(void)dx;
 }
 
 #if 0

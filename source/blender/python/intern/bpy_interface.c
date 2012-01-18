@@ -57,11 +57,12 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
+
+#include "CCL_api.h"
 
 #include "BPY_extern.h"
 
@@ -176,8 +177,14 @@ void BPY_context_set(bContext *C)
 
 /* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
-/* defined in cycles/blender */
-extern PyObject *CYCLES_initPython(void);
+
+#ifdef WITH_CYCLES
+/* defined in cycles module */
+static PyObject *CCL_initPython(void)
+{
+	return (PyObject*)CCL_python_module_init();
+}
+#endif
 
 static struct _inittab bpy_internal_modules[] = {
 	{(char *)"mathutils", PyInit_mathutils},
@@ -189,7 +196,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"aud", AUD_initPython},
 #endif
 #ifdef WITH_CYCLES
-	{(char *)"_cycles", CYCLES_initPython},
+	{(char *)"_cycles", CCL_initPython},
 #endif
 	{(char *)"gpu", GPU_initPython},
 	{NULL, NULL}
@@ -260,9 +267,10 @@ void BPY_python_start(int argc, const char **argv)
 	
 	pyrna_alloc_types();
 
+#ifndef WITH_PYTHON_MODULE
+	/* py module runs atexit when bpy is freed */
 	BPY_atexit_register(); /* this can init any time */
 
-#ifndef WITH_PYTHON_MODULE
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 #endif
@@ -281,7 +289,9 @@ void BPY_python_end(void)
 
 	bpy_intern_string_exit();
 
+#ifndef WITH_PYTHON_MODULE
 	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
+#endif
 
 	Py_Finalize();
 	

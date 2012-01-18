@@ -35,6 +35,7 @@ set(INC
 	../../windowmanager
 	../../gpu
 	../../../../intern/guardedalloc
+	../../../../intern/cycles/blender
 )
 
 set(INC_SYS

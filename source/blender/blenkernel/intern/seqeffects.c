@@ -176,7 +176,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				MEM_freeN(info);
 
 				cp= BLI_dynlib_find_symbol(pis->handle, "seqname");
-				if(cp) BLI_strncpy(cp, seqname, 21);
+				if(cp) BLI_strncpy(cp, seqname, SEQ_NAME_MAXSTR);
 			} else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
@@ -303,7 +303,10 @@ static struct ImBuf * do_plugin_effect(
 		cp = BLI_dynlib_find_symbol(
 			seq->plugin->handle, "seqname");
 
-		if(cp) strncpy(cp, seq->name+2, 22);
+		/* XXX: it's crappy to limit copying buffer by it's lemgth,
+		 *      but assuming plugin stuff is using correct buffer size
+		 *      it should be fine */
+		if(cp) strncpy(cp, seq->name+2, sizeof(seq->name)-2);
 
 		if (seq->plugin->current_private_data) {
 			*seq->plugin->current_private_data 
@@ -1574,7 +1577,6 @@ typedef struct WipeZone {
 	int flip;
 	int xo, yo;
 	int width;
-	float invwidth;
 	float pythangle;
 } WipeZone;
 
@@ -1585,33 +1587,25 @@ static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo
 	wipezone->xo = xo;
 	wipezone->yo = yo;
 	wipezone->width = (int)(wipe->edgeWidth*((xo+yo)/2.0f));
-	wipezone->pythangle = 1.0f/sqrtf(wipe->angle*wipe->angle + 1.0f);
-
-	if(wipe->wipetype == DO_SINGLE_WIPE)
-		wipezone->invwidth = 1.0f/wipezone->width;
-	else
-		wipezone->invwidth = 1.0f/(0.5f*wipezone->width);
+	wipezone->pythangle = 1.0f/sqrtf(wipezone->angle*wipezone->angle + 1.0f);
 }
 
 // This function calculates the blur band for the wipe effects
-static float in_band(WipeZone *wipezone,float width,float dist,float perc,int side,int dir)
+static float in_band(float width,float dist,int side,int dir)
 {
-	float t1,t2,alpha;
+	float alpha;
 
 	if(width == 0)
 		return (float)side;
-	
+
 	if(width < dist)
-		return side;
-	
-	t1 = dist * wipezone->invwidth;  //percentange of width that is
-	t2 = wipezone->invwidth;  //amount of alpha per % point
-	
+		return (float)side;
+
 	if(side == 1)
-		alpha = (t1*t2*100) + (1-perc); // add point's alpha contrib to current position in wipe
+		alpha = (dist+0.5*width) / (width);
 	else
-		alpha = (1-perc) - (t1*t2*100);
-	
+		alpha = (0.5*width-dist) / (width);
+
 	if(dir == 0)
 		alpha = 1-alpha;
 
@@ -1648,7 +1642,6 @@ float hyp3,hyp4,b4,b5
 	switch (wipe->wipetype) {
 		case DO_SINGLE_WIPE:
 			width = wipezone->width;
-			hwidth = width*0.5f;
 
 			if(angle == 0.0f) {
 				b1 = posy;
@@ -1669,15 +1662,15 @@ float hyp3,hyp4,b4,b5
 
 			if(wipe->forward) {
 				if(b1 < b2)
-					output = in_band(wipezone,width,hyp,facf0,1,1);
+					output = in_band(width,hyp,1,1);
 				else
-					output = in_band(wipezone,width,hyp,facf0,0,1);
+					output = in_band(width,hyp,0,1);
 			}
 			else {
 				if(b1 < b2)
-					output = in_band(wipezone,width,hyp,facf0,0,1);
+					output = in_band(width,hyp,0,1);
 				else
-					output = in_band(wipezone,width,hyp,facf0,1,1);
+					output = in_band(width,hyp,1,1);
 			}
 		break;
 
@@ -1700,27 +1693,23 @@ float hyp3,hyp4,b4,b5
 				b3 = (yo-posy*0.5f) - (-angle)*(xo-posx*0.5f);
 				b2 = y - (-angle)*x;
 
-				hyp = abs(angle*x+y+(-posy*0.5f-angle*posx*0.5f))*wipezone->pythangle;
-				hyp2 = abs(angle*x+y+(-(yo-posy*0.5f)-angle*(xo-posx*0.5f)))*wipezone->pythangle;
+				hyp = fabsf(angle*x+y+(-posy*0.5f-angle*posx*0.5f))*wipezone->pythangle;
+				hyp2 = fabsf(angle*x+y+(-(yo-posy*0.5f)-angle*(xo-posx*0.5f)))*wipezone->pythangle;
 			}
 
-			temp1 = xo*(1-facf0*0.5f)-xo*facf0*0.5f;
-			temp2 = yo*(1-facf0*0.5f)-yo*facf0*0.5f;
-			pointdist = sqrt(temp1*temp1 + temp2*temp2);
+			hwidth= MIN2(hwidth, fabsf(b3-b1)/2.0f);
 
 			if(b2 < b1 && b2 < b3 ){
-				if(hwidth < pointdist)
-					output = in_band(wipezone,hwidth,hyp,facf0,0,1);
+				output = in_band(hwidth,hyp,0,1);
 			} else if(b2 > b1 && b2 > b3 ){
-				if(hwidth < pointdist)
-					output = in_band(wipezone,hwidth,hyp2,facf0,0,1);	
+				output = in_band(hwidth,hyp2,0,1);
 			} else {
 				if(  hyp < hwidth && hyp2 > hwidth )
-					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
+					output = in_band(hwidth,hyp,1,1);
 				else if( hyp > hwidth && hyp2 < hwidth )
-					  output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
+					  output = in_band(hwidth,hyp2,1,1);
 				else
-					  output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
+					  output = in_band(hwidth,hyp2,1,1) * in_band(hwidth,hyp,1,1);
 			}
 			if(!wipe->forward)output = 1-output;
 		break;
@@ -1840,8 +1829,8 @@ float hyp3,hyp4,b4,b5
 			pointdist = sqrt(temp1*temp1 + temp1*temp1);
 
 			temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-			if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
-			else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
+			if(temp2 > pointdist) output = in_band(hwidth,fabs(temp2-pointdist),0,1);
+			else output = in_band(hwidth,fabs(temp2-pointdist),1,1);
 
 			if(!wipe->forward) output = 1-output;
 			

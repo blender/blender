@@ -37,6 +37,8 @@
 #include "ED_mball.h"
 #include "ED_screen.h"
 
+#include "BLI_utildefines.h"
+
 #include "mball_intern.h"
 
 void ED_operatortypes_metaball(void)
@@ -48,13 +50,13 @@ void ED_operatortypes_metaball(void)
 	WM_operatortype_append(MBALL_OT_reveal_metaelems);
 	
 	WM_operatortype_append(MBALL_OT_select_all);
-	WM_operatortype_append(MBALL_OT_select_inverse_metaelems);
 	WM_operatortype_append(MBALL_OT_select_random_metaelems);
 }
 
 void ED_keymap_metaball(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 	
 	keymap= WM_keymap_find(keyconf, "Metaball", 0, 0);
 	keymap->poll= ED_operator_editmball;
@@ -62,14 +64,18 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_metaball_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "MBALL_OT_reveal_metaelems", HKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+	kmi = WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+	kmi = WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 	
 	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MBALL_OT_duplicate_metaelems", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_add_item(keymap, "MBALL_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MBALL_OT_select_inverse_metaelems", IKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", AKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 }
 

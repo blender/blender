@@ -92,7 +92,7 @@ public:
 		/* no-op */
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
 		/* no-op */
 	}
@@ -258,9 +258,21 @@ public:
 	}
 };
 
-Device *device_cpu_create(int threads)
+Device *device_cpu_create(DeviceInfo& info, int threads)
 {
 	return new CPUDevice(threads);
+}
+
+void device_cpu_info(vector<DeviceInfo>& devices)
+{
+	DeviceInfo info;
+
+	info.type = DEVICE_CPU;
+	info.description = system_cpu_brand_string();
+	info.id = "CPU";
+	info.num = 0;
+
+	devices.insert(devices.begin(), info);
 }
 
 CCL_NAMESPACE_END

@@ -218,23 +218,23 @@ void draw_motion_path_instance(Scene *scene,
 		col[3]= 255;
 
 		for (i=0, mpv=mpv_start; i < len; i+=stepsize, mpv+=stepsize) {
-			char str[32];
+			char numstr[32];
 			float co[3];
 			
 			/* only draw framenum if several consecutive highlighted points don't occur on same point */
 			if (i == 0) {
-				sprintf(str, "%d", (i+sfra));
+				sprintf(numstr, "%d", (i+sfra));
 				mul_v3_m4v3(co, ob->imat, mpv->co);
-				view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(co, numstr, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, col);
 			}
 			else if ((i > stepsize) && (i < len-stepsize)) { 
 				bMotionPathVert *mpvP = (mpv - stepsize);
 				bMotionPathVert *mpvN = (mpv + stepsize);
 				
 				if ((equals_v3v3(mpv->co, mpvP->co)==0) || (equals_v3v3(mpv->co, mpvN->co)==0)) {
-					sprintf(str, "%d", (sfra+i));
+					sprintf(numstr, "%d", (sfra+i));
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, col);
+					view3d_cached_text_draw_add(co, numstr, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}
@@ -293,11 +293,11 @@ void draw_motion_path_instance(Scene *scene,
 				float mframe= (float)(sfra + i);
 				
 				if (BLI_dlrbTree_search_exact(&keys, compare_ak_cfraPtr, &mframe)) {
-					char str[32];
+					char numstr[32];
 					
-					sprintf(str, "%d", (sfra+i));
+					sprintf(numstr, "%d", (sfra+i));
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, col);
+					view3d_cached_text_draw_add(co, numstr, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}

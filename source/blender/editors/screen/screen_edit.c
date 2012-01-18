@@ -1689,8 +1689,6 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 	/* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
 	CTX_wm_area_set(C, sc->areabase.first);
 
-	/* XXX retopo_force_update(); */
-
 	return sc->areabase.first;
 }
 

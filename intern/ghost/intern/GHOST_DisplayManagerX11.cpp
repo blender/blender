@@ -67,10 +67,32 @@ getNumDisplaySettings(
 	GHOST_TUns8 display,
 	GHOST_TInt32& numSettings
 ) const{
-	
+#ifdef WITH_X11_XF86VMODE
+	int majorVersion, minorVersion;
+	XF86VidModeModeInfo **vidmodes;
+	Display *dpy = m_system->getXDisplay();
+
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+
+	if (dpy == NULL)
+		return GHOST_kFailure;
+
+	majorVersion = minorVersion = 0;
+	if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
+		fprintf(stderr, "Error: XF86VidMode extension missing!\n");
+		return GHOST_kFailure;
+	}
+
+	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
+	 * segfault. - z0r */
+	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
+
+#else
 	// We only have one X11 setting at the moment.
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
 	numSettings = GHOST_TInt32(1);
+#endif
+
 	return GHOST_kSuccess;
 }
 
@@ -81,7 +103,34 @@ getDisplaySetting(
 	GHOST_TInt32 index,
 	GHOST_DisplaySetting& setting
 ) const {
-	
+
+#ifdef WITH_X11_XF86VMODE
+	int majorVersion, minorVersion;
+	XF86VidModeModeInfo **vidmodes;
+	Display *dpy = m_system->getXDisplay();
+	int numSettings;
+
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+
+	if (dpy == NULL)
+		return GHOST_kFailure;
+
+	majorVersion = minorVersion = 0;
+	if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
+		fprintf(stderr, "Error: XF86VidMode extension missing!\n");
+		return GHOST_kFailure;
+	}
+
+	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
+	 * segfault. - z0r */
+	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
+	GHOST_ASSERT(index < numSettings, "Requested setting outside of valid range.\n");
+
+	setting.xPixels = vidmodes[index]->hdisplay;
+	setting.yPixels = vidmodes[index]->vdisplay;
+	setting.bpp = DefaultDepth(dpy,DefaultScreen(dpy));
+
+#else
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
 	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");	
 	
@@ -94,6 +143,7 @@ getDisplaySetting(
 	setting.xPixels  = DisplayWidth(x_display, DefaultScreen(x_display));
 	setting.yPixels = DisplayHeight(x_display, DefaultScreen(x_display));
 	setting.bpp = DefaultDepth(x_display,DefaultScreen(x_display));
+#endif
 
 	// Don't think it's possible to get this value from X!
 	// So let's guess!!
@@ -108,6 +158,9 @@ getCurrentDisplaySetting(
 	GHOST_TUns8 display,
 	GHOST_DisplaySetting& setting
 ) const {
+	/* According to the xf86vidmodegetallmodelines man page,
+	 * "The first element of the array corresponds to the current video mode."
+	 */
 	return getDisplaySetting(display,GHOST_TInt32(0),setting);
 }
 
@@ -130,6 +183,9 @@ setCurrentDisplaySetting(
 	int scrnum, num_vidmodes;
 	int best_fit, best_dist, dist, x, y;
 
+	if (dpy == NULL)
+		return GHOST_kFailure;
+
 	scrnum = DefaultScreen(dpy);
 
 	// Get video mode list
@@ -143,6 +199,8 @@ setCurrentDisplaySetting(
 			majorVersion, minorVersion);
 #  endif
 
+	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
+	 * segfault. - z0r */
 	XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
 
 	best_dist = 9999999;

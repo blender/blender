@@ -2458,7 +2458,7 @@ static int select_linked_limited_invoke(ViewContext *vc, short all, short sel)
 
 static void linked_limit_default(bContext *C, wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "limit")) {
+	if(!RNA_struct_property_is_set(op->ptr, "limit")) {
 		Object *obedit= CTX_data_edit_object(C);
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 		if(em->selectmode == SCE_SELECT_FACE)
@@ -3381,34 +3381,6 @@ void EM_select_swap(EditMesh *em) /* exported for UV */
 	
 //	if (EM_texFaceCheck())
 
-}
-
-static int select_inverse_mesh_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	EM_select_swap(em);
-	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->description= "Select inverse of (un)selected vertices, edges or faces";
-	ot->idname= "MESH_OT_select_inverse";
-	
-	/* api callbacks */
-	ot->exec= select_inverse_mesh_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 	
 /* ******************** (de)select all operator **************** */

@@ -24,7 +24,7 @@ from bpy.types import Operator
 from mathutils import Vector, Matrix
 
 
-def CLIP_spacees_walk(context, all_screens, tarea, tspace, callback, *args):
+def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):
     screens = bpy.data.screens if all_screens else [context.screen]
 
     for screen in screens:
@@ -56,7 +56,7 @@ def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
 
         space_v3d.show_background_images = True
 
-    CLIP_spacees_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
+    CLIP_spaces_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
                       set_background, clip, clip_user)
 
 
@@ -75,6 +75,7 @@ def CLIP_camera_for_clip(context, clip):
                         return ob
 
     return camera
+
 
 def CLIP_track_view_selected(sc, track):
     if track.select_anchor:
@@ -118,7 +119,7 @@ class CLIP_OT_track_to_empty(Operator):
         constraint.track = track.name
         constraint.use_3d_position = False
         constraint.object = tracking_object.name
-        constraint.camera = CLIP_camera_for_clip(context, clip);
+        constraint.camera = CLIP_camera_for_clip(context, clip)
 
     def execute(self, context):
         sc = context.space_data
@@ -127,7 +128,7 @@ class CLIP_OT_track_to_empty(Operator):
 
         for track in tracking_object.tracks:
             if CLIP_track_view_selected(sc, track):
-                self._link_track(context, clip, tracking_object ,track)
+                self._link_track(context, clip, tracking_object, track)
 
         return {'FINISHED'}
 
@@ -529,7 +530,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         def setup_space(space):
             space.show_backdrop = True
 
-        CLIP_spacees_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
+        CLIP_spaces_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
                           setup_space)
 
         sc = context.space_data

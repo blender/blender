@@ -252,7 +252,12 @@ typedef struct ThemeSpace {
 	char hpad[7];
 	
 	char preview_back[4];
-	
+	char preview_stitch_face[4];
+	char preview_stitch_edge[4];
+	char preview_stitch_vert[4];
+	char preview_stitch_stitchable[4];
+	char preview_stitch_unstitchable[4];
+	char preview_stitch_active[4];
 } ThemeSpace;
 
 
@@ -318,16 +323,16 @@ typedef struct SolidLight {
 typedef struct UserDef {
 	int flag, dupflag;
 	int savetime;
-	char tempdir[160];	// FILE_MAXDIR length
+	char tempdir[160];	/* FILE_MAXDIR length */
 	char fontdir[160];
-	char renderdir[240]; // FILE_MAX length
+	char renderdir[240]; /* FILE_MAX length */
 	char textudir[160];
 	char plugtexdir[160];
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
-	char image_editor[240];	// FILE_MAX length
-	char anim_player[240];	// FILE_MAX length
+	char image_editor[240];	/* 240 = FILE_MAX */
+	char anim_player[240];	/* 240 = FILE_MAX */
 	int anim_player_preset;
 	
 	short v2d_min_gridsize;		/* minimum spacing between gridlines in View2D grids */
@@ -391,7 +396,7 @@ typedef struct UserDef {
 	
 	short widget_unit;		/* defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;
-	/*short pad[3];			*/
+	short use_16bit_textures, pad8;
 
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	int ndof_flag;			/* flags for 3D mouse */
@@ -403,7 +408,7 @@ typedef struct UserDef {
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
 	
-	short text_render, pad9[3];		/*options for text rendering*/
+	short text_render, pad9;		/*options for text rendering*/
 
 	struct ColorBand coba_weight;	/* from texture.h */
 
@@ -413,6 +418,9 @@ typedef struct UserDef {
 	short pad3;
 
 	char author[80];	/* author name for file formats supporting it */
+
+	int compute_device_type;
+	int compute_device_id;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -627,6 +635,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_PANY_INVERT_AXIS (1 << 13)
 #define NDOF_PANZ_INVERT_AXIS (1 << 14)
 
+/* compute_device_type */
+#define USER_COMPUTE_DEVICE_NONE	0
+#define USER_COMPUTE_DEVICE_OPENCL	1
+#define USER_COMPUTE_DEVICE_CUDA	2
 
 #ifdef __cplusplus
 }

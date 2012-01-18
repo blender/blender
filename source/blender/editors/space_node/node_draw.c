@@ -195,18 +195,18 @@ static void node_scaling_widget(int color_id, float aspect, float xmin, float ym
 static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 {
 	bNode *node;
-	char str[32];
+	char uiblockstr[32];
 	
 	/* add node uiBlocks in drawing order - prevents events going to overlapping nodes */
 	
-	for(node= ntree->nodes.first; node; node=node->next) {
-			/* ui block */
-			sprintf(str, "node buttons %p", (void *)node);
-			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
-			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
-			
-			/* this cancels events for background nodes */
-			uiBlockSetFlag(node->block, UI_BLOCK_CLIP_EVENTS);
+	for (node= ntree->nodes.first; node; node= node->next) {
+		/* ui block */
+		BLI_snprintf(uiblockstr, sizeof(uiblockstr), "node buttons %p", (void *)node);
+		node->block= uiBeginBlock(C, CTX_wm_region(C), uiblockstr, UI_EMBOSS);
+		uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
+
+		/* this cancels events for background nodes */
+		uiBlockSetFlag(node->block, UI_BLOCK_CLIP_EVENTS);
 	}
 }
 
@@ -233,7 +233,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	/* output sockets */
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= locx + node->width;
 			nsock->locy= dy - NODE_DYS;
 			dy-= NODE_DY;
@@ -312,7 +312,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	/* input sockets */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= locx;
 			nsock->locy= dy - NODE_DYS;
 			dy-= NODE_DY;
@@ -351,10 +351,10 @@ static void node_update_hidden(bNode *node)
 
 	/* calculate minimal radius */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next)
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(nsock))
 			totin++;
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next)
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(nsock))
 			totout++;
 	
 	tot= MAX2(totin, totout);
@@ -371,7 +371,7 @@ static void node_update_hidden(bNode *node)
 	rad=drad= (float)M_PI/(1.0f + (float)totout);
 	
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE)) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= node->totr.xmax - hiddenrad + (float)sin(rad)*hiddenrad;
 			nsock->locy= node->totr.ymin + hiddenrad + (float)cos(rad)*hiddenrad;
 			rad+= drad;
@@ -382,7 +382,7 @@ static void node_update_hidden(bNode *node)
 	rad=drad= - (float)M_PI/(1.0f + (float)totin);
 	
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE)) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= node->totr.xmin + hiddenrad + (float)sin(rad)*hiddenrad;
 			nsock->locy= node->totr.ymin + hiddenrad + (float)cos(rad)*hiddenrad;
 			rad+= drad;
@@ -673,7 +673,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 	
 	//if(node->flag & NODE_MUTED)
-	//	sprintf(showname, "[%s]", showname);
+	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - dont print into self!
 	
 	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
 			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -713,7 +713,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		bNodeSocketType *stype= ntreeGetSocketType(sock->type);
 		
-		if(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+		if(nodeSocketIsHidden(sock))
 			continue;
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
@@ -736,7 +736,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		RNA_pointer_create((ID*)ntree, &RNA_NodeSocket, sock, &sockptr);
 		
-		if(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+		if(nodeSocketIsHidden(sock))
 			continue;
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
@@ -835,7 +835,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 		
 		//if(node->flag & NODE_MUTED)
-		//	sprintf(showname, "[%s]", showname);
+		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - dont print into self!
 
 		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
 				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -854,12 +854,12 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	
 	/* sockets */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (sock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(sock))
 			node_socket_circle_draw(snode->nodetree, sock, socket_size);
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (sock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(sock))
 			node_socket_circle_draw(snode->nodetree, sock, socket_size);
 	}
 	

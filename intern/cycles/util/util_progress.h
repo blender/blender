@@ -27,6 +27,7 @@
 
 #include "util_function.h"
 #include "util_string.h"
+#include "util_time.h"
 #include "util_thread.h"
 
 CCL_NAMESPACE_BEGIN
@@ -36,6 +37,7 @@ public:
 	Progress()
 	{
 		sample = 0;
+		start_time = time_dt();
 		total_time = 0.0f;
 		sample_time = 0.0f;
 		status = "Initializing";
@@ -90,12 +92,19 @@ public:
 
 	/* sample and timing information */
 
-	void set_sample(int sample_, double total_time_, double sample_time_)
+	void set_start_time(double start_time_)
+	{
+		thread_scoped_lock lock(progress_mutex);
+
+		start_time = start_time;
+	}
+
+	void set_sample(int sample_, double sample_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
 		sample = sample_;
-		total_time = total_time_;
+		total_time = time_dt() - start_time;
 		sample_time = sample_time_;
 	}
 
@@ -104,7 +113,7 @@ public:
 		thread_scoped_lock lock(progress_mutex);
 
 		sample_ = sample;
-		total_time_ = total_time;
+		total_time_ = (total_time > 0.0)? total_time: 0.0;
 		sample_time_ = sample_time;
 	}
 
@@ -116,6 +125,7 @@ public:
 			thread_scoped_lock lock(progress_mutex);
 			status = status_;
 			substatus = substatus_;
+			total_time = time_dt() - start_time;
 		}
 
 		set_update();
@@ -126,6 +136,7 @@ public:
 		{
 			thread_scoped_lock lock(progress_mutex);
 			substatus = substatus_;
+			total_time = time_dt() - start_time;
 		}
 
 		set_update();
@@ -158,6 +169,7 @@ protected:
 
 	int sample;
 
+	double start_time;
 	double total_time;
 	double sample_time;
 

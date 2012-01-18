@@ -94,14 +94,17 @@ void sound_update_fps(struct Scene *scene);
 void sound_update_scene_listener(struct Scene *scene);
 
 void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
+void* sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Sequence* sequence);
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
+void* sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence* sequence);
 
 void sound_remove_scene_sound(struct Scene *scene, void* handle);
 
 void sound_mute_scene_sound(void* handle, char mute);
 
 void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, int endframe, int frameskip);
+void sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
 
 void sound_update_scene_sound(void* handle, struct bSound* sound);
 
