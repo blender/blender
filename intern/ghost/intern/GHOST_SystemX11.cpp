@@ -422,6 +422,15 @@ processEvents(
 	return anyProcessed;
 }
 
+/* set currently using tablet mode (stylus or eraser) depending on device ID */
+static void setTabletMode(GHOST_WindowX11 * window, XID deviceid)
+{
+	if(deviceid == window->GetXTablet().StylusID)
+		window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
+	else if(deviceid == window->GetXTablet().EraserID)
+		window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
+}
+
 	void
 GHOST_SystemX11::processEvent(XEvent *xe)
 {
@@ -824,6 +833,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			if(xe->type == window->GetXTablet().MotionEvent) 
 			{
 				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
+
+				/* stroke might begin without leading ProxyIn event,
+				 * this happens when window is opened when stylus is already hovering
+				 * around tablet surface */
+				setTabletMode(window, data->deviceid);
+
 				window->GetXTablet().CommonData.Pressure= 
 					data->axis_data[2]/((float)window->GetXTablet().PressureLevels);
 			
@@ -837,10 +852,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			else if(xe->type == window->GetXTablet().ProxInEvent) 
 			{
 				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
-				if(data->deviceid == window->GetXTablet().StylusID)
-					window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
-				else if(data->deviceid == window->GetXTablet().EraserID)
-					window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
+
+				setTabletMode(window, data->deviceid);
 			}
 			else if(xe->type == window->GetXTablet().ProxOutEvent)
 				window->GetXTablet().CommonData.Active= GHOST_kTabletModeNone;
