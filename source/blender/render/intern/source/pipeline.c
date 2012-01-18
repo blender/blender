@@ -1476,7 +1476,8 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 					if(sample) {
 						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 						render_result_exr_file_read(re1, sample);
-						composite_freestyle_renders(re1, sample);
+						if( re1->r.mode & R_EDGE_FRS)
+							composite_freestyle_renders(re1, sample);
 						BLI_rw_mutex_unlock(&re->resultmutex);
 					}
 					ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
