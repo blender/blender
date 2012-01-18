@@ -167,8 +167,9 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 
 	/*clean up extreneous 2-valence vertices*/
 	for (i=0; i<BLI_array_count(verts); i++) {
-		if (verts[i]->e)
-			BM_Collapse_Vert_Faces(bm, verts[i]->e, verts[i], 1.0);
+		if (verts[i]->e) {
+			BM_Collapse_Vert_Edges(bm, verts[i]->e, verts[i]);
+		}
 	}
 	
 	BLI_array_free(verts);
@@ -223,8 +224,8 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 			BMVert *v1= e->v1, *v2= e->v2;
 
 			/*collapse the vert*/
-			if (BM_Vert_EdgeCount(v1) == 2) BM_Collapse_Vert_Faces(bm, v1->e, v1, 1.0f);
-			if (BM_Vert_EdgeCount(v2) == 2) BM_Collapse_Vert_Faces(bm, v2->e, v2, 1.0f);
+			if (BM_Vert_EdgeCount(v1) == 2) BM_Collapse_Vert_Edges(bm, v1->e, v1);
+			if (BM_Vert_EdgeCount(v2) == 2) BM_Collapse_Vert_Edges(bm, v2->e, v2);
 
 		}
 	}
@@ -233,7 +234,7 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, v, VERT_MARK)) {
 			if (BM_Vert_EdgeCount(v) == 2) {
-				bmesh_jekv(bm, v->e, v);
+				BM_Collapse_Vert_Edges(bm, v->e, v);
 			}
 		}
 	}
@@ -297,7 +298,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			if (BM_Vert_EdgeCount(v) == 2) {
 
 				/*collapse the vert*/
-				BM_Collapse_Vert_Faces(bm, v->e, v, 1.0f);
+				BM_Collapse_Vert_Faces(bm, v->e, v, 1.0f, TRUE);
 				continue;
 			}
 

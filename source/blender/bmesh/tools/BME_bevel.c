@@ -438,7 +438,7 @@ static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int op
 
 		//void BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm){
 		//hrm, why is there a fac here? it just removes a vert
-		BM_Collapse_Vert_Faces(bm, v->e, v, 1.0, 0);
+		BM_Collapse_Vert_Faces(bm, v->e, v, 1.0, TRUE);
 		//bmesh_jekv(bm,v->e,v);
 	}
 
@@ -486,14 +486,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 		if (kl->v == kv) {
 			BM_Split_Face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
 			bmesh_jfke(bm, kl->prev->radial_next->f,kl->f,kl->prev->e);
-			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0);
+			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0, TRUE);
 			//BME_JEKV(bm,kl->e,kv);
 			
 		}
 		else {
 			BM_Split_Face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
 			bmesh_jfke(bm, kl->next->radial_next->f,kl->f,kl->next->e);
-			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0);
+			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0, TRUE);
 			//BME_JEKV(bm,kl->e,kv);
 		}
 		l = l->prev;
@@ -523,13 +523,13 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 		if (kl->v == kv) {
 			BM_Split_Face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
 			bmesh_jfke(bm,kl->prev->radial_next->f,kl->f,kl->prev->e);
-			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0);
+			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0, TRUE);
 			//BME_JEKV(bm,kl->e,kv);
 		}
 		else {
 			BM_Split_Face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
 			bmesh_jfke(bm, kl->next->radial_next->f,kl->f,kl->next->e);
-			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0);
+			BM_Collapse_Vert_Faces(bm, kl->e, kv, 1.0, TRUE);
 			//BME_JEKV(bm,kl->e,kv);
 		}
 	}

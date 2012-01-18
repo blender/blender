@@ -138,7 +138,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 	}
 	else if (keepedge == NULL && len == 2) {
 		/*collapse the vertex*/
-		e = BM_Collapse_Vert_Faces(bm, v->e, v, 1.0);
+		e = BM_Collapse_Vert_Faces(bm, v->e, v, 1.0, TRUE);
 
 		if (!e) {
 			return 0;
@@ -181,7 +181,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		}
 
 		/*collapse the vertex*/
-		e = BM_Collapse_Vert_Faces(bm, baseedge, v, 1.0);
+		e = BM_Collapse_Vert_Faces(bm, baseedge, v, 1.0, TRUE);
 
 		if (!e) {
 			return 0;
@@ -230,7 +230,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 				}
 			};
 		}
-		BM_Collapse_Vert_Faces(bm, v->e, v, 1.0);
+		BM_Collapse_Vert_Faces(bm, v->e, v, 1.0, TRUE);
 	}
 }
 #endif
@@ -399,11 +399,13 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *  BMESH_TODO:
  *    Insert error checking for KV valance.
  *
- *  Returns -
- *	The New Edge
+ * @param fac The factor along the edge
+ * @param join_faces When true the faces around the vertex will be joined
+ * otherwise collapse the vertex by merging the 2 edges this vert touches into one.
+ *  @returns The New Edge
  */
 
-BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
+BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces)
 {
 	BMEdge *ne = NULL;
 	BMVert *tv = bmesh_edge_getothervert(ke, kv);
@@ -413,8 +415,6 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 
 	BMIter iter;
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
-	BMFace **faces = NULL, *f;
-	BLI_array_staticdeclare(faces, 8);
 
 	void *src[2];
 	float w[2];
@@ -423,6 +423,7 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 	BLI_assert(bmesh_disk_count(kv) <= 2);
 
 
+	/* first modify the face loop data  */
 	w[0] = 1.0f - fac;
 	w[1] = fac;
 
@@ -441,32 +442,40 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 		} while (l != ke->l);
 	}
 
-	BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, kv) {
-		BLI_array_append(faces, f);
-	}
-
+	/* now interpolate the vertex data */
 	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
 	e2 = bmesh_disk_nextedge(ke, kv);
 	tv2 = BM_OtherEdgeVert(e2, kv);
 
-	if (BLI_array_count(faces) > 1) {
-		BMFace *f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
-		if (f2) {
-			BMLoop *nl = NULL;
-			if (BM_Split_Face(bm, f2, tv, tv2, &nl, NULL)) {
-				ne = nl->e;
+	if (join_faces) {
+		BMFace **faces = NULL, *f;
+		BLI_array_staticdeclare(faces, 8);
+
+		BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, kv) {
+			BLI_array_append(faces, f);
+		}
+
+		if (BLI_array_count(faces) >= 2) {
+			BMFace *f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
+			if (f2) {
+				BMLoop *nl = NULL;
+				if (BM_Split_Face(bm, f2, tv, tv2, &nl, NULL)) {
+					ne = nl->e;
+				}
 			}
 		}
-	}
-	else { /* single face or no faces */
-		/* same as BM_Collapse_Vert_Edges() however we already
-		 * have vars to perform this operation so dont call. */
-		bmesh_jekv(bm, ke, kv);
-		ne = BM_Edge_Exist(tv, tv2);
+
+		BLI_array_free(faces);
+
+		return ne;
 	}
 
-	BLI_array_free(faces);
+	/* single face or no faces */
+	/* same as BM_Collapse_Vert_Edges() however we already
+	 * have vars to perform this operation so dont call. */
+	bmesh_jekv(bm, ke, kv);
+	ne = BM_Edge_Exist(tv, tv2);
 
 	return ne;
 }
@@ -477,17 +486,15 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
  *
  * Collapses a vertex onto another vertex it shares an edge with.
  *
- * Note that this is not a general edge collapse function.
- *
- * Note this function is very close to 'BM_Collapse_Vert_Faces', both collapse
- * a vertex and return a new edge. Except this doesn't merge customdata.
- *
  * Returns -
  * The New Edge
  */
 
-BMEdge* BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
+BMEdge *BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
 {
+	/* nice example implimentation but we want loops to have their customdata
+	 * accounted for.*/
+#if 0
 	BMEdge *ne = NULL;
 
 	/* Collapse between 2 edges */
@@ -509,6 +516,11 @@ BMEdge* BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
 	}
 
 	return ne;
+#else
+	/* with these args faces are never joined, same as above
+	 * but account for loop customdata */
+	return BM_Collapse_Vert_Faces(bm, ke, kv, 1.0f, FALSE);
+#endif
 }
 
 #undef DO_V_INTERP

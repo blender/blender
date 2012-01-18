@@ -210,7 +210,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f,
                       struct BMLoop **nl, BMEdge *example);
 
 /* these 2 functions are very similar */
-BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac);
+BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces);
 BMEdge* BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv);
 
 
