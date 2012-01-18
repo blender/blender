@@ -86,7 +86,7 @@ def register():
 
     # space_userprefs.py
     from bpy.props import StringProperty, EnumProperty
-    WindowManager = bpy.types.WindowManager
+    from bpy.types import WindowManager
 
     def addon_filter_items(self, context):
         import addon_utils

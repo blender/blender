@@ -117,7 +117,7 @@ class CLIP_PT_tools_marker(Panel):
         if settings.show_default_expanded:
             col = box.column()
             row = col.row(align=True)
-            label = bpy.types.CLIP_MT_tracking_settings_presets.bl_label
+            label = CLIP_MT_tracking_settings_presets.bl_label
             row.menu('CLIP_MT_tracking_settings_presets', text=label)
             row.operator("clip.tracking_settings_preset_add",
                          text="", icon='ZOOMIN')
@@ -999,7 +999,7 @@ class CLIP_MT_camera_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "tracking_camera"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class CLIP_MT_track_color_presets(Menu):
@@ -1007,7 +1007,7 @@ class CLIP_MT_track_color_presets(Menu):
     bl_label = "Color Presets"
     preset_subdir = "tracking_track_color"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class CLIP_MT_tracking_settings_presets(Menu):
@@ -1015,7 +1015,7 @@ class CLIP_MT_tracking_settings_presets(Menu):
     bl_label = "Tracking Presets"
     preset_subdir = "tracking_settings"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class CLIP_MT_track_color_specials(Menu):
