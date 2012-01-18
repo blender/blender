@@ -327,10 +327,13 @@ static void make_vertexcol(Object *ob)	/* single ob */
 	if(me->edit_btmesh) return;
 
 	/* copies from shadedisplist to mcol */
-	if(!me->mcol)
-		CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
-	if (!me->mloopcol) {
-		CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);	
+	if (!me->mcol || !me->mloopcol) {
+		if(!me->mcol) {
+			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
+		}
+		if (!me->mloopcol) {
+			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);	
+		}
 		mesh_update_customdata_pointers(me, TRUE);
 	}
 
@@ -2329,9 +2332,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 						
 				ml = me->mloop + mpoly->loopstart;
 				for (i=0; i<mpoly->totloop; i++, ml++) {
-					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos+6*ml->v, mval, brush_size_pressure);
+					unsigned int vidx= ml->v;
+					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos+6*vidx, mval, brush_size_pressure);
 					if (fac > 0.0f) {
-						dw = dw_func(&me->dvert[ml->v], wpi.vgroup_active);
+						dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
 						paintweight += dw ? (dw->weight * fac) : 0.0f;
 						totw += fac;
 					}
@@ -2345,6 +2349,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 
 	for(index=0; index<totindex; index++) {
+
 		if(indexar[index] && indexar[index]<=me->totpoly) {
 			MPoly *mpoly= me->mpoly + (indexar[index]-1);
 			MLoop *ml=me->mloop+mpoly->loopstart;
@@ -2352,6 +2357,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 			for (i=0; i<mpoly->totloop; i++, ml++) {
 				unsigned int vidx= ml->v;
+
 				if (me->dvert[vidx].flag) {
 					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*vidx,
 					                        mval, brush_size_pressure, brush_alpha_pressure);
@@ -2834,7 +2840,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		else totindex= 0;
 	}
 			
-	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	if(vp->flag & VP_COLINDEX) {
 		for(index=0; index<totindex; index++) {
@@ -2861,9 +2866,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	
 	swap_m4m4(vc->rv3d->persmat, mat);
 
-	/* was disabled because it is slow, but necessary for blur */
-	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
-		do_shared_vertexcol(me);
 			
 	for(index=0; index<totindex; index++) {
 				
@@ -2873,7 +2875,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 		
 	swap_m4m4(vc->rv3d->persmat, mat);
-			
+
 	/* was disabled because it is slow, but necessary for blur */
 	if(brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		do_shared_vertexcol(me);
