@@ -133,7 +133,7 @@ def cmake_advanced_info():
     """ Extracr includes and defines from cmake.
     """
 
-    def create_eclipse_project(CMAKE_DIR):
+    def create_eclipse_project():
         print("CMAKE_DIR %r" % CMAKE_DIR)
         if sys.platform == "win32":
             cmd = 'cmake "%s" -G"Eclipse CDT4 - MinGW Makefiles"' % CMAKE_DIR
@@ -145,7 +145,7 @@ def cmake_advanced_info():
     includes = []
     defines = []
 
-    create_eclipse_project(CMAKE_DIR)
+    create_eclipse_project()
 
     from xml.dom.minidom import parse
     tree = parse(join(CMAKE_DIR, ".cproject"))
