@@ -91,12 +91,8 @@ typedef struct MovieTrackingTrack {
 	float bundle_pos[3];			/* reconstructed position */
 	float error;					/* average track reprojection error */
 
-	int pad;
-
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
-	short transflag;					/* transform flags */
-	char pad3[2];
 	float color[3];						/* custom color for track */
 
 	/* tracking algorithm to use; can be KLT or SAD */
@@ -213,7 +209,8 @@ enum {
 /* MovieTrackingMarker->flag */
 #define MARKER_DISABLED	(1<<0)
 #define MARKER_TRACKED	(1<<1)
-#define MARKER_GRAPH_SEL (1<<2)
+#define MARKER_GRAPH_SEL_X (1<<2)
+#define MARKER_GRAPH_SEL_Y (1<<3)
 
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)
