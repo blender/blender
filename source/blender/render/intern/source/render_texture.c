@@ -2127,7 +2127,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 			fMagnitude *= len_v3(vN);
 		}
 		
-		for(xyz=0; xyz<3; xyz++)
+		if(ntap_bump->fPrevMagnitude > 0.0f)
+			for(xyz=0; xyz<3; xyz++)
 				ntap_bump->vNacc[xyz] *= fMagnitude / ntap_bump->fPrevMagnitude;
 		
 		ntap_bump->fPrevMagnitude = fMagnitude;
