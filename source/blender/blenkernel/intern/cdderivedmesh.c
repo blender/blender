@@ -1963,7 +1963,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	}
 }
 
-DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdisps)
+DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdisps, int use_tessface)
 {
 	DerivedMesh *dm = CDDM_new(em->bm->totvert, em->bm->totedge, 
 	                       em->tottri, em->bm->totloop, em->bm->totface);
@@ -1980,7 +1980,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	MPoly *mpoly = cddm->mpoly;
 	int numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 	int numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
-	int *index, *polyindex, add_orig;
+	int *index, add_orig;
 	int has_crease, has_edge_bweight, has_vert_bweight;
 	CustomDataMask mask;
 	unsigned int i, j;
@@ -2009,7 +2009,9 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	                 CD_CALLOC, dm->numPolyData);
 	
 	/*add tesselation mface layers*/
-	CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
+	if (use_tessface) {
+		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
+	}
 
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
 
@@ -2056,27 +2058,32 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
-	BM_ElemIndex_Ensure(bm, BM_FACE);
+	/* avoid this where possiblem, takes extra memory */
+	if (use_tessface) {
+		int *polyindex;
 
-	polyindex = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
-	index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-	for(i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
-		MFace *mf = &mface[i];
-		BMLoop **l = em->looptris[i];
-		efa = l[0]->f;
+		BM_ElemIndex_Ensure(bm, BM_FACE);
 
-		mf->v1 = BM_GetIndex(l[0]->v);
-		mf->v2 = BM_GetIndex(l[1]->v);
-		mf->v3 = BM_GetIndex(l[2]->v);
-		mf->v4 = 0;
-		mf->mat_nr = efa->mat_nr;
-		mf->flag = BM_Face_Flag_To_MEFlag(efa);
-		
-		*index = add_orig ? BM_GetIndex(efa) : *(int*)CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_ORIGINDEX);
-		*polyindex = BM_GetIndex(efa);
+		polyindex = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
+		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+		for(i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
+			MFace *mf = &mface[i];
+			BMLoop **l = em->looptris[i];
+			efa = l[0]->f;
 
-		loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numTex);
-		test_index_face(mf, &dm->faceData, i, 3);
+			mf->v1 = BM_GetIndex(l[0]->v);
+			mf->v2 = BM_GetIndex(l[1]->v);
+			mf->v3 = BM_GetIndex(l[2]->v);
+			mf->v4 = 0;
+			mf->mat_nr = efa->mat_nr;
+			mf->flag = BM_Face_Flag_To_MEFlag(efa);
+
+			*index = add_orig ? BM_GetIndex(efa) : *(int*)CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_ORIGINDEX);
+			*polyindex = BM_GetIndex(efa);
+
+			loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numTex);
+			test_index_face(mf, &dm->faceData, i, 3);
+		}
 	}
 	
 	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
@@ -2085,6 +2092,8 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	for (i=0; efa; i++, efa=BMIter_Step(&iter), index++) {
 		BMLoop *l;
 		MPoly *mp = &mpoly[i];
+
+		BM_SetIndex(efa, i); /* set_inline */
 
 		mp->totloop = efa->len;
 		mp->flag = BM_Face_Flag_To_MEFlag(efa);
@@ -2104,6 +2113,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 		if (add_orig) *index = i;
 	}
+	bm->elem_index_dirty &= ~BM_FACE;
 
 	return dm;
 }

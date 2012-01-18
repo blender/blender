@@ -159,7 +159,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 		cddm->release(cddm);
 	}
 
-	cddm = CDDM_from_BMEditMesh(em, NULL, 1);
+	cddm = CDDM_from_BMEditMesh(em, NULL, TRUE, TRUE);
 	BMEdit_Free(em);
 	MEM_freeN(em);
 

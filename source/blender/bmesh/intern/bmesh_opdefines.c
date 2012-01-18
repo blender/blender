@@ -159,7 +159,7 @@ static BMOpDefine def_edgerotate = {
 	"edgerotate",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
-   	 {BMOP_OPSLOT_INT, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
+	 {BMOP_OPSLOT_INT, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_edgerotate_exec,

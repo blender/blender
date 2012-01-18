@@ -945,7 +945,6 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			else dvert = NULL;
 		} else
 			dvert = NULL;
-
 		if(armature_def_nr >= 0 && dvert) {
 			armature_weight= defvert_find_weight(dvert, armature_def_nr);
 
