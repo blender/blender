@@ -451,7 +451,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				else if (obr->type == OB_MESH) {
 					Mesh *me = (Mesh*)obr->data;
 					if (me->edit_btmesh)
-						target_dm = CDDM_from_BMEditMesh(me->edit_btmesh, me, FALSE, TRUE);
+						target_dm = CDDM_from_BMEditMesh(me->edit_btmesh, me, FALSE, FALSE);
 					else
 						target_dm = CDDM_from_mesh(me, obr);
 				}

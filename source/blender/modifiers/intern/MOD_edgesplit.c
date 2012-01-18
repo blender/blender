@@ -108,7 +108,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 		cddm->release(cddm);
 	}
 	
-	cddm = CDDM_from_BMEditMesh(em, NULL, TRUE, TRUE);
+	cddm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 	BMEdit_Free(em);
 	MEM_freeN(em);
 	

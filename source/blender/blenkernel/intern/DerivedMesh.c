@@ -807,7 +807,7 @@ static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMEditMesh *em, int lay
 	float (*orco)[3];
 	int free;
 
-	if(em) dm= CDDM_from_BMEditMesh(em, me, FALSE, TRUE);
+	if(em) dm= CDDM_from_BMEditMesh(em, me, FALSE, FALSE);
 	else dm= CDDM_from_mesh(me, ob);
 
 	orco= get_orco_coords_dm(ob, em, layer, &free);

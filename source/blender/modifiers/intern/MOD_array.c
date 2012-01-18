@@ -389,7 +389,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_pop(em->bm);
 
 	BMEdit_RecalcTesselation(em);
-	cddm = CDDM_from_BMEditMesh(em, NULL, FALSE, TRUE);
+	cddm = CDDM_from_BMEditMesh(em, NULL, FALSE, FALSE);
 
 	BMEdit_Free(em);
 	MEM_freeN(em);

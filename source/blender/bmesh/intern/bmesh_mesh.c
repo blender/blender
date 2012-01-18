@@ -375,7 +375,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		Object *ob = bm->ob;
 		BMEditMesh *em = BMEdit_Create(bm);
-		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, TRUE);
+		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 		MDisps *mdisps;
 		BMFace *f;
 		BMIter iter;
