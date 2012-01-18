@@ -1978,34 +1978,34 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	MFace *mface = cddm->mface;
 	MLoop *mloop = cddm->mloop;
 	MPoly *mpoly = cddm->mpoly;
-	int numCol = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
-	int numTex = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
+	int numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+	int numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	int *index, *polyindex, add_orig;
 	int has_crease, has_edge_bweight, has_vert_bweight;
-	int flag;
+	CustomDataMask mask;
 	unsigned int i, j;
 	
-	has_edge_bweight = CustomData_has_layer(&em->bm->edata, CD_BWEIGHT);
-	has_vert_bweight = CustomData_has_layer(&em->bm->vdata, CD_BWEIGHT);
-	has_crease = CustomData_has_layer(&em->bm->edata, CD_CREASE);
+	has_edge_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
+	has_vert_bweight = CustomData_has_layer(&bm->vdata, CD_BWEIGHT);
+	has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
 	
 	dm->deformedOnly = 1;
 	
 	/*don't add origindex layer if one already exists*/
-	add_orig = !CustomData_has_layer(&em->bm->pdata, CD_ORIGINDEX);
+	add_orig = !CustomData_has_layer(&bm->pdata, CD_ORIGINDEX);
 
-	flag = use_mdisps ? CD_MASK_DERIVEDMESH|CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
+	mask = use_mdisps ? CD_MASK_DERIVEDMESH|CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
 	
 	/*don't process shapekeys, we only feed them through the modifier stack as needed,
 	  e.g. for applying modifiers or the like*/
-	flag &= ~CD_SHAPEKEY;
-	CustomData_merge(&em->bm->vdata, &dm->vertData, flag,
+	mask &= ~CD_MASK_SHAPEKEY;
+	CustomData_merge(&bm->vdata, &dm->vertData, mask,
 	                 CD_CALLOC, dm->numVertData);
-	CustomData_merge(&em->bm->edata, &dm->edgeData, flag,
+	CustomData_merge(&bm->edata, &dm->edgeData, mask,
 	                 CD_CALLOC, dm->numEdgeData);
-	CustomData_merge(&em->bm->ldata, &dm->loopData, flag,
+	CustomData_merge(&bm->ldata, &dm->loopData, mask,
 	                 CD_CALLOC, dm->numLoopData);
-	CustomData_merge(&em->bm->pdata, &dm->polyData, flag,
+	CustomData_merge(&bm->pdata, &dm->polyData, mask,
 	                 CD_CALLOC, dm->numPolyData);
 	
 	/*add tesselation mface layers*/
@@ -2056,7 +2056,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
-	BM_ElemIndex_Ensure(em->bm, BM_FACE);
+	BM_ElemIndex_Ensure(bm, BM_FACE);
 
 	polyindex = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
 	index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
