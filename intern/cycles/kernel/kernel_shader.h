@@ -151,7 +151,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 			instanced = true;
 		else
 #endif
-			sd->object = -sd->object-1;
+			sd->object = ~sd->object;
 #ifdef __INSTANCING__
 	}
 #endif
