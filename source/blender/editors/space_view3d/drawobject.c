@@ -2759,10 +2759,14 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					mul_mat3_m4_v3(ob->obmat, v1);
 					mul_mat3_m4_v3(ob->obmat, v2);
 				}
-				if(unit->system)
-					bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
-				else
+
+				if(unit->system) {
+					bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
+					               unit->system, B_UNIT_LENGTH, do_split, FALSE);
+				}
+				else {
 					sprintf(numstr, conv_float, len_v3v3(v1, v2));
+				}
 
 				view3d_cached_text_draw_add(vmid, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}

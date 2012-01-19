@@ -643,7 +643,7 @@ void RNA_api_object(StructRNA *srna)
 	parm= RNA_def_enum(func, "type", mesh_dm_info_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* weak!, no way to return dynamic string type */
-	parm= RNA_def_string(func, "result", "result", 1024, "result", "");
+	parm= RNA_def_string(func, "result", "result", 16384, "result", "");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 #endif /* NDEBUG */

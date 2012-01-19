@@ -170,7 +170,8 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	float cor[3] = {1.,1.,1.};
 	int gl_depth = 0, gl_blend = 0;
 
-	/* draw slices of smoke is adapted from c++ code authored by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
+	/* draw slices of smoke is adapted from c++ code authored
+	 * by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
 	float cv[][3] = {
 		{1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f},
 		{1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
@@ -424,7 +425,9 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 			glBegin(GL_POLYGON);
 			glColor3f(1.0, 1.0, 1.0);
 			for (i = 0; i < numpoints; i++) {
-				glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+				glTexCoord3d((points[i * 3 + 0] - min[0]) * cor[0] / size[0],
+				             (points[i * 3 + 1] - min[1]) * cor[1] / size[1],
+				             (points[i * 3 + 2] - min[2]) * cor[2] / size[2]);
 				glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
 			}
 			glEnd();
