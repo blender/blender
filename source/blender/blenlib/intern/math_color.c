@@ -337,24 +337,24 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
-void rgb_byte_to_float(const unsigned char in[3], float out[3])
+void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3])
 {
-	out[0]= ((float)in[0]) / 255.0f;
-	out[1]= ((float)in[1]) / 255.0f;
-	out[2]= ((float)in[2]) / 255.0f;
+	col_r[0]= ((float)col_ub[0]) / 255.0f;
+	col_r[1]= ((float)col_ub[1]) / 255.0f;
+	col_r[2]= ((float)col_ub[2]) / 255.0f;
 }
 
-void rgb_float_to_byte(const float in[3], unsigned char out[3])
+void rgb_float_to_uchar(unsigned char col_r[3], const float col_f[3])
 {
 	int r, g, b;
 	
-	r= (int)(in[0] * 255.0f);
-	g= (int)(in[1] * 255.0f);
-	b= (int)(in[2] * 255.0f);
+	r= (int)(col_f[0] * 255.0f);
+	g= (int)(col_f[1] * 255.0f);
+	b= (int)(col_f[2] * 255.0f);
 	
-	out[0]= (char)((r <= 0)? 0 : (r >= 255)? 255 : r);
-	out[1]= (char)((g <= 0)? 0 : (g >= 255)? 255 : g);
-	out[2]= (char)((b <= 0)? 0 : (b >= 255)? 255 : b);
+	col_r[0]= (char)((r <= 0)? 0 : (r >= 255)? 255 : r);
+	col_r[1]= (char)((g <= 0)? 0 : (g >= 255)? 255 : g);
+	col_r[2]= (char)((b <= 0)? 0 : (b >= 255)? 255 : b);
 }
 
 /* ********************************* color transforms ********************************* */
@@ -490,9 +490,9 @@ void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset)
 {
 	float rgb_float[3];
 	
-	rgb_byte_to_float(rgb, rgb_float);
+	rgb_uchar_to_float(rgb_float, rgb);
 	rgb_float_set_hue_float_offset(rgb_float, hue_offset);
-	rgb_float_to_byte(rgb_float, rgb);
+	rgb_float_to_uchar(rgb, rgb_float);
 }
 
 

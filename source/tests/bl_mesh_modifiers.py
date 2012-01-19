@@ -301,7 +301,7 @@ def mesh_vcol_add(obj, mode=0):
             face_verts = mesh_bmesh_poly_vertices(poly)
             poly_cols = mesh_bmesh_poly_elems(poly, col_list)
             for i, c in enumerate(poly_cols):
-                c.color = colors[i % 4]
+                c.color = colors_get(face_verts[i])
     else:
         for i, col in enumerate(vcol_lay.data):
             face_verts = mesh.faces[i].vertices

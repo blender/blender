@@ -186,7 +186,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 		}
 		
 		/* copy the colors over, transforming from bytes to floats */
-		rgb_byte_to_float(cp, color);
+		rgb_uchar_to_float(color, cp);
 	}
 	else {
 		// FIXME: what happens when the indention is 1 greater than what it should be (due to grouping)?

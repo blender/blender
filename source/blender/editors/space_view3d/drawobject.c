@@ -4100,7 +4100,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if(v3d->zbuf) glDepthMask(1);
 
 	if((ma) && (part->draw_col == PART_DRAW_COL_MAT)) {
-		rgb_float_to_byte(&(ma->r), tcol);
+		rgb_float_to_uchar(tcol, &(ma->r));
 		copy_v3_v3(ma_col, &ma->r);
 	}
 
@@ -6152,7 +6152,7 @@ static void drawRBpivot(bRigidBodyJointConstraint *data)
 	float curcol[4];
 	unsigned char tcol[4];
 	glGetFloatv(GL_CURRENT_COLOR, curcol);
-	rgb_float_to_byte(curcol, tcol);
+	rgb_float_to_uchar(tcol, curcol);
 	tcol[3]= 255;
 
 	eul_to_mat4(mat,&data->axX);
@@ -6775,7 +6775,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					float curcol[4];
 					unsigned char tcol[4];
 					glGetFloatv(GL_CURRENT_COLOR, curcol);
-					rgb_float_to_byte(curcol, tcol);
+					rgb_float_to_uchar(tcol, curcol);
 					tcol[3]= 255;
 					view3d_cached_text_draw_add(zero, ob->id.name+2, 10, 0, tcol);
 				}
