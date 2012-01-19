@@ -37,6 +37,7 @@ typedef enum {
 	NDOF_SpaceNavigator,
 	NDOF_SpaceExplorer,
 	NDOF_SpacePilotPro,
+	NDOF_SpaceMousePro,
 
 	// older devices
 	NDOF_SpacePilot
