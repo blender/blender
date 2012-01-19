@@ -62,32 +62,20 @@ MINLINE void linearrgb_to_srgb_v4(float srgb[4], const float linear[4])
 	srgb[3] = linear[3];
 }
 
-MINLINE void linearrgb_to_srgb_uchar3(unsigned char srgb[4], const float linear[4])
+MINLINE void linearrgb_to_srgb_uchar3(unsigned char srgb[3], const float linear[3])
 {
-	int r, g, b;
+	float srgb_f[3];
 
-	r = 255 * linearrgb_to_srgb(linear[0]);
-	g = 255 * linearrgb_to_srgb(linear[1]);
-	b = 255 * linearrgb_to_srgb(linear[2]);
-
-	srgb[0] = FTOCHAR(r);
-	srgb[1] = FTOCHAR(g);
-	srgb[2] = FTOCHAR(b);
+	linearrgb_to_srgb_v3_v3(srgb_f, linear);
+	F3TOCHAR3(srgb_f, srgb);
 }
 
 MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[4])
 {
-	int r, g, b, a;
+	float srgb_f[4];
 
-	r = 255 * linearrgb_to_srgb(linear[0]);
-	g = 255 * linearrgb_to_srgb(linear[1]);
-	b = 255 * linearrgb_to_srgb(linear[2]);
-	a = 255 * linear[3];
-
-	srgb[0] = FTOCHAR(r);
-	srgb[1] = FTOCHAR(g);
-	srgb[2] = FTOCHAR(b);
-	srgb[3] = FTOCHAR(a);
+	linearrgb_to_srgb_v4(srgb_f, linear);
+	F4TOCHAR4(srgb_f, srgb);
 }
 
 /* predivide versions to work on associated/premultipled alpha. if this should

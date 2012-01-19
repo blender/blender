@@ -91,6 +91,9 @@ MINLINE void linearrgb_to_srgb_v4(float srgb[4], const float linear[4]);
 MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4]);
 MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]);
 
+MINLINE void linearrgb_to_srgb_uchar3(unsigned char srgb[3], const float linear[3]);
+MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[4]);
+
 void BLI_init_srgb_conversion(void);
 
 /************************** Other *************************/
