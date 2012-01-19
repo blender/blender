@@ -3172,7 +3172,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 			boundInsert(&mesh_bb, mvert[ii].co);
 
 			/* for project brush calculate average normal */
-			if (brush->collision & MOD_DPAINT_COL_DIST && brush->flags & MOD_DPAINT_PROX_PROJECT) {
+			if (brush->flags & MOD_DPAINT_PROX_PROJECT) {
 				float nor[3];
 				normal_short_to_float_v3(nor, mvert[ii].no);
 				mul_mat3_m4_v3(brushOb->obmat, nor);
@@ -3182,7 +3182,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 			}
 		}
 
-		if (brush->collision & MOD_DPAINT_COL_DIST && brush->flags & MOD_DPAINT_PROX_PROJECT) {
+		if (brush->flags & MOD_DPAINT_PROX_PROJECT) {
 			mul_v3_fl(avg_brushNor, 1.0f/(float)numOfVerts);
 			/* instead of null vector use positive z */
 			if (!(MIN3(avg_brushNor[0],avg_brushNor[1],avg_brushNor[2])))
@@ -3323,7 +3323,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							if (inner_proximity && !hit_found) continue;
 
 							/* If pure distance proximity, find the nearest point on the mesh */
-							if (brush->collision != MOD_DPAINT_COL_DIST || !(brush->flags & MOD_DPAINT_PROX_PROJECT)) {
+							if (!(brush->flags & MOD_DPAINT_PROX_PROJECT)) {
 								if (BLI_bvhtree_find_nearest(treeData.tree, ray_start, &nearest, mesh_faces_nearest_point_dp, &treeData) != -1) {
 									proxDist = sqrtf(nearest.dist);
 									copy_v3_v3(hitCo, nearest.co);
