@@ -497,7 +497,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l = l->next)->v;
-			BMVert *v4 = (l)->v;
+			BMVert *v4 = (l->next)->v;
 			normal_quad_v3(f->no,v1->co, v2->co, v3->co, v4->co);
 			break;
 		}
@@ -505,7 +505,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		{
 			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
 			BMVert *v2 = (l = l->next)->v;
-			BMVert *v3 = (l)->v;
+			BMVert *v3 = (l->next)->v;
 			normal_tri_v3(f->no,v1->co, v2->co, v3->co);
 			break;
 		}
