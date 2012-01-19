@@ -92,7 +92,6 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_select_border", EVT_TWEAK_L, KM_ANY, 0, 0)->ptr, "tweak", 1);
 	
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "all", FALSE);
