@@ -875,3 +875,78 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 }
 
 /* ****************************************************** */
+
+/* **************** Border Select Tool ****************** */
+static void outliner_item_border_select(Scene *scene, SpaceOops *soops, rctf *rectf, TreeElement *te, int gesture_mode)
+{
+	TreeStoreElem *tselem= TREESTORE(te);
+
+	if (te->ys <= rectf->ymax && te->ys + UI_UNIT_Y >= rectf->ymin) {
+		if (gesture_mode == GESTURE_MODAL_SELECT) {
+			tselem->flag |= TSE_SELECTED;
+		}
+		else {
+			tselem->flag &= ~TSE_SELECTED;
+		}
+	}
+
+	/* Look at its children. */
+	if ((tselem->flag & TSE_CLOSED) == 0) {
+		for (te = te->subtree.first; te; te = te->next) {
+			outliner_item_border_select(scene, soops, rectf, te, gesture_mode);
+		}
+	}
+	return;
+}
+
+static int outliner_border_select_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	ARegion *ar= CTX_wm_region(C);
+	TreeElement *te;
+	rcti rect;
+	rctf rectf;
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+
+	for(te= soops->tree.first; te; te= te->next) {
+		outliner_item_border_select(scene, soops, &rectf, te, gesture_mode);
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_select_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Border Select";
+	ot->idname= "OUTLINER_OT_select_border";
+	ot->description= "Use box selection to select tree elements";
+
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= outliner_border_select_exec;
+	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
+
+	ot->poll= ED_operator_outliner_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* rna */
+	WM_operator_properties_gesture_border(ot, FALSE);
+}
+
+/* ****************************************************** */

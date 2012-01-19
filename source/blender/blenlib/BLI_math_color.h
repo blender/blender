@@ -101,8 +101,10 @@ void minmax_rgb(short c[3]);
 void rgb_float_set_hue_float_offset(float * rgb, float hue_offset);
 void rgb_byte_set_hue_float_offset(unsigned char * rgb, float hue_offset);
 
-void rgb_byte_to_float(const unsigned char in[3], float out[3]);
-void rgb_float_to_byte(const float in[3], unsigned char out[3]);
+void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3]);
+void rgba_uchar_to_float(float col_r[4], const unsigned char col_ub[4]);
+void rgb_float_to_uchar(unsigned char col_r[3], const float col_f[3]);
+void rgba_float_to_uchar(unsigned char col_r[4], const float col_f[4]);
 
 /***************** lift/gamma/gain / ASC-CDL conversion *****************/
 

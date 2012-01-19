@@ -1097,7 +1097,9 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	
 
 	setlinestyle(0);
+
 	UI_ThemeColor(TH_BACK);
+		
 	glRectf(x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
@@ -1109,6 +1111,13 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 #endif
 
 	setlinestyle(3);
+
+	/* outer line not to confuse with object selecton */
+	if (v3d->flag2 & V3D_LOCK_CAMERA) {
+		UI_ThemeColor(TH_REDALERT);
+		glRectf(x1i - 1, y1i - 1, x2i + 1, y2i + 1);
+	}
+
 	UI_ThemeColor(TH_WIRE);
 	glRectf(x1i, y1i, x2i, y2i);
 
@@ -2889,6 +2898,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
+
 	if (grid_unit) { /* draw below the viewport name */
 		char numstr[32]= "";
 

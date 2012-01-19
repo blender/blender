@@ -109,7 +109,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	/* triangles */
 	size_t offset = 0;
-	size_t j = 0;
+	int j = 0;
 
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
@@ -128,7 +128,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		/* sum area */
 		if(have_emission) {
 			Transform tfm = object->tfm;
-			int object_id = (mesh->transform_applied)? -j-1: j;
+			int object_id = j;
+
+			if(mesh->transform_applied)
+				object_id = ~object_id;
 
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
 				Shader *shader = scene->shaders[mesh->shader[i]];
@@ -161,9 +164,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	if(!multi_light) {
 		float lightarea = (totarea > 0.0f)? totarea/scene->lights.size(): 1.0f;
 
-		for(size_t i = 0; i < scene->lights.size(); i++, offset++) {
+		for(int i = 0; i < scene->lights.size(); i++, offset++) {
 			distribution[offset].x = totarea;
-			distribution[offset].y = __int_as_float(-i-1);
+			distribution[offset].y = __int_as_float(~(int)i);
 			distribution[offset].z = 1.0f;
 			distribution[offset].w = scene->lights[i]->size;
 			totarea += lightarea;

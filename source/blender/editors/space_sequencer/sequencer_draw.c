@@ -143,7 +143,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 		
 	case SEQ_COLOR:
 		if (colvars->col) {
-			rgb_float_to_byte(colvars->col, col);
+			rgb_float_to_uchar(col, colvars->col);
 		} else {
 			col[0] = col[1] = col[2] = 128;
 		}

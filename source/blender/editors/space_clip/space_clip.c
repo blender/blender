@@ -545,6 +545,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", DELKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", XKEY, KM_PRESS, KM_SHIFT, 0);
+
+	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }
 
 const char *clip_context_dir[]= {"edit_movieclip", NULL};

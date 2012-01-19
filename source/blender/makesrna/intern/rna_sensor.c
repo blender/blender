@@ -61,6 +61,7 @@ EnumPropertyItem sensor_type_items[] ={
 #ifdef RNA_RUNTIME
 
 #include "BKE_sca.h"
+#include "DNA_controller_types.h"
 
 static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 {
@@ -125,6 +126,19 @@ static void rna_Sensor_type_set(struct PointerRNA *ptr, int value)
 }
 
 /* Always keep in alphabetical order */
+
+static void rna_Sensor_controllers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	bSensor *sens = (bSensor *)ptr->data;
+	rna_iterator_array_begin(iter, sens->links, sizeof(bController *), (int)sens->totlinks, 0, NULL);
+}
+
+static int rna_Sensor_controllers_length(PointerRNA *ptr)
+{
+	bSensor *sens = (bSensor *)ptr->data;
+	return (int) sens->totlinks;
+}
+
 EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item= NULL;
@@ -326,6 +340,13 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_tap_set");
 	RNA_def_property_ui_text(prop, "Tap", "Trigger controllers only for an instant, even while the sensor remains true");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "links", NULL);
+	RNA_def_property_struct_type(prop, "Controller");
+	RNA_def_property_ui_text(prop, "Controllers", "The list containing the controllers connected to the sensor");
+	RNA_def_property_collection_funcs(prop, "rna_Sensor_controllers_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", "rna_Sensor_controllers_length", NULL, NULL, NULL);
+
 
 	RNA_api_sensor(srna);
 }

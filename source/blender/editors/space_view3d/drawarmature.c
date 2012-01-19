@@ -1966,7 +1966,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			unsigned char col[4];
 			float col_f[4];
 			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
-			rgb_float_to_byte(col_f, col);
+			rgb_float_to_uchar(col, col_f);
 			col[3]= 255;
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);

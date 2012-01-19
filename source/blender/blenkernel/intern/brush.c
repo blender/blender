@@ -527,7 +527,7 @@ void brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall,
 	float xy[2], rgba[4], *dstf;
 	int x, y, rowbytes, xoff, yoff, imbflag;
 	const int radius= brush_size(scene, brush);
-	char *dst, crgb[3];
+	unsigned char *dst, crgb[3];
 	const float alpha= brush_alpha(scene, brush);
 	float brush_rgb[3];
     
@@ -571,10 +571,10 @@ void brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall,
 	}
 	else {
 		float alpha_f; /* final float alpha to convert to char */
-		F3TOCHAR3(brush->rgb, crgb);
+		rgb_float_to_uchar(crgb, brush->rgb);
 
 		for (y=0; y < ibuf->y; y++) {
-			dst = (char*)ibuf->rect + y*rowbytes;
+			dst = (unsigned char *)ibuf->rect + y*rowbytes;
 
 			for (x=0; x < ibuf->x; x++, dst+=4) {
 				xy[0] = x + xoff;
@@ -590,19 +590,15 @@ void brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall,
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(scene, brush, xy, rgba, 0);
-					dst[0] = FTOCHAR(rgba[0]);
-					dst[1] = FTOCHAR(rgba[1]);
-					dst[2] = FTOCHAR(rgba[2]);
-					dst[3] = FTOCHAR(rgba[3]);
+					rgba_float_to_uchar(dst, rgba);
 				}
 				else if (texfall == 2) {
 					brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3(rgba, brush->rgb);
 					alpha_f = rgba[3] * alpha * brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
-					dst[0] = FTOCHAR(rgba[0]);
-					dst[1] = FTOCHAR(rgba[1]);
-					dst[2] = FTOCHAR(rgba[2]);
+					rgb_float_to_uchar(dst, rgba);
+
 					dst[3] = FTOCHAR(alpha_f);
 				}
 				else {
@@ -843,7 +839,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	Brush *brush= painter->brush;
 	ImBuf *ibuf, *maskibuf, *texibuf;
 	float *bf, *mf, *tf, *otf=NULL, xoff, yoff, xy[2], rgba[4];
-	char *b, *m, *t, *ot= NULL;
+	unsigned char *b, *m, *t, *ot= NULL;
 	int dotexold, origx= x, origy= y;
 	const int radius= brush_size(painter->scene, brush);
 
@@ -895,12 +891,12 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	}
 	else {
 		for (; y < h; y++) {
-			b = (char*)ibuf->rect + (y*ibuf->x + origx)*4;
-			t = (char*)texibuf->rect + (y*texibuf->x + origx)*4;
-			m = (char*)maskibuf->rect + (y*maskibuf->x + origx)*4;
+			b = (unsigned char *)ibuf->rect + (y*ibuf->x + origx)*4;
+			t = (unsigned char *)texibuf->rect + (y*texibuf->x + origx)*4;
+			m = (unsigned char *)maskibuf->rect + (y*maskibuf->x + origx)*4;
 
 			if (dotexold)
-				ot = (char*)oldtexibuf->rect + ((y - origy + yt)*oldtexibuf->x + xt)*4;
+				ot = (unsigned char *)oldtexibuf->rect + ((y - origy + yt)*oldtexibuf->x + xt)*4;
 
 			for (x=origx; x < w; x++, b+=4, m+=4, t+=4) {
 				if (dotexold) {
@@ -915,10 +911,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 					xy[1] = y + yoff;
 
 					brush_sample_tex(scene, brush, xy, rgba, 0);
-					t[0]= FTOCHAR(rgba[0]);
-					t[1]= FTOCHAR(rgba[1]);
-					t[2]= FTOCHAR(rgba[2]);
-					t[3]= FTOCHAR(rgba[3]);
+					rgba_float_to_uchar(t, rgba);
 				}
 
 				b[0] = t[0]*m[0]/255;

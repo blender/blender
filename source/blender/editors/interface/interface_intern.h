@@ -163,7 +163,7 @@ struct uiBut {
 	float hardmin, hardmax, softmin, softmax;
 	float a1, a2;
 	float aspect;
-	char col[4];
+	unsigned char col[4];
 
 	uiButHandleFunc func;
 	void *func_arg1;
