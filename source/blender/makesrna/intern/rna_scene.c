@@ -887,6 +887,7 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf
 #endif
 #endif
 
+#ifdef WITH_FFMPEG
 static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, int value)
 {
 	Scene *scene = (Scene *) ptr->id.data;
@@ -896,10 +897,9 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, int value)
 		rd->ffcodecdata.flags |= FFMPEG_LOSSLESS_OUTPUT;
 	else
 		rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
-#ifdef WITH_FFMPEG
 	ffmpeg_verify_lossless_format(rd, &rd->im_format);
-#endif
 }
+#endif
 
 static int rna_RenderSettings_active_layer_index_get(PointerRNA *ptr)
 {
