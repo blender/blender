@@ -3105,7 +3105,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 			halfway[0] = (float)dx * 0.5f + cache->initial_mouse[0];
 			halfway[1] = (float)dy * 0.5f + cache->initial_mouse[1];
 
-			if (sculpt_stroke_get_location(C, stroke, out, halfway)) {
+			if (sculpt_stroke_get_location(C, out, halfway)) {
 				copy_v3_v3(sd->anchored_location, out);
 				copy_v2_v2(sd->anchored_initial_mouse, halfway);
 				copy_v2_v2(cache->tex_mouse, halfway);
@@ -3207,8 +3207,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
    (This allows us to ignore the GL depth buffer)
    Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
-int sculpt_stroke_get_location(bContext *C, struct PaintStroke *UNUSED(stroke),
-							   float out[3], float mouse[2])
+int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2])
 {
 	ViewContext vc;
 	Object *ob;
@@ -3220,11 +3219,12 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *UNUSED(stroke),
 	SculptRaycastData srd;
 
 	view3d_set_viewcontext(C, &vc);
-	sculpt_stroke_modifiers_check(C, ob);
 	
 	ob = vc.obact;
 	ss = ob->sculpt;
 	cache = ss->cache;
+
+	sculpt_stroke_modifiers_check(C, ob);
 
 	mval[0] = mouse[0] - vc.ar->winrct.xmin;
 	mval[1] = mouse[1] - vc.ar->winrct.ymin;
@@ -3377,14 +3377,14 @@ static void sculpt_flush_update(bContext *C)
 
 /* Returns whether the mouse/stylus is over the mesh (1)
    or over the background (0) */
-static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
+static int over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float y)
 {
 	float mouse[2], co[3];
 
 	mouse[0] = x;
 	mouse[1] = y;
 
-	return sculpt_stroke_get_location(C, op->customdata, co, mouse);
+	return sculpt_stroke_get_location(C, co, mouse);
 }
 
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,

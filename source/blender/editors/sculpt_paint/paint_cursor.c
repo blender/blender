@@ -342,7 +342,7 @@ static int sculpt_get_brush_geometry(bContext* C, ViewContext *vc,
 	window[1] = y + vc->ar->winrct.ymin;
 
 	if(vc->obact->sculpt && vc->obact->sculpt->pbvh &&
-	   sculpt_stroke_get_location(C, NULL, location, window)) {
+	   sculpt_stroke_get_location(C, location, window)) {
 		*pixel_radius =
 			project_brush_radius(vc,
 								 brush_unprojected_radius(scene, brush),

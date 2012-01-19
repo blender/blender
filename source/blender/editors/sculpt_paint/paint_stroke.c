@@ -163,7 +163,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 
 	/* TODO: can remove the if statement once all modes have this */
 	if(stroke->get_location)
-		stroke->get_location(C, stroke, location, mouse);
+		stroke->get_location(C, location, mouse);
 	else
 		zero_v3(location);
 
