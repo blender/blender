@@ -530,8 +530,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		int pixel_radius, hit;
 		const float root_alpha = brush_alpha(scene, brush);
 		float visual_strength = root_alpha*root_alpha;
-		const float min_alpha = 0.20f;
-		const float max_alpha = 0.80f;
 
 		/* this is probably here so that rake takes into
 		   account the brush movements before the stroke
@@ -584,9 +582,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		/* don't show effect of strength past the soft limit */
 		if(visual_strength > 1)
 			visual_strength = 1;
-
-		outline_alpha = ((paint->flags & PAINT_SHOW_BRUSH_ON_SURFACE) ?
-		                     min_alpha + (visual_strength*(max_alpha-min_alpha)) : 0.50f);
 
 		if(sd->draw_anchored) {
 			final_radius = sd->anchored_size;
