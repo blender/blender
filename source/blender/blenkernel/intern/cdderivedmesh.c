@@ -1659,7 +1659,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
-	dm->calcNormals = CDDM_calc_normals_mapping;
+	dm->calcNormals = CDDM_calc_normals;
 	dm->recalcTesselation = CDDM_recalc_tesselation;
 
 	dm->getVertCos = cdDM_getVertCos;

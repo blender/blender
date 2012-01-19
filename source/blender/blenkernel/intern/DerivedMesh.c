@@ -362,12 +362,12 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	if ( (numTessFaces == 0) && (numPolys != 0)) {
 		dm->recalcTesselation(dm);
 
-		if (dm->getNumTessFaces(dm)) {
-			printf("warning %s: could not create tessfaces from %d polygons, dm->type=%d\n",
-			       __func__, numPolys, dm->type);
+		if (dm->getNumTessFaces(dm) != 0) {
+			/* printf("info %s: polys -> ngons calculated\n", __func__); */
 		}
 		else {
-			printf("info %s: polys -> ngons calculated\n", __func__);
+			printf("warning %s: could not create tessfaces from %d polygons, dm->type=%d\n",
+			       __func__, numPolys, dm->type);
 		}
 	}
 }
@@ -1765,7 +1765,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		if(!(cage_r && dm == *cage_r)) dm->release(dm);
 
 		CDDM_apply_vert_coords(*final_r, deformedVerts);
-		CDDM_calc_normals_mapping(*final_r);
+		CDDM_calc_normals(*final_r); /* was CDDM_calc_normals_mapping - campbell */
 	} else if (dm) {
 		*final_r = dm;
 		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
@@ -1777,6 +1777,8 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		deformedVerts = NULL;
 		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
 	}
+
+	DM_ensure_tessface(*final_r); /* BMESH_ONLY */
 
 	/* add an orco layer if needed */
 	if(dataMask & CD_MASK_ORCO)
