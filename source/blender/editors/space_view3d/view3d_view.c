@@ -120,7 +120,8 @@ struct SmoothViewStore {
 
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
-void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera, float *ofs, float *quat, float *dist, float *lens)
+void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
+                 float *ofs, float *quat, float *dist, float *lens)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
@@ -998,7 +999,8 @@ int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, fl
 }
 
 /* also exposed in previewrender.c */
-int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy, rctf *viewplane, float *clipsta, float *clipend)
+int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
+                            rctf *viewplane, float *clipsta, float *clipend)
 {
 	CameraParams params;
 
@@ -1023,7 +1025,12 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 	orth= ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend);
 	rv3d->is_persp= !orth;
 
-	//	printf("%d %d %f %f %f %f %f %f\n", winx, winy, viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax, clipsta, clipend);
+#if 0
+	printf("%s: %d %d %f %f %f %f %f %f\n", __func__, winx, winy,
+	       viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax,
+	       clipsta, clipend);
+#endif
+
 	x1= viewplane.xmin;
 	y1= viewplane.ymin;
 	x2= viewplane.xmax;

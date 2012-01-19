@@ -2091,8 +2091,8 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
-
-static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a localview without local!, was centerview() in 2.4x */
+/* like a localview without local!, was centerview() in 2.4x */
+static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -2451,9 +2451,15 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 		/* convert border to 3d coordinates */
-		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) ||
-			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
+		if ( (!gluUnProject(cent[0], cent[1], depth_close,
+		                    mats.modelview, mats.projection, (GLint *)mats.viewport,
+		                    &p[0], &p[1], &p[2])) ||
+		     (!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close,
+			                mats.modelview, mats.projection, (GLint *)mats.viewport,
+			                &p_corner[0], &p_corner[1], &p_corner[2])))
+		{
 			return OPERATOR_CANCELLED;
+		}
 
 		dvec[0] = p[0]-p_corner[0];
 		dvec[1] = p[1]-p_corner[1];
@@ -2474,7 +2480,10 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = rv3d->dist;
 
 		/* convert the drawn rectangle into 3d space */
-		if (depth_close!=FLT_MAX && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
+		if (depth_close != FLT_MAX && gluUnProject(cent[0], cent[1], depth_close,
+		                                           mats.modelview, mats.projection, (GLint *)mats.viewport,
+		                                           &p[0], &p[1], &p[2]))
+		{
 			new_ofs[0] = -p[0];
 			new_ofs[1] = -p[1];
 			new_ofs[2] = -p[2];
@@ -2608,7 +2617,9 @@ static EnumPropertyItem prop_view_items[] = {
 
 /* would like to make this a generic function - outside of transform */
 
-static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
+static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
+                          float q1, float q2, float q3, float q4,
+                          short view, int perspo, int align_active)
 {
 	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float new_quat[4];
@@ -2707,27 +2718,33 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	switch (viewnum) {
 		case RV3D_VIEW_BOTTOM :
-			axis_set_view(C, v3d, ar, 0.0, -1.0, 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.0, -1.0, 0.0, 0.0,
+			              viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, v3d, ar, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0),
+			              viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_LEFT:
-			axis_set_view(C, v3d, ar, 0.5, -0.5, 0.5, 0.5, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.5, -0.5, 0.5, 0.5,
+			              viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_TOP:
-			axis_set_view(C, v3d, ar, 1.0, 0.0, 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 1.0, 0.0, 0.0, 0.0,
+			              viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, v3d, ar, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0,
+			              viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_RIGHT:
-			axis_set_view(C, v3d, ar, 0.5, -0.5, -0.5, -0.5, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.5, -0.5, -0.5, -0.5,
+			              viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_CAMERA:
@@ -2789,7 +2806,9 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				else{
 					/* return to settings of last view */
 					/* does smooth_view too */
-					axis_set_view(C, v3d, ar, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp, 0);
+					axis_set_view(C, v3d, ar,
+					              rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3],
+					              rv3d->lview, rv3d->lpersp, 0);
 				}
 			}
 			break;
@@ -3385,7 +3404,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
-int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3] ) //, float *autodist )
+int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3])
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close= FLT_MAX;
@@ -3403,8 +3422,11 @@ int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2]
 	cent[0] = (double)mval[0];
 	cent[1] = (double)mval[1];
 
-	if (!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+	if (!gluUnProject(cent[0], cent[1], depth_close,
+	                  mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+	{
 		return 0;
+	}
 
 	mouse_worldloc[0] = (float)p[0];
 	mouse_worldloc[1] = (float)p[1];
@@ -3428,7 +3450,8 @@ int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //
 }
 
 // no 4x4 sampling, run view_autodist_init first
-int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
+int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldloc[3],
+                              int margin, float *force_depth) //, float *autodist )
 {
 	bglMats mats; /* ZBuffer depth vars, could cache? */
 	float depth;
@@ -3447,8 +3470,12 @@ int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldl
 	cent[1] = (double)mval[1];
 
 	bgl_get_mats(&mats);
-	if (!gluUnProject(cent[0], cent[1], depth, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+
+	if (!gluUnProject(cent[0], cent[1], depth,
+	    mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+	{
 		return 0;
+	}
 
 	mouse_worldloc[0] = (float)p[0];
 	mouse_worldloc[1] = (float)p[1];
@@ -3483,7 +3510,8 @@ static int depth_segment_cb(int x, int y, void *userData)
 	}
 }
 
-int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2], int margin, float *depth)
+int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2],
+                                 int margin, float *depth)
 {
 	struct { struct ARegion *ar; int margin; float depth; } data = {NULL};
 	int p1[2];

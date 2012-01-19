@@ -2695,10 +2695,14 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em, UnitSet
 					mul_mat3_m4_v3(ob->obmat, v1);
 					mul_mat3_m4_v3(ob->obmat, v2);
 				}
-				if(unit->system)
-					bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
-				else
+
+				if(unit->system) {
+					bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
+					               unit->system, B_UNIT_LENGTH, do_split, FALSE);
+				}
+				else {
 					sprintf(numstr, conv_float, len_v3v3(v1, v2));
+				}
 
 				view3d_cached_text_draw_add(vmid, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
@@ -2706,7 +2710,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em, UnitSet
 	}
 
 	if(me->drawflag & ME_DRAWEXTRA_FACEAREA) {
-// XXX		extern int faceselectedOR(EditFace *efa, int flag);		// editmesh.h shouldn't be in this file... ok for now?
+// XXX		extern int faceselectedOR(EditFace *efa, int flag); // editmesh.h shouldn't be in this file... ok for now?
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -2729,10 +2733,14 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em, UnitSet
 				else
 					area = area_tri_v3(v1, v2, v3);
 
-				if(unit->system)
-					bUnit_AsString(numstr, sizeof(numstr), area*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE); // XXX should be B_UNIT_AREA
-				else
+				if(unit->system) {
+					// XXX should be B_UNIT_AREA
+					bUnit_AsString(numstr, sizeof(numstr), area * unit->scale_length, 3,
+					               unit->system, B_UNIT_LENGTH, do_split, FALSE);
+				}
+				else {
 					sprintf(numstr, conv_float, area);
+				}
 
 				view3d_cached_text_draw_add(efa->cent, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}

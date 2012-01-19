@@ -1023,7 +1023,8 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 			break;
 	}
 
-#if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
+	// removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
+#if 0
 	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
 		View3D *v3d = area->spacedata.first;
 		BGpic *bgpic = v3d->bgpicbase.first;
@@ -1048,7 +1049,8 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
-	unsigned int lay = v3d ? v3d->lay:scene->lay; /* fallback to the scene layer, allows duplicate and other oject operators to run outside the 3d view */
+	/* fallback to the scene layer, allows duplicate and other object operators to run outside the 3d view */
+	unsigned int lay = v3d ? v3d->lay:scene->lay;
 
 	if(CTX_data_dir(member)) {
 		CTX_data_dir_set(result, view3d_context_dir);
