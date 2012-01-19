@@ -2166,17 +2166,10 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 	}
 	else {
-		char *col= (char *)(bs->rect + bs->rectx*y + x);
+		unsigned char *col= (unsigned char *)(bs->rect + bs->rectx*y + x);
 
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) &&	(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-			float srgb[3];
-			srgb[0]= linearrgb_to_srgb(shr.combined[0]);
-			srgb[1]= linearrgb_to_srgb(shr.combined[1]);
-			srgb[2]= linearrgb_to_srgb(shr.combined[2]);
-			
-			col[0]= FTOCHAR(srgb[0]);
-			col[1]= FTOCHAR(srgb[1]);
-			col[2]= FTOCHAR(srgb[2]);
+			linearrgb_to_srgb_uchar3(col, shr.combined);
 		} else {
 			col[0]= FTOCHAR(shr.combined[0]);
 			col[1]= FTOCHAR(shr.combined[1]);

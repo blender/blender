@@ -790,16 +790,14 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y, int do_manage)
 				unsigned char *tar= preview->rect+ 4*((preview->xsize*y) + x);
 				
 				if(do_manage) {
-					tar[0]= FTOCHAR(linearrgb_to_srgb(col[0]));
-					tar[1]= FTOCHAR(linearrgb_to_srgb(col[1]));
-					tar[2]= FTOCHAR(linearrgb_to_srgb(col[2]));
+					linearrgb_to_srgb_uchar4(tar, col);
 				}
 				else {
 					tar[0]= FTOCHAR(col[0]);
 					tar[1]= FTOCHAR(col[1]);
 					tar[2]= FTOCHAR(col[2]);
+					tar[3]= FTOCHAR(col[3]);
 				}
-				tar[3]= FTOCHAR(col[3]);
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);
 		}

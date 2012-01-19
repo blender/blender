@@ -103,7 +103,7 @@ static int ED_operator_uvedit_can_uv_sculpt(struct bContext *C)
 	return ED_space_image_show_uvedit(sima, obedit) && !(toolsettings->use_uv_sculpt);
 }
 
-static int ED_operator_uvmap_mesh(bContext *C)
+static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
 {
 	Object *ob= CTX_data_active_object(C);
 
