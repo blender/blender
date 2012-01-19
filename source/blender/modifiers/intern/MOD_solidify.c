@@ -204,7 +204,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						int UNUSED(isFinalCalc))
 {
 	int i;
-	DerivedMesh *result, *odm = dm;
+	DerivedMesh *result;
 	const SolidifyModifierData *smd = (SolidifyModifierData*) md;
 
 	MVert *mv, *mvert, *orig_mvert;
@@ -246,19 +246,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int defgrp_index;
 
 	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
-	
-	if (!CDDM_Check(dm)) {
-		DerivedMesh *dm2 = CDDM_copy(dm, 0);
-		dm = dm2;
-	}
-	
+
 	numLoops = dm->numLoopData;
 	newLoops = 0;
 	
-	orig_mvert = CDDM_get_verts(dm);
-	orig_medge = CDDM_get_edges(dm);
-	orig_mloop = CDDM_get_loops(dm);
-	orig_mpoly = CDDM_get_polys(dm);
+	orig_mvert = dm->getVertArray(dm);
+	orig_medge = dm->getEdgeArray(dm);
+	orig_mloop = dm->getLoopArray(dm);
+	orig_mpoly = dm->getPolyArray(dm);
 
 	if(smd->flag & MOD_SOLIDIFY_RIM) {
 		EdgeHash *edgehash = BLI_edgehash_new();
@@ -704,12 +699,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* BMESH_TODO, we only need to get vertex normals here, this is way overkill */
 		CDDM_calc_normals_mapping(result);
 	}
-	
-	if (dm != odm) {
-		dm->needsFree = 1;
-		dm->release(dm);
-	}
-	
+
 	return result;
 }
 
