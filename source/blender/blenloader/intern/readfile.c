@@ -3704,9 +3704,10 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			 *    waiting until edit mode has been entered/exited, making it easier
 			 *    to recognize problems that would otherwise only show up after edits).
 			 */
-			me->totface = mesh_recalcTesselation(
-				&me->fdata, &me->ldata, &me->pdata,
-				me->mvert, me->totface, me->totloop, me->totpoly);
+			me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata,
+			                                     me->mvert,
+			                                     me->totface, me->totloop, me->totpoly,
+			                                     TRUE);
 
 			mesh_update_customdata_pointers(me, TRUE);
 

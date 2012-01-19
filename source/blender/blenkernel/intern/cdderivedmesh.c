@@ -1582,9 +1582,10 @@ void CDDM_recalc_tesselation(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
-	dm->numTessFaceData = mesh_recalcTesselation(&dm->faceData, &dm->loopData, 
-		&dm->polyData, cddm->mvert, dm->numTessFaceData, dm->numLoopData, 
-		dm->numPolyData);
+	dm->numTessFaceData = mesh_recalcTesselation(&dm->faceData, &dm->loopData, &dm->polyData,
+	                                             cddm->mvert,
+	                                             dm->numTessFaceData, dm->numLoopData, dm->numPolyData,
+	                                             TRUE);
 
 	if (!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX)) {
 		int *polyIndex = CustomData_get_layer(&dm->faceData, CD_POLYINDEX);
@@ -2255,6 +2256,7 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 #endif
 
+
 	if (dm->numTessFaceData == 0) {
 		/* No tesselation on this mesh yet, need to calculate one */
 		CDDM_recalc_tesselation(dm);
@@ -2265,6 +2267,7 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 		CustomData_free_layers(&dm->faceData, CD_NORMAL, dm->numTessFaceData);
 	}
 
+
 	face_nors = MEM_mallocN(sizeof(float)*3*dm->numTessFaceData, "face_nors");
 	
 	/* calculate face normals */
@@ -2274,7 +2277,9 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 	                             only_face_normals);
 	
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, 
-		face_nors, dm->numTessFaceData);
+	                     face_nors, dm->numTessFaceData);
+
+
 }
 
 /* bmesh note: this matches what we have in trunk */

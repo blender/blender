@@ -1105,12 +1105,16 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			index+= 4;
 		}
 
+		/* BMESH_TODO - why is this converting from MFaces to MPoly's then tesselating?
+		 * should just make mpolys */
+
 		make_edges(me, 0);	// all edges
 		convert_mfaces_to_mpolys(me);
 
-		me->totface = mesh_recalcTesselation(
-			&me->fdata, &me->ldata, &me->pdata,
-			me->mvert, me->totface, me->totloop, me->totpoly);
+		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata,
+		                                     me->mvert,
+		                                     me->totface, me->totloop, me->totpoly,
+		                                     TRUE);
 
 		mesh_update_customdata_pointers(me, TRUE);
 	}
@@ -2212,10 +2216,13 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
   this function recreates a tesselation.
   returns number of tesselation faces.
  */
-int mesh_recalcTesselation(CustomData *fdata, 
+int mesh_recalcTesselation(CustomData *fdata,
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int UNUSED(totloop),
-                           int totpoly)
+                           int totpoly,
+                           /* when teseelating to recalcilate normals after
+                            * we can skip copying here */
+                           const int do_face_nor_cpy)
 {
 
 	/* use this to avoid locking pthread for _every_ polygon
@@ -2350,13 +2357,15 @@ int mesh_recalcTesselation(CustomData *fdata,
 
 	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
 
-	/* If polys have a normals layer, copying that to faces can help
-	 * avoid the need to recalculate normals later */
-	if (CustomData_has_layer(pdata, CD_NORMAL)) {
-		float *pnors = CustomData_get_layer(pdata, CD_NORMAL);
-		float *fnors = CustomData_add_layer(fdata, CD_NORMAL, CD_CALLOC, NULL, totface);
-		for (i=0; i<totface; i++, fnors++) {
-			copy_v3_v3(fnors, &pnors[polyIndex[i]]);
+	if (do_face_nor_cpy) {
+		/* If polys have a normals layer, copying that to faces can help
+		 * avoid the need to recalculate normals later */
+		if (CustomData_has_layer(pdata, CD_NORMAL)) {
+			float *pnors = CustomData_get_layer(pdata, CD_NORMAL);
+			float *fnors = CustomData_add_layer(fdata, CD_NORMAL, CD_CALLOC, NULL, totface);
+			for (i=0; i<totface; i++, fnors++) {
+				copy_v3_v3(fnors, &pnors[polyIndex[i]]);
+			}
 		}
 	}
 

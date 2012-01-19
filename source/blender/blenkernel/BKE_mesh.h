@@ -76,9 +76,10 @@ struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
  * if both of the above are 0, it'll use the indices of the mpolys of the MPoly
  * data in pdata, and ignore the origindex layer altogether.
  */
-int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, 
-	struct CustomData *pdata, struct MVert *mvert, int totface, 
-	int totloop, int totpoly);
+int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
+                           struct MVert *mvert,
+                           int totface, int totloop, int totpoly,
+                           const int do_face_normals);
 
 /* for forwards compat only quad->tri polys to mface, skip ngons.
  */
