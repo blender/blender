@@ -3067,6 +3067,8 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 			return 0;
 	}
 
+	/* BMESH_ONLY, deform dm may not have tessface */
+	DM_ensure_tessface(dm);
 	
 
 	if(pa_minmax==0){

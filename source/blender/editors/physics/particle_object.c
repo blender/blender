@@ -649,6 +649,10 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	else
 		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
+	/* BMESH_ONLY, deform dm may not have tessface */
+	DM_ensure_tessface(dm);
+
+
 	numverts = dm->getNumVerts (dm);
 
 	/* convert to global coordinates */

@@ -1578,14 +1578,14 @@ static void cdDM_foreachMappedFaceCenter(
 
 }
 
-void CDDM_recalc_tesselation(DerivedMesh *dm)
+void CDDM_recalc_tesselation_ex(DerivedMesh *dm, const int do_face_nor_cpy)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
 	dm->numTessFaceData = mesh_recalcTesselation(&dm->faceData, &dm->loopData, &dm->polyData,
 	                                             cddm->mvert,
 	                                             dm->numTessFaceData, dm->numLoopData, dm->numPolyData,
-	                                             TRUE);
+	                                             do_face_nor_cpy);
 
 	if (!CustomData_get_layer(&dm->faceData, CD_ORIGINDEX)) {
 		int *polyIndex = CustomData_get_layer(&dm->faceData, CD_POLYINDEX);
@@ -1597,6 +1597,11 @@ void CDDM_recalc_tesselation(DerivedMesh *dm)
 	/* Tesselation recreated faceData, and the active layer indices need to get re-propagated
 	   from loops and polys to faces */
 	CustomData_bmesh_update_active_layers(&dm->faceData, &dm->polyData, &dm->loopData);
+}
+
+void CDDM_recalc_tesselation(DerivedMesh *dm)
+{
+	CDDM_recalc_tesselation_ex(dm, TRUE);
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -2160,10 +2165,13 @@ DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
+	/* any callers that need tessface data can calculate it - campbell */
+#if 0
 	/* BMESH_TODO: Find out why this is necessary (or else find a way to remove
 	   it). If it is necessary, add a comment explaining why. */
 	CDDM_recalc_tesselation((DerivedMesh *)cddm);
-	
+#endif
+
 	return dm;
 }
 
@@ -2258,8 +2266,12 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 
 
 	if (dm->numTessFaceData == 0) {
-		/* No tesselation on this mesh yet, need to calculate one */
-		CDDM_recalc_tesselation(dm);
+		/* No tesselation on this mesh yet, need to calculate one.
+		 *
+		 * Important not to update face normals from polys since it
+		 * interfears with assigning the new normal layer in the following code.
+		 */
+		CDDM_recalc_tesselation_ex(dm, FALSE);
 	}
 	else {
 		/* A tesselation already exists, it should always have a CD_POLYINDEX */
