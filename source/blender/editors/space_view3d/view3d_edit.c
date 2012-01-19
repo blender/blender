@@ -208,10 +208,9 @@ static void view3d_boxview_clip(ScrArea *sa)
 	normal_tri_v3( clip[5],bb->vec[0], bb->vec[2], bb->vec[1]);
 
 	/* then plane equations */
-	for(val=0; val<5; val++) {
-		clip[val][3]= - clip[val][0]*bb->vec[val][0] - clip[val][1]*bb->vec[val][1] - clip[val][2]*bb->vec[val][2];
+	for(val=0; val<6; val++) {
+		clip[val][3] = -dot_v3v3(clip[val], bb->vec[val % 5]);
 	}
-	clip[5][3]= - clip[5][0]*bb->vec[0][0] - clip[5][1]*bb->vec[0][1] - clip[5][2]*bb->vec[0][2];
 
 	/* create bounding box */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
