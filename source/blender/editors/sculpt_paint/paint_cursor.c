@@ -528,8 +528,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		float location[3];
 		int pixel_radius, hit;
-		const float root_alpha = brush_alpha(scene, brush);
-		float visual_strength = root_alpha*root_alpha;
 
 		/* this is probably here so that rake takes into
 		   account the brush movements before the stroke
@@ -571,17 +569,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			outline_col = brush->sub_col;
 
 		/* only do if brush is over the mesh */
-		if(hit) {
-			/* scale the alpha by pen pressure */
-			if(sd->draw_pressure && brush_use_alpha_pressure(vc.scene, brush))
-				visual_strength *= sd->pressure_value;
-
+		if(hit)
 			paint_cursor_on_hit(sd, brush, &vc, location);
-		}
-
-		/* don't show effect of strength past the soft limit */
-		if(visual_strength > 1)
-			visual_strength = 1;
 
 		if(sd->draw_anchored) {
 			final_radius = sd->anchored_size;
