@@ -1613,11 +1613,11 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							if (col) {
 								#pragma omp parallel for schedule(static)
 								for (i=0; i<numOfFaces; i++) {
-									int j=0;
+									int j = (mface[i].v4) ? 4 : 3;
 									Material *material = give_current_material(ob, mface[i].mat_nr+1);
 
-									for (; j<((mface[i].v4)?4:3); j++) {
-										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+									while (j--) {
+										int index = *((&mface[i].v1)+j);
 
 										if (surface->preview_id == MOD_DPAINT_SURFACE_PREV_PAINT) {
 											float c[3];
@@ -1666,9 +1666,9 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
-								int j=0;
-								for (; j<((mface[i].v4)?4:3); j++) {
-									int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+								int j = (mface[i].v4) ? 4 : 3;
+								while (j--) {
+									int index = *((&mface[i].v1)+j);
 									index *= 4;
 
 									col[i*4+j].a = FTOCHAR(fcolor[index+3]);
@@ -1690,10 +1690,9 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
-								int j=0;
-
-								for (; j<((mface[i].v4)?4:3); j++) {
-									int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+								int j = (mface[i].v4) ? 4 : 3;
+								while (j--) {
+									int index = *((&mface[i].v1)+j);
 									col[i*4+j].a = 255;
 									col[i*4+j].r =
 									col[i*4+j].g =
@@ -1721,9 +1720,9 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 								#pragma omp parallel for schedule(static)
 								for (i=0; i<numOfFaces; i++) {
 									float temp_color[3];
-									int j=0;
-									for (; j<((mface[i].v4)?4:3); j++) {
-										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+									int j = (mface[i].v4) ? 4 : 3;
+									while (j--) {
+										int index = *((&mface[i].v1)+j);
 
 										weight_to_rgb(temp_color, weight[index]);
 										col[i*4+j].r = FTOCHAR(temp_color[2]);
