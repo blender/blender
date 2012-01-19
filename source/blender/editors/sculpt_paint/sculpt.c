@@ -3207,23 +3207,29 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
    (This allows us to ignore the GL depth buffer)
    Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
-int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float out[3], float mouse[2])
+int sculpt_stroke_get_location(bContext *C, struct PaintStroke *UNUSED(stroke),
+							   float out[3], float mouse[2])
 {
-	ViewContext *vc = paint_stroke_view_context(stroke);
-	Object *ob = vc->obact;
-	SculptSession *ss= ob->sculpt;
-	StrokeCache *cache= ss->cache;
+	ViewContext vc;
+	Object *ob;
+	SculptSession *ss;
+	StrokeCache *cache;
 	float ray_start[3], ray_end[3], ray_normal[3], dist;
 	float obimat[4][4];
 	float mval[2];
 	SculptRaycastData srd;
 
-	mval[0] = mouse[0] - vc->ar->winrct.xmin;
-	mval[1] = mouse[1] - vc->ar->winrct.ymin;
-
+	view3d_set_viewcontext(C, &vc);
 	sculpt_stroke_modifiers_check(C, ob);
+	
+	ob = vc.obact;
+	ss = ob->sculpt;
+	cache = ss->cache;
 
-	ED_view3d_win_to_segment_clip(vc->ar, vc->v3d, mval, ray_start, ray_end);
+	mval[0] = mouse[0] - vc.ar->winrct.xmin;
+	mval[1] = mouse[1] - vc.ar->winrct.ymin;
+
+	ED_view3d_win_to_segment_clip(vc.ar, vc.v3d, mval, ray_start, ray_end);
 
 	invert_m4_m4(obimat, ob->obmat);
 	mul_m4_v3(obimat, ray_start);
@@ -3232,7 +3238,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	sub_v3_v3v3(ray_normal, ray_end, ray_start);
 	dist= normalize_v3(ray_normal);
 
-	srd.ss = vc->obact->sculpt;
+	srd.ss = vc.obact->sculpt;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
 	srd.dist = dist;
