@@ -793,10 +793,7 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y, int do_manage)
 					linearrgb_to_srgb_uchar4(tar, col);
 				}
 				else {
-					tar[0]= FTOCHAR(col[0]);
-					tar[1]= FTOCHAR(col[1]);
-					tar[2]= FTOCHAR(col[2]);
-					tar[3]= FTOCHAR(col[3]);
+					rgba_float_to_uchar(tar, col);
 				}
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);

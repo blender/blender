@@ -2501,7 +2501,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	if (color_profile)
 		linearrgb_to_srgb_v3_v3(col, col);
 	
-	F4TOCHAR4(col, wcol->inner);
+	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
 
 	wcol->shaded = 0;
 	wcol->alpha_check = (wcol->inner[3] < 255);

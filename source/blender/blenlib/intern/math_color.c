@@ -344,6 +344,14 @@ void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3])
 	col_r[2]= ((float)col_ub[2]) / 255.0f;
 }
 
+void rgba_uchar_to_float(float col_r[4], const unsigned char col_ub[4])
+{
+	col_r[0]= ((float)col_ub[0]) / 255.0f;
+	col_r[1]= ((float)col_ub[1]) / 255.0f;
+	col_r[2]= ((float)col_ub[2]) / 255.0f;
+	col_r[3]= ((float)col_ub[3]) / 255.0f;
+}
+
 void rgb_float_to_uchar(unsigned char col_r[3], const float col_f[3])
 {
 	int r, g, b;
@@ -355,6 +363,21 @@ void rgb_float_to_uchar(unsigned char col_r[3], const float col_f[3])
 	col_r[0]= (char)((r <= 0)? 0 : (r >= 255)? 255 : r);
 	col_r[1]= (char)((g <= 0)? 0 : (g >= 255)? 255 : g);
 	col_r[2]= (char)((b <= 0)? 0 : (b >= 255)? 255 : b);
+}
+
+void rgba_float_to_uchar(unsigned char col_r[4], const float col_f[4])
+{
+	int r, g, b, a;
+
+	r= (int)(col_f[0] * 255.0f);
+	g= (int)(col_f[1] * 255.0f);
+	b= (int)(col_f[2] * 255.0f);
+	a= (int)(col_f[3] * 255.0f);
+
+	col_r[0]= (char)((r <= 0)? 0 : (r >= 255)? 255 : r);
+	col_r[1]= (char)((g <= 0)? 0 : (g >= 255)? 255 : g);
+	col_r[2]= (char)((b <= 0)? 0 : (b >= 255)? 255 : b);
+	col_r[3]= (char)((a <= 0)? 0 : (a >= 255)? 255 : a);
 }
 
 /* ********************************* color transforms ********************************* */

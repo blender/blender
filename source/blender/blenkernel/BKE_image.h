@@ -186,7 +186,7 @@ void BKE_image_merge(struct Image *dest, struct Image *source);
 int BKE_image_has_alpha(struct Image *image);
 
 /* image_gen.c */
-void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, float color[4]);
+void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, const float color[4]);
 void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);
 void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, int height, int width);
 

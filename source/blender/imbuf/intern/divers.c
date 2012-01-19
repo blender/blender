@@ -164,19 +164,6 @@ MINLINE unsigned char dither_value(unsigned short v_in, DitherContext *di, int i
 
 /************************* Generic Buffer Conversion *************************/
 
-MINLINE void byte_to_float_v4(float f[4], const uchar b[4])
-{
-	f[0]= b[0] * (1.0f/255.0f);
-	f[1]= b[1] * (1.0f/255.0f);
-	f[2]= b[2] * (1.0f/255.0f);
-	f[3]= b[3] * (1.0f/255.0f);
-}
-
-MINLINE void float_to_byte_v4(uchar b[4], const float f[4])
-{
-	F4TOCHAR4(f, b);
-}
-
 MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
 {
 	b[0]= USHORTTOUCHAR(us[0]);
@@ -233,7 +220,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 			if(profile_to == profile_from) {
 				/* no color space conversion */
 				for(x = 0; x < width; x++, from+=3, to+=4) {
-					F3TOCHAR3(from, to);
+					rgb_float_to_uchar(to, from);
 					to[3] = 255;
 				}
 			}
@@ -241,7 +228,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				/* convert from linear to sRGB */
 				for(x = 0; x < width; x++, from+=3, to+=4) {
 					linearrgb_to_srgb_v3_v3(tmp, from);
-					F3TOCHAR3(tmp, to);
+					rgb_float_to_uchar(to, tmp);
 					to[3] = 255;
 				}
 			}
@@ -249,7 +236,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				/* convert from sRGB to linear */
 				for(x = 0; x < width; x++, from+=3, to+=4) {
 					srgb_to_linearrgb_v3_v3(tmp, from);
-					F3TOCHAR3(tmp, to);
+					rgb_float_to_uchar(to, tmp);
 					to[3] = 255;
 				}
 			}
@@ -267,7 +254,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				}
 				else {
 					for(x = 0; x < width; x++, from+=4, to+=4)
-						float_to_byte_v4(to, from);
+						rgba_float_to_uchar(to, from);
 				}
 			}
 			else if(profile_to == IB_PROFILE_SRGB) {
@@ -316,13 +303,13 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				else if(predivide) {
 					for(x = 0; x < width; x++, from+=4, to+=4) {
 						srgb_to_linearrgb_predivide_v4(tmp, from);
-						float_to_byte_v4(to, tmp);
+						rgba_float_to_uchar(to, tmp);
 					}
 				}
 				else {
 					for(x = 0; x < width; x++, from+=4, to+=4) {
 						srgb_to_linearrgb_v4(tmp, from);
-						float_to_byte_v4(to, tmp);
+						rgba_float_to_uchar(to, tmp);
 					}
 				}
 			}
@@ -358,7 +345,7 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 		if(profile_to == profile_from) {
 			/* no color space conversion */
 			for(x = 0; x < width; x++, from+=4, to+=4)
-				byte_to_float_v4(to, from);
+				rgba_uchar_to_float(to, from);
 		}
 		else if(profile_to == IB_PROFILE_LINEAR_RGB) {
 			/* convert sRGB to linear */
@@ -377,13 +364,13 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 			/* convert linear to sRGB */
 			if(predivide) {
 				for(x = 0; x < width; x++, from+=4, to+=4) {
-					byte_to_float_v4(tmp, from);
+					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_predivide_v4(to, tmp);
 				}
 			}
 			else {
 				for(x = 0; x < width; x++, from+=4, to+=4) {
-					byte_to_float_v4(tmp, from);
+					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_v4(to, tmp);
 				}
 			}
@@ -502,16 +489,16 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 			/* convert to sRGB to linear */
 			if(predivide) {
 				for(x = 0; x < width; x++, from+=4, to+=4) {
-					byte_to_float_v4(tmp, from);
+					rgba_uchar_to_float(tmp, from);
 					srgb_to_linearrgb_predivide_v4(tmp, tmp);
-					float_to_byte_v4(to, tmp);
+					rgba_float_to_uchar(to, tmp);
 				}
 			}
 			else {
 				for(x = 0; x < width; x++, from+=4, to+=4) {
-					byte_to_float_v4(tmp, from);
+					rgba_uchar_to_float(tmp, from);
 					srgb_to_linearrgb_v4(tmp, tmp);
-					float_to_byte_v4(to, tmp);
+					rgba_float_to_uchar(to, tmp);
 				}
 			}
 		}
@@ -519,16 +506,16 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 			/* convert from linear to sRGB */
 			if(predivide) {
 				for(x = 0; x < width; x++, from+=4, to+=4) {
-					byte_to_float_v4(tmp, from);
+					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_predivide_v4(tmp, tmp);
-					float_to_byte_v4(to, tmp);
+					rgba_float_to_uchar(to, tmp);
 				}
 			}
 			else {
 				for(x = 0; x < width; x++, from+=4, to+=4) {
-					byte_to_float_v4(tmp, from);
+					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_v4(tmp, tmp);
-					float_to_byte_v4(to, tmp);
+					rgba_float_to_uchar(to, tmp);
 				}
 			}
 		}

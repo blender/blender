@@ -2170,10 +2170,9 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) &&	(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
 			linearrgb_to_srgb_uchar3(col, shr.combined);
-		} else {
-			col[0]= FTOCHAR(shr.combined[0]);
-			col[1]= FTOCHAR(shr.combined[1]);
-			col[2]= FTOCHAR(shr.combined[2]);
+		}
+		else {
+			rgb_float_to_uchar(col, shr.combined);
 		}
 		
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
@@ -2205,9 +2204,7 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 		col[3]= 1.0f;
 	} else {	
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
-		col[0]= FTOCHAR(disp);
-		col[1]= FTOCHAR(disp);
-		col[2]= FTOCHAR(disp);
+		col[0] = col[1] = col[2] = FTOCHAR(disp);
 		col[3]= 255;
 	}
 	if (bs->rect_mask) {

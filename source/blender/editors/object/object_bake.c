@@ -807,10 +807,8 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 
 		ibuf->userflags= IB_RECT_INVALID;
 	} else {
-		char *rrgb= (char*)ibuf->rect + pixel*4;
-		rrgb[0]= FTOCHAR(vec[0]);
-		rrgb[1]= FTOCHAR(vec[1]);
-		rrgb[2]= FTOCHAR(vec[2]);
+		unsigned char *rrgb= (unsigned char *)ibuf->rect + pixel*4;
+		rgb_float_to_uchar(rrgb, vec);
 		rrgb[3]= 255;
 	}
 }
