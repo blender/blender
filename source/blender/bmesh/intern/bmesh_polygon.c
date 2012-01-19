@@ -488,37 +488,44 @@ void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
 
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 {
-	BMIter iter;
 	BMLoop *l;
 
-	if(f->len > 4) {
-		int i = 0;
-		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			copy_v3_v3(projectverts[i], l->v->co);
-			i += 1;
+	/* common cases first */
+	switch (f->len) {
+		case 4:
+		{
+			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v2 = (l = l->next)->v;
+			BMVert *v3 = (l = l->next)->v;
+			BMVert *v4 = (l)->v;
+			normal_quad_v3(f->no,v1->co, v2->co, v3->co, v4->co);
+			break;
 		}
-
-		compute_poly_normal(f->no, projectverts, f->len);	
+		case 3:
+		{
+			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v2 = (l = l->next)->v;
+			BMVert *v3 = (l)->v;
+			normal_tri_v3(f->no,v1->co, v2->co, v3->co);
+			break;
+		}
+		case 0:
+		{
+			zero_v3(f->no);
+			break;
+		}
+		default:
+		{
+			BMIter iter;
+			int i = 0;
+			BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+				copy_v3_v3(projectverts[i], l->v->co);
+				i += 1;
+			}
+			compute_poly_normal(f->no, projectverts, f->len);
+			break;
+		}
 	}
-	else if(f->len == 3) {
-		BMVert *v1, *v2, *v3;
-		v1 = bm_firstfaceloop(f)->v;
-		v2 = bm_firstfaceloop(f)->next->v;
-		v3 = bm_firstfaceloop(f)->next->next->v;
-		normal_tri_v3( f->no,v1->co, v2->co, v3->co);
-	}
-	else if(f->len == 4) {
-		BMVert *v1, *v2, *v3, *v4;
-		v1 = bm_firstfaceloop(f)->v;
-		v2 = bm_firstfaceloop(f)->next->v;
-		v3 = bm_firstfaceloop(f)->next->next->v;
-		v4 = bm_firstfaceloop(f)->prev->v;
-		normal_quad_v3( f->no,v1->co, v2->co, v3->co, v4->co);
-	}
-	else { /*horrible, two sided face!*/
-		zero_v3(f->no);
-	}
-
 }
 
 
