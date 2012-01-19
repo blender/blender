@@ -2363,8 +2363,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 		if (CustomData_has_layer(pdata, CD_NORMAL)) {
 			float *pnors = CustomData_get_layer(pdata, CD_NORMAL);
 			float *fnors = CustomData_add_layer(fdata, CD_NORMAL, CD_CALLOC, NULL, totface);
-			for (i=0; i<totface; i++, fnors++) {
-				copy_v3_v3(fnors, &pnors[polyIndex[i]]);
+			for (i=0; i<totface; i++, fnors += 3) {
+				negate_v3_v3(fnors, pnors + (polyIndex[i] * 3));
 			}
 		}
 	}
