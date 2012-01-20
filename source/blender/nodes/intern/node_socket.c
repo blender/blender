@@ -359,8 +359,8 @@ void node_socket_convert_default_value(int to_type, void *to_default_value, int 
 		case SOCK_RGBA:
 			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = fromfloat->value;
 			break;
-		break;
 		}
+		break;
 	case SOCK_INT:
 		switch (to_type) {
 		case SOCK_FLOAT:
