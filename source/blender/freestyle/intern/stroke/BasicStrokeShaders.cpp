@@ -565,7 +565,7 @@ namespace StrokeShaders {
   int BackboneStretcherShader::shade(Stroke& stroke) const
   {
     float l=stroke.getLength2D();
-    if(l <= 50)
+    if(l <= 1e-6)
       return 0;
 
     StrokeInternal::StrokeVertexIterator v0=stroke.strokeVerticesBegin();
