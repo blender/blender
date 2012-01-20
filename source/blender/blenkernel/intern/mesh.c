@@ -42,12 +42,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"
@@ -1295,7 +1295,7 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 	
 	if (numVerts_r) *numVerts_r = numVerts;
 	for (i=0; i<numVerts; i++)
-		VECCOPY(cos[i], me->mvert[i].co);
+		copy_v3_v3(cos[i], me->mvert[i].co);
 	
 	return cos;
 }

@@ -515,6 +515,29 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 	return d;
 }
 
+MINLINE double normalize_v3_d(double n[3])
+{
+	double d= n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
+
+	/* a larger value causes normalize errors in a
+	   scaled down models with camera xtreme close */
+	if(d > 1.0e-35) {
+		double mul;
+
+		d= sqrt(d);
+		mul = 1.0 / d;
+
+		n[0] *= mul;
+		n[1] *= mul;
+		n[2] *= mul;
+	} else {
+		n[0] = n[1] = n[2] = 0;
+		d= 0.0;
+	}
+
+	return d;
+}
+
 MINLINE float normalize_v3(float n[3])
 {
 	return normalize_v3_v3(n, n);
