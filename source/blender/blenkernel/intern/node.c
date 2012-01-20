@@ -159,7 +159,6 @@ void ntreeInitTypes(bNodeTree *ntree)
 
 static bNodeSocket *make_socket(bNodeTree *UNUSED(ntree), int in_out, const char *name, int type)
 {
-	bNodeSocketType *stype= ntreeGetSocketType(type);
 	bNodeSocket *sock;
 	
 	sock= MEM_callocN(sizeof(bNodeSocket), "sock");
@@ -169,8 +168,8 @@ static bNodeSocket *make_socket(bNodeTree *UNUSED(ntree), int in_out, const char
 	sock->type= type;
 	sock->storage = NULL;
 	
-	if (stype->value_structsize > 0)
-		sock->default_value = MEM_callocN(stype->value_structsize, "default socket value");
+	sock->default_value = node_socket_make_default_value(type);
+	node_socket_init_default_value(type, sock->default_value);
 	
 	return sock;
 }
@@ -216,8 +215,7 @@ void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 	BLI_remlink(&node->inputs, sock);
 	BLI_remlink(&node->outputs, sock);
 	
-	if (sock->default_value)
-		MEM_freeN(sock->default_value);
+	node_socket_free_default_value(sock->type, sock->default_value);
 	MEM_freeN(sock);
 	
 	node->update |= NODE_UPDATE;
@@ -236,13 +234,10 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
 	}
 	
 	for (sock=node->inputs.first; sock; sock=sock->next)
-		if (sock->default_value)
-			MEM_freeN(sock->default_value);
+		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&node->inputs);
 	for (sock=node->outputs.first; sock; sock=sock->next)
-		if (sock->default_value)
-			MEM_freeN(sock->default_value);
-	
+		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&node->outputs);
 	
 	node->update |= NODE_UPDATE;
@@ -396,7 +391,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		oldsock->new_sock= sock;
 		sock->stack_index= 0;
 		
-		sock->default_value = (oldsock->default_value ? MEM_dupallocN(oldsock->default_value) : NULL);
+		sock->default_value = node_socket_make_default_value(oldsock->type);
+		node_socket_copy_default_value(oldsock->type, sock->default_value, oldsock->default_value);
 		
 		/* XXX some compositor node (e.g. image, render layers) still store
 		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
@@ -410,7 +406,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		oldsock->new_sock= sock;
 		sock->stack_index= 0;
 		
-		sock->default_value = (oldsock->default_value ? MEM_dupallocN(oldsock->default_value) : NULL);
+		sock->default_value = node_socket_make_default_value(oldsock->type);
+		node_socket_copy_default_value(oldsock->type, sock->default_value, oldsock->default_value);
 		
 		/* XXX some compositor node (e.g. image, render layers) still store
 		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
@@ -658,13 +655,15 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	for(gsock= newtree->inputs.first, oldgsock= ntree->inputs.first; gsock; gsock=gsock->next, oldgsock=oldgsock->next) {
 		oldgsock->new_sock= gsock;
 		gsock->groupsock = (oldgsock->groupsock ? oldgsock->groupsock->new_sock : NULL);
-		gsock->default_value = (oldgsock->default_value ? MEM_dupallocN(oldgsock->default_value) : NULL);
+		gsock->default_value = node_socket_make_default_value(oldgsock->type);
+		node_socket_copy_default_value(oldgsock->type, gsock->default_value, oldgsock->default_value);
 	}
 	BLI_duplicatelist(&newtree->outputs, &ntree->outputs);
 	for(gsock= newtree->outputs.first, oldgsock= ntree->outputs.first; gsock; gsock=gsock->next, oldgsock=oldgsock->next) {
 		oldgsock->new_sock= gsock;
 		gsock->groupsock = (oldgsock->groupsock ? oldgsock->groupsock->new_sock : NULL);
-		gsock->default_value = (oldgsock->default_value ? MEM_dupallocN(oldgsock->default_value) : NULL);
+		gsock->default_value = node_socket_make_default_value(oldgsock->type);
+		node_socket_copy_default_value(oldgsock->type, gsock->default_value, oldgsock->default_value);
 	}
 	
 	/* copy links */
@@ -863,14 +862,12 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	
 	for (sock=node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
-		if (sock->default_value)
-			MEM_freeN(sock->default_value);
+		node_socket_free_default_value(sock->type, sock->default_value);
 		MEM_freeN(sock);
 	}
 	for (sock=node->outputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
-		if (sock->default_value)
-			MEM_freeN(sock->default_value);
+		node_socket_free_default_value(sock->type, sock->default_value);
 		MEM_freeN(sock);
 	}
 
@@ -924,12 +921,10 @@ void ntreeFreeTree(bNodeTree *ntree)
 	}
 	
 	for (sock=ntree->inputs.first; sock; sock=sock->next)
-		if (sock->default_value)
-			MEM_freeN(sock->default_value);
+		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->inputs);
 	for (sock=ntree->outputs.first; sock; sock=sock->next)
-		if (sock->default_value)
-			MEM_freeN(sock->default_value);
+		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->outputs);
 }
 

@@ -1334,7 +1334,7 @@ typedef struct ImageSampleInfo {
 	int channels;
 	int color_manage;
 
-	char col[4];
+	unsigned char col[4];
 	float colf[4];
 
 	int draw;
