@@ -96,8 +96,8 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 #else
 	(void)C; /* unused */
-#endif
 	return OPERATOR_CANCELLED;
+#endif
 }
 
 void SCRIPT_OT_reload(wmOperatorType *ot)

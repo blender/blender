@@ -912,12 +912,13 @@ static void stitch_select_uv(UvElement *element, StitchState *stitch_state, int 
 	}
 }
 
-static void stitch_calculate_edge_normal(EditMesh *em, UvEdge *edge, float *normal){
+static void stitch_calculate_edge_normal(EditMesh *em, UvEdge *edge, float *normal)
+{
 	UvElement *element = edge->element;
 	EditFace *efa = element->face;
 	MTFace *mt = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 	int nverts = efa->v4?4 : 3;
-	int index = index = (element->tfindex + 2)%nverts;
+	int index = (element->tfindex + 2)%nverts;
 	float tangent[2], internal[2];
 
 	sub_v2_v2v2(tangent, mt->uv[(element->tfindex + 1)%nverts],  mt->uv[element->tfindex]);

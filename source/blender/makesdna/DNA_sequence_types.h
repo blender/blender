@@ -353,7 +353,7 @@ typedef struct SpeedControlVars {
  */
 
 
-#define SEQ_HAS_PATH(_seq) (ELEM5((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_RAM_SOUND, SEQ_HD_SOUND))
+#define SEQ_HAS_PATH(_seq) (ELEM4((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_RAM_SOUND, SEQ_HD_SOUND))
 
 #endif
 
