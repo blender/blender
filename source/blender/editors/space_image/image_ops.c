@@ -1780,12 +1780,12 @@ typedef struct ImageSampleInfo {
 	int x, y;
 	int channels;
 
-	char col[4];
+	unsigned char col[4];
 	float colf[4];
 	int z;
 	float zf;
 
-	char *colp;
+	unsigned char *colp;
 	float *colfp;
 	int *zp;
 	float *zfp;
@@ -1820,7 +1820,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
-		char *cp;
+		unsigned char *cp;
 		int x= (int)(fx*ibuf->x), y= (int)(fy*ibuf->y);
 
 		CLAMP(x, 0, ibuf->x-1);
@@ -1837,7 +1837,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->zfp= NULL;
 		
 		if(ibuf->rect) {
-			cp= (char *)(ibuf->rect + y*ibuf->x + x);
+			cp= (unsigned char *)(ibuf->rect + y*ibuf->x + x);
 
 			info->col[0]= cp[0];
 			info->col[1]= cp[1];
