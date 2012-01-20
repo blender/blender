@@ -100,8 +100,8 @@ bNodeSocket *node_group_add_extern_socket(bNodeTree *UNUSED(ntree), ListBase *lb
 	sock->groupsock = gsock;
 	sock->limit = (in_out==SOCK_IN ? 1 : 0xFFF);
 	
-	if (gsock->default_value)
-		sock->default_value = MEM_dupallocN(gsock->default_value);
+	sock->default_value = node_socket_make_default_value(sock->type);
+	node_socket_copy_default_value(sock->type, sock->default_value, gsock->default_value);
 	
 	if(lb)
 		BLI_addtail(lb, sock);
@@ -247,177 +247,6 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 	return gnode;
 }
 
-/* XXX This is a makeshift function to have useful initial group socket values.
- * In the end this should be implemented by a flexible socket data conversion system,
- * which is yet to be implemented. The idea is that beside default standard conversions,
- * such as int-to-float, it should be possible to quickly select a conversion method or
- * a chain of conversions for each input, whenever there is more than one option.
- * E.g. a vector-to-float conversion could use either of the x/y/z components or
- * the vector length.
- *
- * In the interface this could be implemented by a pseudo-script textbox on linked inputs,
- * with quick selection from a predefined list of conversion options. Some Examples:
- * - vector component 'z' (vector->float):						"z"
- * - greyscale color (float->color):							"grey"
- * - color luminance (color->float):							"lum"
- * - matrix column 2 length (matrix->vector->float):			"col[1].len"
- * - mesh vertex coordinate 'y' (mesh->vertex->vector->float):	"vertex.co.y"
- *
- * The actual conversion is then done by a series of conversion functions,
- * which are defined in the socket type structs.
- */
-static void convert_socket_value(bNodeSocket *from, bNodeSocket *to)
-{
-	/* XXX only one of these pointers is valid! just putting them here for convenience */
-	bNodeSocketValueFloat *fromfloat= (bNodeSocketValueFloat*)from->default_value;
-	bNodeSocketValueInt *fromint= (bNodeSocketValueInt*)from->default_value;
-	bNodeSocketValueBoolean *frombool= (bNodeSocketValueBoolean*)from->default_value;
-	bNodeSocketValueVector *fromvector= (bNodeSocketValueVector*)from->default_value;
-	bNodeSocketValueRGBA *fromrgba= (bNodeSocketValueRGBA*)from->default_value;
-
-	bNodeSocketValueFloat *tofloat= (bNodeSocketValueFloat*)to->default_value;
-	bNodeSocketValueInt *toint= (bNodeSocketValueInt*)to->default_value;
-	bNodeSocketValueBoolean *tobool= (bNodeSocketValueBoolean*)to->default_value;
-	bNodeSocketValueVector *tovector= (bNodeSocketValueVector*)to->default_value;
-	bNodeSocketValueRGBA *torgba= (bNodeSocketValueRGBA*)to->default_value;
-
-	switch (from->type) {
-	case SOCK_FLOAT:
-		switch (to->type) {
-		case SOCK_FLOAT:
-			tofloat->value = fromfloat->value;
-			break;
-		case SOCK_INT:
-			toint->value = (int)fromfloat->value;
-			break;
-		case SOCK_BOOLEAN:
-			tobool->value = (fromfloat->value > 0.0f);
-			break;
-		case SOCK_VECTOR:
-			tovector->value[0] = tovector->value[1] = tovector->value[2] = fromfloat->value;
-			break;
-		case SOCK_RGBA:
-			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = fromfloat->value;
-			break;
-		}
-		break;
-	case SOCK_INT:
-		switch (to->type) {
-		case SOCK_FLOAT:
-			tofloat->value = (float)fromint->value;
-			break;
-		case SOCK_INT:
-			toint->value = fromint->value;
-			break;
-		case SOCK_BOOLEAN:
-			tobool->value = (fromint->value > 0);
-			break;
-		case SOCK_VECTOR:
-			tovector->value[0] = tovector->value[1] = tovector->value[2] = (float)fromint->value;
-			break;
-		case SOCK_RGBA:
-			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = (float)fromint->value;
-			break;
-		}
-		break;
-	case SOCK_BOOLEAN:
-		switch (to->type) {
-		case SOCK_FLOAT:
-			tofloat->value = (float)frombool->value;
-			break;
-		case SOCK_INT:
-			toint->value = (int)frombool->value;
-			break;
-		case SOCK_BOOLEAN:
-			tobool->value = frombool->value;
-			break;
-		case SOCK_VECTOR:
-			tovector->value[0] = tovector->value[1] = tovector->value[2] = (float)frombool->value;
-			break;
-		case SOCK_RGBA:
-			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = (float)frombool->value;
-			break;
-		}
-		break;
-	case SOCK_VECTOR:
-		switch (to->type) {
-		case SOCK_FLOAT:
-			tofloat->value = fromvector->value[0];
-			break;
-		case SOCK_INT:
-			toint->value = (int)fromvector->value[0];
-			break;
-		case SOCK_BOOLEAN:
-			tobool->value = (fromvector->value[0] > 0.0f);
-			break;
-		case SOCK_VECTOR:
-			copy_v3_v3(tovector->value, fromvector->value);
-			break;
-		case SOCK_RGBA:
-			copy_v3_v3(torgba->value, fromvector->value);
-			torgba->value[3] = 1.0f;
-			break;
-		}
-		break;
-	case SOCK_RGBA:
-		switch (to->type) {
-		case SOCK_FLOAT:
-			tofloat->value = fromrgba->value[0];
-			break;
-		case SOCK_INT:
-			toint->value = (int)fromrgba->value[0];
-			break;
-		case SOCK_BOOLEAN:
-			tobool->value = (fromrgba->value[0] > 0.0f);
-			break;
-		case SOCK_VECTOR:
-			copy_v3_v3(tovector->value, fromrgba->value);
-			break;
-		case SOCK_RGBA:
-			copy_v4_v4(torgba->value, fromrgba->value);
-			break;
-		}
-		break;
-	}
-}
-
-static void copy_socket_value(bNodeSocket *from, bNodeSocket *to)
-{
-	/* XXX only one of these pointers is valid! just putting them here for convenience */
-	bNodeSocketValueFloat *fromfloat= (bNodeSocketValueFloat*)from->default_value;
-	bNodeSocketValueInt *fromint= (bNodeSocketValueInt*)from->default_value;
-	bNodeSocketValueBoolean *frombool= (bNodeSocketValueBoolean*)from->default_value;
-	bNodeSocketValueVector *fromvector= (bNodeSocketValueVector*)from->default_value;
-	bNodeSocketValueRGBA *fromrgba= (bNodeSocketValueRGBA*)from->default_value;
-
-	bNodeSocketValueFloat *tofloat= (bNodeSocketValueFloat*)to->default_value;
-	bNodeSocketValueInt *toint= (bNodeSocketValueInt*)to->default_value;
-	bNodeSocketValueBoolean *tobool= (bNodeSocketValueBoolean*)to->default_value;
-	bNodeSocketValueVector *tovector= (bNodeSocketValueVector*)to->default_value;
-	bNodeSocketValueRGBA *torgba= (bNodeSocketValueRGBA*)to->default_value;
-
-	if (from->type != to->type)
-		return;
-
-	switch (from->type) {
-	case SOCK_FLOAT:
-		*tofloat = *fromfloat;
-		break;
-	case SOCK_INT:
-		*toint = *fromint;
-		break;
-	case SOCK_BOOLEAN:
-		*tobool = *frombool;
-		break;
-	case SOCK_VECTOR:
-		*tovector = *fromvector;
-		break;
-	case SOCK_RGBA:
-		*torgba = *fromrgba;
-		break;
-	}
-}
-
 /* returns 1 if its OK */
 int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 {
@@ -489,7 +318,7 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 				}
 				else {
 					/* copy the default input value from the group socket default to the external socket */
-					convert_socket_value(gsock, link->tosock);
+					node_socket_convert_default_value(link->tosock->type, link->tosock->default_value, gsock->type, gsock->default_value);
 				}
 			}
 		}
@@ -517,7 +346,7 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 			}
 			else {
 				/* copy the default input value from the group node socket default to the internal socket */
-				convert_socket_value(insock, link->tosock);
+				node_socket_convert_default_value(link->tosock->type, link->tosock->default_value, insock->type, insock->default_value);
 				nodeRemLink(wgroup, link);
 			}
 		}
@@ -600,7 +429,7 @@ bNodeSocket *node_group_expose_socket(bNodeTree *ngroup, bNodeSocket *sock, int 
 	bNodeSocket *gsock= node_group_add_socket(ngroup, sock->name, sock->type, in_out);
 	
 	/* initialize the default value. */
-	copy_socket_value(sock, gsock);
+	node_socket_copy_default_value(gsock->type, gsock->default_value, sock->default_value);
 	
 	return gsock;
 }
@@ -616,7 +445,7 @@ void node_group_expose_all_sockets(bNodeTree *ngroup)
 				gsock = node_group_add_socket(ngroup, sock->name, sock->type, SOCK_IN);
 				
 				/* initialize the default value. */
-				copy_socket_value(sock, gsock);
+				node_socket_copy_default_value(gsock->type, gsock->default_value, sock->default_value);
 				
 				sock->link = nodeAddLink(ngroup, NULL, gsock, node, sock);
 			}
@@ -626,7 +455,7 @@ void node_group_expose_all_sockets(bNodeTree *ngroup)
 				gsock = node_group_add_socket(ngroup, sock->name, sock->type, SOCK_OUT);
 				
 				/* initialize the default value. */
-				copy_socket_value(sock, gsock);
+				node_socket_copy_default_value(gsock->type, gsock->default_value, sock->default_value);
 				
 				gsock->link = nodeAddLink(ngroup, node, sock, NULL, gsock);
 			}
@@ -832,11 +661,12 @@ bNodeTemplate node_forloop_template(bNode *node)
 
 void node_forloop_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
-	/* bNodeSocket *sock; */ /* UNUSED */
+	bNodeSocket *sock;
 	
 	node->id = (ID*)ntemp->ngroup;
 	
-	/* sock = */ nodeAddInputFloat(ntree, node, "Iterations", PROP_UNSIGNED, 1, 0, 10000);
+	sock = nodeAddSocket(ntree, node, SOCK_IN, "Iterations", SOCK_FLOAT);
+	node_socket_set_default_value_float(sock->default_value, PROP_UNSIGNED, 1, 0, 10000);
 	
 	/* NB: group socket input/output roles are inverted internally!
 	 * Group "inputs" work as outputs in links and vice versa.
@@ -938,11 +768,12 @@ void node_loop_update_tree(bNodeTree *ngroup)
 
 void node_whileloop_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
-	/* bNodeSocket *sock; */ /* UNUSED */
+	bNodeSocket *sock;
 	
 	node->id = (ID*)ntemp->ngroup;
 	
-	/* sock = */ nodeAddInputFloat(ntree, node, "Condition", PROP_NONE, 1, 0, 1);
+	sock = nodeAddSocket(ntree, node, SOCK_IN, "Condition", SOCK_FLOAT);
+	node_socket_set_default_value_float(sock->default_value, PROP_NONE, 1, 0, 1);
 	
 	/* max iterations */
 	node->custom1 = 10000;
