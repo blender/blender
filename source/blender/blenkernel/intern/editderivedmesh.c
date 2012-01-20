@@ -223,6 +223,8 @@ void BMEdit_RecalcTesselation(BMEditMesh *em)
 {
 	BMEdit_RecalcTesselation_intern(em);
 
+	/* commented because editbmesh_build_data() ensures we get tessfaces */
+#if 0
 	if (em->derivedFinal && em->derivedFinal == em->derivedCage) {
 		if (em->derivedFinal->recalcTesselation)
 			em->derivedFinal->recalcTesselation(em->derivedFinal);
@@ -233,6 +235,7 @@ void BMEdit_RecalcTesselation(BMEditMesh *em)
 		if (em->derivedFinal->recalcTesselation)
 			em->derivedFinal->recalcTesselation(em->derivedFinal);
 	}
+#endif
 }
 
 void BMEdit_UpdateLinkedCustomData(BMEditMesh *em)

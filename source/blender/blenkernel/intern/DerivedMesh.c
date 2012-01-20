@@ -1776,7 +1776,12 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
 	}
 
-	DM_ensure_tessface(*final_r); /* BMESH_ONLY */
+	/* --- */
+	/* BMESH_ONLY, ensure tessface's used for drawing,
+	 * but dont recalculate if the last modifier in the stack gives us tessfaces  */
+	DM_ensure_tessface(*final_r);
+	if (cage_r && (*cage_r != *final_r)) DM_ensure_tessface(*cage_r);
+	/* --- */
 
 	/* add an orco layer if needed */
 	if(dataMask & CD_MASK_ORCO)
