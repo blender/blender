@@ -120,6 +120,7 @@ typedef struct Image {
 #define IMA_DEPRECATED		64
 #define IMA_OLD_PREMUL		128
 #define IMA_CM_PREDIVIDE	256
+#define IMA_USED_FOR_RENDER	512
 
 /* Image.tpageflag */
 #define IMA_TILES			1

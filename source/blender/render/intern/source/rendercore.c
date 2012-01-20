@@ -2440,6 +2440,11 @@ static int get_next_bake_face(BakeShade *bs)
 					if(ibuf->rect_float && !(ibuf->channels==0 || ibuf->channels==4))
 						continue;
 					
+					if(ima->flag & IMA_USED_FOR_RENDER) {
+						ima->id.flag &= ~LIB_DOIT;
+						continue;
+					}
+					
 					/* find the image for the first time? */
 					if(ima->id.flag & LIB_DOIT) {
 						ima->id.flag &= ~LIB_DOIT;
@@ -2584,7 +2589,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	BakeShade *handles;
 	ListBase threads;
 	Image *ima;
-	int a, vdone=0, usemask=0;
+	int a, vdone=0, usemask=0, result=BAKE_RESULT_OK;
 	
 	/* initialize render global */
 	R= *re;
@@ -2601,6 +2606,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
+		ima->flag&= ~IMA_USED_FOR_RENDER;
 		if(ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
 			if(ibuf->rect_float)
@@ -2659,6 +2665,9 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
+			if(ima->flag & IMA_USED_FOR_RENDER)
+				result= BAKE_RESULT_FEEDBACK_LOOP;
+
 			if(!ibuf)
 				continue;
 
@@ -2679,7 +2688,10 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	
 	BLI_end_threads(&threads);
 
-	return vdone;
+	if(vdone==0)
+		result= BAKE_RESULT_NO_OBJECTS;
+
+	return result;
 }
 
 struct Image *RE_bake_shade_get_image(void)

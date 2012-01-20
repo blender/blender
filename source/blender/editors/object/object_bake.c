@@ -1255,7 +1255,7 @@ typedef struct BakeRender {
 	Main *main;
 	Scene *scene;
 	struct Object *actob;
-	int tot, ready;
+	int result, ready;
 
 	ReportList *reports;
 
@@ -1328,7 +1328,7 @@ static void finish_bake_internal(BakeRender *bkr)
 		if(bkr->prev_r_raytrace == 0)
 			bkr->scene->r.mode &= ~R_RAYTRACE;
 
-	if(bkr->tot) {
+	if(bkr->result==BAKE_RESULT_OK) {
 		Image *ima;
 		/* force OpenGL reload and mipmap recalc */
 		for(ima= G.main->image.first; ima; ima= ima->id.next) {
@@ -1355,7 +1355,7 @@ static void *do_bake_render(void *bake_v)
 {
 	BakeRender *bkr= bake_v;
 
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->scene->r.bake_mode, bkr->actob, NULL, bkr->progress);
+	bkr->result= RE_bake_shade_all_selected(bkr->re, bkr->scene->r.bake_mode, bkr->actob, NULL, bkr->progress);
 	bkr->ready= 1;
 
 	return NULL;
@@ -1377,7 +1377,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update, float *progr
 	RE_Database_Baking(bkr->re, bmain, scene, scene->lay, scene->r.bake_mode, bkr->actob);
 
 	/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update, bkr->progress);
+	bkr->result= RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update, bkr->progress);
 }
 
 static void bake_update(void *bkv)
@@ -1396,7 +1396,11 @@ static void bake_freejob(void *bkv)
 	BakeRender *bkr= bkv;
 	finish_bake_internal(bkr);
 
-	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No objects or images found to bake to");
+	if(bkr->result==BAKE_RESULT_NO_OBJECTS)
+		BKE_report(bkr->reports, RPT_ERROR, "No objects or images found to bake to");
+	else if(bkr->result==BAKE_RESULT_FEEDBACK_LOOP)
+		BKE_report(bkr->reports, RPT_WARNING, "Feedback loop detected");
+
 	MEM_freeN(bkr);
 	G.rendering = 0;
 }
@@ -1513,7 +1517,10 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			}
 			BLI_end_threads(&threads);
 
-			if(bkr.tot==0) BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");
+			if(bkr.result==BAKE_RESULT_NO_OBJECTS)
+				BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");
+			else if(bkr.result==BAKE_RESULT_FEEDBACK_LOOP)
+				BKE_report(op->reports, RPT_ERROR, "Feedback loop detected");
 
 			finish_bake_internal(&bkr);
 
