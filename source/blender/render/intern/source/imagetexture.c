@@ -131,6 +131,8 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 			return retval;
 		
 		ibuf= BKE_image_get_ibuf(ima, &tex->iuser);
+
+		ima->flag|= IMA_USED_FOR_RENDER;
 	}
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
 		return retval;
@@ -1441,6 +1443,8 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 			return retval;
 		
 		ibuf= BKE_image_get_ibuf(ima, &tex->iuser); 
+
+		ima->flag|= IMA_USED_FOR_RENDER;
 	}
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
 		return retval;
@@ -1812,6 +1816,8 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *res
 	
 	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect-= (ibuf->x*ibuf->y);
+
+	ima->flag|= IMA_USED_FOR_RENDER;
 }
 
 void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result)

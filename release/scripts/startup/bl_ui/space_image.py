@@ -671,11 +671,11 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            self.prop_unified_size(row, context, brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            self.prop_unified_strength(row, context, brush, "strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
             
             row = col.row(align=True)
@@ -820,11 +820,11 @@ class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
             col = layout.column()
 
             row = col.row(align=True)
-            self.prop_unified_size(row, context, brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            self.prop_unified_strength(row, context, brush, "strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
             
         split = layout.split()
