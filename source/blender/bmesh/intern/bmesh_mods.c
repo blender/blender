@@ -344,10 +344,11 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
 
 BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *UNUSED(example))
 {
+	const int has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMFace *nf, *of;
 	
 	/*do we have a multires layer?*/
-	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if (has_mdisp) {
 		of = BM_Copy_Face(bm, f, 0, 0);
 	}
 	
@@ -357,8 +358,8 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 		BM_Copy_Attributes(bm, bm, f, nf);
 		copy_v3_v3(nf->no, f->no);
 	
-		/*handle multires update*/
-		if (nf != f && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		/* handle multires update */
+		if (has_mdisp && (nf != f)) {
 			BMLoop *l;
 
 			l = bm_firstfaceloop(f);

@@ -3217,6 +3217,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		if (hide) {
 			if (facemode) {
 				/*check that every UV is selected*/
+				luv = NULL;
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					if (!(luv->flag & MLOOPUV_VERTSEL))

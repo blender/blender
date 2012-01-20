@@ -149,7 +149,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 {
 	float (*coords)[3], (*co)[3];
 	MLoopUV *mloop_uv;
-	MTexPoly *mtexpoly, *mt;
+	MTexPoly *mtexpoly, *mt = NULL;
 	int i, numVerts, numPolys, numLoops;
 	Image *image = umd->image;
 	MPoly *mpoly, *mp;
