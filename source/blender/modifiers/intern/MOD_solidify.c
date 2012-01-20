@@ -696,8 +696,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if(dvert) {
-		/* BMESH_TODO, we only need to get vertex normals here, this is way overkill */
-		CDDM_calc_normals_mapping(result);
+		CDDM_calc_normals(result);
 	}
 
 	return result;

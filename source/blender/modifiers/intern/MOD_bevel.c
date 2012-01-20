@@ -195,7 +195,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);
 
-	CDDM_calc_normals_mapping(result);
+	CDDM_calc_normals(result);
 
 	return result;
 }

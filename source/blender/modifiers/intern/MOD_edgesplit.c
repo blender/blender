@@ -153,7 +153,7 @@ static DerivedMesh *applyModifier(
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
 	if(result != derivedData)
-		CDDM_calc_normals_mapping(result);
+		CDDM_calc_normals(result);
 
 	return result;
 }

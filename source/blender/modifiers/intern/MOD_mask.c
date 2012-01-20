@@ -402,7 +402,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* why is this needed? - campbell */
 	/* recalculate normals */
-	CDDM_calc_normals_mapping(result);
+	CDDM_calc_normals(result);
 	
 	/* free hashes */
 	BLI_ghash_free(vertHash, NULL, NULL);

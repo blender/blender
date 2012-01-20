@@ -906,7 +906,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
 		/* BMESH_TODO, we only need to get vertex normals here, this is way overkill */
-		CDDM_calc_normals_mapping(result);
+		CDDM_calc_normals(result);
 	}
 
 	return result;

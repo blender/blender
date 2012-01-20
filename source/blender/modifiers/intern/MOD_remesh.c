@@ -187,18 +187,18 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	MEM_freeN(output);
 
 	CDDM_calc_edges_tessface(result);
-	CDDM_calc_normals_mapping(result);
 
 	/* BMESH_TODO - create polygons */
 
 #if 0
 
+	CDDM_calc_normals(result);
 	return result;
 
 #else /* BMESH ONLY */
 
 	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	CDDM_calc_normals_mapping(dm);
+	CDDM_calc_normals(dm);
 	result->needsFree = 1;
 	result->release(result);
 

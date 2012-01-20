@@ -304,7 +304,6 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	}
 
 	CDDM_calc_edges_tessface(result);
-	CDDM_calc_normals_mapping(result);
 
 	if(psys->lattice){
 		end_latt_deform(psys->lattice);
@@ -315,6 +314,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		MEM_freeN(size);
 
 	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
+	CDDM_calc_normals(result);
 
 	return result;
 }

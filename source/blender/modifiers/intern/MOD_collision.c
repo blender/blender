@@ -132,7 +132,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		unsigned int numverts = 0;
 
 		CDDM_apply_vert_coords(dm, vertexCos);
-		CDDM_calc_normals_mapping(dm);
+		CDDM_calc_normals(dm);
 		
 		current_time = BKE_curframe(md->scene);
 		

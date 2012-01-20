@@ -1779,7 +1779,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 		}
 
 		if (update_normals)
-			CDDM_calc_normals_mapping(result);
+			CDDM_calc_normals(result);
 	}
 	/* make a copy of dm to use as brush data */
 	if (pmd->brush) {
