@@ -697,7 +697,6 @@ static void mesh_add_faces(Mesh *mesh, int len)
 
 static void mesh_remove_verts(Mesh *mesh, int len)
 {
-	CustomData vdata;
 	int totvert;
 
 	if(len == 0)
@@ -712,7 +711,6 @@ static void mesh_remove_verts(Mesh *mesh, int len)
 
 static void mesh_remove_edges(Mesh *mesh, int len)
 {
-	CustomData edata;
 	int totedge;
 
 	if(len == 0)
@@ -726,7 +724,6 @@ static void mesh_remove_edges(Mesh *mesh, int len)
 
 static void mesh_remove_faces(Mesh *mesh, int len)
 {
-	CustomData fdata;
 	int totface;
 
 	if(len == 0)
