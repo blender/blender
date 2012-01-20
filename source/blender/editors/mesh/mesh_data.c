@@ -695,6 +695,49 @@ static void mesh_add_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
+static void mesh_remove_verts(Mesh *mesh, int len)
+{
+	CustomData vdata;
+	int totvert;
+
+	if(len == 0)
+		return;
+
+	totvert= mesh->totvert - len;
+	CustomData_free_elem(&mesh->vdata, totvert, len);
+
+	/* set final vertex list size */
+	mesh->totvert= totvert;
+}
+
+static void mesh_remove_edges(Mesh *mesh, int len)
+{
+	CustomData edata;
+	int totedge;
+
+	if(len == 0)
+		return;
+
+	totedge= mesh->totedge - len;
+	CustomData_free_elem(&mesh->edata, totedge, len);
+
+	mesh->totedge= totedge;
+}
+
+static void mesh_remove_faces(Mesh *mesh, int len)
+{
+	CustomData fdata;
+	int totface;
+
+	if(len == 0)
+		return;
+
+	totface= mesh->totface - len;	/* new face count */
+	CustomData_free_elem(&mesh->fdata, totface, len);
+
+	mesh->totface= totface;
+}
+
 /*
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
@@ -740,6 +783,48 @@ void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 	}
 
 	mesh_add_verts(mesh, count);
+}
+
+void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_mesh) {
+		BKE_report(reports, RPT_ERROR, "Can't remove faces in edit mode");
+		return;
+	}
+	else if(count > mesh->totface) {
+		BKE_report(reports, RPT_ERROR, "Can't remove more faces than the mesh contains");
+		return;
+	}
+
+	mesh_remove_faces(mesh, count);
+}
+
+void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_mesh) {
+		BKE_report(reports, RPT_ERROR, "Can't remove edges in edit mode");
+		return;
+	}
+	else if(count > mesh->totedge) {
+		BKE_report(reports, RPT_ERROR, "Can't remove more edges than the mesh contains");
+		return;
+	}
+
+	mesh_remove_edges(mesh, count);
+}
+
+void ED_mesh_vertices_remove(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_mesh) {
+		BKE_report(reports, RPT_ERROR, "Can't remove vertices in edit mode");
+		return;
+	}
+	else if(count > mesh->totvert) {
+		BKE_report(reports, RPT_ERROR, "Can't remove more vertices than the mesh contains");
+		return;
+	}
+
+	mesh_remove_verts(mesh, count);
 }
 
 void ED_mesh_calc_normals(Mesh *me)

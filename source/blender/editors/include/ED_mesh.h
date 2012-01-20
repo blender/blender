@@ -235,6 +235,10 @@ void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count)
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count);
 
+void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count);
+
 void ED_mesh_transform(struct Mesh *me, float *mat);
 void ED_mesh_calc_normals(struct Mesh *me);
 void ED_mesh_material_link(struct Mesh *me, struct Material *ma);

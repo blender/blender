@@ -1699,6 +1699,10 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "add", "ED_mesh_vertices_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
+
+	func= RNA_def_function(srna, "remove", "ED_mesh_vertices_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to remove", 0, INT_MAX);
 }
 
 /* mesh.edges */
@@ -1717,7 +1721,11 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_edges_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of edges to add", 0, INT_MAX);
+
+	func= RNA_def_function(srna, "remove", "ED_mesh_edges_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of edges to remove", 0, INT_MAX);
 }
 
 /* mesh.faces */
@@ -1746,7 +1754,11 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_faces_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of faces to add", 0, INT_MAX);
+
+	func= RNA_def_function(srna, "remove", "ED_mesh_faces_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of faces to remove", 0, INT_MAX);
 }
 
 /* mesh.vertex_colors */
