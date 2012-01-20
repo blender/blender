@@ -155,6 +155,10 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
         bpy.types.World.cycles = PointerProperty(type=cls, name="Cycles World Settings", description="Cycles world settings")
+        cls.sample_as_light = BoolProperty(name="Sample as Lamp", description="Use direct light sampling for the environment, enabling for non-solid colors is recommended",
+            default=False)
+        cls.sample_map_resolution = IntProperty(name="Map Resolution", description="Importance map size is resolution x resolution; higher values potentially produce less noise, at the cost of memory and speed",
+            default=256, min=4, max=8096)
 
     @classmethod
     def unregister(cls):

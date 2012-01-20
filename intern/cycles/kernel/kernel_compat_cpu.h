@@ -141,6 +141,7 @@ template<typename T> struct texture_image  {
 };
 
 typedef texture<float4> texture_float4;
+typedef texture<float2> texture_float2;
 typedef texture<float> texture_float;
 typedef texture<uint> texture_uint;
 typedef texture<int> texture_int;

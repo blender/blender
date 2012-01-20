@@ -25,21 +25,31 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 {
 	/* setup shading at emitter */
 	ShaderData sd;
-
-	shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v);
-	ls->Ng = sd.Ng;
-
-	/* no path flag, we're evaluating this for all closures. that's weak but
-	   we'd have to do multiple evaluations otherwise */
-	shader_eval_surface(kg, &sd, rando, 0);
-	
 	float3 eval;
 
-	/* evaluate emissive closure */
-	if(sd.flag & SD_EMISSION)
-		eval = shader_emissive_eval(kg, &sd);
-	else
-		eval = make_float3(0.0f, 0.0f, 0.0f);
+	if(ls->type == LIGHT_BACKGROUND) {
+		Ray ray;
+		ray.D = ls->D;
+		ray.P = ls->P;
+		ray.dP.dx = make_float3(0.0f, 0.0f, 0.0f);
+		ray.dP.dy = make_float3(0.0f, 0.0f, 0.0f);
+		shader_setup_from_background(kg, &sd, &ray);
+		eval = shader_eval_background(kg, &sd, 0);
+	}
+	else {
+		shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v);
+		ls->Ng = sd.Ng;
+
+		/* no path flag, we're evaluating this for all closures. that's weak but
+		   we'd have to do multiple evaluations otherwise */
+		shader_eval_surface(kg, &sd, rando, 0);
+
+		/* evaluate emissive closure */
+		if(sd.flag & SD_EMISSION)
+			eval = shader_emissive_eval(kg, &sd);
+		else
+			eval = make_float3(0.0f, 0.0f, 0.0f);
+	}
 
 	shader_release(kg, &sd);
 
@@ -51,25 +61,31 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 {
 	LightSample ls;
 
+	float pdf = -1.0f;
+
 #ifdef __MULTI_LIGHT__
 	if(lindex != -1) {
 		/* sample position on a specified light */
-		light_select(kg, lindex, randu, randv, sd->P, &ls);
+		light_select(kg, lindex, randu, randv, sd->P, &ls, &pdf);
 	}
 	else
 #endif
 	{
 		/* sample a light and position on int */
-		light_sample(kg, randt, randu, randv, sd->P, &ls);
+		light_sample(kg, randt, randu, randv, sd->P, &ls, &pdf);
 	}
 
 	/* compute pdf */
-	float pdf = light_sample_pdf(kg, &ls, -ls.D, ls.t);
+	if(pdf < 0.0f)
+		pdf = light_sample_pdf(kg, &ls, -ls.D, ls.t);
+
+	if(pdf == 0.0f)
+		return false;
 
 	/* evaluate closure */
 	*eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D);
 
-	if(is_zero(*eval) || pdf == 0.0f)
+	if(is_zero(*eval))
 		return false;
 
 	/* todo: use visbility flag to skip lights */
@@ -83,7 +99,7 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 	if(is_zero(*eval))
 		return false;
 
-	if(ls.prim != ~0) {
+	if(ls.prim != ~0 || ls.type == LIGHT_BACKGROUND) {
 		/* multiple importance sampling */
 		float mis_weight = power_heuristic(pdf, bsdf_pdf);
 		*eval *= mis_weight;
@@ -125,7 +141,8 @@ __device float3 indirect_emission(KernelGlobals *kg, ShaderData *sd, float t, in
 	float3 L = shader_emissive_eval(kg, sd);
 
 	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_SAMPLE_AS_LIGHT)) {
-		/* multiple importance sampling */
+		/* multiple importance sampling, get triangle light pdf,
+		   and compute weight with respect to BSDF pdf */
 		float pdf = triangle_light_pdf(kg, sd->Ng, sd->I, t);
 		float mis_weight = power_heuristic(bsdf_pdf, pdf);
 
@@ -133,6 +150,35 @@ __device float3 indirect_emission(KernelGlobals *kg, ShaderData *sd, float t, in
 	}
 
 	return L;
+}
+
+/* Indirect Background */
+
+__device float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf)
+{
+#ifdef __BACKGROUND__
+	/* evaluate background closure */
+	ShaderData sd;
+	shader_setup_from_background(kg, &sd, ray);
+	float3 L = shader_eval_background(kg, &sd, path_flag);
+	shader_release(kg, &sd);
+
+	/* check if background light exists or if we should skip pdf */
+	int res = kernel_data.integrator.pdf_background_res;
+
+	if(!(path_flag & PATH_RAY_MIS_SKIP) && res) {
+		/* multiple importance sampling, get background light pdf for ray
+		   direction, and compute weight with respect to BSDF pdf */
+		float pdf = background_light_pdf(kg, ray->D);
+		float mis_weight = power_heuristic(bsdf_pdf, pdf);
+
+		return L*mis_weight;
+	}
+
+	return L;
+#else
+	return make_float3(0.8f, 0.8f, 0.8f);
+#endif
 }
 
 CCL_NAMESPACE_END

@@ -26,7 +26,73 @@
 #include "util_foreach.h"
 #include "util_progress.h"
 
+#include "kernel_montecarlo.h"
+
 CCL_NAMESPACE_BEGIN
+
+static void dump_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels)
+{
+	/* create input */
+	int width = res;
+	int height = res;
+
+	device_vector<uint4> d_input;
+	device_vector<float4> d_output;
+
+	uint4 *d_input_data = d_input.resize(width*height);
+
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			float u = x/(float)width;
+			float v = y/(float)height;
+			float3 D = -equirectangular_to_direction(u, v);
+
+			uint4 in = make_uint4(__float_as_int(D.x), __float_as_int(D.y), __float_as_int(D.z), 0);
+			d_input_data[x + y*width] = in;
+		}
+	}
+
+	/* compute on device */
+	float4 *d_output_data = d_output.resize(width*height);
+	memset((void*)d_output.data_pointer, 0, d_output.memory_size());
+
+	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+
+	device->mem_alloc(d_input, MEM_READ_ONLY);
+	device->mem_copy_to(d_input);
+	device->mem_alloc(d_output, MEM_WRITE_ONLY);
+
+	DeviceTask main_task(DeviceTask::SHADER);
+	main_task.shader_input = d_input.device_pointer;
+	main_task.shader_output = d_output.device_pointer;
+	main_task.shader_eval_type = SHADER_EVAL_BACKGROUND;
+	main_task.shader_x = 0;
+	main_task.shader_w = width*height;
+
+	list<DeviceTask> split_tasks;
+	main_task.split_max_size(split_tasks, 128*128);
+
+	foreach(DeviceTask& task, split_tasks) {
+		device->task_add(task);
+		device->task_wait();
+	}
+
+	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
+	device->mem_free(d_input);
+	device->mem_free(d_output);
+
+	d_output_data = reinterpret_cast<float4*>(d_output.data_pointer);
+
+	pixels.resize(width*height);
+
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			pixels[y*width + x].x = d_output_data[y*width + x].x;
+			pixels[y*width + x].y = d_output_data[y*width + x].y;
+			pixels[y*width + x].z = d_output_data[y*width + x].z;
+		}
+	}
+}
 
 /* Light */
 
@@ -43,6 +109,8 @@ Light::Light()
 	sizeu = 1.0f;
 	axisv = make_float3(0.0f, 0.0f, 0.0f);
 	sizev = 1.0f;
+
+	map_resolution = 512;
 
 	cast_shadow = true;
 	shader = 0;
@@ -66,6 +134,8 @@ LightManager::~LightManager()
 
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	progress.set_status("Updating Lights", "Computing distribution");
+
 	/* option to always sample all point lights */
 	bool multi_light = false;
 
@@ -232,6 +302,99 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		dscene->light_distribution.clear();
 }
 
+void LightManager::device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+{
+	KernelIntegrator *kintegrator = &dscene->data.integrator;
+	Light *background_light = NULL;
+
+	/* find background light */
+	foreach(Light *light, scene->lights) {
+		if(light->type == LIGHT_BACKGROUND) {
+			background_light = light;
+			break;
+		}
+	}
+
+	/* no background light found, signal renderer to skip sampling */
+	if(!background_light) {
+		kintegrator->pdf_background_res = 0;
+		return;
+	}
+
+	progress.set_status("Updating Lights", "Importance map");
+
+	assert(kintegrator->use_direct_light);
+
+	/* get the resolution from the light's size (we stuff it in there) */
+	int res = background_light->map_resolution;
+	kintegrator->pdf_background_res = res;
+
+	assert(res > 0);
+
+	vector<float3> pixels;
+	dump_background_pixels(device, dscene, res, pixels);
+
+	if(progress.get_cancel())
+		return;
+
+	/* build row distributions and column distribution for the infinite area environment light */
+	int cdf_count = res + 1;
+	float2 *marg_cdf = dscene->light_background_marginal_cdf.resize(cdf_count);
+	float2 *cond_cdf = dscene->light_background_conditional_cdf.resize(cdf_count * cdf_count);
+
+	/* conditional CDFs (rows, U direction) */
+	for(int i = 0; i < res; i++) {
+		float sin_theta = sinf(M_PI_F * (i + 0.5f) / res);
+		float3 env_color = pixels[i * res];
+		float ave_luminamce = average(env_color);
+
+		cond_cdf[i * cdf_count].x = ave_luminamce * sin_theta;
+		cond_cdf[i * cdf_count].y = 0.0f;
+
+		for(int j = 1; j < res; j++) {
+			env_color = pixels[i * res + j];
+			ave_luminamce = average(env_color);
+
+			cond_cdf[i * cdf_count + j].x = ave_luminamce * sin_theta;
+			cond_cdf[i * cdf_count + j].y = cond_cdf[i * cdf_count + j - 1].y + cond_cdf[i * cdf_count + j - 1].x / res;
+		}
+
+		float cdf_total = cond_cdf[i * cdf_count + res - 1].y + cond_cdf[i * cdf_count + res - 1].x / res;
+
+		/* stuff the total into the brightness value for the last entry, because
+		   we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
+		cond_cdf[i * cdf_count + res].x = cdf_total;
+
+		if(cdf_total > 0.0f)
+			for(int j = 1; j < res; j++)
+				cond_cdf[i * cdf_count + j].y /= cdf_total;
+
+		cond_cdf[i * cdf_count + res].y = 1.0f;
+	}
+
+	/* marginal CDFs (column, V direction, sum of rows) */
+	marg_cdf[0].x = cond_cdf[res].x;
+	marg_cdf[0].y = 0.0f;
+
+	for(int i = 1; i < res; i++) {
+		marg_cdf[i].x = cond_cdf[i * cdf_count + res].x;
+		marg_cdf[i].y = marg_cdf[i - 1].y + marg_cdf[i - 1].x / res;
+	}
+
+	float cdf_total = marg_cdf[res - 1].y + marg_cdf[res - 1].x / res;
+	marg_cdf[res].x = cdf_total;
+
+	if(cdf_total > 0.0f)
+		for(int i = 1; i < res; i++)
+			marg_cdf[i].y /= cdf_total;
+
+	marg_cdf[res].y = 1.0f;
+
+	/* update device */
+	device->tex_alloc("__light_background_marginal_cdf", dscene->light_background_marginal_cdf);
+	device->tex_alloc("__light_background_conditional_cdf", dscene->light_background_conditional_cdf);
+}
+
 void LightManager::device_update_points(Device *device, DeviceScene *dscene, Scene *scene)
 {
 	if(scene->lights.size() == 0)
@@ -264,6 +427,14 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[i*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			light_data[i*LIGHT_SIZE + 3] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
+		else if(light->type == LIGHT_BACKGROUND) {
+			shader_id &= ~SHADER_AREA_LIGHT;
+
+			light_data[i*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), 0.0f, 0.0f, 0.0f);
+			light_data[i*LIGHT_SIZE + 1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+			light_data[i*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+			light_data[i*LIGHT_SIZE + 3] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
 		else if(light->type == LIGHT_AREA) {
 			float3 axisu = light->axisu*(light->sizeu*light->size);
 			float3 axisv = light->axisv*(light->sizev*light->size);
@@ -291,6 +462,9 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 	device_update_distribution(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
 
+	device_update_background(device, dscene, scene, progress);
+	if(progress.get_cancel()) return;
+
 	need_update = false;
 }
 
@@ -298,9 +472,13 @@ void LightManager::device_free(Device *device, DeviceScene *dscene)
 {
 	device->tex_free(dscene->light_distribution);
 	device->tex_free(dscene->light_data);
+	device->tex_free(dscene->light_background_marginal_cdf);
+	device->tex_free(dscene->light_background_conditional_cdf);
 
 	dscene->light_distribution.clear();
 	dscene->light_data.clear();
+	dscene->light_background_marginal_cdf.clear();
+	dscene->light_background_conditional_cdf.clear();
 }
 
 void LightManager::tag_update(Scene *scene)

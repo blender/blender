@@ -49,7 +49,7 @@ void kernel_cpu_optimized_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffe
 
 /* Shader Evaluate */
 
-void kernel_cpu_optimized_shader(KernelGlobals *kg, uint4 *input, float3 *output, int type, int i)
+void kernel_cpu_optimized_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i)
 {
 	kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i);
 }
