@@ -1539,18 +1539,16 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	}
 #endif /* WITH_GAMEENGINE */
 
-
 	/* --------------------------------------------------------------------- */
+	/* First calculate the polygon and vertex normals, re-tesselation
+	 * copies these into the tessface's normal layer */
+	finaldm->calcNormals(finaldm);
 	/* Re-tesselation is necessary to push render data (uvs, textures, colors)
 	 * from loops and polys onto the tessfaces. This may be currently be
 	 * redundantin cases where the render mode doesn't use these inputs, but
 	 * ideally eventually tesselation would happen on-demand, and this is one
 	 * of the primary places it would be needed. */
 	finaldm->recalcTesselation(finaldm);
-	/* if we have no modifiers applied we'lll still want the tessface normals
-	 * to be calculated from the polygon noramals,
-	 * 'CDDM_calc_normals_mapping' checks for this case - campbell */
-	finaldm->calcNormals(finaldm);
 	/* Need to watch this, it can cause issues, see bug [#29338]             */
 	/* take care with this block, we really need testing frameworks          */
 	/* --------------------------------------------------------------------- */
