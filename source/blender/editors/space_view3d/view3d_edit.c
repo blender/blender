@@ -3239,6 +3239,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		/* re initialize */
 		project_int_noclip(ar, fp, mval);
 		flip= initgrabz(rv3d, fp[0], fp[1], fp[2]);
+		(void)flip;
 	}
 
 	if(mval[0]!=IS_CLIPPED) {

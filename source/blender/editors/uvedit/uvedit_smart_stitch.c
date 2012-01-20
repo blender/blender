@@ -1067,7 +1067,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	ghi = BLI_ghashIterator_new(edgeHash);
 	total_edges = 0;
 	/* fill the edges with data */
-	for(i = 0; !BLI_ghashIterator_isDone(ghi); BLI_ghashIterator_step(ghi)){
+	for(; !BLI_ghashIterator_isDone(ghi); BLI_ghashIterator_step(ghi)){
 		UvEdge *edge = ((UvEdge *)BLI_ghashIterator_getKey(ghi));
 		if(edge->flag & STITCH_BOUNDARY){
 			total_edges++;

@@ -377,7 +377,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 			if(k1->next==NULL) k[0]=k1;
 			k1=k1->next;
 		}
-		k1= k[1];
+		/* k1= k[1]; */ /* UNUSED */
 		t[0]= k[0]->pos;
 		t[1]+= dpos;
 		t[2]= k[2]->pos + dpos;
