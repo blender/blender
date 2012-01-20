@@ -358,7 +358,8 @@ typedef struct walklist {
 	BMEdge *cure;
 } walklist;
 
-
+/* UNUSED */
+#if 0
 static short winding(float *v1, float *v2, float *v3)
 /* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
@@ -374,6 +375,7 @@ static short winding(float *v1, float *v2, float *v3)
 	}
 	return 1;
 }
+#endif
 
 #if 0 //BMESH_TODO: not implemented yet
 int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)

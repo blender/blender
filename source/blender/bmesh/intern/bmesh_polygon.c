@@ -225,7 +225,8 @@ float BM_Compute_Face_Area(BMesh *bm, BMFace *f)
 	BMLoop *l;
 	BMIter iter;
 	float (*verts)[3];
-	float area, center[3];
+	float center[3];
+	float area = 0.0f;
 	int i;
 
 	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);

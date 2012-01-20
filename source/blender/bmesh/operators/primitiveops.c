@@ -279,7 +279,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator bmop, prevop;
-	BMVert *eve, *preveve, *v1;
+	BMVert *eve, *preveve;
 	BMEdge *e;
 	BMIter iter;
 	float vec[3], mat[4][4], cmat[3][3], phi, q[4];
@@ -302,8 +302,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		eve= BM_Make_Vert(bm, vec, NULL);
 		BMO_SetFlag(bm, eve, VERT_MARK);
 
-		if(a==0) v1= eve;
-		else {
+		if(a != 0) {
 			e = BM_Make_Edge(bm, preveve, eve, NULL, 0);
 			BMO_SetFlag(bm, e, EDGE_ORIG);
 		}

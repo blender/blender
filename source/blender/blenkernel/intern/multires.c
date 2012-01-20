@@ -918,7 +918,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 {
-	DerivedMesh *ccgdm, *subsurf=NULL;
+	DerivedMesh *ccgdm = NULL, *subsurf = NULL;
 	DMGridData **gridData, **subGridData=NULL;
 	MPoly *mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	MDisps *mdisps;
@@ -1031,9 +1031,11 @@ cleanup:
 		subsurf->needsFree = 1;
 		subsurf->release(subsurf);
 	}
-	
-	ccgdm->needsFree = 1;
-	ccgdm->release(ccgdm);
+
+	if (ccgdm) {
+		ccgdm->needsFree = 1;
+		ccgdm->release(ccgdm);
+	}
 }
 
 void multires_stitch_grids(Object *ob)

@@ -472,7 +472,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	BMFace *f, *f2, **ftable = NULL;
 	BMEditSelection *ese;
 	BMIter iter, liter;
-	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
+	int allocsize[4] = {512,512,2048,512};
 	int i, j;
 
 	/*allocate a bmesh*/
@@ -487,10 +487,6 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
 	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
 	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
-
-	/*needed later*/
-	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
-	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
 	vtable= MEM_mallocN(sizeof(BMVert *) * bmold->totvert, "BM_Copy_Mesh vtable");
 	etable= MEM_mallocN(sizeof(BMEdge *) * bmold->totedge, "BM_Copy_Mesh etable");

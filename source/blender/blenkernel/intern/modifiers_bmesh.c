@@ -118,7 +118,6 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	BMIter liter;
 	BLI_array_declare(verts);
 	BLI_array_declare(edges);
-	int numTex, numCol;
 	int i, j, k, totvert, totedge, totface;
 	
 	if (em) bm = em->bm;
@@ -131,10 +130,6 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	CustomData_bmesh_merge(&dm->edgeData, &bm->edata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_EDGE);
 	CustomData_bmesh_merge(&dm->loopData, &bm->ldata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_LOOP);
 	CustomData_bmesh_merge(&dm->polyData, &bm->pdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_FACE);
-
-	/*needed later*/
-	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
-	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
