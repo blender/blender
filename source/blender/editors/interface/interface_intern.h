@@ -356,6 +356,7 @@ extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
 extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
+extern int ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value);
 
 extern void ui_set_but_default(struct bContext *C, short all);
 

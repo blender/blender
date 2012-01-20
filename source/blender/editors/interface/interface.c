@@ -1693,9 +1693,14 @@ static int ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *
 	return (BPY_button_exec(C, str_unit_convert, value, TRUE) != -1);
 }
 
-static int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double *value)
+#endif /* WITH_PYTHON */
+
+
+int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double *value)
 {
 	int ok= FALSE;
+
+#ifdef WITH_PYTHON
 
 	if(str[0] != '\0') {
 		int is_unit_but= ui_is_but_unit(but);
@@ -1718,10 +1723,16 @@ static int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, 
 		}
 	}
 
+#else /* WITH_PYTHON */
+
+	value= atof(str);
+	ok = TRUE;
+
+#endif /* WITH_PYTHON */
+
 	return ok;
 }
 
-#endif // WITH_PYTHON
 
 int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
@@ -1788,13 +1799,9 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* number editing */
 		double value;
 
-#ifdef WITH_PYTHON
 		if(ui_set_but_string_eval_num(C, but, str, &value) == FALSE) {
 			return 0;
 		}
-#else
-		value= atof(str);
-#endif // WITH_PYTHON
 
 		if(!ui_is_but_float(but)) value= (int)floor(value + 0.5);
 		if(but->type==NUMABS) value= fabs(value);

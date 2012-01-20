@@ -1115,8 +1115,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 {
 	static ColorBand but_copypaste_coba = {0};
 	char buf[UI_MAX_DRAW_STR+1]= {0};
-	double val;
-	
+
 	if(mode=='v' && but->lock)
 		return;
 
@@ -1140,17 +1139,16 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
-			if(ui_is_but_float(but))
-				BLI_snprintf(buf, sizeof(buf), "%f", ui_get_but_val(but));
-			else
-				BLI_snprintf(buf, sizeof(buf), "%d", (int)ui_get_but_val(but));
-
+			ui_get_but_string(but, buf, sizeof(buf));
 			WM_clipboard_text_set(buf, 0);
 		}
 		else {
-			if (sscanf(buf, " %lf ", &val) == 1) {
+			double val;
+
+			if (ui_set_but_string_eval_num(C, but, buf, &val)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				data->value= val;
+				ui_set_but_string(C, but, buf);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}
