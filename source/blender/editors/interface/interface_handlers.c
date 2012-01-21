@@ -4382,31 +4382,19 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 	uiBut *but = (uiBut *)arg1;
 
 	if (but->optype) {
-		char buf[512], *cpoin;
+		char shortcut_str[128];
 
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		
 		/* complex code to change name of button */
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
-		                                buf, sizeof(buf)))
+		                                shortcut_str, sizeof(shortcut_str)))
 		{
-			char *butstr_orig;
-
-			// XXX but->str changed... should not, remove the hotkey from it
-			cpoin= strchr(but->str, '|');
-			if(cpoin) *cpoin= 0;		
-
-			butstr_orig= BLI_strdup(but->str);
-			BLI_snprintf(but->strdata, sizeof(but->strdata), "%s|%s", butstr_orig, buf);
-			MEM_freeN(butstr_orig);
-			but->str= but->strdata;
-
-			ui_check_but(but);
+			ui_but_add_shortcut(but, shortcut_str, TRUE);
 		}
 		else {
-			/* shortcut was removed */
-			cpoin= strchr(but->str, '|');
-			if(cpoin) *cpoin= 0;
+			/* simply strip the shortcut */
+			ui_but_add_shortcut(but, NULL, TRUE);
 		}
 	}
 }

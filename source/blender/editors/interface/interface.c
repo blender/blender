@@ -800,11 +800,43 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 	}
 }
 
+/* XXX, this code will shorten any allocated string to 'UI_MAX_NAME_STR'
+ * since this is really long its unlikely to be an issue,
+ * but this could be supported */
+void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const short do_strip)
+{
+
+	if (do_strip) {
+		char *cpoin= strchr(but->str, '|');
+		if(cpoin) {
+			*cpoin= '\0';
+		}
+	}
+
+	/* without this, just allow stripping of the shortcut */
+	if (shortcut_str) {
+		char *butstr_orig;
+
+		if (but->str != but->strdata) {
+			butstr_orig = but->str; /* free after using as source buffer */
+		}
+		else {
+			butstr_orig = BLI_strdup(but->str);
+		}
+		BLI_snprintf(but->strdata,
+		             sizeof(but->strdata),
+		             "%s|%s",
+		             butstr_orig, shortcut_str);
+		MEM_freeN(butstr_orig);
+		but->str = but->strdata;
+		ui_check_but(but);
+	}
+}
 
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
-	char buf[512];
+	char buf[128];
 
 	/* for menu's */
 	MenuType *mt;
@@ -815,18 +847,6 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	if(block->minx != block->maxx)
 		return;
 
-
-#define UI_MENU_KEY_STR_CAT                                                   \
-	char *butstr_orig= BLI_strdup(but->str);                                  \
-	BLI_snprintf(but->strdata,                                                \
-				 sizeof(but->strdata),                                        \
-				 "%s|%s",                                                     \
-				 butstr_orig, buf);                                           \
-	MEM_freeN(butstr_orig);                                                   \
-	but->str= but->strdata;                                                   \
-	ui_check_but(but);                                                        \
-
-
 	for(but=block->buttons.first; but; but=but->next) {
 		if(but->optype) {
 			IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
@@ -834,7 +854,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
 			                                buf, sizeof(buf)))
 			{
-				UI_MENU_KEY_STR_CAT
+				ui_but_add_shortcut(but, buf, FALSE);
 			}
 		}
 		else if ((mt= uiButGetMenuType(but))) {
@@ -851,7 +871,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 			if(WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, FALSE,
 			                                buf, sizeof(buf)))
 			{
-				UI_MENU_KEY_STR_CAT
+				ui_but_add_shortcut(but, buf, FALSE);
 			}
 		}
 	}
