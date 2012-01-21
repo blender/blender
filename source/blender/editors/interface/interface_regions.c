@@ -2474,7 +2474,7 @@ static void confirm_operator(bContext *C, wmOperator *op, const char *title, con
 	char *s, buf[512];
 	
 	s= buf;
-	if (title) s+= sprintf(s, "%s%%t|%s", title, item);
+	if (title) s+= BLI_snprintf(s, sizeof(buf), "%s%%t|%s", title, item);
 	(void)s;
 	
 	handle= ui_popup_menu_create(C, NULL, NULL, NULL, NULL, buf);
