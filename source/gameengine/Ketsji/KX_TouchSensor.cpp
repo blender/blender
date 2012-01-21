@@ -321,7 +321,7 @@ PyMethodDef KX_TouchSensor::Methods[] = {
 };
 
 PyAttributeDef KX_TouchSensor::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("propName",0,100,false,KX_TouchSensor,m_touchedpropname),
+	KX_PYATTRIBUTE_STRING_RW("propName",0,MAX_PROP_NAME,false,KX_TouchSensor,m_touchedpropname),
 	KX_PYATTRIBUTE_BOOL_RW("useMaterial",KX_TouchSensor,m_bFindMaterial),
 	KX_PYATTRIBUTE_BOOL_RW("usePulseCollision",KX_TouchSensor,m_bTouchPulse),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitObject", KX_TouchSensor, pyattr_get_object_hit),

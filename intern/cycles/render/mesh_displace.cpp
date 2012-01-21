@@ -89,7 +89,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 		return false;
 	
 	/* run device task */
-	device_vector<float3> d_output;
+	device_vector<float4> d_output;
 	d_output.resize(d_input.size());
 
 	device->mem_alloc(d_input, MEM_READ_ONLY);
@@ -106,7 +106,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	device->task_add(task);
 	device->task_wait();
 
-	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float3));
+	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
 	device->mem_free(d_input);
 	device->mem_free(d_output);
 
@@ -118,7 +118,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	done.resize(mesh->verts.size(), false);
 	int k = 0;
 
-	float3 *offset = (float3*)d_output.data_pointer;
+	float4 *offset = (float4*)d_output.data_pointer;
 
 	for(size_t i = 0; i < mesh->triangles.size(); i++) {
 		Mesh::Triangle t = mesh->triangles[i];
@@ -130,7 +130,8 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 		for(int j = 0; j < 3; j++) {
 			if(!done[t.v[j]]) {
 				done[t.v[j]] = true;
-				mesh->verts[t.v[j]] += offset[k++];
+				float3 off = float4_to_float3(offset[k++]);
+				mesh->verts[t.v[j]] += off;
 			}
 		}
 	}

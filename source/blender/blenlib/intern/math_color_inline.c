@@ -62,6 +62,22 @@ MINLINE void linearrgb_to_srgb_v4(float srgb[4], const float linear[4])
 	srgb[3] = linear[3];
 }
 
+MINLINE void linearrgb_to_srgb_uchar3(unsigned char srgb[3], const float linear[3])
+{
+	float srgb_f[3];
+
+	linearrgb_to_srgb_v3_v3(srgb_f, linear);
+	F3TOCHAR3(srgb_f, srgb);
+}
+
+MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[4])
+{
+	float srgb_f[4];
+
+	linearrgb_to_srgb_v4(srgb_f, linear);
+	F4TOCHAR4(srgb_f, srgb);
+}
+
 /* predivide versions to work on associated/premultipled alpha. if this should
    be done or not depends on the background the image will be composited over,
    ideally you would never do color space conversion on an image with alpha

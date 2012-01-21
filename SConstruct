@@ -147,9 +147,8 @@ if toolset:
         env.Tool('mstoolkit', [toolpath])
     else:
         env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
-        # xxx commented out, as was supressing warnings under mingw..
-        #if env:
-        #    btools.SetupSpawn(env)
+        if env:
+            btools.SetupSpawn(env)
 else:
     if bitness==64 and platform=='win32':
         env = BlenderEnvironment(ENV = os.environ, MSVS_ARCH='amd64')

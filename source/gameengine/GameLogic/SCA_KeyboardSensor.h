@@ -111,7 +111,7 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	// KeyEvents: 
-	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList); 
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList);
 	// KeyStatus: 
 	KX_PYMETHOD_DOC_O(SCA_KeyboardSensor,getKeyStatus);
 	

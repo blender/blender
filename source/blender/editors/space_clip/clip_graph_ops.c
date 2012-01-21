@@ -68,13 +68,13 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 
 	switch(data->action) {
 		case SEL_SELECT:
-			marker->flag|= MARKER_GRAPH_SEL;
+			marker->flag|= (MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
 			break;
 		case SEL_DESELECT:
-			marker->flag&= ~MARKER_GRAPH_SEL;
+			marker->flag&= ~(MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
 			break;
 		case SEL_INVERT:
-			marker->flag^= MARKER_GRAPH_SEL;
+			marker->flag^= (MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
 			break;
 	}
 }
@@ -177,7 +177,10 @@ static int mouse_select_knot(bContext *C, float co[2], int extend)
 					clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
 				}
 
-				userdata.marker->flag|= MARKER_GRAPH_SEL;
+				if(userdata.coord==0)
+					userdata.marker->flag|= MARKER_GRAPH_SEL_X;
+				else
+					userdata.marker->flag|= MARKER_GRAPH_SEL_Y;
 
 				return 1;
 			}
@@ -335,7 +338,7 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 		while(a<act_track->markersnr) {
 			MovieTrackingMarker *marker= &act_track->markers[a];
 
-			if(marker->flag&MARKER_GRAPH_SEL)
+			if(marker->flag & (MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y))
 				clip_delete_marker(C, clip, tracksbase, act_track, marker);
 			else
 				a++;

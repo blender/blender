@@ -25,11 +25,17 @@
 # Later, we may have a way to check the results are valid.
 
 
-# ./blender.bin --factory-startup --python bl_mesh_modifiers.py
+# ./blender.bin --factory-startup --python source/tests/bl_mesh_modifiers.py
+#
 
+import math
+
+USE_QUICK_RENDER = False
+IS_BMESH = hasattr(__import__("bpy").types, "LoopColors")
 
 # -----------------------------------------------------------------------------
 # utility funcs
+
 
 def render_gl(context, filepath, shade):
 
@@ -45,6 +51,7 @@ def render_gl(context, filepath, shade):
     render = scene.render
     render.filepath = filepath
     render.image_settings.file_format = 'PNG'
+    render.image_settings.color_mode = 'RGB'
     render.use_file_extension = True
     render.use_antialiasing = False
 
@@ -55,13 +62,14 @@ def render_gl(context, filepath, shade):
 
     ctx_viewport_shade(context, shade)
 
+    #~ # stop to inspect!
+    #~ if filepath == "test_cube_shell_solidify_subsurf_wp_wire":
+        #~ assert(0)
+    #~ else:
+        #~ return
+
     bpy.ops.render.opengl(write_still=True,
                           view_context=True)
-
-
-    # stop to inspect!
-    # if filepath == "test_cube_shell_solidify_subsurf_ob_textured":
-    #     assert(0)
 
 
 def render_gl_all_modes(context, obj, filepath=""):
@@ -79,8 +87,12 @@ def render_gl_all_modes(context, obj, filepath=""):
     scene.tool_settings.mesh_select_mode = False, True, False
 
     # render
-    render_gl(context, filepath + "_ob_wire", shade='WIREFRAME')
     render_gl(context, filepath + "_ob_solid", shade='SOLID')
+
+    if USE_QUICK_RENDER:
+        return
+
+    render_gl(context, filepath + "_ob_wire", shade='WIREFRAME')
     render_gl(context, filepath + "_ob_textured", shade='TEXTURED')
 
     # -------------------------------------------------------------------------
@@ -191,12 +203,33 @@ def defaults_object(obj):
         mesh.show_normal_vertex = True
 
         # lame!
-        for face in mesh.faces:
-            face.use_smooth = True
+        if IS_BMESH:
+            for poly in mesh.polygons:
+                poly.use_smooth = True
+        else:
+            for face in mesh.faces:
+                face.use_smooth = True
+
+
+def defaults_modifier(mod):
+    mod.show_in_editmode = True
+    mod.show_on_cage = True
 
 
 # -----------------------------------------------------------------------------
 # models (utils)
+
+
+if IS_BMESH:
+    def mesh_bmesh_poly_elems(poly, elems):
+        vert_start = poly.loop_start
+        vert_total = poly.loop_total
+        return elems[vert_start:vert_start + vert_total]
+
+    def mesh_bmesh_poly_vertices(poly):
+        return [loop.vertex_index
+                for loop in mesh_bmesh_poly_elems(poly, poly.id_data.loops)]
+
 
 def mesh_bounds(mesh):
     xmin = ymin = zmin = +100000000.0
@@ -216,23 +249,67 @@ def mesh_bounds(mesh):
 
 
 def mesh_uv_add(obj):
+
+    uvs = ((0.0, 0.0),
+           (0.0, 1.0),
+           (1.0, 1.0),
+           (1.0, 0.0))
+
     uv_lay = obj.data.uv_textures.new()
-    for uv in uv_lay.data:
-        uv.uv1 = 0.0, 0.0
-        uv.uv2 = 0.0, 1.0
-        uv.uv3 = 1.0, 1.0
-        uv.uv4 = 1.0, 0.0
+
+    if IS_BMESH:
+        # XXX, odd that we need to do this. until uvs and texface
+        # are separated we will need to keep it
+        uv_loops = obj.data.uv_loop_layers[-1]
+        uv_list = uv_loops.data[:]
+        for poly in obj.data.polygons:
+            poly_uvs = mesh_bmesh_poly_elems(poly, uv_list)
+            for i, c in enumerate(poly_uvs):
+                c.uv = uvs[i % 4]
+    else:
+        for uv in uv_lay.data:
+            uv.uv1 = uvs[0]
+            uv.uv2 = uvs[1]
+            uv.uv3 = uvs[2]
+            uv.uv4 = uvs[3]
 
     return uv_lay
 
 
 def mesh_vcol_add(obj, mode=0):
+
+    colors = ((0.0, 0.0, 0.0),  # black
+              (1.0, 0.0, 0.0),  # red
+              (0.0, 1.0, 0.0),  # green
+              (0.0, 0.0, 1.0),  # blue
+              (1.0, 1.0, 0.0),  # yellow
+              (0.0, 1.0, 1.0),  # cyan
+              (1.0, 0.0, 1.0),  # magenta
+              (1.0, 1.0, 1.0),  # white
+              )
+
+    def colors_get(i):
+        return colors[i % len(colors)]
+
     vcol_lay = obj.data.vertex_colors.new()
-    for col in vcol_lay.data:
-        col.color1 = 1.0, 0.0, 0.0
-        col.color2 = 0.0, 1.0, 0.0
-        col.color3 = 0.0, 0.0, 1.0
-        col.color4 = 0.0, 0.0, 0.0
+
+    mesh = obj.data
+
+    if IS_BMESH:
+        col_list = vcol_lay.data[:]
+        for poly in mesh.polygons:
+            face_verts = mesh_bmesh_poly_vertices(poly)
+            poly_cols = mesh_bmesh_poly_elems(poly, col_list)
+            for i, c in enumerate(poly_cols):
+                c.color = colors_get(face_verts[i])
+    else:
+        for i, col in enumerate(vcol_lay.data):
+            face_verts = mesh.faces[i].vertices
+            col.color1 = colors_get(face_verts[0])
+            col.color2 = colors_get(face_verts[1])
+            col.color3 = colors_get(face_verts[2])
+            if len(face_verts) == 4:
+                col.color4 = colors_get(face_verts[3])
 
     return vcol_lay
 
@@ -268,34 +345,33 @@ def mesh_armature_add(obj, mode=0):
 # -----------------------------------------------------------------------------
 # modifiers
 
-def modifier_subsurf_add(obj, levels=2):
+def modifier_subsurf_add(scene, obj, levels=2):
     mod = obj.modifiers.new(name=whoami(), type='SUBSURF')
-    mod.show_in_editmode = True
+    defaults_modifier(mod)
 
     mod.levels = levels
     mod.render_levels = levels
     return mod
 
 
-def modifier_armature_add(obj):
+def modifier_armature_add(scene, obj):
     mod = obj.modifiers.new(name=whoami(), type='ARMATURE')
-    mod.show_in_editmode = True
+    defaults_modifier(mod)
 
     arm_data = bpy.data.armatures.new(whoami())
-    arm_ob = bpy.data.objects.new(whoami(), arm_data)
+    obj_arm = bpy.data.objects.new(whoami(), arm_data)
 
-    scene = bpy.context.scene
-    scene.objects.link(arm_ob)
+    scene.objects.link(obj_arm)
 
-    arm_ob.select = True
-    scene.objects.active = arm_ob
+    obj_arm.select = True
+    scene.objects.active = obj_arm
 
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
     # XXX, annoying, remove bone.
     while arm_data.edit_bones:
-        arm_ob.edit_bones.remove(arm_data.edit_bones[-1])
+        obj_arm.edit_bones.remove(arm_data.edit_bones[-1])
 
     bone_a = arm_data.edit_bones.new("Bone.A")
     bone_b = arm_data.edit_bones.new("Bone.B")
@@ -310,17 +386,17 @@ def modifier_armature_add(obj):
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     # 45d armature
-    arm_ob.pose.bones["Bone.B"].rotation_quaternion = 1, -0.5, 0, 0
+    obj_arm.pose.bones["Bone.B"].rotation_quaternion = 1, -0.5, 0, 0
 
     # set back to the original
     scene.objects.active = obj
 
     # display options
-    arm_ob.show_x_ray = True
+    obj_arm.show_x_ray = True
     arm_data.draw_type = 'STICK'
 
     # apply to modifier
-    mod.object = arm_ob
+    mod.object = obj_arm
 
     mesh_vgroup_add(obj, name="Bone.A", axis=0, invert=True)
     mesh_vgroup_add(obj, name="Bone.B", axis=0, invert=False)
@@ -328,18 +404,92 @@ def modifier_armature_add(obj):
     return mod
 
 
-def modifier_mirror_add(obj):
+def modifier_mirror_add(scene, obj):
     mod = obj.modifiers.new(name=whoami(), type='MIRROR')
-    mod.show_in_editmode = True
+    defaults_modifier(mod)
 
     return mod
 
 
-def modifier_solidify_add(obj, thickness=0.25):
+def modifier_solidify_add(scene, obj, thickness=0.25):
     mod = obj.modifiers.new(name=whoami(), type='SOLIDIFY')
-    mod.show_in_editmode = True
+    defaults_modifier(mod)
 
     mod.thickness = thickness
+
+    return mod
+
+
+def modifier_hook_add(scene, obj, use_vgroup=True):
+    scene.objects.active = obj
+
+    # no nice way to add hooks from py api yet
+    # assume object mode, hook first face!
+    mesh = obj.data
+
+    if use_vgroup:
+        for v in mesh.vertices:
+            v.select = True
+    else:
+        for v in mesh.vertices:
+            v.select = False
+
+        if IS_BMESH:
+            face_verts = mesh_bmesh_poly_vertices(mesh.polygons[0])
+        else:
+            face_verts = mesh.faces[0].vertices[:]
+
+        for i in mesh.faces[0].vertices:
+            mesh.vertices[i].select = True
+
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    bpy.ops.object.hook_add_newob()
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    # mod = obj.modifiers.new(name=whoami(), type='HOOK')
+    mod = obj.modifiers[-1]
+    defaults_modifier(mod)
+
+    obj_hook = mod.object
+    obj_hook.rotation_euler = 0, math.radians(45), 0
+    obj_hook.show_x_ray = True
+
+    if use_vgroup:
+        mod.vertex_group = obj.vertex_groups[0].name
+
+    return mod
+
+
+def modifier_decimate_add(scene, obj):
+    mod = obj.modifiers.new(name=whoami(), type='DECIMATE')
+    defaults_modifier(mod)
+
+    mod.ratio = 1 / 3
+
+    return mod
+
+
+def modifier_build_add(scene, obj):
+    mod = obj.modifiers.new(name=whoami(), type='BUILD')
+    defaults_modifier(mod)
+
+    # ensure we display some faces
+    if IS_BMESH:
+        totface = len(obj.data.polygons)
+    else:
+        totface = len(obj.data.faces)
+
+    mod.frame_start = totface // 2
+    mod.frame_duration = totface
+
+    return mod
+
+
+def modifier_mask_add(scene, obj):
+    mod = obj.modifiers.new(name=whoami(), type='MASK')
+    defaults_modifier(mod)
+
+    mod.vertex_group = obj.vertex_groups[0].name
 
     return mod
 
@@ -578,6 +728,22 @@ global_tests.append(("mirror_single",
     ((modifier_mirror_add, dict()), ),
     ))
 
+global_tests.append(("hook_single",
+    ((modifier_hook_add, dict()), ),
+    ))
+
+global_tests.append(("decimate_single",
+    ((modifier_decimate_add, dict()), ),
+    ))
+
+global_tests.append(("build_single",
+    ((modifier_build_add, dict()), ),
+    ))
+
+global_tests.append(("mask_single",
+    ((modifier_mask_add, dict()), ),
+    ))
+
 
 # combinations
 global_tests.append(("mirror_subsurf",
@@ -591,7 +757,7 @@ global_tests.append(("solidify_subsurf",
     ))
 
 
-def apply_test(test, obj,
+def apply_test(test, scene, obj,
                render_func=None,
                render_args=None,
                render_kwargs=None,
@@ -600,7 +766,7 @@ def apply_test(test, obj,
     test_name, test_funcs = test
 
     for cb, kwargs in test_funcs:
-        cb(obj, **kwargs)
+        cb(scene, obj, **kwargs)
 
     render_kwargs_copy = render_kwargs.copy()
 
@@ -612,14 +778,16 @@ def apply_test(test, obj,
 
 # -----------------------------------------------------------------------------
 # tests themselves!
+# having the 'test_' prefix automatically means these functions are called
+# for testing
 
 
 def test_cube(context, test):
     scene = context.scene
     obj = make_cube_extra(scene)
-    ctx_camera_setup(context, location=(4, 4, 4))
+    ctx_camera_setup(context, location=(3, 3, 3))
 
-    apply_test(test, obj,
+    apply_test(test, scene, obj,
                render_func=render_gl_all_modes,
                render_args=(context, obj),
                render_kwargs=dict(filepath=whoami()))
@@ -630,7 +798,7 @@ def test_cube_like(context, test):
     obj = make_cube_like_extra(scene)
     ctx_camera_setup(context, location=(5, 5, 5))
 
-    apply_test(test, obj,
+    apply_test(test, scene, obj,
                render_func=render_gl_all_modes,
                render_args=(context, obj),
                render_kwargs=dict(filepath=whoami()))
@@ -641,7 +809,7 @@ def test_cube_shell(context, test):
     obj = make_cube_shell_extra(scene)
     ctx_camera_setup(context, location=(4, 4, 4))
 
-    apply_test(test, obj,
+    apply_test(test, scene, obj,
                render_func=render_gl_all_modes,
                render_args=(context, obj),
                render_kwargs=dict(filepath=whoami()))
@@ -682,7 +850,6 @@ if __name__ == "__main__":
             bpy.app.handlers.scene_update_post.remove(load_handler)
             try:
                 main()
-
                 import sys
                 sys.exit(0)
             except:
@@ -691,6 +858,7 @@ if __name__ == "__main__":
 
                 import sys
                 # sys.exit(1)  # comment to debug
+
         else:
             load_handler.first = False
 

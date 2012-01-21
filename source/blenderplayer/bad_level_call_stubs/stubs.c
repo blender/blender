@@ -205,6 +205,8 @@ int ED_space_image_show_paint(struct SpaceImage *sima){return 0;}
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings){}
 void ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBuf *) NULL;}
+void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings){}
+
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
 void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip){}
 
@@ -298,6 +300,9 @@ void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma){}
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me){return 0;}

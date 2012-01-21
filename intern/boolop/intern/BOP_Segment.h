@@ -35,7 +35,6 @@
 
 #include "BOP_Indexs.h"
 #include <iostream>
-using namespace std;
 
 class BOP_Segment
 {
@@ -69,7 +68,7 @@ public:
 	void sort();
 	unsigned int getConfig();
 
-	friend   ostream &operator<<(ostream &stream, const BOP_Segment &c);
+	friend   std::ostream &operator<<(std::ostream &stream, const BOP_Segment &c);
 };
 
 #endif

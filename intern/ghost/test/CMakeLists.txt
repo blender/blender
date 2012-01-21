@@ -35,6 +35,25 @@ endmacro()
 
 
 # -----------------------------------------------------------------------------
+# Defines
+
+# set the endian define
+if(MSVC)
+	# for some reason this fails on msvc
+	add_definitions(-D__LITTLE_ENDIAN__)
+else()
+	include(TestBigEndian)
+	test_big_endian(_SYSTEM_BIG_ENDIAN)
+	if(_SYSTEM_BIG_ENDIAN)
+		add_definitions(-D__BIG_ENDIAN__)
+	else()
+		add_definitions(-D__LITTLE_ENDIAN__)
+	endif()
+	unset(_SYSTEM_BIG_ENDIAN)
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Libraries
 
 # ghost
@@ -74,6 +93,7 @@ add_library(bli_lib
 		"../../../source/blender/blenlib/intern/fileops.c"
 		"../../../source/blender/blenlib/intern/rct.c"
 		"../../../source/blender/blenlib/intern/string.c"
+		"../../../source/blender/blenlib/intern/string_utf8.c"
 		"../../../source/blender/blenlib/intern/listbase.c"
 		"../../../source/blender/blenlib/intern/storage.c"
 		"../../../source/blender/blenlib/intern/path_util.c"
@@ -86,6 +106,8 @@ add_library(bli_lib
 find_package(OpenGL REQUIRED)
 
 find_package(Freetype REQUIRED)
+
+find_package(ZLIB REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/../)
 include_directories(${OPENGL_INCLUDE_DIR})
@@ -151,5 +173,6 @@ target_link_libraries(multitest_c
 		${OPENGL_gl_LIBRARY}
 		${OPENGL_glu_LIBRARY}
 		${FREETYPE_LIBRARY}
+		${ZLIB_LIBRARIES}
 		${PLATFORM_LINKLIBS}
 		)

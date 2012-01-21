@@ -260,14 +260,9 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 				Ltransparent += average(throughput);
 			}
 			else {
-#ifdef __BACKGROUND__
-				ShaderData sd;
-				shader_setup_from_background(kg, &sd, &ray);
-				L += throughput*shader_eval_background(kg, &sd, state.flag);
-				shader_release(kg, &sd);
-#else
-				L += throughput*make_float3(0.8f, 0.8f, 0.8f);
-#endif
+				/* sample background shader */
+				float3 background_L = indirect_background(kg, &ray, state.flag, ray_pdf);
+				L += throughput*background_L;
 			}
 
 			break;
@@ -362,7 +357,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		throughput *= bsdf_eval/bsdf_pdf;
 
 		/* set labels */
-#ifdef __EMISSION__
+#if defined(__EMISSION__) || defined(__BACKGROUND__)
 		ray_pdf = bsdf_pdf;
 #endif
 

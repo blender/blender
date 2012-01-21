@@ -165,6 +165,7 @@ typedef enum ShaderFlag {
 typedef enum LightType {
 	LIGHT_POINT,
 	LIGHT_DISTANT,
+	LIGHT_BACKGROUND,
 	LIGHT_AREA
 } LightType;
 
@@ -379,18 +380,19 @@ typedef struct KernelIntegrator {
 	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
+	int pdf_background_res;
 
 	/* bounces */
 	int min_bounce;
 	int max_bounce;
 
-    int max_diffuse_bounce;
-    int max_glossy_bounce;
-    int max_transmission_bounce;
+	int max_diffuse_bounce;
+	int max_glossy_bounce;
+	int max_transmission_bounce;
 
 	/* transparent */
-    int transparent_min_bounce;
-    int transparent_max_bounce;
+	int transparent_min_bounce;
+	int transparent_max_bounce;
 	int transparent_shadows;
 
 	/* caustics */

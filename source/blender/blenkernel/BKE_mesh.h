@@ -52,7 +52,10 @@ struct CustomData;
 struct DerivedMesh;
 struct Scene;
 struct MLoopUV;
-
+struct UvVertMap;
+struct UvMapVert;
+struct UvElementMap;
+struct UvElement;
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -125,6 +128,39 @@ typedef struct UvMapVert {
 	unsigned int f;
 	unsigned char tfindex, separate, flag;
 } UvMapVert;
+
+typedef struct UvElementMap {
+	/* address UvElements by their vertex */
+	struct UvElement **vert;
+	/* UvElement Store */
+	struct UvElement *buf;
+	/* Total number of UVs in the layer. Useful to know */
+	int totalUVs;
+	/* Number of Islands in the mesh */
+	int totalIslands;
+	/* Stores the starting index in buf where each island begins */
+	int *islandIndices;
+} UvElementMap;
+
+typedef struct UvElement {
+	/* Next UvElement corresponding to same vertex */
+	struct UvElement *next;
+	/* Face the element belongs to */
+	struct EditFace *face;
+	/* Index in the editFace of the uv */
+	unsigned char tfindex;
+	/* Whether this element is the first of coincident elements */
+	unsigned char separate;
+	/* general use flag */
+	unsigned char flag;
+	/* If generating element map with island sorting, this stores the island index */
+	unsigned short island;
+} UvElement;
+
+/* invalid island index is max short. If any one has the patience
+ * to make that many islands, he can bite me :p */
+#define INVALID_ISLAND 0xFFFF
+
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);
 UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);

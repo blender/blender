@@ -34,7 +34,6 @@
  
 #include "BOP_MathUtils.h"
 #include <iostream>
-using namespace std;
 
 /**
  * Compares two scalars with EPSILON accuracy.

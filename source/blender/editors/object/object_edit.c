@@ -88,7 +88,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
-
+#include "ED_image.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -513,11 +513,15 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	ToolSettings *toolsettings =  CTX_data_tool_settings(C);
+
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
 		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* had EM_DO_UNDO but op flag calls undo too [#24685] */
 	
+	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), toolsettings);
+
 	return OPERATOR_FINISHED;
 }
 

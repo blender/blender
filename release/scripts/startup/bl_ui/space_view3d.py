@@ -761,7 +761,7 @@ class VIEW3D_MT_object_clear(Menu):
         layout.operator("object.location_clear", text="Location")
         layout.operator("object.rotation_clear", text="Rotation")
         layout.operator("object.scale_clear", text="Scale")
-        layout ("object.origin_clear", text="Origin")
+        layout.operator("object.origin_clear", text="Origin")
 
 
 class VIEW3D_MT_object_specials(Menu):
@@ -1110,9 +1110,9 @@ class VIEW3D_MT_sculpt(Menu):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
-        sculpt = tool_settings.sculpt
-        brush = tool_settings.sculpt.brush
+        toolsettings = context.tool_settings
+        sculpt = toolsettings.sculpt
+        brush = toolsettings.sculpt.brush
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
@@ -1148,8 +1148,8 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "show_brush")
 
         # TODO, make available from paint menu!
-        layout.prop(tool_settings, "sculpt_paint_use_unified_size", text="Unify Size")
-        layout.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Unify Strength")
+        layout.prop(toolsettings, "sculpt_paint_use_unified_size", text="Unify Size")
+        layout.prop(toolsettings, "sculpt_paint_use_unified_strength", text="Unify Strength")
 
 # ********** Particle menu **********
 
@@ -1453,7 +1453,7 @@ class VIEW3D_MT_edit_mesh(Menu):
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
@@ -1485,9 +1485,9 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.prop(settings, "use_mesh_automerge")
-        layout.prop_menu_enum(settings, "proportional_edit")
-        layout.prop_menu_enum(settings, "proportional_edit_falloff")
+        layout.prop(toolsettings, "use_mesh_automerge")
+        layout.prop_menu_enum(toolsettings, "proportional_edit")
+        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
 
         layout.separator()
 
@@ -1728,7 +1728,7 @@ class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):
 def draw_curve(self, context):
     layout = self.layout
 
-    settings = context.tool_settings
+    toolsettings = context.tool_settings
 
     layout.menu("VIEW3D_MT_transform")
     layout.menu("VIEW3D_MT_mirror")
@@ -1750,8 +1750,8 @@ def draw_curve(self, context):
 
     layout.separator()
 
-    layout.prop_menu_enum(settings, "proportional_edit")
-    layout.prop_menu_enum(settings, "proportional_edit_falloff")
+    layout.prop_menu_enum(toolsettings, "proportional_edit")
+    layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
 
     layout.separator()
 
@@ -1880,7 +1880,7 @@ class VIEW3D_MT_edit_meta(Menu):
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
@@ -1899,8 +1899,8 @@ class VIEW3D_MT_edit_meta(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(settings, "proportional_edit")
-        layout.prop_menu_enum(settings, "proportional_edit_falloff")
+        layout.prop_menu_enum(toolsettings, "proportional_edit")
+        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
 
         layout.separator()
 
@@ -1924,7 +1924,7 @@ class VIEW3D_MT_edit_lattice(Menu):
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
@@ -1936,8 +1936,8 @@ class VIEW3D_MT_edit_lattice(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(settings, "proportional_edit")
-        layout.prop_menu_enum(settings, "proportional_edit_falloff")
+        layout.prop_menu_enum(toolsettings, "proportional_edit")
+        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
 
 
 class VIEW3D_MT_edit_armature(Menu):

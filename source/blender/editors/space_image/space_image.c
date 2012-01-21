@@ -543,7 +543,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	/* toggle editmode is handy to have while UV unwrapping */
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 }
 
 /* dropboxes */
@@ -773,6 +773,9 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_find(wm->defaultconf, "UV Editor", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
+	keymap= WM_keymap_find(wm->defaultconf, "UV Sculpt", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
 	/* own keymaps */
 	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -785,6 +788,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceImage *sima= CTX_wm_space_image(C);
+	Object *obact= CTX_data_active_object(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	View2D *v2d= &ar->v2d;
@@ -810,7 +814,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(v2d);
-	draw_uvedit_main(sima, ar, scene, obedit);
+	draw_uvedit_main(sima, ar, scene, obedit, obact);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 		

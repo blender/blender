@@ -2313,3 +2313,79 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 #endif /* WITH_GAMEENGINE */
 
 /* --- NAVMESH (end) --- */
+
+
+/* derivedmesh info printing function,
+ * to help track down differences DM output */
+
+#ifndef NDEBUG
+#include "BLI_dynstr.h"
+
+static void dm_debug_info_layers(DynStr *dynstr, DerivedMesh *dm, void *(*getElemDataArray)(DerivedMesh *, int))
+{
+	int type;
+
+	for (type = 0; type < CD_NUMTYPES; type++) {
+		/* note: doesnt account for multiple layers */
+		void *pt = getElemDataArray(dm, type);
+		if (pt) {
+			const char *name = CustomData_layertype_name(type);
+			const int size = CustomData_sizeof(type);
+			const char *structname;
+			int structnum;
+			CustomData_file_write_info(type, &structname, &structnum);
+			BLI_dynstr_appendf(dynstr,
+			                   "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+							   name, structname, type, (void *)pt, size, (int)(MEM_allocN_len(pt) / size));
+		}
+	}
+}
+
+char *DM_debug_info(DerivedMesh *dm)
+{
+	DynStr *dynstr= BLI_dynstr_new();
+	char *ret;
+	const char *tstr;
+
+	BLI_dynstr_appendf(dynstr, "{\n");
+	BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)dm);
+	switch (dm->type) {
+		case DM_TYPE_CDDM:     tstr = "DM_TYPE_CDDM";     break;
+		case DM_TYPE_EDITMESH: tstr = "DM_TYPE_EDITMESH";  break;
+		case DM_TYPE_CCGDM:    tstr = "DM_TYPE_CCGDM";     break;
+		default:               tstr = "UNKNOWN";           break;
+	}
+	BLI_dynstr_appendf(dynstr, "    'type': '%s',\n", tstr);
+	BLI_dynstr_appendf(dynstr, "    'numVertData': %d,\n", dm->numVertData);
+	BLI_dynstr_appendf(dynstr, "    'numEdgeData': %d,\n", dm->numEdgeData);
+	BLI_dynstr_appendf(dynstr, "    'numFaceData': %d,\n", dm->numFaceData);
+	BLI_dynstr_appendf(dynstr, "    'deformedOnly': %d,\n", dm->deformedOnly);
+
+	BLI_dynstr_appendf(dynstr, "    'vertexLayers': (\n");
+	dm_debug_info_layers(dynstr, dm, dm->getVertDataArray);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'edgeLayers': (\n");
+	dm_debug_info_layers(dynstr, dm, dm->getEdgeDataArray);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "    'faceLayers': (\n");
+	dm_debug_info_layers(dynstr, dm, dm->getFaceDataArray);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
+	BLI_dynstr_appendf(dynstr, "}\n");
+
+	ret = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return ret;
+}
+
+void DM_debug_print(DerivedMesh *dm)
+{
+	char *str = DM_debug_info(dm);
+	printf("%s", str);
+	fflush(stdout);
+	MEM_freeN(str);
+}
+
+#endif /* NDEBUG */

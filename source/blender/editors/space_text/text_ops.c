@@ -1420,7 +1420,7 @@ static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int
 	end= max;
 	chop= loop= 1;
 
-	for(i=0, j=0; loop; j++) {
+	for(i=0, j=0; loop; j+=BLI_str_utf8_size(linein->line+j)) {
 		int chars;
 		/* Mimic replacement of tabs */
 		ch= linein->line[j];
@@ -1595,7 +1595,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	chop= loop= 1;
 	*charp= 0;
 
-	for(i=0, j=0; loop; j++) {
+	for(i=0, j=0; loop; j+=BLI_str_utf8_size((*linep)->line+j)) {
 		int chars;
 		/* Mimic replacement of tabs */
 		ch= (*linep)->line[j];
@@ -1610,7 +1610,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 				*charp= endj;
 
 				if(j>=oldc) {
-					if(ch=='\0') *charp= start;
+					if(ch=='\0') *charp= txt_utf8_index_to_offset((*linep)->line, start);
 					loop= 0;
 					break;
 				}
@@ -1623,7 +1623,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 			}
 			else if(ch==' ' || ch=='-' || ch=='\0') {
 				if(j>=oldc) {
-					*charp= start;
+					*charp= txt_utf8_index_to_offset((*linep)->line, start);
 					loop= 0;
 					break;
 				}
@@ -1663,7 +1663,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	chop= loop= 1;
 	*charp= 0;
 
-	for(i=0, j=0; loop; j++) {
+	for(i=0, j=0; loop; j+=BLI_str_utf8_size((*linep)->line+j)) {
 		int chars;
 		/* Mimic replacement of tabs */
 		ch= (*linep)->line[j];
@@ -1675,7 +1675,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 
 		while(chars--) {
 			if(i-start>=max) {
-				if(chop) endj= j-1;
+				if(chop) endj= BLI_str_prev_char_utf8((*linep)->line+j)-(*linep)->line;
 
 				if(endj>=oldc) {
 					if(ch=='\0') *charp= (*linep)->len;
@@ -2232,8 +2232,8 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		text_scroll_apply(C, op, event);
 		scroll_exit(C, op);
 		return OPERATOR_FINISHED;
-	}	
-	
+	}
+
 	WM_event_add_modal_handler(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -2314,8 +2314,19 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	tsc->scrollbar= 1;
 	tsc->zone= zone;
 	op->customdata= tsc;
-	
 	st->flags|= ST_SCROLL_SELECT;
+
+	/* jump scroll, works in v2d but needs to be added here too :S */
+	if (event->type == MIDDLEMOUSE) {
+		tsc->old[0] = ar->winrct.xmin + (st->txtbar.xmax + st->txtbar.xmin) / 2;
+		tsc->old[1] = ar->winrct.ymin + (st->txtbar.ymax + st->txtbar.ymin) / 2;
+
+		tsc->delta[0] = 0;
+		tsc->delta[1] = 0;
+		tsc->first = 0;
+		tsc->zone= SCROLLHANDLE_BAR;
+		text_scroll_apply(C, op, event);
+	}
 
 	WM_event_add_modal_handler(C, op);
 
@@ -2353,148 +2364,183 @@ typedef struct SetSelection {
 	short old[2];
 } SetSelection;
 
+static int flatten_len(SpaceText *st, const char *str)
+{
+	int i, total = 0;
+
+	for(i = 0; str[i]; i += BLI_str_utf8_size(str+i)) {
+		if(str[i]=='\t') {
+			total += st->tabnumber - total%st->tabnumber;
+		}
+		else total++;
+	}
+	
+	return total;
+}
+
+static int flatten_index_to_offset(SpaceText *st, const char *str, int index)
+{
+	int i, j;
+	for (i= 0, j= 0; i < index; j += BLI_str_utf8_size(str+j))
+		if(str[j]=='\t')
+			i += st->tabnumber - i%st->tabnumber;
+		else
+			i++;
+	
+	return j;
+}
+
+static TextLine *get_first_visible_line(SpaceText *st, ARegion *ar, int *y)
+{
+	TextLine *linep = st->text->lines.first;
+	int i;
+	for (i = st->top; i > 0 && linep; ) {
+		int lines = text_get_visible_lines(st, ar, linep->line);
+		
+		if (i-lines < 0) {
+			*y += i;
+			break;
+		} else {
+			linep = linep->next;
+			i -= lines;
+		}
+	}
+	return linep;
+}
+
+static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, int y, int sel)
+{
+	Text *text = st->text;
+	int max = wrap_width(st, ar); /* view */
+	int charp;                    /* mem */
+	int loop = 1, found = 0;      /* flags */
+	char ch;
+	
+	/* Point to first visible line */
+	TextLine *linep = get_first_visible_line(st, ar, &y);
+	
+	while(loop && linep) {
+		int i = 0, start = 0, end = max; /* view */
+		int j = 0, curs = 0, endj = 0;   /* mem */
+		int chop = 1;                    /* flags */
+		
+		for (; loop; j += BLI_str_utf8_size(linep->line+j)) {
+			int chars;
+			
+			/* Mimic replacement of tabs */
+			ch = linep->line[j];
+			if(ch == '\t') {
+				chars = st->tabnumber - i%st->tabnumber;
+				ch = ' ';
+			}
+			else chars = 1;
+			
+			while (chars--) {
+				/* Gone too far, go back to last wrap point */
+				if (y < 0) {
+					charp = endj;
+					loop = 0;
+					break;
+					/* Exactly at the cursor */
+				}
+				else if (y == 0 && i-start == x) {
+					/* current position could be wrapped to next line */
+					/* this should be checked when end of current line would be reached */
+					charp = curs= j;
+					found = 1;
+					/* Prepare curs for next wrap */
+				}
+				else if(i - end == x) {
+					curs = j;
+				}
+				if (i - start >= max) {
+					if (found) {
+						/* exact cursor position was found, check if it's */
+						/* still on needed line (hasn't been wrapped) */
+						if (charp > endj && !chop && ch!='\0') charp = endj;
+						loop = 0;
+						break;
+					}
+					
+					if(chop) endj = j;
+					start = end;
+					end += max;
+					
+					if(j < linep->len)
+						y--;
+					
+					chop = 1;
+					if (y == 0 && i-start >= x) {
+						charp = curs;
+						loop = 0;
+						break;
+					}
+				}
+				else if (ch == ' ' || ch == '-' || ch == '\0') {
+					if (found) {
+						loop = 0;
+						break;
+					}
+					
+					if(y == 0 && i-start >= x) {
+						charp = curs;
+						loop = 0;
+						break;
+					}
+					end = i + 1;
+					endj = j;
+					chop = 0;
+				}
+				i++;
+			}
+			
+			if(ch == '\0') break;
+		}
+		
+		if(!loop || found) break;
+		
+		if(!linep->next) {
+			charp = linep->len;
+			break;
+		}
+		
+		/* On correct line but didn't meet cursor, must be at end */
+		if (y == 0) {
+			charp = linep->len;
+			break;
+		}
+		linep = linep->next;
+		
+		y--;
+	}
+	
+	if(sel) { text->sell = linep; text->selc = charp; } 
+	else { text->curl = linep; text->curc = charp; }
+}
+
 static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 {
-	FlattenString fs;
 	Text *text= st->text;
-	TextLine **linep;
-	int *charp;
-	int w;
-
 	text_update_character_width(st);
-
-	if(sel) { linep= &text->sell; charp= &text->selc; } 
-	else { linep= &text->curl; charp= &text->curc; }
-	
 	y= (ar->winy - 2 - y)/st->lheight;
 
-	if(st->showlinenrs)
-		x-= TXT_OFFSET+TEXTXLOC;
-	else
-		x-= TXT_OFFSET;
+	if(st->showlinenrs) x-= TXT_OFFSET+TEXTXLOC;
+	else x-= TXT_OFFSET;
 
 	if(x<0) x= 0;
 	x = (x/st->cwidth) + st->left;
 	
 	if(st->wordwrap) {
-		int i, j, endj, curs, max, chop, start, end, loop, found;
-		char ch;
-
-		/* Point to first visible line */
-		*linep= text->lines.first;
-		i= st->top;
-		while(i>0 && *linep) {
-			int lines= text_get_visible_lines(st, ar, (*linep)->line);
-
-			if (i-lines<0) {
-				y+= i;
-				break;
-			} else {
-				*linep= (*linep)->next;
-				i-= lines;
-			}
-		}
-
-		max= wrap_width(st, ar);
-
-		loop= 1;
-		found= 0;
-		while(loop && *linep) {
-			start= 0;
-			end= max;
-			chop= 1;
-			curs= 0;
-			endj= 0;
-			for(i=0, j=0; loop; j++) {
-				int chars;
-
-				/* Mimic replacement of tabs */
-				ch= (*linep)->line[j];
-				if(ch=='\t') {
-					chars= st->tabnumber-i%st->tabnumber;
-					ch= ' ';
-				}
-				else
-					chars= 1;
-
-				while(chars--) {
-					/* Gone too far, go back to last wrap point */
-					if(y<0) {
-						*charp= endj;
-						loop= 0;
-						break;
-					/* Exactly at the cursor */
-					}
-					else if(y==0 && i-start==x) {
-						/* current position could be wrapped to next line */
-						/* this should be checked when end of current line would be reached */
-						*charp= curs= j;
-						found= 1;
-					/* Prepare curs for next wrap */
-					}
-					else if(i-end==x) {
-						curs= j;
-					}
-					if(i-start>=max) {
-						if(found) {
-							/* exact cursor position was found, check if it's */
-							/* still on needed line (hasn't been wrapped) */
-							if(*charp>endj && !chop && ch!='\0') (*charp)= endj;
-							loop= 0;
-							break;
-						}
-
-						if(chop) endj= j;
-						start= end;
-						end += max;
-
-						if(j<(*linep)->len)
-							y--;
-
-						chop= 1;
-						if(y==0 && i-start>=x) {
-							*charp= curs;
-							loop= 0;
-							break;
-						}
-					}
-					else if(ch==' ' || ch=='-' || ch=='\0') {
-						if(found) {
-							loop= 0;
-							break;
-						}
-
-						if(y==0 && i-start>=x) {
-							*charp= curs;
-							loop= 0;
-							break;
-						}
-						end = i+1;
-						endj = j;
-						chop= 0;
-					}
-					i++;
-				}
-				if(ch=='\0') break;
-			}
-			if(!loop || found) break;
-
-			if(!(*linep)->next) {
-				*charp= (*linep)->len;
-				break;
-			}
-
-			/* On correct line but didn't meet cursor, must be at end */
-			if(y==0) {
-				*charp= (*linep)->len;
-				break;
-			}
-			*linep= (*linep)->next;
-			y--;
-		}
-
+		text_cursor_set_to_pos_wrapped(st, ar, x, y, sel);
 	}
 	else {
+		TextLine **linep;
+		int *charp;
+		int w;
+		
+		if(sel) { linep= &text->sell; charp= &text->selc; } 
+		else { linep= &text->curl; charp= &text->curc; }
+		
 		y-= txt_get_span(text->lines.first, *linep) - st->top;
 		
 		if(y>0) {
@@ -2505,10 +2551,9 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 		}
 
 		
-		w= flatten_string(st, &fs, (*linep)->line);
-		if(x<w) *charp= fs.accum[x];
+		w= flatten_len(st, (*linep)->line);
+		if(x<w) *charp= flatten_index_to_offset(st, (*linep)->line, x);
 		else *charp= (*linep)->len;
-		flatten_string_free(&fs);
 	}
 	if(!sel) txt_pop_sel(text);
 }
@@ -2751,19 +2796,23 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	char *str;
-	int done = 0, i;
+	int done = 0;
+	size_t i = 0;
+	unsigned int code;
 
 	text_drawcache_tag_update(st, 0);
 
 	str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
 
 	if(st && st->overwrite) {
-		for(i=0; str[i]; i++) {
-			done |= txt_replace_char(text, str[i]);
+		while (str[i]) {
+			code = BLI_str_utf8_as_unicode_step(str, &i);
+			done |= txt_replace_char(text, code);
 		}
 	} else {
-		for(i=0; str[i]; i++) {
-			done |= txt_add_char(text, str[i]);
+		while (str[i]) {
+			code = BLI_str_utf8_as_unicode_step(str, &i);
+			done |= txt_add_char(text, code);
 		}
 	}
 
@@ -2791,9 +2840,17 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		}
 		else {
-			char str[2];
-			str[0]= event->ascii;
-			str[1]= '\0';
+			char str[BLI_UTF8_MAX+1];
+			size_t len;
+			
+			if (event->utf8_buf[0]) {
+				len = BLI_str_utf8_size(event->utf8_buf);
+				memcpy(str, event->utf8_buf, len);
+			} else {
+				/* in theory, ghost can set value to extended ascii here */
+				len = BLI_str_utf8_from_unicode(event->ascii, str);
+			}
+			str[len]= '\0';
 			RNA_string_set(op->ptr, "text", str);
 		}
 	}

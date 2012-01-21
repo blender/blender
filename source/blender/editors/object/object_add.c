@@ -484,7 +484,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	/* force view align for cameras */
-	RNA_boolean_set(op->ptr, "view_align", 1);
+	RNA_boolean_set(op->ptr, "view_align", TRUE);
 	
 	object_add_generic_invoke_options(C, op);
 

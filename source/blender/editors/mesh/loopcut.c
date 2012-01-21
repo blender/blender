@@ -45,6 +45,7 @@
 
 #include "PIL_time.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
@@ -58,7 +59,6 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_array_mallocn.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -138,7 +138,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	EditFace *efa;
 	EditVert *v[2][2];
 	float (*edges)[2][3] = NULL;
-	V_DYNDECLARE(edges);
+	BLI_array_declare(edges);
 	float co[2][3];
 	int looking=1, i, tot=0;
 	
@@ -240,9 +240,9 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 						co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
 						co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
 						
-						V_GROW(edges);
-						VECCOPY(edges[tot][0], co[0]);
-						VECCOPY(edges[tot][1], co[1]);
+						BLI_array_growone(edges);
+						copy_v3_v3(edges[tot][0], co[0]);
+						copy_v3_v3(edges[tot][1], co[1]);
 						tot++;
 					}
 				}

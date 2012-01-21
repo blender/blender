@@ -81,7 +81,7 @@ void ED_uvedit_live_unwrap_end(short cancel);
 void ED_unwrap_lscm(struct Scene *scene, struct Object *obedit, const short sel);
 
 /* uvedit_draw.c */
-void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
+void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit, struct Object *obact);
 
 /* uvedit_buttons.c */
 void ED_uvedit_buttons_register(struct ARegionType *art);

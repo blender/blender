@@ -3807,6 +3807,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NLA_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_border");
+	WM_modalkeymap_assign(keymap, "OUTLINER_OT_select_border");
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_view_ghost_border");
@@ -3882,7 +3883,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "copy", 1);
+	RNA_boolean_set(kmi->ptr, "copy", TRUE);
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);

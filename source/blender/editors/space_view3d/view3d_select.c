@@ -257,7 +257,9 @@ static int view3d_selectable_data(bContext *C)
 			if (ob->mode & OB_MODE_SCULPT) {
 				return 0;
 			}
-			if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob) && !paint_vertsel_test(ob)) {
+			if ((ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) &&
+			    !paint_facesel_test(ob) && !paint_vertsel_test(ob))
+			{
 				return 0;
 			}
 		}

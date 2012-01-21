@@ -50,7 +50,7 @@ struct wmOperator;
 struct wmOperatorType;
 
 /* paint_stroke.c */
-typedef int (*StrokeGetLocation)(struct bContext *C, struct PaintStroke *stroke, float location[3], float mouse[2]);
+typedef int (*StrokeGetLocation)(struct bContext *C, float location[3], float mouse[2]);
 typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
 typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
@@ -103,6 +103,10 @@ void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_project_image(struct wmOperatorType *ot);
 void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 
+/* uv sculpting */
+int uv_sculpt_poll(struct bContext *C);
+
+void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 
 /* paint_utils.c */
 
@@ -126,7 +130,7 @@ void paint_calc_redraw_planes(float planes[4][4],
 							  const struct rcti *screen_rect);
 
 void projectf(struct bglMats *mats, const float v[3], float p[2]);
-float paint_calc_object_space_radius(struct ViewContext *vc, float center[3], float pixel_radius);
+float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
 float paint_get_tex_pixel(struct Brush* br, float u, float v);
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, const int mval[2], unsigned int *index);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);

@@ -178,6 +178,30 @@ int space_image_main_area_poll(bContext *C)
 	return 0;
 }
 
+/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode */
+int space_image_main_area_not_uv_brush_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+
+	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+	if(sima && !toolsettings->uvsculpt)
+		return 1;
+
+	return 0;
+}
+
+static int space_image_image_sample_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	Object *obedit= CTX_data_edit_object(C);
+	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+
+	if(obedit){
+		if(ED_space_image_show_uvedit(sima, obedit) && (toolsettings->use_uv_sculpt))
+			return 0;
+	}
+	return space_image_main_area_poll(C);
+}
 /********************** view pan operator *********************/
 
 typedef struct ViewPanData {
@@ -858,7 +882,9 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "filepath", str);
-	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)); /* we cant do much if the str is longer then 240 :/ */
+
+	/* we cant do much if the str is longer then FILE_MAX :/ */
+	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name));
 
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(C);
@@ -1754,12 +1780,12 @@ typedef struct ImageSampleInfo {
 	int x, y;
 	int channels;
 
-	char col[4];
+	unsigned char col[4];
 	float colf[4];
 	int z;
 	float zf;
 
-	char *colp;
+	unsigned char *colp;
 	float *colfp;
 	int *zp;
 	float *zfp;
@@ -1794,7 +1820,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
-		char *cp;
+		unsigned char *cp;
 		int x= (int)(fx*ibuf->x), y= (int)(fy*ibuf->y);
 
 		CLAMP(x, 0, ibuf->x-1);
@@ -1811,7 +1837,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->zfp= NULL;
 		
 		if(ibuf->rect) {
-			cp= (char *)(ibuf->rect + y*ibuf->x + x);
+			cp= (unsigned char *)(ibuf->rect + y*ibuf->x + x);
 
 			info->col[0]= cp[0];
 			info->col[1]= cp[1];
@@ -1947,7 +1973,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->invoke= image_sample_invoke;
 	ot->modal= image_sample_modal;
 	ot->cancel= image_sample_cancel;
-	ot->poll= space_image_main_area_poll;
+	ot->poll= space_image_image_sample_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -2084,7 +2110,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	ot->invoke= image_sample_invoke;
 	ot->modal= image_sample_modal;
 	ot->cancel= image_sample_cancel;
-	ot->poll= space_image_main_area_poll;
+	ot->poll= space_image_main_area_not_uv_brush_poll;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves");

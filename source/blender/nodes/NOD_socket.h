@@ -47,26 +47,19 @@ struct bNodeStack;
 
 void node_socket_type_init(struct bNodeSocketType *types[]);
 
-struct bNodeSocket *nodeAddInputInt(struct bNodeTree *ntree, struct bNode *node, const char *name, PropertySubType subtype, int value, int min, int max);
-struct bNodeSocket *nodeAddOutputInt(struct bNodeTree *ntree, struct bNode *node, const char *name);
+void *node_socket_make_default_value(int type);
+void node_socket_free_default_value(int type, void *default_value);
+void node_socket_init_default_value(int type, void *default_value);
+void node_socket_copy_default_value(int type, void *to_default_value, void *from_default_value);
+void node_socket_convert_default_value(int to_type, void *to_default_value, int from_type, void *from_default_value);
 
-struct bNodeSocket *nodeAddInputFloat(struct bNodeTree *ntree, struct bNode *node, const char *name, PropertySubType subtype, float value, float min, float max);
-struct bNodeSocket *nodeAddOutputFloat(struct bNodeTree *ntree, struct bNode *node, const char *name);
-
-struct bNodeSocket *nodeAddInputBoolean(struct bNodeTree *ntree, struct bNode *node, const char *name, char value);
-struct bNodeSocket *nodeAddOutputBoolean(struct bNodeTree *ntree, struct bNode *node, const char *name);
-
-struct bNodeSocket *nodeAddInputVector(struct bNodeTree *ntree, struct bNode *node, const char *name, PropertySubType subtype, float x, float y, float z, float min, float max);
-struct bNodeSocket *nodeAddOutputVector(struct bNodeTree *ntree, struct bNode *node, const char *name);
-
-struct bNodeSocket *nodeAddInputRGBA(struct bNodeTree *ntree, struct bNode *node, const char *name, float r, float g, float b, float a);
-struct bNodeSocket *nodeAddOutputRGBA(struct bNodeTree *ntree, struct bNode *node, const char *name);
-
-struct bNodeSocket *nodeAddInputShader(struct bNodeTree *ntree, struct bNode *node, const char *name);
-struct bNodeSocket *nodeAddOutputShader(struct bNodeTree *ntree, struct bNode *node, const char *name);
-
-struct bNodeSocket *nodeAddInputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name);
-struct bNodeSocket *nodeAddOutputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name);
+void node_socket_set_default_value_int(void *default_value, PropertySubType subtype, int value, int min, int max);
+void node_socket_set_default_value_float(void *default_value, PropertySubType subtype, float value, float min, float max);
+void node_socket_set_default_value_boolean(void *default_value, char value);
+void node_socket_set_default_value_vector(void *default_value, PropertySubType subtype, float x, float y, float z, float min, float max);
+void node_socket_set_default_value_rgba(void *default_value, float r, float g, float b, float a);
+void node_socket_set_default_value_shader(void *default_value);
+void node_socket_set_default_value_mesh(void *default_value);
 
 struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp);
 struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp);

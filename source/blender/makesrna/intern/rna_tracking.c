@@ -1232,7 +1232,7 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_trackingObject_remove");
 	RNA_def_function_ui_description(func, "Remove tracking object from this movie clip");
-	parm= RNA_def_pointer(func, "object", "MovieTrackingObject", "", "Motion tracking object to be removed");
+	RNA_def_pointer(func, "object", "MovieTrackingObject", "", "Motion tracking object to be removed");
 
 	/* active object */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);

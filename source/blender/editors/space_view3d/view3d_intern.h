@@ -164,7 +164,8 @@ void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
-void smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *, float *ofs, float *quat, float *dist, float *lens);
+void smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
+                 float *ofs, float *quat, float *dist, float *lens);
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);

@@ -349,11 +349,8 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	
-	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
-	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);
-	obcol[2]= CLAMPIS(ob->col[2]*255, 0, 255);
-	obcol[3]= CLAMPIS(ob->col[3]*255, 0, 255);
-	
+	rgba_float_to_uchar(obcol, ob->col);
+
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
 	if(solidtex || v3d->drawtype==OB_TEXTURE) istex= 1;
 	else istex= 0;

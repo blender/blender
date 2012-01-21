@@ -1,14 +1,30 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = env.Glob('intern/*.cpp')
-
 incs = '. intern extern ../moto/include ../container ../memutil'
 incs += ' ../../source/blender/makesdna ../../intern/guardedalloc'
 incs += ' ../../source/blender/blenlib'
 
+defs = []
+
+if not env['WITH_BF_CARVE']:
+    sources = env.Glob('intern/*.cpp')
+    sources.remove('intern' + os.sep + 'BOP_CarveInterface.cpp')
+else:
+    sources = env.Glob('intern/BOP_CarveInterface.cpp')
+    incs += ' ../../extern/carve/include'
+
+    if env['WITH_BF_BOOST']:
+        if env['OURPLATFORM'] not in ('win32-vc', 'win64-vc'):
+            # Boost is setting as preferred collections library in the Carve code when using MSVC compiler
+            if env['OURPLATFORM'] != 'win32-mingw':
+                defs.append('HAVE_BOOST_UNORDERED_COLLECTIONS')
+
+        defs.append('CARVE_SYSTEM_BOOST')
+        incs +=  ' ' + env['BF_BOOST_INC']
+
 if (env['OURPLATFORM'] == 'win32-mingw'):
     env.BlenderLib ('bf_intern_bop', sources, Split(incs) , [], libtype='intern', priority = 5 )
 else:
-    env.BlenderLib ('bf_intern_bop', sources, Split(incs) , [], libtype='intern', priority = 5 )
+    env.BlenderLib ('bf_intern_bop', sources, Split(incs) , defs, libtype='intern', priority = 5 )
 

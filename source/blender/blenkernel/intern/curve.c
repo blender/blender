@@ -368,9 +368,8 @@ void tex_space_curve(Curve *cu)
 	dl= cu->disp.first;
 	while(dl) {
 		
-		if(dl->type==DL_INDEX3 || dl->type==DL_INDEX3) tot= dl->nr;
-		else tot= dl->nr*dl->parts;
-		
+		tot = ELEM(dl->type, DL_INDEX3, DL_INDEX4) ? dl->nr : dl->nr * dl->parts;
+
 		if(tot) doit= 1;
 		fp= dl->verts;
 		while(tot--) {

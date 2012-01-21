@@ -390,7 +390,7 @@ void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_he
 						} else if (	vert->trb && vert->brb &&
 									(box == vert->trb || box == vert->brb) ) {
 							if (vert->trb->w > vert->brb->w) {
-								vert->brb->v[TR]->free &= ~(TRF|TRF);
+								vert->brb->v[TR]->free &= ~(TLF|TRF);
 							} else if (vert->trb->w < vert->brb->w) {
 								vert->trb->v[BR]->free &= ~(BLF|BRF);
 							} else { /*same*/

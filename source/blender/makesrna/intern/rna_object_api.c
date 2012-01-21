@@ -63,6 +63,7 @@
 #include "BKE_font.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_cdderivedmesh.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -470,6 +471,44 @@ int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 	return object_is_modified(scene, ob) & settings;
 }
 
+#ifndef NDEBUG
+void rna_Object_dm_info(struct Object *ob, int type, char *result)
+{
+	DerivedMesh *dm = NULL;
+	int dm_release = FALSE;
+	char *ret = NULL;
+
+	result[0] = '\0';
+
+	switch(type) {
+		case 0:
+			if (ob->type == OB_MESH) {
+				dm = CDDM_from_mesh(ob->data, ob);
+				ret = DM_debug_info(dm);
+				dm_release = TRUE;
+			}
+			break;
+		case 1:
+			dm = ob->derivedDeform;
+			break;
+		case 2:
+			dm = ob->derivedFinal;
+			break;
+	}
+
+	if (dm) {
+		ret = DM_debug_info(dm);
+		if (dm_release) {
+			dm->release(dm);
+		}
+		if (ret) {
+			strcpy(result, ret);
+			MEM_freeN(ret);
+		}
+	}
+}
+#endif /* NDEBUG */
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -482,6 +521,15 @@ void RNA_api_object(StructRNA *srna)
 		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
+
+#ifndef NDEBUG
+	static EnumPropertyItem mesh_dm_info_items[] = {
+		{0, "SOURCE", 0, "Source", "Source mesh"},
+		{1, "DEFORM", 0, "Deform", "Objects deform mesh"},
+	    {2, "FINAL", 0, "Final", "Objects final mesh"},
+		{0, NULL, 0, NULL, NULL}
+	};
+#endif
 
 	/* mesh */
 	func= RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
@@ -585,6 +633,20 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_boolean(func, "result", 0, "", "Object visibility");
 	RNA_def_function_return(func, parm);
+
+
+#ifndef NDEBUG
+	/* mesh */
+	func= RNA_def_function(srna, "dm_info", "rna_Object_dm_info");
+	RNA_def_function_ui_description(func, "Returns a string for derived mesh data");
+
+	parm= RNA_def_enum(func, "type", mesh_dm_info_items, 0, "", "Modifier settings to apply");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* weak!, no way to return dynamic string type */
+	parm= RNA_def_string(func, "result", "result", 16384, "result", "");
+	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
+	RNA_def_function_output(func, parm);
+#endif /* NDEBUG */
 }
 
 

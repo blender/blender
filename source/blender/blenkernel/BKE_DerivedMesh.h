@@ -584,5 +584,10 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm);
 /* Set object's bounding box based on DerivedMesh min/max data */
 void DM_set_object_boundbox(struct Object *ob, DerivedMesh *dm);
 
+/* debug only */
+#ifndef NDEBUG
+char *DM_debug_info(DerivedMesh *dm);
+void DM_debug_print(DerivedMesh *dm);
 #endif
 
+#endif

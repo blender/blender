@@ -26,7 +26,7 @@ class BVHParams
 {
 public:
 	/* spatial split area threshold */
-	bool use_spatial_split;
+	int use_spatial_split;
 	float spatial_split_alpha;
 
 	/* SAH costs */
@@ -38,13 +38,15 @@ public:
 	int max_leaf_size;
 
 	/* object or mesh level bvh */
-	bool top_level;
+	int top_level;
 
 	/* disk cache */
-	bool use_cache;
+	int use_cache;
 
 	/* QBVH */
-	bool use_qbvh;
+	int use_qbvh;
+
+	int pad;
 
 	/* fixed parameters */
 	enum {
@@ -67,6 +69,7 @@ public:
 		top_level = false;
 		use_cache = false;
 		use_qbvh = false;
+		pad = false;
 	}
 
 	/* SAH costs */

@@ -505,7 +505,6 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 						if(pchan->bone->layer & arm->layer) {
 							if((pchan->bone->flag & BONE_CONNECTED)==0) {
 								float nLoc[3];
-								float inv_restmat[4][4];
 								
 								/* get nearest grid point to snap to */
 								copy_v3_v3(nLoc, pchan->pose_mat[3]);
@@ -517,9 +516,8 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 								/* Back in object space... */
 								mul_m4_v3(ob->imat, vec);
 								
-								/* get location of grid point in *rest* bone-space */
-								invert_m4_m4(inv_restmat, pchan->bone->arm_mat);
-								mul_m4_v3(inv_restmat, vec);
+								/* Get location of grid point in pose space. */
+								armature_loc_pose_to_bone(pchan, vec, vec);
 								
 								/* adjust location */
 								if ((pchan->protectflag & OB_LOCK_LOCX)==0)
@@ -642,12 +640,9 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
 							if((pchan->bone->flag & BONE_CONNECTED)==0) {
-								float inv_restmat[4][4];
-								
-								/* get location of cursor in *rest* bone-space */
-								invert_m4_m4(inv_restmat, pchan->bone->arm_mat);
-								mul_m4_v3(inv_restmat, vec);
-								
+								/* Get position in pchan (pose) space. */
+								armature_loc_pose_to_bone(pchan, vec, vec);
+
 								/* copy new position */
 								if ((pchan->protectflag & OB_LOCK_LOCX)==0)
 									pchan->loc[0]= vec[0];

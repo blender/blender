@@ -471,7 +471,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		/* emphasise division lines lighter instead of darker, if background is darker than grid */
 		UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
 		UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
-		                        (((col_grid[0]+col_grid[1]+col_grid[2])+30) > (col_bg[0]+col_bg[1]+col_bg[2])) ? 20 : -10);
+		                        (((col_grid[0]+col_grid[1]+col_grid[2])+30) >
+		                          (col_bg[0]+col_bg[1]+col_bg[2])) ? 20 : -10);
 
 		/* set fixed axis */
 		vert[0][0]= vert[2][1]= grid;
@@ -923,7 +924,8 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info));
 }
 
-static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short no_shift, short no_zoom)
+static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
+                                 rctf *viewborder_r, short no_shift, short no_zoom)
 {
 	CameraParams params;
 	rctf rect_view, rect_camera;
@@ -962,7 +964,8 @@ void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, R
 	size_r[1]= viewborder.ymax - viewborder.ymin;
 }
 
-void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short no_shift)
+void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
+                                  rctf *viewborder_r, short no_shift)
 {
 	view3d_camera_border(scene, ar, v3d, rv3d, viewborder_r, no_shift, FALSE);
 }
@@ -1097,7 +1100,9 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	
 
 	setlinestyle(0);
+
 	UI_ThemeColor(TH_BACK);
+		
 	glRectf(x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
@@ -1109,6 +1114,13 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 #endif
 
 	setlinestyle(3);
+
+	/* outer line not to confuse with object selecton */
+	if (v3d->flag2 & V3D_LOCK_CAMERA) {
+		UI_ThemeColor(TH_REDALERT);
+		glRectf(x1i - 1, y1i - 1, x2i + 1, y2i + 1);
+	}
+
 	UI_ThemeColor(TH_WIRE);
 	glRectf(x1i, y1i, x2i, y2i);
 
@@ -1386,7 +1398,12 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 
 	view3d_validate_backbuf(vc); 
 	
-	glReadPixels(vc->ar->winrct.xmin+xminc, vc->ar->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glReadPixels(vc->ar->winrct.xmin + xminc,
+	             vc->ar->winrct.ymin + yminc,
+	             (xmaxc-xminc + 1),
+	             (ymaxc-yminc + 1),
+	             GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+
 	glReadBuffer(GL_BACK);	
 
 	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
@@ -1810,11 +1827,13 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
 			 * so for now it should be ok to - campbell */
 
-			if(		(dob_next==NULL || dob_next->ob != dob->ob) || /* if this is the last no need  to make a displist */
-					(dob->ob->type == OB_LAMP) || /* lamp drawing messes with matrices, could be handled smarter... but this works */
-					(dob->type == OB_DUPLIGROUP && dob->animated) ||
-					!(bb_tmp= object_get_boundbox(dob->ob))
-			) {
+			if ( /* if this is the last no need  to make a displist */
+			     (dob_next==NULL || dob_next->ob != dob->ob) ||
+			     /* lamp drawing messes with matrices, could be handled smarter... but this works */
+			     (dob->ob->type == OB_LAMP) ||
+			     (dob->type == OB_DUPLIGROUP && dob->animated) ||
+			     !(bb_tmp= object_get_boundbox(dob->ob)))
+			{
 				// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name+2);
 				use_displist= 0;
 			}
@@ -2142,7 +2161,8 @@ typedef struct View3DShadow {
 	GPULamp *lamp;
 } View3DShadow;
 
-static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par, float obmat[][4], ListBase *shadows)
+static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par,
+                                   float obmat[][4], ListBase *shadows)
 {
 	GPULamp *lamp;
 	Lamp *la = (Lamp*)ob->data;
@@ -2236,7 +2256,9 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 {
 	CustomDataMask mask= 0;
 
-	if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
+	if ( ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) ||
+	     ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
+	{
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
 		if(scene_use_new_shading_nodes(scene)) {
@@ -2344,7 +2366,8 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	glLoadMatrixf(rv3d->viewmat);
 }
 
-void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
+void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
+                              int winx, int winy, float viewmat[][4], float winmat[][4])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
@@ -2469,13 +2492,15 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	glPopMatrix();
 
-	glColor4ub(255, 255, 255, 255); // XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
+	// XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
+	glColor4ub(255, 255, 255, 255);
 
 	G.f &= ~G_RENDER_OGL;
 }
 
 /* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
+                                      int sizex, int sizey, unsigned int flag, char err_out[256])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
@@ -2530,7 +2555,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height, unsigned int flag, int drawtype, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
+                                             unsigned int flag, int drawtype, char err_out[256])
 {
 	View3D v3d= {NULL};
 	ARegion ar= {NULL};
@@ -2889,6 +2915,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
+
 	if (grid_unit) { /* draw below the viewport name */
 		char numstr[32]= "";
 

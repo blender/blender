@@ -236,6 +236,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 		params.bvh_type = (SceneParams::BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
+	params.use_bvh_cache = (background)? RNA_boolean_get(&cscene, "use_cache"): false;
 
 	return params;
 }

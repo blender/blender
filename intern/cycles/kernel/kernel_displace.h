@@ -18,7 +18,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float3 *output, ShaderEvalType type, int i)
+__device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *output, ShaderEvalType type, int i)
 {
 	ShaderData sd;
 	uint4 in = input[i];
@@ -62,7 +62,7 @@ __device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float3 *ou
 	}
 	
 	/* write output */
-	output[i] = out;
+	output[i] = make_float4(out.x, out.y, out.z, 0.0f);
 }
 
 CCL_NAMESPACE_END

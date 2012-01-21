@@ -1111,9 +1111,9 @@ int BKE_add_image_extension(char *string, const char imtype)
 		if(BLI_testextensie_array(string, imb_ext_image)
 				  || (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt))) {
 			return BLI_replace_extension(string, FILE_MAX, extension);
-		} else {
+		}
+		else {
 			return BLI_ensure_extension(string, FILE_MAX, extension);
-			return TRUE;
 		}
 		
 	}
@@ -1608,7 +1608,7 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	return(ok);
 }
 
-/* same as BKE_write_ibuf_as but crappy workaround not to perminantly modify
+/* same as BKE_write_ibuf() but crappy workaround not to perminantly modify
  * _some_, values in the imbuf */
 int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
                       const short save_copy)

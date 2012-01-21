@@ -210,4 +210,8 @@ int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob
 struct Image *RE_bake_shade_get_image(void);
 void RE_bake_ibuf_filter(struct ImBuf *ibuf, char *mask, const int filter);
 
+#define BAKE_RESULT_OK			0
+#define BAKE_RESULT_NO_OBJECTS		1
+#define BAKE_RESULT_FEEDBACK_LOOP	2
+
 #endif /* RE_SHADER_EXT_H */

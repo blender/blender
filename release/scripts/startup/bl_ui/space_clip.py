@@ -117,7 +117,7 @@ class CLIP_PT_tools_marker(Panel):
         if settings.show_default_expanded:
             col = box.column()
             row = col.row(align=True)
-            label = bpy.types.CLIP_MT_tracking_settings_presets.bl_label
+            label = CLIP_MT_tracking_settings_presets.bl_label
             row.menu('CLIP_MT_tracking_settings_presets', text=label)
             row.operator("clip.tracking_settings_preset_add",
                          text="", icon='ZOOMIN')
@@ -162,22 +162,25 @@ class CLIP_PT_tools_tracking(Panel):
 
     def draw(self, context):
         layout = self.layout
-        # clip = context.space_data.clip  # UNUSED
 
         row = layout.row(align=True)
 
-        row.operator("clip.track_markers", text="", icon='FRAME_PREV').backwards = True
+        props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
+        props.backwards = True
         props = row.operator("clip.track_markers", text="",
                              icon='PLAY_REVERSE')
         props.backwards = True
         props.sequence = True
-        row.operator("clip.track_markers", text="", icon='PLAY').sequence = True
+        props = row.operator("clip.track_markers", text="", icon='PLAY')
+        props.sequence = True
         row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
         col = layout.column(align=True)
-        col.operator("clip.clear_track_path", text="Clear After").action = 'REMAINED'
+        props = col.operator("clip.clear_track_path", text="Clear After")
+        props.action = 'REMAINED'
 
-        col.operator("clip.clear_track_path", text="Clear Before").action = 'UPTO'
+        props = col.operator("clip.clear_track_path", text="Clear Before")
+        props.action = 'UPTO'
         col.operator("clip.clear_track_path", text="Clear").action = 'ALL'
 
         layout.operator("clip.join_tracks", text="Join")
@@ -371,7 +374,7 @@ class CLIP_PT_objects(Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         sc = context.space_data
         tracking = sc.clip.tracking
 
@@ -478,7 +481,8 @@ class CLIP_PT_tracking_camera(Panel):
         label = bpy.types.CLIP_MT_camera_presets.bl_label
         row.menu('CLIP_MT_camera_presets', text=label)
         row.operator("clip.camera_preset_add", text="", icon='ZOOMIN')
-        row.operator("clip.camera_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        props = row.operator("clip.camera_preset_add", text="", icon='ZOOMOUT')
+        props.remove_active = True
 
         row = layout.row(align=True)
         sub = row.split(percentage=0.65)
@@ -942,7 +946,8 @@ class CLIP_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("clip.select_all", text="Select/Deselect all").action = 'TOGGLE'
+        props = layout.operator("clip.select_all", text="Select/Deselect all")
+        props.action = 'TOGGLE'
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 
         layout.menu("CLIP_MT_select_grouped")
@@ -967,8 +972,12 @@ class CLIP_MT_tracking_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.disable_markers", text="Enable Markers").action = 'ENABLE'
-        layout.operator("clip.disable_markers", text="Disable markers").action = 'DISABLE'
+        props = layout.operator("clip.disable_markers",
+                                text="Enable Markers")
+        props.action = 'ENABLE'
+
+        props = layout.operator("clip.disable_markers", text="Disable markers")
+        props.action = 'DISABLE'
 
         layout.separator()
         layout.operator("clip.set_origin")
@@ -990,7 +999,7 @@ class CLIP_MT_camera_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "tracking_camera"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class CLIP_MT_track_color_presets(Menu):
@@ -998,7 +1007,7 @@ class CLIP_MT_track_color_presets(Menu):
     bl_label = "Color Presets"
     preset_subdir = "tracking_track_color"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class CLIP_MT_tracking_settings_presets(Menu):
@@ -1006,7 +1015,7 @@ class CLIP_MT_tracking_settings_presets(Menu):
     bl_label = "Tracking Presets"
     preset_subdir = "tracking_settings"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class CLIP_MT_track_color_specials(Menu):

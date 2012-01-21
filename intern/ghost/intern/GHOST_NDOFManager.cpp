@@ -137,6 +137,37 @@ static const NDOF_ButtonT SpacePilotPro_HID_map[] = {
 	NDOF_BUTTON_MINUS
 };
 
+// latest HW: button-compatible with SpacePilotPro, just fewer of them
+static const NDOF_ButtonT SpaceMousePro_HID_map[] = {
+	NDOF_BUTTON_MENU,
+	NDOF_BUTTON_FIT,
+	NDOF_BUTTON_TOP,
+	NDOF_BUTTON_NONE, // left
+	NDOF_BUTTON_RIGHT,
+	NDOF_BUTTON_FRONT,
+	NDOF_BUTTON_NONE, // bottom
+	NDOF_BUTTON_NONE, // back
+	NDOF_BUTTON_ROLL_CW,
+	NDOF_BUTTON_NONE, // roll ccw
+	NDOF_BUTTON_NONE, // iso 1
+	NDOF_BUTTON_NONE, // iso 2
+	NDOF_BUTTON_1,
+	NDOF_BUTTON_2,
+	NDOF_BUTTON_3,
+	NDOF_BUTTON_4,
+	NDOF_BUTTON_NONE, // 5
+	NDOF_BUTTON_NONE, // 6
+	NDOF_BUTTON_NONE, // 7
+	NDOF_BUTTON_NONE, // 8
+	NDOF_BUTTON_NONE, // 9
+	NDOF_BUTTON_NONE, // 10
+	NDOF_BUTTON_NONE, // esc key
+	NDOF_BUTTON_NONE, // alt key
+	NDOF_BUTTON_NONE, // shift key
+	NDOF_BUTTON_NONE, // ctrl key
+	NDOF_BUTTON_ROTATE,
+};
+
 /* this is the older SpacePilot (sans Pro)
  * thanks to polosson for the info in this table */
 static const NDOF_ButtonT SpacePilot_HID_map[] = {
@@ -210,6 +241,12 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_deviceType = NDOF_SpacePilotPro;
 					m_buttonCount = 31;
 					break;
+				case 0xC62B:
+					puts("ndof: using SpaceMousePro");
+					m_deviceType = NDOF_SpaceMousePro;
+					m_buttonCount = 27;
+					// ^^ actually has 15 buttons, but their HID codes range from 0 to 26
+					break;
 
 				// -- older devices --
 				case 0xC625:
@@ -237,6 +274,8 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 	else {
 		m_buttonMask = ~(-1 << m_buttonCount);
 
+		// special case for SpaceMousePro? maybe...
+
 #ifdef DEBUG_NDOF_BUTTONS
 		printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
 #endif
@@ -261,6 +300,16 @@ void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 
 void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
 {
+	if (button == NDOF_BUTTON_NONE) {
+		// just being exceptionally cautious...
+		// air-tight button masking and proper function key emulation
+		// should guarantee we never get to this point
+#ifdef DEBUG_NDOF_BUTTONS
+		printf("discarding NDOF_BUTTON_NONE (should not escape the NDOF manager)\n");
+#endif
+		return;
+	}
+
 	GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
 	GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
 
@@ -315,6 +364,15 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 				case 24: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
 				case 25: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
 				default: sendButtonEvent(SpacePilotPro_HID_map[button_number], press, time, window);
+			}
+			break;
+		case NDOF_SpaceMousePro:
+			switch (button_number) {
+				case 22: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
+				case 23: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
+				case 24: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
+				case 25: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
+				default: sendButtonEvent(SpaceMousePro_HID_map[button_number], press, time, window);
 			}
 			break;
 		case NDOF_SpacePilot:

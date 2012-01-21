@@ -583,7 +583,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* faces */
 		mf= mface + (numFaces * 2);
-		origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
+
 		for(i=0; i<newFaces; i++, mf++) {
 			int eidx= new_edge_arr[i];
 			int fidx= edge_users[eidx];

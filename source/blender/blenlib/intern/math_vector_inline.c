@@ -429,6 +429,11 @@ MINLINE void star_m3_v3(float rmat[][3], float a[3])
 
 /*********************************** Length **********************************/
 
+MINLINE float len_squared_v2(const float v[2])
+{
+	return v[0]*v[0] + v[1]*v[1];
+}
+
 MINLINE float len_v2(const float v[2])
 {
 	return (float)sqrtf(v[0]*v[0] + v[1]*v[1]);
@@ -448,7 +453,7 @@ MINLINE float len_v3(const float a[3])
 	return sqrtf(dot_v3v3(a, a));
 }
 
-MINLINE float len_squared_v2v2(const float a[3], const float b[3])
+MINLINE float len_squared_v2v2(const float a[2], const float b[2])
 {
 	float d[2];
 
@@ -505,6 +510,29 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 	else {
 		zero_v3(r);
 		d= 0.0f;
+	}
+
+	return d;
+}
+
+MINLINE double normalize_v3_d(double n[3])
+{
+	double d= n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
+
+	/* a larger value causes normalize errors in a
+	   scaled down models with camera xtreme close */
+	if(d > 1.0e-35) {
+		double mul;
+
+		d= sqrt(d);
+		mul = 1.0 / d;
+
+		n[0] *= mul;
+		n[1] *= mul;
+		n[2] *= mul;
+	} else {
+		n[0] = n[1] = n[2] = 0;
+		d= 0.0;
 	}
 
 	return d;

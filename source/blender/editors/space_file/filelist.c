@@ -586,7 +586,7 @@ const char * filelist_dir(struct FileList* filelist)
 
 void filelist_setdir(struct FileList* filelist, const char *dir)
 {
-	BLI_strncpy(filelist->dir, dir, FILE_MAX);
+	BLI_strncpy(filelist->dir, dir, sizeof(filelist->dir));
 }
 
 void filelist_imgsize(struct FileList* filelist, short w, short h)
@@ -853,10 +853,9 @@ static void filelist_read_library(struct FileList* filelist)
 		for(num=0; num<filelist->numfiles; num++, file++) {
 			if(BLO_has_bfile_extension(file->relname)) {
 				char name[FILE_MAX];
-			
-				BLI_strncpy(name, filelist->dir, sizeof(name));
-				strcat(name, file->relname);
-				
+
+				BLI_join_dirfile(name, sizeof(name), filelist->dir, file->relname);
+
 				/* prevent current file being used as acceptable dir */
 				if (BLI_path_cmp(G.main->name, name) != 0) {
 					file->type &= ~S_IFMT;

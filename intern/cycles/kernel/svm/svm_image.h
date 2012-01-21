@@ -175,9 +175,8 @@ __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float 
 	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
-	float u = (atan2f(co.y, co.x) + M_PI_F)/(2*M_PI_F);
-	float v = atan2f(co.z, hypotf(co.x, co.y))/M_PI_F + 0.5f;
-	float4 f = svm_image_texture(kg, id, u, v);
+	float2 uv = direction_to_equirectangular(co);
+	float4 f = svm_image_texture(kg, id, uv.x, uv.y);
 	float3 r = make_float3(f.x, f.y, f.z);
 
 	if(srgb) {

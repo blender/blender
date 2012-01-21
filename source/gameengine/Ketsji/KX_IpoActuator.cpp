@@ -442,8 +442,8 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 PyAttributeDef KX_IpoActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("frameStart", KX_IpoActuator, pyattr_get_frame_start, pyattr_set_frame_start),
 	KX_PYATTRIBUTE_RW_FUNCTION("frameEnd", KX_IpoActuator, pyattr_get_frame_end, pyattr_set_frame_end),
-	KX_PYATTRIBUTE_STRING_RW("propName", 0, 64, false, KX_IpoActuator, m_propname),
-	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 64, false, KX_IpoActuator, m_framepropname),
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, MAX_PROP_NAME, false, KX_IpoActuator, m_propname),
+	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, MAX_PROP_NAME, false, KX_IpoActuator, m_framepropname),
 	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_IPO_NODEF+1, KX_ACT_IPO_MAX-1, true, KX_IpoActuator, m_type),
 	KX_PYATTRIBUTE_BOOL_RW("useIpoAsForce", KX_IpoActuator, m_ipo_as_force),
 	KX_PYATTRIBUTE_BOOL_RW("useIpoAdd", KX_IpoActuator, m_ipo_add),

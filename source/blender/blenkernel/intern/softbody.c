@@ -3468,7 +3468,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *
 							bs->len= globallen((bp-dw-dv-1)->vec, bp->vec,ob);
 							bs++;
 						}
-						if( (v < lt->pntsv-1) && (u) ) {
+						if( (v < lt->pntsv-1) && (u != 0) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw+dv-1;
 							bs->springtype=SB_BEND;
@@ -3485,7 +3485,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *
 							bs->len= globallen((bp+dw-dv-1)->vec, bp->vec,ob);
 							bs++;
 						}
-						if( (v < lt->pntsv-1) && (u) ) {
+						if( (v < lt->pntsv-1) && (u != 0) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw+dv-1;
 							bs->springtype=SB_BEND;

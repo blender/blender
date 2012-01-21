@@ -272,7 +272,7 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
     if lenv['WITH_BF_COLLADA']:
         syslibs.append(lenv['BF_PCRE_LIB'])
-        if lenv['BF_DEBUG']:
+        if lenv['BF_DEBUG'] and (lenv['OURPLATFORM'] != 'linux'):
             syslibs += [colladalib+'_d' for colladalib in Split(lenv['BF_OPENCOLLADA_LIB'])]
         else:
             syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])

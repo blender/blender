@@ -644,24 +644,11 @@ static void recalcData_clip(TransInfo *t)
 	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	
-	if(t->state == TRANS_CANCEL) {
-		track= tracksbase->first;
-		while(track) {
-			if(TRACK_VIEW_SELECTED(sc, track)) {
-				MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
-				
-				marker->flag= track->transflag;
-			}
-			
-			track= track->next;
-		}
-	}
-	
 	flushTransTracking(t);
 	
 	track= tracksbase->first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track)) {
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
 			if (t->mode == TFM_TRANSLATION) {
 				if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
 					BKE_tracking_clamp_track(track, CLAMP_PAT_POS);

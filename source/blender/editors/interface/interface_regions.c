@@ -138,8 +138,9 @@ static void menudata_add_item(MenuData *md, const char *str, int retval, int ico
 static void menudata_free(MenuData *md)
 {
 	MEM_freeN((void *)md->instr);
-	if (md->items)
+	if (md->items) {
 		MEM_freeN(md->items);
+	}
 	MEM_freeN(md);
 }
 
@@ -394,8 +395,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				}
 			}
 
-			if(free)
+			if (free) {
 				MEM_freeN(item);
+			}
 		}
 	}
 	
@@ -982,8 +984,9 @@ static void ui_searchbox_region_free_cb(ARegion *ar)
 	int a;
 
 	/* free search data */
-	for(a=0; a<data->items.maxitem; a++)
+	for (a = 0; a < data->items.maxitem; a++) {
 		MEM_freeN(data->items.names[a]);
+	}
 	MEM_freeN(data->items.names);
 	MEM_freeN(data->items.pointers);
 	MEM_freeN(data->items.icons);
@@ -1182,8 +1185,9 @@ void ui_but_search_test(uiBut *but)
 			uiButSetFlag(but, UI_BUT_REDALERT);
 	}
 	
-	for(x1=0; x1<items->maxitem; x1++)
+	for (x1 = 0; x1 < items->maxitem; x1++) {
 		MEM_freeN(items->names[x1]);
+	}
 	MEM_freeN(items->names);
 	MEM_freeN(items);
 }
@@ -1611,6 +1615,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	MenuEntry *entry;
 	const char *instr= arg_str;
 	int columns, rows, a, b;
+	int column_start= 0, column_end= 0;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
@@ -1654,17 +1659,30 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	/* create items */
 	split= uiLayoutSplit(layout, 0, 0);
 
-	for(a=0, b=0; a<md->nitems; a++, b++) {
+	for(a=0; a<md->nitems; a++) {
+		if(a == column_end) {
+			/* start new column, and find out where it ends in advance, so we
+			   can flip the order of items properly per column */
+			column_start= a;
+			column_end= md->nitems;
+
+			for(b=a+1; b<md->nitems; b++) {
+				entry= &md->items[b];
+
+				/* new column on N rows or on separation label */
+				if(((b-a) % rows == 0) || (entry->sepr && entry->str[0])) {
+					column_end = b;
+					break;
+				}
+			}
+
+			column= uiLayoutColumn(split, 0);
+		}
+
 		if(block->flag & UI_BLOCK_NO_FLIP)
 			entry= &md->items[a];
 		else
-			entry= &md->items[md->nitems-a-1];
-		
-		/* new column on N rows or on separation label */
-		if((b % rows == 0) || (entry->sepr && entry->str[0])) {
-			column= uiLayoutColumn(split, 0);
-			b= 0;
-		}
+			entry= &md->items[column_start + column_end-1-a];
 
 		if(entry->sepr) {
 			uiItemL(column, entry->str, entry->icon);
@@ -2460,7 +2478,7 @@ static void confirm_operator(bContext *C, wmOperator *op, const char *title, con
 	char *s, buf[512];
 	
 	s= buf;
-	if (title) s+= sprintf(s, "%s%%t|%s", title, item);
+	if (title) s+= BLI_snprintf(s, sizeof(buf), "%s%%t|%s", title, item);
 	(void)s;
 	
 	handle= ui_popup_menu_create(C, NULL, NULL, NULL, NULL, buf);

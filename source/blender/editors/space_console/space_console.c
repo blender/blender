@@ -276,24 +276,25 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 0);
+	RNA_boolean_set(kmi->ptr, "reverse", FALSE);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 1);
+	RNA_boolean_set(kmi->ptr, "reverse", TRUE);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 0);
+	RNA_boolean_set(kmi->ptr, "reverse", FALSE);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 1);
+	RNA_boolean_set(kmi->ptr, "reverse", TRUE);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_CHAR);
 	
-	RNA_boolean_set(WM_keymap_add_item(keymap, "CONSOLE_OT_history_cycle", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "reverse", 1);
+	kmi = WM_keymap_add_item(keymap, "CONSOLE_OT_history_cycle", UPARROWKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "reverse", TRUE);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_history_cycle", DOWNARROWKEY, KM_PRESS, 0, 0);
 	
 	/*

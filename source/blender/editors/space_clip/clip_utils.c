@@ -95,7 +95,7 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 			}
 
 			/* value is a pixels per frame speed */
-			val= (marker->pos[coord] - prevval) * ((i==0) ? (width) : (height));
+			val= (marker->pos[coord] - prevval) * ((coord==0) ? (width) : (height));
 			val/= marker->framenr-prevfra;
 
 			if(func)

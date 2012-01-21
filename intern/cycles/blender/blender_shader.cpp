@@ -700,9 +700,6 @@ void BlenderSync::sync_world()
 
 	if(background->modified(prevbackground))
 		background->tag_update(scene);
-
-	world_map = b_world.ptr.data;
-	world_recalc = false;
 }
 
 /* Sync Lamps */
