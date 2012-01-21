@@ -471,14 +471,14 @@ typedef struct RenderData {
 	float bake_maxdist, bake_biasdist, bake_pad;
 
 	/* path to render output */
-	char pic[240]; /* 240 = FILE_MAX */
+	char pic[1024]; /* 1024 = FILE_MAX */
 
 	/* stamps flags. */
 	int stamp;
 	short stamp_font_id, pad3; /* select one of blenders bitmap fonts */
 
 	/* stamp info user data. */
-	char stamp_udata[160];
+	char stamp_udata[768];
 
 	/* foreground/background color. */
 	float fg_stamp[4];

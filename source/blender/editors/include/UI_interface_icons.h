@@ -41,7 +41,7 @@ struct Material;
 
 typedef struct IconFile {
 	struct IconFile *next, *prev;
-	char filename[80];	// FILE_MAXFILE size
+	char filename[256];	// FILE_MAXFILE size
 	int index;
 } IconFile;
 

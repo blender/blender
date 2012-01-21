@@ -50,7 +50,7 @@
 struct ImMetaData;
 
 #define IB_MIPMAP_LEVELS	20
-#define IB_FILENAME_SIZE	1023
+#define IB_FILENAME_SIZE	1024
 
 /**
  * \ingroup imbuf

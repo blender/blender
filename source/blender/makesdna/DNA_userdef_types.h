@@ -60,7 +60,7 @@ struct ColorBand;
 /* first font is the default (index 0), others optional */
 typedef struct uiFont {
 	struct uiFont *next, *prev;
-	char filename[256];
+	char filename[1024];/* 1024 = FILE_MAX */
 	short blf_id;		/* from blfont lib */
 	short uifont_id;	/* own id */
 	short r_to_l;		/* fonts that read from left to right */
@@ -158,7 +158,7 @@ typedef struct ThemeUI {
 
 	uiPanelColors panel;
 
-	char iconfile[80];	// FILE_MAXFILE length
+	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
 
 	float pad;
@@ -323,16 +323,16 @@ typedef struct SolidLight {
 typedef struct UserDef {
 	int flag, dupflag;
 	int savetime;
-	char tempdir[160];	/* FILE_MAXDIR length */
-	char fontdir[160];
-	char renderdir[240]; /* FILE_MAX length */
-	char textudir[160];
-	char plugtexdir[160];
-	char plugseqdir[160];
-	char pythondir[160];
-	char sounddir[160];
-	char image_editor[240];	/* 240 = FILE_MAX */
-	char anim_player[240];	/* 240 = FILE_MAX */
+	char tempdir[768];	/* FILE_MAXDIR length */
+	char fontdir[768];
+	char renderdir[1024]; /* FILE_MAX length */
+	char textudir[768];
+	char plugtexdir[768];
+	char plugseqdir[768];
+	char pythondir[768];
+	char sounddir[768];
+	char image_editor[1024];	/* 1024 = FILE_MAX */
+	char anim_player[1024];	/* 1024 = FILE_MAX */
 	int anim_player_preset;
 	
 	short v2d_min_gridsize;		/* minimum spacing between gridlines in View2D grids */
@@ -401,8 +401,6 @@ typedef struct UserDef {
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	int ndof_flag;			/* flags for 3D mouse */
 
-	char versemaster[160];
-	char verseuser[160];
 	float glalphaclip;
 	
 	short autokey_mode;		/* autokeying mode */

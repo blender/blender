@@ -349,7 +349,7 @@ typedef struct NodeHueSat {
 } NodeHueSat;
 
 typedef struct NodeImageFile {
-	char name[256];
+	char name[1024]; /* 1024 = FILE_MAX */
 	struct ImageFormatData im_format;
 	int sfra, efra;
 } NodeImageFile;
