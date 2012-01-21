@@ -961,8 +961,9 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
-// NDOF utility functions
-// (should these functions live in this file?)
+/* NDOF utility functions
+ * (should these functions live in this file?)
+ */
 float ndof_to_axis_angle(struct wmNDOFMotionData* ndof, float axis[3])
 {
 	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
@@ -973,7 +974,7 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	float axis[3];
 	float angle;
 
-	angle= ndof_to_axis_angle(ndof, axis);
+	angle = ndof_to_axis_angle(ndof, axis);
 	axis_angle_to_quat(q, axis, angle);
 }
 
@@ -983,69 +984,67 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
  */
 static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	if (event->type != NDOF_MOTION) {
+	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
-	}
 	else {
-		View3D *v3d= CTX_wm_view3d(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
-		rv3d->rot_angle = 0.f; // off by default, until changed later this function
+		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
 
 		if (ndof->progress != P_FINISHING) {
 			const float dt = ndof->dt;
-		
-			// tune these until everything feels right
+
+			/* tune these until everything feels right */
 			const float rot_sensitivity = 1.f;
 			const float zoom_sensitivity = 1.f;
 			const float pan_sensitivity = 1.f;
-		
-			// rather have bool, but...
-			int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
-		
+
+			const int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
+
 			float view_inv[4];
 			invert_qt_qt(view_inv, rv3d->viewquat);
-		
-			//#define DEBUG_NDOF_MOTION
+
+			/* #define DEBUG_NDOF_MOTION */
 			#ifdef DEBUG_NDOF_MOTION
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
 				ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
 			#endif
-		
-			if (ndof->tvec[2]) {
-				// Zoom!
-				// velocity should be proportional to the linear velocity attained by rotational motion of same strength
-				// [got that?]
-				// proportional to arclength = radius * angle
-		
-				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tvec[2];
+
+			if (ndof->tz) {
+				/* Zoom!
+				 * velocity should be proportional to the linear velocity attained by rotational motion of same strength
+				 * [got that?]
+				 * proportional to arclength = radius * angle
+				 */
+				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 
 				if (U.ndof_flag & NDOF_ZOOM_INVERT)
 					zoom_distance = -zoom_distance;
 
 				rv3d->dist += zoom_distance;
 			}
-		
+
 			if (rv3d->viewlock == RV3D_LOCKED) {
 				/* rotation not allowed -- explore panning options instead */
-				float pan_vec[3] = {ndof->tvec[0], ndof->tvec[1], 0.0f};
+				float pan_vec[3] = {ndof->tx, ndof->ty, 0.0f};
 				mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-		
+
 				/* transform motion from view to world coordinates */
 				invert_qt_qt(view_inv, rv3d->viewquat);
 				mul_qt_v3(view_inv, pan_vec);
-		
+
 				/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 				sub_v3_v3(rv3d->ofs, pan_vec);
 			}
-		
+
 			if (has_rotation) {
-		
+
 				rv3d->view = RV3D_VIEW_USER;
-		
+
 				if (U.flag & USER_TRACKBALL) {
 					float rot[4];
 					float axis[3];
@@ -1060,44 +1059,46 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						axis[1] = -axis[1];
 
-					// transform rotation axis from view to world coordinates
+					/* transform rotation axis from view to world coordinates */
 					mul_qt_v3(view_inv, axis);
-		
-					// update the onscreen doo-dad
+
+					/* update the onscreen doo-dad */
 					rv3d->rot_angle = angle;
 					copy_v3_v3(rv3d->rot_axis, axis);
-		
+
 					axis_angle_to_quat(rot, axis, angle);
 
-					// apply rotation
+					/* apply rotation */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
 				} else {
+
 					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 					float angle, rot[4];
 					float xvec[3] = {1,0,0};
-		
+
 					/* Determine the direction of the x vector (for rotating up and down) */
 					mul_qt_v3(view_inv, xvec);
-		
+
 					/* Perform the up/down rotation */
-					angle = rot_sensitivity * dt * ndof->rvec[0];
+					angle = rot_sensitivity * dt * ndof->rx;
 					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
 						angle = -angle;
 					rot[0] = cos(angle);
 					mul_v3_v3fl(rot+1, xvec, sin(angle));
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-		
+
 					/* Perform the orbital rotation */
-					angle = rot_sensitivity * dt * ndof->rvec[1];
+					angle = rot_sensitivity * dt * ndof->ry;
 					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						angle = -angle;
-		
-					// update the onscreen doo-dad
+
+					/* update the onscreen doo-dad */
 					rv3d->rot_angle = angle;
 					rv3d->rot_axis[0] = 0;
 					rv3d->rot_axis[1] = 0;
 					rv3d->rot_axis[2] = 1;
-		
+
 					rot[0] = cos(angle);
 					rot[1] = rot[2] = 0.0;
 					rot[3] = sin(angle);
@@ -1134,9 +1135,8 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
  */
 static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	if (event->type != NDOF_MOTION) {
+	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
-	}
 	else {
 		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
@@ -1144,13 +1144,13 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
-		rv3d->rot_angle = 0.f; // we're panning here! so erase any leftover rotation from other operators
+		rv3d->rot_angle = 0.f; /* we're panning here! so erase any leftover rotation from other operators */
 
 		if (ndof->progress != P_FINISHING) {
 			const float dt = ndof->dt;
 			float view_inv[4];
-#if 0 // ------------------------------------------- zoom with Z
-			// tune these until everything feels right
+#if 0 /* ------------------------------------------- zoom with Z */
+			/* tune these until everything feels right */
 			const float zoom_sensitivity = 1.f;
 			const float pan_sensitivity = 1.f;
 
@@ -1158,18 +1158,18 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 				ndof->tx, ndof->ty, 0
 				};
 
-			// "zoom in" or "translate"? depends on zoom mode in user settings?
+			/* "zoom in" or "translate"? depends on zoom mode in user settings? */
 			if (ndof->tz) {
 				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 				rv3d->dist += zoom_distance;
 			}
-		
-			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-#else // ------------------------------------------------------- dolly with Z
-			float speed = 10.f; // blender units per second
-			// ^^ this is ok for default cube scene, but should scale with.. something
 
-			// tune these until everything feels right
+			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
+#else /* ------------------------------------------------------- dolly with Z */
+			float speed = 10.f; /* blender units per second */
+			/* ^^ this is ok for default cube scene, but should scale with.. something */
+
+			/* tune these until everything feels right */
 			const float forward_sensitivity = 1.f;
 			const float vertical_sensitivity = 0.4f;
 			const float lateral_sensitivity = 0.6f;
