@@ -2775,13 +2775,14 @@ static void stretchto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* store Z orientation before destroying obmat */
 		normalize_v3_v3(zz, cob->matrix[2]);
 		
-		sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
-		vec[0] /= size[0];
-		vec[1] /= size[1];
-		vec[2] /= size[2];
+		dist = len_v3v3(cob->matrix[3], ct->matrix[3]);
+		/* XXX What was all that for??? Makes the constraint buggy with scaled objects, see #29940. */
+/*		sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);*/
+/*		vec[0] /= size[0];*/
+/*		vec[1] /= size[1];*/
+/*		vec[2] /= size[2];*/
 		
-		dist = normalize_v3(vec);
-		//dist = len_v3v3( ob->obmat[3], targetmat[3]);
+/*		dist = normalize_v3(vec);*/
 		
 		/* data->orglength==0 occurs on first run, and after 'R' button is clicked */
 		if (data->orglength == 0)  
