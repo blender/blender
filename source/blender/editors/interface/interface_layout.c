@@ -499,8 +499,9 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 	}
 	uiBlockSetCurLayout(block, layout);
 
-	if(free)
+	if (free) {
 		MEM_freeN(item);
+	}
 }
 
 /* callback for keymap item change button */
@@ -705,12 +706,15 @@ static const char *ui_menu_enumpropname(uiLayout *layout, const char *opname, co
 
 		RNA_property_enum_items_gettexted(layout->root->block->evil_C, &ptr, prop, &item, &totitem, &free);
 		if(RNA_enum_name(item, retval, &name)) {
-			if(free) MEM_freeN(item);
+			if (free) {
+				MEM_freeN(item);
+			}
 			return name;
 		}
 		
-		if(free)
+		if (free) {
 			MEM_freeN(item);
+		}
 	}
 
 	return "";
@@ -792,8 +796,9 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 			}
 		}
 
-		if(free)
+		if (free) {
 			MEM_freeN(item);
+		}
 	}
 }
 
@@ -845,13 +850,16 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	if((prop= RNA_struct_find_property(&ptr, propname))) {
 		RNA_property_enum_items_gettexted(layout->root->block->evil_C, &ptr, prop, &item, NULL, &free);
 		if(item==NULL || RNA_enum_value_from_id(item, value_str, &value)==0) {
-			if(free) MEM_freeN(item);
+			if(free) {
+				MEM_freeN(item);
+			}
 			RNA_warning("%s.%s, enum %s not found", RNA_struct_identifier(ptr.type), propname, value_str);
 			return;
 		}
 
-		if(free)
+		if (free) {
 			MEM_freeN(item);
+		}
 	}
 	else {
 		RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname);
@@ -1096,7 +1104,9 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 	RNA_property_enum_items_gettexted(layout->root->block->evil_C, ptr, prop, &item, NULL, &free);
 
 	if(!RNA_enum_value_from_id(item, value, &ivalue)) {
-		if(free) MEM_freeN(item);
+		if (free) {
+			MEM_freeN(item);
+		}
 		ui_item_disabled(layout, propname);
 		RNA_warning("enum property value not found: %s", value);
 		return;
@@ -1109,8 +1119,9 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 		}
 	}
 
-	if(free)
+	if (free) {
 		MEM_freeN(item);
+	}
 }
 
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname)
@@ -1160,8 +1171,9 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 			}
 		}
 
-		if(free)
+		if (free) {
 			MEM_freeN(item);
+		}
 	}
 }
 
@@ -2731,8 +2743,9 @@ const char *uiLayoutIntrospect(uiLayout *layout)
 {
 	DynStr *ds= BLI_dynstr_new();
 
-	if(str)
+	if (str) {
 		MEM_freeN(str);
+	}
 
 	ui_intro_uiLayout(ds, layout);
 

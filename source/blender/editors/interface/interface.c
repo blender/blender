@@ -1946,21 +1946,32 @@ static void ui_free_but(const bContext *C, uiBut *but)
 		WM_operator_properties_free(but->opptr);
 		MEM_freeN(but->opptr);
 	}
-	if(but->func_argN) MEM_freeN(but->func_argN);
+
+	if(but->func_argN) {
+		MEM_freeN(but->func_argN);
+	}
+
 	if(but->active) {
 		/* XXX solve later, buttons should be free-able without context ideally,
 		 * however they may have open tooltips or popup windows, which need to
 		 * be closed using a context pointer */
-		if(C) 
+		if (C) {
 			ui_button_active_free(C, but);
-		else
-			if(but->active) 
+		}
+		else {
+			if(but->active) {
 				MEM_freeN(but->active);
+			}
+		}
 	}
-	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
+	if (but->str && but->str != but->strdata) {
+		MEM_freeN(but->str);
+	}
 	ui_free_link(but->link);
 
-	if((but->type == BUT_IMAGE) && but->poin) IMB_freeImBuf((struct ImBuf *)but->poin);
+	if ((but->type == BUT_IMAGE) && but->poin) {
+		IMB_freeImBuf((struct ImBuf *)but->poin);
+	}
 
 	MEM_freeN(but);
 }
@@ -1975,11 +1986,13 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
-	if(block->unit)
+	if (block->unit) {
 		MEM_freeN(block->unit);
+	}
 
-	if(block->func_argN)
+	if (block->func_argN) {
 		MEM_freeN(block->func_argN);
+	}
 
 	CTX_store_free_list(&block->contexts);
 
@@ -2646,8 +2659,9 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			str= BLI_dynstr_get_cstring(dynstr);
 			BLI_dynstr_free(dynstr);
 
-			if(free)
+			if (free) {
 				MEM_freeN(item);
+			}
 
 			freestr= 1;
 		}
@@ -2663,10 +2677,12 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				}
 			}
 
-			if(!str)
-				str= RNA_property_ui_name(prop);
-			if(free)
+			if (!str) {
+				str = RNA_property_ui_name(prop);
+			}
+			if (free) {
 				MEM_freeN(item);
+			}
 		}
 		else {
 			str= RNA_property_ui_name(prop);
@@ -2746,9 +2762,10 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		but->a1= ui_get_but_step_unit(but, but->a1);
 	}
 
-	if(freestr)
+	if (freestr) {
 		MEM_freeN((void *)str);
-	
+	}
+
 	return but;
 }
 
@@ -3360,8 +3377,9 @@ void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2
 
 void uiBlockSetNFunc(uiBlock *block, uiButHandleFunc func, void *argN, void *arg2)
 {
-	if(block->func_argN)
+	if (block->func_argN) {
 		MEM_freeN(block->func_argN);
+	}
 
 	block->funcN= func;
 	block->func_argN= argN;
@@ -3390,8 +3408,9 @@ void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
 
 void uiButSetNFunc(uiBut *but, uiButHandleNFunc funcN, void *argN, void *arg2)
 {
-	if(but->func_argN)
+	if (but->func_argN) {
 		MEM_freeN(but->func_argN);
+	}
 
 	but->funcN= funcN;
 	but->func_argN= argN;
@@ -3429,8 +3448,9 @@ uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, const 
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, NULL, 0.0, 0.0, 0.0, 0.0, tip);
 	but->block_create_func= func;
-	if(but->func_argN)
+	if (but->func_argN) {
 		MEM_freeN(but->func_argN);
+	}
 	but->func_argN= argN;
 	ui_check_but(but);
 	return but;

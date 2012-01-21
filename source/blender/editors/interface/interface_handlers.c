@@ -1701,8 +1701,9 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			changed= 1;
 		}
 
-		if(pbuf)
+		if (pbuf) {
 			MEM_freeN(pbuf);
+		}
 	}
 	/* cut & copy */
 	else if (copy || cut) {

@@ -772,8 +772,9 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 			ui_panel_copy_offset(pa, pa->paneltab);
 
 	/* free panelsort array */
-	for(ps= panelsort, a=0; a<tot; a++, ps++)
+	for (ps = panelsort, a = 0; a < tot; a++, ps++) {
 		MEM_freeN(ps->pa);
+	}
 	MEM_freeN(panelsort);
 	
 	return done;
