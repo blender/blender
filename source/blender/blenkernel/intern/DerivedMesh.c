@@ -722,24 +722,23 @@ void vDM_ColorBand_store(ColorBand *coba)
  * note that we could save some memory and allocate RGB only but then we'd need to
  * re-arrange the colors when copying to the face since MCol has odd ordering,
  * so leave this as is - campbell */
-static unsigned char *calc_weightpaint_vert_array(Object *ob, int const draw_flag, ColorBand *coba)
+static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const draw_flag, ColorBand *coba)
 {
-	Mesh *me = ob->data;
-	unsigned char *wtcol_v = MEM_mallocN (sizeof(unsigned char) * me->totvert * 4, "weightmap_v");
+	MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
+	int numVerts = dm->getNumVerts(dm);
+	unsigned char *wtcol_v = MEM_mallocN (sizeof(unsigned char) * numVerts * 4, "weightmap_v");
 
-	if (me->dvert) {
+	if (dv) {
 		unsigned char *wc = wtcol_v;
-		MDeformVert *dv= me->dvert;
 		unsigned int i;
 
-		/* varisbles for multipaint */
+		/* variables for multipaint */
 		const int defbase_tot = BLI_countlist(&ob->defbase);
 		const int defbase_act = ob->actdef-1;
 		char *dg_flags = MEM_mallocN(defbase_tot * sizeof(char), __func__);
 		const int selected = get_selected_defgroups(ob, dg_flags, defbase_tot);
-		/* const int unselected = defbase_tot - selected; */ /* UNUSED */
 
-		for (i = me->totvert; i != 0; i--, wc += 4, dv++) {
+		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
 			calc_weightpaint_vert_color(wc, dv, coba, defbase_tot, defbase_act, dg_flags, selected, draw_flag);
 		}
 
@@ -748,48 +747,94 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, int const draw_fla
 	else {
 		int col_i;
 		weightpaint_color((unsigned char *)&col_i, coba, 0.0f);
-		fill_vn_i((int *)wtcol_v, me->totvert, col_i);
+		fill_vn_i((int *)wtcol_v, numVerts, col_i);
 	}
 
 	return wtcol_v;
 }
 
-static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
+/* return an array of vertex weight colors from given weights, caller must free.
+ *
+ * note that we could save some memory and allocate RGB only but then we'd need to
+ * re-arrange the colors when copying to the face since MCol has odd ordering,
+ * so leave this as is - campbell */
+static unsigned char *calc_colors_from_weights_array(const int num, float *weights)
+{
+	unsigned char *wtcol_v = MEM_mallocN(sizeof(unsigned char) * num * 4, "weightmap_v");
+	unsigned char *wc = wtcol_v;
+	int i;
+
+	for (i = 0; i < num; i++, wc += 4, weights++)
+		weightpaint_color((unsigned char *) wc, NULL, *weights);
+
+	return wtcol_v;
+}
+
+void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
+                           float *weights, int num, const int *indices)
 {
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 
-	Mesh *me = ob->data;
-	unsigned char *wtcol_v = calc_weightpaint_vert_array(ob, draw_flag, coba);
-	unsigned char *wtcol_f = MEM_mallocN (sizeof(unsigned char) * me->totface*4*4, "weightmap_f");
-	unsigned char *wtcol_f_step = wtcol_f;
-
-	MFace *mf = me->mface;
+	MFace *mf = dm->getFaceArray(dm);
+	int numFaces = dm->getNumFaces(dm);
+	int numVerts = dm->getNumVerts(dm);
+	unsigned char *wtcol_v;
+	unsigned char *wtcol_f = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
 	int i;
 
-	for (i=0; i<me->totface; i++, mf++, wtcol_f_step += (4 * 4)) {
+	/* If no CD_WEIGHT_MCOL existed yet, add a new one! */
+	if (!wtcol_f)
+		wtcol_f = CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+
+	if (wtcol_f) {
+		unsigned char *wtcol_f_step = wtcol_f;
+
+		/* Weights are given by caller. */
+		if (weights) {
+			float *w = weights;
+			/* If indices is not NULL, it means we do not have weights for all vertices,
+			 * so we must create them (and set them to zero)... */
+			if(indices) {
+				w = MEM_callocN(sizeof(float)*numVerts, "Temp weight array DM_update_weight_mcol");
+				i = num;
+				while(i--)
+					w[indices[i]] = weights[i];
+			}
+
+			/* Convert float weights to colors. */
+			wtcol_v = calc_colors_from_weights_array(numVerts, w);
+
+			if(indices)
+				MEM_freeN(w);
+		}
+
+		/* No weights given, take them from active vgroup(s). */
+		else
+			wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
+
+		/* Now copy colors in all face verts. */
+		for (i = 0; i < numFaces; i++, mf++, wtcol_f_step += (4 * 4)) {
 #if 0
-		unsigned int fidx= mf->v4 ? 3:2;
+			unsigned int fidx= mf->v4 ? 3:2;
 
 #else	/* better zero out triangles 4th component. else valgrind complains when the buffer's copied */
-		unsigned int fidx;
-		if (mf->v4) {
-			fidx = 3;
-		}
-		else {
-			fidx = 2;
-			*(int *)(&wtcol_f_step[3 * 4]) = 0;
-		}
+			unsigned int fidx;
+			if (mf->v4) {
+				fidx = 3;
+			}
+			else {
+				fidx = 2;
+				*(int *)(&wtcol_f_step[3 * 4]) = 0;
+			}
 #endif
 
-		do {
-			copy_v4_v4_char((char *)&wtcol_f_step[fidx * 4],
-			                (char *)&wtcol_v[4 * (*(&mf->v1 + fidx))]);
-		} while (fidx--);
+			do {
+				copy_v4_v4_char((char *)&wtcol_f_step[fidx * 4],
+						        (char *)&wtcol_v[4 * (*(&mf->v1 + fidx))]);
+			} while (fidx--);
+		}
+		MEM_freeN(wtcol_v);
 	}
-
-	MEM_freeN(wtcol_v);
-
-	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol_f, dm->numFaceData);
 }
 
 /* new value for useDeform -1  (hack for the gameengine):
@@ -803,7 +848,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 								int needMapping, CustomDataMask dataMask, int index, int useCache)
 {
 	Mesh *me = ob->data;
-	ModifierData *firstmd, *md;
+	ModifierData *firstmd, *md, *previewmd = NULL;
 	LinkNode *datamasks, *curr;
 	CustomDataMask mask, nextmask, append_mask = 0;
 	float (*deformedVerts)[3] = NULL;
@@ -816,8 +861,17 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
 
-	int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
-	                (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
+	const int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
+	                      (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
+	/* Generic preview only in object mode! */
+	const int do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
+#if 0 /* XXX Will re-enable this when we have global mod stack options. */
+	const int do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
+#endif
+	const int do_final_wmcol = FALSE;
+	int do_init_wmcol = ((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
+	/* XXX Same as above... For now, only weights preview in WPaint mode. */
+	const int do_mod_wmcol = do_init_wmcol;
 
 	if(mmd && !mmd->sculptlvl)
 		has_multires = 0;
@@ -841,6 +895,14 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 	curr = datamasks;
+
+	if(do_mod_wmcol || do_mod_mcol) {
+		/* Find the last active modifier generating a preview, or NULL if none. */
+		/* XXX Currently, DPaint modifier just ignores this.
+		 *     Needs a stupid hack...
+		 *     The whole "modifier preview" thing has to be (re?)designed, anyway! */
+		previewmd = modifiers_getLastPreview(scene, md, required_mode);
+	}
 
 	if(deform_r) *deform_r = NULL;
 	*final_r = NULL;
@@ -997,8 +1059,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					CDDM_calc_normals(dm);
 				}
 
-				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm, draw_flag); 
+				if(do_init_wmcol)
+					DM_update_weight_mcol(ob, dm, draw_flag, NULL, 0, NULL);
 
 				/* Constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from.
@@ -1085,8 +1147,14 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 
 			/* in case of dynamic paint, make sure preview mask remains for following modifiers */
+			/* XXX Temp and hackish solution! */
 			if (md->type == eModifierType_DynamicPaint)
 				append_mask |= CD_MASK_WEIGHT_MCOL;
+			/* In case of active preview modifier, make sure preview mask remains for following modifiers. */
+			else if ((md == previewmd) && (do_mod_wmcol)) {
+				DM_update_weight_mcol(ob, dm, draw_flag, NULL, 0, NULL);
+				append_mask |= CD_MASK_WEIGHT_MCOL;
+			}
 		}
 
 		isPrevDeform= (mti->type == eModifierTypeType_OnlyDeform);
@@ -1114,10 +1182,19 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
 		CDDM_calc_normals(finaldm);
 
-		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, draw_flag);
+#if 0 /* For later nice mod preview! */
+		/* In case we need modified weights in CD_WEIGHT_MCOL, we have to re-compute it. */
+		if(do_final_wmcol)
+			DM_update_weight_mcol(ob, finaldm, draw_flag, NULL, 0, NULL);
+#endif
 	} else if(dm) {
 		finaldm = dm;
+
+#if 0 /* For later nice mod preview! */
+		/* In case we need modified weights in CD_WEIGHT_MCOL, we have to re-compute it. */
+		if(do_final_wmcol)
+			DM_update_weight_mcol(ob, finaldm, draw_flag, NULL, 0, NULL);
+#endif
 	} else {
 		finaldm = CDDM_from_mesh(me, ob);
 
@@ -1126,8 +1203,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			CDDM_calc_normals(finaldm);
 		}
 
-		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, draw_flag);
+		/* In this case, we should never have weight-modifying modifiers in stack... */
+		if(do_init_wmcol)
+			DM_update_weight_mcol(ob, finaldm, draw_flag, NULL, 0, NULL);
 	}
 
 	/* add an orco layer if needed */

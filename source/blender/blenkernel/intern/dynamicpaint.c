@@ -1574,7 +1574,6 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 		int update_normals = 0;
-		pmd->canvas->flags &= ~MOD_DPAINT_PREVIEW_READY;
 
 		/* loop through surfaces */
 		for (; surface; surface=surface->next) {
@@ -1651,7 +1650,6 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 										}
 									}
 								}
-								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
 							}
 						}
 
@@ -1711,29 +1709,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						if (surface->flags & MOD_DPAINT_PREVIEW) {
 							/* Save preview results to weight layer, to be
 							*   able to share same drawing methods */
-							MFace *mface = result->getFaceArray(result);
-							int numOfFaces = result->getNumFaces(result);
-							int i;
-							MCol *col = result->getFaceDataArray(result, CD_WEIGHT_MCOL);
-							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
-
-							if (col) {
-								#pragma omp parallel for schedule(static)
-								for (i=0; i<numOfFaces; i++) {
-									float temp_color[3];
-									int j = (mface[i].v4) ? 4 : 3;
-									while (j--) {
-										int index = *((&mface[i].v1)+j);
-
-										weight_to_rgb(temp_color, weight[index]);
-										col[i*4+j].r = FTOCHAR(temp_color[2]);
-										col[i*4+j].g = FTOCHAR(temp_color[1]);
-										col[i*4+j].b = FTOCHAR(temp_color[0]);
-										col[i*4+j].a = 255;
-									}
-								}
-								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
-							}
+							DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);
 						}
 
 						/* apply weights into a vertex group, if doesnt exists add a new layer */

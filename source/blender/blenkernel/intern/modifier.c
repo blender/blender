@@ -142,6 +142,19 @@ int modifier_supportsMapping(ModifierData *md)
 			(mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
+int modifier_isPreview(ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	if (!(mti->flags & eModifierTypeFlag_UsesPreview))
+		return FALSE;
+
+	if (md->mode & eModifierMode_Realtime)
+		return TRUE;
+
+	return FALSE;
+}
+
 ModifierData *modifiers_findByType(Object *ob, ModifierType type)
 {
 	ModifierData *md = ob->modifiers.first;
@@ -385,6 +398,21 @@ LinkNode *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData 
 	return dataMasks;
 }
 
+ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, int required_mode)
+{
+	ModifierData *tmp_md = NULL;
+
+	if (required_mode != eModifierMode_Realtime)
+		return tmp_md;
+
+	/* Find the latest modifier in stack generating preview. */
+	for(; md; md = md->next) {
+		if(modifier_isEnabled(scene, md, required_mode) && modifier_isPreview(md))
+			tmp_md = md;
+	}
+	return tmp_md;
+}
+
 ModifierData *modifiers_getVirtualModifierList(Object *ob)
 {
 		/* Kinda hacky, but should be fine since we are never
@@ -543,6 +571,20 @@ int modifiers_isCorrectableDeformed(Object *ob)
 				return 1;
 	}
 	return 0;
+}
+
+/* Check whether the given object has a modifier in its stack that uses WEIGHT_MCOL CD layer
+ * to preview something... Used by DynamicPaint and WeightVG currently. */
+int modifiers_isPreview(Object *ob)
+{
+	ModifierData *md = ob->modifiers.first;
+
+	for (; md; md = md->next) {
+		if (modifier_isPreview(md))
+			return TRUE;
+	}
+
+	return FALSE;
 }
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek)

@@ -36,7 +36,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
-#include "DNA_dynamicpaint_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -3081,27 +3080,16 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	eWireDrawMode draw_wire= OBDRAW_WIRE_OFF;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
-	ModifierData *md = NULL;
 	const short is_obact= (ob == OBACT);
 	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
 		return;
 
-	/* check to draw dynamic paint colors */
-	if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
-	{
-		/* check if target has an active dpaint modifier	*/
-		if(md && (md->mode & eModifierMode_Realtime))					
-		{
-			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-			/* if canvas is ready to preview vertex colors */
-			if (pmd->canvas && pmd->canvas->flags & MOD_DPAINT_PREVIEW_READY &&
-				DM_get_face_data_layer(dm, CD_WEIGHT_MCOL)) {
-				draw_flags |= DRAW_DYNAMIC_PAINT_PREVIEW;
-			}
-		}
-	}
+	/* Check to draw dynamic paint colors (or weights from WeightVG modifiers).
+	 * Note: Last "preview-active" modifier in stack will win! */
+	if(DM_get_face_data_layer(dm, CD_WEIGHT_MCOL) && modifiers_isPreview(ob))
+		draw_flags |= DRAW_MODIFIERS_PREVIEW;
 
 	/* Unwanted combination */
 	if (draw_flags & DRAW_FACE_SELECT) {
@@ -3142,7 +3130,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
-		if(draw_glsl_material(scene, ob, v3d, dt) && !(draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)) {
+		if(draw_glsl_material(scene, ob, v3d, dt) && !(draw_flags & DRAW_MODIFIERS_PREVIEW)) {
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 			dm->drawFacesGLSL(dm, GPU_enable_material);
@@ -3193,7 +3181,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* since we already draw wire as wp guide, dont draw over the top */
 			draw_wire= OBDRAW_WIRE_OFF;
 		}
-		else if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW) {
+		else if (draw_flags & DRAW_MODIFIERS_PREVIEW) {
 			/* for object selection draws no shade */
 			if (flag & (DRAW_PICKING|DRAW_CONSTCOLOR)) {
 				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
