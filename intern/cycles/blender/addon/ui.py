@@ -610,14 +610,9 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 col.template_ID(user, "texture", new="texture.new")
 
             if tex:
-                row = split.row()
-                row.prop(tex, "use_nodes", icon="NODETREE", text="")
-                row.label()
-
-                if not tex.use_nodes:
-                    split = layout.split(percentage=0.2)
-                    split.label(text="Type:")
-                    split.prop(tex, "type", text="")
+                split = layout.split(percentage=0.2)
+                split.label(text="Type:")
+                split.prop(tex, "type", text="")
 
 
 class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
