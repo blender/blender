@@ -66,6 +66,14 @@
 #define EM_SEPR_X		6
 #define EM_SEPR_Y		6
 
+#define UI_OPERATOR_ERROR_RET(_ot, _opname, return_statement)                 \
+	if (ot == NULL) {                                                         \
+		ui_item_disabled(layout, _opname);                                    \
+		RNA_warning("'%s' unknown operator", _opname);                        \
+		return_statement;                                                     \
+	} (void)0                                                                 \
+
+
 /* uiLayoutRoot */
 
 typedef struct uiLayoutRoot {
@@ -690,14 +698,9 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 
-	if(ot) {
-		return uiItemFullO_ptr(layout, ot, name, icon, properties, context, flag);
-	}
-	else {
-		ui_item_disabled(layout, opname);
-		RNA_warning("unknown operator '%s'", opname);
-		return PointerRNA_NULL;
-	}
+	UI_OPERATOR_ERROR_RET(ot, opname, return PointerRNA_NULL);
+
+	return uiItemFullO_ptr(layout, ot, name, icon, properties, context, flag);
 }
 
 static const char *ui_menu_enumpropname(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int retval)
@@ -842,13 +845,6 @@ void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)
 	uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, 0);
 }
 
-#define UI_OPERATOR_ERROR_RET(_ot, _opname)                                   \
-	if (ot == NULL) {                                                         \
-		ui_item_disabled(layout, _opname);                                    \
-		RNA_warning("'%s' unknown operator", _opname);                        \
-		return;                                                               \
-	} (void)0
-
 /* for use in cases where we have */
 void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value)
 {
@@ -856,7 +852,7 @@ void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char 
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 
@@ -887,7 +883,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	EnumPropertyItem *item;
 	int value, free;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	
@@ -925,7 +921,7 @@ void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *op
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_boolean_set(&ptr, propname, value);
@@ -938,7 +934,7 @@ void uiItemIntO(uiLayout *layout, const char *name, int icon, const char *opname
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_int_set(&ptr, propname, value);
@@ -951,7 +947,7 @@ void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opna
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_float_set(&ptr, propname, value);
@@ -964,7 +960,7 @@ void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opn
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	PointerRNA ptr;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_string_set(&ptr, propname, value);
@@ -1608,7 +1604,7 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	MenuItemLevel *lvl;
 
-	UI_OPERATOR_ERROR_RET(ot, opname);
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
 
 	if(!ot->srna) {
 		ui_item_disabled(layout, opname);
