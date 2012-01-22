@@ -1448,9 +1448,17 @@ void BKE_nla_validate_state (AnimData *adt)
 			 */
 			// TODO: 1 solution is to tie this in with auto-blending...
 			if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+				/* 1) First strip must be set to extend hold, otherwise, stuff before acts dodgy
+				 * 2) Only overwrite extend mode if *not* changing it will most probably result in 
+				 * occlusion problems, which will occur iff
+				 *	- blendmode = REPLACE
+				 *	- all channels the same (this is fiddly to test, so is currently assumed)
+				 *
+				 * Should fix problems such as [#29869]
+				 */
 				if (strip == fstrip)
 					strip->extendmode= NLASTRIP_EXTEND_HOLD;
-				else
+				else if (strip->blendmode == NLASTRIP_MODE_REPLACE)
 					strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
 			}
 		}
