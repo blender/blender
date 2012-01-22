@@ -1312,6 +1312,7 @@ static void rna_def_userdef_theme_space_file(BlenderRNA *brna)
 static void rna_def_userdef_theme_space_outliner(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	/* space_outliner */
 
@@ -1321,6 +1322,16 @@ static void rna_def_userdef_theme_space_outliner(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Theme Outliner", "Theme settings for the Outliner");
 
 	rna_def_userdef_theme_spaces_main(srna);
+
+	prop= RNA_def_property(srna, "match", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Filter Match", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "selected_highlight", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Selected Highlight", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_space_userpref(BlenderRNA *brna)

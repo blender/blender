@@ -193,8 +193,10 @@ enum {
 	TH_STITCH_PREVIEW_VERT,
 	TH_STITCH_PREVIEW_STITCHABLE,
 	TH_STITCH_PREVIEW_UNSTITCHABLE,
-	TH_STITCH_PREVIEW_ACTIVE
+	TH_STITCH_PREVIEW_ACTIVE,
 
+	TH_MATCH,			/* highlight color for search matches */
+	TH_SELECT_HIGHLIGHT	/* highlight color for selected outliner item */
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
