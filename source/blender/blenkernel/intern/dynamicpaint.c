@@ -1698,9 +1698,6 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 					}
 					/* vertex group paint */
 					else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-						MLoop *mloop = CDDM_get_loops(result);
-						int totloop = result->numLoopData;
-
 						int defgrp_index = defgroup_name_index(ob, surface->output_name);
 						MDeformVert *dvert = result->getVertDataArray(result, CD_MDEFORMVERT);
 						float *weight = (float*)sData->type_data;
