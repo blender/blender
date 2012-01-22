@@ -3071,7 +3071,7 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 	};
 	#undef SUBTYPE
 
-	#define SUBTYPE(socktype, stypename, id, idname)	if (subtype==PROP_##id)	propsubtype = PROP_##id;
+	#define SUBTYPE(socktype, stypename, id, idname)	if (subtype == (PROP_##id))	propsubtype = PROP_##id;
 	NODE_DEFINE_SUBTYPES
 	#undef SUBTYPE
 	

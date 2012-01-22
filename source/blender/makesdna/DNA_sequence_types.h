@@ -41,10 +41,10 @@ struct Ipo;
 struct Scene;
 struct bSound;
 
-/* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
+/* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 
 typedef struct StripElem {
-	char name[80];
+	char name[256];
 	int orig_width, orig_height;
 } StripElem;
 
@@ -71,10 +71,10 @@ typedef struct StripColorBalance {
 } StripColorBalance;
 
 typedef struct StripProxy {
-	char dir[160];	       // custom directory for index and proxy files
+	char dir[768];	       // custom directory for index and proxy files
 	                       // (defaults to BL_proxy)
 
-	char file[80];         // custom file
+	char file[256];        // custom file
 	struct anim *anim;     // custom proxy anim file
 
 	short tc;              // time code in use
@@ -91,7 +91,7 @@ typedef struct Strip {
 	int rt, len, us, done;
 	int startstill, endstill;
 	StripElem *stripdata;
-	char dir[160];
+	char dir[768];
 	StripProxy *proxy;
 	StripCrop *crop;
 	StripTransform *transform;
@@ -100,7 +100,7 @@ typedef struct Strip {
 
 
 typedef struct PluginSeq {
-	char name[256];
+	char name[1024]; /* 1024 = FILE_MAX */
 	void *handle;
 
 	char *pname;
@@ -191,8 +191,8 @@ typedef struct Editing {
 	
 	/* Context vars, used to be static */
 	Sequence *act_seq;
-	char act_imagedir[256];
-	char act_sounddir[256];
+	char act_imagedir[1024]; /* 1024 = FILE_MAX */
+	char act_sounddir[1024]; /* 1024 = FILE_MAX */
 
 	int over_ofs, over_cfra;
 	int over_flag, pad;
@@ -353,7 +353,7 @@ typedef struct SpeedControlVars {
  */
 
 
-#define SEQ_HAS_PATH(_seq) (ELEM5((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_RAM_SOUND, SEQ_HD_SOUND))
+#define SEQ_HAS_PATH(_seq) (ELEM4((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_RAM_SOUND, SEQ_HD_SOUND))
 
 #endif
 

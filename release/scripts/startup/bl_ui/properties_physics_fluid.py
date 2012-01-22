@@ -79,6 +79,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             sub = col.column(align=True)
             sub.prop(fluid, "start_time", text="Start")
             sub.prop(fluid, "end_time", text="End")
+            col.prop(fluid, "simulation_rate", text="Speed")
 
             col = split.column()
             col.label()
@@ -230,6 +231,10 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
         if fluid.viscosity_preset == 'MANUAL':
             sub.prop(fluid, "viscosity_base", text="Base")
             sub.prop(fluid, "viscosity_exponent", text="Exponent", slider=True)
+        else:
+            # just for padding to prevent jumping around
+            sub.separator()
+            sub.separator()
 
         col.label(text="Optimization:")
         col.prop(fluid, "grid_levels", slider=True)

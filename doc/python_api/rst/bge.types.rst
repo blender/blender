@@ -66,6 +66,12 @@ Game Types (bge.types)
 
       :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
 
+   .. attribute:: active_events
+
+      A dictionary containing the status of only the active keyboard events or keys. (read-only).
+
+      :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
+
 .. class:: SCA_PythonMouse(PyObjectPlus)
 
    The current mouse.
@@ -73,6 +79,12 @@ Game Types (bge.types)
    .. attribute:: events
 
       a dictionary containing the status of each mouse event. (read-only).
+
+      :type: dictionary {:ref:`keycode<mouse-keys>`::ref:`status<input-status>`, ...}
+
+   .. attribute:: active_events
+
+      a dictionary containing the status of only the active mouse events. (read-only).
 
       :type: dictionary {:ref:`keycode<mouse-keys>`::ref:`status<input-status>`, ...}
       
@@ -980,7 +992,7 @@ Game Types (bge.types)
 
    .. attribute:: worldScale
 
-      The object's world scaling factor. Read-only. [sx, sy, sz]
+      The object's world scaling factor. [sx, sy, sz]
 
       :type: :class:`mathutils.Vector`
 
@@ -995,6 +1007,18 @@ Game Types (bge.types)
       The object's world position. [x, y, z]
 
       :type: :class:`mathutils.Vector`
+
+   .. attribute:: localTransform
+
+      The object's local space transform matrix. 4x4 Matrix.
+
+      :type: :class:`mathutils.Matrix`
+
+   .. attribute:: worldTransform
+
+      The object's world space transform matrix. 4x4 Matrix.
+
+      :type: :class:`mathutils.Matrix`
 	  
    .. attribute:: localLinearVelocity
       

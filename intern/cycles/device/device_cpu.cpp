@@ -217,7 +217,7 @@ public:
 #ifdef WITH_OPTIMIZED_KERNEL
 		if(system_cpu_support_optimized()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
-				kernel_cpu_optimized_shader(kg, (uint4*)task.shader_input, (float3*)task.shader_output, task.shader_eval_type, x);
+				kernel_cpu_optimized_shader(kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
 				if(tasks.worker_cancel())
 					break;
@@ -227,7 +227,7 @@ public:
 #endif
 		{
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
-				kernel_cpu_shader(kg, (uint4*)task.shader_input, (float3*)task.shader_output, task.shader_eval_type, x);
+				kernel_cpu_shader(kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
 				if(tasks.worker_cancel())
 					break;

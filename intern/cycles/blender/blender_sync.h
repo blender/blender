@@ -80,6 +80,7 @@ private:
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
 	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
+	void sync_background_light();
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);

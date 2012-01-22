@@ -1111,9 +1111,9 @@ int BKE_add_image_extension(char *string, const char imtype)
 		if(BLI_testextensie_array(string, imb_ext_image)
 				  || (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt))) {
 			return BLI_replace_extension(string, FILE_MAX, extension);
-		} else {
+		}
+		else {
 			return BLI_ensure_extension(string, FILE_MAX, extension);
-			return TRUE;
 		}
 		
 	}

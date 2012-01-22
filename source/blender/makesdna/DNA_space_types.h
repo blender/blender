@@ -174,10 +174,11 @@ typedef struct SpaceSeq {
 
 typedef struct FileSelectParams {
 	char title[32]; /* title, also used for the text of the execute button */
-	char dir[240]; /* directory */
-	char file[80]; /* file */
-	char renamefile[80];
-	char renameedit[80]; /* annoying but the first is only used for initialization */
+	char dir[1056]; /* directory, FILE_MAX_LIBEXTRA, 1024 + 32, this is for extreme case when 1023 length path
+	                 * needs to be linked in, where foo.blend/Armature need adding  */
+	char file[256]; /* file */
+	char renamefile[256];
+	char renameedit[256]; /* annoying but the first is only used for initialization */
 
 	char filter_glob[64]; /* list of filetypes to filter */
 
@@ -343,8 +344,9 @@ typedef struct Script {
 	void *py_globaldict;
 
 	int flags, lastspace;
-	char scriptname[256]; /* store the script file here so we can re-run it on loading blender, if "Enable Scripts" is on */
-	char scriptarg[256];
+	/* store the script file here so we can re-run it on loading blender, if "Enable Scripts" is on */
+	char scriptname[1024]; /* 1024 = FILE_MAX */
+	char scriptarg[256]; /* 1024 = FILE_MAX */
 } Script;
 #define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
 
@@ -622,9 +624,11 @@ enum FileSortTypeE {
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in BKE */
-#define FILE_MAXDIR			160
-#define FILE_MAXFILE		80
-#define FILE_MAX			240
+#define FILE_MAXDIR			768
+#define FILE_MAXFILE		256
+#define FILE_MAX			1024
+
+#define FILE_MAX_LIBEXTRA   (FILE_MAX + 32)
 
 /* filesel types */
 #define FILE_UNIX			8

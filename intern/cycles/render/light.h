@@ -46,6 +46,8 @@ public:
 	float3 axisv;
 	float sizev;
 
+	int map_resolution;
+
 	bool cast_shadow;
 
 	int shader;
@@ -68,6 +70,7 @@ public:
 protected:
 	void device_update_points(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	void device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 };
 
 CCL_NAMESPACE_END

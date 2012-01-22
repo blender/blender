@@ -16,10 +16,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "graph.h"
 #include "light.h"
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
+#include "nodes.h"
+#include "shader.h"
 
 #include "blender_sync.h"
 #include "blender_util.h"
@@ -152,6 +155,37 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 	light->tag_update(scene);
 }
 
+void BlenderSync::sync_background_light()
+{
+	BL::World b_world = b_scene.world();
+
+	if(b_world) {
+		PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
+		bool sample_as_light = get_boolean(cworld, "sample_as_light");
+
+		if(sample_as_light) {
+			/* test if we need to sync */
+			Light *light;
+			ObjectKey key(b_world, 0, b_world);
+
+			if(light_map.sync(&light, b_world, b_world, key) ||
+			   world_recalc ||
+			   b_world.ptr.data != world_map)
+			{
+				light->type = LIGHT_BACKGROUND;
+				light->map_resolution  = get_int(cworld, "sample_map_resolution");
+				light->shader = scene->default_background;
+
+				light->tag_update(scene);
+				light_map.set_recalc(b_world);
+			}
+		}
+	}
+
+	world_map = b_world.ptr.data;
+	world_recalc = false;
+}
+
 /* Object */
 
 void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag)
@@ -262,6 +296,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 			}
 		}
 	}
+
+	sync_background_light();
 
 	/* handle removed data and modified pointers */
 	if(light_map.post_sync())

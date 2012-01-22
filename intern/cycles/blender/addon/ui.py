@@ -453,8 +453,36 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         world = context.world
+
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
+
+
+class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+        cworld = world.cycles
+
+        split = layout.split()
+        col = split.column()
+
+        col.prop(cworld, "sample_as_light")
+        row = col.row()
+        row.active = cworld.sample_as_light
+        row.prop(cworld, "sample_map_resolution")
+
+        col = split.column()
+        col.label()
 
 
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):

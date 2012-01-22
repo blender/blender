@@ -274,7 +274,7 @@ static float metadensity(Object* ob, const float co[3])
 		}
 		
 		/* ml->rad2 is not set */
-		dist2 = 1.f - ((tp[0]*tp[0] + tp[1]*tp[1] + tp[2]*tp[2]) / (ml->rad*ml->rad));
+		dist2 = 1.0f - (dot_v3v3(tp, tp) / (ml->rad * ml->rad));
 		if (dist2 > 0.f)
 			dens += (ml->flag & MB_NEGATIVE) ? -ml->s*dist2*dist2*dist2 : ml->s*dist2*dist2*dist2;
 	}

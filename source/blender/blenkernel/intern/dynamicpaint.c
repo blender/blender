@@ -188,11 +188,12 @@ typedef struct ImgSeqFormatData {
 	Vec3f *barycentricWeights;		/* b-weights for all pixel samples */
 } ImgSeqFormatData;
 
+#if 0 /* UNUSED */
 typedef struct EffVelPoint {
 	float previous_pos[3];
 	float previous_vel[3];
 } EffVelPoint;
-
+#endif
 
 /* adjacency data flags */
 #define ADJ_ON_MESH_EDGE (1<<0)

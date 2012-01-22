@@ -1061,7 +1061,6 @@ ID *buttons_context_id_path(const bContext *C)
 
 			if(ptr->id.data) {
 				return ptr->id.data;
-				break;
 			}
 		}
 	}

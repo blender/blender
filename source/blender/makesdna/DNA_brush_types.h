@@ -59,7 +59,7 @@ typedef struct Brush {
 
 	struct ImBuf *icon_imbuf;
 	PreviewImage *preview;
-	char icon_filepath[240]; /* 240 = FILE_MAX */
+	char icon_filepath[1024]; /* 1024 = FILE_MAX */
 
 	float normal_weight;
 

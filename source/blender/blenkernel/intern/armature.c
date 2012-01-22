@@ -665,7 +665,7 @@ static void b_bone_deform(bPoseChanDeform *pdef_info, Bone *bone, float *co, Dua
 }
 
 /* using vec with dist to bone b1 - b2 */
-float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist)
+float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3], float rad1, float rad2, float rdist)
 {
 	float dist=0.0f; 
 	float bdelta[3];
@@ -677,18 +677,18 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 	
 	sub_v3_v3v3(pdelta, vec, b1);
 	
-	a = bdelta[0]*pdelta[0] + bdelta[1]*pdelta[1] + bdelta[2]*pdelta[2];
-	hsqr = ((pdelta[0]*pdelta[0]) + (pdelta[1]*pdelta[1]) + (pdelta[2]*pdelta[2]));
+	a = dot_v3v3(bdelta, pdelta);
+	hsqr = dot_v3v3(pdelta, pdelta);
 	
-	if (a < 0.0F){
+	if (a < 0.0f) {
 		/* If we're past the end of the bone, do a spherical field attenuation thing */
-		dist= ((b1[0]-vec[0])*(b1[0]-vec[0]) +(b1[1]-vec[1])*(b1[1]-vec[1]) +(b1[2]-vec[2])*(b1[2]-vec[2])) ;
+		dist = len_squared_v3v3(b1, vec);
 		rad= rad1;
 	}
-	else if (a > l){
+	else if (a > l) {
 		/* If we're past the end of the bone, do a spherical field attenuation thing */
-		dist= ((b2[0]-vec[0])*(b2[0]-vec[0]) +(b2[1]-vec[1])*(b2[1]-vec[1]) +(b2[2]-vec[2])*(b2[2]-vec[2])) ;
-		rad= rad2;
+		dist = len_squared_v3v3(b2, vec);
+		rad = rad2;
 	}
 	else {
 		dist= (hsqr - (a*a));
@@ -709,7 +709,7 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 		if(rdist==0.0f || dist >= l) 
 			return 0.0f;
 		else {
-			a= (float)sqrt(dist)-rad;
+			a = sqrtf(dist)-rad;
 			return 1.0f-( a*a )/( rdist*rdist );
 		}
 	}

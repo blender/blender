@@ -1115,8 +1115,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 {
 	static ColorBand but_copypaste_coba = {0};
 	char buf[UI_MAX_DRAW_STR+1]= {0};
-	double val;
-	
+
 	if(mode=='v' && but->lock)
 		return;
 
@@ -1140,17 +1139,16 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
-			if(ui_is_but_float(but))
-				BLI_snprintf(buf, sizeof(buf), "%f", ui_get_but_val(but));
-			else
-				BLI_snprintf(buf, sizeof(buf), "%d", (int)ui_get_but_val(but));
-
+			ui_get_but_string(but, buf, sizeof(buf));
 			WM_clipboard_text_set(buf, 0);
 		}
 		else {
-			if (sscanf(buf, " %lf ", &val) == 1) {
+			double val;
+
+			if (ui_set_but_string_eval_num(C, but, buf, &val)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				data->value= val;
+				ui_set_but_string(C, but, buf);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}
@@ -1703,8 +1701,9 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			changed= 1;
 		}
 
-		if(pbuf)
+		if (pbuf) {
 			MEM_freeN(pbuf);
+		}
 	}
 	/* cut & copy */
 	else if (copy || cut) {
@@ -4383,31 +4382,19 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 	uiBut *but = (uiBut *)arg1;
 
 	if (but->optype) {
-		char buf[512], *cpoin;
+		char shortcut_str[128];
 
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		
 		/* complex code to change name of button */
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
-		                                buf, sizeof(buf)))
+		                                shortcut_str, sizeof(shortcut_str)))
 		{
-			char *butstr_orig;
-
-			// XXX but->str changed... should not, remove the hotkey from it
-			cpoin= strchr(but->str, '|');
-			if(cpoin) *cpoin= 0;		
-
-			butstr_orig= BLI_strdup(but->str);
-			BLI_snprintf(but->strdata, sizeof(but->strdata), "%s|%s", butstr_orig, buf);
-			MEM_freeN(butstr_orig);
-			but->str= but->strdata;
-
-			ui_check_but(but);
+			ui_but_add_shortcut(but, shortcut_str, TRUE);
 		}
 		else {
-			/* shortcut was removed */
-			cpoin= strchr(but->str, '|');
-			if(cpoin) *cpoin= 0;
+			/* simply strip the shortcut */
+			ui_but_add_shortcut(but, NULL, TRUE);
 		}
 	}
 }

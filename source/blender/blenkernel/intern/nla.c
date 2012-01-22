@@ -1448,9 +1448,17 @@ void BKE_nla_validate_state (AnimData *adt)
 			 */
 			// TODO: 1 solution is to tie this in with auto-blending...
 			if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+				/* 1) First strip must be set to extend hold, otherwise, stuff before acts dodgy
+				 * 2) Only overwrite extend mode if *not* changing it will most probably result in 
+				 * occlusion problems, which will occur iff
+				 *	- blendmode = REPLACE
+				 *	- all channels the same (this is fiddly to test, so is currently assumed)
+				 *
+				 * Should fix problems such as [#29869]
+				 */
 				if (strip == fstrip)
 					strip->extendmode= NLASTRIP_EXTEND_HOLD;
-				else
+				else if (strip->blendmode == NLASTRIP_MODE_REPLACE)
 					strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
 			}
 		}
@@ -1542,6 +1550,34 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 			break;
 		}	
 	}
+	
+	/* There are situations where we may have multiple strips selected and we want to enter tweakmode on all 
+	 * of those at once. Usually in those cases, it will usually just be a single strip per AnimData. 
+	 * In such cases, compromise and take the last selected track and/or last selected strip [#28468] 
+	 */
+	if (activeTrack == NULL) {
+		/* try last selected track for active strip */
+		for (nlt = adt->nla_tracks.last; nlt; nlt = nlt->prev) {
+			if (nlt->flag & NLATRACK_SELECTED) {
+				/* assume this is the active track */
+				activeTrack= nlt;
+				
+				/* try to find active strip */
+				activeStrip= BKE_nlastrip_find_active(nlt);
+				break;
+			}
+		}	
+	}
+	if ((activeTrack) && (activeStrip == NULL)) {
+		/* no active strip in active or last selected track; compromise for first selected (assuming only single)... */
+		for (strip = activeTrack->strips.first; strip; strip= strip->next) {
+			if (strip->flag & (NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE)) {
+				activeStrip = strip;
+				break;
+			}
+		}
+	}
+	
 	if ELEM3(NULL, activeTrack, activeStrip, activeStrip->act) {
 		if (G.f & G_DEBUG) {
 			printf("NLA tweakmode enter - neither active requirement found \n");

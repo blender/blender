@@ -671,7 +671,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 			float *tav= RE_vertren_get_tangent(obr, ver, 0);
 			if (tav) {
 				/* orthonorm. */
-				float tdn = tav[0]*ver->n[0] + tav[1]*ver->n[1] + tav[2]*ver->n[2];
+				const float tdn = dot_v3v3(tav, ver->n);
 				tav[0] -= ver->n[0]*tdn;
 				tav[1] -= ver->n[1]*tdn;
 				tav[2] -= ver->n[2]*tdn;
@@ -767,7 +767,7 @@ static int as_testvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float 
 	while(asf) {
 		for(a=0; a<4; a++) {
 			if(asf->vlr[a] && asf->vlr[a]!=vlr) {
-				inp= fabs( vlr->n[0]*asf->vlr[a]->n[0] + vlr->n[1]*asf->vlr[a]->n[1] + vlr->n[2]*asf->vlr[a]->n[2] );
+				inp = fabsf(dot_v3v3(vlr->n, asf->vlr[a]->n));
 				if(inp < thresh) return 1;
 			}
 		}
@@ -790,7 +790,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, f
 			if(asf->vlr[a] && asf->vlr[a]!=vlr) {
 				/* this face already made a copy for this vertex! */
 				if(asf->nver[a]) {
-					inp= fabs( vlr->n[0]*asf->vlr[a]->n[0] + vlr->n[1]*asf->vlr[a]->n[1] + vlr->n[2]*asf->vlr[a]->n[2] );
+					inp = fabsf(dot_v3v3(vlr->n, asf->vlr[a]->n));
 					if(inp >= thresh) {
 						return asf->nver[a];
 					}
@@ -2158,7 +2158,7 @@ static void make_render_halos(Render *re, ObjectRen *obr, Mesh *UNUSED(me), int 
 				copy_v3_v3(view, vec);
 				normalize_v3(view);
 
-				zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
+				zn = dot_v3v3(nor, view);
 				if(zn>=0.0f) hasize= 0.0f;
 				else hasize*= zn*zn*zn*zn;
 			}
@@ -2240,9 +2240,9 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 		mul_m4_v3(mat, shi->co);
 
 	if(imat) {
-		shi->vn[0]= imat[0][0]*vr->n[0]+imat[0][1]*vr->n[1]+imat[0][2]*vr->n[2];
-		shi->vn[1]= imat[1][0]*vr->n[0]+imat[1][1]*vr->n[1]+imat[1][2]*vr->n[2];
-		shi->vn[2]= imat[2][0]*vr->n[0]+imat[2][1]*vr->n[1]+imat[2][2]*vr->n[2];
+		shi->vn[0] = dot_v3v3(imat[0], vr->n);
+		shi->vn[1] = dot_v3v3(imat[1], vr->n);
+		shi->vn[2] = dot_v3v3(imat[2], vr->n);
 	}
 
 	if (texco & TEXCO_UV) {
@@ -4241,7 +4241,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 				flen= normal_tri_v3( nor,vlr->v4->co, vlr->v3->co, vlr->v1->co);
 				if(flen==0.0f) normal_tri_v3( nor,vlr->v4->co, vlr->v2->co, vlr->v1->co);
 				
-				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
+				xn = dot_v3v3(nor, vlr->n);
 
 				if(ABS(xn) < 0.999995f ) {	// checked on noisy fractal grid
 					
@@ -4252,11 +4252,11 @@ static void check_non_flat_quads(ObjectRen *obr)
 					
 					/* split direction based on vnorms */
 					normal_tri_v3( nor,vlr->v1->co, vlr->v2->co, vlr->v3->co);
-					d1= nor[0]*vlr->v1->n[0] + nor[1]*vlr->v1->n[1] + nor[2]*vlr->v1->n[2];
+					d1 = dot_v3v3(nor, vlr->v1->n);
 
 					normal_tri_v3( nor,vlr->v2->co, vlr->v3->co, vlr->v4->co);
-					d2= nor[0]*vlr->v2->n[0] + nor[1]*vlr->v2->n[1] + nor[2]*vlr->v2->n[2];
-				
+					d2 = dot_v3v3(nor, vlr->v2->n);
+
 					if( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
 					else vlr->flag &= ~R_DIVIDE_24;
 
@@ -5267,7 +5267,7 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 		if(vec[0]<0.0f) ang= -ang;
 		zco[0]= ang/pixelphix + zmulx;
 		
-		ang= 0.5f*(float)M_PI - saacos(vec[1]/sqrtf(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]));
+		ang= 0.5f*(float)M_PI - saacos(vec[1] / len_v3(vec));
 		zco[1]= ang/pixelphiy + zmuly;
 		
 	}
@@ -5487,9 +5487,9 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		}
 		
 		// transform (=rotate) to cam space
-		camco[0]= imat[0][0]*fsvec[0] + imat[0][1]*fsvec[1] + imat[0][2]*fsvec[2];
-		camco[1]= imat[1][0]*fsvec[0] + imat[1][1]*fsvec[1] + imat[1][2]*fsvec[2];
-		camco[2]= imat[2][0]*fsvec[0] + imat[2][1]*fsvec[1] + imat[2][2]*fsvec[2];
+		camco[0] = dot_v3v3(imat[0], fsvec);
+		camco[1] = dot_v3v3(imat[1], fsvec);
+		camco[2] = dot_v3v3(imat[2], fsvec);
 
 		// get homogenous coordinates
 		projectvert(camco, winmat, hoco);

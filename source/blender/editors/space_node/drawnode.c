@@ -1233,7 +1233,10 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	PropertyRNA *prop;
 	const char *layer_name;
 	char scene_name[MAX_ID_NAME-2];
-	
+	wmOperatorType *ot = WM_operatortype_find("RENDER_OT_render", 1);
+
+	BLI_assert(ot != 0);
+
 	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
 	if(!node->id) return;
@@ -1249,10 +1252,10 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	scn_ptr = RNA_pointer_get(ptr, "scene");
 	RNA_string_get(&scn_ptr, "name", scene_name);
 	
-	WM_operator_properties_create(&op_ptr, "RENDER_OT_render");
+	WM_operator_properties_create_ptr(&op_ptr, ot);
 	RNA_string_set(&op_ptr, "layer", layer_name);
 	RNA_string_set(&op_ptr, "scene", scene_name);
-	uiItemFullO(row, "RENDER_OT_render", "", ICON_RENDER_STILL, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO_ptr(row, ot, "", ICON_RENDER_STILL, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
 }
 

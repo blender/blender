@@ -95,6 +95,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
 		fss->animStart = 0.0; 
 		fss->animEnd = 4.0;
+		fss->animRate = 1.0;
 		fss->gstar = 0.005; // used as normgstar
 		fss->maxRefine = -1;
 		// maxRefine is set according to resolutionxyz during bake

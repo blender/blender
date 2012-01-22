@@ -450,7 +450,7 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 {
 	int i, j;
 	
-	for (i = 0, j = 0; template_name[i] != '\0' && i < (MAXBONENAME-1) && j < (MAXBONENAME-1); i++)
+	for (i = 0, j = 0; i < (MAXBONENAME-1) && j < (MAXBONENAME-1) && template_name[i] != '\0'; i++)
 	{
 		if (template_name[i] == '&')
 		{

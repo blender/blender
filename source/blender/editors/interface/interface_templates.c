@@ -2267,8 +2267,9 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
 
 	/* free name */
-	if(namebuf)
+	if (namebuf) {
 		MEM_freeN(namebuf);
+	}
 }
 
 void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr, const char *activepropname, const char *prop_list, int rows, int maxrows, int listtype)
@@ -2372,8 +2373,9 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 					icon= list_item_icon_get(C, &itemptr, rnaicon, 0);
 					uiItemL(row, (name)? name: "", icon);
 
-					if(name)
+					if (name) {
 						MEM_freeN((void *)name);
+					}
 				}
 
 				i++;

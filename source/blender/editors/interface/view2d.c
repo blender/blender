@@ -1339,8 +1339,9 @@ void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy)
 void UI_view2d_grid_free(View2DGrid *grid)
 {
 	/* only free if there's a grid */
-	if (grid)
+	if (grid) {
 		MEM_freeN(grid);
+	}
 }
 
 /* *********************************************************************** */
@@ -1754,7 +1755,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 {
 	/* need to free grid as well... */
-	if (scrollers->grid) MEM_freeN(scrollers->grid);
+	if (scrollers->grid) {
+		MEM_freeN(scrollers->grid);
+	}
 	MEM_freeN(scrollers);
 }
 

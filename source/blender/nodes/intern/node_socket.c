@@ -190,7 +190,8 @@ void *node_socket_make_default_value(int type)
 void node_socket_free_default_value(int UNUSED(type), void *default_value)
 {
 	/* XXX can just free the pointee for all current socket types. */
-	MEM_freeN(default_value);
+	if (default_value)
+		MEM_freeN(default_value);
 }
 
 void node_socket_init_default_value(int type, void *default_value)
@@ -359,8 +360,8 @@ void node_socket_convert_default_value(int to_type, void *to_default_value, int 
 		case SOCK_RGBA:
 			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = fromfloat->value;
 			break;
-		break;
 		}
+		break;
 	case SOCK_INT:
 		switch (to_type) {
 		case SOCK_FLOAT:

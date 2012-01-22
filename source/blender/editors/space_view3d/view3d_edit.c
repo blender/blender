@@ -518,52 +518,54 @@ static void viewops_data_free(bContext *C, wmOperator *op)
 
 static const float thres = 0.93f; //cos(20 deg);
 
-#define COS45 0.70710678118654746
+#define COS45 0.7071068
 #define SIN45 COS45
 
-static float snapquats[39][5] = {
+#define NUM_SNAP_QUATS 39
+
+static const float snapquats[NUM_SNAP_QUATS][5] = {
 	/*{q0, q1, q3, q4, view}*/
-	{COS45, -SIN45, 0.0, 0.0, RV3D_VIEW_FRONT},  //front
-	{0.0, 0.0, -SIN45, -SIN45, RV3D_VIEW_BACK}, //back
-	{1.0, 0.0, 0.0, 0.0, RV3D_VIEW_TOP},       //top
-	{0.0, -1.0, 0.0, 0.0, RV3D_VIEW_BOTTOM},      //bottom
-	{0.5, -0.5, -0.5, -0.5, RV3D_VIEW_RIGHT},    //left
-	{0.5, -0.5, 0.5, 0.5, RV3D_VIEW_LEFT},      //right
+	{COS45, -SIN45, 0.0,    0.0,   RV3D_VIEW_FRONT},
+	{0.0,    0.0,  -SIN45, -SIN45, RV3D_VIEW_BACK},
+	{1.0,    0.0,   0.0,    0.0,   RV3D_VIEW_TOP},
+	{0.0,   -1.0,   0.0,    0.0,   RV3D_VIEW_BOTTOM},
+	{0.5,   -0.5,  -0.5,   -0.5,   RV3D_VIEW_RIGHT},
+	{0.5,   -0.5,   0.5,    0.5,   RV3D_VIEW_LEFT},
 
 	/* some more 45 deg snaps */
-	{0.65328145027160645, -0.65328145027160645, 0.27059805393218994, 0.27059805393218994, 0},
-	{0.92387950420379639, 0.0, 0.0, 0.38268342614173889, 0},
-	{0.0, -0.92387950420379639, 0.38268342614173889, 0.0, 0},
-	{0.35355335474014282, -0.85355335474014282, 0.35355338454246521, 0.14644660055637360, 0},
-	{0.85355335474014282, -0.35355335474014282, 0.14644660055637360, 0.35355338454246521, 0},
-	{0.49999994039535522, -0.49999994039535522, 0.49999997019767761, 0.49999997019767761, 0},
-	{0.27059802412986755, -0.65328145027160645, 0.65328145027160645, 0.27059802412986755, 0},
-	{0.65328145027160645, -0.27059802412986755, 0.27059802412986755, 0.65328145027160645, 0},
-	{0.27059799432754517, -0.27059799432754517, 0.65328139066696167, 0.65328139066696167, 0},
-	{0.38268336653709412, 0.0, 0.0, 0.92387944459915161, 0},
-	{0.0, -0.38268336653709412, 0.92387944459915161, 0.0, 0},
-	{0.14644658565521240, -0.35355335474014282, 0.85355335474014282, 0.35355335474014282, 0},
-	{0.35355335474014282, -0.14644658565521240, 0.35355335474014282, 0.85355335474014282, 0},
-	{0.0, 0.0, 0.92387944459915161, 0.38268336653709412, 0},
-	{-0.0, 0.0, 0.38268336653709412, 0.92387944459915161, 0},
-	{-0.27059802412986755, 0.27059802412986755, 0.65328133106231689, 0.65328133106231689, 0},
-	{-0.38268339633941650, 0.0, 0.0, 0.92387938499450684, 0},
-	{0.0, 0.38268339633941650, 0.92387938499450684, 0.0, 0},
-	{-0.14644658565521240, 0.35355338454246521, 0.85355329513549805, 0.35355332493782043, 0},
-	{-0.35355338454246521, 0.14644658565521240, 0.35355332493782043, 0.85355329513549805, 0},
-	{-0.49999991059303284, 0.49999991059303284, 0.49999985098838806, 0.49999985098838806, 0},
-	{-0.27059799432754517, 0.65328145027160645, 0.65328139066696167, 0.27059799432754517, 0},
-	{-0.65328145027160645, 0.27059799432754517, 0.27059799432754517, 0.65328139066696167, 0},
-	{-0.65328133106231689, 0.65328133106231689, 0.27059793472290039, 0.27059793472290039, 0},
-	{-0.92387932538986206, 0.0, 0.0, 0.38268333673477173, 0},
-	{0.0, 0.92387932538986206, 0.38268333673477173, 0.0, 0},
-	{-0.35355329513549805, 0.85355329513549805, 0.35355329513549805, 0.14644657075405121, 0},
-	{-0.85355329513549805, 0.35355329513549805, 0.14644657075405121, 0.35355329513549805, 0},
-	{-0.38268330693244934, 0.92387938499450684, 0.0, 0.0, 0},
-	{-0.92387938499450684, 0.38268330693244934, 0.0, 0.0, 0},
-	{-COS45, 0.0, 0.0, SIN45, 0},
-	{COS45, 0.0, 0.0, SIN45, 0},
-	{0.0, 0.0, 0.0, 1.0, 0}
+	{ 0.6532815, -0.6532815, 0.2705981, 0.2705981, 0},
+	{ 0.9238795,  0.0,       0.0,       0.3826834, 0},
+	{ 0.0,       -0.9238795, 0.3826834, 0.0,       0},
+	{ 0.3535534, -0.8535534, 0.3535534, 0.1464466, 0},
+	{ 0.8535534, -0.3535534, 0.1464466, 0.3535534, 0},
+	{ 0.4999999, -0.4999999, 0.5,       0.5,       0},
+	{ 0.2705980, -0.6532815, 0.6532815, 0.2705980, 0},
+	{ 0.6532815, -0.2705980, 0.2705980, 0.6532815, 0},
+	{ 0.2705978, -0.2705980, 0.6532814, 0.6532814, 0},
+	{ 0.3826834,  0.0,       0.0,       0.9238794, 0},
+	{ 0.0,       -0.3826834, 0.9238794, 0.0,       0},
+	{ 0.1464466, -0.3535534, 0.8535534, 0.3535534, 0},
+	{ 0.3535534, -0.1464466, 0.3535534, 0.8535534, 0},
+	{ 0.0,        0.0,       0.9238794, 0.3826834, 0},
+	{-0.0,        0.0,       0.3826834, 0.9238794, 0},
+	{-0.2705980,  0.2705980, 0.6532813, 0.6532813, 0},
+	{-0.3826834,  0.0,       0.0,       0.9238794, 0},
+	{ 0.0,        0.3826834, 0.9238794, 0.0,       0},
+	{-0.1464466,  0.3535534, 0.8535533, 0.3535533, 0},
+	{-0.3535534,  0.1464466, 0.3535533, 0.8535533, 0},
+	{-0.4999999,  0.4999999, 0.4999999, 0.4999999, 0},
+	{-0.2705980,  0.6532815, 0.6532814, 0.2705980, 0},
+	{-0.6532815,  0.2705980, 0.2705980, 0.6532814, 0},
+	{-0.6532813,  0.6532813, 0.2705979, 0.2705979, 0},
+	{-0.9238793,  0.0,       0.0,       0.3826833, 0},
+	{ 0.0,        0.9238793, 0.3826833, 0.0,       0},
+	{-0.3535533,  0.8535533, 0.3535533, 0.1464466, 0},
+	{-0.8535533,  0.3535533, 0.1464466, 0.3535533, 0},
+	{-0.3826833,  0.9238794, 0.0,       0.0,       0},
+	{-0.9238794,  0.3826833, 0.0,       0.0,       0},
+	{-COS45,      0.0,       0.0,       SIN45,     0},
+	{ COS45,      0.0,       0.0,       SIN45,     0},
+	{ 0.0,        0.0,       0.0,       1.0,       0}
 };
 
 enum {
@@ -632,7 +634,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		sub_v3_v3v3(dvec, newvec, vod->trackvec);
 
-		si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
+		si = len_v3(dvec);
 		si /= (float)(2.0 * TRACKBALLSIZE);
 
 		cross_v3_v3v3(q1+1, vod->trackvec, newvec);
@@ -724,7 +726,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		mul_qt_v3(viewquat_inv, zaxis);
 
-		for (i = 0 ; i < 39; i++){
+		for (i = 0 ; i < NUM_SNAP_QUATS; i++){
 
 			float view = (int)snapquats[i][4];
 			float viewquat_inv_test[4];
@@ -961,8 +963,9 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
-// NDOF utility functions
-// (should these functions live in this file?)
+/* NDOF utility functions
+ * (should these functions live in this file?)
+ */
 float ndof_to_axis_angle(struct wmNDOFMotionData* ndof, float axis[3])
 {
 	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
@@ -973,7 +976,7 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	float axis[3];
 	float angle;
 
-	angle= ndof_to_axis_angle(ndof, axis);
+	angle = ndof_to_axis_angle(ndof, axis);
 	axis_angle_to_quat(q, axis, angle);
 }
 
@@ -983,69 +986,67 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
  */
 static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	if (event->type != NDOF_MOTION) {
+	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
-	}
 	else {
-		View3D *v3d= CTX_wm_view3d(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
-		rv3d->rot_angle = 0.f; // off by default, until changed later this function
+		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
 
 		if (ndof->progress != P_FINISHING) {
 			const float dt = ndof->dt;
-		
-			// tune these until everything feels right
+
+			/* tune these until everything feels right */
 			const float rot_sensitivity = 1.f;
 			const float zoom_sensitivity = 1.f;
 			const float pan_sensitivity = 1.f;
-		
-			// rather have bool, but...
-			int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
-		
+
+			const int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
+
 			float view_inv[4];
 			invert_qt_qt(view_inv, rv3d->viewquat);
-		
-			//#define DEBUG_NDOF_MOTION
+
+			/* #define DEBUG_NDOF_MOTION */
 			#ifdef DEBUG_NDOF_MOTION
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
 				ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
 			#endif
-		
-			if (ndof->tvec[2]) {
-				// Zoom!
-				// velocity should be proportional to the linear velocity attained by rotational motion of same strength
-				// [got that?]
-				// proportional to arclength = radius * angle
-		
-				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tvec[2];
+
+			if (ndof->tz) {
+				/* Zoom!
+				 * velocity should be proportional to the linear velocity attained by rotational motion of same strength
+				 * [got that?]
+				 * proportional to arclength = radius * angle
+				 */
+				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 
 				if (U.ndof_flag & NDOF_ZOOM_INVERT)
 					zoom_distance = -zoom_distance;
 
 				rv3d->dist += zoom_distance;
 			}
-		
+
 			if (rv3d->viewlock == RV3D_LOCKED) {
 				/* rotation not allowed -- explore panning options instead */
-				float pan_vec[3] = {ndof->tvec[0], ndof->tvec[1], 0.0f};
+				float pan_vec[3] = {ndof->tx, ndof->ty, 0.0f};
 				mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-		
+
 				/* transform motion from view to world coordinates */
 				invert_qt_qt(view_inv, rv3d->viewquat);
 				mul_qt_v3(view_inv, pan_vec);
-		
+
 				/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 				sub_v3_v3(rv3d->ofs, pan_vec);
 			}
-		
+
 			if (has_rotation) {
-		
+
 				rv3d->view = RV3D_VIEW_USER;
-		
+
 				if (U.flag & USER_TRACKBALL) {
 					float rot[4];
 					float axis[3];
@@ -1060,44 +1061,46 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						axis[1] = -axis[1];
 
-					// transform rotation axis from view to world coordinates
+					/* transform rotation axis from view to world coordinates */
 					mul_qt_v3(view_inv, axis);
-		
-					// update the onscreen doo-dad
+
+					/* update the onscreen doo-dad */
 					rv3d->rot_angle = angle;
 					copy_v3_v3(rv3d->rot_axis, axis);
-		
+
 					axis_angle_to_quat(rot, axis, angle);
 
-					// apply rotation
+					/* apply rotation */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
 				} else {
+
 					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 					float angle, rot[4];
 					float xvec[3] = {1,0,0};
-		
+
 					/* Determine the direction of the x vector (for rotating up and down) */
 					mul_qt_v3(view_inv, xvec);
-		
+
 					/* Perform the up/down rotation */
-					angle = rot_sensitivity * dt * ndof->rvec[0];
+					angle = rot_sensitivity * dt * ndof->rx;
 					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
 						angle = -angle;
 					rot[0] = cos(angle);
 					mul_v3_v3fl(rot+1, xvec, sin(angle));
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-		
+
 					/* Perform the orbital rotation */
-					angle = rot_sensitivity * dt * ndof->rvec[1];
+					angle = rot_sensitivity * dt * ndof->ry;
 					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						angle = -angle;
-		
-					// update the onscreen doo-dad
+
+					/* update the onscreen doo-dad */
 					rv3d->rot_angle = angle;
 					rv3d->rot_axis[0] = 0;
 					rv3d->rot_axis[1] = 0;
 					rv3d->rot_axis[2] = 1;
-		
+
 					rot[0] = cos(angle);
 					rot[1] = rot[2] = 0.0;
 					rot[3] = sin(angle);
@@ -1134,9 +1137,8 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
  */
 static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	if (event->type != NDOF_MOTION) {
+	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
-	}
 	else {
 		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
@@ -1144,13 +1146,13 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
-		rv3d->rot_angle = 0.f; // we're panning here! so erase any leftover rotation from other operators
+		rv3d->rot_angle = 0.f; /* we're panning here! so erase any leftover rotation from other operators */
 
 		if (ndof->progress != P_FINISHING) {
 			const float dt = ndof->dt;
 			float view_inv[4];
-#if 0 // ------------------------------------------- zoom with Z
-			// tune these until everything feels right
+#if 0 /* ------------------------------------------- zoom with Z */
+			/* tune these until everything feels right */
 			const float zoom_sensitivity = 1.f;
 			const float pan_sensitivity = 1.f;
 
@@ -1158,18 +1160,18 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 				ndof->tx, ndof->ty, 0
 				};
 
-			// "zoom in" or "translate"? depends on zoom mode in user settings?
+			/* "zoom in" or "translate"? depends on zoom mode in user settings? */
 			if (ndof->tz) {
 				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 				rv3d->dist += zoom_distance;
 			}
-		
-			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-#else // ------------------------------------------------------- dolly with Z
-			float speed = 10.f; // blender units per second
-			// ^^ this is ok for default cube scene, but should scale with.. something
 
-			// tune these until everything feels right
+			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
+#else /* ------------------------------------------------------- dolly with Z */
+			float speed = 10.f; /* blender units per second */
+			/* ^^ this is ok for default cube scene, but should scale with.. something */
+
+			/* tune these until everything feels right */
 			const float forward_sensitivity = 1.f;
 			const float vertical_sensitivity = 0.4f;
 			const float lateral_sensitivity = 0.6f;

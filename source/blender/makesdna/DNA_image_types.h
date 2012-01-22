@@ -69,7 +69,7 @@ typedef struct ImageUser {
 typedef struct Image {
 	ID id;
 	
-	char name[240];			/* file path, 240 = FILE_MAX */
+	char name[1024];			/* file path, 1024 = FILE_MAX */
 	
 	ListBase ibufs;					/* not written in file */
 	struct GPUTexture *gputexture;	/* not written in file */

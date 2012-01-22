@@ -78,6 +78,8 @@ public:
 	/* lights */
 	device_vector<float4> light_distribution;
 	device_vector<float4> light_data;
+	device_vector<float2> light_background_marginal_cdf;
+	device_vector<float2> light_background_conditional_cdf;
 
 	/* shaders */
 	device_vector<uint4> svm_nodes;
