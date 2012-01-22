@@ -337,7 +337,7 @@ void object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 	/* Scene *scene = BMO_Get_Pnt(op, "scene"); */
 	Mesh *me = ob->data;
 
-	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p", me, ob);
+	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p notesselation=%i", me, ob, TRUE);
 }
 
 
