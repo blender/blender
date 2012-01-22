@@ -431,7 +431,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			shader_id &= ~SHADER_AREA_LIGHT;
 
 			light_data[i*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), 0.0f, 0.0f, 0.0f);
-			light_data[i*LIGHT_SIZE + 1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+			light_data[i*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), 0.0f, 0.0f, 0.0f);
 			light_data[i*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			light_data[i*LIGHT_SIZE + 3] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
