@@ -715,7 +715,7 @@ static const char *ui_menu_enumpropname(uiLayout *layout, PointerRNA *ptr, Prope
 		MEM_freeN(item);
 	}
 
-	return "";
+	return name;
 }
 
 /* same as below but 'prop' is already known */
