@@ -290,7 +290,8 @@ static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_it
 
 
 static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *element_iter, StitchState *state){
-	if(state->snap_islands && element->island == element_iter->island)
+	if((state->snap_islands && element->island == element_iter->island) ||
+			(!state->midpoints && element->island == element_iter->island))
 		return 0;
 
 	return stitch_check_uvs_stitchable(element, element_iter, state);
@@ -543,9 +544,8 @@ static void stitch_validate_stichability(UvElement *element, StitchState *state,
 		if(element_iter->separate){
 			if(element_iter == element)
 				continue;
-			if(stitch_check_uvs_stitchable(element, element_iter, state)){
-				if(((element_iter->island == state->static_island) || (element->island == state->static_island)) &&
-						!((element_iter->island == element->island) && state->snap_islands)){
+			if(stitch_check_uvs_state_stitchable(element, element_iter, state)){
+				if((element_iter->island == state->static_island) || (element->island == state->static_island)){
 					element->flag |= STITCH_STITCHABLE;
 					preview->num_stitchable++;
 					stitch_setup_face_preview_for_uv_group(element, state, island_stitch_data);
