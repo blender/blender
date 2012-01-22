@@ -340,6 +340,11 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.001, 10);
 	RNA_def_property_ui_text(prop, "Real World Size", "Size of the simulation domain in metres");
 	
+	prop= RNA_def_property(srna, "simulation_rate", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "animRate");
+	RNA_def_property_range(prop, 0.0, 100.0);
+	RNA_def_property_ui_text(prop, "Simulation Speed", "Fluid motion rate (0 = stationary, 1 = normal speed)");
+	
 	prop= RNA_def_property(srna, "viscosity_preset", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "viscosityMode");
 	RNA_def_property_enum_items(prop, viscosity_items);

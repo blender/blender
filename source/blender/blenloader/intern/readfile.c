@@ -13019,6 +13019,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 4))
+	{
+		{
+			/* set fluidsim rate */
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Fluidsim) {
+						FluidsimSettings *fss = (FluidsimSettings *)md;
+						fss->animRate = 1.0f;
+					}
+				}
+			}
+		}
+	}
+	
 	/* put compatibility code here until next subversion bump */
 	{
 	}
