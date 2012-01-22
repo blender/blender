@@ -980,7 +980,7 @@ Game Types (bge.types)
 
    .. attribute:: worldScale
 
-      The object's world scaling factor. Read-only. [sx, sy, sz]
+      The object's world scaling factor. [sx, sy, sz]
 
       :type: :class:`mathutils.Vector`
 
@@ -995,6 +995,18 @@ Game Types (bge.types)
       The object's world position. [x, y, z]
 
       :type: :class:`mathutils.Vector`
+
+   .. attribute:: localTransform
+
+      The object's local space transform matrix. 4x4 Matrix.
+
+      :type: :class:`mathutils.Matrix`
+
+   .. attribute:: worldTransform
+
+      The object's world space transform matrix. 4x4 Matrix.
+
+      :type: :class:`mathutils.Matrix`
 	  
    .. attribute:: localLinearVelocity
       
