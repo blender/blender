@@ -1429,3 +1429,278 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+/* ******************** Parent Drop Operator *********************** */
+
+static int parent_drop_exec(bContext *C, wmOperator *op)
+{
+	Object *par = NULL;
+	int partype = -1;
+	char parname[32];
+
+	partype= RNA_enum_get(op->ptr, "type");
+	RNA_string_get(op->ptr, "parent", parname);
+	par= (Object *)find_id("OB", parname);
+
+	ED_object_parent_set(C, op, par, partype);
+
+	return OPERATOR_FINISHED;
+}
+
+/* Used for drag and drop parenting */
+TreeElement *outliner_dropzone_parent(bContext *C, wmEvent *event, TreeElement *te, float *fmval)
+{
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	TreeStoreElem *tselem= TREESTORE(te);
+
+	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
+		/* name and first icon */
+		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
+			/* always makes active object */
+			if (te->idcode == ID_OB) {
+				return te;
+			}
+			else {
+				return NULL;
+			}
+		}
+	}
+
+	/* Not it.  Let's look at its children. */
+	if ((tselem->flag & TSE_CLOSED)==0 && (te->subtree.first)) {
+		for (te = te->subtree.first; te; te = te->next) {
+			TreeElement *te_valid;
+			te_valid= outliner_dropzone_parent(C, event, te, fmval);
+			if (te_valid) return te_valid;
+		}
+	}
+	return NULL;
+}
+
+static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *par= NULL;
+	Object *ob= NULL;
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
+	TreeElement *te= NULL;
+	TreeElement *te_found= NULL;
+	char childname[MAX_ID_NAME];
+	char parname[MAX_ID_NAME];
+	int partype= 0;
+	float fmval[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	/* Find object hovered over */
+	for (te= soops->tree.first; te; te= te->next) {
+		te_found= outliner_dropzone_parent(C, event, te, fmval);
+		if (te_found) break;
+	}
+
+	if(te_found) {
+		RNA_string_set(op->ptr, "parent", te_found->name);
+		/* Identify parent and child */
+		RNA_string_get(op->ptr, "child", childname);
+		ob= (Object *)find_id("OB", childname);
+		RNA_string_get(op->ptr, "parent", parname);
+		par= (Object *)find_id("OB", parname);
+		
+		if (ELEM(NULL, ob, par)) {
+			if (par == NULL) printf("par==NULL\n");
+			return OPERATOR_CANCELLED;
+		}
+		if (ob == par) {
+			return OPERATOR_CANCELLED;
+		}
+		
+		/* check dragged object (child) is active */
+		if (ob != CTX_data_active_object(C))
+			ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
+		
+		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
+			ED_object_parent_set(C, op, par, partype);
+		}
+		else {
+			/* Menu creation */
+			uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
+			uiLayout *layout= uiPupMenuLayout(pup);
+			
+			PointerRNA ptr;
+			
+			WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_OBJECT);
+			/* Cannot use uiItemEnumO()... have multiple properties to set. */
+			uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Object", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+			
+			/* par becomes parent, make the associated menus */
+			if (par->type==OB_ARMATURE) {
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_ARMATURE);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Armature Deform", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_ARMATURE_NAME);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "   With Empty Groups", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_ARMATURE_ENVELOPE);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "   With Envelope Weights", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_ARMATURE_AUTO);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "   With Automatic Weights", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_BONE);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Bone", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+			}
+			else if (par->type==OB_CURVE) {
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_CURVE);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Curve Deform", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_FOLLOW);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Follow Path", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_PATH_CONST);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Path Constraint", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+			}
+			else if (par->type == OB_LATTICE) {
+				WM_operator_properties_create(&ptr, "OUTLINER_OT_parent_drop");
+				RNA_string_set(&ptr, "parent", parname);
+				RNA_string_set(&ptr, "child", childname);
+				RNA_enum_set(&ptr, "type", PAR_LATTICE);
+				uiItemFullO(layout, "OUTLINER_OT_parent_drop", "Lattice Deform", 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
+			}
+			
+			uiPupMenuEnd(C, pup);
+			
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_parent_drop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Drop to Set Parent";
+	ot->description = "Drag to parent in Outliner";
+	ot->idname= "OUTLINER_OT_parent_drop";
+
+	/* api callbacks */
+	ot->invoke= parent_drop_invoke;
+	ot->exec= parent_drop_exec;
+
+	ot->poll= ED_operator_outliner_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
+	RNA_def_string(ot->srna, "parent", "Object", MAX_ID_NAME, "Parent", "Parent Object");
+	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
+}
+
+int outliner_dropzone_parent_clear(bContext *C, wmEvent *event, TreeElement *te, float *fmval)
+{
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	TreeStoreElem *tselem= TREESTORE(te);
+
+	/* Check for row */
+	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
+		/* Ignore drop on scene tree elements */
+		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
+			if ((te->idcode == ID_SCE) && 
+				!ELEM3(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS))
+			{
+				return 0;
+			}
+			// Other codes to ignore?
+		}
+		
+		/* Left or right of: (+), first icon, and name */
+		if ((fmval[0] < (te->xs + UI_UNIT_X)) || (fmval[0] > te->xend)) {
+			return 1;
+		}
+		else if (te->idcode != ID_OB) {
+			return 1;
+		}
+		
+		return 0;		// ID_OB, but mouse in undefined dropzone.
+	}
+
+	/* Not this row.  Let's look at its children. */
+	if ((tselem->flag & TSE_CLOSED)==0 && (te->subtree.first)) {
+		for (te = te->subtree.first; te; te = te->next) {
+			if (outliner_dropzone_parent_clear(C, event, te, fmval)) 
+				return 1;
+		}
+	}
+	return 0;
+}
+
+static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= NULL;
+	char obname[MAX_ID_NAME];
+
+	RNA_string_get(op->ptr, "dragged_obj", obname);
+	ob= (Object *)find_id("OB", obname);
+
+	/* check dragged object (child) is active */
+	if (ob != CTX_data_active_object(C))
+		ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
+
+	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_parent_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Drop to Clear Parent";
+	ot->description = "Drag to clear parent in outliner";
+	ot->idname= "OUTLINER_OT_parent_clear";
+
+	/* api callbacks */
+	ot->invoke= parent_clear_invoke;
+
+	ot->poll= ED_operator_outliner_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_string(ot->srna, "dragged_obj", "Object", MAX_ID_NAME, "Child", "Child Object");
+	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
+}

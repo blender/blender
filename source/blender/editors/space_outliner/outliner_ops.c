@@ -77,6 +77,9 @@ void outliner_operatortypes(void)
 	
 	WM_operatortype_append(OUTLINER_OT_drivers_add_selected);
 	WM_operatortype_append(OUTLINER_OT_drivers_delete_selected);
+
+	WM_operatortype_append(OUTLINER_OT_parent_drop);
+	WM_operatortype_append(OUTLINER_OT_parent_clear);
 }
 
 void outliner_keymap(wmKeyConfig *keyconf)
