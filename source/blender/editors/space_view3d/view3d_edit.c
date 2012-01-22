@@ -634,7 +634,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		sub_v3_v3v3(dvec, newvec, vod->trackvec);
 
-		si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
+		si = len_v3(dvec);
 		si /= (float)(2.0 * TRACKBALLSIZE);
 
 		cross_v3_v3v3(q1+1, vod->trackvec, newvec);

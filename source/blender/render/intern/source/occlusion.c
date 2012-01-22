@@ -1413,7 +1413,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 	if(env) {
 		/* sky shading using bent normal */
 		if(ELEM(envcolor, WO_AOSKYCOL, WO_AOSKYTEX)) {
-			fac= 0.5f*(1.0f+bn[0]*re->grvec[0]+ bn[1]*re->grvec[1]+ bn[2]*re->grvec[2]);
+			fac= 0.5f * (1.0f + dot_v3v3(bn, re->grvec));
 			env[0]= (1.0f-fac)*re->wrld.horr + fac*re->wrld.zenr;
 			env[1]= (1.0f-fac)*re->wrld.horg + fac*re->wrld.zeng;
 			env[2]= (1.0f-fac)*re->wrld.horb + fac*re->wrld.zenb;

@@ -104,7 +104,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			lv[0]= rco[0]-lar->co[0];
 			lv[1]= rco[1]-lar->co[1];
 			lv[2]= rco[2]-lar->co[2];
-			ld= sqrt(lv[0]*lv[0]+lv[1]*lv[1]+lv[2]*lv[2]);
+			ld = len_v3(lv);
 			lv[0]/= ld;
 			lv[1]/= ld;
 			lv[2]/= ld;
@@ -210,7 +210,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		
 		/* dot product and  reflectivity*/
 		
-		inp= 1.0-fabs(vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2]);
+		inp = 1.0 - fabs(dot_v3v3(vn, lv));
 		
 		/* inp= cos(0.5*M_PI-acos(inp)); */
 		
@@ -511,7 +511,7 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 	/* Some view vector stuff. */
 	if(R.wrld.skytype & WO_SKYREAL) {
 		
-		blend= view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2];
+		blend = dot_v3v3(view, R.grvec);
 		
 		if(blend<0.0f) skyflag= 0;
 		

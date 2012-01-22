@@ -2485,8 +2485,9 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], flo
 		cross_v3_v3v3(ct, tang, tangv);
 	
 		/* check flip */
-		if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
+		if (dot_v3v3(ct, n) < 0.0f) {
 			negate_v3(tang);
+		}
 	}
 	else {
 		tang[0]= tang[1]= tang[2]=  0.0;
