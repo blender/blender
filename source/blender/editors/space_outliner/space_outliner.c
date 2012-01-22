@@ -139,9 +139,9 @@ static void outliner_parent_clear_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_string_set(drop->ptr, "dragged_obj", id->name+2);
 
 	/* Set to simple parent clear type. Avoid menus for drag and drop if possible.
-	  If desired, user can toggle the different "Clear Parent" types in the operator
-	  menu on tool shelf. */
-	RNA_string_set(drop->ptr, "type", 0);
+	 * If desired, user can toggle the different "Clear Parent" types in the operator
+	 * menu on tool shelf. */
+	RNA_enum_set(drop->ptr, "type", 0);
 }
 
 /* region dropbox definition */
