@@ -77,6 +77,14 @@ Functions
    
    :rtype: integer
 
+.. function:: setWindowSize(width, height)
+
+   Set the width and height of the window (in pixels). This also works for fullscreen applications.
+   
+   :type width: integer
+   :type height: integer
+
+
 .. function:: makeScreenshot(filename)
 
    Writes a screenshot to the given filename.
