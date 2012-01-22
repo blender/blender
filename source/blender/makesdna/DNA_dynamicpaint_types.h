@@ -135,7 +135,10 @@ typedef struct DynamicPaintSurface {
 } DynamicPaintSurface;
 
 /* canvas flags */
+#if 0 /* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
+       * And if not, should be a general flag. But seems unecessary for now... */
 #define MOD_DPAINT_PREVIEW_READY (1<<0) /* if viewport preview is ready */
+#endif
 #define MOD_DPAINT_BAKING (1<<1) /* surface is already baking, so it wont get updated (loop) */
 
 /* Canvas settings */

@@ -59,7 +59,7 @@ struct wmNDOFMotionData;
 #define DRAW_SCENESET	4
 
 /* draw_mesh_fancy/draw_mesh_textured draw_flags */
-#define DRAW_DYNAMIC_PAINT_PREVIEW 1
+#define DRAW_MODIFIERS_PREVIEW 1
 #define DRAW_FACE_SELECT 2
 
 /* view3d_header.c */

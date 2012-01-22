@@ -1574,7 +1574,6 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 		int update_normals = 0;
-		pmd->canvas->flags &= ~MOD_DPAINT_PREVIEW_READY;
 
 		/* loop through surfaces */
 		for (; surface; surface=surface->next) {
@@ -1655,7 +1654,6 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 										}
 									}
 								}
-								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
 							}
 						}
 
@@ -1711,24 +1709,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						if (0 && surface->flags & MOD_DPAINT_PREVIEW) {
 							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
-							int i;
-							MLoopCol *col = CustomData_get_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL);
-							if (!col) col = CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
-
-							if (col) {
-								printf("doint weight preview\n");
-								#pragma omp parallel for schedule(static)
-								for (i=0; i<totloop; i++) {
-									float temp_color[3];
-									weight_to_rgb(temp_color, weight[mloop[i].v]);
-
-									col[i].a = 255;
-									col[i].r = FTOCHAR(temp_color[2]);
-									col[i].g = FTOCHAR(temp_color[1]);
-									col[i].b = FTOCHAR(temp_color[0]);
-								}
-								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
-							}
+							DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);
 						}
 
 						/* apply weights into a vertex group, if doesnt exists add a new layer */
