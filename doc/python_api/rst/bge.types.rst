@@ -66,6 +66,12 @@ Game Types (bge.types)
 
       :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
 
+   .. attribute:: active_events
+
+      A dictionary containing the status of only the active keyboard events or keys. (read-only).
+
+      :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
+
 .. class:: SCA_PythonMouse(PyObjectPlus)
 
    The current mouse.
@@ -73,6 +79,12 @@ Game Types (bge.types)
    .. attribute:: events
 
       a dictionary containing the status of each mouse event. (read-only).
+
+      :type: dictionary {:ref:`keycode<mouse-keys>`::ref:`status<input-status>`, ...}
+
+   .. attribute:: active_events
+
+      a dictionary containing the status of only the active mouse events. (read-only).
 
       :type: dictionary {:ref:`keycode<mouse-keys>`::ref:`status<input-status>`, ...}
       
