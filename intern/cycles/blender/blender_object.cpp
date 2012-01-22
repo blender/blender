@@ -159,24 +159,26 @@ void BlenderSync::sync_background_light()
 {
 	BL::World b_world = b_scene.world();
 
-	PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
-	bool sample_as_light = get_boolean(cworld, "sample_as_light");
+	if(b_world) {
+		PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
+		bool sample_as_light = get_boolean(cworld, "sample_as_light");
 
-	if(sample_as_light) {
-		/* test if we need to sync */
-		Light *light;
-		ObjectKey key(b_world, 0, b_world);
+		if(sample_as_light) {
+			/* test if we need to sync */
+			Light *light;
+			ObjectKey key(b_world, 0, b_world);
 
-		if(light_map.sync(&light, b_world, b_world, key) ||
-		   world_recalc ||
-		   b_world.ptr.data != world_map)
-		{
-			light->type = LIGHT_BACKGROUND;
-			light->map_resolution  = get_int(cworld, "sample_map_resolution");
-			light->shader = scene->default_background;
+			if(light_map.sync(&light, b_world, b_world, key) ||
+			   world_recalc ||
+			   b_world.ptr.data != world_map)
+			{
+				light->type = LIGHT_BACKGROUND;
+				light->map_resolution  = get_int(cworld, "sample_map_resolution");
+				light->shader = scene->default_background;
 
-			light->tag_update(scene);
-			light_map.set_recalc(b_world);
+				light->tag_update(scene);
+				light_map.set_recalc(b_world);
+			}
 		}
 	}
 
