@@ -36,29 +36,29 @@ extern "C" {
 #include "BKE_customdata.h"
 
 #include "BLI_utildefines.h"
-	
+
 /*
-short introduction:
-
-the bmesh structure is a boundary representation, supporting non-manifold
-locally modifiable topology. the API is designed to allow clean, maintainable
-code, that never (or almost never) directly inspects the underlying structure.
-
-The API includes iterators, including many useful topological iterators;
-walkers, which walk over a mesh, without the risk of hitting the recursion
-limit; operators, which are logical, reusable mesh modules; topological
-modification functions (like split face, join faces, etc), which are used for
-topological manipulations; and some (not yet finished) geometric utility
-functions.
-
-some definitions:
-
-tool flags: private flags for tools.  each operator has it's own private
-            tool flag "layer", which it can use to flag elements.
-	    tool flags are also used by various other parts of the api.
-header flags: stores persistent flags, such as selection state, hide state,
-              etc.  be careful of touching these.
-*/
+ * short introduction:
+ * 
+ * the bmesh structure is a boundary representation, supporting non-manifold
+ * locally modifiable topology. the API is designed to allow clean, maintainable
+ * code, that never (or almost never) directly inspects the underlying structure.
+ * 
+ * The API includes iterators, including many useful topological iterators;
+ * walkers, which walk over a mesh, without the risk of hitting the recursion
+ * limit; operators, which are logical, reusable mesh modules; topological
+ * modification functions (like split face, join faces, etc), which are used for
+ * topological manipulations; and some (not yet finished) geometric utility
+ * functions.
+ * 
+ * some definitions:
+ * 
+ * tool flags: private flags for tools.  each operator has it's own private
+ *             tool flag "layer", which it can use to flag elements.
+ *             tool flags are also used by various other parts of the api.
+ * header flags: stores persistent flags, such as selection state, hide state,
+ *               etc.  be careful of touching these.
+ */
 
 /*forward declarations*/
 struct BMesh;

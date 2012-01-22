@@ -14,33 +14,33 @@ void BM_Pin_Vert(BMesh *bm, BMVert *v, int pin);
 void BM_Pin_Edge(BMesh *bm, BMEdge *e, int pin);
 void BM_Pin_Face(BMesh *bm, BMFace *f, int pin);
 
-/*geometry hiding code*/
+/* geometry hiding code */
 void BM_Hide(BMesh *bm, void *element, int hide);
 void BM_Hide_Vert(BMesh *bm, BMVert *v, int hide);
 void BM_Hide_Edge(BMesh *bm, BMEdge *e, int hide);
 void BM_Hide_Face(BMesh *bm, BMFace *f, int hide);
 
-/*Selection code*/
+/* Selection code */
 void BM_Select(struct BMesh *bm, void *element, int select);
-/*I don't use this function anywhere, been using BM_TestHFlag instead.
-  Need to decide either to keep it and convert everything over, or
-  chuck it.*/
+/* I don't use this function anywhere, been using BM_TestHFlag instead.
+ * Need to decide either to keep it and convert everything over, or
+ * chuck it.*/
 int BM_Selected(BMesh *bm, const void *element);
 
 void BM_clear_flag_all(BMesh *bm, const char hflag);
 
-/*individual element select functions, BM_Select is a shortcut for these
-  that automatically detects which one to use*/
+/* individual element select functions, BM_Select is a shortcut for these
+ * that automatically detects which one to use*/
 void BM_Select_Vert(struct BMesh *bm, struct BMVert *v, int select);
 void BM_Select_Edge(struct BMesh *bm, struct BMEdge *e, int select);
 void BM_Select_Face(struct BMesh *bm, struct BMFace *f, int select);
 
 void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
 
-/*counts number of elements with flag set*/
+/* counts number of elements with flag set */
 int BM_CountFlag(struct BMesh *bm, const char htype, const char hflag, int respecthide);
 
-/*edit selection stuff*/
+/* edit selection stuff */
 void BM_set_actFace(BMesh *em, BMFace *f);
 BMFace *BM_get_actFace(BMesh *bm, int sloppy);
 void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese);

@@ -14,43 +14,43 @@ extern "C" {
 #include <string.h> /* for memcpy */
 
 /*
-operators represent logical, executable mesh modules.  all topological 
-operations involving a bmesh has to go through them.
-
-operators are nested, as are tool flags, which are private to an operator 
-when it's executed.  tool flags are allocated in layers, one per operator
-execution, and are used for all internal flagging a tool needs to do.
-
-each operator has a series of "slots," which can be of the following types:
-* simple numerical types
-* arrays of elements (e.g. arrays of faces).
-* hash mappings.
-
-each slot is identified by a slot code, as are each operator. 
-operators, and their slots, are defined in bmesh_opdefines.c (with their 
-execution functions prototyped in bmesh_operators_private.h), with all their
-operator code and slot codes defined in bmesh_operators.h.  see
-bmesh_opdefines.c and the BMOpDefine struct for how to define new operators.
-
-in general, operators are fed arrays of elements, created using either
-BM_HeaderFlag_To_Slot or BM_Flag_To_Slot (or through one of the format
-specifyers in BMO_CallOpf or BMO_InitOpf).  Note that multiple element
-types (e.g. faces and edges) can be fed to the same slot array.  Operators
-act on this data, and possibly spit out data into output slots.
-
-some notes:
-* operators should never read from header flags (e.g. element->head.flag). for
-  example, if you want an operator to only operate on selected faces, you
-  should use BM_HeaderFlag_To_Slot to put the selected elements into a slot.
-* when you read from an element slot array or mapping, you can either tool-flag 
-  all the elements in it, or read them using an iterator APi (which is 
-  semantically similar to the iterator api in bmesh_iterators.h).
-*/
+ * operators represent logical, executable mesh modules.  all topological 
+ * operations involving a bmesh has to go through them.
+ * 
+ * operators are nested, as are tool flags, which are private to an operator 
+ * when it's executed.  tool flags are allocated in layers, one per operator
+ * execution, and are used for all internal flagging a tool needs to do.
+ * 
+ * each operator has a series of "slots," which can be of the following types:
+ * - simple numerical types
+ * - arrays of elements (e.g. arrays of faces).
+ * - hash mappings.
+ * 
+ * each slot is identified by a slot code, as are each operator. 
+ * operators, and their slots, are defined in bmesh_opdefines.c (with their 
+ * execution functions prototyped in bmesh_operators_private.h), with all their
+ * operator code and slot codes defined in bmesh_operators.h.  see
+ * bmesh_opdefines.c and the BMOpDefine struct for how to define new operators.
+ * 
+ * in general, operators are fed arrays of elements, created using either
+ * BM_HeaderFlag_To_Slot or BM_Flag_To_Slot (or through one of the format
+ * specifyers in BMO_CallOpf or BMO_InitOpf).  Note that multiple element
+ * types (e.g. faces and edges) can be fed to the same slot array.  Operators
+ * act on this data, and possibly spit out data into output slots.
+ * 
+ * some notes:
+ * - operators should never read from header flags (e.g. element->head.flag). for
+ *   example, if you want an operator to only operate on selected faces, you
+ *   should use BM_HeaderFlag_To_Slot to put the selected elements into a slot.
+ * - when you read from an element slot array or mapping, you can either tool-flag 
+ *   all the elements in it, or read them using an iterator APi (which is 
+ *   semantically similar to the iterator api in bmesh_iterators.h).
+ */
 
 struct GHashIterator;
 
-/*slot type arrays are terminated by the last member
-  having a slot type of 0.*/
+/* slot type arrays are terminated by the last member
+ * having a slot type of 0.*/
 #define BMOP_OPSLOT_SENTINEL		0
 #define BMOP_OPSLOT_INT			1
 #define BMOP_OPSLOT_FLT			2
@@ -58,20 +58,19 @@ struct GHashIterator;
 #define BMOP_OPSLOT_MAT			4
 #define BMOP_OPSLOT_VEC			7
 
-/*after BMOP_OPSLOT_VEC, everything is 
+/* after BMOP_OPSLOT_VEC, everything is 
 
-  dynamically allocated arrays.  we
-  leave a space in the identifiers
-  for future growth.
-
-  */
+ * dynamically allocated arrays.  we
+ * leave a space in the identifiers
+ * for future growth.
+ */
 //it's very important this remain a power of two
 #define BMOP_OPSLOT_ELEMENT_BUF		8
 #define BMOP_OPSLOT_MAPPING		9
 #define BMOP_OPSLOT_TYPES		10
 
-/*please ignore all these structures, don't touch them in tool code, except
-  for when your defining an operator with BMOpDefine.*/
+/* please ignore all these structures, don't touch them in tool code, except
+ * for when your defining an operator with BMOpDefine.*/
 
 typedef struct BMOpSlot{
 	int slottype;
@@ -122,37 +121,38 @@ typedef struct BMOpDefine {
 #define BMOP_UNTAN_MULTIRES		1 /*switch from multires tangent space to absolute coordinates*/
 
 
-/*ensures consistent normals before operator execution,
-  restoring the original ones windings/normals afterwards.
-  keep in mind, this won't work if the input mesh isn't
-  manifold.*/
+/* ensures consistent normals before operator execution,
+ * restoring the original ones windings/normals afterwards.
+ * keep in mind, this won't work if the input mesh isn't
+ * manifold.*/
 #define BMOP_RATIONALIZE_NORMALS 2
 
 /*------------- Operator API --------------*/
 
-/*data types that use pointers (arrays, etc) should never
-  have it set directly.  and never use BMO_Set_Pnt to
-  pass in a list of edges or any arrays, really.*/
+/* data types that use pointers (arrays, etc) should never
+ * have it set directly.  and never use BMO_Set_Pnt to
+ * pass in a list of edges or any arrays, really.*/
 
 void BMO_Init_Op(struct BMesh *bm, struct BMOperator *op, const char *opname);
 
-/*executes an operator, pushing and popping a new tool flag 
-  layer as appropriate.*/
+/* executes an operator, pushing and popping a new tool flag 
+ * layer as appropriate.*/
 void BMO_Exec_Op(struct BMesh *bm, struct BMOperator *op);
 
-/*finishes an operator (though note the operator's tool flag is removed 
-  after it finishes executing in BMO_Exec_Op).*/
+/* finishes an operator (though note the operator's tool flag is removed 
+ * after it finishes executing in BMO_Exec_Op).*/
 void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
 
 
-/*tool flag API. never, ever ever should tool code put junk in 
-  header flags (element->head.flag), nor should they use 
-  element->head.eflag1/eflag2.  instead, use this api to set
-  flags.  
-  
-  if you need to store a value per element, use a 
-  ghash or a mapping slot to do it.*/
-/*flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use*/
+/* tool flag API. never, ever ever should tool code put junk in 
+ * header flags (element->head.flag), nor should they use 
+ * element->head.eflag1/eflag2.  instead, use this api to set
+ * flags.
+ * 
+ * if you need to store a value per element, use a
+ * ghash or a mapping slot to do it. */
+ 
+/* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
 #define BMO_TestFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f & (flag))
 #define BMO_SetFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f |= (flag))
 #define BMO_ClearFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f &= ~(flag))
@@ -169,40 +169,40 @@ int BMO_CountFlag(struct BMesh *bm, int flag, const char htype);
 
 /*---------formatted operator initialization/execution-----------*/
 /*
-  this system is used to execute or initialize an operator,
-  using a formatted-string system.
-
-  for example, BMO_CallOpf(bm, "del geom=%hf context=%d", BM_SELECT, DEL_FACES);
-  . . .will execute the delete operator, feeding in selected faces, deleting them.
-
-  the basic format for the format string is:
-    [operatorname] [slotname]=%[code] [slotname]=%[code]
-  
-  as in printf, you pass in one additional argument to the function
-  for every code.
-
-  the formatting codes are:
-     %d - put int in slot
-     %f - put float in slot
-     %p - put pointer in slot
-     %h[f/e/v] - put elements with a header flag in slot.
-                  the letters after %h define which element types to use,
-	          so e.g. %hf will do faces, %hfe will do faces and edges,
-	          %hv will do verts, etc.  must pass in at least one
-	          element type letter.
-     %f[f/e/v] - same as %h, except it deals with tool flags instead of
-                  header flags.
-     %a[f/e/v] - pass all elements (of types specified by f/e/v) to the
-                  slot.
-     %e        - pass in a single element.
-     %v - pointer to a float vector of length 3.
-     %m[3/4] - matrix, 3/4 refers to the matrix size, 3 or 4.  the
-               corrusponding argument must be a pointer to
-	       a float matrix.
-     %s - copy a slot from another op, instead of mapping to one
-          argument, it maps to two, a pointer to an operator and
-	  a slot name.
-*/
+ * this system is used to execute or initialize an operator,
+ * using a formatted-string system.
+ *
+ * for example, BMO_CallOpf(bm, "del geom=%hf context=%d", BM_SELECT, DEL_FACES);
+ * . . .will execute the delete operator, feeding in selected faces, deleting them.
+ *
+ * the basic format for the format string is:
+ *   [operatorname] [slotname]=%[code] [slotname]=%[code]
+ * 
+ * as in printf, you pass in one additional argument to the function
+ * for every code.
+ *
+ * the formatting codes are:
+ *    %d - put int in slot
+ *    %f - put float in slot
+ *    %p - put pointer in slot
+ *    %h[f/e/v] - put elements with a header flag in slot.
+ *                 the letters after %h define which element types to use,
+ *             so e.g. %hf will do faces, %hfe will do faces and edges,
+ *             %hv will do verts, etc.  must pass in at least one
+ *             element type letter.
+ *    %f[f/e/v] - same as %h, except it deals with tool flags instead of
+ *                 header flags.
+ *    %a[f/e/v] - pass all elements (of types specified by f/e/v) to the
+ *                 slot.
+ *    %e        - pass in a single element.
+ *    %v - pointer to a float vector of length 3.
+ *    %m[3/4] - matrix, 3/4 refers to the matrix size, 3 or 4.  the
+ *              corrusponding argument must be a pointer to
+ *          a float matrix.
+ *    %s - copy a slot from another op, instead of mapping to one
+ *         argument, it maps to two, a pointer to an operator and
+ *     a slot name.
+ */
 void BMO_push(BMesh *bm, BMOperator *op);
 void BMO_pop(BMesh *bm);
 
@@ -399,7 +399,7 @@ typedef struct element_mapping {
 extern const int BMOP_OPSLOT_TYPEINFO[];
 
 BM_INLINE void BMO_Insert_Mapping(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, 
-			void *element, void *data, int len) {
+                                  void *element, void *data, int len) {
 	element_mapping *mapping;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
@@ -413,27 +413,27 @@ BM_INLINE void BMO_Insert_Mapping(BMesh *UNUSED(bm), BMOperator *op, const char 
 	memcpy(mapping+1, data, len);
 
 	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, 
-										 BLI_ghashutil_ptrcmp, "bmesh op");
+		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
+		                                 BLI_ghashutil_ptrcmp, "bmesh op");
 	}
 	
 	BLI_ghash_insert(slot->data.ghash, element, mapping);
 }
 
 BM_INLINE void BMO_Insert_MapInt(BMesh *bm, BMOperator *op, const char *slotname, 
-			void *element, int val)
+                                 void *element, int val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(int));
 }
 
 BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, const char *slotname, 
-			void *element, float val)
+                                   void *element, float val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(float));
 }
 
 BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, const char *slotname, 
-			void *element, void *val)
+                                     void *element, void *val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(void*));
 }
@@ -450,7 +450,7 @@ BM_INLINE int BMO_InMap(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
 }
 
 BM_INLINE void *BMO_Get_MapData(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
-		      void *element)
+                                void *element)
 {
 	element_mapping *mapping;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
@@ -467,7 +467,7 @@ BM_INLINE void *BMO_Get_MapData(BMesh *UNUSED(bm), BMOperator *op, const char *s
 }
 
 BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, const char *slotname,
-		       void *element)
+                                 void *element)
 {
 	float *val = (float*) BMO_Get_MapData(bm, op, slotname, element);
 	if (val) return *val;
@@ -476,7 +476,7 @@ BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, const char *slotname
 }
 
 BM_INLINE int BMO_Get_MapInt(BMesh *bm, BMOperator *op, const char *slotname,
-		       void *element)
+                             void *element)
 {
 	int *val = (int*) BMO_Get_MapData(bm, op, slotname, element);
 	if (val) return *val;
@@ -485,7 +485,7 @@ BM_INLINE int BMO_Get_MapInt(BMesh *bm, BMOperator *op, const char *slotname,
 }
 
 BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, const char *slotname,
-		       void *element)
+                                   void *element)
 {
 	void **val = (void**) BMO_Get_MapData(bm, op, slotname, element);
 	if (val) return *val;
