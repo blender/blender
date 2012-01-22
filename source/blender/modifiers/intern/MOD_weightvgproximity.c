@@ -378,6 +378,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
+	/* If no vertices were ever added to an object's vgroup, dvert might be NULL.
+	 * As this modifier never add vertices to vgroup, just return. */
+	if(!dvert)
+		return dm;
 
 	/* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight.
 	 */
