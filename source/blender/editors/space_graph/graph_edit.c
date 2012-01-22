@@ -2069,6 +2069,7 @@ void GRAPH_OT_smooth (wmOperatorType *ot)
 /* present a special customised popup menu for this, with some filtering */
 static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
+	wmOperatorType *ot = WM_operatortype_find("GRAPH_OT_fmodifier_add", 1);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int i;
@@ -2086,7 +2087,7 @@ static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *UNU
 			continue;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, "GRAPH_OT_fmodifier_add", fmi->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO_ptr(layout, ot, fmi->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 			/* the only thing that gets set from the menu is the type of F-Modifier to add */
 		RNA_enum_set(&props_ptr, "type", i);
 			/* the following properties are just repeats of existing ones... */

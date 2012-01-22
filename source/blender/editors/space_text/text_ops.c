@@ -3187,25 +3187,25 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UN
 				/* modified locally and externally, ahhh. offer more possibilites. */
 				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NONE);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, op->type->idname, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, op->type->idname, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
-				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO_ptr(layout, op->type, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO_ptr(layout, op->type, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
+				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiPupMenuEnd(C, pup);
 			}
 			else {
 				pup= uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NONE);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, op->type->idname, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiItemEnumO(layout, op->type->idname, "Ignore", 0, "resolution", RESOLVE_IGNORE);
+				uiItemEnumO_ptr(layout, op->type, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO_ptr(layout, op->type, "Ignore", 0, "resolution", RESOLVE_IGNORE);
 				uiPupMenuEnd(C, pup);
 			}
 			break;
 		case 2:
 			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NONE);
 			layout= uiPupMenuLayout(pup);
-			uiItemEnumO(layout, op->type->idname, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
-			uiItemEnumO(layout, op->type->idname, "Recreate file", 0, "resolution", RESOLVE_SAVE);
+			uiItemEnumO_ptr(layout, op->type, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+			uiItemEnumO_ptr(layout, op->type, "Recreate file", 0, "resolution", RESOLVE_SAVE);
 			uiPupMenuEnd(C, pup);
 			break;
 	}

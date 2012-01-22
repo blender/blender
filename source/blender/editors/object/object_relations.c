@@ -300,7 +300,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiLayout *layout= uiPupMenuLayout(pup);
 		
 		/* create operator menu item with relevant properties filled in */
-		uiItemFullO(layout, op->idname, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		uiItemFullO_ptr(layout, op->type, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);

@@ -2806,16 +2806,12 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block, int type, int retval, cons
 	return but;
 }
 
-static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
+static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *ot, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-	wmOperatorType *ot;
-	
-	ot= WM_operatortype_find(opname, 0);
 
 	if(!str) {
-		if(ot) str= ot->name;
-		else str= opname;
+		if(ot) str = ot->name;
 	}
 	
 	if ((!tip || tip[0]=='\0') && ot && ot->description) {
@@ -2836,6 +2832,12 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 	}
 
 	return but;
+}
+static uiBut *UNUSED_FUNCTION(ui_def_but_operator)(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
+{
+	wmOperatorType *ot = WM_operatortype_find(opname, 0);
+	if (str == NULL && ot == NULL) str = opname;
+	return ui_def_but_operator_ptr(block, type, ot, opcontext, str, x1, y1, x2, y2, tip);
 }
 
 static uiBut *ui_def_but_operator_text(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
@@ -3043,12 +3045,19 @@ uiBut *uiDefButR_prop(uiBlock *block, int type, int retval, const char *str, int
 	ui_check_but(but);
 	return but;
 }
-uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
+
+uiBut *uiDefButO_ptr(uiBlock *block, int type, wmOperatorType *ot, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-	but= ui_def_but_operator(block, type, opname, opcontext, str, x1, y1, x2, y2, tip);
+	but= ui_def_but_operator_ptr(block, type, ot, opcontext, str, x1, y1, x2, y2, tip);
 	ui_check_but(but);
 	return but;
+}
+uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
+{
+	wmOperatorType *ot = WM_operatortype_find(opname, 0);
+	if (str == NULL && ot == NULL) str = opname;
+	return uiDefButO_ptr(block, type, ot, opcontext, str, x1, y1, x2, y2, tip);
 }
 
 uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
@@ -3121,12 +3130,18 @@ uiBut *uiDefIconButR_prop(uiBlock *block, int type, int retval, int icon, int x1
 	ui_check_but_and_iconize(but, icon);
 	return but;
 }
-uiBut *uiDefIconButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, int x1, int y1, short x2, short y2, const char *tip)
+
+uiBut *uiDefIconButO_ptr(uiBlock *block, int type, wmOperatorType *ot, int opcontext, int icon, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-	but= ui_def_but_operator(block, type, opname, opcontext, "", x1, y1, x2, y2, tip);
+	but= ui_def_but_operator_ptr(block, type, ot, opcontext, "", x1, y1, x2, y2, tip);
 	ui_check_but_and_iconize(but, icon);
 	return but;
+}
+uiBut *uiDefIconButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, int x1, int y1, short x2, short y2, const char *tip)
+{
+	wmOperatorType *ot = WM_operatortype_find(opname, 0);
+	return uiDefIconButO_ptr(block, type, ot, opcontext, icon, x1, y1, x2, y2, tip);
 }
 
 /* Button containing both string label and icon */
@@ -3195,13 +3210,18 @@ uiBut *uiDefIconTextButR_prop(uiBlock *block, int type, int retval, int icon, co
 	but->flag|= UI_ICON_LEFT;
 	return but;
 }
-uiBut *uiDefIconTextButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, const char *str, int x1, int y1, short x2, short y2, const char *tip)
+uiBut *uiDefIconTextButO_ptr(uiBlock *block, int type, wmOperatorType *ot, int opcontext, int icon, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-	but= ui_def_but_operator(block, type, opname, opcontext, str, x1, y1, x2, y2, tip);
+	but= ui_def_but_operator_ptr(block, type, ot, opcontext, str, x1, y1, x2, y2, tip);
 	ui_check_but_and_iconize(but, icon);
 	but->flag|= UI_ICON_LEFT;
 	return but;
+}
+uiBut *uiDefIconTextButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, const char *str, int x1, int y1, short x2, short y2, const char *tip)
+{
+	wmOperatorType *ot = WM_operatortype_find(opname, 0);
+	return uiDefIconTextButO_ptr(block, type, ot, opcontext, icon, str, x1, y1, x2, y2, tip);
 }
 
 /* END Button containing both string label and icon */
