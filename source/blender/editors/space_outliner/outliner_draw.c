@@ -1022,6 +1022,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_VERTEX_WEIGHT); break;
 					case eModifierType_DynamicPaint:
 						UI_icon_draw(x, y, ICON_MOD_DYNAMICPAINT); break;
+					case eModifierType_Ocean:
+						UI_icon_draw(x, y, ICON_MOD_WAVE); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
