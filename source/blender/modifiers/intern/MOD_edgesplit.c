@@ -71,7 +71,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 		cddm = CDDM_copy(dm, 0);
 	} else cddm = dm;
 	
-	em = CDDM_To_BMesh(ob, dm, NULL);
+	em = CDDM_To_BMesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_Compute_Normals(bm);	
@@ -101,13 +101,13 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMO_CallOpf(bm, "edgesplit edges=%fe", EDGE_MARK);
 	
 	BMO_pop(bm);
-	BMEdit_RecalcTesselation(em);
 	
 	if (cddm != dm) {
 		cddm->needsFree = 1;
 		cddm->release(cddm);
 	}
-	
+
+	BLI_assert(em->looptris == NULL);
 	cddm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 	BMEdit_Free(em);
 	MEM_freeN(em);

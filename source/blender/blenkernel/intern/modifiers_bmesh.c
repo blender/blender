@@ -103,7 +103,7 @@
 
 /*converts a cddm to a BMEditMesh.  if existing is non-NULL, the
   new geometry will be put in there.*/
-BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
+BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
 {
 	int allocsize[4] = {512, 512, 2048, 512};
 	BMesh *bm, bmold; /*bmold is for storing old customdata layout*/
@@ -205,8 +205,14 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	BLI_array_free(verts);
 	BLI_array_free(edges);
 
-	if (!em) em = BMEdit_Create(bm);
-	else BMEdit_RecalcTesselation(em);
+	if (!em) {
+		em = BMEdit_Create(bm, do_tesselate);
+	}
+	else {
+		if (do_tesselate) {
+			BMEdit_RecalcTesselation(em);
+		}
+	}
 
 	return em;
 }

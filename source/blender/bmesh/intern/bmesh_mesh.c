@@ -374,7 +374,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 	/*switch multires data out of tangent space*/
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		Object *ob = bm->ob;
-		BMEditMesh *em = BMEdit_Create(bm);
+		BMEditMesh *em = BMEdit_Create(bm, FALSE);
 		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 		MDisps *mdisps;
 		BMFace *f;

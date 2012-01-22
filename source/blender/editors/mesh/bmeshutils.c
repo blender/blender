@@ -310,7 +310,7 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 		MEM_freeN(me->edit_btmesh);
 	}
 
-	me->edit_btmesh = BMEdit_Create(bm);
+	me->edit_btmesh = BMEdit_Create(bm, TRUE);
 	me->edit_btmesh->selectmode= me->edit_btmesh->bm->selectmode= ts->selectmode;
 	me->edit_btmesh->me = me;
 	me->edit_btmesh->ob = ob;
@@ -589,7 +589,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 	bm = BM_Make_Mesh(ob, allocsize);
 	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 0);
 
-	em2 = BMEdit_Create(bm);
+	em2 = BMEdit_Create(bm, TRUE);
 	*em = *em2;
 	
 	em->selectmode = me->selectmode;

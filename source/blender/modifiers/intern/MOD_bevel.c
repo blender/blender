@@ -123,7 +123,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 		cddm = CDDM_copy(dm, 0);
 	} else cddm = dm;
 
-	em = CDDM_To_BMesh(ob, dm, NULL);
+	em = CDDM_To_BMesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_Compute_Normals(bm);
@@ -152,13 +152,13 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	BMO_CallOpf(bm, "bevel geom=%fe percent=%f use_even=%i use_dist=%i",
 	            EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN)!=0, (bmd->flags & BME_BEVEL_DIST)!=0);
 	BMO_pop(bm);
-	BMEdit_RecalcTesselation(em);
 
 	if (cddm != dm) {
 		cddm->needsFree = 1;
 		cddm->release(cddm);
 	}
 
+	BLI_assert(em->looptris == NULL);
 	cddm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 	BMEdit_Free(em);
 	MEM_freeN(em);
