@@ -1409,16 +1409,14 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 	BMLoop *l;
 	BMIter liter;
 	MLoopUV *luv;
-	BLI_array_declare(uvs);
 	float **uvs = NULL;
+	BLI_array_fixedstack_declare(uvs, BM_NGON_STACK_SIZE, efa->len, __func__);
 	float dx;
 	int i, mi;
 
 	i = 0;
 	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		BLI_array_growone(uvs);
-
 		uvs[i] = luv->uv;
 		i++;
 	}
@@ -1435,7 +1433,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 		} 
 	} 
 
-	BLI_array_free(uvs);
+	BLI_array_fixedstack_free(uvs);
 }
 
 static int sphere_project_exec(bContext *C, wmOperator *op)

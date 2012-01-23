@@ -1112,8 +1112,8 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 			for (i=0; i<dm->numPolyData; i++, mp++) {
 				ml = mloop + mp->loopstart;
 
-				for (j=0; j<mp->totloop; j++, ml++, totloop++) {
-					BLI_array_growone(wtcol_l);
+				BLI_array_growitems(wtcol_l, mp->totloop);
+				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
 					copy_v4_v4_char((char *)&wtcol_l[totloop],
 					                (char *)&wtcol_v[4 * ml->v]);
 				}

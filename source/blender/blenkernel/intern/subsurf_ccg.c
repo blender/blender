@@ -3040,17 +3040,16 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		/* set the face base vert */
 		*((int*)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
-		BLI_array_empty(loopidx);		
-		for (s=0; s<numVerts; s++) {
-			BLI_array_growone(loopidx);
+		BLI_array_empty(loopidx);
+		BLI_array_growitems(loopidx, numVerts);
+		for (s = 0; s < numVerts; s++) {
 			loopidx[s] = loopindex++;
 		}
 		
 		BLI_array_empty(vertidx);
-				for(s = 0; s < numVerts; s++) {
+		BLI_array_growitems(vertidx, numVerts);
+		for (s = 0; s < numVerts; s++) {
 			CCGVert *v = ccgSubSurf_getFaceVert(ss, f, s);
-			
-			BLI_array_growone(vertidx);
 			vertidx[s] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
 		}
 		

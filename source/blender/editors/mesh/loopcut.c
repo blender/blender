@@ -239,10 +239,10 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 				co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
 				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
 				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
-				
+
 				BLI_array_growone(edges);
-				VECCOPY(edges[tot][0], co[0]);
-				VECCOPY(edges[tot][1], co[1]);
+				copy_v3_v3(edges[tot][0], co[0]);
+				copy_v3_v3(edges[tot][1], co[1]);
 				tot++;
 			}
 		}

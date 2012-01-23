@@ -528,10 +528,11 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 		BLI_array_empty(loops);
 		BLI_array_empty(edges);
+		BLI_array_growitems(loops, f->len);
+		BLI_array_growitems(edges, f->len);
+
 		l = BMIter_New(&liter, bmold, BM_LOOPS_OF_FACE, f);
 		for (j=0; j<f->len; j++, l = BMIter_Step(&liter)) {
-			BLI_array_growone(loops);
-			BLI_array_growone(edges);
 			loops[j] = l;
 			edges[j] = etable[BM_GetIndex(l->e)];
 		}

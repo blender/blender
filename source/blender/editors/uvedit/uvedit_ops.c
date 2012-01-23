@@ -1953,9 +1953,9 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 
 		/* mark 1 vertex as being hit */
+		BLI_array_growitems(hitv, hit.efa->len);
+		BLI_array_growitems(hituv, hit.efa->len);
 		for(i=0; i<hit.efa->len; i++) {
-			BLI_array_growone(hitv);
-			BLI_array_growone(hituv);
 			hitv[i]= 0xFFFFFFFF;
 		}
 
@@ -1974,9 +1974,9 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 
 		/* mark 2 edge vertices as being hit */
-		for(i=0; i<hit.efa->len; i++) {
-			BLI_array_growone(hitv);
-			BLI_array_growone(hituv);
+		BLI_array_growitems(hitv,  hit.efa->len);
+		BLI_array_growitems(hituv, hit.efa->len);
+		for (i=0; i < hit.efa->len; i++) {
 			hitv[i]= 0xFFFFFFFF;
 		}
 
@@ -2002,12 +2002,12 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		BM_set_actFace(em->bm, hit.efa);
 
 		/* mark all face vertices as being hit */
+
+		BLI_array_growitems(hitv,  hit.efa->len);
+		BLI_array_growitems(hituv, hit.efa->len);
 		i = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, hit.efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-
-			BLI_array_growone(hitv);
-			BLI_array_growone(hituv);
 			hituv[i]= luv->uv;
 			hitv[i] = BM_GetIndex(l->v);
 			i++;

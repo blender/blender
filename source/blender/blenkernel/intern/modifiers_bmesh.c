@@ -171,10 +171,11 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 		BLI_array_empty(verts);
 		BLI_array_empty(edges);
 
+		BLI_array_growitems(verts, mp->totloop);
+		BLI_array_growitems(edges, mp->totloop);
+
 		ml = mloop + mp->loopstart;
-		for (j=0; j<mp->totloop; j++, ml++) {
-			BLI_array_growone(verts);
-			BLI_array_growone(edges);
+		for (j = 0; j < mp->totloop; j++, ml++) {
 
 			verts[j] = vtable[ml->v];
 			edges[j] = etable[ml->e];
