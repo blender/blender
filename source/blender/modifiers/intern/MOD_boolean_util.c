@@ -522,7 +522,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 			CSG_FreeFaceDescriptor(&fd_o);
 		}
 		else
-			printf("Unknown internal error in boolean");
+			printf("Unknown internal error in boolean\n");
 
 		CSG_FreeBooleanOperation(bool_op);
 
