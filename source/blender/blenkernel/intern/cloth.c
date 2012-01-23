@@ -130,6 +130,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->presets = 2; /* cotton as start setting */
 	clmd->sim_parms->timescale = 1.0f; /* speed factor, describes how fast cloth moves */
 	clmd->sim_parms->reset = 0;
+	clmd->sim_parms->vel_damping = 1.0f; /* 1.0 = no damping, 0.0 = fully dampened */
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
