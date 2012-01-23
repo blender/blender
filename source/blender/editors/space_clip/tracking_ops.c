@@ -1208,7 +1208,7 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip)
 	track= tracksbase->first;
 	while(track) {
 		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, framenr);
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
 
 			if (!marker || (marker->flag&MARKER_DISABLED) == 0)
 				tot++;
