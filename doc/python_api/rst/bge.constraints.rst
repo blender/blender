@@ -5,6 +5,11 @@ Physics Constraints (bge.constraints)
 .. module:: bge.constraints
 
 .. literalinclude:: ../examples/bge.constraints.py
+   :language: rest
+   :lines: 2-4
+
+.. literalinclude:: ../examples/bge.constraints.py
+   :lines: 6-
 
 .. function:: createConstraint(physicsid, physicsid2, constrainttype, [pivotX, pivotY, pivotZ, [axisX, axisY, axisZ, [flag]]]])
 
