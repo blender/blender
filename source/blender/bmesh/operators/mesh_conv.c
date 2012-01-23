@@ -204,13 +204,14 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 		BLI_array_empty(fedges);
 		BLI_array_empty(verts);
+
+		BLI_array_growitems(fedges, mpoly->totloop);
+		BLI_array_growitems(verts, mpoly->totloop);
+
 		for (j=0; j<mpoly->totloop; j++) {
 			ml = &me->mloop[mpoly->loopstart+j];
 			v = vt[ml->v];
 			e = et[ml->e];
-
-			BLI_array_growone(fedges);
-			BLI_array_growone(verts);
 
 			fedges[j] = e;
 			verts[j] = v;
@@ -277,7 +278,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	{
+	if (me->mselect && me->totselect != 0) {
 		BMIter iter;
 		BMVert *vertex;
 		BMEdge *edge;
@@ -322,6 +323,13 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		MEM_freeN(vertex_array);
 		MEM_freeN(edge_array);
 		MEM_freeN(face_array);
+	}
+	else {
+		me->totselect = 0;
+		if (me->mselect) {
+			MEM_freeN(me->mselect);
+			me->mselect = NULL;
+		}
 	}
 
 	BLI_array_free(fedges);
