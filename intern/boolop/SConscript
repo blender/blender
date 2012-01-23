@@ -8,6 +8,7 @@ incs += ' ../../source/blender/blenlib'
 defs = []
 
 if not env['WITH_BF_CARVE']:
+    import os
     sources = env.Glob('intern/*.cpp')
     sources.remove('intern' + os.sep + 'BOP_CarveInterface.cpp')
 else:
