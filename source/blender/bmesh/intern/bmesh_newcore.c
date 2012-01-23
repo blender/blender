@@ -1339,8 +1339,6 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 	BMVert *ov, *tv;
 	BMLoop *killoop, *l;
 	int len,radlen=0, halt = 0, i, valence1, valence2,edok;
-	BMLoop **loops = NULL;
-	BLI_array_staticdeclare(loops, BM_NGON_STACK_SIZE);
 
 	if(bmesh_vert_in_edge(ke,kv) == 0) return 0;
 	len = bmesh_disk_count(kv);
@@ -1387,21 +1385,30 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 					killoop->f->len--;
 				}
 				/*second step, remove all the hanging loops attached to ke*/
-				killoop = ke->l;
 				radlen = bmesh_radial_length(ke->l);
-				/*this should be wrapped into a bme_free_radial function to be used by bmesh_KF as well...*/
-				for (i=0;i<radlen;i++) {
-					BLI_array_growone(loops);
-					loops[BLI_array_count(loops)-1] = killoop;
-					killoop = bmesh_radial_nextloop(killoop);
+
+				if (LIKELY(radlen)) {
+					BMLoop **loops = NULL;
+					BLI_array_fixedstack_declare(loops, BM_NGON_STACK_SIZE, radlen, __func__);
+
+					killoop = ke->l;
+
+					/*this should be wrapped into a bme_free_radial function to be used by bmesh_KF as well...*/
+					for (i = 0; i < radlen; i++) {
+						loops[i] = killoop;
+						killoop = bmesh_radial_nextloop(killoop);
+					}
+					for (i = 0; i < radlen; i++) {
+						bm->totloop--;
+						BLI_mempool_free(bm->lpool, loops[i]);
+					}
+					BLI_array_fixedstack_free(loops);
 				}
-				for (i=0;i<radlen;i++) {
-					bm->totloop--;
-					BLI_mempool_free(bm->lpool, loops[i]);
-				}
+
 				/*Validate radial cycle of oe*/
 				edok = bmesh_radial_validate(radlen,oe->l);
 				if(!edok) bmesh_error();
+
 			}
 
 			/*deallocate edge*/
