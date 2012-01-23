@@ -121,7 +121,33 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	BMLoop *l;
 	int i = 0, j;
 
+#if 0
+	/* note, we could be clever and re-use this array but would need to ensure
+	 * its realloced at some point, for now just free it */
 	if (tm->looptris) MEM_freeN(tm->looptris);
+
+	/* Use tm->tottri when set, this means no reallocs while transforming,
+	 * (unless scanfill fails), otherwise... */
+	/* allocate the length of totfaces, avoid many small reallocs,
+	 * if all faces are tri's it will be correct, quads == 2x allocs */
+	BLI_array_reserve(looptris, (tm->tottri && tm->tottri < bm->totface * 3) ? tm->tottri : bm->totface);
+#else
+
+	/* this means no reallocs for quad dominant models, for */
+	if ( (tm->looptris != NULL) &&
+	     (tm->tottri != 0) &&
+	     /* (totrti <= bm->totface * 2) would be fine for all quads,
+		  * but incase there are some ngons, still re-use the array */
+	     (tm->tottri <= bm->totface * 3))
+	{
+		looptris = tm->looptris;
+	}
+	else {
+		if (tm->looptris) MEM_freeN(tm->looptris);
+		BLI_array_reserve(looptris, bm->totface);
+	}
+
+#endif
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for ( ; f; f=BMIter_Step(&iter)) {
@@ -168,6 +194,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 			EditVert *v, *lastv=NULL, *firstv=NULL;
 			EditEdge *e;
 			EditFace *efa;
+			int totfilltri;
 
 			BLI_begin_edgefill();
 			/*scanfill time*/
@@ -190,14 +217,13 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 			/*complete the loop*/
 			BLI_addfilledge(firstv, v);
 
-			BLI_edgefill(2);
+			totfilltri = BLI_edgefill(2);
+			BLI_array_growitems(looptris, totfilltri);
 
 			for (efa = fillfacebase.first; efa; efa=efa->next) {
 				BMLoop *l1= efa->v1->tmp.p;
 				BMLoop *l2= efa->v2->tmp.p;
 				BMLoop *l3= efa->v3->tmp.p;
-
-				BLI_array_growone(looptris);
 
 				if (BM_GetIndex(l1) > BM_GetIndex(l2)) { SWAP(BMLoop*, l1, l2); }
 				if (BM_GetIndex(l2) > BM_GetIndex(l3)) { SWAP(BMLoop*, l2, l3); }
