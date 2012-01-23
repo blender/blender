@@ -2026,10 +2026,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	float *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	float *dists=NULL;
-	int count=0, countsel=0, a, totleft, *selstate = NULL;
-	BLI_array_declare(selstate);
+	int count=0, countsel=0, a, totleft;
 	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) : 0;
 	int mirror = 0;
+	char *selstate = NULL;
 	short selectmode = ts->selectmode;
 
 	if (t->flag & T_MIRROR)
@@ -2091,12 +2091,11 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	}
 
 	/* now we can count. we store selection state in selstate, since
-	   get_crazy_mapped_editverts messes up the index state of the
-	   verts*/
+	 * get_crazy_mapped_editverts messes up the index state of the
+	 * verts*/
+	selstate = MEM_callocN(sizeof(*selstate) * bm->totvert, __func__);
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
-		BLI_array_growone(selstate);
-
 		if (BM_TestHFlag(eve, BM_TMP_TAG)) {
 			selstate[a] = 1;
 			countsel++;
@@ -2257,7 +2256,7 @@ cleanup:
 	if (dists)
 		MEM_freeN(dists);
 	
-	BLI_array_free(selstate);
+	MEM_freeN(selstate);
 
 	if (t->flag & T_MIRROR) {
 		EDBM_EndMirrorCache(em);
