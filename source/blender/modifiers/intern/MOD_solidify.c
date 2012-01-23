@@ -71,9 +71,9 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	numVerts = dm->getNumVerts(dm);
 	numEdges = dm->getNumEdges(dm);
 	numFaces = dm->getNumPolys(dm);
-	mpoly = CDDM_get_polys(dm);
+	mpoly = dm->getPolyArray(dm);
 	mvert = dm->getVertArray(dm);
-	mloop = CDDM_get_loops(dm);
+	mloop = dm->getLoopArray(dm);
 	
 	/* we don't want to overwrite any referenced layers */
 
