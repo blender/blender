@@ -82,6 +82,10 @@ extern "C" {
 		controller->setContext(C);
 	}
 
+	void FRS_read_file(bContext* C) {
+		lineset_copied = false;
+	}
+
 	void FRS_exit() {
 		delete pathconfig;
 		delete controller;

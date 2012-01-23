@@ -31,6 +31,7 @@ set(INC
 	../blenloader
 	../editors/include
 	../gpu
+	../freestyle
 	../imbuf
 	../makesdna
 	../makesrna

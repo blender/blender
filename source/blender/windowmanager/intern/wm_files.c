@@ -111,6 +111,8 @@
 #include "BPY_extern.h"
 #endif
 
+#include "FRS_freestyle.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -414,6 +416,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
 #endif
+		FRS_read_file(C);
 
 		/* important to do before NULL'ing the context */
 		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
