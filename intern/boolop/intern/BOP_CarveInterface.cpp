@@ -372,8 +372,8 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 	}
 
 	// build vectors of faces for each original face and each vertex 
-	std::vector<std::vector<uint>> vi(poly->vertex_storage.size());
-	std::vector<std::vector<uint>> ofaces(num_origfaces);
+	std::vector<std::vector<uint> > vi(poly->vertex_storage.size());
+	std::vector<std::vector<uint> > ofaces(num_origfaces);
 	MeshSet<3>::face_iter face_iter = poly->faceBegin();
 	for (i = 0; face_iter != poly->faceEnd(); ++face_iter, ++i) {
 		MeshSet<3>::face_t *f = *face_iter;
