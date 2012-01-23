@@ -108,6 +108,26 @@ void GPG_Canvas::SwapBuffers()
 	}
 }
 
+void GPG_Canvas::ResizeWindow(int width, int height)
+{
+	if (m_window->getState() == GHOST_kWindowStateFullScreen)
+	{
+		GHOST_ISystem* system = GHOST_ISystem::getSystem();
+		GHOST_DisplaySetting setting;
+		setting.xPixels = width;
+		setting.yPixels = height;
+		//XXX allow these to be changed or kept from previous state
+		setting.bpp = 32;
+		setting.frequency = 60;
+
+		system->updateFullScreen(setting, &m_window);
+	}
+
+	m_window->setClientSize(width, height);
+
+	Resize(width, height);
+}
+
 float GPG_Canvas::GetMouseNormalizedX(int x)
 {
 	return float(x)/this->GetWidth();

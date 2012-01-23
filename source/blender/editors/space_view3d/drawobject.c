@@ -235,8 +235,10 @@ static void view3d_project_short_clip(ARegion *ar, const float vec[3], short adr
 	}
 }
 
+/* BMESH NOTE: this function is unused in bmesh only */
+
 /* only use while object drawing */
-static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short adr[2])
+static void UNUSED_FUNCTION(view3d_project_short_noclip)(ARegion *ar, const float vec[3], short adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];

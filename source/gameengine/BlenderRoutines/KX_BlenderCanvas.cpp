@@ -59,6 +59,11 @@ void KX_BlenderCanvas::SwapBuffers()
 	BL_SwapBuffers(m_win);
 }
 
+void KX_BlenderCanvas::ResizeWindow(int width, int height)
+{
+	// Not implemented for the embedded player
+}
+
 void KX_BlenderCanvas::BeginFrame()
 {
 	glEnable(GL_DEPTH_TEST);

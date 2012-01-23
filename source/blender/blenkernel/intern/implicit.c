@@ -1852,6 +1852,9 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	
 	while(step < tf)
 	{	
+		// damping velocity for artistic reasons
+		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);
+
 		// calculate forces
 		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
 		

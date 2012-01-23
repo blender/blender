@@ -337,16 +337,13 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
         ob = context.object
         visibility = ob.cycles_visibility
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(visibility, "camera")
-        col.prop(visibility, "diffuse")
-        col.prop(visibility, "glossy")
-
-        col = split.column()
-        col.prop(visibility, "transmission")
-        col.prop(visibility, "shadow")
+        flow = layout.column_flow()
+        
+        flow.prop(visibility, "camera")
+        flow.prop(visibility, "diffuse")
+        flow.prop(visibility, "glossy")
+        flow.prop(visibility, "transmission")
+        flow.prop(visibility, "shadow")
 
 
 def find_node(material, nodetype):
@@ -473,16 +470,12 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         world = context.world
         cworld = world.cycles
 
-        split = layout.split()
-        col = split.column()
+        col = layout.column()
 
         col.prop(cworld, "sample_as_light")
         row = col.row()
         row.active = cworld.sample_as_light
         row.prop(cworld, "sample_map_resolution")
-
-        col = split.column()
-        col.label()
 
 
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
@@ -617,14 +610,9 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 col.template_ID(user, "texture", new="texture.new")
 
             if tex:
-                row = split.row()
-                row.prop(tex, "use_nodes", icon="NODETREE", text="")
-                row.label()
-
-                if not tex.use_nodes:
-                    split = layout.split(percentage=0.2)
-                    split.label(text="Type:")
-                    split.prop(tex, "type", text="")
+                split = layout.split(percentage=0.2)
+                split.label(text="Type:")
+                split.prop(tex, "type", text="")
 
 
 class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
