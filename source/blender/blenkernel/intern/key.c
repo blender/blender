@@ -198,7 +198,9 @@ Key *copy_key_nolib(Key *key)
 	if(key==0) return 0;
 	
 	keyn= MEM_dupallocN(key);
-	
+
+	keyn->adt = NULL;
+
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
 	kb= key->block.first;

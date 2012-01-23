@@ -551,7 +551,7 @@ static void *getEditMesh(bContext *C)
 typedef struct undomesh {
 	Mesh me;
 	int selectmode;
-	char obname[64];
+	char obname[MAX_ID_NAME-2];
 } undomesh;
 
 /*undo simply makes copies of a bmesh*/
@@ -560,11 +560,11 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	BMEditMesh *em = emv;
 	Mesh *obme = obdata;
 	
-	undomesh *me = MEM_callocN(sizeof(undomesh), "undo Mesh");
-	strcpy(me->obname, em->bm->ob->id.name+2);
+	undomesh *um = MEM_callocN(sizeof(undomesh), "undo Mesh");
+	BLI_strncpy(um->obname, em->bm->ob->id.name+2, sizeof(um->obname));
 	
 	/*make sure shape keys work*/
-	me->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
+	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
 
 #ifdef BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
 
@@ -574,32 +574,32 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 #endif
 
-	BMO_CallOpf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", me, 1);
-	me->selectmode = em->selectmode;
+	BMO_CallOpf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", &um->me, 1);
+	um->selectmode = em->selectmode;
 
-	return me;
+	return um;
 }
 
 static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 {
 	BMEditMesh *em = emv, *em2;
 	Object *ob;
-	undomesh *me = umv;
+	undomesh *um = umv;
 	BMesh *bm;
 	int allocsize[4] = {512, 512, 2048, 512};
 	
-	ob = (Object*)find_id("OB", me->obname);
+	ob = (Object*)find_id("OB", um->obname);
 	ob->shapenr = em->bm->shapenr;
 
 	BMEdit_Free(em);
 
 	bm = BM_Make_Mesh(ob, allocsize);
-	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 0);
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", &um->me, ob, 0);
 
 	em2 = BMEdit_Create(bm, TRUE);
 	*em = *em2;
 	
-	em->selectmode = me->selectmode;
+	em->selectmode = um->selectmode;
 
 	MEM_freeN(em2);
 }
