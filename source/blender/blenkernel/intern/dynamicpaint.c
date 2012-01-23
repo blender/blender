@@ -1604,14 +1604,14 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						}
 
 						/* viewport preview */
-						if (0 && surface->flags & MOD_DPAINT_PREVIEW) {
+						if (surface->flags & MOD_DPAINT_PREVIEW) {
 							MPoly *mp = CDDM_get_polys(result);
 							int totpoly = result->numPolyData;
 
 							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
-							col = CustomData_get_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL);
-							if (!col) col = CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
+							col = CustomData_get_layer(&result->loopData, CD_WEIGHT_MLOOPCOL);
+							if (!col) col = CustomData_add_layer(&result->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
 
 							if (col) {
 								#pragma omp parallel for schedule(static)
@@ -1703,7 +1703,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						float *weight = (float*)sData->type_data;
 
 						/* viewport preview */
-						if (0 && surface->flags & MOD_DPAINT_PREVIEW) {
+						if (surface->flags & MOD_DPAINT_PREVIEW) {
 							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
 							DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);

@@ -1040,9 +1040,13 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 
 	unsigned char *wtcol_v;
+#if 0 /* See coment below. */
 	unsigned char *wtcol_f = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
+#endif
 	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_WEIGHT_MLOOPCOL);
+#if 0 /* See coment below. */
 	MFace *mf = dm->getTessFaceArray(dm);
+#endif
 	MLoop *mloop = dm->getLoopArray(dm), *ml;
 	MPoly *mp = dm->getPolyArray(dm);
 	int numFaces = dm->getNumTessFaces(dm);
@@ -1050,12 +1054,21 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	int totloop;
 	int i, j;
 
+#if 0 /* See comment below */
 	/* If no CD_WEIGHT_MCOL existed yet, add a new one! */
 	if (!wtcol_f)
 		wtcol_f = CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
 
 	if (wtcol_f) {
 		unsigned char *wtcol_f_step = wtcol_f;
+# else
+	/* XXX Seems we still need to create a CD_WEIGHT_MCOL, else it sigsev...
+	 *     Strange that we do not have that problem with DPaint VCol preview? */
+	if(!dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL))
+		CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+
+	{
+#endif
 
 		/* Weights are given by caller. */
 		if (weights) {
@@ -1082,6 +1095,10 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 
 		/* Now copy colors in all face verts. */
 		/*first add colors to the tesselation faces*/
+		/* XXX Why update that layer? We have to update WEIGHT_MLOOPCOL anyway, 
+		 *     and tesselation recreates mface layers from mloop/mpoly ones, so no
+		 *     need to fill WEIGHT_MCOL here. */
+#if 0
 		for (i = 0; i < numFaces; i++, mf++, wtcol_f_step += (4 * 4)) {
 			/*origindex being NULL means we're operating on original mesh data*/
 #if 0
@@ -1103,7 +1120,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 				                (char *)&wtcol_v[4 * (*(&mf->v1 + fidx))]);
 			} while (fidx--);
 		}
-
+#endif
 		/*now add to loops, so the data can be passed through the modifier stack*/
 		/* If no CD_WEIGHT_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
@@ -1470,10 +1487,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					range_vn_i(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
 					range_vn_i(DM_get_poly_data_layer(dm, CD_ORIGINDEX), dm->numPolyData, 0);
 				}
-
-/*				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))*/
-/*					add_weight_mcol_dm(ob, dm, draw_flag);*/
-
 			}
 
 			
