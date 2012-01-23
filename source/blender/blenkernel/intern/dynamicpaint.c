@@ -1608,6 +1608,13 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							MPoly *mp = CDDM_get_polys(result);
 							int totpoly = result->numPolyData;
 
+							/* XXX We have to create a CD_WEIGHT_MCOL, else it might sigsev
+							 *     (after a SubSurf mod, eg)... */
+							if(!result->getTessFaceDataArray(result, CD_WEIGHT_MCOL)) {
+								int numFaces = result->getNumTessFaces(result);
+								CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+							}
+
 							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
 							col = CustomData_get_layer(&result->loopData, CD_WEIGHT_MLOOPCOL);

@@ -1062,8 +1062,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	if (wtcol_f) {
 		unsigned char *wtcol_f_step = wtcol_f;
 # else
-	/* XXX Seems we still need to create a CD_WEIGHT_MCOL, else it sigsev...
-	 *     Strange that we do not have that problem with DPaint VCol preview? */
+	/* XXX We have to create a CD_WEIGHT_MCOL, else it might sigsev (after a SubSurf mod, eg)... */
 	if(!dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL))
 		CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
 
