@@ -199,7 +199,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 	mpoly = me->mpoly;
 	for (i=0; i<me->totpoly; i++, mpoly++) {
-		BMVert *v1 /* , *v2 */ /* UNUSED */;
 		BMIter iter;
 
 		BLI_array_empty(fedges);
@@ -217,17 +216,24 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 			verts[j] = v;
 		}
 		
-		v1 = vt[me->mloop[mpoly->loopstart].v];
-		/* v2 = vt[me->mloop[mpoly->loopstart+1].v]; */ /* UNUSED */ /* code below always overwrites */
+		/* not sure what this block is supposed to do,
+		 * but its unused. so commenting - campbell */
+#if 0
+		{
+			BMVert *v1, *v2;
+			v1 = vt[me->mloop[mpoly->loopstart].v];
+			v2 = vt[me->mloop[mpoly->loopstart+1].v];
 
-		if (v1 == fedges[0]->v1) {
-			/* v2 = fedges[0]->v2; */ /* UNUSED */
+			if (v1 == fedges[0]->v1) {
+				v2 = fedges[0]->v2;
+			}
+			else {
+				v1 = fedges[0]->v2;
+				v2 = fedges[0]->v1;
+			}
 		}
-		else {
-			v1 = fedges[0]->v2;
-			/* v2 = fedges[0]->v1; */ /* UNUSED */
-		}
-	
+#endif
+
 		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, 0);
 
 		if (!f) {
@@ -291,17 +297,20 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		                                "Selection Conversion Face Pointer Array");
 
 		for(i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		    vertex; i++, vertex = BMIter_Step(&iter)) {
+		    vertex; i++, vertex = BMIter_Step(&iter))
+		{
 			vertex_array[i] = vertex;
 		}
 
 		for(i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		    edge; i++, edge = BMIter_Step(&iter)) {
+		    edge; i++, edge = BMIter_Step(&iter))
+		{
 			edge_array[i] = edge;
 		}
 
 		for(i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-		    face; i++, face = BMIter_Step(&iter)) {
+		    face; i++, face = BMIter_Step(&iter))
+		{
 			face_array[i] = face;
 		}
 
