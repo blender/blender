@@ -1457,13 +1457,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_uv_sculpt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_uv_sculpt", 1);
-	RNA_def_property_ui_text(prop, "UV Sculpt", "Enable brush for uv sculpting");
+	RNA_def_property_ui_text(prop, "UV Sculpt", "Enable brush for UV sculpting");
 	RNA_def_property_ui_icon(prop, ICON_TPAINT_HLT, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_uv_sculpt_update");
 
 	prop= RNA_def_property(srna, "uv_sculpt_lock_borders", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_sculpt_settings", UV_SCULPT_LOCK_BORDERS);
-	RNA_def_property_ui_text(prop, "Lock Borders", "Disables editing of boundary edges");
+	RNA_def_property_ui_text(prop, "Lock Borders", "Disable editing of boundary edges");
 
 	prop= RNA_def_property(srna, "uv_sculpt_all_islands", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_sculpt_settings", UV_SCULPT_ALL_ISLANDS);
@@ -3722,7 +3722,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_simplify_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", R_SIMPLE_NO_TRIANGULATE);
-	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disables non-planer quads being triangulated");
+	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disable non-planer quads being triangulated");
 
 	/* Scene API */
 	RNA_api_scene_render(srna);
@@ -3896,7 +3896,7 @@ static void rna_def_selected_uv_element(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SelectedUvElement", "PropertyGroup");
-	RNA_def_struct_ui_text(srna, "Selected Uv Element", "");
+	RNA_def_struct_ui_text(srna, "Selected UV Element", "");
 
 	/* store the index to the UV element selected */
 	prop= RNA_def_property(srna, "element_index", PROP_INT, PROP_UNSIGNED);

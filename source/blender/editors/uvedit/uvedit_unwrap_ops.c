@@ -1204,8 +1204,10 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	                "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
 	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
 	                "Map UVs taking image aspect ratio into account");
-	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data", "Map UV's taking vertex position after subsurf into account");
-	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target", "Number of times to subdivide before calculating UV's", 1, 6);
+	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data",
+	                          "Map UVs taking vertex position after subsurf into account");
+	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target",
+	                      "Number of times to subdivide before calculating UVs", 1, 6);
 }
 
 /**************** Project From View operator **************/
