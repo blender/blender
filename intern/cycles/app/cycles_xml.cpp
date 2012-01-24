@@ -462,6 +462,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "gamma")) {
 			snode = new GammaNode();
 		}
+		else if(string_iequals(node.name(), "brightness")) {
+			snode = new BrightContrastNode();
+		}
 		else if(string_iequals(node.name(), "combine_rgb")) {
 			snode = new CombineRGBNode();
 		}

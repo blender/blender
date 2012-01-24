@@ -41,6 +41,7 @@ DefNode( ShaderNode,     SH_NODE_RGBTOBW,         0,                      "RGBTO
 DefNode( ShaderNode,     SH_NODE_TEXTURE,         def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
 DefNode( ShaderNode,     SH_NODE_NORMAL,          0,                      "NORMAL",         Normal,           "Normal",            ""              )
 DefNode( ShaderNode,     SH_NODE_GAMMA,           0,                      "GAMMA",          Gamma,            "Gamma",             ""              )
+DefNode( ShaderNode,     SH_NODE_BRIGHTCONTRAST,  0,                      "BRIGHTCONTRAST", BrightContrast,   "Bright Contrast",   ""              )
 DefNode( ShaderNode,     SH_NODE_GEOMETRY,        def_sh_geometry,        "GEOMETRY",       Geometry,         "Geometry",          ""              )
 DefNode( ShaderNode,     SH_NODE_MAPPING,         def_sh_mapping,         "MAPPING",        Mapping,          "Mapping",           ""              )
 DefNode( ShaderNode,     SH_NODE_CURVE_VEC,       def_vector_curve,       "CURVE_VEC",      VectorCurve,      "Vector Curve",      ""              )

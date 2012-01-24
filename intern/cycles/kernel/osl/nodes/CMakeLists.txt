@@ -20,6 +20,7 @@ set(SRC_OSL
 	node_environment_texture.osl
 	node_fresnel.osl
 	node_gamma.osl
+	node_brightness.osl
 	node_geometry.osl
 	node_glass_bsdf.osl
 	node_glossy_bsdf.osl
