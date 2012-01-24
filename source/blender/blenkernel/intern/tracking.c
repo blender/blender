@@ -1062,7 +1062,7 @@ void BKE_tracking_disable_imbuf_channels(ImBuf *ibuf, int disable_red, int disab
 static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)
 {
 	BKE_tracking_disable_imbuf_channels(ibuf, track->flag&TRACK_DISABLE_RED,
-			track->flag&TRACK_DISABLE_GREEN, track->flag&TRACK_DISABLE_RED, grayscale);
+			track->flag&TRACK_DISABLE_GREEN, track->flag&TRACK_DISABLE_BLUE, grayscale);
 }
 
 static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
