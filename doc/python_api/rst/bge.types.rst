@@ -954,7 +954,7 @@ Game Types (bge.types)
 
       .. deprecated:: use :data:`localPosition` and :data:`worldPosition`.
 
-      :type: :class:`mathurils.Vector`
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: orientation
 

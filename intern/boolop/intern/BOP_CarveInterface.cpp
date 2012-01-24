@@ -15,12 +15,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2010 by the Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Ken Hughes,
+ *                 Sergey Sharybin.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -36,6 +37,9 @@
 #include <carve/interpolator.hpp>
 #include <carve/rescale.hpp>
 
+#include <iostream>
+
+using namespace carve::mesh;
 typedef unsigned int uint;
 
 #define MAX(x,y) ((x)>(y)?(x):(y))
@@ -61,10 +65,161 @@ static int isFacePlanar(CSG_IFace &face, std::vector<carve::geom3d::Vector> &ver
 	return 1;
 }
 
-static carve::mesh::MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor& face_it,
-                                              CSG_VertexIteratorDescriptor& vertex_it,
-                                              carve::interpolate::FaceAttr<uint> &oface_num,
-                                              uint &num_origfaces )
+static MeshSet<3> *Carve_meshSetFromMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes)
+{
+	std::vector<MeshSet<3>::mesh_t*> new_meshes;
+
+	std::vector<MeshSet<3>::mesh_t*>::iterator it = meshes.begin();
+	for(; it!=meshes.end(); it++) {
+		MeshSet<3>::mesh_t *mesh = *it;
+		MeshSet<3>::mesh_t *new_mesh = new MeshSet<3>::mesh_t(mesh->faces);
+
+		new_meshes.push_back(new_mesh);
+	}
+
+	return new MeshSet<3>(new_meshes);
+}
+
+static void Carve_getIntersectedOperandMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes,
+                                              std::vector<MeshSet<3>::aabb_t> &precomputedAABB,
+                                              MeshSet<3>::aabb_t &otherAABB,
+                                              std::vector<MeshSet<3>::mesh_t*> &operandMeshes)
+{
+	std::vector<MeshSet<3>::mesh_t*>::iterator it = meshes.begin();
+	std::vector<MeshSet<3>::aabb_t>::iterator aabb_it = precomputedAABB.begin();
+	std::vector<MeshSet<3>::aabb_t> usedAABB;
+
+	while(it != meshes.end()) {
+		MeshSet<3>::mesh_t *mesh = *it;
+		MeshSet<3>::aabb_t aabb = mesh->getAABB();
+		bool isIntersect = false;
+
+		std::vector<MeshSet<3>::aabb_t>::iterator used_it = usedAABB.begin();
+		for(; used_it!=usedAABB.end(); used_it++) {
+			MeshSet<3>::aabb_t usedAABB = *used_it;
+
+			if(usedAABB.intersects(aabb) && usedAABB.intersects(otherAABB)) {
+				isIntersect = true;
+				break;
+			}
+		}
+
+		if(!isIntersect) {
+			operandMeshes.push_back(mesh);
+			usedAABB.push_back(aabb);
+
+			it = meshes.erase(it);
+			aabb_it = precomputedAABB.erase(aabb_it);
+		}
+		else {
+			it++;
+			aabb_it++;
+		}
+	}
+}
+
+static MeshSet<3> *Carve_getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> &meshes,
+                                               std::vector<MeshSet<3>::aabb_t> &precomputedAABB,
+                                               MeshSet<3>::aabb_t &otherAABB)
+{
+	std::vector<MeshSet<3>::mesh_t*> operandMeshes;
+	Carve_getIntersectedOperandMeshes(meshes, precomputedAABB, otherAABB, operandMeshes);
+
+	return Carve_meshSetFromMeshes(operandMeshes);
+}
+
+static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
+                                                 std::vector<MeshSet<3>::aabb_t> &precomputedAABB,
+                                                 MeshSet<3>::aabb_t &otherAABB,
+                                                 carve::interpolate::FaceAttr<uint> &oface_num)
+{
+	if(poly->meshes.size()<=1)
+		return poly;
+
+	carve::csg::CSG csg;
+
+	oface_num.installHooks(csg);
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
+
+	std::vector<MeshSet<3>::mesh_t*> orig_meshes =
+			std::vector<MeshSet<3>::mesh_t*>(poly->meshes.begin(), poly->meshes.end());
+
+	MeshSet<3> *left = Carve_getIntersectedOperand(orig_meshes, precomputedAABB, otherAABB);
+
+	while(orig_meshes.size()) {
+		MeshSet<3> *right = Carve_getIntersectedOperand(orig_meshes, precomputedAABB, otherAABB);
+
+		try {
+			MeshSet<3> *result = csg.compute(left, right, carve::csg::CSG::UNION, NULL, carve::csg::CSG::CLASSIFY_EDGE);
+
+			delete left;
+			delete right;
+
+			left = result;
+		}
+		catch(carve::exception e) {
+			std::cerr << "CSG failed, exception " << e.str() << std::endl;
+
+			delete right;
+		}
+		catch(...) {
+			delete left;
+			delete right;
+
+			throw "Unknown error in Carve library";
+		}
+	}
+
+	return left;
+}
+
+static MeshSet<3>::aabb_t Carve_computeAABB(MeshSet<3> *poly,
+                                            std::vector<MeshSet<3>::aabb_t> &precomputedAABB)
+{
+	MeshSet<3>::aabb_t overallAABB;
+	std::vector<MeshSet<3>::mesh_t*>::iterator it = poly->meshes.begin();
+
+	for(; it!=poly->meshes.end(); it++) {
+		MeshSet<3>::aabb_t aabb;
+		MeshSet<3>::mesh_t *mesh = *it;
+
+		aabb = mesh->getAABB();
+		precomputedAABB.push_back(aabb);
+
+		overallAABB.unionAABB(aabb);
+	}
+
+	return overallAABB;
+}
+
+static void Carve_prepareOperands(MeshSet<3> **left_r, MeshSet<3> **right_r,
+                                  carve::interpolate::FaceAttr<uint> &oface_num)
+{
+	MeshSet<3> *left, *right;
+
+	std::vector<MeshSet<3>::aabb_t> left_precomputedAABB;
+	std::vector<MeshSet<3>::aabb_t> right_precomputedAABB;
+
+	MeshSet<3>::aabb_t leftAABB = Carve_computeAABB(*left_r, left_precomputedAABB);
+	MeshSet<3>::aabb_t rightAABB = Carve_computeAABB(*right_r, right_precomputedAABB);
+
+	left = Carve_unionIntersectingMeshes(*left_r, left_precomputedAABB, rightAABB, oface_num);
+	right = Carve_unionIntersectingMeshes(*right_r, right_precomputedAABB, leftAABB, oface_num);
+
+	if(left != *left_r)
+		delete *left_r;
+
+	if(right != *right_r)
+		delete *right_r;
+
+	*left_r = left;
+	*right_r = right;
+}
+
+static MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor &face_it,
+                                 CSG_VertexIteratorDescriptor &vertex_it,
+                                 carve::interpolate::FaceAttr<uint> &oface_num,
+                                 uint &num_origfaces)
 {
 	CSG_IVertex vertex;
 	std::vector<carve::geom3d::Vector> vertices;
@@ -126,12 +281,12 @@ static carve::mesh::MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor& face_i
 		}
 	}
 
-	carve::mesh::MeshSet<3> *poly = new carve::mesh::MeshSet<3> (vertices, numfaces, f);
+	MeshSet<3> *poly = new MeshSet<3> (vertices, numfaces, f);
 
 	uint i;
-	carve::mesh::MeshSet<3>::face_iter face_iter = poly->faceBegin();
+	MeshSet<3>::face_iter face_iter = poly->faceBegin();
 	for (i = 0; face_iter != poly->faceEnd(); ++face_iter, ++i) {
-		carve::mesh::MeshSet<3>::face_t *face = *face_iter;
+		MeshSet<3>::face_t *face = *face_iter;
 		oface_num.setAttribute(face, forig[i]);
 	}
 
@@ -139,8 +294,8 @@ static carve::mesh::MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor& face_i
 }
 
 // check whether two faces share an edge, and if so merge them
-static uint quadMerge(std::map<carve::mesh::MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
-                      carve::mesh::MeshSet<3>::face_t *f1, carve::mesh::MeshSet<3>::face_t *f2,
+static uint quadMerge(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
+                      MeshSet<3>::face_t *f1, MeshSet<3>::face_t *f2,
                       uint v, uint quad[4])
 {
 	uint current, n1, p1, n2, p2;
@@ -188,23 +343,23 @@ static uint quadMerge(std::map<carve::mesh::MeshSet<3>::vertex_t*, uint> *vertex
 	return 0;
 }
 
-static BSP_CSGMesh* Carve_exportMesh(carve::mesh::MeshSet<3>* &poly, carve::interpolate::FaceAttr<uint> &oface_num,
+static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::FaceAttr<uint> &oface_num,
                                      uint num_origfaces)
 {
 	uint i;
-	BSP_CSGMesh* outputMesh = BSP_CSGMesh::New();
+	BSP_CSGMesh *outputMesh = BSP_CSGMesh::New();
 
 	if (outputMesh == NULL)
 		return NULL;
 
-	std::vector<BSP_MVertex>* vertices = new std::vector<BSP_MVertex>;
+	std::vector<BSP_MVertex> *vertices = new std::vector<BSP_MVertex>;
 
 	outputMesh->SetVertices(vertices);
 
-	std::map<carve::mesh::MeshSet<3>::vertex_t*, uint> vertexToIndex_map;
-	std::vector<carve::mesh::MeshSet<3>::vertex_t>::iterator it = poly->vertex_storage.begin();
+	std::map<MeshSet<3>::vertex_t*, uint> vertexToIndex_map;
+	std::vector<MeshSet<3>::vertex_t>::iterator it = poly->vertex_storage.begin();
 	for (i = 0; it != poly->vertex_storage.end(); ++i, ++it) {
-		carve::mesh::MeshSet<3>::vertex_t *vertex = &(*it);
+		MeshSet<3>::vertex_t *vertex = &(*it);
 		vertexToIndex_map[vertex] = i;
 	}
 
@@ -217,13 +372,13 @@ static BSP_CSGMesh* Carve_exportMesh(carve::mesh::MeshSet<3>* &poly, carve::inte
 	}
 
 	// build vectors of faces for each original face and each vertex 
-	std::vector< std::vector<uint> > vi(poly->vertex_storage.size());
-	std::vector< std::vector<uint> > ofaces(num_origfaces);
-	carve::mesh::MeshSet<3>::face_iter face_iter = poly->faceBegin();
+	std::vector<std::vector<uint> > vi(poly->vertex_storage.size());
+	std::vector<std::vector<uint> > ofaces(num_origfaces);
+	MeshSet<3>::face_iter face_iter = poly->faceBegin();
 	for (i = 0; face_iter != poly->faceEnd(); ++face_iter, ++i) {
-		carve::mesh::MeshSet<3>::face_t *f = *face_iter;
+		MeshSet<3>::face_t *f = *face_iter;
 		ofaces[oface_num.getAttribute(f)].push_back(i);
-		carve::mesh::MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
+		MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
 		for (; edge_iter != f->end(); ++edge_iter) {
 			int index = vertexToIndex_map[edge_iter->vert];
 			vi[index].push_back(i);
@@ -242,7 +397,7 @@ static BSP_CSGMesh* Carve_exportMesh(carve::mesh::MeshSet<3>* &poly, carve::inte
 			uint findex = fl.back();
 			fl.pop_back();
 
-			carve::mesh::MeshSet<3>::face_t *f = *(poly->faceBegin() + findex);
+			MeshSet<3>::face_t *f = *(poly->faceBegin() + findex);
 
 			// add all information except vertices to the output mesh
 			outputMesh->FaceSet().push_back(BSP_MFace());
@@ -256,7 +411,7 @@ static BSP_CSGMesh* Carve_exportMesh(carve::mesh::MeshSet<3>* &poly, carve::inte
 			// the original face
 			uint result = 0;
 
-			carve::mesh::MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
+			MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
 			for (; edge_iter != f->end(); ++edge_iter) {
 				int v = vertexToIndex_map[edge_iter->vert];
 				for (uint pos2=0; !result && pos2 < vi[v].size();pos2++) {
@@ -266,7 +421,7 @@ static BSP_CSGMesh* Carve_exportMesh(carve::mesh::MeshSet<3>* &poly, carve::inte
 					if (findex == otherf)
 						continue;
 
-					carve::mesh::MeshSet<3>::face_t *f2 = *(poly->faceBegin() + otherf);
+					MeshSet<3>::face_t *f2 = *(poly->faceBegin() + otherf);
 
 					// if other face doesn't have the same original face,
 					// ignore it also
@@ -302,7 +457,7 @@ static BSP_CSGMesh* Carve_exportMesh(carve::mesh::MeshSet<3>* &poly, carve::inte
 				outFace.m_verts.push_back(quadverts[2]);
 				outFace.m_verts.push_back(quadverts[3]);
 			} else {
-				carve::mesh::MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
+				MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
 				for (; edge_iter != f->end(); ++edge_iter) {
 					//int index = ofacevert_num.getAttribute(f, edge_iter.idx());
 					int index = vertexToIndex_map[edge_iter->vert];
@@ -337,7 +492,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
                                         CSG_VertexIteratorDescriptor  obBVertices)
 {
 	carve::csg::CSG::OP op;
-	carve::mesh::MeshSet<3> *left, *right, *output;
+	MeshSet<3> *left, *right, *output;
 	carve::csg::CSG csg;
 	carve::geom3d::Vector min, max;
 	carve::interpolate::FaceAttr<uint> oface_num;
@@ -359,6 +514,8 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 
 	left = Carve_addMesh(obAFaces, obAVertices, oface_num, num_origfaces );
 	right = Carve_addMesh(obBFaces, obBVertices, oface_num, num_origfaces );
+
+	Carve_prepareOperands(&left, &right, oface_num);
 
 	min.x = max.x = left->vertex_storage[0].v.x;
 	min.y = max.y = left->vertex_storage[0].v.y;
@@ -390,13 +547,29 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 
 	oface_num.installHooks(csg);
-	output = csg.compute( left, right, op, NULL, carve::csg::CSG::CLASSIFY_EDGE);
+
+	try {
+		output = csg.compute(left, right, op, NULL, carve::csg::CSG::CLASSIFY_EDGE);
+	}
+	catch(carve::exception e) {
+		std::cerr << "CSG failed, exception " << e.str() << std::endl;
+	}
+	catch(...) {
+		delete left;
+		delete right;
+
+		throw "Unknown error in Carve library";
+	}
+
 	delete left;
 	delete right;
 
+	if(!output)
+		return BOP_ERROR;
+
 	output->transform(rev_r);
 
-	*outputMesh = Carve_exportMesh( output, oface_num, num_origfaces);
+	*outputMesh = Carve_exportMesh(output, oface_num, num_origfaces);
 	delete output;
 
 	return BOP_OK;

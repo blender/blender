@@ -2412,7 +2412,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 {
 	Text *text = st->text;
 	int max = wrap_width(st, ar); /* view */
-	int charp;                    /* mem */
+	int charp = -1;               /* mem */
 	int loop = 1, found = 0;      /* flags */
 	char ch;
 	
@@ -2513,9 +2513,11 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 		
 		y--;
 	}
-	
-	if(sel) { text->sell = linep; text->selc = charp; } 
-	else { text->curl = linep; text->curc = charp; }
+
+	if (linep && charp != -1) {
+		if(sel) { text->sell = linep; text->selc = charp; }
+		else { text->curl = linep; text->curc = charp; }
+	}
 }
 
 static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)

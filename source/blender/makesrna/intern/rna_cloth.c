@@ -292,7 +292,9 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "vel_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vel_damping");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Velocity Damping", "Damp velocity to help cloth reach the resting position faster. [1.0 = no damping, 0.0 = fully dampened]");
+	RNA_def_property_ui_text(prop, "Velocity Damping",
+	                         "Damp velocity to help cloth reach the resting position faster "
+	                         "(1.0 = no damping, 0.0 = fully dampened)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "use_pin_cloth", PROP_BOOLEAN, PROP_NONE);

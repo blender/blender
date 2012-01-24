@@ -569,7 +569,7 @@ static void stitch_validate_stichability(UvElement *element, StitchState *state,
 static int stitch_process_data(StitchState *state, Scene *scene, int final)
 {
 	int i;
-	StitchPreviewer *preview = uv_get_stitch_previewer();
+	StitchPreviewer *preview;
 	IslandStitchData *island_stitch_data = NULL;
 	int previous_island = state->static_island;
 	EditFace *efa;
@@ -1458,11 +1458,15 @@ void UV_OT_stitch(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "use_limit", 0, "Use Limit", "Stitch UVs within a specified limit distance");
-	RNA_def_boolean(ot->srna, "snap_islands", 1, "Snap Islands", "Snap islands together. On edge stitch mode, rotates the islands too");
+	RNA_def_boolean(ot->srna, "snap_islands", 1, "Snap Islands",
+	                          "Snap islands together (on edge stitch mode, rotates the islands too)");
 
-	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates", 0.0, FLT_MAX);
-	RNA_def_int(ot->srna, "static_island", 0, 0, INT_MAX, "Static Island",  "Island that stays in place when stitching islands", 0, INT_MAX);
-	RNA_def_boolean(ot->srna, "midpoint_snap", 0, "Snap At Midpoint", "Uv's are stitched at midpoint instead of at static island");
+	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit",
+	                        "Limit distance in normalized coordinates", 0.0, FLT_MAX);
+	RNA_def_int(ot->srna, "static_island", 0, 0, INT_MAX, "Static Island",
+	                      "Island that stays in place when stitching islands", 0, INT_MAX);
+	RNA_def_boolean(ot->srna, "midpoint_snap", 0, "Snap At Midpoint",
+	                          "UVs are stitched at midpoint instead of at static island");
 	prop = RNA_def_collection_runtime(ot->srna, "selection", &RNA_SelectedUvElement, "Selection", "");
 	/* Selection should not be editable or viewed in toolbar */
 	RNA_def_property_flag(prop, PROP_HIDDEN);

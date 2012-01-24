@@ -359,7 +359,7 @@ static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 	extern EnumPropertyItem uv_sculpt_tool_items[];
 	/* identifiers */
 	ot->name = "UV Sculpt Tool Set";
-	ot->description = "Set the uv sculpt tool";
+	ot->description = "Set the UV sculpt tool";
 	ot->idname = "BRUSH_OT_uv_sculpt_tool_set";
 
 	/* api callbacks */

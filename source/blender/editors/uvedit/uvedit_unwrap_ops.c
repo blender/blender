@@ -352,7 +352,6 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 	MFace *face;
 	MEdge *edge;
 	EditVert *editVert;
-	MTFace *texface;
 	EditFace *editFace, **editFaceTmp;
 	EditEdge *editEdge, **editEdgeTmp;
 	int i;
@@ -367,7 +366,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 	MVert *subsurfedVerts;
 	MEdge *subsurfedEdges;
 	MFace *subsurfedFaces;
-	MTFace *subsurfedTexfaces;
+	/* MTFace *subsurfedTexfaces; */ /* UNUSED */
 	/* number of vertices and faces for subsurfed mesh*/
 	int numOfEdges, numOfFaces;
 
@@ -386,7 +385,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 
 		if(eface) {
 			float aspx, aspy;
-			texface= CustomData_em_get(&editMesh->fdata, eface->data, CD_MTFACE);
+			MTFace *texface= CustomData_em_get(&editMesh->fdata, eface->data, CD_MTFACE);
 
 			ED_image_uv_aspect(texface->tpage, &aspx, &aspy);
 		
@@ -414,7 +413,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 	origEdgeIndices = derivedMesh->getEdgeDataArray(derivedMesh, CD_ORIGINDEX);
 	origFaceIndices = derivedMesh->getFaceDataArray(derivedMesh, CD_ORIGINDEX);
 
-	subsurfedTexfaces = derivedMesh->getFaceDataArray(derivedMesh, CD_MTFACE);
+	/* subsurfedTexfaces = derivedMesh->getFaceDataArray(derivedMesh, CD_MTFACE); */ /* UNUSED */
 
 	numOfEdges = derivedMesh->getNumEdges(derivedMesh);
 	numOfFaces = derivedMesh->getNumFaces(derivedMesh);
@@ -473,7 +472,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 		}
 
 		/* Now we feed the rest of the data from the subsurfed faces */
-		texface= subsurfedTexfaces+i;
+		/* texface= subsurfedTexfaces+i; */ /* UNUSED */
 
 		/* We will not check for v4 here. Subsurfed mfaces always have 4 vertices. */
 		key = (ParamKey)face;
@@ -1245,8 +1244,10 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	                "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
 	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
 	                "Map UVs taking image aspect ratio into account");
-	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data", "Map UV's taking vertex position after subsurf into account");
-	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target", "Number of times to subdivide before calculating UV's", 1, 6);
+	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data",
+	                          "Map UVs taking vertex position after subsurf into account");
+	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target",
+	                      "Number of times to subdivide before calculating UVs", 1, 6);
 }
 
 /**************** Project From View operator **************/
