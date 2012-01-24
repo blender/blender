@@ -518,9 +518,9 @@ static void emDM_drawMappedEdgesInterp(
 		for (i=0; eed; i++,eed=BMIter_Step(&iter)) {
 			if (!setDrawOptions || setDrawOptions(userData, i)) {
 				setDrawInterpOptions(userData, i, 0.0);
-				glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(eed->v1)]);
+				glVertex3fv(bmdm->vertexCos[BM_GetIndex(eed->v1)]);
 				setDrawInterpOptions(userData, i, 1.0);
-				glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(eed->v2)]);
+				glVertex3fv(bmdm->vertexCos[BM_GetIndex(eed->v2)]);
 			}
 		}
 		glEnd();
@@ -685,9 +685,9 @@ static void emDM_drawMappedFaces(
 						if (poly_prev != GL_ZERO) glEnd();
 						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
 					}
-					glVertex3fv(vertexCos[(int) BM_GetIndex(l[0]->v)]);
-					glVertex3fv(vertexCos[(int) BM_GetIndex(l[1]->v)]);
-					glVertex3fv(vertexCos[(int) BM_GetIndex(l[2]->v)]);
+					glVertex3fv(vertexCos[BM_GetIndex(l[0]->v)]);
+					glVertex3fv(vertexCos[BM_GetIndex(l[1]->v)]);
+					glVertex3fv(vertexCos[BM_GetIndex(l[2]->v)]);
 				}
 				else {
 					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
@@ -703,17 +703,17 @@ static void emDM_drawMappedFaces(
 
 					if (!drawSmooth) {
 						glNormal3fv(faceNos[i]);
-						glVertex3fv(vertexCos[(int) BM_GetIndex(l[0]->v)]);
-						glVertex3fv(vertexCos[(int) BM_GetIndex(l[1]->v)]);
-						glVertex3fv(vertexCos[(int) BM_GetIndex(l[2]->v)]);
+						glVertex3fv(vertexCos[BM_GetIndex(l[0]->v)]);
+						glVertex3fv(vertexCos[BM_GetIndex(l[1]->v)]);
+						glVertex3fv(vertexCos[BM_GetIndex(l[2]->v)]);
 					}
 					else {
-						glNormal3fv(vertexNos[(int) BM_GetIndex(l[0]->v)]);
-						glVertex3fv(vertexCos[(int) BM_GetIndex(l[0]->v)]);
-						glNormal3fv(vertexNos[(int) BM_GetIndex(l[1]->v)]);
-						glVertex3fv(vertexCos[(int) BM_GetIndex(l[1]->v)]);
-						glNormal3fv(vertexNos[(int) BM_GetIndex(l[2]->v)]);
-						glVertex3fv(vertexCos[(int) BM_GetIndex(l[2]->v)]);
+						glNormal3fv(vertexNos[BM_GetIndex(l[0]->v)]);
+						glVertex3fv(vertexCos[BM_GetIndex(l[0]->v)]);
+						glNormal3fv(vertexNos[BM_GetIndex(l[1]->v)]);
+						glVertex3fv(vertexCos[BM_GetIndex(l[1]->v)]);
+						glNormal3fv(vertexNos[BM_GetIndex(l[2]->v)]);
+						glVertex3fv(vertexCos[BM_GetIndex(l[2]->v)]);
 					}
 				}
 
@@ -1469,8 +1469,8 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 		edge_r->flag = BM_Edge_Flag_To_MEFlag(ee);
 
-		edge_r->v1 = (int)BM_GetIndex(ee->v1);
-		edge_r->v2 = (int)BM_GetIndex(ee->v2);
+		edge_r->v1 = BM_GetIndex(ee->v1);
+		edge_r->v2 = BM_GetIndex(ee->v2);
 	}
 }
 
@@ -1745,9 +1745,9 @@ DerivedMesh *getEditDerivedBMesh(
 
 		for (i=0; i<bmdm->tc->tottri; i++) {
 			BMLoop **l = bmdm->tc->looptris[i];
-			float *v1 = vertexCos[(int) BM_GetIndex(l[0]->v)];
-			float *v2 = vertexCos[(int) BM_GetIndex(l[1]->v)];
-			float *v3 = vertexCos[(int) BM_GetIndex(l[2]->v)];
+			float *v1 = vertexCos[BM_GetIndex(l[0]->v)];
+			float *v2 = vertexCos[BM_GetIndex(l[1]->v)];
+			float *v3 = vertexCos[BM_GetIndex(l[2]->v)];
 			float *no = bmdm->faceNos[i];
 
 			normal_tri_v3( no,v1, v2, v3);
