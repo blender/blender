@@ -565,7 +565,7 @@ static void stitch_validate_stichability(UvElement *element, StitchState *state,
 static int stitch_process_data(StitchState *state, Scene *scene, int final)
 {
 	int i;
-	StitchPreviewer *preview = uv_get_stitch_previewer();
+	StitchPreviewer *preview;
 	IslandStitchData *island_stitch_data = NULL;
 	int previous_island = state->static_island;
 	EditFace *efa;
