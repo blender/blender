@@ -1731,7 +1731,7 @@ void init_userdef_do_versions(void)
 			SETCOLF(btheme->toops.selected_highlight, 0.51, 0.53, 0.55, 0.3);
 		}
 		
-		U.use_16bit_textures = 0;
+		U.use_16bit_textures = 1;
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */
