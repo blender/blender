@@ -2452,6 +2452,7 @@ static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int
 static void pose_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
 	struct {ViewContext *vc; short select; int mval[2]; float radius; } data;
+	bArmature *arm = vc->obact->data;
 	bPose *pose = vc->obact->pose;
 	bPoseChannel *pchan;
 	int change= FALSE;
@@ -2469,6 +2470,10 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		short sco1[2], sco2[2], didpoint=0;
 		float vec[3];
+		
+		/* skip invisible bones */
+		if (PBONE_VISIBLE(arm, pchan->bone) == 0)
+			continue;
 		
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
