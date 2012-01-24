@@ -4746,7 +4746,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 				case PROP_STRING: {
 					const char *defvalue= ((StringPropertyRNA*)parm)->defaultvalue;
 					if(defvalue && defvalue[0])
-						memcpy(data, &defvalue, size);
+						BLI_strncpy(data, defvalue, size);
 					break;
 				}
 				case PROP_POINTER:
