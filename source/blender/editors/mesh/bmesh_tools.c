@@ -4852,7 +4852,7 @@ void EXPORT_MESH_OT_wavefront(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	
 	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers", "Apply Modifiers");
 	RNA_def_boolean(ot->srna, "relpaths", 0, "Relative Paths", "Use relative paths for textures");

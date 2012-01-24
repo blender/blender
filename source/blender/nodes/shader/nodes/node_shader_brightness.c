@@ -28,26 +28,28 @@
 
 #include "node_shader_util.h"
 
-/* **************** Gamma Tools  ******************** */
-  
-static bNodeSocketTemplate sh_node_gamma_in[]= {
+
+/* **************** Brigh and contrsast  ******************** */
+
+static bNodeSocketTemplate sh_node_brightcontrast_in[]= {
 	{	SOCK_RGBA, 1, "Color",			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Gamma",			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f, PROP_UNSIGNED},
+	{	SOCK_FLOAT, 1, "Bright",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
+	{	SOCK_FLOAT, 1, "Contrast",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_gamma_out[]= {
+static bNodeSocketTemplate sh_node_brightcontrast_out[]= {
 	{	SOCK_RGBA, 0, "Color"},
 	{	-1, 0, ""	}
 };
 
-void register_node_type_sh_gamma(bNodeTreeType *ttype)
+void register_node_type_sh_brightcontrast(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
-	node_type_socket_templates(&ntype, sh_node_gamma_in, sh_node_gamma_out);
+	node_type_socket_templates(&ntype, sh_node_brightcontrast_in, sh_node_brightcontrast_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);

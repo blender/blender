@@ -142,6 +142,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			node = new GammaNode();
 			break;
 		}
+		case BL::ShaderNode::type_BRIGHTCONTRAST: {
+			node = new BrightContrastNode();
+			break;
+		}
 		case BL::ShaderNode::type_MIX_RGB: {
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
