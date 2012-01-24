@@ -379,7 +379,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		*totmat = 0;
 	}
 
-	origindex_layer = result->getFaceDataArray(result, CD_ORIGINDEX);
+	origindex_layer = result->getTessFaceDataArray(result, CD_ORIGINDEX);
 
 	// step through the face iterators
 	for(i = 0; !face_it->Done(face_it->it); i++) {
