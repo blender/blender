@@ -251,7 +251,7 @@ void BM_Compute_Normals(BMesh *bm)
 			continue;
 #endif
 
-		bmesh_update_face_normal(bm, f, projectverts);		
+		bmesh_update_face_normal(bm, f, f->no, projectverts);
 	}
 	
 	/*Zero out vertex normals*/

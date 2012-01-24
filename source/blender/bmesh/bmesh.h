@@ -233,6 +233,7 @@ BMVert *BM_Rip_Vertex(BMesh *bm, BMFace *sf, BMVert *sv);
 
 /*updates a face normal*/
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f);
+void BM_Face_UpdateNormal_VertexCos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3]);
 
 /*updates face and vertex normals incident on an edge*/
 void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e);

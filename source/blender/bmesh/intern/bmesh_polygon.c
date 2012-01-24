@@ -420,7 +420,20 @@ void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 
 		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
 
-		bmesh_update_face_normal(bm, f, proj);
+		bmesh_update_face_normal(bm, f, f->no, proj);
+
+		BLI_array_fixedstack_free(proj);
+	}
+}
+/* same as BM_Face_UpdateNormal but takes vertex coords */
+void BM_Face_UpdateNormal_VertexCos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3])
+{
+	if (f->len >= 3) {
+		float (*proj)[3];
+
+		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
+
+		bmesh_update_face_normal_vertex_cos(bm, f, no, proj, vertexCos);
 
 		BLI_array_fixedstack_free(proj);
 	}
@@ -487,7 +500,8 @@ void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
 	BM_Vert_UpdateNormal(bm, v);
 }
 
-void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
+void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
+                              float (*projectverts)[3])
 {
 	BMLoop *l;
 
@@ -499,7 +513,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l = l->next)->v;
 			BMVert *v4 = (l->next)->v;
-			normal_quad_v3(f->no,v1->co, v2->co, v3->co, v4->co);
+			normal_quad_v3(no, v1->co, v2->co, v3->co, v4->co);
 			break;
 		}
 		case 3:
@@ -507,12 +521,12 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l->next)->v;
-			normal_tri_v3(f->no,v1->co, v2->co, v3->co);
+			normal_tri_v3(no, v1->co, v2->co, v3->co);
 			break;
 		}
 		case 0:
 		{
-			zero_v3(f->no);
+			zero_v3(no);
 			break;
 		}
 		default:
@@ -523,12 +537,64 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 				copy_v3_v3(projectverts[i], l->v->co);
 				i += 1;
 			}
-			compute_poly_normal(f->no, projectverts, f->len);
+			compute_poly_normal(no, projectverts, f->len);
 			break;
 		}
 	}
 }
+/* exact same as 'bmesh_update_face_normal' but accepts vertex coords */
+void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
+                                   float (*projectverts)[3], float (*vertexCos)[3])
+{
+	BMLoop *l;
 
+	/* must have valid index data */
+	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
+
+	/* common cases first */
+	switch (f->len) {
+		case 4:
+		{
+			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v2 = (l = l->next)->v;
+			BMVert *v3 = (l = l->next)->v;
+			BMVert *v4 = (l->next)->v;
+			normal_quad_v3(no,
+			               vertexCos[BM_GetIndex(v1)],
+			               vertexCos[BM_GetIndex(v2)],
+			               vertexCos[BM_GetIndex(v3)],
+			               vertexCos[BM_GetIndex(v4)]);
+			break;
+		}
+		case 3:
+		{
+			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v2 = (l = l->next)->v;
+			BMVert *v3 = (l->next)->v;
+			normal_tri_v3(no,
+			              vertexCos[BM_GetIndex(v1)],
+			              vertexCos[BM_GetIndex(v2)],
+			              vertexCos[BM_GetIndex(v3)]);
+			break;
+		}
+		case 0:
+		{
+			zero_v3(no);
+			break;
+		}
+		default:
+		{
+			BMIter iter;
+			int i = 0;
+			BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+				copy_v3_v3(projectverts[i], vertexCos[BM_GetIndex(l->v)]);
+				i += 1;
+			}
+			compute_poly_normal(no, projectverts, f->len);
+			break;
+		}
+	}
+}
 
 /*
  * BMESH FLIP NORMAL
@@ -784,7 +850,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
-	///bmesh_update_face_normal(bm, f, projectverts);
+	///bmesh_update_face_normal(bm, f, f->no, projectverts);
 
 	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
