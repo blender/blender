@@ -61,7 +61,8 @@ class NODE_HT_header(Header):
                     
             if snode.shader_type == 'WORLD':
                 layout.template_ID(scene, "world", new="world.new")
-                layout.prop(snode_id, "use_nodes")
+                if snode_id:
+                    layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'TEXTURE':
             layout.prop(snode, "texture_type", text="", expand=True)
