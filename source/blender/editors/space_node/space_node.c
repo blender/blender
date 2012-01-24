@@ -169,6 +169,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* note, ED_area_tag_refresh will re-execute compositor */
 	SpaceNode *snode= sa->spacedata.first;
 	int type= snode->treetype;
+	short shader_type = snode->shaderfrom;
 	
 	/* preview renders */
 	switch(wmn->category) {
@@ -215,7 +216,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_WORLD:
-			if(type==NTREE_SHADER) {
+			if(type==NTREE_SHADER && shader_type==SNODE_SHADER_WORLD) {
 				ED_area_tag_refresh(sa);	
 			}
 			break;
