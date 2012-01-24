@@ -2166,7 +2166,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->exec= wm_collada_export_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "selected", 0, "Export only selected",
 		"Export only selected elements");
 }
@@ -2198,7 +2198,7 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	ot->exec= wm_collada_import_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
 
 #endif
