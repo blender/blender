@@ -1105,16 +1105,11 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			index+= 4;
 		}
 
-		/* BMESH_TODO - why is this converting from MFaces to MPoly's then tesselating?
-		 * should just make mpolys */
-
 		make_edges(me, 0);	// all edges
-		convert_mfaces_to_mpolys(me);
 
-		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata,
-		                                     me->mvert,
-		                                     me->totface, me->totloop, me->totpoly,
-		                                     TRUE);
+
+		/* BMESH_TODO - low priority, should make polygons instead */
+		convert_mfaces_to_mpolys(me);
 
 		mesh_update_customdata_pointers(me, TRUE);
 	}
