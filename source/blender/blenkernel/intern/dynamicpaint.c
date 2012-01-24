@@ -1222,6 +1222,7 @@ static int surface_usesAdjData(DynamicPaintSurface *surface)
 static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int force_init)
 {
 	PaintSurfaceData *sData = surface->data;
+	DerivedMesh *dm = surface->canvas->dm;
 	PaintAdjData *ed;
 	int *temp_data;
 	int neigh_points = 0;
@@ -1230,7 +1231,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		/* For vertex format, neighbours are connected by edges */
-		neigh_points = 2*surface->canvas->dm->getNumEdges(surface->canvas->dm);
+		neigh_points = 2*dm->getNumEdges(dm);
 	}
 	else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
 		neigh_points = sData->total_points*8;
@@ -1260,10 +1261,11 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 		int n_pos;
 
 		/* For vertex format, count every vertex that is connected by an edge */
-		int numOfEdges = surface->canvas->dm->getNumEdges(surface->canvas->dm);
-		int numOfFaces = surface->canvas->dm->getNumTessFaces(surface->canvas->dm);
-		struct MEdge *edge =  surface->canvas->dm->getEdgeArray(surface->canvas->dm);
-		struct MFace *face =  surface->canvas->dm->getTessFaceArray(surface->canvas->dm);
+		int numOfEdges = dm->getNumEdges(dm);
+		int numOfPolys = dm->getNumPolys(dm);
+		struct MEdge *edge =  dm->getEdgeArray(dm);
+		struct MPoly *mpoly = dm->getPolyArray(dm);
+		struct MLoop *mloop = dm->getLoopArray(dm);
 
 		/* count number of edges per vertex */
 		for (i=0; i<numOfEdges; i++) {
@@ -1275,12 +1277,11 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 		}
 
 		/* to locate points on "mesh edge" */
-		for (i=0; i<numOfFaces; i++) {
-			temp_data[face[i].v1]++;
-			temp_data[face[i].v2]++;
-			temp_data[face[i].v3]++;
-			if (face[i].v4)
-				temp_data[face[i].v4]++;
+		for (i=0; i<numOfPolys; i++) {
+			int j=0;
+			for (; j<mpoly[i].totloop; j++) {
+				temp_data[mloop[mpoly[i].loopstart + j].v]++;
+			}
 		}
 
 		/* now check if total number of edges+faces for
@@ -1419,31 +1420,27 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 	}
 	/* vertex color layer */
 	else if (surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
-		MCol *col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->init_layername);
-		if (!col) return;
 
 		/* for vertex surface, just copy colors from mcol */
 		if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-			MFace *mface = dm->getTessFaceArray(dm);
-			int numOfFaces = dm->getNumTessFaces(dm);
+			MLoop *mloop = dm->getLoopArray(dm);
+			int numOfLoops = dm->getNumLoops(dm);
+			MCol *col = CustomData_get_layer_named(&dm->loopData, CD_MLOOPCOL, surface->init_layername);
+			if (!col) return;
 
 			#pragma omp parallel for schedule(static)
-			for (i=0; i<numOfFaces; i++) {
-				int numOfVert = (mface[i].v4) ? 4 : 3;
-				int j;
-				for (j=0; j<numOfVert; j++) {
-					unsigned int *vert = ((&mface[i].v1)+j);
-
-					pPoint[*vert].color[0] = 1.0f/255.f*(float)col[i*4+j].b;
-					pPoint[*vert].color[1] = 1.0f/255.f*(float)col[i*4+j].g;
-					pPoint[*vert].color[2] = 1.0f/255.f*(float)col[i*4+j].r;
-					pPoint[*vert].alpha = 1.0f/255.f*(float)col[i*4+j].a;
-				}
+			for (i=0; i<numOfLoops; i++) {
+				pPoint[mloop[i].v].color[0] = 1.0f/255.f*(float)col[i].b;
+				pPoint[mloop[i].v].color[1] = 1.0f/255.f*(float)col[i].g;
+				pPoint[mloop[i].v].color[2] = 1.0f/255.f*(float)col[i].r;
+				pPoint[mloop[i].v].alpha = 1.0f/255.f*(float)col[i].a;
 			}
 		}
 		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
 			ImgSeqFormatData *f_data = (ImgSeqFormatData*)sData->format_data;
 			int samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
+			MCol *col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->init_layername);
+			if (!col) return;
 
 			#pragma omp parallel for schedule(static)
 			for (i=0; i<sData->total_points; i++) {
@@ -1870,6 +1867,10 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 /* Modifier call. Processes dynamic paint modifier step. */
 struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
+	/* For now generate tessfaces in every case
+	*  XXX - move/remove when most of dpaint functions are converted to use bmesh types */
+	DM_ensure_tessface(dm);
+
 	/* Update canvas data for a new frame */
 	dynamicPaint_frameUpdate(pmd, scene, ob, dm);
 
@@ -2109,7 +2110,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	if (!dm) return setError(canvas, "Canvas mesh not updated.");
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) return setError(canvas, "Can't bake non-\"image sequence\" formats.");
 
-	numOfFaces = dm->getNumPolys(dm);
+	numOfFaces = dm->getNumTessFaces(dm);
 	mface = dm->getTessFaceArray(dm);
 
 	/* get uv map */
