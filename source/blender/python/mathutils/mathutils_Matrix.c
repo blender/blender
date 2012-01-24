@@ -411,6 +411,34 @@ static void matrix_3x3_as_4x4(float mat[16])
 /*-----------------------CLASS-METHODS----------------------------*/
 
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
+PyDoc_STRVAR(C_Matrix_Identity_doc,
+".. classmethod:: Identity(size)\n"
+"\n"
+"   Create an identity matrix.\n"
+"\n"
+"   :arg size: The size of the identity matrix to construct [2, 4].\n"
+"   :type size: int\n"
+"   :return: A new identity matrix.\n"
+"   :rtype: :class:`Matrix`\n"
+);
+static PyObject *C_Matrix_Identity(PyObject *cls, PyObject *args)
+{
+	int matSize;
+
+	if (!PyArg_ParseTuple(args, "i:Matrix.Identity", &matSize)) {
+		return NULL;
+	}
+
+	if (matSize < 2 || matSize > 4) {
+		PyErr_SetString(PyExc_RuntimeError,
+						"Matrix.Identity(): "
+						"size must be between 2 and 4");
+		return NULL;
+	}
+
+	return Matrix_CreatePyObject(NULL, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+}
+
 PyDoc_STRVAR(C_Matrix_Rotation_doc,
 ".. classmethod:: Rotation(angle, size, axis)\n"
 "\n"
@@ -2246,6 +2274,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 
 	/* class methods */
+	{"Identity", (PyCFunction) C_Matrix_Identity, METH_VARARGS | METH_CLASS, C_Matrix_Identity_doc},
 	{"Rotation", (PyCFunction) C_Matrix_Rotation, METH_VARARGS | METH_CLASS, C_Matrix_Rotation_doc},
 	{"Scale", (PyCFunction) C_Matrix_Scale, METH_VARARGS | METH_CLASS, C_Matrix_Scale_doc},
 	{"Shear", (PyCFunction) C_Matrix_Shear, METH_VARARGS | METH_CLASS, C_Matrix_Shear_doc},
