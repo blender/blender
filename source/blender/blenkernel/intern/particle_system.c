@@ -1126,6 +1126,9 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 			fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
 
 		if(dm != finaldm) dm->release(dm);
+
+		BLI_kdtree_free(tree);
+
 		return 0;
 	}
 
