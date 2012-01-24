@@ -2224,6 +2224,10 @@ int mesh_recalcTesselation(CustomData *fdata,
 	 * and calling the fill function */
 
 #define USE_TESSFACE_SPEEDUP
+// #define USE_TESSFACE_QUADS // NEEDS FURTHER TESTING
+
+#define TESSFACE_SCANFILL (1<<0)
+#define TESSFACE_IS_QUAD  (1<<1)
 
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
@@ -2278,17 +2282,43 @@ int mesh_recalcTesselation(CustomData *fdata,
 		                     poly_orig_index[poly_index]);                    \
 		}                                                                     \
 
+/* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
+#define ML_TO_MF_QUAD()                                                       \
+		BLI_array_growone(mface_to_poly_map);                                 \
+		BLI_array_growone(mface);                                             \
+		mface_to_poly_map[mface_index] = poly_index;                          \
+		mf= &mface[mface_index];                                              \
+		/* set loop indices, transformed to vert indices later */             \
+		mf->v1 = mp->loopstart + 0; /* EXCEPTION */                           \
+		mf->v2 = mp->loopstart + 1; /* EXCEPTION */                           \
+		mf->v3 = mp->loopstart + 2; /* EXCEPTION */                           \
+		mf->v4 = mp->loopstart + 3; /* EXCEPTION */                           \
+		mf->mat_nr = mp->mat_nr;                                              \
+		mf->flag = mp->flag;                                                  \
+		if (poly_orig_index) {                                                \
+			BLI_array_append(mface_orig_index,                                \
+		                     poly_orig_index[poly_index]);                    \
+		}                                                                     \
+		mf->edcode |= TESSFACE_IS_QUAD; /* EXCEPTION */                       \
+
+
 		else if (mp->totloop == 3) {
 			ml = mloop + mp->loopstart;
 			ML_TO_MF(0, 1, 2)
 			mface_index++;
 		}
 		else if (mp->totloop == 4) {
+#ifdef USE_TESSFACE_QUADS
+			ml = mloop + mp->loopstart;
+			ML_TO_MF_QUAD()
+			mface_index++;
+#else
 			ml = mloop + mp->loopstart;
 			ML_TO_MF(0, 1, 2)
 			mface_index++;
 			ML_TO_MF(0, 2, 3)
 			mface_index++;
+#endif
 		}
 #endif /* USE_TESSFACE_SPEEDUP */
 		else {
@@ -2335,7 +2365,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 					mf->flag = mp->flag;
 
 #ifdef USE_TESSFACE_SPEEDUP
-					mf->edcode = 1; /* tag for sorting loop indicies */
+					mf->edcode |= TESSFACE_SCANFILL; /* tag for sorting loop indicies */
 #endif
 
 					if (poly_orig_index) {
@@ -2383,9 +2413,13 @@ int mesh_recalcTesselation(CustomData *fdata,
 	mf = mface;
 	for (mface_index=0; mface_index < totface; mface_index++, mf++) {
 
+#ifdef USE_TESSFACE_QUADS
+		const int mf_len = mf->edcode & TESSFACE_IS_QUAD ? 4 : 3;
+#endif
+
 #ifdef USE_TESSFACE_SPEEDUP
 		/* skip sorting when not using ngons */
-		if (UNLIKELY(mf->edcode == 1))
+		if (UNLIKELY(mf->edcode & TESSFACE_SCANFILL))
 #endif
 		{
 			/* sort loop indices to ensure winding is correct */
@@ -2396,24 +2430,43 @@ int mesh_recalcTesselation(CustomData *fdata,
 			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
 			if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
 			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-
-#ifdef USE_TESSFACE_SPEEDUP
-			mf->edcode = 0;
-#endif
 		}
+
+		/* end abusing the edcode */
+#if defined(USE_TESSFACE_QUADS) || defined(USE_TESSFACE_SPEEDUP)
+		mf->edcode = 0;
+#endif
+
 
 		lindex[0] = mf->v1;
 		lindex[1] = mf->v2;
 		lindex[2] = mf->v3;
+#ifdef USE_TESSFACE_QUADS
+		if (mf_len == 4) lindex[2] = mf->v3;
+#endif
 
 		/*transform loop indices to vert indices*/
 		mf->v1 = mloop[mf->v1].v;
 		mf->v2 = mloop[mf->v2].v;
 		mf->v3 = mloop[mf->v3].v;
+#ifdef USE_TESSFACE_QUADS
+		if (mf_len == 4) mf->v4 = mloop[mf->v4].v;
+#endif
 
 		mesh_loops_to_mface_corners(fdata, ldata, pdata,
-		                            lindex, mface_index, mface_to_poly_map[mface_index], 3,
+		                            lindex, mface_index, mface_to_poly_map[mface_index],
+#ifdef USE_TESSFACE_QUADS
+		                            mf_len,
+#else
+		                            3,
+#endif
 		                            numTex, numCol, hasWCol);
+
+
+#ifdef USE_TESSFACE_QUADS
+		test_index_face(mf, fdata, mface_index, 4);
+#endif
+
 	}
 
 	return totface;
