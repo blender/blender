@@ -214,6 +214,11 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 			}
 			break;
+		case NC_WORLD:
+			if(type==NTREE_SHADER) {
+				ED_area_tag_refresh(sa);	
+			}
+			break;
 		case NC_OBJECT:
 			if(type==NTREE_SHADER) {
 				if(wmn->data==ND_OB_SHADING)

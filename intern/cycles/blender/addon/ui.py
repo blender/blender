@@ -241,7 +241,7 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
 
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
-    bl_label = "Surface"
+    bl_label = ""
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
 
