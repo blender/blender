@@ -274,10 +274,14 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		for (i = maxVerts; i-- > 0; dvert++) {
 			defvert_flip(dvert, flip_map, flip_map_len);
 		}
+
+		MEM_freeN(flip_map);
 	}
 
 	if (do_vtargetmap) {
-		if (is_vtargetmap) { /* slow - so only call if one or more merge verts are found */
+		/* slow - so only call if one or more merge verts are found,
+		 * users may leave this on and not realize there is nothing to merge - campbell */
+		if (is_vtargetmap) {
 			result = CDDM_merge_verts(result, vtargetmap);
 		}
 		MEM_freeN(vtargetmap);
