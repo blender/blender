@@ -138,7 +138,8 @@ typedef struct SmokeFlowSettings {
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
-	struct DerivedMesh *dm;
+
+//	struct DerivedMesh *dm; // UNUSED, ifdef'd in code for now.
 	float *points;
 	float *points_old;
 	float *vel;
