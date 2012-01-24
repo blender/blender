@@ -608,7 +608,8 @@ typedef struct SpaceClip {
 
 /* FileSelectParams.display */
 enum FileDisplayTypeE {
-	FILE_SHORTDISPLAY = 1,
+	FILE_DEFAULTDISPLAY = 0,
+	FILE_SHORTDISPLAY,
 	FILE_LONGDISPLAY,
 	FILE_IMGDISPLAY
 };
