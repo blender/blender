@@ -154,6 +154,10 @@ typedef struct drawDMFacesSel_userData {
 	int *orig_index;
 } drawDMFacesSel_userData;
 
+typedef struct drawDMNormal_userData {
+	float normalsize;
+} drawDMNormal_userData;
+
 typedef struct bbsObmodeMeshVerts_userData {
 	void *offset;
 	MVert *mvert;
@@ -2212,20 +2216,24 @@ void nurbs_foreachScreenVert(
 
 static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent, float *no)
 {
-	ToolSettings *ts= ((Scene *)userData)->toolsettings;
+	drawDMNormal_userData *data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 
 	if (efa->h==0 && efa->fgonf!=EM_FGON) {
 		glVertex3fv(cent);
-		glVertex3f(	cent[0] + no[0]*ts->normalsize,
-					cent[1] + no[1]*ts->normalsize,
-					cent[2] + no[2]*ts->normalsize);
+		glVertex3f(cent[0] + no[0] * data->normalsize,
+		           cent[1] + no[1] * data->normalsize,
+		           cent[2] + no[2] * data->normalsize);
 	}
 }
 static void draw_dm_face_normals(Scene *scene, DerivedMesh *dm) 
 {
+	drawDMNormal_userData data;
+
+	data.normalsize = scene->toolsettings->normalsize;
+
 	glBegin(GL_LINES);
-	dm->foreachMappedFaceCenter(dm, draw_dm_face_normals__mapFunc, scene);
+	dm->foreachMappedFaceCenter(dm, draw_dm_face_normals__mapFunc, &data);
 	glEnd();
 }
 
@@ -2247,28 +2255,32 @@ static void draw_dm_face_centers(DerivedMesh *dm, int sel)
 
 static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-	Scene *scene= (Scene *)userData;
-	ToolSettings *ts= scene->toolsettings;
+	drawDMNormal_userData *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0) {
 		glVertex3fv(co);
 
 		if (no_f) {
-			glVertex3f(	co[0] + no_f[0]*ts->normalsize,
-						co[1] + no_f[1]*ts->normalsize,
-						co[2] + no_f[2]*ts->normalsize);
-		} else {
-			glVertex3f(	co[0] + no_s[0]*ts->normalsize/32767.0f,
-						co[1] + no_s[1]*ts->normalsize/32767.0f,
-						co[2] + no_s[2]*ts->normalsize/32767.0f);
+			glVertex3f(co[0] + no_f[0] * data->normalsize,
+			           co[1] + no_f[1] * data->normalsize,
+			           co[2] + no_f[2] * data->normalsize);
+		}
+		else {
+			glVertex3f(co[0] + no_s[0] * (data->normalsize / 32767.0f),
+			           co[1] + no_s[1] * (data->normalsize / 32767.0f),
+			           co[2] + no_s[2] * (data->normalsize / 32767.0f));
 		}
 	}
 }
 static void draw_dm_vert_normals(Scene *scene, DerivedMesh *dm) 
 {
+	drawDMNormal_userData data;
+
+	data.normalsize = scene->toolsettings->normalsize;
+
 	glBegin(GL_LINES);
-	dm->foreachMappedVert(dm, draw_dm_vert_normals__mapFunc, scene);
+	dm->foreachMappedVert(dm, draw_dm_vert_normals__mapFunc, &data);
 	glEnd();
 }
 
