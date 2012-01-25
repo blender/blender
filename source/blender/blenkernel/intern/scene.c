@@ -531,6 +531,8 @@ Scene *add_scene(const char *name)
 	sce->gm.recastData.detailsampledist = 6.0f;
 	sce->gm.recastData.detailsamplemaxerror = 1.0f;
 
+	sce->gm.exitkey = 218; // Blender key code for ESC
+
 	sound_create_scene(sce);
 
 	return sce;
