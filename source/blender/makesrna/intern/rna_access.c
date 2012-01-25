@@ -3979,6 +3979,8 @@ static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *nee
 								}
 							}
 						}
+						if(path)
+							break;
 					}
 				}
 			}
