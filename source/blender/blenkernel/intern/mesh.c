@@ -2251,8 +2251,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 
 	/* allocate the length of totfaces, avoid many small reallocs,
 	 * if all faces are tri's it will be correct, quads == 2x allocs */
-	BLI_array_reserve(mface_to_poly_map, totface);
-	BLI_array_reserve(mface, totface);
+	BLI_array_reserve(mface_to_poly_map, totpoly);
+	BLI_array_reserve(mface, totpoly);
 
 	mface_index = 0;
 	mp = mpoly;
@@ -2382,7 +2382,17 @@ int mesh_recalcTesselation(CustomData *fdata,
 	CustomData_free(fdata, totface);
 	memset(fdata, 0, sizeof(CustomData));
 	totface = mface_index;
-	
+
+
+	/* note essential but without this we store over-alloc'd memory in the CustomData layers */
+	if (LIKELY((MEM_allocN_len(mface) / sizeof(*mface)) != totface)) {
+		mface = MEM_reallocN(mface, sizeof(*mface) * totface);
+		mface_to_poly_map = MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * totface);
+		if (mface_orig_index) {
+			mface_orig_index = MEM_reallocN(mface_orig_index, sizeof(*mface_orig_index) * totface);
+		}
+	}
+
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
 
 	/* CD_POLYINDEX will contain an array of indices from tessfaces to the polygons
