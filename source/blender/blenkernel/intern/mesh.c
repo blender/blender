@@ -2223,7 +2223,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	 * and calling the fill function */
 
 #define USE_TESSFACE_SPEEDUP
-// #define USE_TESSFACE_QUADS // NEEDS FURTHER TESTING
+#define USE_TESSFACE_QUADS // NEEDS FURTHER TESTING
 
 #define TESSFACE_SCANFILL (1<<0)
 #define TESSFACE_IS_QUAD  (1<<1)
