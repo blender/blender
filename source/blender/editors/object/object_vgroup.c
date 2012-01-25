@@ -50,7 +50,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_cellalloc.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -362,12 +361,12 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 
 	for(i=0; i<dvert_tot; i++, dvf++, dv++) {
 		if((*dv)->dw)
-			BLI_cellalloc_free((*dv)->dw);
+			MEM_freeN((*dv)->dw);
 
 		*(*dv)= *(*dvf);
 
 		if((*dv)->dw)
-			(*dv)->dw= BLI_cellalloc_dupalloc((*dv)->dw);
+			(*dv)->dw= MEM_dupallocN((*dv)->dw);
 	}
 
 	MEM_freeN(dvert_array);
@@ -1900,7 +1899,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 		else if(ob->type==OB_LATTICE) {
 			Lattice *lt= vgroup_edit_lattice(ob);
 			if(lt->dvert) {
-				BLI_cellalloc_free(lt->dvert);
+				MEM_freeN(lt->dvert);
 				lt->dvert= NULL;
 			}
 		}
@@ -1952,7 +1951,7 @@ static void vgroup_delete_all(Object *ob)
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		if(lt->dvert) {
-			BLI_cellalloc_free(lt->dvert);
+			MEM_freeN(lt->dvert);
 			lt->dvert= NULL;
 		}
 	}

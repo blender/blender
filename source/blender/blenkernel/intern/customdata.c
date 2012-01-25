@@ -49,7 +49,6 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_mempool.h"
-#include "BLI_cellalloc.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -139,7 +138,7 @@ static void layerCopy_mdeformvert(const void *source, void *dest,
 		MDeformVert *dvert = (MDeformVert *)((char *)dest + i * size);
 
 		if(dvert->totweight) {
-			MDeformWeight *dw = BLI_cellalloc_calloc(dvert->totweight * sizeof(*dw),
+			MDeformWeight *dw = MEM_callocN(dvert->totweight * sizeof(*dw),
 											"layerCopy_mdeformvert dw");
 
 			memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
@@ -158,7 +157,7 @@ static void layerFree_mdeformvert(void *data, int count, int size)
 		MDeformVert *dvert = (MDeformVert *)((char *)data + i * size);
 
 		if(dvert->dw) {
-			BLI_cellalloc_free(dvert->dw);
+			MEM_freeN(dvert->dw);
 			dvert->dw = NULL;
 			dvert->totweight = 0;
 		}
@@ -167,7 +166,7 @@ static void layerFree_mdeformvert(void *data, int count, int size)
 
 static void linklist_free_simple(void *link)
 {
-	BLI_cellalloc_free(link);
+	MEM_freeN(link);
 }
 
 static void layerInterp_mdeformvert(void **sources, float *weights,
@@ -200,7 +199,7 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 
 			/* if this def_nr is not in the list, add it */
 			if(!node) {
-				MDeformWeight *tmp_dw = BLI_cellalloc_calloc(sizeof(*tmp_dw),
+				MDeformWeight *tmp_dw = MEM_callocN(sizeof(*tmp_dw),
 											"layerInterp_mdeformvert tmp_dw");
 				tmp_dw->def_nr = dw->def_nr;
 				tmp_dw->weight = dw->weight * interp_weight;
@@ -211,10 +210,10 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 	}
 
 	/* now we know how many unique deform weights there are, so realloc */
-	if(dvert->dw) BLI_cellalloc_free(dvert->dw);
+	if(dvert->dw) MEM_freeN(dvert->dw);
 
 	if(totweight) {
-		dvert->dw = BLI_cellalloc_calloc(sizeof(*dvert->dw) * totweight,
+		dvert->dw = MEM_callocN(sizeof(*dvert->dw) * totweight,
 								"layerInterp_mdeformvert dvert->dw");
 		dvert->totweight = totweight;
 
@@ -430,18 +429,18 @@ static void layerSwap_mdisps(void *data, const int *ci)
 			/* happens when face changed vertex count in edit mode
 			   if it happened, just forgot displacement */
 
-			BLI_cellalloc_free(s->disps);
+			MEM_freeN(s->disps);
 			s->totdisp= (s->totdisp/corners)*nverts;
-			s->disps= BLI_cellalloc_calloc(s->totdisp*sizeof(float)*3, "mdisp swap");
+			s->disps= MEM_callocN(s->totdisp*sizeof(float)*3, "mdisp swap");
 			return;
 		}
 
-		d= BLI_cellalloc_calloc(sizeof(float) * 3 * s->totdisp, "mdisps swap");
+		d= MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
 
 		for(S = 0; S < corners; S++)
 			memcpy(d + cornersize*S, s->disps + cornersize*ci[S], cornersize*3*sizeof(float));
 		
-		BLI_cellalloc_free(s->disps);
+		MEM_freeN(s->disps);
 		s->disps= d;
 	}
 }
@@ -458,7 +457,7 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 	}
 
 	if (!d->disps && d->totdisp)
-		d->disps = BLI_cellalloc_calloc(sizeof(float)*3*d->totdisp, "blank mdisps in layerInterp_mdisps");
+		d->disps = MEM_callocN(sizeof(float)*3*d->totdisp, "blank mdisps in layerInterp_mdisps");
 }
 
 #else // BMESH_TODO
@@ -585,7 +584,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 
 	for(i = 0; i < count; ++i) {
 		if(s[i].disps) {
-			d[i].disps = BLI_cellalloc_dupalloc(s[i].disps);
+			d[i].disps = MEM_dupallocN(s[i].disps);
 			d[i].totdisp = s[i].totdisp;
 		}
 		else {
@@ -609,7 +608,7 @@ static void layerValidate_mdisps(void *data, int sub_elements)
 		if(corners != sub_elements) {
 			MEM_freeN(disps->disps);
 			disps->totdisp = disps->totdisp / corners * sub_elements;
-			disps->disps = BLI_cellalloc_calloc(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
+			disps->disps = MEM_callocN(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
 		}
 	}
 #endif
@@ -622,7 +621,7 @@ static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 
 	for(i = 0; i < count; ++i) {
 		if(d[i].disps)
-			BLI_cellalloc_free(d[i].disps);
+			MEM_freeN(d[i].disps);
 		d[i].disps = NULL;
 		d[i].totdisp = 0;
 	}
@@ -635,7 +634,7 @@ static int layerRead_mdisps(CDataFile *cdf, void *data, int count)
 
 	for(i = 0; i < count; ++i) {
 		if(!d[i].disps)
-			d[i].disps = BLI_cellalloc_calloc(sizeof(float)*3*d[i].totdisp, "mdisps read");
+			d[i].disps = MEM_callocN(sizeof(float)*3*d[i].totdisp, "mdisps read");
 
 		if(!cdf_read_data(cdf, d[i].totdisp*3*sizeof(float), d[i].disps)) {
 			printf("failed to read multires displacement %d/%d %d\n", i, count, d[i].totdisp);

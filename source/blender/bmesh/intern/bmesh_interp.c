@@ -42,7 +42,6 @@
 
 #include "BLI_array.h"
 #include "BLI_math.h"
-#include "BLI_cellalloc.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -538,7 +537,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 		
 		mdisps->totdisp = md2->totdisp;
 		if (mdisps->totdisp)
-			mdisps->disps = BLI_cellalloc_calloc(sizeof(float)*3*mdisps->totdisp, "mdisp->disps in bmesh_loop_intern_mdisps");
+			mdisps->disps = MEM_callocN(sizeof(float)*3*mdisps->totdisp, "mdisp->disps in bmesh_loop_intern_mdisps");
 		else 
 			return;
 	}

@@ -100,7 +100,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_cellalloc.h"
 #include "BLI_edgehash.h"
 
 #include "BKE_anim.h"
@@ -3733,7 +3732,7 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 		MDeformWeight *dw;
 		if(mdverts->dw && (dw= newdataadr(fd, mdverts->dw))) {
 			const ssize_t dw_len= mdverts->totweight * sizeof(MDeformWeight);
-			void *dw_tmp= BLI_cellalloc_malloc(dw_len, "direct_link_dverts");
+			void *dw_tmp= MEM_mallocN(dw_len, "direct_link_dverts");
 			memcpy(dw_tmp, dw, dw_len);
 			mdverts->dw= dw_tmp;
 			MEM_freeN(dw);
@@ -3757,7 +3756,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 			if (mdisps[i].disps) {
 				float *disp2;
 				
-				disp2 = BLI_cellalloc_malloc(MEM_allocN_len(mdisps[i].disps), "cellalloc .disps copy");
+				disp2 = MEM_mallocN(MEM_allocN_len(mdisps[i].disps), "cellalloc .disps copy");
 				memcpy(disp2, mdisps[i].disps, MEM_allocN_len(mdisps[i].disps));
 				
 				MEM_freeN(mdisps[i].disps);

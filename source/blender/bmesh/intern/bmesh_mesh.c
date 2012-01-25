@@ -36,7 +36,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_cellalloc.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
@@ -399,9 +398,9 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 					memcpy(lmd->disps, mdisps->disps, sizeof(float)*3*lmd->totdisp);
 				} else if (mdisps->disps) {
 					if (lmd->disps)
-						BLI_cellalloc_free(lmd->disps);
+						MEM_freeN(lmd->disps);
 					
-					lmd->disps = BLI_cellalloc_dupalloc(mdisps->disps);
+					lmd->disps = MEM_dupallocN(mdisps->disps);
 					lmd->totdisp = mdisps->totdisp;
 				}
 				

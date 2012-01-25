@@ -45,9 +45,6 @@
 #include "BLI_utildefines.h"
 
 
-#include "BLI_cellalloc.h"
-
-
 void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;
@@ -86,10 +83,10 @@ void defvert_copy(MDeformVert *dvert_dst, const MDeformVert *dvert_src)
 	}
 	else {
 		if (dvert_dst->dw)
-			BLI_cellalloc_free(dvert_dst->dw);
+			MEM_freeN(dvert_dst->dw);
 
 		if (dvert_src->totweight)
-			dvert_dst->dw= BLI_cellalloc_dupalloc(dvert_src->dw);
+			dvert_dst->dw= MEM_dupallocN(dvert_src->dw);
 		else
 			dvert_dst->dw= NULL;
 
@@ -587,10 +584,10 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 	if (dw_new)
 		return dw_new;
 
-	dw_new= BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");
+	dw_new= MEM_callocN(sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");
 	if (dvert->dw) {
 		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
-		BLI_cellalloc_free(dvert->dw);
+		MEM_freeN(dvert->dw);
 	}
 	dvert->dw= dw_new;
 	dw_new += dvert->totweight;
@@ -615,10 +612,10 @@ void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weig
 	if (!dvert || defgroup < 0)
 		return;
 
-	dw_new = BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dvert->totweight+1), "defvert_add_to group, new deformWeight");
+	dw_new = MEM_callocN(sizeof(MDeformWeight)*(dvert->totweight+1), "defvert_add_to group, new deformWeight");
 	if(dvert->dw) {
 		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
-		BLI_cellalloc_free(dvert->dw);
+		MEM_freeN(dvert->dw);
 	}
 	dvert->dw = dw_new;
 	dw_new += dvert->totweight;
@@ -646,7 +643,7 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		 * this deform weight, and reshuffle the others.
 		 */
 		if (dvert->totweight) {
-			dw_new = BLI_cellalloc_malloc(sizeof(MDeformWeight)*(dvert->totweight), __func__);
+			dw_new = MEM_mallocN(sizeof(MDeformWeight)*(dvert->totweight), __func__);
 			if (dvert->dw) {
 #if 1			/* since we dont care about order, swap this with the last, save a memcpy */
 				if (i != dvert->totweight) {
@@ -657,13 +654,13 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
 				memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
 #endif
-				BLI_cellalloc_free(dvert->dw);
+				MEM_freeN(dvert->dw);
 			}
 			dvert->dw = dw_new;
 		}
 		else {
 			/* If there are no other deform weights left then just remove this one. */
-			BLI_cellalloc_free(dvert->dw);
+			MEM_freeN(dvert->dw);
 			dvert->dw = NULL;
 		}
 	}

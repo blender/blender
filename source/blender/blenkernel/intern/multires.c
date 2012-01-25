@@ -45,7 +45,6 @@
 #include "BLI_pbvh.h"
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
-#include "BLI_cellalloc.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -327,10 +326,10 @@ static void multires_reallocate_mdisps(int totloop, MDisps *mdisps, int lvl)
 	/* reallocate displacements to be filled in */
 	for(i = 0; i < totloop; ++i) {
 		int totdisp = multires_grid_tot[lvl];
-		float (*disps)[3] = BLI_cellalloc_calloc(sizeof(float) * 3 * totdisp, "multires disps");
+		float (*disps)[3] = MEM_callocN(sizeof(float) * 3 * totdisp, "multires disps");
 
 		if(mdisps[i].disps)
-			BLI_cellalloc_free(mdisps[i].disps);
+			MEM_freeN(mdisps[i].disps);
 
 		mdisps[i].disps = disps;
 		mdisps[i].totdisp = totdisp;
@@ -409,7 +408,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 					float (*disps)[3], (*ndisps)[3], (*hdisps)[3];
 					int totdisp = multires_grid_tot[lvl];
 
-					disps = BLI_cellalloc_calloc(sizeof(float) * 3 * totdisp, "multires disps");
+					disps = MEM_callocN(sizeof(float) * 3 * totdisp, "multires disps");
 
 					ndisps = disps;
 					hdisps = mdisp->disps;
@@ -419,7 +418,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 					ndisps += nsize*nsize;
 					hdisps += hsize*hsize;
 
-					BLI_cellalloc_free(mdisp->disps);
+					MEM_freeN(mdisp->disps);
 					mdisp->disps = disps;
 					mdisp->totdisp = totdisp;
 				}
@@ -977,7 +976,7 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 			/* when adding new faces in edit mode, need to allocate disps */
 			if(!mdisp->disps) {
 				mdisp->totdisp = gridSize*gridSize;
-				mdisp->disps = BLI_cellalloc_calloc(sizeof(float)*3*mdisp->totdisp, "disp in multires_set_space");
+				mdisp->disps = MEM_callocN(sizeof(float)*3*mdisp->totdisp, "disp in multires_set_space");
 			}
 
 			dispgrid = mdisp->disps;
@@ -1179,7 +1178,7 @@ static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 	int x, y, S;
 	float (*disps)[3], (*out)[3], u = 0.0f, v = 0.0f; /* Quite gcc barking. */
 
-	disps = BLI_cellalloc_calloc(sizeof(float) * 3 * newtotdisp, "multires disps");
+	disps = MEM_callocN(sizeof(float) * 3 * newtotdisp, "multires disps");
 
 	out = disps;
 	for(S = 0; S < nvert; S++) {
@@ -1196,7 +1195,7 @@ static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 		}
 	}
 
-	BLI_cellalloc_free(mdisp->disps);
+	MEM_freeN(mdisp->disps);
 
 	mdisp->totdisp= newtotdisp;
 	mdisp->disps= disps;
@@ -1225,7 +1224,7 @@ void multires_load_old_250(Mesh *me)
 			int totdisp = mdisps[i].totdisp / nvert;
 			
 			for (j=0; j < mf->v4 ? 4 : 3; j++, k++) {
-				mdisps2[k].disps = BLI_cellalloc_calloc(sizeof(float)*3*totdisp, "multires disp in conversion");			
+				mdisps2[k].disps = MEM_callocN(sizeof(float)*3*totdisp, "multires disp in conversion");			
 				mdisps2[k].totdisp = totdisp;
 				memcpy(mdisps2[k].disps, mdisps[i].disps + totdisp*j, totdisp);
 			}
@@ -2356,13 +2355,13 @@ void mdisp_join_tris(MDisps *dst, MDisps *tri1, MDisps *tri2)
 	MDisps *src;
 
 	if(dst->disps)
-		BLI_cellalloc_free(dst->disps);
+		MEM_freeN(dst->disps);
 
 	side = sqrt(tri1->totdisp / 3);
 	st = (side<<1)-1;
 
 	dst->totdisp = 4 * side * side;
-	out = dst->disps = BLI_cellalloc_calloc(3*dst->totdisp*sizeof(float), "join disps");
+	out = dst->disps = MEM_callocN(3*dst->totdisp*sizeof(float), "join disps");
 
 	for(S = 0; S < 4; S++)
 		for(y = 0; y < side; ++y)

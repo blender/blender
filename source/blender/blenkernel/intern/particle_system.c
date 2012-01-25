@@ -71,7 +71,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 #include "BLI_edgehash.h"
-#include "BLI_cellalloc.h"
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
@@ -3537,7 +3536,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 
 				if(dvert) {
 					if(!dvert->totweight) {
-						dvert->dw = BLI_cellalloc_calloc(sizeof(MDeformWeight), "deformWeight");
+						dvert->dw = MEM_callocN(sizeof(MDeformWeight), "deformWeight");
 						dvert->totweight = 1;
 					}
 
@@ -3558,7 +3557,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 
 			if(dvert) {
 				if(!dvert->totweight) {
-					dvert->dw = BLI_cellalloc_calloc(sizeof(MDeformWeight), "deformWeight");
+					dvert->dw = MEM_callocN(sizeof(MDeformWeight), "deformWeight");
 					dvert->totweight = 1;
 				}
 				/* roots should be 1.0, the rest can be anything from 0.0 to 1.0 */

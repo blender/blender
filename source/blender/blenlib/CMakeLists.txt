@@ -48,7 +48,6 @@ set(SRC
 	intern/BLI_linklist.c
 	intern/BLI_memarena.c
 	intern/BLI_mempool.c
-	intern/BLI_cellalloc.c
 	intern/DLRB_tree.c
 	intern/boxpack2d.c
 	intern/bpath.c
@@ -91,7 +90,6 @@ set(SRC
 	intern/winstuff.c
 
 	BLI_array.h
-	BLI_cellalloc.h
 	BLI_smallhash.h
 	BLI_sparsemap.h
 	BLI_args.h

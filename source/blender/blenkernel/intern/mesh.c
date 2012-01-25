@@ -73,7 +73,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
-#include "BLI_cellalloc.h"
 #include "BLI_array.h"
 #include "BLI_edgehash.h"
 
@@ -437,7 +436,7 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 	
 	for (i=0; i<copycount; i++){
 		if (src[i].dw){
-			dst[i].dw = BLI_cellalloc_calloc (sizeof(MDeformWeight)*src[i].totweight, "copy_deformWeight");
+			dst[i].dw = MEM_callocN (sizeof(MDeformWeight)*src[i].totweight, "copy_deformWeight");
 			memcpy (dst[i].dw, src[i].dw, sizeof (MDeformWeight)*src[i].totweight);
 		}
 	}
@@ -456,7 +455,7 @@ void free_dverts(MDeformVert *dvert, int totvert)
 
 	/* Free any special data from the verts */
 	for (i=0; i<totvert; i++){
-		if (dvert[i].dw) BLI_cellalloc_free (dvert[i].dw);
+		if (dvert[i].dw) MEM_freeN (dvert[i].dw);
 	}
 	MEM_freeN (dvert);
 }
@@ -1897,9 +1896,9 @@ static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numT
 				ld->totdisp = side*side;
 			
 				if (ld->disps)
-					BLI_cellalloc_free(ld->disps);
+					MEM_freeN(ld->disps);
 			
-				ld->disps = BLI_cellalloc_calloc(sizeof(float)*3*side*side, "converted loop mdisps");
+				ld->disps = MEM_callocN(sizeof(float)*3*side*side, "converted loop mdisps");
 				if (fd->disps) {
 					memcpy(ld->disps, disps, sizeof(float)*3*side*side);
 				}

@@ -65,7 +65,6 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLI_cellalloc.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"		/* RE_ free stuff */
@@ -444,10 +443,8 @@ void WM_exit_ext(bContext *C, const short do_python)
 	GHOST_DisposeSystemPaths();
 
 	if(MEM_get_memory_blocks_in_use()!=0) {
-		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use()+BLI_cellalloc_get_totblock());
+		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
-		BLI_cellalloc_printleaks();
-		BLI_cellalloc_destroy();
 	}
 	wm_autosave_delete();
 	
