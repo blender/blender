@@ -172,6 +172,7 @@ class CLIP_PT_tools_tracking(Panel):
         props.backwards = True
         props.sequence = True
         props = row.operator("clip.track_markers", text="", icon='PLAY')
+        props.backwards = False
         props.sequence = True
         row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
