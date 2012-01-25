@@ -1838,7 +1838,7 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 
 	context->k1= camera->k1;
 	context->k2= camera->k2;
-	context->k2= camera->k2;
+	context->k3= camera->k3;
 
 	return context;
 }
