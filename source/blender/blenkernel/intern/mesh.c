@@ -2464,7 +2464,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 
 
 #ifdef USE_TESSFACE_QUADS
-		test_index_face(mf, fdata, mface_index, 4);
+		test_index_face(mf, fdata, mface_index, mf_len);
 #endif
 
 	}

@@ -28,7 +28,7 @@
 
 __kernel void kernel_ocl_path_trace(
 	__constant KernelData *data,
-	__global float4 *buffer,
+	__global float *buffer,
 	__global uint *rng_state,
 
 #define KERNEL_TEX(type, ttype, name) \
@@ -56,7 +56,7 @@ __kernel void kernel_ocl_path_trace(
 __kernel void kernel_ocl_tonemap(
 	__constant KernelData *data,
 	__global uchar4 *rgba,
-	__global float4 *buffer,
+	__global float *buffer,
 
 #define KERNEL_TEX(type, ttype, name) \
 	__global type *name,

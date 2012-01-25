@@ -26,7 +26,7 @@
 #include "kernel_path.h"
 #include "kernel_displace.h"
 
-extern "C" __global__ void kernel_cuda_path_trace(float4 *buffer, uint *rng_state, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
+extern "C" __global__ void kernel_cuda_path_trace(float *buffer, uint *rng_state, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
@@ -35,7 +35,7 @@ extern "C" __global__ void kernel_cuda_path_trace(float4 *buffer, uint *rng_stat
 		kernel_path_trace(NULL, buffer, rng_state, sample, x, y, offset, stride);
 }
 
-extern "C" __global__ void kernel_cuda_tonemap(uchar4 *rgba, float4 *buffer, int sample, int resolution, int sx, int sy, int sw, int sh, int offset, int stride)
+extern "C" __global__ void kernel_cuda_tonemap(uchar4 *rgba, float *buffer, int sample, int resolution, int sx, int sy, int sw, int sh, int offset, int stride)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;

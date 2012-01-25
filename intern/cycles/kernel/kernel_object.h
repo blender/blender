@@ -64,5 +64,15 @@ __device_inline float object_surface_area(KernelGlobals *kg, int object)
 	return f.x;
 }
 
+__device_inline float object_pass_id(KernelGlobals *kg, int object)
+{
+	if(object == ~0)
+		return 0.0f;
+
+	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return f.y;
+}
+
 CCL_NAMESPACE_END
 

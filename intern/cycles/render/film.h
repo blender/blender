@@ -20,6 +20,9 @@
 #define __FILM_H__
 
 #include "util_string.h"
+#include "util_vector.h"
+
+#include "kernel_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -27,9 +30,21 @@ class Device;
 class DeviceScene;
 class Scene;
 
+class Pass {
+public:
+	PassType type;
+	int components;
+	bool filter;
+	bool exposure;
+
+	static void add(PassType type, vector<Pass>& passes);
+	static bool equals(const vector<Pass>& A, const vector<Pass>& B);
+};
+
 class Film {
 public:
 	float exposure;
+	vector<Pass> passes;
 	bool need_update;
 
 	Film();

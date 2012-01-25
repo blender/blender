@@ -57,7 +57,7 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 }
 
 __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
-	float randt, float rando, float randu, float randv, Ray *ray, float3 *eval)
+	float randt, float rando, float randu, float randv, Ray *ray, BsdfEval *eval)
 {
 	LightSample ls;
 
@@ -83,32 +83,33 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		return false;
 
 	/* evaluate closure */
-	*eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D);
+	float3 light_eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D);
 
-	if(is_zero(*eval))
+	if(is_zero(light_eval))
 		return false;
 
 	/* todo: use visbility flag to skip lights */
 
 	/* evaluate BSDF at shading point */
 	float bsdf_pdf;
-	float3 bsdf_eval = shader_bsdf_eval(kg, sd, ls.D, &bsdf_pdf);
 
-	*eval *= bsdf_eval/pdf;
-
-	if(is_zero(*eval))
-		return false;
+	shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
 
 	if(ls.prim != ~0 || ls.type == LIGHT_BACKGROUND) {
 		/* multiple importance sampling */
 		float mis_weight = power_heuristic(pdf, bsdf_pdf);
-		*eval *= mis_weight;
+		light_eval *= mis_weight;
 	}
 	/* todo: clean up these weights */
 	else if(ls.shader & SHADER_AREA_LIGHT)
-		*eval *= 0.25f; /* area lamp */
+		light_eval *= 0.25f; /* area lamp */
 	else if(ls.t != FLT_MAX)
-		*eval *= 0.25f*M_1_PI_F; /* point lamp */
+		light_eval *= 0.25f*M_1_PI_F; /* point lamp */
+	
+	bsdf_eval_mul(eval, light_eval/pdf);
+
+	if(bsdf_eval_is_zero(eval))
+		return false;
 
 	if(ls.shader & SHADER_CAST_SHADOW) {
 		/* setup ray */

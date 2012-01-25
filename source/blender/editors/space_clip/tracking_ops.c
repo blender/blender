@@ -1014,6 +1014,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track= NULL;	/* selected track */
+	MovieTrackingMarker *marker;
 	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
 	int action= RNA_enum_get(op->ptr, "action");
 	int framenr= sc->user.framenr;
@@ -1024,8 +1025,12 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		track= tracksbase->first;
 		while(track) {
 			if(TRACK_VIEW_SELECTED(sc, track)) {
-				action= SEL_DESELECT;
-				break;
+				marker= BKE_tracking_get_marker(track, framenr);
+
+				if(MARKER_VISIBLE(sc, marker)) {
+					action= SEL_DESELECT;
+					break;
+				}
 			}
 
 			track= track->next;
@@ -1035,9 +1040,9 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	track= tracksbase->first;
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
+			marker= BKE_tracking_get_marker(track, framenr);
 
-			if(marker && MARKER_VISIBLE(sc, marker)) {
+			if(MARKER_VISIBLE(sc, marker)) {
 				switch (action) {
 					case SEL_SELECT:
 						track->flag|= SELECT;

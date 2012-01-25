@@ -15,6 +15,7 @@ set(SRC
 
 set(SRC_HEADERS
 	kernel.h
+	kernel_accumulate.h
 	kernel_bvh.h
 	kernel_camera.h
 	kernel_compat_cpu.h
@@ -30,6 +31,7 @@ set(SRC_HEADERS
 	kernel_mbvh.h
 	kernel_montecarlo.h
 	kernel_object.h
+	kernel_passes.h
 	kernel_path.h
 	kernel_qbvh.h
 	kernel_random.h
