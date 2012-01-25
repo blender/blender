@@ -2441,7 +2441,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 		lindex[1] = mf->v2;
 		lindex[2] = mf->v3;
 #ifdef USE_TESSFACE_QUADS
-		if (mf_len == 4) lindex[2] = mf->v3;
+		if (mf_len == 4) lindex[3] = mf->v4;
 #endif
 
 		/*transform loop indices to vert indices*/
