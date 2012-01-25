@@ -214,6 +214,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	/* object sync */
 	if(object_updated || (object->mesh && object->mesh->need_update)) {
 		object->name = b_ob.name().c_str();
+		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
 
 		/* visibility flags for both parent */

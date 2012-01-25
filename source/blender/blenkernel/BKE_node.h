@@ -557,25 +557,34 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 /* ************** COMPOSITE NODES *************** */
 
 /* output socket defines */
-#define RRES_OUT_IMAGE		0
-#define RRES_OUT_ALPHA		1
-#define RRES_OUT_Z			2
-#define RRES_OUT_NORMAL		3
-#define RRES_OUT_UV			4
-#define RRES_OUT_VEC		5
-#define RRES_OUT_RGBA		6
-#define RRES_OUT_DIFF		7
-#define RRES_OUT_SPEC		8
-#define RRES_OUT_SHADOW		9
-#define RRES_OUT_AO			10
-#define RRES_OUT_REFLECT	11
-#define RRES_OUT_REFRACT	12
-#define RRES_OUT_INDIRECT	13
-#define RRES_OUT_INDEXOB	14
-#define RRES_OUT_INDEXMA	15
-#define RRES_OUT_MIST		16
-#define RRES_OUT_EMIT		17
-#define RRES_OUT_ENV		18
+#define RRES_OUT_IMAGE				0
+#define RRES_OUT_ALPHA				1
+#define RRES_OUT_Z					2
+#define RRES_OUT_NORMAL				3
+#define RRES_OUT_UV					4
+#define RRES_OUT_VEC				5
+#define RRES_OUT_RGBA				6
+#define RRES_OUT_DIFF				7
+#define RRES_OUT_SPEC				8
+#define RRES_OUT_SHADOW				9
+#define RRES_OUT_AO					10
+#define RRES_OUT_REFLECT			11
+#define RRES_OUT_REFRACT			12
+#define RRES_OUT_INDIRECT			13
+#define RRES_OUT_INDEXOB			14
+#define RRES_OUT_INDEXMA			15
+#define RRES_OUT_MIST				16
+#define RRES_OUT_EMIT				17
+#define RRES_OUT_ENV				18
+#define RRES_OUT_DIFF_DIRECT		19
+#define RRES_OUT_DIFF_INDIRECT		20
+#define RRES_OUT_DIFF_COLOR			21
+#define RRES_OUT_GLOSSY_DIRECT		22
+#define RRES_OUT_GLOSSY_INDIRECT	23
+#define RRES_OUT_GLOSSY_COLOR		24
+#define RRES_OUT_TRANSM_DIRECT		25
+#define RRES_OUT_TRANSM_INDIRECT	26
+#define RRES_OUT_TRANSM_COLOR		27
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201

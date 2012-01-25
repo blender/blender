@@ -2065,6 +2065,60 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_diffuse_direct", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_DIRECT);
+	RNA_def_property_ui_text(prop, "Diffuse Direct", "Deliver diffuse direct pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_diffuse_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_INDIRECT);
+	RNA_def_property_ui_text(prop, "Diffuse Indirect", "Deliver diffuse indirect pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_diffuse_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_COLOR);
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Deliver diffuse color pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_glossy_direct", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_DIRECT);
+	RNA_def_property_ui_text(prop, "Glossy Direct", "Deliver glossy direct pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_glossy_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_INDIRECT);
+	RNA_def_property_ui_text(prop, "Glossy Indirect", "Deliver glossy indirect pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_glossy_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_COLOR);
+	RNA_def_property_ui_text(prop, "Glossy Color", "Deliver glossy color pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_transmission_direct", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_DIRECT);
+	RNA_def_property_ui_text(prop, "Transmission Direct", "Deliver transmission direct pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_transmission_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_INDIRECT);
+	RNA_def_property_ui_text(prop, "Transmission Indirect", "Deliver transmission indirect pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_transmission_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_COLOR);
+	RNA_def_property_ui_text(prop, "Transmission Color", "Deliver transmission color pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_scene_game_recast_data(BlenderRNA *brna)

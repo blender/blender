@@ -636,6 +636,7 @@ void BlenderSync::sync_materials()
 			ShaderGraph *graph = new ShaderGraph();
 
 			shader->name = b_mat->name().c_str();
+			shader->pass_id = b_mat->pass_index();
 
 			/* create nodes */
 			if(b_mat->use_nodes() && b_mat->node_tree()) {
