@@ -78,7 +78,7 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 	ar->flag|= RGN_FLAG_HIDDEN;
 
 	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.ymin= (float)scene->r.sfra - 10.0f;
+	ar->v2d.tot.ymin= -10.0f;
 	ar->v2d.tot.xmax= (float)scene->r.efra;
 	ar->v2d.tot.ymax= 10.0f;
 
@@ -373,6 +373,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_graph_select);
 	WM_operatortype_append(CLIP_OT_graph_delete_curve);
 	WM_operatortype_append(CLIP_OT_graph_delete_knot);
+	WM_operatortype_append(CLIP_OT_graph_view_all);
+	WM_operatortype_append(CLIP_OT_graph_jump_to_current_frame);
 
 	/* object tracking */
 	WM_operatortype_append(CLIP_OT_tracking_object_new);
@@ -545,6 +547,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", DELKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", XKEY, KM_PRESS, KM_SHIFT, 0);
+
+	/* view */
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_jump_to_current_frame", PADPERIOD, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

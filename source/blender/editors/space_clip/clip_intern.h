@@ -58,6 +58,8 @@ void clip_draw_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *sce
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_curve(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_knot(struct wmOperatorType *ot);
+void CLIP_OT_graph_view_all(struct wmOperatorType *ot);
+void CLIP_OT_graph_jump_to_current_frame(struct wmOperatorType *ot);
 
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
