@@ -1225,6 +1225,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 
 		BMO_ITER(v, &oiter, bm, op, "geom", BM_VERT) {
+			/* count how many flagged edges this vertex uses */
 			int tot_edges = 0;
 			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
 				if (BMO_TestFlag(bm, e, ELE_NEW)) {
@@ -1238,18 +1239,18 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			if (tot_edges == 0) {
 				/* only accept 1 free vert */
 				if (v_free == NULL)  v_free = v;
-				else                 ok = FALSE;
+				else                 ok = FALSE;  /* only ever want one of these */
 			}
 			else if (tot_edges == 1) {
 				if (v_a == NULL)       v_a = v;
 				else if (v_b == NULL)  v_b = v;
-				else                   ok = FALSE;
+				else                   ok = FALSE;  /* only ever want 2 of these */
 			}
 			else if (tot_edges == 2) {
-				/* do nothing, common case */
+				/* do nothing, regular case */
 			}
 			else {
-				ok = FALSE;
+				ok = FALSE; /* if a vertex has 3+ edge users then cancel - this is only simple cases */
 			}
 
 			if (ok == FALSE) {
@@ -1258,7 +1259,6 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (ok == TRUE && v_free && v_a && v_b) {
-			/* now find 2 verts that only have 1 edge, */
 			e = BM_Make_Edge(bm, v_free, v_a, NULL, 1);
 			BMO_SetFlag(bm, &e->head, ELE_NEW);
 
