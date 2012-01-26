@@ -1200,6 +1200,76 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_SetFlag(bm, h, ELE_NEW);
 	}
 	
+	/* --- Support for Special Case ---
+	 * where there is a contiguous edge ring with one isolated vertex.
+	 *
+	 * This example shows 2 edges created from 3 verts
+	 * with 1 free standing vertex. Dotted lines denote the 2 edges that are created.
+	 *
+	 * note that this works for any sided shape.
+	 *
+	 * +--------+
+	 * |        .
+	 * |        .
+	 * |        .
+	 * |        .
+	 * +........+ <-- starts out free standing.
+	 *
+	 */
+
+	/* Here we check for consistancy and create 2 edges */
+	if (totf == 0 && totv >= 4 && totv == tote + 2) {
+		/* find a free standing vertex and 2 endpoint verts */
+		BMVert *v_free = NULL, *v_a = NULL, *v_b = NULL;
+		int ok = TRUE;
+
+
+		BMO_ITER(v, &oiter, bm, op, "geom", BM_VERT) {
+			int tot_edges = 0;
+			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+				if (BMO_TestFlag(bm, e, ELE_NEW)) {
+					tot_edges++;
+					if (tot_edges > 2) {
+						break;
+					}
+				}
+			}
+
+			if (tot_edges == 0) {
+				/* only accept 1 free vert */
+				if (v_free == NULL)  v_free = v;
+				else                 ok = FALSE;
+			}
+			else if (tot_edges == 1) {
+				if (v_a == NULL)       v_a = v;
+				else if (v_b == NULL)  v_b = v;
+				else                   ok = FALSE;
+			}
+			else if (tot_edges == 2) {
+				/* do nothing, common case */
+			}
+			else {
+				ok = FALSE;
+			}
+
+			if (ok == FALSE) {
+				break;
+			}
+		}
+
+		if (ok == TRUE && v_free && v_a && v_b) {
+			/* now find 2 verts that only have 1 edge, */
+			e = BM_Make_Edge(bm, v_free, v_a, NULL, 1);
+			BMO_SetFlag(bm, &e->head, ELE_NEW);
+
+			e = BM_Make_Edge(bm, v_free, v_b, NULL, 1);
+			BMO_SetFlag(bm, &e->head, ELE_NEW);
+		}
+	}
+	/* --- end special case support, continue as normal --- */
+
+
+
 	/*call edgenet create*/
 	/*  call edgenet prepare op so additional face creation cases work*/
 	BMO_InitOpf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
