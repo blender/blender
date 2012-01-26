@@ -1527,6 +1527,8 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 	const int pos_prev= but->pos;
 	const int has_sel= (but->selend - but->selsta) > 0;
 
+	ui_check_but(but);
+
 	/* special case, quit selection and set cursor */
 	if (has_sel && !select) {
 		if (jump == BUTTON_EDIT_JUMP_ALL) {
