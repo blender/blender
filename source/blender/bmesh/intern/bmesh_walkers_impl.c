@@ -393,7 +393,7 @@ static void *islandWalker_step(BMWalker *walker)
 /*	Edge Loop Walker:
  *
  *	Starts at a tool-flagged edge and walks over the edge loop
- * 
+ *
 */
 
 static void loopWalker_begin(BMWalker *walker, void *data)
@@ -409,7 +409,7 @@ static void loopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk = BMW_addstate(walker);
 	BLI_ghash_insert(walker->visithash, e, NULL);
-	
+
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
 	lwalk->stage2 = 0;
@@ -444,40 +444,46 @@ static void *loopWalker_yield(BMWalker *walker)
 static void *loopWalker_step(BMWalker *walker)
 {
 	loopWalker *lwalk = BMW_currentstate(walker), owalk;
-	BMEdge *e = lwalk->cur /* , *nexte = NULL */;
+	BMIter eiter;
+	BMEdge *e = lwalk->cur, *nexte = NULL;
 	BMLoop *l, *l2;
 	BMVert *v;
 	int val, rlen /* , found=0 */, i=0, stopi;
 
 	owalk = *lwalk;
-	
-	if (e->v1 == lwalk->lastv) v = e->v2;
-	else v = e->v1;
-
-	val = BM_Vert_EdgeCount(v);
-	
 	BMW_removestate(walker);
-	
-	rlen = owalk.startrad;
+
 	l = e->l;
-	
-	/*handle wire edge case*/
-	if (!l && val == 2) {
-		e = bmesh_disk_nextedge(e, v);
-		
-		if (!BLI_ghash_haskey(walker->visithash, e)) {
-			lwalk = BMW_addstate(walker);
-			*lwalk = owalk;
-			lwalk->cur = e;
-			lwalk->lastv = v;
-			
-			BLI_ghash_insert(walker->visithash, e, NULL);			
+
+	/* handle wire edge case */
+	if (!l) {
+
+		/* match trunk: mark all connected wire edges */
+		for (i=0; i<2; i++) {
+			v = i ? e->v2 : e->v1;
+
+			BM_ITER(nexte, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
+				if ((nexte->l == NULL) && !BLI_ghash_haskey(walker->visithash, nexte)) {
+					lwalk = BMW_addstate(walker);
+					lwalk->cur = nexte;
+					lwalk->lastv = v;
+					lwalk->startrad = owalk.startrad;
+
+					BLI_ghash_insert(walker->visithash, nexte, NULL);
+				}
+			}
 		}
-		
+
 		return owalk.cur;
 	}
-	
-	if (val == 4 || val == 2 || rlen == 1) {		
+
+	v = (e->v1 == lwalk->lastv) ? e->v2 : e->v1;
+
+	val = BM_Vert_EdgeCount(v);
+
+	rlen = owalk.startrad;
+
+	if (val == 4 || val == 2 || rlen == 1) {
 		i = 0;
 		stopi = val / 2;
 		while (1) {
@@ -489,7 +495,7 @@ static void *loopWalker_step(BMWalker *walker)
 				break;
 
 			l2 = bmesh_radial_nextloop(l);
-			
+
 			if (l2 == l) {
 				break;
 			}
@@ -498,20 +504,21 @@ static void *loopWalker_step(BMWalker *walker)
 			i += 1;
 		}
 	}
-	
-	if (!l)
+
+	if (!l) {
 		return owalk.cur;
+	}
 
 	if (l != e->l && !BLI_ghash_haskey(walker->visithash, l->e)) {
 		if (!(rlen != 1 && i != stopi)) {
 			lwalk = BMW_addstate(walker);
-			*lwalk = owalk;
 			lwalk->cur = l->e;
 			lwalk->lastv = v;
+			lwalk->startrad = owalk.startrad;
 			BLI_ghash_insert(walker->visithash, l->e, NULL);
 		}
 	}
-	
+
 	return owalk.cur;
 }
 
