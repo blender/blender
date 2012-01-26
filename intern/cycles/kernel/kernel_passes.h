@@ -36,15 +36,6 @@ __device_inline void kernel_write_pass_float4(__global float *buffer, int sample
 	*buf = (sample == 0)? value: *buf + value;
 }
 
-__device_inline void kernel_clear_passes(__global float *buffer, int sample, int pass_stride)
-{
-#ifdef __PASSES__
-	if(sample == 0 && pass_stride != 4)
-		for(int i = 4; i < pass_stride; i++)
-			buffer[i] = 0.0f;
-#endif
-}
-
 __device void kernel_write_data_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L,
 	ShaderData *sd, int sample, int path_flag, float3 throughput)
 {

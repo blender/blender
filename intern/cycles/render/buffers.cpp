@@ -157,10 +157,17 @@ bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int comp
 			assert(pass.components == components);
 
 			/* scalar */
-			for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
-				float f = *in;
-
-				pixels[0] = f*scale_exposure;
+			if(type == PASS_DEPTH) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
+					float f = *in;
+					pixels[0] = (f == 0.0f)? 1e10f: f*scale_exposure;
+				}
+			}
+			else {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
+					float f = *in;
+					pixels[0] = f*scale_exposure;
+				}
 			}
 		}
 		else if(components == 3) {

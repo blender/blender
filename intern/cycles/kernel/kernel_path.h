@@ -377,8 +377,6 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	rng_state += index;
 	buffer += index*pass_stride;
 
-	kernel_clear_passes(buffer, sample, pass_stride);
-
 	/* initialize random numbers */
 	RNG rng;
 
