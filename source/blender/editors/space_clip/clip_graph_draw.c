@@ -47,6 +47,7 @@
 #include "ED_clip.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_types.h"
 
@@ -118,6 +119,26 @@ static void draw_graph_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);
+}
+
+static void draw_graph_sfra_efra(Scene *scene, View2D *v2d)
+{
+	UI_view2d_view_ortho(v2d);
+
+	/* currently clip editor supposes that editing clip length is equal to scene frame range */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
+		glRectf((float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	glDisable(GL_BLEND);
+
+	UI_ThemeColorShade(TH_BACK, -60);
+
+	/* thin lines where the actual frames are */
+	fdrawline((float)SFRA, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
+	fdrawline((float)EFRA, v2d->cur.ymin, (float)EFRA, v2d->cur.ymax);
 }
 
 static void tracking_segment_point_cb(void *UNUSED(userdata), MovieTrackingTrack *UNUSED(track),
@@ -254,6 +275,9 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 		if(sc->flag&SC_SHOW_GRAPH_FRAMES)
 			draw_frame_curves(sc);
 	}
+
+	/* frame range */
+	draw_graph_sfra_efra(scene, v2d);
 
 	/* current frame */
 	draw_graph_cfra(sc, ar, scene);

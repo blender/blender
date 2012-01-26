@@ -121,6 +121,9 @@ typedef struct MovieTrackingSettings {
 	short default_frames_limit;			/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	short default_margin;				/* margin from frame boundaries */
 	short default_pattern_match;		/* re-adjust every N frames */
+	short default_flag;					/* default flags like color channels used by default */
+
+	short pod;
 
 	/* ** common tracker settings ** */
 	short speed;			/* speed of tracking */
@@ -129,7 +132,7 @@ typedef struct MovieTrackingSettings {
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
 
 	/* ** which camera intrinsics to refine. uses on the REFINE_* flags */
-	short refine_camera_intrinsics, pad2;
+	short refine_camera_intrinsics, pad23;
 
 	/* ** tool settings ** */
 
@@ -142,6 +145,8 @@ typedef struct MovieTrackingSettings {
 
 	/* set object scale */
 	float object_distance;		/* distance between two bundles used for object scaling */
+
+	int pad3;
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {

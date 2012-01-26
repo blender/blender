@@ -952,6 +952,9 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	if(but->editstr && but->pos >= 0) {
 		if(but->ofs > but->pos)
 			but->ofs= but->pos;
+
+		if(BLF_width(fstyle->uifont_id, but->drawstr) <= okwidth)
+			but->ofs = 0;
 	}
 	else but->ofs= 0;
 	

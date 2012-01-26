@@ -77,6 +77,12 @@ static const char* ndof_button_names[] = {
 	"NDOF_BUTTON_8",
 	"NDOF_BUTTON_9",
 	"NDOF_BUTTON_10",
+	// more general-purpose buttons
+	"NDOF_BUTTON_A",
+	"NDOF_BUTTON_B",
+	"NDOF_BUTTON_C",
+	// the end
+	"NDOF_BUTTON_LAST"
 };
 #endif
 
@@ -169,7 +175,7 @@ static const NDOF_ButtonT SpaceMousePro_HID_map[] = {
 };
 
 /* this is the older SpacePilot (sans Pro)
- * thanks to polosson for the info in this table */
+ * thanks to polosson for info about this device */
 static const NDOF_ButtonT SpacePilot_HID_map[] = {
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
@@ -192,6 +198,23 @@ static const NDOF_ButtonT SpacePilot_HID_map[] = {
 	NDOF_BUTTON_DOMINANT,
 	NDOF_BUTTON_ROTATE,
 	NDOF_BUTTON_NONE // the CONFIG button -- what does it do?
+};
+
+/* this is the older Spaceball 5000 USB
+ * thanks to Tehrasha Darkon for info about this device */
+static const NDOF_ButtonT Spaceball5000_HID_map[] = {
+	NDOF_BUTTON_1,
+	NDOF_BUTTON_2,
+	NDOF_BUTTON_3,
+	NDOF_BUTTON_4,
+	NDOF_BUTTON_5,
+	NDOF_BUTTON_6,
+	NDOF_BUTTON_7,
+	NDOF_BUTTON_8,
+	NDOF_BUTTON_9,
+	NDOF_BUTTON_A,
+	NDOF_BUTTON_B,
+	NDOF_BUTTON_C
 };
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
@@ -237,12 +260,12 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_buttonCount = 15;
 					break;
 				case 0xC629:
-					puts("ndof: using SpacePilotPro");
+					puts("ndof: using SpacePilot Pro");
 					m_deviceType = NDOF_SpacePilotPro;
 					m_buttonCount = 31;
 					break;
 				case 0xC62B:
-					puts("ndof: using SpaceMousePro");
+					puts("ndof: using SpaceMouse Pro");
 					m_deviceType = NDOF_SpaceMousePro;
 					m_buttonCount = 27;
 					// ^^ actually has 15 buttons, but their HID codes range from 0 to 26
@@ -253,6 +276,12 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					puts("ndof: using SpacePilot");
 					m_deviceType = NDOF_SpacePilot;
 					m_buttonCount = 21;
+					break;
+
+				case 0xC621:
+					puts("ndof: using Spaceball 5000");
+					m_deviceType = NDOF_Spaceball5000;
+					m_buttonCount = 12;
 					break;
 
 				case 0xC623:
@@ -385,8 +414,21 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 				default: sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
 			}
 			break;
+		case NDOF_Spaceball5000:
+			// has no special 'keyboard' buttons
+			sendButtonEvent(Spaceball5000_HID_map[button_number], press, time, window);
+			break;
 		case NDOF_UnknownDevice:
-			printf("ndof: button %d on unknown device (ignoring)\n", button_number);
+			printf("ndof: button %d on unknown device (", button_number);
+			// map to the 'general purpose' buttons
+			// this is mainly for old serial devices
+			if (button_number < NDOF_BUTTON_LAST - NDOF_BUTTON_1) {
+				printf("sending)\n");
+				sendButtonEvent((NDOF_ButtonT)(NDOF_BUTTON_1 + button_number), press, time, window);
+			}
+			else {
+				printf("discarding)\n");
+			}
 	}
 
 	int mask = 1 << button_number;

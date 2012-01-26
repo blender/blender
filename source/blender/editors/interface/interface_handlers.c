@@ -1527,6 +1527,8 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 	const int pos_prev= but->pos;
 	const int has_sel= (but->selend - but->selsta) > 0;
 
+	ui_check_but(but);
+
 	/* special case, quit selection and set cursor */
 	if (has_sel && !select) {
 		if (jump == BUTTON_EDIT_JUMP_ALL) {
@@ -3030,12 +3032,28 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				data->value= ui_step_name_menu(but, -1);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				ui_apply_button(C, but->block, but, data, 1);
+
+				/* button's state need to be changed to EXIT so moving mouse away from this mouse wouldn't lead
+				 * to cancel changes made to this button, but shanging state to EXIT also makes no button active for
+				 * a while which leads to triggering operator when doing fast scrolling mouse wheel.
+				 * using post activate stuff from button allows to make button be active again after checking for all
+				 * all that mouse leave and cancel stuff, so wuick scrool wouldnt't be an issue anumore.
+				 * same goes for scrolling wheel in another direction below (sergey)
+				 */
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_OVER;
+
 				return WM_UI_HANDLER_BREAK;
 			}
 			else if(event->type == WHEELUPMOUSE && event->alt) {
 				data->value= ui_step_name_menu(but, 1);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				ui_apply_button(C, but->block, but, data, 1);
+
+				/* why this is needed described above */
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_OVER;
+
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
