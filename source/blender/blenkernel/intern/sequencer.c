@@ -1690,10 +1690,10 @@ static ImBuf * input_preprocess(
 		if(rct) {
 			float rgb[3];
 			for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
-				rgb_byte_to_float(rct, rgb);
+				rgb_uchar_to_float(rgb, rct);
 				rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb+1, rgb+2);
-				rgb_float_to_byte(rgb, rct);
+				rgb_float_to_uchar(rct, rgb);
 			}
 		}
 

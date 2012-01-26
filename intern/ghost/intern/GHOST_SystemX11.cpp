@@ -422,6 +422,8 @@ processEvents(
 	return anyProcessed;
 }
 
+
+#ifdef WITH_X11_XINPUT
 /* set currently using tablet mode (stylus or eraser) depending on device ID */
 static void setTabletMode(GHOST_WindowX11 * window, XID deviceid)
 {
@@ -430,6 +432,7 @@ static void setTabletMode(GHOST_WindowX11 * window, XID deviceid)
 	else if(deviceid == window->GetXTablet().EraserID)
 		window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
 }
+#endif /* WITH_X11_XINPUT */
 
 	void
 GHOST_SystemX11::processEvent(XEvent *xe)

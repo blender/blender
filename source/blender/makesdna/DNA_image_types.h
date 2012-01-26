@@ -69,7 +69,7 @@ typedef struct ImageUser {
 typedef struct Image {
 	ID id;
 	
-	char name[240];			/* file path, 240 = FILE_MAX */
+	char name[1024];			/* file path, 1024 = FILE_MAX */
 	
 	ListBase ibufs;					/* not written in file */
 	struct GPUTexture *gputexture;	/* not written in file */
@@ -120,6 +120,7 @@ typedef struct Image {
 #define IMA_DEPRECATED		64
 #define IMA_OLD_PREMUL		128
 #define IMA_CM_PREDIVIDE	256
+#define IMA_USED_FOR_RENDER	512
 
 /* Image.tpageflag */
 #define IMA_TILES			1

@@ -231,6 +231,8 @@ static int view3d_layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(event->shift)
 		RNA_boolean_set(op->ptr, "extend", TRUE);
+	else
+		RNA_boolean_set(op->ptr, "extend", FALSE);
 	
 	if(event->alt) {
 		int nr= RNA_int_get(op->ptr, "nr") + 10;

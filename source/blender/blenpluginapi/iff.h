@@ -63,7 +63,7 @@ typedef struct ImBuf {
 	int channels;			/**< amount of channels in rect_float (0 = 4 channel default) */
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	short profile;			/** color space/profile preset that the byte rect buffer represents */
-	char profile_filename[256];		/** to be implemented properly, specific filename for custom profiles */
+	char profile_filename[1024];		/** to be implemented properly, specific filename for custom profiles */
 
 	/* mipmapping */
 	struct ImBuf *mipmap[IB_MIPMAP_LEVELS]; /**< MipMap levels, a series of halved images */

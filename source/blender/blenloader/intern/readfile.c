@@ -97,9 +97,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -13019,8 +13019,39 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 4))
+	{
+		{
+			/* set fluidsim rate */
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Fluidsim) {
+						FluidsimSettings *fss = (FluidsimSettings *)md;
+						fss->animRate = 1.0f;
+					}
+				}
+			}
+		}
+	}
+	
 	/* put compatibility code here until next subversion bump */
 	{
+		{
+			Object *ob;
+			for(ob=main->object.first; ob; ob= ob->id.next) {
+				ModifierData *md;
+
+				for (md=ob->modifiers.first; md; md=md->next) {
+					if (md->type==eModifierType_Cloth) {
+						ClothModifierData *clmd = (ClothModifierData*) md;
+						if(clmd->sim_parms)
+							clmd->sim_parms->vel_damping = 1.0f;
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

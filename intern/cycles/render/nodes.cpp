@@ -1820,6 +1820,38 @@ void GammaNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_gamma");
 }
 
+/* Bright Contrast */
+BrightContrastNode::BrightContrastNode()
+: ShaderNode("brightness")
+{
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_input("Bright", SHADER_SOCKET_FLOAT);
+	add_input("Contrast", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void BrightContrastNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *color_in = input("Color");
+	ShaderInput *bright_in = input("Bright");
+	ShaderInput *contrast_in = input("Contrast");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(bright_in);
+	compiler.stack_assign(contrast_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_BRIGHTCONTRAST,
+		color_in->stack_offset, color_out->stack_offset,
+		compiler.encode_uchar4(bright_in->stack_offset, contrast_in->stack_offset));
+}
+
+void BrightContrastNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_brightness");
+}
+
 /* Separate RGB */
 SeparateRGBNode::SeparateRGBNode()
 : ShaderNode("separate_rgb")

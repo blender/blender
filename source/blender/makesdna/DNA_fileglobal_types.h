@@ -51,7 +51,7 @@ typedef struct FileGlobal {
 	int revision;		/* svn revision from buildinfo */
 	int pad;
 	/* file path where this was saved, for recover */
-	char filename[240]; /* 240 = FILE_MAX */
+	char filename[1024]; /* 1024 = FILE_MAX */
 } FileGlobal;
 
 

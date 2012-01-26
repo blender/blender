@@ -89,6 +89,9 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLI_winstuff.h"
 #endif
 
+/* allow writefile to use deprecated functionality (for forward compatibility code) */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_actuator_types.h"
@@ -653,7 +656,7 @@ static void write_node_socket(WriteData *wd, bNodeSocket *sock)
 
 	/* forward compatibility code, so older blenders still open */
 	sock->stack_type = 1;
-
+	
 	if(sock->default_value) {
 		bNodeSocketValueFloat *valfloat;
 		bNodeSocketValueVector *valvector;

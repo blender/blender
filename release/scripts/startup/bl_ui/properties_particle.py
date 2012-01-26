@@ -911,7 +911,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                 col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
 
             split = layout.split(percentage=0.33)
-            split.label(text="Split uv's:")
+            split.label(text="Split UVs:")
             split.prop(part, "billboard_uv_split", text="Number of splits")
 
             if psys:

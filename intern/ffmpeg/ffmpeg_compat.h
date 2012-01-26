@@ -35,6 +35,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
+#include <libavutil/opt.h>
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
 #define FFMPEG_HAVE_PARSE_UTILS 1

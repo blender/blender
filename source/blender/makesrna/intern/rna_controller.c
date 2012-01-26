@@ -48,6 +48,7 @@ EnumPropertyItem controller_type_items[] ={
 #ifdef RNA_RUNTIME
 
 #include "BKE_sca.h"
+#include "DNA_actuator_types.h"
 
 static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 {
@@ -132,6 +133,18 @@ static void rna_Controller_state_number_set(struct PointerRNA *ptr, const int va
 	cont->state_mask = (1 << (value - 1));
 }
 
+static void rna_Controller_actuators_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	bController *cont = (bController *)ptr->data;
+	rna_iterator_array_begin(iter, cont->links, sizeof(bActuator *), (int)cont->totlinks, 0, NULL);
+}
+
+static int rna_Controller_actuators_length(PointerRNA *ptr)
+{
+	bController *cont = (bController *)ptr->data;
+	return (int) cont->totlinks;
+}
+
 #if 0 /* editable is set to false, comment for now. */
 static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 {
@@ -211,6 +224,12 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Priority", "Mark controller for execution before all non-marked controllers (good for startup scripts)");
 	RNA_def_property_ui_icon(prop, ICON_BOOKMARKS, 1);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "actuators", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "links", NULL);
+	RNA_def_property_struct_type(prop, "Actuator");
+	RNA_def_property_ui_text(prop, "Actuators", "The list containing the actuators connected to the controller");
+	RNA_def_property_collection_funcs(prop, "rna_Controller_actuators_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", "rna_Controller_actuators_length", NULL, NULL, NULL);
 
 	/* State */
 	

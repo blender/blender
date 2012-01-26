@@ -2166,21 +2166,13 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 	}
 	else {
-		char *col= (char *)(bs->rect + bs->rectx*y + x);
+		unsigned char *col= (unsigned char *)(bs->rect + bs->rectx*y + x);
 
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) &&	(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-			float srgb[3];
-			srgb[0]= linearrgb_to_srgb(shr.combined[0]);
-			srgb[1]= linearrgb_to_srgb(shr.combined[1]);
-			srgb[2]= linearrgb_to_srgb(shr.combined[2]);
-			
-			col[0]= FTOCHAR(srgb[0]);
-			col[1]= FTOCHAR(srgb[1]);
-			col[2]= FTOCHAR(srgb[2]);
-		} else {
-			col[0]= FTOCHAR(shr.combined[0]);
-			col[1]= FTOCHAR(shr.combined[1]);
-			col[2]= FTOCHAR(shr.combined[2]);
+			linearrgb_to_srgb_uchar3(col, shr.combined);
+		}
+		else {
+			rgb_float_to_uchar(col, shr.combined);
 		}
 		
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
@@ -2212,9 +2204,7 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 		col[3]= 1.0f;
 	} else {	
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
-		col[0]= FTOCHAR(disp);
-		col[1]= FTOCHAR(disp);
-		col[2]= FTOCHAR(disp);
+		col[0] = col[1] = col[2] = FTOCHAR(disp);
 		col[3]= 255;
 	}
 	if (bs->rect_mask) {
@@ -2450,6 +2440,11 @@ static int get_next_bake_face(BakeShade *bs)
 					if(ibuf->rect_float && !(ibuf->channels==0 || ibuf->channels==4))
 						continue;
 					
+					if(ima->flag & IMA_USED_FOR_RENDER) {
+						ima->id.flag &= ~LIB_DOIT;
+						continue;
+					}
+					
 					/* find the image for the first time? */
 					if(ima->id.flag & LIB_DOIT) {
 						ima->id.flag &= ~LIB_DOIT;
@@ -2594,7 +2589,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	BakeShade *handles;
 	ListBase threads;
 	Image *ima;
-	int a, vdone=0, usemask=0;
+	int a, vdone=0, usemask=0, result=BAKE_RESULT_OK;
 	
 	/* initialize render global */
 	R= *re;
@@ -2611,6 +2606,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
+		ima->flag&= ~IMA_USED_FOR_RENDER;
 		if(ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
 			if(ibuf->rect_float)
@@ -2669,6 +2665,9 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
+			if(ima->flag & IMA_USED_FOR_RENDER)
+				result= BAKE_RESULT_FEEDBACK_LOOP;
+
 			if(!ibuf)
 				continue;
 
@@ -2689,7 +2688,10 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	
 	BLI_end_threads(&threads);
 
-	return vdone;
+	if(vdone==0)
+		result= BAKE_RESULT_NO_OBJECTS;
+
+	return result;
 }
 
 struct Image *RE_bake_shade_get_image(void)

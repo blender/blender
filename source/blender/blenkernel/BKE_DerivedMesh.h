@@ -538,6 +538,15 @@ int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
 								float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float r_rgb[3], const float weight);
+/* Update the weight MCOL preview layer.
+ * If weights are NULL, use object's active vgroup(s).
+ * Else, weights must be an array of weight float values.
+ *     If indices is NULL, it must be of numVerts length.
+ *     Else, it must be of num length, as indices, which contains vertices' idx to apply weights to.
+ *         (other vertices are assumed zero weight).
+ */
+void DM_update_weight_mcol(struct Object *ob, struct DerivedMesh *dm, int const draw_flag,
+                           float *weights, int num, const int *indices);
 
 /* convert layers requested by a GLSL material to actually available layers in
  * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
@@ -584,5 +593,10 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm);
 /* Set object's bounding box based on DerivedMesh min/max data */
 void DM_set_object_boundbox(struct Object *ob, DerivedMesh *dm);
 
+/* debug only */
+#ifndef NDEBUG
+char *DM_debug_info(DerivedMesh *dm);
+void DM_debug_print(DerivedMesh *dm);
 #endif
 
+#endif

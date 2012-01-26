@@ -162,7 +162,7 @@ public:
 		if(system_cpu_support_optimized()) {
 			for(int y = task.y; y < task.y + task.h; y++) {
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_optimized_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state,
+					kernel_cpu_optimized_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
 						task.sample, x, y, task.offset, task.stride);
 
 				if(tasks.worker_cancel())
@@ -174,7 +174,7 @@ public:
 		{
 			for(int y = task.y; y < task.y + task.h; y++) {
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state,
+					kernel_cpu_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
 						task.sample, x, y, task.offset, task.stride);
 
 				if(tasks.worker_cancel())
@@ -194,7 +194,7 @@ public:
 		if(system_cpu_support_optimized()) {
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_optimized_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer,
+					kernel_cpu_optimized_tonemap(kg, (uchar4*)task.rgba, (float*)task.buffer,
 						task.sample, task.resolution, x, y, task.offset, task.stride);
 		}
 		else
@@ -202,7 +202,7 @@ public:
 		{
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer,
+					kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float*)task.buffer,
 						task.sample, task.resolution, x, y, task.offset, task.stride);
 		}
 	}
@@ -217,7 +217,7 @@ public:
 #ifdef WITH_OPTIMIZED_KERNEL
 		if(system_cpu_support_optimized()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
-				kernel_cpu_optimized_shader(kg, (uint4*)task.shader_input, (float3*)task.shader_output, task.shader_eval_type, x);
+				kernel_cpu_optimized_shader(kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
 				if(tasks.worker_cancel())
 					break;
@@ -227,7 +227,7 @@ public:
 #endif
 		{
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
-				kernel_cpu_shader(kg, (uint4*)task.shader_input, (float3*)task.shader_output, task.shader_eval_type, x);
+				kernel_cpu_shader(kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
 				if(tasks.worker_cancel())
 					break;

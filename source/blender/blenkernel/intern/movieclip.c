@@ -981,7 +981,7 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 {
 	char name[FILE_MAX];
 	int quality, rectx, recty;
-	int size= size= rendersize_to_number(proxy_render_size);
+	int size= rendersize_to_number(proxy_render_size);
 	ImBuf *scaleibuf;
 
 	get_proxy_fname(clip, proxy_render_size, undistorted, cfra, name);

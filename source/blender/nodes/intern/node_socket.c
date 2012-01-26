@@ -29,6 +29,7 @@
  *  \ingroup nodes
  */
 
+#include <limits.h>
 
 #include "DNA_node_types.h"
 
@@ -172,171 +173,311 @@ void node_socket_type_init(bNodeSocketType *types[])
 	#undef INIT_TYPE
 }
 
-struct bNodeSocket *nodeAddInputInt(struct bNodeTree *ntree, struct bNode *node, const char *name, PropertySubType subtype,
-									int value, int min, int max)
+void *node_socket_make_default_value(int type)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_INT);
-	bNodeSocketValueInt *dval= (bNodeSocketValueInt*)sock->default_value;
-	dval->subtype = subtype;
-	dval->value = value;
-	dval->min = min;
-	dval->max = max;
-	return sock;
-}
-struct bNodeSocket *nodeAddOutputInt(struct bNodeTree *ntree, struct bNode *node, const char *name)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_INT);
-	return sock;
+	/* XXX currently just allocates from stype->structsize.
+	 * it might become necessary to do more complex allocations for later types.
+	 */
+	bNodeSocketType *stype = ntreeGetSocketType(type);
+	if (stype->value_structsize > 0) {
+		void *default_value = MEM_callocN(stype->value_structsize, "default socket value");
+		return default_value;
+	}
+	else
+		return NULL;
 }
 
-struct bNodeSocket *nodeAddInputFloat(struct bNodeTree *ntree, struct bNode *node, const char *name, PropertySubType subtype,
-									  float value, float min, float max)
+void node_socket_free_default_value(int UNUSED(type), void *default_value)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_FLOAT);
-	bNodeSocketValueFloat *dval= (bNodeSocketValueFloat*)sock->default_value;
-	dval->subtype = subtype;
-	dval->value = value;
-	dval->min = min;
-	dval->max = max;
-	return sock;
-}
-struct bNodeSocket *nodeAddOutputFloat(struct bNodeTree *ntree, struct bNode *node, const char *name)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_FLOAT);
-	return sock;
+	/* XXX can just free the pointee for all current socket types. */
+	if (default_value)
+		MEM_freeN(default_value);
 }
 
-struct bNodeSocket *nodeAddInputBoolean(struct bNodeTree *ntree, struct bNode *node, const char *name, char value)
+void node_socket_init_default_value(int type, void *default_value)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_BOOLEAN);
-	bNodeSocketValueBoolean *dval= (bNodeSocketValueBoolean*)sock->default_value;
-	dval->value = value;
-	return sock;
-}
-struct bNodeSocket *nodeAddOutputBoolean(struct bNodeTree *ntree, struct bNode *node, const char *name)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_BOOLEAN);
-	return sock;
-}
-
-struct bNodeSocket *nodeAddInputVector(struct bNodeTree *ntree, struct bNode *node, const char *name, PropertySubType subtype,
-									   float x, float y, float z, float min, float max)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_VECTOR);
-	bNodeSocketValueVector *dval= (bNodeSocketValueVector*)sock->default_value;
-	dval->subtype = subtype;
-	dval->value[0] = x;
-	dval->value[1] = y;
-	dval->value[2] = z;
-	dval->min = min;
-	dval->max = max;
-	return sock;
-}
-struct bNodeSocket *nodeAddOutputVector(struct bNodeTree *ntree, struct bNode *node, const char *name)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_VECTOR);
-	return sock;
+	switch (type) {
+	case SOCK_FLOAT:
+		node_socket_set_default_value_float(default_value, PROP_NONE, 0.0f, -FLT_MAX, FLT_MAX);
+		break;
+	case SOCK_INT:
+		node_socket_set_default_value_int(default_value, PROP_NONE, 0, INT_MIN, INT_MAX);
+		break;
+	case SOCK_BOOLEAN:
+		node_socket_set_default_value_boolean(default_value, FALSE);
+		break;
+	case SOCK_VECTOR:
+		node_socket_set_default_value_vector(default_value, PROP_NONE, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX);
+		break;
+	case SOCK_RGBA:
+		node_socket_set_default_value_rgba(default_value, 0.0f, 0.0f, 0.0f, 1.0f);
+		break;
+	case SOCK_SHADER:
+		node_socket_set_default_value_shader(default_value);
+		break;
+	case SOCK_MESH:
+		node_socket_set_default_value_mesh(default_value);
+		break;
+	}
 }
 
-struct bNodeSocket *nodeAddInputRGBA(struct bNodeTree *ntree, struct bNode *node, const char *name,
-									 float r, float g, float b, float a)
+void node_socket_set_default_value_int(void *default_value, PropertySubType subtype, int value, int min, int max)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_RGBA);
-	bNodeSocketValueRGBA *dval= (bNodeSocketValueRGBA*)sock->default_value;
-	dval->value[0] = r;
-	dval->value[1] = g;
-	dval->value[2] = b;
-	dval->value[3] = a;
-	return sock;
-}
-struct bNodeSocket *nodeAddOutputRGBA(struct bNodeTree *ntree, struct bNode *node, const char *name)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_RGBA);
-	return sock;
+	bNodeSocketValueInt *val = default_value;
+	val->subtype = subtype;
+	val->value = value;
+	val->min = min;
+	val->max = max;
 }
 
-struct bNodeSocket *nodeAddInputShader(struct bNodeTree *ntree, struct bNode *node, const char *name)
+void node_socket_set_default_value_float(void *default_value, PropertySubType subtype, float value, float min, float max)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_SHADER);
-	return sock;
-}
-struct bNodeSocket *nodeAddOutputShader(struct bNodeTree *ntree, struct bNode *node, const char *name)
-{
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_SHADER);
-	return sock;
+	bNodeSocketValueFloat *val = default_value;
+	val->subtype = subtype;
+	val->value = value;
+	val->min = min;
+	val->max = max;
 }
 
-struct bNodeSocket *nodeAddInputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name)
+void node_socket_set_default_value_boolean(void *default_value, char value)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_MESH);
-	return sock;
+	bNodeSocketValueBoolean *val = default_value;
+	val->value = value;
 }
-struct bNodeSocket *nodeAddOutputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name)
+
+void node_socket_set_default_value_vector(void *default_value, PropertySubType subtype, float x, float y, float z, float min, float max)
 {
-	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_MESH);
-	return sock;
+	bNodeSocketValueVector *val = default_value;
+	val->subtype = subtype;
+	val->value[0] = x;
+	val->value[1] = y;
+	val->value[2] = z;
+	val->min = min;
+	val->max = max;
 }
+
+void node_socket_set_default_value_rgba(void *default_value, float r, float g, float b, float a)
+{
+	bNodeSocketValueRGBA *val = default_value;
+	val->value[0] = r;
+	val->value[1] = g;
+	val->value[2] = b;
+	val->value[3] = a;
+}
+
+void node_socket_set_default_value_shader(void *UNUSED(default_value))
+{
+}
+
+void node_socket_set_default_value_mesh(void *UNUSED(default_value))
+{
+}
+
+
+void node_socket_copy_default_value(int type, void *to_default_value, void *from_default_value)
+{
+	/* XXX only one of these pointers is valid! just putting them here for convenience */
+	bNodeSocketValueFloat *fromfloat= (bNodeSocketValueFloat*)from_default_value;
+	bNodeSocketValueInt *fromint= (bNodeSocketValueInt*)from_default_value;
+	bNodeSocketValueBoolean *frombool= (bNodeSocketValueBoolean*)from_default_value;
+	bNodeSocketValueVector *fromvector= (bNodeSocketValueVector*)from_default_value;
+	bNodeSocketValueRGBA *fromrgba= (bNodeSocketValueRGBA*)from_default_value;
+
+	bNodeSocketValueFloat *tofloat= (bNodeSocketValueFloat*)to_default_value;
+	bNodeSocketValueInt *toint= (bNodeSocketValueInt*)to_default_value;
+	bNodeSocketValueBoolean *tobool= (bNodeSocketValueBoolean*)to_default_value;
+	bNodeSocketValueVector *tovector= (bNodeSocketValueVector*)to_default_value;
+	bNodeSocketValueRGBA *torgba= (bNodeSocketValueRGBA*)to_default_value;
+
+	switch (type) {
+	case SOCK_FLOAT:
+		*tofloat = *fromfloat;
+		break;
+	case SOCK_INT:
+		*toint = *fromint;
+		break;
+	case SOCK_BOOLEAN:
+		*tobool = *frombool;
+		break;
+	case SOCK_VECTOR:
+		*tovector = *fromvector;
+		break;
+	case SOCK_RGBA:
+		*torgba = *fromrgba;
+		break;
+	}
+}
+
+/* XXX This is a makeshift function to have useful initial group socket values.
+ * In the end this should be implemented by a flexible socket data conversion system,
+ * which is yet to be implemented. The idea is that beside default standard conversions,
+ * such as int-to-float, it should be possible to quickly select a conversion method or
+ * a chain of conversions for each input, whenever there is more than one option.
+ * E.g. a vector-to-float conversion could use either of the x/y/z components or
+ * the vector length.
+ *
+ * In the interface this could be implemented by a pseudo-script textbox on linked inputs,
+ * with quick selection from a predefined list of conversion options. Some Examples:
+ * - vector component 'z' (vector->float):						"z"
+ * - greyscale color (float->color):							"grey"
+ * - color luminance (color->float):							"lum"
+ * - matrix column 2 length (matrix->vector->float):			"col[1].len"
+ * - mesh vertex coordinate 'y' (mesh->vertex->vector->float):	"vertex.co.y"
+ *
+ * The actual conversion is then done by a series of conversion functions,
+ * which are defined in the socket type structs.
+ */
+void node_socket_convert_default_value(int to_type, void *to_default_value, int from_type, void *from_default_value)
+{
+	/* XXX only one of these pointers is valid! just putting them here for convenience */
+	bNodeSocketValueFloat *fromfloat= (bNodeSocketValueFloat*)from_default_value;
+	bNodeSocketValueInt *fromint= (bNodeSocketValueInt*)from_default_value;
+	bNodeSocketValueBoolean *frombool= (bNodeSocketValueBoolean*)from_default_value;
+	bNodeSocketValueVector *fromvector= (bNodeSocketValueVector*)from_default_value;
+	bNodeSocketValueRGBA *fromrgba= (bNodeSocketValueRGBA*)from_default_value;
+
+	bNodeSocketValueFloat *tofloat= (bNodeSocketValueFloat*)to_default_value;
+	bNodeSocketValueInt *toint= (bNodeSocketValueInt*)to_default_value;
+	bNodeSocketValueBoolean *tobool= (bNodeSocketValueBoolean*)to_default_value;
+	bNodeSocketValueVector *tovector= (bNodeSocketValueVector*)to_default_value;
+	bNodeSocketValueRGBA *torgba= (bNodeSocketValueRGBA*)to_default_value;
+
+	switch (from_type) {
+	case SOCK_FLOAT:
+		switch (to_type) {
+		case SOCK_FLOAT:
+			tofloat->value = fromfloat->value;
+			break;
+		case SOCK_INT:
+			toint->value = (int)fromfloat->value;
+			break;
+		case SOCK_BOOLEAN:
+			tobool->value = (fromfloat->value > 0.0f);
+			break;
+		case SOCK_VECTOR:
+			tovector->value[0] = tovector->value[1] = tovector->value[2] = fromfloat->value;
+			break;
+		case SOCK_RGBA:
+			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = fromfloat->value;
+			break;
+		}
+		break;
+	case SOCK_INT:
+		switch (to_type) {
+		case SOCK_FLOAT:
+			tofloat->value = (float)fromint->value;
+			break;
+		case SOCK_INT:
+			toint->value = fromint->value;
+			break;
+		case SOCK_BOOLEAN:
+			tobool->value = (fromint->value > 0);
+			break;
+		case SOCK_VECTOR:
+			tovector->value[0] = tovector->value[1] = tovector->value[2] = (float)fromint->value;
+			break;
+		case SOCK_RGBA:
+			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = (float)fromint->value;
+			break;
+		}
+		break;
+	case SOCK_BOOLEAN:
+		switch (to_type) {
+		case SOCK_FLOAT:
+			tofloat->value = (float)frombool->value;
+			break;
+		case SOCK_INT:
+			toint->value = (int)frombool->value;
+			break;
+		case SOCK_BOOLEAN:
+			tobool->value = frombool->value;
+			break;
+		case SOCK_VECTOR:
+			tovector->value[0] = tovector->value[1] = tovector->value[2] = (float)frombool->value;
+			break;
+		case SOCK_RGBA:
+			torgba->value[0] = torgba->value[1] = torgba->value[2] = torgba->value[3] = (float)frombool->value;
+			break;
+		}
+		break;
+	case SOCK_VECTOR:
+		switch (to_type) {
+		case SOCK_FLOAT:
+			tofloat->value = fromvector->value[0];
+			break;
+		case SOCK_INT:
+			toint->value = (int)fromvector->value[0];
+			break;
+		case SOCK_BOOLEAN:
+			tobool->value = (fromvector->value[0] > 0.0f);
+			break;
+		case SOCK_VECTOR:
+			copy_v3_v3(tovector->value, fromvector->value);
+			break;
+		case SOCK_RGBA:
+			copy_v3_v3(torgba->value, fromvector->value);
+			torgba->value[3] = 1.0f;
+			break;
+		}
+		break;
+	case SOCK_RGBA:
+		switch (to_type) {
+		case SOCK_FLOAT:
+			tofloat->value = fromrgba->value[0];
+			break;
+		case SOCK_INT:
+			toint->value = (int)fromrgba->value[0];
+			break;
+		case SOCK_BOOLEAN:
+			tobool->value = (fromrgba->value[0] > 0.0f);
+			break;
+		case SOCK_VECTOR:
+			copy_v3_v3(tovector->value, fromrgba->value);
+			break;
+		case SOCK_RGBA:
+			copy_v4_v4(torgba->value, fromrgba->value);
+			break;
+		}
+		break;
+	}
+}
+
 
 struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp)
 {
-	bNodeSocket *sock;
+	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, stemp->name, stemp->type);
+	sock->flag |= stemp->flag;
+	
 	switch (stemp->type) {
 	case SOCK_INT:
-		sock = nodeAddInputInt(ntree, node, stemp->name, stemp->subtype, (int)stemp->val1, (int)stemp->min, (int)stemp->max);
+		node_socket_set_default_value_int(sock->default_value, stemp->subtype, (int)stemp->val1, (int)stemp->min, (int)stemp->max);
 		break;
 	case SOCK_FLOAT:
-		sock = nodeAddInputFloat(ntree, node, stemp->name, stemp->subtype, stemp->val1, stemp->min, stemp->max);
+		node_socket_set_default_value_float(sock->default_value, stemp->subtype, stemp->val1, stemp->min, stemp->max);
 		break;
 	case SOCK_BOOLEAN:
-		sock = nodeAddInputBoolean(ntree, node, stemp->name, (char)stemp->val1);
+		node_socket_set_default_value_boolean(sock->default_value, (char)stemp->val1);
 		break;
 	case SOCK_VECTOR:
-		sock = nodeAddInputVector(ntree, node, stemp->name, stemp->subtype, stemp->val1, stemp->val2, stemp->val3, stemp->min, stemp->max);
+		node_socket_set_default_value_vector(sock->default_value, stemp->subtype, stemp->val1, stemp->val2, stemp->val3, stemp->min, stemp->max);
 		break;
 	case SOCK_RGBA:
-		sock = nodeAddInputRGBA(ntree, node, stemp->name, stemp->val1, stemp->val2, stemp->val3, stemp->val4);
+		node_socket_set_default_value_rgba(sock->default_value, stemp->val1, stemp->val2, stemp->val3, stemp->val4);
 		break;
 	case SOCK_SHADER:
-		sock = nodeAddInputShader(ntree, node, stemp->name);
+		node_socket_set_default_value_shader(sock->default_value);
 		break;
 	case SOCK_MESH:
-		sock = nodeAddInputMesh(ntree, node, stemp->name);
+		node_socket_set_default_value_mesh(sock->default_value);
 		break;
-	default:
-		sock = nodeAddSocket(ntree, node, SOCK_IN, stemp->name, stemp->type);
 	}
-	sock->flag |= stemp->flag;
+	
 	return sock;
 }
 
 struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp)
 {
-	bNodeSocket *sock;
-	switch (stemp->type) {
-	case SOCK_INT:
-		sock = nodeAddOutputInt(ntree, node, stemp->name);
-		break;
-	case SOCK_FLOAT:
-		sock = nodeAddOutputFloat(ntree, node, stemp->name);
-		break;
-	case SOCK_BOOLEAN:
-		sock = nodeAddOutputBoolean(ntree, node, stemp->name);
-		break;
-	case SOCK_VECTOR:
-		sock = nodeAddOutputVector(ntree, node, stemp->name);
-		break;
-	case SOCK_RGBA:
-		sock = nodeAddOutputRGBA(ntree, node, stemp->name);
-		break;
-	case SOCK_SHADER:
-		sock = nodeAddOutputShader(ntree, node, stemp->name);
-		break;
-	case SOCK_MESH:
-		sock = nodeAddOutputMesh(ntree, node, stemp->name);
-		break;
-	default:
-		sock = nodeAddSocket(ntree, node, SOCK_OUT, stemp->name, stemp->type);
-	}
+	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_OUT, stemp->name, stemp->type);
 	return sock;
 }
 

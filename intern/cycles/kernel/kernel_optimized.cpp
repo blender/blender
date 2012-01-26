@@ -35,21 +35,21 @@ CCL_NAMESPACE_BEGIN
 
 /* Path Tracing */
 
-void kernel_cpu_optimized_path_trace(KernelGlobals *kg, float4 *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
+void kernel_cpu_optimized_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
 {
 	kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
 /* Tonemapping */
 
-void kernel_cpu_optimized_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffer, int sample, int resolution, int x, int y, int offset, int stride)
+void kernel_cpu_optimized_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer, int sample, int resolution, int x, int y, int offset, int stride)
 {
 	kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
 }
 
 /* Shader Evaluate */
 
-void kernel_cpu_optimized_shader(KernelGlobals *kg, uint4 *input, float3 *output, int type, int i)
+void kernel_cpu_optimized_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i)
 {
 	kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i);
 }

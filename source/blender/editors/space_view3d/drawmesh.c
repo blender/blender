@@ -349,11 +349,8 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	
-	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
-	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);
-	obcol[2]= CLAMPIS(ob->col[2]*255, 0, 255);
-	obcol[3]= CLAMPIS(ob->col[3]*255, 0, 255);
-	
+	rgba_float_to_uchar(obcol, ob->col);
+
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
 	if(solidtex || v3d->drawtype==OB_TEXTURE) istex= 1;
 	else istex= 0;
@@ -716,7 +713,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	}
 	else {
 		if(GPU_buffer_legacy(dm)) {
-			if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)
+			if (draw_flags & DRAW_MODIFIERS_PREVIEW)
 				dm->drawFacesTex(dm, draw_mcol__set_draw_legacy, NULL, NULL);
 			else 
 				dm->drawFacesTex(dm, draw_tface__set_draw_legacy, NULL, NULL);
@@ -852,7 +849,7 @@ static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
 {
-	if((!scene_use_new_shading_nodes(scene)) || (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)) {
+	if((!scene_use_new_shading_nodes(scene)) || (draw_flags & DRAW_MODIFIERS_PREVIEW)) {
 		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, draw_flags);
 		return;
 	}

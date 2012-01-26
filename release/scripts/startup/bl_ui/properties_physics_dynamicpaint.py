@@ -412,14 +412,14 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
             col.prop(brush, "paint_distance", text="Paint Distance")
             split = layout.row().split(percentage=0.4)
             sub = split.column()
-            if brush.paint_source == 'DISTANCE':
+            if brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE'}:
                 sub.prop(brush, "use_proximity_project")
-            elif brush.paint_source == 'VOLUME_DISTANCE':
+            if brush.paint_source == 'VOLUME_DISTANCE':
                 sub.prop(brush, "invert_proximity")
                 sub.prop(brush, "use_negative_volume")
 
             sub = split.column()
-            if brush.paint_source == 'DISTANCE':
+            if brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE'}:
                 column = sub.column()
                 column.active = brush.use_proximity_project
                 column.prop(brush, "ray_direction")

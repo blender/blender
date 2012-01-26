@@ -777,7 +777,9 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		else UI_ThemeColor(TH_SEL_MARKER);
 	}
 
-	if(sc->flag&SC_SHOW_MARKER_SEARCH) {
+	if((sc->flag&SC_SHOW_MARKER_SEARCH) &&
+	   ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_PATTERN)==0))
+	{
 		dx= track->search_min[0];
 		dy= track->search_min[1];
 	} else if(sc->flag&SC_SHOW_MARKER_PATTERN) {

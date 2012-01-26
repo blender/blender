@@ -224,6 +224,60 @@ static const char *get_pass_name(int passtype, int channel)
 		if(channel==1) return "Rayhits.G";
 		return "Rayhits.B";
 	}
+	if(passtype == SCE_PASS_DIFFUSE_DIRECT) {
+		if(channel==-1) return "DiffDir";
+		if(channel==0) return "DiffDir.R";
+		if(channel==1) return "DiffDir.G";
+		return "DiffDir.B";
+	}
+	if(passtype == SCE_PASS_DIFFUSE_INDIRECT) {
+		if(channel==-1) return "DiffInd";
+		if(channel==0) return "DiffInd.R";
+		if(channel==1) return "DiffInd.G";
+		return "DiffInd.B";
+	}
+	if(passtype == SCE_PASS_DIFFUSE_COLOR) {
+		if(channel==-1) return "DiffCol";
+		if(channel==0) return "DiffCol.R";
+		if(channel==1) return "DiffCol.G";
+		return "DiffCol.B";
+	}
+	if(passtype == SCE_PASS_GLOSSY_DIRECT) {
+		if(channel==-1) return "GlossDir";
+		if(channel==0) return "GlossDir.R";
+		if(channel==1) return "GlossDir.G";
+		return "GlossDir.B";
+	}
+	if(passtype == SCE_PASS_GLOSSY_INDIRECT) {
+		if(channel==-1) return "GlossInd";
+		if(channel==0) return "GlossInd.R";
+		if(channel==1) return "GlossInd.G";
+		return "GlossInd.B";
+	}
+	if(passtype == SCE_PASS_GLOSSY_COLOR) {
+		if(channel==-1) return "GlossCol";
+		if(channel==0) return "GlossCol.R";
+		if(channel==1) return "GlossCol.G";
+		return "GlossCol.B";
+	}
+	if(passtype == SCE_PASS_TRANSM_DIRECT) {
+		if(channel==-1) return "TransDir";
+		if(channel==0) return "TransDir.R";
+		if(channel==1) return "TransDir.G";
+		return "TransDir.B";
+	}
+	if(passtype == SCE_PASS_TRANSM_INDIRECT) {
+		if(channel==-1) return "TransInd";
+		if(channel==0) return "TransInd.R";
+		if(channel==1) return "TransInd.G";
+		return "TransInd.B";
+	}
+	if(passtype == SCE_PASS_TRANSM_COLOR) {
+		if(channel==-1) return "TransCol";
+		if(channel==0) return "TransCol.R";
+		if(channel==1) return "TransCol.G";
+		return "TransCol.B";
+	}
 	return "Unknown";
 }
 
@@ -286,6 +340,34 @@ static int passtype_from_name(const char *str)
 	
 	if(strcmp(str, "RayHits")==0)
 		return SCE_PASS_RAYHITS;
+
+	if(strcmp(str, "DiffDir")==0)
+		return SCE_PASS_DIFFUSE_DIRECT;
+
+	if(strcmp(str, "DiffInd")==0)
+		return SCE_PASS_DIFFUSE_INDIRECT;
+
+	if(strcmp(str, "DiffCol")==0)
+		return SCE_PASS_DIFFUSE_COLOR;
+
+	if(strcmp(str, "GlossDir")==0)
+		return SCE_PASS_GLOSSY_DIRECT;
+
+	if(strcmp(str, "GlossInd")==0)
+		return SCE_PASS_GLOSSY_INDIRECT;
+
+	if(strcmp(str, "GlossCol")==0)
+		return SCE_PASS_GLOSSY_COLOR;
+
+	if(strcmp(str, "TransDir")==0)
+		return SCE_PASS_TRANSM_DIRECT;
+
+	if(strcmp(str, "TransInd")==0)
+		return SCE_PASS_TRANSM_INDIRECT;
+
+	if(strcmp(str, "TransCol")==0)
+		return SCE_PASS_TRANSM_COLOR;
+
 	return 0;
 }
 
@@ -430,6 +512,24 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
 		if(rl->passflag & SCE_PASS_RAYHITS)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS);
+		if(srl->passflag  & SCE_PASS_DIFFUSE_DIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE_DIRECT);
+		if(srl->passflag  & SCE_PASS_DIFFUSE_INDIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE_INDIRECT);
+		if(srl->passflag  & SCE_PASS_DIFFUSE_COLOR)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE_COLOR);
+		if(srl->passflag  & SCE_PASS_GLOSSY_DIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_GLOSSY_DIRECT);
+		if(srl->passflag  & SCE_PASS_GLOSSY_INDIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_GLOSSY_INDIRECT);
+		if(srl->passflag  & SCE_PASS_GLOSSY_COLOR)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_GLOSSY_COLOR);
+		if(srl->passflag  & SCE_PASS_TRANSM_DIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_DIRECT);
+		if(srl->passflag  & SCE_PASS_TRANSM_INDIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_INDIRECT);
+		if(srl->passflag  & SCE_PASS_TRANSM_COLOR)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_COLOR);
 		
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */

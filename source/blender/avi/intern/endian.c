@@ -43,6 +43,10 @@
 #include "avi_intern.h"
 
 #ifdef __BIG_ENDIAN__
+#include "MEM_guardedalloc.h"
+#endif
+
+#ifdef __BIG_ENDIAN__
 static void invert (int *num)
 {
 	int new=0,i,j;

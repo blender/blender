@@ -608,7 +608,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float v
 		if(shi->obi->flag & R_TRANSFORMED)
 			mul_m4_v3(shi->obi->mat, v1);
 		
-		dface= v1[0]*shi->facenor[0]+v1[1]*shi->facenor[1]+v1[2]*shi->facenor[2];
+		dface = dot_v3v3(v1, shi->facenor);
 		
 		/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
 		if(R.r.mode & R_ORTHO) {
@@ -650,7 +650,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float v
 		else {
 			float div;
 			
-			div= shi->facenor[0]*view[0] + shi->facenor[1]*view[1] + shi->facenor[2]*view[2];
+			div = dot_v3v3(shi->facenor, view);
 			if (div!=0.0f) fac= dface/div;
 			else fac= 0.0f;
 			

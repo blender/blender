@@ -156,6 +156,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	if(wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
+	/* No need to ask for CD_WEIGHT_MCOL... */
+
 	return dataMask;
 }
 
@@ -229,6 +231,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int *tidx, *indices = NULL;
 	int numIdx = 0;
 	int i;
+	/* Flags. */
+#if 0
+	int do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview);
+#endif
 
 	/* Get number of verts. */
 	numVerts = dm->getNumVerts(dm);
@@ -251,6 +257,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
+	/* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
+	if(!dvert)
+		/* If not affecting all vertices, just return. */
+		if(wmd->mix_set != MOD_WVG_SET_ALL)
+			return dm;
+		/* Else, add a valid data layer! */
+		dvert = CustomData_add_layer_named(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC,
+		                                   NULL, numVerts, wmd->defgrp_name_a);
+		/* Ultimate security check. */
+		if(!dvert)
+			return dm;
 
 	/* Find out which vertices to work on. */
 	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGMix Modifier, tidx");
@@ -361,6 +378,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	 */
 	weightvg_update_vg(dvert, defgrp_idx, dw1, numIdx, indices, org_w, TRUE, -FLT_MAX, FALSE, 0.0f);
 
+	/* If weight preview enabled... */
+#if 0 /* XXX Currently done in mod stack :/ */
+	if(do_prev)
+		DM_update_weight_mcol(ob, dm, 0, org_w, numIdx, indices);
+#endif
+
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
@@ -388,8 +411,9 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	/* structSize */        sizeof(WeightVGMixModifierData),
 	/* type */              eModifierTypeType_NonGeometrical,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
-/*	                       |eModifierTypeFlag_SupportsMapping*/
-	                       |eModifierTypeFlag_SupportsEditmode,
+	                       |eModifierTypeFlag_SupportsMapping
+	                       |eModifierTypeFlag_SupportsEditmode
+	                       |eModifierTypeFlag_UsesPreview,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

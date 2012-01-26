@@ -350,7 +350,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	GHash *material_hash = NULL;
 	Mesh *me1= (Mesh*)ob1->data;
 	Mesh *me2= (Mesh*)ob2->data;
-	int i;
+	int i, *origindex_layer;
 
 	// create a new DerivedMesh
 	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements);
@@ -378,6 +378,8 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "CSG_mat gh");
 		*totmat = 0;
 	}
+
+	origindex_layer = result->getFaceDataArray(result, CD_ORIGINDEX);
 
 	// step through the face iterators
 	for(i = 0; !face_it->Done(face_it->it); i++) {
@@ -427,6 +429,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 					  (orig_me == me2)? mapmat: NULL);
 
 		test_index_face(mface, &result->faceData, i, csgface.vertex_number);
+
+		if(origindex_layer && orig_ob == ob2)
+			origindex_layer[i] = ORIGINDEX_NONE;
 	}
 
 	if (material_hash)
@@ -522,7 +527,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 			CSG_FreeFaceDescriptor(&fd_o);
 		}
 		else
-			printf("Unknown internal error in boolean");
+			printf("Unknown internal error in boolean\n");
 
 		CSG_FreeBooleanOperation(bool_op);
 

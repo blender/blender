@@ -45,6 +45,7 @@
 /* Textures */
 
 typedef texture<float4, 1> texture_float4;
+typedef texture<float2, 1> texture_float2;
 typedef texture<float, 1> texture_float;
 typedef texture<uint, 1> texture_uint;
 typedef texture<int, 1> texture_int;

@@ -85,19 +85,21 @@ typedef struct bNodeSocket {
 	
 	/* execution data */
 	short stack_index;			/* local stack index */
-	short stack_type;			/* deprecated, kept for forward compatibility */
+	/* XXX deprecated, kept for forward compatibility */
+	short stack_type  DNA_DEPRECATED;
 	int pad3;
 	void *cache;				/* cached data from execution */
 	
 	/* internal data to retrieve relations and groups */
 	int own_index;				/* group socket identifiers, to find matching pairs after reading files */
-	int to_index  DNA_DEPRECATED;  /* XXX deprecated, only used for restoring old group node links */
+	/* XXX deprecated, only used for restoring old group node links */
+	int to_index  DNA_DEPRECATED;
 	struct bNodeSocket *groupsock;
 	
 	struct bNodeLink *link;		/* a link pointer, set in ntreeUpdateTree */
 
-	/* DEPRECATED only needed for do_versions */
-	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
+	/* XXX deprecated, socket input values are stored in default_value now. kept for forward compatibility */
+	bNodeStack ns  DNA_DEPRECATED;	/* custom data for inputs, only UI writes in this */
 } bNodeSocket;
 
 /* sock->type */
@@ -347,7 +349,7 @@ typedef struct NodeHueSat {
 } NodeHueSat;
 
 typedef struct NodeImageFile {
-	char name[256];
+	char name[1024]; /* 1024 = FILE_MAX */
 	struct ImageFormatData im_format;
 	int sfra, efra;
 } NodeImageFile;

@@ -526,7 +526,8 @@ static void draw_bone_solid_octahedral(void)
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glNormalPointer(GL_FLOAT, 0, bone_octahedral_solid_normals);
 		glVertexPointer(3, GL_FLOAT, 0, bone_octahedral_verts);
-		glDrawElements(GL_TRIANGLES, sizeof(bone_octahedral_solid_tris)/sizeof(unsigned int), GL_UNSIGNED_INT, bone_octahedral_solid_tris);
+		glDrawElements(GL_TRIANGLES, sizeof(bone_octahedral_solid_tris)/sizeof(unsigned int),
+		               GL_UNSIGNED_INT, bone_octahedral_solid_tris);
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 #endif
@@ -738,7 +739,9 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 
 
 /* smat, imat = mat & imat to draw screenaligned */
-static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_sphere_bone_wire(float smat[][4], float imat[][4],
+                                  int armflag, int boneflag, short constflag, unsigned int id,
+                                  bPoseChannel *pchan, EditBone *ebone)
 {
 	float head, tail /*, length*/;
 	float *headvec, *tailvec, dirvec[3];
@@ -843,7 +846,8 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 }
 
 /* does wire only for outline selecting */
-static void draw_sphere_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_sphere_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id,
+                             bPoseChannel *pchan, EditBone *ebone)
 {
 	GLUquadricObj	*qobj;
 	float head, tail, length;
@@ -973,7 +977,8 @@ static GLubyte bm_dot5[]= {0x0, 0x0, 0x10, 0x38, 0x7c, 0x38, 0x10, 0x0};
 static GLubyte bm_dot7[]= {0x0, 0x38, 0x7C, 0xFE, 0xFE, 0xFE, 0x7C, 0x38}; 
 
 
-static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned int id,
+                           bPoseChannel *pchan, EditBone *ebone)
 {
 	float length;
 	
@@ -1107,7 +1112,8 @@ static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float l
 	}
 }
 
-static void draw_b_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_b_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id,
+                        bPoseChannel *pchan, EditBone *ebone)
 {
 	float xwidth, length, zwidth;
 	
@@ -1220,7 +1226,8 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 	}
 }
 
-static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id,
+                           bPoseChannel *pchan, EditBone *ebone)
 {
 	Mat4 *bbones = NULL;
 	int segments = 0;
@@ -1340,7 +1347,8 @@ static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsign
 	}
 }
 
-static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int armflag, int boneflag, unsigned int id, float length)
+static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob,
+                             int dt, int armflag, int boneflag, unsigned int id, float length)
 {
 	if(ob==NULL) return;
 	
@@ -1573,7 +1581,8 @@ static void draw_pose_dofs(Object *ob)
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
-									float fac= ((float)a)/16.0f * 0.5f; /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+									/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+									float fac= ((float)a)/16.0f * 0.5f;
 									
 									phi= fac * (pchan->limitmax[2] - pchan->limitmin[2]);
 									
@@ -1596,7 +1605,8 @@ static void draw_pose_dofs(Object *ob)
 								glColor3ub(255, 50, 50);	// Red, X axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
-									float fac= ((float)a)/16.0f * 0.5f; /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+									/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+									float fac= ((float)a)/16.0f * 0.5f;
 									phi= (float)(0.5*M_PI) + fac * (pchan->limitmax[0] - pchan->limitmin[0]);
 									
 									i= (a == -16) ? 2 : 3;
@@ -1630,7 +1640,8 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, const short is_ghost, const short is_outline)
+static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt,
+                            const short is_ghost, const short is_outline)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
@@ -1730,10 +1741,13 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					
 					if (use_custom) {
 						/* if drawwire, don't try to draw in solid */
-						if (pchan->bone->flag & BONE_DRAWWIRE) 
+						if (pchan->bone->flag & BONE_DRAWWIRE) {
 							draw_wire= 1;
-						else
-							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+						}
+						else {
+							draw_custom_bone(scene, v3d, rv3d, pchan->custom,
+							                 OB_SOLID, arm->flag, flag, index, bone->length);
+						}
 					}
 					else if (arm->drawtype==ARM_LINE)
 						;	/* nothing in solid */
@@ -1817,7 +1831,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							if (bone == arm->act_bone)
 								flag |= BONE_DRAW_ACTIVE;
 							
-							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+							draw_custom_bone(scene, v3d, rv3d, pchan->custom,
+							                 OB_WIRE, arm->flag, flag, index, bone->length);
 							
 							glPopMatrix();
 						}
@@ -1966,7 +1981,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			unsigned char col[4];
 			float col_f[4];
 			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
-			rgb_float_to_byte(col_f, col);
+			rgb_float_to_uchar(col, col_f);
 			col[3]= 255;
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
@@ -2580,7 +2595,3 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 
 	return retval;
 }
-
-/* *************** END Armature drawing ******************* */
-
-

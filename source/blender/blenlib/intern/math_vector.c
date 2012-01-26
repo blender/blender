@@ -239,6 +239,20 @@ void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const 
 	angles[3]= (float)M_PI - angle_normalized_v3v3(ed4, ed1);
 }
 
+void angle_poly_v3(float *angles, const float *verts[3], int len)
+{
+	int i;
+	float vec[3][3];
+
+	sub_v3_v3v3(vec[2], verts[len-1], verts[0]);
+	normalize_v3(vec[2]);
+	for (i = 0; i < len; i++) {
+		sub_v3_v3v3(vec[i%3], verts[i%len], verts[(i+1)%len]);
+		normalize_v3(vec[i%3]);
+		angles[i] = (float)M_PI - angle_normalized_v3v3(vec[(i+2)%3], vec[i%3]);
+	}
+}
+
 /********************************* Geometry **********************************/
 
 /* Project v1 on v2 */

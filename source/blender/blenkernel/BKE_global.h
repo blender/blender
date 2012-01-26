@@ -53,7 +53,7 @@ typedef struct Global {
 	struct Main *main;
 	
 	/* strings: lastsaved */
-	char ima[256], lib[256];
+	char ima[1024], lib[1024]; /* 1024 = FILE_MAX */
 
 	/* flag: if != 0 G.main->name contains valid relative base path */
 	int relbase_valid;

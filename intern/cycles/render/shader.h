@@ -47,6 +47,7 @@ class Shader {
 public:
 	/* name */
 	string name;
+	int pass_id;
 
 	/* shader graph */
 	ShaderGraph *graph;

@@ -1,6 +1,6 @@
 """
 Basic Physics Constraint
-++++++++++++++++++++++
+++++++++++++++++++++++++
 Example of how to create a hinge Physics Constraint between two objects.
 """
 from bge import logic

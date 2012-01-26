@@ -104,13 +104,13 @@ __device_inline void sample_uniform_hemisphere(const float3 N,
 
 __device float3 sample_uniform_sphere(float u1, float u2)
 {
-    float z = 1.0f - 2.0f*u1;
-    float r = sqrtf(fmaxf(0.0f, 1.0f - z*z));
-    float phi = 2.0f*M_PI_F*u2;
-    float x = r*cosf(phi);
-    float y = r*sinf(phi);
+	float z = 1.0f - 2.0f*u1;
+	float r = sqrtf(fmaxf(0.0f, 1.0f - z*z));
+	float phi = 2.0f*M_PI_F*u2;
+	float x = r*cosf(phi);
+	float y = r*sinf(phi);
 
-    return make_float3(x, y, z);
+	return make_float3(x, y, z);
 }
 
 __device float power_heuristic(float a, float b)
@@ -201,6 +201,28 @@ __device float3 spherical_to_direction(float theta, float phi)
 		sinf(theta)*cosf(phi),
 		sinf(theta)*sinf(phi),
 		cosf(theta));
+}
+
+/* Equirectangular */
+
+__device float2 direction_to_equirectangular(float3 dir)
+{
+	float u = (atan2f(dir.y, dir.x) + M_PI_F)/(2.0f*M_PI_F);
+	float v = atan2f(dir.z, hypotf(dir.x, dir.y))/M_PI_F + 0.5f;
+
+	return make_float2(u, v);
+}
+
+__device float3 equirectangular_to_direction(float u, float v)
+{
+	/* XXX check correctness? */
+	float theta = M_PI_F*v;
+	float phi = 2.0f*M_PI_F*u;
+
+	return make_float3(
+		sin(theta)*cos(phi),
+		sin(theta)*sin(phi),
+		cos(theta));
 }
 
 CCL_NAMESPACE_END

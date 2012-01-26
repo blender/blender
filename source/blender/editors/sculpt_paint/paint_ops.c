@@ -359,7 +359,7 @@ static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 	extern EnumPropertyItem uv_sculpt_tool_items[];
 	/* identifiers */
 	ot->name = "UV Sculpt Tool Set";
-	ot->description = "Set the uv sculpt tool";
+	ot->description = "Set the UV sculpt tool";
 	ot->idname = "BRUSH_OT_uv_sculpt_tool_set";
 
 	/* api callbacks */
@@ -663,9 +663,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_uv_sculpt");
 
-	WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "temp_relax", 1);
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL,  0)->ptr, "mode", BRUSH_STROKE_INVERT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_uv_sculpt_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", BRUSH_STROKE_SMOOTH);
 
 	ed_keymap_paint_brush_size(keymap, "tool_settings.uv_sculpt.brush.size");
 	ed_keymap_paint_brush_radial_control(keymap, "uv_sculpt", 0);

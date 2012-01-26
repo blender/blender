@@ -268,6 +268,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	if(wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
+	/* No need to ask for CD_WEIGHT_MCOL... */
+
 	return dataMask;
 }
 
@@ -353,6 +355,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int *tidx, *indices = NULL;
 	int numIdx = 0;
 	int i;
+	/* Flags. */
+#if 0
+	int do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview);
+#endif
 
 #if DO_PROFILE
 	TIMEIT_START(perf)
@@ -378,6 +384,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
+	/* If no vertices were ever added to an object's vgroup, dvert might be NULL.
+	 * As this modifier never add vertices to vgroup, just return. */
+	if(!dvert)
+		return dm;
 
 	/* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight.
 	 */
@@ -501,6 +511,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, dw, numIdx, indices, org_w, FALSE, 0.0f, FALSE, 0.0f);
 
+	/* If weight preview enabled... */
+#if 0 /* XXX Currently done in mod stack :/ */
+	if(do_prev)
+		DM_update_weight_mcol(ob, dm, 0, org_w, numIdx, indices);
+#endif
+
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
@@ -531,8 +547,9 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* structSize */        sizeof(WeightVGProximityModifierData),
 	/* type */              eModifierTypeType_NonGeometrical,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
-/*	                       |eModifierTypeFlag_SupportsMapping*/
-	                       |eModifierTypeFlag_SupportsEditmode,
+	                       |eModifierTypeFlag_SupportsMapping
+	                       |eModifierTypeFlag_SupportsEditmode
+	                       |eModifierTypeFlag_UsesPreview,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

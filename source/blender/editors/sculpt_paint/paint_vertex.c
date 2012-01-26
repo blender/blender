@@ -497,7 +497,7 @@ void vpaint_dogamma(Scene *scene)
 }
  */
 
-static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
+BM_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 {
 	char *cp1, *cp2, *cp;
 	int mfac;
@@ -520,7 +520,7 @@ static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
+BM_INLINE unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 {
 	char *cp1, *cp2, *cp;
 	int temp;
@@ -543,7 +543,7 @@ static unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
+BM_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 {
 	char *cp1, *cp2, *cp;
 	int temp;
@@ -566,7 +566,7 @@ static unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
+BM_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 {
 	char *cp1, *cp2, *cp;
 	int mfac;
@@ -590,7 +590,7 @@ static unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
+BM_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
 {
 	char *cp1, *cp2, *cp;
 	int mfac;
@@ -618,7 +618,7 @@ static unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
+BM_INLINE unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 {
 	char *cp1, *cp2, *cp;
 	int mfac;
@@ -651,18 +651,12 @@ static unsigned int vpaint_blend_tool(const int tool, const unsigned int col,
 {
 	switch (tool) {
 		case PAINT_BLEND_MIX:
-		case PAINT_BLEND_BLUR:
-			return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_ADD:
-			return mcol_add(col, paintcol, alpha_i);
-		case PAINT_BLEND_SUB:
-			return mcol_sub(col, paintcol, alpha_i);
-		case PAINT_BLEND_MUL:
-			return mcol_mul(col, paintcol, alpha_i);
-		case PAINT_BLEND_LIGHTEN:
-			return mcol_lighten(col, paintcol, alpha_i);
-		case PAINT_BLEND_DARKEN:
-			return mcol_darken(col, paintcol, alpha_i);
+		case PAINT_BLEND_BLUR:     return mcol_blend(col, paintcol, alpha_i);
+		case PAINT_BLEND_ADD:      return mcol_add(col, paintcol, alpha_i);
+		case PAINT_BLEND_SUB:      return mcol_sub(col, paintcol, alpha_i);
+		case PAINT_BLEND_MUL:      return mcol_mul(col, paintcol, alpha_i);
+		case PAINT_BLEND_LIGHTEN:  return mcol_lighten(col, paintcol, alpha_i);
+		case PAINT_BLEND_DARKEN:   return mcol_darken(col, paintcol, alpha_i);
 		default:
 			BLI_assert(0);
 			return 0;
@@ -797,6 +791,33 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
 	return 0.0f;
 }
 
+
+BM_INLINE float wval_blend(const float weight, const float paintval, const float alpha)
+{
+	return (paintval * alpha) + (weight * (1.0f - alpha));
+}
+BM_INLINE float wval_add(const float weight, const float paintval, const float alpha)
+{
+	return weight + (paintval * alpha);
+}
+BM_INLINE float wval_sub(const float weight, const float paintval, const float alpha)
+{
+	return weight - (paintval * alpha);
+}
+BM_INLINE float wval_mul(const float weight, const float paintval, const float alpha)
+{	/* first mul, then blend the fac */
+	return ((1.0f - alpha) + (alpha * paintval)) * weight;
+}
+BM_INLINE float wval_lighten(const float weight, const float paintval, const float alpha)
+{
+	return (weight < paintval) ? wval_blend(weight, paintval, alpha) : weight;
+}
+BM_INLINE float wval_darken(const float weight, const float paintval, const float alpha)
+{
+	return (weight > paintval) ? wval_blend(weight, paintval, alpha) : weight;
+}
+
+
 /* vpaint has 'vpaint_blend_tool' */
 /* result is not clamped from [0-1] */
 static float wpaint_blend_tool(const int tool,
@@ -806,19 +827,12 @@ static float wpaint_blend_tool(const int tool,
 {
 	switch (tool) {
 		case PAINT_BLEND_MIX:
-		case PAINT_BLEND_BLUR:
-			return (paintval * alpha) + (weight * (1.0f - alpha));
-		case PAINT_BLEND_ADD:
-			return (paintval * alpha) + weight;
-		case PAINT_BLEND_SUB:
-			return (paintval * alpha) - weight;
-		case PAINT_BLEND_MUL:
-			/* first mul, then blend the fac */
-			return ((1.0f - alpha) + alpha * paintval) * weight;
-		case PAINT_BLEND_LIGHTEN:
-			return (weight < paintval) ? (paintval * alpha) + (weight * (1.0f - alpha)) : weight;
-		case PAINT_BLEND_DARKEN:
-			return (weight > paintval) ? (paintval * alpha) + (weight * (1.0f - alpha)) : weight;
+		case PAINT_BLEND_BLUR:     return wval_blend(weight, paintval, alpha);
+		case PAINT_BLEND_ADD:      return wval_add(weight, paintval, alpha);
+		case PAINT_BLEND_SUB:      return wval_sub(weight, paintval, alpha);
+		case PAINT_BLEND_MUL:      return wval_mul(weight, paintval, alpha);
+		case PAINT_BLEND_LIGHTEN:  return wval_lighten(weight, paintval, alpha);
+		case PAINT_BLEND_DARKEN:   return wval_darken(weight, paintval, alpha);
 		default:
 			BLI_assert(0);
 			return 0.0f;

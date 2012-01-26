@@ -140,6 +140,10 @@
 	(&arr[_##arr##_count - 1])                                                \
 )
 
+#define BLI_array_reserve(arr, num)                                           \
+	BLI_array_growitems(arr, num), (void)(_##arr##_count -= num)
+
+
 #define BLI_array_free(arr)                                                   \
 	if (arr && (char *)arr != _##arr##_static) {                              \
 	    BLI_array_fake_user(arr);                                             \

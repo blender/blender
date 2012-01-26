@@ -186,6 +186,8 @@ typedef struct PointCache {
 	int endframe;	/* simulation end frame */
 	int editframe;	/* frame being edited (runtime only) */
 	int last_exact; /* last exact frame that's cached */
+	int last_valid; /* used for editing cache - what is the last baked frame */
+	int pad;
 
 	/* for external cache files */
 	int totpoint;   /* number of cached points */
@@ -195,7 +197,7 @@ typedef struct PointCache {
 	char name[64];
 	char prev_name[64];
 	char info[64];
-	char path[240]; /* file path, 240 = FILE_MAX */
+	char path[1024]; /* file path, 1024 = FILE_MAX */
 	char *cached_frames;	/* array of length endframe-startframe+1 with flags to indicate cached frames */
 							/* can be later used for other per frame flags too if needed */
 	struct ListBase mem_cache;

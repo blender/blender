@@ -205,6 +205,15 @@ public:
 	MakeScreenShot(
 		const char* filename
 	)=0;
+
+	virtual
+		void 
+	ResizeWindow(
+		int width,
+		int height
+	)=0;
+
+		
 	
 protected:
 	RAS_MouseState m_mousestate;

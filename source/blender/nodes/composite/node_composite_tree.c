@@ -694,7 +694,28 @@ static void force_hidden_passes(bNode *node, int passflag)
 	if(!(passflag & SCE_PASS_EMIT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_ENV);
 	if(!(passflag & SCE_PASS_ENVIRONMENT)) sock->flag |= SOCK_UNAVAIL;
-	
+
+	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_DIRECT);
+	if(!(passflag & SCE_PASS_DIFFUSE_DIRECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_INDIRECT);
+	if(!(passflag & SCE_PASS_DIFFUSE_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_COLOR);
+	if(!(passflag & SCE_PASS_DIFFUSE_COLOR)) sock->flag |= SOCK_UNAVAIL;
+
+	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_DIRECT);
+	if(!(passflag & SCE_PASS_GLOSSY_DIRECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_INDIRECT);
+	if(!(passflag & SCE_PASS_GLOSSY_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_COLOR);
+	if(!(passflag & SCE_PASS_GLOSSY_COLOR)) sock->flag |= SOCK_UNAVAIL;
+
+	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_DIRECT);
+	if(!(passflag & SCE_PASS_TRANSM_DIRECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_INDIRECT);
+	if(!(passflag & SCE_PASS_TRANSM_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
+	if(!(passflag & SCE_PASS_TRANSM_COLOR)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
 }
 
 /* based on rules, force sockets hidden always */

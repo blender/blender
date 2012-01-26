@@ -50,6 +50,8 @@
 
 #include "BIF_gl.h"
 
+#include "RNA_access.h"
+
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -58,6 +60,7 @@
 
 static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *lb;
 	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
@@ -66,6 +69,88 @@ static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
 	/* don't pass on view2d mask, it's always set with scrollbar space, hide fails */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, &ar->winrct);
+
+	/* Add dropboxes */
+	lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
+}
+
+static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	TreeElement *te= NULL;
+	float fmval[2];
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	if(drag->type == WM_DRAG_ID) {
+		ID *id = (ID *)drag->poin;
+		if( GS(id->name) == ID_OB ) {
+			/* Ensure item under cursor is valid drop target */
+			/* Find object hovered over */
+			for(te= soops->tree.first; te; te= te->next) {
+				TreeElement *te_valid;
+				te_valid= outliner_dropzone_parent(C, event, te, fmval);
+				if(te_valid) return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static void outliner_parent_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id = (ID *)drag->poin;
+
+	RNA_string_set(drop->ptr, "child", id->name+2);
+}
+
+static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	TreeElement *te= NULL;
+	float fmval[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	if(drag->type == WM_DRAG_ID) {
+		ID *id = (ID *)drag->poin;
+		if( GS(id->name) == ID_OB ) {
+			//TODO: Check if no parent?
+			/* Ensure location under cursor is valid dropzone */
+			for(te= soops->tree.first; te; te= te->next) {
+				if(outliner_dropzone_parent_clear(C, event, te, fmval)) return 1;
+			}
+			/* Check if mouse cursor is below the tree */
+			te= soops->tree.last;
+			while(((te->flag & TE_LAZY_CLOSED)==0) && (te->subtree.last)) {
+				te= te->subtree.last;
+			}
+			if(fmval[1] < te->ys) return 1;
+		}
+	}
+	return 0;
+}
+
+static void outliner_parent_clear_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id = (ID *)drag->poin;
+	RNA_string_set(drop->ptr, "dragged_obj", id->name+2);
+
+	/* Set to simple parent clear type. Avoid menus for drag and drop if possible.
+	 * If desired, user can toggle the different "Clear Parent" types in the operator
+	 * menu on tool shelf. */
+	RNA_enum_set(drop->ptr, "type", 0);
+}
+
+/* region dropbox definition */
+static void outliner_dropboxes(void)
+{
+	ListBase *lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
+
+	WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", outliner_parent_drop_poll, outliner_parent_drop_copy);
+	WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", outliner_parent_clear_poll, outliner_parent_clear_copy);
 }
 
 static void outliner_main_area_draw(const bContext *C, ARegion *ar)
@@ -302,6 +387,7 @@ void ED_spacetype_outliner(void)
 	st->duplicate= outliner_duplicate;
 	st->operatortypes= outliner_operatortypes;
 	st->keymap= outliner_keymap;
+	st->dropboxes= outliner_dropboxes;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");

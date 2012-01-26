@@ -132,19 +132,18 @@ void BLI_kdtree_balance(KDTree *tree)
 	tree->root= kdtree_balance(tree->nodes, tree->totnode, 0);
 }
 
-static float squared_distance(float *v2, float *v1, float *n1, float *n2)
+static float squared_distance(float *v2, float *v1, float *UNUSED(n1), float *n2)
 {
 	float d[3], dist;
-	(void)n1; /* unused */
 
 	d[0]= v2[0]-v1[0];
 	d[1]= v2[1]-v1[1];
 	d[2]= v2[2]-v1[2];
 
-	dist= d[0]*d[0] + d[1]*d[1] + d[2]*d[2];
+	dist = dot_v3v3(d, d);
 
-	//if(n1 && n2 && n1[0]*n2[0] + n1[1]*n2[1] + n1[2]*n2[2] < 0.0f)
-	if(n2 && d[0]*n2[0] + d[1]*n2[1] + d[2]*n2[2] < 0.0f)
+	//if(n1 && n2 && (dot_v3v3(n1, n2) < 0.0f))
+	if(n2 && (dot_v3v3(d, n2) < 0.0f))
 		dist *= 10.0f;
 
 	return dist;

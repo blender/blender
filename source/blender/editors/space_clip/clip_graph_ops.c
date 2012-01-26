@@ -30,6 +30,7 @@
  */
 
 #include "DNA_object_types.h"	/* SELECT */
+#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -57,6 +58,19 @@
 #include "clip_intern.h"	// own include
 
 /******************** common graph-editing utilities ********************/
+
+static int ED_space_clip_graph_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if(sc && sc->clip) {
+		ARegion *ar = CTX_wm_region(C);
+
+		return ar->regiontype == RGN_TYPE_PREVIEW;
+	}
+
+	return 0;
+}
 
 typedef struct {
 	int action;
@@ -278,7 +292,7 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_exec;
 	ot->invoke= select_invoke;
-	ot->poll= ED_space_clip_poll;
+	ot->poll= ED_space_clip_graph_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -357,8 +371,112 @@ void CLIP_OT_graph_delete_knot(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= delete_knot_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->poll= ED_space_clip_graph_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/******************** view all operator ********************/
+
+typedef struct {
+	float min, max;
+} ViewAllUserData;
+
+static void view_all_cb(void *userdata, MovieTrackingTrack *UNUSED(track), MovieTrackingMarker *UNUSED(marker),
+                        int UNUSED(coord), float val)
+{
+	ViewAllUserData *data = (ViewAllUserData *)userdata;
+
+	if(val < data->min) data->min = val;
+	if(val > data->max) data->max = val;
+}
+
+static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	View2D *v2d = &ar->v2d;
+	ViewAllUserData userdata;
+	float extra;
+
+	userdata.max = -FLT_MAX;
+	userdata.min = FLT_MAX;
+
+	clip_graph_tracking_values_iterate(sc, &userdata, view_all_cb, NULL, NULL);
+
+	/* set extents of view to start/end frames */
+	v2d->cur.xmin = (float)SFRA;
+	v2d->cur.xmax = (float)EFRA;
+
+	if (userdata.min < userdata.max) {
+		v2d->cur.ymin = userdata.min;
+		v2d->cur.ymax = userdata.max;
+	}
+	else {
+		v2d->cur.ymin = -10;
+		v2d->cur.ymax = 10;
+	}
+
+	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
+	extra= 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
+	v2d->cur.xmin -= extra;
+	v2d->cur.xmax += extra;
+
+	extra= 0.01f * (v2d->cur.ymax - v2d->cur.ymin);
+	v2d->cur.ymin -= extra;
+	v2d->cur.ymax += extra;
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_graph_view_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View All";
+	ot->description = "View all curves in editor";
+	ot->idname = "CLIP_OT_graph_view_all";
+
+	/* api callbacks */
+	ot->exec = view_all_exec;
+	ot->poll = ED_space_clip_graph_poll;
+}
+
+/******************** jump to current frame operator ********************/
+
+void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
+{
+	View2D *v2d = &ar->v2d;
+	float extra = (v2d->cur.xmax - v2d->cur.xmin) / 2.0;
+
+	/* set extents of view to start/end frames */
+	v2d->cur.xmin = (float)CFRA - extra;
+	v2d->cur.xmax = (float)CFRA + extra;
+}
+
+static int center_current_frame_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	ED_clip_graph_center_current_frame(scene, ar);
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_graph_center_current_frame(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Center Current Frame";
+	ot->description = "Scroll view so current frame would be centered";
+	ot->idname = "CLIP_OT_graph_center_current_frame";
+
+	/* api callbacks */
+	ot->exec = center_current_frame_exec;
+	ot->poll = ED_space_clip_graph_poll;
 }

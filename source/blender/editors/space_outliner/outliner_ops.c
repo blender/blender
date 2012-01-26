@@ -49,6 +49,7 @@
 void outliner_operatortypes(void)
 {
 	WM_operatortype_append(OUTLINER_OT_item_activate);
+	WM_operatortype_append(OUTLINER_OT_select_border);
 	WM_operatortype_append(OUTLINER_OT_item_openclose);
 	WM_operatortype_append(OUTLINER_OT_item_rename);
 	WM_operatortype_append(OUTLINER_OT_operation);
@@ -76,6 +77,9 @@ void outliner_operatortypes(void)
 	
 	WM_operatortype_append(OUTLINER_OT_drivers_add_selected);
 	WM_operatortype_append(OUTLINER_OT_drivers_delete_selected);
+
+	WM_operatortype_append(OUTLINER_OT_parent_drop);
+	WM_operatortype_append(OUTLINER_OT_parent_clear);
 }
 
 void outliner_keymap(wmKeyConfig *keyconf)
@@ -89,6 +93,8 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+
+	WM_keymap_add_item(keymap, "OUTLINER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "all", FALSE);

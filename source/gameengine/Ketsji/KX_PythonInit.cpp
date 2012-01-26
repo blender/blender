@@ -1288,6 +1288,16 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 	Py_RETURN_NONE;
 }
 
+static PyObject* gPySetWindowSize(PyObject*, PyObject* args)
+{
+	int width, height;
+	if (!PyArg_ParseTuple(args, "ii:resize", &width, &height))
+		return NULL;
+
+	gp_Canvas->ResizeWindow(width, height);
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef rasterizer_methods[] = {
   {"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
    METH_VARARGS, "getWindowWidth doc"},
@@ -1329,6 +1339,7 @@ static struct PyMethodDef rasterizer_methods[] = {
   METH_VARARGS, "get the anisotropic filtering level"},
   {"drawLine", (PyCFunction) gPyDrawLine,
    METH_VARARGS, "draw a line on the screen"},
+  {"setWindowSize", (PyCFunction) gPySetWindowSize, METH_VARARGS, ""},
   { NULL, (PyCFunction) NULL, 0, NULL }
 };
 

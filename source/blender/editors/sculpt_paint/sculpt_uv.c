@@ -121,24 +121,30 @@ typedef struct UvSculptData{
 	/* Edges used for adjacency info, used with laplacian smoothing */
 	UvEdge *uvedges;
 
-	/* Need I say more? */
+	/* need I say more? */
 	int totalUvEdges;
 
 	/* data for initial stroke, used by tools like grab */
 	UVInitialStroke *initial_stroke;
 
-	/* Timer to be used for airbrush-type brush */
+	/* timer to be used for airbrush-type brush */
 	wmTimer *timer;
 
-	/* To determine quickly adjacent uvs */
+	/* to determine quickly adjacent uvs */
 	UvElementMap *elementMap;
 
 	/* uvsmooth Paint for fast reference */
 	Paint *uvsculpt;
+	
+	/* tool to use. duplicating here to change if modifier keys are pressed */
+	char tool;
+
+	/* store invert flag here */
+	char invert;
 }UvSculptData;
 
 /*********** Improved Laplacian Relaxation Operator ************************/
-/* Original code by Raul Fernandez Hernandez "farsthary"                   *
+/* original code by Raul Fernandez Hernandez "farsthary"                   *
  * adapted to uv smoothing by Antony Riakiatakis                           *
  ***************************************************************************/
 
@@ -292,9 +298,8 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	float alpha, zoomx, zoomy;
 	Brush *brush = paint_brush(sculptdata->uvsculpt);
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
-	tool = RNA_boolean_get(op->ptr, "temp_relax")? UV_SCULPT_TOOL_RELAX : toolsettings->uv_sculpt_tool;
-
-	invert = RNA_boolean_get(op->ptr, "invert")? -1 : 1;
+	tool = sculptdata->tool;
+	invert = sculptdata->invert? -1 : 1;
 	alpha = brush_alpha(scene, brush);
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
@@ -463,6 +468,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		int island_index = 0;
 		/* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
 		int *uniqueUv;
+		data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH)? UV_SCULPT_TOOL_RELAX : ts->uv_sculpt_tool;
+		data->invert = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT)? 1 : 0;
 
 		data->uvsculpt = &ts->uvsculpt->paint;
 
@@ -632,7 +639,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		}
 
 		/* Allocate initial selection for grab tool */
-		if(ts->uv_sculpt_tool == UV_SCULPT_TOOL_GRAB){
+		if(data->tool){
 			float radius, radius_root;
 			UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 			SpaceImage *sima;
@@ -748,6 +755,13 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
 {
+	static EnumPropertyItem stroke_mode_items[] = {
+		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
+		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
+		{BRUSH_STROKE_SMOOTH, "RELAX", 0, "Relax", "Switch brush to relax mode for duration of stroke"},
+		{0}
+	};
+
 	/* identifiers */
 	ot->name = "Sculpt UVs";
 	ot->description = "Sculpt UVs using a brush";
@@ -762,6 +776,5 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "Inverts the operator");
-	RNA_def_boolean(ot->srna, "temp_relax", 0, "Relax", "Relax Tool");
+	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");
 }

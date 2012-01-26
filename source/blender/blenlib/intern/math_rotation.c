@@ -811,7 +811,7 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 		mat[2][2] =  1.0f;
 		break;
 	default:
-		assert("invalid axis");
+		assert(0);
 	}
 }
 

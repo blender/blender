@@ -60,6 +60,8 @@ public:
 	virtual float GetMouseNormalizedX(int x);
 	virtual float GetMouseNormalizedY(int y);
 
+	virtual void ResizeWindow(int width, int height);
+
 	bool BeginDraw() { return true;};
 	void EndDraw() {};
 };

@@ -128,14 +128,17 @@ typedef struct DynamicPaintSurface {
 	float wave_damping, wave_speed, wave_timescale, wave_spring;
 
 	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	char image_output_path[240];  /* 240 = FILE_MAX */
+	char image_output_path[1024];  /* 1024 = FILE_MAX */
 	char output_name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
 	char output_name2[64]; /* MAX_CUSTOMDATA_LAYER_NAME */ /* some surfaces have 2 outputs */
 
 } DynamicPaintSurface;
 
 /* canvas flags */
+#if 0 /* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
+       * And if not, should be a general flag. But seems unecessary for now... */
 #define MOD_DPAINT_PREVIEW_READY (1<<0) /* if viewport preview is ready */
+#endif
 #define MOD_DPAINT_BAKING (1<<1) /* surface is already baking, so it wont get updated (loop) */
 
 /* Canvas settings */

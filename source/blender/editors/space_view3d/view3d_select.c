@@ -240,6 +240,12 @@ static void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 
 /* *********************** GESTURE AND LASSO ******************* */
 
+typedef struct LassoSelectUserData {
+	ViewContext *vc;
+	rcti *rect;
+	int (*mcords)[2], moves, select, pass, done;
+} LassoSelectUserData;
+
 static int view3d_selectable_data(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
@@ -257,7 +263,9 @@ static int view3d_selectable_data(bContext *C)
 			if (ob->mode & OB_MODE_SCULPT) {
 				return 0;
 			}
-			if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob) && !paint_vertsel_test(ob)) {
+			if ((ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) &&
+			    !paint_facesel_test(ob) && !paint_vertsel_test(ob))
+			{
 				return 0;
 			}
 		}
@@ -454,7 +462,7 @@ static void lasso_select_boundbox(rcti *rect, int mcords[][2], short moves)
 
 static void do_lasso_select_mesh__doSelectVert(void *userData, EditVert *eve, int x, int y, int UNUSED(index))
 {
-	struct { ViewContext vc; rcti *rect; int (*mcords)[2], moves, select, pass, done; } *data = userData;
+	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
 		eve->f = data->select?(eve->f|1):(eve->f&~1);
@@ -462,7 +470,7 @@ static void do_lasso_select_mesh__doSelectVert(void *userData, EditVert *eve, in
 }
 static void do_lasso_select_mesh__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
-	struct { ViewContext vc; rcti *rect; int (*mcords)[2], moves, select, pass, done; } *data = userData;
+	LassoSelectUserData *data = userData;
 
 	if (EM_check_backbuf(em_solidoffs+index)) {
 		if (data->pass==0) {
@@ -481,16 +489,16 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, EditEdge *eed, in
 }
 static void do_lasso_select_mesh__doSelectFace(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
 {
-	struct { ViewContext vc; rcti *rect; int (*mcords)[2], moves, select, pass, done; } *data = userData;
+	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		EM_select_face_fgon(data->vc.em, efa, data->select);
+		EM_select_face_fgon(data->vc->em, efa, data->select);
 	}
 }
 
 static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
-	struct { ViewContext vc; rcti *rect; int (*mcords)[2], moves, select, pass, done; } data;
+	LassoSelectUserData data;
 	ToolSettings *ts= vc->scene->toolsettings;
 	rcti rect;
 	int bbsel;
@@ -500,7 +508,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	/* set editmesh */
 	vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
 
-	data.vc= *vc;
+	data.vc= vc;
 	data.rect = &rect;
 	data.mcords = mcords;
 	data.moves = moves;
@@ -608,7 +616,7 @@ static void do_lasso_select_mesh_uv(int mcords[][2], short moves, short select)
 
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { ViewContext *vc; int (*mcords)[2]; short moves; short select; } *data = userData;
+	LassoSelectUserData *data = userData;
 	Object *obedit= data->vc->obedit;
 	Curve *cu= (Curve*)obedit->data;
 
@@ -637,7 +645,7 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BP
 
 static void do_lasso_select_curve(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
-	struct { ViewContext *vc; int (*mcords)[2]; short moves; short select; } data;
+	LassoSelectUserData data;
 
 	/* set vc->editnurb */
 	data.vc = vc;
@@ -654,7 +662,7 @@ static void do_lasso_select_curve(ViewContext *vc, int mcords[][2], short moves,
 
 static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x, int y)
 {
-	struct { int (*mcords)[2]; short moves; short select; } *data = userData;
+	LassoSelectUserData *data = userData;
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
@@ -662,7 +670,7 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x,
 }
 static void do_lasso_select_lattice(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
-	struct { int (*mcords)[2]; short moves; short select; } data;
+	LassoSelectUserData data;
 
 	/* set editdata in vc */
 	data.mcords = mcords;
@@ -1622,6 +1630,11 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 
 /* ********************  border and circle ************************************** */
 
+typedef struct BoxSelectUserData {
+	ViewContext *vc;
+	rcti *rect;
+	int select, pass, done;
+} BoxSelectUserData;
 
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
 {
@@ -1647,7 +1660,7 @@ int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, 
 
 static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { ViewContext *vc; rcti *rect; int select; } *data = userData;
+	BoxSelectUserData *data = userData;
 	Object *obedit= data->vc->obedit;
 	Curve *cu= (Curve*)obedit->data;
 
@@ -1675,7 +1688,7 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoi
 }
 static int do_nurbs_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
-	struct { ViewContext *vc; rcti *rect; int select; } data;
+	BoxSelectUserData data;
 	
 	data.vc = vc;
 	data.rect = rect;
@@ -1692,7 +1705,7 @@ static int do_nurbs_box_select(ViewContext *vc, rcti *rect, int select, int exte
 
 static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, int y)
 {
-	struct { ViewContext vc; rcti *rect; int select; } *data = userData;
+	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
 		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
@@ -1700,9 +1713,9 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 }
 static int do_lattice_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
-	struct { ViewContext vc; rcti *rect; int select, pass, done; } data;
+	BoxSelectUserData data;
 
-	data.vc= *vc;
+	data.vc= vc;
 	data.rect = rect;
 	data.select = select;
 
@@ -1717,7 +1730,7 @@ static int do_lattice_box_select(ViewContext *vc, rcti *rect, int select, int ex
 
 static void do_mesh_box_select__doSelectVert(void *userData, EditVert *eve, int x, int y, int UNUSED(index))
 {
-	struct { ViewContext vc; rcti *rect; short select, pass, done; } *data = userData;
+	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
 		eve->f = data->select?(eve->f|1):(eve->f&~1);
@@ -1725,7 +1738,7 @@ static void do_mesh_box_select__doSelectVert(void *userData, EditVert *eve, int 
 }
 static void do_mesh_box_select__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
-	struct { ViewContext vc; rcti *rect; short select, pass, done; } *data = userData;
+	BoxSelectUserData *data = userData;
 
 	if(EM_check_backbuf(em_solidoffs+index)) {
 		if (data->pass==0) {
@@ -1742,19 +1755,19 @@ static void do_mesh_box_select__doSelectEdge(void *userData, EditEdge *eed, int 
 }
 static void do_mesh_box_select__doSelectFace(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
 {
-	struct { ViewContext vc; rcti *rect; short select, pass, done; } *data = userData;
+	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		EM_select_face_fgon(data->vc.em, efa, data->select);
+		EM_select_face_fgon(data->vc->em, efa, data->select);
 	}
 }
 static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
-	struct { ViewContext vc; rcti *rect; short select, pass, done; } data;
+	BoxSelectUserData data;
 	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
 	
-	data.vc= *vc;
+	data.vc= vc;
 	data.rect = rect;
 	data.select = select;
 	data.pass = 0;
@@ -2249,9 +2262,16 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 
 /* -------------------- circle select --------------------------------------------- */
 
+typedef struct CircleSelectUserData {
+	ViewContext *vc;
+	short select;
+	int mval[2];
+	float radius;
+} CircleSelectUserData;
+
 static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y, int UNUSED(index))
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 
@@ -2261,7 +2281,7 @@ static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y
 }
 static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 
 	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
 		EM_select_edge(eed, data->select);
@@ -2269,7 +2289,7 @@ static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int 
 }
 static void mesh_circle_doSelectFace(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 	
@@ -2282,7 +2302,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 {
 	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } data;
+	CircleSelectUserData data;
 	
 	bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
@@ -2344,7 +2364,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
 	/* int bbsel; */ /* UNUSED */
-	/* struct {ViewContext *vc; short select; int mval[2]; float radius; } data = {NULL}; */ /* UNUSED */
+	/* CircleSelectUserData data = {NULL}; */ /* UNUSED */
 	if (me) {
 		em_vertoffs= me->totvert+1;	/* max index array */
 
@@ -2359,7 +2379,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 
 static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 	Object *obedit= data->vc->obedit;
@@ -2390,7 +2410,7 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint 
 }
 static void nurbscurve_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } data;
+	CircleSelectUserData data;
 
 	/* set vc-> edit data */
 	
@@ -2407,7 +2427,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int select, const int mval
 
 static void latticecurve_circle_doSelect(void *userData, BPoint *bp, int x, int y)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 
@@ -2417,7 +2437,7 @@ static void latticecurve_circle_doSelect(void *userData, BPoint *bp, int x, int 
 }
 static void lattice_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } data;
+	CircleSelectUserData data;
 
 	/* set vc-> edit data */
 	
@@ -2434,7 +2454,7 @@ static void lattice_circle_select(ViewContext *vc, int select, const int mval[2]
 // NOTE: pose-bone case is copied from editbone case...
 static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int x, int y)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 	
@@ -2449,7 +2469,8 @@ static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int
 }
 static void pose_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } data;
+	CircleSelectUserData data;
+	bArmature *arm = vc->obact->data;
 	bPose *pose = vc->obact->pose;
 	bPoseChannel *pchan;
 	int change= FALSE;
@@ -2467,6 +2488,10 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		short sco1[2], sco2[2], didpoint=0;
 		float vec[3];
+		
+		/* skip invisible bones */
+		if (PBONE_VISIBLE(arm, pchan->bone) == 0)
+			continue;
 		
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
@@ -2494,7 +2519,7 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 
 static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int x, int y, short head)
 {
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 	
@@ -2517,7 +2542,7 @@ static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int 
 }
 static void armature_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
-	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
+	CircleSelectUserData data;
 	bArmature *arm= vc->obedit->data;
 	EditBone *ebone;
 	int change= FALSE;

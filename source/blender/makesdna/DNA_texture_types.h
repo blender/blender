@@ -105,7 +105,7 @@ typedef unsigned short dna_ushort_fix;
 #endif
 
 typedef struct PluginTex {
-	char name[160];
+	char name[1024];
 	void *handle;
 	
 	char *pname;
@@ -200,7 +200,7 @@ typedef struct VoxelData {
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;	
 	int still_frame;
-	char source_path[240];  /* 240 = FILE_MAX */
+	char source_path[1024];  /* 1024 = FILE_MAX */
 
 	/* temporary data */
 	float *dataset;

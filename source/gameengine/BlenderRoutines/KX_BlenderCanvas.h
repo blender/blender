@@ -78,7 +78,7 @@ public:
 	SwapBuffers(
 	);
 		void 
-	Resize(
+	ResizeWindow(
 		int width,
 		int height
 	);
