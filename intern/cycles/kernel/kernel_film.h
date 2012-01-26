@@ -59,7 +59,7 @@ __device void kernel_film_tonemap(KernelGlobals *kg,
 	buffer += index*kernel_data.film.pass_stride;
 
 	/* map colors */
-	float4 irradiance = *(float4*)buffer;
+	float4 irradiance = *((__global float4*)buffer);
 	float4 float_result = film_map(kg, irradiance, sample);
 	uchar4 byte_result = film_float_to_byte(float_result);
 

@@ -20,19 +20,19 @@ CCL_NAMESPACE_BEGIN
 
 __device_inline void kernel_write_pass_float(__global float *buffer, int sample, float value)
 {
-	float *buf = buffer;
+	__global float *buf = buffer;
 	*buf = (sample == 0)? value: *buf + value;
 }
 
 __device_inline void kernel_write_pass_float3(__global float *buffer, int sample, float3 value)
 {
-	float3 *buf = (float3*)buffer;
+	__global float3 *buf = (__global float3*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
 }
 
 __device_inline void kernel_write_pass_float4(__global float *buffer, int sample, float4 value)
 {
-	float4 *buf = (float4*)buffer;
+	__global float4 *buf = (__global float4*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
 }
 
