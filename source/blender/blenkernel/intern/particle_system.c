@@ -1071,6 +1071,10 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		distr=PART_DISTR_RAND;
 		BLI_srandom(31415926 + psys->seed + psys->child_seed);
 		dm= finaldm;
+
+		/* BMESH ONLY */
+		DM_ensure_tessface(dm);
+
 		children=1;
 
 		tree=BLI_kdtree_new(totpart);
@@ -1091,6 +1095,11 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		BLI_srandom(31415926 + psys->seed);
 		
 		dm= CDDM_from_mesh((Mesh*)ob->data, ob);
+
+		/* BMESH ONLY, for verts we dont care about tessfaces */
+		if (from != PART_FROM_VERT) {
+			DM_ensure_tessface(dm);
+		}
 
 		/* we need orco for consistent distributions */
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
