@@ -402,6 +402,16 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 
 	float4 *light_data = dscene->light_data.resize(scene->lights.size()*LIGHT_SIZE);
 
+	if(!device->info.advanced_shading) {
+		/* remove unsupported light */
+		foreach(Light *light, scene->lights) {
+			if(light->type == LIGHT_BACKGROUND) {
+				scene->lights.erase(std::remove(scene->lights.begin(), scene->lights.end(), light), scene->lights.end());
+				break;
+			}
+		}
+	}
+
 	for(size_t i = 0; i < scene->lights.size(); i++) {
 		Light *light = scene->lights[i];
 		float3 co = light->co;

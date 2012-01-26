@@ -192,6 +192,7 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 		ls->D = -D;
 		ls->t = FLT_MAX;
 	}
+#ifdef __BACKGROUND_MIS__
 	else if(type == LIGHT_BACKGROUND) {
 		/* infinite area light (e.g. light dome or env light) */
 		float3 D = background_light_sample(kg, randu, randv, pdf);
@@ -201,6 +202,7 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 		ls->D = -D;
 		ls->t = FLT_MAX;
 	}
+#endif
 	else {
 		ls->P = make_float3(data0.y, data0.z, data0.w);
 

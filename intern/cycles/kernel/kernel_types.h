@@ -70,9 +70,8 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_ADV_SHADING__
 #define __MULTI_CLOSURE__
 #define __TRANSPARENT_SHADOWS__
-#ifdef __KERNEL_CPU__
 #define __PASSES__
-#endif
+#define __BACKGROUND_MIS__
 #endif
 
 //#define __MULTI_LIGHT__
