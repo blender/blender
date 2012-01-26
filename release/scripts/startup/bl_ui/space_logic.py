@@ -68,7 +68,7 @@ class LOGIC_PT_properties(Panel):
             row = box.row()
             row.prop(prop, "name", text="")
             row.prop(prop, "type", text="")
-            row.prop(prop, "value", text="", toggle=True)  # we don't care about the type. rna will display correctly
+            row.prop(prop, "value", text="")
             row.prop(prop, "show_debug", text="", toggle=True, icon='INFO')
             row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
