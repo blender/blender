@@ -2900,6 +2900,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_SELECTION);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_lock_selection_update");
 
+	/* lock to time cursor */
+	prop= RNA_def_property(srna, "lock_time_cursor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Lock to Time Cursor", "Lock curves view to time cursos during playback and tracking");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_TIMECURSOR);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
 	/* show markers pathes */
 	prop= RNA_def_property(srna, "show_track_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TRACK_PATH);

@@ -559,6 +559,9 @@ class CLIP_PT_display(Panel):
 
         col.prop(sc, "lock_selection")
 
+        if sc.view == 'GRAPH':
+            col.prop(sc, "lock_time_cursor")
+
         clip = sc.clip
         if clip:
             col.label(text="Display Aspect Ratio:")

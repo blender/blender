@@ -447,30 +447,36 @@ void CLIP_OT_graph_view_all(wmOperatorType *ot)
 
 /******************** jump to current frame operator ********************/
 
-static int jump_to_current_frame_exec(bContext *C, wmOperator *UNUSED(op))
+void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
 {
-	Scene *scene = CTX_data_scene(C);
-	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	float extra = (v2d->cur.xmax - v2d->cur.xmin) / 2.0;
 
 	/* set extents of view to start/end frames */
 	v2d->cur.xmin = (float)CFRA - extra;
 	v2d->cur.xmax = (float)CFRA + extra;
+}
+
+static int center_current_frame_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	ED_clip_graph_center_current_frame(scene, ar);
 
 	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_graph_jump_to_current_frame(wmOperatorType *ot)
+void CLIP_OT_graph_center_current_frame(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Jump to current frame";
-	ot->description = "Jump to current frame";
-	ot->idname = "CLIP_OT_graph_jump_to_current_frame";
+	ot->name = "Center Current Frame";
+	ot->description = "Scroll view so current frame would be centered";
+	ot->idname = "CLIP_OT_graph_center_current_frame";
 
 	/* api callbacks */
-	ot->exec = jump_to_current_frame_exec;
+	ot->exec = center_current_frame_exec;
 	ot->poll = ED_space_clip_graph_poll;
 }

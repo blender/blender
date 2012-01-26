@@ -900,7 +900,8 @@ enum {
 #define SC_SHOW_FILTERS			(1<<13)
 #define SC_SHOW_GRAPH_FRAMES	(1<<14)
 #define SC_SHOW_GRAPH_TRACKS	(1<<15)
-#define SC_SHOW_PYRAMID_LEVELS		(1<<16)
+#define SC_SHOW_PYRAMID_LEVELS	(1<<16)
+#define SC_LOCK_TIMECURSOR		(1<<17)
 
 /* SpaceClip->mode */
 #define SC_MODE_TRACKING		0

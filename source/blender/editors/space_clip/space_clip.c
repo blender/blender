@@ -374,7 +374,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_graph_delete_curve);
 	WM_operatortype_append(CLIP_OT_graph_delete_knot);
 	WM_operatortype_append(CLIP_OT_graph_view_all);
-	WM_operatortype_append(CLIP_OT_graph_jump_to_current_frame);
+	WM_operatortype_append(CLIP_OT_graph_center_current_frame);
 
 	/* object tracking */
 	WM_operatortype_append(CLIP_OT_tracking_object_new);
@@ -424,6 +424,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.view");
 	RNA_string_set(kmi->ptr, "value_1", "CLIP");
 	RNA_string_set(kmi->ptr, "value_2", "GRAPH");
+
+	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* ******** Hotkeys avalaible for main region only ******** */
 
@@ -555,7 +557,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* view */
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_view_all", HOMEKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "CLIP_OT_graph_jump_to_current_frame", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_center_current_frame", PADPERIOD, KM_PRESS, 0, 0);
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_time_cursor");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }
@@ -777,6 +782,9 @@ static void clip_preview_area_draw(const bContext *C, ARegion *ar)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	Scene *scene= CTX_data_scene(C);
 	short unitx= V2D_UNIT_FRAMESCALE, unity= V2D_UNIT_VALUES;
+
+	if(sc->flag & SC_LOCK_TIMECURSOR)
+		ED_clip_graph_center_current_frame(scene, ar);
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
