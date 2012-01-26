@@ -51,6 +51,7 @@ public:
 	string id;
 	int num;
 	bool display_device;
+	bool advanced_shading;
 	vector<DeviceInfo> multi_devices;
 
 	DeviceInfo()
@@ -59,6 +60,7 @@ public:
 		id = "CPU";
 		num = 0;
 		display_device = false;
+		advanced_shading = true;
 	}
 };
 
@@ -101,10 +103,8 @@ protected:
 public:
 	virtual ~Device() {}
 
-	virtual bool support_full_kernel() = 0;
-
 	/* info */
-	virtual string description() = 0;
+	DeviceInfo info;
 	virtual const string& error_message() { return error_msg; }
 
 	/* regular memory */

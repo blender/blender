@@ -206,7 +206,7 @@ void BlenderSession::render()
 		vector<Pass> passes;
 		Pass::add(PASS_COMBINED, passes);
 
-		if(session_params.device.type == DEVICE_CPU) { /* todo */
+		if(session_params.device.advanced_shading) {
 			BL::RenderLayer::passes_iterator b_pass_iter;
 			
 			for(b_rlay.passes.begin(b_pass_iter); b_pass_iter != b_rlay.passes.end(); ++b_pass_iter) {

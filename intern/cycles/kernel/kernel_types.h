@@ -185,6 +185,9 @@ typedef float3 PathThroughput;
 struct PathRadiance {
 	int use_light_pass;
 
+	float3 emission;
+	float3 background;
+
 	float3 indirect;
 	float3 direct_throughput;
 	float3 direct_emission;
@@ -200,9 +203,6 @@ struct PathRadiance {
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
-
-	float3 emission;
-	float3 background;
 };
 
 struct BsdfEval {

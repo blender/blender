@@ -76,16 +76,6 @@ public:
 			delete sub.device;
 	}
 
-	bool support_full_kernel()
-	{
-		foreach(SubDevice& sub, devices) {
-			if(!sub.device->support_full_kernel())
-				return false;
-		}
-
-		return true;
-	}
-
 	const string& error_message()
 	{
 		foreach(SubDevice& sub, devices) {
@@ -97,38 +87,6 @@ public:
 		}
 
 		return error_msg;
-	}
-
-	string description()
-	{
-		/* create map to find duplicate descriptions */
-		map<string, int> dupli_map;
-		map<string, int>::iterator dt;
-
-		foreach(SubDevice& sub, devices) {
-			string key = sub.device->description();
-
-			if(dupli_map.find(key) == dupli_map.end())
-				dupli_map[key] = 1;
-			else
-				dupli_map[key]++;
-		}
-
-		/* generate string */
-		stringstream desc;
-		bool first = true;
-
-		for(dt = dupli_map.begin(); dt != dupli_map.end(); dt++) {
-			if(!first) desc << ", ";
-			first = false;
-
-			if(dt->second > 1)
-				desc << dt->second << "x " << dt->first;
-			else
-				desc << dt->first;
-		}
-
-		return desc.str();
 	}
 
 	bool load_kernels(bool experimental)
@@ -344,6 +302,8 @@ static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 	map<string, int>::iterator dt;
 	int num_added = 0, num_display = 0;
 
+	info.advanced_shading = true;
+
 	foreach(DeviceInfo& subinfo, devices) {
 		if(subinfo.type == type) {
 			if(subinfo.display_device) {
@@ -363,6 +323,8 @@ static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 			info.multi_devices.push_back(subinfo);
 			if(subinfo.display_device)
 				info.display_device = true;
+			if(!subinfo.advanced_shading)
+				info.advanced_shading = false;
 			num_added++;
 		}
 	}

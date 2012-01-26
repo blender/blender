@@ -194,26 +194,6 @@ public:
 		cuda_assert(cuCtxDetach(cuContext))
 	}
 
-	bool support_full_kernel()
-	{
-		int major, minor;
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
-
-		return (major >= 2);
-	}
-
-	string description()
-	{
-		/* print device information */
-		char deviceName[256];
-
-		cuda_push_context();
-		cuDeviceGetName(deviceName, 256, cuDevId);
-		cuda_pop_context();
-
-		return string("CUDA ") + deviceName;
-	}
-
 	bool support_device(bool experimental)
 	{
 		if(!experimental) {
@@ -880,6 +860,10 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.description = string(name);
 		info.id = string_printf("CUDA_%d", num);
 		info.num = num;
+
+		int major, minor;
+		cuDeviceComputeCapability(&major, &minor, num);
+		info.advanced_shading = (major >= 2);
 
 		/* if device has a kernel timeout, assume it is used for display */
 		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1) {
