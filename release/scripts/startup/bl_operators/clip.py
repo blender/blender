@@ -90,6 +90,31 @@ def CLIP_track_view_selected(sc, track):
     return False
 
 
+def CLIP_default_settings_from_track(clip, track):
+    settings = clip.tracking.settings
+
+    width = clip.size[0]
+    height = clip.size[1]
+
+    pattern = track.pattern_max - track.pattern_min
+    search = track.search_max - track.search_min
+
+    pattern[0] = pattern[0] * clip.size[0]
+    pattern[1] = pattern[1] * clip.size[1]
+
+    search[0] = search[0] * clip.size[0]
+    search[1] = search[1] * clip.size[1]
+
+    settings.default_tracker = track.tracker
+    settings.default_pyramid_levels = track.pyramid_levels
+    settings.default_correlation_min = track.correlation_min
+    settings.default_pattern_size = max(pattern[0], pattern[1])
+    settings.default_search_size = max(search[0], search[1])
+    settings.default_frames_limit = track.frames_limit
+    settings.default_pattern_match = track.pattern_match
+    settings.default_margin = track.margin
+
+
 class CLIP_OT_track_to_empty(Operator):
     """Create an Empty object which will be copying movement of active track"""
 
@@ -803,5 +828,31 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._setupRenderLayers(context)
         self._setupNodes(context)
         self._setupObjects(context)
+
+        return {'FINISHED'}
+
+class CLIP_OT_track_settings_as_default(Operator):
+    """Copy trackign settings from active track to default settings"""
+
+    bl_idname = "clip.track_settings_as_default"
+    bl_label = "Track Settings As Default"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        if sc.type != 'CLIP_EDITOR':
+            return False
+
+        clip = sc.clip
+
+        return clip and clip.tracking.tracks.active
+
+    def execute(self, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        CLIP_default_settings_from_track(clip, clip.tracking.tracks.active)
 
         return {'FINISHED'}
