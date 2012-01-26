@@ -127,6 +127,13 @@ class CLIP_PT_tools_marker(Panel):
 
             col.separator()
 
+            row = col.row(align=True)
+            row.prop(settings, "use_default_red_channel", text="R", toggle=True)
+            row.prop(settings, "use_default_green_channel", text="G", toggle=True)
+            row.prop(settings, "use_default_blue_channel", text="B", toggle=True)
+
+            col.separator()
+
             sub = col.column(align=True)
             sub.prop(settings, "default_pattern_size")
             sub.prop(settings, "default_search_size")

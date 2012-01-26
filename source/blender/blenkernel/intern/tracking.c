@@ -242,6 +242,7 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, ListBase *tr
 	track->margin= settings->default_margin;
 	track->pattern_match= settings->default_pattern_match;
 	track->frames_limit= settings->default_frames_limit;
+	track->flag= settings->default_flag;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;

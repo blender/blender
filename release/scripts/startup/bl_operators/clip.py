@@ -113,6 +113,9 @@ def CLIP_default_settings_from_track(clip, track):
     settings.default_frames_limit = track.frames_limit
     settings.default_pattern_match = track.pattern_match
     settings.default_margin = track.margin
+    settings.use_default_red_channel = track.use_red_channel
+    settings.use_default_green_channel = track.use_green_channel
+    settings.use_default_blue_channel = track.use_blue_channel
 
 
 class CLIP_OT_track_to_empty(Operator):
