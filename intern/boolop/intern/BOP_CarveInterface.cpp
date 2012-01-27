@@ -150,12 +150,19 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 		MeshSet<3> *right = Carve_getIntersectedOperand(orig_meshes, precomputedAABB, otherAABB);
 
 		try {
-			MeshSet<3> *result = csg.compute(left, right, carve::csg::CSG::UNION, NULL, carve::csg::CSG::CLASSIFY_EDGE);
+			if(left->meshes.size()==0) {
+				delete left;
 
-			delete left;
-			delete right;
+				left = right;
+			}
+			else {
+				MeshSet<3> *result = csg.compute(left, right, carve::csg::CSG::UNION, NULL, carve::csg::CSG::CLASSIFY_EDGE);
 
-			left = result;
+				delete left;
+				delete right;
+
+				left = result;
+			}
 		}
 		catch(carve::exception e) {
 			std::cerr << "CSG failed, exception " << e.str() << std::endl;
@@ -492,7 +499,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
                                         CSG_VertexIteratorDescriptor  obBVertices)
 {
 	carve::csg::CSG::OP op;
-	MeshSet<3> *left, *right, *output;
+	MeshSet<3> *left, *right, *output = NULL;
 	carve::csg::CSG csg;
 	carve::geom3d::Vector min, max;
 	carve::interpolate::FaceAttr<uint> oface_num;
@@ -516,6 +523,17 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	right = Carve_addMesh(obBFaces, obBVertices, oface_num, num_origfaces );
 
 	Carve_prepareOperands(&left, &right, oface_num);
+
+	if(left->meshes.size() == 0 || right->meshes.size()==0) {
+		// normally sohuldn't happen (zero-faces objects are handled by modifier itself), but
+		// unioning intersecting meshes which doesn't have consistent normals might lead to
+		// empty result which wouldn't work here
+
+		delete left;
+		delete right;
+
+		return BOP_ERROR;
+	}
 
 	min.x = max.x = left->vertex_storage[0].v.x;
 	min.y = max.y = left->vertex_storage[0].v.y;
