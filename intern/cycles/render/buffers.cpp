@@ -71,7 +71,7 @@ int BufferParams::get_passes_size()
 	foreach(Pass& pass, passes)
 		size += pass.components;
 	
-	return size;
+	return align_up(size, 4);
 }
 
 /* Render Buffers */

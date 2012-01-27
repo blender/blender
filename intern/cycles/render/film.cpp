@@ -21,11 +21,19 @@
 #include "film.h"
 #include "scene.h"
 
+#include "util_algorithm.h"
 #include "util_foreach.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Pass */
+
+static bool compare_pass_order(const Pass& a, const Pass& b)
+{
+	if(a.components == b.components)
+		return (a.type < b.type);
+	return (a.components > b.components);
+}
 
 void Pass::add(PassType type, vector<Pass>& passes)
 {
@@ -106,6 +114,10 @@ void Pass::add(PassType type, vector<Pass>& passes)
 	}
 
 	passes.push_back(pass);
+
+	/* order from by components, to ensure alignment so passes with size 4
+	   come first and then passes with size 1 */
+	sort(passes.begin(), passes.end(), compare_pass_order);
 }
 
 bool Pass::equals(const vector<Pass>& A, const vector<Pass>& B)
@@ -218,6 +230,8 @@ void Film::device_update(Device *device, DeviceScene *dscene)
 
 		kfilm->pass_stride += pass.components;
 	}
+
+	kfilm->pass_stride = align_up(kfilm->pass_stride, 4);
 
 	need_update = false;
 }
