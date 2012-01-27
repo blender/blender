@@ -3552,7 +3552,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 		/* Proceed only if particle is active	*/
 		if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
 		else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
-		else if(pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
+		else if(pa->flag & PARS_UNEXIST) continue;
 
 		/*	for debug purposes check if any NAN particle proceeds
 		*	For some reason they get past activity check, this should rule most of them out	*/
