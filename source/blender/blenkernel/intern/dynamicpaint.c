@@ -1572,7 +1572,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
                                                        Object *ob,
                                                        DerivedMesh *dm)
 {	
-	DerivedMesh *result = CDDM_copy(dm, 0);
+	DerivedMesh *result = CDDM_copy(dm);
 
 	if(pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
 
@@ -1774,7 +1774,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 	/* make a copy of dm to use as brush data */
 	if (pmd->brush) {
 		if (pmd->brush->dm) pmd->brush->dm->release(pmd->brush->dm);
-		pmd->brush->dm = CDDM_copy(result, 0);
+		pmd->brush->dm = CDDM_copy(result);
 	}
 
 	return result;
@@ -1792,7 +1792,7 @@ void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
 void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
 {
 	if (canvas->dm) canvas->dm->release(canvas->dm);
-	canvas->dm = CDDM_copy(dm, 0);
+	canvas->dm = CDDM_copy(dm);
 }
 
 /*
@@ -3045,7 +3045,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 	scene->r.subframe = prev_sfra;
 
 	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_curframe(scene));
-	dm_p = CDDM_copy(brush->dm, 0);
+	dm_p = CDDM_copy(brush->dm);
 	numOfVerts_p = dm_p->getNumVerts(dm_p);
 	mvert_p = dm_p->getVertArray(dm_p);
 	copy_m4_m4(prev_obmat, ob->obmat);
@@ -3150,7 +3150,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 		Bounds3D mesh_bb = {0};
 		VolumeGrid *grid = bData->grid;
 
-		dm = CDDM_copy(brush->dm, 0);
+		dm = CDDM_copy(brush->dm);
 		mvert = dm->getVertArray(dm);
 		mface = dm->getTessFaceArray(dm);
 		numOfVerts = dm->getNumVerts(dm);

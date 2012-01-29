@@ -98,7 +98,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	if(numTris<3) {
 		modifier_setError(md,
 			"Modifier requires more than 3 input faces (triangles).");
-		dm = CDDM_copy(dm, 0);
+		dm = CDDM_copy(dm);
 		return dm;
 	}
 

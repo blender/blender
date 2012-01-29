@@ -76,7 +76,8 @@ struct BMEditMesh *CDDM_To_BMesh(struct Object *ob, struct DerivedMesh *dm,
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data.
  */
-struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm, int faces_from_tessfaces);
+struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
+struct DerivedMesh *CDDM_copy_from_tessface(struct DerivedMesh *dm);
 
 /* creates a CDDerivedMesh with the same layer stack configuration as the
  * given DerivedMesh and containing the requested numbers of elements.

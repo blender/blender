@@ -437,7 +437,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE)
 		dm = generate_ocean_geometry(omd);
 	else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
-		dm = CDDM_copy(derivedData, 0);
+		dm = CDDM_copy(derivedData);
 	}
 
 	cfra = md->scene->r.cfra;

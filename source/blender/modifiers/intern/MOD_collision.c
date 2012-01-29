@@ -117,7 +117,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	MVert *tempVert = NULL;
 	
 	/* if possible use/create DerivedMesh */
-	if(derivedData) dm = CDDM_copy(derivedData, 0);
+	if(derivedData) dm = CDDM_copy(derivedData);
 	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	
 	if(!ob->pd)

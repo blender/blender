@@ -996,7 +996,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 
 	if(*lvl==0) {
 		DerivedMesh *tmp_dm= CDDM_from_mesh(me, ob);
-		dm= CDDM_copy(tmp_dm, 0);
+		dm= CDDM_copy(tmp_dm);
 		tmp_dm->release(tmp_dm);
 	} else {
 		MultiresModifierData tmp_mmd= *mmd;

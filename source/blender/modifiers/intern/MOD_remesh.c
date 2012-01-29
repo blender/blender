@@ -197,7 +197,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 #else /* BMESH ONLY */
 
-	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
+	dm = CDDM_copy_from_tessface(result); /*builds ngon faces from tess (mface) faces*/
 	CDDM_calc_normals(dm);
 	result->needsFree = 1;
 	result->release(result);

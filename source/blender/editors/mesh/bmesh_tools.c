@@ -4598,7 +4598,7 @@ static int mesh_export_obj_exec(bContext *C, wmOperator *op)
 	} else {
 		dm = mesh_get_derived_final(scene, ob, CD_MASK_DERIVEDMESH);
 		if (!CDDM_Check(dm)) {
-			dm = CDDM_copy(dm, 0);
+			dm = CDDM_copy(dm);
 			free = 1;
 		} else {
 			free = 0;

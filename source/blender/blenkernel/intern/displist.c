@@ -887,7 +887,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 
 			if (dm) {
 				if (vertCos) {
-					DerivedMesh *tdm = CDDM_copy(dm, 0);
+					DerivedMesh *tdm = CDDM_copy(dm);
 					dm->release(dm);
 					dm = tdm;
 
@@ -928,7 +928,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 
 	if (vertCos) {
 		if (dm) {
-			DerivedMesh *tdm = CDDM_copy(dm, 0);
+			DerivedMesh *tdm = CDDM_copy(dm);
 			dm->release(dm);
 			dm = tdm;
 

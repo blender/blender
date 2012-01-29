@@ -99,7 +99,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		surmd->dm->release(surmd->dm);
 
 	/* if possible use/create DerivedMesh */
-	if(derivedData) surmd->dm = CDDM_copy(derivedData, 0);
+	if(derivedData) surmd->dm = CDDM_copy(derivedData);
 	else surmd->dm = get_dm(ob, NULL, NULL, NULL, 0);
 	
 	if(!ob->pd)

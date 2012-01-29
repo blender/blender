@@ -101,7 +101,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			useRenderParams, NULL, isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
 	
 	if(useRenderParams || !isFinalCalc) {
-		DerivedMesh *cddm= CDDM_copy(result, 0);
+		DerivedMesh *cddm= CDDM_copy(result);
 		result->release(result);
 		result= cddm;
 	}

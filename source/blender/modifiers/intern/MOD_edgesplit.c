@@ -68,7 +68,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
 	
 	if (!CDDM_Check(dm)) {
-		cddm = CDDM_copy(dm, 0);
+		cddm = CDDM_copy(dm);
 	} else cddm = dm;
 	
 	em = CDDM_To_BMesh(ob, dm, NULL, FALSE);

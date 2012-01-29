@@ -164,7 +164,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	}
 
 	/* make new dm */
-	psmd->dm=CDDM_copy(dm, 0);
+	psmd->dm=CDDM_copy(dm);
 	CDDM_apply_vert_coords(psmd->dm, vertexCos);
 	CDDM_calc_normals(psmd->dm);
 

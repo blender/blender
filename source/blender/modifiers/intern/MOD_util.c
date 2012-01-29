@@ -168,7 +168,7 @@ DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float 
 		dm= get_dm(ob, em, dm, vertexCos, 0);
 	}
 	else {
-		dm= CDDM_copy(dm, 0);
+		dm= CDDM_copy(dm);
 		CDDM_apply_vert_coords(dm, vertexCos);
 	}
 

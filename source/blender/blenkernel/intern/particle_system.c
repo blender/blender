@@ -3584,7 +3584,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
 	deformedVerts = MEM_callocN(sizeof(*deformedVerts)*dm->getNumVerts(dm), "do_hair_dynamics vertexCos");
-	psys->hair_out_dm = CDDM_copy(dm, 0);
+	psys->hair_out_dm = CDDM_copy(dm);
 	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
 
 	clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, deformedVerts);

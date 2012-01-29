@@ -101,7 +101,7 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 
 			case eBooleanModifierOp_Union:
 				if(derivedData->getNumPolys(derivedData)) result = derivedData;
-				else result = CDDM_copy(dm, FALSE);
+				else result = CDDM_copy(dm);
 
 				break;
 

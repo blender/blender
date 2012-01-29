@@ -99,7 +99,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		return dm;
 	
 	if (!CDDM_Check(dm)) {
-		dm = copy = CDDM_copy(dm, 0);
+		dm = copy = CDDM_copy(dm);
 	}
 	
 	CDDM_recalc_tesselation(dm);

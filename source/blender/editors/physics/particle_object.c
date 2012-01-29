@@ -645,7 +645,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	
 	if(psmd->dm->deformedOnly)
 		/* we don't want to mess up psmd->dm when converting to global coordinates below */
-		dm= CDDM_copy(psmd->dm, 0);
+		dm= CDDM_copy(psmd->dm);
 	else
 		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 

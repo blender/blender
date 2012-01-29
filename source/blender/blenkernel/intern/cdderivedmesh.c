@@ -2124,7 +2124,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	return dm;
 }
 
-DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
+static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_copy cddm");
 	DerivedMesh *dm = &cddm->dm;
@@ -2173,6 +2173,16 @@ DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
 #endif
 
 	return dm;
+}
+
+DerivedMesh *CDDM_copy(DerivedMesh *source)
+{
+	return cddm_copy_ex(source, 0);
+}
+
+DerivedMesh *CDDM_copy_from_tessface(DerivedMesh *source)
+{
+	return cddm_copy_ex(source, 1);
 }
 
 /* note, the CD_ORIGINDEX layers are all 0, so if there is a direct

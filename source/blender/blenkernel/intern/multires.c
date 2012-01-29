@@ -79,7 +79,7 @@ DerivedMesh *get_multires_dm(Scene *scene, MultiresModifierData *mmd, Object *ob
 
 	dm = mti->applyModifier(md, ob, tdm, 0, 1);
 	if (dm == tdm) {
-		dm = CDDM_copy(tdm, 0);
+		dm = CDDM_copy(tdm);
 	}
 
 	return dm;
@@ -238,7 +238,7 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 	dm->getVertCos(dm, deformedVerts);
 	mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0, 0);
 
-	ndm= CDDM_copy(dm, 0);
+	ndm= CDDM_copy(dm);
 	CDDM_apply_vert_coords(ndm, deformedVerts);
 
 	MEM_freeN(deformedVerts);
@@ -846,7 +846,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			int i, j, numGrids, highGridSize, lowGridSize;
 
 			/* create subsurf DM from original mesh at high level */
-			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform, 0);
+			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me, NULL);
 			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
@@ -900,7 +900,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 		else {
 			DerivedMesh *cddm, *subdm;
 
-			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform, 0);
+			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me, NULL);
 			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 

@@ -85,7 +85,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 
 	dm = get_dm(ob, NULL, derivedData, NULL, 0);
 	if(dm == derivedData)
-		dm = CDDM_copy(dm, 0);
+		dm = CDDM_copy(dm);
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 

@@ -1448,7 +1448,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			/* apply vertex coordinates or build a DerivedMesh as necessary */
 			if(dm) {
 				if(deformedVerts) {
-					DerivedMesh *tdm = CDDM_copy(dm, 0);
+					DerivedMesh *tdm = CDDM_copy(dm);
 					dm->release(dm);
 					dm = tdm;
 
@@ -1582,7 +1582,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	 * DerivedMesh then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		finaldm = CDDM_copy(dm, 0);
+		finaldm = CDDM_copy(dm);
 
 		dm->release(dm);
 
@@ -1775,7 +1775,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			/* apply vertex coordinates or build a DerivedMesh as necessary */
 			if(dm) {
 				if(deformedVerts) {
-					DerivedMesh *tdm = CDDM_copy(dm, 0);
+					DerivedMesh *tdm = CDDM_copy(dm);
 					if(!(cage_r && dm == *cage_r)) dm->release(dm);
 					dm = tdm;
 
@@ -1784,7 +1784,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				} else if(cage_r && dm == *cage_r) {
 					/* dm may be changed by this modifier, so we need to copy it
 					 */
-					dm = CDDM_copy(dm, 0);
+					dm = CDDM_copy(dm);
 				}
 
 			} else {
@@ -1846,7 +1846,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 		if(cage_r && i == cageIndex) {
 			if(dm && deformedVerts) {
-				*cage_r = CDDM_copy(dm, 0);
+				*cage_r = CDDM_copy(dm);
 				CDDM_apply_vert_coords(*cage_r, deformedVerts);
 			} else if(dm) {
 				*cage_r = dm;
@@ -1865,7 +1865,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	 * then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		*final_r = CDDM_copy(dm, 0);
+		*final_r = CDDM_copy(dm);
 
 		if(!(cage_r && dm == *cage_r)) dm->release(dm);
 
