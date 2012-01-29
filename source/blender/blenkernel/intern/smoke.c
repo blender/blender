@@ -1354,7 +1354,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 
-			smd->coll->dm = CDDM_copy(dm, 1);
+			smd->coll->dm = CDDM_copy_from_tessface(dm);
 #endif
 
 			// rigid movement support
