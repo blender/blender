@@ -183,6 +183,9 @@ Device *Device::create(DeviceInfo& info, bool background, int threads)
 			return NULL;
 	}
 
+	if(device)
+		device->info = info;
+
 	return device;
 }
 

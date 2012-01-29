@@ -26,7 +26,6 @@
  *
  */
 
-
 #ifdef __OSL__
 
 #include "osl_shader.h"

@@ -36,7 +36,7 @@ __device_inline void kernel_write_pass_float4(__global float *buffer, int sample
 	*buf = (sample == 0)? value: *buf + value;
 }
 
-__device void kernel_write_data_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L,
+__device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L,
 	ShaderData *sd, int sample, int path_flag, float3 throughput)
 {
 #ifdef __PASSES__
@@ -86,7 +86,7 @@ __device void kernel_write_data_passes(KernelGlobals *kg, __global float *buffer
 #endif
 }
 
-__device void kernel_write_light_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L, int sample)
+__device_inline void kernel_write_light_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L, int sample)
 {
 #ifdef __PASSES__
 	int flag = kernel_data.film.pass_flag;

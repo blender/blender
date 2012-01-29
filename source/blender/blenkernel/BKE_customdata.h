@@ -71,7 +71,7 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 #define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
 						   has same number of elements */
 
-#define CD_TYPE_AS_MASK(_type) (CustomDataMask)(1 << (CustomDataMask)(_type))
+#define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
 /* Checks if the layer at physical offset layern (in data->layers) support math
  * the below operations.

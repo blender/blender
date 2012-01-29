@@ -70,9 +70,8 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_ADV_SHADING__
 #define __MULTI_CLOSURE__
 #define __TRANSPARENT_SHADOWS__
-#ifdef __KERNEL_CPU__
 #define __PASSES__
-#endif
+#define __BACKGROUND_MIS__
 #endif
 
 //#define __MULTI_LIGHT__
@@ -185,6 +184,9 @@ typedef float3 PathThroughput;
 struct PathRadiance {
 	int use_light_pass;
 
+	float3 emission;
+	float3 background;
+
 	float3 indirect;
 	float3 direct_throughput;
 	float3 direct_emission;
@@ -200,9 +202,6 @@ struct PathRadiance {
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
-
-	float3 emission;
-	float3 background;
 };
 
 struct BsdfEval {
