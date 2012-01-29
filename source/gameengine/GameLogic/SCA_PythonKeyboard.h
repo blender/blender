@@ -43,6 +43,7 @@ public:
 
 #ifdef WITH_PYTHON
 	static PyObject*	pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_active_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 #endif
 };
 

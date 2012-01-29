@@ -1504,13 +1504,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_uv_sculpt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_uv_sculpt", 1);
-	RNA_def_property_ui_text(prop, "UV Sculpt", "Enable brush for uv sculpting");
+	RNA_def_property_ui_text(prop, "UV Sculpt", "Enable brush for UV sculpting");
 	RNA_def_property_ui_icon(prop, ICON_TPAINT_HLT, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_uv_sculpt_update");
 
 	prop= RNA_def_property(srna, "uv_sculpt_lock_borders", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_sculpt_settings", UV_SCULPT_LOCK_BORDERS);
-	RNA_def_property_ui_text(prop, "Lock Borders", "Disables editing of boundary edges");
+	RNA_def_property_ui_text(prop, "Lock Borders", "Disable editing of boundary edges");
 
 	prop= RNA_def_property(srna, "uv_sculpt_all_islands", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_sculpt_settings", UV_SCULPT_ALL_ISLANDS);
@@ -2116,6 +2116,60 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_INDIRECT);
 	RNA_def_property_ui_text(prop, "Indirect Exclude", "Exclude indirect pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_diffuse_direct", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_DIRECT);
+	RNA_def_property_ui_text(prop, "Diffuse Direct", "Deliver diffuse direct pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_diffuse_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_INDIRECT);
+	RNA_def_property_ui_text(prop, "Diffuse Indirect", "Deliver diffuse indirect pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_diffuse_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_COLOR);
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Deliver diffuse color pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_glossy_direct", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_DIRECT);
+	RNA_def_property_ui_text(prop, "Glossy Direct", "Deliver glossy direct pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_glossy_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_INDIRECT);
+	RNA_def_property_ui_text(prop, "Glossy Indirect", "Deliver glossy indirect pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_glossy_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_COLOR);
+	RNA_def_property_ui_text(prop, "Glossy Color", "Deliver glossy color pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_transmission_direct", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_DIRECT);
+	RNA_def_property_ui_text(prop, "Transmission Direct", "Deliver transmission direct pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_transmission_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_INDIRECT);
+	RNA_def_property_ui_text(prop, "Transmission Indirect", "Deliver transmission indirect pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_transmission_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_COLOR);
+	RNA_def_property_ui_text(prop, "Transmission Color", "Deliver transmission color pass");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
@@ -3538,18 +3592,21 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of horizontal pixels in the rendered image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 	
 	prop= RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ysch");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the rendered image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 	
 	prop= RNA_def_property(srna, "resolution_percentage", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "size");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 10, 1);
 	RNA_def_property_ui_text(prop, "Resolution %", "Percentage scale for render resolution");
@@ -3569,12 +3626,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "pixel_aspect_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xasp");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect X", "Horizontal aspect ratio - for anamorphic or non-square pixel output");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 	
 	prop= RNA_def_property(srna, "pixel_aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yasp");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
@@ -3793,6 +3852,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	/* border */
 	prop= RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_BORDER);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Border",
 	                         "Render a user-defined border region, within the frame size "
 	                         "(note that this disables save_buffers and full_sample)");
@@ -3824,6 +3884,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_crop_to_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_CROP);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Crop to Border", "Crop the rendered frame to the defined border size");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -4165,7 +4226,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_simplify_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", R_SIMPLE_NO_TRIANGULATE);
-	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disables non-planer quads being triangulated");
+	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disable non-planar quads being triangulated");
 
 	/* Scene API */
 	RNA_api_scene_render(srna);
@@ -4339,7 +4400,7 @@ static void rna_def_selected_uv_element(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SelectedUvElement", "PropertyGroup");
-	RNA_def_struct_ui_text(srna, "Selected Uv Element", "");
+	RNA_def_struct_ui_text(srna, "Selected UV Element", "");
 
 	/* store the index to the UV element selected */
 	prop= RNA_def_property(srna, "element_index", PROP_INT, PROP_UNSIGNED);
@@ -4400,7 +4461,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene");
-	RNA_def_property_update(prop, NC_SCENE|ND_WORLD, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_WORLD, "rna_Scene_glsl_update");
 
 	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");

@@ -219,7 +219,8 @@ kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.keymap_items.new('view3d.game_start', 'P', 'PRESS')
 kmi = km.keymap_items.new('object.select_all', 'A', 'PRESS')
-kmi = km.keymap_items.new('object.select_all', 'I', 'PRESS', ctrl=True).action = 'INVERT'
+kmi = km.keymap_items.new('object.select_all', 'I', 'PRESS', ctrl=True)
+kmi.properties.action = 'INVERT'
 kmi = km.keymap_items.new('object.select_linked', 'L', 'PRESS', shift=True)
 kmi = km.keymap_items.new('object.select_grouped', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('object.select_mirror', 'M', 'PRESS', shift=True, ctrl=True)

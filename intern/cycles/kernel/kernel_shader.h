@@ -26,7 +26,6 @@
  *
  */
 
-
 #ifdef __OSL__
 
 #include "osl_shader.h"
@@ -75,7 +74,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	if(sd->shader & SHADER_SMOOTH_NORMAL)
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
 
-	sd->flag = kernel_tex_fetch(__shader_flag, sd->shader & SHADER_MASK);
+	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -166,7 +165,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #endif
 	}
 
-	sd->flag = kernel_tex_fetch(__shader_flag, sd->shader & SHADER_MASK);
+	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -243,7 +242,7 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	sd->Ng = -sd->P;
 	sd->I = -sd->P;
 	sd->shader = kernel_data.background.shader;
-	sd->flag = kernel_tex_fetch(__shader_flag, sd->shader & SHADER_MASK);
+	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 
 #ifdef __INSTANCING__
 	sd->object = ~0;
@@ -275,8 +274,8 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 
 #ifdef __MULTI_CLOSURE__
 
-__device_inline float3 _shader_bsdf_multi_eval(const ShaderData *sd, const float3 omega_in, float *pdf,
-	int skip_bsdf, float3 sum_eval, float sum_pdf, float sum_sample_weight)
+__device_inline void _shader_bsdf_multi_eval(const ShaderData *sd, const float3 omega_in, float *pdf,
+	int skip_bsdf, BsdfEval *bsdf_eval, float sum_pdf, float sum_sample_weight)
 {
 	for(int i = 0; i< sd->num_closure; i++) {
 		if(i == skip_bsdf)
@@ -293,7 +292,7 @@ __device_inline float3 _shader_bsdf_multi_eval(const ShaderData *sd, const float
 #endif
 
 			if(bsdf_pdf != 0.0f) {
-				sum_eval += eval*sc->weight;
+				bsdf_eval_accum(bsdf_eval, sc->type, eval*sc->weight);
 				sum_pdf += bsdf_pdf*sc->sample_weight;
 			}
 
@@ -302,25 +301,27 @@ __device_inline float3 _shader_bsdf_multi_eval(const ShaderData *sd, const float
 	}
 
 	*pdf = sum_pdf/sum_sample_weight;
-	return sum_eval;
 }
 
 #endif
 
-__device float3 shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
-	const float3 omega_in, float *pdf)
+__device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
+	const float3 omega_in, BsdfEval *eval, float *pdf)
 {
 #ifdef __MULTI_CLOSURE__
-	return _shader_bsdf_multi_eval(sd, omega_in, pdf, -1, make_float3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f);
+	bsdf_eval_init(eval, NBUILTIN_CLOSURES, make_float3(0.0f, 0.0f, 0.0f), kernel_data.film.use_light_pass);
+
+	return _shader_bsdf_multi_eval(sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
 #else
 	const ShaderClosure *sc = &sd->closure;
+
 	*pdf = 0.0f;
-	return svm_bsdf_eval(sd, sc, omega_in, pdf)*sc->weight;
+	*eval = svm_bsdf_eval(sd, sc, omega_in, pdf)*sc->weight;
 #endif
 }
 
 __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
-	float randu, float randv, float3 *eval,
+	float randu, float randv, BsdfEval *bsdf_eval,
 	float3 *omega_in, differential3 *domega_in, float *pdf)
 {
 #ifdef __MULTI_CLOSURE__
@@ -359,27 +360,28 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 
 	const ShaderClosure *sc = &sd->closure[sampled];
 	int label;
+	float3 eval;
 
 	*pdf = 0.0f;
 #ifdef __OSL__
-	label = OSLShader::bsdf_sample(sd, sc, randu, randv, *eval, *omega_in, *domega_in, *pdf);
+	label = OSLShader::bsdf_sample(sd, sc, randu, randv, eval, *omega_in, *domega_in, *pdf);
 #else
-	label = svm_bsdf_sample(sd, sc, randu, randv, eval, omega_in, domega_in, pdf);
+	label = svm_bsdf_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 #endif
 
-	*eval *= sc->weight;
+	bsdf_eval_init(bsdf_eval, sc->type, eval*sc->weight, kernel_data.film.use_light_pass);
 
 	if(sd->num_closure > 1 && *pdf != 0.0f) {
 		float sweight = sc->sample_weight;
-		*eval = _shader_bsdf_multi_eval(sd, *omega_in, pdf, sampled, *eval, *pdf*sweight, sweight);
+		_shader_bsdf_multi_eval(sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
 	}
 
 	return label;
 #else
 	/* sample the single closure that we picked */
 	*pdf = 0.0f;
-	int label = svm_bsdf_sample(sd, &sd->closure, randu, randv, eval, omega_in, domega_in, pdf);
-	*eval *= sd->closure.weight;
+	int label = svm_bsdf_sample(sd, &sd->closure, randu, randv, bsdf_eval, omega_in, domega_in, pdf);
+	*bsdf_eval *= sd->closure.weight;
 	return label;
 #endif
 }
@@ -421,6 +423,68 @@ __device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
+__device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __MULTI_CLOSURE__
+	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
+			eval += sc->weight;
+	}
+
+	return eval;
+#else
+	if(CLOSURE_IS_BSDF_DIFFUSE(sd->closure.type))
+		return sd->closure.weight;
+	else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+}
+
+__device float3 shader_bsdf_glossy(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __MULTI_CLOSURE__
+	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
+			eval += sc->weight;
+	}
+
+	return eval;
+#else
+	if(CLOSURE_IS_BSDF_GLOSSY(sd->closure.type))
+		return sd->closure.weight;
+	else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+}
+
+__device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __MULTI_CLOSURE__
+	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(CLOSURE_IS_BSDF_TRANSMISSION(sc->type))
+			eval += sc->weight;
+	}
+
+	return eval;
+#else
+	if(CLOSURE_IS_BSDF_TRANSMISSION(sd->closure.type))
+		return sd->closure.weight;
+	else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+}
 
 /* Emission */
 
@@ -588,11 +652,16 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
 	float4 Ns = kernel_tex_fetch(__tri_normal, prim);
 	int shader = __float_as_int(Ns.w);
-	int flag = kernel_tex_fetch(__shader_flag, shader & SHADER_MASK);
+	int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
 
 	return (flag & SD_HAS_SURFACE_TRANSPARENT) != 0;
 }
 #endif
+
+__device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
+{
+	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2 + 1);
+}
 
 /* Free ShaderData */
 

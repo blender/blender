@@ -1461,19 +1461,21 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
-static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
+static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float track_pos[2], int width, float height, int margin)
 {
 	ImBuf *scaleibuf;
-	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
-	const float scalex= 1.0f/zoomx;
-	const float scaley= 1.0f/zoomy;
+	const float scalex= ((float)ibuf->x-2*margin) / width;
+	const float scaley= ((float)ibuf->y-2*margin) / height;
+	float off_x= (int)track_pos[0]-track_pos[0]+0.5f;
+	float off_y= (int)track_pos[1]-track_pos[1]+0.5f;
+	int x, y;
 
-	scaleibuf= IMB_allocImBuf(w, h, 32, IB_rect);
+	scaleibuf= IMB_allocImBuf(width, height, 32, IB_rect);
 
-	for(y= 0; y<h; y++) {
-		for (x= 0; x<w; x++) {
-			float src_x= scalex*x;
-			float src_y= scaley*y;
+	for(y= 0; y<height; y++) {
+		for (x= 0; x<width; x++) {
+			float src_x= scalex*(x)+margin-off_x;
+			float src_y= scaley*(y)+margin-off_y;
 
 			bicubic_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
 		}
@@ -1504,7 +1506,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	if(scopes->track_disabled) {
 		glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
 		uiSetRoundBox(15);
-		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
 
 		ok= 1;
 	}
@@ -1512,8 +1514,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		/* additional margin around image */
 		/* NOTE: should be kept in sync with value from BKE_movieclip_update_scopes */
 		const int margin= 3;
-		float zoomx, zoomy, track_pos[2], off_x, off_y, x0, y0;
-		int a;
+		float zoomx, zoomy, track_pos[2], off_x, off_y;
+		int a, width, height;
 		ImBuf *drawibuf;
 
 		glPushMatrix();
@@ -1524,16 +1526,18 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		/* draw content of pattern area */
 		glScissor(ar->winrct.xmin+rect.xmin, ar->winrct.ymin+rect.ymin, scissor[2], scissor[3]);
 
-		zoomx= (rect.xmax-rect.xmin) / (scopes->track_preview->x-2*margin);
-		zoomy= (rect.ymax-rect.ymin) / (scopes->track_preview->y-2*margin);
+		width= rect.xmax-rect.xmin+1;
+		height = rect.ymax-rect.ymin;
+
+		zoomx= (float)width / (scopes->track_preview->x-2*margin);
+		zoomy= (float)height / (scopes->track_preview->y-2*margin);
 
 		off_x= ((int)track_pos[0]-track_pos[0]+0.5)*zoomx;
 		off_y= ((int)track_pos[1]-track_pos[1]+0.5)*zoomy;
-		x0= (int)(off_x+rect.xmin-zoomx*(margin-0.5f))+1;
-		y0= (int)(off_y+rect.ymin-zoomy*(margin-0.5f))+1;
 
-		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, zoomx, zoomy);
-		glaDrawPixelsSafe(x0, y0, rect.xmax-x0+1, rect.ymax-y0+1,
+		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, track_pos, width, height, margin);
+
+		glaDrawPixelsSafe(rect.xmin, rect.ymin+1, drawibuf->x, drawibuf->y,
 		                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
 		IMB_freeImBuf(drawibuf);
 
@@ -1568,7 +1572,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	if(!ok) {
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		uiSetRoundBox(15);
-		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
 	}
 
 	/* outline, scale gripper */

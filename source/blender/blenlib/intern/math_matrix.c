@@ -778,32 +778,38 @@ void orthogonalize_m4(float mat[][4], int axis)
 	mul_v3_fl(mat[2], size[2]);
 }
 
-int is_orthogonal_m3(float mat[][3])
+int is_orthogonal_m3(float m[][3])
 {
-	if (fabsf(dot_v3v3(mat[0], mat[1])) > 1.5f * FLT_EPSILON)
-		return 0;
+    int i, j;
 
-	if (fabsf(dot_v3v3(mat[1], mat[2])) > 1.5f * FLT_EPSILON)
-		return 0;
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < i; j++) {
+            if (fabsf(dot_v3v3(m[i], m[j])) > 1.5f * FLT_EPSILON)
+                return 0;
+        }
 
-	if (fabsf(dot_v3v3(mat[0], mat[2])) > 1.5f * FLT_EPSILON)
-		return 0;
-	
-	return 1;
+        if (fabsf(dot_v3v3(m[i], m[i]) - 1) > 1.5f * FLT_EPSILON)
+            return 0;
+    }
+
+    return 1;
 }
 
-int is_orthogonal_m4(float mat[][4])
+int is_orthogonal_m4(float m[][4])
 {
-	if (fabsf(dot_v3v3(mat[0], mat[1])) > 1.5f * FLT_EPSILON)
-		return 0;
+    int i, j;
 
-	if (fabsf(dot_v3v3(mat[1], mat[2])) > 1.5f * FLT_EPSILON)
-		return 0;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < i; j++) {
+            if (fabsf(dot_vn_vn(m[i], m[j], 4)) > 1.5f * FLT_EPSILON)
+                return 0;
+        }
 
-	if (fabsf(dot_v3v3(mat[0], mat[2])) > 1.5f * FLT_EPSILON)
-		return 0;
-	
-	return 1;
+        if (fabsf(dot_vn_vn(m[i], m[i], 4) - 1) > 1.5f * FLT_EPSILON)
+            return 0;
+    }
+
+    return 1;
 }
 
 void normalize_m3(float mat[][3])

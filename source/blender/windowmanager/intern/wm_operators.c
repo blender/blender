@@ -806,7 +806,7 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 
 	pup= uiPupMenuBegin(C, IFACE_("OK?"), ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemFullO(layout, op->type->idname, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
+	uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
@@ -831,9 +831,16 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 }
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action, short flag)
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action, short flag, short display)
 {
 	PropertyRNA *prop;
+
+	static EnumPropertyItem file_display_items[] = {
+		{FILE_DEFAULTDISPLAY, "FILE_DEFAULTDISPLAY", 0, "Default", "Automatically determine display type for files"},
+		{FILE_SHORTDISPLAY, "FILE_SHORTDISPLAY", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
+		{FILE_LONGDISPLAY, "FILE_LONGDISPLAY", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
+		{FILE_IMGDISPLAY, "FILE_IMGDISPLAY", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
+		{0, NULL, 0, NULL, NULL}};
 
 
 	if(flag & WM_FILESEL_FILEPATH)
@@ -881,6 +888,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 
 	if(flag & WM_FILESEL_RELPATH)
 		RNA_def_boolean(ot->srna, "relative_path", TRUE, "Relative Path", "Select the file relative to the blend file");
+
+	prop= RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 void WM_operator_properties_select_all(wmOperatorType *ot)
@@ -1267,22 +1277,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 #ifdef WITH_BUILDINFO
 	int ver_width, rev_width;
-	char *version_str = NULL;
-	char *revision_str = NULL;
 	char version_buf[128];
 	char revision_buf[128];
 	extern char build_rev[];
 	
-	version_str = &version_buf[0];
-	revision_str = &revision_buf[0];
-	
-	BLI_snprintf(version_str, sizeof(version_str),
+	BLI_snprintf(version_buf, sizeof(version_buf),
 	             "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
-	BLI_snprintf(revision_str, sizeof(revision_str), "r%s", build_rev);
+	BLI_snprintf(revision_buf, sizeof(revision_buf), "r%s", build_rev);
 	
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
-	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;
-	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_str) + 5;
+	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_buf) + 5;
+	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_buf) + 5;
 #endif //WITH_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1293,8 +1298,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
 #ifdef WITH_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, version_buf, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_buf, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 #endif //WITH_BUILDINFO
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
@@ -1650,7 +1655,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	/* ommit window poll so this can work in background mode */
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
 	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source", "Allow blend file execute scripts automatically, default available from system preferences");
@@ -1840,7 +1845,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->flag |= OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_DIRECTORY|WM_FILESEL_FILENAME| WM_FILESEL_RELPATH|WM_FILESEL_FILES);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_DIRECTORY|WM_FILESEL_FILENAME| WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
@@ -1921,7 +1926,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 	ot->invoke= wm_recover_auto_save_invoke;
 	ot->poll= WM_operator_winactive;
 
-	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_LONGDISPLAY);
 }
 
 /* *************** save file as **************** */
@@ -2035,7 +2040,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->check= blend_save_check;
 	/* ommit window poll so this can work in background mode */
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
 	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active");
@@ -2102,7 +2107,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->check= blend_save_check;
 	/* ommit window poll so this can work in background mode */
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
@@ -2156,7 +2161,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->exec= wm_collada_export_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "selected", 0, "Export only selected",
 		"Export only selected elements");
 }
@@ -2188,7 +2193,7 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	ot->exec= wm_collada_import_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
 
 #endif

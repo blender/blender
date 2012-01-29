@@ -77,6 +77,9 @@
 
 #include "BKE_smoke.h"
 
+/* UNUSED so far, may be enabled later */
+/* #define USE_SMOKE_COLLISION_DM */
+
 #ifdef WITH_SMOKE
 
 #ifdef _WIN32
@@ -617,9 +620,11 @@ static void smokeModifier_freeCollision(SmokeModifierData *smd)
 			smd->coll->bvhtree = NULL;
 		}
 
+#ifdef USE_SMOKE_COLLISION_DM
 		if(smd->coll->dm)
 			smd->coll->dm->release(smd->coll->dm);
 		smd->coll->dm = NULL;
+#endif
 
 		MEM_freeN(smd->coll);
 		smd->coll = NULL;
@@ -682,9 +687,11 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				smd->coll->bvhtree = NULL;
 			}
 
+#ifdef USE_SMOKE_COLLISION_DM
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 			smd->coll->dm = NULL;
+#endif
 
 		}
 	}
@@ -772,7 +779,10 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->coll->points = NULL;
 			smd->coll->numpoints = 0;
 			smd->coll->bvhtree = NULL;
+
+#ifdef USE_SMOKE_COLLISION_DM
 			smd->coll->dm = NULL;
+#endif
 		}
 	}
 }
@@ -1339,11 +1349,13 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		{
 			// XXX TODO
 			smd->time = scene->r.cfra;
-			
+
+#ifdef USE_SMOKE_COLLISION_DM
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 
 			smd->coll->dm = CDDM_copy(dm);
+#endif
 
 			// rigid movement support
 			copy_m4_m4(smd->coll->mat_old, smd->coll->mat);

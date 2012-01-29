@@ -1,0 +1,50 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_brightness(
+	color ColorIn = color(0.8, 0.8, 0.8),
+	float Bright = 0.0,
+	float Contrast = 0.0,
+	output ColorOut = color(0.8, 0.8, 0.8)
+{
+	float delta = Contrast * (1.0/200.0);
+	float a = 1.0 - delta * 2.0;
+	float b;
+
+	Bright *= 1.0/100.0;
+
+	/*
+	* The algorithm is by Werner D. Streidt
+	* (http://visca.com/ffactory/archives/5-99/msg00021.html)
+	* Extracted of OpenCV demhist.c
+	*/
+
+	if (Contrast > 0.0) {
+		a = (a < 0.0 ? 1.0/a : 0.0);
+		b = a * (Brightness - delta);
+	}
+	else {
+		delta *= -1.0;
+		b = a * (Brightness + delta);
+	}
+
+	ColorOut = a * ColorIn + b;
+}
+

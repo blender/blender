@@ -471,7 +471,7 @@ void makeraytree(Render *re)
 			sub[i] = max[i]-min[i];
 		}
 
-		re->maxdist= sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2];
+		re->maxdist = dot_v3v3(sub, sub);
 		if(re->maxdist > 0.0f) re->maxdist= sqrt(re->maxdist);
 
 		re->i.infostr= "Raytree finished";
@@ -598,7 +598,7 @@ static int refraction(float refract[3], const float n[3], const float view[3], f
 
 	copy_v3_v3(refract, view);
 	
-	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
+	dot = dot_v3v3(view, n);
 
 	if(dot>0.0f) {
 		index = 1.0f/index;
@@ -1708,7 +1708,7 @@ static int UNUSED_FUNCTION(ray_trace_shadow_rad)(ShadeInput *ship, ShadeResult *
 		counter+=3;
 		counter %= 768;
 		copy_v3_v3(vec, hashvectf+counter);
-		if(ship->vn[0]*vec[0]+ship->vn[1]*vec[1]+ship->vn[2]*vec[2]>0.0f) {
+		if (dot_v3v3(ship->vn, vec) > 0.0f) {
 			vec[0]-= vec[0];
 			vec[1]-= vec[1];
 			vec[2]-= vec[2];
@@ -1771,7 +1771,7 @@ static void DS_energy(float *sphere, int tot, float vec[3])
 	
 	for(a=0, fp=sphere; a<tot; a++, fp+=3) {
 		sub_v3_v3v3(force, vec, fp);
-		fac= force[0]*force[0] + force[1]*force[1] + force[2]*force[2];
+		fac = dot_v3v3(force, force);
 		if(fac!=0.0f) {
 			fac= 1.0f/fac;
 			res[0]+= fac*force[0];
@@ -1997,7 +1997,7 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 			normalize_v3(view);
 			
 			if(envcolor==WO_AOSKYCOL) {
-				const float skyfac= 0.5f*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
+				const float skyfac= 0.5f * (1.0f + dot_v3v3(view, R.grvec));
 				env[0]+= (1.0f-skyfac)*R.wrld.horr + skyfac*R.wrld.zenr;
 				env[1]+= (1.0f-skyfac)*R.wrld.horg + skyfac*R.wrld.zeng;
 				env[2]+= (1.0f-skyfac)*R.wrld.horb + skyfac*R.wrld.zenb;
@@ -2101,7 +2101,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 	
 	while(tot--) {
 		
-		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > bias) {
+		if (dot_v3v3(vec, nrm) > bias) {
 			/* only ao samples for mask */
 			if(R.r.mode & R_OSA) {
 				j++;
@@ -2135,7 +2135,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 				normalize_v3(view);
 				
 				if(envcolor==WO_AOSKYCOL) {
-					const float fac= 0.5f*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
+					const float fac = 0.5f * (1.0f + dot_v3v3(view, R.grvec));
 					env[0]+= (1.0f-fac)*R.wrld.horr + fac*R.wrld.zenr;
 					env[1]+= (1.0f-fac)*R.wrld.horg + fac*R.wrld.zeng;
 					env[2]+= (1.0f-fac)*R.wrld.horb + fac*R.wrld.zenb;

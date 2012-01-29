@@ -2068,7 +2068,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 		mul_m4_v3(obi->mat, v1);
 
 	/* from shadepixel() */
-	dface= v1[0]*nor[0] + v1[1]*nor[1] + v1[2]*nor[2];
+	dface = dot_v3v3(v1, nor);
 	hoco[3]= 1.0f;
 	
 	/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
@@ -2091,7 +2091,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 		
 		calc_view_vector(view, x, y);
 		
-		div= nor[0]*view[0] + nor[1]*view[1] + nor[2]*view[2];
+		div = dot_v3v3(nor, view);
 		if (div==0.0f) 
 			return 0;
 		

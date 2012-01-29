@@ -376,6 +376,10 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	bAction *act= ob->poselib; /* never NULL */
 	TimeMarker *marker;
 	
+	wmOperatorType *ot = WM_operatortype_find("POSELIB_OT_pose_add", 1);
+
+	BLI_assert(ot != NULL);
+
 	/* set the operator execution context correctly */
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
@@ -383,9 +387,9 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	for (marker= act->markers.first; marker; marker= marker->next) {
 		PointerRNA props_ptr;
 		
-		props_ptr = uiItemFullO(layout, "POSELIB_OT_pose_add", 
-						marker->name, ICON_ARMATURE_DATA, NULL, 
-						WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+		props_ptr = uiItemFullO_ptr(layout, ot,
+		                            marker->name, ICON_ARMATURE_DATA, NULL,
+		                            WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 		
 		RNA_int_set(&props_ptr, "frame", marker->frame);
 		RNA_string_set(&props_ptr, "name", marker->name);

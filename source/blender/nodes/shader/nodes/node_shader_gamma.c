@@ -26,11 +26,6 @@
 
 */
 
-/** \file blender/nodes/composite/nodes/node_composite_gamma.c
- *  \ingroup cmpnodes
- */
-
-
 #include "node_shader_util.h"
 
 /* **************** Gamma Tools  ******************** */

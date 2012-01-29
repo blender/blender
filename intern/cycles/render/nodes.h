@@ -320,6 +320,11 @@ public:
 	SHADER_NODE_CLASS(GammaNode)
 };
 
+class BrightContrastNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(BrightContrastNode)
+};
+
 class SeparateRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateRGBNode)

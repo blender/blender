@@ -15,6 +15,7 @@ set(SRC
 
 set(SRC_HEADERS
 	kernel.h
+	kernel_accumulate.h
 	kernel_bvh.h
 	kernel_camera.h
 	kernel_compat_cpu.h
@@ -30,6 +31,7 @@ set(SRC_HEADERS
 	kernel_mbvh.h
 	kernel_montecarlo.h
 	kernel_object.h
+	kernel_passes.h
 	kernel_path.h
 	kernel_qbvh.h
 	kernel_random.h
@@ -61,6 +63,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_displace.h
 	svm/svm_fresnel.h
 	svm/svm_gamma.h
+	svm/svm_brightness.h
 	svm/svm_geometry.h
 	svm/svm_gradient.h
 	svm/svm_hsv.h

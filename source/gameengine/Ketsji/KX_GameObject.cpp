@@ -1153,6 +1153,36 @@ void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 	}
 }
 
+void KX_GameObject::NodeSetWorldScale(const MT_Vector3& scale)
+{
+	if (!GetSGNode())
+		return;
+	SG_Node* parent = GetSGNode()->GetSGParent();
+	if (parent != NULL)
+	{
+		// Make sure the objects have some scale
+		MT_Vector3 p_scale = parent->GetWorldScaling();
+		if (fabs(p_scale[0]) < FLT_EPSILON || 
+			fabs(p_scale[1]) < FLT_EPSILON || 
+			fabs(p_scale[2]) < FLT_EPSILON)
+		{ 
+			return; 
+		}
+
+		MT_Vector3 *local = new MT_Vector3(scale);
+
+		p_scale[0] = 1/p_scale[0];
+		p_scale[1] = 1/p_scale[1];
+		p_scale[2] = 1/p_scale[2];
+
+		NodeSetLocalScale(scale * p_scale);
+	}
+	else
+	{
+		NodeSetLocalScale(scale);
+	}
+}
+
 void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 {
 	if (!GetSGNode())
@@ -1620,7 +1650,9 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("localPosition",	KX_GameObject, pyattr_get_localPosition,	pyattr_set_localPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("localScale",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
-	KX_PYATTRIBUTE_RO_FUNCTION("worldScale",	KX_GameObject, pyattr_get_worldScaling),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldScale",	KX_GameObject, pyattr_get_worldScaling, pyattr_set_worldScaling),
+	KX_PYATTRIBUTE_RW_FUNCTION("localTransform",		KX_GameObject, pyattr_get_localTransform, pyattr_set_localTransform),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldTransform",		KX_GameObject, pyattr_get_worldTransform, pyattr_set_worldTransform),
 	KX_PYATTRIBUTE_RW_FUNCTION("linearVelocity", KX_GameObject, pyattr_get_localLinearVelocity, pyattr_set_worldLinearVelocity),
 	KX_PYATTRIBUTE_RW_FUNCTION("localLinearVelocity", KX_GameObject, pyattr_get_localLinearVelocity, pyattr_set_localLinearVelocity),
 	KX_PYATTRIBUTE_RW_FUNCTION("worldLinearVelocity", KX_GameObject, pyattr_get_worldLinearVelocity, pyattr_set_worldLinearVelocity),
@@ -2112,6 +2144,18 @@ PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIB
 #endif
 }
 
+int KX_GameObject::pyattr_set_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector3 scale;
+	if (!PyVecTo(value, scale))
+		return PY_SET_ATTR_FAIL;
+
+	self->NodeSetWorldScale(scale);
+	self->NodeUpdateGS(0.f);
+	return PY_SET_ATTR_SUCCESS;
+}
+
 PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
@@ -2134,6 +2178,85 @@ int KX_GameObject::pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DE
 	return PY_SET_ATTR_SUCCESS;
 }
 
+PyObject* KX_GameObject::pyattr_get_localTransform(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+
+	double *mat = MT_CmMatrix4x4().getPointer();
+
+	MT_Transform trans;
+	
+	trans.setOrigin(self->GetSGNode()->GetLocalPosition());
+	trans.setBasis(self->GetSGNode()->GetLocalOrientation());
+	
+	MT_Vector3 scaling = self->GetSGNode()->GetLocalScale();
+	trans.scale(scaling[0], scaling[1], scaling[2]);
+
+	trans.getValue(mat);
+
+	return PyObjectFrom(MT_Matrix4x4(mat));
+}
+
+int KX_GameObject::pyattr_set_localTransform(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	MT_Matrix4x4 temp;
+	if (!PyMatTo(value, temp))
+		return PY_SET_ATTR_FAIL;
+
+	float transform[4][4];
+	float loc[3], size[3];
+	float rot[3][3];
+	MT_Matrix3x3 orientation;
+
+	temp.getValue(*transform);
+	mat4_to_loc_rot_size(loc, rot, size, transform);
+
+	self->NodeSetLocalPosition(MT_Point3(loc));
+
+	//MT_Matrix3x3's constructor expects a 4x4 matrix
+	orientation = MT_Matrix3x3();
+	orientation.setValue3x3(*rot);
+	self->NodeSetLocalOrientation(orientation);
+
+	self->NodeSetLocalScale(MT_Vector3(size));
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_GameObject::pyattr_get_worldTransform(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+
+	return PyObjectFrom(MT_Matrix4x4(self->GetOpenGLMatrix()));
+}
+
+int KX_GameObject::pyattr_set_worldTransform(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	MT_Matrix4x4 temp;
+	if (!PyMatTo(value, temp))
+		return PY_SET_ATTR_FAIL;
+
+	float transform[4][4];
+	float loc[3], size[3];
+	float rot[3][3];
+	MT_Matrix3x3 orientation;
+
+	temp.getValue(*transform);
+	mat4_to_loc_rot_size(loc, rot, size, transform);
+
+	self->NodeSetWorldPosition(MT_Point3(loc));
+
+	//MT_Matrix3x3's constructor expects a 4x4 matrix
+	orientation = MT_Matrix3x3();
+	orientation.setValue3x3(*rot);
+	self->NodeSetGlobalOrientation(orientation);
+
+	self->NodeSetWorldScale(MT_Vector3(size));
+
+	return PY_SET_ATTR_SUCCESS;
+}
 
 PyObject* KX_GameObject::pyattr_get_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

@@ -1126,6 +1126,9 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 			fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
 
 		if(dm != finaldm) dm->release(dm);
+
+		BLI_kdtree_free(tree);
+
 		return 0;
 	}
 
@@ -3477,6 +3480,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	int totedge;
 	int k;
 	float hairmat[4][4];
+	float (*deformedVerts)[3];
 
 	if(!psys->clmd) {
 		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
@@ -3570,7 +3574,15 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->clmd->point_cache = psys->pointcache;
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
-	psys->hair_out_dm = clothModifier_do(psys->clmd, sim->scene, sim->ob, dm);
+	deformedVerts = MEM_callocN(sizeof(*deformedVerts)*dm->getNumVerts(dm), "do_hair_dynamics vertexCos");
+	psys->hair_out_dm = CDDM_copy(dm);
+	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
+
+	clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, deformedVerts);
+
+	CDDM_apply_vert_coords(psys->hair_out_dm, deformedVerts);
+
+	MEM_freeN(deformedVerts);
 
 	psys->clmd->sim_parms->effector_weights = NULL;
 }

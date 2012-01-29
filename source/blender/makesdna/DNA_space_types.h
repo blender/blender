@@ -608,7 +608,8 @@ typedef struct SpaceClip {
 
 /* FileSelectParams.display */
 enum FileDisplayTypeE {
-	FILE_SHORTDISPLAY = 1,
+	FILE_DEFAULTDISPLAY = 0,
+	FILE_SHORTDISPLAY,
 	FILE_LONGDISPLAY,
 	FILE_IMGDISPLAY
 };
@@ -899,7 +900,8 @@ enum {
 #define SC_SHOW_FILTERS			(1<<13)
 #define SC_SHOW_GRAPH_FRAMES	(1<<14)
 #define SC_SHOW_GRAPH_TRACKS	(1<<15)
-#define SC_SHOW_PYRAMID_LEVELS		(1<<16)
+#define SC_SHOW_PYRAMID_LEVELS	(1<<16)
+#define SC_LOCK_TIMECURSOR		(1<<17)
 
 /* SpaceClip->mode */
 #define SC_MODE_TRACKING		0

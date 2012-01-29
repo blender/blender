@@ -114,6 +114,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	if(wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
+	/* No need to ask for CD_WEIGHT_MCOL... */
+
 	return dataMask;
 }
 
@@ -186,8 +188,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int defgrp_idx;
 	int i;
 	/* Flags. */
-	int do_add = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
-	int do_rem = (wmd->edit_flags & MOD_WVG_EDIT_REMFVG) != 0;
+	int do_add  = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
+	int do_rem  = (wmd->edit_flags & MOD_WVG_EDIT_REMFVG) != 0;
+	/* Only do weight-preview in Object, Sculpt and Pose modes! */
+#if 0
+	int do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview);
+#endif
 
 	/* Get number of verts. */
 	numVerts = dm->getNumVerts(dm);
@@ -204,6 +210,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
+	/* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
+	if(!dvert)
+		/* If this modifier is not allowed to add vertices, just return. */
+		if(!do_add)
+			return dm;
+		/* Else, add a valid data layer! */
+		dvert = CustomData_add_layer_named(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC,
+		                                   NULL, numVerts, wmd->defgrp_name);
+		/* Ultimate security check. */
+		if(!dvert)
+			return dm;
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
 	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
@@ -233,6 +250,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	weightvg_update_vg(dvert, defgrp_idx, dw, numVerts, NULL, org_w, do_add, wmd->add_threshold,
 	                   do_rem, wmd->rem_threshold);
 
+	/* If weight preview enabled... */
+#if 0 /* XXX Currently done in mod stack :/ */
+	if(do_prev)
+		DM_update_weight_mcol(ob, dm, 0, org_w, 0, NULL);
+#endif
+
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
@@ -256,8 +279,9 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
 	/* structSize */        sizeof(WeightVGEditModifierData),
 	/* type */              eModifierTypeType_NonGeometrical,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
-/*	                       |eModifierTypeFlag_SupportsMapping*/
-	                       |eModifierTypeFlag_SupportsEditmode,
+	                       |eModifierTypeFlag_SupportsMapping
+	                       |eModifierTypeFlag_SupportsEditmode
+	                       |eModifierTypeFlag_UsesPreview,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

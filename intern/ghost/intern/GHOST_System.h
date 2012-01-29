@@ -145,6 +145,15 @@ public:
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
 		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
+		
+	/**
+	 * Updates the resolution while in fullscreen mode.
+	 * @param setting	The new setting of the display.
+	 * @param window	Window displayed in full screen.
+	 *
+	 * @return	Indication of success.
+	 */
+	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window);
 
 	/**
 	 * Ends full screen mode.

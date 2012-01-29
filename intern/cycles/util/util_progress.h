@@ -96,7 +96,7 @@ public:
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		start_time = start_time;
+		start_time = start_time_;
 	}
 
 	void set_sample(int sample_, double sample_time_)

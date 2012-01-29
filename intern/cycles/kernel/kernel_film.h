@@ -48,15 +48,22 @@ __device uchar4 film_float_to_byte(float4 color)
 	return result;
 }
 
-__device void kernel_film_tonemap(KernelGlobals *kg, __global uchar4 *rgba, __global float4 *buffer, int sample, int resolution, int x, int y, int offset, int stride)
+__device void kernel_film_tonemap(KernelGlobals *kg,
+	__global uchar4 *rgba, __global float *buffer,
+	int sample, int resolution, int x, int y, int offset, int stride)
 {
+	/* buffer offset */
 	int index = offset + x + y*stride;
-	float4 irradiance = buffer[index];
 
+	rgba += index;
+	buffer += index*kernel_data.film.pass_stride;
+
+	/* map colors */
+	float4 irradiance = *((__global float4*)buffer);
 	float4 float_result = film_map(kg, irradiance, sample);
 	uchar4 byte_result = film_float_to_byte(float_result);
 
-	rgba[index] = byte_result;
+	*rgba = byte_result;
 }
 
 CCL_NAMESPACE_END

@@ -195,6 +195,9 @@ enum {
 	TH_STITCH_PREVIEW_UNSTITCHABLE,
 	TH_STITCH_PREVIEW_ACTIVE,
 
+	TH_MATCH,				/* highlight color for search matches */
+	TH_SELECT_HIGHLIGHT,	/* highlight color for selected outliner item */
+
 	TH_FREESTYLE_EDGE_MARK,
 	TH_FREESTYLE_FACE_MARK
 };

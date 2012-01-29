@@ -526,9 +526,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
                 if brush.use_space and tool != 'SMOOTH':
                     if brush.use_space_atten:
-                        row.prop(brush, "use_space_atten", toggle=True, icon='LOCKED')
+                        row.prop(brush, "use_space_atten", toggle=True, text="", icon='LOCKED')
                     else:
-                        row.prop(brush, "use_space_atten", toggle=True, icon='UNLOCKED')
+                        row.prop(brush, "use_space_atten", toggle=True, text="", icon='UNLOCKED')
 
                 self.prop_unified_strength(row, context, brush, "strength", text="Strength")
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")

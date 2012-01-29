@@ -72,14 +72,9 @@ public:
 		kernel_globals_free(kg);
 	}
 
-	bool support_full_kernel()
+	bool support_advanced_shading()
 	{
 		return true;
-	}
-
-	string description()
-	{
-		return system_cpu_brand_string();
 	}
 
 	void mem_alloc(device_memory& mem, MemoryType type)
@@ -162,7 +157,7 @@ public:
 		if(system_cpu_support_optimized()) {
 			for(int y = task.y; y < task.y + task.h; y++) {
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_optimized_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state,
+					kernel_cpu_optimized_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
 						task.sample, x, y, task.offset, task.stride);
 
 				if(tasks.worker_cancel())
@@ -174,7 +169,7 @@ public:
 		{
 			for(int y = task.y; y < task.y + task.h; y++) {
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state,
+					kernel_cpu_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
 						task.sample, x, y, task.offset, task.stride);
 
 				if(tasks.worker_cancel())
@@ -194,7 +189,7 @@ public:
 		if(system_cpu_support_optimized()) {
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_optimized_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer,
+					kernel_cpu_optimized_tonemap(kg, (uchar4*)task.rgba, (float*)task.buffer,
 						task.sample, task.resolution, x, y, task.offset, task.stride);
 		}
 		else
@@ -202,7 +197,7 @@ public:
 		{
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer,
+					kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float*)task.buffer,
 						task.sample, task.resolution, x, y, task.offset, task.stride);
 		}
 	}
@@ -271,6 +266,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.description = system_cpu_brand_string();
 	info.id = "CPU";
 	info.num = 0;
+	info.advanced_shading = true;
 
 	devices.insert(devices.begin(), info);
 }

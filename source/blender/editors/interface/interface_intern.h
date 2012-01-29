@@ -498,6 +498,7 @@ void ui_resources_free(void);
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
 int ui_but_can_align(uiBut *but);
 void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop);
+void ui_but_add_shortcut(uiBut *but, const char *key_str, const short do_strip);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

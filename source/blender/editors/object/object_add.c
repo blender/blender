@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_actuator_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -1791,8 +1792,22 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			Key *key = ob_get_key(obn);
 			
 			if(dupflag & USER_DUP_ACT) {
+				bActuator *act;
+
 				BKE_copy_animdata_id_action((ID *)obn->data);
-				if(key) BKE_copy_animdata_id_action((ID*)key);
+				if(key) {
+					BKE_copy_animdata_id_action((ID*)key);
+				}
+
+				/* Update the duplicated action in the action actuators */
+				for (act = obn->actuators.first; act; act = act->next) {
+					if(act->type == ACT_ACTION) {
+						bActionActuator* actact = (bActionActuator*) act->data;
+						if(actact->act == ob->adt->action) {
+							actact->act = obn->adt->action;
+						}
+					}
+				}
 			}
 			
 			if(dupflag & USER_DUP_MAT) {

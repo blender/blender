@@ -5356,7 +5356,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 					}
 				}
 			}
-					
+			
 			/* See if an object is parented to this armature */
 			if (ob->parent && (ob->parent->data == arm)) {
 				if (ob->partype==PARBONE) {
@@ -5385,17 +5385,15 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 					}
 				}
 			}
-			
-			/* Fix animation data attached to this object */
-			// TODO: should we be using the database wide version instead (since drivers may break)
-			if (ob->adt) {
-				/* posechannels only... */
-				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname, 0, 0, 1);
-			}
 		}
-
+		
+		/* Fix all animdata that may refer to this bone - we can't just do the ones attached to objects, since
+		 * other ID-blocks may have drivers referring to this bone [#29822]
+		 */
+		BKE_all_animdata_fix_paths_rename("pose.bones", oldname, newname);
+		
+		/* correct view locking */
 		{
-			/* correct view locking */
 			bScreen *screen;
 			for(screen= G.main->screen.first; screen; screen= screen->id.next) {
 				ScrArea *sa;

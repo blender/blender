@@ -38,6 +38,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 //#include "TexPlayerGL.h"
 
 #include "ImageBase.h"
+#include "VideoBase.h"
 #include "FilterBase.h"
 #include "Texture.h"
 
@@ -208,6 +209,11 @@ PyObject* initVideoTexture(void)
 
 	Py_INCREF(&TextureType);
 	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
+	PyModule_AddIntConstant(m, (char*)"SOURCE_ERROR", SourceError);
+	PyModule_AddIntConstant(m, (char*)"SOURCE_EMPTY", SourceEmpty);
+	PyModule_AddIntConstant(m, (char*)"SOURCE_READY", SourceReady);
+	PyModule_AddIntConstant(m, (char*)"SOURCE_PLAYING", SourcePlaying);
+	PyModule_AddIntConstant(m, (char*)"SOURCE_STOPPED", SourceStopped);
 	
 	// init last error description
 	Exception::m_lastError = "";

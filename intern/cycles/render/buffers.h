@@ -21,6 +21,10 @@
 
 #include "device_memory.h"
 
+#include "film.h"
+
+#include "kernel_types.h"
+
 #include "util_string.h"
 #include "util_thread.h"
 #include "util_types.h"
@@ -45,32 +49,16 @@ public:
 	int full_width;
 	int full_height;
 
-	BufferParams()
-	{
-		width = 0;
-		height = 0;
+	/* passes */
+	vector<Pass> passes;
 
-		full_x = 0;
-		full_y = 0;
-		full_width = 0;
-		full_height = 0;
-	}
+	/* functions */
+	BufferParams();
 
-	void get_offset_stride(int& offset, int& stride)
-	{
-		offset = -(full_x + full_y*width);
-		stride = width;
-	}
-
-	bool modified(const BufferParams& params)
-	{
-		return !(full_x == params.full_x
-			&& full_y == params.full_y
-			&& width == params.width
-			&& height == params.height
-			&& full_width == params.full_width
-			&& full_height == params.full_height);
-	}
+	void get_offset_stride(int& offset, int& stride);
+	bool modified(const BufferParams& params);
+	void add_pass(PassType type);
+	int get_passes_size();
 };
 
 /* Render Buffers */
@@ -80,7 +68,7 @@ public:
 	/* buffer parameters */
 	BufferParams params;
 	/* float buffer */
-	device_vector<float4> buffer;
+	device_vector<float> buffer;
 	/* random number generator state */
 	device_vector<uint> rng_state;
 	/* mutex, must be locked manually by callers */
@@ -90,7 +78,9 @@ public:
 	~RenderBuffers();
 
 	void reset(Device *device, BufferParams& params);
-	float4 *copy_from_device(float exposure, int sample);
+
+	bool copy_from_device();
+	bool get_pass(PassType type, float exposure, int sample, int components, float *pixels);
 
 protected:
 	void device_free();

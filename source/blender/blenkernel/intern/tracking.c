@@ -242,6 +242,7 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, ListBase *tr
 	track->margin= settings->default_margin;
 	track->pattern_match= settings->default_pattern_match;
 	track->frames_limit= settings->default_frames_limit;
+	track->flag= settings->default_flag;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -393,6 +394,13 @@ MovieTrackingMarker *BKE_tracking_exact_marker(MovieTrackingTrack *track, int fr
 int BKE_tracking_has_marker(MovieTrackingTrack *track, int framenr)
 {
 	return BKE_tracking_exact_marker(track, framenr) != 0;
+}
+
+int BKE_tracking_has_enabled_marker(MovieTrackingTrack *track, int framenr)
+{
+	MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
+
+	return marker && (marker->flag & MARKER_DISABLED) == 0;
 }
 
 void BKE_tracking_free_track(MovieTrackingTrack *track)
@@ -1062,7 +1070,7 @@ void BKE_tracking_disable_imbuf_channels(ImBuf *ibuf, int disable_red, int disab
 static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)
 {
 	BKE_tracking_disable_imbuf_channels(ibuf, track->flag&TRACK_DISABLE_RED,
-			track->flag&TRACK_DISABLE_GREEN, track->flag&TRACK_DISABLE_RED, grayscale);
+			track->flag&TRACK_DISABLE_GREEN, track->flag&TRACK_DISABLE_BLUE, grayscale);
 }
 
 static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
@@ -1741,8 +1749,8 @@ static int count_tracks_on_both_keyframes(MovieTracking *tracking, ListBase *tra
 
 	track= tracksbase->first;
 	while(track) {
-		if(BKE_tracking_has_marker(track, frame1))
-			if(BKE_tracking_has_marker(track, frame2))
+		if(BKE_tracking_has_enabled_marker(track, frame1))
+			if(BKE_tracking_has_enabled_marker(track, frame2))
 				tot++;
 
 		track= track->next;
@@ -1758,7 +1766,7 @@ int BKE_tracking_can_reconstruct(MovieTracking *tracking, MovieTrackingObject *o
 	ListBase *tracksbase= BKE_tracking_object_tracks(tracking, object);
 
 	if(count_tracks_on_both_keyframes(tracking, tracksbase)<8) {
-		BLI_strncpy(error_msg, "At least 8 tracks on both of keyframes are needed for reconstruction", error_size);
+		BLI_strncpy(error_msg, "At least 8 common tracks on both of keyframes are needed for reconstruction", error_size);
 		return 0;
 	}
 
@@ -1838,7 +1846,7 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 
 	context->k1= camera->k1;
 	context->k2= camera->k2;
-	context->k2= camera->k2;
+	context->k3= camera->k3;
 
 	return context;
 }

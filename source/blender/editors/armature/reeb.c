@@ -1174,7 +1174,7 @@ void postprocessGraph(ReebGraph *rg, char mode)
 		fac2 = 0.5f;
 		break;
 	case SKGEN_SHARPEN:
-		fac1 = fac2 = -0.25f;
+		fac1 = fac3 = -0.25f;
 		fac2 = 1.5f;
 		break;
 	default:

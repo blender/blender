@@ -142,6 +142,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			node = new GammaNode();
 			break;
 		}
+		case BL::ShaderNode::type_BRIGHTCONTRAST: {
+			node = new BrightContrastNode();
+			break;
+		}
 		case BL::ShaderNode::type_MIX_RGB: {
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
@@ -632,6 +636,7 @@ void BlenderSync::sync_materials()
 			ShaderGraph *graph = new ShaderGraph();
 
 			shader->name = b_mat->name().c_str();
+			shader->pass_id = b_mat->pass_index();
 
 			/* create nodes */
 			if(b_mat->use_nodes() && b_mat->node_tree()) {

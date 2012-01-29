@@ -2775,8 +2775,7 @@ static void stretchto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* store Z orientation before destroying obmat */
 		normalize_v3_v3(zz, cob->matrix[2]);
 		
-		dist = len_v3v3(cob->matrix[3], ct->matrix[3]);
-		/* XXX What was all that for??? Makes the constraint buggy with scaled objects, see #29940. */
+		/* XXX That makes the constraint buggy with asymmetrically scaled objects, see #29940. */
 /*		sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);*/
 /*		vec[0] /= size[0];*/
 /*		vec[1] /= size[1];*/
@@ -2784,10 +2783,14 @@ static void stretchto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 /*		dist = normalize_v3(vec);*/
 		
+		dist = len_v3v3(cob->matrix[3], ct->matrix[3]);
+		/* Only Y constrained object axis scale should be used, to keep same length when scaling it. */
+		dist /= size[1];
+		
 		/* data->orglength==0 occurs on first run, and after 'R' button is clicked */
-		if (data->orglength == 0)  
+		if (data->orglength == 0)
 			data->orglength = dist;
-		if (data->bulge == 0) 
+		if (data->bulge == 0)
 			data->bulge = 1.0;
 		
 		scale[1] = dist/data->orglength;

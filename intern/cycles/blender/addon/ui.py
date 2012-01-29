@@ -183,6 +183,38 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         layout.separator()
 
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Passes:")
+        col.prop(rl, "use_pass_combined")
+        col.prop(rl, "use_pass_z")
+        col.prop(rl, "use_pass_normal")
+        col.prop(rl, "use_pass_object_index")
+        col.prop(rl, "use_pass_material_index")
+        col.prop(rl, "use_pass_emit")
+        col.prop(rl, "use_pass_environment")
+
+        col = split.column()
+        col.label()
+        col.label(text="Diffuse:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_diffuse_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_diffuse_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_diffuse_color", text="Color", toggle=True)
+        col.label(text="Glossy:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_glossy_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_glossy_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_glossy_color", text="Color", toggle=True)
+        col.label(text="Transmission:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
+
+        layout.separator()
+
         rl = rd.layers[0]
         layout.prop(rl, "material_override", text="Material")
 
@@ -241,7 +273,7 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
 
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
-    bl_label = "Surface"
+    bl_label = ""
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
 
@@ -337,16 +369,13 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
         ob = context.object
         visibility = ob.cycles_visibility
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(visibility, "camera")
-        col.prop(visibility, "diffuse")
-        col.prop(visibility, "glossy")
-
-        col = split.column()
-        col.prop(visibility, "transmission")
-        col.prop(visibility, "shadow")
+        flow = layout.column_flow()
+        
+        flow.prop(visibility, "camera")
+        flow.prop(visibility, "diffuse")
+        flow.prop(visibility, "glossy")
+        flow.prop(visibility, "transmission")
+        flow.prop(visibility, "shadow")
 
 
 def find_node(material, nodetype):
@@ -473,16 +502,12 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         world = context.world
         cworld = world.cycles
 
-        split = layout.split()
-        col = split.column()
+        col = layout.column()
 
         col.prop(cworld, "sample_as_light")
         row = col.row()
         row.active = cworld.sample_as_light
         row.prop(cworld, "sample_map_resolution")
-
-        col = split.column()
-        col.label()
 
 
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
@@ -617,14 +642,9 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 col.template_ID(user, "texture", new="texture.new")
 
             if tex:
-                row = split.row()
-                row.prop(tex, "use_nodes", icon="NODETREE", text="")
-                row.label()
-
-                if not tex.use_nodes:
-                    split = layout.split(percentage=0.2)
-                    split.label(text="Type:")
-                    split.prop(tex, "type", text="")
+                split = layout.split(percentage=0.2)
+                split.label(text="Type:")
+                split.prop(tex, "type", text="")
 
 
 class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):

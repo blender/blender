@@ -113,6 +113,18 @@ static float get_fluid_viscosity(FluidsimSettings *settings)
 	}
 }
 
+static float get_fluid_rate(FluidsimSettings *settings)
+{
+	float rate = 1.0f; /* default rate if not animated... */
+	
+	rate = settings->animRate;
+	
+	if (rate < 0.0f)
+		rate = 0.0f;
+	
+	return rate;
+}
+
 static void get_fluid_gravity(float *gravity, Scene *scene, FluidsimSettings *fss)
 {
 	if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -243,7 +255,7 @@ static void init_time(FluidsimSettings *domainSettings, FluidAnimChannels *chann
 	
 	channels->timeAtFrame[0] = channels->timeAtFrame[1] = domainSettings->animStart; // start at index 1
 	
-	for(i=2; i<=channels->length; i++) {
+	for (i=2; i <= channels->length; i++) {
 		channels->timeAtFrame[i] = channels->timeAtFrame[i-1] + channels->aniFrameTime;
 	}
 }
@@ -305,6 +317,8 @@ static void free_domain_channels(FluidAnimChannels *channels)
 	channels->DomainGravity = NULL;
 	MEM_freeN(channels->DomainViscosity);
 	channels->DomainViscosity = NULL;
+	MEM_freeN(channels->DomainTime);
+	channels->DomainTime = NULL;
 }
 
 static void free_all_fluidobject_channels(ListBase *fobjects)
@@ -351,14 +365,13 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	int length = channels->length;
 	float eval_time;
 	
-	/* XXX: first init time channel - temporary for now */
-	/* init time values (should be done after evaluating animated time curve) */
+	/* init time values (assuming that time moves at a constant speed; may be overridden later) */
 	init_time(domainSettings, channels);
 	
 	/* allocate domain animation channels */
 	channels->DomainGravity = MEM_callocN( length * (CHANNEL_VEC+1) * sizeof(float), "channel DomainGravity");
 	channels->DomainViscosity = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainViscosity");
-	//channels->DomainTime = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainTime");
+	channels->DomainTime = MEM_callocN( length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainTime");
 	
 	/* allocate fluid objects */
 	for (base=scene->base.first; base; base= base->next) {
@@ -406,10 +419,9 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	for (i=0; i<channels->length; i++) {
 		FluidObject *fobj;
 		float viscosity, gravity[3];
-		float timeAtFrame;
+		float timeAtFrame, time;
 		
 		eval_time = domainSettings->bakeStart + i;
-		timeAtFrame = channels->timeAtFrame[i+1];
 		
 		/* XXX: This can't be used due to an anim sys optimisation that ignores recalc object animation,
 		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
@@ -425,12 +437,24 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 		
 		/* now scene data should be current according to animation system, so we fill the channels */
 		
-		/* Domain properties - gravity/viscosity/time */
+		/* Domain time */
+		// TODO: have option for not running sim, time mangling, in which case second case comes in handy
+		if (channels->DomainTime) {
+			time = get_fluid_rate(domainSettings) * channels->aniFrameTime;
+			timeAtFrame = channels->timeAtFrame[i] + time;
+			
+			channels->timeAtFrame[i+1] = timeAtFrame;
+			set_channel(channels->DomainTime, i, &time, i, CHANNEL_FLOAT);
+		}
+		else {
+			timeAtFrame = channels->timeAtFrame[i+1];
+		}
+		
+		/* Domain properties - gravity/viscosity */
 		get_fluid_gravity(gravity, scene, domainSettings);
 		set_channel(channels->DomainGravity, timeAtFrame, gravity, i, CHANNEL_VEC);
 		viscosity = get_fluid_viscosity(domainSettings);
 		set_channel(channels->DomainViscosity, timeAtFrame, &viscosity, i, CHANNEL_FLOAT);
-		// XXX : set_channel(channels->DomainTime, timeAtFrame, &time, i, CHANNEL_VEC);
 		
 		/* object movement */
 		for (fobj=fobjects->first; fobj; fobj=fobj->next) {
@@ -957,38 +981,6 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	/* reset to original current frame */
 	scene->r.cfra = origFrame;
 	ED_update_for_newframe(CTX_data_main(C), scene, CTX_wm_screen(C), 1);
-	
-	
-	/* ---- XXX: No Time animation curve for now, leaving this code here for reference 
-	 
-	{ int timeIcu[1] = { FLUIDSIM_TIME };
-		float timeDef[1] = { 1. };
-
-		// time channel is a bit special, init by hand...
-		timeAtIndex = MEM_callocN( (allchannelSize+1)*1*sizeof(float), "fluidsiminit_timeatindex");
-		for(i=0; i<=scene->r.efra; i++) {
-			timeAtIndex[i] = (float)(i-startFrame);
-		}
-		fluidsimInitChannel(scene, &channelDomainTime, allchannelSize, timeAtIndex, timeIcu,timeDef, domainSettings->ipo, CHANNEL_FLOAT ); // NDEB
-		// time channel is a multiplicator for 
-		if(channelDomainTime) {
-			for(i=0; i<allchannelSize; i++) { 
-				channelDomainTime[i*2+0] = aniFrameTime * channelDomainTime[i*2+0]; 
-				if(channelDomainTime[i*2+0]<0.) channelDomainTime[i*2+0] = 0.;
-			}
-		}
-		timeAtFrame = MEM_callocN( (allchannelSize+1)*1*sizeof(float), "fluidsiminit_timeatframe");
-		timeAtFrame[0] = timeAtFrame[1] = domainSettings->animStart; // start at index 1
-		if(channelDomainTime) {
-			for(i=2; i<=allchannelSize; i++) {
-				timeAtFrame[i] = timeAtFrame[i-1]+channelDomainTime[(i-1)*2+0];
-			}
-		fsset->} else {
-			for(i=2; i<=allchannelSize; i++) { timeAtFrame[i] = timeAtFrame[i-1]+aniFrameTime; }
-		}
-
-	} // domain channel init
-	*/
 		
 	/* ******** init domain object's matrix ******** */
 	copy_m4_m4(domainMat, fsDomain->obmat);

@@ -303,7 +303,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
@@ -563,7 +563,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 }
 
 /******************* run script operator *********************/
@@ -2412,7 +2412,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 {
 	Text *text = st->text;
 	int max = wrap_width(st, ar); /* view */
-	int charp;                    /* mem */
+	int charp = -1;               /* mem */
 	int loop = 1, found = 0;      /* flags */
 	char ch;
 	
@@ -2513,9 +2513,11 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 		
 		y--;
 	}
-	
-	if(sel) { text->sell = linep; text->selc = charp; } 
-	else { text->curl = linep; text->curc = charp; }
+
+	if (linep && charp != -1) {
+		if(sel) { text->sell = linep; text->selc = charp; }
+		else { text->curl = linep; text->curc = charp; }
+	}
 }
 
 static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
@@ -3187,25 +3189,25 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UN
 				/* modified locally and externally, ahhh. offer more possibilites. */
 				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NONE);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, op->type->idname, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, op->type->idname, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
-				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO_ptr(layout, op->type, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO_ptr(layout, op->type, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
+				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiPupMenuEnd(C, pup);
 			}
 			else {
 				pup= uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NONE);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, op->type->idname, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiItemEnumO(layout, op->type->idname, "Ignore", 0, "resolution", RESOLVE_IGNORE);
+				uiItemEnumO_ptr(layout, op->type, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO_ptr(layout, op->type, "Ignore", 0, "resolution", RESOLVE_IGNORE);
 				uiPupMenuEnd(C, pup);
 			}
 			break;
 		case 2:
 			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NONE);
 			layout= uiPupMenuLayout(pup);
-			uiItemEnumO(layout, op->type->idname, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
-			uiItemEnumO(layout, op->type->idname, "Recreate file", 0, "resolution", RESOLVE_SAVE);
+			uiItemEnumO_ptr(layout, op->type, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+			uiItemEnumO_ptr(layout, op->type, "Recreate file", 0, "resolution", RESOLVE_SAVE);
 			uiPupMenuEnd(C, pup);
 			break;
 	}

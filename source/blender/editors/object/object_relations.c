@@ -300,7 +300,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiLayout *layout= uiPupMenuLayout(pup);
 		
 		/* create operator menu item with relevant properties filled in */
-		uiItemFullO(layout, op->idname, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		uiItemFullO_ptr(layout, op->type, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -421,43 +421,47 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 
 /********************** Clear Parent Operator ******************* */
 
-static EnumPropertyItem prop_clear_parent_types[] = {
+EnumPropertyItem prop_clear_parent_types[] = {
 	{0, "CLEAR", 0, "Clear Parent", ""},
 	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
 	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* note, poll should check for editable scene */
-static int parent_clear_exec(bContext *C, wmOperator *op)
+void ED_object_parent_clear(bContext *C, int type)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	int type= RNA_enum_get(op->ptr, "type");
-	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
 		if(ob->parent == NULL)
 			continue;
 		
 		if(type == 0) {
 			ob->parent= NULL;
-		}			
+		}
 		else if(type == 1) {
 			ob->parent= NULL;
 			object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
 		}
 		else if(type == 2)
 			unit_m4(ob->parentinv);
-
+		
 		ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 	}
 	CTX_DATA_END;
-	
+
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
+}
+
+/* note, poll should check for editable scene */
+static int parent_clear_exec(bContext *C, wmOperator *op)
+{
+	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
 
 	return OPERATOR_FINISHED;
 }
@@ -483,35 +487,6 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 
 /* ******************** Make Parent Operator *********************** */
 
-#define PAR_OBJECT				0
-#define PAR_ARMATURE			1
-#define PAR_ARMATURE_NAME		2
-#define PAR_ARMATURE_ENVELOPE	3
-#define PAR_ARMATURE_AUTO		4
-#define PAR_BONE				5
-#define PAR_CURVE				6
-#define PAR_FOLLOW				7
-#define PAR_PATH_CONST			8
-#define PAR_LATTICE				9
-#define PAR_VERTEX				10
-#define PAR_TRIA				11
-
-static EnumPropertyItem prop_make_parent_types[] = {
-	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
-	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
-	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},
-	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
-	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
-	{PAR_BONE, "BONE", 0, "Bone", ""},
-	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
-	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
-	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
-	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
-	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
-	{PAR_TRIA, "TRIA", 0, "Triangle", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 void ED_object_parent(Object *ob, Object *par, int type, const char *substr)
 {
 	if (!par || BKE_object_parent_loop_check(par, ob)) {
@@ -529,13 +504,28 @@ void ED_object_parent(Object *ob, Object *par, int type, const char *substr)
 	BLI_strncpy(ob->parsubstr, substr, sizeof(ob->parsubstr));
 }
 
-static int parent_set_exec(bContext *C, wmOperator *op)
+/* Operator Property */
+EnumPropertyItem prop_make_parent_types[] = {
+	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
+	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},
+	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
+	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
+	{PAR_BONE, "BONE", 0, "Bone", ""},
+	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
+	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
+	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
+	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
+	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
+	{PAR_TRIA, "TRIA", 0, "Triangle", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+int ED_object_parent_set(bContext *C, wmOperator *op, Object *par, int partype)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *par= ED_object_active_context(C);
 	bPoseChannel *pchan= NULL;
-	int partype= RNA_enum_get(op->ptr, "type");
 	int pararm= ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
 	par->recalc |= OB_RECALC_OB;
@@ -543,7 +533,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	/* preconditions */
 	if(partype==PAR_FOLLOW || partype==PAR_PATH_CONST) {
 		if(par->type!=OB_CURVE)
-			return OPERATOR_CANCELLED;
+			return 0;
 		else {
 			Curve *cu= par->data;
 			
@@ -574,15 +564,14 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 		
 		if(pchan==NULL) {
 			BKE_report(op->reports, RPT_ERROR, "No active Bone");
-			return OPERATOR_CANCELLED;
+			return 0;
 		}
 	}
 	
 	/* context iterator */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		
-		if(ob!=par) {
-			
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		if (ob!=par) {
 			if (BKE_object_parent_loop_check(par, ob)) {
 				BKE_report(op->reports, RPT_ERROR, "Loop in parents");
 			}
@@ -591,10 +580,11 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				/* apply transformation of previous parenting */
 				/* object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
-
+				
 				/* set the parent (except for follow-path constraint option) */
-				if(partype != PAR_PATH_CONST)
+				if (partype != PAR_PATH_CONST) {
 					ob->parent= par;
+				}
 				
 				/* handle types */
 				if (pchan)
@@ -602,9 +592,10 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				else
 					ob->parsubstr[0]= 0;
 					
-				if(partype == PAR_PATH_CONST)
-					; /* don't do anything here, since this is not technically "parenting" */
-				else if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
+				if (partype == PAR_PATH_CONST) {
+					/* don't do anything here, since this is not technically "parenting" */
+				}
+				else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm))
 				{
 					/* partype is now set to PAROBJECT so that invisible 'virtual' modifiers don't need to be created
 					 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
@@ -614,10 +605,10 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					
 					/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
 					// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
-					if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) 
+					if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
 					{
 						ModifierData *md;
-
+						
 						switch (partype) {
 						case PAR_CURVE: /* curve deform */
 							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Curve);
@@ -684,14 +675,26 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	CTX_DATA_END;
-	
+
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
-	
-	return OPERATOR_FINISHED;
+
+	return 1;
 }
+
+static int parent_set_exec(bContext *C, wmOperator *op)
+{
+	Object *par= ED_object_active_context(C);
+	int partype= RNA_enum_get(op->ptr, "type");
+
+	if(ED_object_parent_set(C, op, par, partype))
+		return OPERATOR_FINISHED;
+	else
+		return OPERATOR_CANCELLED;
+}
+
 
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {

@@ -870,7 +870,7 @@ static void getVerticalAndHorizontalChange(const float norm[3], float d, const f
 	closest_to_plane_v3(projB, coord, norm, end);
 	// (vertical and horizontal refer to the plane's y and xz respectively)
 	// vertical distance
-	dists[index] = norm[0]*end[0] + norm[1]*end[1] + norm[2]*end[2] + d;
+	dists[index] = dot_v3v3(norm, end) + d;
 	// vertical change
 	changes[index][0] = dists[index] - distToStart;
 	//printf("vc %f %f\n", distance(end, projB, 3)-distance(start, projA, 3), changes[index][0]);
@@ -1111,7 +1111,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 					mag= normalize_v3(norm);
 					if(mag) { /* zeros fix */
 						d = -dot_v3v3(norm, coord);
-						/* dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d); */ /* UNUSED */
+						/* dist = (dot_v3v3(norm, m.co) + d); */ /* UNUSED */
 						moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
 					}
 				}
