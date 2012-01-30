@@ -504,13 +504,17 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 			normalize_v3(normal);
 			copy_v3_v3(plane, tmat[1]);
 			
-			copy_v3_v3(tmat[2], normal);
-			cross_v3_v3v3(tmat[0], normal, plane);
-			cross_v3_v3v3(tmat[1], tmat[2], tmat[0]);
-			
-			copy_m4_m3(mat, tmat);
+			cross_v3_v3v3(mat[0], normal, plane);
+			if(len_v3(mat[0]) < 1e-3) {
+				copy_v3_v3(plane, tmat[0]);
+				cross_v3_v3v3(mat[0], normal, plane);
+			}
+
+			copy_v3_v3(mat[2], normal);
+			cross_v3_v3v3(mat[1], mat[2], mat[0]);
+
 			normalize_m4(mat);
-			
+
 			
 			/* apply the average coordinate as the new location */
 			mul_v3_m4v3(mat[3], ob->obmat, vec);
