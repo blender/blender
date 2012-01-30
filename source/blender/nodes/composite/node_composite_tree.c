@@ -660,6 +660,13 @@ static void force_hidden_passes(bNode *node, int passflag)
 	for(sock= node->outputs.first; sock; sock= sock->next)
 		sock->flag &= ~SOCK_UNAVAIL;
 	
+	if(!(passflag & SCE_PASS_COMBINED)) {
+		sock= BLI_findlink(&node->outputs, RRES_OUT_IMAGE);
+		sock->flag |= SOCK_UNAVAIL;
+		sock= BLI_findlink(&node->outputs, RRES_OUT_ALPHA);
+		sock->flag |= SOCK_UNAVAIL;
+	}
+	
 	sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
 	if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
