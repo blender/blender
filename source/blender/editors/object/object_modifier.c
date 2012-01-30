@@ -536,7 +536,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		int numVerts;
 		float (*vertexCos)[3];
 
-		if (mti->type==eModifierTypeType_Constructive) {
+		if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
 			BKE_report(reports, RPT_ERROR, "Cannot apply constructive modifiers on curve");
 			return 0;
 		}
