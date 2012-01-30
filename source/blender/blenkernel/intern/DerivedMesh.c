@@ -397,28 +397,26 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 
 	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
 		KeyBlock *kb;
-		int i=0;
+		int uid;
 		
 		if (ob) {
-			for (kb=me->key->block.first; kb; kb=kb->next, i++) {
-				if (i == ob->shapenr-1) {
-					i = kb->uid;
-					break;
-				}
+			kb = BLI_findlink(&me->key->block, ob->shapenr-1);
+			if (kb) {
+				uid = kb->uid;
 			}
-			
-			if (!kb) {
+			else {
 				printf("%s: error - could not find active shapekey %d!\n",
 				       __func__, ob->shapenr-1);
 
-				i = INT_MAX;
+				uid = INT_MAX;
 			}
-		} else {
-			/*if no object, set to INT_MAX so we don't mess up any shapekey layers*/
-			i = INT_MAX;
 		}
-		
-		shapekey_layers_to_keyblocks(dm, me, i);
+		else {
+			/*if no object, set to INT_MAX so we don't mess up any shapekey layers*/
+			uid = INT_MAX;
+		}
+
+		shapekey_layers_to_keyblocks(dm, me, uid);
 		did_shapekeys = 1;
 	}
 	
@@ -711,19 +709,20 @@ DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
 /***/
 
 DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, 
-	ModifierData *md, int build_shapekey_layers)
+                                              ModifierData *md, int build_shapekey_layers)
 {
 	Mesh *me = ob->data;
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	DerivedMesh *dm;
+	KeyBlock *kb;
 
 	md->scene= scene;
 	
 	if (!(md->mode&eModifierMode_Realtime)) return NULL;
 	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
 	
-	if (build_shapekey_layers && me->key && ob->shapenr <= BLI_countlist(&me->key->block)) {
-		key_to_mesh(BLI_findlink(&me->key->block, ob->shapenr-1), me);
+	if (build_shapekey_layers && me->key && (kb = BLI_findlink(&me->key->block, ob->shapenr-1))) {
+		key_to_mesh(kb, me);
 	}
 	
 	if (mti->type==eModifierTypeType_OnlyDeform) {
