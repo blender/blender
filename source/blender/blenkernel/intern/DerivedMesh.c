@@ -1211,29 +1211,39 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 {
 	KeyBlock *kb;
 	Key *key = me->key;
-	int a, b;
-	
+	int i;
+	const size_t shape_alloc_len = sizeof(float) * 3 * me->totvert;
+
 	if (!me->key)
 		return;
-	
-	if (dm->numVertData != me->totvert) {
-		printf("error in add_shapekey_layers: dm isn't the same size as me\n");
+
+	/* ensure we can use mesh vertex count for derived mesh custom data */
+	if (me->totvert != dm->getNumVerts(dm)) {
+		fprintf(stderr,
+		        "%s: vertex size mismatch (mesh/dm) '%s' (%d != %d)\n",
+		        __func__, me->id.name+2, me->totvert, dm->getNumVerts(dm));
 		return;
 	}
-		
-	for (a=0, kb=key->block.first; kb; kb=kb->next, a++) {
-		float (*cos)[3] = CustomData_add_layer_named(&dm->vertData, CD_SHAPEKEY, CD_CALLOC, NULL, dm->numVertData, kb->name);
-		int ci = CustomData_get_layer_index_n(&dm->vertData, CD_SHAPEKEY, a);
-		
+
+	for (i=0, kb=key->block.first; kb; kb=kb->next, i++) {
+		int ci;
+		float *array;
+
+		if (me->totvert != kb->totelem) {
+			fprintf(stderr,
+			        "%s: vertex size mismatch (mesh/keyblock) '%s' (%d != %d)\n",
+			        __func__, me->id.name+2, me->totvert, kb->totelem);
+			array = MEM_callocN(shape_alloc_len, __func__);
+		}
+		else {
+			array = MEM_mallocN(shape_alloc_len, __func__);
+			memcpy(array, kb->data, shape_alloc_len);
+		}
+
+		CustomData_add_layer_named(&dm->vertData, CD_SHAPEKEY, CD_ASSIGN, array, dm->numVertData, kb->name);
+		ci = CustomData_get_layer_index_n(&dm->vertData, CD_SHAPEKEY, i);
+
 		dm->vertData.layers[ci].uid = kb->uid;
-		if (kb->totelem != dm->numVertData) {
-			printf("error in add_shapekey_layers: totelem and totvert don't match");
-			continue;
-		}
-		
-		for (b=0; b<kb->totelem; b++, cos++) {
-			copy_v3_v3((float *)cos, ((float*)kb->data)+b*3);
-		}
 	}
 }
 
@@ -1934,7 +1944,7 @@ static void clear_mesh_caches(Object *ob)
 }
 
 static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
-	int build_shapekey_layers)
+                            int build_shapekey_layers)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = paint_facesel_test(ob);
@@ -1980,7 +1990,7 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 }
 
 void makeDerivedMesh(Scene *scene, Object *ob, BMEditMesh *em,
-	CustomDataMask dataMask, int build_shapekey_layers)
+                     CustomDataMask dataMask, int build_shapekey_layers)
 {
 	if (em) {
 		editbmesh_build_data(scene, ob, em, dataMask);
