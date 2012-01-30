@@ -116,7 +116,8 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 
 	if(ls.shader & SHADER_CAST_SHADOW) {
 		/* setup ray */
-		ray->P = ray_offset(sd->P, sd->Ng);
+		bool transmit = (dot(sd->Ng, ls.D) < 0.0f);
+		ray->P = ray_offset(sd->P, (transmit)? -sd->Ng: sd->Ng);
 
 		if(ls.t == FLT_MAX) {
 			/* distant light */
