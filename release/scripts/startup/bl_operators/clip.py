@@ -835,7 +835,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         return {'FINISHED'}
 
 class CLIP_OT_track_settings_as_default(Operator):
-    """Copy trackign settings from active track to default settings"""
+    """Copy tracking settings from active track to default settings"""
 
     bl_idname = "clip.track_settings_as_default"
     bl_label = "Track Settings As Default"
