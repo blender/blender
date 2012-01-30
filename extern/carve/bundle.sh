@@ -17,7 +17,7 @@ done
 rm -rf include
 rm -rf lib
 
-cat "files.txt" | while f=`line`; do
+cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
   cp $tmp/carve/$f $f
 done
