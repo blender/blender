@@ -69,11 +69,9 @@ See the actuator's reference for available methods
    :columns: 3
    
    * :class:`~bge.types.BL_ActionActuator`
-   * :class:`~bge.types.BL_ShapeActionActuator`
    * :class:`~bge.types.KX_CameraActuator`
    * :class:`~bge.types.KX_ConstraintActuator`
    * :class:`~bge.types.KX_GameActuator`
-   * :class:`~bge.types.KX_IpoActuator`
    * :class:`~bge.types.KX_NetworkMessageActuator`
    * :class:`~bge.types.KX_ObjectActuator`
    * :class:`~bge.types.KX_ParentActuator`
@@ -477,6 +475,7 @@ Action Actuator
 See :class:`bge.types.BL_ActionActuator`
 
 .. data:: KX_ACTIONACT_PLAY
+.. data:: KX_ACTIONACT_PINGPONG
 .. data:: KX_ACTIONACT_FLIPPER
 .. data:: KX_ACTIONACT_LOOPSTOP
 .. data:: KX_ACTIONACT_LOOPEND
@@ -635,21 +634,6 @@ See :class:`bge.types.KX_GameActuator`
 .. data:: KX_GAME_SAVECFG
 .. data:: KX_GAME_LOADCFG
 
-.. _ipo-actuator:
-
-------------
-IPO Actuator
-------------
-
-See :class:`bge.types.KX_IpoActuator`
-
-.. data:: KX_IPOACT_PLAY
-.. data:: KX_IPOACT_PINGPONG
-.. data:: KX_IPOACT_FLIPPER
-.. data:: KX_IPOACT_LOOPSTOP
-.. data:: KX_IPOACT_LOOPEND
-.. data:: KX_IPOACT_FROM_PROP
-
 ---------------
 Parent Actuator
 ---------------
@@ -690,20 +674,6 @@ See :class:`bge.types.KX_SceneActuator`
 .. data:: KX_SCENE_REMOVE_SCENE
 .. data:: KX_SCENE_SUSPEND
 .. data:: KX_SCENE_RESUME
-
-.. _shape-action-actuator:
-
----------------------
-Shape Action Actuator
----------------------
-
-See :class:`bge.types.BL_ActionActuator`
-
-.. data:: KX_ACTIONACT_PLAY
-.. data:: KX_ACTIONACT_FLIPPER
-.. data:: KX_ACTIONACT_LOOPSTOP
-.. data:: KX_ACTIONACT_LOOPEND
-.. data:: KX_ACTIONACT_PROPERTY
 
 .. _logic-sound-actuator:
 
