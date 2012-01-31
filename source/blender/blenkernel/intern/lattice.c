@@ -530,15 +530,13 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 /* co: local coord, result local too */
 /* returns quaternion for rotation, using cd->no_rot_axis */
 /* axis is using another define!!! */
-static int calc_curve_deform(Scene *scene, Object *par, float co[3], short axis, CurveDeform *cd, float quat_r[4])
+static int calc_curve_deform(Scene *scene, Object *par, float co[3],
+                             const short axis, CurveDeform *cd, float quat_r[4])
 {
 	Curve *cu= par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
-	short /*upflag, */ index;
-
-	index= axis-1;
-	if(index>2)
-		index -= 3; /* negative  */
+	short index;
+	const int is_neg_axis = (axis > 3);
 
 	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
@@ -547,13 +545,15 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3], short axis,
 	}
 	
 	/* options */
-	if(ELEM3(axis, OB_NEGX+1, OB_NEGY+1, OB_NEGZ+1)) { /* OB_NEG# 0-5, MOD_CURVE_POS# 1-6 */
+	if (is_neg_axis) {
+		index = axis - 4;
 		if(cu->flag & CU_STRETCH)
 			fac= (-co[index]-cd->dmax[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
 			fac= - (co[index]-cd->dmax[index])/(cu->path->totdist);
 	}
 	else {
+		index = axis - 1;
 		if(cu->flag & CU_STRETCH)
 			fac= (co[index]-cd->dmin[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
@@ -659,6 +659,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	int a, flag;
 	CurveDeform cd;
 	int use_vgroups;
+	const int is_neg_axis = (defaxis > 3);
 
 	if(cuOb->type != OB_CURVE)
 		return;
@@ -670,7 +671,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	init_curve_deform(cuOb, target, &cd);
 
 	/* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
-	if(defaxis < 3) {
+	if(is_neg_axis == FALSE) {
 		cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
 		cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
 	}
