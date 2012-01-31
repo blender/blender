@@ -560,38 +560,8 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 			fac= + (co[index]-cd->dmin[index])/(cu->path->totdist);
 	}
 	
-#if 0 // XXX old animation system
-	/* we want the ipo to work on the default 100 frame range, because there's no  
-	   actual time involved in path position */
-	// huh? by WHY!!!!???? - Aligorith
-	if(cu->ipo) {
-		fac*= 100.0f;
-		if(calc_ipo_spec(cu->ipo, CU_SPEED, &fac)==0)
-			fac/= 100.0;
-	}
-#endif // XXX old animation system
-	
 	if( where_on_path_deform(par, fac, loc, dir, new_quat, &radius)) {	/* returns OK */
 		float quat[4], cent[3];
-
-#if 0	// XXX - 2.4x Z-Up, Now use bevel tilt.
-		if(cd->no_rot_axis)	/* set by caller */
-			dir[cd->no_rot_axis-1]= 0.0f;
-		
-		/* -1 for compatibility with old track defines */
-		vec_to_quat( quat,dir, axis, upflag);
-		
-		/* the tilt */
-		if(loc[3]!=0.0) {
-			normalize_v3(dir);
-			q[0]= (float)cos(0.5*loc[3]);
-			fac= (float)sin(0.5*loc[3]);
-			q[1]= -fac*dir[0];
-			q[2]= -fac*dir[1];
-			q[3]= -fac*dir[2];
-			mul_qt_qtqt(quat, q, quat);
-		}
-#endif
 
 		if(cd->no_rot_axis) {	/* set by caller */
 
@@ -878,7 +848,7 @@ int object_deform_mball(Object *ob, ListBase *dispbase)
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
-	return lt->def+ u + v*lt->pntsu + w*lt->pntsu*lt->pntsv;
+	return &lt->def[LT_INDEX(lt, u, v, w)];
 }
 
 void outside_lattice(Lattice *lt)
