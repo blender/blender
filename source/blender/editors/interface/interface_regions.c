@@ -1541,6 +1541,8 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		if(ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
 
+		block->aspect = but->block->aspect;
+
 		ui_block_position(window, butregion, but, block);
 	}
 	else {
