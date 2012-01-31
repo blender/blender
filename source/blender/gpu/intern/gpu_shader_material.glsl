@@ -1230,6 +1230,11 @@ void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale,
 void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale, 
                      out float dBs, out float dBt ) 
 {
+	float Hl;
+	float Hr;
+	float Hd;
+	float Hu;
+	
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
  
@@ -1238,10 +1243,10 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 	vec2 STd = texco.xy - 0.5 * TexDy ;
 	vec2 STu = texco.xy + 0.5 * TexDy ;
 	
-	float Hl = texture2D(ima, STl).x;
-	float Hr = texture2D(ima, STr).x;
-	float Hd = texture2D(ima, STd).x;
-	float Hu = texture2D(ima, STu).x;
+	rgbtobw(texture2D(ima, STl), Hl);
+	rgbtobw(texture2D(ima, STr), Hr);
+	rgbtobw(texture2D(ima, STd), Hd);
+	rgbtobw(texture2D(ima, STu), Hu);
 	
 	vec2 dHdxy = vec2(Hr - Hl, Hu - Hd);
 	float fBlend = clamp(1.0-textureQueryLOD(ima, texco.xy).x, 0.0, 1.0);
@@ -1255,8 +1260,6 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 		ivec2 iTexLoc = ivec2(floor(fTexLoc));
 		vec2 t = clamp(fTexLoc - iTexLoc, 0.0, 1.0);		// sat just to be pedantic
 
-		ivec2 iTexLocMod = iTexLoc + ivec2(-1, -1);
-
 /*******************************************************************************************
  * This block will replace the one below when one channel textures are properly supported. *
  *******************************************************************************************
@@ -1264,17 +1267,19 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 		vec4 vSamplesUR = textureGather(ima, (iTexLoc+ivec2(1,-1) + vec2(0.5,0.5))/vDim );
 		vec4 vSamplesLL = textureGather(ima, (iTexLoc+ivec2(-1,1) + vec2(0.5,0.5))/vDim );
 		vec4 vSamplesLR = textureGather(ima, (iTexLoc+ivec2(1,1) + vec2(0.5,0.5))/vDim );
-		
+
 		mat4 H = mat4(vSamplesUL.w, vSamplesUL.x, vSamplesLL.w, vSamplesLL.x,
 					vSamplesUL.z, vSamplesUL.y, vSamplesLL.z, vSamplesLL.y,
 					vSamplesUR.w, vSamplesUR.x, vSamplesLR.w, vSamplesLR.x,
 					vSamplesUR.z, vSamplesUR.y, vSamplesLR.z, vSamplesLR.y);
 */	
+		ivec2 iTexLocMod = iTexLoc + ivec2(-1, -1);
+
 		mat4 H;
 		
 		for(int i = 0; i < 4; i++){
 			for(int j = 0; j < 4; j++){
-				mtex_rgbtoint(texelFetch(ima, (iTexLocMod + ivec2(i,j)), 0), H[i][j]);
+				rgbtobw(texelFetch(ima, (iTexLocMod + ivec2(i,j)), 0), H[i][j]);
 			}
 		}
 		
