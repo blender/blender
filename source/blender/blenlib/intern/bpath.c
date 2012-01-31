@@ -194,10 +194,12 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 
 
 /* find this file recursively, use the biggest file so thumbnails dont get used by mistake
- - dir: subdir to search
- - filename: set this filename
- - filesize: filesize for the file
-*/
+ * - dir: subdir to search
+ * - filename: set this filename
+ * - filesize: filesize for the file
+ *
+ * return found: 1/0.
+ */
 #define MAX_RECUR 16
 static int findFileRecursive(char *filename_new,
                              const char *dirname,
@@ -211,11 +213,14 @@ static int findFileRecursive(char *filename_new,
 	struct stat status;
 	char path[FILE_MAX];
 	int size;
+	int found = FALSE;
+
+	filename_new[0] = '\0';
 
 	dir= opendir(dirname);
 
 	if (dir==NULL)
-		return 0;
+		return found;
 
 	if (*filesize == -1)
 		*filesize= 0; /* dir opened fine */
@@ -237,19 +242,20 @@ static int findFileRecursive(char *filename_new,
 				if ((size > 0) && (size > *filesize)) { /* find the biggest file */
 					*filesize= size;
 					BLI_strncpy(filename_new, path, FILE_MAX);
+					found = TRUE;
 				}
 			}
 		}
 		else if (S_ISDIR(status.st_mode)) { /* is subdir */
 			if (*recur_depth <= MAX_RECUR) {
 				(*recur_depth)++;
-				findFileRecursive(filename_new, path, filename, filesize, recur_depth);
+				found |= findFileRecursive(filename_new, path, filename, filesize, recur_depth);
 				(*recur_depth)--;
 			}
 		}
 	}
 	closedir(dir);
-	return 1;
+	return found;
 }
 
 typedef struct BPathFind_Data
@@ -266,19 +272,26 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 
 	int filesize= -1;
 	int recur_depth= 0;
+	int found;
 
-	findFileRecursive(filename_new,
-	                  data->searchdir, BLI_path_basename((char *)path_src),
-	                  &filesize, &recur_depth);
+	found = findFileRecursive(filename_new,
+	                          data->searchdir, BLI_path_basename((char *)path_src),
+	                          &filesize, &recur_depth);
 
 	if (filesize == -1) { /* could not open dir */
+		BKE_reportf(data->reports, RPT_WARNING,
+		            "Could open directory \"%s\"",
+		            BLI_path_basename(data->searchdir));
+		return FALSE;
+	}
+	else if (found == FALSE) {
 		BKE_reportf(data->reports, RPT_WARNING,
 		            "Could not find \"%s\" in \"%s\"",
 		            BLI_path_basename((char *)path_src), data->searchdir);
 		return FALSE;
 	}
 	else {
-		strcpy(path_dst, filename_new);
+		BLI_strncpy(path_dst, filename_new, FILE_MAX);
 		return TRUE;
 	}
 }
