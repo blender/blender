@@ -300,7 +300,7 @@ __device_inline void _shader_bsdf_multi_eval(const ShaderData *sd, const float3 
 		}
 	}
 
-	*pdf = sum_pdf/sum_sample_weight;
+	*pdf = (sum_sample_weight > 0.0f)? sum_pdf/sum_sample_weight: 0.0f;
 }
 
 #endif
