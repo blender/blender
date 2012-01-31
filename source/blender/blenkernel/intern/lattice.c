@@ -486,8 +486,11 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc
 	cd->no_rot_axis= 0;
 }
 
-/* this makes sure we can extend for non-cyclic. *vec needs 4 items! */
-static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
+/* this makes sure we can extend for non-cyclic.
+ *
+ * returns OK: 1/0
+ */
+static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
 {
 	Curve *cu= ob->data;
 	BevList *bl;
@@ -532,12 +535,12 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 	return 0;
 }
 
-	/* for each point, rotate & translate to curve */
-	/* use path, since it has constant distances */
-	/* co: local coord, result local too */
-	/* returns quaternion for rotation, using cd->no_rot_axis */
-	/* axis is using another define!!! */
-static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
+/* for each point, rotate & translate to curve */
+/* use path, since it has constant distances */
+/* co: local coord, result local too */
+/* returns quaternion for rotation, using cd->no_rot_axis */
+/* axis is using another define!!! */
+static int calc_curve_deform(Scene *scene, Object *par, float co[3], short axis, CurveDeform *cd, float quat_r[4])
 {
 	Curve *cu= par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
@@ -636,7 +639,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 		 * the big block of text above now applies to these 3 lines */
 		quat_apply_track(quat, axis-1, (axis==1 || axis==3) ? 1:0); /* up flag is a dummy, set so no rotation is done */
 		vec_apply_track(cent, axis-1);
-		cent[axis < 4 ? axis-1 : axis-4]= 0.0f;
+		cent[index]= 0.0f;
 
 
 		/* scale if enabled */
@@ -650,8 +653,8 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 		/* translation */
 		add_v3_v3v3(co, cent, loc);
 
-		if(quatp)
-			copy_qt_qt(quatp, quat);
+		if(quat_r)
+			copy_qt_qt(quat_r, quat);
 
 		return 1;
 	}
@@ -787,7 +790,8 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco, float *vec, float mat[][3], int no_rot_axis)
+void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
+                         float orco[3], float vec[3], float mat[][3], int no_rot_axis)
 {
 	CurveDeform cd;
 	float quat[4];
