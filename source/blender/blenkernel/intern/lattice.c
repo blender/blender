@@ -462,27 +462,17 @@ void end_latt_deform(Object *ob)
 	   so we store in latmat transform from path coord inside object 
 	 */
 typedef struct {
-	float dmin[3], dmax[3], dscale, dloc[3];
+	float dmin[3], dmax[3];
 	float curvespace[4][4], objectspace[4][4], objectspace3[3][3];
 	int no_rot_axis;
 } CurveDeform;
 
-static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc)
+static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
 {
 	invert_m4_m4(ob->imat, ob->obmat);
 	mult_m4_m4m4(cd->objectspace, ob->imat, par->obmat);
 	invert_m4_m4(cd->curvespace, cd->objectspace);
 	copy_m3_m4(cd->objectspace3, cd->objectspace);
-	
-	// offset vector for 'no smear'
-	if(dloc) {
-		invert_m4_m4(par->imat, par->obmat);
-		mul_v3_m4v3(cd->dloc, par->imat, ob->obmat[3]);
-	}
-	else {
-		cd->dloc[0]=cd->dloc[1]=cd->dloc[2]= 0.0f;
-	}
-	
 	cd->no_rot_axis= 0;
 }
 
@@ -561,13 +551,13 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3], short axis,
 		if(cu->flag & CU_STRETCH)
 			fac= (-co[index]-cd->dmax[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
-			fac= (cd->dloc[index])/(cu->path->totdist) - (co[index]-cd->dmax[index])/(cu->path->totdist);
+			fac= - (co[index]-cd->dmax[index])/(cu->path->totdist);
 	}
 	else {
 		if(cu->flag & CU_STRETCH)
 			fac= (co[index]-cd->dmin[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
-			fac= (cd->dloc[index])/(cu->path->totdist) + (co[index]-cd->dmin[index])/(cu->path->totdist);
+			fac= + (co[index]-cd->dmin[index])/(cu->path->totdist);
 	}
 	
 #if 0 // XXX old animation system
@@ -677,7 +667,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	flag = cu->flag;
 	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
 
-	init_curve_deform(cuOb, target, &cd, (cu->flag & CU_STRETCH)==0);
+	init_curve_deform(cuOb, target, &cd);
 
 	/* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
 	if(defaxis < 3) {
@@ -799,7 +789,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 		return;
 	}
 
-	init_curve_deform(cuOb, target, &cd, 0);	/* 0 no dloc */
+	init_curve_deform(cuOb, target, &cd);
 	cd.no_rot_axis= no_rot_axis;				/* option to only rotate for XY, for example */
 	
 	copy_v3_v3(cd.dmin, orco);
