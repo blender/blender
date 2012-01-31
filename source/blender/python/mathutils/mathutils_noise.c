@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/noise_py_api.c
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_noise.c
+ *  \ingroup mathutils
  *
  * This file defines the 'noise' module, a general purpose module to access
  * blenders noise functions.
@@ -42,11 +42,24 @@
 #include "structseq.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "DNA_texture_types.h"
 
-#include "noise_py_api.h"
+#include "mathutils.h"
+#include "mathutils_noise.h"
+
+/* 2.6 update
+ * Moved to submodule of mathutils.
+ * All vector functions now return mathutils.Vector
+ * Updated docs to be compatible with autodocs generation.
+ * Updated vector functions to use nD array functions.
+ * noise.vl_vector --> noise.variable_lacunarity
+ * noise.vector --> noise.noise_vector
+ */
 
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */
@@ -95,25 +108,6 @@
    http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
-
-/* 2.5 update
- * Noise.setRandomSeed --> seed_set
- * Noise.randuvec --> random_unit_vector
- * Noise.vNoise --> noise_vector
- * Noise.vTurbulence --> turbulence_vector
- * Noise.multiFractal --> multi_fractal
- * Noise.cellNoise --> cell
- * Noise.cellNoiseV --> cell_vector
- * Noise.vlNoise --> vl_vector
- * Noise.heteroTerrain --> hetero_terrain
- * Noise.hybridMFractal --> hybrid_multi_fractal
- * Noise.fBm --> fractal
- * Noise.ridgedMFractal --> ridged_multi_fractal
- *
- * Const's *
- * Noise.NoiseTypes --> types
- * Noise.DistanceMetrics --> distance_metrics
- */
 
 /* Period parameters */
 #define N 624
@@ -199,90 +193,27 @@ static float frand(void)
 }
 
 /*------------------------------------------------------------*/
+/* Utility Functions */
+/*------------------------------------------------------------*/
 
-/* returns random unit vector */
-static void randuvec(float v[3])
+/* Fills an array of length size with random numbers in the range (-1, 1)*/
+static void rand_vn(float *array_tar, const int size)
 {
-	float r;
-	v[2] = 2.f * frand() - 1.f;
-	if ((r = 1.f - v[2] * v[2]) > 0.f) {
-		float a = (float)(6.283185307f * frand());
-		r = (float)sqrt(r);
-		v[0] = (float)(r * cosf(a));
-		v[1] = (float)(r * sinf(a));
-	}
-	else {
-		v[2] = 1.f;
-	}
+	float *array_pt = array_tar + (size-1);
+	int i = size;
+	while (i--) { *(array_pt--) = 2.0f * frand() - 1.0f; }
 }
 
-static PyObject *Noise_random(PyObject *UNUSED(self))
-{
-	return PyFloat_FromDouble(frand());
-}
-
-static PyObject *Noise_random_unit_vector(PyObject *UNUSED(self))
-{
-	float v[3] = {0.0f, 0.0f, 0.0f};
-	randuvec(v);
-	return Py_BuildValue("[fff]", v[0], v[1], v[2]);
-}
-
-/*---------------------------------------------------------------------*/
-
-/* Random seed init. Only used for MT random() & randuvec() */
-
-static PyObject *Noise_seed_set(PyObject *UNUSED(self), PyObject *args)
-{
-	int s;
-	if (!PyArg_ParseTuple(args, "i:seed_set", &s))
-		return NULL;
-	setRndSeed(s);
-	Py_RETURN_NONE;
-}
-
-/*-------------------------------------------------------------------------*/
-
-/* General noise */
-
-static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z;
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)|i:noise", &x, &y, &z, &nb))
-		return NULL;
-
-	return PyFloat_FromDouble((2.0f * BLI_gNoise(1.0f, x, y, z, 0, nb) - 1.0f));
-}
-
-/*-------------------------------------------------------------------------*/
-
-/* General Vector noise */
-
+/* Fills an array of length 3 with noise values */
 static void noise_vector(float x, float y, float z, int nb, float v[3])
 {
 	/* Simply evaluate noise at 3 different positions */
-	v[0]= (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0,
-	                                nb) - 1.0f);
-	v[1]= (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
-	v[2]= (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0,
-	                                nb) - 1.0f);
+	v[0] = (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0, nb) - 1.0f);
+	v[1] = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
+	v[2] = (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0, nb) - 1.0f);
 }
 
-static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, v[3];
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)|i:vector", &x, &y, &z, &nb))
-		return NULL;
-	noise_vector(x, y, z, nb, v);
-	return Py_BuildValue("[fff]", v[0], v[1], v[2]);
-}
-
-/*---------------------------------------------------------------------------*/
-
-/* General turbulence */
-
+/* Returns a turbulence value for a given position (x, y, z) */
 static float turb(float x, float y, float z, int oct, int hard, int nb,
 		   float ampscale, float freqscale)
 {
@@ -305,21 +236,8 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 	return out;
 }
 
-static PyObject *Noise_turbulence(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z;
-	int oct, hd, nb = 1;
-	float as = 0.5, fs = 2.0;
-	if (!PyArg_ParseTuple(args, "(fff)ii|iff:turbulence", &x, &y, &z, &oct, &hd, &nb, &as, &fs))
-		return NULL;
-
-	return PyFloat_FromDouble(turb(x, y, z, oct, hd, nb, as, fs));
-}
-
-/*--------------------------------------------------------------------------*/
-
-/* Turbulence Vector */
-
+/* Fills an array of length 3 with the turbulence vector for a given
+position (x, y, z) */
 static void vTurb(float x, float y, float z, int oct, int hard, int nb,
                   float ampscale, float freqscale, float v[3])
 {
@@ -349,444 +267,645 @@ static void vTurb(float x, float y, float z, int oct, int hard, int nb,
 	}
 }
 
-static PyObject *Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *args)
+/*-------------------------DOC STRINGS ---------------------------*/
+PyDoc_STRVAR(M_Noise_doc,
+"The Blender noise module"
+);
+
+/*------------------------------------------------------------*/
+/* Python Functions */
+/*------------------------------------------------------------*/
+
+PyDoc_STRVAR(M_Noise_random_doc,
+".. function:: random()\n"
+"\n"
+"   Returns a random number in the range [0, 1].\n"
+"\n"
+"   :return: The random number.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_random(PyObject *UNUSED(self))
 {
-	float x, y, z, v[3];
-	int oct, hd, nb = 1;
-	float as = 0.5, fs = 2.0;
-	if (!PyArg_ParseTuple(args, "(fff)ii|iff:turbulence_vector", &x, &y, &z, &oct, &hd, &nb, &as, &fs))
-		return NULL;
-	vTurb(x, y, z, oct, hd, nb, as, fs, v);
-	return Py_BuildValue("[fff]", v[0], v[1], v[2]);
+	return PyFloat_FromDouble(frand());
 }
 
-/*---------------------------------------------------------------------*/
-
-/* F. Kenton Musgrave's fractal functions */
-
-static PyObject *Noise_fractal(PyObject *UNUSED(self), PyObject *args)
+PyDoc_STRVAR(M_Noise_random_unit_vector_doc,
+".. function:: random_unit_vector(size=3)\n"
+"\n"
+"   Returns a unit vector with random entries.\n"
+"\n"
+"   :arg size: The size of the vector to be produced.\n"
+"   :type size: Int\n"
+"   :return: The random unit vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *M_Noise_random_unit_vector(PyObject *UNUSED(self), PyObject *args)
 {
-	float x, y, z, H, lac, oct;
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)fff|i:fractal", &x, &y, &z, &H, &lac, &oct, &nb))
-		return NULL;
-	return PyFloat_FromDouble(mg_fBm(x, y, z, H, lac, oct, nb));
-}
+	float vec[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float norm = 2.0f;
+	int size = 3;
 
-/*------------------------------------------------------------------------*/
-
-static PyObject *Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, H, lac, oct;
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)fff|i:multi_fractal", &x, &y, &z, &H, &lac, &oct, &nb))
+	if (!PyArg_ParseTuple(args, "|i:random_vector", &size))
 		return NULL;
 
-	return PyFloat_FromDouble(mg_MultiFractal(x, y, z, H, lac, oct, nb));
-}
-
-/*------------------------------------------------------------------------*/
-
-static PyObject *Noise_vl_vector(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, d;
-	int nt1 = 1, nt2 = 1;
-	if (!PyArg_ParseTuple(args, "(fff)f|ii:vl_vector", &x, &y, &z, &d, &nt1, &nt2))
+	if (size > 4 || size < 2) {
+		PyErr_SetString(PyExc_ValueError, "Vector(): invalid size");
 		return NULL;
-	return PyFloat_FromDouble(mg_VLNoise(x, y, z, d, nt1, nt2));
+	}
+
+	while (norm == 0.0f || norm >= 1.0f) {
+		rand_vn(vec, size);
+		norm = normalize_vn(vec, size);
+	}
+
+	return Vector_CreatePyObject(vec, size, Py_NEW, NULL);
 }
-
-/*-------------------------------------------------------------------------*/
-
-static PyObject *Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, H, lac, oct, ofs;
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)ffff|i:hetero_terrain", &x, &y, &z, &H, &lac, &oct, &ofs, &nb))
-		return NULL;
-
-	return PyFloat_FromDouble(mg_HeteroTerrain(x, y, z, H, lac, oct, ofs, nb));
-}
-
-/*-------------------------------------------------------------------------*/
-
-static PyObject *Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, H, lac, oct, ofs, gn;
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)fffff|i:hybrid_multi_fractal", &x, &y, &z, &H, &lac, &oct, &ofs, &gn, &nb))
-		return NULL;
-	
-	return PyFloat_FromDouble(mg_HybridMultiFractal(x, y, z, H, lac, oct, ofs, gn, nb));
-}
-
-/*------------------------------------------------------------------------*/
-
-static PyObject *Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, H, lac, oct, ofs, gn;
-	int nb = 1;
-	if (!PyArg_ParseTuple(args, "(fff)fffff|i:ridged_multi_fractal", &x, &y, &z, &H, &lac, &oct, &ofs, &gn, &nb))
-		return NULL;
-	return PyFloat_FromDouble(mg_RidgedMultiFractal(x, y, z, H, lac, oct, ofs, gn, nb));
-}
-
-/*-------------------------------------------------------------------------*/
-
-static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, da[4], pa[12];
-	int dtype = 0;
-	float me = 2.5;		/* default minkovsky exponent */
-	if (!PyArg_ParseTuple(args, "(fff)|if:voronoi", &x, &y, &z, &dtype, &me))
-		return NULL;
-	voronoi(x, y, z, da, pa, me, dtype);
-	return Py_BuildValue("[[ffff][[fff][fff][fff][fff]]]",
-	                     da[0], da[1], da[2], da[3],
-	                     pa[0], pa[1], pa[2],
-	                     pa[3], pa[4], pa[5],
-	                     pa[6], pa[7], pa[8], pa[9], pa[10], pa[11]);
-}
-
-/*-------------------------------------------------------------------------*/
-
-static PyObject *Noise_cell(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z;
-	if (!PyArg_ParseTuple(args, "(fff):cell", &x, &y, &z))
-		return NULL;
-
-	return PyFloat_FromDouble(cellNoise(x, y, z));
-}
-
-/*--------------------------------------------------------------------------*/
-
-static PyObject *Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
-{
-	float x, y, z, ca[3];
-	if (!PyArg_ParseTuple(args, "(fff):cell_vector", &x, &y, &z))
-		return NULL;
-	cellNoiseV(x, y, z, ca);
-	return Py_BuildValue("[fff]", ca[0], ca[1], ca[2]);
-}
-
-/*--------------------------------------------------------------------------*/
-/* For all other Blender modules, this stuff seems to be put in a header file.
-   This doesn't seem really appropriate to me, so I just put it here, feel free to change it.
-   In the original module I actually kept the docs stings with the functions themselves,
-   but I grouped them here so that it can easily be moved to a header if anyone thinks that is necessary. */
-
-PyDoc_STRVAR(random__doc__,
-"() No arguments.\n\n\
-Returns a random floating point number in the range [0, 1)"
-);
-
-PyDoc_STRVAR(random_unit_vector__doc__,
-"() No arguments.\n\nReturns a random unit vector (3-float list)."
-);
-
-PyDoc_STRVAR(seed_set__doc__,
-"(seed value)\n\n\
-Initializes random number generator.\n\
-if seed is zero, the current time will be used instead."
-);
-
-PyDoc_STRVAR(noise__doc__,
-"((x,y,z) tuple, [noisetype])\n\n\
-Returns general noise of the optional specified type.\n\
-Optional argument noisetype determines the type of noise, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(noise_vector__doc__,
-"((x,y,z) tuple, [noisetype])\n\n\
-Returns noise vector (3-float list) of the optional specified type.\
-Optional argument noisetype determines the type of noise, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(turbulence__doc__,
-"((x,y,z) tuple, octaves, hard, [noisebasis], [ampscale], [freqscale])\n\n\
-Returns general turbulence value using the optional specified noisebasis function.\n\
-octaves (integer) is the number of noise values added.\n\
-hard (bool), when false (0) returns 'soft' noise, when true (1) returns 'hard' noise (returned value always positive).\n\
-Optional arguments:\n\
-noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes.\n\
-ampscale sets the amplitude scale value of the noise frequencies added, 0.5 by default.\n\
-freqscale sets the frequency scale factor, 2.0 by default."
-);
-
-PyDoc_STRVAR(turbulence_vector__doc__,
-"((x,y,z) tuple, octaves, hard, [noisebasis], [ampscale], [freqscale])\n\n\
-Returns general turbulence vector (3-float list) using the optional specified noisebasis function.\n\
-octaves (integer) is the number of noise values added.\n\
-hard (bool), when false (0) returns 'soft' noise, when true (1) returns 'hard' noise (returned vector always positive).\n\
-Optional arguments:\n\
-noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes.\n\
-ampscale sets the amplitude scale value of the noise frequencies added, 0.5 by default.\n\
-freqscale sets the frequency scale factor, 2.0 by default."
-);
-
-PyDoc_STRVAR(fractal__doc__,
-"((x,y,z) tuple, H, lacunarity, octaves, [noisebasis])\n\n\
-Returns Fractal Brownian Motion noise value(fBm).\n\
-H is the fractal increment parameter.\n\
-lacunarity is the gap between successive frequencies.\n\
-octaves is the number of frequencies in the fBm.\n\
-Optional argument noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(multi_fractal__doc__,
-"((x,y,z) tuple, H, lacunarity, octaves, [noisebasis])\n\n\
-Returns Multifractal noise value.\n\
-H determines the highest fractal dimension.\n\
-lacunarity is gap between successive frequencies.\n\
-octaves is the number of frequencies in the fBm.\n\
-Optional argument noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(vl_vector__doc__,
-"((x,y,z) tuple, distortion, [noisetype1], [noisetype2])\n\n\
-Returns Variable Lacunarity Noise value, a distorted variety of noise.\n\
-distortion sets the amount of distortion.\n\
-Optional arguments noisetype1 and noisetype2 set the noisetype to distort and the noisetype used for the distortion respectively.\n\
-See NoiseTypes, both are STDPERLIN by default."
-);
-
-PyDoc_STRVAR(hetero_terrain__doc__,
-"((x,y,z) tuple, H, lacunarity, octaves, offset, [noisebasis])\n\n\
-returns Heterogeneous Terrain value\n\
-H determines the fractal dimension of the roughest areas.\n\
-lacunarity is the gap between successive frequencies.\n\
-octaves is the number of frequencies in the fBm.\n\
-offset raises the terrain from 'sea level'.\n\
-Optional argument noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(hybrid_multi_fractal__doc__,
-"((x,y,z) tuple, H, lacunarity, octaves, offset, gain, [noisebasis])\n\n\
-returns Hybrid Multifractal value.\n\
-H determines the fractal dimension of the roughest areas.\n\
-lacunarity is the gap between successive frequencies.\n\
-octaves is the number of frequencies in the fBm.\n\
-offset raises the terrain from 'sea level'.\n\
-gain scales the values.\n\
-Optional argument noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(ridged_multi_fractal__doc__,
-"((x,y,z) tuple, H, lacunarity, octaves, offset, gain [noisebasis])\n\n\
-returns Ridged Multifractal value.\n\
-H determines the fractal dimension of the roughest areas.\n\
-lacunarity is the gap between successive frequencies.\n\
-octaves is the number of frequencies in the fBm.\n\
-offset raises the terrain from 'sea level'.\n\
-gain scales the values.\n\
-Optional argument noisebasis determines the type of noise used for the turbulence, STDPERLIN by default, see NoiseTypes."
-);
-
-PyDoc_STRVAR(voronoi__doc__,
-"((x,y,z) tuple, distance_metric, [exponent])\n\n\
-returns a list, containing a list of distances in order of closest feature,\n\
-and a list containing the positions of the four closest features\n\
-Optional arguments:\n\
-distance_metric: see DistanceMetrics, default is DISTANCE\n\
-exponent is only used with MINKOVSKY, default is 2.5."
-);
-
-PyDoc_STRVAR(cell__doc__,
-"((x,y,z) tuple)\n\n\
-returns cellnoise float value."
-);
-
-PyDoc_STRVAR(cell_vector__doc__,
-"((x,y,z) tuple)\n\n\
-returns cellnoise vector/point/color (3-float list)."
-);
-
-PyDoc_STRVAR(Noise__doc__,
-"Blender Noise and Turbulence Module\n\n\
-This module can be used to generate noise of various types.\n\
-This can be used for terrain generation, to create textures,\n\
-make animations more 'animated', object deformation, etc.\n\
-As an example, this code segment when scriptlinked to a framechanged event,\n\
-will make the camera sway randomly about, by changing parameters this can\n\
-look like anything from an earthquake to a very nervous or maybe even drunk cameraman...\n\
-(the camera needs an ipo with at least one Loc & Rot key for this to work!):\n\
-\n\
-\tfrom Blender import Get, Scene, Noise\n\
-\n\
-\t####################################################\n\
-\t# This controls jitter speed\n\
-\tsl = 0.025\n\
-\t# This controls the amount of position jitter\n\
-\tsp = 0.1\n\
-\t# This controls the amount of rotation jitter\n\
-\tsr = 0.25\n\
-\t####################################################\n\
-\n\
-\ttime = Get('curtime')\n\
-\tob = Scene.GetCurrent().getCurrentCamera()\n\
-\tps = (sl*time, sl*time, sl*time)\n\
-\t# To add jitter only when the camera moves, use this next line instead\n\
-\t#ps = (sl*ob.LocX, sl*ob.LocY, sl*ob.LocZ)\n\
-\trv = Noise.turbulence_vector(ps, 3, 0, Noise.NoiseTypes.NEWPERLIN)\n\
-\tob.dloc = (sp*rv[0], sp*rv[1], sp*rv[2])\n\
-\tob.drot = (sr*rv[0], sr*rv[1], sr*rv[2])\n\
-\n"
-);
-
-/* Just in case, declarations for a header file */
+/* This is dumb, most people will want a unit vector anyway, since this doesn't have uniform distribution over a sphere*/
 /*
-static PyObject *Noise_random(PyObject *UNUSED(self));
-static PyObject *Noise_random_unit_vector(PyObject *UNUSED(self));
-static PyObject *Noise_seed_set(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_turbulence(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_fractal(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_vl_vector(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_cell(PyObject *UNUSED(self), PyObject *args);
-static PyObject *Noise_cell_vector(PyObject *UNUSED(self), PyObject *args);
+PyDoc_STRVAR(M_Noise_random_vector_doc,
+".. function:: random_vector(size=3)\n"
+"\n"
+"   Returns a vector with random entries in the range [0, 1).\n"
+"\n"
+"   :arg size: The size of the vector to be produced.\n"
+"   :type size: Int\n"
+"   :return: The random vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *M_Noise_random_vector(PyObject *UNUSED(self), PyObject *args)
+{
+	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	int size= 3;
+
+	if (!PyArg_ParseTuple(args, "|i:random_vector", &size))
+		return NULL;
+
+	if (size > 4 || size < 2) {
+		PyErr_SetString(PyExc_ValueError, "Vector(): invalid size");
+		return NULL;
+	}
+
+	rand_vn(vec, size);
+
+	return Vector_CreatePyObject(vec, size, Py_NEW, NULL);
+}
 */
 
-static PyMethodDef NoiseMethods[] = {
-	{"seed_set", (PyCFunction) Noise_seed_set, METH_VARARGS, seed_set__doc__},
-	{"random", (PyCFunction) Noise_random, METH_NOARGS, random__doc__},
-	{"random_unit_vector", (PyCFunction) Noise_random_unit_vector, METH_NOARGS, random_unit_vector__doc__},
-	{"noise", (PyCFunction) Noise_noise, METH_VARARGS, noise__doc__},
-	{"vector", (PyCFunction) Noise_vector, METH_VARARGS, noise_vector__doc__},
-	{"turbulence", (PyCFunction) Noise_turbulence, METH_VARARGS, turbulence__doc__},
-	{"turbulence_vector", (PyCFunction) Noise_turbulence_vector, METH_VARARGS, turbulence_vector__doc__},
-	{"fractal", (PyCFunction) Noise_fractal, METH_VARARGS, fractal__doc__},
-	{"multi_fractal", (PyCFunction) Noise_multi_fractal, METH_VARARGS, multi_fractal__doc__},
-	{"vl_vector", (PyCFunction) Noise_vl_vector, METH_VARARGS, vl_vector__doc__},
-	{"hetero_terrain", (PyCFunction) Noise_hetero_terrain, METH_VARARGS, hetero_terrain__doc__},
-	{"hybrid_multi_fractal", (PyCFunction) Noise_hybrid_multi_fractal, METH_VARARGS, hybrid_multi_fractal__doc__},
-	{"ridged_multi_fractal", (PyCFunction) Noise_ridged_multi_fractal, METH_VARARGS, ridged_multi_fractal__doc__},
-	{"voronoi", (PyCFunction) Noise_voronoi, METH_VARARGS, voronoi__doc__},
-	{"cell", (PyCFunction) Noise_cell, METH_VARARGS, cell__doc__},
-	{"cell_vector", (PyCFunction) Noise_cell_vector, METH_VARARGS, cell_vector__doc__},
+PyDoc_STRVAR(M_Noise_seed_set_doc,
+".. function:: seed_set(seed)\n"
+"\n"
+"   Sets the random seed used for random_unit_vector, random_vector and random.\n"
+"\n"
+"   :arg seed: Seed used for the random generator.\n"
+"   :type seed: Int\n"
+);
+static PyObject *M_Noise_seed_set(PyObject *UNUSED(self), PyObject *args)
+{
+	int s;
+	if (!PyArg_ParseTuple(args, "i:seed_set", &s))
+		return NULL;
+	setRndSeed(s);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(M_Noise_noise_doc,
+".. function:: noise(position, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns noise value from the noise basis at the position specified.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The noise value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	int nb = 1;
+	if (!PyArg_ParseTuple(args, "O|i:noise", &value, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "noise: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble((2.0f * BLI_gNoise(1.0f, vec[0], vec[1], vec[2], 0, nb) - 1.0f));
+}
+
+PyDoc_STRVAR(M_Noise_noise_vector_doc,
+".. function:: noise_vector(position, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns the noise vector from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The noise vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *M_Noise_noise_vector(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3], r_vec[3];
+	int nb = 1;
+
+	if (!PyArg_ParseTuple(args, "O|i:noise_vector", &value, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "noise_vector: invalid 'position' arg") == -1)
+		return NULL;
+
+	noise_vector(vec[0], vec[1], vec[2], nb, r_vec);
+
+	return Vector_CreatePyObject(r_vec, 3, Py_NEW, NULL);
+}
+
+PyDoc_STRVAR(M_Noise_turbulence_doc,
+".. function:: turbulence(position, octaves, hard, noise_basis=noise.types.STDPERLIN, amplitude_scale=0.5, frequency_scale=2.0)\n"
+"\n"
+"   Returns the turbulence value from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or soft (smooth transitions).\n"
+"   :type hard: :boolean\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in mathutils.noise.types or int\n"
+"   :arg amplitude_scale: The amplitude scaling factor.\n"
+"   :type amplitude_scale: float\n"
+"   :arg frequency_scale: The frequency scaling factor\n"
+"   :type frequency_scale: Value in noise.types or int\n"
+"   :return: The turbulence value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_turbulence(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	int oct, hd, nb = 1;
+	float as = 0.5f, fs = 2.0f;
+
+	if (!PyArg_ParseTuple(args, "Oii|iff:turbulence", &value, &oct, &hd, &nb, &as, &fs))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "turbulence: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(turb(vec[0], vec[1], vec[2], oct, hd, nb, as, fs));
+}
+
+PyDoc_STRVAR(M_Noise_turbulence_vector_doc,
+".. function:: turbulence_vector(position, octaves, hard, noise_basis=noise.types.STDPERLIN, amplitude_scale=0.5, frequency_scale=2.0)\n"
+"\n"
+"   Returns the turbulence vector from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or soft (smooth transitions).\n"
+"   :type hard: :boolean\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in mathutils.noise.types or int\n"
+"   :arg amplitude_scale: The amplitude scaling factor.\n"
+"   :type amplitude_scale: float\n"
+"   :arg frequency_scale: The frequency scaling factor\n"
+"   :type frequency_scale: Value in noise.types or int\n"
+"   :return: The turbulence vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3], r_vec[3];
+	int oct, hd, nb = 1;
+	float as =0.5f, fs = 2.0f;
+	if (!PyArg_ParseTuple(args, "Oii|iff:turbulence_vector", &value, &oct, &hd, &nb, &as, &fs))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "turbulence_vector: invalid 'position' arg") == -1)
+		return NULL;
+
+	vTurb(vec[0], vec[1], vec[2], oct, hd, nb, as, fs, r_vec);
+	return Vector_CreatePyObject(r_vec, 3, Py_NEW, NULL);
+}
+
+/* F. Kenton Musgrave's fractal functions */
+PyDoc_STRVAR(M_Noise_fractal_doc,
+".. function:: fractal(position, H, lacunarity, octaves, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns the fractal Brownian motion (fBm) noise value from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg H: The fractal increment factor.\n"
+"   :type H: float\n"
+"   :arg lacunarity: The gap between successive frequencies.\n"
+"   :type lacunarity: float\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The fractal Brownian motion noise value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	float H, lac, oct;
+	int nb = 1;
+
+	if (!PyArg_ParseTuple(args, "Offf|i:fractal", &value, &H, &lac, &oct, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "fractal: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(mg_fBm(vec[0], vec[1], vec[2], H, lac, oct, nb));
+}
+
+PyDoc_STRVAR(M_Noise_multi_fractal_doc,
+".. function:: multi_fractal(position, H, lacunarity, octaves, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns multifractal noise value from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg H: The fractal increment factor.\n"
+"   :type H: float\n"
+"   :arg lacunarity: The gap between successive frequencies.\n"
+"   :type lacunarity: float\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The multifractal noise value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	float H, lac, oct;
+	int nb = 1;
+
+	if (!PyArg_ParseTuple(args, "Offf|i:multi_fractal", &value, &H, &lac, &oct, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "multi_fractal: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(mg_MultiFractal(vec[0], vec[1], vec[2], H, lac, oct, nb));
+}
+
+PyDoc_STRVAR(M_Noise_variable_lacunarity_doc,
+".. function:: variable_lacunarity(position, distortion, noise_type1=noise.types.STDPERLIN, noise_type2=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns variable lacunarity noise value, a distorted variety of noise, from noise type 1 distorted by noise type 2 at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg distortion: The amount of distortion.\n"
+"   :type distortion: float\n"
+"   :arg noise_type1: The type of noise to be distorted.\n"
+"   :type noise_type1: Value in noise.types or int\n"
+"   :arg noise_type2: The type of noise used to distort noise_type1.\n"
+"   :type noise_type2: Value in noise.types or int\n"
+"   :return: The variable lacunarity noise value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	float d;
+	int nt1 = 1, nt2 = 1;
+
+	if (!PyArg_ParseTuple(args, "Of|ii:variable_lacunarity", &value, &d, &nt1, &nt2))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "variable_lacunarity: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(mg_VLNoise(vec[0], vec[1], vec[2], d, nt1, nt2));
+}
+
+PyDoc_STRVAR(M_Noise_hetero_terrain_doc,
+".. function:: hetero_terrain(position, H, lacunarity, octaves, offset, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns the heterogeneous terrain value from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg H: The fractal dimension of the roughest areas.\n"
+"   :type H: float\n"
+"   :arg lacunarity: The gap between successive frequencies.\n"
+"   :type lacunarity: float\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg offset: The height of the terrain above 'sea level'.\n"
+"   :type offset: float\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The heterogeneous terrain value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	float H, lac, oct, ofs;
+	int nb = 1;
+
+	if (!PyArg_ParseTuple(args, "Offff|i:hetero_terrain", &value, &H, &lac, &oct, &ofs, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "hetero_terrain: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(mg_HeteroTerrain(vec[0], vec[1], vec[2], H, lac, oct, ofs, nb));
+}
+
+PyDoc_STRVAR(M_Noise_hybrid_multi_fractal_doc,
+".. function:: hybrid_multi_fractal(position, H, lacunarity, octaves, offset, gain, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns hybrid multifractal value from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg H: The fractal dimension of the roughest areas.\n"
+"   :type H: float\n"
+"   :arg lacunarity: The gap between successive frequencies.\n"
+"   :type lacunarity: float\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg offset: The height of the terrain above 'sea level'.\n"
+"   :type offset: float\n"
+"   :arg gain: Scaling applied to the values.\n"
+"   :type gain: float\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The hybrid multifractal value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	float H, lac, oct, ofs, gn;
+	int nb = 1;
+
+	if (!PyArg_ParseTuple(args, "Offfff|i:hybrid_multi_fractal", &value, &H, &lac, &oct, &ofs, &gn, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "hybrid_multi_fractal: invalid 'position' arg") == -1)
+		return NULL;
+	
+	return PyFloat_FromDouble(mg_HybridMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, nb));
+}
+
+PyDoc_STRVAR(M_Noise_ridged_multi_fractal_doc,
+".. function:: ridged_multi_fractal(position, H, lacunarity, octaves, offset, gain, noise_basis=noise.types.STDPERLIN)\n"
+"\n"
+"   Returns ridged multifractal value from the noise basis at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg H: The fractal dimension of the roughest areas.\n"
+"   :type H: float\n"
+"   :arg lacunarity: The gap between successive frequencies.\n"
+"   :type lacunarity: float\n"
+"   :arg octaves: The number of different noise frequencies used.\n"
+"   :type octaves: int\n"
+"   :arg offset: The height of the terrain above 'sea level'.\n"
+"   :type offset: float\n"
+"   :arg gain: Scaling applied to the values.\n"
+"   :type gain: float\n"
+"   :arg noise_basis: The type of noise to be evaluated.\n"
+"   :type noise_basis: Value in noise.types or int\n"
+"   :return: The ridged multifractal value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+	float H, lac, oct, ofs, gn;
+	int nb = 1;
+
+	if (!PyArg_ParseTuple(args, "Offfff|i:ridged_multi_fractal", &value, &H, &lac, &oct, &ofs, &gn, &nb))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "ridged_multi_fractal: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(mg_RidgedMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, nb));
+}
+
+PyDoc_STRVAR(M_Noise_voronoi_doc,
+".. function:: voronoi(position, distance_metric=noise.distance_metrics.DISTANCE, exponent=2.5)\n"
+"\n"
+"   Returns a list of distances to the four closest features and their locations.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :arg distance_metric: Method of measuring distance.\n"
+"   :type distance_metric: Value in noise.distance_metrics or int\n"
+"   :arg exponent: The exponent for Minkovsky distance metric.\n"
+"   :type exponent: float\n"
+"   :return: A list of distances to the four closest features and their locations.\n"
+"   :rtype: list of four floats, list of four :class:`mathutils.Vector`s\n"
+);
+static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	PyObject *list;
+	float vec[3];
+	float da[4], pa[12];
+	int dtype = 0;
+	float me = 2.5f;		/* default minkovsky exponent */
+
+	int i;
+
+	if (!PyArg_ParseTuple(args, "O|if:voronoi", &value, &dtype, &me))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "voronoi: invalid 'position' arg") == -1)
+		return NULL;
+
+	list = PyList_New(4);
+
+	voronoi(vec[0], vec[1], vec[2], da, pa, me, dtype);
+
+	for (i = 0; i < 4; i++) {
+		PyList_SET_ITEM(list, i, Vector_CreatePyObject(pa + 3 * i, 3, Py_NEW, NULL));
+	}
+
+	return Py_BuildValue("[[ffff]O]", da[0], da[1], da[2], da[3], list);
+}
+
+PyDoc_STRVAR(M_Noise_cell_doc,
+".. function:: cell(position)\n"
+"\n"
+"   Returns cell noise value at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :return: The cell noise value.\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Noise_cell(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3];
+
+	if (!PyArg_ParseTuple(args, "O:cell", &value))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "cell: invalid 'position' arg") == -1)
+		return NULL;
+
+	return PyFloat_FromDouble(cellNoise(vec[0], vec[1], vec[2]));
+}
+
+PyDoc_STRVAR(M_Noise_cell_vector_doc,
+".. function:: cell_vector(position)\n"
+"\n"
+"   Returns cell noise vector at the specified position.\n"
+"\n"
+"   :arg position: The position to evaluate the selected noise function at.\n"
+"   :type position: :class:`mathutils.Vector`\n"
+"   :return: The cell noise vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *M_Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *value;
+	float vec[3], r_vec[3];
+
+	if (!PyArg_ParseTuple(args, "O:cell_vector", &value))
+		return NULL;
+
+	if (mathutils_array_parse(vec, 3, 3, value, "cell_vector: invalid 'position' arg") == -1)
+		return NULL;
+
+	cellNoiseV(vec[0], vec[1], vec[2], r_vec);
+	return Vector_CreatePyObject(NULL, 3, Py_NEW, NULL);;
+}
+
+static PyMethodDef M_Noise_methods[] = {
+	{"seed_set", (PyCFunction) M_Noise_seed_set, METH_VARARGS, M_Noise_seed_set_doc},
+	{"random", (PyCFunction) M_Noise_random, METH_NOARGS, M_Noise_random_doc},
+	{"random_unit_vector", (PyCFunction) M_Noise_random_unit_vector, METH_VARARGS, M_Noise_random_unit_vector_doc},
+	/*{"random_vector", (PyCFunction) M_Noise_random_vector, METH_VARARGS, M_Noise_random_vector_doc},*/
+	{"noise", (PyCFunction) M_Noise_noise, METH_VARARGS, M_Noise_noise_doc},
+	{"noise_vector", (PyCFunction) M_Noise_noise_vector, METH_VARARGS, M_Noise_noise_vector_doc},
+	{"turbulence", (PyCFunction) M_Noise_turbulence, METH_VARARGS, M_Noise_turbulence_doc},
+	{"turbulence_vector", (PyCFunction) M_Noise_turbulence_vector, METH_VARARGS, M_Noise_turbulence_vector_doc},
+	{"fractal", (PyCFunction) M_Noise_fractal, METH_VARARGS, M_Noise_fractal_doc},
+	{"multi_fractal", (PyCFunction) M_Noise_multi_fractal, METH_VARARGS, M_Noise_multi_fractal_doc},
+	{"variable_lacunarity", (PyCFunction) M_Noise_variable_lacunarity, METH_VARARGS, M_Noise_variable_lacunarity_doc},
+	{"hetero_terrain", (PyCFunction) M_Noise_hetero_terrain, METH_VARARGS, M_Noise_hetero_terrain_doc},
+	{"hybrid_multi_fractal", (PyCFunction) M_Noise_hybrid_multi_fractal, METH_VARARGS, M_Noise_hybrid_multi_fractal_doc},
+	{"ridged_multi_fractal", (PyCFunction) M_Noise_ridged_multi_fractal, METH_VARARGS, M_Noise_ridged_multi_fractal_doc},
+	{"voronoi", (PyCFunction) M_Noise_voronoi, METH_VARARGS, M_Noise_voronoi_doc},
+	{"cell", (PyCFunction) M_Noise_cell, METH_VARARGS, M_Noise_cell_doc},
+	{"cell_vector", (PyCFunction) M_Noise_cell_vector, METH_VARARGS, M_Noise_cell_vector_doc},
 	{NULL, NULL, 0, NULL}
 };
 
-/*----------------------------------------------------------------------*/
-
-static struct PyModuleDef noise_module_def = {
+static struct PyModuleDef M_Noise_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"noise",  /* m_name */
-	Noise__doc__,  /* m_doc */
+	"mathutils.noise",  /* m_name */
+	M_Noise_doc,  /* m_doc */
 	0,     /* m_size */
-	NoiseMethods,  /* m_methods */
+	M_Noise_methods,  /* m_methods */
 	NULL,  /* m_reload */
 	NULL,  /* m_traverse */
 	NULL,  /* m_clear */
 	NULL,  /* m_free */
 };
 
-PyObject *BPyInit_noise(void)
+/*----------------------------MODULE INIT-------------------------*/
+PyMODINIT_FUNC PyInit_mathutils_noise(void)
 {
-	PyObject *submodule = PyModule_Create(&noise_module_def);
+	PyObject *submodule = PyModule_Create(&M_Noise_module_def);
+	PyObject *item_types, *item_metrics;
 
 	/* use current time as seed for random number generator by default */
-	setRndSeed(0);	
+	setRndSeed(0);
 
-	/* Constant noisetype dictionary */
-	if (submodule) {
-		static PyStructSequence_Field noise_types_fields[] = {
-			{(char *)"BLENDER", NULL},
-			{(char *)"STDPERLIN", NULL},
-			{(char *)"NEWPERLIN", NULL},
-			{(char *)"VORONOI_F1", NULL},
-			{(char *)"VORONOI_F2", NULL},
-			{(char *)"VORONOI_F3", NULL},
-			{(char *)"VORONOI_F4", NULL},
-			{(char *)"VORONOI_F2F1", NULL},
-			{(char *)"VORONOI_CRACKLE", NULL},
-			{(char *)"CELLNOISE", NULL},
-			{NULL}
-		};
+	PyModule_AddObject(submodule, "types", (item_types = PyInit_mathutils_noise_types()));
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.types", item_types);
+	Py_INCREF(item_types);
 
-		static PyStructSequence_Desc noise_types_info_desc = {
-			(char *)"noise.types",     /* name */
-			(char *)"Noise type",    /* doc */
-			noise_types_fields,    /* fields */
-			(sizeof(noise_types_fields)/sizeof(PyStructSequence_Field)) - 1
-		};
+	PyModule_AddObject(submodule, "distance_metrics", (item_metrics = PyInit_mathutils_noise_metrics()));
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.distance_metrics", item_metrics);
+	Py_INCREF(item_metrics);
 
-		static PyTypeObject NoiseType;
+	return submodule;
+}
 
-		PyObject *noise_types;
-		
-		int pos = 0;
-		
-		PyStructSequence_InitType(&NoiseType, &noise_types_info_desc);
-	
-		noise_types = PyStructSequence_New(&NoiseType);
-		if (noise_types == NULL) {
-			return NULL;
-		}
+/*----------------------------SUBMODULE INIT-------------------------*/
+static struct PyModuleDef M_NoiseTypes_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"mathutils.noise.types",  /* m_name */
+	NULL,  /* m_doc */
+	0,     /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};
 
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_BLENDER));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_STDPERLIN));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_NEWPERLIN));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_VORONOI_F1));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_VORONOI_F2));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_VORONOI_F3));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_VORONOI_F4));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_VORONOI_F2F1));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_VORONOI_CRACKLE));
-		PyStructSequence_SET_ITEM(noise_types, pos++, PyLong_FromLong(TEX_CELLNOISE));
+PyMODINIT_FUNC PyInit_mathutils_noise_types(void)
+{
+	PyObject *submodule = PyModule_Create(&M_NoiseTypes_module_def);
 
-		PyModule_AddObject(submodule, "types", noise_types);
-	}
-	
-	if (submodule) {
-		static PyStructSequence_Field distance_metrics_fields[] = {
-			{(char *)"DISTANCE", NULL},
-			{(char *)"DISTANCE_SQUARED", NULL},
-			{(char *)"MANHATTAN", NULL},
-			{(char *)"CHEBYCHEV", NULL},
-			{(char *)"MINKOVSKY_HALF", NULL},
-			{(char *)"MINKOVSKY_FOUR", NULL},
-			{(char *)"MINKOVSKY", NULL},
-			{NULL}
-		};
+	PyModule_AddIntConstant(submodule, (char *)"BLENDER", TEX_BLENDER);
+	PyModule_AddIntConstant(submodule, (char *)"STDPERLIN", TEX_STDPERLIN);
+	PyModule_AddIntConstant(submodule, (char *)"NEWPERLIN", TEX_NEWPERLIN);
+	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F1", TEX_VORONOI_F1);
+	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F2", TEX_VORONOI_F2);
+	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F3", TEX_VORONOI_F3);
+	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F4", TEX_VORONOI_F4);
+	PyModule_AddIntConstant(submodule, (char *)"VORONOI_F2F1", TEX_VORONOI_F2F1);
+	PyModule_AddIntConstant(submodule, (char *)"VORONOI_CRACKLE", TEX_VORONOI_CRACKLE);
+	PyModule_AddIntConstant(submodule, (char *)"CELLNOISE", TEX_CELLNOISE);
 
-		static PyStructSequence_Desc noise_types_info_desc = {
-			(char *)"noise.distance_metrics",     /* name */
-			(char *)"Distance Metrics for noise module.",    /* doc */
-			distance_metrics_fields,    /* fields */
-			(sizeof(distance_metrics_fields)/sizeof(PyStructSequence_Field)) - 1
-		};
-		
-		static PyTypeObject DistanceMetrics;
-		
-		PyObject *distance_metrics;
-		
-		int pos = 0;
-		
-		PyStructSequence_InitType(&DistanceMetrics, &noise_types_info_desc);
-	
-		distance_metrics = PyStructSequence_New(&DistanceMetrics);
-		if (distance_metrics == NULL) {
-			return NULL;
-		}
+	return submodule;
+}
 
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_DISTANCE));
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_DISTANCE_SQUARED));
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_MANHATTAN));
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_CHEBYCHEV));
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_MINKOVSKY_HALF));
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_MINKOVSKY_FOUR));
-		PyStructSequence_SET_ITEM(distance_metrics, pos++, PyLong_FromLong(TEX_MINKOVSKY));
+static struct PyModuleDef M_NoiseMetrics_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"mathutils.noise.distance_metrics",  /* m_name */
+	NULL,  /* m_doc */
+	0,     /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};
 
-		PyModule_AddObject(submodule, "distance_metrics", distance_metrics);
-	}
+PyMODINIT_FUNC PyInit_mathutils_noise_metrics(void)
+{
+	PyObject *submodule = PyModule_Create(&M_NoiseMetrics_module_def);
+
+	PyModule_AddIntConstant(submodule, (char *)"DISTANCE", TEX_DISTANCE);
+	PyModule_AddIntConstant(submodule, (char *)"DISTANCE_SQUARED", TEX_DISTANCE_SQUARED);
+	PyModule_AddIntConstant(submodule, (char *)"MANHATTAN", TEX_MANHATTAN);
+	PyModule_AddIntConstant(submodule, (char *)"CHEBYCHEV", TEX_CHEBYCHEV);
+	PyModule_AddIntConstant(submodule, (char *)"MINKOVSKY_HALF", TEX_MINKOVSKY_HALF);
+	PyModule_AddIntConstant(submodule, (char *)"MINKOVSKY_FOUR", TEX_MINKOVSKY_FOUR);
+	PyModule_AddIntConstant(submodule, (char *)"MINKOVSKY", TEX_MINKOVSKY);
 
 	return submodule;
 }
