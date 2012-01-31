@@ -536,7 +536,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 	Curve *cu= par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
 	short index;
-	const int is_neg_axis = (axis > 3);
+	const int is_neg_axis = (axis > 2);
 
 	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
@@ -546,14 +546,14 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 	
 	/* options */
 	if (is_neg_axis) {
-		index = axis - 4;
+		index = axis - 3;
 		if(cu->flag & CU_STRETCH)
 			fac= (-co[index]-cd->dmax[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
 			fac= - (co[index]-cd->dmax[index])/(cu->path->totdist);
 	}
 	else {
-		index = axis - 1;
+		index = axis;
 		if(cu->flag & CU_STRETCH)
 			fac= (co[index]-cd->dmin[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
@@ -579,7 +579,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 			dir[cd->no_rot_axis-1]= 0.0f;
 		
 		/* -1 for compatibility with old track defines */
-		vec_to_quat( quat,dir, axis-1, upflag);
+		vec_to_quat( quat,dir, axis, upflag);
 		
 		/* the tilt */
 		if(loc[3]!=0.0) {
@@ -627,8 +627,8 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 
 		/* zero the axis which is not used,
 		 * the big block of text above now applies to these 3 lines */
-		quat_apply_track(quat, axis-1, (axis==1 || axis==3) ? 1:0); /* up flag is a dummy, set so no rotation is done */
-		vec_apply_track(cent, axis-1);
+		quat_apply_track(quat, axis, (axis == 0 || axis == 2) ? 1:0); /* up flag is a dummy, set so no rotation is done */
+		vec_apply_track(cent, axis);
 		cent[index]= 0.0f;
 
 
@@ -659,7 +659,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	int a, flag;
 	CurveDeform cd;
 	int use_vgroups;
-	const int is_neg_axis = (defaxis > 3);
+	const int is_neg_axis = (defaxis > 2);
 
 	if(cuOb->type != OB_CURVE)
 		return;
@@ -798,7 +798,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 
 	mul_m4_v3(cd.curvespace, vec);
 	
-	if(calc_curve_deform(scene, cuOb, vec, target->trackflag+1, &cd, quat)) {
+	if(calc_curve_deform(scene, cuOb, vec, target->trackflag, &cd, quat)) {
 		float qmat[3][3];
 		
 		quat_to_mat3( qmat,quat);
