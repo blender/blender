@@ -277,7 +277,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 static void wm_init_userdef(bContext *C)
 {
 	UI_init_userdef();
-	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
+	MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
 	sound_init(CTX_data_main(C));
 
 	/* needed so loading a file from the command line respects user-pref [#26156] */
