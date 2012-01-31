@@ -714,10 +714,6 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	
 
 			if(cu->flag & CU_DEFORM_BOUNDS_OFF) {
-				/* dummy bounds */
-				cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
-				cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
-				
 				dvert = me->dvert;
 				for(a = 0; a < numVerts; a++, dvert++) {
 					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
@@ -752,6 +748,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 					weight= defvert_find_weight(dvert, index);
 	
 					if(weight > 0.0f) {
+						/* already in 'cd.curvespace', prev for loop */
 						copy_v3_v3(vec, vertexCos[a]);
 						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
@@ -779,6 +776,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 			}
 	
 			for(a = 0; a < numVerts; a++) {
+				/* already in 'cd.curvespace', prev for loop */
 				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
 				mul_m4_v3(cd.objectspace, vertexCos[a]);
 			}
