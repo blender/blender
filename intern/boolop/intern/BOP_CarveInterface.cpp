@@ -40,6 +40,7 @@
 #include <iostream>
 
 using namespace carve::mesh;
+using namespace carve::geom;
 typedef unsigned int uint;
 
 #define MAX(x,y) ((x)>(y)?(x):(y))
@@ -65,71 +66,183 @@ static int isFacePlanar(CSG_IFace &face, std::vector<carve::geom3d::Vector> &ver
 	return 1;
 }
 
-static MeshSet<3> *Carve_meshSetFromMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes)
+static void Carve_copyMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes, std::vector<MeshSet<3>::mesh_t*> &new_meshes)
 {
-	std::vector<MeshSet<3>::mesh_t*> new_meshes;
-
 	std::vector<MeshSet<3>::mesh_t*>::iterator it = meshes.begin();
+
 	for(; it!=meshes.end(); it++) {
 		MeshSet<3>::mesh_t *mesh = *it;
 		MeshSet<3>::mesh_t *new_mesh = new MeshSet<3>::mesh_t(mesh->faces);
 
 		new_meshes.push_back(new_mesh);
 	}
+}
+
+static MeshSet<3> *Carve_meshSetFromMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes)
+{
+	std::vector<MeshSet<3>::mesh_t*> new_meshes;
+
+	Carve_copyMeshes(meshes, new_meshes);
 
 	return new MeshSet<3>(new_meshes);
 }
 
-static void Carve_getIntersectedOperandMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes,
-                                              std::vector<MeshSet<3>::aabb_t> &precomputedAABB,
-                                              MeshSet<3>::aabb_t &otherAABB,
+static MeshSet<3> *Carve_meshSetFromTwoMeshes(std::vector<MeshSet<3>::mesh_t*> &left_meshes,
+                                              std::vector<MeshSet<3>::mesh_t*> &right_meshes)
+{
+	std::vector<MeshSet<3>::mesh_t*> new_meshes;
+
+	Carve_copyMeshes(left_meshes, new_meshes);
+	Carve_copyMeshes(right_meshes, new_meshes);
+
+	return new MeshSet<3>(new_meshes);
+}
+
+static bool Carve_checkEdgeFaceIntersections_do(carve::csg::Intersections &intersections,
+                                                MeshSet<3>::face_t *face_a, MeshSet<3>::edge_t *edge_b)
+{
+	if(intersections.intersects(edge_b, face_a))
+		return true;
+
+	carve::mesh::MeshSet<3>::vertex_t::vector_t _p;
+	if(face_a->simpleLineSegmentIntersection(carve::geom3d::LineSegment(edge_b->v1()->v, edge_b->v2()->v), _p))
+		return true;
+
+	return false;
+}
+
+static bool Carve_checkEdgeFaceIntersections(carve::csg::Intersections &intersections,
+                                             MeshSet<3>::face_t *face_a, MeshSet<3>::face_t *face_b)
+{
+	MeshSet<3>::edge_t *edge_b;
+
+	edge_b = face_b->edge;
+	do {
+		if(Carve_checkEdgeFaceIntersections_do(intersections, face_a, edge_b))
+			return true;
+		edge_b = edge_b->next;
+	} while (edge_b != face_b->edge);
+
+	return false;
+}
+
+static inline bool Carve_facesAreCoplanar(const MeshSet<3>::face_t *a, const MeshSet<3>::face_t *b)
+{
+  carve::geom3d::Ray temp;
+  // XXX: Find a better definition. This may be a source of problems
+  // if floating point inaccuracies cause an incorrect answer.
+  return !carve::geom3d::planeIntersection(a->plane, b->plane, temp);
+}
+
+static bool Carve_checkMeshSetInterseciton_do(carve::csg::Intersections &intersections,
+                                              const RTreeNode<3, Face<3> *> *a_node,
+                                              const RTreeNode<3, Face<3> *> *b_node,
+                                              bool descend_a = true)
+{
+	if(!a_node->bbox.intersects(b_node->bbox))
+		return false;
+
+	if(a_node->child && (descend_a || !b_node->child)) {
+		for(RTreeNode<3, Face<3> *> *node = a_node->child; node; node = node->sibling) {
+			if(Carve_checkMeshSetInterseciton_do(intersections, node, b_node, false))
+				return true;
+		}
+	}
+	else if(b_node->child) {
+		for(RTreeNode<3, Face<3> *> *node = b_node->child; node; node = node->sibling) {
+			if(Carve_checkMeshSetInterseciton_do(intersections, a_node, node, true))
+				return true;
+		}
+	}
+	else {
+		for(size_t i = 0; i < a_node->data.size(); ++i) {
+			MeshSet<3>::face_t *fa = a_node->data[i];
+			aabb<3> aabb_a = fa->getAABB();
+			if(aabb_a.maxAxisSeparation(b_node->bbox) > carve::EPSILON) continue;
+
+			for(size_t j = 0; j < b_node->data.size(); ++j) {
+				MeshSet<3>::face_t *fb = b_node->data[j];
+				aabb<3> aabb_b = fb->getAABB();
+				if(aabb_b.maxAxisSeparation(aabb_a) > carve::EPSILON) continue;
+
+				std::pair<double, double> a_ra = fa->rangeInDirection(fa->plane.N, fa->edge->vert->v);
+				std::pair<double, double> b_ra = fb->rangeInDirection(fa->plane.N, fa->edge->vert->v);
+				if(carve::rangeSeparation(a_ra, b_ra) > carve::EPSILON) continue;
+
+				std::pair<double, double> a_rb = fa->rangeInDirection(fb->plane.N, fb->edge->vert->v);
+				std::pair<double, double> b_rb = fb->rangeInDirection(fb->plane.N, fb->edge->vert->v);
+				if(carve::rangeSeparation(a_rb, b_rb) > carve::EPSILON) continue;
+
+				if(!Carve_facesAreCoplanar(fa, fb)) {
+					if(Carve_checkEdgeFaceIntersections(intersections, fa, fb)) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+static bool Carve_checkMeshSetInterseciton(RTreeNode<3, Face<3> *> *rtree_a, RTreeNode<3, Face<3> *> *rtree_b)
+{
+	carve::csg::Intersections intersections;
+
+	return Carve_checkMeshSetInterseciton_do(intersections, rtree_a, rtree_b);
+}
+
+static void Carve_getIntersectedOperandMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes, MeshSet<3>::aabb_t &otherAABB,
                                               std::vector<MeshSet<3>::mesh_t*> &operandMeshes)
 {
 	std::vector<MeshSet<3>::mesh_t*>::iterator it = meshes.begin();
-	std::vector<MeshSet<3>::aabb_t>::iterator aabb_it = precomputedAABB.begin();
-	std::vector<MeshSet<3>::aabb_t> usedAABB;
+	std::vector< RTreeNode<3, Face<3> *> *> meshRTree;
 
 	while(it != meshes.end()) {
 		MeshSet<3>::mesh_t *mesh = *it;
-		MeshSet<3>::aabb_t aabb = mesh->getAABB();
 		bool isIntersect = false;
 
-		std::vector<MeshSet<3>::aabb_t>::iterator used_it = usedAABB.begin();
-		for(; used_it!=usedAABB.end(); used_it++) {
-			MeshSet<3>::aabb_t usedAABB = *used_it;
+		RTreeNode<3, Face<3> *> *rtree = RTreeNode<3, Face<3> *>::construct_STR(mesh->faces.begin(), mesh->faces.end(), 4, 4);
 
-			if(usedAABB.intersects(aabb) && usedAABB.intersects(otherAABB)) {
-				isIntersect = true;
-				break;
+		std::vector<MeshSet<3>::mesh_t*>::iterator operand_it = operandMeshes.begin();
+		std::vector<RTreeNode<3, Face<3> *> *>::iterator tree_it = meshRTree.begin();
+		for(; operand_it!=operandMeshes.end(); operand_it++, tree_it++) {
+			RTreeNode<3, Face<3> *> *operandRTree = *tree_it;
+
+			if(operandRTree->bbox.intersects(otherAABB)) {
+				if(Carve_checkMeshSetInterseciton(rtree, operandRTree)) {
+					isIntersect = true;
+					break;
+				}
 			}
 		}
 
 		if(!isIntersect) {
 			operandMeshes.push_back(mesh);
-			usedAABB.push_back(aabb);
+			meshRTree.push_back(rtree);
 
 			it = meshes.erase(it);
-			aabb_it = precomputedAABB.erase(aabb_it);
 		}
 		else {
 			it++;
-			aabb_it++;
 		}
+	}
+
+	std::vector<RTreeNode<3, Face<3> *> *>::iterator tree_it = meshRTree.begin();
+	for(; tree_it != meshRTree.end(); tree_it++) {
+		delete *tree_it;
 	}
 }
 
-static MeshSet<3> *Carve_getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> &meshes,
-                                               std::vector<MeshSet<3>::aabb_t> &precomputedAABB,
-                                               MeshSet<3>::aabb_t &otherAABB)
+static MeshSet<3> *Carve_getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> &meshes, MeshSet<3>::aabb_t &otherAABB)
 {
 	std::vector<MeshSet<3>::mesh_t*> operandMeshes;
-	Carve_getIntersectedOperandMeshes(meshes, precomputedAABB, otherAABB, operandMeshes);
+	Carve_getIntersectedOperandMeshes(meshes, otherAABB, operandMeshes);
 
 	return Carve_meshSetFromMeshes(operandMeshes);
 }
 
 static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
-                                                 std::vector<MeshSet<3>::aabb_t> &precomputedAABB,
                                                  MeshSet<3>::aabb_t &otherAABB,
                                                  carve::interpolate::FaceAttr<uint> &oface_num)
 {
@@ -144,10 +257,10 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 	std::vector<MeshSet<3>::mesh_t*> orig_meshes =
 			std::vector<MeshSet<3>::mesh_t*>(poly->meshes.begin(), poly->meshes.end());
 
-	MeshSet<3> *left = Carve_getIntersectedOperand(orig_meshes, precomputedAABB, otherAABB);
+	MeshSet<3> *left = Carve_getIntersectedOperand(orig_meshes, otherAABB);
 
 	while(orig_meshes.size()) {
-		MeshSet<3> *right = Carve_getIntersectedOperand(orig_meshes, precomputedAABB, otherAABB);
+		MeshSet<3> *right = Carve_getIntersectedOperand(orig_meshes, otherAABB);
 
 		try {
 			if(left->meshes.size()==0) {
@@ -167,7 +280,12 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 		catch(carve::exception e) {
 			std::cerr << "CSG failed, exception " << e.str() << std::endl;
 
+			MeshSet<3> *result = Carve_meshSetFromTwoMeshes(left->meshes, right->meshes);
+
+			delete left;
 			delete right;
+
+			left = result;
 		}
 		catch(...) {
 			delete left;
@@ -180,38 +298,16 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 	return left;
 }
 
-static MeshSet<3>::aabb_t Carve_computeAABB(MeshSet<3> *poly,
-                                            std::vector<MeshSet<3>::aabb_t> &precomputedAABB)
-{
-	MeshSet<3>::aabb_t overallAABB;
-	std::vector<MeshSet<3>::mesh_t*>::iterator it = poly->meshes.begin();
-
-	for(; it!=poly->meshes.end(); it++) {
-		MeshSet<3>::aabb_t aabb;
-		MeshSet<3>::mesh_t *mesh = *it;
-
-		aabb = mesh->getAABB();
-		precomputedAABB.push_back(aabb);
-
-		overallAABB.unionAABB(aabb);
-	}
-
-	return overallAABB;
-}
-
-static void Carve_prepareOperands(MeshSet<3> **left_r, MeshSet<3> **right_r,
-                                  carve::interpolate::FaceAttr<uint> &oface_num)
+static void Carve_unionIntersections(MeshSet<3> **left_r, MeshSet<3> **right_r,
+                                     carve::interpolate::FaceAttr<uint> &oface_num)
 {
 	MeshSet<3> *left, *right;
 
-	std::vector<MeshSet<3>::aabb_t> left_precomputedAABB;
-	std::vector<MeshSet<3>::aabb_t> right_precomputedAABB;
+	MeshSet<3>::aabb_t leftAABB = (*left_r)->getAABB();
+	MeshSet<3>::aabb_t rightAABB = (*right_r)->getAABB();
 
-	MeshSet<3>::aabb_t leftAABB = Carve_computeAABB(*left_r, left_precomputedAABB);
-	MeshSet<3>::aabb_t rightAABB = Carve_computeAABB(*right_r, right_precomputedAABB);
-
-	left = Carve_unionIntersectingMeshes(*left_r, left_precomputedAABB, rightAABB, oface_num);
-	right = Carve_unionIntersectingMeshes(*right_r, right_precomputedAABB, leftAABB, oface_num);
+	left = Carve_unionIntersectingMeshes(*left_r, rightAABB, oface_num);
+	right = Carve_unionIntersectingMeshes(*right_r, leftAABB, oface_num);
 
 	if(left != *left_r)
 		delete *left_r;
@@ -233,9 +329,9 @@ static MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor &face_it,
 
 	while (!vertex_it.Done(vertex_it.it)) {
 		vertex_it.Fill(vertex_it.it,&vertex);
-		vertices.push_back(carve::geom::VECTOR(vertex.position[0],
-		                                       vertex.position[1],
-		                                       vertex.position[2]));
+		vertices.push_back(VECTOR(vertex.position[0],
+		                          vertex.position[1],
+		                          vertex.position[2]));
 		vertex_it.Step(vertex_it.it);
 	}
 
@@ -522,19 +618,6 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	left = Carve_addMesh(obAFaces, obAVertices, oface_num, num_origfaces );
 	right = Carve_addMesh(obBFaces, obBVertices, oface_num, num_origfaces );
 
-	Carve_prepareOperands(&left, &right, oface_num);
-
-	if(left->meshes.size() == 0 || right->meshes.size()==0) {
-		// normally sohuldn't happen (zero-faces objects are handled by modifier itself), but
-		// unioning intersecting meshes which doesn't have consistent normals might lead to
-		// empty result which wouldn't work here
-
-		delete left;
-		delete right;
-
-		return BOP_ERROR;
-	}
-
 	min.x = max.x = left->vertex_storage[0].v.x;
 	min.y = max.y = left->vertex_storage[0].v.y;
 	min.z = max.z = left->vertex_storage[0].v.z;
@@ -561,6 +644,23 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 
 	left->transform(fwd_r);
 	right->transform(fwd_r);
+
+	// prepare operands for actual boolean operation. it's needed because operands might consist of
+	// several intersecting meshes and in case if another operands intersect an edge loop of intersecting that
+	// meshes tesselation of operation result can't be done properly. the only way to make such situations
+	// working is to union intersecting meshes of the same operand
+	Carve_unionIntersections(&left, &right, oface_num);
+
+	if(left->meshes.size() == 0 || right->meshes.size()==0) {
+		// normally sohuldn't happen (zero-faces objects are handled by modifier itself), but
+		// unioning intersecting meshes which doesn't have consistent normals might lead to
+		// empty result which wouldn't work here
+
+		delete left;
+		delete right;
+
+		return BOP_ERROR;
+	}
 
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 

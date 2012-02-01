@@ -47,6 +47,8 @@
 #include "MOD_boolean_util.h"
 #include "MOD_util.h"
 
+#include "PIL_time.h"
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
@@ -140,8 +142,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			DM_ensure_tessface(dm);          /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 			DM_ensure_tessface(derivedData); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
+			// TIMEIT_START(NewBooleanDerivedMesh)
+
 			result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 					1 + bmd->operation);
+
+			// TIMEIT_END(NewBooleanDerivedMesh)
 		}
 
 		/* if new mesh returned, return it; otherwise there was

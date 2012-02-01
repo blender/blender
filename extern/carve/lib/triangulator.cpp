@@ -501,10 +501,21 @@ bool carve::triangulate::detail::vertex_info::isClipable() const {
 
 
 size_t carve::triangulate::detail::removeDegeneracies(vertex_info *&begin, std::vector<carve::triangulate::tri_idx> &result) {
-  vertex_info *v = begin;
+  vertex_info *v;
   vertex_info *n;
   size_t count = 0;
+  size_t remain = 0;
+
+  v = begin;
   do {
+    v = v->next;
+    ++remain;
+  } while (v != begin);
+
+  v = begin;
+  do {
+    if (remain < 4) break;
+
     bool remove = false;
     if (v->p == v->next->p) {
       remove = true;
@@ -533,11 +544,11 @@ size_t carve::triangulate::detail::removeDegeneracies(vertex_info *&begin, std::
       if (n == begin) begin = n->next;
       n->remove();
       count++;
+      remain--;
       delete n;
-      continue;
+    } else {
+      v = v->next;
     }
-
-    v = v->next;
   } while (v != begin);
   return count;
 }
@@ -615,7 +626,7 @@ bool carve::triangulate::detail::doTriangulate(vertex_info *begin, std::vector<c
   std::cerr << "remain = " << remain << std::endl;
 #endif
 
-  while (vq.size()) {
+  while (remain > 3 && vq.size()) {
     vertex_info *v = vq.pop();
     if (!v->isClipable()) {
       v->failed = true;
@@ -639,9 +650,10 @@ bool carve::triangulate::detail::doTriangulate(vertex_info *begin, std::vector<c
 #endif
 
     v->remove();
-    remain--;
     if (v == begin) begin = v->next;
     delete v;
+
+    if (--remain == 3) break;
 
     vq.updateVertex(n);
     vq.updateVertex(p);
@@ -676,27 +688,7 @@ bool carve::triangulate::detail::doTriangulate(vertex_info *begin, std::vector<c
   std::cerr << "doTriangulate complete; remain=" << remain << std::endl;
 #endif
 
-  bool ret = true;
-
   if (remain > 3) {
-    std::vector<carve::geom2d::P2> temp;
-    temp.reserve(remain);
-    vertex_info *v = begin;
-
-    do {
-      temp.push_back(v->p);
-      v = v->next;
-    } while (v != begin);
-
-    if (carve::geom2d::signedArea(temp) == 0) {
-      // XXX: this test will fail in cases where the boundary is
-      // twisted so that a negative area balances a positive area.
-#if defined(CARVE_DEBUG)
-      std::cerr << "skeleton remains. complete." << std::endl;
-#endif
-      goto done;
-    }
-
 #if defined(CARVE_DEBUG)
     std::cerr << "before removeDegeneracies: remain=" << remain << std::endl;
 #endif
@@ -704,18 +696,16 @@ bool carve::triangulate::detail::doTriangulate(vertex_info *begin, std::vector<c
 #if defined(CARVE_DEBUG)
     std::cerr << "after removeDegeneracies: remain=" << remain << std::endl;
 #endif
+
+    if (remain > 3) {
+      return splitAndResume(begin, result);
+    }
   }
 
-  if (remain > 3) {
-    return splitAndResume(begin, result);
-  } else if (remain == 3) {
+  if (remain == 3) {
     result.push_back(carve::triangulate::tri_idx(begin->idx, begin->next->idx, begin->next->next->idx));
-    ret = true;
-  } else {
-    ret = true;
   }
 
- done:
   vertex_info *d = begin;
   do {
     vertex_info *n = d->next;
@@ -723,7 +713,7 @@ bool carve::triangulate::detail::doTriangulate(vertex_info *begin, std::vector<c
     d = n;
   } while (d != begin);
 
-  return ret;
+  return true;
 }
 
 

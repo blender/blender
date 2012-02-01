@@ -1096,8 +1096,14 @@ static void file_expand_directory(bContext *C)
 			BLI_join_dirfile(sfile->params->dir, sizeof(sfile->params->dir), BLI_getDefaultDocumentFolder(), tmpstr);
 		}
 
-#ifdef WIN32
-		if (sfile->params->dir[0] == '\0') {
+		else if (sfile->params->dir[0] == '\0')
+#ifndef WIN32
+		{
+			sfile->params->dir[0] = '/';
+			sfile->params->dir[1] = '\0';
+		}
+#else
+		{
 			get_default_root(sfile->params->dir);
 		}
 		/* change "C:" --> "C:\", [#28102] */

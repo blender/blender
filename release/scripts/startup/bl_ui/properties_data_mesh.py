@@ -226,10 +226,10 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
             row.alignment = 'RIGHT'
 
             sub = row.row(align=True)
+            sub.label()  # XXX, for alignment only
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
             subsub.prop(ob, "show_only_shape_key", text="")
-            subsub.prop(kb, "mute", text="")
             sub.prop(ob, "use_shape_key_edit_mode", text="")
 
             sub = row.row()

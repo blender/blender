@@ -220,9 +220,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
-#if defined(__EMISSION__) || defined(__BACKGROUND__)
 	float ray_pdf = 0.0f;
-#endif
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
 
@@ -344,9 +342,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		path_radiance_bsdf_bounce(&L, &throughput, &bsdf_eval, bsdf_pdf, state.bounce, label);
 
 		/* set labels */
-#if defined(__EMISSION__) || defined(__BACKGROUND__)
-		ray_pdf = bsdf_pdf;
-#endif
+		if(!(label & LABEL_TRANSPARENT))
+			ray_pdf = bsdf_pdf;
 
 		/* update path state */
 		path_state_next(kg, &state, label);

@@ -855,14 +855,13 @@ static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
 	
-	gnode = nodeGetActive(snode->edittree);
-	if (!gnode)
-		return OPERATOR_CANCELLED;
-	
 	/* XXX callback? */
-	if(gnode && gnode->id && GS(gnode->id->name)==ID_NT && gnode->id->lib) {
-		uiPupMenuOkee(C, op->type->idname, "Make group local?");
-		return OPERATOR_CANCELLED;
+	if (snode->nodetree==snode->edittree) {
+		gnode = nodeGetActive(snode->edittree);
+		if(gnode && gnode->id && GS(gnode->id->name)==ID_NT && gnode->id->lib) {
+			uiPupMenuOkee(C, op->type->idname, "Make group local?");
+			return OPERATOR_CANCELLED;
+		}
 	}
 
 	return node_group_edit_exec(C, op);

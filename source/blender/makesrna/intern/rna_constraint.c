@@ -293,8 +293,8 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 
 	/* 0, 1, 2 = magic numbers for rotX, rotY, rotZ */
 	if (ELEM3(acon->type, 0, 1, 2)) {
-		*min= -90.f;
-		*max= 90.f;
+		*min= -180.0f;
+		*max= 180.0f;
 	} else {
 		*min= -1000.f;
 		*max= 1000.f;
@@ -1032,7 +1032,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 		{00, "ROTATION_X", 0, "X Rotation", ""},
 		{01, "ROTATION_Y", 0, "Y Rotation", ""},
 		{02, "ROTATION_Z", 0, "Z Rotation", ""},
-		{10, "SCALE_X", 0, "Z Scale", ""},
+		{10, "SCALE_X", 0, "X Scale", ""},
 		{11, "SCALE_Y", 0, "Y Scale", ""},
 		{12, "SCALE_Z", 0, "Z Scale", ""},
 		{0, NULL, 0, NULL, NULL}};

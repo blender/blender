@@ -42,10 +42,10 @@ typedef struct MEM_CacheLimiterHandle_s MEM_CacheLimiterHandleC;
 typedef void(*MEM_CacheLimiter_Destruct_Func)(void*);
 
 /* function used to measure stored data element size */
-typedef intptr_t(*MEM_CacheLimiter_DataSize_Func) (void*);
+typedef size_t(*MEM_CacheLimiter_DataSize_Func) (void*);
 
 #ifndef MEM_CACHELIMITER_H
-extern void MEM_CacheLimiter_set_maximum(int m);
+extern void MEM_CacheLimiter_set_maximum(size_t m);
 extern int MEM_CacheLimiter_get_maximum(void);
 #endif // MEM_CACHELIMITER_H
 /** 

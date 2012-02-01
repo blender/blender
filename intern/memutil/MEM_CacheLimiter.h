@@ -65,8 +65,8 @@ class MEM_CacheLimiter;
 
 #ifndef __MEM_cache_limiter_c_api_h_included__
 extern "C" {
-	extern void MEM_CacheLimiter_set_maximum(intptr_t m);
-	extern intptr_t MEM_CacheLimiter_get_maximum();
+	extern void MEM_CacheLimiter_set_maximum(size_t m);
+	extern size_t MEM_CacheLimiter_get_maximum();
 };
 #endif
 
@@ -125,7 +125,7 @@ class MEM_CacheLimiter {
 public:
 	typedef typename std::list<MEM_CacheLimiterHandle<T> *,
 	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator iterator;
-	typedef intptr_t (*MEM_CacheLimiter_DataSize_Func) (void *data);
+	typedef size_t (*MEM_CacheLimiter_DataSize_Func) (void *data);
 	MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func getDataSize_)
 		: getDataSize(getDataSize_) {
 	}
@@ -146,8 +146,8 @@ public:
 		delete handle;
 	}
 	void enforce_limits() {
-		intptr_t max = MEM_CacheLimiter_get_maximum();
-		intptr_t mem_in_use, cur_size;
+		size_t max = MEM_CacheLimiter_get_maximum();
+		size_t mem_in_use, cur_size;
 
 		if (max == 0) {
 			return;
@@ -188,8 +188,8 @@ public:
 		handle->me = it;
 	}
 private:
-	intptr_t total_size() {
-		intptr_t size = 0;
+	size_t total_size() {
+		size_t size = 0;
 		for (iterator it = queue.begin(); it != queue.end(); it++) {
 			size+= getDataSize((*it)->get()->get_data());
 		}
