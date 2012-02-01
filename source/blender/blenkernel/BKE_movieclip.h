@@ -49,7 +49,7 @@ void BKE_movieclip_reload(struct MovieClip *clip);
 struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
 struct ImBuf *BKE_movieclip_get_postprocessed_ibuf(struct MovieClip *clip, struct MovieClipUser *user, int postprocess_flag);
 struct ImBuf *BKE_movieclip_get_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale, float *angle, int postprocess_flag);
-struct ImBuf *BKE_movieclip_get_ibuf_flag(struct MovieClip *clip, struct MovieClipUser *user, int flag);
+struct ImBuf *BKE_movieclip_get_ibuf_flag(struct MovieClip *clip, struct MovieClipUser *user, int flag, int cache_flag);
 void BKE_movieclip_get_size(struct MovieClip *clip, struct MovieClipUser *user, int *width, int *height);
 void BKE_movieclip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
 int BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
@@ -63,6 +63,9 @@ void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUs
 
 void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int clip_flag, struct MovieDistortion *distortion,
 			int cfra, int *build_sizes, int build_count, int undistorted);
+
+/* cacheing flags */
+#define MOVIECLIP_CACHE_SKIP        (1<<0)
 
 /* postprocessing flags */
 #define MOVIECLIP_DISABLE_RED       (1<<0)

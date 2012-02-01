@@ -1226,7 +1226,7 @@ static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 
 	user.framenr= framenr;
 
-	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, context->clip_flag);
+	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, context->clip_flag, MOVIECLIP_CACHE_SKIP);
 
 	return ibuf;
 }
@@ -1330,7 +1330,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(context->backwards) context->user.framenr--;
 	else context->user.framenr++;
 
-	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, context->clip_flag);
+	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, context->clip_flag, MOVIECLIP_CACHE_SKIP);
 	if(!ibuf_new)
 		return 0;
 
