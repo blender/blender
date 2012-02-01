@@ -475,6 +475,9 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 		break;
 	}
 
+	/* offset baked frame */
+	curFrame += fss->frameOffset;
+
 	BLI_path_abs(targetFile, modifier_path_relbase(ob));
 	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
