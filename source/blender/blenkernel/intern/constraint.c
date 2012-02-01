@@ -299,6 +299,11 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 						
 						copy_m4_m4(tempmat, mat);
 						mult_m4_m4m4(mat, imat, tempmat);
+
+						/* override with local location */
+						if ((pchan->parent) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
+							sub_v3_v3v3(mat[3], tempmat[3], pchan->bone->arm_mat[3]);
+						}
 					}
 				}
 				/* pose to local with parent */
