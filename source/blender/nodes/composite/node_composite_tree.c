@@ -748,16 +748,16 @@ void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 					if(rl)
 						force_hidden_passes(node, rl->passflag);
 					else
-						force_hidden_passes(node, 0);
+						force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
 				}
 				else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
-					force_hidden_passes(node, RRES_OUT_Z);
+					force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA|RRES_OUT_Z);
 				}
 				else
-					force_hidden_passes(node, 0);
+					force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
 			}
 			else
-				force_hidden_passes(node, 0);
+				force_hidden_passes(node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
 		}
 	}
 
