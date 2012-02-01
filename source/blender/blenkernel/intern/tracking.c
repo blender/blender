@@ -975,8 +975,8 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
 
 	context->user= *user;
-	context->user.render_size= 0;
-	context->user.render_flag= MCLIP_PROXY_RENDER_SIZE_FULL;
+	context->user.render_size= MCLIP_PROXY_RENDER_SIZE_FULL;
+	context->user.render_flag= 0;
 
 	if(!sequence)
 		BLI_begin_threaded_malloc();
