@@ -302,7 +302,8 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 
 						/* override with local location */
 						if ((pchan->parent) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
-							sub_v3_v3v3(mat[3], tempmat[3], pchan->bone->arm_mat[3]);
+							armature_mat_pose_to_bone_ex(ob, pchan, pchan->pose_mat, tempmat);
+							copy_v3_v3(mat[3], tempmat[3]);
 						}
 					}
 				}
