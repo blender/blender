@@ -293,8 +293,8 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 
 	/* 0, 1, 2 = magic numbers for rotX, rotY, rotZ */
 	if (ELEM3(acon->type, 0, 1, 2)) {
-		*min= -90.f;
-		*max= 90.f;
+		*min= -180.0f;
+		*max= 180.0f;
 	} else {
 		*min= -1000.f;
 		*max= 1000.f;
