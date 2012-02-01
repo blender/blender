@@ -969,7 +969,6 @@ void apply_project_float(float persmat[4][4], int winx, int winy, const float ve
 void project_float(ARegion *ar, const float vec[3], float adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
-	float vec4[4];
 
 	apply_project_float(rv3d->persmat, ar->winx, ar->winy, vec, adr);
 }
@@ -1898,8 +1897,6 @@ void ED_view3d_operator_properties_viewmat_set(bContext *C, wmOperator *op)
 
 void ED_view3d_operator_properties_viewmat_get(wmOperator *op, int *winx, int *winy, float persmat[4][4])
 {
-	float values[16];
-
 	*winx = RNA_int_get(op->ptr, "region_width");
 	*winy = RNA_int_get(op->ptr, "region_height");
 
