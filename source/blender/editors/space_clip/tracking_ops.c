@@ -3417,15 +3417,15 @@ static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	int frames= RNA_int_get(op->ptr, "frames");
-	float error= RNA_float_get(op->ptr, "error");
-	int action= RNA_enum_get(op->ptr, "action");
 
-	if(frames==0 && error==0 && action==0) {
+	if(!RNA_struct_property_is_set(op->ptr, "frames"))
 		RNA_int_set(op->ptr, "frames", clip->tracking.settings.clean_frames);
+
+	if(!RNA_struct_property_is_set(op->ptr, "error"))
 		RNA_float_set(op->ptr, "error", clip->tracking.settings.clean_error);
+
+	if(!RNA_struct_property_is_set(op->ptr, "action"))
 		RNA_enum_set(op->ptr, "action", clip->tracking.settings.clean_action);
-	}
 
 	return clean_tracks_exec(C, op);
 }
