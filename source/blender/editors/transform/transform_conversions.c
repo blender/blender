@@ -2096,11 +2096,13 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	selstate = MEM_callocN(sizeof(*selstate) * bm->totvert, __func__);
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
-		if (BM_TestHFlag(eve, BM_TMP_TAG)) {
-			selstate[a] = 1;
-			countsel++;
+		if (!BM_TestHFlag(eve, BM_HIDDEN)) {
+			if (BM_TestHFlag(eve, BM_TMP_TAG)) {
+				selstate[a] = 1;
+				countsel++;
+			}
+			if(propmode) count++;
 		}
-		if(propmode) count++;
 	}
 
 	/* note: in prop mode we need at least 1 selected */
