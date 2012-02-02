@@ -174,7 +174,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 	case 2:
 		if (start >= stop) {
 			PyErr_SetString(PyExc_RuntimeError,
-			                "Start value is larger"
+			                "Start value is larger "
 			                "than the stop value");
 			return NULL;
 		}
@@ -184,14 +184,25 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 	default:
 		if (start >= stop) {
 			PyErr_SetString(PyExc_RuntimeError,
-			                "Start value is larger"
+			                "Start value is larger "
 			                "than the stop value");
 			return NULL;
 		}
-		size = (stop - start)/step;
-		if (size%step)
-			size++;
+
+		size = (stop - start);
+
+		if ((size % step) != 0)
+			size += step;
+
+		size /= step;
+
 		break;
+	}
+
+	if (size < 2) {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "Vector(): invalid size");
+		return NULL;
 	}
 
 	vec = PyMem_Malloc(size * sizeof(float));
