@@ -745,7 +745,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 			seq->scene = sce;
 		}
 
-		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
+		seq->len= (seq->scene)? seq->scene->r.efra - seq->scene->r.sfra + 1: 0;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
