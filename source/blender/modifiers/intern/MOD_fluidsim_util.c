@@ -178,7 +178,8 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 	gzFile gzf;
 	int numverts = 0, numfaces = 0;
 	DerivedMesh *dm = NULL;
-	MFace *mf;
+	MPoly *mp;
+	MLoop *ml;
 	MVert *mv;
 	short *normals, *no_s;
 	float no[3];
@@ -224,7 +225,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 		return NULL;
 	}
 
-	dm = CDDM_new(numverts, 0, numfaces, 0, 0);
+	dm = CDDM_new(numverts, 0, 0, numfaces * 3, numfaces);
 
 	if(!dm)
 	{
@@ -280,40 +281,31 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 	}
 
 	// read triangles from file
-	mf = CDDM_get_tessfaces(dm);
-	for(i=numfaces; i>0; i--, mf++)
+	mp = CDDM_get_polys(dm);
+	ml = CDDM_get_loops(dm);
+	for(i=0; i < numfaces; i++, mp++, ml += 3)
 	{
 		int face[3];
 
 		gotBytes = gzread(gzf, face, sizeof(int) * 3);
 
-		// check if 3rd vertex has index 0 (not allowed in blender)
-		if(face[2])
-		{
-			mf->v1 = face[0];
-			mf->v2 = face[1];
-			mf->v3 = face[2];
-		}
-		else
-		{
-			mf->v1 = face[1];
-			mf->v2 = face[2];
-			mf->v3 = face[0];
-		}
-		mf->v4 = 0;
+		mp->loopstart = i * 3;
+		mp->totloop = 3;
 
-		test_index_face(mf, NULL, 0, 3);
+		ml[0].v = face[0];
+		ml[1].v = face[1];
+		ml[2].v = face[2];
+
 	}
 
 	gzclose( gzf );
 
-	CDDM_calc_edges_tessface(dm);
+	CDDM_calc_edges(dm);
 
 	CDDM_apply_vert_normals(dm, (short (*)[3])normals);
 	MEM_freeN(normals);
 
 	// CDDM_calc_normals(result);
-
 	return dm;
 }
 
@@ -451,8 +443,8 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	char targetFile[FILE_MAX];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
-	MFace *mface;
-	int numfaces;
+	MPoly *mpoly;
+	int numpolys;
 	int mat_nr, flag, i;
 
 	if(!useRenderParams) {
@@ -503,17 +495,17 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	}
 
 	// assign material + flags to new dm
-	mface = orgdm->getTessFaceArray(orgdm);
-	if(mface) {
-		mat_nr = mface[0].mat_nr;
-		flag = mface[0].flag;
+	mpoly = orgdm->getPolyArray(orgdm);
+	if(mpoly) {
+		mat_nr = mpoly[0].mat_nr;
+		flag = mpoly[0].flag;
 
-		mface = dm->getTessFaceArray(dm);
-		numfaces = dm->getNumTessFaces(dm);
-		for(i=0; i<numfaces; i++)
+		mpoly = dm->getPolyArray(dm);
+		numpolys = dm->getNumPolys(dm);
+		for(i=0; i<numpolys; i++)
 		{
-			mface[i].mat_nr = mat_nr;
-			mface[i].flag = flag;
+			mpoly[i].mat_nr = mat_nr;
+			mpoly[i].flag = flag;
 		}
 	}
 
