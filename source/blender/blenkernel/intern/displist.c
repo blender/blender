@@ -1360,7 +1360,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								/* rotate bevel piece and write in data */
 								rotateBevelPiece(cu, bevp, dlb, widfac, fac, &data);
 
-								if (cu->flag & CU_FILL_CAPS) {
+								if (cu->bevobj && (cu->flag & CU_FILL_CAPS)) {
 									if (a == 0)
 										fillBevelCap(cu, nu, bevp, dlb, fac, widfac, &bottom_capbase);
 									else if (a == bl->nr - 1)

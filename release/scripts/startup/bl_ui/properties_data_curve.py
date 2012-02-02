@@ -112,7 +112,6 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
             sub.prop(curve, "fill_mode", text="")
             col.prop(curve, "use_fill_deform")
-            col.prop(curve, "use_fill_caps")
 
 
 class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
@@ -165,6 +164,10 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
         col.prop(curve, "bevel_resolution", text="Resolution")
         col.label(text="Bevel Object:")
         col.prop(curve, "bevel_object", text="")
+
+        row = col.row()
+        row.active = curve.bevel_object != None
+        row.prop(curve, "use_fill_caps")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
