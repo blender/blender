@@ -287,8 +287,17 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 								invert_m4_m4(imat, diff_mat);
 							}
 							else {
+								if (pchan->bone->flag & BONE_NO_SCALE) {
+									float tmat[4][4];
+									copy_m4_m4(tmat, pchan->parent->pose_mat);
+									normalize_m4(tmat);
+									mult_m4_m4m4(diff_mat, tmat, offs_bone);
+								}
+								else {
+									mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
+								}
+
 								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
 								invert_m4_m4(imat, diff_mat);
 							}
 						}
@@ -348,7 +357,16 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 						}
 						else {
 							/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-							mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
+							if (pchan->bone->flag & BONE_NO_SCALE) {
+								float tmat[4][4];
+								copy_m4_m4(tmat, pchan->parent->pose_mat);
+								normalize_m4(tmat);
+								mult_m4_m4m4(diff_mat, tmat, offs_bone);
+							}
+							else {
+								mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
+							}
+
 							copy_m4_m4(tempmat, mat);
 							mult_m4_m4m4(mat, diff_mat, tempmat);
 						}
