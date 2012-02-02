@@ -249,7 +249,7 @@ if(APPLE)
 		"Choose the minimum OSX version required: 10.4 or 10.5"
 		FORCE)
 	endif()
-	if(${CMAKE_GENERATOR} MATCHES "Xcode" AND (${XCODE_VERSION} VERSION_GREATER 3))
+	if(${CMAKE_GENERATOR} MATCHES "Xcode" AND (${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4))
 		# Xcode 4 defaults to the Apple LLVM Compiler.
 		# Override the default compiler selection because Blender only compiles with gcc
 		set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
