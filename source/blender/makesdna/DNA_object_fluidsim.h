@@ -74,6 +74,9 @@ typedef struct FluidsimSettings {
 	float animStart, animEnd;
 	/* bake start end time (in blender frames) */
 	int bakeStart, bakeEnd;
+	/* offset for baked frames */
+	int frameOffset;
+	int pad;
 	/* g star param (LBM compressibility) */
 	float gstar;
 	/* activate refinement? */

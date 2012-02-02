@@ -631,7 +631,8 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	return postproc_ibuf;
 }
 
-static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int flag, int postprocess_flag)
+static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int flag,
+                                               int postprocess_flag, int cache_flag)
 {
 	ImBuf *ibuf= NULL;
 	int framenr= user->framenr, need_postprocess= 0;
@@ -664,7 +665,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 			ibuf= movieclip_load_movie_file(clip, user, framenr, flag);
 		}
 
-		if(ibuf)
+		if(ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0)
 			put_imbuf_cache(clip, user, ibuf, flag);
 	}
 
@@ -687,17 +688,17 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 
 ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 {
-	return BKE_movieclip_get_ibuf_flag(clip, user, clip->flag);
+	return BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, 0);
 }
 
-ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
+ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag, int cache_flag)
 {
-	return movieclip_get_postprocessed_ibuf(clip, user, flag, 0);
+	return movieclip_get_postprocessed_ibuf(clip, user, flag, 0, cache_flag);
 }
 
 ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int postprocess_flag)
 {
-	return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag);
+	return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag, 0);
 }
 
 static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr)
@@ -1021,7 +1022,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 	user.render_flag= 0;
 	user.render_size= MCLIP_PROXY_RENDER_SIZE_FULL;
 
-	ibuf= BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag);
+	ibuf= BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MOVIECLIP_CACHE_SKIP);
 
 	if(ibuf) {
 		ImBuf *tmpibuf= ibuf;

@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -1130,21 +1131,25 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 	return me->edit_btmesh ? me->edit_btmesh->bm->totfacesel : 0;
 }
 
-static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, const char *name)
 {
-	CustomData *ldata = rna_mesh_ldata_helper(me);
+	PointerRNA ptr;
+	CustomData *ldata;
 	CustomDataLayer *cdl= NULL;
-	int index;
+	int index= ED_mesh_color_add(C, NULL, NULL, me, name, FALSE);
 
-	if(ED_mesh_color_add(C, NULL, NULL, me, name, FALSE)) {
-		index= CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, name);
-		cdl= (index == -1)? NULL: &ldata->layers[index];
+	if(index != -1) {
+		ldata= rna_mesh_ldata_helper(me);
+		cdl= &ldata->layers[CustomData_get_layer_index_n(ldata, CD_MLOOPCOL, index)];
 	}
-	return cdl;
+
+	RNA_pointer_create(&me->id, &RNA_MeshLoopColorLayer, cdl, &ptr);
+	return ptr;
 }
 
-static CustomDataLayer *rna_Mesh_int_property_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_int_property_new(struct Mesh *me, struct bContext *C, const char *name)
 {
+	PointerRNA ptr;
 	CustomDataLayer *cdl = NULL;
 	int index;
 
@@ -1153,11 +1158,13 @@ static CustomDataLayer *rna_Mesh_int_property_new(struct Mesh *me, struct bConte
 
 	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
 
-	return cdl;
+	RNA_pointer_create(&me->id, &RNA_MeshIntPropertyLayer, cdl, &ptr);
+	return ptr;
 }
 
-static CustomDataLayer *rna_Mesh_float_property_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_float_property_new(struct Mesh *me, struct bContext *C, const char *name)
 {
+	PointerRNA ptr;
 	CustomDataLayer *cdl = NULL;
 	int index;
 
@@ -1166,11 +1173,13 @@ static CustomDataLayer *rna_Mesh_float_property_new(struct Mesh *me, struct bCon
 
 	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
 
-	return cdl;
+	RNA_pointer_create(&me->id, &RNA_MeshFloatPropertyLayer, cdl, &ptr);
+	return ptr;
 }
 
-static CustomDataLayer *rna_Mesh_string_property_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_string_property_new(struct Mesh *me, struct bContext *C, const char *name)
 {
+	PointerRNA ptr;
 	CustomDataLayer *cdl = NULL;
 	int index;
 
@@ -1179,20 +1188,24 @@ static CustomDataLayer *rna_Mesh_string_property_new(struct Mesh *me, struct bCo
 
 	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
 
-	return cdl;
+	RNA_pointer_create(&me->id, &RNA_MeshStringPropertyLayer, cdl, &ptr);
+	return ptr;
 }
 
-static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, const char *name)
+static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, const char *name)
 {
-	CustomData *pdata = rna_mesh_pdata_helper(me);
+	PointerRNA ptr;
+	CustomData *pdata;
 	CustomDataLayer *cdl= NULL;
-	int index;
+	int index = ED_mesh_uv_texture_add(C, me, name, FALSE);
 
-	if(ED_mesh_uv_texture_add(C, me, name, FALSE)) {
-		index= CustomData_get_named_layer_index(pdata, CD_MTEXPOLY, name);
-		cdl= (index == -1)? NULL: &pdata->layers[index];
+	if(index != -1) {
+		pdata= rna_mesh_pdata_helper(me);
+		cdl= &pdata->layers[CustomData_get_layer_index_n(pdata, CD_MTEXPOLY, index)];
 	}
-	return cdl;
+
+	RNA_pointer_create(&me->id, &RNA_MeshTexturePolyLayer, cdl, &ptr);
+	return ptr;
 }
 
 #else
@@ -2007,7 +2020,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *prop;
 
 	FunctionRNA *func;
-	PropertyRNA *parm;
+//	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshFaces");
 	srna= RNA_def_struct(brna, "MeshFaces", NULL);
@@ -2123,6 +2136,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
 	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
 	parm= RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 	
 /*
@@ -2189,6 +2203,7 @@ static void rna_def_int_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a integer property layer to Mesh");
 	RNA_def_string(func, "name", "Int Prop", 0, "",  "Int property name");
 	parm= RNA_def_pointer(func, "layer", "MeshIntPropertyLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -2210,6 +2225,7 @@ static void rna_def_float_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a float property layer to Mesh");
 	RNA_def_string(func, "name", "Float Prop", 0, "", "Float property name");
 	parm= RNA_def_pointer(func, "layer", "MeshFloatPropertyLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -2231,6 +2247,7 @@ static void rna_def_string_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a string property layer to Mesh");
 	RNA_def_string(func, "name", "String Prop", 0, "", "String property name");
 	parm= RNA_def_pointer(func, "layer", "MeshStringPropertyLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -2279,6 +2296,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a UV map layer to Mesh");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
 	parm= RNA_def_pointer(func, "layer", "MeshTexturePolyLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 /*

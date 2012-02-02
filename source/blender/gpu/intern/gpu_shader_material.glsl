@@ -1256,7 +1256,11 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 		ivec2 vDim;
 		vDim = textureSize(ima, 0);
 
-		vec2 fTexLoc = vDim*texco.xy-vec2(0.5,0.5);
+		// taking the fract part of the texture coordinate is a hardcoded wrap mode.
+		// this is acceptable as textures use wrap mode exclusively in 3D view elsewhere in blender. 
+		// this is done so that we can still get a valid texel with uvs outside the 0,1 range
+		// by texelFetch below, as coordinates are clamped when using this function.
+		vec2 fTexLoc = vDim*fract(texco.xy) - vec2(0.5, 0.5);
 		ivec2 iTexLoc = ivec2(floor(fTexLoc));
 		vec2 t = clamp(fTexLoc - iTexLoc, 0.0, 1.0);		// sat just to be pedantic
 
@@ -1279,7 +1283,14 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 		
 		for(int i = 0; i < 4; i++){
 			for(int j = 0; j < 4; j++){
-				rgbtobw(texelFetch(ima, (iTexLocMod + ivec2(i,j)), 0), H[i][j]);
+				ivec2 iTexTmp = iTexLocMod + ivec2(i,j);
+				
+				// wrap texture coordinates manually for texelFetch to work on uvs oitside the 0,1 range.
+				// this is guaranteed to work since we take the fractional part of the uv above.
+				iTexTmp.x = (iTexTmp.x < 0)? iTexTmp.x + vDim.x : ((iTexTmp.x >= vDim.x)? iTexTmp.x - vDim.x : iTexTmp.x);
+				iTexTmp.y = (iTexTmp.y < 0)? iTexTmp.y + vDim.y : ((iTexTmp.y >= vDim.y)? iTexTmp.y - vDim.y : iTexTmp.y);
+
+				rgbtobw(texelFetch(ima, iTexTmp, 0), H[i][j]);
 			}
 		}
 		
