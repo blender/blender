@@ -277,6 +277,11 @@ __device float4 make_float4(float x, float y, float z, float w)
 	return a;
 }
 
+__device int align_up(int offset, int alignment)
+{
+	return (offset + alignment - 1) & ~(alignment - 1);
+}
+
 #endif
 
 CCL_NAMESPACE_END

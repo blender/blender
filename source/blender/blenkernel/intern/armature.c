@@ -1319,6 +1319,23 @@ void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc)
 	copy_v3_v3(outloc, nLocMat[3]);
 }
 
+void armature_mat_pose_to_bone_ex(Object *ob, bPoseChannel *pchan, float inmat[][4], float outmat[][4])
+{
+	bPoseChannel work_pchan = *pchan;
+
+	/* recalculate pose matrix with only parent transformations,
+	 * bone loc/sca/rot is ignored, scene and frame are not used. */
+	where_is_pose_bone(NULL, ob, &work_pchan, 0.0f, FALSE);
+
+	/* find the matrix, need to remove the bone transforms first so this is
+	 * calculated as a matrix to set rather then a difference ontop of whats
+	 * already there. */
+	unit_m4(outmat);
+	pchan_apply_mat4(&work_pchan, outmat, FALSE);
+
+	armature_mat_pose_to_bone(&work_pchan, inmat, outmat);
+}
+
 /* same as object_mat3_to_rot() */
 void pchan_mat3_to_rot(bPoseChannel *pchan, float mat[][3], short use_compat)
 {

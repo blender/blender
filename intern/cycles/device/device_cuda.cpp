@@ -106,11 +106,6 @@ public:
 		}
 	}
 
-	static int cuda_align_up(int& offset, int alignment)
-	{
-		return (offset + alignment - 1) & ~(alignment - 1);
-	}
-
 #ifdef NDEBUG
 #define cuda_abort()
 #else
@@ -192,26 +187,6 @@ public:
 	{
 		cuda_push_context();
 		cuda_assert(cuCtxDetach(cuContext))
-	}
-
-	bool support_full_kernel()
-	{
-		int major, minor;
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
-
-		return (major >= 2);
-	}
-
-	string description()
-	{
-		/* print device information */
-		char deviceName[256];
-
-		cuda_push_context();
-		cuDeviceGetName(deviceName, 256, cuDevId);
-		cuda_pop_context();
-
-		return string("CUDA ") + deviceName;
 	}
 
 	bool support_device(bool experimental)
@@ -505,7 +480,7 @@ public:
 		offset += sizeof(d_rng_state);
 
 		int sample = task.sample;
-		offset = cuda_align_up(offset, __alignof(sample));
+		offset = align_up(offset, __alignof(sample));
 
 		cuda_assert(cuParamSeti(cuPathTrace, offset, task.sample))
 		offset += sizeof(task.sample);
@@ -569,7 +544,7 @@ public:
 		offset += sizeof(d_buffer);
 
 		int sample = task.sample;
-		offset = cuda_align_up(offset, __alignof(sample));
+		offset = align_up(offset, __alignof(sample));
 
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.sample))
 		offset += sizeof(task.sample);
@@ -638,7 +613,7 @@ public:
 		offset += sizeof(d_offset);
 
 		int shader_eval_type = task.shader_eval_type;
-		offset = cuda_align_up(offset, __alignof(shader_eval_type));
+		offset = align_up(offset, __alignof(shader_eval_type));
 
 		cuda_assert(cuParamSeti(cuDisplace, offset, task.shader_eval_type))
 		offset += sizeof(task.shader_eval_type);
@@ -880,6 +855,10 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.description = string(name);
 		info.id = string_printf("CUDA_%d", num);
 		info.num = num;
+
+		int major, minor;
+		cuDeviceComputeCapability(&major, &minor, num);
+		info.advanced_shading = (major >= 2);
 
 		/* if device has a kernel timeout, assume it is used for display */
 		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1) {

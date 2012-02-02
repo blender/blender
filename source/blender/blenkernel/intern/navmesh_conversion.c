@@ -344,7 +344,7 @@ int buildNavMeshData(const int nverts, const float* verts,
 							 int *vertsPerPoly_r, int **dtrisToPolysMap_r, int **dtrisToTrisMap_r)
 
 {
-	int *trisMapping = MEM_callocN(sizeof(int)*ntris, "buildNavMeshData trisMapping");
+	int *trisMapping;
 	int i;
 	struct SortContext context;
 	int validTriStart, prevPolyIdx, curPolyIdx, newPolyIdx, prevpolyidx;
@@ -359,6 +359,8 @@ int buildNavMeshData(const int nverts, const float* verts,
 		printf("Converting navmesh: Error! Can't find recast custom data\n");
 		return 0;
 	}
+
+	trisMapping = MEM_callocN(sizeof(int)*ntris, "buildNavMeshData trisMapping");
 
 	//sort the triangles by polygon idx
 	for (i=0; i<ntris; i++)

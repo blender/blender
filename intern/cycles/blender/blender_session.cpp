@@ -203,7 +203,10 @@ void BlenderSession::render()
 		b_rlay = *b_iter;
 
 		/* add passes */
-		if(session_params.device.type == DEVICE_CPU) { /* todo */
+		vector<Pass> passes;
+		Pass::add(PASS_COMBINED, passes);
+
+		if(session_params.device.advanced_shading) {
 			BL::RenderLayer::passes_iterator b_pass_iter;
 			
 			for(b_rlay.passes.begin(b_pass_iter); b_pass_iter != b_rlay.passes.end(); ++b_pass_iter) {
@@ -211,12 +214,13 @@ void BlenderSession::render()
 				PassType pass_type = get_pass_type(b_pass);
 
 				if(pass_type != PASS_NONE)
-					Pass::add(pass_type, buffer_params.passes);
+					Pass::add(pass_type, passes);
 			}
 		}
 
-		scene->film->passes = buffer_params.passes;
-		scene->film->need_update = true;
+		buffer_params.passes = passes;
+		scene->film->passes = passes;
+		scene->film->tag_update(scene);
 
 		/* update session */
 		session->reset(buffer_params, session_params.samples);

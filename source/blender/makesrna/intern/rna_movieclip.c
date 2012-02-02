@@ -87,24 +87,36 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 
 	/* build proxy sized */
 	prop= RNA_def_property(srna, "build_25", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_25);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_SIZE_25);
 	RNA_def_property_ui_text(prop, "25%", "Build proxy resolution 25% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_50", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_50);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_SIZE_50);
 	RNA_def_property_ui_text(prop, "50%", "Build proxy resolution 50% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_75", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_75);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_SIZE_75);
 	RNA_def_property_ui_text(prop, "75%", "Build proxy resolution 75% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_100", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_100);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_SIZE_100);
 	RNA_def_property_ui_text(prop, "100%", "Build proxy resolution 100% of the original footage dimension");
 
-	prop= RNA_def_property(srna, "build_undistorted", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "build_flag", MCLIP_PROXY_BUILD_UNDISTORT);
-	RNA_def_property_ui_text(prop, "Build Undistorted", "Also build undistorted proxies for selected sizes");
+	prop= RNA_def_property(srna, "build_undistorted_25", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_UNDISTORTED_SIZE_25);
+	RNA_def_property_ui_text(prop, "25%", "Build proxy resolution 25% of the original undistorted footage dimension");
+
+	prop= RNA_def_property(srna, "build_undistorted_50", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_UNDISTORTED_SIZE_50);
+	RNA_def_property_ui_text(prop, "50%", "Build proxy resolution 50% of the original undistorted footage dimension");
+
+	prop= RNA_def_property(srna, "build_undistorted_75", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_UNDISTORTED_SIZE_75);
+	RNA_def_property_ui_text(prop, "75%", "Build proxy resolution 75% of the original undistorted footage dimension");
+
+	prop= RNA_def_property(srna, "build_undistorted_100", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", MCLIP_PROXY_UNDISTORTED_SIZE_100);
+	RNA_def_property_ui_text(prop, "100%", "Build proxy resolution 100% of the original undistorted footage dimension");
 
 	/* build timecodes */
 	prop= RNA_def_property(srna, "build_record_run", PROP_BOOLEAN, PROP_NONE);

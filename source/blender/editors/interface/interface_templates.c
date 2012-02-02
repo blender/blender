@@ -2150,7 +2150,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		Object *ob= (Object*)activeptr->data;
 		Key *key= (Key*)itemptr->id.data;
 
-		split= uiLayoutSplit(sub, 0.75f, 0);
+		split= uiLayoutSplit(sub, 0.66f, 0);
 
 		uiItemL(split, name, icon);
 
@@ -2158,10 +2158,13 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		row= uiLayoutRow(split, 1);
 		if(i == 0 || (key->type != KEY_RELATIVE)) uiItemL(row, "", ICON_NONE);
 		else uiItemR(row, itemptr, "value", 0, "", ICON_NONE);
+		uiItemR(row, itemptr, "mute", 0, "", 0);
 
-		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))
+		if( (key->flag & KEYBLOCK_MUTE) ||
+		    (ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH)) )
+		{
 			uiLayoutSetActive(row, 0);
-		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
+		}
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else if(itemptr->type == &RNA_VertexGroup) {

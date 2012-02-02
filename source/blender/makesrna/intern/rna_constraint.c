@@ -78,24 +78,24 @@ EnumPropertyItem constraint_type_items[] ={
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem target_space_pchan_items[] = {
-	{0, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
-	{2, "POSE", 0, "Pose Space", "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"},
-	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The transformation of the target bone is evaluated relative its local coordinate system, with the parent transformation added"},
-	{1, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
+	{CONSTRAINT_SPACE_WORLD,    "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
+	{CONSTRAINT_SPACE_POSE,     "POSE", 0, "Pose Space", "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"},
+	{CONSTRAINT_SPACE_PARLOCAL, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The transformation of the target bone is evaluated relative its local coordinate system, with the parent transformation added"},
+	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem owner_space_pchan_items[] = {
-	{0, "WORLD", 0, "World Space", "The constraint is applied relative to the world coordinate system"},
-	{2, "POSE", 0, "Pose Space", "The constraint is applied in Pose Space, the object transformation is ignored"},
-	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
-	{1, "LOCAL", 0, "Local Space", "The constraint is applied relative to the local coordinate sytem of the object"},
+	{CONSTRAINT_SPACE_WORLD,    "WORLD", 0, "World Space", "The constraint is applied relative to the world coordinate system"},
+	{CONSTRAINT_SPACE_POSE,     "POSE", 0, "Pose Space", "The constraint is applied in Pose Space, the object transformation is ignored"},
+	{CONSTRAINT_SPACE_PARLOCAL, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
+	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space", "The constraint is applied relative to the local coordinate sytem of the object"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
 static EnumPropertyItem space_object_items[] = {
-	{0, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
-	{1, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
+	{CONSTRAINT_SPACE_WORLD, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
+	{CONSTRAINT_SPACE_LOCAL, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
 	{0, NULL, 0, NULL, NULL}};
 
 #include "BKE_animsys.h"
@@ -293,8 +293,8 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 
 	/* 0, 1, 2 = magic numbers for rotX, rotY, rotZ */
 	if (ELEM3(acon->type, 0, 1, 2)) {
-		*min= -90.f;
-		*max= 90.f;
+		*min= -180.0f;
+		*max= 180.0f;
 	} else {
 		*min= -1000.f;
 		*max= 1000.f;
@@ -1026,15 +1026,15 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem transform_channel_items[] = {
-		{20, "LOCATION_X", 0, "Location X", ""},
-		{21, "LOCATION_Y", 0, "Location Y", ""},
-		{22, "LOCATION_Z", 0, "Location Z", ""},
-		{00, "ROTATION_X", 0, "Rotation X", ""},
-		{01, "ROTATION_Y", 0, "Rotation Y", ""},
-		{02, "ROTATION_Z", 0, "Rotation Z", ""},
-		{10, "SCALE_X", 0, "Scale X", ""},
-		{11, "SCALE_Y", 0, "Scale Y", ""},
-		{12, "SCALE_Z", 0, "Scale Z", ""},
+		{20, "LOCATION_X", 0, "X Location", ""},
+		{21, "LOCATION_Y", 0, "Y Location", ""},
+		{22, "LOCATION_Z", 0, "Z Location", ""},
+		{00, "ROTATION_X", 0, "X Rotation", ""},
+		{01, "ROTATION_Y", 0, "Y Rotation", ""},
+		{02, "ROTATION_Z", 0, "Z Rotation", ""},
+		{10, "SCALE_X", 0, "X Scale", ""},
+		{11, "SCALE_Y", 0, "Y Scale", ""},
+		{12, "SCALE_Z", 0, "Z Scale", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ActionConstraint", "Constraint");
@@ -2011,12 +2011,12 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "chainlen");
 	RNA_def_property_range(prop, 1, 255); // TODO: this should really check the max length of the chain the constraint is attached to
 	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the chain");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update"); // XXX: this update goes wrong... needs extra flush?
 	
 	/* direct access to bindings */
 	// NOTE: only to be used by experienced users
 	prop= RNA_def_property(srna, "joint_bindings", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_array(prop, 32); // XXX this is the maximum value allowed
+	RNA_def_property_array(prop, 32); // XXX this is the maximum value allowed - why? 
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_SplineIKConstraint_joint_bindings_get_length");
 	RNA_def_property_float_funcs(prop, "rna_SplineIKConstraint_joint_bindings_get", "rna_SplineIKConstraint_joint_bindings_set", NULL);

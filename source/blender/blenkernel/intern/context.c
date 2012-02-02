@@ -381,7 +381,8 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 {
 	C->wm.window= win;
 	C->wm.screen= (win)? win->screen: NULL;
-	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
+	if(C->wm.screen)
+		C->data.scene= C->wm.screen->scene;
 	C->wm.area= NULL;
 	C->wm.region= NULL;
 }
@@ -389,7 +390,8 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
 {
 	C->wm.screen= screen;
-	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
+	if(C->wm.screen)
+		C->data.scene= C->wm.screen->scene;
 	C->wm.area= NULL;
 	C->wm.region= NULL;
 }

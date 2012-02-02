@@ -374,10 +374,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	}
 
 	// a hash table to remap materials to indices
-	if (mat) {
-		material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "CSG_mat gh");
+	material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "CSG_mat gh");
+
+	if (mat)
 		*totmat = 0;
-	}
 
 	origindex_layer = result->getFaceDataArray(result, CD_ORIGINDEX);
 
@@ -421,6 +421,32 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 			}
 			else
 				mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
+		}
+		else if(orig_mat) {
+			if(orig_ob == ob1) {
+				// No need to change materian index for faces from left operand
+			}
+			else {
+				// for faces from right operand checn if there's needed material in left operand and if it is,
+				// use index of that material, otherwise fallback to first material (material with index=0)
+				if (!BLI_ghash_haskey(material_hash, orig_mat)) {
+					int a;
+
+					mat_nr = 0;
+					for(a = 0; a < ob1->totcol; a++) {
+						if(give_current_material(ob1, a+1) == orig_mat) {
+							mat_nr = a;
+							break;
+						}
+					}
+
+					BLI_ghash_insert(material_hash, orig_mat, SET_INT_IN_POINTER(mat_nr));
+
+					mface->mat_nr = mat_nr;
+				}
+				else
+					mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
+			}
 		}
 		else
 			mface->mat_nr = 0;

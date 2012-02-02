@@ -67,7 +67,7 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 #define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
 						   has same number of elements */
 
-#define CD_TYPE_AS_MASK(_type) (CustomDataMask)(1 << (CustomDataMask)(_type))
+#define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
 /* initialises a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates

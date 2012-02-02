@@ -585,11 +585,14 @@ int interval_test(int min, int max, int p1, int cycl)
 }
 
 
-/* calculate the deformation implied by the curve path at a given parametric position, and returns whether this operation succeeded 
- * 	- *vec needs FOUR items!
- *	- ctime is normalized range <0-1>
+/* calculate the deformation implied by the curve path at a given parametric position,
+ * and returns whether this operation succeeded.
+ *
+ * note: ctime is normalized range <0-1>
+ *
+ * returns OK: 1/0
  */
-int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius, float *weight)	/* returns OK */
+int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius, float *weight)
 {
 	Curve *cu;
 	Nurb *nu;

@@ -288,11 +288,17 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 /* for amount of edges */
 #define MAX_CUT_EDGES 1024
 
+static int knife_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ED_view3d_operator_properties_viewmat_set(C, op);
+
+	return WM_gesture_lines_invoke(C, op, event);
+}
+
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	ARegion *ar= CTX_wm_region(C);
 	EditEdge *eed;
 	EditVert *eve;
 	CutCurve curve[MAX_CUT_EDGES];
@@ -302,10 +308,12 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	int len=0;
 	short numcuts= RNA_int_get(op->ptr, "num_cuts"); 
 	short mode= RNA_enum_get(op->ptr, "type");
+	int winx, winy;
+	float persmat[4][4];
 //	int corner_cut_pattern= RNA_enum_get(op->ptr,"corner_cut_pattern");
 	
 	/* edit-object needed for matrix, and ar->regiondata for projections to work */
-	if (ELEM3(NULL, obedit, ar, ar->regiondata))
+	if (obedit == NULL)
 		return OPERATOR_CANCELLED;
 	
 	if (EM_nvertices_selected(em) < 2) {
@@ -328,6 +336,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	ED_view3d_operator_properties_viewmat_get(op, &winx, &winy, persmat);
+
 	/*store percentage of edge cut for KNIFE_EXACT here.*/
 	for(eed=em->edges.first; eed; eed= eed->next) 
 		eed->tmp.fp = 0.0; 
@@ -339,7 +349,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		VECCOPY(co, eve->co);
 		co[3]= 1.0;
 		mul_m4_v4(obedit->obmat, co);
-		project_float(ar, co, scr);
+		apply_project_float(persmat, winx, winy, co, scr);
 		BLI_ghash_insert(gh, eve, scr);
 		eve->f1 = 0; /*store vertex intersection flag here*/
 	
@@ -390,7 +400,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	ot->description= "Cut selected edges and faces into parts";
 	ot->idname= "MESH_OT_knife_cut";
 	
-	ot->invoke= WM_gesture_lines_invoke;
+	ot->invoke= knife_cut_invoke;
 	ot->modal= WM_gesture_lines_modal;
 	ot->exec= knife_cut_exec;
 	ot->cancel= WM_gesture_lines_cancel;
@@ -407,7 +417,10 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	// doesn't work atm.. RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, "Corner Cut Pattern", "Topology pattern to use to fill a face after cutting across its corner");
 	
 	/* internal */
-	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+	prop = RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	ED_view3d_operator_properties_viewmat(ot);
 }
 
 /* ******************************************************* */

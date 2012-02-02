@@ -553,7 +553,10 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 			BLI_snprintf(str, sizeof(str), "%d | %s", seq->len, name);
 	}
 	else if (seq->type == SEQ_SOUND) {
-		BLI_snprintf(str, sizeof(str), "%d | %s: %s", seq->len, name, seq->sound->name);
+		if(seq->sound)
+			BLI_snprintf(str, sizeof(str), "%d | %s: %s", seq->len, name, seq->sound->name);
+		else
+			BLI_snprintf(str, sizeof(str), "%d | %s", seq->len, name);
 	}
 	else if (seq->type == SEQ_MOVIE) {
 		BLI_snprintf(str, sizeof(str), "%d | %s: %s%s", seq->len, name, seq->strip->dir, seq->strip->stripdata->name);

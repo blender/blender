@@ -4042,7 +4042,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	ParticleDrawData *pdd = psys->pdd;
 	Material *ma;
 	float vel[3], imat[4][4];
-	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
+	float timestep, pixsize_scale, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime, pa_health, intensity;
 	float cfra;
 	float ma_col[3]= {0.0f, 0.0f, 0.0f};
@@ -4149,12 +4149,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		case PART_DRAW_CROSS:
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
-			pixsize= ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 			
-			if(part->draw_size==0.0)
-				pixsize *= 2.0f;
+			if (part->draw_size == 0.0)
+				pixsize_scale = 2.0f;
 			else
-				pixsize*=part->draw_size;
+				pixsize_scale = part->draw_size;
 
 			if(draw_as==PART_DRAW_AXIS)
 				create_cdata = 1;
@@ -4342,6 +4341,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				ct+=dt;
 				for(i=0; i < trail_count; i++, ct += dt) {
+					float pixsize;
+
 					if(part->draw & PART_ABS_PATH_TIME) {
 						if(ct < pa_birthtime || ct > pa_dietime)
 							continue;
@@ -4375,6 +4376,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						bb.time = ct;
 					}
 
+					pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
+
 					draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
 
 					totpoint++;
@@ -4385,6 +4388,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			{
 				state.time=cfra;
 				if(psys_get_particle_state(&sim,a,&state,0)){
+					float pixsize;
+
 					if(psys->parent)
 						mul_m4_v3(psys->parent->obmat, state.co);
 
@@ -4407,6 +4412,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 						bb.time = pa_time;
 					}
+
+					pixsize = ED_view3d_pixel_size(rv3d, state.co) * pixsize_scale;
 
 					draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
 

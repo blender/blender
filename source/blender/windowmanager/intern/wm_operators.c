@@ -1277,22 +1277,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 #ifdef WITH_BUILDINFO
 	int ver_width, rev_width;
-	char *version_str = NULL;
-	char *revision_str = NULL;
 	char version_buf[128];
 	char revision_buf[128];
 	extern char build_rev[];
 	
-	version_str = &version_buf[0];
-	revision_str = &revision_buf[0];
-	
-	BLI_snprintf(version_str, sizeof(version_str),
+	BLI_snprintf(version_buf, sizeof(version_buf),
 	             "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
-	BLI_snprintf(revision_str, sizeof(revision_str), "r%s", build_rev);
+	BLI_snprintf(revision_buf, sizeof(revision_buf), "r%s", build_rev);
 	
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
-	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;
-	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_str) + 5;
+	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_buf) + 5;
+	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_buf) + 5;
 #endif //WITH_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1303,8 +1298,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
 #ifdef WITH_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, version_buf, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_buf, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 #endif //WITH_BUILDINFO
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);

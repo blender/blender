@@ -242,6 +242,7 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, ListBase *tr
 	track->margin= settings->default_margin;
 	track->pattern_match= settings->default_pattern_match;
 	track->frames_limit= settings->default_frames_limit;
+	track->flag= settings->default_flag;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -974,8 +975,8 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
 
 	context->user= *user;
-	context->user.render_size= 0;
-	context->user.render_flag= MCLIP_PROXY_RENDER_SIZE_FULL;
+	context->user.render_size= MCLIP_PROXY_RENDER_SIZE_FULL;
+	context->user.render_flag= 0;
 
 	if(!sequence)
 		BLI_begin_threaded_malloc();
@@ -1225,7 +1226,7 @@ static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 
 	user.framenr= framenr;
 
-	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, context->clip_flag);
+	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, context->clip_flag, MOVIECLIP_CACHE_SKIP);
 
 	return ibuf;
 }
@@ -1329,7 +1330,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(context->backwards) context->user.framenr--;
 	else context->user.framenr++;
 
-	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, context->clip_flag);
+	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, context->clip_flag, MOVIECLIP_CACHE_SKIP);
 	if(!ibuf_new)
 		return 0;
 

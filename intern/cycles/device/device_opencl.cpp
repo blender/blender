@@ -453,20 +453,6 @@ public:
 			clReleaseContext(cxContext);
 	}
 
-	bool support_full_kernel()
-	{
-		return false;
-	}
-
-	string description()
-	{
-		char name[1024];
-
-		clGetDeviceInfo(cdDevice, CL_DEVICE_NAME, sizeof(name), &name, NULL);
-
-		return string("OpenCL ") + name;
-	}
-
 	void mem_alloc(device_memory& mem, MemoryType type)
 	{
 		size_t size = mem.memory_size();
@@ -750,6 +736,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		info.num = num;
 		/* we don't know if it's used for display, but assume it is */
 		info.display_device = true;
+		info.advanced_shading = false;
 
 		devices.push_back(info);
 	}

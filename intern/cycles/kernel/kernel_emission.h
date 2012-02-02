@@ -27,6 +27,7 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 	ShaderData sd;
 	float3 eval;
 
+#ifdef __BACKGROUND_MIS__
 	if(ls->type == LIGHT_BACKGROUND) {
 		Ray ray;
 		ray.D = ls->D;
@@ -36,7 +37,9 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 		shader_setup_from_background(kg, &sd, &ray);
 		eval = shader_eval_background(kg, &sd, 0);
 	}
-	else {
+	else
+#endif
+	{
 		shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v);
 		ls->Ng = sd.Ng;
 
@@ -113,7 +116,8 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 
 	if(ls.shader & SHADER_CAST_SHADOW) {
 		/* setup ray */
-		ray->P = ray_offset(sd->P, sd->Ng);
+		bool transmit = (dot(sd->Ng, ls.D) < 0.0f);
+		ray->P = ray_offset(sd->P, (transmit)? -sd->Ng: sd->Ng);
 
 		if(ls.t == FLT_MAX) {
 			/* distant light */
@@ -164,6 +168,7 @@ __device float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, 
 	float3 L = shader_eval_background(kg, &sd, path_flag);
 	shader_release(kg, &sd);
 
+#ifdef __BACKGROUND_MIS__
 	/* check if background light exists or if we should skip pdf */
 	int res = kernel_data.integrator.pdf_background_res;
 
@@ -175,6 +180,7 @@ __device float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, 
 
 		return L*mis_weight;
 	}
+#endif
 
 	return L;
 #else

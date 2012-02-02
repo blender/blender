@@ -43,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -159,6 +160,11 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	PropertyRNA *prop;
 	FileBrowseOp *fbo;
 	char *str;
+
+	if (CTX_wm_space_file(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't activate a file selector, one already open");
+		return OPERATOR_CANCELLED;
+	}
 
 	uiFileBrowseContextProperty(C, &ptr, &prop);
 

@@ -539,6 +539,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		}
 			break;
 		case OB_CURVE:
+		case OB_FONT:
 		{
 			Curve *cu= ob->data;
 			
@@ -550,15 +551,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				node2 = dag_get_node(dag, cu->taperobj);
 				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Taper");
 			}
-		}
-			break;
-		case OB_FONT: 
-		{
-			Curve *cu= ob->data;
-			
-			if(cu->textoncurve) {
-				node2 = dag_get_node(dag, cu->textoncurve);
-				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Texture On Curve");
+			if(ob->type == OB_FONT) {
+				if(cu->textoncurve) {
+					node2 = dag_get_node(dag, cu->textoncurve);
+					dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Texture On Curve");
+				}
 			}
 		}
 			break;

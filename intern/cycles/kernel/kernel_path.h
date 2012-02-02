@@ -220,9 +220,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
-#ifdef __EMISSION__
 	float ray_pdf = 0.0f;
-#endif
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
 
@@ -239,11 +237,13 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 			if(kernel_data.background.transparent && (state.flag & PATH_RAY_CAMERA)) {
 				L_transparent += average(throughput);
 			}
+#ifdef __BACKGROUND__
 			else {
 				/* sample background shader */
 				float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
 				path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 			}
+#endif
 
 			break;
 		}
@@ -342,9 +342,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		path_radiance_bsdf_bounce(&L, &throughput, &bsdf_eval, bsdf_pdf, state.bounce, label);
 
 		/* set labels */
-#if defined(__EMISSION__) || defined(__BACKGROUND__)
-		ray_pdf = bsdf_pdf;
-#endif
+		if(!(label & LABEL_TRANSPARENT))
+			ray_pdf = bsdf_pdf;
 
 		/* update path state */
 		path_state_next(kg, &state, label);
@@ -376,8 +375,6 @@ __device void kernel_path_trace(KernelGlobals *kg,
 
 	rng_state += index;
 	buffer += index*pass_stride;
-
-	kernel_clear_passes(buffer, sample, pass_stride);
 
 	/* initialize random numbers */
 	RNG rng;

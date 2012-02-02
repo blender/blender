@@ -833,6 +833,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *dm= NULL, *ndm;
 	float (*vertCos)[3] = NULL;
+	int useCache = !forRender;
 
 	if(forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
@@ -911,7 +912,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				vertCos= NULL;
 			}
 
-			ndm = mti->applyModifier(md, ob, dm, forRender, editmode);
+			ndm = mti->applyModifier(md, ob, dm, forRender, useCache);
 
 			if (ndm) {
 				/* Modifier returned a new derived mesh */

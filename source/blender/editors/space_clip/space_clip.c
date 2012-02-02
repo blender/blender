@@ -604,10 +604,6 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 				ar_main->alignment= RGN_ALIGN_NONE;
 				view_changed= 1;
 			}
-			if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
-				ar_preview->alignment= RGN_ALIGN_NONE;
-				view_changed= 1;
-			}
 			break;
 		case SC_VIEW_GRAPH:
 			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
@@ -620,7 +616,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 				ar_main->alignment= RGN_ALIGN_NONE;
 				view_changed= 1;
 			}
-			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
+			if (ar_preview && !ELEM(ar_preview->alignment, RGN_ALIGN_TOP,  RGN_ALIGN_BOTTOM)) {
 				ar_preview->alignment= RGN_ALIGN_TOP;
 				view_changed= 1;
 			}

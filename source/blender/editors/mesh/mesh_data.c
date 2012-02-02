@@ -183,7 +183,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 
 		layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 		if(layernum >= MAX_MTFACE)
-			return 0;
+			return -1;
 
 		EM_add_data_layer(em, &em->fdata, CD_MTFACE, name);
 
@@ -196,7 +196,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 	else {
 		layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 		if(layernum >= MAX_MTFACE)
-			return 0;
+			return -1;
 
 		if(me->mtface)
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
@@ -212,7 +212,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
-	return 1;
+	return layernum;
 }
 
 int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
@@ -244,7 +244,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 
 		layernum= CustomData_number_of_layers(&em->fdata, CD_MCOL);
 		if(layernum >= MAX_MCOL)
-			return 0;
+			return -1;
 
 		EM_add_data_layer(em, &em->fdata, CD_MCOL, name);
 
@@ -257,7 +257,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 	else {
 		layernum= CustomData_number_of_layers(&me->fdata, CD_MCOL);
 		if(layernum >= MAX_MCOL)
-			return 0;
+			return -1;
 
 		if(me->mcol)
 			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mcol, me->totface, name);
@@ -273,7 +273,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
-	return 1;
+	return layernum;
 }
 
 int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
@@ -328,7 +328,7 @@ static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
-	if(!ED_mesh_uv_texture_add(C, me, NULL, TRUE))
+	if(ED_mesh_uv_texture_add(C, me, NULL, TRUE) == -1)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -467,7 +467,7 @@ static int vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
-	if(!ED_mesh_color_add(C, scene, ob, me, NULL, TRUE))
+	if(ED_mesh_color_add(C, scene, ob, me, NULL, TRUE) == -1)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

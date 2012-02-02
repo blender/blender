@@ -613,18 +613,10 @@ static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
 	Object *ob= (Object*)ptr->id.data;
-	float umat[4][4]= MAT4_UNITY;
 	float tmat[4][4];
 
-	/* recalculate pose matrix with only parent transformations,
-	 * bone loc/sca/rot is ignored, scene and frame are not used. */
-	where_is_pose_bone(NULL, ob, pchan, 0.0f, FALSE);
+	armature_mat_pose_to_bone_ex(ob, pchan, (float (*)[4])values, tmat);
 
-	/* find the matrix, need to remove the bone transforms first so this is
-	 * calculated as a matrix to set rather then a difference ontop of whats
-	 * already there. */
-	pchan_apply_mat4(pchan, umat, FALSE);
-	armature_mat_pose_to_bone(pchan, (float (*)[4])values, tmat);
 	pchan_apply_mat4(pchan, tmat, FALSE); /* no compat for predictable result */
 }
 

@@ -434,25 +434,28 @@ class ConstraintButtonsPanel():
     def ACTION(self, context, layout, con):
         self.target_template(layout, con)
 
-        layout.prop(con, "action")
-
-        layout.prop(con, "transform_channel")
-
         split = layout.split()
-
-        col = split.column(align=True)
-        col.label(text="Action Length:")
-        col.prop(con, "frame_start", text="Start")
-        col.prop(con, "frame_end", text="End")
-
+        
+        col = split.column()
+        col.label(text="From Target:")
+        col.prop(con, "transform_channel", text="")
+        col.prop(con, "target_space", text="")
+        
+        col = split.column()
+        col.label(text="To Action:")
+        col.prop(con, "action", text="")
+        
+        split = layout.split()
+        
         col = split.column(align=True)
         col.label(text="Target Range:")
         col.prop(con, "min", text="Min")
         col.prop(con, "max", text="Max")
-
-        row = layout.row()
-        row.label(text="Convert:")
-        row.prop(con, "target_space", text="")
+        
+        col = split.column(align=True)
+        col.label(text="Action Range:")
+        col.prop(con, "frame_start", text="Start")
+        col.prop(con, "frame_end", text="End")
 
     def LOCKED_TRACK(self, context, layout, con):
         self.target_template(layout, con)

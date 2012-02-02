@@ -57,24 +57,6 @@ public:
 	{
 	}
 
-	bool support_full_kernel()
-	{
-		return false;
-	}
-
-	string description()
-	{
-		RPCSend snd(socket, "description");
-		snd.write();
-
-		RPCReceive rcv(socket);
-		string desc_string;
-
-		*rcv.archive & desc_string;
-
-		return desc_string + " (remote)";
-	}
-
 	void mem_alloc(device_memory& mem, MemoryType type)
 	{
 #if 0

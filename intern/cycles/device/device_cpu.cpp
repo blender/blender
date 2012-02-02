@@ -72,14 +72,9 @@ public:
 		kernel_globals_free(kg);
 	}
 
-	bool support_full_kernel()
+	bool support_advanced_shading()
 	{
 		return true;
-	}
-
-	string description()
-	{
-		return system_cpu_brand_string();
 	}
 
 	void mem_alloc(device_memory& mem, MemoryType type)
@@ -271,6 +266,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.description = system_cpu_brand_string();
 	info.id = "CPU";
 	info.num = 0;
+	info.advanced_shading = true;
 
 	devices.insert(devices.begin(), info);
 }

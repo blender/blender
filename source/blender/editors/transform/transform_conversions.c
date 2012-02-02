@@ -5640,10 +5640,13 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
 
-	if(!clip || !BKE_movieclip_has_frame(clip, &sc->user)) {
-		t->total = 0;
+	t->total = 0;
+
+	if(!clip || !BKE_movieclip_has_frame(clip, &sc->user))
 		return;
-	}
+
+	if(!ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION))
+		return;
 
 	if(ar->regiontype == RGN_TYPE_PREVIEW) {
 		/* transformation was called from graph editor */

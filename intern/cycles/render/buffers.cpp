@@ -71,7 +71,7 @@ int BufferParams::get_passes_size()
 	foreach(Pass& pass, passes)
 		size += pass.components;
 	
-	return size;
+	return align_up(size, 4);
 }
 
 /* Render Buffers */
@@ -130,7 +130,7 @@ bool RenderBuffers::copy_from_device()
 	if(!buffer.device_pointer)
 		return false;
 
-	device->mem_copy_from(buffer, 0, params.width, params.height, sizeof(float4));
+	device->mem_copy_from(buffer, 0, params.width, params.height, params.get_passes_size()*sizeof(float));
 
 	return true;
 }
@@ -157,10 +157,17 @@ bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int comp
 			assert(pass.components == components);
 
 			/* scalar */
-			for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
-				float f = *in;
-
-				pixels[0] = f*scale_exposure;
+			if(type == PASS_DEPTH) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
+					float f = *in;
+					pixels[0] = (f == 0.0f)? 1e10f: f*scale_exposure;
+				}
+			}
+			else {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
+					float f = *in;
+					pixels[0] = f*scale_exposure;
+				}
 			}
 		}
 		else if(components == 3) {

@@ -44,7 +44,7 @@ def add_object_align_init(context, operator):
     properties = operator.properties if operator is not None else None
 
     space_data = context.space_data
-    if space_data.type != 'VIEW_3D':
+    if space_data and space_data.type != 'VIEW_3D':
         space_data = None
 
     # location
