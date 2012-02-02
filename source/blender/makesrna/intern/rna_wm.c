@@ -1050,6 +1050,9 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
+	/* XXX, this doubles up with the operator name [#29666]
+	 * for now just remove from dir(bpy.types) */
+
 	/* create a new operator type */
 	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
 	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
@@ -1126,7 +1129,10 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
-	/* create a new menu type */
+	/* XXX, this doubles up with the operator name [#29666]
+	 * for now just remove from dir(bpy.types) */
+
+	/* create a new operator type */
 	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
 	dummyot.ext.data= data;
 	dummyot.ext.call= call;
