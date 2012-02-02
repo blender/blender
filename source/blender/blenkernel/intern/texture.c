@@ -500,8 +500,6 @@ void colorband_update_sort(ColorBand *coba)
 
 CBData *colorband_element_add(struct ColorBand *coba, float position)
 {
-	int a;
-
 	if(coba->tot==MAXCOLORBAND) {
 		return NULL;
 	}
