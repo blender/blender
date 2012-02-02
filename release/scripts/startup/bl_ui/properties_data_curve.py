@@ -111,7 +111,8 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             sub = col.column()
             sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
             sub.prop(curve, "fill_mode", text="")
-            col.prop(curve, "use_fill_deform", text="Fill Deformed")
+            col.prop(curve, "use_fill_deform")
+            col.prop(curve, "use_fill_caps")
 
 
 class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):

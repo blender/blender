@@ -1179,6 +1179,63 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 			forRender, originalVerts, deformedVerts);
 }
 
+static void rotateBevelPiece(Curve *cu, BevPoint *bevp, DispList *dlb, float widfac, float fac, float **data_r)
+{
+	float *fp, *data = *data_r;
+	int b;
+
+	fp = dlb->verts;
+	for (b = 0; b<dlb->nr; b++,fp += 3,data += 3) {
+		if(cu->flag & CU_3D) {
+			float vec[3];
+
+			vec[0] = fp[1]+widfac;
+			vec[1] = fp[2];
+			vec[2 ]= 0.0;
+
+			mul_qt_v3(bevp->quat, vec);
+
+			data[0] = bevp->vec[0] + fac*vec[0];
+			data[1] = bevp->vec[1] + fac*vec[1];
+			data[2] = bevp->vec[2] + fac*vec[2];
+		}
+		else {
+			data[0] = bevp->vec[0] + fac*(widfac+fp[1])*bevp->sina;
+			data[1] = bevp->vec[1] + fac*(widfac+fp[1])*bevp->cosa;
+			data[2] = bevp->vec[2] + fac*fp[2];
+		}
+	}
+
+	*data_r = data;
+}
+
+static void fillBevelCap(Curve *cu, Nurb *nu, BevPoint *bevp, DispList *dlb, float fac, float widfac, int flipnormal, ListBase *dispbase)
+{
+	ListBase tmpdisp = {NULL, NULL};
+	DispList *dl;
+	float *data;
+
+	dl= MEM_callocN(sizeof(DispList), "makeDispListbev2");
+	dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr, "dlverts");
+
+	dl->type= DL_POLY;
+
+	dl->parts= 1;
+	dl->nr= dlb->nr;
+	dl->col= nu->mat_nr;
+	dl->charidx= nu->charidx;
+
+	/* dl->rt will be used as flag for render face and */
+	/* CU_2D conflicts with R_NOPUNOFLIP */
+	dl->rt= nu->flag & ~CU_2D;
+
+	rotateBevelPiece(cu, bevp, dlb, widfac, fac, &data);
+
+	BLI_addtail(&tmpdisp, dl);
+	filldisplist(&tmpdisp, dispbase, flipnormal);
+	freedisplist(&tmpdisp);
+}
+
 static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispbase,
 	DerivedMesh **derivedFinal, int forRender, int forOrco)
 {
@@ -1223,9 +1280,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 			for (; bl && nu; bl=bl->next,nu=nu->next) {
 				DispList *dl;
-				float *fp1, *data;
+				float *data;
 				BevPoint *bevp;
-				int a,b;
+				int a;
 
 				if (bl->nr) { /* blank bevel lists can happen */
 
@@ -1264,7 +1321,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						DispList *dlb;
 
 						for (dlb=dlbev.first; dlb; dlb=dlb->next) {
-	
+							ListBase capbase = {NULL, NULL};
+
 							/* for each part of the bevel use a separate displblock */
 							dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
 							dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr*bl->nr, "dlverts");
@@ -1302,32 +1360,19 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 									dl->bevelSplitFlag[a>>5] |= 1<<(a&0x1F);
 								}
 	
-									/* rotate bevel piece and write in data */
-								fp1= dlb->verts;
-								for (b=0; b<dlb->nr; b++,fp1+=3,data+=3) {
-									if(cu->flag & CU_3D) {
-										float vec[3];
-	
-										vec[0]= fp1[1]+widfac;
-										vec[1]= fp1[2];
-										vec[2]= 0.0;
+								/* rotate bevel piece and write in data */
+								rotateBevelPiece(cu, bevp, dlb, widfac, fac, &data);
 
-										mul_qt_v3(bevp->quat, vec);
-
-										data[0]= bevp->vec[0] + fac*vec[0];
-										data[1]= bevp->vec[1] + fac*vec[1];
-										data[2]= bevp->vec[2] + fac*vec[2];
-									}
-									else {
-										data[0]= bevp->vec[0] + fac*(widfac+fp1[1])*bevp->sina;
-										data[1]= bevp->vec[1] + fac*(widfac+fp1[1])*bevp->cosa;
-										data[2]= bevp->vec[2] + fac*fp1[2];
-									}
+								if (cu->flag & CU_FILL_CAPS) {
+									if (a == 0 || a == bl->nr - 1)
+										fillBevelCap(cu, nu, bevp, dlb, fac, widfac, a == 0, &capbase);
 								}
 							}
-							
+
 							/* gl array drawing: using indices */
 							displist_surf_indices(dl);
+
+							BLI_movelisttolist(dispbase, &capbase);
 						}
 					}
 				}
