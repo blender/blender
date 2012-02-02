@@ -249,6 +249,12 @@ if(APPLE)
 		"Choose the minimum OSX version required: 10.4 or 10.5"
 		FORCE)
 	endif()
+	if(${CMAKE_GENERATOR} MATCHES "Xcode" AND (${XCODE_VERSION} VERSION_GREATER 3))
+		# Xcode 4 defaults to the Apple LLVM Compiler.
+		# Override the default compiler selection because Blender only compiles with gcc
+		set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
+		message(STATUS "Setting compiler to: " ${CMAKE_XCODE_ATTRIBUTE_GCC_VERSION})
+	endif()
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
