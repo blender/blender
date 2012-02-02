@@ -220,6 +220,50 @@ void constraints_clear_evalob (bConstraintOb *cob)
 
 /* -------------- Space-Conversion API -------------- */
 
+static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
+{
+	if (pchan->parent) {
+		float offs_bone[4][4];
+
+		/* construct offs_bone the same way it is done in armature.c */
+		copy_m4_m3(offs_bone, pchan->bone->bone_mat);
+		copy_v3_v3(offs_bone[3], pchan->bone->head);
+		offs_bone[3][1] += pchan->bone->parent->length;
+
+		if (pchan->bone->flag & BONE_HINGE) {
+			/* pose_mat = par_pose-space_location * chan_mat */
+			float tmat[4][4];
+
+			/* the rotation of the parent restposition */
+			copy_m4_m4(tmat, pchan->bone->parent->arm_mat);
+
+			/* the location of actual parent transform */
+			copy_v3_v3(tmat[3], offs_bone[3]);
+			zero_v3(offs_bone[3]);
+			mul_m4_v3(pchan->parent->pose_mat, tmat[3]);
+
+			mult_m4_m4m4(diff_mat, tmat, offs_bone);
+		}
+		else {
+			/* pose_mat = par_pose_mat * bone_mat * chan_mat */
+			if (pchan->bone->flag & BONE_NO_SCALE) {
+				float tmat[4][4];
+				copy_m4_m4(tmat, pchan->parent->pose_mat);
+				normalize_m4(tmat);
+				mult_m4_m4m4(diff_mat, tmat, offs_bone);
+			}
+			else {
+				mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
+			}
+		}
+	}
+	else {
+		/* pose_mat = chan_mat * arm_mat */
+		copy_m4_m4(diff_mat, pchan->bone->arm_mat);
+	}
+}
+
+
 /* This function is responsible for the correct transformations/conversions 
  * of a matrix from one space to another for constraint evaluation.
  * For now, this is only implemented for Objects and PoseChannels.
@@ -263,49 +307,10 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* pose to local */
 				else if (to == CONSTRAINT_SPACE_LOCAL) {
 					if (pchan->bone) {
-						if (pchan->parent) {
-							float offs_bone[4][4];
-								
-							/* construct offs_bone the same way it is done in armature.c */
-							copy_m4_m3(offs_bone, pchan->bone->bone_mat);
-							copy_v3_v3(offs_bone[3], pchan->bone->head);
-							offs_bone[3][1]+= pchan->bone->parent->length;
-							
-							if (pchan->bone->flag & BONE_HINGE) {
-								/* pose_mat = par_pose-space_location * chan_mat */
-								float tmat[4][4];
-								
-								/* the rotation of the parent restposition */
-								copy_m4_m4(tmat, pchan->bone->parent->arm_mat);
-								
-								/* the location of actual parent transform */
-								copy_v3_v3(tmat[3], offs_bone[3]);
-								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-								mul_m4_v3(pchan->parent->pose_mat, tmat[3]);
-								
-								mult_m4_m4m4(diff_mat, tmat, offs_bone);
-								invert_m4_m4(imat, diff_mat);
-							}
-							else {
-								if (pchan->bone->flag & BONE_NO_SCALE) {
-									float tmat[4][4];
-									copy_m4_m4(tmat, pchan->parent->pose_mat);
-									normalize_m4(tmat);
-									mult_m4_m4m4(diff_mat, tmat, offs_bone);
-								}
-								else {
-									mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
-								}
+						constraint_pchan_diff_mat(pchan, diff_mat);
 
-								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								invert_m4_m4(imat, diff_mat);
-							}
-						}
-						else {
-							/* pose_mat = chan_mat * arm_mat */
-							invert_m4_m4(imat, pchan->bone->arm_mat);
-						}
-						
+						invert_m4_m4(imat, diff_mat);
+
 						copy_m4_m4(tempmat, mat);
 						mult_m4_m4m4(mat, imat, tempmat);
 
@@ -330,53 +335,11 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			{
 				/* local to pose - do inverse procedure that was done for pose to local */
 				if (pchan->bone) {
-					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
-					if (pchan->parent) {
-						float offs_bone[4][4];
-						
-						/* construct offs_bone the same way it is done in armature.c */
-						copy_m4_m3(offs_bone, pchan->bone->bone_mat);
-						copy_v3_v3(offs_bone[3], pchan->bone->head);
-						offs_bone[3][1]+= pchan->bone->parent->length;
-						
-						if (pchan->bone->flag & BONE_HINGE) {
-							/* pose_mat = par_pose-space_location * chan_mat */
-							float tmat[4][4];
-							
-							/* the rotation of the parent restposition */
-							copy_m4_m4(tmat, pchan->bone->parent->arm_mat);
-							
-							/* the location of actual parent transform */
-							copy_v3_v3(tmat[3], offs_bone[3]);
-							zero_v3(offs_bone[3]);
-							mul_m4_v3(pchan->parent->pose_mat, tmat[3]);
-							
-							mult_m4_m4m4(diff_mat, tmat, offs_bone);
-							copy_m4_m4(tempmat, mat);
-							mult_m4_m4m4(mat, diff_mat, tempmat);
-						}
-						else {
-							/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-							if (pchan->bone->flag & BONE_NO_SCALE) {
-								float tmat[4][4];
-								copy_m4_m4(tmat, pchan->parent->pose_mat);
-								normalize_m4(tmat);
-								mult_m4_m4m4(diff_mat, tmat, offs_bone);
-							}
-							else {
-								mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
-							}
+					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+					constraint_pchan_diff_mat(pchan, diff_mat);
 
-							copy_m4_m4(tempmat, mat);
-							mult_m4_m4m4(mat, diff_mat, tempmat);
-						}
-					}
-					else {
-						copy_m4_m4(diff_mat, pchan->bone->arm_mat);
-						
-						copy_m4_m4(tempmat, mat);
-						mult_m4_m4m4(mat, diff_mat, tempmat);
-					}
+					copy_m4_m4(tempmat, mat);
+					mult_m4_m4m4(mat, diff_mat, tempmat);
 				}
 				
 				/* use pose-space as stepping stone for other spaces */
