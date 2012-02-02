@@ -1209,9 +1209,8 @@ static void rotateBevelPiece(Curve *cu, BevPoint *bevp, DispList *dlb, float wid
 	*data_r = data;
 }
 
-static void fillBevelCap(Curve *cu, Nurb *nu, BevPoint *bevp, DispList *dlb, float fac, float widfac, int flipnormal, ListBase *dispbase)
+static void fillBevelCap(Curve *cu, Nurb *nu, BevPoint *bevp, DispList *dlb, float fac, float widfac, ListBase *dispbase)
 {
-	ListBase tmpdisp = {NULL, NULL};
 	DispList *dl;
 	float *data;
 
@@ -1231,9 +1230,7 @@ static void fillBevelCap(Curve *cu, Nurb *nu, BevPoint *bevp, DispList *dlb, flo
 
 	rotateBevelPiece(cu, bevp, dlb, widfac, fac, &data);
 
-	BLI_addtail(&tmpdisp, dl);
-	filldisplist(&tmpdisp, dispbase, flipnormal);
-	freedisplist(&tmpdisp);
+	BLI_addtail(dispbase, dl);
 }
 
 static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispbase,
@@ -1319,10 +1316,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 					}
 					else {
 						DispList *dlb;
+						ListBase bottom_capbase = {NULL, NULL};
+						ListBase top_capbase = {NULL, NULL};
 
 						for (dlb=dlbev.first; dlb; dlb=dlb->next) {
-							ListBase capbase = {NULL, NULL};
-
 							/* for each part of the bevel use a separate displblock */
 							dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
 							dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr*bl->nr, "dlverts");
@@ -1364,15 +1361,22 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								rotateBevelPiece(cu, bevp, dlb, widfac, fac, &data);
 
 								if (cu->flag & CU_FILL_CAPS) {
-									if (a == 0 || a == bl->nr - 1)
-										fillBevelCap(cu, nu, bevp, dlb, fac, widfac, a == 0, &capbase);
+									if (a == 0)
+										fillBevelCap(cu, nu, bevp, dlb, fac, widfac, &bottom_capbase);
+									else if (a == bl->nr - 1)
+										fillBevelCap(cu, nu, bevp, dlb, fac, widfac, &top_capbase);
 								}
 							}
 
 							/* gl array drawing: using indices */
 							displist_surf_indices(dl);
+						}
 
-							BLI_movelisttolist(dispbase, &capbase);
+						if(bottom_capbase.first) {
+							filldisplist(&bottom_capbase, dispbase, 1);
+							filldisplist(&top_capbase, dispbase, 0);
+							freedisplist(&bottom_capbase);
+							freedisplist(&top_capbase);
 						}
 					}
 				}
