@@ -329,7 +329,7 @@ class DNAName:
         self.Name = name
         
     def AsReference(self, parent):
-        if parent == None:
+        if parent is None:
             result = ""
         else:
             result = parent+"."

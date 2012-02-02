@@ -79,7 +79,7 @@ def seek(r, txt, recurs):
     except:
         keys = None
 
-    if keys != None:
+    if keys is not None:
         if PRINT_DATA:
             print(txt + '.keys() - ' + str(r.keys()))
 

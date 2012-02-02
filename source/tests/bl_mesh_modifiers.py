@@ -74,7 +74,7 @@ def render_gl(context, filepath, shade):
 
 def render_gl_all_modes(context, obj, filepath=""):
 
-    assert(obj != None)
+    assert(obj is not None)
     assert(filepath != "")
 
     scene = context.scene
