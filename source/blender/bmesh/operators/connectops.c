@@ -186,7 +186,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 						}
 						else {
 							/* edges do not form a loop: there is a disk
-							   with more than two marked edges. */
+							 * with more than two marked edges. */
 							BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION,
 								"Selection must only contain edges from two edge loops");
 							goto cleanup;
@@ -235,7 +235,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 			
-			/*test for connected loops, and set cl1 or cl2 if so*/
+			/* test for connected loops, and set cl1 or cl2 if so */
 			if (v == ov) {
 				if (c==0)
 					cl1 = 1;
@@ -352,7 +352,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 		if (wdir == 0) {
 			for (i=0; i<BLI_array_count(ee1); i++) {
-				j = clamp_index((i * dir1) + starti, lenv1);
+				j = clamp_index((i * dir1) + starti, BLI_array_count(ee1));
 				if (ee1[j]->l && ee2[j]->l) {
 					wdir = (ee2[j]->l->v == vv2[j]) ? (1) : (-1);
 					break;
