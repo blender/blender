@@ -122,13 +122,13 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 }
 
 /* Clamp x to the interval {0..len-1}, with wrap-around */
-#ifdef CLAMP_INDEX
-#undef CLAMP_INDEX
-#endif
-#define CLAMP_INDEX(x, len) (((x) < 0) ? (len - (-(x) % len)) : ((x) % len))
+static int clamp_index(const int x, const int len)
+{
+	return (x < 0) ? (len - (-x % len)) : (x % len);
+}
 
 /* There probably is a better way to swap BLI_arrays, or if there
-   isn't there should be... */
+ * isn't there should be... */
 #define ARRAY_SWAP(elemtype, arr1, arr2)                                      \
 	{                                                                         \
 		int i;                                                                \
@@ -259,16 +259,15 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			ARRAY_SWAP(BMEdge *, ee1, ee2);
 		}
 
-		lenv1=BLI_array_count(vv1);
-		lenv2=BLI_array_count(vv1);
+		lenv1 = lenv2 = BLI_array_count(vv1);
 
 		/* Below code assumes vv1/vv2 each have at least two verts. should always be
 		   a safe assumption, since ee1/ee2 are non-empty and an edge has two verts. */
 		BLI_assert((lenv1 > 1) && (lenv2 > 1));
 
 		/* BMESH_TODO: Would be nice to handle cases where the edge loops
-		   have different edge counts by generating triangles & quads for
-		   the bridge instead of quads only. */
+		 * have different edge counts by generating triangles & quads for
+		 * the bridge instead of quads only. */
 		if (BLI_array_count(ee1) != BLI_array_count(ee2)) {
 			BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION,
 				"Selected loops must have equal edge counts");
@@ -288,34 +287,34 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			/* First point of loop 1 */
 			v1 = get_outer_vert(bm, ee1[0]);
 			/* Last point of loop 1 */
-			v2 = get_outer_vert(bm, ee1[CLAMP_INDEX(-1, BLI_array_count(ee1))]);
+			v2 = get_outer_vert(bm, ee1[clamp_index(-1, BLI_array_count(ee1))]);
 			/* First point of loop 2 */
 			v3 = get_outer_vert(bm, ee2[0]);
 			/* Last point of loop 2 */
-			v4 = get_outer_vert(bm, ee2[CLAMP_INDEX(-1, BLI_array_count(ee2))]);
+			v4 = get_outer_vert(bm, ee2[clamp_index(-1, BLI_array_count(ee2))]);
 
 			/* If v1 is a better match for v4 than v3, AND v2 is a better match
-			   for v3 than v4, the loops are in opposite directions, so reverse
-			   the order of reads from vv1. We can avoid sqrt for comparison */
+			 * for v3 than v4, the loops are in opposite directions, so reverse
+			 * the order of reads from vv1. We can avoid sqrt for comparison */
 			if (len_squared_v3v3(v1->co, v3->co) > len_squared_v3v3(v1->co, v4->co) &&
 				len_squared_v3v3(v2->co, v4->co) > len_squared_v3v3(v2->co, v3->co))
 			{
 				dir1 = -1;
-				starti = CLAMP_INDEX(-1, lenv1);
+				starti = clamp_index(-1, lenv1);
 			}
 		}
 
 		/* Find the shortest distance from a vert in vv1 to vv2[0]. Use that
-		   vertex in vv1 as a starting point in the first loop, while starting
-		   from vv2[0] in the second loop. This is a simplistic attempt to get
-		   a better edge-to-edge match between the two loops. */
+		 * vertex in vv1 as a starting point in the first loop, while starting
+		 * from vv2[0] in the second loop. This is a simplistic attempt to get
+		 * a better edge-to-edge match between the two loops. */
 		if (cl1) {
 			int previ, nexti;
 			float min = 1e32;
 
 			/* BMESH_TODO: Would be nice to do a more thorough analysis of all
-			   the vertices in both loops to find a more accurate match for the
-			   starting point and winding direction of the bridge generation. */
+			 * the vertices in both loops to find a more accurate match for the
+			 * starting point and winding direction of the bridge generation. */
 			
 			for (i=0; i<BLI_array_count(vv1); i++) {
 				if (len_v3v3(vv1[i]->co, vv2[0]->co) < min) {
@@ -331,8 +330,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			 * This is not always going to be right, but it will work better in
 			 * the average case.
 			 */
-			previ = CLAMP_INDEX(starti - 1, lenv1);
-			nexti = CLAMP_INDEX(starti + 1, lenv1);
+			previ = clamp_index(starti - 1, lenv1);
+			nexti = clamp_index(starti + 1, lenv1);
 
 			/* avoid sqrt for comparison */
 			if (len_squared_v3v3(vv1[nexti]->co, vv2[1]->co) > len_squared_v3v3(vv1[previ]->co, vv2[1]->co)) {
@@ -342,7 +341,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* Vert rough attempt to determine proper winding for the bridge quads:
-		   just uses the first loop it finds for any of the edges of ee2 or ee1 */
+		 * just uses the first loop it finds for any of the edges of ee2 or ee1 */
 		if (wdir == 0) {
 			for (i=0; i<BLI_array_count(ee2); i++) {
 				if (ee2[i]->l) {
@@ -353,7 +352,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 		if (wdir == 0) {
 			for (i=0; i<BLI_array_count(ee1); i++) {
-				j = CLAMP_INDEX((i*dir1)+starti, lenv1);
+				j = clamp_index((i * dir1) + starti, lenv1);
 				if (ee1[j]->l && ee2[j]->l) {
 					wdir = (ee2[j]->l->v == vv2[j]) ? (1) : (-1);
 					break;
@@ -366,10 +365,10 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			BMFace *f;
 			int i1, i1next, i2, i2next;
 
-			i1 = CLAMP_INDEX(i*dir1 + starti, lenv1);
-			i1next = CLAMP_INDEX((i+1)*dir1 + starti, lenv1);
+			i1 = clamp_index(i * dir1 + starti, lenv1);
+			i1next = clamp_index((i + 1) * dir1 + starti, lenv1);
 			i2 = i;
-			i2next = CLAMP_INDEX(i+1, lenv2);
+			i2next = clamp_index(i + 1, lenv2);
 		
 			if (vv1[i1] ==  vv1[i1next]) {
 				continue;
