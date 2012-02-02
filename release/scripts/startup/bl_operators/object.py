@@ -20,7 +20,10 @@
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       IntProperty)
 
 
 class SelectPattern(Operator):
@@ -54,7 +57,7 @@ class SelectPattern(Operator):
             pattern_match = fnmatch.fnmatchcase
         else:
             pattern_match = (lambda a, b:
-                                 fnmatch.fnmatchcase(a.upper(), b.upper()))
+                             fnmatch.fnmatchcase(a.upper(), b.upper()))
         is_ebone = False
         obj = context.object
         if obj and obj.mode == 'POSE':
@@ -490,7 +493,7 @@ class ShapeTransfer(Operator):
 
     def execute(self, context):
         ob_act = context.active_object
-        objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
+        objects = [ob for ob in context.selected_editable_objects if ob != ob_act]
 
         if 1:  # swap from/to, means we cant copy to many at once.
             if len(objects) != 1:

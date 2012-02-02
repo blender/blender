@@ -37,6 +37,7 @@ op_blacklist = (
     "render.render",
     "*.*_export",
     "*.*_import",
+    "wm.blenderplayer_start",
     "wm.url_open",
     "wm.doc_view",
     "wm.path_open",
