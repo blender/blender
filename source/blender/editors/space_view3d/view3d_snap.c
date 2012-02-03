@@ -86,8 +86,10 @@ typedef struct TransVert {
 	float *val, oldval;
 	int flag;
 	float *nor;
-	int f1;
 } TransVert;
+
+              /* SELECT == (1 << 0) */
+#define TX_VERT_USE_MAPLOC (1 << 1)
 
 static TransVert *transvmain=NULL;
 static int tottrans= 0;
@@ -198,9 +200,9 @@ static void set_mapped_co(void *vuserdata, int index, float *co, float *UNUSED(n
 	TransVert *tv = userdata[1];
 	BMVert *eve = EDBM_get_vert_for_index(em, index);
 	
-	if (BM_GetIndex(eve) != -1 && !tv[BM_GetIndex(eve)].f1) {
+	if (BM_GetIndex(eve) != -1 && !(tv[BM_GetIndex(eve)].flag & TX_VERT_USE_MAPLOC)) {
 		copy_v3_v3(tv[BM_GetIndex(eve)].maploc, co);
-		tv[BM_GetIndex(eve)].f1 = 1;
+		tv[BM_GetIndex(eve)].flag |= TX_VERT_USE_MAPLOC;
 	}
 }
 
@@ -312,11 +314,6 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			EDBM_init_index_arrays(em, 1, 0, 0);
 			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata);
 			EDBM_free_index_arrays(em);
-		} else if (transvmain) {
-			tv = transvmain;
-			for (a=0; a<tottrans; a++, tv++) {
-				copy_v3_v3(tv->maploc, tv->loc);
-			}
 		}
 	}
 	else if (obedit->type==OB_ARMATURE){
@@ -1072,7 +1069,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	tv= transvmain;
 	for(a=0; a<tottrans; a++, tv++) {
-		copy_v3_v3(vec, tv->maploc);
+		copy_v3_v3(vec, (tv->flag & TX_VERT_USE_MAPLOC) ? tv->maploc : tv->loc);
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);
 		add_v3_v3(centroid, vec);
