@@ -5309,6 +5309,30 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 	return NULL;
 }
 
+static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
+{
+	Main *newmain = (Main *)arg_pt;
+
+	if(seq->sound) {
+		seq->sound = restore_pointer_by_name(newmain, (ID *)seq->sound, 0);
+		seq->sound->id.us++;
+	}
+
+	if(seq->scene)
+		seq->scene = restore_pointer_by_name(newmain, (ID *)seq->scene, 1);
+
+	if(seq->scene_camera)
+		seq->scene_camera = restore_pointer_by_name(newmain, (ID *)seq->scene_camera, 1);
+
+	return 1;
+}
+
+static void lib_link_clipboard_restore(Main *newmain)
+{
+	/* update IDs stored in sequencer clipboard */
+	seqbase_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, newmain);
+}
+
 /* called from kernel/blender.c */
 /* used to link a file (without UI) to the current UI */
 /* note that it assumes the old pointers in UI are still valid, so old Main is not freed */
@@ -5516,6 +5540,9 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 			sa= sa->next;
 		}
 	}
+
+	/* update IDs stored in all possible clipboards */
+	lib_link_clipboard_restore(newmain);
 }
 
 static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
