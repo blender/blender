@@ -1745,7 +1745,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 			check_comp= 0;
 
 			while(seq) {
-				if(seq->type == SEQ_SCENE) {
+				if(seq->type == SEQ_SCENE && seq->scene) {
 					if(!seq->scene_camera) {
 						if(!seq->scene->camera && !scene_find_camera(seq->scene)) {
 							if(seq->scene == scene) {

@@ -3607,31 +3607,6 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 }
 
 
-static int verg_colorband(const void *a1, const void *a2)
-{
-	const CBData *x1=a1, *x2=a2;
-	
-	if( x1->pos > x2->pos ) return 1;
-	else if( x1->pos < x2->pos) return -1;
-	return WM_UI_HANDLER_CONTINUE;
-}
-
-static void ui_colorband_update(ColorBand *coba)
-{
-	int a;
-	
-	if(coba->tot<2) return;
-	
-	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
-		qsort(coba->data, coba->tot, sizeof(CBData), verg_colorband);
-	for(a=0; a<coba->tot; a++) {
-		if(coba->data[a].cur==coba->cur) {
-			coba->cur= a;
-			break;
-		}
-	}
-}
-
 static int ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int mx)
 {
 	float dx;
@@ -3644,7 +3619,7 @@ static int ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int mx
 	data->dragcbd->pos += dx;
 	CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 	
-	ui_colorband_update(data->coba);
+	colorband_update_sort(data->coba);
 	data->dragcbd= data->coba->data + data->coba->cur;	/* because qsort */
 	
 	data->draglastx= mx;

@@ -2684,9 +2684,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				}
 				event.utf8_buf[0]= '\0';
 			}
-			else if (event.ascii<32 && event.ascii > 0) {
-				event.ascii= '\0';
-				/* TODO. should this also zero utf8?, dont for now, campbell */
+			else {
+				if (event.ascii<32 && event.ascii > 0)
+					event.ascii= '\0';
+				if (event.utf8_buf[0]<32 && event.utf8_buf[0] > 0)
+					event.utf8_buf[0]= '\0';
 			}
 
 			if (event.utf8_buf[0]) {
