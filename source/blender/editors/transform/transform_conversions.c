@@ -2303,12 +2303,17 @@ void flushTransSeq(TransInfo *t)
 
 	if (ELEM(t->mode, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) { /* originally TFM_TIME_EXTEND, transform changes */
 		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
-		seq= seqbasep->first;
 
-		while(seq) {
-			if (seq->type == SEQ_META && seq->flag & SELECT)
+		/* calc all meta's then effects [#27953] */
+		for (seq = seqbasep->first; seq; seq = seq->next) {
+			if (seq->type == SEQ_META && seq->flag & SELECT) {
 				calc_sequence(t->scene, seq);
-			seq= seq->next;
+			}
+		}
+		for (seq = seqbasep->first; seq; seq = seq->next) {
+			if (seq->seq1 || seq->seq2 || seq->seq3) {
+				calc_sequence(t->scene, seq);
+			}
 		}
 	}
 
