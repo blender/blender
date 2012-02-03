@@ -157,7 +157,7 @@ static SpaceLink *clip_new(const bContext *C)
 
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
-	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_SHOW_GPENCIL|SC_MANUAL_CALIBRATION|SC_SHOW_GRAPH_TRACKS|SC_SHOW_GRAPH_FRAMES;
+	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_MANUAL_CALIBRATION|SC_SHOW_GRAPH_TRACKS|SC_SHOW_GRAPH_FRAMES;
 	sc->zoom= 1.0f;
 	sc->path_length= 20;
 	sc->scopes.track_preview_height= 120;
@@ -529,6 +529,12 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* display */
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_selection");
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", DKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_disabled");
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_marker_search");
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_mute_footage");

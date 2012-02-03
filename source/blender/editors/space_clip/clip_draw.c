@@ -586,7 +586,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	/* pyramid */
-	if(sel && TRACK_SELECTED(track) && (sc->flag&SC_SHOW_PYRAMID_LEVELS) && (track->tracker==TRACKER_KLT) && (marker->flag&MARKER_DISABLED)==0) {
+	if(sel && TRACK_SELECTED(track) && (track->tracker==TRACKER_KLT) && (marker->flag&MARKER_DISABLED)==0) {
 		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
@@ -1307,7 +1307,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf;
 
-	if((sc->flag&SC_SHOW_GPENCIL)==0 || !clip)
+	if(!clip)
 		return;
 
 	if(onlyv2d) {
