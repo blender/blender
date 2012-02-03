@@ -152,9 +152,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
 void fluidsim_free(FluidsimModifierData *fluidmd)
 {
-#ifdef WITH_MOD_FLUID
-	if(fluidmd)
-	{
+	if(fluidmd) {
 		if(fluidmd->fss->meshVelocities)
 		{
 			MEM_freeN(fluidmd->fss->meshVelocities);
@@ -162,16 +160,13 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 		}
 		MEM_freeN(fluidmd->fss);
 	}
-#else
-	(void)fluidmd; /* unused */
-#endif
 	
 	return;
 }
 
 #ifdef WITH_MOD_FLUID
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
-static DerivedMesh *fluidsim_read_obj(const char *filename)
+static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
 {
 	int wri = 0,i;
 	int gotBytes;
@@ -183,6 +178,9 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 	MVert *mv;
 	short *normals, *no_s;
 	float no[3];
+
+	const short mp_mat_nr = mp_example->mat_nr;
+	const char  mp_flag =   mp_example->flag;
 
 	// ------------------------------------------------
 	// get numverts + numfaces first
@@ -288,6 +286,10 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 		int face[3];
 
 		gotBytes = gzread(gzf, face, sizeof(int) * 3);
+
+		/* initialize from existing face */
+		mp->mat_nr = mp_mat_nr;
+		mp->flag =   mp_flag;
 
 		mp->loopstart = i * 3;
 		mp->totloop = 3;
@@ -444,8 +446,7 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
 	MPoly *mpoly;
-	int numpolys;
-	int mat_nr, flag, i;
+	MPoly mp_example = {0};
 
 	if(!useRenderParams) {
 		displaymode = fss->guiDisplayMode;
@@ -473,7 +474,15 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	BLI_path_abs(targetFile, modifier_path_relbase(ob));
 	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
-	dm = fluidsim_read_obj(targetFile);
+	// assign material + flags to new dm
+	// if there's no faces in original dm, keep materials and flags unchanged
+	mpoly = orgdm->getPolyArray(orgdm);
+	if (mpoly) {
+		mp_example = *mpoly;
+	}
+	/* else leave NULL'd */
+
+	dm = fluidsim_read_obj(targetFile, &mp_example);
 
 	if(!dm)
 	{
@@ -492,21 +501,6 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 
 		// display org. object upon failure which is in dm
 		return NULL;
-	}
-
-	// assign material + flags to new dm
-	mpoly = orgdm->getPolyArray(orgdm);
-	if(mpoly) {
-		mat_nr = mpoly[0].mat_nr;
-		flag = mpoly[0].flag;
-
-		mpoly = dm->getPolyArray(dm);
-		numpolys = dm->getNumPolys(dm);
-		for(i=0; i<numpolys; i++)
-		{
-			mpoly[i].mat_nr = mat_nr;
-			mpoly[i].flag = flag;
-		}
 	}
 
 	// load vertex velocities, if they exist...

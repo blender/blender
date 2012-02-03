@@ -78,24 +78,24 @@ EnumPropertyItem constraint_type_items[] ={
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem target_space_pchan_items[] = {
-	{0, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
-	{2, "POSE", 0, "Pose Space", "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"},
-	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The transformation of the target bone is evaluated relative its local coordinate system, with the parent transformation added"},
-	{1, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
+	{CONSTRAINT_SPACE_WORLD,    "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
+	{CONSTRAINT_SPACE_POSE,     "POSE", 0, "Pose Space", "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"},
+	{CONSTRAINT_SPACE_PARLOCAL, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The transformation of the target bone is evaluated relative its local coordinate system, with the parent transformation added"},
+	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem owner_space_pchan_items[] = {
-	{0, "WORLD", 0, "World Space", "The constraint is applied relative to the world coordinate system"},
-	{2, "POSE", 0, "Pose Space", "The constraint is applied in Pose Space, the object transformation is ignored"},
-	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
-	{1, "LOCAL", 0, "Local Space", "The constraint is applied relative to the local coordinate sytem of the object"},
+	{CONSTRAINT_SPACE_WORLD,    "WORLD", 0, "World Space", "The constraint is applied relative to the world coordinate system"},
+	{CONSTRAINT_SPACE_POSE,     "POSE", 0, "Pose Space", "The constraint is applied in Pose Space, the object transformation is ignored"},
+	{CONSTRAINT_SPACE_PARLOCAL, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
+	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space", "The constraint is applied relative to the local coordinate sytem of the object"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
 static EnumPropertyItem space_object_items[] = {
-	{0, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
-	{1, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
+	{CONSTRAINT_SPACE_WORLD, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
+	{CONSTRAINT_SPACE_LOCAL, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
 	{0, NULL, 0, NULL, NULL}};
 
 #include "BKE_animsys.h"

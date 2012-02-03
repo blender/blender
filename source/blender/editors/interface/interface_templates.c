@@ -1305,6 +1305,16 @@ static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
 	rna_update_cb(C, cb_v, NULL);
 }
 
+static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
+{
+	uiBut *bt= bt_v;
+	ColorBand *coba= coba_v;
+
+	/* sneaky update here, we need to sort the colorband points to be in order,
+	   however the RNA pointer then is wrong, so we update it */
+	colorband_update_sort(coba);
+	bt->rnapoin.data = coba->data + coba->cur;
+}
 
 /* offset aligns from bottom, standard width 300, height 115 */
 static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
@@ -1348,7 +1358,11 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
 		row= uiLayoutRow(layout, 0);
+
 		uiItemR(row, &ptr, "position", 0, "Pos", ICON_NONE);
+		bt= block->buttons.last;
+		uiButSetFunc(bt, colorband_update_cb, bt, coba);
+
 		uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
 	}
 
