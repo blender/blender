@@ -1879,33 +1879,32 @@ DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
 	CDDerivedMesh *cddm;
 	MVert *allvert;
 	MEdge *alledge;
-	MFace *allface;
 	MLoop *allloop;
 	MPoly *allpoly;
-	int totvert, totedge, totface, totloop, totpoly;
+	int totvert, totedge, totloop, totpoly;
 
 	if (nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
-		&totedge, &allface, &allloop, &allpoly, &totface, &totloop, &totpoly) != 0) {
+		&totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
 		/* Error initializing mdata. This often happens when curve is empty */
 		return CDDM_new(0, 0, 0, 0, 0);
 	}
 
-	dm = CDDM_new(totvert, totedge, totface, totloop, totpoly);
+	dm = CDDM_new(totvert, totedge, 0, totloop, totpoly);
 	dm->deformedOnly = 1;
 
 	cddm = (CDDerivedMesh*)dm;
 
 	memcpy(cddm->mvert, allvert, totvert*sizeof(MVert));
 	memcpy(cddm->medge, alledge, totedge*sizeof(MEdge));
-	memcpy(cddm->mface, allface, totface*sizeof(MFace));
 	memcpy(cddm->mloop, allloop, totloop*sizeof(MLoop));
 	memcpy(cddm->mpoly, allpoly, totpoly*sizeof(MPoly));
 
 	MEM_freeN(allvert);
 	MEM_freeN(alledge);
-	MEM_freeN(allface);
 	MEM_freeN(allloop);
 	MEM_freeN(allpoly);
+
+	CDDM_calc_edges(dm);
 
 	return dm;
 }

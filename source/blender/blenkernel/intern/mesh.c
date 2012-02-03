@@ -883,6 +883,10 @@ static int vergedgesort(const void *v1, const void *v2)
 	return 0;
 }
 
+
+/* TODO: remove after bmesh merge */
+#if 0
+
 static void mfaces_strip_loose(MFace *mface, int *totface)
 {
 	int a,b;
@@ -898,6 +902,8 @@ static void mfaces_strip_loose(MFace *mface, int *totface)
 
 	*totface= b;
 }
+
+#endif
 
 /* Create edges based on known verts and faces */
 static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
@@ -1117,30 +1123,32 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* return non-zero on error */
 int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
-	MEdge **alledge, int *totedge, MFace **allface, MLoop **allloop, MPoly **allpoly, 
-	int *totface, int *totloop, int *totpoly)
+	MEdge **alledge, int *totedge, MLoop **allloop, MPoly **allpoly,
+	int *totloop, int *totpoly)
 {
 	return nurbs_to_mdata_customdb(ob, &ob->disp,
-		allvert, totvert, alledge, totedge, allface, allloop, allpoly, totface, totloop, totpoly);
+		allvert, totvert, alledge, totedge, allloop, allpoly, totloop, totpoly);
 }
+
+/* BMESH: this doesn't calculate all edges from polygons,
+ * only free standing edges are calculated */
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase  */
 int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int *_totvert,
-	MEdge **alledge, int *_totedge, MFace **allface, MLoop **allloop, MPoly **allpoly, 
-	int *_totface, int *_totloop, int *_totpoly)
+	MEdge **alledge, int *_totedge, MLoop **allloop, MPoly **allpoly,
+	int *_totloop, int *_totpoly)
 {
 	DispList *dl;
 	Curve *cu;
 	MVert *mvert;
-	MFace *mface;
 	MPoly *mpoly;
 	MLoop *mloop;
+	MEdge *medge;
 	float *data;
-	int a, b, ofs, vertcount, startvert, totvert=0, totvlak=0;
+	int a, b, ofs, vertcount, startvert, totvert=0, totedge=0, totloop=0, totvlak=0;
 	int p1, p2, p3, p4, *index;
 	int conv_polys= 0;
-	int i, j;
 
 	cu= ob->data;
 
@@ -1152,21 +1160,27 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 	while(dl) {
 		if(dl->type==DL_SEGM) {
 			totvert+= dl->parts*dl->nr;
-			totvlak+= dl->parts*(dl->nr-1);
+			totedge+= dl->parts*(dl->nr-1);
 		}
 		else if(dl->type==DL_POLY) {
 			if(conv_polys) {
 				totvert+= dl->parts*dl->nr;
-				totvlak+= dl->parts*dl->nr;
+				totedge+= dl->parts*dl->nr;
 			}
 		}
 		else if(dl->type==DL_SURF) {
+			int tot;
 			totvert+= dl->parts*dl->nr;
-			totvlak+= (dl->parts-1+((dl->flag & DL_CYCL_V)==2))*(dl->nr-1+(dl->flag & DL_CYCL_U));
+			tot = (dl->parts-1+((dl->flag & DL_CYCL_V)==2))*(dl->nr-1+(dl->flag & DL_CYCL_U));
+			totvlak += tot;
+			totloop += tot * 4;
 		}
 		else if(dl->type==DL_INDEX3) {
+			int tot;
 			totvert+= dl->nr;
-			totvlak+= dl->parts;
+			tot = dl->parts;
+			totvlak+= tot;
+			totloop += tot * 3;
 		}
 		dl= dl->next;
 	}
@@ -1177,10 +1191,10 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 		return -1;
 	}
 
-	*allvert= mvert= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mvert");
-	*allface= mface= MEM_callocN(sizeof (MFace) * totvlak, "nurbs_init mface");
-	*allloop = mloop = MEM_callocN(sizeof(MLoop) * totvlak * 4, "nurbs_init mloop");
-	*allpoly = mpoly = MEM_callocN(sizeof(MPoly) * totvlak * 4, "nurbs_init mloop");
+	*allvert = mvert = MEM_callocN(sizeof(MVert) * totvert, "nurbs_init mvert");
+	*alledge = medge = MEM_callocN(sizeof(MEdge) * totedge, "nurbs_init medge");
+	*allloop = mloop = MEM_callocN(sizeof(MLoop) * totvlak * 4, "nurbs_init mloop"); // totloop
+	*allpoly = mpoly = MEM_callocN(sizeof(MPoly) * totvlak, "nurbs_init mloop");
 	
 	/* verts and faces */
 	vertcount= 0;
@@ -1203,10 +1217,11 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			for(a=0; a<dl->parts; a++) {
 				ofs= a*dl->nr;
 				for(b=1; b<dl->nr; b++) {
-					mface->v1= startvert+ofs+b-1;
-					mface->v2= startvert+ofs+b;
-					if(smooth) mface->flag |= ME_SMOOTH;
-					mface++;
+					medge->v1= startvert+ofs+b-1;
+					medge->v2= startvert+ofs+b;
+					medge->flag = ME_LOOSEEDGE|ME_EDGERENDER;
+
+					medge++;
 				}
 			}
 
@@ -1226,11 +1241,11 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				for(a=0; a<dl->parts; a++) {
 					ofs= a*dl->nr;
 					for(b=0; b<dl->nr; b++) {
-						mface->v1= startvert+ofs+b;
-						if(b==dl->nr-1) mface->v2= startvert+ofs;
-						else mface->v2= startvert+ofs+b+1;
-						if(smooth) mface->flag |= ME_SMOOTH;
-						mface++;
+						medge->v1= startvert+ofs+b;
+						if(b==dl->nr-1) medge->v2= startvert+ofs;
+						else medge->v2= startvert+ofs+b+1;
+						medge->flag = ME_LOOSEEDGE|ME_EDGERENDER;
+						medge++;
 					}
 				}
 			}
@@ -1249,15 +1264,16 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			a= dl->parts;
 			index= dl->index;
 			while(a--) {
-				mface->v1= startvert+index[0];
-				mface->v2= startvert+index[2];
-				mface->v3= startvert+index[1];
-				mface->v4= 0;
-				mface->mat_nr= dl->col;
-				test_index_face(mface, NULL, 0, 3);
+				mloop[0].v = startvert+index[0];
+				mloop[1].v = startvert+index[2];
+				mloop[2].v = startvert+index[1];
+				mpoly->loopstart = (int)(mloop - (*allloop));
+				mpoly->totloop = 3;
+				mpoly->mat_nr = dl->col;
 
-				if(smooth) mface->flag |= ME_SMOOTH;
-				mface++;
+				if(smooth) mpoly->flag |= ME_SMOOTH;
+				mpoly++;
+				mloop+= 3;
 				index+= 3;
 			}
 
@@ -1298,15 +1314,17 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				}
 
 				for(; b<dl->nr; b++) {
-					mface->v1= p1;
-					mface->v2= p3;
-					mface->v3= p4;
-					mface->v4= p2;
-					mface->mat_nr= dl->col;
-					test_index_face(mface, NULL, 0, 4);
+					mloop[0].v= p1;
+					mloop[1].v= p3;
+					mloop[2].v= p4;
+					mloop[3].v= p2;
+					mpoly->loopstart = (int)(mloop - (*allloop));
+					mpoly->totloop = 4;
+					mpoly->mat_nr = dl->col;
 
-					if(smooth) mface->flag |= ME_SMOOTH;
-					mface++;
+					if(smooth) mpoly->flag |= ME_SMOOTH;
+					mpoly++;
+					mloop+= 4;
 
 					p4= p3;
 					p3++;
@@ -1320,35 +1338,16 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 		dl= dl->next;
 	}
 	
-	mface= *allface;
-	j = 0;
-	for (i=0; i<totvert; i++, mpoly++, mface++) {
-		int k;
-		
-		if (!mface->v3) {
-			mpoly--;
-			i--;
-			continue;
-		}
-		
-		if (mface >= *allface + totvlak)
-			break;
-
-		mpoly->flag |= mface->flag & ME_SMOOTH;
-		mpoly->loopstart= j;
-		mpoly->totloop= mface->v4 ? 4 : 3;
-		for (k=0; k<mpoly->totloop; k++, mloop++, j++) {
-			mloop->v = (&mface->v1)[k];
-		}
-	}
-	
-	*_totpoly= i;
-	*_totloop= j;
+	*_totpoly= totvlak;
+	*_totloop= totloop;
+	*_totedge= totedge;
 	*_totvert= totvert;
-	*_totface= totvlak;
 
+	/* not uded for bmesh */
+#if 0
 	make_edges_mdata(*allvert, *allface, *allloop, *allpoly, totvert, totvlak, *_totloop, *_totpoly, 0, alledge, _totedge);
 	mfaces_strip_loose(*allface, _totface);
+#endif
 
 	return 0;
 }
@@ -1363,15 +1362,14 @@ void nurbs_to_mesh(Object *ob)
 	Curve *cu;
 	MVert *allvert= NULL;
 	MEdge *alledge= NULL;
-	MFace *allface= NULL;
 	MLoop *allloop = NULL;
 	MPoly *allpoly = NULL;
-	int totvert, totedge, totface, totloop, totpoly;
+	int totvert, totedge, totloop, totpoly;
 
 	cu= ob->data;
 
 	if (dm == NULL) {
-		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allface, &allloop, &allpoly, &totface, &totloop, &totpoly) != 0) {
+		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0) {
 			/* Error initializing */
 			return;
 		}
@@ -1379,18 +1377,18 @@ void nurbs_to_mesh(Object *ob)
 		/* make mesh */
 		me= add_mesh("Mesh");
 		me->totvert= totvert;
-		me->totface= totface;
 		me->totedge= totedge;
 		me->totloop = totloop;
 		me->totpoly = totpoly;
 
 		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, allvert, me->totvert);
 		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, alledge, me->totedge);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, allface, me->totface);
 		me->mloop= CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, allloop, me->totloop);
 		me->mpoly= CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, allpoly, me->totpoly);
 
-		mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+
+		BKE_mesh_calc_edges(me, TRUE);
 	} else {
 		me= add_mesh("Mesh");
 		DM_to_mesh(dm, me, ob);

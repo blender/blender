@@ -115,11 +115,11 @@ struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 int nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *totvert,
-	struct MEdge **alledge, int *totedge, struct MFace **allface, struct MLoop **allloop, struct MPoly **allpoly, 
-	int *totface, int *totloop, int *totpoly);
+	struct MEdge **alledge, int *totedge, struct MLoop **allloop, struct MPoly **allpoly,
+	int *totloop, int *totpoly);
 int nurbs_to_mdata_customdb(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
-	struct MEdge **alledge, int *_totedge, struct MFace **allface, struct MLoop **allloop, struct MPoly **allpoly, 
-	int *_totface, int *_totloop, int *_totpoly);
+	struct MEdge **alledge, int *_totedge, struct MLoop **allloop, struct MPoly **allpoly,
+	int *_totloop, int *_totpoly);
 void nurbs_to_mesh(struct Object *ob);
 void mesh_to_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
