@@ -943,6 +943,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	}
 
 	if (derivedFinal) {
+		if (dm) DM_ensure_tessface(dm); /* needed for drawing */
 		(*derivedFinal) = dm;
 	}
 
