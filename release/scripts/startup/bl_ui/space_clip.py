@@ -559,6 +559,8 @@ class CLIP_PT_display(Panel):
         elif sc.mode == 'RECONSTRUCTION':
             col.prop(sc, "show_stable", text="Stable")
 
+        col.prop(sc, "use_texture_buffer")
+
         clip = sc.clip
         if clip:
             col.label(text="Display Aspect Ratio:")

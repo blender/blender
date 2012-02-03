@@ -521,6 +521,8 @@ typedef struct SpaceClip {
 
 	/* movie postprocessing */
 	int postproc_flag, pad2;
+
+	void *draw_context;
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -902,6 +904,7 @@ enum {
 #define SC_SHOW_GRAPH_TRACKS	(1<<15)
 /*#define SC_SHOW_PYRAMID_LEVELS	(1<<16) */	/* UNUSED */
 #define SC_LOCK_TIMECURSOR		(1<<17)
+#define SC_TEXTURE_BUFFER		(1<<18)
 
 /* SpaceClip->mode */
 #define SC_MODE_TRACKING		0

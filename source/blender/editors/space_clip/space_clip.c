@@ -214,6 +214,8 @@ static void clip_free(SpaceLink *sl)
 
 	if(sc->scopes.track_preview)
 		IMB_freeImBuf(sc->scopes.track_preview);
+
+	ED_space_clip_free_texture_buffer(sc);
 }
 
 /* spacetype; init callback */
@@ -229,6 +231,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	scn->scopes.track_preview= NULL;
 	scn->scopes.ok= 0;
+	scn->draw_context= NULL;
 
 	return (SpaceLink *)scn;
 }

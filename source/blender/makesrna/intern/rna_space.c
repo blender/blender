@@ -2985,6 +2985,11 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Tracks", "Display the speed curves (in \"x\" direction red, in \"y\" direction green) for the selected tracks");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
+	prop= RNA_def_property(srna, "use_texture_buffer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Use Texture Buffer", "Use texture buffer to display o,age frames frame on screen");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_TEXTURE_BUFFER);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
 	/* ** channels ** */
 
 	/* show_red_channel */
