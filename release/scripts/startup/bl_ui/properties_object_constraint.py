@@ -435,23 +435,23 @@ class ConstraintButtonsPanel():
         self.target_template(layout, con)
 
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="From Target:")
         col.prop(con, "transform_channel", text="")
         col.prop(con, "target_space", text="")
-        
+
         col = split.column()
         col.label(text="To Action:")
         col.prop(con, "action", text="")
-        
+
         split = layout.split()
-        
+
         col = split.column(align=True)
         col.label(text="Target Range:")
         col.prop(con, "min", text="Min")
         col.prop(con, "max", text="Max")
-        
+
         col = split.column(align=True)
         col.label(text="Action Range:")
         col.prop(con, "frame_start", text="Start")
