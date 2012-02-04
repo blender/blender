@@ -65,6 +65,7 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 	Mesh *me = (Mesh*)ob->data;
 	std::string geom_id = get_geometry_id(ob);
+	std::string geom_name = id_name(ob->data);
 	std::vector<Normal> nor;
 	std::vector<Face> norind;
 
@@ -78,7 +79,7 @@ void GeometryExporter::operator()(Object *ob)
 	create_normals(nor, norind, me);
 
 	// openMesh(geoId, geoName, meshId)
-	openMesh(geom_id);
+	openMesh(geom_id, geom_name);
 	
 	// writes <source> for vertex coords
 	createVertsSource(geom_id, me);

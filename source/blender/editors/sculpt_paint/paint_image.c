@@ -474,7 +474,6 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		}
 
 		ibuf= BKE_image_get_ibuf(ima, NULL);
-		use_float = ibuf->rect_float ? 1 : 0;
 
 		if(ima && ibuf && strcmp(tile->ibufname, ibuf->name)!=0) {
 			/* current ImBuf filename was changed, probably current frame
@@ -490,6 +489,8 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 
 		if (ima->gen_type != tile->gen_type || ima->source != tile->source)
 			continue;
+
+		use_float = ibuf->rect_float ? 1 : 0;
 
 		if (use_float != tile->use_float)
 			continue;

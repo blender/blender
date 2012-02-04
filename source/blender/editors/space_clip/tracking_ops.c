@@ -2757,7 +2757,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	int clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
-	ImBuf *ibuf= BKE_movieclip_get_ibuf_flag(clip, &sc->user, clip_flag);
+	ImBuf *ibuf= BKE_movieclip_get_ibuf_flag(clip, &sc->user, clip_flag, MOVIECLIP_CACHE_SKIP);
 	MovieTracking *tracking= &clip->tracking;
 	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track= tracksbase->first;
@@ -3417,15 +3417,15 @@ static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	int frames= RNA_int_get(op->ptr, "frames");
-	float error= RNA_float_get(op->ptr, "error");
-	int action= RNA_enum_get(op->ptr, "action");
 
-	if(frames==0 && error==0 && action==0) {
+	if(!RNA_struct_property_is_set(op->ptr, "frames"))
 		RNA_int_set(op->ptr, "frames", clip->tracking.settings.clean_frames);
+
+	if(!RNA_struct_property_is_set(op->ptr, "error"))
 		RNA_float_set(op->ptr, "error", clip->tracking.settings.clean_error);
+
+	if(!RNA_struct_property_is_set(op->ptr, "action"))
 		RNA_enum_set(op->ptr, "action", clip->tracking.settings.clean_action);
-	}
 
 	return clean_tracks_exec(C, op);
 }

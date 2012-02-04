@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Header, Menu, Panel
 from .properties_paint_common import UnifiedPaintPanel
 
+
 class ImagePaintPanel(UnifiedPaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -92,7 +93,7 @@ class IMAGE_MT_select(Menu):
         layout = self.layout
 
         layout.operator("uv.select_border").pinned = False
-        layout.operator("uv.select_border").pinned = True
+        layout.operator("uv.select_border", text="Border Select Pinned").pinned = True
 
         layout.separator()
 
@@ -677,7 +678,7 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
             row = col.row(align=True)
             self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
-            
+
             row = col.row(align=True)
             row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
@@ -826,7 +827,7 @@ class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
             row = col.row(align=True)
             self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
-            
+
         split = layout.split()
         col = split.column()
 

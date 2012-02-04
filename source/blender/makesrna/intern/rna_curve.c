@@ -1386,9 +1386,14 @@ static void rna_def_curve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_fill_deform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_DEFORM_FILL);
-	RNA_def_property_ui_text(prop, "Fill deformed", "Fill curve after applying shape keys and all modifiers");
+	RNA_def_property_ui_text(prop, "Fill Deformed", "Fill curve after applying shape keys and all modifiers");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
+
+	prop= RNA_def_property(srna, "use_fill_caps", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FILL_CAPS);
+	RNA_def_property_ui_text(prop, "Fill Caps", "Fill caps for bevelled curves");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
 	/* texture space */
 	prop= RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", CU_AUTOSPACE);

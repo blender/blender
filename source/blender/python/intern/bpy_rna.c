@@ -6298,6 +6298,8 @@ static struct PyMethodDef pyrna_basetype_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+/* used to call ..._keys() direct, but we need to filter out operator subclasses */
+#if 0
 static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 {
 	PyObject *list;
@@ -6317,6 +6319,34 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 #endif
 	return list;
 }
+
+#else
+
+static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
+{
+	PyObject *ret = PyList_New(0);
+	PyObject *item;
+
+	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
+		StructRNA *srna = itemptr.data;
+		StructRNA *srna_base = RNA_struct_base(itemptr.data);
+		/* skip own operators, these double up [#29666] */
+		if (srna_base == &RNA_Operator) {
+			/* do nothing */
+		}
+		else {
+			/* add to python list */
+			item = PyUnicode_FromString(RNA_struct_identifier(srna));
+			PyList_Append(ret, item);
+			Py_DECREF(item);
+		}
+	}
+	RNA_PROP_END;
+
+	return ret;
+}
+
+#endif
 
 static PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
 

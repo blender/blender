@@ -5566,9 +5566,9 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
-				val= floor((double)val/secf + 0.5f);
+				val= floorf((double)val/secf + 0.5f);
 			else
-				val= floor(val + 0.5f);
+				val= floorf(val + 0.5f);
 		}
 		else {
 			if (doTime)

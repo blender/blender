@@ -1533,7 +1533,7 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
+/* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
 static void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1555,7 +1555,7 @@ static void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 		/* setting to set */
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
-
+/* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
 static void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1574,28 +1574,6 @@ static void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 	/* props */
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
-		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
-}
-
-static void ANIM_OT_channels_setting_invert (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Invert Channel Setting";
-	ot->idname= "ANIM_OT_channels_setting_toggle";
-	ot->description= "Invert specified setting on all selected animation channels";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= animchannels_setflag_exec;
-	ot->poll= animedit_poll_channels_active;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-		/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_INVERT, "Mode", "");
 		/* setting to set */
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
@@ -2406,7 +2384,6 @@ void ED_operatortypes_animchannels(void)
 	
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
-	WM_operatortype_append(ANIM_OT_channels_setting_invert);
 	WM_operatortype_append(ANIM_OT_channels_setting_toggle);
 	
 	WM_operatortype_append(ANIM_OT_channels_delete);

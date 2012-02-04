@@ -58,7 +58,7 @@ class NODE_HT_header(Header):
                 # Don't show "Use Nodes" Button when Engine is BI for Lamps
                 if snode_id and not (scene.render.use_shading_nodes == 0 and ob.type == 'LAMP'):
                     layout.prop(snode_id, "use_nodes")
-                    
+
             if snode.shader_type == 'WORLD':
                 layout.template_ID(scene, "world", new="world.new")
                 if snode_id:

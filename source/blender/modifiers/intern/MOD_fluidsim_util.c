@@ -152,9 +152,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
 void fluidsim_free(FluidsimModifierData *fluidmd)
 {
-#ifdef WITH_MOD_FLUID
-	if(fluidmd)
-	{
+	if(fluidmd) {
 		if(fluidmd->fss->meshVelocities)
 		{
 			MEM_freeN(fluidmd->fss->meshVelocities);
@@ -162,16 +160,13 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 		}
 		MEM_freeN(fluidmd->fss);
 	}
-#else
-	(void)fluidmd; /* unused */
-#endif
 	
 	return;
 }
 
 #ifdef WITH_MOD_FLUID
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
-static DerivedMesh *fluidsim_read_obj(const char *filename)
+static DerivedMesh *fluidsim_read_obj(const char *filename, const MFace *mf_example)
 {
 	int wri = 0,i;
 	int gotBytes;
@@ -182,6 +177,9 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 	MVert *mv;
 	short *normals, *no_s;
 	float no[3];
+
+	const short mf_mat_nr = mf_example->mat_nr;
+	const char  mf_flag =   mf_example->flag;
 
 	// ------------------------------------------------
 	// get numverts + numfaces first
@@ -286,6 +284,10 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 		int face[3];
 
 		gotBytes = gzread(gzf, face, sizeof(int) * 3);
+
+		/* initialize from existing face */
+		mf->mat_nr = mf_mat_nr;
+		mf->flag =   mf_flag;
 
 		// check if 3rd vertex has index 0 (not allowed in blender)
 		if(face[2])
@@ -452,8 +454,8 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
 	MFace *mface;
-	int numfaces;
-	int mat_nr, flag, i;
+	MFace mf_example = {0};
+
 
 	if(!useRenderParams) {
 		displaymode = fss->guiDisplayMode;
@@ -475,10 +477,21 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 		break;
 	}
 
+	/* offset baked frame */
+	curFrame += fss->frameOffset;
+
 	BLI_path_abs(targetFile, modifier_path_relbase(ob));
 	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
-	dm = fluidsim_read_obj(targetFile);
+	// assign material + flags to new dm
+	// if there's no faces in original dm, keep materials and flags unchanged
+	mface = orgdm->getFaceArray(orgdm);
+	if (mface) {
+		mf_example = *mface;
+	}
+	/* else leave NULL'd */
+
+	dm = fluidsim_read_obj(targetFile, &mf_example);
 
 	if(!dm)
 	{
@@ -497,23 +510,6 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 
 		// display org. object upon failure which is in dm
 		return NULL;
-	}
-
-	// assign material + flags to new dm
-	// if there's no faces in original dm, keep materials and flags unchanged
-	mface = orgdm->getFaceArray(orgdm);
-
-	if(mface) {
-		mat_nr = mface[0].mat_nr;
-		flag = mface[0].flag;
-
-		mface = dm->getFaceArray(dm);
-		numfaces = dm->getNumFaces(dm);
-		for(i=0; i<numfaces; i++)
-			{
-				mface[i].mat_nr = mat_nr;
-				mface[i].flag = flag;
-			}
 	}
 
 	// load vertex velocities, if they exist...

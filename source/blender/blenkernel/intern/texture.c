@@ -478,10 +478,28 @@ int vergcband(const void *a1, const void *a2)
 	return 0;
 }
 
-CBData *colorband_element_add(struct ColorBand *coba, float position)
+void colorband_update_sort(ColorBand *coba)
 {
 	int a;
+	
+	if(coba->tot<2)
+		return;
+	
+	for(a=0; a<coba->tot; a++)
+		coba->data[a].cur= a;
 
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+CBData *colorband_element_add(struct ColorBand *coba, float position)
+{
 	if(coba->tot==MAXCOLORBAND) {
 		return NULL;
 	}
@@ -503,17 +521,7 @@ CBData *colorband_element_add(struct ColorBand *coba, float position)
 	coba->tot++;
 	coba->cur = coba->tot-1;
 
-	for(a = 0; a < coba->tot; a++)
-		coba->data[a].cur = a;
-
-	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
-
-	for(a = 0; a < coba->tot; a++) {
-		if(coba->data[a].cur == coba->cur) {
-			coba->cur = a;
-			break;
-		}
-	}
+	colorband_update_sort(coba);
 
 	return coba->data + coba->cur;
 }

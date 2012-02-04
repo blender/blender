@@ -212,9 +212,9 @@ void fillrect(int *rect, int x, int y, int val)
 }
 
 /* based on Liang&Barsky, for clipping of pyramidical volume */
-static short cliptestf(float p, float q, float *u1, float *u2)
+static short cliptestf(float a, float b, float c, float d, float *u1, float *u2)
 {
-	float r;
+	float p= a + b, q= c + d, r;
 	
 	if(p<0.0f) {
 		if(q<p) return 0;
@@ -245,7 +245,7 @@ int testclip(const float v[4])
 	
 	/* if we set clip flags, the clipping should be at least larger than epsilon. 
 	   prevents issues with vertices lying exact on borders */
-	abs4= fabs(v[3]) + FLT_EPSILON;
+	abs4= fabsf(v[3]) + FLT_EPSILON;
 	
 	if( v[0] < -abs4) c+=1;
 	else if( v[0] > abs4) c+=2;
@@ -854,20 +854,20 @@ static int clipline(float v1[4], float v2[4])	/* return 0: do not draw */
 		filled in with zbufwire correctly when rendering in parts. otherwise
 		you see line endings at edges... */
 	
-	if(cliptestf(-dz-dw, v1[3]+v1[2], &u1,&u2)) {
-		if(cliptestf(dz-dw, v1[3]-v1[2], &u1,&u2)) {
+	if(cliptestf(-dz, -dw, v1[3], v1[2], &u1,&u2)) {
+		if(cliptestf(dz, -dw, v1[3], -v1[2], &u1,&u2)) {
 			
 			dx= v2[0]-v1[0];
 			dz= 1.01f*(v2[3]-v1[3]);
 			v13= 1.01f*v1[3];
 			
-			if(cliptestf(-dx-dz, v1[0]+v13, &u1,&u2)) {
-				if(cliptestf(dx-dz, v13-v1[0], &u1,&u2)) {
+			if(cliptestf(-dx, -dz, v1[0], v13, &u1,&u2)) {
+				if(cliptestf(dx, -dz, v13, -v1[0], &u1,&u2)) {
 					
 					dy= v2[1]-v1[1];
 					
-					if(cliptestf(-dy-dz, v1[1]+v13, &u1,&u2)) {
-						if(cliptestf(dy-dz, v13-v1[1], &u1,&u2)) {
+					if(cliptestf(-dy, -dz, v1[1], v13, &u1,&u2)) {
+						if(cliptestf(dy, -dz, v13, -v1[1], &u1,&u2)) {
 							
 							if(u2<1.0f) {
 								v2[0]= v1[0]+u2*dx;
@@ -1628,8 +1628,8 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 	 * who would have thought that of L&B!
 	 */
 
-	if(cliptestf(-da-dw, v13+v1[a], &u1,&u2)) {
-		if(cliptestf(da-dw, v13-v1[a], &u1,&u2)) {
+	if(cliptestf(-da, -dw, v13, v1[a], &u1,&u2)) {
+		if(cliptestf(da, -dw, v13, -v1[a], &u1,&u2)) {
 			*b3=1;
 			if(u2<1.0f) {
 				labda[1]= u2;

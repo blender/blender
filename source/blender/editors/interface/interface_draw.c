@@ -1529,38 +1529,40 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		width= rect.xmax-rect.xmin+1;
 		height = rect.ymax-rect.ymin;
 
-		zoomx= (float)width / (scopes->track_preview->x-2*margin);
-		zoomy= (float)height / (scopes->track_preview->y-2*margin);
+		if(width > 0 && height > 0) {
+			zoomx= (float)width / (scopes->track_preview->x-2*margin);
+			zoomy= (float)height / (scopes->track_preview->y-2*margin);
 
-		off_x= ((int)track_pos[0]-track_pos[0]+0.5)*zoomx;
-		off_y= ((int)track_pos[1]-track_pos[1]+0.5)*zoomy;
+			off_x= ((int)track_pos[0]-track_pos[0]+0.5f)*zoomx;
+			off_y= ((int)track_pos[1]-track_pos[1]+0.5f)*zoomy;
 
-		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, track_pos, width, height, margin);
+			drawibuf= scale_trackpreview_ibuf(scopes->track_preview, track_pos, width, height, margin);
 
-		glaDrawPixelsSafe(rect.xmin, rect.ymin+1, drawibuf->x, drawibuf->y,
-		                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
-		IMB_freeImBuf(drawibuf);
+			glaDrawPixelsSafe(rect.xmin, rect.ymin+1, drawibuf->x, drawibuf->y,
+			                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
+			IMB_freeImBuf(drawibuf);
 
-		/* draw cross for pizel position */
-		glTranslatef(off_x+rect.xmin+track_pos[0]*zoomx, off_y+rect.ymin+track_pos[1]*zoomy, 0.f);
-		glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin+rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin);
+			/* draw cross for pizel position */
+			glTranslatef(off_x+rect.xmin+track_pos[0]*zoomx, off_y+rect.ymin+track_pos[1]*zoomy, 0.f);
+			glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin+rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin);
 
-		for(a= 0; a< 2; a++) {
-			if(a==1) {
-				glLineStipple(3, 0xaaaa);
-				glEnable(GL_LINE_STIPPLE);
-				UI_ThemeColor(TH_SEL_MARKER);
+			for(a= 0; a< 2; a++) {
+				if(a==1) {
+					glLineStipple(3, 0xaaaa);
+					glEnable(GL_LINE_STIPPLE);
+					UI_ThemeColor(TH_SEL_MARKER);
+				}
+				else {
+					UI_ThemeColor(TH_MARKER_OUTLINE);
+				}
+
+				glBegin(GL_LINES);
+					glVertex2f(-10.0f, 0.0f);
+					glVertex2f(10.0f, 0.0f);
+					glVertex2f(0.0f, -10.0f);
+					glVertex2f(0.0f, 10.0f);
+					glEnd();
 			}
-			else {
-				UI_ThemeColor(TH_MARKER_OUTLINE);
-			}
-
-			glBegin(GL_LINES);
-				glVertex2f(-10.0f, 0.0f);
-				glVertex2f(10.0f, 0.0f);
-				glVertex2f(0.0f, -10.0f);
-				glVertex2f(0.0f, 10.0f);
-			glEnd();
 		}
 
 		glDisable(GL_LINE_STIPPLE);

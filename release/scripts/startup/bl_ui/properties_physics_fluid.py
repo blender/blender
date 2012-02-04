@@ -85,6 +85,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             col.label()
             col.prop(fluid, "use_speed_vectors")
             col.prop(fluid, "use_reverse_frames")
+            col.prop(fluid, "frame_offset", text="Offset")
 
             layout.prop(fluid, "filepath", text="")
 

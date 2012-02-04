@@ -84,6 +84,10 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	}
 
 	dm = get_dm(ob, NULL, derivedData, NULL, 0);
+	if(dm == derivedData)
+		dm = CDDM_copy(dm);
+
+	CDDM_apply_vert_coords(dm, vertexCos);
 
 	clothModifier_do(clmd, md->scene, ob, dm, vertexCos);
 
@@ -92,8 +96,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 		result->release(result);
 	}
 
-	if(dm != derivedData)
-		dm->release(dm);
+	dm->release(dm);
 }
 
 static void updateDepgraph(

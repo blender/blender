@@ -206,13 +206,13 @@ class DNACatalogHTML:
                 <td>${size}</td>
             </tr>"""
         
-        if field.Type.Structure == None or field.Name.IsPointer():
+        if field.Type.Structure is None or field.Name.IsPointer():
 
             # ${reference}
             reference = field.Name.AsReference(parentReference)
 
             # ${struct}
-            if parentReference != None:
+            if parentReference is not None:
                 struct = '<a href="#{0}">{0}</a>'.format(structure.Type.Name)
             else:
                 struct = structure.Type.Name
@@ -240,7 +240,7 @@ class DNACatalogHTML:
             
             structure_field = Template(structure_field_template).substitute(d)
         
-        elif field.Type.Structure != None:
+        elif field.Type.Structure is not None:
             reference = field.Name.AsReference(parentReference)
             structure_field = self.StructureFields(field.Type.Structure, reference, offset) 
 

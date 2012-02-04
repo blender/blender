@@ -377,10 +377,18 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 		CCLDeviceInfo *devices = CCL_compute_device_list(opencl);
 		int a;
 
-		for(a = 0; devices[a].name; a++) {
-			tmp.value = devices[a].value;
-			tmp.identifier = devices[a].identifier;
-			tmp.name = devices[a].name;
+		if(devices) {
+			for(a = 0; devices[a].name; a++) {
+				tmp.value = devices[a].value;
+				tmp.identifier = devices[a].identifier;
+				tmp.name = devices[a].name;
+				RNA_enum_item_add(&item, &totitem, &tmp);
+			}
+		}
+		else {
+			tmp.value = 0;
+			tmp.name = "CPU";
+			tmp.identifier = "CPU";
 			RNA_enum_item_add(&item, &totitem, &tmp);
 		}
 	}

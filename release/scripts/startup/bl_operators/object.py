@@ -20,7 +20,10 @@
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       IntProperty)
 
 
 class SelectPattern(Operator):
@@ -54,7 +57,7 @@ class SelectPattern(Operator):
             pattern_match = fnmatch.fnmatchcase
         else:
             pattern_match = (lambda a, b:
-                                 fnmatch.fnmatchcase(a.upper(), b.upper()))
+                             fnmatch.fnmatchcase(a.upper(), b.upper()))
         is_ebone = False
         obj = context.object
         if obj and obj.mode == 'POSE':
@@ -489,9 +492,9 @@ class ShapeTransfer(Operator):
         return (obj and obj.mode != 'EDIT')
 
     def execute(self, context):
-        C = bpy.context
-        ob_act = C.active_object
-        objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
+        ob_act = context.active_object
+        objects = [ob for ob in context.selected_editable_objects
+                   if ob != ob_act]
 
         if 1:  # swap from/to, means we cant copy to many at once.
             if len(objects) != 1:
@@ -585,11 +588,6 @@ class MakeDupliFace(Operator):
     bl_idname = "object.make_dupli_face"
     bl_label = "Make Dupli-Face"
 
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        return (obj and obj.type == 'MESH')
-
     def _main(self, context):
         from mathutils import Vector
 
@@ -601,22 +599,22 @@ class MakeDupliFace(Operator):
                     Vector((-offset, +offset, 0.0)),
                     )
 
-        def matrix_to_quat(matrix):
+        def matrix_to_quad(matrix):
             # scale = matrix.median_scale
             trans = matrix.to_translation()
             rot = matrix.to_3x3()  # also contains scale
 
             return [(rot * b) + trans for b in base_tri]
-        scene = bpy.context.scene
+        scene = context.scene
         linked = {}
-        for obj in bpy.context.selected_objects:
+        for obj in context.selected_objects:
             data = obj.data
             if data:
                 linked.setdefault(data, []).append(obj)
 
         for data, objects in linked.items():
             face_verts = [axis for obj in objects
-                          for v in matrix_to_quat(obj.matrix_world)
+                          for v in matrix_to_quad(obj.matrix_world)
                           for axis in v]
 
             faces = list(range(len(face_verts) // 3))

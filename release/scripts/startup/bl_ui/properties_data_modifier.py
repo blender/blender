@@ -814,12 +814,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def REMESH(self, layout, ob, md):
         layout.prop(md, "mode")
-        
+
         row = layout.row()
         row.prop(md, "octree_depth")
         row.prop(md, "scale")
 
-        if md.mode == "SHARP":
+        if md.mode == 'SHARP':
             layout.prop(md, "sharpness")
 
         layout.prop(md, "remove_disconnected_pieces")

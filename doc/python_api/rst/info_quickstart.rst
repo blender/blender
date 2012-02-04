@@ -123,6 +123,29 @@ Example of a data path that can be quickly found via the console:
    1.0
 
 
+Data Creation/Removal
+^^^^^^^^^^^^^^^^^^^^^
+
+Those of you familiar with other python api's may be surprised that new datablocks in the bpy api can't be created by calling the class:
+
+   >>> bpy.types.Mesh()
+   Traceback (most recent call last):
+     File "<blender_console>", line 1, in <module>
+   TypeError: bpy_struct.__new__(type): expected a single argument
+
+
+This is an intentional part of the API design.
+The blender/python api can't create blender data that exists outside the main blender database (accessed through bpy.data), because this data is managed by blender (save/load/undo/append... etc).
+
+Data is added and removed via methods on the collections in bpy.data, eg:
+
+   >>> mesh = bpy.data.meshes.new(name="MyMesh")
+   >>> print(mesh)
+   <bpy_struct, Mesh("MyMesh.001")>
+
+   >>> bpy.data.meshes.remove(mesh)
+
+
 Custom Properties
 ^^^^^^^^^^^^^^^^^
 

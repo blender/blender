@@ -462,32 +462,25 @@ void end_latt_deform(Object *ob)
 	   so we store in latmat transform from path coord inside object 
 	 */
 typedef struct {
-	float dmin[3], dmax[3], dscale, dloc[3];
+	float dmin[3], dmax[3];
 	float curvespace[4][4], objectspace[4][4], objectspace3[3][3];
 	int no_rot_axis;
 } CurveDeform;
 
-static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc)
+static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
 {
 	invert_m4_m4(ob->imat, ob->obmat);
 	mult_m4_m4m4(cd->objectspace, ob->imat, par->obmat);
 	invert_m4_m4(cd->curvespace, cd->objectspace);
 	copy_m3_m4(cd->objectspace3, cd->objectspace);
-	
-	// offset vector for 'no smear'
-	if(dloc) {
-		invert_m4_m4(par->imat, par->obmat);
-		mul_v3_m4v3(cd->dloc, par->imat, ob->obmat[3]);
-	}
-	else {
-		cd->dloc[0]=cd->dloc[1]=cd->dloc[2]= 0.0f;
-	}
-	
 	cd->no_rot_axis= 0;
 }
 
-/* this makes sure we can extend for non-cyclic. *vec needs 4 items! */
-static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
+/* this makes sure we can extend for non-cyclic.
+ *
+ * returns OK: 1/0
+ */
+static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
 {
 	Curve *cu= ob->data;
 	BevList *bl;
@@ -532,20 +525,18 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 	return 0;
 }
 
-	/* for each point, rotate & translate to curve */
-	/* use path, since it has constant distances */
-	/* co: local coord, result local too */
-	/* returns quaternion for rotation, using cd->no_rot_axis */
-	/* axis is using another define!!! */
-static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
+/* for each point, rotate & translate to curve */
+/* use path, since it has constant distances */
+/* co: local coord, result local too */
+/* returns quaternion for rotation, using cd->no_rot_axis */
+/* axis is using another define!!! */
+static int calc_curve_deform(Scene *scene, Object *par, float co[3],
+                             const short axis, CurveDeform *cd, float quat_r[4])
 {
 	Curve *cu= par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
-	short /*upflag, */ index;
-
-	index= axis-1;
-	if(index>2)
-		index -= 3; /* negative  */
+	short index;
+	const int is_neg_axis = (axis > 2);
 
 	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
@@ -554,51 +545,23 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 	}
 	
 	/* options */
-	if(ELEM3(axis, OB_NEGX+1, OB_NEGY+1, OB_NEGZ+1)) { /* OB_NEG# 0-5, MOD_CURVE_POS# 1-6 */
+	if (is_neg_axis) {
+		index = axis - 3;
 		if(cu->flag & CU_STRETCH)
 			fac= (-co[index]-cd->dmax[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
-			fac= (cd->dloc[index])/(cu->path->totdist) - (co[index]-cd->dmax[index])/(cu->path->totdist);
+			fac= - (co[index]-cd->dmax[index])/(cu->path->totdist);
 	}
 	else {
+		index = axis;
 		if(cu->flag & CU_STRETCH)
 			fac= (co[index]-cd->dmin[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
-			fac= (cd->dloc[index])/(cu->path->totdist) + (co[index]-cd->dmin[index])/(cu->path->totdist);
+			fac= + (co[index]-cd->dmin[index])/(cu->path->totdist);
 	}
-	
-#if 0 // XXX old animation system
-	/* we want the ipo to work on the default 100 frame range, because there's no  
-	   actual time involved in path position */
-	// huh? by WHY!!!!???? - Aligorith
-	if(cu->ipo) {
-		fac*= 100.0f;
-		if(calc_ipo_spec(cu->ipo, CU_SPEED, &fac)==0)
-			fac/= 100.0;
-	}
-#endif // XXX old animation system
 	
 	if( where_on_path_deform(par, fac, loc, dir, new_quat, &radius)) {	/* returns OK */
 		float quat[4], cent[3];
-
-#if 0	// XXX - 2.4x Z-Up, Now use bevel tilt.
-		if(cd->no_rot_axis)	/* set by caller */
-			dir[cd->no_rot_axis-1]= 0.0f;
-		
-		/* -1 for compatibility with old track defines */
-		vec_to_quat( quat,dir, axis-1, upflag);
-		
-		/* the tilt */
-		if(loc[3]!=0.0) {
-			normalize_v3(dir);
-			q[0]= (float)cos(0.5*loc[3]);
-			fac= (float)sin(0.5*loc[3]);
-			q[1]= -fac*dir[0];
-			q[2]= -fac*dir[1];
-			q[3]= -fac*dir[2];
-			mul_qt_qtqt(quat, q, quat);
-		}
-#endif
 
 		if(cd->no_rot_axis) {	/* set by caller */
 
@@ -634,9 +597,9 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 
 		/* zero the axis which is not used,
 		 * the big block of text above now applies to these 3 lines */
-		quat_apply_track(quat, axis-1, (axis==1 || axis==3) ? 1:0); /* up flag is a dummy, set so no rotation is done */
-		vec_apply_track(cent, axis-1);
-		cent[axis < 4 ? axis-1 : axis-4]= 0.0f;
+		quat_apply_track(quat, axis, (axis == 0 || axis == 2) ? 1:0); /* up flag is a dummy, set so no rotation is done */
+		vec_apply_track(cent, axis);
+		cent[index]= 0.0f;
 
 
 		/* scale if enabled */
@@ -650,8 +613,8 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 		/* translation */
 		add_v3_v3v3(co, cent, loc);
 
-		if(quatp)
-			copy_qt_qt(quatp, quat);
+		if(quat_r)
+			copy_qt_qt(quat_r, quat);
 
 		return 1;
 	}
@@ -666,6 +629,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	int a, flag;
 	CurveDeform cd;
 	int use_vgroups;
+	const int is_neg_axis = (defaxis > 2);
 
 	if(cuOb->type != OB_CURVE)
 		return;
@@ -674,10 +638,10 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	flag = cu->flag;
 	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
 
-	init_curve_deform(cuOb, target, &cd, (cu->flag & CU_STRETCH)==0);
+	init_curve_deform(cuOb, target, &cd);
 
 	/* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
-	if(defaxis < 3) {
+	if(is_neg_axis == FALSE) {
 		cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
 		cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
 	}
@@ -711,10 +675,6 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	
 
 			if(cu->flag & CU_DEFORM_BOUNDS_OFF) {
-				/* dummy bounds */
-				cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
-				cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
-				
 				dvert = me->dvert;
 				for(a = 0; a < numVerts; a++, dvert++) {
 					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
@@ -749,6 +709,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 					weight= defvert_find_weight(dvert, index);
 	
 					if(weight > 0.0f) {
+						/* already in 'cd.curvespace', prev for loop */
 						copy_v3_v3(vec, vertexCos[a]);
 						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
@@ -776,6 +737,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 			}
 	
 			for(a = 0; a < numVerts; a++) {
+				/* already in 'cd.curvespace', prev for loop */
 				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
 				mul_m4_v3(cd.objectspace, vertexCos[a]);
 			}
@@ -787,7 +749,8 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco, float *vec, float mat[][3], int no_rot_axis)
+void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
+                         float orco[3], float vec[3], float mat[][3], int no_rot_axis)
 {
 	CurveDeform cd;
 	float quat[4];
@@ -797,7 +760,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 		return;
 	}
 
-	init_curve_deform(cuOb, target, &cd, 0);	/* 0 no dloc */
+	init_curve_deform(cuOb, target, &cd);
 	cd.no_rot_axis= no_rot_axis;				/* option to only rotate for XY, for example */
 	
 	copy_v3_v3(cd.dmin, orco);
@@ -805,7 +768,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 
 	mul_m4_v3(cd.curvespace, vec);
 	
-	if(calc_curve_deform(scene, cuOb, vec, target->trackflag+1, &cd, quat)) {
+	if(calc_curve_deform(scene, cuOb, vec, target->trackflag, &cd, quat)) {
 		float qmat[3][3];
 		
 		quat_to_mat3( qmat,quat);
@@ -885,7 +848,7 @@ int object_deform_mball(Object *ob, ListBase *dispbase)
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
-	return lt->def+ u + v*lt->pntsu + w*lt->pntsu*lt->pntsv;
+	return &lt->def[LT_INDEX(lt, u, v, w)];
 }
 
 void outside_lattice(Lattice *lt)

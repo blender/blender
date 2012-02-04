@@ -370,7 +370,7 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
         visibility = ob.cycles_visibility
 
         flow = layout.column_flow()
-        
+
         flow.prop(visibility, "camera")
         flow.prop(visibility, "diffuse")
         flow.prop(visibility, "glossy")
@@ -606,6 +606,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(cmat, "sample_as_light")
+        col.prop(mat, "pass_index")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):

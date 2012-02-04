@@ -1562,7 +1562,7 @@ static PyObject *Matrix_str(MatrixObject *self)
 	int maxsize[MATRIX_MAX_DIM];
 	int row, col;
 
-	char dummy_buf[1];
+	char dummy_buf[64];
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -1584,7 +1584,7 @@ static PyObject *Matrix_str(MatrixObject *self)
 		for (col = 0; col < self->num_col; col++) {
 			BLI_dynstr_appendf(ds, col ? ", %*.4f" : "%*.4f", maxsize[col], MATRIX_ITEM(self, row, col));
 		}
-		BLI_dynstr_append(ds, row + 1 != self->num_row ? ")\n             " : ")");
+		BLI_dynstr_append(ds, row + 1 != self->num_row ? ")\n            (" : ")");
 	}
 	BLI_dynstr_append(ds, ">");
 

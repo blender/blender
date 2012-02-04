@@ -147,10 +147,10 @@ static void IMB_moviecache_destructor(void *p)
 }
 
 /* approximate size of ImBuf in memory */
-static intptr_t IMB_get_size_in_memory(ImBuf *ibuf)
+static size_t IMB_get_size_in_memory(ImBuf *ibuf)
 {
 	int a;
-	intptr_t size= 0, channel_size= 0;
+	size_t size= 0, channel_size= 0;
 
 	size+= sizeof(ImBuf);
 
@@ -176,9 +176,9 @@ static intptr_t IMB_get_size_in_memory(ImBuf *ibuf)
 	return size;
 }
 
-static intptr_t get_item_size (void *p)
+static size_t get_item_size (void *p)
 {
-	intptr_t size= sizeof(MovieCacheItem);
+	size_t size= sizeof(MovieCacheItem);
 	MovieCacheItem *item= (MovieCacheItem *) p;
 
 	if(item->ibuf)

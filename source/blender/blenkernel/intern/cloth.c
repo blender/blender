@@ -1151,7 +1151,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring->kl = MAX2(mface[i].v4, mface[i].v2);
 		spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
-		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0;
+		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
 
 		BLI_linklist_append ( &edgelist[spring->ij], spring );
 		BLI_linklist_append ( &edgelist[spring->kl], spring );

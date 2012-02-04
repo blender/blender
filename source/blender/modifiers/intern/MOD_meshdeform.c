@@ -298,7 +298,7 @@ static void meshdeformModifier_do(
 				fac= 1.0f - fac;
 			}
 
-			if (fac <= 0.0) {
+			if (fac <= 0.0f) {
 				continue;
 			}
 		}
