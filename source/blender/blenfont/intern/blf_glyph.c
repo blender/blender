@@ -305,7 +305,7 @@ static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, floa
 	/* When a string is being rendered as individual glyphs (as in the game
 	 * engine), the leading edge needs to be raised a fraction to prevent
 	 * z-fighting for kerned characters. - z0r */
-	float twist = (dx1 - dx) * 0.0002;
+	const float twist = (dx1 - dx) * 0.0002f;
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(uv[0][0], uv[0][1]);

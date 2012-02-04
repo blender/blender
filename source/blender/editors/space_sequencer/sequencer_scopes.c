@@ -170,7 +170,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
-			float v = (float)rgb_to_luma_byte(rgb) / 255.0;
+			float v = (float)rgb_to_luma_byte(rgb) / 255.0f;
 			unsigned char * p = tgt;
 			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
 

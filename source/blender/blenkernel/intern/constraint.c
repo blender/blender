@@ -492,7 +492,7 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 			copy_v3_v3(plane, tmat[1]);
 			
 			cross_v3_v3v3(mat[0], normal, plane);
-			if(len_v3(mat[0]) < 1e-3) {
+			if(len_v3(mat[0]) < 1e-3f) {
 				copy_v3_v3(plane, tmat[0]);
 				cross_v3_v3v3(mat[0], normal, plane);
 			}
@@ -1263,7 +1263,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					/* If the curve is cyclic, enable looping around if the time is
 					 * outside the bounds 0..1 */
 					if ((curvetime < 0.0f) || (curvetime > 1.0f)) {
-						curvetime -= floor(curvetime);
+						curvetime -= floorf(curvetime);
 					}
 				}
 				else {

@@ -109,7 +109,7 @@ static float get_fluid_viscosity(FluidsimSettings *settings)
 			return 2.0e-3;
 		case 1:		/* manual */
 		default:
-			return (1.0/pow(10.0, settings->viscosityExponent)) * settings->viscosityValue;
+			return (1.0f/powf(10.0f, settings->viscosityExponent)) * settings->viscosityValue;
 	}
 }
 

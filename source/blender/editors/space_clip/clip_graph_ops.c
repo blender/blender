@@ -450,7 +450,7 @@ void CLIP_OT_graph_view_all(wmOperatorType *ot)
 void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
 {
 	View2D *v2d = &ar->v2d;
-	float extra = (v2d->cur.xmax - v2d->cur.xmin) / 2.0;
+	float extra = (v2d->cur.xmax - v2d->cur.xmin) / 2.0f;
 
 	/* set extents of view to start/end frames */
 	v2d->cur.xmin = (float)CFRA - extra;
