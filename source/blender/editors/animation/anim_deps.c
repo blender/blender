@@ -148,7 +148,7 @@ static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			
 			/* if one matches, sync the selection status */
 			if (pchan) {
-				if (pchan->bone->flag & BONE_SELECTED)
+				if (pchan->bone && pchan->bone->flag & BONE_SELECTED)
 					agrp->flag |= AGRP_SELECTED;
 				else
 					agrp->flag &= ~AGRP_SELECTED;
