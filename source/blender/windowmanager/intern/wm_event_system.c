@@ -457,9 +457,10 @@ void WM_event_print(wmEvent *event)
 
 #endif /* NDEBUG */
 
-static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
+/* (caller_owns_reports == TRUE) when called from python */
+static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int caller_owns_reports)
 {
-	if(popup) {
+	if (caller_owns_reports == FALSE) { /* popup */
 		if(op->reports->list.first) {
 			/* FIXME, temp setting window, see other call to uiPupMenuReports for why */
 			wmWindow *win_prev= CTX_wm_window(C);
@@ -478,10 +479,15 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 	}
 	
 	if(retval & OPERATOR_FINISHED) {
-		if(G.f & G_DEBUG)
-			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
-		
-		BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
+		if(G.f & G_DEBUG) {
+			/* todo - this print may double up, might want to check more flags then the FINISHED */
+			wm_operator_print(C, op);
+		}
+
+		if (caller_owns_reports == FALSE) {
+			BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
+		}
+
 		if (op->type->flag & OPTYPE_REGISTER) {
 			if(G.background == 0) { /* ends up printing these in the terminal, gets annoying */
 				/* Report the python string representation of the operator */
@@ -492,7 +498,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		}
 	}
 
-	/* if the caller owns them them handle this */
+	/* if the caller owns them, handle this */
 	if (op->reports->list.first && (op->reports->flag & RPT_OP_HOLD) == 0) {
 
 		wmWindowManager *wm = CTX_wm_manager(C);
@@ -574,7 +580,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	}
 	
 	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED) && repeat == 0)
-		wm_operator_reports(C, op, retval, 0);
+		wm_operator_reports(C, op, retval, FALSE);
 	
 	if(retval & OPERATOR_FINISHED)
 		wm_operator_finished(C, op, repeat);
@@ -817,10 +823,11 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
-		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
+		if (!(retval & OPERATOR_HANDLED) && (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))) {
 			/* only show the report if the report list was not given in the function */
-			wm_operator_reports(C, op, retval, (reports==NULL));
-		
+			wm_operator_reports(C, op, retval, (reports != NULL));
+		}
+
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
 		else if(retval & OPERATOR_FINISHED) {
@@ -829,7 +836,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11)
 			 * Also check for macro
-			 * */
+			 */
 			if(ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
 				int bounds[4] = {-1,-1,-1,-1};
 				int wrap;
@@ -1335,7 +1342,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				}
 
 				if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED))
-					wm_operator_reports(C, op, retval, 0);
+					wm_operator_reports(C, op, retval, FALSE);
 
 				if(retval & OPERATOR_FINISHED) {
 					wm_operator_finished(C, op, 0);
