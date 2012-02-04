@@ -294,8 +294,8 @@ void GPC_RenderTools::RenderText3D(	int fontid,
 	/* the actual drawing */
 	glColor3fv(color);
  
+	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT|BLF_TEXFILTER);
 	/* multiply the text matrix by the object matrix */
-	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT);
 	BLF_matrix(fontid, mat);
 
 	/* aspect is the inverse scale that allows you to increase */
@@ -307,7 +307,7 @@ void GPC_RenderTools::RenderText3D(	int fontid,
 	BLF_position(fontid, 0, 0, 0);
 	BLF_draw(fontid, text, 65535);
 
-	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
+	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT|BLF_TEXFILTER);
 	glEnable(GL_DEPTH_TEST);
 }
 

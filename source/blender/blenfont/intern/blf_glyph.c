@@ -54,6 +54,8 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+#define _BLF_PADDING 3
+#define _BLF_MIPMAP_LEVELS 3
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -87,7 +89,11 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->cur_tex= -1;
 	gc->x_offs= 0;
 	gc->y_offs= 0;
-	gc->pad= 3;
+	/* Increase padding for each mipmap level: 0->3, 1->4, 2->6, 3->10, ... */
+	if (font->flags & BLF_TEXFILTER)
+		gc->pad= pow(2, _BLF_MIPMAP_LEVELS) + 2;
+	else
+		gc->pad= _BLF_PADDING;
 
 	gc->num_glyphs= font->face->num_glyphs;
 	gc->rem_glyphs= font->face->num_glyphs;
@@ -296,13 +302,17 @@ void blf_glyph_free(GlyphBLF *g)
 
 static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
 {
-	
+	/* When a string is being rendered as individual glyphs (as in the game
+	 * engine), the leading edge needs to be raised a fraction to prevent
+	 * z-fighting for kerned characters. - z0r */
+	float twist = (dx1 - dx) * 0.0002;
+
 	glBegin(GL_QUADS);
 	glTexCoord2f(uv[0][0], uv[0][1]);
-	glVertex2f(dx, y1);
+	glVertex3f(dx, y1, twist);
 	
 	glTexCoord2f(uv[0][0], uv[1][1]);
-	glVertex2f(dx, y2);
+	glVertex3f(dx, y2, twist);
 	
 	glTexCoord2f(uv[1][0], uv[1][1]);
 	glVertex2f(dx1, y2);
@@ -405,6 +415,15 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 
 		glBindTexture(GL_TEXTURE_2D, g->tex);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, g->xoff, g->yoff, g->width, g->height, GL_ALPHA, GL_UNSIGNED_BYTE, g->bitmap);
+		if (font->flags & BLF_TEXFILTER) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,
+					_BLF_MIPMAP_LEVELS);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+					GL_LINEAR_MIPMAP_LINEAR);
+		}
 		glPopClientAttrib();
 
 		g->uv[0][0]= ((float)g->xoff) / ((float)gc->p2_width);
