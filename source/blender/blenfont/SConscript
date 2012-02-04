@@ -9,7 +9,7 @@ incs += ' #/extern/glew/include'
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_GETTEXT_INC']
 
-defs = []
+defs = ['GLEW_STATIC']
 
 if sys.platform == 'win32' or env['OURPLATFORM'] == 'linuxcross':
     defs.append('_WIN32')
