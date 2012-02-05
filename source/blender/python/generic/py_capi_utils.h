@@ -35,7 +35,8 @@ PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *		PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
 void			PyC_FileAndNum(const char **filename, int *lineno);
 void			PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
-int				PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObject *type, const short is_double, const char *error_prefix);
+int				PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
+                            const PyTypeObject *type, const short is_double, const char *error_prefix);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
 PyObject *      PyC_UnicodeFromByte(const char *str);

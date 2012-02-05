@@ -35,18 +35,20 @@
 
 #include "py_capi_utils.h"
 
-#include "BLI_string_utf8.h" /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
+/* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
+#include "BLI_string_utf8.h"
 
 #ifdef _WIN32 /* BLI_setenv */
 #include "BLI_path_util.h"
 #endif
 
 /* array utility function */
-int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObject *type, const short is_double, const char *error_prefix)
+int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
+                const PyTypeObject *type, const short is_double, const char *error_prefix)
 {
 	PyObject *value_fast;
-	int value_len;
-	int i;
+	Py_ssize_t value_len;
+	Py_ssize_t i;
 
 	if (!(value_fast=PySequence_Fast(value, error_prefix))) {
 		return -1;
@@ -463,7 +465,8 @@ void PyC_SetHomePath(const char *py_path_bundle)
 	if (py_path_bundle==NULL) {
 		/* Common enough to have bundled *nix python but complain on OSX/Win */
 #if defined(__APPLE__) || defined(_WIN32)
-		fprintf(stderr, "Warning! bundled python not found and is expected on this platform. (if you built with CMake: 'install' target may have not been built)\n");
+		fprintf(stderr, "Warning! bundled python not found and is expected on this platform. "
+		        "(if you built with CMake: 'install' target may have not been built)\n");
 #endif
 		return;
 	}
@@ -492,7 +495,8 @@ void PyC_SetHomePath(const char *py_path_bundle)
 		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
 		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
 
-		BLI_strncpy_wchar_from_utf8(py_path_bundle_wchar, py_path_bundle, sizeof(py_path_bundle_wchar) / sizeof(wchar_t));
+		BLI_strncpy_wchar_from_utf8(py_path_bundle_wchar, py_path_bundle,
+		                            sizeof(py_path_bundle_wchar) / sizeof(wchar_t));
 
 		Py_SetPythonHome(py_path_bundle_wchar);
 		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);

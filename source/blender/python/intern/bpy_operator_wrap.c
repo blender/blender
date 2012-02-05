@@ -112,7 +112,9 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 
 	if (WM_operatortype_find(opname, TRUE) == NULL) {
-		PyErr_Format(PyExc_ValueError, "Macro Define: '%s' is not a valid operator id", opname);
+		PyErr_Format(PyExc_ValueError,
+		             "Macro Define: '%s' is not a valid operator id",
+		             opname);
 		return NULL;
 	}
 
@@ -123,7 +125,9 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	ot = WM_operatortype_find(macroname, TRUE);
 
 	if (!ot) {
-		PyErr_Format(PyExc_ValueError, "Macro Define: '%s' is not a valid macro or hasn't been registered yet", macroname);
+		PyErr_Format(PyExc_ValueError,
+		             "Macro Define: '%s' is not a valid macro or hasn't been registered yet",
+		             macroname);
 		return NULL;
 	}
 
