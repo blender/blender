@@ -1533,8 +1533,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			zoomx= (float)width / (scopes->track_preview->x-2*margin);
 			zoomy= (float)height / (scopes->track_preview->y-2*margin);
 
-			off_x= ((int)track_pos[0]-track_pos[0]+0.5)*zoomx;
-			off_y= ((int)track_pos[1]-track_pos[1]+0.5)*zoomy;
+			off_x= ((int)track_pos[0]-track_pos[0]+0.5f)*zoomx;
+			off_y= ((int)track_pos[1]-track_pos[1]+0.5f)*zoomy;
 
 			drawibuf= scale_trackpreview_ibuf(scopes->track_preview, track_pos, width, height, margin);
 

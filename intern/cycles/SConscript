@@ -39,6 +39,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 else:
     cxxflags.append('-ffast-math'.split())
 
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs.append(env['BF_PTHREADS_INC'])
+
 # optimized kernel
 if env['WITH_BF_RAYOPTIMIZATION']:
     optim_cxxflags = []

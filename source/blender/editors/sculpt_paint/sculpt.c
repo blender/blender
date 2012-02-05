@@ -3153,7 +3153,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		dx = cache->mouse[0] - cache->initial_mouse[0];
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 
-		cache->vertex_rotation = -atan2(dx, dy) * cache->bstrength;
+		cache->vertex_rotation = -atan2f(dx, dy) * cache->bstrength;
 
 		sd->draw_anchored = 1;
 		copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);

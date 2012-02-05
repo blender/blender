@@ -1583,7 +1583,7 @@ typedef struct WipeZone {
 static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
 {
 	wipezone->flip = (wipe->angle < 0);
-	wipezone->angle = tan(DEG2RAD(fabsf(wipe->angle)));
+	wipezone->angle = tanf(DEG2RADF(fabsf(wipe->angle)));
 	wipezone->xo = xo;
 	wipezone->yo = yo;
 	wipezone->width = (int)(wipe->edgeWidth*((xo+yo)/2.0f));
@@ -1602,9 +1602,9 @@ static float in_band(float width,float dist,int side,int dir)
 		return (float)side;
 
 	if(side == 1)
-		alpha = (dist+0.5*width) / (width);
+		alpha = (dist+0.5f*width) / (width);
 	else
-		alpha = (0.5*width-dist) / (width);
+		alpha = (0.5f*width-dist) / (width);
 
 	if(dir == 0)
 		alpha = 1-alpha;

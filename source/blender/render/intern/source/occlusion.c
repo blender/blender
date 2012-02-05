@@ -1408,7 +1408,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 	occlusion= (1.0f-correction)*(1.0f-occ);
 	CLAMP(occlusion, 0.0f, 1.0f);
 	if(correction != 0.0f)
-		occlusion += correction*exp(-occ);
+		occlusion += correction*expf(-occ);
 
 	if(env) {
 		/* sky shading using bent normal */

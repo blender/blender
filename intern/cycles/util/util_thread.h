@@ -20,29 +20,54 @@
 #define __UTIL_THREAD_H__
 
 #include <boost/thread.hpp>
+#include <pthread.h>
 #include <queue>
+
+#include "util_function.h"
 
 CCL_NAMESPACE_BEGIN
 
-#if 0
+/* use boost for mutexes */
 
-/* Use STL for threading */
-
-using std::thread;
-using std::thread_mutex;
-typedef std::lock_guard thread_scoped_lock;
-using std::condition_variable;
-
-#else
-
-/* Use boost for threading */
-
-using boost::thread;
 typedef boost::mutex thread_mutex;
 typedef boost::mutex::scoped_lock thread_scoped_lock;
 typedef boost::condition_variable thread_condition_variable;
 
-#endif
+/* own pthread based implementation, to avoid boost version conflicts with
+   dynamically loaded blender plugins */
+
+class thread {
+public:
+	thread(boost::function<void(void)> run_cb_)
+	{
+		joined = false;
+		run_cb = run_cb_;
+
+		pthread_create(&pthread_id, NULL, run, (void*)this);
+	}
+
+	~thread()
+	{
+		if(!joined)
+			join();
+	}
+
+	static void *run(void *arg)
+	{
+		((thread*)arg)->run_cb();;
+		return NULL;
+	}
+
+	bool join()
+	{
+		return pthread_join(pthread_id, NULL) == 0;
+	}
+
+protected:
+	boost::function<void(void)> run_cb;
+	pthread_t pthread_id;
+	bool joined;
+};
 
 /* Thread Safe Queue to pass tasks from one thread to another. Tasks should be
  * pushed into the queue, while the worker thread waits to pop the next task

@@ -69,7 +69,7 @@ def CLIP_camera_for_clip(context, clip):
         if ob.type == 'CAMERA':
             for con in ob.constraints:
                 if con.type == 'CAMERA_SOLVER':
-                    cur_clip = scene.clip if con.use_active_clip else con.clip
+                    cur_clip = scene.active_clip if con.use_active_clip else con.clip
 
                     if cur_clip == clip:
                         return ob
@@ -833,6 +833,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._setupObjects(context)
 
         return {'FINISHED'}
+
 
 class CLIP_OT_track_settings_as_default(Operator):
     """Copy tracking settings from active track to default settings"""

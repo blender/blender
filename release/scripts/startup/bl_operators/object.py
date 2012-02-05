@@ -493,7 +493,8 @@ class ShapeTransfer(Operator):
 
     def execute(self, context):
         ob_act = context.active_object
-        objects = [ob for ob in context.selected_editable_objects if ob != ob_act]
+        objects = [ob for ob in context.selected_editable_objects
+                   if ob != ob_act]
 
         if 1:  # swap from/to, means we cant copy to many at once.
             if len(objects) != 1:
