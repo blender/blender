@@ -50,20 +50,39 @@
  *			bmesh_data_interp_from_verts
  *
  *  Interpolates per-vertex data from two sources to a target.
- * 
- *  Returns -
- *	Nothing
  */
 void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, float fac)
 {
-	void *src[2];
-	float w[2];
 	if (v1->head.data && v2->head.data) {
-		src[0]= v1->head.data;
-		src[1]= v2->head.data;
-		w[0] = 1.0f-fac;
-		w[1] = fac;
-		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->head.data);
+		/* first see if we can avoid interpolation */
+		if (fac <= 0.0f) {
+			if (v1 == v) {
+				/* do nothing */
+			}
+			else {
+				CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
+				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v1->head.data, &v->head.data);
+			}
+		}
+		else if (fac >= 1.0f) {
+			if (v2 == v) {
+				/* do nothing */
+			}
+			else {
+				CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
+				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v2->head.data, &v->head.data);
+			}
+		}
+		else {
+			void *src[2];
+			float w[2];
+
+			src[0]= v1->head.data;
+			src[1]= v2->head.data;
+			w[0] = 1.0f-fac;
+			w[1] = fac;
+			CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->head.data);
+		}
 	}
 }
 
