@@ -2548,7 +2548,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		/* Modifiers could depend on mesh normals, so we should update them/
 		   Note, then if sculpting happens on locked key, normals should be re-calculated
 		   after applying coords from keyblock on base mesh */
-		mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 	} else if (ss->kb)
 		sculpt_update_keyblock(ob);
 }
@@ -2722,6 +2722,9 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->face_normals = NULL;
 		ss->multires = NULL;
 	}
+
+	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
+	BKE_mesh_ensure_tessface(ob->data);
 
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap)? dm->getPolyMap(ob, dm): NULL;

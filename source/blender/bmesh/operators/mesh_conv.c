@@ -631,11 +631,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (dotess) {
-		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata,
-		                                     me->mvert,
-		                                     me->totface, me->totloop, me->totpoly,
-		                                     /* possibly can set to FALSE here, but defaults to true */
-		                                     TRUE);
+		BKE_mesh_calc_tessface(me);
 	}
 
 	mesh_update_customdata_pointers(me, dotess);

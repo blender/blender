@@ -758,13 +758,8 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 	if(calc_edges || (mesh->totpoly && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges);
 
-	mesh->totface = mesh_recalcTesselation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
-	                                       mesh->mvert,
-	                                       mesh->totface, mesh->totloop, mesh->totpoly,
-	                                       /* calc normals right after, dont copy from polys here */
-	                                       FALSE);
-
-	mesh_update_customdata_pointers(mesh, TRUE);
+	/* TODO, make this optional, we dont always want this! */
+	BKE_mesh_calc_tessface(mesh);
 
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will

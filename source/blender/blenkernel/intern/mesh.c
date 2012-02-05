@@ -2950,3 +2950,21 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 		CustomData_add_layer_named(&me->fdata, CD_RECAST, CD_REFERENCE, recastData, numFaces, "recastData");
 	}
 }
+
+void BKE_mesh_calc_tessface(Mesh *mesh)
+{
+	mesh->totface = mesh_recalcTesselation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
+	                                       mesh->mvert,
+	                                       mesh->totface, mesh->totloop, mesh->totpoly,
+	                                       /* calc normals right after, dont copy from polys here */
+	                                       FALSE);
+
+	mesh_update_customdata_pointers(mesh, TRUE);
+}
+
+void BKE_mesh_ensure_tessface(Mesh *mesh)
+{
+	if (mesh->totpoly && mesh->totface == 0) {
+		BKE_mesh_calc_tessface(mesh);
+	}
+}
