@@ -234,7 +234,6 @@ void ED_operatormacros_mesh(void)
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", "Extrude Only Vertices and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude vertices and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude_verts_indiv");
-	RNA_enum_set(otmacro->ptr, "type", 4);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
