@@ -588,9 +588,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	}
 
 	//free memory
-	if(ss_mesh) {
-		ss_mesh->needsFree = 1;
+	if(ss_mesh)
 		ss_mesh->release(ss_mesh);
-	}
 }
 

@@ -494,7 +494,7 @@ static void free_ss_weights(WeightTable *wtable)
 		MEM_freeN(wtable->weight_table);
 }
 
-static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
+static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 									 float (*vertexCos)[3], int useFlatSubdiv)
 {
 	float creaseFactor = (float) ccgSubSurf_getSubdivisionLevels(ss);
@@ -567,22 +567,21 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 			static int hasGivenError = 0;
 
 			if(!hasGivenError) {
-				printf("Unrecoverable error in SubSurf calculation,"
-					   " mesh is inconsistent.\n");
+				//XXX error("Unrecoverable error in SubSurf calculation,"
+				//      " mesh is inconsistent.");
 
 				hasGivenError = 1;
 			}
 
-			return 0;
+			return;
 		}
 
-		((int*)ccgSubSurf_getFaceUserData(ss, f))[1] = index ? *index++: i;
+		((int*)ccgSubSurf_getFaceUserData(ss, f))[1] = (index)? *index++: i;
 	}
 
 	ccgSubSurf_processSync(ss);
 
 	BLI_array_free(fVerts);
-	return 1;
 }
 
 /***/
@@ -1103,11 +1102,6 @@ static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 										  edgeSize, gridSize);
 					mf->v4 = getFaceIndex(ss, f, S, x + 1, y + 0,
 										  edgeSize, gridSize);
-					if (faceFlags) {
-						mat_nr = faceFlags[index*2+1];
-						mf->flag = faceFlags[index*2];
-					} else mf->flag = flag;
-
 					mf->mat_nr = mat_nr;
 					mf->flag = flag;
 
@@ -1208,11 +1202,6 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mface)
 			for(y = 0; y < gridSize - 1; y++) {
 				for(x = 0; x < gridSize - 1; x++) {
 					MPoly *mf = &mface[i];
-
-					if (faceFlags) {
-						mat_nr = faceFlags[index*2+1];
-						mf->flag = faceFlags[index*2];
-					} else mf->flag = flag;
 
 					mf->mat_nr = mat_nr;
 					mf->flag = flag;
@@ -3304,7 +3293,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 
 		result->freeSS = 1;
 	} else {
-		int useIncremental = 1; //(smd->flags & eSubsurfModifierFlag_Incremental);
+		int useIncremental = (smd->flags & eSubsurfModifierFlag_Incremental);
 		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
 		CCGSubSurf *ss;
 
@@ -3327,13 +3316,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		if(useIncremental && isFinalCalc) {
 			smd->mCache = ss = _getSubSurf(smd->mCache, levels, useAging|CCG_CALC_NORMALS);
 
-			if (!ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple)) {
-				//ccgSubSurf_free(smd->mCache);
-				smd->mCache = ss = _getSubSurf(NULL, levels, useAging);
-				
-				ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
-	
-			}
+			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(smd->mCache,
 									   drawInteriorEdges,

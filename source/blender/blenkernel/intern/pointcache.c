@@ -2302,7 +2302,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 
 	if(timescale) {
 		time= BKE_curframe(scene);
-		nexttime= BKE_frame_to_ctime(scene, CFRA + 1.0f);
+		nexttime= BKE_frame_to_ctime(scene, CFRA+1);
 		
 		*timescale= MAX2(nexttime - time, 0.0f);
 	}

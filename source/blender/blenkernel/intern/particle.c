@@ -55,7 +55,6 @@
 #include "BLI_threads.h"
 #include "BLI_linklist.h"
 #include "BLI_bpath.h"
-#include "BLI_math.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
