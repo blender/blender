@@ -871,6 +871,77 @@ static void layerInterp_mloopuv(void **sources, float *weights,
 	}
 }
 
+/* origspace is almost exact copy of mloopuv's, keep in sync */
+static void layerCopyValue_mloop_origspace(void *source, void *dest)
+{
+	OrigSpaceLoop *luv1 = source, *luv2 = dest;
+
+	copy_v2_v2(luv2->uv, luv1->uv);
+}
+
+static int layerEqual_mloop_origspace(void *data1, void *data2)
+{
+	OrigSpaceLoop *luv1 = data1, *luv2 = data2;
+
+	return len_squared_v2v2(luv1->uv, luv2->uv) < 0.00001f;
+}
+
+static void layerMultiply_mloop_origspace(void *data, float fac)
+{
+	OrigSpaceLoop *luv = data;
+
+	mul_v2_fl(luv->uv, fac);
+}
+
+static void layerInitMinMax_mloop_origspace(void *vmin, void *vmax)
+{
+	OrigSpaceLoop *min = vmin, *max = vmax;
+
+	INIT_MINMAX2(min->uv, max->uv);
+}
+
+static void layerDoMinMax_mloop_origspace(void *data, void *vmin, void *vmax)
+{
+	OrigSpaceLoop *min = vmin, *max = vmax, *luv = data;
+
+	DO_MINMAX2(luv->uv, min->uv, max->uv);
+}
+
+static void layerAdd_mloop_origspace(void *data1, void *data2)
+{
+	OrigSpaceLoop *l1 = data1, *l2 = data2;
+
+	add_v2_v2(l1->uv, l2->uv);
+}
+
+static void layerInterp_mloop_origspace(void **sources, float *weights,
+                                float *sub_weights, int count, void *dest)
+{
+	OrigSpaceLoop *mluv = dest;
+	float *uv= mluv->uv;
+	int i;
+
+	zero_v2(uv);
+
+	if (sub_weights) {
+		const float *sub_weight = sub_weights;
+		for(i = 0; i < count; i++) {
+			float weight = weights ? weights[i] : 1.0f;
+			OrigSpaceLoop *src = sources[i];
+			madd_v2_v2fl(uv, src->uv, (*sub_weight) * weight);
+			sub_weight++;
+		}
+	}
+	else {
+		for(i = 0; i < count; i++) {
+			float weight = weights ? weights[i] : 1;
+			OrigSpaceLoop *src = sources[i];
+			madd_v2_v2fl(uv, src->uv, weight);
+		}
+	}
+}
+/* --- end copy */
+
 static void layerInterp_mcol(void **sources, float *weights,
 							 float *sub_weights, int count, void *dest)
 {
@@ -1079,7 +1150,11 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float), "", 0, "BevelWeight", NULL, NULL, layerInterp_bweight},
 	/* 30: CD_CREASE */
 	{sizeof(float), "", 0, "SubSurfCrease", NULL, NULL, layerInterp_bweight},
-	/* 31: CD_WEIGHT_MLOOPCOL */
+    /* 31: CD_ORIGSPACE_MLOOP */
+	{sizeof(OrigSpaceLoop), "OrigSpaceLoop", 1, "OS Loop", NULL, NULL, layerInterp_mloop_origspace, NULL, NULL,
+	 layerEqual_mloop_origspace, layerMultiply_mloop_origspace, layerInitMinMax_mloop_origspace,
+	 layerAdd_mloop_origspace, layerDoMinMax_mloop_origspace, layerCopyValue_mloop_origspace},
+	/* 32: CD_WEIGHT_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, "WeightLoopCol", NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
@@ -1100,7 +1175,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 /* BMESH ONLY */
 	,
 	/* 25-29 */ "CDMPoly", "CDMLoop", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight",
-	/* 30-31 */ "CDSubSurfCrease", "CDWeightLoopCol"
+	/* 30-32 */ "CDSubSurfCrease", "CDOrigSpaceLoop", "CDWeightLoopCol"
 /* END BMESH ONLY */
 
 };
@@ -1123,7 +1198,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_WEIGHT_MLOOPCOL |
-	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | 
+	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORCO | CD_MASK_TANGENT |
 	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY | CD_MASK_RECAST |
 	CD_MASK_ORIGINDEX | CD_MASK_POLYINDEX;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
@@ -2394,6 +2469,9 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 		}
 		else if (ldata->layers[i].type == CD_WEIGHT_MLOOPCOL) {
 			CustomData_add_layer_named(fdata, CD_WEIGHT_MCOL, CD_CALLOC, NULL, total, ldata->layers[i].name);
+		}
+		else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
+			CustomData_add_layer_named(fdata, CD_ORIGSPACE, CD_CALLOC, NULL, total, ldata->layers[i].name);
 		}
 	}
 }

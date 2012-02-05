@@ -267,7 +267,7 @@ void BKE_mesh_ensure_tessface(struct Mesh *mesh);
 void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
                                  struct CustomData *pdata, int lindex[4], int findex,
                                  const int polyindex, const int mf_len,
-                                 const int numTex, const int numCol, const int hasWCol);
+                                 const int numTex, const int numCol, const int hasWCol, const int hasOrigSpace);
 
 #ifdef __cplusplus
 }

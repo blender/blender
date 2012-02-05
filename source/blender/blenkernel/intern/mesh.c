@@ -2177,7 +2177,8 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
                                  /* cache values to avoid lookups every time */
                                  const int numTex, /* CustomData_number_of_layers(pdata, CD_MTEXPOLY) */
                                  const int numCol, /* CustomData_number_of_layers(ldata, CD_MLOOPCOL) */
-                                 const int hasWCol /* CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL) */
+                                 const int hasWCol, /* CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL) */
+                                 const int hasOrigSpace /* CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP) */
                                  )
 {
 	MTFace *texface;
@@ -2228,6 +2229,17 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 			mcol[j].a = mloopcol->a;
 		}
 	}
+
+	if (hasOrigSpace) {
+		OrigSpaceFace *of = CustomData_get(fdata, findex, CD_ORIGSPACE);
+		OrigSpaceLoop *lof;
+
+		for (j=0; j < mf_len; j++) {
+			lof = CustomData_get(ldata, lindex[j], CD_ORIGSPACE_MLOOP);
+			of->uv[j][0] = lof->uv[0];
+			of->uv[j][1] = lof->uv[1];
+		}
+	}
 }
 
 /*
@@ -2269,6 +2281,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 	const int hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
+	const int hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
@@ -2493,7 +2506,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 #else
 		                            3,
 #endif
-		                            numTex, numCol, hasWCol);
+		                            numTex, numCol, hasWCol, hasOrigSpace);
 
 
 #ifdef USE_TESSFACE_QUADS
@@ -2531,6 +2544,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 	const int hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
+	const int hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
@@ -2588,7 +2602,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 
 				mesh_loops_to_mface_corners(fdata, ldata, pdata,
 				                            lindex, k, i, 3,
-				                            numTex, numCol, hasWCol);
+				                            numTex, numCol, hasWCol, hasOrigSpace);
 				test_index_face(mf, fdata, k, 3);
 			}
 			else {
@@ -2608,7 +2622,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 
 				mesh_loops_to_mface_corners(fdata, ldata, pdata,
 				                            lindex, k, i, 4,
-				                            numTex, numCol, hasWCol);
+				                            numTex, numCol, hasWCol, hasOrigSpace);
 				test_index_face(mf, fdata, k, 4);
 			}
 

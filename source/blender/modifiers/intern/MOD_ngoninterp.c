@@ -94,6 +94,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	int numTex;
 	int numCol;
 	int hasWCol;
+	int hasOrigSpace;
 
 	if (nmd->resolution <= 0)
 		return dm;
@@ -120,6 +121,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	numTex = CustomData_number_of_layers(&dm->polyData, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&dummy->loopData, CD_MLOOPCOL);
 	hasWCol = CustomData_has_layer(&dummy->loopData, CD_WEIGHT_MLOOPCOL);
+	hasOrigSpace = CustomData_has_layer(&dummy->loopData, CD_ORIGSPACE_MLOOP);
 
 	/*copy original verts here, so indices stay correct*/
 	omvert = dm->getVertArray(dm);
@@ -272,7 +274,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		
 		mesh_loops_to_mface_corners(&cddm->faceData, &dummy->loopData, &dm->polyData,
 		                            lindex, i, origf[i], 3,
-		                            numTex, numCol, hasWCol);
+		                            numTex, numCol, hasWCol, hasOrigSpace);
 	}
 	
 	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, 0, dm->numVertData);

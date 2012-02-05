@@ -484,6 +484,7 @@ void *DM_get_vert_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_edge_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_tessface_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_poly_data_layer(struct DerivedMesh *dm, int type);
+void *DM_get_loop_data_layer(struct DerivedMesh *dm, int type);
 
 /* custom data setting functions
  * copy supplied data into first layer of type using layer's copy function
@@ -675,6 +676,8 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm);
 
 /* Set object's bounding box based on DerivedMesh min/max data */
 void DM_set_object_boundbox(struct Object *ob, DerivedMesh *dm);
+
+void DM_init_origspace(DerivedMesh *dm);
 
 /* debug only */
 #ifndef NDEBUG

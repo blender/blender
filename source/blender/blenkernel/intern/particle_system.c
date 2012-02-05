@@ -353,7 +353,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
 			totdmelem= dm->getNumTessFaces(dm);
-			totelem= me->totface;
+			totelem= me->totpoly;
 			origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		}
 	

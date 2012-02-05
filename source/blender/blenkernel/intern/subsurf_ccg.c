@@ -2388,7 +2388,7 @@ static void ccgDM_release(DerivedMesh *dm) {
 
 static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata, 
                                  CustomData *pdata, int loopstart, int findex,  int polyindex,
-                                 const int numTex, const int numCol, const int hasWCol)
+                                 const int numTex, const int numCol, const int hasWCol, const int hasOrigSpace)
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -2436,6 +2436,17 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 			mcol[j].g = mloopcol->g;
 			mcol[j].b = mloopcol->b;
 			mcol[j].a = mloopcol->a;
+		}
+	}
+
+	if (hasOrigSpace) {
+		OrigSpaceFace *of = CustomData_get(fdata, findex, CD_ORIGSPACE);
+		OrigSpaceLoop *lof;
+
+		lof = CustomData_get(ldata, loopstart, CD_ORIGSPACE_MLOOP);
+		for (j=0; j<4; j++, lof++) {
+			of->uv[j][0] = lof->uv[0];
+			of->uv[j][1] = lof->uv[1];
 		}
 	}
 }
@@ -2855,7 +2866,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int gridFaces, gridCuts;
 	/*int gridSideVerts;*/
 	int gridSideEdges;
-	int numTex, numCol, hasWCol;
+	int numTex, numCol;
+	int hasWCol, hasOrigSpace;
 	int gridInternalEdges;
 	float *w = NULL;
 	WeightTable wtable = {0};
@@ -2874,11 +2886,18 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	numTex = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPUV);
 	numCol = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPCOL);
 	hasWCol = CustomData_has_layer(&ccgdm->dm.loopData, CD_WEIGHT_MLOOPCOL);
+	hasOrigSpace = CustomData_has_layer(&ccgdm->dm.loopData, CD_ORIGSPACE_MLOOP);
 	
-	if (numTex && CustomData_number_of_layers(&ccgdm->dm.faceData, CD_MTFACE) != numTex)
-		CustomData_from_bmeshpoly(&ccgdm->dm.faceData, &ccgdm->dm.polyData, &ccgdm->dm.loopData, ccgSubSurf_getNumFinalFaces(ss));
-	else if (numCol && CustomData_number_of_layers(&ccgdm->dm.faceData, CD_MCOL) != numCol)
-		CustomData_from_bmeshpoly(&ccgdm->dm.faceData, &ccgdm->dm.polyData, &ccgdm->dm.loopData, ccgSubSurf_getNumFinalFaces(ss));
+	if (
+	        (numTex && CustomData_number_of_layers(&ccgdm->dm.faceData, CD_MTFACE) != numTex)  ||
+	        (numCol && CustomData_number_of_layers(&ccgdm->dm.faceData, CD_MCOL) != numCol)    ||
+	        (hasOrigSpace && !CustomData_has_layer(&ccgdm->dm.faceData, CD_ORIGSPACE)) )
+	{
+		CustomData_from_bmeshpoly(&ccgdm->dm.faceData,
+		                          &ccgdm->dm.polyData,
+		                          &ccgdm->dm.loopData,
+		                          ccgSubSurf_getNumFinalFaces(ss));
+	}
 
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
 	ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
@@ -3143,7 +3162,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					/*generate tesselated face data used for drawing*/
 					ccg_loops_to_corners(&ccgdm->dm.faceData, &ccgdm->dm.loopData,
 					                     &ccgdm->dm.polyData, loopindex2-4, faceNum, faceNum,
-					                     numTex, numCol, hasWCol);
+					                     numTex, numCol, hasWCol, hasOrigSpace);
 					
 					/*set original index data*/
 					if (faceOrigIndex) {

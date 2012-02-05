@@ -63,11 +63,13 @@ typedef struct CustomDataExternal {
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */
-	int typemap[32];              /* runtime only! - maps types to indices of first layer of that type,
+	int typemap[33];              /* runtime only! - maps types to indices of first layer of that type,
 	                               * MUST be >= CD_NUMTYPES, but we cant use a define here.
 	                               * Correct size is ensured in CustomData_update_typemap assert() */
+	int pad1;
+
 	int totlayer, maxlayer;       /* number of layers, size of layers array */
-	int totsize, pad;             /* in editmode, total size of all data layers */
+	int totsize, pad2;             /* in editmode, total size of all data layers */
 	void *pool;                   /* Bmesh: Memory pool for allocation of blocks */
 	CustomDataExternal *external; /* external file storing customdata layers */
 } CustomData;
@@ -106,10 +108,11 @@ typedef struct CustomData {
 #define CD_SHAPEKEY		28
 #define CD_BWEIGHT		29
 #define CD_CREASE		30
-#define CD_WEIGHT_MLOOPCOL	31
+#define CD_ORIGSPACE_MLOOP	31
+#define CD_WEIGHT_MLOOPCOL	32
 /* BMESH ONLY END */
 
-#define CD_NUMTYPES		32
+#define CD_NUMTYPES		33
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -143,7 +146,8 @@ typedef struct CustomData {
 #define CD_MASK_SHAPEKEY	(1 << CD_SHAPEKEY)
 #define CD_MASK_BWEIGHT		(1 << CD_BWEIGHT)
 #define CD_MASK_CREASE		(1 << CD_CREASE)
-#define CD_MASK_WEIGHT_MLOOPCOL (1 << CD_WEIGHT_MLOOPCOL)
+#define CD_MASK_ORIGSPACE_MLOOP	(1 << CD_ORIGSPACE_MLOOP)
+#define CD_MASK_WEIGHT_MLOOPCOL (1L << CD_WEIGHT_MLOOPCOL)
 /* BMESH ONLY END */
 
 /* CustomData.flag */

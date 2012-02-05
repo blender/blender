@@ -562,6 +562,11 @@ void *DM_get_poly_data_layer(DerivedMesh *dm, int type)
 	return CustomData_get_layer(&dm->polyData, type);
 }
 
+void *DM_get_loop_data_layer(DerivedMesh *dm, int type)
+{
+	return CustomData_get_layer(&dm->loopData, type);
+}
+
 void DM_set_vert_data(DerivedMesh *dm, int index, int type, void *data)
 {
 	CustomData_set(&dm->vertData, index, type, data);
@@ -1504,9 +1509,12 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				add_orco_dm(ob, NULL, dm, clothorcodm, CD_CLOTH_ORCO);
 
 			/* add an origspace layer if needed */
-			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
-				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
-					DM_add_tessface_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE_MLOOP) {
+				if(!CustomData_has_layer(&dm->loopData, CD_ORIGSPACE_MLOOP)) {
+					DM_add_loop_layer(dm, CD_ORIGSPACE_MLOOP, CD_CALLOC, NULL);
+					DM_init_origspace(dm);
+				}
+			}
 
 			ndm = mti->applyModifier(md, ob, dm, useRenderParams, useCache);
 
@@ -1825,9 +1833,12 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 			DM_set_only_copy(dm, mask | CD_MASK_ORIGINDEX);
 
-			if(mask & CD_MASK_ORIGSPACE)
-				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
-					DM_add_tessface_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+			if(mask & CD_MASK_ORIGSPACE_MLOOP) {
+				if(!CustomData_has_layer(&dm->loopData, CD_ORIGSPACE_MLOOP)) {
+					DM_add_loop_layer(dm, CD_ORIGSPACE_MLOOP, CD_CALLOC, NULL);
+					DM_init_origspace(dm);
+				}
+			}
 			
 			if (mti->applyModifierEM)
 				ndm = mti->applyModifierEM(md, ob, em, dm);
@@ -2859,6 +2870,30 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 /* --- NAVMESH (end) --- */
 
 
+void DM_init_origspace(DerivedMesh *dm)
+{
+	static float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+
+	OrigSpaceLoop *lof_array = CustomData_get_layer(&dm->loopData, CD_ORIGSPACE_MLOOP);
+	OrigSpaceLoop *lof;
+	const int numpoly = dm->getNumPolys(dm);
+	// const int numloop = dm->getNumLoops(dm);
+	MPoly *mp = dm->getPolyArray(dm);
+	int i, j;
+
+	for (i = 0; i < numpoly; i++, mp++) {
+		/* only quads/tri's for now */
+		if (mp->totloop == 3 || mp->totloop == 4) {
+			lof = lof_array + mp->loopstart;
+			for (j = 0; j < mp->totloop; j++, lof++) {
+				copy_v2_v2(lof->uv, default_osf[j]);
+			}
+		}
+	}
+}
+
+
+
 /* derivedmesh info printing function,
  * to help track down differences DM output */
 
@@ -2910,6 +2945,10 @@ char *DM_debug_info(DerivedMesh *dm)
 	dm_debug_info_layers(dynstr, dm, dm->getVertDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 
+	BLI_dynstr_appendf(dynstr, "    'loopLayers': (\n");
+	dm_debug_info_layers(dynstr, dm, DM_get_loop_data_layer);
+	BLI_dynstr_appendf(dynstr, "    ),\n");
+
 	BLI_dynstr_appendf(dynstr, "    'edgeLayers': (\n");
 	dm_debug_info_layers(dynstr, dm, dm->getEdgeDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
@@ -2918,7 +2957,7 @@ char *DM_debug_info(DerivedMesh *dm)
 	dm_debug_info_layers(dynstr, dm, dm->getTessFaceDataArray);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 
-	BLI_dynstr_appendf(dynstr, "    'PolyLayers': (\n");
+	BLI_dynstr_appendf(dynstr, "    'polyLayers': (\n");
 	dm_debug_info_layers(dynstr, dm, DM_get_poly_data_layer);
 	BLI_dynstr_appendf(dynstr, "    ),\n");
 

@@ -146,6 +146,10 @@ typedef struct OrigSpaceFace {
 	float uv[4][2];
 } OrigSpaceFace;
 
+typedef struct OrigSpaceLoop {
+	float uv[2];
+} OrigSpaceLoop;
+
 typedef struct MDisps {
 	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
 	int totdisp;
