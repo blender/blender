@@ -169,7 +169,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	Object *obedit;
 	Mesh *me;
 	BMEditMesh *em;
-	float loc[3], rot[3], mat[4][4], dia;
+	float loc[3], rot[3], mat[4][4], dia = 1.0f;
 	int enter_editmode;
 	int state;
 	unsigned int layer;
@@ -182,10 +182,9 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
-			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, 1.0f, mat))
+			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
 		return OPERATOR_CANCELLED;
-	
-	/* BMESH_TODO make plane side this: M_SQRT2 - plane (diameter of 1.41 makes it unit size) */
+
 	make_prim_finish(C, &state, enter_editmode);
 
 	return OPERATOR_FINISHED;	
@@ -439,7 +438,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	Object *obedit;
 	Mesh *me;
 	BMEditMesh *em;
-	float loc[3], rot[3], mat[4][4], dia;
+	float loc[3], rot[3], mat[4][4], dia = 1.0f;
 	int enter_editmode;
 	int state;
 	unsigned int layer;
@@ -455,7 +454,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
 			RNA_int_get(op->ptr, "x_subdivisions"), 
 			RNA_int_get(op->ptr, "y_subdivisions"), 
-			RNA_float_get(op->ptr, "size"), mat))
+			RNA_float_get(op->ptr, "size") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
