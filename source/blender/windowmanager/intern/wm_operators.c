@@ -2135,7 +2135,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected;
+	int selected, second_life;
 	
 	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2144,7 +2144,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", filename);
 	selected = RNA_boolean_get(op->ptr, "selected");
-	if(collada_export(CTX_data_scene(C), filename, selected)) {
+	second_life = RNA_boolean_get(op->ptr, "second_life");
+	if(collada_export(CTX_data_scene(C), filename, selected, second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2164,6 +2165,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "selected", 0, "Export only selected",
 		"Export only selected elements");
+	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
+		"Compatibility mode for Second Life");
 }
 
 /* function used for WM_OT_save_mainfile too */
