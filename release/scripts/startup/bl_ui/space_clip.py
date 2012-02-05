@@ -547,23 +547,15 @@ class CLIP_PT_display(Panel):
 
         col = layout.column(align=True)
 
-        col.prop(sc, "show_marker_pattern", text="Pattern")
-        col.prop(sc, "show_marker_search", text="Search")
-        col.prop(sc, "show_pyramid_levels", text="Pyramid")
-
-        col.prop(sc, "show_track_path", text="Path")
-        row = col.row()
-        row.active = sc.show_track_path
-        row.prop(sc, "path_length", text="Length")
-
         col.prop(sc, "show_disabled", "Disabled Tracks")
+        col.prop(sc, "show_names", text="Names and Status")
         col.prop(sc, "show_bundles", text="3D Markers")
 
-        col.prop(sc, "show_names", text="Names and Status")
-        col.prop(sc, "show_tiny_markers", text="Compact Markers")
+        col.prop(sc, "use_mute_footage", text="Mute Footage")
+        col.prop(sc, "lock_selection")
 
-        col.prop(sc, "show_grease_pencil", text="Grease Pencil")
-        col.prop(sc, "use_mute_footage", text="Mute")
+        if sc.view == 'GRAPH':
+            col.prop(sc, "lock_time_cursor")
 
         if sc.mode == 'DISTORTION':
             col.prop(sc, "show_grid", text="Grid")
@@ -571,15 +563,34 @@ class CLIP_PT_display(Panel):
         elif sc.mode == 'RECONSTRUCTION':
             col.prop(sc, "show_stable", text="Stable")
 
-        col.prop(sc, "lock_selection")
-
-        if sc.view == 'GRAPH':
-            col.prop(sc, "lock_time_cursor")
-
         clip = sc.clip
         if clip:
             col.label(text="Display Aspect Ratio:")
-            col.prop(clip, "display_aspect", text="")
+            row = col.row()
+            row.prop(clip, "display_aspect", text="")
+
+
+class CLIP_PT_marker_display(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Marker Display"
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+
+        col = layout.column(align=True)
+
+        row = col.row()
+        row.prop(sc, "show_marker_pattern", text="Pattern")
+        row.prop(sc, "show_marker_search", text="Search")
+
+        col.prop(sc, "show_tiny_markers", text="Thin Markers")
+        col.prop(sc, "show_track_path", text="Path")
+
+        row = col.row()
+        row.active = sc.show_track_path
+        row.prop(sc, "path_length", text="Length")
 
 
 class CLIP_PT_track_settings(Panel):

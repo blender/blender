@@ -1117,14 +1117,6 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			p->custom_color[1]= 0.0f;
 			p->custom_color[2]= 0.5f;
 			p->custom_color[3]= 0.9f;
-
-			/* check that gpencil data is allowed to be drawn */
-			if ((sc->flag & SC_SHOW_GPENCIL)==0) {
-				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown \n");
-				return 0;
-			}
 		}
 			break;
 
