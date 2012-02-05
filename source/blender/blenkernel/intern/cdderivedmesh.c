@@ -218,7 +218,7 @@ static ListBase *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 
 		create_vert_poly_map(&cddm->pmap, &cddm->pmap_mem,
 		                     me->mpoly, me->mloop,
-		                     me->totvert, me->totface, me->totloop);
+		                     me->totvert, me->totpoly, me->totloop);
 	}
 
 	return cddm->pmap;
@@ -284,6 +284,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		Mesh *me= ob->data;
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
+		BLI_assert(!(me->mface == NULL && me->mpoly != NULL)); /* BMESH ONLY complain if mpoly is valid but not mface */
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 		                    me->totface, me->totvert);
 
