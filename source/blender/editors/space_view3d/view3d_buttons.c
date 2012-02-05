@@ -1269,7 +1269,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 	}
 
 	/* default for now */
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, ob);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 }
 
 static void view3d_panel_object(const bContext *C, Panel *pa)
