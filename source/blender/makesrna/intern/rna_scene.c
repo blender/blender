@@ -2523,6 +2523,11 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Face Smoothness", "Take face smoothness into account in view map calculation");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "use_advanced_options", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_ADVANCED_OPTIONS_FLAG);
+	RNA_def_property_ui_text(prop, "Advanced Edge Detection Options", "Enable advanced edge detection options (sphere radius and Kr derivative epsilon)");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
 	RNA_def_property_range(prop, 0.0, 1000.0);

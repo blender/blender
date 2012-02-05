@@ -34,6 +34,9 @@ extern "C" {
 #include "../../FRS_freestyle.h"
 #include "../../FRS_freestyle_config.h"
 
+#define DEFAULT_SPHERE_RADIUS  1.0f
+#define DEFAULT_DKR_EPSILON    0.0f
+
 	// Freestyle configuration
 	static short freestyle_is_initialized = 0;
 	static Config::Path *pathconfig = NULL;
@@ -330,10 +333,15 @@ extern "C" {
 		}
 		
 		// set parameters
+		if (config->mode == FREESTYLE_CONTROL_SCRIPT_MODE && (config->flags & FREESTYLE_ADVANCED_OPTIONS_FLAG)) {
+			controller->setSphereRadius( config->sphere_radius );
+			controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon );
+		} else {
+			controller->setSphereRadius( DEFAULT_SPHERE_RADIUS );
+			controller->setSuggestiveContourKrDerivativeEpsilon( DEFAULT_DKR_EPSILON );
+		}
 		controller->setFaceSmoothness( (config->flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) ? true : false);
 		controller->setCreaseAngle( config->crease_angle );
-		controller->setSphereRadius( config->sphere_radius );
-		controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon ) ;
 		controller->setVisibilityAlgo( config->raycasting_algorithm );
 
 		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
@@ -500,8 +508,8 @@ extern "C" {
 
 		config->modules.first = config->modules.last = NULL;
 		config->flags = 0;
-		config->sphere_radius = 1.0f;
-		config->dkr_epsilon = 0.001f;
+		config->sphere_radius = DEFAULT_SPHERE_RADIUS;
+		config->dkr_epsilon = DEFAULT_DKR_EPSILON;
 		config->crease_angle = 134.43f;
 
 		config->linesets.first = config->linesets.last = NULL;

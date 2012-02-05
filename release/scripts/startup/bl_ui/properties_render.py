@@ -207,12 +207,11 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
         col.prop(freestyle, "raycasting_algorithm", text="Raycasting Algorithm")
         col.prop(freestyle, "mode", text="Control Mode")
 
+        col.label(text="Edge Detection Options:")
+        col.prop(freestyle, "use_smoothness")
+        col.prop(freestyle, "crease_angle")
+
         if freestyle.mode == "EDITOR":
-            col.label(text="Edge Detection Options:")
-            col.prop(freestyle, "use_smoothness")
-            col.prop(freestyle, "crease_angle")
-            col.prop(freestyle, "sphere_radius")
-            col.prop(freestyle, "kr_derivative_epsilon")
 
             lineset = freestyle.linesets.active
 
@@ -236,15 +235,14 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
 
         else: # freestyle.mode == "SCRIPT"
 
-            col.prop(freestyle, "use_smoothness")
-            col.prop(freestyle, "crease_angle")
-            col.prop(freestyle, "sphere_radius")
+            col.prop(freestyle, "use_material_boundaries")
             col.prop(freestyle, "use_ridges_and_valleys")
             col.prop(freestyle, "use_suggestive_contours")
-            sub = col.row()
-            sub.prop(freestyle, "kr_derivative_epsilon")
-            sub.active = freestyle.use_suggestive_contours
-            col.prop(freestyle, "use_material_boundaries")
+            col.prop(freestyle, "use_advanced_options")
+            if freestyle.use_advanced_options:
+                col.prop(freestyle, "sphere_radius")
+                col.prop(freestyle, "kr_derivative_epsilon")
+            col.separator()
             col.operator("scene.freestyle_module_add")
 
             for i, module in enumerate(freestyle.modules):
