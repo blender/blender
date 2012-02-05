@@ -316,8 +316,7 @@ class RENDER_PT_freestyle_lineset(RenderButtonsPanel, Panel):
             self.draw_edge_type_buttons(sub, lineset, "border")
 
             self.draw_edge_type_buttons(sub, lineset, "crease")
-            self.draw_edge_type_buttons(sub, lineset, "ridge")
-            self.draw_edge_type_buttons(sub, lineset, "valley")
+            self.draw_edge_type_buttons(sub, lineset, "ridge_valley")
             self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
             self.draw_edge_type_buttons(sub, lineset, "material_boundary")
             self.draw_edge_type_buttons(sub, lineset, "edge_mark")

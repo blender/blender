@@ -275,8 +275,7 @@ extern "C" {
 				{FREESTYLE_FE_SILHOUETTE, 0},
 				{FREESTYLE_FE_BORDER, 0},
 				{FREESTYLE_FE_CREASE, 0},
-				{FREESTYLE_FE_RIDGE, 0},
-				{FREESTYLE_FE_VALLEY, 0},
+				{FREESTYLE_FE_RIDGE_VALLEY, 0},
 				{FREESTYLE_FE_SUGGESTIVE_CONTOUR, 0},
 				{FREESTYLE_FE_MATERIAL_BOUNDARY, 0},
 				{FREESTYLE_FE_CONTOUR, 0},
@@ -315,8 +314,7 @@ extern "C" {
 								conditions[i].value *= -1;
 							logical_and = !logical_and;
 						}
-						if (test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_RIDGE, true) ||
-							test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_VALLEY, true))
+						if (test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_RIDGE_VALLEY, true))
 							++use_ridges_and_valleys;
 						if (test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_SUGGESTIVE_CONTOUR, true))
 							++use_suggestive_contours;

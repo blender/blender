@@ -969,12 +969,9 @@ def process(layer_name, lineset_name):
         if lineset.select_crease:
             upred = pyNatureUP1D(Nature.CREASE)
             edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_crease else upred)
-        if lineset.select_ridge:
+        if lineset.select_ridge_valley:
             upred = pyNatureUP1D(Nature.RIDGE)
-            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_ridge else upred)
-        if lineset.select_valley:
-            upred = pyNatureUP1D(Nature.VALLEY)
-            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_valley else upred)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_ridge_valley else upred)
         if lineset.select_suggestive_contour:
             upred = pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR)
             edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_suggestive_contour else upred)

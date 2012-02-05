@@ -2350,14 +2350,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Crease", "Select crease edges");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "select_ridge", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_RIDGE);
-	RNA_def_property_ui_text(prop, "Ridge", "Select ridges");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "select_valley", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_VALLEY);
-	RNA_def_property_ui_text(prop, "Valley", "Select valleys");
+	prop= RNA_def_property(srna, "select_ridge_valley", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_RIDGE_VALLEY);
+	RNA_def_property_ui_text(prop, "Ridge & Valley", "Select ridges and valleys");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_suggestive_contour", PROP_BOOLEAN, PROP_NONE);
@@ -2403,15 +2398,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_X, 0);
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "exclude_ridge", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_RIDGE);
-	RNA_def_property_ui_text(prop, "Ridge", "Exclude ridges");
-	RNA_def_property_ui_icon(prop, ICON_X, 0);
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "exclude_valley", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_VALLEY);
-	RNA_def_property_ui_text(prop, "Valley", "Exclude valleys");
+	prop= RNA_def_property(srna, "exclude_ridge_valley", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_RIDGE_VALLEY);
+	RNA_def_property_ui_text(prop, "Ridge & Valley", "Exclude ridges and valleys");
 	RNA_def_property_ui_icon(prop, ICON_X, 0);
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 

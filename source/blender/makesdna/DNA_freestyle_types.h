@@ -47,7 +47,7 @@ struct FreestyleLineStyle;
 #define FREESTYLE_CONTROL_EDITOR_MODE  2
 
 /* FreestyleLineSet::flags */
-#define FREESTYLE_LINESET_CURRENT  1
+#define FREESTYLE_LINESET_CURRENT  1l
 #define FREESTYLE_LINESET_ENABLED  2
 #define FREESTYLE_LINESET_FE_NOT   4
 #define FREESTYLE_LINESET_FE_AND   8
@@ -66,8 +66,8 @@ struct FreestyleLineStyle;
 #define FREESTYLE_FE_SILHOUETTE          1
 #define FREESTYLE_FE_BORDER              2
 #define FREESTYLE_FE_CREASE              4
-#define FREESTYLE_FE_RIDGE               8
-#define FREESTYLE_FE_VALLEY              16
+#define FREESTYLE_FE_RIDGE_VALLEY        8
+/* Note: FREESTYLE_FE_VALLEY = 16 is no longer used */
 #define FREESTYLE_FE_SUGGESTIVE_CONTOUR  32
 #define FREESTYLE_FE_MATERIAL_BOUNDARY   64
 #define FREESTYLE_FE_CONTOUR             128
