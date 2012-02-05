@@ -425,8 +425,8 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	me= get_mesh(ob);
 	if(me==NULL || me->totpoly==0) return;
 
-	if(!me->mcol) make_vertexcol(ob);
-	if(!me->mcol) return; /* possible we can't make mcol's */
+	if(!me->mloopcol) make_vertexcol(ob);
+	if(!me->mloopcol) return; /* possible we can't make mcol's */
 
 
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
