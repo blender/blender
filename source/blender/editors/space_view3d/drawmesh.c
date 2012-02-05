@@ -115,25 +115,23 @@ static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flag
 static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 {
 	EdgeHash *eh = BLI_edgehash_new();
-	MFace *mf;
-	int i;
+	MPoly *mp;
+	MLoop *ml;
+	MLoop *ml_next;
+	int i, j;
 	
-	for(i=0; i<me->totface; i++) {
-		mf = &me->mface[i];
+	for(i=0; i<me->totpoly; i++) {
+		mp = &me->mpoly[i];
 
-		if(!(mf->flag & ME_HIDE)) {
+		if (!(mp->flag & ME_HIDE)) {
 			unsigned int flags = eEdge_Visible;
-			if(mf->flag & ME_FACE_SEL) flags |= eEdge_Select;
+			if (mp->flag & ME_FACE_SEL) flags |= eEdge_Select;
 
-			get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
-			get_marked_edge_info__orFlags(eh, mf->v2, mf->v3, flags);
-
-			if(mf->v4) {
-				get_marked_edge_info__orFlags(eh, mf->v3, mf->v4, flags);
-				get_marked_edge_info__orFlags(eh, mf->v4, mf->v1, flags);
+			ml = me->mloop + mp->loopstart;
+			for (j=0; j<mp->totloop; j++, ml++) {
+				ml_next = ME_POLY_LOOP_NEXT(me->mloop, mp, j);
+				get_marked_edge_info__orFlags(eh, ml->v, ml_next->v, flags);
 			}
-			else
-				get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
 		}
 	}
 
@@ -592,8 +590,8 @@ static int wpaint__setSolidDrawOptions_material(void *userData, int index, int *
 static int wpaint__setSolidDrawOptions_facemask(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
-	MFace *mface = &me->mface[index];
-	if (mface->flag & ME_HIDE) return 0;
+	MPoly *mp = &me->mpoly[index];
+	if (mp->flag & ME_HIDE) return 0;
 	*drawSmooth_r = 1;
 	return 1;
 }
@@ -863,9 +861,9 @@ static int tex_mat_set_face_mesh_cb(void *userData, int index)
 	/* faceselect mode face hiding */
 	TexMatCallback *data= (TexMatCallback*)userData;
 	Mesh *me = (Mesh*)data->me;
-	MPoly *mface = &me->mpoly[index];
+	MPoly *mp = &me->mpoly[index];
 
-	return !(mface->flag & ME_HIDE);
+	return !(mp->flag & ME_HIDE);
 }
 
 static int tex_mat_set_face_editmesh_cb(void *userData, int index)

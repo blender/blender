@@ -3239,7 +3239,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* weight paint in solid mode, special case. focus on making the weights clear
 			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mface, 1);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mpoly, 1);
 		
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
@@ -3364,7 +3364,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mface, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mpoly, 1);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -7144,7 +7144,7 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 {
 	Mesh *me = userData;
 
-	if (!(me->mface[index].flag&ME_HIDE)) {
+	if (!(me->mpoly[index].flag&ME_HIDE)) {
 		WM_set_framebuffer_index_color(index+1);
 		return 1;
 	} else {
@@ -7157,7 +7157,7 @@ static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNU
 {
 	Mesh *me = userData;
 
-	if (!(me->mface[index].flag & ME_HIDE)) {
+	if (!(me->mpoly[index].flag & ME_HIDE)) {
 		return 1;
 	} else {
 		return 0;

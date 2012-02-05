@@ -147,7 +147,7 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const int
 		   on an edge in the backbuf, we can still select a face */
 
 		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totface+1, &dist,0,NULL, NULL);
+		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totpoly+1, &dist,0,NULL, NULL);
 	}
 	else {
 		/* sample only on the exact position */
@@ -610,10 +610,8 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	int sy= rect->ymax-rect->ymin+1;
 	
 	me= get_mesh(ob);
-	if(me==0) return 0;
-	if(me->totpoly==0) return 0;
 
-	if(me==NULL || me->totface==0 || sx*sy <= 0)
+	if(me==NULL || me->totpoly==0 || sx*sy <= 0)
 		return OPERATOR_CANCELLED;
 
 	selar= MEM_callocN(me->totpoly+1, "selar");
@@ -640,7 +638,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	while(a--) {
 		if(*rt) {
 			index= WM_framebuffer_to_index(*rt);
-			if(index<=me->totface) selar[index]= 1;
+			if(index<=me->totpoly) selar[index]= 1;
 		}
 		rt++;
 	}
