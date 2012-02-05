@@ -3389,8 +3389,12 @@ static int convertspline(short type, Nurb *nu)
 			nu->orderu= 4;
 			nu->orderv= 1;
 			nu->type = type;
+
+#if 0		/* UNUSED */
 			if(nu->flagu & CU_NURB_CYCLIC) c= nu->orderu-1; 
 			else c= 0;
+#endif
+
 			if(type== CU_NURBS) {
 				nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
 				nu->flagu |= CU_NURB_BEZIER;

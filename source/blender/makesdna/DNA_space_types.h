@@ -896,11 +896,11 @@ enum {
 #define SC_SHOW_GRID			(1<<9)
 #define SC_SHOW_STABLE			(1<<10)
 #define SC_MANUAL_CALIBRATION	(1<<11)
-#define SC_SHOW_GPENCIL			(1<<12)
+/*#define SC_SHOW_GPENCIL			(1<<12)*/	/* UNUSED */
 #define SC_SHOW_FILTERS			(1<<13)
 #define SC_SHOW_GRAPH_FRAMES	(1<<14)
 #define SC_SHOW_GRAPH_TRACKS	(1<<15)
-#define SC_SHOW_PYRAMID_LEVELS	(1<<16)
+/*#define SC_SHOW_PYRAMID_LEVELS	(1<<16) */	/* UNUSED */
 #define SC_LOCK_TIMECURSOR		(1<<17)
 
 /* SpaceClip->mode */

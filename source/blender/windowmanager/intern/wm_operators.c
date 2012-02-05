@@ -1324,7 +1324,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
 	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
-	uiItemStringO(col, IFACE_("Release Log"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-261");
+	uiItemStringO(col, IFACE_("Release Log"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-262");
 	uiItemStringO(col, IFACE_("Manual"), ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	uiItemStringO(col, IFACE_("User Community"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community");
@@ -2135,7 +2135,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected;
+	int selected, second_life;
 	
 	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2144,7 +2144,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", filename);
 	selected = RNA_boolean_get(op->ptr, "selected");
-	if(collada_export(CTX_data_scene(C), filename, selected)) {
+	second_life = RNA_boolean_get(op->ptr, "second_life");
+	if(collada_export(CTX_data_scene(C), filename, selected, second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2164,6 +2165,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "selected", 0, "Export only selected",
 		"Export only selected elements");
+	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
+		"Compatibility mode for Second Life");
 }
 
 /* function used for WM_OT_save_mainfile too */

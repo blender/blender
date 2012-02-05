@@ -773,6 +773,27 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames , Ob
 			copy_m4_m4(mat, pchan->pose_mat);
 		UnitConverter converter;
 
+		// SECOND_LIFE_COMPATIBILITY
+		// AFAIK animation to second life is via BVH, but no
+		// reason to not have the collada-animation be correct
+		if(export_settings->second_life)
+		{
+			float temp[4][4];
+			copy_m4_m4(temp, bone->arm_mat);
+			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+			invert_m4(temp);
+
+			mult_m4_m4m4(mat, mat, temp);
+
+			if(bone->parent)
+			{
+				copy_m4_m4(temp, bone->parent->arm_mat);
+				temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+
+				mult_m4_m4m4(mat, temp, mat);
+			}
+		}
+
 		float outmat[4][4];
 		converter.mat4_to_dae(outmat,mat);
 

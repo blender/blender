@@ -231,6 +231,8 @@ bool CcdPhysicsController::CreateSoftbody()
 			if (trimeshshape->getMeshInterface()->getNumSubParts()==1)
 			{
 				unsigned char* vertexBase;
+				btScalar* scaledVertexBase;
+				btVector3 localScaling;
 				PHY_ScalarType vertexType;
 				int numverts;
 				int vertexstride;
@@ -238,8 +240,16 @@ bool CcdPhysicsController::CreateSoftbody()
 				int indexstride;
 				PHY_ScalarType indexType;
 				trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
-				
-				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris,false);
+				localScaling = scaledtrimeshshape->getLocalScaling();
+				scaledVertexBase = new btScalar[numverts*3];
+				for (int i=0; i<numverts*3; i+=3)
+				{
+					scaledVertexBase[i] = ((const btScalar*)vertexBase)[i] * localScaling.getX();
+					scaledVertexBase[i+1] = ((const btScalar*)vertexBase)[i+1] * localScaling.getY();
+					scaledVertexBase[i+2] = ((const btScalar*)vertexBase)[i+2] * localScaling.getZ();
+				}
+				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,scaledVertexBase,(const int*)indexbase,numtris,false);
+				delete [] scaledVertexBase;
 			}
 		} else
 		{
