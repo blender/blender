@@ -442,7 +442,53 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 	return err;
 }
 
-static void bmesh_kill_loop(BMesh *bm, BMLoop *l)
+/* low level function, only free's,
+ * does not change adjust surrounding geometry */
+static void bmesh_kill_only_vert(BMesh *bm, BMVert *v)
+{
+	bm->totvert--;
+	bm->elem_index_dirty |= BM_VERT;
+
+	BM_remove_selection(bm, v);
+	if (v->head.data)
+		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
+
+	BLI_mempool_free(bm->toolflagpool, v->head.flags);
+	BLI_mempool_free(bm->vpool, v);
+}
+
+static void bmesh_kill_only_edge(BMesh *bm, BMEdge *e)
+{
+	bm->totedge--;
+	bm->elem_index_dirty |= BM_EDGE;
+
+	BM_remove_selection(bm, e);
+
+	if (e->head.data)
+		CustomData_bmesh_free_block(&bm->edata, &e->head.data);
+
+	BLI_mempool_free(bm->toolflagpool, e->head.flags);
+	BLI_mempool_free(bm->epool, e);
+}
+
+static void bmesh_kill_only_face(BMesh *bm, BMFace *f)
+{
+	if (bm->act_face == f)
+		bm->act_face = NULL;
+
+	bm->totface--;
+	bm->elem_index_dirty |= BM_FACE;
+
+	BM_remove_selection(bm, f);
+
+	if (f->head.data)
+		CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
+
+	BLI_mempool_free(bm->toolflagpool, f->head.flags);
+	BLI_mempool_free(bm->fpool, f);
+}
+
+static void bmesh_kill_only_loop(BMesh *bm, BMLoop *l)
 {
 	bm->totloop--;
 	if (l->head.data)
@@ -508,26 +554,15 @@ void BM_Kill_Face(BMesh *bm, BMFace *f)
 			lnext = l->next;
 
 			bmesh_radial_remove_loop(l, l->e);
-			bmesh_kill_loop(bm, l);
+			bmesh_kill_only_loop(bm, l);
 
 			l = lnext;
 		} while (l != ls->first);
 		
 		BLI_mempool_free(bm->looplistpool, ls);
 	}
-	
-	if (bm->act_face == f)
-		bm->act_face = NULL;
-	
-	bm->totface--;
-	bm->elem_index_dirty |= BM_FACE;
-	BM_remove_selection(bm, f);
-	if (f->head.data)
-		CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, f->head.flags);
-
-	BLI_mempool_free(bm->fpool, f);
+	bmesh_kill_only_face(bm, f);
 }
 
 void BM_Kill_Edge(BMesh *bm, BMEdge *e)
@@ -554,14 +589,7 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e)
 		} while (l != startl);
 	}
 	
-	bm->totedge--;
-	bm->elem_index_dirty |= BM_EDGE;
-	BM_remove_selection(bm, e);
-	if (e->head.data)
-		CustomData_bmesh_free_block(&bm->edata, &e->head.data);
-
-	BLI_mempool_free(bm->toolflagpool, e->head.flags);
-	BLI_mempool_free(bm->epool, e);
+	bmesh_kill_only_edge(bm, e);
 }
 
 void BM_Kill_Vert(BMesh *bm, BMVert *v)
@@ -571,20 +599,13 @@ void BM_Kill_Vert(BMesh *bm, BMVert *v)
 		
 		e = v->e;
 		while (v->e) {
-			nexte=bmesh_disk_nextedge(e, v);
+			nexte = bmesh_disk_nextedge(e, v);
 			BM_Kill_Edge(bm, e);
 			e = nexte;
 		}
 	}
 
-	bm->totvert--;
-	bm->elem_index_dirty |= BM_VERT;
-	BM_remove_selection(bm, v);
-	if (v->head.data)
-		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
-
-	BLI_mempool_free(bm->toolflagpool, v->head.flags);
-	BLI_mempool_free(bm->vpool, v);
+	bmesh_kill_only_vert(bm, v);
 }
 
 /********** private disk and radial cycle functions ************/
@@ -1412,17 +1433,10 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 			}
 
 			/*deallocate edge*/
-			BM_remove_selection(bm, ke);
-			BLI_mempool_free(bm->toolflagpool, ke->head.flags);
-			BLI_mempool_free(bm->epool, ke);
-			bm->totedge--;
+			bmesh_kill_only_edge(bm, ke);
+
 			/*deallocate vertex*/
-			BM_remove_selection(bm, kv);
-			BLI_mempool_free(bm->toolflagpool, kv->head.flags);
-			BLI_mempool_free(bm->vpool, kv);
-			bm->totvert--;
-			/* account for both above */
-			bm->elem_index_dirty |= BM_VERT | BM_EDGE;
+			bmesh_kill_only_vert(bm, kv);
 
 			/*Validate disk cycle lengths of ov,tv are unchanged*/
 			edok = bmesh_disk_validate(valence1, ov->e, ov);
