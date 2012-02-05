@@ -182,7 +182,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
-			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, M_SQRT2, mat))
+			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, 1.0f, mat))
 		return OPERATOR_CANCELLED;
 	
 	/* BMESH_TODO make plane side this: M_SQRT2 - plane (diameter of 1.41 makes it unit size) */
