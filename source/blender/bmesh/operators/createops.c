@@ -145,15 +145,16 @@ static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
 static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge **edges = NULL;
-	BMEdge *e2;
-	BLI_array_staticdeclare(edges, 256);
+	BMEdge *e_first;
+	BMEdge *e;
+	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
 	int i, totedge;
 	
-	e2 = vdata[BM_GetIndex(v)].e;
+	e = e_first = vdata[BM_GetIndex(v)].e;
 	do {
-		BLI_array_append(edges, e2);
-		e2 = rotsys_nextedge(e2, v, edata, vdata);
-	} while (e2 != vdata[BM_GetIndex(v)].e);
+		BLI_array_append(edges, e);
+		e = rotsys_nextedge(e, v, edata, vdata);
+	} while (e != e_first);
 	
 	totedge = BLI_array_count(edges);
 	for (i=0; i<totedge/2; i++) {
@@ -229,8 +230,9 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				continue;
 				
 			do {
-				if (BLI_smallhash_haskey(hash, (intptr_t)e2) 
-				 || BLI_smallhash_haskey(hash, (intptr_t)v)) {
+				if (BLI_smallhash_haskey(hash, (intptr_t)e2) ||
+				    BLI_smallhash_haskey(hash, (intptr_t)v))
+				{
 					ok = 0;
 					break;
 				}
@@ -333,10 +335,10 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BMIter iter;
 	BMEdge *e;
 	BMEdge **edges = NULL;
-	BLI_array_staticdeclare(edges, 256);
+	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
 	BMVert *v;
 	/*BMVert **verts = NULL; */
-	/*BLI_array_staticdeclare(verts, 256);*/ /*UNUSED*/
+	/*BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);*/ /*UNUSED*/
 	int i;
 	
 	#define SIGN(n) ((n)<0.0f)

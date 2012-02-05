@@ -1691,7 +1691,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		BLI_array_append(stack, e);
 
 		/* Considering only edges and faces incident on vertex v, walk
-		   the edges & faces and assign an index to each connected set */
+		 * the edges & faces and assign an index to each connected set */
 		while ((e = BLI_array_pop(stack))) {
 			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
 
@@ -1721,11 +1721,11 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		}
 
 		/* Loops here should alway refer to an edge that has v as an
-		   endpoint. For each appearance of this vert in a face, there
-		   will actually be two iterations: one for the loop heading
-		   towards vertex v, and another for the loop heading out from
-		   vertex v. Only need to swap the vertex on one of those times,
-		   on the outgoing loop. */
+		 * endpoint. For each appearance of this vert in a face, there
+		 * will actually be two iterations: one for the loop heading
+		 * towards vertex v, and another for the loop heading out from
+		 * vertex v. Only need to swap the vertex on one of those times,
+		 * on the outgoing loop. */
 		if (l->v == v) {
 			l->v = verts[i];
 		}

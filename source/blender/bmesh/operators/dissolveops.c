@@ -158,9 +158,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, v, VERT_MARK) && 
-			BM_Vert_EdgeCount(v) == 2)
-		{
+		if (BMO_TestFlag(bm, v, VERT_MARK) && BM_Vert_EdgeCount(v) == 2) {
 			BLI_array_append(verts, v);
 		}
 	}

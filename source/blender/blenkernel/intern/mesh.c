@@ -1756,10 +1756,13 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 
 		BLI_array_empty(vertcos);
 		BLI_array_empty(vertnos);
-		for (j=0; j<mp->totloop; j++) {
+		BLI_array_growitems(vertcos, mp->totloop);
+		BLI_array_growitems(vertnos, mp->totloop);
+
+		for (j=0; j < mp->totloop; j++) {
 			int vindex = ml[j].v;
-			BLI_array_append(vertcos, mverts[vindex].co);
-			BLI_array_append(vertnos, tnorms[vindex]);
+			vertcos[j] = mverts[vindex].co;
+			vertnos[j] = tnorms[vindex];
 		}
 
 		BLI_array_empty(edgevecbuf);

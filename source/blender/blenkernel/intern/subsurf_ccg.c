@@ -552,10 +552,11 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		CCGFace *f;
 
 		BLI_array_empty(fVerts);
+		BLI_array_growitems(fVerts, mp->totloop);
 
 		ml = mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
-			BLI_array_append(fVerts, SET_INT_IN_POINTER(ml->v));
+			fVerts[j] = SET_INT_IN_POINTER(ml->v);
 		}
 
 		/* this is very bad, means mesh is internally inconsistent.

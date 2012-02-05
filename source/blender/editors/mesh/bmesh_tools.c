@@ -4486,7 +4486,6 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	const int use_dist= RNA_boolean_get(op->ptr, "use_dist");
 	float *w = NULL, ftot;
 	int li;
-	BLI_array_declare(w);
 	
 	BM_add_data_layer(em->bm, &em->bm->edata, CD_PROP_FLT);
 	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT)-1;
@@ -4500,23 +4499,25 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	
 	if (em==NULL) return OPERATOR_CANCELLED;
 	
+	w = MEM_mallocN(sizeof(float) * recursion, "bevel weights");
+
 	/*ugh, stupid math depends somewhat on angles!*/
 	/* dfac = 1.0/(float)(recursion+1); */ /* UNUSED */
 	df = 1.0;
 	for (i=0, ftot=0.0f; i<recursion; i++) {
-		s = pow(df, 1.25);
-		
-		BLI_array_append(w, s);
+		s = powf(df, 1.25f);
+
+		w[i] = s;
 		ftot += s;
-		
+
 		df *= 2.0;
 	}
 
-	mul_vn_fl(w, BLI_array_count(w), 1.0f / (float)ftot);
+	mul_vn_fl(w, recursion, 1.0f / (float)ftot);
 
 	fac = factor;
-	for (i=0; i<BLI_array_count(w); i++) {
-		fac = w[BLI_array_count(w)-i-1]*factor;
+	for (i=0; i < recursion; i++) {
+		fac = w[recursion-i-1]*factor;
 
 		if (!EDBM_InitOpf(em, &bmop, op, "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%i use_even=%i use_dist=%i", BM_SELECT, fac, li, 1, use_even, use_dist))
 			return OPERATOR_CANCELLED;
@@ -4528,7 +4529,8 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	
 	BM_free_data_layer_n(em->bm, &em->bm->edata, CD_MASK_PROP_FLT, li);
 	
-	BLI_array_free(w);
+	MEM_freeN(w);
+
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(obedit->data, 0);
