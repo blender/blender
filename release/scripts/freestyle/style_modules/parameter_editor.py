@@ -626,7 +626,12 @@ class WithinImageBorderUP1D(UnaryPredicate1D):
     def getName(self):
         return "WithinImageBorderUP1D"
     def __call__(self, inter):
-        return self.withinBorder(inter.A()) or self.withinBorder(inter.B())
+        it = inter.verticesBegin()
+        while not it.isEnd():
+            if self.withinBorder(it.getObject()):
+                return True
+            it.increment()
+        return False
     def withinBorder(self, vert):
         x = vert.getProjectedX()
         y = vert.getProjectedY()
