@@ -1987,7 +1987,7 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) 
 		{
 			/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-			if(fabs(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+			if(fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
 				cvalue= bezt->vec[1][1];
 			}
 			/* evaltime occurs within the interval defined by these two keyframes */

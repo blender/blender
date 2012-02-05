@@ -128,9 +128,12 @@ class CLIP_PT_tools_marker(Panel):
             col.separator()
 
             row = col.row(align=True)
-            row.prop(settings, "use_default_red_channel", text="R", toggle=True)
-            row.prop(settings, "use_default_green_channel", text="G", toggle=True)
-            row.prop(settings, "use_default_blue_channel", text="B", toggle=True)
+            row.prop(settings, "use_default_red_channel",
+                     text="R", toggle=True)
+            row.prop(settings, "use_default_green_channel",
+                     text="G", toggle=True)
+            row.prop(settings, "use_default_blue_channel",
+                     text="B", toggle=True)
 
             col.separator()
 
@@ -155,7 +158,8 @@ class CLIP_PT_tools_marker(Panel):
             col.prop(settings, "default_pattern_match", text="")
 
             col.separator()
-            col.operator('clip.track_settings_as_default', text="Copy From Active Track")
+            col.operator('clip.track_settings_as_default',
+                         text="Copy From Active Track")
 
 
 class CLIP_PT_tools_tracking(Panel):

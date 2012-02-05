@@ -197,6 +197,7 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_KERNING_DEFAULT (1<<3)
 #define BLF_MATRIX (1<<4)
 #define BLF_ASPECT (1<<5)
+#define BLF_TEXFILTER (1<<6)
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 

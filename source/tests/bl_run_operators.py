@@ -142,7 +142,7 @@ def bpy_check_type_duplicates():
     # non essential sanity check
     bl_types = dir(bpy.types)
     bl_types_unique = set(bl_types)
-    
+
     if len(bl_types) != len(bl_types_unique):
         print("Error, found duplicates in 'bpy.types'")
         for t in sorted(bl_types_unique):

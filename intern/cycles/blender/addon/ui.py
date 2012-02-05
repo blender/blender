@@ -370,7 +370,7 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
         visibility = ob.cycles_visibility
 
         flow = layout.column_flow()
-        
+
         flow.prop(visibility, "camera")
         flow.prop(visibility, "diffuse")
         flow.prop(visibility, "glossy")

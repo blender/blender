@@ -36,6 +36,7 @@
 
 #include "ED_mball.h"
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "BLI_utildefines.h"
 
@@ -77,5 +78,7 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
+	ED_object_generic_keymap(keyconf, keymap, 3);
 }
 

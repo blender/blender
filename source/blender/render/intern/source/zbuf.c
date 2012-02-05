@@ -245,7 +245,7 @@ int testclip(const float v[4])
 	
 	/* if we set clip flags, the clipping should be at least larger than epsilon. 
 	   prevents issues with vertices lying exact on borders */
-	abs4= fabs(v[3]) + FLT_EPSILON;
+	abs4= fabsf(v[3]) + FLT_EPSILON;
 	
 	if( v[0] < -abs4) c+=1;
 	else if( v[0] > abs4) c+=2;

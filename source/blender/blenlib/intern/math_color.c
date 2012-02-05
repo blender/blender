@@ -561,7 +561,7 @@ void BLI_init_srgb_conversion(void)
 	for (i = 0; i < 0x10000; i++) {
 		float f = linearrgb_to_srgb(index_to_float(i))*255.0f;
 		if (f <= 0) BLI_color_to_srgb_table[i] = 0;
-		else if (f < 255) BLI_color_to_srgb_table[i] = (unsigned short)(f*0x100+.5);
+		else if (f < 255) BLI_color_to_srgb_table[i] = (unsigned short)(f*0x100+0.5f);
 		else BLI_color_to_srgb_table[i] = 0xff00;
 	}
 
