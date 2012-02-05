@@ -1315,7 +1315,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	for(a=0; a<totface; a++, mf++)
 		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL)))
 			totuv += (mf->v4)? 4: 3;
-		
+
 	if(totuv==0)
 		return NULL;
 	

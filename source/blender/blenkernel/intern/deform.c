@@ -650,11 +650,11 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 					dvert->dw[i]= dvert->dw[dvert->totweight];
 				}
 				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
-				MEM_freeN(dvert->dw);
 #else
 				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
 				memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
 #endif
+				MEM_freeN(dvert->dw);
 			}
 			dvert->dw = dw_new;
 		}
