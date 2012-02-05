@@ -905,8 +905,8 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
 static void neighbor_average(SculptSession *ss, float avg[3], const unsigned vert)
 {
 	int i, j, ok, total=0;
-	IndexNode *node= ss->fmap[vert].first;
-	char ncount= BLI_countlist(&ss->fmap[vert]);
+	IndexNode *node= ss->pmap[vert].first;
+	char ncount= BLI_countlist(&ss->pmap[vert]);
 	MPoly *f;
 	MLoop *ml;
 
@@ -942,7 +942,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const unsigned ver
 
 
 			for (i=0; i<3; ++i) {
-				if (ncount!=2 || BLI_countlist(&ss->fmap[f_adj_v[i]]) <= 2) {
+				if (ncount!=2 || BLI_countlist(&ss->pmap[f_adj_v[i]]) <= 2) {
 					if(ss->deform_cos) add_v3_v3(avg, ss->deform_cos[f_adj_v[i]]);
 					else add_v3_v3(avg, ss->mvert[f_adj_v[i]].co);
 					++total;
@@ -1122,7 +1122,7 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float 
 			if(ss->multires) {
 				do_multires_smooth_brush(sd, ss, nodes[n], iteration != count ? 1.0f : last);
 			}
-			else if(ss->fmap)
+			else if(ss->pmap)
 				do_mesh_smooth_brush(sd, ss, nodes[n], iteration != count ? 1.0f : last);
 		}
 
@@ -2692,7 +2692,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 	}
 }
 
-void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_fmap)
+void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_pmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
@@ -2724,7 +2724,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 	}
 
 	ss->pbvh = dm->getPBVH(ob, dm);
-	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(ob, dm): NULL;
+	ss->pmap = (need_pmap && dm->getPolyMap)? dm->getPolyMap(ob, dm): NULL;
 
 	if(ss->modifiers_active) {
 		if(!ss->orig_cos) {

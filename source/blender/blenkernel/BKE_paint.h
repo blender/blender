@@ -74,7 +74,7 @@ typedef struct SculptSession {
 	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
-	struct ListBase *fmap;
+	struct ListBase *pmap;
 
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;

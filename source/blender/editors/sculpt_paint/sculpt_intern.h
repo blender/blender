@@ -62,7 +62,7 @@ struct Brush *sculptmode_brush(void);
 void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);
-void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_fmap);
+void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_pmap);
 
 /* Deformed mesh sculpt */
 void free_sculptsession_deformMats(struct SculptSession *ss);

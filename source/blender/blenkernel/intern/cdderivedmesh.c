@@ -94,6 +94,9 @@ typedef struct {
 	/* Mesh connectivity */
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
+
+	struct ListBase *pmap;
+	struct IndexNode *pmap_mem;
 } CDDerivedMesh;
 
 /**************** DerivedMesh interface functions ****************/
@@ -204,6 +207,21 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	normal_short_to_float_v3(no_r, cddm->mvert[index].no);
+}
+
+static ListBase *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+
+	if(!cddm->pmap && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+
+		create_vert_poly_map(&cddm->pmap, &cddm->pmap_mem,
+		                     me->mpoly, me->mloop,
+		                     me->totvert, me->totface, me->totloop);
+	}
+
+	return cddm->pmap;
 }
 
 static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
@@ -1608,6 +1626,9 @@ static void cdDM_free_internal(CDDerivedMesh *cddm)
 {
 	if(cddm->fmap) MEM_freeN(cddm->fmap);
 	if(cddm->fmap_mem) MEM_freeN(cddm->fmap_mem);
+
+	if(cddm->pmap) MEM_freeN(cddm->pmap);
+	if(cddm->pmap_mem) MEM_freeN(cddm->pmap_mem);
 }
 
 static void cdDM_release(DerivedMesh *dm)
@@ -1667,6 +1688,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getVertNo = cdDM_getVertNo;
 
 	dm->getPBVH = cdDM_getPBVH;
+	dm->getPolyMap = cdDM_getPolyMap;
 	dm->getFaceMap = cdDM_getFaceMap;
 
 	dm->drawVerts = cdDM_drawVerts;

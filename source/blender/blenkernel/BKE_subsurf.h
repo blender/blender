@@ -84,6 +84,9 @@ typedef struct CCGDerivedMesh {
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
 
+	struct ListBase *pmap;
+	struct IndexNode *pmap_mem;
+
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;
 	int *gridOffset;

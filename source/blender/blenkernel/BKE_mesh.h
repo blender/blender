@@ -225,6 +225,9 @@ typedef struct IndexNode {
 	struct IndexNode *next, *prev;
 	int index;
 } IndexNode;
+void create_vert_poly_map(struct ListBase **map, IndexNode **mem,
+                          struct MPoly *mface, struct MLoop *mloop,
+                          const int totvert, const int totface, const int totloop);
 void create_vert_face_map(struct ListBase **map, IndexNode **mem, const struct MFace *mface,
                           const int totvert, const int totface);
 void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,

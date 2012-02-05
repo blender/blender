@@ -2387,6 +2387,8 @@ static void cgdm_release(DerivedMesh *dm) {
 		if(ccgdm->freeSS) ccgSubSurf_free(ccgdm->ss);
 		if(ccgdm->fmap) MEM_freeN(ccgdm->fmap);
 		if(ccgdm->fmap_mem) MEM_freeN(ccgdm->fmap_mem);
+		if(ccgdm->pmap) MEM_freeN(ccgdm->pmap);
+		if(ccgdm->pmap_mem) MEM_freeN(ccgdm->pmap_mem);
 		MEM_freeN(ccgdm->edgeFlags);
 		MEM_freeN(ccgdm->faceFlags);
 		MEM_freeN(ccgdm->vertMap);
@@ -2736,6 +2738,21 @@ static int *ccgDM_getGridOffset(DerivedMesh *dm)
 	return cgdm->gridOffset;
 }
 
+static ListBase *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
+
+	if(!ccgdm->multires.mmd && !ccgdm->pmap && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+
+		create_vert_poly_map(&ccgdm->pmap, &ccgdm->pmap_mem,
+		                     me->mpoly, me->mloop,
+		                     me->totvert, me->totface, me->totloop);
+	}
+
+	return ccgdm->pmap;
+}
+
 static ListBase *ccgDM_getFaceMap(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
@@ -2906,6 +2923,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getGridData = ccgDM_getGridData;
 	ccgdm->dm.getGridAdjacency = ccgDM_getGridAdjacency;
 	ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
+	ccgdm->dm.getPolyMap = ccgDM_getPolyMap;
 	ccgdm->dm.getFaceMap = ccgDM_getFaceMap;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
 

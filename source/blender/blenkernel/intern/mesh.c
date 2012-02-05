@@ -2102,6 +2102,32 @@ void free_uv_vert_map(UvVertMap *vmap)
 }
 
 /* Generates a map where the key is the vertex and the value is a list
+   of polys that use that vertex as a corner. The lists are allocated
+   from one memory pool. */
+void create_vert_poly_map(ListBase **map, IndexNode **mem,
+                          MPoly *mpoly, MLoop *mloop,
+                          const int totvert, const int totpoly, const int totloop)
+{
+	int i,j;
+	IndexNode *node = NULL;
+	MPoly *mp;
+	MLoop *ml;
+
+	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert face map");
+	(*mem) = MEM_callocN(sizeof(IndexNode) * totloop, "vert poly map mem");
+	node = *mem;
+
+	/* Find the users */
+	for(i = 0, mp = mpoly; i < totpoly; ++i, ++mp){
+		ml = &mloop[mp->loopstart];
+		for(j = 0; j < mp->totloop; ++j, ++node, ++ml) {
+			node->index = i;
+			BLI_addtail(&(*map)[ml->v], node);
+		}
+	}
+}
+
+/* Generates a map where the key is the vertex and the value is a list
    of faces that use that vertex as a corner. The lists are allocated
    from one memory pool. */
 void create_vert_face_map(ListBase **map, IndexNode **mem, const MFace *mface, const int totvert, const int totface)
