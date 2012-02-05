@@ -1851,12 +1851,12 @@ static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numT
 		texpoly->unwrap = texface->unwrap;
 	
 		mloopuv = CustomData_get_n(&me->ldata, CD_MLOOPUV, loopstart, i);
-		mloopuv->uv[0] = texface->uv[0][0]; mloopuv->uv[1] = texface->uv[0][1]; mloopuv++;
-		mloopuv->uv[0] = texface->uv[1][0]; mloopuv->uv[1] = texface->uv[1][1]; mloopuv++;
-		mloopuv->uv[0] = texface->uv[2][0]; mloopuv->uv[1] = texface->uv[2][1]; mloopuv++;
+		copy_v2_v2(mloopuv->uv, texface->uv[0]); mloopuv++;
+		copy_v2_v2(mloopuv->uv, texface->uv[1]); mloopuv++;
+		copy_v2_v2(mloopuv->uv, texface->uv[2]); mloopuv++;
 
 		if (mf->v4) {
-			mloopuv->uv[0] = texface->uv[3][0]; mloopuv->uv[1] = texface->uv[3][1]; mloopuv++;
+			copy_v2_v2(mloopuv->uv, texface->uv[3]); mloopuv++;
 		}
 	}
 
@@ -2201,8 +2201,7 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 
 		for (j=0; j < mf_len; j++) {
 			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
-			texface->uv[j][0] = mloopuv->uv[0];
-			texface->uv[j][1] = mloopuv->uv[1];
+			copy_v2_v2(texface->uv[j], mloopuv->uv);
 		}
 	}
 

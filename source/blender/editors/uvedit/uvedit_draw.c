@@ -194,8 +194,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv= CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-					tf_uvorig[i][0] = luv->uv[0];
-					tf_uvorig[i][1] = luv->uv[1];
+					copy_v2_v2(tf_uvorig[i], luv->uv);
 
 					i++;
 				}
@@ -245,8 +244,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 							luv= CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-							tf_uvorig[i][0] = luv->uv[0];
-							tf_uvorig[i][1] = luv->uv[1];
+							copy_v2_v2(tf_uvorig[i], luv->uv);
 
 							i++;
 						}

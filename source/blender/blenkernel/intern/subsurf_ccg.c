@@ -2410,8 +2410,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 
 		mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
 		for (j=0; j<4; j++, mloopuv++) {
-			texface->uv[j][0] = mloopuv->uv[0];
-			texface->uv[j][1] = mloopuv->uv[1];
+			copy_v2_v2(texface->uv[j], mloopuv->uv);
 		}
 	}
 
@@ -2445,8 +2444,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 
 		lof = CustomData_get(ldata, loopstart, CD_ORIGSPACE_MLOOP);
 		for (j=0; j<4; j++, lof++) {
-			of->uv[j][0] = lof->uv[0];
-			of->uv[j][1] = lof->uv[1];
+			copy_v2_v2(of->uv[j], lof->uv);
 		}
 	}
 }

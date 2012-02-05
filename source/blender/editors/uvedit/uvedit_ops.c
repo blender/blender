@@ -512,16 +512,14 @@ void poly_uv_center(BMEditMesh *em, BMFace *f, float cent[2])
 	MLoopUV *luv;
 	BMIter liter;
 
-	cent[0] = cent[1] = 0.0f;
+	zero_v2(cent);
 
 	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		cent[0] += luv->uv[0];
-		cent[1] += luv->uv[1];
+		add_v2_v2(cent, luv->uv);
 	}
 
-	cent[0] /= (float) f->len;
-	cent[1] /= (float) f->len;
+	mul_v2_fl(cent, 1.0f / (float)f->len);
 }
 
 
@@ -2951,8 +2949,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 			if (BM_GetIndex(l->v) >= 0 && 
 			    (!uvedit_uv_selected(em, scene, l))) {
 				    luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				    coords[BM_GetIndex(l->v)*2] += luv->uv[0];
-				    coords[BM_GetIndex(l->v)*2+1] += luv->uv[1];
+					add_v2_v2(&coords[BM_GetIndex(l->v) * 2], luv->uv);
 				    change = 1;
 			}
 		}
@@ -2978,8 +2975,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 			if (uvedit_uv_selected(em, scene, l) && BM_GetIndex(l->v) >= 0
 			    && (users = usercount[BM_GetIndex(l->v)])) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				luv->uv[0] = coords[BM_GetIndex(l->v)*2];
-				luv->uv[1] = coords[BM_GetIndex(l->v)*2+1];
+				copy_v2_v2(luv->uv, &coords[BM_GetIndex(l->v) * 2]);
 			}
 		}
 	}

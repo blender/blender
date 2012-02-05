@@ -150,8 +150,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 		j = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
-			texface->uv[j][0] = mloopuv->uv[0];
-			texface->uv[j][1] = mloopuv->uv[1];
+			copy_v2_v2(texface->uv[j], mloopuv->uv);
 
 			j++;
 		}
