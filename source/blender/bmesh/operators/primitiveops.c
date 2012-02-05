@@ -230,7 +230,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 	/* one segment first: the X axis */
 	phi= 1.0f;
 	phid= 2.0f/((float)tot-1);
-	for(a=0;a<tot;a++) {
+	for (a=0;a<tot;a++) {
 		vec[0]= dia*phi;
 		vec[1]= - dia;
 		vec[2]= 0.0f;
@@ -253,14 +253,15 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 	vec[1]= dia*phid;
 	mul_mat3_m4_v3(mat, vec);
 		
-	for(a=0;a<seg-1;a++) {
+	for (a=0;a<seg-1;a++) {
 		if (a) {
 			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
 			BMO_Exec_Op(bm, &bmop);
 			BMO_Finish_Op(bm, &prevop);
 
 			BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
-		} else {
+		}
+		else {
 			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
 			BMO_Exec_Op(bm, &bmop);
 			BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
@@ -289,12 +290,12 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	BMO_Get_Mat4(op, "mat", mat);
 
 	phid= 2.0f*(float)M_PI/tot;
-	phi= .25f*(float)M_PI;
+	phi= 0.25f*(float)M_PI;
 
 	/* one segment first */
 	phi= 0; 
 	phid/=2;
-	for(a=0; a<=tot; a++) {
+	for (a=0; a<=tot; a++) {
 		/* Going in this direction, then edge extruding, makes normals face outward */
 		vec[0]= -dia*sinf(phi);
 		vec[1]= 0.0;
@@ -302,7 +303,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		eve= BM_Make_Vert(bm, vec, NULL);
 		BMO_SetFlag(bm, eve, VERT_MARK);
 
-		if(a != 0) {
+		if (a != 0) {
 			e = BM_Make_Edge(bm, preveve, eve, NULL, 0);
 			BMO_SetFlag(bm, e, EDGE_ORIG);
 		}
@@ -318,12 +319,13 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	q[1]=q[2]= 0;
 	quat_to_mat3(cmat, q);
 
-	for(a=0; a<seg; a++) {
+	for (a=0; a<seg; a++) {
 		if (a) {
 			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
 			BMO_Exec_Op(bm, &bmop);
 			BMO_Finish_Op(bm, &prevop);
-		} else {
+		}
+		else {
 			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
 			BMO_Exec_Op(bm, &bmop);
 		}
@@ -341,7 +343,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 
 	/* and now do imat */
 	BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if(BMO_TestFlag(bm, eve, VERT_MARK)) {
+		if (BMO_TestFlag(bm, eve, VERT_MARK)) {
 			mul_m4_v3(mat, eve->co);
 		}
 	}
@@ -364,7 +366,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	/* phi= .25f*(float)M_PI; */         /* UNUSED */
 
 	dia/=200;
-	for(a=0;a<12;a++) {
+	for (a=0;a<12;a++) {
 		vec[0]= dia*icovert[a][0];
 		vec[1]= dia*icovert[a][1];
 		vec[2]= dia*icovert[a][2];
@@ -374,7 +376,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BM_Select(bm, eva[a], TRUE);
 	}
 
-	for(a=0;a<20;a++) {
+	for (a=0;a<20;a++) {
 		BMFace *eftemp;
 		BMVert *v1, *v2, *v3;
 
@@ -393,7 +395,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 
 	dia*=200;
 
-	for(a=1; a<subdiv; a++) {
+	for (a=1; a<subdiv; a++) {
 		BMOperator bmop;
 
 		BMO_InitOpf(bm, &bmop, 
@@ -575,7 +577,8 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 				BMO_SetFlag(bm, f, FACE_NEW);
 			}
 			BM_Make_Face_QuadTri(bm, lastv1, lastv2, v2, v1, NULL, 0);
-		} else {
+		}
+		else {
 			firstv1 = v1;
 			firstv2 = v2;
 		}

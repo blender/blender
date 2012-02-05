@@ -151,7 +151,7 @@ static void *shellWalker_step(BMWalker *walker)
 	curedge = shellWalk.curedge;
 	do {
 		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
-			if(!walker->restrictflag || (walker->restrictflag &&
+			if (!walker->restrictflag || (walker->restrictflag &&
 			   BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
 			{
 				shellWalker *newstate;
@@ -169,7 +169,7 @@ static void *shellWalker_step(BMWalker *walker)
 			}
 		}
 		curedge = bmesh_disk_nextedge(curedge, shellWalk.base);
-	} while(curedge != shellWalk.curedge);
+	} while (curedge != shellWalk.curedge);
 	
 	return shellWalk.curedge;
 }
@@ -297,11 +297,12 @@ static void *islandboundWalker_step(BMWalker *walker)
 			l = bmesh_radial_nextloop(l);
 			f = l->f;
 			e = l->e;
-			if(walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
+			if (walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
 				l = l->radial_next;
 				break;
 			}
-		} else {
+		}
+		else {
 			f = l->f;
 			e = l->e;
 			break;
@@ -366,14 +367,14 @@ static void *islandWalker_step(BMWalker *walker)
 	BMW_removestate(walker);
 
 	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
-	for (; l; l=BMIter_Step(&liter)) {
+	for ( ; l; l=BMIter_Step(&liter)) {
 		/* could skip loop here too, but dont add unless we need it */
 		if (walker->mask_edge && !BMO_TestFlag(walker->bm, l->e, walker->mask_edge)) {
 			continue;
 		}
 
 		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
-		for (; f; f=BMIter_Step(&iter)) {
+		for ( ; f; f=BMIter_Step(&iter)) {
 			if (walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
 				continue;
 			}
@@ -638,8 +639,10 @@ static void *faceloopWalker_step(BMWalker *walker)
 		if (l->f->len != 4) {
 			lwalk->nocalc = 1;
 			lwalk->l = origl;
-		} else
+		}
+		else {
 			lwalk->nocalc = 0;
+		}
 
 		BLI_ghash_insert(walker->visithash, l->f, NULL);
 	}
@@ -666,7 +669,8 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	if (!lwalk->l) {
 		lwalk->wireedge = e;
 		return;
-	} else {
+	}
+	else {
 		lwalk->wireedge = NULL;
 	}
 

@@ -118,15 +118,15 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 	w[1] = 1.0f - fac;
 	w[0] = fac;
 
-	if(!e1->l) return;
+	if (!e1->l) return;
 	l = e1->l;
 	do {
-		if(l->v == v1) {
+		if (l->v == v1) {
 			v1loop = l;
 			vloop = v1loop->next;
 			v2loop = vloop->next;
 		}
-		else if(l->v == v) {
+		else if (l->v == v) {
 			v1loop = l->next;
 			vloop = l;
 			v2loop = l->prev;
@@ -140,7 +140,7 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 
 		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->head.data); 				
 		l = l->radial_next;
-	} while(l!=e1->l);
+	} while (l!=e1->l);
 }
 
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
@@ -155,7 +155,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	MLoopUV *mloopuv;
 	int i, j;
 
-	for(i=0; i < numTex; i++) {
+	for (i=0; i < numTex; i++) {
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
@@ -176,7 +176,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 
 	}
 
-	for(i=0; i < numCol; i++) {
+	for (i=0; i < numCol; i++) {
 		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
 
 		j = 0;
@@ -265,11 +265,13 @@ static void UNUSED_FUNCTION(closest_to_line_segment_v3_d)(double *closest, doubl
 
 	lambda= closest_to_line_v3_d(cp,v1, v2, v3);
 
-	if(lambda <= 0.0) {
+	if (lambda <= 0.0) {
 		VECCOPY(closest, v2);
-	} else if(lambda >= 1.0) {
+	}
+	else if (lambda >= 1.0) {
 		VECCOPY(closest, v3);
-	} else {
+	}
+	else {
 		VECCOPY(closest, cp);
 	}
 }
@@ -316,18 +318,18 @@ static double UNUSED_FUNCTION(dist_to_line_segment_v2_d)(double v1[3], double v2
 	rc[0]= v3[0]-v2[0];
 	rc[1]= v3[1]-v2[1];
 	len= rc[0]*rc[0]+ rc[1]*rc[1];
-	if(len==0.0) {
+	if (len==0.0) {
 		rc[0]= v1[0]-v2[0];
 		rc[1]= v1[1]-v2[1];
 		return sqrt(rc[0]*rc[0]+ rc[1]*rc[1]);
 	}
 	
 	labda= (rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]))/len;
-	if(labda<=0.0) {
+	if (labda<=0.0) {
 		pt[0]= v2[0];
 		pt[1]= v2[1];
 	}
-	else if(labda>=1.0) {
+	else if (labda>=1.0) {
 		pt[0]= v3[0];
 		pt[1]= v3[1];
 	}
@@ -359,7 +361,8 @@ static int isect_point_quad_v2_d(double pt[2], double v1[2], double v2[2], doubl
 				}
 			}
 		}
-	} else {
+	}
+	else {
 		if (! (line_point_side_v2_d(v2,v3,pt)>=0.0)) {
 			if (! (line_point_side_v2_d(v3,v4,pt)>=0.0)) {
 				if (! (line_point_side_v2_d(v4,v1,pt)>=0.0)) {
@@ -436,7 +439,8 @@ static double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3],
 		f2= fabs(f2);
 		f1 = MIN2(f1, f2);
 		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
-	} else {
+	}
+	else {
 		f1 = -z/(y - 2*z);
 		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
 		
@@ -685,7 +689,8 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 				
 				o1 = sides*y + sides-1;
 				o2 = (sides-1)*sides + y;
-			} else {
+			}
+			else {
 				a1 = sides*y + sides-2;
 				a2 = sides*y + sides-2;
 				o1 = sides*y + sides-1;

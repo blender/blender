@@ -82,7 +82,7 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], BMVert *example)
 {
 	BMVert *v = NULL;
 	v = bmesh_mv(bm, co);
-	if(example)
+	if (example)
 		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->head.data, &v->head.data);
 	return v;
 }
@@ -106,13 +106,13 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 {
 	BMEdge *e = NULL;
 	
-	if(nodouble) /*test if edge already exists.*/
+	if (nodouble) /*test if edge already exists.*/
 		e = BM_Edge_Exist(v1, v2);
 
-	if(!e) {
+	if (!e) {
 		e = bmesh_me(bm, v1, v2);
 
-		if(example)
+		if (example)
 			CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->head.data, &e->head.data);
 	}
 	
@@ -155,7 +155,7 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace 
 
 	edar[0] = BM_Edge_Exist(verts[0], verts[1]);
 	edar[1] = BM_Edge_Exist(verts[1], verts[2]);
-	if(len == 4) {
+	if (len == 4) {
 		edar[2] = BM_Edge_Exist(verts[2], verts[3]);
 		edar[3] = BM_Edge_Exist(verts[3], verts[0]);
 	}
@@ -163,9 +163,9 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace 
 		edar[2] = BM_Edge_Exist(verts[2], verts[0]);
 	}
 
-	if(nodouble) {
+	if (nodouble) {
 		/*check if face exists or overlaps*/
-		if(len == 4) {
+		if (len == 4) {
 			overlap = BM_Exist_Face_Overlaps(bm, verts, len, &f);
 		}
 		else {
@@ -174,21 +174,22 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace 
 	}
 
 	/*make new face*/
-	if((!f) && (!overlap)) {
-		if(!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
-		if(!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, 0);
-		if(len == 4) {
-			if(!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, 0);
-			if(!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, 0);
-		} else {
-			if(!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, 0);
+	if ((!f) && (!overlap)) {
+		if (!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
+		if (!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, 0);
+		if (len == 4) {
+			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, 0);
+			if (!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, 0);
+		}
+		else {
+			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, 0);
 		}
 	
 		f = BM_Make_Face(bm, verts, edar, len, 0);
 	
-		if(example && f)
+		if (example && f) {
 			BM_Copy_Attributes(bm, bm, example, f);
-
+		}
 	}
 
 	return f;
@@ -204,13 +205,14 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f)
 	if (!f) return;
 
 	l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (; l; l=BMIter_Step(&iter)) {
+	for ( ; l; l=BMIter_Step(&iter)) {
 		l2 = l->radial_next;
 		
 		if (l2 && l2 != l) {
 			if (l2->v == l->v) {
 				bm_copy_loop_attributes(bm, bm, l2, l);
-			} else {
+			}
+			else {
 				l2 = l2->next;
 				bm_copy_loop_attributes(bm, bm, l2, l);
 			}
@@ -371,7 +373,7 @@ void BM_remove_tagged_faces(BMesh *bm, int flag)
 	BMIter iter;
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if(BMO_TestFlag(bm, f, flag)) BM_Kill_Face(bm, f);
+		if (BMO_TestFlag(bm, f, flag)) BM_Kill_Face(bm, f);
 	}
 }
 
@@ -381,7 +383,7 @@ void BM_remove_tagged_edges(BMesh *bm, int flag)
 	BMIter iter;
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if(BMO_TestFlag(bm, e, flag)) BM_Kill_Edge(bm, e);
+		if (BMO_TestFlag(bm, e, flag)) BM_Kill_Edge(bm, e);
 	}
 }
 
@@ -391,7 +393,7 @@ void BM_remove_tagged_verts(BMesh *bm, int flag)
 	BMIter iter;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if(BMO_TestFlag(bm, v, flag)) BM_Kill_Vert(bm, v);
+		if (BMO_TestFlag(bm, v, flag)) BM_Kill_Vert(bm, v);
 	}
 }
 
@@ -441,23 +443,23 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 	const BMHeader *sheader = source;
 	BMHeader *theader = target;
 	
-	if(sheader->htype != theader->htype)
+	if (sheader->htype != theader->htype)
 		return;
 
 	/*First we copy select*/
-	if(BM_Selected(source_mesh, source)) BM_Select(target_mesh, target, TRUE);
+	if (BM_Selected(source_mesh, source)) BM_Select(target_mesh, target, TRUE);
 	
 	/*Now we copy flags*/
 	theader->hflag = sheader->hflag;
 	
 	/*Copy specific attributes*/
-	if(theader->htype == BM_VERT)
+	if (theader->htype == BM_VERT)
 		bm_copy_vert_attributes(source_mesh, target_mesh, (const BMVert*)source, (BMVert*)target);
-	else if(theader->htype == BM_EDGE)
+	else if (theader->htype == BM_EDGE)
 		bm_copy_edge_attributes(source_mesh, target_mesh, (const BMEdge*)source, (BMEdge*)target);
-	else if(theader->htype == BM_LOOP)
+	else if (theader->htype == BM_LOOP)
 		bm_copy_loop_attributes(source_mesh, target_mesh, (const BMLoop*)source, (BMLoop*)target);
-	else if(theader->htype == BM_FACE)
+	else if (theader->htype == BM_FACE)
 		bm_copy_face_attributes(source_mesh, target_mesh, (const BMFace*)source, (BMFace*)target);
 }
 

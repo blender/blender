@@ -94,7 +94,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	}
 
 	actkey = ob_get_keyblock(ob);
-	if(actkey && actkey->totelem == me->totvert) {
+	if (actkey && actkey->totelem == me->totvert) {
 		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 		
 		/*check if we need to generate unique ids for the shapekeys.
@@ -117,7 +117,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 			j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
 			bm->vdata.layers[j].uid = block->uid;
 		}
-	} else if (actkey) {
+	}
+	else if (actkey) {
 		printf("shapekey<->mesh mismatch!\n");
 	}
 	
@@ -296,31 +297,33 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
 		                                "Selection Conversion Face Pointer Array");
 
-		for(i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for (i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 		    vertex; i++, vertex = BMIter_Step(&iter))
 		{
 			vertex_array[i] = vertex;
 		}
 
-		for(i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
+		for (i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 		    edge; i++, edge = BMIter_Step(&iter))
 		{
 			edge_array[i] = edge;
 		}
 
-		for(i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
+		for (i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 		    face; i++, face = BMIter_Step(&iter))
 		{
 			face_array[i] = face;
 		}
 
-		if(me->mselect) {
-			for(i = 0; i < me->totselect; i++) {
-				if(me->mselect[i].type == ME_VSEL) {
+		if (me->mselect) {
+			for (i = 0; i < me->totselect; i++) {
+				if (me->mselect[i].type == ME_VSEL) {
 					BM_store_selection(bm, vertex_array[me->mselect[i].index]);
-				}else if(me->mselect[i].type == ME_ESEL) {
+				}
+				else if (me->mselect[i].type == ME_ESEL) {
 					BM_store_selection(bm, edge_array[me->mselect[i].index]);
-				}else if(me->mselect[i].type == ME_FSEL) {
+				}
+				else if (me->mselect[i].type == ME_FSEL) {
 					BM_store_selection(bm, face_array[me->mselect[i].index]);
 				}
 			}
@@ -370,17 +373,17 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	BLI_assert(ototvert > 0);
 
 	vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
-	if(CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
+	if (CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
 		int *keyi;
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-			if(keyi) {
+			if (keyi) {
 				if (((index= *keyi) != ORIGINDEX_NONE) && (index < ototvert)) {
 					vertMap[index] = eve;
 				}
 			}
 			else {
-				if(i < ototvert) {
+				if (i < ototvert) {
 					vertMap[i] = eve;
 				}
 			}
@@ -389,7 +392,7 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	}
 	else {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if(i < ototvert) {
+			if (i < ototvert) {
 				vertMap[i] = eve;
 			}
 			else {
@@ -436,16 +439,16 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	ototvert = me->totvert;
 
 	/* new Vertex block */
-	if(bm->totvert==0) mvert= NULL;
+	if (bm->totvert==0) mvert= NULL;
 	else mvert= MEM_callocN(bm->totvert*sizeof(MVert), "loadeditbMesh vert");
 
 	/* new Edge block */
-	if(bm->totedge==0) medge= NULL;
+	if (bm->totedge==0) medge= NULL;
 	else medge= MEM_callocN(bm->totedge*sizeof(MEdge), "loadeditbMesh edge");
 	
 	/*build ngon data*/
 	/* new Ngon Face block */
-	if(bm->totface==0) mpoly = NULL;
+	if (bm->totface==0) mpoly = NULL;
 	else mpoly= MEM_callocN(bm->totface*sizeof(MPoly), "loadeditbMesh poly");
 	
 	/*find number of loops to allocate*/
@@ -587,17 +590,17 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 					vertMap= bmesh_to_mesh_vertex_map(bm, ototvert);
 				}
 
-				if(ob->par1 < ototvert) {
+				if (ob->par1 < ototvert) {
 					eve = vertMap[ob->par1];
-					if(eve) ob->par1= BM_GetIndex(eve);
+					if (eve) ob->par1= BM_GetIndex(eve);
 				}
-				if(ob->par2 < ototvert) {
+				if (ob->par2 < ototvert) {
 					eve = vertMap[ob->par2];
-					if(eve) ob->par2= BM_GetIndex(eve);
+					if (eve) ob->par2= BM_GetIndex(eve);
 				}
-				if(ob->par3 < ototvert) {
+				if (ob->par3 < ototvert) {
 					eve = vertMap[ob->par3];
-					if(eve) ob->par3= BM_GetIndex(eve);
+					if (eve) ob->par3= BM_GetIndex(eve);
 				}
 				
 			}
@@ -611,7 +614,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 						}
 						
 						for (i=j=0; i<hmd->totindex; i++) {
-							if(hmd->indexar[i] < ototvert) {
+							if (hmd->indexar[i] < ototvert) {
 								eve = vertMap[hmd->indexar[i]];
 								
 								if (eve) {
@@ -640,19 +643,21 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		BMEditSelection *selected;
 		me->totselect = BLI_countlist(&(bm->selected));
 
-		if(me->mselect) MEM_freeN(me->mselect);
+		if (me->mselect) MEM_freeN(me->mselect);
 
 		me->mselect = MEM_callocN(sizeof(MSelect) * me->totselect, "Mesh selection history");
 
 
-		for(i = 0, selected = bm->selected.first; selected; i++, selected = selected->next) {
-			if(selected->htype == BM_VERT) {
+		for (i = 0, selected = bm->selected.first; selected; i++, selected = selected->next) {
+			if (selected->htype == BM_VERT) {
 				me->mselect[i].type = ME_VSEL;
 
-			}else if(selected->htype == BM_EDGE) {
+			}
+			else if (selected->htype == BM_EDGE) {
 				me->mselect[i].type = ME_ESEL;
 
-			}else if(selected->htype == BM_FACE) {
+			}
+			else if (selected->htype == BM_FACE) {
 				me->mselect[i].type = ME_FSEL;
 			}
 
@@ -696,17 +701,17 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 
 		/* editing the base key should update others */
-		if(me->key->type==KEY_RELATIVE && oldverts) {
+		if (me->key->type==KEY_RELATIVE && oldverts) {
 			int act_is_basis = 0;
 			/* find if this key is a basis for any others */
-			for(currkey = me->key->block.first; currkey; currkey= currkey->next) {
-				if(bm->shapenr-1 == currkey->relative) {
+			for (currkey = me->key->block.first; currkey; currkey= currkey->next) {
+				if (bm->shapenr-1 == currkey->relative) {
 					act_is_basis = 1;
 					break;
 				}
 			}
 
-			if(act_is_basis) { /* active key is a base */
+			if (act_is_basis) { /* active key is a base */
 				float (*fp)[3]= actkey->data;
 				int *keyi;
 				i=0;
@@ -714,7 +719,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				mvert = me->mvert;
 				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-					if(keyi && *keyi != ORIGINDEX_NONE) {
+					if (keyi && *keyi != ORIGINDEX_NONE) {
 						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
 					}
 					i++;
@@ -747,7 +752,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 						copy_v3_v3(fp, co);
 
 						/* propagate edited basis offsets to other shapes */
-						if(apply_offset) {
+						if (apply_offset) {
 							add_v3_v3(fp, *ofs_pt++);
 						}
 
@@ -766,7 +771,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		if(ofs) MEM_freeN(ofs);
+		if (ofs) MEM_freeN(ofs);
 	}
 
 	/* XXX, code below is from trunk and a duplicate functionality
@@ -777,7 +782,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	/* old method of reconstructing keys via vertice's original key indices,
 	   currently used if the new method above fails (which is theoretically
 	   possible in certain cases of undo).*/
-	if(me->key) {
+	if (me->key) {
 		float *fp, *newkey, *oldkey;
 		KeyBlock *currkey;
 		KeyBlock *actkey= BLI_findlink(&me->key->block, bm->shapenr-1);
@@ -785,17 +790,17 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		float (*ofs)[3] = NULL;
 
 		/* editing the base key should update others */
-		if(me->key->type==KEY_RELATIVE && oldverts) {
+		if (me->key->type==KEY_RELATIVE && oldverts) {
 			int act_is_basis = 0;
 			/* find if this key is a basis for any others */
-			for(currkey = me->key->block.first; currkey; currkey= currkey->next) {
-				if(bm->shapenr-1 == currkey->relative) {
+			for (currkey = me->key->block.first; currkey; currkey= currkey->next) {
+				if (bm->shapenr-1 == currkey->relative) {
 					act_is_basis = 1;
 					break;
 				}
 			}
 
-			if(act_is_basis) { /* active key is a base */
+			if (act_is_basis) { /* active key is a base */
 				float (*fp)[3]= actkey->data;
 				int *keyi;
 				i=0;
@@ -803,7 +808,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				mvert = me->mvert;
 				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-					if(keyi && *keyi != ORIGINDEX_NONE) {
+					if (keyi && *keyi != ORIGINDEX_NONE) {
 						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
 					}
 					i++;
@@ -815,7 +820,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
 		currkey = me->key->block.first;
-		while(currkey) {
+		while (currkey) {
 			int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr-1 == currkey->relative));
 
 			if (!(currkey->flag & KEYBLOCK_MISSING)) {
@@ -835,25 +840,25 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 			i = 0;
 			mvert = me->mvert;
-			while(eve) {
+			while (eve) {
 				keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 				if (!keyi) {
 					break;
 				}
 				if (*keyi >= 0 && *keyi < currkey->totelem) { // valid old vertex
-					if(currkey == actkey) {
-						if(actkey == me->key->refkey) {
+					if (currkey == actkey) {
+						if (actkey == me->key->refkey) {
 							copy_v3_v3(fp, mvert->co);
 						}
 						else {
 							copy_v3_v3(fp, mvert->co);
-							if(oldverts) {
+							if (oldverts) {
 								copy_v3_v3(mvert->co, oldverts[*keyi].co);
 							}
 						}
 					}
 					else {
-						if(oldkey) {
+						if (oldkey) {
 							copy_v3_v3(fp, oldkey + 3 * *keyi);
 						}
 					}
@@ -863,7 +868,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				}
 
 				/* propagate edited basis offsets to other shapes */
-				if(apply_offset) {
+				if (apply_offset) {
 					add_v3_v3(fp, ofs[i]);
 				}
 
@@ -873,14 +878,14 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				eve= BMIter_Step(&iter);
 			}
 			currkey->totelem= bm->totvert;
-			if(currkey->data) MEM_freeN(currkey->data);
+			if (currkey->data) MEM_freeN(currkey->data);
 			currkey->data = newkey;
 			
 			currkey= currkey->next;
 		}
 
-		if(ofs) MEM_freeN(ofs);
+		if (ofs) MEM_freeN(ofs);
 	}
 
-	if(oldverts) MEM_freeN(oldverts);
+	if (oldverts) MEM_freeN(oldverts);
 }

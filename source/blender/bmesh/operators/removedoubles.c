@@ -66,11 +66,11 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 
 	if (overlapface) *overlapface = NULL;
 
-	for(i=0; i < len; i++) {
-		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
-		while(f) {
+	for (i=0; i < len; i++) {
+		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
+		while (f) {
 			amount = BM_Verts_In_Face(bm, f, varr, len);
-			if(amount >= len) {
+			if (amount >= len) {
 				if (overlapface) *overlapface = f;
 				return 1;				
 			}
@@ -323,7 +323,8 @@ void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
 		if (!snapv) {
 			snapv = v;
 			copy_v3_v3(snapv->co, vec);
-		} else {
+		}
+		else {
 			BMO_Insert_MapPointer(bm, &weldop, "targetmap", v, snapv);
 		}		
 	}

@@ -94,7 +94,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 
 	l = BMIter_New(&liter1, bm, BM_LOOPS_OF_FACE, f);
 	l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
-	for (; l && l2; l=BMIter_Step(&liter1), l2=BMIter_Step(&liter2)) {
+	for ( ; l && l2; l=BMIter_Step(&liter1), l2=BMIter_Step(&liter2)) {
 		BM_Copy_Attributes(bm, bm, l, l2);
 		if (l->e != l2->e) {
 			/*set up data for figuring out the two sides of
@@ -368,14 +368,14 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		/* debugging code, quick way to find the face/vert combination
 		 * which is failing assuming quads start planer - campbell */
 #if 0
-		if(f->len == 4) {
+		if (f->len == 4) {
 			float no1[3];
 			float no2[3];
 			float angle_error;
 			printf(" ** found QUAD\n");
 			normal_tri_v3(no1, verts[0]->co, verts[1]->co, verts[2]->co);
 			normal_tri_v3(no2, verts[0]->co, verts[2]->co, verts[3]->co);
-			if((angle_error= angle_v3v3(no1, no2)) > 0.05) {
+			if ((angle_error= angle_v3v3(no1, no2)) > 0.05) {
 				printf("     ERROR %.4f\n", angle_error);
 				print_v3("0", verts[0]->co);
 				print_v3("1", verts[1]->co);

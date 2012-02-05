@@ -55,17 +55,17 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	normal_tri_v3(n1, v1->co, v2->co, v3->co);
 	normal_tri_v3(n2, v1->co, v3->co, v4->co);
 
-	if(n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle1 = 0.0f;
+	if (n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle1 = 0.0f;
 	else angle1 = angle_v3v3(n1, n2);
 
 	normal_tri_v3(n1, v2->co, v3->co, v4->co);
 	normal_tri_v3(n2, v4->co, v1->co, v2->co);
 
-	if(n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle2 = 0.0f;
+	if (n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle2 = 0.0f;
 	else angle2 = angle_v3v3(n1, n2);
 
 	measure += (angle1 + angle2) * 0.5f;
-	if(measure > limit) return measure;
+	if (measure > limit) return measure;
 
 	/*Second test: Colinearity*/
 	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
@@ -79,22 +79,22 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 		fabsf(angle_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
 		fabsf(angle_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
 		fabsf(angle_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
-	if(!diff) return 0.0;
+	if (!diff) return 0.0;
 
 	measure +=  diff;
-	if(measure > limit) return measure;
+	if (measure > limit) return measure;
 
 	/*Third test: Concavity*/
 	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
 	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
 
-	if(areaA <= areaB) minarea = areaA;
+	if (areaA <= areaB) minarea = areaA;
 	else minarea = areaB;
 
-	if(areaA >= areaB) maxarea = areaA;
+	if (areaA >= areaB) maxarea = areaA;
 	else maxarea = areaB;
 
-	if(!maxarea) measure += 1;
+	if (!maxarea) measure += 1;
 	else measure += (1 - (minarea / maxarea));
 
 	return measure;
@@ -118,7 +118,8 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	if (l1->v == l3->v) {
 		l2 = l1->next;
 		l4 = l2->next;
-	} else {
+	}
+	else {
 		l2 = l1->next;
 
 		l4 = l3;
@@ -147,7 +148,7 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	/*compare faceedges for each face attribute. Additional per face attributes can be added later*/
 
 	/*do VCOLs*/
-	if(lcol1 && dovcols) {
+	if (lcol1 && dovcols) {
 		char *cols[4] = {(char*)lcol1, (char*)lcol2, (char*)lcol3, (char*)lcol4};
 		int i;
 
@@ -164,15 +165,15 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 
 	/*do UVs*/
 	if (luv1 && douvs) {
-		if(tp1->tpage != tp2->tpage); /*do nothing*/
+		if (tp1->tpage != tp2->tpage); /*do nothing*/
 		else {
 			int i;
 
-			for(i = 0; i < 2; i++) {
-				if(luv1->uv[0] + T2QUV_LIMIT > luv3->uv[0] && luv1->uv[0] - T2QUV_LIMIT < luv3->uv[0] &&
+			for (i = 0; i < 2; i++) {
+				if (luv1->uv[0] + T2QUV_LIMIT > luv3->uv[0] && luv1->uv[0] - T2QUV_LIMIT < luv3->uv[0] &&
 					luv1->uv[1] + T2QUV_LIMIT > luv3->uv[1] && luv1->uv[1] - T2QUV_LIMIT < luv3->uv[1])
 				{
-					if(luv2->uv[0] + T2QUV_LIMIT > luv4->uv[0] && luv2->uv[0] - T2QUV_LIMIT < luv4->uv[0] &&
+					if (luv2->uv[0] + T2QUV_LIMIT > luv4->uv[0] && luv2->uv[0] - T2QUV_LIMIT < luv4->uv[0] &&
 						luv2->uv[1] + T2QUV_LIMIT > luv4->uv[1] && luv2->uv[1] - T2QUV_LIMIT < luv4->uv[1])
 					{
 						mergeok_uvs = 1;
@@ -202,8 +203,8 @@ static int fplcmp(const void *v1, const void *v2)
 {
 	const JoinEdge *e1= ((JoinEdge*)v1), *e2=((JoinEdge*)v2);
 
-	if( e1->weight > e2->weight) return 1;
-	else if( e1->weight < e2->weight) return -1;
+	if (e1->weight > e2->weight) return 1;
+	else if (e1->weight < e2->weight) return -1;
 
 	return 0;
 }
@@ -281,7 +282,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		measure = measure_facepair(bm, v1, v2, v3, v4, limit);
-		if(measure < limit) {
+		if (measure < limit) {
 			BLI_array_growone(jedges);
 
 			jedges[i].e = e;

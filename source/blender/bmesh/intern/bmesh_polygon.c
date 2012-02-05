@@ -66,10 +66,10 @@ static short testedgeside(const double v1[2], const double v2[2], const double v
 	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
 	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
 
-	if(inp<0.0) return 0;
-	else if(inp==0) {
-		if(v1[0]==v3[0] && v1[1]==v3[1]) return 0;
-		if(v2[0]==v3[0] && v2[1]==v3[1]) return 0;
+	if (inp<0.0) return 0;
+	else if (inp==0) {
+		if (v1[0]==v3[0] && v1[1]==v3[1]) return 0;
+		if (v2[0]==v3[0] && v2[1]==v3[1]) return 0;
 	}
 	return 1;
 }
@@ -82,17 +82,17 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
 	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
 	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
 
-	if(inp<0.0) return 0;
-	else if(inp==0) {
-		if(v1[0]==v3[0] && v1[1]==v3[1]) return 0;
-		if(v2[0]==v3[0] && v2[1]==v3[1]) return 0;
+	if (inp<0.0) return 0;
+	else if (inp==0) {
+		if (v1[0]==v3[0] && v1[1]==v3[1]) return 0;
+		if (v2[0]==v3[0] && v2[1]==v3[1]) return 0;
 	}
 	return 1;
 }
 
 static int point_in_triangle(const double v1[2], const double v2[2], const double v3[2], const double pt[2])
 {
-	if(testedgeside(v1,v2,pt) && testedgeside(v2,v3,pt) && testedgeside(v3,v1,pt))
+	if (testedgeside(v1,v2,pt) && testedgeside(v2,v3,pt) && testedgeside(v3,v1,pt))
 		return 1;
 	return 0;
 }
@@ -117,7 +117,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	/*this fixes some weird numerical error*/
 	add_v3_fl(verts[0], 0.0001f);
 
-	for(i = 0; i < nverts; i++) {
+	for (i = 0; i < nverts; i++) {
 		copy_v3_v3(u, verts[i]);
 		copy_v3_v3(v, verts[(i+1) % nverts]);
 		copy_v3_v3(w, verts[(i+2) % nverts]);
@@ -150,7 +150,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
 	}
 
-	if(normalize_v3_v3(normal, n) == 0.0f) {
+	if (normalize_v3_v3(normal, n) == 0.0f) {
 		normal[2] = 1.0f; /* other axis set to 0.0 */
 	}
 
@@ -170,7 +170,10 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		normal[2] = 1.0f;
 
 		return;
-	} else l = 1.0f / l;
+	}
+	else {
+		l = 1.0f / l;
+	}
 
 	mul_v3_fl(n, l);
 
@@ -194,13 +197,13 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 
 	zero_v3(center);
 
-	if(nverts < 3) 
+	if (nverts < 3)
 		return 0;
 
 	i = nverts-1;
 	j = 0;
 	
-	while(j < nverts) {
+	while (j < nverts) {
 		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];				
 		atmp += ai;
 		xtmp += (verts[j][0] + verts[i][0]) * ai;
@@ -209,7 +212,7 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 		j += 1;
 	}
 
-	if(r_area)
+	if (r_area)
 		*r_area = atmp / 2.0f;
 	
 	if (atmp != 0) {
@@ -295,17 +298,17 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	float *v1, *v2, *v3;
 	int i;
 	
-	if(nverts < 3) 
+	if (nverts < 3)
 		return;
 
 	zero_v3(avgn);
 	zero_v3(avgc);
 
-	for(i = 0; i < nverts; i++) {
+	for (i = 0; i < nverts; i++) {
 		v1 = verts[i];
 		v2 = verts[(i+1) % nverts];
 		v3 = verts[(i+2) % nverts];
-		normal_tri_v3( norm,v1, v2, v3);	
+		normal_tri_v3(norm,v1, v2, v3);
 
 		add_v3_v3(avgn, norm);
 	}
@@ -315,7 +318,8 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		avgn[0] = 0.0f;
 		avgn[1] = 0.0f;
 		avgn[2] = 1.0f;
-	} else {
+	}
+	else {
 		/* XXX, why is this being divided and _then_ normalized
 		 * division could be removed? - campbell */
 		avgn[0] /= nverts;
@@ -324,7 +328,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		normalize_v3(avgn);
 	}
 	
-	for(i = 0; i < nverts; i++) {
+	for (i = 0; i < nverts; i++) {
 		v1 = verts[i];
 		mag = dot_v3v3(v1, avgn);
 		madd_v3_v3fl(v1, avgn, -mag);
@@ -398,7 +402,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 	axis_angle_to_quat(q, axis, (float)angle);
 	quat_to_mat3(mat, q);
 
-	for(i = 0;  i < nverts;  i++)
+	for (i = 0;  i < nverts;  i++)
 		mul_m3_v3(mat, verts[i]);
 }
 
@@ -445,7 +449,7 @@ void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
 	BMFace *f;
 	
 	f = BMIter_New(&iter, bm, BM_FACES_OF_EDGE, e);
-	for (; f; f=BMIter_Step(&iter)) {
+	for ( ; f; f=BMIter_Step(&iter)) {
 		BM_Face_UpdateNormal(bm, f);
 	}
 
@@ -493,7 +497,7 @@ void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
 	int len=0;
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
-	for (; f; f=BMIter_Step(&iter), len++) {
+	for ( ; f; f=BMIter_Step(&iter), len++) {
 		BM_Face_UpdateNormal(bm, f);
 	}
 
@@ -795,9 +799,9 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			               BM_GetIndex(v3), nvert))
 			isear = 0;
 		
-		if(isear) {
+		if (isear) {
 			/*angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if(!bestear || ABS(angle-45.0f) < bestangle) {
+			if (!bestear || ABS(angle-45.0f) < bestangle) {
 				bestear = l;
 				bestangle = ABS(45.0f-angle);
 			}
@@ -810,7 +814,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 		}
 		l = l->next;
 	}
-	while(l != bm_firstfaceloop(f));
+	while (l != bm_firstfaceloop(f));
 
 	return bestear;
 }
@@ -846,7 +850,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		BM_SetIndex(l->v, i); /* set dirty! */
 		i++;
 		l = l->next;
-	} while(l != bm_firstfaceloop(f));
+	} while (l != bm_firstfaceloop(f));
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
@@ -863,10 +867,10 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	}
 
 	done = 0;
-	while(!done && f->len > 3) {
+	while (!done && f->len > 3) {
 		done = 1;
 		l = find_ear(bm, f, projectverts, nvert);
-		if(l) {
+		if (l) {
 			done = 0;
 			/* v = l->v; */ /* UNUSED */
 			f = BM_Split_Face(bm, l->f, l->prev->v,
@@ -943,7 +947,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	
 	i = 0;
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (; l; l=BMIter_Step(&iter)) {
+	for ( ; l; l=BMIter_Step(&iter)) {
 		BM_SetIndex(l, i); /* set_loop */
 		copy_v3_v3(projverts[i], l->v->co);
 		i++;

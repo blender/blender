@@ -182,9 +182,9 @@ void *BMW_walk(BMWalker *walker)
 {
 	void *current = NULL;
 
-	while(BMW_currentstate(walker)) {
+	while (BMW_currentstate(walker)) {
 		current = walker->step(walker);
-		if(current) return current;
+		if (current) return current;
 	}
 	return NULL;
 }

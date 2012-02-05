@@ -96,9 +96,11 @@ NOTE: beauty has been renamed to flag!
 	while (1) {
 		if (d > dp) {
 			d -= wid;
-		} else if (d < dp) {
+		}
+		else if (d < dp) {
 			d += wid;
-		} else {
+		}
+		else {
 			break;
 		}
 
@@ -176,7 +178,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 	co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, params->origkey);
 	copy_v3_v3(prev_co, co);
 
-	if(params->beauty & B_SMOOTH) {
+	if (params->beauty & B_SMOOTH) {
 		/* we calculate an offset vector vec1[], to be added to *co */
 		float len, nor[3], nor1[3], nor2[3], smooth=params->smooth;
 
@@ -201,12 +203,12 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 
 		add_v3_v3(co, tvec);
 	}
-	else if(params->beauty & B_SPHERE) { /* subdivide sphere */
+	else if (params->beauty & B_SPHERE) { /* subdivide sphere */
 		normalize_v3(co);
 		mul_v3_fl(co, params->smooth);
 	}
 
-	if(params->beauty & B_FRACTAL) {
+	if (params->beauty & B_FRACTAL) {
 		float len = len_v3v3(vsta->co, vend->co);
 		float vec2[3] = {0.0f, 0.0f, 0.0f}, co2[3];
 
@@ -263,13 +265,13 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,BMEdge *oedge,
 #if 0 //BMESH_TODO
 	/* clip if needed by mirror modifier */
 	if (edge->v1->f2) {
-		if ( edge->v1->f2 & edge->v2->f2 & 1) {
+		if (edge->v1->f2 & edge->v2->f2 & 1) {
 			co[0]= 0.0f;
 		}
-		if ( edge->v1->f2 & edge->v2->f2 & 2) {
+		if (edge->v1->f2 & edge->v2->f2 & 2) {
 			co[1]= 0.0f;
 		}
-		if ( edge->v1->f2 & edge->v2->f2 & 4) {
+		if (edge->v1->f2 & edge->v2->f2 & 4) {
 			co[2]= 0.0f;
 		}
 	}
@@ -309,7 +311,7 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const subdparams *par
 	temp.v1 = &ov1;
 	temp.v2 = &ov2;
 	
-	for(i=0;i<numcuts;i++) {
+	for (i=0;i<numcuts;i++) {
 		v = subdivideedgenum(bm, eed, &temp, i, params->numcuts, params, 
 		                     &newe, vsta, vend);
 
@@ -358,7 +360,8 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 			connect_smallest_face(bm, verts[i], verts[numcuts+add], 
 				           &nf);
 		}
-	} else {
+	}
+	else {
 		add = 2;
 		for (i=0; i<numcuts; i++) {
 			connect_smallest_face(bm, verts[i], verts[numcuts+add], 
@@ -802,7 +805,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	if (singleedge) {
 		patterns[0] = &quad_1edge;
 		patterns[2] = &tri_1edge;
-	} else {
+	}
+	else {
 		patterns[0] = NULL;
 		patterns[2] = NULL;
 	}
@@ -810,7 +814,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	if (gridfill) {
 		patterns[3] = &quad_4edge;
 		patterns[5] = &tri_3edge;
-	} else {
+	}
+	else {
 		patterns[3] = NULL;
 		patterns[5] = NULL;
 	}
@@ -1004,7 +1009,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			
 			if (BMO_TestFlag(bmesh, loops[(a+numcuts+1)%vlen]->v, ELE_INNER)) {
 				b = (a+numcuts+1)%vlen;
-			} else {
+			}
+			else {
 				/*find the boundary of the other edge.*/
 				for (j=0; j<vlen; j++) {
 					b = (j + a + numcuts + 1) % vlen;
@@ -1037,7 +1043,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			}
 
 			continue;
-		} else if (!pat) {
+		}
+		else if (!pat) {
 			continue;
 		}
 
@@ -1112,10 +1119,11 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 		// int i;
 		
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
-		for (; ele; ele=BMO_IterStep(&iter)) {
+		for ( ; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, TRUE);
 		}
-	} else if (seltype == SUBDIV_SELECT_LOOPCUT) {
+	}
+	else if (seltype == SUBDIV_SELECT_LOOPCUT) {
 		BMOIter iter;
 		BMHeader *ele;
 		// int i;
@@ -1124,7 +1132,7 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 		BM_clear_flag_all(bm, BM_SELECT);
 
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
-		for (; ele; ele=BMO_IterStep(&iter)) {
+		for ( ; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, TRUE);
 
 			if (ele->htype == BM_VERT) {
@@ -1136,7 +1144,8 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 													&& BM_TestHFlag(e->v2, BM_SELECT)) {
 						BM_Select(bm, e, TRUE);
 						bm->totedgesel += 1;
-					} else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT) 
+					}
+					else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT)
 														  || !BM_TestHFlag(e->v2, BM_SELECT))) {
 						BM_Select(bm, e, FALSE);
 						bm->totedgesel -= 1;

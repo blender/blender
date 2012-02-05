@@ -114,7 +114,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 	BMO_Exec_Op(bm, &dupeop);
 
 	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap", 0);
-	for (; e; e=BMO_IterStep(&siter)) {
+	for ( ; e; e=BMO_IterStep(&siter)) {
 		e2 = BMO_IterMapVal(&siter);
 		e2 = *(BMEdge**)e2;
 
@@ -123,7 +123,8 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 			v2 = e->v2;
 			v3 = e2->v2;
 			v4 = e2->v1;
-		} else {
+		}
+		else {
 			v1 = e2->v1;
 			v2 = e2->v2;
 			v3 = e->v2;
@@ -154,7 +155,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 
 	v = BMO_IterNew(&siter, bm, op, "verts", BM_VERT);
-	for (; v; v=BMO_IterStep(&siter)) {
+	for ( ; v; v=BMO_IterStep(&siter)) {
 		dupev = BM_Make_Vert(bm, v->co, v);
 
 		e = BM_Make_Edge(bm, v, dupev, NULL, 0);
@@ -255,7 +256,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_CopySlot(&dupeop, op, "newout", "geomout");
 	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap", 0);
-	for (; e; e=BMO_IterStep(&siter)) {
+	for ( ; e; e=BMO_IterStep(&siter)) {
 		if (BMO_InMap(bm, op, "exclude", e)) continue;
 
 		newedge = BMO_IterMapVal(&siter);
@@ -276,7 +277,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			verts[1] = e->v2;
 			verts[2] = newedge->v2;
 			verts[3] = newedge->v1;
-		} else {
+		}
+		else {
 			verts[3] = e->v1;
 			verts[2] = e->v2;
 			verts[1] = newedge->v2;
@@ -288,7 +290,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 
 		/*copy attributes*/
 		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-		for (; l; l=BMIter_Step(&iter)) {
+		for ( ; l; l=BMIter_Step(&iter)) {
 			if (l->e != e && l->e != newedge) continue;
 			l2 = l->radial_next;
 			
@@ -300,7 +302,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 				l2 = l2->next;
 				l = l->next;
 				BM_Copy_Attributes(bm, bm, l2, l);
-			} else {
+			}
+			else {
 				BM_Copy_Attributes(bm, bm, l2->f, l->f);
 
 				/*copy data*/
@@ -309,7 +312,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 					l2 = l2->next;
 					l = l->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
-				} else {
+				}
+				else {
 					l2 = l2->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
 					l2 = l2->prev;
@@ -322,7 +326,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 
 	/*link isolated verts*/
 	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap", 0);
-	for (; v; v=BMO_IterStep(&siter)) {
+	for ( ; v; v=BMO_IterStep(&siter)) {
 		v2 = *((void**)BMO_IterMapVal(&siter));
 		BM_Make_Edge(bm, v, v2, v->e, 1);
 	}
@@ -507,7 +511,7 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 	BM_ElemIndex_Ensure(bm, BM_VERT);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if(!BMO_TestFlag(bm, f, FACE_MARK)) {
+		if (!BMO_TestFlag(bm, f, FACE_MARK)) {
 			continue;
 		}
 
@@ -534,7 +538,7 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		index = BM_GetIndex(v);
-		if(vert_accum[index]) { /* zero if unselected */
+		if (vert_accum[index]) { /* zero if unselected */
 			float vdist = MIN2(maxdist, dist * vert_angles[index] / vert_accum[index]);
 			madd_v3_v3fl(v->co, v->no, vdist);
 		}

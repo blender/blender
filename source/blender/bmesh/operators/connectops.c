@@ -38,7 +38,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		lastl = NULL;
-		for (; l; l=BMIter_Step(&liter)) {
+		for ( ; l; l=BMIter_Step(&liter)) {
 			if (BMO_TestFlag(bm, l->v, VERT_INPUT)) {
 				if (!lastl) {
 					lastl = l;
@@ -207,7 +207,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				if (c==0) {
 					BLI_array_append(ee1, e2);
 					BLI_array_append(vv1, v);
-				} else {
+				}
+				else {
 					BLI_array_append(ee2, e2);
 					BLI_array_append(vv2, v);
 				}
@@ -230,7 +231,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 						printf("%s: internal state waning *TODO DESCRIPTION!*\n", __func__);
 					}
 					BLI_array_append(vv1, v);
-				} else {
+				}
+				else {
 					BLI_array_append(vv2, v);
 				}
 			}

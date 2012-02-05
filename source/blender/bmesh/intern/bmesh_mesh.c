@@ -117,18 +117,18 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	BMIter faces;
 	BMIter loops;
 	
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v = BMIter_Step(&verts)) CustomData_bmesh_free_block( &(bm->vdata), &(v->head.data) );
-	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e = BMIter_Step(&edges)) CustomData_bmesh_free_block( &(bm->edata), &(e->head.data) );
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)) {
-		CustomData_bmesh_free_block( &(bm->pdata), &(f->head.data) );
-		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) CustomData_bmesh_free_block( &(bm->ldata), &(l->head.data) );
+	for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
+	for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
+	for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
+		CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
+		for (l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f); l; l = BMIter_Step(&loops)) CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
 	}
 
 	/*Free custom data pools, This should probably go in CustomData_free?*/
-	if(bm->vdata.totlayer) BLI_mempool_destroy(bm->vdata.pool);
-	if(bm->edata.totlayer) BLI_mempool_destroy(bm->edata.pool);
-	if(bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
-	if(bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
+	if (bm->vdata.totlayer) BLI_mempool_destroy(bm->vdata.pool);
+	if (bm->edata.totlayer) BLI_mempool_destroy(bm->edata.pool);
+	if (bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
+	if (bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
 
  	/*free custom data*/
 	CustomData_free(&bm->vdata,0);
@@ -232,11 +232,11 @@ void BM_Compute_Normals(BMesh *bm)
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
 
-		if(f->len > maxlength) maxlength = f->len;
+		if (f->len > maxlength) maxlength = f->len;
 	}
 	
 	/*make sure we actually have something to do*/
-	if(maxlength < 3) return; 
+	if (maxlength < 3) return;
 
 	/*allocate projectverts array*/
 	projectverts = MEM_callocN(sizeof(float) * maxlength * 3, "BM normal computation array");
@@ -396,7 +396,8 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 				
 				if (lmd->disps && lmd->totdisp == mdisps->totdisp) {
 					memcpy(lmd->disps, mdisps->disps, sizeof(float)*3*lmd->totdisp);
-				} else if (mdisps->disps) {
+				}
+				else if (mdisps->disps) {
 					if (lmd->disps)
 						MEM_freeN(lmd->disps);
 					
@@ -447,7 +448,8 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 		/*ensure correct normals, if possible*/
 		bmesh_rationalize_normals(bm, 0);
 		BM_Compute_Normals(bm);
-	} else if (flag & BMOP_RATIONALIZE_NORMALS) {
+	}
+	else if (flag & BMOP_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 0);
 	}
 #else
@@ -466,7 +468,8 @@ void bmesh_end_edit(BMesh *bm, int flag)
 		/*set normals to their previous winding*/
 		bmesh_rationalize_normals(bm, 1);
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
-	} else if (flag & BMOP_RATIONALIZE_NORMALS) {
+	}
+	else if (flag & BMOP_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 1);
 	}
 #else

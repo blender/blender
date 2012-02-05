@@ -32,7 +32,7 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	int i, lastlen=0 /* , count = 0 */;
 	
 	face = BMO_IterNew(&siter, bm, op, "faces", BM_FACE);
-	for (; face; face=BMO_IterStep(&siter)) {
+	for ( ; face; face=BMO_IterStep(&siter)) {
 		if (lastlen < face->len) {
 			BLI_array_empty(projectverts);
 			BLI_array_empty(newfaces);

@@ -78,7 +78,8 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 
 		vd->e = e;
 		e1->next = e1->prev = (Link*)e;
-	} else {
+	}
+	else {
 		Link *e1, *e2, *e3;
 		EdgeData *ved = &edata[BM_GetIndex(vd->e)];
 
@@ -448,7 +449,8 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 					i = 0;
 					k++;
 					continue;
-				} else {
+				}
+				else {
 					k++;
 					continue;
 				}
@@ -499,7 +501,8 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				if (dot_v3v3(n1, n2) < 0.0f) {
 					if (dot_v3v3(n1, n3) >= 0.0f + FLT_EPSILON*10) {
 						SWAP(BMEdge*, edges[i], edges[(i+1)%totedge]);
-					} else {
+					}
+					else {
 						SWAP(BMEdge*, edges[(i+totedge-1)%totedge], edges[(i+1)%totedge])
 						SWAP(BMEdge*, edges[i], edges[(i+1)%totedge])
 					}
@@ -742,7 +745,8 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 		while (1) {		
 			if (!last->cure) {
 				last->cure = e = vdata[BM_GetIndex(last->v)].e;
-			} else {
+			}
+			else {
 				last->cure = e = rotsys_nextedge(last->cure, last->v, edata, vdata);
 				if (last->cure == vdata[BM_GetIndex(last->v)].e) {
 					v2 = NULL;
@@ -1083,7 +1087,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		if (!count) {
 			edges1 = edges;
 			BLI_array_set_length(edges1, BLI_array_count(edges));
-		} else {
+		}
+		else {
 			edges2 = edges;
 			BLI_array_set_length(edges2, BLI_array_count(edges));
 		}
@@ -1097,7 +1102,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			BLI_array_free(edges1);
 			BLI_array_free(edges2);
 			return;
-		} else {
+		}
+		else {
 			edges1 = edges2;
 			edges2 = NULL;
 		}
@@ -1114,7 +1120,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		if (BLI_array_count(edges1)==1) {
 			v1 = edges1[0]->v1;
 			v2 = edges1[0]->v2;
-		} else {
+		}
+		else {
 			if (BM_Vert_In_Edge(edges1[1], edges1[0]->v1))
 				v1 = edges1[0]->v2;
 			else v1 = edges1[0]->v1;
@@ -1128,7 +1135,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		if (BLI_array_count(edges2)==1) {
 			v3 = edges2[0]->v1;
 			v4 = edges2[0]->v2;
-		} else {
+		}
+		else {
 			if (BM_Vert_In_Edge(edges2[1], edges2[0]->v1))
 				v3 = edges2[0]->v2;
 			else v3 = edges2[0]->v1;
@@ -1153,7 +1161,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		BMO_SetFlag(bm, e, ELE_NEW);
 		e = BM_Make_Edge(bm, v2, v4, NULL, 1);
 		BMO_SetFlag(bm, e, ELE_NEW);
-	} else if (edges1) {
+	}
+	else if (edges1) {
 		BMVert *v1, *v2;
 		
 		if (BLI_array_count(edges1) > 1) {
@@ -1317,29 +1326,31 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/*create edge*/
 		e = BM_Make_Edge(bm, verts[0], verts[1], NULL, 1);
 		BMO_SetFlag(bm, e, ELE_OUT);		
-	} else if (amount == 3) {
+	}
+	else if (amount == 3) {
 		/*create triangle*/
 		BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], NULL, NULL, 1);
-	} else if (amount == 4) {
+	}
+	else if (amount == 4) {
 		f = NULL;
 
 		/* the order of vertices can be anything, 6 cases to check */
-		if( is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co) ) {
+		if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
 			f= BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, 1);
 		}
-		else if( is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co) ) {
+		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co)) {
 			f= BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, 1);
 		}
-		else if( is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co) ) {
+		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co)) {
 			f= BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, 1);
 		}
-		else if( is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co) ) {
+		else if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co)) {
 			f= BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, 1);
 		}
-		else if( is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co) ) {
+		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co)) {
 			f= BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, 1);
 		}
-		else if( is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co) ) {
+		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co)) {
 			f= BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, 1);
 		}
 		else {

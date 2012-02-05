@@ -230,7 +230,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BMO_SetFlag(bm, l->f, BEVEL_FLAG);
 				BLI_array_append(faces, l->f);
 			}
-		} else {
+		}
+		else {
 			BM_SetIndex(e, -1); /* set_dirty! */
 		}
 	}
@@ -333,7 +334,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					tag = tags + BM_GetIndex(l);
 					calc_corner_co(bm, l, fac, co, do_dist, do_even);
 					tag->newv = BM_Make_Vert(bm, co, l->v);
-				} else {
+				}
+				else {
 					tag = tags + BM_GetIndex(l);
 					tag->newv = ETAG_GET(l->prev->e, l->v);
 					
@@ -354,7 +356,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 						ETAG_SET(l->prev->e, l->v, tag->newv);
 					}
 				}
-			} else if (BMO_TestFlag(bm, l->v, BEVEL_FLAG)) {
+			}
+			else if (BMO_TestFlag(bm, l->v, BEVEL_FLAG)) {
 				tag = tags + BM_GetIndex(l);
 				tag->newv = ETAG_GET(l->e, l->v);				
 		
@@ -375,7 +378,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					
 					ETAG_SET(l->e, l->v, tag->newv);
 				}					
-			} else {
+			}
+			else {
 				tag = tags + BM_GetIndex(l);
 				tag->newv = l->v;
 				BMO_ClearFlag(bm, l->v, BEVEL_DEL);
@@ -458,10 +462,12 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				if (l->radial_next->next->v == l->next->v) {
 					v4 = v3;
 					v3 = tags[BM_GetIndex(l->radial_next->next)].newv;
-				} else {
+				}
+				else {
 					v4 = tags[BM_GetIndex(l->radial_next->next)].newv;
 				}
-			} else {
+			}
+			else {
 				/*the loop is on a boundary*/
 				v3 = l->next->v;
 				v4 = l->v;
@@ -518,7 +524,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					if (l->radial_next->v == l->v) {
 						l2 = l->radial_next->prev;
 						l3 = l->radial_next->next;
-					} else {
+					}
+					else {
 						l2 = l->radial_next->next;
 						l3 = l->radial_next->prev;
 					}
@@ -551,7 +558,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, f) {
 					BMO_ClearFlag(bm, l2->e, BEVEL_DEL);
 				}
-			} else {
+			}
+			else {
 				f = NULL;
 			}
 		}	
@@ -720,7 +728,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			f = BM_Make_Ngon(bm, lastv, vstart, edges, BLI_array_count(edges), 0);
 			if (!f) {
 				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
-			} else {
+			}
+			else {
 				BMO_SetFlag(bm, f, FACE_NEW|FACE_HOLE);
 			}
 		}
@@ -748,7 +757,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				if (tag->newv != l->v || HasMDisps) {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
 					BM_loop_interp_from_face(bm, l2, l->f, 1, 1);
-				} else {
+				}
+				else {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
 					BM_Copy_Attributes(bm, bm, l, l2);
 				}

@@ -87,25 +87,25 @@ void BM_SelectMode_Flush(BMesh *bm)
 
 	int totsel;
 
-	if(bm->selectmode & SCE_SELECT_VERTEX) {
-		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)) {
-			if(BM_TestHFlag(e->v1, BM_SELECT) && BM_TestHFlag(e->v2, BM_SELECT) && !BM_TestHFlag(e, BM_HIDDEN)) {
+	if (bm->selectmode & SCE_SELECT_VERTEX) {
+		for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e= BMIter_Step(&edges)) {
+			if (BM_TestHFlag(e->v1, BM_SELECT) && BM_TestHFlag(e->v2, BM_SELECT) && !BM_TestHFlag(e, BM_HIDDEN)) {
 				BM_SetHFlag(e, BM_SELECT);
 			}
 			else {
 				BM_ClearHFlag(e, BM_SELECT);
 			}
 		}
-		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)) {
+		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f= BMIter_Step(&faces)) {
 			totsel = 0;
 			l=(BMLoop*) bm_firstfaceloop(f);
 			do {
-				if(BM_TestHFlag(l->v, BM_SELECT)) 
+				if (BM_TestHFlag(l->v, BM_SELECT))
 					totsel++;
 				l = l->next;
-			} while(l != bm_firstfaceloop(f));
+			} while (l != bm_firstfaceloop(f));
 			
-			if(totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
+			if (totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
 				BM_SetHFlag(f, BM_SELECT);
 			}
 			else {
@@ -113,17 +113,17 @@ void BM_SelectMode_Flush(BMesh *bm)
 			}
 		}
 	}
-	else if(bm->selectmode & SCE_SELECT_EDGE) {
-		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)) {
+	else if (bm->selectmode & SCE_SELECT_EDGE) {
+		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f= BMIter_Step(&faces)) {
 			totsel = 0;
 			l = bm_firstfaceloop(f);
 			do {
-				if(BM_TestHFlag(&(l->e->head), BM_SELECT)) 
+				if (BM_TestHFlag(&(l->e->head), BM_SELECT))
 					totsel++;
 				l = l->next;
-			} while(l!=bm_firstfaceloop(f));
+			} while (l!=bm_firstfaceloop(f));
 			
-			if(totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
+			if (totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
 				BM_SetHFlag(f, BM_SELECT);
 			}
 			else {
@@ -155,12 +155,13 @@ void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
 		return;
 	}
 
-	if(select) {
+	if (select) {
 		if (!BM_TestHFlag(v, BM_SELECT)) {
 			bm->totvertsel += 1;
 			BM_SetHFlag(v, BM_SELECT);
 		}
-	} else {
+	}
+	else {
 		if (BM_TestHFlag(v, BM_SELECT)) {
 			bm->totvertsel -= 1;
 			BM_ClearHFlag(v, BM_SELECT);
@@ -182,7 +183,7 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 		return;
 	}
 
-	if(select) {
+	if (select) {
 		if (!BM_TestHFlag(e, BM_SELECT)) bm->totedgesel += 1;
 
 		BM_SetHFlag(&(e->head), BM_SELECT);
@@ -203,11 +204,11 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 			BMEdge *e2;
 			int i;
 
-			for(i = 0; i < 2; i++) {
+			for (i = 0; i < 2; i++) {
 				int deselect = 1;
 
-				for(e2 = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, verts[i]); e2; e2 = BMIter_Step(&iter)) {
-					if(e2 == e) {
+				for (e2 = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, verts[i]); e2; e2 = BMIter_Step(&iter)) {
+					if (e2 == e) {
 						continue;
 					}
 
@@ -217,7 +218,7 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 					}
 				}
 
-				if(deselect) BM_Select_Vert(bm, verts[i], FALSE);
+				if (deselect) BM_Select_Vert(bm, verts[i], FALSE);
 			}
 		}
 		else {
@@ -245,7 +246,7 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		return;
 	}
 
-	if(select) {
+	if (select) {
 		if (!BM_TestHFlag(f, BM_SELECT)) bm->totfacesel += 1;
 
 		BM_SetHFlag(&(f->head), BM_SELECT);
@@ -254,7 +255,7 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 			BM_Select_Vert(bm, l->v, TRUE);
 			BM_Select_Edge(bm, l->e, TRUE);
 			l = l->next;
-		} while(l != bm_firstfaceloop(f));
+		} while (l != bm_firstfaceloop(f));
 	}
 	else {
 		BMIter liter;
@@ -313,28 +314,28 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 	
 	bm->selectmode = selectmode;
 
-	if(bm->selectmode & SCE_SELECT_VERTEX) {
-		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges))
+	if (bm->selectmode & SCE_SELECT_VERTEX) {
+		for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e= BMIter_Step(&edges))
 			BM_ClearHFlag(e, 0);
-		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces))
+		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f= BMIter_Step(&faces))
 			BM_ClearHFlag(f, 0);
 		BM_SelectMode_Flush(bm);
 	}
-	else if(bm->selectmode & SCE_SELECT_EDGE) {
-		for(v= BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v= BMIter_Step(&verts))
+	else if (bm->selectmode & SCE_SELECT_EDGE) {
+		for (v= BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v= BMIter_Step(&verts))
 			BM_ClearHFlag(v, 0);
-		for(e= BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)) {
-			if(BM_TestHFlag(&(e->head), BM_SELECT)) {
+		for (e= BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e= BMIter_Step(&edges)) {
+			if (BM_TestHFlag(&(e->head), BM_SELECT)) {
 				BM_Select_Edge(bm, e, TRUE);
 			}
 		}
 		BM_SelectMode_Flush(bm);
 	}
-	else if(bm->selectmode & SCE_SELECT_FACE) {
-		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges))
+	else if (bm->selectmode & SCE_SELECT_FACE) {
+		for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e= BMIter_Step(&edges))
 			BM_ClearHFlag(e, 0);
-		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)) {
-			if(BM_TestHFlag(&(f->head), BM_SELECT)) {
+		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f= BMIter_Step(&faces)) {
+			if (BM_TestHFlag(&(f->head), BM_SELECT)) {
 				BM_Select_Face(bm, f, TRUE);
 			}
 		}
@@ -377,8 +378,8 @@ void BM_Select(struct BMesh *bm, void *element, int select)
 	BMHeader *head = element;
 
 	if     (head->htype == BM_VERT) BM_Select_Vert(bm, (BMVert*)element, select);
-	else if(head->htype == BM_EDGE) BM_Select_Edge(bm, (BMEdge*)element, select);
-	else if(head->htype == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
+	else if (head->htype == BM_EDGE) BM_Select_Edge(bm, (BMEdge*)element, select);
+	else if (head->htype == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
 }
 
 int BM_Selected(BMesh *UNUSED(bm), const void *element)
@@ -399,15 +400,16 @@ BMFace *BM_get_actFace(BMesh *bm, int sloppy)
 {
 	if (bm->act_face) {
 		return bm->act_face;
-	} else if (sloppy) {
+	}
+	else if (sloppy) {
 		BMIter iter;
 		BMFace *f= NULL;
 		BMEditSelection *ese;
 		
 		/* Find the latest non-hidden face from the BMEditSelection */
 		ese = bm->selected.last;
-		for (; ese; ese=ese->prev) {
-			if(ese->htype == BM_FACE) {
+		for ( ; ese; ese=ese->prev) {
+			if (ese->htype == BM_FACE) {
 				f= (BMFace *)ese->data;
 				
 				if (BM_TestHFlag(f, BM_HIDDEN)) {
@@ -499,7 +501,8 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 		if (ese->prev) { /*use previously selected data to make a useful vertex plane */
 			BM_editselection_center(bm, vec, ese->prev);
 			sub_v3_v3v3(r_plane, vec, eve->co);
-		} else {
+		}
+		else {
 			/* make a fake  plane thats at rightangles to the normal
 			we cant make a crossvec from a vec thats the same as the vec
 			unlikely but possible, so make sure if the normal is (0,0,1)
@@ -587,8 +590,8 @@ static int BM_check_selection(BMesh *bm, void *data)
 {
 	BMEditSelection *ese;
 	
-	for(ese = bm->selected.first; ese; ese = ese->next) {
-		if(ese->data == data) return 1;
+	for (ese = bm->selected.first; ese; ese = ese->next) {
+		if (ese->data == data) return 1;
 	}
 	
 	return 0;
@@ -597,8 +600,8 @@ static int BM_check_selection(BMesh *bm, void *data)
 void BM_remove_selection(BMesh *bm, void *data)
 {
 	BMEditSelection *ese;
-	for(ese=bm->selected.first; ese; ese = ese->next) {
-		if(ese->data == data) {
+	for (ese=bm->selected.first; ese; ese = ese->next) {
+		if (ese->data == data) {
 			BLI_freelinkN(&(bm->selected),ese);
 			break;
 		}
@@ -614,8 +617,8 @@ void BM_clear_selection_history(BMesh *bm)
 void BM_store_selection(BMesh *bm, void *data)
 {
 	BMEditSelection *ese;
-	if(!BM_check_selection(bm, data)) {
-		ese = (BMEditSelection*) MEM_callocN( sizeof(BMEditSelection), "BMEdit Selection");
+	if (!BM_check_selection(bm, data)) {
+		ese = (BMEditSelection*) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
 		ese->htype = ((BMHeader*)data)->htype;
 		ese->data = data;
 		BLI_addtail(&(bm->selected),ese);
@@ -628,7 +631,7 @@ void BM_validate_selections(BMesh *bm)
 
 	ese = bm->selected.first;
 
-	while(ese) {
+	while (ese) {
 		nextese = ese->next;
 		if (!BM_TestHFlag(ese->data, BM_SELECT)) {
 			BLI_freelinkN(&(bm->selected), ese);

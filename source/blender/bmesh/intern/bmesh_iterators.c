@@ -167,7 +167,7 @@ void  *bmiter__face_of_mesh_step(BMIter *iter)
 void  bmiter__edge_of_vert_begin(BMIter *iter)
 {
 	init_iterator(iter);
-	if(iter->vdata->e) {
+	if (iter->vdata->e) {
 		iter->firstedge = iter->vdata->e;
 		iter->nextedge = iter->vdata->e;
 	}
@@ -177,10 +177,10 @@ void  *bmiter__edge_of_vert_step(BMIter *iter)
 {
 	BMEdge *current = iter->nextedge;
 
-	if(iter->nextedge)
+	if (iter->nextedge)
 		iter->nextedge = bmesh_disk_nextedge(iter->nextedge, iter->vdata);
 	
-	if(iter->nextedge == iter->firstedge) iter->nextedge = NULL; 
+	if (iter->nextedge == iter->firstedge) iter->nextedge = NULL;
 
 	return current;
 }
@@ -194,9 +194,9 @@ void  bmiter__face_of_vert_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->count = 0;
-	if(iter->vdata->e)
+	if (iter->vdata->e)
 		iter->count = bmesh_disk_count_facevert(iter->vdata);
-	if(iter->count) {
+	if (iter->count) {
 		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->e, iter->vdata);
 		iter->nextedge = iter->firstedge;
 		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->l, iter->vdata);
@@ -207,20 +207,20 @@ void  *bmiter__face_of_vert_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->count && iter->nextloop) {
+	if (iter->count && iter->nextloop) {
 		iter->count--;
 		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
-		if(iter->nextloop == iter->firstloop) {
+		if (iter->nextloop == iter->firstloop) {
 			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
 			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->l, iter->vdata);
 			iter->nextloop = iter->firstloop;
 		}
 	}
 	
-	if(!iter->count) iter->nextloop = NULL;
+	if (!iter->count) iter->nextloop = NULL;
 
 	
-	if(current) return current->f;
+	if (current) return current->f;
 	return NULL;
 }
 
@@ -234,9 +234,9 @@ void  bmiter__loop_of_vert_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->count = 0;
-	if(iter->vdata->e)
+	if (iter->vdata->e)
 		iter->count = bmesh_disk_count_facevert(iter->vdata);
-	if(iter->count) {
+	if (iter->count) {
 		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->e, iter->vdata);
 		iter->nextedge = iter->firstedge;
 		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->l, iter->vdata);
@@ -247,20 +247,20 @@ void  *bmiter__loop_of_vert_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->count) {
+	if (iter->count) {
 		iter->count--;
 		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
-		if(iter->nextloop == iter->firstloop) {
+		if (iter->nextloop == iter->firstloop) {
 			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
 			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->l, iter->vdata);
 			iter->nextloop = iter->firstloop;
 		}
 	}
 	
-	if(!iter->count) iter->nextloop = NULL;
+	if (!iter->count) iter->nextloop = NULL;
 
 	
-	if(current) return current;
+	if (current) return current;
 	return NULL;
 }
 
@@ -281,13 +281,13 @@ void  *bmiter__loops_of_edge_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop)
+	if (iter->nextloop)
 		iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
 
-	if(iter->nextloop == iter->firstloop) 
+	if (iter->nextloop == iter->firstloop)
 		iter->nextloop = NULL;
 
-	if(current) return current;
+	if (current) return current;
 	return NULL;
 }
 
@@ -311,10 +311,10 @@ void  *bmiter__loops_of_loop_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 	
-	if(iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
+	if (iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
 
-	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
-	if(current) return current;
+	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if (current) return current;
 	return NULL;
 }
 
@@ -327,7 +327,7 @@ void  bmiter__face_of_edge_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	
-	if(iter->edata->l) {
+	if (iter->edata->l) {
 		iter->firstloop = iter->edata->l;
 		iter->nextloop = iter->edata->l;
 	}
@@ -337,10 +337,10 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
+	if (iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
 
-	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
-	if(current) return current->f;
+	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if (current) return current->f;
 	return NULL;
 }
 
@@ -359,10 +359,10 @@ void  *bmiter__vert_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = iter->nextloop->next;
-	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if (iter->nextloop) iter->nextloop = iter->nextloop->next;
+	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
-	if(current) return current->v;
+	if (current) return current->v;
 	return NULL;
 }
 
@@ -381,10 +381,10 @@ void  *bmiter__edge_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = iter->nextloop->next;
-	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if (iter->nextloop) iter->nextloop = iter->nextloop->next;
+	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 	
-	if(current) return current->e;
+	if (current) return current->e;
 	return NULL;
 }
 
@@ -403,8 +403,8 @@ void  *bmiter__loop_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = iter->nextloop->next;
-	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if (iter->nextloop) iter->nextloop = iter->nextloop->next;
+	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
 	return current;
 }
