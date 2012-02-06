@@ -184,19 +184,9 @@ typedef struct UvMapVert {
 	unsigned char tfindex, separate, flag;
 } UvMapVert;
 
-typedef struct UvElementMap {
-	/* address UvElements by their vertex */
-	struct UvElement **vert;
-	/* UvElement Store */
-	struct UvElement *buf;
-	/* Total number of UVs in the layer. Useful to know */
-	int totalUVs;
-	/* Number of Islands in the mesh */
-	int totalIslands;
-	/* Stores the starting index in buf where each island begins */
-	int *islandIndices;
-} UvElementMap;
-
+/* UvElement stores per uv information so that we can quickly access information for a uv.
+ * it is actually an improved UvMapVert, including an island and a direct pointer to the face
+ * to avoid initialising face arrays */
 typedef struct UvElement {
 	/* Next UvElement corresponding to same vertex */
 	struct UvElement *next;
@@ -211,6 +201,24 @@ typedef struct UvElement {
 	/* If generating element map with island sorting, this stores the island index */
 	unsigned short island;
 } UvElement;
+
+
+/* UvElementMap is a container for UvElements of a mesh. It stores some UvElements belonging to the
+ * same uv island in sequence and the number of uvs per island so it is possible to access all uvs
+ * belonging to an island directly by iterating through the buffer.
+ */
+typedef struct UvElementMap {
+	/* address UvElements by their vertex */
+	struct UvElement **vert;
+	/* UvElement Store */
+	struct UvElement *buf;
+	/* Total number of UVs in the layer. Useful to know */
+	int totalUVs;
+	/* Number of Islands in the mesh */
+	int totalIslands;
+	/* Stores the starting index in buf where each island begins */
+	int *islandIndices;
+} UvElementMap;
 
 /* invalid island index is max short. If any one has the patience
  * to make that many islands, he can bite me :p */
