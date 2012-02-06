@@ -1351,7 +1351,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	if (amount == 2) {
 		/* create edg */
 		e = BM_Make_Edge(bm, verts[0], verts[1], NULL, 1);
-		BMO_SetFlag(bm, e, ELE_OUT);		
+		BMO_SetFlag(bm, e, ELE_OUT);
 	}
 	else if (amount == 3) {
 		/* create triangl */

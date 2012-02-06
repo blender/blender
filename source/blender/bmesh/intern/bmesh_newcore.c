@@ -386,7 +386,7 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 		l2 = l;
 		i = 0;
 		do {
-			if (i >= 9999999)
+			if (i >= BM_NGON_MAX)
 				break;
 
 			i++;
@@ -760,7 +760,7 @@ static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 		
 		i += bmesh_api_getflag(l2->f, flag) ? 1 : 0;
 		l2 = bmesh_radial_nextloop(l2);
-		if (c >= 800000) {
+		if (c >= BM_LOOP_RADIAL_MAX) {
 			bmesh_error();
 			goto error;
 		}

@@ -37,8 +37,11 @@ typedef struct BMWalker {
 	int depth;
 } BMWalker;
 
-/*initialize a walker.  searchmask restricts some (not all) walkers to
-  elements with a specific tool flag set.  flags is specific to each walker.*/
+/* define to make BMW_Init more clear */
+#define BMW_MASK_NOP 0
+
+/* initialize a walker.  searchmask restricts some (not all) walkers to
+ * elements with a specific tool flag set.  flags is specific to each walker.*/
 void BMW_Init(struct BMWalker *walker, BMesh *bm, int type,
               short mask_vert, short mask_edge, short mask_loop, short mask_face,
               int layer);

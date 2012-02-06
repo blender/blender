@@ -204,7 +204,10 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	}
 
 	if (select) {
-		BMW_Init(&walker, em->bm, BMW_EDGERING,  0,0,0,0,  BMW_NIL_LAY);
+		BMW_Init(&walker, em->bm, BMW_EDGERING,
+		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_NIL_LAY);
+
 		eed = BMW_Begin(&walker, startedge);
 		for (; eed; eed=BMW_Step(&walker)) {
 			BM_Select(em->bm, eed, TRUE);
@@ -214,7 +217,10 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		return;
 	}
 
-	BMW_Init(&walker, em->bm, BMW_EDGERING,  0,0,0,0,  BMW_NIL_LAY);
+	BMW_Init(&walker, em->bm, BMW_EDGERING,
+	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_NIL_LAY);
+
 	eed = startedge = BMW_Begin(&walker, startedge);
 	lastv1 = NULL;
 	for (lasteed=NULL; eed; eed=BMW_Step(&walker)) {

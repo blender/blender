@@ -354,7 +354,7 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 		if (l2->v != l->e->v1 && l2->v != l->e->v2)
 			return 0;
 		
-		if (i > 3000000) {
+		if (i > BM_LOOP_RADIAL_MAX) {
 			bmesh_error();
 			return 0;
 		}
@@ -417,7 +417,10 @@ BMLoop *bmesh_radial_find_first_facevert(BMLoop *l, BMVert *v)
 	BMLoop *curloop;
 	curloop = l;
 	do {
-		if (curloop->v == v) return curloop;
+		if (curloop->v == v) {
+			return curloop;
+		}
+
 		curloop = bmesh_radial_nextloop(curloop);
 	} while (curloop != l);
 	return NULL;
@@ -428,7 +431,10 @@ BMLoop *bmesh_radial_find_next_facevert(BMLoop *l, BMVert *v)
 	BMLoop *curloop;
 	curloop = bmesh_radial_nextloop(l);
 	do {
-		if (curloop->v == v) return curloop;
+		if (curloop->v == v) {
+			return curloop;
+		}
+
 		curloop = bmesh_radial_nextloop(curloop);
 	} while (curloop != l);
 	return l;
@@ -456,7 +462,7 @@ int bmesh_radial_length(BMLoop *l)
 		
 		i++;
 		l2 = l2->radial_next;
-		if (i >= 555555) {
+		if (i >= BM_LOOP_RADIAL_MAX) {
 			bmesh_error();
 			return -1;
 		}
@@ -990,7 +996,10 @@ BMLoop *bmesh_radial_find_next_facevert(BMLoop *l, BMVert *v)
 	BMLoop *curloop;
 	curloop = bmesh_radial_nextloop(l);
 	do {
-		if (curloop->v == v) return curloop;
+		if (curloop->v == v) {
+			return curloop;
+		}
+
 		curloop = bmesh_radial_nextloop(curloop);
 	} while (curloop != l);
 	return l;

@@ -371,6 +371,11 @@ void bmesh_end_edit(BMesh *bm, int flag);
  * this value is rather arbitrary */
 #define BM_NGON_STACK_SIZE 32
 
+/* avoid inf loop, this value is arbtrary
+ * but should not error on valid cases */
+#define BM_LOOP_RADIAL_MAX 10000
+#define BM_NGON_MAX 100000
+
 /* include the rest of the API */
 #include "bmesh_filters.h"
 #include "bmesh_marking.h"

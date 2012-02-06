@@ -3353,17 +3353,19 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 		}
 
 		/* No vertices available, can't do anything */
-		if (v_seed == NULL)
-		{
+		if (v_seed == NULL) {
 			break;
 		}
 
 		/*Select the seed explicitly, in case it has no edges*/
 		BM_Select(bm, v_seed, TRUE);
 
-		/*Walk from the single vertex, selecting everything connected
-		  to it*/
-		BMW_Init(&walker, bm, BMW_SHELL,  0,0,0,0,  BMW_NIL_LAY);
+		/* Walk from the single vertex, selecting everything connected
+		 * to it*/
+		BMW_Init(&walker, bm, BMW_SHELL,
+		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_NIL_LAY);
+
 		e = BMW_Begin(&walker, v_seed);
 		for (; e; e=BMW_Step(&walker)) {
 			BM_Select(bm, e->v1, TRUE);
@@ -3375,9 +3377,8 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 		  the vertex selection*/
 		EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
-		if (bm->totvert == bm->totvertsel)
-		{
-			/*Every vertex selected, nothing to separate, work is done*/
+		if (bm->totvert == bm->totvertsel) {
+			/* Every vertex selected, nothing to separate, work is done */
 			break;
 		}
 
