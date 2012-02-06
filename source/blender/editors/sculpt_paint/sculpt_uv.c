@@ -209,15 +209,15 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 			sculptdata->uv[i].uv[1] = (1.0-strength)*sculptdata->uv[i].uv[1] + strength*(tmp_uvdata[i].p[1] - 0.5f*(tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1]/tmp_uvdata[i].ncounter));
 
 			for(element = sculptdata->uv[i].element; element; element = element->next){
-#if 0 /* BMESH_TODO */
-				MTFace *mt;
+				MLoopUV *luv;
+				BMLoop *l;
+
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
-				mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-				copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[i].uv);
-#else
-				(void)em;
-#endif /* BMESH_TODO */
+
+				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
 		}
 	}
@@ -273,15 +273,15 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 			sculptdata->uv[i].uv[1] = (1.0-strength)*sculptdata->uv[i].uv[1] + strength*tmp_uvdata[i].p[1];
 
 			for(element = sculptdata->uv[i].element; element; element = element->next){
-#if 0 /* BMESH_TODO */
-				MTFace *mt;
+				MLoopUV *luv;
+				BMLoop *l;
+
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
-				mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-				copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[i].uv);
-#else
-				(void)em;
-#endif /* BMESH_TODO */
+
+				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
 		}
 	}
@@ -349,13 +349,15 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 				sculptdata->uv[i].uv[1] -= strength*diff[1]*0.001;
 
 				for(element = sculptdata->uv[i].element; element; element = element->next){
-#if 0 /* BMESH_TODO*/
-					MTFace *mt;
+					MLoopUV *luv;
+					BMLoop *l;
+
 					if(element->separate && element != sculptdata->uv[i].element)
 						break;
-					mt = CustomData_em_get(&bm->fdata, element->face->data, CD_MTFACE);
-					copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[i].uv);
-#endif
+
+					l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 				}
 			}
 		}
@@ -389,13 +391,15 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 			sculptdata->uv[uvindex].uv[1] = sculptdata->initial_stroke->initialSelection[i].initial_uv[1] + strength*diff[1];
 
 			for(element = sculptdata->uv[uvindex].element; element; element = element->next){
-#if 0 /* BMESH_TODO */
-				MTFace *mt;
+				MLoopUV *luv;
+				BMLoop *l;
+
 				if(element->separate && element != sculptdata->uv[uvindex].element)
 					break;
-				mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-				copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[uvindex].uv);
-#endif /* BMESH_TODO */
+
+				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
 			}
 		}
 	}
@@ -471,11 +475,15 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		int counter = 0, i;
 		ARegion *ar= CTX_wm_region(C);
 		float co[2];
-		EditFace *efa;
+		BMFace *efa;
+		MLoopUV *luv;
+		BMLoop *l;
+		BMIter iter, liter;
+
 		UvEdge *edges;
 		GHash *edgeHash;
 		GHashIterator* ghi;
-		MTFace *mt;
+
 		int do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
 		int island_index = 0;
 		/* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
@@ -562,29 +570,28 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 							;
 						continue;
 					}
-#if 0 /* BMESH_TODO */
+
 					efa = element->face;
-					mt = CustomData_em_get(&bm->fdata, efa->data, CD_MTFACE);
+					l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 					counter++;
 					data->uv[counter].element = element;
 					data->uv[counter].flag = 0;
-					data->uv[counter].uv = mt->uv[element->tfindex];
-#else
-					(void)efa;
-					(void)mt;
-#endif /* BMESH_TODO */
+					data->uv[counter].uv = luv->uv;
 				}
 				/* pointer arithmetic to the rescue, as always :)*/
 				uniqueUv[element - data->elementMap->buf] = counter;
 			}
 		}
 
-#if 0 /* BMESH_TODO */
+
 		/* Now, on to generate our uv connectivity data */
-		for(efa = em->faces.first, counter = 0; efa; efa = efa->next){
-			int nverts = efa->v4 ? 4 : 3;
-			for(i = 0; i < nverts; i++){
+		counter = 0;
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			int nverts = efa->len;
+			i = 0;
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				int offset1, itmp1 = get_uv_element_offset_from_face(data->elementMap, efa, i, island_index, do_island_optimization);
 				int offset2, itmp2 = get_uv_element_offset_from_face(data->elementMap, efa, (i+1)%nverts, island_index, do_island_optimization);
 
@@ -616,9 +623,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 					BLI_ghash_insert(edgeHash, &edges[counter], &edges[counter].flag);
 				}
 				counter++;
+				i++;
 			}
 		}
-#endif /* BMESH_TODO */
 
 		MEM_freeN(uniqueUv);
 
@@ -659,7 +666,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		}
 
 		/* Allocate initial selection for grab tool */
-		if(data->tool){
+		if(data->tool == UV_SCULPT_TOOL_GRAB){
 			float radius, radius_root;
 			UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 			SpaceImage *sima;

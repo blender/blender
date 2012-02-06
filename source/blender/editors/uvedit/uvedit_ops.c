@@ -939,15 +939,12 @@ static UvMapVert *uv_vertex_map_get(UvVertMap *vmap, BMFace *efa, int a)
 
 UvElement *ED_get_uv_element(UvElementMap *map, BMFace *efa, int index)
 {
-	BMLoop *loop = efa->loops.first;
+	BMLoop *l;
 	UvElement *element;
 
-	while (index >= 0) {
-		loop = loop->next;
-		index--;
-	}
+	l = BMIter_AtIndex(NULL, BM_LOOPS_OF_FACE, efa, index);
 
-	element = map->vert[BM_GetIndex(loop->v)];
+	element = map->vert[BM_GetIndex(l->v)];
 
 	for(; element; element = element->next)
 		if(element->face == efa)
