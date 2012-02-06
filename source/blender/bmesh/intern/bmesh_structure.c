@@ -400,7 +400,7 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 	}
 
 	/* l is no longer in a radial cycle; empty the links
-	   to the cycle and the link back to an edge */
+	 * to the cycle and the link back to an edge */
 	l->radial_next = l->radial_prev = NULL;
 	l->e = NULL;
 }
@@ -729,8 +729,11 @@ int bmesh_disk_append_edge(BMEdge *e, BMVert *v)
 { 
 	
 	BMNode *base, *tail;
-	
-	if (bmesh_vert_in_edge(e, v) == 0) return 0; /* check to make sure v is in  */
+
+	/* check to make sure v is in */
+	if (bmesh_vert_in_edge(e, v) == 0) {
+		return 0;
+	}
 	
 	/* check for loose vert firs */
 	if (v->e == NULL) {
@@ -828,7 +831,12 @@ int bmesh_disk_count_edgeflag(BMVert *v, int eflag, int tflag)
 	int i, len = 0, count = 0;
 	
 	if (v->e) {
-		if (eflag && tflag) return 0; /* tflag and eflag are reserved for different functions */
+
+		/* tflag and eflag are reserved for different functions */
+		if (eflag && tflag) {
+			return 0;
+		}
+
 		diskbase = bmesh_disk_getpointer(v->e, v);
 		len = bmesh_cycle_length(diskbase);
 		

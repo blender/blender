@@ -761,7 +761,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	axis_dominant_v3(&ax, &ay, source->no);
 
 	/* scale source face coordinates a bit, so points sitting directonly on an
-	   edge will work. */
+	 * edge will work. */
 	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {
 		float vec[3], tmp[3];

@@ -118,7 +118,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* if making the new face failed (e.g. overlapping test)
-		  unmark the original faces for deletion */
+		 * unmark the original faces for deletion */
 		BMO_ClearFlag(bm, f, FACE_ORIG);
 		BMO_SetFlag(bm, f, FACE_NEW);
 

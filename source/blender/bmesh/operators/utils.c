@@ -251,7 +251,7 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
  * in case (selected) faces were not done: start over with 'find the ultimate ...' */
 
 /* NOTE: this function uses recursion, which is a little unusual for a bmop
-         function, but acceptable I think. */
+ *       function, but acceptable I think. */
 
 /* NOTE: BM_TMP_TAG is used on faces to tell if they are flipped. */
 

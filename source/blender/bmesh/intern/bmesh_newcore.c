@@ -382,7 +382,7 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 			err |= (1 << 13);
 
 		/* validate boundary loop--invalid for hole loops, of course,
-		  but we won't be allowing those for a while ye */
+		 * but we won't be allowing those for a while ye */
 		l2 = l;
 		i = 0;
 		do {
@@ -1873,42 +1873,42 @@ static BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 	BMVert *sv = sl->v;
 
 	/* peel the face from the edge radials on both sides of the
-	   loop vert, disconnecting the face from its fan */
+	 * loop vert, disconnecting the face from its fan */
 	bmesh_cutedge(bm, sl->e, sl);
 	bmesh_cutedge(bm, sl->prev->e, sl->prev);
 
 	if (bmesh_disk_count(sv) == 2) {
 		/* If there are still only two edges out of sv, then
-		   this whole URMV was just a no-op, so exit now. */
+		 * this whole URMV was just a no-op, so exit now. */
 		return sv;
 	}
 
 	/* Update the disk start, so that v->e points to an edge
-	   not touching the split loop. This is so that bmesh_cutvert
-	   will leave the original sv on some *other* fan (not the
-	   one-face fan that holds the unglue face). */
+	 * not touching the split loop. This is so that bmesh_cutvert
+	 * will leave the original sv on some *other* fan (not the
+	 * one-face fan that holds the unglue face). */
 	while (sv->e == sl->e || sv->e == sl->prev->e) {
 		sv->e = bmesh_disk_nextedge(sv->e, sv);
 	}
 
 	/* Split all fans connected to the vert, duplicating it for
-	   each fans. */
+	 * each fans. */
 	bmesh_cutvert(bm, sv, &vtar, &len);
 
 	/* There should have been at least two fans cut apart here,
-	   otherwise the early exit would have kicked in. */
+	 * otherwise the early exit would have kicked in. */
 	BLI_assert(len >= 2);
 
 	nv = sl->v;
 
 	/* Desired result here is that a new vert should always be
-	   created for the unglue face. This is so we can glue any
-	   extras back into the original vert. */
+	 * created for the unglue face. This is so we can glue any
+	 * extras back into the original vert. */
 	BLI_assert(nv != sv);
 	BLI_assert(sv == vtar[0]);
 
 	/* If there are more than two verts as a result, glue together
-	   all the verts except the one this URMV intended to create */
+	 * all the verts except the one this URMV intended to create */
 	if (len > 2) {
 		for (i = 0; i < len; i++) {
 			if (vtar[i] == nv) {
@@ -1918,7 +1918,7 @@ static BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 
 		if (i != len) {
 			/* Swap the single vert that was needed for the
-			   unglue into the last array slot */
+			 * unglue into the last array slot */
 			SWAP(BMVert *, vtar[i], vtar[len - 1]);
 
 			/* And then glue the rest back together */

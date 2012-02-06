@@ -147,8 +147,8 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	BLI_mempool_destroy(bm->looplistpool);
 
 	/* These tables aren't used yet, so it's not stricly necessary
-	   to 'end' them (with 'e' param) but if someone tries to start
-	   using them, having these in place will save a lot of pain */
+	 * to 'end' them (with 'e' param) but if someone tries to start
+	 * using them, having these in place will save a lot of pain */
 	mesh_octree_table(NULL, NULL, NULL, 'e');
 	mesh_mirrtopo_table(NULL, 'e');
 
@@ -262,8 +262,8 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 
 	/* compute normalized direction vectors for each edge. directions will be
-	   used below for calculating the weights of the face normals on the vertex
-	   normals */
+	 * used below for calculating the weights of the face normals on the vertex
+	 * normals */
 	index = 0;
 	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
 	BM_ITER(e, &edges, bm, BM_EDGES_OF_MESH, NULL) {
@@ -426,20 +426,16 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
  *	Functions for setting up a mesh for editing and cleaning up after 
  *  the editing operations are done. These are called by the tools/operator 
  *  API for each time a tool is executed.
- *
- *  Returns -
- *  Nothing
- *
  */
 void bmesh_begin_edit(BMesh *bm, int flag)
 {
 	bm->opflag = flag;
 	
 	/* Most operators seem to be using BMOP_UNTAN_MULTIRES to change the MDisps to
-	   absolute space during mesh edits. With this enabled, changes to the topology
-	   (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
-	   the mesh at all, which doesn't seem right. Turning off completely for now,
-	   until this is shown to be better for certain types of mesh edits. */
+	 * absolute space during mesh edits. With this enabled, changes to the topology
+	 * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
+	 * the mesh at all, which doesn't seem right. Turning off completely for now,
+	 * until this is shown to be better for certain types of mesh edits. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data out of tangent space */
 	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {

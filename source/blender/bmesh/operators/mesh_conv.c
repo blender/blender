@@ -63,7 +63,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	int set_key = BMO_Get_Int(op, "set_shapekey");
 	int totuv, i, j, allocsize[4] = {512, 512, 2048, 512};
 
-	if (!me || !me->totvert) return; /* sanity chec */
+	if (!me || !me->totvert) {
+		return; /* sanity check */
+	}
 	
 	vt = MEM_mallocN(sizeof(void **) * me->totvert, "mesh to bmesh vtable");
 
@@ -98,8 +100,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 		
 		/* check if we need to generate unique ids for the shapekeys.
-		  this also exists in the file reading code, but is here for
-		  a sanity chec */
+		 * this also exists in the file reading code, but is here for
+		 * a sanity chec */
 		if (!me->key->uidgen) {
 			fprintf(stderr, "%s had to generate shape key uid's in a situation we shouldn't need to! (bmesh internal error)\n", __func__);
 			me->key->uidgen = 1;
@@ -274,9 +276,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		BMIter liter;
 		
 		/* Copy over loop CustomData. Doing this in a separate loop isn't necessary
-		   but is an optimization, to avoid copying a bunch of interpolated customdata
-		   for each BMLoop (from previous BMLoops using the same edge), always followed
-		   by freeing the interpolated data and overwriting it with data from the Mesh. */
+		 * but is an optimization, to avoid copying a bunch of interpolated customdata
+		 * for each BMLoop (from previous BMLoops using the same edge), always followed
+		 * by freeing the interpolated data and overwriting it with data from the Mesh. */
 		BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				int li = BM_GetIndex(l);
@@ -781,8 +783,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	 * both and keep them working the same way which is a hassle - campbell */
 
 	/* old method of reconstructing keys via vertice's original key indices,
-	   currently used if the new method above fails (which is theoretically
-	   possible in certain cases of undo) */
+	 * currently used if the new method above fails (which is theoretically
+	 * possible in certain cases of undo) */
 	if (me->key) {
 		float *fp, *newkey, *oldkey;
 		KeyBlock *currkey;

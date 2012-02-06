@@ -326,7 +326,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
 			/* ok, this edge wasn't merged, check if it's
-			  in a 2-tri-pair island, and if so merg */
+			 * in a 2-tri-pair island, and if so merg */
 
 			f1 = e->l->f;
 			f2 = e->l->radial_next->f;

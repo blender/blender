@@ -288,9 +288,9 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 
 	if (!trifan) BMO_Init_Op(&triop, "triangulate");
 	
-	/*instead of properly tesselate, just make a triangle fan, this
-	  should make bmesh -> editmesh -> bmesh conversions always properly
-	  work.*/
+	/* instead of properly tesselate, just make a triangle fan, this
+	 * should make bmesh -> editmesh -> bmesh conversions always properly
+	 * work. */
 	for (face = BMIter_New(&iter, bmesh, BM_FACES_OF_MESH, NULL); face; face=BMIter_Step(&iter)) {
 		if (face->len > 4) {
 			BMO_SetFlag(bmesh, face, FACE_NGON);

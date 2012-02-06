@@ -373,7 +373,7 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 	}
 }
 
-static subdpattern quad_1edge = {
+static SubDPattern quad_1edge = {
 	{1, 0, 0, 0},
 	quad_1edge_split,
 	4,
@@ -400,7 +400,7 @@ static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **vert
 	connect_smallest_face(bm, verts[numcuts * 2 + 3], verts[numcuts * 2 + 1], &nf);
 }
 
-static subdpattern quad_2edge_path = {
+static SubDPattern quad_2edge_path = {
 	{1, 1, 0, 0},
 	quad_2edge_split_path,
 	4,
@@ -440,7 +440,7 @@ static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert *
 	connect_smallest_face(bm, lastv, verts[numcuts * 2 + 2], &nf);
 }
 
-static subdpattern quad_2edge_innervert = {
+static SubDPattern quad_2edge_innervert = {
 	{1, 1, 0, 0},
 	quad_2edge_split_innervert,
 	4,
@@ -470,7 +470,7 @@ static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	}
 }
 
-static subdpattern quad_2edge_fan = {
+static SubDPattern quad_2edge_fan = {
 	{1, 1, 0, 0},
 	quad_2edge_split_fan,
 	4,
@@ -507,7 +507,7 @@ static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-static subdpattern quad_3edge = {
+static SubDPattern quad_3edge = {
 	{1, 1, 1, 0},
 	quad_3edge_split,
 	4,
@@ -613,7 +613,7 @@ static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-static subdpattern tri_1edge = {
+static SubDPattern tri_1edge = {
 	{1, 0, 0},
 	tri_1edge_split,
 	3,
@@ -709,20 +709,20 @@ cleanup:
 	MEM_freeN(lines);
 }
 
-static subdpattern tri_3edge = {
+static SubDPattern tri_3edge = {
 	{1, 1, 1},
 	tri_3edge_subdivide,
 	3,
 };
 
 
-static subdpattern quad_4edge = {
+static SubDPattern quad_4edge = {
 	{1, 1, 1, 1},
 	quad_4edge_subdivide,
 	4,
 };
 
-static subdpattern *patterns[] = {
+static SubDPattern *patterns[] = {
 	NULL, //quad single edge pattern is inserted here
 	NULL, //quad corner vert pattern is inserted here
 	NULL, //tri single edge pattern is inserted here
@@ -734,7 +734,7 @@ static subdpattern *patterns[] = {
 #define PLEN	(sizeof(patterns) / sizeof(void *))
 
 typedef struct subd_facedata {
-	BMVert *start; subdpattern *pat;
+	BMVert *start; SubDPattern *pat;
 	int totedgesel; //only used if pat was NULL, e.g. no pattern was found
 	BMFace *face;
 } subd_facedata;
@@ -742,7 +742,7 @@ typedef struct subd_facedata {
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
-	subdpattern *pat;
+	SubDPattern *pat;
 	subdparams params;
 	subd_facedata *facedata = NULL;
 	BMIter viter, fiter, liter;

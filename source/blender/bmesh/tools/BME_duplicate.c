@@ -261,7 +261,7 @@ BMMesh *bmesh_make_mesh_from_mesh(BMMesh *bm, int allocsize[4])
 	bmesh_begin_edit(bm);
 	bmesh_begin_edit(target);
 	
-	bmesh_copy_mesh(bm, target, 0);	/*copy all elements*/
+	bmesh_copy_mesh(bm, target, 0);	/* copy all elements */
 
 	bmesh_end_edit(bm);
 	bmesh_end_edit(target);

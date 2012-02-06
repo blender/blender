@@ -186,8 +186,8 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				}
 
 				/* If the original edge was non-manifold edges, then it is
-				   possible l->e is not et->newe1 or et->newe2. So always clear
-				   the flag on l->e as well, to prevent infinite looping. */
+				 * possible l->e is not et->newe1 or et->newe2. So always clear
+				 * the flag on l->e as well, to prevent infinite looping. */
 				BMO_ClearFlag(bm, l->e, EDGE_SEAM);
 
 				startl = l;

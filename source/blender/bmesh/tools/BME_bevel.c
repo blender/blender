@@ -128,7 +128,7 @@ float *BME_new_transdata_float(BME_TransData_Head *td)
 }
 
 /* BM_Dissolve_Disk is a real mess, and crashes bevel if called instead of this.
-   The drawback, though, is that this code doesn't merge customdata. */
+ * The drawback, though, is that this code doesn't merge customdata. */
 static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 {
 	BMIter iter;

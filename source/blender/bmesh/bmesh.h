@@ -311,11 +311,11 @@ struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 /*convert between bmesh and Mesh flags*/
 short BMFlags_To_MEFlags(void *element);
 
-/*convert between Mesh and bmesh flags
-  type must be BM_VERT/BM_EDGE/BM_FACE,
-  and represents the type of the element
-  parameter (the three defines map to
-  MVert, MEdge, and MPoly, respectively).*/
+/* convert between Mesh and bmesh flags
+ * type must be BM_VERT/BM_EDGE/BM_FACE,
+ * and represents the type of the element
+ * parameter (the three defines map to
+ * MVert, MEdge, and MPoly, respectively). */
 char MEFlags_To_BMFlags(const short hflag, const char htype);
 #endif
 

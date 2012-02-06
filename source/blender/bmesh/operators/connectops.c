@@ -260,7 +260,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		lenv1 = lenv2 = BLI_array_count(vv1);
 
 		/* Below code assumes vv1/vv2 each have at least two verts. should always be
-		   a safe assumption, since ee1/ee2 are non-empty and an edge has two verts. */
+		 * a safe assumption, since ee1/ee2 are non-empty and an edge has two verts. */
 		BLI_assert((lenv1 > 1) && (lenv2 > 1));
 
 		/* BMESH_TODO: Would be nice to handle cases where the edge loops

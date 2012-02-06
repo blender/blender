@@ -47,7 +47,7 @@ struct Object;
   iteration.
 */
 typedef struct BMHeader {
-	void *data; /*customdata layers*/
+	void *data; /* customdata layers */
 	struct BMFlagLayer *flags;
 	int index; /* notes:
 	            * - Use BM_GetIndex/SetIndex macros for index
@@ -56,8 +56,8 @@ typedef struct BMHeader {
 	            *   this is abused by various tools which set it dirty.
 	            * - For loops this is used for sorting during tesselation. */
 
-	char htype; /*element geometric type (verts/edges/loops/faces)*/
-	char hflag; /*this would be a CD layer, see below*/
+	char htype; /* element geometric type (verts/edges/loops/faces) */
+	char hflag; /* this would be a CD layer, see below */
 } BMHeader;
 
 /*note: need some way to specify custom locations for custom data layers.  so we can
@@ -94,10 +94,10 @@ typedef struct BMLoop {
 	struct BMLoop *radial_next, *radial_prev;
 	
 	/*private variables*/
-	struct BMLoop *next, *prev; /*won't be able to use listbase API, ger, due to head*/
+	struct BMLoop *next, *prev; /* won't be able to use listbase API, ger, due to head */
 } BMLoop;
 
-/*eventually, this structure will be used for supporting holes in faces*/
+/* eventually, this structure will be used for supporting holes in faces */
 typedef struct BMLoopList {
 	struct BMLoopList *next, *prev;
 	struct BMLoop *first, *last;
@@ -154,9 +154,9 @@ typedef struct BMesh {
 	BMFace *act_face;
 
 	ListBase errorstack;
-	struct Object *ob; /*owner object*/
+	struct Object *ob; /* owner object */
 	
-	int opflag; /*current operator flag*/
+	int opflag; /* current operator flag */
 } BMesh;
 
 BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts);

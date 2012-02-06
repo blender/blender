@@ -190,8 +190,8 @@ int BME_remove_doubles(BME_Mesh *bm, float limit)
 	}
 
 
-	/*need to remove double edges as well. To do this we decide on one edge to keep, and if its inserted into hash then we need to remove all other
-	edges incident upon and relink.*/
+	/* need to remove double edges as well. To do this we decide on one edge to keep, and if its inserted into hash then we need to remove all other
+	 * edges incident upon and relink.*/
 	/*
 	*	REBUILD FACES
 	*

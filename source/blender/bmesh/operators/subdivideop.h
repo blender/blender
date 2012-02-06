@@ -7,7 +7,7 @@ typedef struct subdparams {
 	float fractal;
 	int beauty;
 	int seed;
-	int origkey; /*shapekey holding displaced vertex coordinates for current geometry*/
+	int origkey; /* shapekey holding displaced vertex coordinates for current geometry */
 	BMOperator *op;
 	float off[3];
 } subdparams;
@@ -16,26 +16,25 @@ typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts,
                                      const subdparams *params);
 
 /*
-note: this is a pattern-based edge subdivider.
-it tries to match a pattern to edge selections on faces,
-then executes functions to cut them.
-*/
-typedef struct subdpattern {
-	int seledges[20]; //selected edges mask, for splitting
+ * note: this is a pattern-based edge subdivider.
+ * it tries to match a pattern to edge selections on faces,
+ * then executes functions to cut them.
+ */
+typedef struct SubDPattern {
+	int seledges[20]; /* selected edges mask, for splitting */
 
-	/*verts starts at the first new vert cut, not the first vert in the
-	  face*/
+	/* verts starts at the first new vert cut, not the first vert in the face */
 	subd_pattern_fill_fp connectexec;
-	int len; /*total number of verts, before any subdivision*/
-} subdpattern;
+	int len; /* total number of verts, before any subdivision */
+} SubDPattern;
 
-/*generic subdivision rules:
-  
-  * two selected edges in a face should make a link
-    between them.
-
-  * one edge should do, what? make pretty topology, or just
-    split the edge only?
-*/
+/* generic subdivision rules:
+ *
+ * - two selected edges in a face should make a link
+ *   between them.
+ *
+ * - one edge should do, what? make pretty topology, or just
+ *   split the edge only?
+ */
 
 #endif /* _SUBDIVIDEOP_H */

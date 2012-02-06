@@ -314,9 +314,9 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 }
 
 /* executes the duplicate operation, feeding elements of
-  type flag etypeflag and header flag flag to it.  note,
-  to get more useful information (such as the mapping from
-  original to new elements) you should run the dupe op manually */
+ * type flag etypeflag and header flag flag to it.  note,
+ * to get more useful information (such as the mapping from
+ * original to new elements) you should run the dupe op manually */
 void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, const char hflag)
 {
 	BMOperator dupeop;
@@ -344,7 +344,6 @@ void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, const char hflag)
  * BMOP_DUPE_VOUTPUT: Buffer containing pointers to the split mesh vertices
  * BMOP_DUPE_EOUTPUT: Buffer containing pointers to the split mesh edges
  * BMOP_DUPE_FOUTPUT: Buffer containing pointers to the split mesh faces
- *
  */
 
 #define SPLIT_INPUT	1

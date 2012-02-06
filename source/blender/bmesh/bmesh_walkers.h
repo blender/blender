@@ -72,36 +72,37 @@ BMW_End(&walker);
 */
 
 enum {
-	/*walk over connected geometry.  can restrict to a search flag,
-	or not, it's optional.
-	
-	takes a vert as an arugment, and spits out edges, restrict flag acts
-	on the edges as well.*/
+	/* walk over connected geometry.  can restrict to a search flag,
+	 * or not, it's optional.
+	 *
+	 * takes a vert as an arugment, and spits out edges, restrict flag acts
+	 * on the edges as well. */
 	BMW_SHELL,
 	/*walk over an edge loop.  search flag doesn't do anything.*/
 	BMW_LOOP,
 	BMW_FACELOOP,
 	BMW_EDGERING,
-	/*#define BMW_RING	2*/
-	//walk over uv islands; takes a loop as input.  restrict flag 
-	//restricts the walking to loops whose vert has restrict flag set as a
-	//tool flag.
-	//
-	//the flag parameter to BMW_Init maps to a loop customdata layer index.
+	/* #define BMW_RING	2 */
+	/* walk over uv islands; takes a loop as input.  restrict flag
+	 * restricts the walking to loops whose vert has restrict flag set as a
+	 * tool flag.
+	 *
+	 * the flag parameter to BMW_Init maps to a loop customdata layer index.
+	 */
 	BMW_LOOPDATA_ISLAND,
-	/*walk over an island of flagged faces.  note, that this doesn't work on
-	  non-manifold geometry.  it might be better to rewrite this to extract
-	  boundary info from the island walker, rather then directly walking
-	  over the boundary.  raises an error if it encouters nonmanifold
-	  geometry.*/
+	/* walk over an island of flagged faces.  note, that this doesn't work on
+	 * non-manifold geometry.  it might be better to rewrite this to extract
+	 * boundary info from the island walker, rather then directly walking
+	 * over the boundary.  raises an error if it encouters nonmanifold
+	 * geometry. */
 	BMW_ISLANDBOUND,
-	/*walk over all faces in an island of tool flagged faces.*/
+	/* walk over all faces in an island of tool flagged faces. */
 	BMW_ISLAND,
-	/*walk from a vertex to all connected vertices.*/
+	/* walk from a vertex to all connected vertices. */
 	BMW_CONNECTED_VERTEX,
 	/* end of array index enum vals */
 
-	/*do not intitialze function pointers and struct size in BMW_Init*/
+	/* do not intitialze function pointers and struct size in BMW_Init */
 	BMW_CUSTOM,
 	BMW_MAXWALKERS
 };

@@ -3,16 +3,16 @@
 
 /*----------- bmop error system ----------*/
 
-/*pushes an error onto the bmesh error stack.
-  if msg is null, then the default message for the errorcode is used.*/
+/* pushes an error onto the bmesh error stack.
+ * if msg is null, then the default message for the errorcode is used.*/
 void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, const char *msg);
 
-/*gets the topmost error from the stack.
-  returns error code or 0 if no error.*/
+/* gets the topmost error from the stack.
+ * returns error code or 0 if no error.*/
 int BMO_GetError(BMesh *bm, const char **msg, BMOperator **op);
 int BMO_HasError(BMesh *bm);
 
-/*same as geterror, only pops the error off the stack as well*/
+/* same as geterror, only pops the error off the stack as well */
 int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op);
 void BMO_ClearStack(BMesh *bm);
 
@@ -20,9 +20,9 @@ void BMO_ClearStack(BMesh *bm);
 //this is meant for handling errors, like self-intersection test failures.
 //it's dangerous to handle errors in general though, so disabled for now.
 
-/*catches an error raised by the op pointed to by catchop.
-  errorcode is either the errorcode, or BMERR_ALL for any 
-  error.*/
+/* catches an error raised by the op pointed to by catchop.
+ * errorcode is either the errorcode, or BMERR_ALL for any
+ * error.*/
 int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #endif
 

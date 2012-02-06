@@ -67,11 +67,11 @@ void bmesh_selectmode_flush(struct BMesh *bm);
 void *bmesh_get_filter_callback(int type);
 int bmesh_get_filter_argtype(int type);
 
-/*NOTE: ensure different parts of the API do not conflict
-  on using these internal flags!*/
-#define _FLAG_JF	1 /*join faces*/
-#define _FLAG_SF	2 /*split faces*/
-#define _FLAG_MF	4 /*make face*/
+/* NOTE: ensure different parts of the API do not conflict
+ * on using these internal flags!*/
+#define _FLAG_JF	1 /* join faces */
+#define _FLAG_SF	2 /* split faces */
+#define _FLAG_MF	4 /* make face */
 
 #define bmesh_api_setflag(element, f) (((BMHeader*)(element))->flags[0].pflag |= (f))
 #define bmesh_api_getflag(element, f) (((BMHeader*)(element))->flags[0].pflag & (f))
@@ -79,8 +79,8 @@ int bmesh_get_filter_argtype(int type);
 #define bmesh_api_setindex(element, i) (((BMHeader*)(element))->flags[0].index = (i))
 #define bmesh_api_getindex(element) (((BMHeader*)(element))->flags[0].index + 0)
 
-/*Polygon Utilities ? FIXME... where do these each go?*/
-/*newedgeflag sets a flag layer flag, obviously not the header flag.*/
+/* Polygon Utilities ? FIXME... where do these each go? */
+/* newedgeflag sets a flag layer flag, obviously not the header flag. */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], 
                          int newedgeflag, int newfaceflag, BMFace **newfaces);
 void bmesh_update_face_normal(struct BMesh *bm, struct BMFace *f, float no[3],

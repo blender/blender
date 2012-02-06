@@ -87,7 +87,7 @@ static void shellWalker_begin(BMWalker *walker, void *data)
 		case BM_VERT:
 		{
 			/* starting the walk at a vert, add all the edges
-			   to the worklist */
+			 * to the worklist */
 			v = (BMVert *)h;
 			BM_ITER(e, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
 				shellWalker_visitEdge(walker, e);
@@ -98,7 +98,7 @@ static void shellWalker_begin(BMWalker *walker, void *data)
 		case BM_EDGE:
 		{
 			/* starting the walk at an edge, add the single edge
-			   to the worklist */
+			 * to the worklist */
 			e = (BMEdge *)h;
 			shellWalker_visitEdge(walker, e);
 			break;
@@ -796,7 +796,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 		return l;
 
 	/* go over loops around l->v and nl->v and see which ones share l and nl's
-	  mloopuv's coordinates. in addition, push on l->next if necassary */
+	 * mloopuv's coordinates. in addition, push on l->next if necassary */
 	for (i = 0; i < 2; i++) {
 		cl = i ? nl : l;
 		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {

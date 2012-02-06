@@ -264,8 +264,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		if (!newedge) continue;
 
 		/* orient loop to give same normal as a loop of newedge
-		if it exists (will be an extruded face),
-		else same normal as a loop of e, if it exists */
+		 * if it exists (will be an extruded face),
+		 * else same normal as a loop of e, if it exists */
 		if (!newedge->l)
 			fwd = !e->l || !(e->l->v == e->v1);
 		else
@@ -368,7 +368,7 @@ static void calc_solidify_normals(BMesh *bm)
 		BM_ITER(e, &eiter, bm, BM_EDGES_OF_FACE, f) {
 
 			/* And mark all edges and vertices on the
-			   marked faces */
+			 * marked faces */
 			BMO_SetFlag(bm, e, EDGE_MARK);
 			BMO_SetFlag(bm, e->v1, VERT_MARK);
 			BMO_SetFlag(bm, e->v2, VERT_MARK);
@@ -385,7 +385,7 @@ static void calc_solidify_normals(BMesh *bm)
 
 		if (i == 0 || i > 2) {
 			/* Edge & vertices are non-manifold even when considering
-			   only marked faces */
+			 * only marked faces */
 			BMO_SetFlag(bm, e, EDGE_NONMAN);
 			BMO_SetFlag(bm, e->v1, VERT_NONMAN);
 			BMO_SetFlag(bm, e->v2, VERT_NONMAN);
@@ -408,13 +408,13 @@ static void calc_solidify_normals(BMesh *bm)
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 
 		/* If the edge is not part of a the solidify region
-		   its normal should not be considered */
+		 * its normal should not be considered */
 		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
 			continue;
 		}
 
 		/* If the edge joins more than two marked faces high
-		   quality normal computation won't work */
+		 * quality normal computation won't work */
 		if (BMO_TestFlag(bm, e, EDGE_NONMAN)) {
 			continue;
 		}
@@ -472,13 +472,12 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 
 		if (BMO_TestFlag(bm, v, VERT_NONMAN)) {
-			/* use standard normals for vertices connected to non-manifold
-			   edges */
+			/* use standard normals for vertices connected to non-manifold edges */
 			BM_Vert_UpdateNormal(bm, v);
 		}
 		else if (normalize_v3(v->no) == 0.0f && !BM_TestHFlag(v, BM_TMP_TAG)) {
 			/* exceptional case, totally flat. use the normal
-			   of any marked face around the vertex */
+			 * of any marked face around the vertex */
 			BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, v) {
 				if (BMO_TestFlag(bm, f, FACE_MARK)) {
 					break;
