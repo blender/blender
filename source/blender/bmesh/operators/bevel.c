@@ -452,9 +452,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		
-		e = BM_Make_Edge(bm, firstv, lastv, bm_firstfaceloop(faces[i])->e, 1);
-		if (bm_firstfaceloop(faces[i])->prev->e != e) 
-			BM_Copy_Attributes(bm, bm, bm_firstfaceloop(faces[i])->prev->e, e);
+		e = BM_Make_Edge(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, 1);
+		if (BM_FACE_FIRST_LOOP(faces[i])->prev->e != e) 
+			BM_Copy_Attributes(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
 		BLI_array_append(edges, e);
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), 0);
@@ -833,7 +833,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	/* clean up any remaining 2-edged face */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (f->len == 2) {
-			BMFace *faces[2] = {f, bm_firstfaceloop(f)->radial_next->f};
+			BMFace *faces[2] = {f, BM_FACE_FIRST_LOOP(f)->radial_next->f};
 			
 			if (faces[0] == faces[1])
 				BM_Kill_Face(bm, f);

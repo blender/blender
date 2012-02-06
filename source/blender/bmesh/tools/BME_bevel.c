@@ -662,7 +662,7 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 
 	/* Can't use a BM_LOOPS_OF_FACE iterator here, because the loops are being modified
 	 * and so the end condition will never hi */
-	for (l = bm_firstfaceloop(f)->prev, i = 0, len = f->len; i < len; i++, l = l->next) {
+	for (l = BM_FACE_FIRST_LOOP(f)->prev, i = 0, len = f->len; i < len; i++, l = l->next) {
 		if (BMO_TestFlag(bm, l->e, BME_BEVEL_BEVEL) && BMO_TestFlag(bm, l->e, BME_BEVEL_ORIG)) {
 			max = 1.0f;
 			l = BME_bevel_edge(bm, l, value, options, up_vec, td);

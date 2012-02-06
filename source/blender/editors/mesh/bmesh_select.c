@@ -1773,7 +1773,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	}
 	else {
 		if (efa) {
-			eed = bm_firstfaceloop(efa)->e;
+			eed = BM_FACE_FIRST_LOOP(efa)->e;
 		}
 		else if (!eed) {
 			if (!eve || !eve->e)

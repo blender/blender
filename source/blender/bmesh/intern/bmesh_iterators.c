@@ -394,7 +394,7 @@ void  *bmiter__edge_of_face_step(BMIter *iter)
 void  bmiter__loop_of_face_begin(BMIter *iter)
 {
 	init_iterator(iter);
-	iter->firstloop = iter->nextloop = bm_firstfaceloop(iter->pdata);
+	iter->firstloop = iter->nextloop = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
 void  *bmiter__loop_of_face_step(BMIter *iter)

@@ -1101,16 +1101,17 @@ typedef struct bflag {
 	int flag;
 } bflag;
 
-#define b(f) {#f, f},
+#define PAIR(f) {#f, f},
 static const char *bmesh_flags = {
-	b(BM_SELECT);
-	b(BM_SEAM);
-	b(BM_FGON);
-	b(BM_HIDDEN);
-	b(BM_SHARP);
-	b(BM_SMOOTH);
+	PAIR(BM_SELECT);
+	PAIR(BM_SEAM);
+	PAIR(BM_FGON);
+	PAIR(BM_HIDDEN);
+	PAIR(BM_SHARP);
+	PAIR(BM_SMOOTH);
 	{NULL, 0};
 };
+#undef PAIR
 
 int bmesh_str_to_flag(const char *str)
 {
@@ -1139,7 +1140,7 @@ int bmesh_str_to_flag(const char *str)
  *  ff - flagged faces
  */
 
-#define nextc(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
+#define NEXT_CHAR(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
 
 static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name)
 {
@@ -1252,7 +1253,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 			case 'm': {
 				int size, c;
 				
-				c = nextc(fmt);
+				c = NEXT_CHAR(fmt);
 				fmt++;
 
 				if (c == '3') size = 3;
@@ -1301,14 +1302,14 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 			case 'a':
 				type = *fmt;
 
-				if (nextc(fmt) == ' ' || nextc(fmt) == '\t' || nextc(fmt) == '\0') {
+				if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\t' || NEXT_CHAR(fmt) == '\0') {
 					BMO_Set_Float(op, slotname, va_arg(vlist, double));
 				}
 				else {
 					ret = 0;
 					stop = 0;
 					while (1) {
-					switch (nextc(fmt)) {
+					switch (NEXT_CHAR(fmt)) {
 						case 'f': ret |= BM_FACE; break;
 						case 'e': ret |= BM_EDGE; break;
 						case 'v': ret |= BM_VERT; break;

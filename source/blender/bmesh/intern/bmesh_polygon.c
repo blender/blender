@@ -515,7 +515,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
 	switch (f->len) {
 		case 4:
 		{
-			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v1 = (l = BM_FACE_FIRST_LOOP(f))->v;
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l = l->next)->v;
 			BMVert *v4 = (l->next)->v;
@@ -524,7 +524,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
 		}
 		case 3:
 		{
-			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v1 = (l = BM_FACE_FIRST_LOOP(f))->v;
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l->next)->v;
 			normal_tri_v3(no, v1->co, v2->co, v3->co);
@@ -561,7 +561,7 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 	switch (f->len) {
 		case 4:
 		{
-			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v1 = (l = BM_FACE_FIRST_LOOP(f))->v;
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l = l->next)->v;
 			BMVert *v4 = (l->next)->v;
@@ -574,7 +574,7 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 		}
 		case 3:
 		{
-			BMVert *v1 = (l = bm_firstfaceloop(f))->v;
+			BMVert *v1 = (l = BM_FACE_FIRST_LOOP(f))->v;
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l->next)->v;
 			normal_tri_v3(no,
@@ -709,16 +709,16 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 	co2[1] = co[ay];
 	co2[2] = 0;
 	
-	l = bm_firstfaceloop(f);
+	l = BM_FACE_FIRST_LOOP(f);
 	do {
 		cent[0] += l->v->co[ax];
 		cent[1] += l->v->co[ay];
 		l = l->next;
-	} while (l != bm_firstfaceloop(f));
+	} while (l != BM_FACE_FIRST_LOOP(f));
 	
 	mul_v2_fl(cent, 1.0f / (float)f->len);
 	
-	l = bm_firstfaceloop(f);
+	l = BM_FACE_FIRST_LOOP(f);
 	do {
 		float v1[3], v2[3];
 		
@@ -733,7 +733,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 		crosses += linecrossesf(v1, v2, co2, out) != 0;
 		
 		l = l->next;
-	} while (l != bm_firstfaceloop(f));
+	} while (l != BM_FACE_FIRST_LOOP(f));
 	
 	return crosses % 2 != 0;
 }
@@ -741,7 +741,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
                     int v2i, int v3i, int UNUSED(nvert))
 {
-	BMLoop *l = bm_firstfaceloop(f);
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
@@ -769,7 +769,7 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 		if (point_in_triangle(v3, v2, v1, pv1)) return 0;
 
 		l = l->next;
-	} while (l != bm_firstfaceloop(f));
+	} while (l != BM_FACE_FIRST_LOOP(f));
 	return 1;
 }
 /*
@@ -789,7 +789,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 	/* float angle, bestangle = 180.0f; */
 	int isear /*, i = 0 */;
 	
-	l = bm_firstfaceloop(f);
+	l = BM_FACE_FIRST_LOOP(f);
 	do {
 		isear = 1;
 		
@@ -818,7 +818,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 		}
 		l = l->next;
 	}
-	while (l != bm_firstfaceloop(f));
+	while (l != BM_FACE_FIRST_LOOP(f));
 
 	return bestear;
 }
@@ -848,13 +848,13 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	/* copy vertex coordinates to vertspace arra */
 	i = 0;
-	l = bm_firstfaceloop(f);
+	l = BM_FACE_FIRST_LOOP(f);
 	do {
 		copy_v3_v3(projectverts[i], l->v->co);
 		BM_SetIndex(l->v, i); /* set dirty! */
 		i++;
 		l = l->next;
-	} while (l != bm_firstfaceloop(f));
+	} while (l != BM_FACE_FIRST_LOOP(f));
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
@@ -904,7 +904,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	}
 
 	if (f->len > 3) {
-		l = bm_firstfaceloop(f);
+		l = BM_FACE_FIRST_LOOP(f);
 		while (l->f->len > 3) {
 			nextloop = l->next->next;
 			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
@@ -973,7 +973,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len * 2);
 	
-	l = bm_firstfaceloop(f);
+	l = BM_FACE_FIRST_LOOP(f);
 	for (i = 0; i < f->len; i++) {
 		p1 = projverts[i];
 		out[0] = MAX2(out[0], p1[0]) + 0.01f;

@@ -1902,11 +1902,11 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			f2 = BM_Make_Face_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
 			BMO_SetFlag(bm, f2, FACE_NEW);
 			
-			l = bm_firstfaceloop(f2);
+			l = BM_FACE_FIRST_LOOP(f2);
 			do {
 				BMO_ClearFlag(bm, l->e, DEL);
 				l = l->next;
-			} while (l != bm_firstfaceloop(f2));
+			} while (l != BM_FACE_FIRST_LOOP(f2));
 	
 			BMO_ClearFlag(bm, f2, DEL);
 			BM_SetIndex(f2, i); /* set_dirty! */ /* note, not 100% sure this is dirty? need to check */

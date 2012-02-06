@@ -103,10 +103,10 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 			f3 = BM_Make_Face_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, 0);
 			
-			BM_Copy_Attributes(bm, bm, l->next, bm_firstfaceloop(f3));
-			BM_Copy_Attributes(bm, bm, l->next, bm_firstfaceloop(f3)->next);
-			BM_Copy_Attributes(bm, bm, l, bm_firstfaceloop(f3)->next->next);
-			BM_Copy_Attributes(bm, bm, l, bm_firstfaceloop(f3)->next->next->next);
+			BM_Copy_Attributes(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3));
+			BM_Copy_Attributes(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3)->next);
+			BM_Copy_Attributes(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next);
+			BM_Copy_Attributes(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next->next);
 
 			l2 = BMIter_Step(&liter2);
 		}

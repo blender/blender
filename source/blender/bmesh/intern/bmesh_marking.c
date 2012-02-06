@@ -98,12 +98,12 @@ void BM_SelectMode_Flush(BMesh *bm)
 		}
 		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
 			totsel = 0;
-			l = (BMLoop *) bm_firstfaceloop(f);
+			l = (BMLoop *) BM_FACE_FIRST_LOOP(f);
 			do {
 				if (BM_TestHFlag(l->v, BM_SELECT))
 					totsel++;
 				l = l->next;
-			} while (l != bm_firstfaceloop(f));
+			} while (l != BM_FACE_FIRST_LOOP(f));
 			
 			if (totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
 				BM_SetHFlag(f, BM_SELECT);
@@ -116,12 +116,12 @@ void BM_SelectMode_Flush(BMesh *bm)
 	else if (bm->selectmode & SCE_SELECT_EDGE) {
 		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
 			totsel = 0;
-			l = bm_firstfaceloop(f);
+			l = BM_FACE_FIRST_LOOP(f);
 			do {
 				if (BM_TestHFlag(&(l->e->head), BM_SELECT))
 					totsel++;
 				l = l->next;
-			} while (l != bm_firstfaceloop(f));
+			} while (l != BM_FACE_FIRST_LOOP(f));
 			
 			if (totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
 				BM_SetHFlag(f, BM_SELECT);
@@ -250,12 +250,12 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		if (!BM_TestHFlag(f, BM_SELECT)) bm->totfacesel += 1;
 
 		BM_SetHFlag(&(f->head), BM_SELECT);
-		l = (BMLoop *) bm_firstfaceloop(f);
+		l = (BMLoop *) BM_FACE_FIRST_LOOP(f);
 		do {
 			BM_Select_Vert(bm, l->v, TRUE);
 			BM_Select_Edge(bm, l->e, TRUE);
 			l = l->next;
-		} while (l != bm_firstfaceloop(f));
+		} while (l != BM_FACE_FIRST_LOOP(f));
 	}
 	else {
 		BMIter liter;

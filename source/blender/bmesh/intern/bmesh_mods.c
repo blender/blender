@@ -266,14 +266,14 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	jed = e;
 	if (!jed) {
 		/* search for an edge that has both these faces in its radial cycl */
-		l1 = bm_firstfaceloop(f1);
+		l1 = BM_FACE_FIRST_LOOP(f1);
 		do {
 			if (l1->radial_next->f == f2) {
 				jed = l1->e;
 				break;
 			}
 			l1 = l1->next;
-		} while (l1 != bm_firstfaceloop(f1));
+		} while (l1 != BM_FACE_FIRST_LOOP(f1));
 	}
 
 	if (!jed) {
@@ -367,17 +367,17 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 		if (has_mdisp && (nf != f)) {
 			BMLoop *l;
 
-			l = bm_firstfaceloop(f);
+			l = BM_FACE_FIRST_LOOP(f);
 			do {
 				BM_loop_interp_from_face(bm, l, of, 0, 1);
 				l = l->next;
-			} while (l != bm_firstfaceloop(f));
+			} while (l != BM_FACE_FIRST_LOOP(f));
 
-			l = bm_firstfaceloop(nf);
+			l = BM_FACE_FIRST_LOOP(nf);
 			do {
 				BM_loop_interp_from_face(bm, l, of, 0, 1);
 				l = l->next;
-			} while (l != bm_firstfaceloop(nf));
+			} while (l != BM_FACE_FIRST_LOOP(nf));
 
 			BM_Kill_Face(bm, of);
 
@@ -607,11 +607,11 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 				
 				do {
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l->f)) {
-						l2 = bm_firstfaceloop(l->f);
+						l2 = BM_FACE_FIRST_LOOP(l->f);
 						do {
 							BM_loop_interp_multires(bm, l2, oldfaces[i]);
 							l2 = l2->next;
-						} while (l2 != bm_firstfaceloop(l->f));
+						} while (l2 != BM_FACE_FIRST_LOOP(l->f));
 					}
 					l = l->radial_next;
 				} while (l != e1->l);

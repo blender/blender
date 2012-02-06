@@ -534,7 +534,7 @@ int bmesh_loop_validate(BMFace *f)
 	int i;
 	int len = f->len;
 	BMLoop *curloop, *head;
-	head = bm_firstfaceloop(f);
+	head = BM_FACE_FIRST_LOOP(f);
 	
 	if (head == NULL)
 		return 0;

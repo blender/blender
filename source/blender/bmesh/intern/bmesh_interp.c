@@ -216,7 +216,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BM_Copy_Attributes(bm, bm, source, target);
 
 	i = 0;
-	l2 = l_first = bm_firstfaceloop(source);
+	l2 = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
 		copy_v3_v3(cos[i], l2->v->co);
 		blocks[i] = l2->head.data;
@@ -224,7 +224,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	} while ((l2 = l2->next) != l_first);
 
 	i = 0;
-	l1 = l_first = bm_firstfaceloop(target);
+	l1 = l_first = BM_FACE_FIRST_LOOP(target);
 	do {
 		interp_weights_poly_v3(w, cos, source->len, l1->v->co);
 		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l1->head.data);
@@ -395,13 +395,13 @@ static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3
 	BMLoop *l2;
 	
 	/* computer center */
-	l2 = bm_firstfaceloop(l->f);
+	l2 = BM_FACE_FIRST_LOOP(l->f);
 	do {
 		cent[0] += (double)l2->v->co[0];
 		cent[1] += (double)l2->v->co[1];
 		cent[2] += (double)l2->v->co[2];
 		l2 = l2->next;
-	} while (l2 != bm_firstfaceloop(l->f));
+	} while (l2 != BM_FACE_FIRST_LOOP(l->f));
 	
 	VECMUL(cent, (1.0 / (double)l->f->len));
 	
@@ -561,7 +561,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	
 	/* if no disps data allocate a new grid, the size of the first grid in source. */
 	if (!mdisps->totdisp) {
-		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, bm_firstfaceloop(source)->head.data, CD_MDISPS);
+		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, BM_FACE_FIRST_LOOP(source)->head.data, CD_MDISPS);
 		
 		mdisps->totdisp = md2->totdisp;
 		if (mdisps->totdisp) {
@@ -598,7 +598,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			VECMUL(co, x);
 			VECADD2(co, co1);
 			
-			l2 = bm_firstfaceloop(source);
+			l2 = BM_FACE_FIRST_LOOP(source);
 			do {
 				double x2, y2;
 				MDisps *md1, *md2;
@@ -613,7 +613,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
 				}
 				l2 = l2->next;
-			} while (l2 != bm_firstfaceloop(source));
+			} while (l2 != BM_FACE_FIRST_LOOP(source));
 		}
 	}
 }
@@ -742,7 +742,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BM_Copy_Attributes(bm, bm, source, target->f);
 
 	i = 0;
-	l = l_first = bm_firstfaceloop(source);
+	l = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
 		copy_v3_v3(cos[i], l->v->co);
 		add_v3_v3(cent, cos[i]);
@@ -814,7 +814,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	int i;
 
 	i = 0;
-	l = l_first = bm_firstfaceloop(source);
+	l = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
 		copy_v3_v3(cos[i], l->v->co);
 		add_v3_v3(cent, cos[i]);
