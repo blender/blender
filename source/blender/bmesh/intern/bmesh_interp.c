@@ -203,7 +203,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
  */
 void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 {
-	BMLoop *l1, *l2;
+	BMLoop *l_iter;
 	BMLoop *l_first;
 
 	void **blocks = NULL;
@@ -216,20 +216,20 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BM_Copy_Attributes(bm, bm, source, target);
 
 	i = 0;
-	l2 = l_first = BM_FACE_FIRST_LOOP(source);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
-		copy_v3_v3(cos[i], l2->v->co);
-		blocks[i] = l2->head.data;
+		copy_v3_v3(cos[i], l_iter->v->co);
+		blocks[i] = l_iter->head.data;
 		i++;
-	} while ((l2 = l2->next) != l_first);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	i = 0;
-	l1 = l_first = BM_FACE_FIRST_LOOP(target);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(target);
 	do {
-		interp_weights_poly_v3(w, cos, source->len, l1->v->co);
-		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l1->head.data);
+		interp_weights_poly_v3(w, cos, source->len, l_iter->v->co);
+		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l_iter->head.data);
 		i++;
-	} while ((l1 = l1->next) != l_first);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	BLI_array_fixedstack_free(cos);
 	BLI_array_fixedstack_free(w);
@@ -392,16 +392,16 @@ static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3
                               double e1[3], double e2[3])
 {
 	double cent[3] = {0.0, 0.0, 0.0}, n[3], p[3];
-	BMLoop *l2;
+	BMLoop *l_first;
+	BMLoop *l_iter;
 	
 	/* computer center */
-	l2 = BM_FACE_FIRST_LOOP(l->f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(l->f);
 	do {
-		cent[0] += (double)l2->v->co[0];
-		cent[1] += (double)l2->v->co[1];
-		cent[2] += (double)l2->v->co[2];
-		l2 = l2->next;
-	} while (l2 != BM_FACE_FIRST_LOOP(l->f));
+		cent[0] += (double)l_iter->v->co[0];
+		cent[1] += (double)l_iter->v->co[1];
+		cent[2] += (double)l_iter->v->co[2];
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	VECMUL(cent, (1.0 / (double)l->f->len));
 	
@@ -545,7 +545,8 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	MDisps *mdisps;
-	BMLoop *l2;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	double x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
 	int ix, iy, res;
 	
@@ -598,22 +599,21 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			VECMUL(co, x);
 			VECADD2(co, co1);
 			
-			l2 = BM_FACE_FIRST_LOOP(source);
+			l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 			do {
 				double x2, y2;
 				MDisps *md1, *md2;
 
 				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
-				md2 = CustomData_bmesh_get(&bm->ldata, l2->head.data, CD_MDISPS);
+				md2 = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
 				
-				if (mdisp_in_mdispquad(bm, target, l2, co, &x2, &y2, res)) {
+				if (mdisp_in_mdispquad(bm, target, l_iter, co, &x2, &y2, res)) {
 					/* int ix2 = (int)x2; */ /* UNUSED */
 					/* int iy2 = (int)y2; */ /* UNUSED */
 					
 					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
 				}
-				l2 = l2->next;
-			} while (l2 != BM_FACE_FIRST_LOOP(source));
+			} while ((l_iter = l_iter->next) != l_first);
 		}
 	}
 }
@@ -728,7 +728,7 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, 
                               int do_vertex, int do_multires)
 {
-	BMLoop *l;
+	BMLoop *l_iter;
 	BMLoop *l_first;
 	void **blocks = NULL;
 	void **vblocks = NULL;
@@ -742,20 +742,20 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BM_Copy_Attributes(bm, bm, source, target->f);
 
 	i = 0;
-	l = l_first = BM_FACE_FIRST_LOOP(source);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
-		copy_v3_v3(cos[i], l->v->co);
+		copy_v3_v3(cos[i], l_iter->v->co);
 		add_v3_v3(cent, cos[i]);
 		
 		w[i] = 0.0f;
-		blocks[i] = l->head.data;
+		blocks[i] = l_iter->head.data;
 	
 		if (do_vertex) {
-			vblocks[i] = l->v->head.data;
+			vblocks[i] = l_iter->v->head.data;
 		}
 		i++;
 	
-	} while ((l = l->next) != l_first);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	 * the 2d projected coords are the same and faster to compute */
@@ -804,7 +804,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 
 void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 {
-	BMLoop *l;
+	BMLoop *l_iter;
 	BMLoop *l_first;
 	void **blocks = NULL;
 	float (*cos)[3] = NULL, *w = NULL, cent[3] = {0.0f, 0.0f, 0.0f};
@@ -814,15 +814,15 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	int i;
 
 	i = 0;
-	l = l_first = BM_FACE_FIRST_LOOP(source);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
-		copy_v3_v3(cos[i], l->v->co);
+		copy_v3_v3(cos[i], l_iter->v->co);
 		add_v3_v3(cent, cos[i]);
 
 		w[i] = 0.0f;
-		blocks[i] = l->v->head.data;
+		blocks[i] = l_iter->v->head.data;
 		i++;
-	} while ((l = l->next) != l_first);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	/* scale source face coordinates a bit, so points sitting directonly on an
      * edge will work. */

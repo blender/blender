@@ -82,16 +82,18 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
 
 BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 {
-	BMLoop *l = BM_FACE_FIRST_LOOP(f) /*, *l2, *l3 */;
-	/* int found = 0; */ /* UNUSED */
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	
 	do {
-		if (l->e == e) break;
-		/* found = 1; */ /* UNUSED */
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+		if (l_iter->e == e) {
+			break;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
 	
-	return l->v == v ? l->prev : l->next;
+	return l_iter->v == v ? l_iter->prev : l_iter->next;
 }
 
 /*
@@ -162,16 +164,16 @@ int BM_Verts_In_Face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 
 int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 {
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
 	do {
-		if (l->e == e) {
+		if (l_iter->e == e) {
 			return 1;
 		}
-
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 
 	return 0;
 }
@@ -431,15 +433,17 @@ int BM_Boundary_Edge(BMEdge *e)
 
 int BM_Face_Share_Edges(BMFace *f1, BMFace *f2)
 {
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	int count = 0;
 	
-	l = BM_FACE_FIRST_LOOP(f1);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f1);
 	do {
-		if (bmesh_radial_find_face(l->e, f2)) count++;
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f1));
-	
+		if (bmesh_radial_find_face(l_iter->e, f2)) {
+			count++;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
 	return count;
 }
 

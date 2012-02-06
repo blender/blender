@@ -79,7 +79,8 @@ static void recount_totsels(BMesh *bm)
 void BM_SelectMode_Flush(BMesh *bm)
 {
 	BMEdge *e;
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	BMFace *f;
 
 	BMIter edges;
@@ -98,12 +99,12 @@ void BM_SelectMode_Flush(BMesh *bm)
 		}
 		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
 			totsel = 0;
-			l = (BMLoop *) BM_FACE_FIRST_LOOP(f);
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
-				if (BM_TestHFlag(l->v, BM_SELECT))
+				if (BM_TestHFlag(l_iter->v, BM_SELECT)) {
 					totsel++;
-				l = l->next;
-			} while (l != BM_FACE_FIRST_LOOP(f));
+				}
+			} while ((l_iter = l_iter->next) != l_first);
 			
 			if (totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
 				BM_SetHFlag(f, BM_SELECT);
@@ -116,12 +117,12 @@ void BM_SelectMode_Flush(BMesh *bm)
 	else if (bm->selectmode & SCE_SELECT_EDGE) {
 		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
 			totsel = 0;
-			l = BM_FACE_FIRST_LOOP(f);
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
-				if (BM_TestHFlag(&(l->e->head), BM_SELECT))
+				if (BM_TestHFlag(&(l_iter->e->head), BM_SELECT)) {
 					totsel++;
-				l = l->next;
-			} while (l != BM_FACE_FIRST_LOOP(f));
+				}
+			} while ((l_iter = l_iter->next) != l_first);
 			
 			if (totsel == f->len && !BM_TestHFlag(f, BM_HIDDEN)) {
 				BM_SetHFlag(f, BM_SELECT);
@@ -240,7 +241,8 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 
 void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 {
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 
 	if (BM_TestHFlag(f, BM_HIDDEN)) {
 		return;
@@ -250,12 +252,11 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		if (!BM_TestHFlag(f, BM_SELECT)) bm->totfacesel += 1;
 
 		BM_SetHFlag(&(f->head), BM_SELECT);
-		l = (BMLoop *) BM_FACE_FIRST_LOOP(f);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			BM_Select_Vert(bm, l->v, TRUE);
-			BM_Select_Edge(bm, l->e, TRUE);
-			l = l->next;
-		} while (l != BM_FACE_FIRST_LOOP(f));
+			BM_Select_Vert(bm, l_iter->v, TRUE);
+			BM_Select_Edge(bm, l_iter->e, TRUE);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 	else {
 		BMIter liter;

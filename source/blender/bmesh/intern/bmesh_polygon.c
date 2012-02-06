@@ -690,7 +690,8 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 {
 	int ax, ay;
 	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f, 0};
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	int crosses = 0;
 	float eps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
@@ -709,31 +710,28 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 	co2[1] = co[ay];
 	co2[2] = 0;
 	
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		cent[0] += l->v->co[ax];
-		cent[1] += l->v->co[ay];
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+		cent[0] += l_iter->v->co[ax];
+		cent[1] += l_iter->v->co[ay];
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	mul_v2_fl(cent, 1.0f / (float)f->len);
 	
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		float v1[3], v2[3];
 		
-		v1[0] = (l->prev->v->co[ax] - cent[ax]) * eps + cent[ax];
-		v1[1] = (l->prev->v->co[ay] - cent[ay]) * eps + cent[ay];
+		v1[0] = (l_iter->prev->v->co[ax] - cent[ax]) * eps + cent[ax];
+		v1[1] = (l_iter->prev->v->co[ay] - cent[ay]) * eps + cent[ay];
 		v1[2] = 0.0f;
 		
-		v2[0] = (l->v->co[ax] - cent[ax]) * eps + cent[ax];
-		v2[1] = (l->v->co[ay] - cent[ay]) * eps + cent[ay];
+		v2[0] = (l_iter->v->co[ax] - cent[ax]) * eps + cent[ax];
+		v2[1] = (l_iter->v->co[ay] - cent[ay]) * eps + cent[ay];
 		v2[2] = 0.0f;
 		
 		crosses += linecrossesf(v1, v2, co2, out) != 0;
-		
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	return crosses % 2 != 0;
 }
@@ -741,7 +739,8 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
                     int v2i, int v3i, int UNUSED(nvert))
 {
-	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
@@ -754,22 +753,25 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	}
 
 	//for (i = 0; i < nvert; i++) {
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		i = BM_GetIndex(l->v);
+		i = BM_GetIndex(l_iter->v);
 		if (i == v1i || i == v2i || i == v3i) {
-			l = l->next;
+			l_iter = l_iter->next;
 			continue;
 		}
 		
-		VECCOPY(pv1, projectverts[BM_GetIndex(l->v)]);
-		VECCOPY(pv2, projectverts[BM_GetIndex(l->next->v)]);
+		VECCOPY(pv1, projectverts[BM_GetIndex(l_iter->v)]);
+		VECCOPY(pv2, projectverts[BM_GetIndex(l_iter->next->v)]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return 0;
-		if (point_in_triangle(v1, v2, v3, pv1)) return 0;
-		if (point_in_triangle(v3, v2, v1, pv1)) return 0;
 
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+		if ( point_in_triangle(v1, v2, v3, pv1) ||
+		     point_in_triangle(v3, v2, v1, pv1))
+		{
+			return 0;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
 	return 1;
 }
 /*
@@ -781,28 +783,31 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
  *
  */
 
-static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
-			int nvert)
+static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert)
 {
 	BMVert *v1, *v2, *v3;
-	BMLoop *bestear = NULL, *l;
+	BMLoop *bestear = NULL;
+
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	/* float angle, bestangle = 180.0f; */
 	int isear /*, i = 0 */;
 	
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		isear = 1;
 		
-		v1 = l->prev->v;
-		v2 = l->v;
-		v3 = l->next->v;
+		v1 = l_iter->prev->v;
+		v2 = l_iter->v;
+		v3 = l_iter->next->v;
 
-		if (BM_Edge_Exist(v1, v3)) isear = 0;
-
-		if (isear && !goodline(verts, f, BM_GetIndex(v1), BM_GetIndex(v2),
-			               BM_GetIndex(v3), nvert))
+		if (BM_Edge_Exist(v1, v3)) {
 			isear = 0;
-		
+		}
+		else if (!goodline(verts, f, BM_GetIndex(v1), BM_GetIndex(v2), BM_GetIndex(v3), nvert)) {
+			isear = 0;
+		}
+
 		if (isear) {
 			/* angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
 			if (!bestear || ABS(angle-45.0f) < bestangle) {
@@ -813,12 +818,10 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			if (angle > 20 && angle < 90) break;
 			if (angle < 100 && i > 5) break;
 			i += 1; */
-			bestear = l;
+			bestear = l_iter;
 			break;
 		}
-		l = l->next;
-	}
-	while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 
 	return bestear;
 }
@@ -843,18 +846,19 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          int newedgeflag, int newfaceflag, BMFace **newfaces)
 {
 	int i, done, nvert, nf_i = 0;
-	BMLoop *l, *newl, *nextloop;
+	BMLoop *newl, *nextloop;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	/* BMVert *v; */ /* UNUSED */
 
 	/* copy vertex coordinates to vertspace arra */
 	i = 0;
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		copy_v3_v3(projectverts[i], l->v->co);
-		BM_SetIndex(l->v, i); /* set dirty! */
+		copy_v3_v3(projectverts[i], l_iter->v->co);
+		BM_SetIndex(l_iter->v, i); /* set dirty! */
 		i++;
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
@@ -873,14 +877,14 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	done = 0;
 	while (!done && f->len > 3) {
 		done = 1;
-		l = find_ear(bm, f, projectverts, nvert);
-		if (l) {
+		l_iter = find_ear(bm, f, projectverts, nvert);
+		if (l_iter) {
 			done = 0;
 			/* v = l->v; */ /* UNUSED */
-			f = BM_Split_Face(bm, l->f, l->prev->v,
-			                  l->next->v,
+			f = BM_Split_Face(bm, l_iter->f, l_iter->prev->v,
+			                  l_iter->next->v,
 			                  &newl, NULL);
-			copy_v3_v3(f->no, l->f->no);
+			copy_v3_v3(f->no, l_iter->f->no);
 
 			if (!f) {
 				fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
@@ -904,10 +908,10 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	}
 
 	if (f->len > 3) {
-		l = BM_FACE_FIRST_LOOP(f);
-		while (l->f->len > 3) {
-			nextloop = l->next->next;
-			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
+		l_iter = BM_FACE_FIRST_LOOP(f);
+		while (l_iter->f->len > 3) {
+			nextloop = l_iter->next->next;
+			f = BM_Split_Face(bm, l_iter->f, l_iter->v, nextloop->v,
 			                  &newl, NULL);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
@@ -921,7 +925,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);
-			l = nextloop;
+			l_iter = nextloop;
 		}
 	}
 	

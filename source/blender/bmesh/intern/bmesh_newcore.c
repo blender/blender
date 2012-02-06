@@ -203,30 +203,31 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 	BMVert **verts = NULL;
 	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
-	BMLoop *l, *l2;
+	BMLoop *l_iter;
+	BMLoop *l_first;
+	BMLoop *l2;
 	BMFace *f2;
 	int i;
 
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		if (copyverts) {
-			BMVert *v = BM_Make_Vert(bm, l->v->co, l->v);
+			BMVert *v = BM_Make_Vert(bm, l_iter->v->co, l_iter->v);
 			BLI_array_append(verts, v);
 		}
 		else {
-			BLI_array_append(verts, l->v);
+			BLI_array_append(verts, l_iter->v);
 		}
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	i = 0;
 	do {
 		if (copyedges) {
 			BMEdge *e;
 			BMVert *v1, *v2;
 			
-			if (l->e->v1 == verts[i]) {
+			if (l_iter->e->v1 == verts[i]) {
 				v1 = verts[i];
 				v2 = verts[(i + 1) % f->len];
 			}
@@ -235,28 +236,26 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			e = BM_Make_Edge(bm,  v1, v2, l->e, 0);
+			e = BM_Make_Edge(bm,  v1, v2, l_iter->e, 0);
 			BLI_array_append(edges, e);
 		}
 		else {
-			BLI_array_append(edges, l->e);
+			BLI_array_append(edges, l_iter->e);
 		}
 		
 		i++;
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	f2 = BM_Make_Face(bm, verts, edges, f->len, 0);
 	
 	BM_Copy_Attributes(bm, bm, f, f2);
 	
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	l2 = BM_FACE_FIRST_LOOP(f2);
 	do {
-		BM_Copy_Attributes(bm, bm, l, l2);
-		l = l->next;
+		BM_Copy_Attributes(bm, bm, l_iter, l2);
 		l2 = l2->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	return f2;
 }
@@ -403,35 +402,35 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 	}
 	case BM_FACE: {
 		BMFace *f = element;
-		BMLoop *l;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 		int len = 0;
 
 		if (!f->loops.first)
 			err |= (1 << 16);
-		l = BM_FACE_FIRST_LOOP(f);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			if (l->f != f) {
+			if (l_iter->f != f) {
 				fprintf(stderr, "%s: loop inside one face points to another! (bmesh internal error)\n", __func__);
 				err |= (1 << 17);
 			}
 
-			if (!l->e)
+			if (!l_iter->e)
 				err |= (1 << 18);
-			if (!l->v)
+			if (!l_iter->v)
 				err |= (1 << 19);
-			if (!BM_Vert_In_Edge(l->e, l->v) || !BM_Vert_In_Edge(l->e, l->next->v)) {
+			if (!BM_Vert_In_Edge(l_iter->e, l_iter->v) || !BM_Vert_In_Edge(l_iter->e, l_iter->next->v)) {
 				err |= (1 << 20);
 			}
 
-			if (!bmesh_radial_validate(bmesh_radial_length(l), l))
+			if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter))
 				err |= (1 << 21);
 
-			if (!bmesh_disk_count(l->v) || !bmesh_disk_count(l->next->v))
+			if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v))
 				err |= (1 << 22);
 
 			len++;
-			l = l->next;
-		} while (l != BM_FACE_FIRST_LOOP(f));
+		} while ((l_iter = l_iter->next) != l_first);
 
 		if (len != f->len)
 			err |= (1 << 23);
@@ -506,14 +505,14 @@ void BM_Kill_Face_Edges(BMesh *bm, BMFace *f)
 {
 	BMEdge **edges = NULL;
 	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	int i;
 	
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		BLI_array_append(edges, l->e);
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+		BLI_array_append(edges, l_iter->e);
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	for (i = 0; i < BLI_array_count(edges); i++) {
 		BM_Kill_Edge(bm, edges[i]);
@@ -526,14 +525,14 @@ void BM_Kill_Face_Verts(BMesh *bm, BMFace *f)
 {
 	BMVert**verts = NULL;
 	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	int i;
 	
-	l = BM_FACE_FIRST_LOOP(f);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		BLI_array_append(verts, l->v);
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(f));
+		BLI_array_append(verts, l_iter->v);
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	for (i = 0; i < BLI_array_count(verts); i++) {
 		BM_Kill_Vert(bm, verts[i]);
@@ -837,7 +836,8 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 {
 	BMFace *f, *newf;
 	BMLoopList *lst;
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	BMEdge **edges = NULL;
 	BMEdge **deledges = NULL;
 	BMVert **delverts = NULL;
@@ -861,48 +861,46 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 
 	for (i = 0; i < totface; i++) {
 		f = faces[i];
-		l = BM_FACE_FIRST_LOOP(f);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			int rlen = count_flagged_radial(bm, l, _FLAG_JF);
+			int rlen = count_flagged_radial(bm, l_iter, _FLAG_JF);
 
 			if (rlen > 2) {
 				err = "Input faces do not form a contiguous manifold region";
 				goto error;
 			}
 			else if (rlen == 1) {
-				BLI_array_append(edges, l->e);
+				BLI_array_append(edges, l_iter->e);
 
 				if (!v1) {
-					v1 = l->v;
-					v2 = BM_OtherEdgeVert(l->e, l->v);
+					v1 = l_iter->v;
+					v2 = BM_OtherEdgeVert(l_iter->e, l_iter->v);
 				}
 				tote++;
 			}
 			else if (rlen == 2) {
 				int d1, d2;
 
-				d1 = disk_is_flagged(l->e->v1, _FLAG_JF);
-				d2 = disk_is_flagged(l->e->v2, _FLAG_JF);
+				d1 = disk_is_flagged(l_iter->e->v1, _FLAG_JF);
+				d2 = disk_is_flagged(l_iter->e->v2, _FLAG_JF);
 
-				if (!d1 && !d2 && !bmesh_api_getflag(l->e, _FLAG_JF)) {
-					BLI_array_append(deledges, l->e);
-					bmesh_api_setflag(l->e, _FLAG_JF);
+				if (!d1 && !d2 && !bmesh_api_getflag(l_iter->e, _FLAG_JF)) {
+					BLI_array_append(deledges, l_iter->e);
+					bmesh_api_setflag(l_iter->e, _FLAG_JF);
 				}
 				else {
-					if (d1 && !bmesh_api_getflag(l->e->v1, _FLAG_JF)) {
-						BLI_array_append(delverts, l->e->v1);
-						bmesh_api_setflag(l->e->v1, _FLAG_JF);
+					if (d1 && !bmesh_api_getflag(l_iter->e->v1, _FLAG_JF)) {
+						BLI_array_append(delverts, l_iter->e->v1);
+						bmesh_api_setflag(l_iter->e->v1, _FLAG_JF);
 					}
 
-					if (d2 && !bmesh_api_getflag(l->e->v2, _FLAG_JF)) {
-						BLI_array_append(delverts, l->e->v2);
-						bmesh_api_setflag(l->e->v2, _FLAG_JF);
+					if (d2 && !bmesh_api_getflag(l_iter->e->v2, _FLAG_JF)) {
+						BLI_array_append(delverts, l_iter->e->v2);
+						bmesh_api_setflag(l_iter->e->v2, _FLAG_JF);
 					}
 				}
 			}
-
-			l = l->next;
-		} while (l != BM_FACE_FIRST_LOOP(f));
+		} while ((l_iter = l_iter->next) != l_first);
 
 		for (lst = f->loops.first; lst; lst = lst->next) {
 			if (lst == f->loops.first) continue;
@@ -921,27 +919,25 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	}
 
 	/* copy over loop dat */
-	l = BM_FACE_FIRST_LOOP(newf);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(newf);
 	do {
-		BMLoop *l2 = l->radial_next;
+		BMLoop *l2 = l_iter->radial_next;
 
 		do {
 			if (bmesh_api_getflag(l2->f, _FLAG_JF))
 				break;
 			l2 = l2->radial_next;
-		} while (l2 != l);
+		} while (l2 != l_iter);
 
-		if (l2 != l) {
+		if (l2 != l_iter) {
 			/* I think this is correct */
-			if (l2->v != l->v) {
+			if (l2->v != l_iter->v) {
 				l2 = l2->next;
 			}
 
-			BM_Copy_Attributes(bm, bm, l2, l);
+			BM_Copy_Attributes(bm, bm, l2, l_iter);
 		}
-
-		l = l->next;
-	} while (l != BM_FACE_FIRST_LOOP(newf));
+	} while ((l_iter = l_iter->next) != l_first);
 	
 	BM_Copy_Attributes(bm, bm, faces[0], newf);
 
@@ -950,26 +946,24 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 
 	/* update loop face pointer */
 	for (lst = newf->loops.first; lst; lst = lst->next) {
-		l = lst->first;
+		l_iter = lst->first;
 		do {
-			l->f = newf;
-			l = l->next;
-		} while (l != lst->first);
+			l_iter->f = newf;
+			l_iter = l_iter->next;
+		} while (l_iter != lst->first);
 	}
 
 	bmesh_clear_systag_elements(bm, faces, totface, _FLAG_JF);
 	bmesh_api_clearflag(newf, _FLAG_JF);
 
-	/* handle multires dat */
+	/* handle multires data */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		l = BM_FACE_FIRST_LOOP(newf);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(newf);
 		do {
 			for (i = 0; i < totface; i++) {
-				BM_loop_interp_multires(bm, l, faces[i]);
+				BM_loop_interp_multires(bm, l_iter, faces[i]);
 			}
-			
-			l = l->next;
-		} while (l != BM_FACE_FIRST_LOOP(newf));
+		} while ((l_iter = l_iter->next) != l_first);
 	}	
 
 	/* delete old geometr */
