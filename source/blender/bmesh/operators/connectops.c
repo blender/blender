@@ -30,7 +30,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Flag_Buffer(bm, op, "verts", VERT_INPUT, BM_VERT);
 
-	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
+	for (f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BMIter_Step(&iter)) {
 		BLI_array_empty(loops);
 		BLI_array_empty(verts);
 		
@@ -38,21 +38,19 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		lastl = NULL;
-		for ( ; l; l=BMIter_Step(&liter)) {
+		for ( ; l; l = BMIter_Step(&liter)) {
 			if (BMO_TestFlag(bm, l->v, VERT_INPUT)) {
 				if (!lastl) {
 					lastl = l;
 					continue;
 				}
 
-				if (lastl != l->prev && lastl != 
-				    l->next)
-				{
+				if (lastl != l->prev && lastl != l->next) {
 					BLI_array_growone(loops);
-					loops[BLI_array_count(loops)-1] = lastl;
+					loops[BLI_array_count(loops) - 1] = lastl;
 
 					BLI_array_growone(loops);
-					loops[BLI_array_count(loops)-1] = l;
+					loops[BLI_array_count(loops) - 1] = l;
 
 				}
 				lastl = l;
@@ -63,32 +61,30 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 		
 		if (BLI_array_count(loops) > 2) {
 			BLI_array_growone(loops);
-			loops[BLI_array_count(loops)-1] = loops[BLI_array_count(loops)-2];
+			loops[BLI_array_count(loops) - 1] = loops[BLI_array_count(loops) - 2];
 
 			BLI_array_growone(loops);
-			loops[BLI_array_count(loops)-1] = loops[0];
+			loops[BLI_array_count(loops) - 1] = loops[0];
 		}
 
-		BM_LegalSplits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops)/2);
+		BM_LegalSplits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
 		
-		for (i=0; i<BLI_array_count(loops)/2; i++) {
-			if (loops[i*2]==NULL) continue;
+		for (i = 0; i < BLI_array_count(loops) / 2; i++) {
+			if (loops[i * 2] == NULL) continue;
 
 			BLI_array_growone(verts);
-			verts[BLI_array_count(verts)-1] = loops[i*2]->v;
+			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;
 		
 			BLI_array_growone(verts);
-			verts[BLI_array_count(verts)-1] = loops[i*2+1]->v;
+			verts[BLI_array_count(verts) - 1] = loops[i * 2 + 1]->v;
 		}
 
-		for (i=0; i<BLI_array_count(verts)/2; i++) {
-			nf = BM_Split_Face(bm, f, verts[i*2],
-				           verts[i*2+1], &nl, NULL);
+		for (i = 0; i < BLI_array_count(verts) / 2; i++) {
+			nf = BM_Split_Face(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL);
 			f = nf;
 			
 			if (!nl || !nf) {
-				BMO_RaiseError(bm, op,
-					BMERR_CONNECTVERT_FAILED, NULL);
+				BMO_RaiseError(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
 				BLI_array_free(loops);
 				return;
 			}
@@ -108,17 +104,15 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 	BMIter iter;
 	BMEdge *e2;
 	int i;
-	
-	i= 0;
+
+	i = 0;
 	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, e->v1) {
-		if (BMO_TestFlag(bm, e2, EDGE_MARK))
+		if (BMO_TestFlag(bm, e2, EDGE_MARK)) {
 			i++;
+		}
 	}
-	
-	if (i==2) 
-		return e->v2;
-	else
-		return e->v1;
+
+	return (i == 2) ? e->v2 : e->v1;
 }
 
 /* Clamp x to the interval {0..len-1}, with wrap-around */
@@ -159,7 +153,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter;
 	BMEdge *e, *nexte;
-	int c=0, cl1=0, cl2=0;
+	int c = 0, cl1 = 0, cl2 = 0;
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
 
@@ -188,7 +182,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 							/* edges do not form a loop: there is a disk
 							 * with more than two marked edges. */
 							BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION,
-								"Selection must only contain edges from two edge loops");
+							               "Selection must only contain edges from two edge loops");
 							goto cleanup;
 						}
 					}
@@ -204,7 +198,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			e = e2;
 			ov = v;
 			do {
-				if (c==0) {
+				if (c == 0) {
 					BLI_array_append(ee1, e2);
 					BLI_array_append(vv1, v);
 				}
@@ -226,8 +220,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			} while (e3 && e2 != e);
 			
 			if (v && !e3) {			
-				if (c==0) {
-					if (BLI_array_count(vv1) && v == vv1[BLI_array_count(vv1)-1]) {
+				if (c == 0) {
+					if (BLI_array_count(vv1) && v == vv1[BLI_array_count(vv1) - 1]) {
 						printf("%s: internal state waning *TODO DESCRIPTION!*\n", __func__);
 					}
 					BLI_array_append(vv1, v);
@@ -239,10 +233,12 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			
 			/* test for connected loops, and set cl1 or cl2 if so */
 			if (v == ov) {
-				if (c==0)
+				if (c == 0) {
 					cl1 = 1;
-				else 
+				}
+				else {
 					cl2 = 1;
+				}
 			}
 			
 			c++;
@@ -252,7 +248,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	if (ee1 && ee2) {
 		int i, j;
 		BMVert *v1, *v2, *v3, *v4;
-		int starti=0, dir1=1, wdir=0, lenv1, lenv2;
+		int starti = 0, dir1 = 1, wdir = 0, lenv1, lenv2;
 
 		/* Simplify code below by avoiding the (!cl1 && cl2) case */
 		if (!cl1 && cl2) {
@@ -272,15 +268,15 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		 * the bridge instead of quads only. */
 		if (BLI_array_count(ee1) != BLI_array_count(ee2)) {
 			BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION,
-				"Selected loops must have equal edge counts");
+			               "Selected loops must have equal edge counts");
 			goto cleanup;
 		}
 
 		j = 0;
-		if (vv1[0] == vv1[lenv1-1]) {
+		if (vv1[0] == vv1[lenv1 - 1]) {
 			lenv1--;
 		}
-		if (vv2[0] == vv2[lenv2-1]) {
+		if (vv2[0] == vv2[lenv2 - 1]) {
 			lenv2--;
 		}
 
@@ -318,7 +314,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			 * the vertices in both loops to find a more accurate match for the
 			 * starting point and winding direction of the bridge generation. */
 			
-			for (i=0; i<BLI_array_count(vv1); i++) {
+			for (i = 0; i < BLI_array_count(vv1); i++) {
 				if (len_v3v3(vv1[i]->co, vv2[0]->co) < min) {
 					min = len_v3v3(vv1[i]->co, vv2[0]->co);
 					starti = i;
@@ -326,8 +322,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 
 			/* Reverse iteration order for the first loop if the distance of
-			 * the (starti-1) vert from vv1 is a better match for vv2[1] than
-			 * the (starti+1) vert.
+			 * the (starti - 1) vert from vv1 is a better match for vv2[1] than
+			 * the (starti + 1) vert.
 			 *
 			 * This is not always going to be right, but it will work better in
 			 * the average case.
@@ -345,7 +341,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		/* Vert rough attempt to determine proper winding for the bridge quads:
 		 * just uses the first loop it finds for any of the edges of ee2 or ee1 */
 		if (wdir == 0) {
-			for (i=0; i<BLI_array_count(ee2); i++) {
+			for (i = 0; i < BLI_array_count(ee2); i++) {
 				if (ee2[i]->l) {
 					wdir = (ee2[i]->l->v == vv2[i]) ? (-1) : (1);
 					break;
@@ -353,7 +349,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		if (wdir == 0) {
-			for (i=0; i<BLI_array_count(ee1); i++) {
+			for (i = 0; i < BLI_array_count(ee1); i++) {
 				j = clamp_index((i * dir1) + starti, BLI_array_count(ee1));
 				if (ee1[j]->l && ee2[j]->l) {
 					wdir = (ee2[j]->l->v == vv2[j]) ? (1) : (-1);
@@ -363,7 +359,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		/* Generate the bridge quads */
-		for (i=0; i<BLI_array_count(ee1) && i<BLI_array_count(ee2); i++) {
+		for (i = 0; i < BLI_array_count(ee1) && i < BLI_array_count(ee2); i++) {
 			BMFace *f;
 			int i1, i1next, i2, i2next;
 

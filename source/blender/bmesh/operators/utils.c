@@ -33,7 +33,7 @@
  * utility bmesh operators, e.g. transform, 
  * translate, rotate, scale, etc.
  *
-*/
+ */
 
 void bmesh_makevert_exec(BMesh *bm, BMOperator *op)
 {
@@ -90,15 +90,15 @@ void bmesh_rotate_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Get_Vec(op, "cent", vec);
 	
-	/*there has to be a proper matrix way to do this, but
-	  this is how editmesh did it and I'm too tired to think
-	  through the math right now.*/
-	mul_v3_fl(vec, -1);
+	/* there has to be a proper matrix way to do this, but
+	 * this is how editmesh did it and I'm too tired to think
+	 * through the math right now. */
+	mul_v3_fl(vec, -1.0f);
 	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 
 	BMO_CallOpf(bm, "transform mat=%s verts=%s", op, "mat", op, "verts");
 
-	mul_v3_fl(vec, -1);
+	mul_v3_fl(vec, -1.0f);
 	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
@@ -227,7 +227,7 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "geomout", SEL_FLAG, BM_ALL);
 }
 
-/********* righthand faces implementation ********/
+/********* righthand faces implementation ****** */
 
 #define FACE_VIS	1
 #define FACE_FLAG	2
@@ -265,12 +265,12 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	float maxx, cent[3];
 	int i, maxi, flagflip = BMO_Get_Int(op, "doflip");
 
-	startf= NULL;
-	maxx= -1.0e10;
+	startf = NULL;
+	maxx = -1.0e10;
 	
 	BMO_Flag_Buffer(bm, op, "faces", FACE_FLAG, BM_FACE);
 
-	/*find a starting face*/
+	/* find a starting face */
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 
 		/* clear dirty flag */
@@ -294,7 +294,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	BM_Compute_Face_CenterBounds(bm, startf, cent);
 
-	/*make sure the starting face has the correct winding*/
+	/* make sure the starting face has the correct winding */
 	if (dot_v3v3(cent, startf->no) < 0.0f) {
 		BM_flip_normal(bm, startf);
 		BMO_ToggleFlag(bm, startf, FACE_FLIP);
@@ -303,10 +303,10 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 			BM_ToggleHFlag(startf, BM_TMP_TAG);
 	}
 	
-	/*now that we've found our starting face, make all connected faces
-	  have the same winding.  this is done recursively, using a manual
-	  stack (if we use simple function recursion, we'd end up overloading
-	  the stack on large meshes).*/
+	/* now that we've found our starting face, make all connected faces
+	 * have the same winding.  this is done recursively, using a manual
+	 * stack (if we use simple function recursion, we'd end up overloading
+	 * the stack on large meshes). */
 
 	BLI_array_growone(fstack);
 	fstack[0] = startf;
@@ -354,7 +354,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	BLI_array_free(fstack);
 
-	/*check if we have faces yet to do.  if so, recurse.*/
+	/* check if we have faces yet to do.  if so, recurse */
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		if (!BMO_TestFlag(bm, f, FACE_VIS)) {
 			bmesh_righthandfaces_exec(bm, op);
@@ -419,10 +419,10 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 }
 
 /*
-** compute the perimeter of an ngon
-**
-** NOTE: This should probably go to bmesh_polygon.c
-*/
+ * compute the perimeter of an ngon
+ *
+ * NOTE: This should probably go to bmesh_polygon.c
+ */
 static float ngon_perimeter(BMesh *bm, BMFace *f)
 {
 	BMIter	liter;
@@ -449,12 +449,12 @@ static float ngon_perimeter(BMesh *bm, BMFace *f)
 }
 
 /*
-** compute the fake surface of an ngon
-** This is done by decomposing the ngon into triangles who share the centroid of the ngon
-** while this method is far from being exact, it should garantee an invariance.
-**
-** NOTE: This should probably go to bmesh_polygon.c
-*/
+ * compute the fake surface of an ngon
+ * This is done by decomposing the ngon into triangles who share the centroid of the ngon
+ * while this method is far from being exact, it should garantee an invariance.
+ *
+ * NOTE: This should probably go to bmesh_polygon.c
+ */
 static float ngon_fake_area(BMesh *bm, BMFace *f)
 {
 	BMIter	liter;
@@ -484,8 +484,8 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 }
 
 /*
-** extra face data (computed data)
-*/
+ * extra face data (computed data)
+ */
 typedef struct tmp_face_ext {
 	BMFace		*f;			/* the face */
 	float	c[3];			/* center */
@@ -498,9 +498,9 @@ typedef struct tmp_face_ext {
 } tmp_face_ext;
 
 /*
-** Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
-** We select either similar faces based on material, image, area, perimeter, normal, or the coplanar faces
-*/
+ * Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
+ * We select either similar faces based on material, image, area, perimeter, normal, or the coplanar faces
+ */
 void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter fm_iter;
@@ -531,8 +531,8 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected faces indices and for all temporary faces */
-	indices	= (int*)MEM_callocN(sizeof(int) * num_sels, "face indices util.c");
-	f_ext = (tmp_face_ext*)MEM_callocN(sizeof(tmp_face_ext) * num_total, "f_ext util.c");
+	indices	= (int *)MEM_callocN(sizeof(int) * num_sels, "face indices util.c");
+	f_ext = (tmp_face_ext *)MEM_callocN(sizeof(tmp_face_ext) * num_total, "f_ext util.c");
 
 	/* loop through all the faces and fill the faces/indices structure */
 	BM_ITER(fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
@@ -650,12 +650,12 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** Similar Edges
-******************************************************************************/
+**************************************************************************** */
 #define EDGE_MARK	1
 
 /*
-** compute the angle of an edge (i.e. the angle between two faces)
-*/
+ * compute the angle of an edge (i.e. the angle between two faces)
+ */
 static float edge_angle(BMesh *bm, BMEdge *e)
 {
 	BMIter	fiter;
@@ -665,7 +665,7 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
 		if (f_prev == NULL) {
-			f_prev= f;
+			f_prev = f;
 		}
 		else {
 			return angle_v3v3(f_prev->no, f->no);
@@ -675,13 +675,13 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 	return 0.0f;
 }
 /*
-** extra edge information
-*/
+ * extra edge information
+ */
 typedef struct tmp_edge_ext {
 	BMEdge		*e;
 	union {
 		float		dir[3];
-		float		angle;			/* angle between the faces*/
+		float		angle;			/* angle between the face */
 	};
 
 	union {
@@ -691,9 +691,9 @@ typedef struct tmp_edge_ext {
 } tmp_edge_ext;
 
 /*
-** select similar edges: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
-** choices are length, direction, face, ...
-*/
+ * select similar edges: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
+ * choices are length, direction, face, ...
+ */
 void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter es_iter;	/* selected edges iterator */
@@ -719,8 +719,8 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected edges indices and for all temporary edges */
-	indices	= (int*)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
-	e_ext = (tmp_edge_ext*)MEM_callocN(sizeof(tmp_edge_ext) * num_total, "e_ext util.c");
+	indices	= (int *)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
+	e_ext = (tmp_edge_ext *)MEM_callocN(sizeof(tmp_edge_ext) * num_total, "e_ext util.c");
 
 	/* loop through all the edges and fill the edges/indices structure */
 	BM_ITER(e, &e_iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -847,7 +847,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** Similar Vertices
-******************************************************************************/
+**************************************************************************** */
 #define VERT_MARK	1
 
 typedef struct tmp_vert_ext {
@@ -859,9 +859,9 @@ typedef struct tmp_vert_ext {
 } tmp_vert_ext;
 
 /*
-** select similar vertices: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
-** choices are normal, face, vertex group...
-*/
+ * select similar vertices: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
+ * choices are normal, face, vertex group...
+ */
 void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter vs_iter;	/* selected verts iterator */
@@ -883,8 +883,8 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected vertices indices and for all temporary vertices */
-	indices	= (int*)MEM_mallocN(sizeof(int) * num_sels, "vertex indices");
-	v_ext = (tmp_vert_ext*)MEM_mallocN(sizeof(tmp_vert_ext) * num_total, "vertex extra");
+	indices	= (int *)MEM_mallocN(sizeof(int) * num_sels, "vertex indices");
+	v_ext = (tmp_vert_ext *)MEM_mallocN(sizeof(tmp_vert_ext) * num_total, "vertex extra");
 
 	/* loop through all the vertices and fill the vertices/indices structure */
 	BM_ITER(v, &v_iter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -901,7 +901,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 			break;
 
 		case SIMVERT_VGROUP:
-			if (CustomData_has_layer(&(bm->vdata),CD_MDEFORMVERT)) {
+			if (CustomData_has_layer(&(bm->vdata), CD_MDEFORMVERT)) {
 				v_ext[i].dvert = CustomData_bmesh_get(&bm->vdata, v_ext[i].v->head.data, CD_MDEFORMVERT);
 			}
 			else {
@@ -963,7 +963,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** Cycle UVs for a face
-******************************************************************************/
+**************************************************************************** */
 
 void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
 {
@@ -1002,7 +1002,7 @@ void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
 			}
 			else if (dir == DIRECTION_CCW) { /* counter loop direction */
 				BMLoop *lf;	/* current face loops */
-				MLoopUV *p_luv; /*previous loop uv */
+				MLoopUV *p_luv; /* previous loop uv */
 				MLoopUV *luv;
 				float t_uv[2];	/* current uvs */
 
@@ -1030,7 +1030,7 @@ void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** Reverse UVs for a face
-******************************************************************************/
+**************************************************************************** */
 
 void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 {
@@ -1073,7 +1073,7 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** Cycle colors for a face
-******************************************************************************/
+**************************************************************************** */
 
 void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
 {
@@ -1112,7 +1112,7 @@ void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
 			}
 			else if (dir == DIRECTION_CCW) { /* counter loop direction */
 				BMLoop *lf;	/* current face loops */
-				MLoopCol *p_lcol; /*previous loop color */
+				MLoopCol *p_lcol; /* previous loop color */
 				MLoopCol *lcol;
 				MLoopCol t_col;	/* current color */
 
@@ -1139,7 +1139,7 @@ void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** Reverse colors for a face
-******************************************************************************/
+**************************************************************************** */
 
 void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op)
 {
@@ -1181,7 +1181,7 @@ void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op)
 
 /******************************************************************************
 ** shortest vertex path select
-******************************************************************************/
+**************************************************************************** */
 
 typedef struct element_node {
 	BMVert *v;	/* vertex */
@@ -1211,7 +1211,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	num_total = BM_Count_Element(bm, BM_VERT);
 
 	/* allocate memory for the nodes */
-	vert_list = (element_node*)MEM_mallocN(sizeof(element_node) * num_total, "vertex nodes");
+	vert_list = (element_node *)MEM_mallocN(sizeof(element_node) * num_total, "vertex nodes");
 
 	/* iterate through all the mesh vertices */
 	/* loop through all the vertices and fill the vertices/indices structure */
@@ -1243,7 +1243,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 		float v_weight;
 
 		/* take the vertex with the lowest weight out of the heap */
-		BMVert *v = (BMVert*)BLI_heap_popmin(h);
+		BMVert *v = (BMVert *)BLI_heap_popmin(h);
 
 		if (vert_list[BM_GetIndex(v)].weight == FLT_MAX) /* this means that there is no path */
 			break;

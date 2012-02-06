@@ -52,7 +52,7 @@
  *
  *  Add restriction flag/callback for wire edges.
  * 
-*/
+ */
 
 static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 {
@@ -88,7 +88,7 @@ static void shellWalker_begin(BMWalker *walker, void *data)
 		{
 			/* starting the walk at a vert, add all the edges
 			   to the worklist */
-			v = (BMVert*)h;
+			v = (BMVert *)h;
 			BM_ITER(e, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
 				shellWalker_visitEdge(walker, e);
 			}
@@ -99,7 +99,7 @@ static void shellWalker_begin(BMWalker *walker, void *data)
 		{
 			/* starting the walk at an edge, add the single edge
 			   to the worklist */
-			e = (BMEdge*)h;
+			e = (BMEdge *)h;
 			shellWalker_visitEdge(walker, e);
 			break;
 		}
@@ -123,7 +123,7 @@ static void *shellWalker_step(BMWalker *walker)
 	e = swalk->curedge;
 	BMW_removestate(walker);
 
-	for (i=0; i<2; i++) {
+	for (i = 0; i < 2; i++) {
 		v = i ? e->v2 : e->v1;
 		BM_ITER(e2, &iter, walker->bm, BM_EDGES_OF_VERT, v) {
 			shellWalker_visitEdge(walker, e2);
@@ -139,7 +139,7 @@ static void *shellWalker_step(BMWalker *walker)
 	BMEdge *curedge, *next = NULL;
 	BMVert *ov = NULL;
 	int restrictpass = 1;
-	shellWalker shellWalk = *((shellWalker*)BMW_currentstate(walker));
+	shellWalker shellWalk = *((shellWalker *)BMW_currentstate(walker));
 	
 	if (!BLI_ghash_haskey(walker->visithash, shellWalk.base))
 		BLI_ghash_insert(walker->visithash, shellWalk.base, NULL);
@@ -147,7 +147,7 @@ static void *shellWalker_step(BMWalker *walker)
 	BMW_removestate(walker);
 
 
-	/*find the next edge whose other vertex has not been visited*/
+	/* find the next edge whose other vertex has not been visite */
 	curedge = shellWalk.curedge;
 	do {
 		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
@@ -158,11 +158,11 @@ static void *shellWalker_step(BMWalker *walker)
 
 				ov = BM_OtherEdgeVert(curedge, shellWalk.base);
 				
-				/*push a new state onto the stack*/
+				/* push a new state onto the stac */
 				newState = BMW_addstate(walker);
 				BLI_ghash_insert(walker->visithash, curedge, NULL);
 				
-				/*populate the new state*/
+				/* populate the new stat */
 
 				newState->base = ov;
 				newState->curedge = curedge;
@@ -179,7 +179,7 @@ static void *shellWalker_step(BMWalker *walker)
  *
  *	Similar to shell walker, but visits vertices instead of edges.
  * 
-*/
+ */
 
 static void connectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 {
@@ -241,7 +241,7 @@ static void *connectedVertexWalker_step(BMWalker *walker)
  *
  *  Add restriction flag/callback for wire edges.
  * 
-*/
+ */
 
 static void islandboundWalker_begin(BMWalker *walker, void *data)
 {
@@ -271,7 +271,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 	BMEdge *e = iwalk->curloop->e;
 	BMFace *f;
 	BMLoop *l = iwalk->curloop;
-	/* int found=0; */
+	/* int found = 0; */
 
 	owalk = *iwalk;
 
@@ -280,13 +280,13 @@ static void *islandboundWalker_step(BMWalker *walker)
 
 	if (BM_Nonmanifold_Vert(walker->bm, v)) {
 		BMW_reset(walker);
-		BMO_RaiseError(walker->bm, NULL,BMERR_WALKER_FAILED,
-			"Non-manifold vert"
-			" while searching region boundary");
+		BMO_RaiseError(walker->bm, NULL, BMERR_WALKER_FAILED,
+		               "Non-manifold vert "
+		               "while searching region boundary");
 		return NULL;
 	}
 	
-	/*pop off current state*/
+	/* pop off current stat */
 	BMW_removestate(walker);
 	
 	f = l->f;
@@ -309,8 +309,12 @@ static void *islandboundWalker_step(BMWalker *walker)
 		}
 	}
 	
-	if (l == owalk.curloop) return NULL;
-	if (BLI_ghash_haskey(walker->visithash, l)) return owalk.curloop;
+	if (l == owalk.curloop) {
+		return NULL;
+	}
+	else if (BLI_ghash_haskey(walker->visithash, l)) {
+		return owalk.curloop;
+	}
 
 	BLI_ghash_insert(walker->visithash, l, NULL);
 	iwalk = BMW_addstate(walker);
@@ -333,7 +337,7 @@ static void *islandboundWalker_step(BMWalker *walker)
  *
  *  Add restriction flag/callback for wire edges.
  * 
-*/
+ */
 
 static void islandWalker_begin(BMWalker *walker, void *data)
 {
@@ -359,7 +363,7 @@ static void *islandWalker_yield(BMWalker *walker)
 static void *islandWalker_step(BMWalker *walker)
 {
 	islandWalker *iwalk = BMW_currentstate(walker);
-	/* islandWalker *owalk= iwalk; */ /* UNUSED */
+	/* islandWalker *owalk = iwalk; */ /* UNUSED */
 	BMIter iter, liter;
 	BMFace *f, *curf = iwalk->cur;
 	BMLoop *l;
@@ -367,14 +371,14 @@ static void *islandWalker_step(BMWalker *walker)
 	BMW_removestate(walker);
 
 	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
-	for ( ; l; l=BMIter_Step(&liter)) {
+	for ( ; l; l = BMIter_Step(&liter)) {
 		/* could skip loop here too, but dont add unless we need it */
 		if (walker->mask_edge && !BMO_TestFlag(walker->bm, l->e, walker->mask_edge)) {
 			continue;
 		}
 
 		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
-		for ( ; f; f=BMIter_Step(&iter)) {
+		for ( ; f; f = BMIter_Step(&iter)) {
 			if (walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
 				continue;
 			}
@@ -395,14 +399,14 @@ static void *islandWalker_step(BMWalker *walker)
  *
  *	Starts at a tool-flagged edge and walks over the edge loop
  *
-*/
+ */
 
 static void loopWalker_begin(BMWalker *walker, void *data)
 {
 	loopWalker *lwalk = NULL, owalk;
 	BMEdge *e = data;
 	BMVert *v;
-	/* int found=1, val; */ /* UNUSED */
+	/* int found = 1, val; */ /* UNUSED */
 
 	v = e->v1;
 
@@ -416,9 +420,9 @@ static void loopWalker_begin(BMWalker *walker, void *data)
 	lwalk->stage2 = 0;
 	lwalk->startrad = BM_Edge_FaceCount(e);
 
-	/*rewind*/
+	/* rewin */
 	while (BMW_currentstate(walker)) {
-		owalk = *((loopWalker*)BMW_currentstate(walker));
+		owalk = *((loopWalker *)BMW_currentstate(walker));
 		BMW_walk(walker);
 	}
 
@@ -449,7 +453,7 @@ static void *loopWalker_step(BMWalker *walker)
 	BMEdge *e = lwalk->cur, *nexte = NULL;
 	BMLoop *l, *l2;
 	BMVert *v;
-	int val, rlen /* , found=0 */, i=0, stopi;
+	int val, rlen /* , found = 0 */, i = 0, stopi;
 
 	owalk = *lwalk;
 	BMW_removestate(walker);
@@ -460,7 +464,7 @@ static void *loopWalker_step(BMWalker *walker)
 	if (!l) {
 
 		/* match trunk: mark all connected wire edges */
-		for (i=0; i<2; i++) {
+		for (i = 0; i < 2; i++) {
 			v = i ? e->v2 : e->v1;
 
 			BM_ITER(nexte, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
@@ -529,41 +533,41 @@ static void *loopWalker_step(BMWalker *walker)
  * Conditions for starting and stepping the face loop have been
  * tuned in an attempt to match the face loops built by EditMesh
  * 
-*/
+ */
 
-/*Check whether the face loop should includes the face specified
-  by the given BMLoop*/
+/* Check whether the face loop should includes the face specified
+ * by the given BMLoop */
 static int faceloopWalker_include_face(BMWalker *walker, BMLoop *l)
 {
-	/*face must have degree 4*/
+	/* face must have degree 4 */
 	if (l->f->len != 4)
 		return 0;
 
-	/*the face must not have been already visited*/
+	/* the face must not have been already visite */
 	if (BLI_ghash_haskey(walker->visithash, l->f))
 		return 0;
 
 	return 1;
 }
 
-/*Check whether the face loop can start from the given edge*/
+/* Check whether the face loop can start from the given edge */
 static int faceloopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
 {
 	BMesh *bm = walker->bm;
 
-	/*There is no face loop starting from a wire edges*/
+	/* There is no face loop starting from a wire edge */
 	if (BM_Wire_Edge(bm, e)) {
 		return 0;
 	}
 	
-	/*Don't start a loop from a boundary edge if it cannot
-	  be extended to cover any faces*/
+	/* Don't start a loop from a boundary edge if it cannot
+	 * be extended to cover any faces */
 	if (BM_Edge_FaceCount(e) == 1) {
 		if (!faceloopWalker_include_face(walker, e->l))
 			return 0;
 	}
 	
-	/*Don't start a face loop from non-manifold edges*/
+	/* Don't start a face loop from non-manifold edges */
 	if (BM_Nonmanifold_Edge(bm, e)) {
 		return 0;
 	}
@@ -586,9 +590,9 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 	lwalk->nocalc = 0;
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
-	/*rewind*/
+	/* rewin */
 	while (BMW_currentstate(walker)) {
-		owalk = *((faceloopWalker*)BMW_currentstate(walker));
+		owalk = *((faceloopWalker *)BMW_currentstate(walker));
 		BMW_walk(walker);
 	}
 
@@ -605,7 +609,9 @@ static void *faceloopWalker_yield(BMWalker *walker)
 {
 	faceloopWalker *lwalk = BMW_currentstate(walker);
 	
-	if (!lwalk) return NULL;
+	if (!lwalk) {
+		return NULL;
+	}
 
 	return lwalk->l->f;
 }
@@ -656,7 +662,7 @@ static void *faceloopWalker_step(BMWalker *walker)
  * Conditions for starting and stepping the edge ring have been
  * tuned in an attempt to match the edge rings built by EditMesh
  * 
-*/
+ */
 
 static void edgeringWalker_begin(BMWalker *walker, void *data)
 {
@@ -676,9 +682,9 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 
-	/*rewind*/
+	/* rewin */
 	while (BMW_currentstate(walker)) {
-		owalk = *((edgeringWalker*)BMW_currentstate(walker));
+		owalk = *((edgeringWalker *)BMW_currentstate(walker));
 		BMW_walk(walker);
 	}
 
@@ -697,7 +703,9 @@ static void *edgeringWalker_yield(BMWalker *walker)
 {
 	edgeringWalker *lwalk = BMW_currentstate(walker);
 	
-	if (!lwalk) return NULL;
+	if (!lwalk) {
+		return NULL;
+	}
 
 	if (lwalk->l)
 		return lwalk->l->e;
@@ -719,10 +727,10 @@ static void *edgeringWalker_step(BMWalker *walker)
 
 	e = l->e;
 	if (BM_Nonmanifold_Edge(bm, e)) {
-		/*walker won't traverse to a non-manifold edge, but may
-		  be started on one, and should not traverse *away* from
-		  a non-manfold edge (non-manifold edges are never in an
-		  edge ring with manifold edges*/
+		/* walker won't traverse to a non-manifold edge, but may
+		 * be started on one, and should not traverse *away* from
+		 * a non-manfold edge (non-manifold edges are never in an
+		 * edge ring with manifold edges */
 		return e;
 	}
 
@@ -733,7 +741,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 		l = lwalk->l->next->next;
 	}
 
-	/*only walk to manifold edges*/
+	/* only walk to manifold edge */
 	if ((l->f->len == 4) && !BM_Nonmanifold_Edge(bm, l->e) &&
 		 !BLI_ghash_haskey(walker->visithash, l->e)) {
 		lwalk = BMW_addstate(walker);
@@ -763,8 +771,10 @@ static void *uvedgeWalker_yield(BMWalker *walker)
 {
 	uvedgeWalker *lwalk = BMW_currentstate(walker);
 	
-	if (!lwalk) return NULL;
-	
+	if (!lwalk) {
+		return NULL;
+	}
+
 	return lwalk->l;
 }
 
@@ -785,16 +795,16 @@ static void *uvedgeWalker_step(BMWalker *walker)
 	if (walker->mask_edge && !BMO_TestFlag(walker->bm, l->e, walker->mask_edge))
 		return l;
 
-	/*go over loops around l->v and nl->v and see which ones share l and nl's 
-	  mloopuv's coordinates. in addition, push on l->next if necassary.*/
-	for (i=0; i<2; i++) {
+	/* go over loops around l->v and nl->v and see which ones share l and nl's
+	  mloopuv's coordinates. in addition, push on l->next if necassary */
+	for (i = 0; i < 2; i++) {
 		cl = i ? nl : l;
 		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {
 			d1 = CustomData_bmesh_get_layer_n(&walker->bm->ldata,
 			                                  cl->head.data, walker->layer);
 			
 			rlen = BM_Edge_FaceCount(l2->e);
-			for (j=0; j<rlen; j++) {
+			for (j = 0; j < rlen; j++) {
 				if (BLI_ghash_haskey(walker->visithash, l2))
 					continue;
 				if (walker->mask_edge && !(BMO_TestFlag(walker->bm, l2->e, walker->mask_edge)))

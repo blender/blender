@@ -20,22 +20,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BL(ptr) ((BMLoop*)(ptr))
-
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 {
 	BMIter liter;
 	BMLoop *l;
 	BMVert *v2, *doub;
-	int split=0;
+	int split = 0;
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		v2 = BMO_Get_MapPointer(bm, op, "targetmap", l->v);
-		/*ok: if v2 is NULL (e.g. not in the map) then it's
-		      a target vert, otherwise it's a double*/
-		if (v2 && BM_Vert_In_Face(f, v2) && v2 != BL(l->prev)->v 
-		    && v2 != BL(l->next)->v)
-		{
+		/* ok: if v2 is NULL (e.g. not in the map) then it's
+		 *     a target vert, otherwise it's a doubl */
+		if (v2 && BM_Vert_In_Face(f, v2) && (v2 != ((BMLoop *)l->prev)->v) && (v2 != ((BMLoop *)l->next)->v)) {
 			doub = l->v;
 			split = 1;
 			break;
@@ -66,7 +62,7 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 
 	if (overlapface) *overlapface = NULL;
 
-	for (i=0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
 		while (f) {
 			amount = BM_Verts_In_Face(bm, f, varr, len);
@@ -93,7 +89,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	int a, b;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if ((v2= BMO_Get_MapPointer(bm, op, "targetmap", v))) {
+		if ((v2 = BMO_Get_MapPointer(bm, op, "targetmap", v))) {
 			BMO_SetFlag(bm, v, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
@@ -129,7 +125,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			if (BMO_TestFlag(bm, l->v, ELE_DEL))
 				BMO_SetFlag(bm, f, FACE_MARK|ELE_DEL);
 			if (BMO_TestFlag(bm, l->e, EDGE_COL)) 
-				BM_SetIndex(f, BM_GetIndex(f)+1); /* set_dirty! */
+				BM_SetIndex(f, BM_GetIndex(f) + 1); /* set_dirty! */
 		}
 	}
 	bm->elem_index_dirty |= BM_FACE;
@@ -148,7 +144,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		a = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			v = l->v;
-			v2 = BL(l->next)->v;
+			v2 = ((BMLoop *)l->next)->v;
 			if (BMO_TestFlag(bm, v, ELE_DEL)) 
 				v = BMO_Get_MapPointer(bm, op, "targetmap", v);
 			if (BMO_TestFlag(bm, v2, ELE_DEL)) 
@@ -156,12 +152,14 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			
 			e2 = v != v2 ? BM_Edge_Exist(v, v2) : NULL;
 			if (e2) {
-				for (b=0; b<a; b++) {
-					if (edges[b] == e2)
+				for (b = 0; b < a; b++) {
+					if (edges[b] == e2) {
 						break;
+					}
 				}
-				if (b != a)
+				if (b != a) {
 					continue;
+				}
 
 				BLI_array_growone(edges);
 				BLI_array_growone(loops);
@@ -205,11 +203,11 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 
 static int vergaverco(const void *e1, const void *e2)
 {
-	const BMVert *v1 = *(void**)e1, *v2 = *(void**)e2;
+	const BMVert *v1 = *(void **)e1, *v2 = *(void **)e2;
 	float x1 = v1->co[0] + v1->co[1] + v1->co[2];
 	float x2 = v2->co[0] + v2->co[1] + v2->co[2];
 
-	if (x1 > x2) return 1;
+	if      (x1 > x2) return  1;
 	else if (x1 < x2) return -1;
 	else return 0;
 }
@@ -244,7 +242,7 @@ void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 			firstl = l;
 		}
 		
-		for (i=0; i<bm->ldata.totlayer; i++) {
+		for (i = 0; i < bm->ldata.totlayer; i++) {
 			if (CustomData_layer_has_math(&bm->ldata, i)) {
 				int type = bm->ldata.layers[i].type;
 				void *e1, *e2;
@@ -280,7 +278,7 @@ void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
 	void *block;
 	int i, type;
 
-	for (i=0; i<bm->ldata.totlayer; i++) {
+	for (i = 0; i < bm->ldata.totlayer; i++) {
 		if (!CustomData_layer_has_math(&bm->ldata, i))
 			continue;
 		
@@ -347,7 +345,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_Init_Op(bm, &weldop, "weldverts");
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);	
-	BMW_Init(&walker, bm, BMW_SHELL,  0,EDGE_MARK,0,0,  BMW_NIL_LAY);
+	BMW_Init(&walker, bm, BMW_SHELL,  0, EDGE_MARK, 0, 0,  BMW_NIL_LAY);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, e, EDGE_MARK))
@@ -357,7 +355,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 		BLI_array_empty(edges);
 
 		INIT_MINMAX(min, max);
-		for (tot=0; e; tot++, e=BMW_Step(&walker)) {
+		for (tot = 0; e; tot++, e = BMW_Step(&walker)) {
 			BLI_array_growone(edges);
 			edges[tot] = e;
 
@@ -368,8 +366,8 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 		add_v3_v3v3(min, min, max);
 		mul_v3_fl(min, 0.5f);
 
-		/*snap edges to a point.  for initial testing purposes anyway.*/
-		for (i=0; i<tot; i++) {
+		/* snap edges to a point.  for initial testing purposes anyway */
+		for (i = 0; i < tot; i++) {
 			copy_v3_v3(edges[i]->v1->co, min);
 			copy_v3_v3(edges[i]->v2->co, min);
 			
@@ -387,7 +385,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 }
 
-/*uv collapse function*/
+/* uv collapse functio */
 static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 {
 	BMIter iter, liter;
@@ -402,18 +400,18 @@ static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	BMO_Clear_Flag_All(bm, op, BM_ALL, 65535);
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
-	BMW_Init(&walker, bm, BMW_LOOPDATA_ISLAND, 0,EDGE_MARK,0,0, layer);
+	BMW_Init(&walker, bm, BMW_LOOPDATA_ISLAND,  0, EDGE_MARK, 0, 0,  layer);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_TestFlag(bm, l->e, EDGE_MARK)) {
-				/*walk*/
+				/* wal */
 				BLI_array_empty(blocks);
 				tot = 0;
 				l2 = BMW_Begin(&walker, l);
 
 				CustomData_data_initminmax(type, &min, &max);
-				for (tot=0; l2; tot++, l2=BMW_Step(&walker)) {
+				for (tot = 0; l2; tot++, l2 = BMW_Step(&walker)) {
 					BLI_array_growone(blocks);
 					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
 					CustomData_data_dominmax(type, blocks[tot], &min, &max);
@@ -424,8 +422,8 @@ static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 					CustomData_data_multiply(type, &max, 0.5f);
 					CustomData_data_add(type, &min, &max);
 
-					/*snap CD (uv, vcol) points to their centroid*/
-					for (i=0; i<tot; i++) {
+					/* snap CD (uv, vcol) points to their centroi */
+					for (i = 0; i < tot; i++) {
 						CustomData_data_copy_value(type, &min, blocks[i]);
 					}
 				}
@@ -441,7 +439,7 @@ void bmesh_collapsecon_exec(BMesh *bm, BMOperator *op)
 {
 	int i;
 
-	for (i=0; i<bm->ldata.totlayer; i++) {
+	for (i = 0; i < bm->ldata.totlayer; i++) {
 		if (CustomData_layer_has_math(&bm->ldata, i))
 			bmesh_collapsecon_do_layer(bm, op, i);
 	}
@@ -451,7 +449,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 {
 	BMOIter oiter;
 	BMVert *v, *v2;
-	BMVert **verts=NULL;
+	BMVert **verts = NULL;
 	BLI_array_declare(verts);
 	float dist, dist3;
 	int i, j, len, keepvert = 0;
@@ -470,8 +468,8 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 		keepvert = BMO_IterNew(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
 	}
 
-	/*sort by vertex coordinates added together*/
-	qsort(verts, BLI_array_count(verts), sizeof(void*), vergaverco);
+	/* sort by vertex coordinates added togethe */
+	qsort(verts, BLI_array_count(verts), sizeof(void *), vergaverco);
 
 	/* Flag keepverts */
 	if (keepvert) {
@@ -479,11 +477,11 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 	}
 
 	len = BLI_array_count(verts);
-	for (i=0; i<len; i++) {
+	for (i = 0; i < len; i++) {
 		v = verts[i];
 		if (BMO_TestFlag(bm, v, VERT_DOUBLE)) continue;
 		
-		for (j=i+1; j<len; j++) {
+		for (j = i + 1; j < len; j++) {
 			v2 = verts[j];
 
 			/* Compare sort values of the verts using 3x tolerance (allowing for the tolerance
@@ -538,8 +536,8 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 
 	/* The "verts" input sent to this op is the set of verts that
-	   can be merged away into any other verts. Mark all other verts
-	   as VERT_KEEP. */
+	 * can be merged away into any other verts. Mark all other verts
+	 * as VERT_KEEP. */
 	BMO_Flag_Buffer(bm, op, "verts", VERT_IN, BM_VERT);
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, v, VERT_IN)) {
@@ -548,7 +546,7 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* Search for doubles among all vertices, but only merge non-VERT_KEEP
-	   vertices into VERT_KEEP vertices. */
+	 * vertices into VERT_KEEP vertices. */
 	BMO_InitOpf(bm, &findop, "finddoubles verts=%av keepverts=%fv", VERT_KEEP);
 	BMO_CopySlot(op, &findop, "dist", "dist");
 	BMO_Exec_Op(bm, &findop);

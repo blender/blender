@@ -42,14 +42,16 @@ void *BMIter_AtIndex(struct BMesh *bm, const char itype, void *data, int index)
 	void *val;
 	int i;
 
-	/*sanity check*/
-	if (index < 0) return NULL;
+	/* sanity check */
+	if (index < 0) {
+		return NULL;
+	}
 
-	val=BMIter_New(&iter, bm, itype, data);
+	val = BMIter_New(&iter, bm, itype, data);
 
 	i = 0;
 	while (i < index) {
-		val=BMIter_Step(&iter);
+		val = BMIter_Step(&iter);
 		i++;
 	}
 
@@ -66,16 +68,16 @@ void *BMIter_AtIndex(struct BMesh *bm, const char itype, void *data, int index)
 
 int BMIter_AsArray(struct BMesh *bm, const char type, void *data, void **array, const int len)
 {
-	int i= 0;
+	int i = 0;
 
-	/*sanity check*/
+	/* sanity check */
 	if (len > 0) {
 
 		BMIter iter;
 		void *val;
 
 		BM_ITER(val, &iter, bm, type, data) {
-			array[i]= val;
+			array[i] = val;
 			i++;
 			if (i == len) {
 				return len;
@@ -93,7 +95,7 @@ int BMIter_AsArray(struct BMesh *bm, const char type, void *data, void **array, 
  * Clears the internal state of an iterator
  * For begin() callbacks.
  *
-*/
+ */
 
 static void init_iterator(BMIter *iter)
 {
@@ -124,7 +126,7 @@ static void init_iterator(BMIter *iter)
 /*
  * VERT OF MESH CALLBACKS
  *
-*/
+ */
 
 void bmiter__vert_of_mesh_begin(BMIter *iter)
 {
@@ -162,7 +164,7 @@ void  *bmiter__face_of_mesh_step(BMIter *iter)
 /*
  * EDGE OF VERT CALLBACKS
  *
-*/
+ */
 
 void  bmiter__edge_of_vert_begin(BMIter *iter)
 {
@@ -188,7 +190,7 @@ void  *bmiter__edge_of_vert_step(BMIter *iter)
 /*
  * FACE OF VERT CALLBACKS
  *
-*/
+ */
 
 void  bmiter__face_of_vert_begin(BMIter *iter)
 {
@@ -219,16 +221,14 @@ void  *bmiter__face_of_vert_step(BMIter *iter)
 	
 	if (!iter->count) iter->nextloop = NULL;
 
-	
-	if (current) return current->f;
-	return NULL;
+	return current ? current->f : NULL;
 }
 
 
 /*
  * LOOP OF VERT CALLBACKS
  *
-*/
+ */
 
 void  bmiter__loop_of_vert_begin(BMIter *iter)
 {
@@ -271,7 +271,7 @@ void  bmiter__loops_of_edge_begin(BMIter *iter)
 
 	l = iter->edata->l;
 
-	/*note sure why this sets ldata. . .*/
+	/* note sure why this sets ldata ... */
 	init_iterator(iter);
 	
 	iter->firstloop = iter->nextloop = l;
@@ -297,7 +297,7 @@ void  bmiter__loops_of_loop_begin(BMIter *iter)
 
 	l = iter->ldata;
 
-	/*note sure why this sets ldata. . .*/
+	/* note sure why this sets ldata ... */
 	init_iterator(iter);
 
 	iter->firstloop = l;
@@ -321,7 +321,7 @@ void  *bmiter__loops_of_loop_step(BMIter *iter)
 /*
  * FACE OF EDGE CALLBACKS
  *
-*/
+ */
 
 void  bmiter__face_of_edge_begin(BMIter *iter)
 {
@@ -340,19 +340,19 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
 	if (iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
 
 	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
-	if (current) return current->f;
-	return NULL;
+
+	return current ? current->f : NULL;
 }
 
 /*
  * VERT OF FACE CALLBACKS
  *
-*/
+ */
 
 void  bmiter__vert_of_face_begin(BMIter *iter)
 {
 	init_iterator(iter);
-	iter->firstloop = iter->nextloop = ((BMLoopList*)iter->pdata->loops.first)->first;
+	iter->firstloop = iter->nextloop = ((BMLoopList *)iter->pdata->loops.first)->first;
 }
 
 void  *bmiter__vert_of_face_step(BMIter *iter)
@@ -362,19 +362,18 @@ void  *bmiter__vert_of_face_step(BMIter *iter)
 	if (iter->nextloop) iter->nextloop = iter->nextloop->next;
 	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
-	if (current) return current->v;
-	return NULL;
+	return current ? current->v : NULL;
 }
 
 /*
  * EDGE OF FACE CALLBACKS
  *
-*/
+ */
 
 void  bmiter__edge_of_face_begin(BMIter *iter)
 {
 	init_iterator(iter);
-	iter->firstloop = iter->nextloop = ((BMLoopList*)iter->pdata->loops.first)->first;
+	iter->firstloop = iter->nextloop = ((BMLoopList *)iter->pdata->loops.first)->first;
 }
 
 void  *bmiter__edge_of_face_step(BMIter *iter)
@@ -384,14 +383,13 @@ void  *bmiter__edge_of_face_step(BMIter *iter)
 	if (iter->nextloop) iter->nextloop = iter->nextloop->next;
 	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 	
-	if (current) return current->e;
-	return NULL;
+	return current ? current->e : NULL;
 }
 
 /*
  * LOOP OF FACE CALLBACKS
  *
-*/
+ */
 
 void  bmiter__loop_of_face_begin(BMIter *iter)
 {

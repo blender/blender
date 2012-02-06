@@ -32,8 +32,7 @@
  * MIRROR.C
  *
  * mirror bmop.
- *
-*/
+ */
 
 #define ELE_NEW		1
 
@@ -65,21 +64,21 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Flag_Buffer(bm, &dupeop, "newout", ELE_NEW, BM_ALL);
 
-	/*create old -> new mapping*/
+	/* create old -> new mappin */
 	i = 0;
 	v2 = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
 		BLI_array_growone(vmap);
 		vmap[i] = v;
 
-		BM_SetIndex(v2, i); /* set_dirty! */ /*BMESH_TODO, double check this is being made dirty, 99% sure it is - campbell */
+		BM_SetIndex(v2, i); /* set_dirty! */ /* BMESH_TODO, double check this is being made dirty, 99% sure it is - campbell */
 		v2 = BMIter_Step(&iter);
 
 		i++;
 	}
 	bm->elem_index_dirty |= BM_VERT;
 
-	/*feed old data to transform bmop*/
+	/* feed old data to transform bmo */
 	scale[axis] = -1.0f;
 	BMO_CallOpf(bm, "transform verts=%fv mat=%m4", ELE_NEW, mtx);
 	BMO_CallOpf(bm, "scale verts=%fv vec=%v", ELE_NEW, scale);
@@ -88,7 +87,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_Init_Op(bm, &weldop, "weldverts");
 
 	v = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; i<ototvert; i++) {
+	for (i = 0; i < ototvert; i++) {
 		if (ABS(v->co[axis]) <= dist) {
 			BMO_Insert_MapPointer(bm, &weldop, "targetmap", vmap[i], v);
 		}
@@ -105,12 +104,12 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 		BMO_ITER(f, &siter, bm, &dupeop, "newout", BM_FACE) {
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
-				for (i=0; i<totlayer; i++) {
+				for (i = 0; i < totlayer; i++) {
 					luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 					if (mirroru)
-						luv->uv[0]= 1.0f - luv->uv[0];
+						luv->uv[0] = 1.0f - luv->uv[0];
 					if (mirrorv)
-						luv->uv[1]= 1.0f - luv->uv[1];
+						luv->uv[1] = 1.0f - luv->uv[1];
 				}
 			}
 		}

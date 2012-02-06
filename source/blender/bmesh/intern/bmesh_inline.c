@@ -68,5 +68,5 @@ BM_INLINE int BM_GetIndex(const void *element)
 	return ((BMHeader *)element)->index;
 }
 
-#endif /*BM_INLINE_C*/
+#endif /* BM_INLINE_C */
 

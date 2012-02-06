@@ -29,14 +29,14 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(newfaces);
 	float (*projectverts)[3] = NULL;
 	BLI_array_declare(projectverts);
-	int i, lastlen=0 /* , count = 0 */;
+	int i, lastlen = 0 /* , count = 0 */;
 	
 	face = BMO_IterNew(&siter, bm, op, "faces", BM_FACE);
-	for ( ; face; face=BMO_IterStep(&siter)) {
+	for ( ; face; face = BMO_IterStep(&siter)) {
 		if (lastlen < face->len) {
 			BLI_array_empty(projectverts);
 			BLI_array_empty(newfaces);
-			for (lastlen=0; lastlen<face->len; lastlen++) {
+			for (lastlen = 0; lastlen < face->len; lastlen++) {
 				BLI_array_growone(projectverts);
 				BLI_array_growone(projectverts);
 				BLI_array_growone(projectverts);
@@ -48,10 +48,10 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 		                    FACE_NEW, newfaces);
 
 		BMO_Insert_MapPointer(bm, op, "facemap", 
-	                              face, face);
-		for (i=0; newfaces[i]; i++) {
-			BMO_Insert_MapPointer(bm, op, "facemap", 
-				              newfaces[i], face);
+		                      face, face);
+		for (i = 0; newfaces[i]; i++) {
+			BMO_Insert_MapPointer(bm, op, "facemap",
+			                      newfaces[i], face);
 
 		}
 	}
@@ -69,7 +69,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMFace *f;
 	BMEdge *e;
-	int stop=0;
+	int stop = 0;
 	
 	BMO_Flag_Buffer(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
 	
@@ -99,22 +99,22 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				/* testing rule:
 				* the area divided by the total edge lengths
 				*/
-				len1= len_v3v3(v1->co, v2->co);
-				len2= len_v3v3(v2->co, v3->co);
-				len3= len_v3v3(v3->co, v4->co);
-				len4= len_v3v3(v4->co, v1->co);
-				len5= len_v3v3(v1->co, v3->co);
-				len6= len_v3v3(v2->co, v4->co);
+				len1 = len_v3v3(v1->co, v2->co);
+				len2 = len_v3v3(v2->co, v3->co);
+				len3 = len_v3v3(v3->co, v4->co);
+				len4 = len_v3v3(v4->co, v1->co);
+				len5 = len_v3v3(v1->co, v3->co);
+				len6 = len_v3v3(v2->co, v4->co);
 	
-				opp1= area_tri_v3(v1->co, v2->co, v3->co);
-				opp2= area_tri_v3(v1->co, v3->co, v4->co);
+				opp1 = area_tri_v3(v1->co, v2->co, v3->co);
+				opp2 = area_tri_v3(v1->co, v3->co, v4->co);
 	
-				fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
+				fac1 = opp1 / (len1 + len2 + len5) + opp2 / (len3 + len4 + len5);
 	
-				opp1= area_tri_v3(v2->co, v3->co, v4->co);
-				opp2= area_tri_v3(v2->co, v4->co, v1->co);
+				opp1 = area_tri_v3(v2->co, v3->co, v4->co);
+				opp2 = area_tri_v3(v2->co, v4->co, v1->co);
 	
-				fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
+				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				
 				if (fac1 > fac2) {
 					e = BM_Rotate_Edge(bm, e, 0);
@@ -170,7 +170,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	
 	BLI_edgefill(0);
 	
-	for (efa=fillfacebase.first; efa; efa=efa->next) {
+	for (efa = fillfacebase.first; efa; efa = efa->next) {
 		BMFace *f = BM_Make_Face_QuadTri(bm, efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL, NULL, 1);
 		BMLoop *l;
 		BMIter liter;
@@ -186,7 +186,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_end_edgefill();
 	BLI_smallhash_release(&hash);
 	
-	/*clean up fill*/
+	/* clean up fill */
 	BMO_InitOpf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
 	BMO_Exec_Op(bm, &bmop);
 	BMO_Flag_Buffer(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);

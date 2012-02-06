@@ -45,27 +45,26 @@
 #include "bmesh_private.h"
 #include "bmesh_walkers_private.h"
 
-/*
- - joeedh -
- design notes:
-
- original desing: walkers directly emulation recursive functions.
- functions save their state onto a worklist, and also add new states
- to implement recursive or looping behaviour.  generally only one
- state push per call with a specific state is desired.
-
- basic design pattern: the walker step function goes through it's
- list of possible choices for recursion, and recurses (by pushing a new state)
- using the first non-visited one.  this choise is the flagged as visited using
- the ghash.  each step may push multiple new states onto the worklist at once.
-
- * walkers use tool flags, not header flags
- * walkers now use ghash for storing visited elements, 
-   rather then stealing flags.  ghash can be rewritten 
-   to be faster if necassary, in the far future :) .
- * tools should ALWAYS have necassary error handling
-   for if walkers fail.
-*/
+/* - joeedh -
+ * design notes:
+ * 
+ * original desing: walkers directly emulation recursive functions.
+ * functions save their state onto a worklist, and also add new states
+ * to implement recursive or looping behaviour.  generally only one
+ * state push per call with a specific state is desired.
+ * 
+ * basic design pattern: the walker step function goes through it's
+ * list of possible choices for recursion, and recurses (by pushing a new state)
+ * using the first non-visited one.  this choise is the flagged as visited using
+ * the ghash.  each step may push multiple new states onto the worklist at once.
+ * 
+ * - walkers use tool flags, not header flags
+ * - walkers now use ghash for storing visited elements, 
+ *   rather then stealing flags.  ghash can be rewritten 
+ *   to be faster if necassary, in the far future :) .
+ * - tools should ALWAYS have necassary error handling
+ *   for if walkers fail.
+ */
 
 void *BMW_Begin(BMWalker *walker, void *start)
 {
@@ -80,8 +79,7 @@ void *BMW_Begin(BMWalker *walker, void *start)
  * Allocates and returns a new mesh walker of 
  * a given type. The elements visited are filtered
  * by the bitmask 'searchmask'.
- *
-*/
+ */
 
 void BMW_Init(BMWalker *walker, BMesh *bm, int type,
               short mask_vert, short mask_edge, short mask_loop, short mask_face,
@@ -103,7 +101,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type,
 		bmesh_error();
 		fprintf(stderr,
 		        "Invalid walker type in BMW_Init; type: %d, "
-		        "searchmask: (v:%d,e:%d,l:%d,f:%d), flag: %d\n",
+		        "searchmask: (v:%d, e:%d, l:%d, f:%d), flag: %d\n",
 		        type, mask_vert, mask_edge, mask_loop, mask_face, layer);
 	}
 	
@@ -118,10 +116,10 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type,
 		/* safety checks */
 		/* if this raises an error either the caller is wrong or
 		 * 'bm_walker_types' needs updating */
-		BLI_assert(mask_vert==0 || (walker->valid_mask & BM_VERT));
-		BLI_assert(mask_edge==0 || (walker->valid_mask & BM_EDGE));
-		BLI_assert(mask_loop==0 || (walker->valid_mask & BM_LOOP));
-		BLI_assert(mask_face==0 || (walker->valid_mask & BM_FACE));
+		BLI_assert(mask_vert == 0 || (walker->valid_mask & BM_VERT));
+		BLI_assert(mask_edge == 0 || (walker->valid_mask & BM_EDGE));
+		BLI_assert(mask_loop == 0 || (walker->valid_mask & BM_LOOP));
+		BLI_assert(mask_face == 0 || (walker->valid_mask & BM_FACE));
 	}
 	
 	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, TRUE, FALSE);
@@ -132,8 +130,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type,
  * BMW_End
  *
  * Frees a walker's worklist.
- *
-*/
+ */
 
 void BMW_End(BMWalker *walker)
 {
@@ -144,8 +141,7 @@ void BMW_End(BMWalker *walker)
 
 /*
  * BMW_Step
- *
-*/
+ */
 
 void *BMW_Step(BMWalker *walker)
 {
@@ -160,8 +156,7 @@ void *BMW_Step(BMWalker *walker)
  * BMW_CurrentDepth
  *
  * Returns the current depth of the walker.
- *
-*/
+ */
 
 int BMW_CurrentDepth(BMWalker *walker)
 {
@@ -175,8 +170,7 @@ int BMW_CurrentDepth(BMWalker *walker)
  *
  * BMESH_TODO:
  *  -add searchmask filtering
- *
-*/
+ */
 
 void *BMW_walk(BMWalker *walker)
 {
@@ -184,7 +178,9 @@ void *BMW_walk(BMWalker *walker)
 
 	while (BMW_currentstate(walker)) {
 		current = walker->step(walker);
-		if (current) return current;
+		if (current) {
+			return current;
+		}
 	}
 	return NULL;
 }
@@ -195,23 +191,22 @@ void *BMW_walk(BMWalker *walker)
  * Returns the first state from the walker state
  * worklist. This state is the the next in the
  * worklist for processing.
- *
-*/
+ */
 
 void* BMW_currentstate(BMWalker *walker)
 {
 	bmesh_walkerGeneric *currentstate = walker->states.first;
 	if (currentstate) {
 		/* Automatic update of depth. For most walkers that
-		   follow the standard "Step" pattern of:
-		    - read current state
-		    - remove current state
-		    - push new states
-		    - return walk result from just-removed current state
-		   this simple automatic update should keep track of depth
-		   just fine. Walkers that deviate from that pattern may
-		   need to manually update the depth if they care about
-		   keeping it correct. */
+		 * follow the standard "Step" pattern of:
+		 *  - read current state
+		 *  - remove current state
+		 *  - push new states
+		 *  - return walk result from just-removed current state
+		 * this simple automatic update should keep track of depth
+		 * just fine. Walkers that deviate from that pattern may
+		 * need to manually update the depth if they care about
+		 * keeping it correct. */
 		walker->depth = currentstate->depth + 1;
 	}
 	return currentstate;
@@ -222,8 +217,7 @@ void* BMW_currentstate(BMWalker *walker)
  *
  * Remove and free an item from the end of the walker state
  * worklist.
- *
-*/
+ */
 
 void BMW_removestate(BMWalker *walker)
 {
@@ -241,8 +235,7 @@ void BMW_removestate(BMWalker *walker)
  * can fill in the state data. The new state will be inserted
  * at the front for depth-first walks, and at the end for
  * breadth-first walks.
- *
-*/
+ */
 
 void* BMW_addstate(BMWalker *walker)
 {
@@ -269,8 +262,7 @@ void* BMW_addstate(BMWalker *walker)
  *
  * Frees all states from the worklist, resetting the walker
  * for reuse in a new walk.
- *
-*/
+ */
 
 void BMW_reset(BMWalker *walker)
 {

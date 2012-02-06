@@ -155,14 +155,14 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *  advantage is that no intrinsic properties of the data structures are dependant upon the 
  *  cycle order and all non-manifold conditions are represented trivially.
  *
-*/
+ */
 int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v)
 {
 	if (!v->e) {
 		Link *e1 = bm_get_edge_link(e, v);
 
 		v->e = e;
-		e1->next = e1->prev = (Link*)e;
+		e1->next = e1->prev = (Link *)e;
 	}
 	else {
 		Link *e1, *e2, *e3;
@@ -171,12 +171,12 @@ int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v)
 		e2 = bm_get_edge_link(v->e, v);
 		e3 = e2->prev ? bm_get_edge_link(e2->prev, v) : NULL;
 
-		e1->next = (Link*)v->e;
+		e1->next = (Link *)v->e;
 		e1->prev = e2->prev;
 
-		e2->prev = (Link*)e;
+		e2->prev = (Link *)e;
 		if (e3)
-			e3->next = (Link*)e;
+			e3->next = (Link *)e;
 	}
 
 	return 1;
@@ -229,7 +229,7 @@ BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2)
 		startedge = v1->e;
 		curedge = startedge;
 		do {
-			if (bmesh_verts_in_edge(v1,v2,curedge)) return curedge;
+			if (bmesh_verts_in_edge(v1, v2, curedge)) return curedge;
 			curedge = bmesh_disk_nextedge(curedge, v1);
 		} while (curedge != startedge);
 	}
@@ -240,7 +240,7 @@ BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2)
 int bmesh_disk_count(struct BMVert *v)
 {
 	BMEdge *e = v->e;
-	int i=0;
+	int i = 0;
 
 	if (!e)
 		return 0;
@@ -250,7 +250,7 @@ int bmesh_disk_count(struct BMVert *v)
 			return 0;
 		e =  bmesh_disk_nextedge(e, v);
 
-		if (i >= (1<<20)) {
+		if (i >= (1 << 20)) {
 			printf("bmesh error: infinite loop in disk cycle!\n");
 			return 0;
 		}
@@ -272,7 +272,7 @@ int bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 
 	e2 = e;
 	do {
-		if (len!=1 && bmesh_disk_prevedge(e2, v) == e2)
+		if (len != 1 && bmesh_disk_prevedge(e2, v) == e2)
 			return 0;
 
 		e2 = bmesh_disk_nextedge(e2, v);
@@ -288,19 +288,18 @@ int bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
  * for this vertex. Note that this is
  * equivalent to counting the number of
  * faces incident upon this vertex
- *
-*/
+ */
 
 int bmesh_disk_count_facevert(BMVert *v)
 {
 	BMEdge *curedge;
 	int count = 0;
 
-	/*is there an edge on this vert at all?*/
+	/* is there an edge on this vert at all */
 	if (!v->e)
 		return count;
 
-	/*first, loop around edges*/
+	/* first, loop around edge */
 	curedge = v->e;
 	do {
 		if (curedge->l) count += bmesh_radial_count_facevert(curedge->l, v);
@@ -315,8 +314,8 @@ struct BMEdge *bmesh_disk_find_first_faceedge(struct BMEdge *e, struct BMVert *v
 	BMEdge *searchedge = NULL;
 	searchedge = e;
 	do {
-		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l,v)) return searchedge;
-		searchedge = bmesh_disk_nextedge(searchedge,v);
+		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l, v)) return searchedge;
+		searchedge = bmesh_disk_nextedge(searchedge, v);
 	} while (searchedge != e);
 
 	return NULL;
@@ -325,19 +324,21 @@ struct BMEdge *bmesh_disk_find_first_faceedge(struct BMEdge *e, struct BMVert *v
 struct BMEdge *bmesh_disk_find_next_faceedge(struct BMEdge *e, struct BMVert *v)
 {
 	BMEdge *searchedge = NULL;
-	searchedge = bmesh_disk_nextedge(e,v);
+	searchedge = bmesh_disk_nextedge(e, v);
 	do {
-		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l,v)) return searchedge;
-		searchedge = bmesh_disk_nextedge(searchedge,v);
-	} while (searchedge !=e);
+		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l, v)) {
+			return searchedge;
+		}
+		searchedge = bmesh_disk_nextedge(searchedge, v);
+	} while (searchedge != e);
 	return e;
 }
 
-/*****radial cycle functions, e.g. loops surrounding edges******/
+/*****radial cycle functions, e.g. loops surrounding edges**** */
 int bmesh_radial_validate(int radlen, BMLoop *l)
 {
 	BMLoop *l2 = l;
-	int i=0;
+	int i = 0;
 	
 	if (bmesh_radial_length(l) != radlen)
 		return 0;
@@ -410,8 +411,7 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
  *
  * Finds the first loop of v around radial
  * cycle
- *
-*/
+ */
 BMLoop *bmesh_radial_find_first_facevert(BMLoop *l, BMVert *v)
 {
 	BMLoop *curloop;
@@ -430,7 +430,7 @@ BMLoop *bmesh_radial_find_next_facevert(BMLoop *l, BMVert *v)
 	do {
 		if (curloop->v == v) return curloop;
 		curloop = bmesh_radial_nextloop(curloop);
-	} while (curloop !=l);
+	} while (curloop != l);
 	return l;
 }
 
@@ -508,7 +508,7 @@ int bmesh_radial_find_face(BMEdge *e, BMFace *f)
  * Returns the number of times a vertex appears
  * in a radial cycle
  *
-*/
+ */
 
 int bmesh_radial_count_facevert(BMLoop *l, BMVert *v)
 {
@@ -522,7 +522,7 @@ int bmesh_radial_count_facevert(BMLoop *l, BMVert *v)
 	return count;
 }
 
-/*****loop cycle functions, e.g. loops surrounding a face******/
+/*****loop cycle functions, e.g. loops surrounding a face**** */
 int bmesh_loop_validate(BMFace *f)
 {
 	int i;
@@ -555,8 +555,8 @@ void bmesh_cycle_append(void *h, void *nt)
 {
 	BMNode *oldtail, *head, *newtail;
 	
-	head = (BMNode*)h;
-	newtail = (BMNode*)nt;
+	head = (BMNode *)h;
+	newtail = (BMNode *)nt;
 	
 	if (head->next == NULL) {
 		head->next = newtail;
@@ -588,9 +588,8 @@ int bmesh_cycle_length(BMEdge *e, BMVert *v)
 	BMEdge *next, *prev, *cur;
 	int len, vi = v == e->v1 ? 0 : 1;
 	
-	/*should skip 2 forward if v is 1, happily reduces to
-	  v*2*/
-	prev = *(&e->v1_prev + vi*2);
+	/* should skip 2 forward if v is 1, happily reduces to (v * 2) */
+	prev = *(&e->v1_prev + vi * 2);
 	
 	cur = e;
 	len = 1;
@@ -598,7 +597,7 @@ int bmesh_cycle_length(BMEdge *e, BMVert *v)
 		vi = cur->v1 == v ? 0 : 1;
 		
 		len++;
-		cur = *(&cur->v1_next + vi*2);
+		cur = *(&cur->v1_next + vi * 2);
 	}
 	
 	return len;
@@ -618,8 +617,8 @@ int bmesh_cycle_remove(void *h, void *remn)
 	int i, len;
 	BMNode *head, *remnode, *curnode;
 	
-	head = (BMNode*)h;
-	remnode = (BMNode*)remn;
+	head = (BMNode *)h;
+	remnode = (BMNode *)remn;
 	len = bmesh_cycle_length(h);
 	
 	if (len == 1 && head == remnode) {
@@ -628,11 +627,11 @@ int bmesh_cycle_remove(void *h, void *remn)
 		return 1;
 	}
 	else {
-		for (i=0, curnode = head; i < len; curnode = curnode->next) {
+		for (i = 0, curnode = head; i < len; curnode = curnode->next) {
 			if (curnode == remnode) {
 				remnode->prev->next = remnode->next;
 				remnode->next->prev = remnode->prev;
-				/*zero out remnode pointers, important!*/
+				/* zero out remnode pointers, important */
 				//remnode->next = NULL;
 				//remnode->prev = NULL;
 				return 1;
@@ -658,20 +657,24 @@ int bmesh_cycle_validate(int len, void *h)
 {
 	int i;
 	BMNode *curnode, *head;
-	head = (BMNode*)h;
+	head = (BMNode *)h;
 	
-	/*forward validation*/
+	/* forward validatio */
 	for (i = 0, curnode = head; i < len; i++, curnode = curnode->next);
-	if (curnode != head) return 0;
-	
-	/*reverse validation*/
+	if (curnode != head) {
+		return 0;
+	}
+
+	/* reverse validatio */
 	for (i = 0, curnode = head; i < len; i++, curnode = curnode->prev);
-	if (curnode != head) return 0;
-	
+	if (curnode != head) {
+		return 0;
+	}
+
 	return 1;
 }
 
-/*Begin Disk Cycle routines*/
+/* Begin Disk Cycle routine */
 
 /**
  *			bmesh_disk_nextedge
@@ -701,7 +704,7 @@ BMEdge *bmesh_disk_nextedge(BMEdge *e, BMVert *v)
  */
 BMNode *bmesh_disk_getpointer(BMEdge *e, BMVert *v)
 {
-	/*returns pointer to the cycle node for the appropriate vertex in this disk*/
+	/* returns pointer to the cycle node for the appropriate vertex in this dis */
 	if (e->v1 == v) return &(e->d1);
 	else if (e->v2 == v) return &(e->d2);
 	return NULL;
@@ -721,17 +724,17 @@ int bmesh_disk_append_edge(BMEdge *e, BMVert *v)
 	
 	BMNode *base, *tail;
 	
-	if (bmesh_vert_in_edge(e, v) == 0) return 0; /*check to make sure v is in e*/
+	if (bmesh_vert_in_edge(e, v) == 0) return 0; /* check to make sure v is in  */
 	
-	/*check for loose vert first*/
+	/* check for loose vert firs */
 	if (v->e == NULL) {
 		v->e = e;
 		base = tail = bmesh_disk_getpointer(e, v);
-		bmesh_cycle_append(base, tail); /*circular reference is ok!*/
+		bmesh_cycle_append(base, tail); /* circular reference is ok */
 		return 1;
 	}
 	
-	/*insert e at the end of disk cycle and make it the new v->e*/
+	/* insert e at the end of disk cycle and make it the new v-> */
 	base = bmesh_disk_getpointer(v->e, v);
 	tail = bmesh_disk_getpointer(e, v);
 	bmesh_cycle_append(base, tail);
@@ -758,13 +761,13 @@ void bmesh_disk_remove_edge(BMEdge *e, BMVert *v)
 	base = bmesh_disk_getpointer(v->e, v);
 	remnode = bmesh_disk_getpointer(e, v);
 	
-	/*first deal with v->e pointer...*/
+	/* first deal with v->e pointer.. */
 	len = bmesh_cycle_length(base);
 	if (len == 1) newbase = NULL;
 	else if (v->e == e) newbase = base->next-> data;
 	else newbase = v->e;
 	
-	/*remove and rebase*/
+	/* remove and rebas */
 	bmesh_cycle_remove(base, remnode);
 	v->e = newbase;
 }
@@ -787,11 +790,11 @@ BMEdge *bmesh_disk_next_edgeflag(BMEdge *e, BMVert *v, int eflag, int tflag)
 	
 	if (eflag && tflag) return NULL;
 	
-	ok = bmesh_vert_in_edge(e,v);
+	ok = bmesh_vert_in_edge(e, v);
 	if (ok) {
 		diskbase = bmesh_disk_getpointer(e, v);
 		len = bmesh_cycle_length(diskbase);
-		curedge = bmesh_disk_nextedge(e,v);
+		curedge = bmesh_disk_nextedge(e, v);
 		while (curedge != e) {
 			if (eflag) {
 				if (curedge->head.eflag1 == eflag) return curedge;
@@ -816,14 +819,14 @@ int bmesh_disk_count_edgeflag(BMVert *v, int eflag, int tflag)
 {
 	BMNode *diskbase;
 	BMEdge *curedge;
-	int i, len=0, count=0;
+	int i, len = 0, count = 0;
 	
 	if (v->e) {
-		if (eflag && tflag) return 0; /*tflag and eflag are reserved for different functions!*/
+		if (eflag && tflag) return 0; /* tflag and eflag are reserved for different functions */
 		diskbase = bmesh_disk_getpointer(v->e, v);
 		len = bmesh_cycle_length(diskbase);
 		
-		for (i = 0, curedge=v->e; i<len; i++) {
+		for (i = 0, curedge = v->e; i < len; i++) {
 			if (eflag) {
 				if (curedge->head.eflag1 == eflag) count++;
 			}
@@ -838,15 +841,15 @@ int bmesh_disk_hasedge(BMVert *v, BMEdge *e)
 {
 	BMNode *diskbase;
 	BMEdge *curedge;
-	int i, len=0;
+	int i, len = 0;
 	
 	if (v->e) {
-		diskbase = bmesh_disk_getpointer(v->e,v);
+		diskbase = bmesh_disk_getpointer(v->e, v);
 		len = bmesh_cycle_length(diskbase);
 		
-		for (i = 0, curedge=v->e; i<len; i++) {
+		for (i = 0, curedge = v->e; i < len; i++) {
 			if (curedge == e) return 1;
-			else curedge=bmesh_disk_nextedge(curedge, v);
+			else curedge = bmesh_disk_nextedge(curedge, v);
 		}
 	}
 	return 0;
@@ -856,21 +859,21 @@ BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2)
 {
 	BMNode *diskbase;
 	BMEdge *curedge;
-	int i, len=0;
+	int i, len = 0;
 	
 	if (v1->e) {
-		diskbase = bmesh_disk_getpointer(v1->e,v1);
+		diskbase = bmesh_disk_getpointer(v1->e, v1);
 		len = bmesh_cycle_length(diskbase);
 		
-		for (i=0,curedge=v1->e;i<len;i++,curedge = bmesh_disk_nextedge(curedge,v1)) {
-			if (bmesh_verts_in_edge(v1,v2,curedge)) return curedge;
+		for (i = 0, curedge = v1->e; i < len; i++, curedge = bmesh_disk_nextedge(curedge, v1)) {
+			if (bmesh_verts_in_edge(v1, v2, curedge)) return curedge;
 		}
 	}
 	
 	return NULL;
 }
 
-/*end disk cycle routines*/
+/* end disk cycle routine */
 BMLoop *bmesh_radial_nextloop(BMLoop *l)
 {
 	return l->radial_next;
@@ -887,18 +890,18 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 	BMLoop *newbase;
 	int len;
 	
-	/*deal with edge->l pointer*/
+	/* deal with edge->l pointe */
 	len = bmesh_cycle_length(&(e->l->radial));
 	if (len == 1) newbase = NULL;
 	else if (e->l == l) newbase = e->l->radial_next;
 	else newbase = e->l;
 	
-	/*remove and rebase*/
+	/* remove and rebas */
 	bmesh_cycle_remove(&(e->l->radial), &(l->radial));
 	e->l = newbase;
 }
 
-int bmesh_radial_find_face(BMEdge *e,BMFace *f)
+int bmesh_radial_find_face(BMEdge *e, BMFace *f)
 {
 		
 	BMLoop *curloop;
@@ -918,7 +921,7 @@ int bmesh_radial_find_face(BMEdge *e,BMFace *f)
  * Returns the number of times a vertex appears
  * in a radial cycle
  *
-*/
+ */
 
 int bmesh_radial_count_facevert(BMLoop *l, BMVert *v)
 {
@@ -940,18 +943,18 @@ int bmesh_radial_count_facevert(BMLoop *l, BMVert *v)
  * equivalent to counting the number of
  * faces incident upon this vertex
  *
-*/
+ */
 
 int bmesh_disk_count_facevert(BMVert *v)
 {
 	BMEdge *curedge;
 	int count = 0;
 
-	/*is there an edge on this vert at all?*/
+	/* is there an edge on this vert at all */
 	if (!v->e)
 		return count;
 
-	/*first, loop around edges*/
+	/* first, loop around edge */
 	curedge = v->e;
 	do {
 		if (curedge->l) count += bmesh_radial_count_facevert(curedge->l, v);
@@ -967,13 +970,16 @@ int bmesh_disk_count_facevert(BMVert *v)
  * Finds the first loop of v around radial
  * cycle
  *
-*/
+ */
 BMLoop *bmesh_radial_find_first_facevert(BMLoop *l, BMVert *v)
 {
 	BMLoop *curloop;
 	curloop = l;
 	do {
-		if (curloop->v == v) return curloop;
+		if (curloop->v == v) {
+			return curloop;
+		}
+
 		curloop = bmesh_radial_nextloop(curloop);
 	} while (curloop != l);
 	return NULL;
@@ -986,7 +992,7 @@ BMLoop *bmesh_radial_find_next_facevert(BMLoop *l, BMVert *v)
 	do {
 		if (curloop->v == v) return curloop;
 		curloop = bmesh_radial_nextloop(curloop);
-	} while (curloop !=l);
+	} while (curloop != l);
 	return l;
 }
 
@@ -998,17 +1004,17 @@ BMLoop *bmesh_radial_find_next_facevert(BMLoop *l, BMVert *v)
  * Disk cycle that has one of this
  * vert's loops attached
  * to it.
- *
- *
-*/
+ */
 
 BMEdge *bmesh_disk_find_first_faceedge(BMEdge *e, BMVert *v)
 {
 	BMEdge *searchedge = NULL;
 	searchedge = e;
 	do {
-		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l,v)) return searchedge;
-		searchedge = bmesh_disk_nextedge(searchedge,v);
+		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l, v)) {
+			return searchedge;
+		}
+		searchedge = bmesh_disk_nextedge(searchedge, v);
 	} while (searchedge != e);
 	
 	return NULL;
@@ -1017,11 +1023,13 @@ BMEdge *bmesh_disk_find_first_faceedge(BMEdge *e, BMVert *v)
 BMEdge *bmesh_disk_find_next_faceedge(BMEdge *e, BMVert *v)
 {
 	BMEdge *searchedge = NULL;
-	searchedge = bmesh_disk_nextedge(e,v);
+	searchedge = bmesh_disk_nextedge(e, v);
 	do {
-		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l,v)) return searchedge;
-		searchedge = bmesh_disk_nextedge(searchedge,v);
-	} while (searchedge !=e);
+		if (searchedge->l && bmesh_radial_count_facevert(searchedge->l, v)) {
+			return searchedge;
+		}
+		searchedge = bmesh_disk_nextedge(searchedge, v);
+	} while (searchedge != e);
 	return e;
 }
 
@@ -1035,8 +1043,10 @@ struct BMLoop *bmesh_loop_find_loop(struct BMFace *f, struct BMVert *v)
 	int i, len;
 	
 	len = bmesh_cycle_length(f->lbase);
-	for (i = 0, l=f->loopbase; i < len; i++, l= l->next) {
-		if (l->v == v) return l;
+	for (i = 0, l = f->loopbase; i < len; i++, l = l->next) {
+		if (l->v == v) {
+			return l;
+		}
 	}
 	return NULL;
 }

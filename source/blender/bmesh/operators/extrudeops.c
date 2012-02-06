@@ -114,9 +114,9 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 	BMO_Exec_Op(bm, &dupeop);
 
 	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap", 0);
-	for ( ; e; e=BMO_IterStep(&siter)) {
+	for ( ; e; e = BMO_IterStep(&siter)) {
 		e2 = BMO_IterMapVal(&siter);
-		e2 = *(BMEdge**)e2;
+		e2 = *(BMEdge **)e2;
 
 		if (e->l && e->v1 != e->l->v) {
 			v1 = e->v1;
@@ -130,7 +130,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 			v3 = e->v2;
 			v4 = e->v1;
 		}
-			/*not sure what to do about example face, pass	 NULL for now.*/
+			/* not sure what to do about example face, pass	 NULL for now */
 		f = BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, 0);
 		
 		if (BMO_TestFlag(bm, e, EXT_INPUT))
@@ -155,7 +155,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 
 	v = BMO_IterNew(&siter, bm, op, "verts", BM_VERT);
-	for ( ; v; v=BMO_IterStep(&siter)) {
+	for ( ; v; v = BMO_IterStep(&siter)) {
 		dupev = BM_Make_Vert(bm, v->co, v);
 
 		e = BM_Make_Edge(bm, v, dupev, NULL, 0);
@@ -177,22 +177,22 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
-	int rlen, found, fwd, delorig=0;
+	int rlen, found, fwd, delorig = 0;
 
-	/*initialize our sub-operators*/
+	/* initialize our sub-operators */
 	BMO_Init_Op(bm, &dupeop, "dupe");
 	
 	BMO_Flag_Buffer(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
 	
-	/*if one flagged face is bordered by an unflagged face, then we delete
-	  original geometry unless caller explicitly asked to keep it. */
+	/* if one flagged face is bordered by an unflagged face, then we delete
+	 * original geometry unless caller explicitly asked to keep it. */
 	if (!BMO_Get_Int(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BMO_TestFlag(bm, e, EXT_INPUT)) continue;
 
 			found = 0;
 			f = BMIter_New(&fiter, bm, BM_FACES_OF_EDGE, e);
-			for (rlen=0; f; f=BMIter_Step(&fiter), rlen++) {
+			for (rlen = 0; f; f = BMIter_Step(&fiter), rlen++) {
 				if (!BMO_TestFlag(bm, f, EXT_INPUT)) {
 					found = 1;
 					delorig = 1;
@@ -204,7 +204,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/*calculate verts to delete*/
+	/* calculate verts to delet */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		found = 0;
 
@@ -245,9 +245,9 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 
 	if (delorig) BMO_Exec_Op(bm, &delop);
 	
-	/*if not delorig, reverse loops of original faces*/
+	/* if not delorig, reverse loops of original face */
 	if (!delorig) {
-		for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
+		for (f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BMIter_Step(&iter)) {
 			if (BMO_TestFlag(bm, f, EXT_INPUT)) {
 				BM_flip_normal(bm, f);
 			}
@@ -256,11 +256,11 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_CopySlot(&dupeop, op, "newout", "geomout");
 	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap", 0);
-	for ( ; e; e=BMO_IterStep(&siter)) {
+	for ( ; e; e = BMO_IterStep(&siter)) {
 		if (BMO_InMap(bm, op, "exclude", e)) continue;
 
 		newedge = BMO_IterMapVal(&siter);
-		newedge = *(BMEdge**)newedge;
+		newedge = *(BMEdge **)newedge;
 		if (!newedge) continue;
 
 		/* orient loop to give same normal as a loop of newedge
@@ -285,12 +285,12 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			verts[0] = newedge->v1;
 		}
 
-		/*not sure what to do about example face, pass NULL for now.*/
+		/* not sure what to do about example face, pass NULL for now */
 		f = BM_Make_Face_QuadTri_v(bm, verts, 4, NULL, 0);
 
-		/*copy attributes*/
-		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-		for ( ; l; l=BMIter_Step(&iter)) {
+		/* copy attribute */
+		l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+		for ( ; l; l = BMIter_Step(&iter)) {
 			if (l->e != e && l->e != newedge) continue;
 			l2 = l->radial_next;
 			
@@ -306,7 +306,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			else {
 				BM_Copy_Attributes(bm, bm, l2->f, l->f);
 
-				/*copy data*/
+				/* copy dat */
 				if (l2->v == l->v) {
 					BM_Copy_Attributes(bm, bm, l2, l);
 					l2 = l2->next;
@@ -324,14 +324,14 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/*link isolated verts*/
+	/* link isolated vert */
 	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap", 0);
-	for ( ; v; v=BMO_IterStep(&siter)) {
-		v2 = *((void**)BMO_IterMapVal(&siter));
+	for ( ; v; v = BMO_IterStep(&siter)) {
+		v2 = *((void **)BMO_IterMapVal(&siter));
 		BM_Make_Edge(bm, v, v2, v->e, 1);
 	}
 
-	/*cleanup*/
+	/* cleanu */
 	if (delorig) BMO_Finish_Op(bm, &delop);
 	BMO_Finish_Op(bm, &dupeop);
 }
@@ -352,7 +352,7 @@ static void calc_solidify_normals(BMesh *bm)
 	int i;
 
 	/* can't use BM_Edge_FaceCount because we need to count only marked faces */
-	int *edge_face_count= MEM_callocN(sizeof(int) * bm->totedge, __func__);
+	int *edge_face_count = MEM_callocN(sizeof(int) * bm->totedge, __func__);
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		BM_SetHFlag(v, BM_TMP_TAG);
@@ -392,7 +392,7 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 	}
 	MEM_freeN(edge_face_count);
-	edge_face_count= NULL; /* dont re-use */
+	edge_face_count = NULL; /* dont re-use */
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_Nonmanifold_Vert(bm, v)) {
@@ -447,7 +447,7 @@ static void calc_solidify_normals(BMesh *bm)
 			}
 			else {
 				/* can't do anything useful here!
-				   Set the face index for a vert incase it gets a zero normal */
+				 * Set the face index for a vert incase it gets a zero normal */
 				BM_ClearHFlag(e->v1, BM_TMP_TAG);
 				BM_ClearHFlag(e->v2, BM_TMP_TAG);
 				continue;
@@ -456,16 +456,16 @@ static void calc_solidify_normals(BMesh *bm)
 		else {
 			/* only one face attached to that edge */
 			/* an edge without another attached- the weight on this is
-			 * undefined, M_PI/2 is 90d in radians and that seems good enough */
+			 * undefined, M_PI / 2 is 90d in radians and that seems good enough */
 			copy_v3_v3(edge_normal, f1->no);
-			mul_v3_fl(edge_normal, M_PI/2);
+			mul_v3_fl(edge_normal, M_PI / 2);
 		}
 
 		add_v3_v3(e->v1->no, edge_normal);
 		add_v3_v3(e->v2->no, edge_normal);
 	}
 
-	/* normalize accumulated vertex normals*/
+	/* normalize accumulated vertex normal */
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, v, VERT_MARK)) {
 			continue;

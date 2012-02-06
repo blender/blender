@@ -68,12 +68,14 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
 {
 	BMIter iter;
 	BMEdge *e;
-	int len=0;
+	int len = 0;
 
-	if (!v) return 0;
+	if (!v) {
+		return 0;
+	}
 	
 	e = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v);
-	for ( ; e; e=BMIter_Step(&iter)) {
+	for ( ; e; e = BMIter_Step(&iter)) {
 		len++;
 	}
 	
@@ -103,18 +105,18 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
 int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 {
 	BMFace *f, *f2;
-	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
-	int len= 0;
+	BMEdge *e, *keepedge = NULL, *baseedge = NULL;
+	int len = 0;
 
 	if (BM_Nonmanifold_Vert(bm, v)) {
 		return 0;
 	}
 	
 	if (v->e) {
-		/*v->e we keep, what else?*/
+		/* v->e we keep, what else */
 		e = v->e;
 		do {
-			e = bmesh_disk_nextedge(e,v);
+			e = bmesh_disk_nextedge(e, v);
 			if (!(BM_Edge_Share_Faces(e, v->e))) {
 				keepedge = e;
 				baseedge = v->e;
@@ -124,12 +126,12 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		} while (e != v->e);
 	}
 	
-	/*this code for handling 2 and 3-valence verts
-	  may be totally bad.*/
+	/* this code for handling 2 and 3-valence verts
+	 * may be totally bad */
 	if (keepedge == NULL && len == 3) {
-		/*handle specific case for three-valence.  solve it by
-		  increasing valence to four.  this may be hackish. . .*/
-		BMLoop *loop= e->l;
+		/* handle specific case for three-valence.  solve it by
+		 * increasing valence to four.  this may be hackish. .  */
+		BMLoop *loop = e->l;
 		if (loop->v == v) loop = loop->next;
 		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL))
 			return 0;
@@ -140,14 +142,14 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		return 1;
 	}
 	else if (keepedge == NULL && len == 2) {
-		/*collapse the vertex*/
+		/* collapse the verte */
 		e = BM_Collapse_Vert_Faces(bm, v->e, v, 1.0, TRUE);
 
 		if (!e) {
 			return 0;
 		}
 
-		/*handle two-valence*/
+		/* handle two-valenc */
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
@@ -167,12 +169,14 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 			do {
 				f = NULL;
 				len = bmesh_radial_length(e->l);
-				if (len == 2 && (e!=baseedge) && (e!=keepedge)) {
+				if (len == 2 && (e != baseedge) && (e != keepedge)) {
 					f = BM_Join_TwoFaces(bm, e->l->f, e->l->radial_next->f, e);
-					/*return if couldn't join faces in manifold
-					  conditions.*/
+					/* return if couldn't join faces in manifold
+					 * conditions */
 					//!disabled for testing why bad things happen
-					if (!f) return 0;
+					if (!f) {
+						return 0;
+					}
 				}
 
 				if (f) {
@@ -183,19 +187,19 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 			} while (e != v->e);
 		}
 
-		/*collapse the vertex*/
+		/* collapse the verte */
 		e = BM_Collapse_Vert_Faces(bm, baseedge, v, 1.0, TRUE);
 
 		if (!e) {
 			return 0;
 		}
 		
-		/*get remaining two faces*/
+		/* get remaining two face */
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
 		if (f != f2) {
-			/*join two remaining faces*/
+			/* join two remaining face */
 			if (!BM_Join_TwoFaces(bm, f, f2, e)) {
 				return 0;
 			}
@@ -217,15 +221,13 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		while (!done) {
 			done = 1;
 			
-			/*loop the edges looking for an edge to dissolve*/
-			for (e=BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v); e;
+			/* loop the edges looking for an edge to dissolv */
+			for (e = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v); e;
 			     e = BMIter_Step(&iter)) {
 				f = NULL;
 				len = bmesh_cycle_length(&(e->l->radial));
 				if (len == 2) {
-					f = BM_Join_TwoFaces(bm,e->l->f,((BMLoop*)
-					      (e->l->radial_next))->f, 
-					       e);
+					f = BM_Join_TwoFaces(bm, e->l->f, ((BMLoop *)(e->l->radial_next))->f, e);
 				}
 				if (f) {
 					done = 0;
@@ -258,12 +260,12 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *l1, *l2;
-	BMEdge *jed=NULL;
+	BMEdge *jed = NULL;
 	BMFace *faces[2] = {f1, f2};
 	
 	jed = e;
 	if (!jed) {
-		/*search for an edge that has both these faces in its radial cycle*/
+		/* search for an edge that has both these faces in its radial cycl */
 		l1 = bm_firstfaceloop(f1);
 		do {
 			if (l1->radial_next->f == f2) {
@@ -271,7 +273,7 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 				break;
 			}
 			l1 = l1->next;
-		} while (l1!=bm_firstfaceloop(f1));
+		} while (l1 != bm_firstfaceloop(f1));
 	}
 
 	if (!jed) {
@@ -296,14 +298,14 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	return f1;
 }
 
-/*connects two verts together, automatically (if very naively) finding the
-  face they both share (if there is one) and splittling it.  use this at your 
-  own risk, as it doesn't handle the many complex cases it should (like zero-area faces,
-  multiple faces, etc).
-
-  this is really only meant for cases where you don't know before hand the face
-  the two verts belong to for splitting (e.g. the subdivision operator).
-*/
+/* connects two verts together, automatically (if very naively) finding the
+ * face they both share (if there is one) and splittling it.  use this at your
+ * own risk, as it doesn't handle the many complex cases it should (like zero-area faces,
+ * multiple faces, etc).
+ *
+ * this is really only meant for cases where you don't know before hand the face
+ * the two verts belong to for splitting (e.g. the subdivision operator).
+ */
 
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
 {
@@ -312,9 +314,9 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
 	BMLoop *nl;
 	BMFace *face;
 
-	/*be warned: this can do weird things in some ngon situation, see BM_LegalSplits*/
-	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
-		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
+	/* be warned: this can do weird things in some ngon situation, see BM_LegalSplit */
+	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face = BMIter_Step(&iter)) {
+		for (v = BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v = BMIter_Step(&iter2)) {
 			if (v == v2) {
 				face = BM_Split_Face(bm, face, v1, v2, &nl, NULL);
 
@@ -350,7 +352,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	const int has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMFace *nf, *of;
 	
-	/*do we have a multires layer?*/
+	/* do we have a multires layer */
 	if (has_mdisp) {
 		of = BM_Copy_Face(bm, f, 0, 0);
 	}
@@ -418,7 +420,7 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 	BMVert *tv2;
 
 	BMIter iter;
-	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
+	BMLoop *l = NULL, *kvloop = NULL, *tvloop = NULL;
 
 	void *src[2];
 	float w[2];
@@ -440,9 +442,9 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 
 				src[0] = kvloop->head.data;
 				src[1] = tvloop->head.data;
-				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->head.data);
+				CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, kvloop->head.data);
 			}
-			l= l->radial_next;
+			l = l->radial_next;
 		} while (l != ke->l);
 	}
 
@@ -497,7 +499,7 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 BMEdge *BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
 {
 	/* nice example implimentation but we want loops to have their customdata
-	 * accounted for.*/
+	 * accounted for */
 #if 0
 	BMEdge *ne = NULL;
 
@@ -514,7 +516,7 @@ BMEdge *BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
 				/* only action, other calls here only get the edge to return */
 				bmesh_jekv(bm, ke, kv);
 
-				ne= BM_Edge_Exist(tv, tv2);
+				ne = BM_Edge_Exist(tv, tv2);
 			}
 		}
 	}
@@ -548,11 +550,11 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	BLI_array_staticdeclare(oldfaces, 32);
 	SmallHash hash;
 
-	/*we need this for handling multires*/	
+	/* we need this for handling multire */
 	if (!ne) 
 		ne = &dummy;
 
-	/*do we have a multires layer?*/
+	/* do we have a multires layer */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l) {
 		BMLoop *l;
 		int i;
@@ -563,17 +565,17 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 			l = l->radial_next;
 		} while (l != e->l);
 		
-		/*create a hash so we can differentiate oldfaces from new faces*/
+		/* create a hash so we can differentiate oldfaces from new face */
 		BLI_smallhash_init(&hash);
 		
-		for (i=0; i<BLI_array_count(oldfaces); i++) {
+		for (i = 0; i < BLI_array_count(oldfaces); i++) {
 			oldfaces[i] = BM_Copy_Face(bm, oldfaces[i], 1, 1);
 			BLI_smallhash_insert(&hash, (intptr_t)oldfaces[i], NULL);
 		}		
 	}
 
-	v2 = bmesh_edge_getothervert(e,v);
-	nv = bmesh_semv(bm,v,e,ne);
+	v2 = bmesh_edge_getothervert(e, v);
+	nv = bmesh_semv(bm, v, e, ne);
 	if (nv == NULL) return NULL;
 
 	sub_v3_v3v3(nv->co, v2->co, v->co);
@@ -584,16 +586,16 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 		BM_Copy_Attributes(bm, bm, e, *ne);
 	}
 
-	/*v->nv->v2*/
+	/* v->nv->v2 */
 	BM_Data_Facevert_Edgeinterp(bm, v2, v, nv, e, percent);	
 	BM_Data_Interp_From_Verts(bm, v, v2, nv, percent);
 
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l && nv) {
 		int i, j;
 
-		/*interpolate new/changed loop data from copied old faces*/
-		for (j=0; j<2; j++) {
-			for (i=0; i<BLI_array_count(oldfaces); i++) {
+		/* interpolate new/changed loop data from copied old face */
+		for (j = 0; j < 2; j++) {
+			for (i = 0; i < BLI_array_count(oldfaces); i++) {
 				BMEdge *e1 = j ? *ne : e;
 				BMLoop *l, *l2;
 				
@@ -616,14 +618,14 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 			}
 		}
 		
-		/*destroy the old faces*/
-		for (i=0; i<BLI_array_count(oldfaces); i++) {
+		/* destroy the old face */
+		for (i = 0; i < BLI_array_count(oldfaces); i++) {
 			BM_Kill_Face_Verts(bm, oldfaces[i]);
 		}
 		
-		/*fix boundaries a bit, doesn't work too well quite yet*/
+		/* fix boundaries a bit, doesn't work too well quite ye */
 #if 0
-		for (j=0; j<2; j++) {
+		for (j = 0; j < 2; j++) {
 			BMEdge *e1 = j ? *ne : e;
 			BMLoop *l, *l2;
 			
@@ -653,7 +655,7 @@ BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 	float percent;
 	BMVert *nv = NULL;
 	
-	for (i=0; i < numcuts; i++) {
+	for (i = 0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
 		nv = BM_Split_Edge(bm, e->v2, e, NULL, percent);
 	}
@@ -673,9 +675,9 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 		fflush(err);
 	}
 
-	for (l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, face);l;l=BMIter_Step(&iter)) {
+	for (l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, face); l; l = BMIter_Step(&iter)) {
 		BLI_array_growone(verts);
-		verts[BLI_array_count(verts)-1] = l->v;
+		verts[BLI_array_count(verts) - 1] = l->v;
 		
 		if (l->e->v1 == l->e->v2) {
 			fprintf(err, "Found bmesh edge with identical verts!\n");
@@ -685,9 +687,12 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 		}
 	}
 
-	for (i=0; i<BLI_array_count(verts); i++) {
-		for (j=0; j<BLI_array_count(verts); j++) {
-			if (j == i) continue;
+	for (i = 0; i < BLI_array_count(verts); i++) {
+		for (j = 0; j < BLI_array_count(verts); j++) {
+			if (j == i) {
+				continue;
+			}
+
 			if (verts[i] == verts[j]) {
 				fprintf(err, "Found duplicate verts in bmesh face!\n");
 				fprintf(err, "  face ptr: %p, vert: %p\n", face, verts[i]);
@@ -714,7 +719,7 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 
     Returns NULL on error (e.g., if the edge isn't surrounded by exactly
     two faces).
-*/
+ */
 BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 {
 	BMVert *v1, *v2;

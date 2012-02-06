@@ -49,14 +49,14 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
-/*bmesh_error stub*/
+/* bmesh_error stub */
 void bmesh_error(void)
 {
 	printf("BM modelling error!\n");
 
 	/* This placeholder assert makes modelling errors easier to catch
-	   in the debugger, until bmesh_error is replaced with something
-	   better. */
+	 * in the debugger, until bmesh_error is replaced with something
+	 * better. */
 	BLI_assert(0);
 }
 
@@ -67,12 +67,12 @@ void bmesh_error(void)
  *  Returns -
  *  Pointer to a BM
  *
-*/
+ */
 
 BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 {
-	/*allocate the structure*/
-	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
+	/* allocate the structure */
+	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
 	int vsize, esize, lsize, fsize, lstsize;
 
 	vsize = sizeof(BMVert);
@@ -83,14 +83,14 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 
 	bm->ob = ob;
 	
-   /*allocate the memory pools for the mesh elements*/
+   /* allocate the memory pools for the mesh elements */
 	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
 	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
 	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
 	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], FALSE, FALSE);
 	bm->fpool = BLI_mempool_create(fsize, allocsize[3], allocsize[3], FALSE, TRUE);
 
-	/*allocate one flag pool that we dont get rid of.*/
+	/* allocate one flag pool that we dont get rid of. */
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 	bm->stackdepth = 1;
 	bm->totflags = 1;
@@ -102,7 +102,7 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
  *	BMESH FREE MESH
  *
  *	Frees a BMesh structure.
-*/
+ */
 
 void BM_Free_Mesh_Data(BMesh *bm)
 {
@@ -124,25 +124,25 @@ void BM_Free_Mesh_Data(BMesh *bm)
 		for (l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f); l; l = BMIter_Step(&loops)) CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
 	}
 
-	/*Free custom data pools, This should probably go in CustomData_free?*/
+	/* Free custom data pools, This should probably go in CustomData_free? */
 	if (bm->vdata.totlayer) BLI_mempool_destroy(bm->vdata.pool);
 	if (bm->edata.totlayer) BLI_mempool_destroy(bm->edata.pool);
 	if (bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
 	if (bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
 
- 	/*free custom data*/
-	CustomData_free(&bm->vdata,0);
-	CustomData_free(&bm->edata,0);
-	CustomData_free(&bm->ldata,0);
-	CustomData_free(&bm->pdata,0);
+ 	/* free custom data */
+	CustomData_free(&bm->vdata, 0);
+	CustomData_free(&bm->edata, 0);
+	CustomData_free(&bm->ldata, 0);
+	CustomData_free(&bm->pdata, 0);
 
-	/*destroy element pools*/
+	/* destroy element pools */
 	BLI_mempool_destroy(bm->vpool);
 	BLI_mempool_destroy(bm->epool);
 	BLI_mempool_destroy(bm->lpool);
 	BLI_mempool_destroy(bm->fpool);
 
-	/*destroy flag pool*/
+	/* destroy flag pool */
 	BLI_mempool_destroy(bm->toolflagpool);
 	BLI_mempool_destroy(bm->looplistpool);
 
@@ -159,18 +159,18 @@ void BM_Free_Mesh_Data(BMesh *bm)
 
 void BM_Clear_Mesh(BMesh *bm)
 {
-	/*allocate the structure*/
+	/* allocate the structure */
 	int vsize, esize, lsize, fsize, lstsize;
-	/*I really need to make the allocation sizes defines, there's no reason why the API
-	  should allow client code to mess around with this - joeedh*/
+	/* I really need to make the allocation sizes defines, there's no reason why the API
+	 * should allow client code to mess around with this - joeedh */
 	int allocsize[5] = {512, 512, 512, 2048, 512};
 	Object *ob = bm->ob;
 	
-	/*free old mesh*/
+	/* free old mesh */
 	BM_Free_Mesh_Data(bm);
 	memset(bm, 0, sizeof(BMesh));
 	
-	/*re-initialize mesh*/
+	/* re-initialize mesh */
 	vsize = sizeof(BMVert);
 	esize = sizeof(BMEdge);
 	lsize = sizeof(BMLoop);
@@ -179,14 +179,14 @@ void BM_Clear_Mesh(BMesh *bm)
 
 	bm->ob = ob;
 	
-   /*allocate the memory pools for the mesh elements*/
+   /* allocate the memory pools for the mesh elements */
 	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
 	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
 	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
 	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], FALSE, FALSE);
 	bm->fpool = BLI_mempool_create(fsize, allocsize[4], allocsize[4], FALSE, TRUE);
 
-	/*allocate one flag pool that we dont get rid of.*/
+	/* allocate one flag pool that we dont get rid of. */
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 	bm->stackdepth = 1;
 	bm->totflags = 1;
@@ -196,7 +196,7 @@ void BM_Clear_Mesh(BMesh *bm)
  *	BMESH FREE MESH
  *
  *	Frees a BMesh structure.
-*/
+ */
 
 void BM_Free_Mesh(BMesh *bm)
 {
@@ -210,7 +210,7 @@ void BM_Free_Mesh(BMesh *bm)
  *  Updates the normals of a mesh.
  *  Note that this can only be called  
  *
-*/
+ */
 
 void BM_Compute_Normals(BMesh *bm)
 {
@@ -227,7 +227,7 @@ void BM_Compute_Normals(BMesh *bm)
 	float (*projectverts)[3];
 	float (*edgevec)[3];
 
-	/*first, find out the largest face in mesh*/
+	/* first, find out the largest face in mesh */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
@@ -235,13 +235,13 @@ void BM_Compute_Normals(BMesh *bm)
 		if (f->len > maxlength) maxlength = f->len;
 	}
 	
-	/*make sure we actually have something to do*/
+	/* make sure we actually have something to do */
 	if (maxlength < 3) return;
 
-	/*allocate projectverts array*/
+	/* allocate projectverts array */
 	projectverts = MEM_callocN(sizeof(float) * maxlength * 3, "BM normal computation array");
 	
-	/*calculate all face normals*/
+	/* calculate all face normals */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
@@ -253,7 +253,7 @@ void BM_Compute_Normals(BMesh *bm)
 		bmesh_update_face_normal(bm, f, f->no, projectverts);
 	}
 	
-	/*Zero out vertex normals*/
+	/* Zero out vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
@@ -281,7 +281,7 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
 
-	/*add weighted face normals to vertices*/
+	/* add weighted face normals to vertices */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 
 		if (BM_TestHFlag(f, BM_HIDDEN))
@@ -293,16 +293,16 @@ void BM_Compute_Normals(BMesh *bm)
 			float fac;
 
 			/* calculate the dot product of the two edges that
-			   meet at the loop's vertex */
+			 * meet at the loop's vertex */
 			e1diff = edgevec[BM_GetIndex(l->prev->e)];
 			e2diff = edgevec[BM_GetIndex(l->e)];
 			dotprod = dot_v3v3(e1diff, e2diff);
 
 			/* edge vectors are calculated from e->v1 to e->v2, so
-			   adjust the dot product if one but not both loops 
-			   actually runs from from e->v2 to e->v1 */
+			 * adjust the dot product if one but not both loops
+			 * actually runs from from e->v2 to e->v1 */
 			if ((l->prev->e->v1 == l->prev->v) ^ (l->e->v1 == l->v)) {
-				dotprod= -dotprod;
+				dotprod = -dotprod;
 			}
 
 			fac = saacos(-dotprod);
@@ -333,7 +333,7 @@ void BM_Compute_Normals(BMesh *bm)
  
  if undo is 0: calculate right normals
  if undo is 1: restore original normals
-*/
+ */
 //keep in sycn with utils.c!
 #define FACE_FLIP	8
 static void bmesh_rationalize_normals(BMesh *bm, int undo)
@@ -370,7 +370,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 
 static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 {
-	/*switch multires data out of tangent space*/
+	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		Object *ob = bm->ob;
 		BMEditMesh *em = BMEdit_Create(bm, FALSE);
@@ -378,7 +378,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 		MDisps *mdisps;
 		BMFace *f;
 		BMIter iter;
-		// int i= 0; // UNUSED
+		// int i = 0; // UNUSED
 		
 		multires_set_space(dm, ob, from, to);
 		
@@ -395,7 +395,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 				}
 				
 				if (lmd->disps && lmd->totdisp == mdisps->totdisp) {
-					memcpy(lmd->disps, mdisps->disps, sizeof(float)*3*lmd->totdisp);
+					memcpy(lmd->disps, mdisps->disps, sizeof(float) * 3 * lmd->totdisp);
 				}
 				else if (mdisps->disps) {
 					if (lmd->disps)
@@ -413,7 +413,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 		dm->needsFree = 1;
 		dm->release(dm);
 		
-		/*setting this to NULL prevents BMEdit_Free from freeing it*/
+		/* setting this to NULL prevents BMEdit_Free from freeing it */
 		em->bm = NULL;
 		BMEdit_Free(em);
 		MEM_freeN(em);
@@ -430,7 +430,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
  *  Returns -
  *  Nothing
  *
-*/
+ */
 void bmesh_begin_edit(BMesh *bm, int flag)
 {
 	bm->opflag = flag;
@@ -441,11 +441,11 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 	   the mesh at all, which doesn't seem right. Turning off completely for now,
 	   until this is shown to be better for certain types of mesh edits. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
-	/*switch multires data out of tangent space*/
+	/* switch multires data out of tangent space */
 	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
 
-		/*ensure correct normals, if possible*/
+		/* ensure correct normals, if possible */
 		bmesh_rationalize_normals(bm, 0);
 		BM_Compute_Normals(bm);
 	}
@@ -463,9 +463,9 @@ void bmesh_end_edit(BMesh *bm, int flag)
 {
 	/* BMOP_UNTAN_MULTIRES disabled for now, see comment above in bmesh_begin_edit. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
-	/*switch multires data into tangent space*/
+	/* switch multires data into tangent space */
 	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		/*set normals to their previous winding*/
+		/* set normals to their previous winding */
 		bmesh_rationalize_normals(bm, 1);
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
 	}
@@ -480,7 +480,7 @@ void bmesh_end_edit(BMesh *bm, int flag)
 
 	bm->opflag = 0;
 
-	/*compute normals, clear temp flags and flush selections*/
+	/* compute normals, clear temp flags and flush selections */
 	BM_Compute_Normals(bm);
 	BM_SelectMode_Flush(bm);
 }
@@ -496,7 +496,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 
 	if (hflag & BM_VERT) {
 		if (bm->elem_index_dirty & BM_VERT) {
-			int index= 0;
+			int index = 0;
 			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				BM_SetIndex(ele, index); /* set_ok */
 				index++;
@@ -511,7 +511,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 
 	if (hflag & BM_EDGE) {
 		if (bm->elem_index_dirty & BM_EDGE) {
-			int index= 0;
+			int index = 0;
 			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 				BM_SetIndex(ele, index); /* set_ok */
 				index++;
@@ -526,7 +526,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 
 	if (hflag & BM_FACE) {
 		if (bm->elem_index_dirty & BM_FACE) {
-			int index= 0;
+			int index = 0;
 			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
 				BM_SetIndex(ele, index); /* set_ok */
 				index++;
@@ -556,24 +556,24 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 	BMIter iter;
 	BMHeader *ele;
 	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-	const char *type_names[3]= {"vert", "edge", "face"};
-	const char type_flags[3]= {BM_VERT, BM_EDGE, BM_FACE};
+	const char *type_names[3] = {"vert", "edge", "face"};
+	const char type_flags[3] = {BM_VERT, BM_EDGE, BM_FACE};
 	int i;
-	int is_any_error= 0;
+	int is_any_error = 0;
 
-	for (i=0; i<3; i++) {
-		const int is_dirty= (type_flags[i] & bm->elem_index_dirty);
-		int index= 0;
-		int is_error= FALSE;
-		int err_val= 0;
-		int err_idx= 0;
+	for (i = 0; i < 3; i++) {
+		const int is_dirty = (type_flags[i] & bm->elem_index_dirty);
+		int index = 0;
+		int is_error = FALSE;
+		int err_val = 0;
+		int err_idx = 0;
 
 		BM_ITER(ele, &iter, bm, types[i], NULL) {
 			if (!is_dirty) {
 				if (BM_GetIndex(ele) != index) {
-					err_val= BM_GetIndex(ele);
-					err_idx= index;
-					is_error= TRUE;
+					err_val = BM_GetIndex(ele);
+					err_idx = index;
+					is_error = TRUE;
 				}
 			}
 
@@ -582,7 +582,7 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 		}
 
 		if ((is_error == TRUE) && (is_dirty == FALSE)) {
-			is_any_error= TRUE;
+			is_any_error = TRUE;
 			fprintf(stderr,
 			        "Invalid Index: at %s, %s, %s[%d] invalid index %d, '%s', '%s'\n",
 			        location, func, type_names[i], err_idx, err_val, msg_a, msg_b);

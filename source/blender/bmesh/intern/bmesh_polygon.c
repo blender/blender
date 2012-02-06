@@ -56,43 +56,45 @@
  * Point in triangle tests stolen from scanfill.c.
  * Used for tesselator
  *
-*/
+ */
 
 static short testedgeside(const double v1[2], const double v2[2], const double v3[2])
-/* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
+	/* is v3 to the right of v1-v2 ? With exception: v3 == v1 || v3 == v2 */
 	double inp;
 
-	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
-	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
+	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
+	inp = (v2[0]-v1[0]) * (v1[1]-v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
-	if (inp<0.0) return 0;
-	else if (inp==0) {
-		if (v1[0]==v3[0] && v1[1]==v3[1]) return 0;
-		if (v2[0]==v3[0] && v2[1]==v3[1]) return 0;
+	if (inp < 0.0) return 0;
+	else if (inp == 0) {
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
 	}
 	return 1;
 }
 
 static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
-/* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
+	/* is v3 to the right of v1-v2 ? With exception: v3 == v1 || v3 == v2 */
 	double inp;
 
-	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
-	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
+	//inp = (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) + (v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
+	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
-	if (inp<0.0) return 0;
-	else if (inp==0) {
-		if (v1[0]==v3[0] && v1[1]==v3[1]) return 0;
-		if (v2[0]==v3[0] && v2[1]==v3[1]) return 0;
+	if (inp < 0.0) {
+		return 0;
+	}
+	else if (inp == 0) {
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
 	}
 	return 1;
 }
 
 static int point_in_triangle(const double v1[2], const double v2[2], const double v3[2], const double pt[2])
 {
-	if (testedgeside(v1,v2,pt) && testedgeside(v2,v3,pt) && testedgeside(v3,v1,pt))
+	if (testedgeside(v1, v2, pt) && testedgeside(v2, v3, pt) && testedgeside(v3, v1, pt))
 		return 1;
 	return 0;
 }
@@ -104,23 +106,23 @@ static int point_in_triangle(const double v1[2], const double v2[2], const doubl
  * polygon See Graphics Gems for 
  * computing newell normal.
  *
-*/
+ */
 
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
-	float u[3], v[3], w[3];/*, *w, v1[3], v2[3];*/
-	float n[3]= {0.0f, 0.0f, 0.0f} /*, l, v1[3], v2[3] */;
+	float u[3], v[3], w[3]; /*, *w, v1[3], v2[3]; */
+	float n[3] = {0.0f, 0.0f, 0.0f} /*, l, v1[3], v2[3] */;
 	/* double l2; */
-	int i /*, s=0 */;
+	int i /*, s = 0 */;
 
-	/*this fixes some weird numerical error*/
+	/* this fixes some weird numerical erro */
 	add_v3_fl(verts[0], 0.0001f);
 
 	for (i = 0; i < nverts; i++) {
 		copy_v3_v3(u, verts[i]);
-		copy_v3_v3(v, verts[(i+1) % nverts]);
-		copy_v3_v3(w, verts[(i+2) % nverts]);
+		copy_v3_v3(v, verts[(i + 1) % nverts]);
+		copy_v3_v3(w, verts[(i + 2) % nverts]);
 		
 #if 0
 		sub_v3_v3v3(v1, w, v);
@@ -129,7 +131,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		normalize_v3(v2);
 
 		l = dot_v3v3(v1, v2);
-		if (fabsf(l-1.0) < 0.1f) {
+		if (fabsf(l - 1.0) < 0.1f) {
 			continue;
 		}
 #endif
@@ -156,12 +158,12 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 
 #if 0
 	l = len_v3(n);
-	/*fast square root, newton/babylonian method:
-	l2 = l*0.1;
+	/* fast square root, newton/babylonian method:
+	l2 = l * 0.1;
 
-	l2 = (l/l2 + l2)*0.5;
-	l2 = (l/l2 + l2)*0.5;
-	l2 = (l/l2 + l2)*0.5;
+	l2 = (l / l2 + l2) * 0.5;
+	l2 = (l / l2 + l2) * 0.5;
+	l2 = (l / l2 + l2) * 0.5;
 	*/
 
 	if (l == 0.0) {
@@ -188,19 +190,19 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
  * area of a polygon in the X/Y
  * plane.
  *
-*/
+ */
 
 static int compute_poly_center(float center[3], float *r_area, float (*verts)[3], int nverts)
 {
 	int i, j;
-	float atmp = 0.0, xtmp = 0.0, ytmp = 0.0, ai;
+	float atmp = 0.0f, xtmp = 0.0f, ytmp = 0.0f, ai;
 
 	zero_v3(center);
 
 	if (nverts < 3)
 		return 0;
 
-	i = nverts-1;
+	i = nverts - 1;
 	j = 0;
 	
 	while (j < nverts) {
@@ -246,10 +248,10 @@ float BM_Compute_Face_Area(BMesh *bm, BMFace *f)
 
 	return area;
 }
-/*
-computes center of face in 3d.  uses center of bounding box.
-*/
 
+/*
+ * computes center of face in 3d.  uses center of bounding box.
+ */
 void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float r_cent[3])
 {
 	BMIter iter;
@@ -259,7 +261,7 @@ void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float r_cent[3])
 
 	INIT_MINMAX(min, max);
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (i=0; l; l=BMIter_Step(&iter), i++) {
+	for (i = 0; l; l = BMIter_Step(&iter), i++) {
 		DO_MINMAX(l->v->co, min, max);
 	}
 
@@ -275,7 +277,7 @@ void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
 	zero_v3(r_cent);
 
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (i=0; l; l=BMIter_Step(&iter), i++) {
+	for (i = 0; l; l = BMIter_Step(&iter), i++) {
 		add_v3_v3(r_cent, l->v->co);
 	}
 
@@ -289,7 +291,7 @@ void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
  * a plane defined by the average
  * of its edges cross products
  *
-*/
+ */
 
 void compute_poly_plane(float (*verts)[3], int nverts)
 {
@@ -306,14 +308,14 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 
 	for (i = 0; i < nverts; i++) {
 		v1 = verts[i];
-		v2 = verts[(i+1) % nverts];
-		v3 = verts[(i+2) % nverts];
-		normal_tri_v3(norm,v1, v2, v3);
+		v2 = verts[(i + 1) % nverts];
+		v3 = verts[(i + 2) % nverts];
+		normal_tri_v3(norm, v1, v2, v3);
 
 		add_v3_v3(avgn, norm);
 	}
 
-	/*what was this bit for?*/
+	/* what was this bit for */
 	if (is_zero_v3(avgn)) {
 		avgn[0] = 0.0f;
 		avgn[1] = 0.0f;
@@ -336,12 +338,12 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 }
 
 /*
-  BM LEGAL EDGES
-
-  takes in a face and a list of edges, and sets to NULL any edge in
-  the list that bridges a concave region of the face or intersects
-  any of the faces's edges.
-*/
+ * BM LEGAL EDGES
+ *
+ * takes in a face and a list of edges, and sets to NULL any edge in
+ * the list that bridges a concave region of the face or intersects
+ * any of the faces's edges.
+ */
 #if 0 /* needs BLI math double versions of these functions */
 static void shrink_edged(double *v1, double *v2, double fac)
 {
@@ -383,12 +385,12 @@ static void shrink_edgef(float v1[3], float v2[3], const float fac)
  * Rotates a polygon so that it's
  * normal is pointing towards the mesh Z axis
  *
-*/
+ */
 
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts)
 {
 
-	float up[3] = {0.0f,0.0f,1.0f}, axis[3], q[4];
+	float up[3] = {0.0f, 0.0f, 1.0f}, axis[3], q[4];
 	float mat[3][3];
 	double angle;
 	int i;
@@ -415,7 +417,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
  * coordinates for all of the face's vertices
  * is passed in as well.
  *
-*/
+ */
 
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 {
@@ -449,7 +451,7 @@ void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
 	BMFace *f;
 	
 	f = BMIter_New(&iter, bm, BM_FACES_OF_EDGE, e);
-	for ( ; f; f=BMIter_Step(&iter)) {
+	for ( ; f; f = BMIter_Step(&iter)) {
 		BM_Face_UpdateNormal(bm, f);
 	}
 
@@ -463,7 +465,7 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 	BMEdge *e;
 	BMLoop *l;
 	float vec1[3], vec2[3], fac;
-	int len=0;
+	int len = 0;
 
 	zero_v3(v->no);
 
@@ -494,10 +496,10 @@ void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
 {
 	BMIter iter;
 	BMFace *f;
-	int len=0;
+	int len = 0;
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
-	for ( ; f; f=BMIter_Step(&iter), len++) {
+	for ( ; f; f = BMIter_Step(&iter), len++) {
 		BM_Face_UpdateNormal(bm, f);
 	}
 
@@ -606,7 +608,7 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
  *  Reverses the winding of a face.
  *  Note that this updates the calculated 
  *  normal.
-*/
+ */
 void BM_flip_normal(BMesh *bm, BMFace *f)
 {	
 	bmesh_loop_reverse(bm, f);
@@ -614,41 +616,41 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 }
 
 /* detects if two line segments cross each other (intersects).
-   note, there could be more winding cases then there needs to be. */
+ * note, there could be more winding cases then there needs to be. */
 static int UNUSED_FUNCTION(linecrosses)(const double v1[2], const double v2[2], const double v3[2], const double v4[2])
 {
 	int w1, w2, w3, w4, w5;
 	
-	/*w1 = winding(v1, v3, v4);
+	/* w1 = winding(v1, v3, v4);
 	w2 = winding(v2, v3, v4);
 	w3 = winding(v3, v1, v2);
 	w4 = winding(v4, v1, v2);
 	
-	return (w1 == w2) && (w3 == w4);*/
+	return (w1 == w2) && (w3 == w4); */
 
 	w1 = testedgeside(v1, v3, v2);
 	w2 = testedgeside(v2, v4, v1);
 	w3 = !testedgeside(v1, v2, v3);
 	w4 = testedgeside(v3, v2, v4);
 	w5 = !testedgeside(v3, v1, v4);
-	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
+	return w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5;
 }
 
 /* detects if two line segments cross each other (intersects).
-   note, there could be more winding cases then there needs to be. */
+ * note, there could be more winding cases then there needs to be. */
 static int linecrossesf(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
-	int w1, w2, w3, w4, w5 /*, ret*/;
+	int w1, w2, w3, w4, w5 /*, re */;
 	float mv1[2], mv2[2], mv3[2], mv4[2];
 	
-	/*now test winding*/
+	/* now test windin */
 	w1 = testedgesidef(v1, v3, v2);
 	w2 = testedgesidef(v2, v4, v1);
 	w3 = !testedgesidef(v1, v2, v3);
 	w4 = testedgesidef(v3, v2, v4);
 	w5 = !testedgesidef(v3, v1, v4);
 	
-	if (w1 == w2 && w2 == w3 && w3 == w4 && w4==w5)
+	if (w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5)
 		return 1;
 	
 #define GETMIN2_AXIS(a, b, ma, mb, axis) ma[axis] = MIN2(a[axis], b[axis]), mb[axis] = MAX2(a[axis], b[axis])
@@ -657,16 +659,16 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	GETMIN2(v1, v2, mv1, mv2);
 	GETMIN2(v3, v4, mv3, mv4);
 	
-	/*do an interval test on the x and y axes*/
-	/*first do x axis*/
-	#define T FLT_EPSILON*15
+	/* do an interval test on the x and y axe */
+	/* first do x axi */
+	#define T FLT_EPSILON * 15
 	if (ABS(v1[1]-v2[1]) < T && ABS(v3[1]-v4[1]) < T &&
 	    ABS(v1[1]-v3[1]) < T) 
 	{
 		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
 	}
 
-	/*now do y axis*/
+	/* now do y axi */
 	if (ABS(v1[0]-v2[0]) < T && ABS(v3[0]-v4[0]) < T &&
 	    ABS(v1[0]-v3[0]) < T)
 	{
@@ -677,22 +679,22 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 }
 
 /*
-   BM POINT IN FACE
-   
-  Projects co onto face f, and returns true if it is inside
-  the face bounds.  Note that this uses a best-axis projection
-  test, instead of projecting co directly into f's orientation
-  space, so there might be accuracy issues.
-*/
+ *  BM POINT IN FACE
+ *
+ * Projects co onto face f, and returns true if it is inside
+ * the face bounds.  Note that this uses a best-axis projection
+ * test, instead of projecting co directly into f's orientation
+ * space, so there might be accuracy issues.
+ */
 int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 {
 	int ax, ay;
-	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX*0.5f, FLT_MAX*0.5f, 0};
+	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f, 0};
 	BMLoop *l;
 	int crosses = 0;
-	float eps = 1.0f+(float)FLT_EPSILON*150.0f;
+	float eps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
-	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON*10)
+	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON * 10)
 		BM_Face_UpdateNormal(bm, f);
 	
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
@@ -714,18 +716,18 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 		l = l->next;
 	} while (l != bm_firstfaceloop(f));
 	
-	mul_v2_fl(cent, 1.0f/(float)f->len);
+	mul_v2_fl(cent, 1.0f / (float)f->len);
 	
 	l = bm_firstfaceloop(f);
 	do {
 		float v1[3], v2[3];
 		
-		v1[0] = (l->prev->v->co[ax] - cent[ax])*eps + cent[ax];
-		v1[1] = (l->prev->v->co[ay] - cent[ay])*eps + cent[ay];
+		v1[0] = (l->prev->v->co[ax] - cent[ax]) * eps + cent[ax];
+		v1[1] = (l->prev->v->co[ay] - cent[ay]) * eps + cent[ay];
 		v1[2] = 0.0f;
 		
-		v2[0] = (l->v->co[ax] - cent[ax])*eps + cent[ax];
-		v2[1] = (l->v->co[ay] - cent[ay])*eps + cent[ay];
+		v2[0] = (l->v->co[ax] - cent[ax]) * eps + cent[ax];
+		v2[1] = (l->v->co[ay] - cent[ay]) * eps + cent[ay];
 		v2[2] = 0.0f;
 		
 		crosses += linecrossesf(v1, v2, co2, out) != 0;
@@ -733,7 +735,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 		l = l->next;
 	} while (l != bm_firstfaceloop(f));
 	
-	return crosses%2 != 0;
+	return crosses % 2 != 0;
 }
 
 static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
@@ -747,9 +749,11 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	VECCOPY(v2, projectverts[v2i]);
 	VECCOPY(v3, projectverts[v3i]);
 	
-	if (testedgeside(v1, v2, v3)) return 0;
-	
-	//for (i=0; i<nvert; i++) {
+	if (testedgeside(v1, v2, v3)) {
+		return 0;
+	}
+
+	//for (i = 0; i < nvert; i++) {
 	do {
 		i = BM_GetIndex(l->v);
 		if (i == v1i || i == v2i || i == v3i) {
@@ -775,15 +779,15 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
  * the next triangle to 'clip off'
  * of a polygon while tesselating.
  *
-*/
+ */
 
 static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			int nvert)
 {
 	BMVert *v1, *v2, *v3;
 	BMLoop *bestear = NULL, *l;
-	/*float angle, bestangle = 180.0f;*/
-	int isear /*, i=0*/;
+	/* float angle, bestangle = 180.0f; */
+	int isear /*, i = 0 */;
 	
 	l = bm_firstfaceloop(f);
 	do {
@@ -800,7 +804,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			isear = 0;
 		
 		if (isear) {
-			/*angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
+			/* angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
 			if (!bestear || ABS(angle-45.0f) < bestangle) {
 				bestear = l;
 				bestangle = ABS(45.0f-angle);
@@ -808,7 +812,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			
 			if (angle > 20 && angle < 90) break;
 			if (angle < 100 && i > 5) break;
-			i += 1;*/
+			i += 1; */
 			bestear = l;
 			break;
 		}
@@ -834,7 +838,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
  * newfaces, if non-null, must be an array of BMFace pointers,
  * with a length equal to f->len.  it will be filled with the new
  * triangles, and will be NULL-terminated.
-*/
+ */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], 
                          int newedgeflag, int newfaceflag, BMFace **newfaces)
 {
@@ -842,7 +846,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	BMLoop *l, *newl, *nextloop;
 	/* BMVert *v; */ /* UNUSED */
 
-	/*copy vertex coordinates to vertspace array*/
+	/* copy vertex coordinates to vertspace arra */
 	i = 0;
 	l = bm_firstfaceloop(f);
 	do {
@@ -862,7 +866,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	nvert = f->len;
 
 	//compute_poly_plane(projectverts, i);
-	for (i=0; i<nvert; i++) {
+	for (i = 0; i < nvert; i++) {
 		projectverts[i][2] = 0.0f;
 	}
 
@@ -888,14 +892,14 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			
 			if (newfaces) newfaces[nf_i++] = f;
 
-			/*l = f->loopbase;
+			/* l = f->loopbase;
 			do {
 				if (l->v == v) {
 					f->loopbase = l;
 					break;
 				}
 				l = l->next;
-			} while (l != f->loopbase);*/
+			} while (l != f->loopbase); */
 		}
 	}
 
@@ -908,7 +912,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
 
-				/*NULL-terminate*/
+				/* NULL-terminat */
 				if (newfaces) newfaces[nf_i] = NULL;
 				return;
 			}
@@ -921,39 +925,39 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		}
 	}
 	
-	/*NULL-terminate*/
+	/* NULL-terminat */
 	if (newfaces) newfaces[nf_i] = NULL;
 }
 
-/*each pair of loops defines a new edge, a split.  this function goes
-  through and sets pairs that are geometrically invalid to null.  a
-  split is invalid, if it forms a concave angle or it intersects other
-  edges in the face, or it intersects another split.  in the case of
-  intersecting splits, only the first of the set of intersecting
-  splits survives.*/
+/* each pair of loops defines a new edge, a split.  this function goes
+ * through and sets pairs that are geometrically invalid to null.  a
+ * split is invalid, if it forms a concave angle or it intersects other
+ * edges in the face, or it intersects another split.  in the case of
+ * intersecting splits, only the first of the set of intersecting
+ * splits survives */
 void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;
 	BMLoop *l;
-	float v1[3], v2[3], v3[3]/*, v4[3]*/, no[3], mid[3], *p1, *p2, *p3, *p4;
+	float v1[3], v2[3], v3[3]/*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-234324.0f, -234324.0f, 0.0f};
 	float (*projverts)[3];
 	float (*edgeverts)[3];
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
-	int i, j, a=0, clen;
+	int i, j, a = 0, clen;
 
 	BLI_array_fixedstack_declare(projverts, BM_NGON_STACK_SIZE, f->len,         "projvertsb");
 	BLI_array_fixedstack_declare(edgeverts, BM_NGON_STACK_SIZE * 2, len * 2, "edgevertsb");
 	
 	i = 0;
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l=BMIter_Step(&iter)) {
+	for ( ; l; l = BMIter_Step(&iter)) {
 		BM_SetIndex(l, i); /* set_loop */
 		copy_v3_v3(projverts[i], l->v->co);
 		i++;
 	}
 	
-	for (i=0; i<len; i++) {
+	for (i = 0; i < len; i++) {
 		copy_v3_v3(v1, loops[i][0]->v->co);
 		copy_v3_v3(v2, loops[i][1]->v->co);
 
@@ -967,10 +971,10 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	
 	compute_poly_normal(no, projverts, f->len);
 	poly_rotate_plane(no, projverts, f->len);
-	poly_rotate_plane(no, edgeverts, len*2);
+	poly_rotate_plane(no, edgeverts, len * 2);
 	
 	l = bm_firstfaceloop(f);
-	for (i=0; i<f->len; i++) {
+	for (i = 0; i < f->len; i++) {
 		p1 = projverts[i];
 		out[0] = MAX2(out[0], p1[0]) + 0.01f;
 		out[1] = MAX2(out[1], p1[1]) + 0.01f;
@@ -982,22 +986,22 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		l = l->next;
 	}
 	
-	for (i=0; i<len; i++) {
-		edgeverts[i*2][2] = 0.0f;
-		edgeverts[i*2+1][2] = 0.0f;
+	for (i = 0; i < len; i++) {
+		edgeverts[i * 2][2] = 0.0f;
+		edgeverts[i * 2 + 1][2] = 0.0f;
 	}
 
-	/*do convexity test*/
-	for (i=0; i<len; i++) {
-		copy_v3_v3(v2, edgeverts[i*2]);
-		copy_v3_v3(v3, edgeverts[i*2+1]);
+	/* do convexity test */
+	for (i = 0; i < len; i++) {
+		copy_v3_v3(v2, edgeverts[i * 2]);
+		copy_v3_v3(v3, edgeverts[i * 2 + 1]);
 
 		mid_v3_v3v3(mid, v2, v3);
 		
 		clen = 0;
-		for (j=0; j<f->len; j++) {
+		for (j = 0; j < f->len; j++) {
 			p1 = projverts[j];
-			p2 = projverts[(j+1)%f->len];
+			p2 = projverts[(j + 1) % f->len];
 			
 			copy_v3_v3(v1, p1);
 			copy_v3_v3(v2, p2);
@@ -1007,44 +1011,43 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			if (linecrossesf(p1, p2, mid, out)) clen++;
 		}
 		
-		if (clen%2 == 0) {
+		if (clen % 2 == 0) {
 			loops[i][0] = NULL;
 		}
 	}
 	
-	/*do line crossing tests*/
-	for (i=0; i<f->len; i++) {
+	/* do line crossing test */
+	for (i = 0; i < f->len; i++) {
 		p1 = projverts[i];
-		p2 = projverts[(i+1)%f->len];
+		p2 = projverts[(i + 1) % f->len];
 		
 		copy_v3_v3(v1, p1);
 		copy_v3_v3(v2, p2);
 
 		shrink_edgef(v1, v2, fac1);
 
-		for (j=0; j<len; j++) {
+		for (j = 0; j < len; j++) {
 			if (!loops[j][0]) continue;
 
-			p3 = edgeverts[j*2];
-			p4 = edgeverts[j*2+1];
+			p3 = edgeverts[j * 2];
+			p4 = edgeverts[j * 2 + 1];
 
-			if (linecrossesf(v1, v2, p3, p4))
-			{
+			if (linecrossesf(v1, v2, p3, p4)) {
 				loops[j][0] = NULL;
 			}
 		}
 	}
 
-	for (i=0; i<len; i++) {
-		for (j=0; j<len; j++) {
+	for (i = 0; i < len; i++) {
+		for (j = 0; j < len; j++) {
 			if (j == i) continue;
 			if (!loops[i][0]) continue;
 			if (!loops[j][0]) continue;
 
-			p1 = edgeverts[i*2];
-			p2 = edgeverts[i*2+1];
-			p3 = edgeverts[j*2];
-			p4 = edgeverts[j*2+1];
+			p1 = edgeverts[i * 2];
+			p2 = edgeverts[i * 2 + 1];
+			p3 = edgeverts[j * 2];
+			p4 = edgeverts[j * 2 + 1];
 
 			copy_v3_v3(v1, p1);
 			copy_v3_v3(v2, p2);
@@ -1052,7 +1055,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			shrink_edgef(v1, v2, fac1);
 
 			if (linecrossesf(v1, v2, p3, p4)) {
-				loops[i][0]=NULL;
+				loops[i][0] = NULL;
 			}
 		}
 	}

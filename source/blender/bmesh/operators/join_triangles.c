@@ -34,24 +34,24 @@
  * utility bmesh operators, e.g. transform, 
  * translate, rotate, scale, etc.
  *
-*/
+ */
 
-/*Bitflags for edges.*/
+/* Bitflags for edges */
 #define T2QDELETE	1
 #define T2QCOMPLEX	2
 #define T2QJOIN		4
 
-/*assumes edges are validated before reaching this point*/
+/* assumes edges are validated before reaching this poin */
 static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 							  BMVert *v3, BMVert *v4, float limit)
 {
-	/*gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make*/
-	/*Note: this is more complicated than it needs to be and should be cleaned up...*/
+	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would mak */
+	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
 	float n1[3], n2[3], measure = 0.0f, angle1, angle2, diff;
 	float edgeVec1[3], edgeVec2[3], edgeVec3[3], edgeVec4[3];
 	float minarea, maxarea, areaA, areaB;
 
-	/*First Test: Normal difference*/
+	/* First Test: Normal differenc */
 	normal_tri_v3(n1, v1->co, v2->co, v3->co);
 	normal_tri_v3(n2, v1->co, v3->co, v4->co);
 
@@ -67,7 +67,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	measure += (angle1 + angle2) * 0.5f;
 	if (measure > limit) return measure;
 
-	/*Second test: Colinearity*/
+	/* Second test: Colinearit */
 	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
 	sub_v3_v3v3(edgeVec2, v2->co, v3->co);
 	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
@@ -84,7 +84,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	measure +=  diff;
 	if (measure > limit) return measure;
 
-	/*Third test: Concavity*/
+	/* Third test: Concavit */
 	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
 	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
 
@@ -109,12 +109,12 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	MLoopCol *lcol1, *lcol2, *lcol3, *lcol4;
 	MLoopUV *luv1, *luv2, *luv3, *luv4;
 	BMLoop *l1, *l2, *l3, *l4;
-	int mergeok_uvs=!douvs, mergeok_vcols=!dovcols;
+	int mergeok_uvs = !douvs, mergeok_vcols = !dovcols;
 	
 	l1 = e->l;
 	l3 = e->l->radial_next;
 	
-	/*match up loops on each side of an edge corrusponding to each vert*/
+	/* match up loops on each side of an edge corrusponding to each ver */
 	if (l1->v == l3->v) {
 		l2 = l1->next;
 		l4 = l2->next;
@@ -145,14 +145,14 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	if (!luv1)
 		mergeok_uvs = 1;
 
-	/*compare faceedges for each face attribute. Additional per face attributes can be added later*/
+	/* compare faceedges for each face attribute. Additional per face attributes can be added late */
 
-	/*do VCOLs*/
+	/* do VCOL */
 	if (lcol1 && dovcols) {
-		char *cols[4] = {(char*)lcol1, (char*)lcol2, (char*)lcol3, (char*)lcol4};
+		char *cols[4] = {(char *)lcol1, (char *)lcol2, (char *)lcol3, (char *)lcol4};
 		int i;
 
-		for (i=0; i<3; i++) {
+		for (i = 0; i < 3; i++) {
 			if (cols[0][i] + T2QCOL_LIMIT < cols[2][i] - T2QCOL_LIMIT)
 				break;
 			if (cols[1][i] + T2QCOL_LIMIT < cols[3][i] - T2QCOL_LIMIT)
@@ -163,9 +163,9 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 			mergeok_vcols = 1;
 	}
 
-	/*do UVs*/
+	/* do UV */
 	if (luv1 && douvs) {
-		if (tp1->tpage != tp2->tpage); /*do nothing*/
+		if (tp1->tpage != tp2->tpage); /* do nothin */
 		else {
 			int i;
 
@@ -201,7 +201,7 @@ typedef struct JoinEdge {
 
 static int fplcmp(const void *v1, const void *v2)
 {
-	const JoinEdge *e1= ((JoinEdge*)v1), *e2=((JoinEdge*)v2);
+	const JoinEdge *e1 = (JoinEdge *)v1, *e2 = (JoinEdge *)v2;
 
 	if (e1->weight > e2->weight) return 1;
 	else if (e1->weight < e2->weight) return -1;
@@ -218,12 +218,12 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BLI_array_declare(jedges);
 	JoinEdge *jedges = NULL;
-	int dosharp = BMO_Get_Int(op, "compare_sharp"), douvs=BMO_Get_Int(op, "compare_uvs");
-	int dovcols = BMO_Get_Int(op, "compare_vcols"), domat=BMO_Get_Int(op, "compare_materials");
+	int dosharp = BMO_Get_Int(op, "compare_sharp"), douvs = BMO_Get_Int(op, "compare_uvs");
+	int dovcols = BMO_Get_Int(op, "compare_vcols"), domat = BMO_Get_Int(op, "compare_materials");
 	float limit = BMO_Get_Float(op, "limit");
 	int i, totedge;
 
-	/*flag all edges of all input faces*/
+	/* flag all edges of all input face */
 	BMO_ITER(f1, &siter, bm, op, "faces", BM_FACE) {
 		BMO_SetFlag(bm, f1, FACE_INPUT); 
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f1) {
@@ -231,7 +231,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/*unflag edges that are invalid; e.g. aren't surrounded by triangles*/
+	/* unflag edges that are invalid; e.g. aren't surrounded by triangle */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, e, EDGE_MARK))
 			continue;
@@ -298,7 +298,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 	qsort(jedges, BLI_array_count(jedges), sizeof(JoinEdge), fplcmp);
 
 	totedge = BLI_array_count(jedges);
-	for (i=0; i<totedge; i++) {
+	for (i = 0; i < totedge; i++) {
 		BMFace *f1, *f2;
 
 		e = jedges[i].e;
@@ -325,8 +325,8 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
-			/*ok, this edge wasn't merged, check if it's 
-			  in a 2-tri-pair island, and if so merge*/
+			/* ok, this edge wasn't merged, check if it's
+			  in a 2-tri-pair island, and if so merg */
 
 			f1 = e->l->f;
 			f2 = e->l->radial_next->f;
@@ -334,21 +334,24 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			if (f1->len != 3 || f2->len != 3)
 				continue;
 
-			for (i=0; i<2; i++) {
+			for (i = 0; i < 2; i++) {
 				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, i ? f2 : f1) {
-					if (l->e != e && BMO_TestFlag(bm, l->e, EDGE_MARK))
+					if (l->e != e && BMO_TestFlag(bm, l->e, EDGE_MARK)) {
 						break;
+					}
 				}
 				
-				/*if l isn't NULL, we broke out of the loop*/
-				if (l)
+				/* if l isn't NULL, we broke out of the loo */
+				if (l) {
 					break;
+				}
 			}
 
-			/*if i isn't 2, we broke out of that loop*/
-			if (i != 2)
+			/* if i isn't 2, we broke out of that loo */
+			if (i != 2) {
 				continue;
-		
+			}
+
 			BM_Join_TwoFaces(bm, f1, f2, e);
 		}
 	}

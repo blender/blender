@@ -39,7 +39,7 @@
  *
  *  Calls an iterators step fucntion to return
  *  the next element.
-*/
+ */
 
 BM_INLINE void *BMIter_Step(BMIter *iter)
 {
@@ -55,7 +55,7 @@ BM_INLINE void *BMIter_Step(BMIter *iter)
  * upon its type and then calls BMeshIter_step()
  * to return the first element of the iterator.
  *
-*/
+ */
 BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	/* int argtype; */

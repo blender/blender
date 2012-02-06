@@ -70,13 +70,13 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 	BMVert *lastv1, *lastv2 /* , *v1, *v2 */ /* UNUSED */;
 	int i;
 
-	/*we do final edge last*/
-	lastv1 = verts[f->len-1];
+	/* we do final edge last */
+	lastv1 = verts[f->len - 1];
 	lastv2 = verts[0];
 	/* v1 = verts[0]; */ /* UNUSED */
 	/* v2 = verts[1]; */ /* UNUSED */
-	for (i=0; i<f->len-1; i++) {
-		e = BM_Make_Edge(bm, verts[i], verts[i+1], NULL, 1);
+	for (i = 0; i < f->len - 1; i++) {
+		e = BM_Make_Edge(bm, verts[i], verts[i + 1], NULL, 1);
 		if (!e) {
 			return NULL;
 		}
@@ -94,11 +94,11 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 
 	l = BMIter_New(&liter1, bm, BM_LOOPS_OF_FACE, f);
 	l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
-	for ( ; l && l2; l=BMIter_Step(&liter1), l2=BMIter_Step(&liter2)) {
+	for ( ; l && l2; l = BMIter_Step(&liter1), l2 = BMIter_Step(&liter2)) {
 		BM_Copy_Attributes(bm, bm, l, l2);
 		if (l->e != l2->e) {
-			/*set up data for figuring out the two sides of
-			  the splits*/
+			/* set up data for figuring out the two sides of
+			 * the split */
 			BMO_SetIndex(bm, l2->e, BMO_GetIndex(bm, l->e));
 			et = etags + BMO_GetIndex(bm, l->e);
 			
@@ -110,7 +110,8 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 			}
 			else {
 				/* Only two new edges should be created from each original edge
-				   for edge split operation */
+				 *  for edge split operation */
+
 				//BLI_assert(et->newe1 == l2->e || et->newe2 == l2->e);
 				et->newe2 = l2->e;
 			}
@@ -138,7 +139,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 	BMVert *v;
 	int i, ok;
 	
-	ok=0;
+	ok = 0;
 	while (ok++ < 100000) {		
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BMO_TestFlag(bm, e, EDGE_SEAM))
@@ -150,12 +151,13 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			}
 		}
 		
-		if (!e)
+		if (!e) {
 			break;
+		}
 
-		/*ok we found an edge, part of a region of splits we need
-		  to identify.  now walk along it.*/
-		for (i=0; i<2; i++) {
+		/* ok we found an edge, part of a region of splits we need
+		 * to identify.  now walk along it */
+		for (i = 0; i < 2; i++) {
 			l = e->l;
 			
 			v = i ? l->next->v : l->v;
@@ -226,7 +228,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	/* single marked edges unconnected to any other marked edges
 	 * are illegal, go through and unmark them */
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		for (i=0; i<2; i++) {
+		for (i = 0; i < 2; i++) {
 			BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
 				if (e != e2 && BMO_TestFlag(bm, e2, EDGE_SEAM)) {
 					break;
@@ -266,7 +268,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 
 		BLI_array_empty(verts);
 		BLI_array_growitems(verts, f->len);
-		memset(verts, 0, sizeof(BMVert*)*f->len);
+		memset(verts, 0, sizeof(BMVert *) * f->len);
 
 		/* this is passed onto remake_face() so it doesnt need to allocate
 		 * a new array on each call. */
@@ -294,15 +296,15 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			nextl = l->next;
 			prevl = l->prev;
 			
-			for (j=0; j<2; j++) {
+			for (j = 0; j < 2; j++) {
 				/* correct as long as i & j dont change during the loop */
-				const int fv_index= j ? (i+1) % f->len : i; /* face vert index */
+				const int fv_index = j ? (i + 1) % f->len : i; /* face vert index */
 				l2 = j ? nextl : prevl;
 				v = j ? l2->v : l->v;
 
 				if (BMO_TestFlag(bm, l2->e, EDGE_SEAM)) {
 					if (verts[fv_index] == NULL) {
-						/*make unique vert here for this face only*/
+						/* make unique vert here for this face only */
 						v2 = BM_Make_Vert(bm, v->co, v);
 						verts[fv_index] = v2;
 					}
@@ -315,7 +317,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 					 * around the manifold vert fan if necassary */
 
 					/* first check that we have two seam edges
-					 * somewhere within this fan*/
+					 * somewhere within this fa */
 					l3 = l2;
 					do {
 						if (BM_Edge_FaceCount(l3->e) != 2) {
@@ -375,7 +377,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			printf(" ** found QUAD\n");
 			normal_tri_v3(no1, verts[0]->co, verts[1]->co, verts[2]->co);
 			normal_tri_v3(no2, verts[0]->co, verts[2]->co, verts[3]->co);
-			if ((angle_error= angle_v3v3(no1, no2)) > 0.05) {
+			if ((angle_error = angle_v3v3(no1, no2)) > 0.05) {
 				printf("     ERROR %.4f\n", angle_error);
 				print_v3("0", verts[0]->co);
 				print_v3("1", verts[1]->co);
