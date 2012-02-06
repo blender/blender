@@ -162,26 +162,6 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const int
 	return 1;
 }
 
-/* last_sel, use em->act_face otherwise get the last selected face in the editselections
- * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-static MTexPoly *EDBM_get_active_mtface(BMEditMesh *em, BMFace **act_efa, int sloppy)
-{
-	BMFace *efa = NULL;
-	
-	if(!EDBM_texFaceCheck(em))
-		return NULL;
-	
-	efa = BM_get_actFace(em->bm, sloppy);
-	
-	if (efa) {
-		if (act_efa) *act_efa = efa; 
-		return CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-	}
-
-	if (act_efa) *act_efa= NULL;
-	return NULL;
-}
-
 void paintface_hide(Object *ob, const int unselected)
 {
 	Mesh *me;
@@ -419,26 +399,6 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 
 	if(flush_flags) {
 		paintface_flush_flags(ob);
-	}
-}
-
-static void selectswap_tface(Scene *scene)
-{
-	Mesh *me;
-	MPoly *mface;
-	int a;
-		
-	me= get_mesh(OBACT);
-	if(me==0) return;
-	
-	mface= me->mpoly;
-	a= me->totpoly;
-	while(a--) {
-		if(mface->flag & ME_HIDE);
-		else {
-			if(mface->flag & ME_FACE_SEL) mface->flag &= ~ME_FACE_SEL;
-			else mface->flag |= ME_FACE_SEL;
-		}
 	}
 }
 

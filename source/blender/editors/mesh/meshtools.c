@@ -1007,13 +1007,15 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *e
 
 BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *eve, float *co, int index)
 {
-	//BMESH_TODO use this flag, ME_EDIT_MIRROR_TOPO, at appropriate places
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
 		return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
-	} else {
+	}
+	else {
 		return editbmesh_get_x_mirror_vert_spacial(ob, em, co);
 	}
 }
+
+#if 0
 
 static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
 {
@@ -1066,6 +1068,8 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 
 	return NULL;
 }
+
+#endif
 
 static unsigned int mirror_facehash(const void *ptr)
 {

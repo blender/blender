@@ -153,6 +153,8 @@ int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op,
   edges select/deselect faces and vertices, and in face select mode faces select/deselect
   edges and vertices.*/
 void EDBM_selectmode_flush(struct BMEditMesh *em);
+void EDBM_select_more(struct BMEditMesh *em);
+void EDBM_select_less(struct BMEditMesh *em);
 
 int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
 
@@ -202,6 +204,7 @@ void		EM_free_data_layer(struct BMEditMesh *em, struct CustomData *data, int typ
 void EDBM_toggle_select_all(struct BMEditMesh *em);
 void EDBM_set_flag_all(struct BMEditMesh *em, const char hflag);
 void EDBM_clear_flag_all(struct BMEditMesh *em, const char hflag);
+void EDBM_select_mirrored(struct Object *obedit, struct BMEditMesh *em, int extend);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
 
 /* editmesh_mods.c */

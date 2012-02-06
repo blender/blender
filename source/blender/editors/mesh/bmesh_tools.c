@@ -1041,62 +1041,6 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-}
-
-static EnumPropertyItem prop_mesh_edit_types[] = {
-	{1, "VERT", 0, "Vertices", ""},
-	{2, "EDGE", 0, "Edges", ""},
-	{3, "FACE", 0, "Faces", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int mesh_selection_type_exec(bContext *C, wmOperator *op)
-{		
-	
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	int type = RNA_enum_get(op->ptr,"type");
-
-	switch (type) {
-		case 1:
-			em->selectmode = SCE_SELECT_VERTEX;
-			break;
-		case 2:
-			em->selectmode = SCE_SELECT_EDGE;
-			break;
-		case 3:
-			em->selectmode = SCE_SELECT_FACE;
-			break;
-	}
-
-	EDBM_selectmode_set(em);
-	CTX_data_tool_settings(C)->selectmode = em->selectmode;
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void MESH_OT_selection_type(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Selection Mode";
-	ot->description= "Set the selection mode type";
-	ot->idname= "MESH_OT_selection_type";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= mesh_selection_type_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_enum(ot->srna, "type", prop_mesh_edit_types, 0, "Type", "Set the mesh selection type");
-	RNA_def_boolean(ot->srna, "inclusive", 0, "Inclusive", "Selects geometry around selected geometry, occording to selection mode");	
 }
 
 /* ************************* SEAMS AND EDGES **************** */
@@ -3958,43 +3902,16 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-#define MIRROR_THRESH	1.0f
-
 static int select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	BMVert *v1, *v2;
-	BMIter iter;
 	int extend= RNA_boolean_get(op->ptr, "extend");
 
-	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN)) {
-			BM_ClearHFlag(v1, BM_TMP_TAG);
-		}
-		else {
-			BM_SetHFlag(v1, BM_TMP_TAG);
-		}
-	}
-
-	EDBM_CacheMirrorVerts(em, TRUE);
-
-	if (!extend)
-		EDBM_clear_flag_all(em, BM_SELECT);
-
-	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_TestHFlag(v1, BM_TMP_TAG) || BM_TestHFlag(v1, BM_HIDDEN))
-			continue;
-
-		v2= EDBM_GetMirrorVert(em, v1);
-		if (v2 && !BM_TestHFlag(v2, BM_HIDDEN)) {
-			BM_Select(em->bm, v2, TRUE);
-		}
-	}
-
-	EDBM_EndMirrorCache(em);
-
+	EDBM_select_mirrored(obedit, em, extend);
+	EDBM_selectmode_flush(em);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
 	return OPERATOR_FINISHED;
 }
 

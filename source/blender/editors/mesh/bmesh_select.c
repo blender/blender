@@ -96,25 +96,36 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** MIRROR **************** */
 
-static void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
+void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, int extend)
 {
-	if (em->selectmode & SCE_SELECT_VERTEX) {
-		BMVert *eve, *v1;
-		BMIter iter;
-		int i;
+	BMVert *v1, *v2;
+	BMIter iter;
 
-		i= 0;
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_TestHFlag(eve, BM_SELECT) && !BM_TestHFlag(eve, BM_HIDDEN)) {
-				v1= editbmesh_get_x_mirror_vert(obedit, em, eve, eve->co, i);
-				if (v1) {
-					BM_Select(em->bm, eve, FALSE);
-					BM_Select(em->bm, v1, TRUE);
-				}
-			}
-			i++;
+	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN)) {
+			BM_ClearHFlag(v1, BM_TMP_TAG);
+		}
+		else {
+			BM_SetHFlag(v1, BM_TMP_TAG);
 		}
 	}
+
+	EDBM_CacheMirrorVerts(em, TRUE);
+
+	if (!extend)
+		EDBM_clear_flag_all(em, BM_SELECT);
+
+	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(v1, BM_TMP_TAG) || BM_TestHFlag(v1, BM_HIDDEN))
+			continue;
+
+		v2= EDBM_GetMirrorVert(em, v1);
+		if (v2 && !BM_TestHFlag(v2, BM_HIDDEN)) {
+			BM_Select(em->bm, v2, TRUE);
+		}
+	}
+
+	EDBM_EndMirrorCache(em);
 }
 
 void EDBM_automerge(Scene *scene, Object *obedit, int update)
@@ -1898,23 +1909,12 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 
 /* ******************** **************** */
 
-static int select_more(bContext *C, wmOperator *op)
+static int select_more(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
-	BMOperator bmop;
-	int usefaces = em->selectmode > SCE_SELECT_EDGE;
 
-	EDBM_InitOpf(em, &bmop, op, "regionextend geom=%hvef constrict=%d usefaces=%d", 
-	             BM_SELECT, 0, usefaces);
-
-	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
-
-	EDBM_selectmode_flush(em);
-
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
-		return OPERATOR_CANCELLED;
+	EDBM_select_more(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	return OPERATOR_FINISHED;
@@ -1935,23 +1935,12 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int select_less(bContext *C, wmOperator *op)
+static int select_less(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
-	BMOperator bmop;
-	int usefaces = em->selectmode > SCE_SELECT_EDGE;
 
-	EDBM_InitOpf(em, &bmop, op, "regionextend geom=%hvef constrict=%d usefaces=%d", 
-	             BM_SELECT, 1, usefaces);
-
-	BMO_Exec_Op(em->bm, &bmop);
-	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
-
-	EDBM_selectmode_flush(em);
-
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
-		return OPERATOR_CANCELLED;
+	EDBM_select_less(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	return OPERATOR_FINISHED;
