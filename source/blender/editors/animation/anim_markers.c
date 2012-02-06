@@ -439,22 +439,28 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 void draw_markers_time(const bContext *C, int flag)
 {
 	ListBase *markers= ED_context_get_markers(C);
-	View2D *v2d= UI_view2d_fromcontext(C);
+	View2D *v2d;
 	TimeMarker *marker;
-	
+	Scene *scene;
+
 	if (markers == NULL)
 		return;
-	
+
+	scene = CTX_data_scene(C);
+	v2d = UI_view2d_fromcontext(C);
+
 	/* unselected markers are drawn at the first time */
 	for (marker= markers->first; marker; marker= marker->next) {
-		if ((marker->flag & SELECT) == 0) 
-			draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
+		if ((marker->flag & SELECT) == 0) {
+			draw_marker(v2d, marker, scene->r.cfra, flag);
+		}
 	}
 	
 	/* selected markers are drawn later */
 	for (marker= markers->first; marker; marker= marker->next) {
-		if (marker->flag & SELECT) 
-			draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
+		if (marker->flag & SELECT) {
+			draw_marker(v2d, marker, scene->r.cfra, flag);
+		}
 	}
 }
 
@@ -550,7 +556,8 @@ static int ed_marker_add(bContext *C, wmOperator *UNUSED(op))
 	if (markers == NULL)
 		return OPERATOR_CANCELLED;
 	
-	/* two markers can't be at the same place */
+	/* prefer not having 2 markers at the same place,
+	 * though the user can move them to overlap once added */
 	for (marker= markers->first; marker; marker= marker->next) {
 		if (marker->frame == frame) 
 			return OPERATOR_CANCELLED;

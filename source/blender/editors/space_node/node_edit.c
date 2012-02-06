@@ -1341,9 +1341,10 @@ typedef struct ImageSampleInfo {
 
 static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
+	Scene *scene = CTX_data_scene(C);
 	ImageSampleInfo *info= arg_info;
 
-	ED_image_draw_info(ar, (CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+	ED_image_draw_info(ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
 	                   info->x, info->y, info->col, info->colf,
 	                   NULL, NULL /* zbuf - unused for nodes */
 	                   );

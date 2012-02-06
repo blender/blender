@@ -593,6 +593,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *window= CTX_wm_window(C);
+	Scene *scene = CTX_data_scene(C);
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	ARegion *ar_main= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 	ARegion *ar_preview= clip_has_preview_region(C, sa);
@@ -634,7 +635,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		ED_area_tag_redraw(sa);
 	}
 
-	BKE_movieclip_user_set_frame(&sc->user, CTX_data_scene(C)->r.cfra);
+	BKE_movieclip_user_set_frame(&sc->user, scene->r.cfra);
 }
 
 /********************* main region ********************/
