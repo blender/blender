@@ -388,7 +388,8 @@ mdisps is a grid of displacements, ordered thus:
      y
  */
 
-static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3], double v4[3], double e1[3], double e2[3])
+static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3], double v4[3],
+                              double e1[3], double e2[3])
 {
 	double cent[3] = {0.0, 0.0, 0.0}, n[3], p[3];
 	BMLoop *l2;
@@ -459,7 +460,8 @@ static double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3],
 	return f1;
 }
 
-static int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], double v4[3], double p[3], float n[3])
+static int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], double v4[3],
+                   double p[3], float n[3])
 {
 	float projverts[5][3], n2[3];
 	double dprojverts[4][3], origin[3] = {0.0f, 0.0f, 0.0f};

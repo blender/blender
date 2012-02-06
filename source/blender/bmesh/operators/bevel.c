@@ -52,7 +52,8 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3], const short do_dist, const short do_even)
+static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
+                           const short do_dist, const short do_even)
 {
 	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3], co_ofs[3];
 	int is_concave;
@@ -537,7 +538,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				/* set edge lengths of cross edges as the average of the cross edges they're based o */
 				if (has_elens) {
-#if 0				/* angle happens not to be used. why? - not sure it just isnt - campbell. leave this in incase we need to use it later */
+					/* angle happens not to be used. why? - not sure it just isnt - campbell.
+					 * leave this in incase we need to use it later */
+#if 0
 					float ang;
 #endif
 					e1 = BM_Edge_Exist(v1, v4);
@@ -564,7 +567,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					d1 = *(float *)CustomData_bmesh_get_n(&bm->edata, l->next->e->head.data, CD_PROP_FLT, li);
 					d2 = *(float *)CustomData_bmesh_get_n(&bm->edata, l3->e->head.data, CD_PROP_FLT, li);
 #if 0
-					ang = angle_v3v3v3(BM_OtherEdgeVert(l->next->e, l->next->v)->co, l->next->v->co, BM_OtherEdgeVert(l3->e, l->next->v)->co);
+					ang = angle_v3v3v3(BM_OtherEdgeVert(l->next->e, l->next->v)->co, l->next->v->co,
+					                   BM_OtherEdgeVert(l3->e, l->next->v)->co);
 #endif
 					*d3 = (d1 + d2) * 0.5f;
 				}

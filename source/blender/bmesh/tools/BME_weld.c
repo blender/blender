@@ -190,16 +190,17 @@ int BME_remove_doubles(BME_Mesh *bm, float limit)
 	}
 
 
-	/* need to remove double edges as well. To do this we decide on one edge to keep, and if its inserted into hash then we need to remove all other
+	/* need to remove double edges as well. To do this we decide on one edge to keep,
+	 * and if its inserted into hash then we need to remove all other
 	 * edges incident upon and relink.*/
 	/*
-	*	REBUILD FACES
-	*
-	*	Loop through double faces and if they have vertices that have been flagged, they need to be rebuilt.
-	*	We do this by looking up the face 
-	*rebuild faces. loop through original face, for each loop, if the edge it is attached to is marked for delete and has no 
-	*other edge in the hash edge, then we know to skip that loop on face recreation. Simple.
-	*/
+	 *	REBUILD FACES
+	 *
+	 * Loop through double faces and if they have vertices that have been flagged, they need to be rebuilt.
+	 * We do this by looking up the face rebuild faces.
+	 * loop through original face, for each loop, if the edge it is attached to is marked for delete and has no
+	 * other edge in the hash edge, then we know to skip that loop on face recreation. Simple.
+	 */
 	
 	/*1st loop through, just marking elements*/
 	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){ //insert bit here about double edges, mark with a flag (e->tflag2) so that we can nuke it later.

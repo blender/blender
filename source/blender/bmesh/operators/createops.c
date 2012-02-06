@@ -87,7 +87,8 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code * */
 
-#define rs_get_edge_link(e, v, ed) ((v) == ((BMEdge *)(e))->v1 ? (Link *)&(((EdgeData *)(ed))->dlink1) : (Link *)&(((EdgeData *)(ed))->dlink2))
+#define RS_GET_EDGE_LINK(e, v, ed) \
+	((v) == ((BMEdge *)(e))->v1 ? (Link *)&(((EdgeData *)(ed))->dlink1) : (Link *)&(((EdgeData *)(ed))->dlink2))
 
 static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v, 
 						EdgeData *edata, VertData *vdata)
@@ -96,7 +97,7 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 	VertData *vd = &vdata[BM_GetIndex(v)];
 	
 	if (!vd->e) {
-		Link *e1 = (Link *)rs_get_edge_link(e, v, ed);
+		Link *e1 = (Link *)RS_GET_EDGE_LINK(e, v, ed);
 
 		vd->e = e;
 		e1->next = e1->prev = (Link *)e;
@@ -105,9 +106,9 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 		Link *e1, *e2, *e3;
 		EdgeData *ved = &edata[BM_GetIndex(vd->e)];
 
-		e1 = rs_get_edge_link(e, v, ed);
-		e2 = rs_get_edge_link(vd->e, v, ved);
-		e3 = e2->prev ? rs_get_edge_link(e2->prev, v, &edata[BM_GetIndex(e2->prev)]) : NULL;
+		e1 = RS_GET_EDGE_LINK(e, v, ed);
+		e2 = RS_GET_EDGE_LINK(vd->e, v, ved);
+		e3 = e2->prev ? RS_GET_EDGE_LINK(e2->prev, v, &edata[BM_GetIndex(e2->prev)]) : NULL;
 
 		e1->next = (Link *)vd->e;
 		e1->prev = e2->prev;
@@ -127,14 +128,14 @@ static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert 
 	VertData *vd = vdata + BM_GetIndex(v);
 	Link *e1, *e2;
 
-	e1 = rs_get_edge_link(e, v, ed);
+	e1 = RS_GET_EDGE_LINK(e, v, ed);
 	if (e1->prev) {
-		e2 = rs_get_edge_link(e1->prev, v, ed);
+		e2 = RS_GET_EDGE_LINK(e1->prev, v, ed);
 		e2->next = e1->next;
 	}
 
 	if (e1->next) {
-		e2 = rs_get_edge_link(e1->next, v, ed);
+		e2 = RS_GET_EDGE_LINK(e1->next, v, ed);
 		e2->prev = e1->prev;
 	}
 

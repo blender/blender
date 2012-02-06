@@ -93,7 +93,8 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 		BLI_array_growone(vmap);
 		vmap[i] = v;
 
-		BM_SetIndex(v2, i); /* set_dirty! */ /* BMESH_TODO, double check this is being made dirty, 99% sure it is - campbell */
+		/* BMESH_TODO, double check this is being made dirty, 99% sure it is - campbell */
+		BM_SetIndex(v2, i); /* set_dirty! */
 		v2 = BMIter_Step(&iter);
 
 		i++;

@@ -498,7 +498,8 @@ static void delete_edges(BMesh *bm)
  * api functions that take a filter callback.....
  * and this new filter type will be for opstack flags.
  * This is because the BM_remove_taggedXXX functions bypass iterator API.
- *  - Ops dont care about 'UI' considerations like selection state, hide state, ect. If you want to work on unhidden selections for instance,
+ *  - Ops dont care about 'UI' considerations like selection state, hide state, ect.
+ *    If you want to work on unhidden selections for instance,
  *    copy output from a 'select context' operator to another operator....
  */
 

@@ -266,8 +266,9 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, c
 			dest_slot->data.buf = NULL;
 			dest_slot->len = source_slot->len;
 			if (dest_slot->len) {
-				dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len);
-				memcpy(dest_slot->data.buf, source_slot->data.buf, BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len);
+				const int slot_alloc_size = BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len;
+				dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, slot_alloc_size);
+				memcpy(dest_slot->data.buf, source_slot->data.buf, slot_alloc_size);
 			}
 		}
 		else {

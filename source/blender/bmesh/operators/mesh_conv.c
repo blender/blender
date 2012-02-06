@@ -125,7 +125,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		 * this also exists in the file reading code, but is here for
 		 * a sanity chec */
 		if (!me->key->uidgen) {
-			fprintf(stderr, "%s had to generate shape key uid's in a situation we shouldn't need to! (bmesh internal error)\n", __func__);
+			fprintf(stderr,
+			        "%s had to generate shape key uid's in a situation we shouldn't need to! "
+			        "(bmesh internal error)\n",
+			        __func__);
+
 			me->key->uidgen = 1;
 			for (block = me->key->block.first; block; block = block->next) {
 				block->uid = me->key->uidgen++;
