@@ -4769,8 +4769,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 			(void)marker;
 #endif
 
-			if(sce->ed)
-				seq_update_muting(sce->ed);
+			seq_update_muting(sce->ed);
+			seq_update_sound_bounds_all(sce);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
