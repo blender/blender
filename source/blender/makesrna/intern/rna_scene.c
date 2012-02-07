@@ -710,7 +710,21 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 	 * where 'BW' will force greyscale even if the output format writes
 	 * as RGBA, this is age old blender convention and not sure how useful
 	 * it really is but keep it for now - campbell */
-	const char chan_flag= BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
+	char chan_flag= BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
+
+#ifdef WITH_FFMPEG
+	/* a WAY more crappy case than B&W flag: depending on codec, file format MIGHT support
+	 * alpha channel. for example MPEG format with h264 codec can't do alpha channel, but
+	 * the same MPEG format with QTRLE codec can easily handle alpga channel.
+	 * not sure how to deal with such cases in a nicer way (sergey) */
+	if(is_render) {
+		Scene *scene = ptr->id.data;
+		RenderData *rd = &scene->r;
+
+		if (rd->ffcodecdata.codec == CODEC_ID_QTRLE)
+			chan_flag |= IMA_CHAN_FLAG_ALPHA;
+	}
+#endif
 
 	if (chan_flag == (IMA_CHAN_FLAG_BW|IMA_CHAN_FLAG_RGB|IMA_CHAN_FLAG_ALPHA)) {
 		return image_color_mode_items;
@@ -897,7 +911,16 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, int value)
 		rd->ffcodecdata.flags |= FFMPEG_LOSSLESS_OUTPUT;
 	else
 		rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
-	ffmpeg_verify_lossless_format(rd, &rd->im_format);
+
+	ffmpeg_verify_codec_settings(rd);
+}
+
+static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain), Scene *UNUSED(scene_unused), PointerRNA *ptr)
+{
+	Scene *scene = (Scene *) ptr->id.data;
+	RenderData *rd = &scene->r;
+
+	ffmpeg_verify_codec_settings(rd);
 }
 #endif
 
@@ -2809,6 +2832,8 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
+		{CODEC_ID_QTRLE, "QTRLE", 0, "QTRLE", ""},
+		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},*/ /* disabled for after release */
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
@@ -2840,17 +2865,17 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, ffmpeg_format_items);
 	RNA_def_property_ui_text(prop, "Format", "Output file format");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
 	prop = RNA_def_property(srna, "codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "codec");
 	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
 	RNA_def_property_ui_text(prop, "Codec", "FFmpeg codec to use");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
 	prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "video_bitrate");
-	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_range(prop, 1, 220000);
 	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
