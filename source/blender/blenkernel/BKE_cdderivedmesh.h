@@ -135,7 +135,7 @@ struct MVert *CDDM_get_vert(struct DerivedMesh *dm, int index);
 struct MEdge *CDDM_get_edge(struct DerivedMesh *dm, int index);
 struct MFace *CDDM_get_tessface(struct DerivedMesh *dm, int index);
 struct MLoop *CDDM_get_loop(struct DerivedMesh *dm, int index);
-struct MPoly *CDDM_get_face(struct DerivedMesh *dm, int index);
+struct MPoly *CDDM_get_poly(struct DerivedMesh *dm, int index);
 
 /* vertex/edge/face array access functions - return the array holding the
  * desired data

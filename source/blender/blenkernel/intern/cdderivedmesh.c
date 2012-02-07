@@ -2717,6 +2717,8 @@ void CDDM_lower_num_polys(DerivedMesh *dm, int numPolys)
 	dm->numPolyData = numPolys;
 }
 
+/* mesh element access functions */
+
 MVert *CDDM_get_vert(DerivedMesh *dm, int index)
 {
 	return &((CDDerivedMesh*)dm)->mvert[index];
@@ -2731,6 +2733,18 @@ MFace *CDDM_get_tessface(DerivedMesh *dm, int index)
 {
 	return &((CDDerivedMesh*)dm)->mface[index];
 }
+
+MLoop *CDDM_get_loop(DerivedMesh *dm, int index)
+{
+	return &((CDDerivedMesh*)dm)->mloop[index];
+}
+
+MPoly *CDDM_get_poly(DerivedMesh *dm, int index)
+{
+	return &((CDDerivedMesh*)dm)->mpoly[index];
+}
+
+/* array access functions */
 
 MVert *CDDM_get_verts(DerivedMesh *dm)
 {
