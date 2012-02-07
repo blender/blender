@@ -256,6 +256,20 @@ void BMO_remove_tagged_faces(struct BMesh *bm, const short oflag);
 void BMO_remove_tagged_edges(struct BMesh *bm, const short oflag);
 void BMO_remove_tagged_verts(struct BMesh *bm, const short oflag);
 
+/* take care, uses operator flag DEL_WIREVERT */
+void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type);
+
+/* del "context" slot values, used for operator too */
+enum {
+	DEL_VERTS = 1,
+	DEL_EDGES,
+	DEL_ONLYFACES,
+	DEL_EDGESFACES,
+	DEL_FACES,
+	DEL_ALL	,
+	DEL_ONLYTAGGED
+};
+
 void BMO_Set_OpFlag(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 void BMO_Clear_OpFlag(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 

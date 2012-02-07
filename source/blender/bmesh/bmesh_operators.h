@@ -27,17 +27,6 @@
 
 /*--------defines/enumerations for specific operators-------*/
 
-/*del operator "context" slot values*/
-enum {
-	DEL_VERTS = 1,
-	DEL_EDGES,
-	DEL_ONLYFACES,
-	DEL_EDGESFACES,
-	DEL_FACES,
-	DEL_ALL	,
-	DEL_ONLYTAGGED
-};
-
 /*quad innervert values*/
 enum {
 	SUBD_INNERVERT,

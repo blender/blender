@@ -51,8 +51,9 @@ typedef struct EdgeTag {
 	int tag;
 } EdgeTag;
 
-#define EDGE_SEAM	1
-#define EDGE_DEL	2
+/* (EDGE_DEL == FACE_DEL) - this must be the case */
+#define EDGE_DEL	1
+#define EDGE_SEAM	2
 #define EDGE_MARK	4
 #define EDGE_RET1	8
 #define EDGE_RET2	16
@@ -99,8 +100,10 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 		if (l->e != l2->e) {
 			/* set up data for figuring out the two sides of
 			 * the split */
-			BMO_SetIndex(bm, l2->e, BMO_GetIndex(bm, l->e));
-			et = etags + BMO_GetIndex(bm, l->e);
+
+			/* set edges index as dirty after running all */
+			BM_SetIndex(l2->e, BM_GetIndex(l->e)); /* set_dirty! */
+			et = etags + BM_GetIndex(l->e);
 			
 			if (!et->newe1) {
 				et->newe1 = l2->e;
@@ -145,7 +148,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			if (!BMO_TestFlag(bm, e, EDGE_SEAM))
 				continue;
 
-			et = etags + BMO_GetIndex(bm, e);
+			et = etags + BM_GetIndex(e);
 			if (!et->tag && e->l) {
 				break;
 			}
@@ -163,7 +166,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			v = i ? l->next->v : l->v;
 
 			while (1) {
-				et = etags + BMO_GetIndex(bm, l->e);
+				et = etags + BM_GetIndex(l->e);
 				if (et->newe1 == l->e) {
 					if (et->newe1) {
 						BMO_SetFlag(bm, et->newe1, EDGE_RET1);
@@ -245,10 +248,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	}
 
 	etags = MEM_callocN(sizeof(EdgeTag)*bm->totedge, "EdgeTag");
-	
-	BM_ITER_INDEX(e, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
-		BMO_SetIndex(bm, e, i);
-	}
+
+	BM_ElemIndex_Ensure(bm, BM_EDGE);
 
 #ifdef ETV
 #  undef ETV
@@ -280,7 +281,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				if (!verts[i]) {
 
-					et = etags + BMO_GetIndex(bm, l->e);
+					et = etags + BM_GetIndex(l->e);
 					if (ETV(et, l->v, l)) {
 						verts[i] = ETV(et, l->v, l);
 					}
@@ -335,7 +336,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 					} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 
 					if (l3 == NULL || (BMO_TestFlag(bm, l3->e, EDGE_SEAM) && l3->e != l->e)) {
-						et = etags + BMO_GetIndex(bm, l2->e);
+						et = etags + BM_GetIndex(l2->e);
 						if (ETV(et, v, l2) == NULL) {
 							v2 = BM_Make_Vert(bm, v->co, v);
 							
@@ -349,7 +350,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 								l3 = l3->radial_next;
 								l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 								
-								et = etags + BMO_GetIndex(bm, l3->e);
+								et = etags + BM_GetIndex(l3->e);
 							} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 						}
 						else {
@@ -400,7 +401,15 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		BMO_SetFlag(bm, f2, FACE_NEW);
 	}
 	
+	/* remake_face() sets invalid indecies,
+	 * likely these will be corrected on operator exit anyway */
+	bm->elem_index_dirty &= ~BM_EDGE;
+
+#if 0
 	BMO_CallOpf(bm, "del geom=%ff context=%i", FACE_DEL, DEL_ONLYFACES);
+#else
+	BMO_remove_tagged_context(bm, FACE_DEL, DEL_ONLYFACES);
+#endif
 
 	/* test EDGE_MARK'd edges if we need to delete them, EDGE_MARK
 	 * is set in remake_face */
@@ -412,7 +421,11 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+#if 0
 	BMO_CallOpf(bm, "del geom=%fe context=%i", EDGE_DEL, DEL_EDGES);
+#else
+	BMO_remove_tagged_context(bm, EDGE_DEL, DEL_EDGES);
+#endif
 	
 	tag_out_edges(bm, etags, op);
 	BMO_Flag_To_Slot(bm, op, "edgeout1", EDGE_RET1, BM_EDGE);
