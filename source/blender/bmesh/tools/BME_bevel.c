@@ -378,15 +378,15 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 		maxfactor = vtd1->maxfactor;
 	}
 	else {
-		maxfactor = scale*BME_bevel_project_vec(vec1, vec2, up_vec, forward, td);
+		maxfactor = scale * BME_bevel_project_vec(vec1, vec2, up_vec, forward, td);
 		if (vtd->maxfactor > 0 && vtd->maxfactor < maxfactor) {
 			maxfactor = vtd->maxfactor;
 		}
 	}
 
 	dis = BMO_TestFlag(bm, v1, BME_BEVEL_ORIG) ? len / 3 : len / 2;
-	if (is_edge || dis > maxfactor*value) {
-		dis = maxfactor*value;
+	if (is_edge || dis > maxfactor * value) {
+		dis = maxfactor * value;
 	}
 	madd_v3_v3v3fl(sv->co, v->co, vec1, dis);
 	sub_v3_v3v3(vec1, sv->co, vtd1->org);
@@ -1002,7 +1002,7 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 			else {
 				d = value;
 			}
-			madd_v3_v3v3fl(v->co, vtd->org, vtd->vec, vtd->factor*d);
+			madd_v3_v3v3fl(v->co, vtd->org, vtd->vec, vtd->factor * d);
 		}
 	}
 

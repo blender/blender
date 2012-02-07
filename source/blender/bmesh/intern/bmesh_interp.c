@@ -317,14 +317,14 @@ static double UNUSED_FUNCTION(dist_to_line_segment_v2_d)(double v1[3], double v2
 	
 	rc[0] = v3[0] - v2[0];
 	rc[1] = v3[1] - v2[1];
-	len = rc[0]*rc[0]+ rc[1]*rc[1];
+	len = rc[0] * rc[0] + rc[1] * rc[1];
 	if (len == 0.0) {
 		rc[0] = v1[0] - v2[0];
 		rc[1] = v1[1] - v2[1];
 		return sqrt(rc[0] * rc[0] + rc[1] * rc[1]);
 	}
 	
-	labda = (rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1])) / len;
+	labda = (rc[0] * (v1[0] - v2[0]) + rc[1] * (v1[1] - v2[1])) / len;
 	if (labda <= 0.0) {
 		pt[0] = v2[0];
 		pt[1] = v2[1];
@@ -334,20 +334,20 @@ static double UNUSED_FUNCTION(dist_to_line_segment_v2_d)(double v1[3], double v2
 		pt[1] = v3[1];
 	}
 	else {
-		pt[0] = labda*rc[0]+v2[0];
-		pt[1] = labda*rc[1]+v2[1];
+		pt[0] = labda * rc[0] + v2[0];
+		pt[1] = labda * rc[1] + v2[1];
 	}
 
-	rc[0] = pt[0]-v1[0];
-	rc[1] = pt[1]-v1[1];
-	return sqrt(rc[0]*rc[0]+ rc[1]*rc[1]);
+	rc[0] = pt[0] - v1[0];
+	rc[1] = pt[1] - v1[1];
+	return sqrt(rc[0] * rc[0] + rc[1] * rc[1]);
 }
 
 
 MINLINE double line_point_side_v2_d(const double *l1, const double *l2, const double *pt)
 {
-	return	((l1[0]-pt[0]) * (l2[1]-pt[1])) -
-			((l2[0]-pt[0]) * (l1[1]-pt[1]));
+	return	((l1[0] - pt[0]) * (l2[1] - pt[1])) -
+			((l2[0] - pt[0]) * (l1[1] - pt[1]));
 }
 
 /* point in quad - only convex quads */
@@ -650,10 +650,10 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		  
 		sides = (int)sqrt(mdp->totdisp);
 		for (y = 0; y < sides; y++) {
-			add_v3_v3v3(co1, mdn->disps[y*sides], mdl->disps[y]);
+			add_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
 			mul_v3_fl(co1, 0.5);
 
-			copy_v3_v3(mdn->disps[y*sides], co1);
+			copy_v3_v3(mdn->disps[y * sides], co1);
 			copy_v3_v3(mdl->disps[y], co1);
 		}
 	}
@@ -692,8 +692,8 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 			int a1, a2, o1, o2;
 			
 			if (l->v != l->radial_next->v) {
-				a1 = sides*y + sides-2;
-				a2 = (sides-2)*sides + y;
+				a1 = sides * y + sides - 2;
+				a2 = (sides - 2) * sides + y;
 				
 				o1 = sides * y + sides - 1;
 				o2 = (sides - 1) * sides + y;

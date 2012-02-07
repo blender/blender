@@ -1216,7 +1216,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	def = opdefines[i];
 	
 	i = 0;
-	state = 1; //0: not inside slotcode name, 1: inside slotcode name
+	state = 1; /* 0: not inside slotcode name, 1: inside slotcode name */
 
 	while (*fmt) {
 		if (state) {
@@ -1336,7 +1336,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 			default:
 				fprintf(stderr,
 				        "%s: unrecognized bmop format char: %c, %d in '%s'\n",
-				        __func__, *fmt, (int)(fmt-ofmt), ofmt);
+				        __func__, *fmt, (int)(fmt - ofmt), ofmt);
 				break;
 			}
 		}
@@ -1350,7 +1350,7 @@ error:
 	/* non urgent todo - explain exactly what is failing */
 	fprintf(stderr,
 	        "%s: error parsing formatting string, %d in '%s'\n    see - %s:%d\n",
-	        __func__, (int)(fmt-ofmt), _fmt, __FILE__, lineno);
+	        __func__, (int)(fmt - ofmt), _fmt, __FILE__, lineno);
 	MEM_freeN(ofmt);
 
 	BMO_Finish_Op(bm, op);

@@ -321,7 +321,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		/* Going in this direction, then edge extruding, makes normals face outward */
 		vec[0] = -dia * sinf(phi);
 		vec[1] = 0.0;
-		vec[2] = dia*cosf(phi);
+		vec[2] = dia * cosf(phi);
 		eve = BM_Make_Vert(bm, vec, NULL);
 		BMO_SetFlag(bm, eve, VERT_MARK);
 
@@ -493,8 +493,8 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Get_Mat4(op, "mat", mat);
 
-	phid = 2.0f*(float)M_PI / segs;
-	phi = .25f*(float)M_PI;
+	phid = 2.0f * (float)M_PI / segs;
+	phi = .25f * (float)M_PI;
 
 	if (cap_ends) {
 		vec[0] = vec[1] = 0.0f;

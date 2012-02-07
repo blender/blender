@@ -193,7 +193,7 @@ void *BMW_walk(BMWalker *walker)
  * worklist for processing.
  */
 
-void* BMW_currentstate(BMWalker *walker)
+void *BMW_currentstate(BMWalker *walker)
 {
 	bmesh_walkerGeneric *currentstate = walker->states.first;
 	if (currentstate) {
@@ -237,7 +237,7 @@ void BMW_removestate(BMWalker *walker)
  * breadth-first walks.
  */
 
-void* BMW_addstate(BMWalker *walker)
+void *BMW_addstate(BMWalker *walker)
 {
 	bmesh_walkerGeneric *newstate;
 	newstate = BLI_mempool_alloc(walker->worklist);

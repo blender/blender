@@ -469,16 +469,16 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 	/* new Vertex block */
 	if (bm->totvert == 0) mvert = NULL;
-	else mvert = MEM_callocN(bm->totvert*sizeof(MVert), "loadeditbMesh vert");
+	else mvert = MEM_callocN(bm->totvert * sizeof(MVert), "loadeditbMesh vert");
 
 	/* new Edge block */
 	if (bm->totedge == 0) medge = NULL;
-	else medge = MEM_callocN(bm->totedge*sizeof(MEdge), "loadeditbMesh edge");
+	else medge = MEM_callocN(bm->totedge * sizeof(MEdge), "loadeditbMesh edge");
 	
 	/* build ngon dat */
 	/* new Ngon Face block */
 	if (bm->totface == 0) mpoly = NULL;
-	else mpoly = MEM_callocN(bm->totface*sizeof(MPoly), "loadeditbMesh poly");
+	else mpoly = MEM_callocN(bm->totface * sizeof(MPoly), "loadeditbMesh poly");
 	
 	/* find number of loops to allocat */
 	totloop = 0;
@@ -487,7 +487,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (totloop == 0) mloop = NULL;
-	else mloop = MEM_callocN(totloop*sizeof(MLoop), "loadeditbMesh loop");
+	else mloop = MEM_callocN(totloop * sizeof(MLoop), "loadeditbMesh loop");
 
 	/* lets save the old verts just in case we are actually working on
 	 * a key ... we now do processing of the keys at the end */
@@ -862,7 +862,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 			currkey->flag &= ~KEYBLOCK_MISSING;
 
-			fp = newkey = MEM_callocN(me->key->elemsize*bm->totvert,  "currkey->data");
+			fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert,  "currkey->data");
 			oldkey = currkey->data;
 
 			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);

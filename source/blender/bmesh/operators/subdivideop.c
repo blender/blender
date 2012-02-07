@@ -90,7 +90,7 @@
 	BLI_srandom(seed);
 
 	wid = (params->numcuts + 2);
-	dp = perc*wid;
+	dp = perc * wid;
 	wid /= 2;
 	d = lvl = 0;
 	while (1) {
@@ -183,7 +183,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 		float len, nor[3], nor1[3], nor2[3], smooth = params->smooth;
 
 		sub_v3_v3v3(nor, vsta->co, vend->co);
-		len = 0.5f*normalize_v3(nor);
+		len = 0.5f * normalize_v3(nor);
 
 		copy_v3_v3(nor1, vsta->no);
 		copy_v3_v3(nor2, vend->no);
@@ -197,7 +197,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 		madd_v3_v3fl(tvec, nor2, fac);
 
 		/* falloff for multi subdivide */
-		smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(0.5f-perc)));
+		smooth *= sqrtf(fabsf(1.0f - 2.0f * fabsf(0.5f-perc)));
 
 		mul_v3_fl(tvec, smooth * len);
 
@@ -212,7 +212,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 		float len = len_v3v3(vsta->co, vend->co);
 		float vec2[3] = {0.0f, 0.0f, 0.0f}, co2[3];
 
-		fac = params->fractal*len;
+		fac = params->fractal * len;
 
 		add_v3_v3(vec2, vsta->no);
 		add_v3_v3(vec2, vend->no);

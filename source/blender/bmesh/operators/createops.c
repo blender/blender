@@ -181,7 +181,7 @@ static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData 
 	
 	totedge = BLI_array_count(edges);
 	for (i = 0; i < totedge / 2; i++) {
-		SWAP(BMEdge*, edges[i], edges[totedge - 1 - i]);
+		SWAP(BMEdge *, edges[i], edges[totedge - 1 - i]);
 	}
 	
 	vdata[BM_GetIndex(v)].e = NULL;
@@ -535,11 +535,11 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				}
 				if (dot_v3v3(n1, n2) < 0.0f) {
 					if (dot_v3v3(n1, n3) >= 0.0f + FLT_EPSILON * 10) {
-						SWAP(BMEdge*, edges[i], edges[(i + 1) % totedge]);
+						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge]);
 					}
 					else {
-						SWAP(BMEdge*, edges[(i + totedge - 1) % totedge], edges[(i + 1) % totedge])
-						SWAP(BMEdge*, edges[i], edges[(i + 1) % totedge])
+						SWAP(BMEdge *, edges[(i + totedge - 1) % totedge], edges[(i + 1) % totedge])
+						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge])
 					}
 				} 
 			}

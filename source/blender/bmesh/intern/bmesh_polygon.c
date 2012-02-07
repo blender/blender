@@ -60,13 +60,15 @@
 
 static short testedgeside(const double v1[2], const double v2[2], const double v3[2])
 {
-	/* is v3 to the right of v1-v2 ? With exception: v3 == v1 || v3 == v2 */
+	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
 	double inp;
 
 	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
-	inp = (v2[0]-v1[0]) * (v1[1]-v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
+	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
-	if (inp < 0.0) return 0;
+	if (inp < 0.0) {
+		return 0;
+	}
 	else if (inp == 0) {
 		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
 		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
@@ -76,10 +78,10 @@ static short testedgeside(const double v1[2], const double v2[2], const double v
 
 static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
 {
-	/* is v3 to the right of v1-v2 ? With exception: v3 == v1 || v3 == v2 */
+	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
 	double inp;
 
-	//inp = (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) + (v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
+	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
 	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
 	if (inp < 0.0) {
@@ -662,15 +664,17 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	/* do an interval test on the x and y axe */
 	/* first do x axi */
 	#define T FLT_EPSILON * 15
-	if (ABS(v1[1]-v2[1]) < T && ABS(v3[1]-v4[1]) < T &&
-	    ABS(v1[1]-v3[1]) < T) 
+	if ( ABS(v1[1] - v2[1]) < T &&
+	     ABS(v3[1] - v4[1]) < T &&
+	     ABS(v1[1] - v3[1]) < T)
 	{
 		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
 	}
 
 	/* now do y axi */
-	if (ABS(v1[0]-v2[0]) < T && ABS(v3[0]-v4[0]) < T &&
-	    ABS(v1[0]-v3[0]) < T)
+	if ( ABS(v1[0] - v2[0]) < T &&
+	     ABS(v3[0] - v4[0]) < T &&
+	     ABS(v1[0] - v3[0]) < T)
 	{
 		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
 	}
@@ -809,15 +813,18 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 		}
 
 		if (isear) {
-			/* angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
+#if 0
+			angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
 			if (!bestear || ABS(angle-45.0f) < bestangle) {
 				bestear = l;
-				bestangle = ABS(45.0f-angle);
+				bestangle = ABS(45.0f - angle);
 			}
 			
 			if (angle > 20 && angle < 90) break;
 			if (angle < 100 && i > 5) break;
-			i += 1; */
+			i += 1;
+#endif
+
 			bestear = l_iter;
 			break;
 		}

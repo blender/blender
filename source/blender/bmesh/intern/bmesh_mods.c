@@ -410,7 +410,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *  @returns The New Edge
  */
 
-BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces)
+BMEdge *BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces)
 {
 	BMEdge *ne = NULL;
 	BMVert *tv = bmesh_edge_getothervert(ke, kv);

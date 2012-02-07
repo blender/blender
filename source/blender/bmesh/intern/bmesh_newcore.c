@@ -523,7 +523,7 @@ void BM_Kill_Face_Edges(BMesh *bm, BMFace *f)
 
 void BM_Kill_Face_Verts(BMesh *bm, BMFace *f)
 {
-	BMVert**verts = NULL;
+	BMVert **verts = NULL;
 	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMLoop *l_iter;
 	BMLoop *l_first;
