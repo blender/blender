@@ -153,7 +153,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	/*do edges*/
 	me = medge = dm->dupEdgeArray(dm);
 	for (i=0; i<totedge; i++, me++) {
-		e = BM_Make_Edge(bm, vtable[me->v1], vtable[me->v2], NULL, 0);
+		e = BM_Make_Edge(bm, vtable[me->v1], vtable[me->v2], NULL, FALSE);
 
 		e->head.hflag = BM_Edge_Flag_From_MEFlag(me->flag);
 
@@ -181,7 +181,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 			edges[j] = etable[ml->e];
 		}
 
-		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, mp->totloop, 0);
+		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, mp->totloop, FALSE);
 
 		if (!f)
 			continue;

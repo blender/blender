@@ -69,7 +69,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			v = BM_Make_Vert(bm, l->v->co, l->v);
 
 			if (lastv) {
-				e = BM_Make_Edge(bm, lastv, v, l->e, 0);
+				e = BM_Make_Edge(bm, lastv, v, l->e, FALSE);
 				edges[i++] = e;
 			}
 
@@ -79,12 +79,12 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		}
 
 		BLI_array_growone(edges);
-		e = BM_Make_Edge(bm, v, firstv, laste, 0);
+		e = BM_Make_Edge(bm, v, firstv, laste, FALSE);
 		edges[i++] = e;
 
 		BMO_SetFlag(bm, f, EXT_DEL);
 
-		f2 = BM_Make_Ngon(bm, firstv, BM_OtherEdgeVert(edges[0], firstv), edges, f->len, 0);
+		f2 = BM_Make_Ngon(bm, firstv, BM_OtherEdgeVert(edges[0], firstv), edges, f->len, FALSE);
 		if (!f2) {
 			BMO_RaiseError(bm, op, BMERR_MESH_ERROR, "Extrude failed; could not create face");
 			BLI_array_free(edges);
@@ -101,7 +101,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			l3 = l->next;
 			l4 = l2->next;
 
-			f3 = BM_Make_Face_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, 0);
+			f3 = BM_Make_Face_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, FALSE);
 			
 			BM_Copy_Attributes(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3));
 			BM_Copy_Attributes(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3)->next);
@@ -153,7 +153,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 			v4 = e->v1;
 		}
 			/* not sure what to do about example face, pass	 NULL for now */
-		f = BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, 0);
+		f = BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, FALSE);
 		
 		if (BMO_TestFlag(bm, e, EXT_INPUT))
 			e = e2;
@@ -180,7 +180,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	for ( ; v; v = BMO_IterStep(&siter)) {
 		dupev = BM_Make_Vert(bm, v->co, v);
 
-		e = BM_Make_Edge(bm, v, dupev, NULL, 0);
+		e = BM_Make_Edge(bm, v, dupev, NULL, FALSE);
 
 		BMO_SetFlag(bm, e, EXT_KEEP);
 		BMO_SetFlag(bm, dupev, EXT_KEEP);
@@ -308,7 +308,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_Make_Face_QuadTri_v(bm, verts, 4, NULL, 0);
+		f = BM_Make_Face_QuadTri_v(bm, verts, 4, NULL, FALSE);
 
 		/* copy attribute */
 		l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
@@ -350,7 +350,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap", 0);
 	for ( ; v; v = BMO_IterStep(&siter)) {
 		v2 = *((void **)BMO_IterMapVal(&siter));
-		BM_Make_Edge(bm, v, v2, v->e, 1);
+		BM_Make_Edge(bm, v, v2, v->e, TRUE);
 	}
 
 	/* cleanu */
@@ -583,7 +583,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_Finish_Op(bm, &reverseop);
 
 	/* Extrude the region */
-	BMO_InitOpf(bm, &extrudeop, "extrudefaceregion alwayskeeporig=%i", 1);
+	BMO_InitOpf(bm, &extrudeop, "extrudefaceregion alwayskeeporig=%i", TRUE);
 	BMO_CopySlot(op, &extrudeop, "geom", "edgefacein");
 	BMO_Exec_Op(bm, &extrudeop);
 

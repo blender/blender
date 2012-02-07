@@ -95,7 +95,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	target_vert2 = BLI_ghash_lookup(vhash, source_edge->v2);
 	
 	/* Create a new edg */
-	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, 0);
+	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, FALSE);
 	
 	/* add to new/old edge map if necassar */
 	if (rlen < 2) {
@@ -152,7 +152,7 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	}
 	
 	/* create new fac */
-	target_face = BM_Make_Face(target_mesh, vtar, edar, source_face->len, 0);
+	target_face = BM_Make_Face(target_mesh, vtar, edar, source_face->len, FALSE);
 	BMO_Insert_MapPointer(source_mesh, op,
 	                      "facemap", source_face, target_face);
 	BMO_Insert_MapPointer(source_mesh, op,

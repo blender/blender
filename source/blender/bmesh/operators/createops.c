@@ -278,7 +278,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 			if (!ok || BLI_array_count(edges) < 3)
 				continue;
 			
-			f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), 1);
+			f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
 			if (!f)
 				continue;
 		}
@@ -608,12 +608,11 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			
 			v2 = BM_Make_Vert(bm, co, NULL);
 			BM_SetIndex(v2, -1); /* set_dirty! */
-			//BM_Make_Edge(bm, cv, v2, NULL, 0);
+			//BM_Make_Edge(bm, cv, v2, NULL, FALSE);
 			
 			BM_Select(bm, v2, TRUE);
 			if (lastv) {
-				e2 =
-				 BM_Make_Edge(bm, lastv, v2, NULL, 0);
+				e2 = BM_Make_Edge(bm, lastv, v2, NULL, FALSE);
 				BM_Select(bm, e2, TRUE);
 			}
 			
@@ -1025,7 +1024,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				v2 = verts[0];
 			}
 
-			f = BM_Make_Ngon(bm, v1, v2, edges, i, 1);
+			f = BM_Make_Ngon(bm, v1, v2, edges, i, TRUE);
 			if (f && !BMO_TestFlag(bm, f, ELE_ORIG)) {
 				BMO_SetFlag(bm, f, FACE_NEW);
 			}
@@ -1210,9 +1209,9 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = v;
 		}
 
-		e = BM_Make_Edge(bm, v1, v3, NULL, 1);
+		e = BM_Make_Edge(bm, v1, v3, NULL, TRUE);
 		BMO_SetFlag(bm, e, ELE_NEW);
-		e = BM_Make_Edge(bm, v2, v4, NULL, 1);
+		e = BM_Make_Edge(bm, v2, v4, NULL, TRUE);
 		BMO_SetFlag(bm, e, ELE_NEW);
 	}
 	else if (edges1) {
@@ -1228,7 +1227,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 				v2 = edges1[i]->v2;
 			else v2 = edges1[i]->v1;
 
-			e = BM_Make_Edge(bm, v1, v2, NULL, 1);
+			e = BM_Make_Edge(bm, v1, v2, NULL, TRUE);
 			BMO_SetFlag(bm, e, ELE_NEW);
 		}
 	}
@@ -1321,10 +1320,10 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (ok == TRUE && v_free && v_a && v_b) {
-			e = BM_Make_Edge(bm, v_free, v_a, NULL, 1);
+			e = BM_Make_Edge(bm, v_free, v_a, NULL, TRUE);
 			BMO_SetFlag(bm, &e->head, ELE_NEW);
 
-			e = BM_Make_Edge(bm, v_free, v_b, NULL, 1);
+			e = BM_Make_Edge(bm, v_free, v_b, NULL, TRUE);
 			BMO_SetFlag(bm, &e->head, ELE_NEW);
 		}
 	}
@@ -1377,34 +1376,34 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	if (amount == 2) {
 		/* create edg */
-		e = BM_Make_Edge(bm, verts[0], verts[1], NULL, 1);
+		e = BM_Make_Edge(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_SetFlag(bm, e, ELE_OUT);
 	}
 	else if (amount == 3) {
 		/* create triangl */
-		BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], NULL, NULL, 1);
+		BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
 	}
 	else if (amount == 4) {
 		f = NULL;
 
 		/* the order of vertices can be anything, 6 cases to check */
 		if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, 1);
+			f = BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, 1);
+			f = BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, 1);
+			f = BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, 1);
+			f = BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, 1);
+			f = BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, 1);
+			f = BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, TRUE);
 		}
 		else {
 			printf("cannot find nice quad from concave set of vertices\n");

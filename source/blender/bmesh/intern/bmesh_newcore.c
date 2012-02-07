@@ -236,7 +236,7 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			e = BM_Make_Edge(bm,  v1, v2, l_iter->e, 0);
+			e = BM_Make_Edge(bm,  v1, v2, l_iter->e, FALSE);
 			BLI_array_append(edges, e);
 		}
 		else {
@@ -246,7 +246,7 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	f2 = BM_Make_Face(bm, verts, edges, f->len, 0);
+	f2 = BM_Make_Face(bm, verts, edges, f->len, FALSE);
 	
 	BM_Copy_Attributes(bm, bm, f, f2);
 	
@@ -911,7 +911,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	}
 
 	/* create region fac */
-	newf = BM_Make_Ngon(bm, v1, v2, edges, tote, 0);
+	newf = BM_Make_Ngon(bm, v1, v2, edges, tote, FALSE);
 	if (!newf || BMO_HasError(bm)) {
 		if (!BMO_HasError(bm))
 			err = "Invalid boundary region to join faces";
@@ -1084,7 +1084,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_Make_Edge(bm, v1, v2, NULL, 0);
+	e = BM_Make_Edge(bm, v1, v2, NULL, FALSE);
 
 	f2 = bmesh_addpolylist(bm, f);
 	f1loop = bmesh_create_loop(bm, v2, e, f, v2loop);
@@ -1189,7 +1189,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 	valence2 = bmesh_disk_count(tv);
 
 	nv = BM_Make_Vert(bm, tv->co, tv);
-	ne = BM_Make_Edge(bm, nv, tv, e, 0);
+	ne = BM_Make_Edge(bm, nv, tv, e, FALSE);
 
 	bmesh_disk_remove_edge(ne, tv);
 	bmesh_disk_remove_edge(ne, nv);
@@ -1835,7 +1835,7 @@ static int bmesh_cutedge(BMesh *bm, BMEdge *e, BMLoop *cutl)
 		e->l = cutl->radial_next;
 	}
 
-	ne = BM_Make_Edge(bm, e->v1, e->v2, e, 0);
+	ne = BM_Make_Edge(bm, e->v1, e->v2, e, FALSE);
 	bmesh_radial_remove_loop(cutl, e);
 	bmesh_radial_append(ne, cutl);
 	cutl->e = ne;

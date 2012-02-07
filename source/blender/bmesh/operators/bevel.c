@@ -206,7 +206,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMEdge *edges[2] = {e, BM_Make_Edge(bm, e->v1, e->v2, e, 0)};
 			
 			BMO_SetFlag(bm, edges[1], BEVEL_FLAG);
-			BM_Make_Face(bm, verts, edges, 2, 0);
+			BM_Make_Face(bm, verts, edges, 2, FALSE);
 		}
 #endif
 	}
@@ -431,7 +431,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				firstv = tag->newv;
 			
 			if (lastv) {
-				e = BM_Make_Edge(bm, lastv, tag->newv, l->e, 1);
+				e = BM_Make_Edge(bm, lastv, tag->newv, l->e, TRUE);
 				BM_Copy_Attributes(bm, bm, l->prev->e, e);
 				BLI_array_append(edges, e);
 			}
@@ -443,7 +443,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_TestFlag(bm, l->e, BEVEL_FLAG) && v2 && v2 != tag->newv) {
 				BLI_array_append(verts, v2);
 				
-				e = BM_Make_Edge(bm, lastv, v2, l->e, 1);
+				e = BM_Make_Edge(bm, lastv, v2, l->e, TRUE);
 				BM_Copy_Attributes(bm, bm, l->e, e);
 				
 				BLI_array_append(edges, e);
@@ -451,13 +451,13 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		
-		e = BM_Make_Edge(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, 1);
+		e = BM_Make_Edge(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, TRUE);
 		if (BM_FACE_FIRST_LOOP(faces[i])->prev->e != e) {
 			BM_Copy_Attributes(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
 		}
 		BLI_array_append(edges, e);
 		
-		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), 0);
+		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), FALSE);
 		if (!f) {
 			printf("%s: could not make face!\n", __func__);
 			continue;
@@ -529,7 +529,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BMEdge *e1, *e2;
 				float d1, d2, *d3;
 				
-				f = BM_Make_Face_QuadTri(bm, v4, v3, v2, v1, l->f, 1);
+				f = BM_Make_Face_QuadTri(bm, v4, v3, v2, v1, l->f, TRUE);
 
 				e1 = BM_Edge_Exist(v4, v3);
 				e2 = BM_Edge_Exist(v2, v1);
@@ -737,7 +737,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			} while (vv != vstart);
 			
 			if (!err) {
-				e = BM_Make_Edge(bm, vv, vstart, NULL, 1);
+				e = BM_Make_Edge(bm, vv, vstart, NULL, TRUE);
 				BLI_array_append(edges, e);
 			}
 		}
@@ -751,7 +751,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			if (BM_Face_Exists(bm, verts, BLI_array_count(verts), &f))
 				continue;
 			
-			f = BM_Make_Ngon(bm, lastv, vstart, edges, BLI_array_count(edges), 0);
+			f = BM_Make_Ngon(bm, lastv, vstart, edges, BLI_array_count(edges), FALSE);
 			if (!f) {
 				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
 			}
@@ -782,7 +782,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				if (tag->newv != l->v || HasMDisps) {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
-					BM_loop_interp_from_face(bm, l2, l->f, 1, 1);
+					BM_loop_interp_from_face(bm, l2, l->f, TRUE, TRUE);
 				}
 				else {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);

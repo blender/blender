@@ -202,7 +202,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 	medge = me->medge;
 	for (i = 0; i < me->totedge; i++, medge++) {
-		e = BM_Make_Edge(bm, vt[medge->v1], vt[medge->v2], NULL, 0);
+		e = BM_Make_Edge(bm, vt[medge->v1], vt[medge->v2], NULL, FALSE);
 		BM_SetIndex(e, i); /* set_ok */
 		et[i] = e;
 
@@ -264,7 +264,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 #endif
 
-		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, 0);
+		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, FALSE);
 
 		if (!f) {
 			printf("%s: Warning! Bad face in mesh"

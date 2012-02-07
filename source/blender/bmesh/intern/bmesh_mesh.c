@@ -359,7 +359,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 		return;
 	}
 	
-	BMO_InitOpf(bm, &bmop, "righthandfaces faces=%af doflip=%d", 0);
+	BMO_InitOpf(bm, &bmop, "righthandfaces faces=%af doflip=%d", FALSE);
 	
 	BMO_push(bm, &bmop);
 	bmesh_righthandfaces_exec(bm, &bmop);

@@ -4720,7 +4720,7 @@ void projectSVData(TransInfo *t, int final)
 						continue;  /* shouldn't happen, but protection */
 				}
 				
-				BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, 0);
+				BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, FALSE);
 
 				if (final) {
 					BM_loop_interp_multires(em->bm, l2, copyf);	

@@ -174,17 +174,17 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace 
 
 	/* make new face */
 	if ((!f) && (!overlap)) {
-		if (!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
-		if (!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, 0);
+		if (!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, FALSE);
+		if (!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, FALSE);
 		if (len == 4) {
-			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, 0);
-			if (!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, 0);
+			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, FALSE);
+			if (!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, FALSE);
 		}
 		else {
-			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, 0);
+			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, FALSE);
 		}
 	
-		f = BM_Make_Face(bm, verts, edar, len, 0);
+		f = BM_Make_Face(bm, verts, edar, len, FALSE);
 	
 		if (example && f) {
 			BM_Copy_Attributes(bm, bm, example, f);
@@ -704,8 +704,10 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	
 	e = BMIter_New(&iter, bmold, BM_EDGES_OF_MESH, NULL);
 	for (i = 0; e; e = BMIter_Step(&iter), i++) {
-		e2 = BM_Make_Edge(bm, vtable[BM_GetIndex(e->v1)],
-			          vtable[BM_GetIndex(e->v2)], e, 0);
+		e2 = BM_Make_Edge(bm,
+		                  vtable[BM_GetIndex(e->v1)],
+		                  vtable[BM_GetIndex(e->v2)],
+		                  e, FALSE);
 
 		BM_Copy_Attributes(bmold, bm, e, e2);
 		etable[i] = e2;
@@ -741,7 +743,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			v2 = vtable[BM_GetIndex(loops[0]->v)];
 		}
 
-		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
+		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, FALSE);
 		if (!f2)
 			continue;
 		/* use totface incase adding some faces fails */

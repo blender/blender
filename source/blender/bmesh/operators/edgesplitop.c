@@ -77,16 +77,16 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 	/* v1 = verts[0]; */ /* UNUSED */
 	/* v2 = verts[1]; */ /* UNUSED */
 	for (i = 0; i < f->len - 1; i++) {
-		e = BM_Make_Edge(bm, verts[i], verts[i + 1], NULL, 1);
+		e = BM_Make_Edge(bm, verts[i], verts[i + 1], NULL, TRUE);
 		if (!e) {
 			return NULL;
 		}
 		edges_tmp[i] = e;
 	}
 
-	edges_tmp[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, 1);
+	edges_tmp[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, TRUE);
 
-	f2 = BM_Make_Face(bm, verts, edges_tmp, f->len, 0);
+	f2 = BM_Make_Face(bm, verts, edges_tmp, f->len, FALSE);
 	if (!f2) {
 		return NULL;
 	}

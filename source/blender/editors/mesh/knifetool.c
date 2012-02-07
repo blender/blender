@@ -1788,7 +1788,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			kfe->e = NULL;
 		}
 		
-		kfe->e = BM_Make_Edge(bm, kfe->v1->v, kfe->v2->v, NULL, 1);
+		kfe->e = BM_Make_Edge(bm, kfe->v1->v, kfe->v2->v, NULL, TRUE);
 		BMO_SetFlag(bm, kfe->e, BOUNDARY);
 		
 		for (ref=kfe->faces.first; ref; ref=ref->next) {
@@ -1899,7 +1899,10 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			if (BM_Face_Exists(bm, verts, 3, &f2))
 				continue;
 		
-			f2 = BM_Make_Face_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
+			f2 = BM_Make_Face_QuadTri(bm,
+			                          v1, v2, v3, NULL,
+			                          NULL, FALSE);
+
 			BMO_SetFlag(bm, f2, FACE_NEW);
 			
 			l = BM_FACE_FIRST_LOOP(f2);
@@ -1939,7 +1942,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BM_Copy_Attributes(bm, bm, f2, f);
 		
 		BM_ITER(l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
-			BM_loop_interp_from_face(bm, l1, f2, 1, 1);
+			BM_loop_interp_from_face(bm, l1, f2, TRUE, TRUE);
 		}
 	}
 

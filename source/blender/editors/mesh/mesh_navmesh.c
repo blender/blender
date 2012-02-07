@@ -382,12 +382,15 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 
 			for(k= 0; k<3; k++) {
 				if(tri[k]<nv)
-					face[k]= p[tri[k]]; /* shared vertex */
+					face[k] = p[tri[k]]; /* shared vertex */
 				else
-					face[k]= uniquevbase+tri[k]-nv; /* unique vertex */
+					face[k] = uniquevbase+tri[k]-nv; /* unique vertex */
 			}
-			newFace= BM_Make_Face_QuadTri(em->bm, EDBM_get_vert_for_index(em, face[0]), EDBM_get_vert_for_index(em, face[2]),
-									EDBM_get_vert_for_index(em, face[1]), NULL, NULL, 0);
+			newFace= BM_Make_Face_QuadTri(em->bm,
+			                              EDBM_get_vert_for_index(em, face[0]),
+			                              EDBM_get_vert_for_index(em, face[2]),
+			                              EDBM_get_vert_for_index(em, face[1]), NULL,
+			                              NULL, FALSE);
 
 			/* set navigation polygon idx to the custom layer */
 			polygonIdx= (int*)CustomData_bmesh_get(&em->bm->pdata, newFace->head.data, CD_RECAST);

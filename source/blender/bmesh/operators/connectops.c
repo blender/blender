@@ -404,7 +404,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			                         vv2[i2],
 			                         vv2[i2next],
 			                         vv1[i1next],
-			                         NULL, 1);
+			                         NULL, TRUE);
 			if (!f || f->len != 4) {
 				fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 			}

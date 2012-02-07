@@ -170,7 +170,7 @@ static BMEdge *editedge_to_BMEdge(BMesh *bm, BMOperator *op, EditMesh *em, EditE
 		v1 = eed->v1->tmp.p;
 		v2 = eed->v2->tmp.p;
 	
-		e = BM_Make_Edge(bm, v1, v2,NULL, 0); 
+		e = BM_Make_Edge(bm, v1, v2,NULL, FALSE);
 
 		editedge_to_BMEdge_internal(bm, op, em, e, eed);
 

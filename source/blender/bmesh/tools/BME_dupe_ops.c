@@ -54,7 +54,7 @@ static BMEdge *copy_edge(BMMesh *source_mesh, BMEdge *source_edge, BMMesh *targe
 	target_vert2 = BLI_ghash_lookup(vhash, source_edge->v2);
 	
 	/*create a new edge*/
-	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, 0);
+	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, FALSE);
 
 	/*insert new edge into the edge hash*/
 	BLI_ghash_insert(ehash, source_edge, target_edge);	
