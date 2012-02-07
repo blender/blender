@@ -252,9 +252,9 @@ void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op,
                   const char *src, const char *dst);
 
 /* remove tool flagged elements */
-void BM_remove_tagged_faces(struct BMesh *bm, const short oflag);
-void BM_remove_tagged_edges(struct BMesh *bm, const short oflag);
-void BM_remove_tagged_verts(struct BMesh *bm, const short oflag);
+void BMO_remove_tagged_faces(struct BMesh *bm, const short oflag);
+void BMO_remove_tagged_edges(struct BMesh *bm, const short oflag);
+void BMO_remove_tagged_verts(struct BMesh *bm, const short oflag);
 
 void BMO_Set_OpFlag(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 void BMO_Clear_OpFlag(struct BMesh *bm, struct BMOperator *op, const int op_flag);
