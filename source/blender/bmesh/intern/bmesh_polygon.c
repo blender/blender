@@ -763,7 +763,6 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	do {
 		i = BM_GetIndex(l_iter->v);
 		if (i == v1i || i == v2i || i == v3i) {
-			l_iter = l_iter->next;
 			continue;
 		}
 		
