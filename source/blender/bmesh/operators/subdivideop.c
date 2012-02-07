@@ -54,19 +54,9 @@
 
 /* I don't think new faces are flagged, currently, but
  * better safe than sorry. */
-#define FACE_NEW	4
-#define FACE_CUSTOMFILL	8
-#define ELE_INNER	16
-#define ELE_SPLIT	32
-#define ELE_CONNECT	64
-
-/* stuff for the flag paramter.  note that
- * what used to live in "beauty" and
- * in "seltype" live here.  still have to
- * convert the beauty flags over, which
- * is why it starts at 128 (to avoid
- * collision). */
-#define SELTYPE_INNER	128
+#define FACE_CUSTOMFILL	4
+#define ELE_INNER	8
+#define ELE_SPLIT	16
 
 /*
  * NOTE: beauty has been renamed to flag!

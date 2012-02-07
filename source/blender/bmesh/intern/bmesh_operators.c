@@ -51,17 +51,17 @@ static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name);
 static int bmesh_opname_to_opcode(const char *opname);
 
 static const char *bmop_error_messages[] = {
-       NULL,
-       "Self intersection error",
-       "Could not dissolve vert",
-       "Could not connect vertices",
-       "Could not traverse mesh",
-       "Could not dissolve faces",
-       "Could not dissolve vertices",
-       "Tesselation error",
-       "Can not deal with non-manifold geometry",
-       "Invalid selection",
-	   "Internal mesh error",
+	NULL,
+	"Self intersection error",
+	"Could not dissolve vert",
+	"Could not connect vertices",
+	"Could not traverse mesh",
+	"Could not dissolve faces",
+	"Could not dissolve vertices",
+	"Tesselation error",
+	"Can not deal with non-manifold geometry",
+	"Invalid selection",
+	"Internal mesh error",
 };
 
 
@@ -536,7 +536,7 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 #endif
 
 void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
-			 const char *slotname, int flag)
+                         const char *slotname, int flag)
 {
 	GHashIterator it;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
@@ -961,7 +961,7 @@ void *BMO_FirstElem(BMOperator *op, const char *slotname)
 }
 
 void *BMO_IterNew(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
-		  const char *slotname, const char restrictmask)
+                  const char *slotname, const char restrictmask)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 

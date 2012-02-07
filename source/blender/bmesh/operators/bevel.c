@@ -39,10 +39,9 @@
 #define FACE_NEW	4
 #define EDGE_OLD	8
 #define FACE_OLD	16
-#define FACE_DONE	32
-#define VERT_OLD	64
-#define FACE_SPAN	128
-#define FACE_HOLE	256
+#define VERT_OLD	32
+#define FACE_SPAN	64
+#define FACE_HOLE	128
 
 typedef struct LoopTag {
 	BMVert *newv;
