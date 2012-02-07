@@ -75,7 +75,7 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
 	0, /* unused */
 	0, /* unused */
 	sizeof(void *),	/* pointer buffer */
-	sizeof(element_mapping)
+	sizeof(BMOElemMapping)
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */
@@ -273,7 +273,7 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, c
 		}
 		else {
 			GHashIterator it;
-			element_mapping *srcmap, *dstmap;
+			BMOElemMapping *srcmap, *dstmap;
 
 			/* sanity check */
 			if (!source_slot->data.ghash) return;
@@ -1007,7 +1007,7 @@ void *BMO_IterStep(BMOIter *iter)
 		return h;
 	}
 	else if (iter->slot->slottype == BMOP_OPSLOT_MAPPING) {
-		struct element_mapping *map; 
+		struct BMOElemMapping *map;
 		void *ret = BLI_ghashIterator_getKey(&iter->giter);
 		map = BLI_ghashIterator_getValue(&iter->giter);
 		
@@ -1038,12 +1038,12 @@ float BMO_IterMapValf(BMOIter *iter)
 }
 
 /* error syste */
-typedef struct bmop_error {
-       struct bmop_error *next, *prev;
+typedef struct BMOpError {
+       struct BMOpError *next, *prev;
        int errorcode;
        BMOperator *op;
        const char *msg;
-} bmop_error;
+} BMOpError;
 
 void BMO_ClearStack(BMesh *bm)
 {
@@ -1052,7 +1052,7 @@ void BMO_ClearStack(BMesh *bm)
 
 void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 {
-	bmop_error *err = MEM_callocN(sizeof(bmop_error), "bmop_error");
+	BMOpError *err = MEM_callocN(sizeof(BMOpError), "bmop_error");
 	
 	err->errorcode = errcode;
 	if (!msg) msg = bmop_error_messages[errcode];
@@ -1070,7 +1070,7 @@ int BMO_HasError(BMesh *bm)
 /* returns error code or 0 if no erro */
 int BMO_GetError(BMesh *bm, const char **msg, BMOperator **op)
 {
-	bmop_error *err = bm->errorstack.first;
+	BMOpError *err = bm->errorstack.first;
 	if (!err) {
 		return 0;
 	}
@@ -1086,7 +1086,7 @@ int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op)
 	int errorcode = BMO_GetError(bm, msg, op);
 	
 	if (errorcode) {
-		bmop_error *err = bm->errorstack.first;
+		BMOpError *err = bm->errorstack.first;
 		
 		BLI_remlink(&bm->errorstack, bm->errorstack.first);
 		MEM_freeN(err);
@@ -1096,10 +1096,10 @@ int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op)
 }
 
 #if 0
-typedef struct bflag {
+typedef struct BMOFlag {
 	const char *str;
 	int flag;
-} bflag;
+} BMOFlag;
 
 #define PAIR(f) {#f, f},
 static const char *bmesh_flags = {

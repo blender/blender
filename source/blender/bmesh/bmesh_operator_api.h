@@ -127,14 +127,14 @@ typedef struct BMOperator {
 
 #define MAX_SLOTNAME	32
 
-typedef struct slottype {
+typedef struct BMOSlotType {
 	int type;
 	char name[MAX_SLOTNAME];
-} slottype;
+} BMOSlotType;
 
 typedef struct BMOpDefine {
 	const char *name;
-	slottype slottypes[BMOP_MAX_SLOTS];
+	BMOSlotType slottypes[BMOP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
 	int flag; 
 } BMOpDefine;
@@ -420,22 +420,22 @@ typedef void (*opexec)(struct BMesh *bm, struct BMOperator *op);
 
 /* mappings map elements to data, which
  * follows the mapping struct in memory. */
-typedef struct element_mapping {
+typedef struct BMOElemMapping {
 	BMHeader *element;
 	int len;
-} element_mapping;
+} BMOElemMapping;
 
 extern const int BMOP_OPSLOT_TYPEINFO[];
 
 BM_INLINE void BMO_Insert_Mapping(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, 
                                   void *element, void *data, int len) {
-	element_mapping *mapping;
+	BMOElemMapping *mapping;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
 	/*sanity check*/
 	if (slot->slottype != BMOP_OPSLOT_MAPPING) return;
 	
-	mapping = (element_mapping*) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
+	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
 
 	mapping->element = (BMHeader*) element;
 	mapping->len = len;
@@ -481,14 +481,14 @@ BM_INLINE int BMO_InMap(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
 BM_INLINE void *BMO_Get_MapData(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
                                 void *element)
 {
-	element_mapping *mapping;
+	BMOElemMapping *mapping;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
 	/*sanity check*/
 	if (slot->slottype != BMOP_OPSLOT_MAPPING) return NULL;
 	if (!slot->data.ghash) return NULL;
 
-	mapping = (element_mapping*) BLI_ghash_lookup(slot->data.ghash, element);
+	mapping = (BMOElemMapping *) BLI_ghash_lookup(slot->data.ghash, element);
 	
 	if (!mapping) return NULL;
 
