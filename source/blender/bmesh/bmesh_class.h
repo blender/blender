@@ -113,8 +113,7 @@ typedef struct BMFace {
 } BMFace;
 
 typedef struct BMFlagLayer {
-	short f, pflag; /*flags*/
-	int index; /*generic index*/
+	short f, pflag; /* flags */
 } BMFlagLayer;
 
 typedef struct BMesh {

@@ -1510,7 +1510,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
  */
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
-	BMLoop *curloop, *f1loop = NULL, *f2loop = NULL;
+	BMLoop *l_iter, *f1loop = NULL, *f2loop = NULL;
 	int newlen = 0, i, f1len = 0, f2len = 0, radlen = 0, edok, shared;
 	BMIter iter;
 
@@ -1522,15 +1522,15 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	/* verify that e is in both f1 and f2 */
 	f1len = f1->len;
 	f2len = f2->len;
-	BM_ITER(curloop, &iter, bm, BM_LOOPS_OF_FACE, f1) {
-		if (curloop->e == e) {
-			f1loop = curloop;
+	BM_ITER(l_iter, &iter, bm, BM_LOOPS_OF_FACE, f1) {
+		if (l_iter->e == e) {
+			f1loop = l_iter;
 			break;
 		}
 	}
-	BM_ITER(curloop, &iter, bm, BM_LOOPS_OF_FACE, f2) {
-		if (curloop->e == e) {
-			f2loop = curloop;
+	BM_ITER(l_iter, &iter, bm, BM_LOOPS_OF_FACE, f2) {
+		if (l_iter->e == e) {
+			f2loop = l_iter;
 			break;
 		}
 	}
@@ -1566,22 +1566,22 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	}
 
 	/* validate no internal join */
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, curloop = curloop->next) {
-		BM_ClearHFlag(curloop->v, BM_TMP_TAG);
+	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
+		BM_ClearHFlag(l_iter->v, BM_TMP_TAG);
 	}
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, curloop = curloop->next) {
-		BM_ClearHFlag(curloop->v, BM_TMP_TAG);
+	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
+		BM_ClearHFlag(l_iter->v, BM_TMP_TAG);
 	}
 
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, curloop = curloop->next) {
-		if (curloop != f1loop) {
-			BM_SetHFlag(curloop->v, BM_TMP_TAG);
+	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
+		if (l_iter != f1loop) {
+			BM_SetHFlag(l_iter->v, BM_TMP_TAG);
 		}
 	}
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, curloop = curloop->next) {
-		if (curloop != f2loop) {
+	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
+		if (l_iter != f2loop) {
 			/* as soon as a duplicate is found, bail out */
-			if (BM_TestHFlag(curloop->v, BM_TMP_TAG)) {
+			if (BM_TestHFlag(l_iter->v, BM_TMP_TAG)) {
 				return NULL;
 			}
 		}
@@ -1603,8 +1603,8 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* make sure each loop points to the proper fac */
 	newlen = f1->len;
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f1); i < newlen; i++, curloop = curloop->next)
-		curloop->f = f1;
+	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < newlen; i++, l_iter = l_iter->next)
+		l_iter->f = f1;
 	
 	/* remove edge from the disk cycle of its two vertices */
 	bmesh_disk_remove_edge(f1loop->e, f1loop->e->v1);
