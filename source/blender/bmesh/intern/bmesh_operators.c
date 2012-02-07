@@ -933,24 +933,29 @@ static void free_flag_layer(BMesh *bm)
 
 static void clear_flag_layer(BMesh *bm)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
-	
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
-	
+	BMHeader *ele;
+	/* set the index values since we are looping over all data anyway,
+	 * may save time later on */
+	int i;
+
+	BMIter iter;
+	const int totflags_offset = bm->totflags - 1;
+
 	/* now go through and memcpy all the flag */
-	for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
-		memset(v->head.flags + (bm->totflags - 1), 0, sizeof(BMFlagLayer));
+	for (ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+		memset(ele->flags + totflags_offset, 0, sizeof(BMFlagLayer));
+		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
-		memset(e->head.flags + (bm->totflags - 1), 0, sizeof(BMFlagLayer));
+	for (ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+		memset(ele->flags + totflags_offset, 0, sizeof(BMFlagLayer));
+		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
-		memset(f->head.flags + (bm->totflags - 1), 0, sizeof(BMFlagLayer));
+	for (ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+		memset(ele->flags + totflags_offset, 0, sizeof(BMFlagLayer));
+		BM_SetIndex(ele, i); /* set_inline */
 	}
+
+	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
 }
 
 void *BMO_FirstElem(BMOperator *op, const char *slotname)
