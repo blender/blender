@@ -461,7 +461,9 @@ static void bmo_remove_tagged_context_edges(BMesh *bm, const short oflag)
 
 #define DEL_WIREVERT	(1 << 10)
 
-void BMO_remove_tagged_context(BMesh *bm, const short oflag, int type)
+/* warning, oflag applies to different types in some contexts,
+ * not just the type being removed */
+void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -471,77 +473,106 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, int type)
 	BMIter edges;
 	BMIter faces;
 
-	if (type == DEL_VERTS) bmo_remove_tagged_context_verts(bm, oflag);
-	else if (type == DEL_EDGES) {
-		/* flush down to vert */
-		for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
-			if (BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
-				BMO_SetFlag(bm, (BMHeader *)(e->v1), oflag);
-				BMO_SetFlag(bm, (BMHeader *)(e->v2), oflag);
-			}
-		}
-		bmo_remove_tagged_context_edges(bm, oflag);
-		/* remove loose vertice */
-		for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
-			if (BMO_TestFlag(bm, (BMHeader *)v, oflag) && (!(v->e)))
-				BMO_SetFlag(bm, (BMHeader *)v, DEL_WIREVERT);
-		}
-		BMO_remove_tagged_verts(bm, DEL_WIREVERT);
-	}
-	else if (type == DEL_EDGESFACES) bmo_remove_tagged_context_edges(bm, oflag);
-	else if (type == DEL_ONLYFACES) BMO_remove_tagged_faces(bm, oflag);
-	else if (type == DEL_ONLYTAGGED) {
-		BMO_remove_tagged_faces(bm, oflag);
-		BMO_remove_tagged_edges(bm, oflag);
-		BMO_remove_tagged_verts(bm, oflag);
-	}
-	else if (type == DEL_FACES) {
-		/* go through and mark all edges and all verts of all faces for delet */
-		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
-			if (BMO_TestFlag(bm, (BMHeader *)f, oflag)) {
-				for (e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges))
-					BMO_SetFlag(bm, (BMHeader *)e, oflag);
-				for (v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts))
-					BMO_SetFlag(bm, (BMHeader *)v, oflag);
-			}
-		}
-		/* now go through and mark all remaining faces all edges for keeping */
-		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
-			if (!BMO_TestFlag(bm, (BMHeader *)f, oflag)) {
-				for (e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges)) {
-					BMO_ClearFlag(bm, (BMHeader *)e, oflag);
-				}
-				for (v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts)) {
-					BMO_ClearFlag(bm, (BMHeader *)v, oflag);
-				}
-			}
-		}
-		/* also mark all the vertices of remaining edges for keeping */
-		for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
-			if (!BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
-				BMO_ClearFlag(bm, (BMHeader *)e->v1, oflag);
-				BMO_ClearFlag(bm, (BMHeader *)e->v2, oflag);
-			}
-		}
-		/* now delete marked face */
-		BMO_remove_tagged_faces(bm, oflag);
-		/* delete marked edge */
-		BMO_remove_tagged_edges(bm, oflag);
-		/* remove loose vertice */
-		BMO_remove_tagged_verts(bm, oflag);
-	}
-	/* does this option even belong in here */
-	else if (type == DEL_ALL) {
-		for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces))
-			BMO_SetFlag(bm, (BMHeader *)f, oflag);
-		for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges))
-			BMO_SetFlag(bm, (BMHeader *)e, oflag);
-		for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts))
-			BMO_SetFlag(bm, (BMHeader *)v, oflag);
+	switch (type) {
+		case DEL_VERTS:
+		{
+			bmo_remove_tagged_context_verts(bm, oflag);
 
-		BMO_remove_tagged_faces(bm, oflag);
-		BMO_remove_tagged_edges(bm, oflag);
-		BMO_remove_tagged_verts(bm, oflag);
+			break;
+		}
+		case DEL_EDGES:
+		{
+			/* flush down to vert */
+			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
+				if (BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
+					BMO_SetFlag(bm, (BMHeader *)(e->v1), oflag);
+					BMO_SetFlag(bm, (BMHeader *)(e->v2), oflag);
+				}
+			}
+			bmo_remove_tagged_context_edges(bm, oflag);
+			/* remove loose vertice */
+			for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
+				if (BMO_TestFlag(bm, (BMHeader *)v, oflag) && (!(v->e)))
+					BMO_SetFlag(bm, (BMHeader *)v, DEL_WIREVERT);
+			}
+			BMO_remove_tagged_verts(bm, DEL_WIREVERT);
+
+			break;
+		}
+		case DEL_EDGESFACES:
+		{
+			bmo_remove_tagged_context_edges(bm, oflag);
+
+			break;
+		}
+		case DEL_ONLYFACES:
+		{
+			BMO_remove_tagged_faces(bm, oflag);
+
+			break;
+		}
+		case DEL_ONLYTAGGED:
+		{
+			BMO_remove_tagged_faces(bm, oflag);
+			BMO_remove_tagged_edges(bm, oflag);
+			BMO_remove_tagged_verts(bm, oflag);
+
+			break;
+		}
+		case DEL_FACES:
+		{
+			/* go through and mark all edges and all verts of all faces for delet */
+			for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
+				if (BMO_TestFlag(bm, (BMHeader *)f, oflag)) {
+					for (e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges))
+						BMO_SetFlag(bm, (BMHeader *)e, oflag);
+					for (v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts))
+						BMO_SetFlag(bm, (BMHeader *)v, oflag);
+				}
+			}
+			/* now go through and mark all remaining faces all edges for keeping */
+			for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
+				if (!BMO_TestFlag(bm, (BMHeader *)f, oflag)) {
+					for (e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges)) {
+						BMO_ClearFlag(bm, (BMHeader *)e, oflag);
+					}
+					for (v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts)) {
+						BMO_ClearFlag(bm, (BMHeader *)v, oflag);
+					}
+				}
+			}
+			/* also mark all the vertices of remaining edges for keeping */
+			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
+				if (!BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
+					BMO_ClearFlag(bm, (BMHeader *)e->v1, oflag);
+					BMO_ClearFlag(bm, (BMHeader *)e->v2, oflag);
+				}
+			}
+			/* now delete marked face */
+			BMO_remove_tagged_faces(bm, oflag);
+			/* delete marked edge */
+			BMO_remove_tagged_edges(bm, oflag);
+			/* remove loose vertice */
+			BMO_remove_tagged_verts(bm, oflag);
+
+			break;
+		}
+		case DEL_ALL:
+		{
+			/* does this option even belong in here? */
+			for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces))
+				BMO_SetFlag(bm, (BMHeader *)f, oflag);
+			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges))
+				BMO_SetFlag(bm, (BMHeader *)e, oflag);
+			for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts))
+				BMO_SetFlag(bm, (BMHeader *)v, oflag);
+
+			BMO_remove_tagged_faces(bm, oflag);
+			BMO_remove_tagged_edges(bm, oflag);
+			BMO_remove_tagged_verts(bm, oflag);
+
+			break;
+		}
 	}
 }
 /*************************************************************/

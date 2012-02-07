@@ -103,7 +103,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 
 			/* set edges index as dirty after running all */
 			BM_SetIndex(l2->e, BM_GetIndex(l->e)); /* set_dirty! */
-			et = etags + BM_GetIndex(l->e);
+			et = &etags[BM_GetIndex(l->e)];
 			
 			if (!et->newe1) {
 				et->newe1 = l2->e;
@@ -148,7 +148,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			if (!BMO_TestFlag(bm, e, EDGE_SEAM))
 				continue;
 
-			et = etags + BM_GetIndex(e);
+			et = &etags[BM_GetIndex(e)];
 			if (!et->tag && e->l) {
 				break;
 			}
@@ -166,7 +166,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			v = i ? l->next->v : l->v;
 
 			while (1) {
-				et = etags + BM_GetIndex(l->e);
+				et = &etags[BM_GetIndex(l->e)];
 				if (et->newe1 == l->e) {
 					if (et->newe1) {
 						BMO_SetFlag(bm, et->newe1, EDGE_RET1);
@@ -281,7 +281,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				if (!verts[i]) {
 
-					et = etags + BM_GetIndex(l->e);
+					et = &etags[BM_GetIndex(l->e)];
 					if (ETV(et, l->v, l)) {
 						verts[i] = ETV(et, l->v, l);
 					}
@@ -336,7 +336,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 					} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 
 					if (l3 == NULL || (BMO_TestFlag(bm, l3->e, EDGE_SEAM) && l3->e != l->e)) {
-						et = etags + BM_GetIndex(l2->e);
+						et = &etags[BM_GetIndex(l2->e)];
 						if (ETV(et, v, l2) == NULL) {
 							v2 = BM_Make_Vert(bm, v->co, v);
 							
@@ -350,7 +350,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 								l3 = l3->radial_next;
 								l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 								
-								et = etags + BM_GetIndex(l3->e);
+								et = &etags[BM_GetIndex(l3->e)];
 							} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 						}
 						else {
@@ -404,6 +404,9 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	/* remake_face() sets invalid indecies,
 	 * likely these will be corrected on operator exit anyway */
 	bm->elem_index_dirty &= ~BM_EDGE;
+
+	/* cant call the operator because 'tag_out_edges'
+	 * relies on original index values, from before editing geometry */
 
 #if 0
 	BMO_CallOpf(bm, "del geom=%ff context=%i", FACE_DEL, DEL_ONLYFACES);
