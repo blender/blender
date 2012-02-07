@@ -221,8 +221,31 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		mult_m4_m4m4(mat, invpar, pchan->pose_mat);
 	}
 	else {
-		// get world-space from armature-space
-		mult_m4_m4m4(mat, ob_arm->obmat, pchan->pose_mat);
+		copy_m4_m4(mat, pchan->pose_mat);
+		// Why? Joint's localspace is still it's parent node
+		//get world-space from armature-space
+		//mult_m4_m4m4(mat, ob_arm->obmat, pchan->pose_mat);
+	}
+
+	// SECOND_LIFE_COMPATIBILITY
+	if(export_settings->second_life)
+	{
+		// Remove rotations vs armature from transform
+		// parent_rest_rot * mat * irest_rot
+		float temp[4][4];
+		copy_m4_m4(temp, bone->arm_mat);
+		temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+		invert_m4(temp);
+
+		mult_m4_m4m4(mat, mat, temp);
+
+		if(bone->parent)
+		{
+			copy_m4_m4(temp, bone->parent->arm_mat);
+			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+
+			mult_m4_m4m4(mat, temp, mat);
+		}
 	}
 
 	TransformWriter::add_node_transform(node, mat,NULL );
@@ -341,10 +364,16 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 {
 	std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
 
+	int totjoint = 0;
+	for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
+		if (is_bone_defgroup(ob_arm, def))
+			totjoint++;
+	}
+
 	COLLADASW::FloatSourceF source(mSW);
 	source.setId(source_id);
 	source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-	source.setAccessorCount(BLI_countlist(defbase));
+	source.setAccessorCount(totjoint); //BLI_countlist(defbase));
 	source.setAccessorStride(16);
 	
 	source.setParameterTypeName(&COLLADASW::CSWC::CSW_VALUE_TYPE_FLOAT4x4);
@@ -366,16 +395,27 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 
 	for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
 		if (is_bone_defgroup(ob_arm, def)) {
-
 			bPoseChannel *pchan = get_pose_channel(pose, def->name);
 
 			float mat[4][4];
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
-			// make world-space matrix, arm_mat is armature-space
-			mult_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
-			
+			// SECOND_LIFE_COMPATIBILITY
+			if(export_settings->second_life)
+			{
+				// Only translations, no rotation vs armature
+				float temp[4][4];
+				unit_m4(temp);
+				copy_v3_v3(temp[3], pchan->bone->arm_mat[3]);
+				mult_m4_m4m4(world, ob_arm->obmat, temp);
+			}
+			else
+			{
+				// make world-space matrix, arm_mat is armature-space
+				mult_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
+			}
+
 			invert_m4_m4(mat, world);
 			converter.mat4_to_dae(inv_bind_mat, mat);
 

@@ -1880,6 +1880,14 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 		Py_DECREF(mod);
 	}
 
+#ifdef WITH_AUDASPACE
+	/* accessing a SoundActuator's sound results in a crash if aud is not initialised... */
+	{
+		PyObject *mod= PyImport_ImportModuleLevel((char *)"aud", NULL, NULL, NULL, 0);
+		Py_DECREF(mod);
+	}
+#endif
+
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);
@@ -1923,6 +1931,14 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 #endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
+
+#ifdef WITH_AUDASPACE
+	/* accessing a SoundActuator's sound results in a crash if aud is not initialised... */
+	{
+		PyObject *mod= PyImport_ImportModuleLevel((char *)"aud", NULL, NULL, NULL, 0);
+		Py_DECREF(mod);
+	}
+#endif
 
 	initPyTypes();
 	

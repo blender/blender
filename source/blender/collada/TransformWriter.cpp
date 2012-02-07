@@ -59,6 +59,7 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[][4], 
 
 void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 {
+	/*
 	float rot[3], loc[3], scale[3];
 
 	if (ob->parent) {
@@ -91,6 +92,27 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 	}
 
 	add_transform(node, loc, rot, scale);
+	*/
+
+	/* Using parentinv should allow use of existing curves */
+	// If parentinv is identity don't add it.
+	bool add_parinv = false;
+	for(int i = 0; i < 16; ++i)
+	{
+		float f = (i%4 == i/4) ? 1.0f : 0.0f ;
+		if(ob->parentinv[i%4][i/4] != f) add_parinv = true;
+	}
+
+	// Eat this 3ds Max et friends
+	if(add_parinv)
+	{
+		double dmat[4][4];
+		UnitConverter converter;
+		converter.mat4_to_dae_double(dmat, ob->parentinv);
+		node.addMatrix("parentinverse", dmat);
+	}
+
+	add_transform(node, ob->loc, ob->rot, ob->size);
 }
 
 void TransformWriter::add_node_transform_identity(COLLADASW::Node& node)

@@ -594,7 +594,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	/* retrieve state */
 	sima= CTX_wm_space_image(C);
 	ar= CTX_wm_region(C);
-	scene= (Scene*)CTX_data_scene(C);
+	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
 	ima= ED_space_image(sima);
@@ -1445,7 +1445,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
 	/* retrieve state */
 	sima= CTX_wm_space_image(C);
-	scene= (Scene*)CTX_data_scene(C);
+	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
 	RNA_string_get(op->ptr, "name", name);

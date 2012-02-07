@@ -84,9 +84,9 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 /* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 #include "../../collada/collada.h"
 
-static void rna_Scene_collada_export(Scene *scene, const char *filepath, int selected)
+static void rna_Scene_collada_export(Scene *scene, const char *filepath, int selected, int second_life)
 {
-	collada_export(scene, filepath, selected);
+	collada_export(scene, filepath, selected, second_life);
 }
 
 #endif
@@ -110,10 +110,11 @@ void RNA_api_scene(StructRNA *srna)
 #ifdef WITH_COLLADA
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func= RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
-	RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file");
-	parm= RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements");
+	parm= RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
+	parm= RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements");
+	parm= RNA_def_boolean(func, "second_life", 0, "Export for Second Life", "Compatibility mode for Second Life");
 	RNA_def_function_ui_description(func, "Export to collada file");
 #endif
 }

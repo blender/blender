@@ -2192,14 +2192,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_MASK);
 	RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_facemask");
-
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Mesh_update_facemask");
 	
 	prop= RNA_def_property(srna, "use_paint_mask_vertex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERT_SEL);
 	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting (weight paint only)");
 	RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0);
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_vertmask");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Mesh_update_vertmask");
 
 	/* readonly editmesh info - use for extrude menu */
 	prop= RNA_def_property(srna, "total_vert_sel", PROP_INT, PROP_UNSIGNED);
