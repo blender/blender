@@ -222,7 +222,9 @@ static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 		}
 	}
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+		return 0;
+	}
 
 	return 's'; // s is shrink/fatten
 }
@@ -240,7 +242,9 @@ static short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 	BMO_Exec_Op(em->bm, &bmop);
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_VERT|BM_EDGE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+		return 0;
+	}
 
 	return 'n'; // n is normal grab
 }
@@ -258,7 +262,9 @@ static short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 	BMO_Exec_Op(em->bm, &bmop);
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT, BM_VERT);
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+		return 0;
+	}
 
 	return 'g'; // g is grab
 }
@@ -854,8 +860,9 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			BM_Select(vc.em->bm, v1, TRUE);
 		}
 
-		if (!EDBM_FinishOp(vc.em, &bmop, op, 1))
+		if (!EDBM_FinishOp(vc.em, &bmop, op, TRUE)) {
 			return OPERATOR_CANCELLED;
+		}
 	}
 
 	if (use_proj)
@@ -1019,8 +1026,9 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "faceout", BM_SELECT, BM_FACE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
@@ -1169,7 +1177,7 @@ static int editbmesh_vert_connect(bContext *C, wmOperator *op)
 	}
 	BMO_Exec_Op(bm, &bmop);
 	len = BMO_GetSlot(&bmop, "edgeout")->len;
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1207,7 +1215,7 @@ static int editbmesh_edge_split(bContext *C, wmOperator *op)
 	}
 	BMO_Exec_Op(bm, &bmop);
 	len = BMO_GetSlot(&bmop, "outsplit")->len;
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1248,8 +1256,9 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "newout", BM_SELECT, BM_ALL);
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
@@ -1382,8 +1391,9 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT, BM_EDGE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -1476,18 +1486,22 @@ void MESH_OT_hide(wmOperatorType *ot)
 
 void EDBM_reveal_mesh(BMEditMesh *em)
 {
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
+	               (em->selectmode & SCE_SELECT_EDGE),
+	               (em->selectmode & SCE_SELECT_FACE),
+	              };
+
 	BMIter iter;
-	BMHeader *ele;
-	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-	int sels[3] = {
-		(em->selectmode & SCE_SELECT_VERTEX),
-		(em->selectmode & SCE_SELECT_EDGE),
-		(em->selectmode & SCE_SELECT_FACE),
-	};
+    BMHeader *ele;
+	int i;
 
 	/* Use index field to remember what was hidden before all is revealed. */
-	for (i=0; i<3; i++) {
-		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
+	for (i = 0; i < 3; i++) {
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
 			if (BM_TestHFlag(ele, BM_HIDDEN)) {
 				BM_SetHFlag(ele, BM_TMP_TAG);
 			}
@@ -1501,12 +1515,12 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	EDBM_clear_flag_all(em, BM_HIDDEN);
 
 	/* Select relevant just-revealed elements */
-	for (i=0; i<3; i++) {
+	for (i = 0; i < 3; i++) {
 		if (!sels[i]) {
 			continue;
 		}
 
-		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
 			if (BM_TestHFlag(ele, BM_TMP_TAG)) {
 				BM_Select(em->bm, ele, TRUE);
 			}
@@ -1829,9 +1843,9 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
-
+	}
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
@@ -1854,8 +1868,9 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
@@ -1881,9 +1896,9 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
-
+	}
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
@@ -1909,8 +1924,9 @@ static int mesh_reverse_colors(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
@@ -2185,8 +2201,9 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/*we need a better way of reporting this, since this doesn't work
 	  with the last operator panel correctly.
@@ -2270,8 +2287,9 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT, BM_ALL);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_selectmode_flush(em);
 
@@ -2522,7 +2540,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2827,7 +2845,7 @@ static int solidify_exec(bContext *C, wmOperator *op)
 	/* select the newly generated faces */
 	BMO_HeaderFlag_Buffer(bm, &bmop, "geomout", BM_SELECT, BM_FACE);
 
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3149,7 +3167,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_Set_Float(&bmop, "radius", 0);
 	
 	BMO_Exec_Op(bm, &bmop);
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3398,8 +3416,9 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 	/*select new geometry*/
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_FACE|BM_EDGE);
 	
-	if (!EDBM_FinishOp(em, &bmop, op, 1))
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -3570,7 +3589,7 @@ static int split_mesh_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 	BM_clear_flag_all(em->bm, BM_SELECT);
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
-	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3632,7 +3651,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(bm, &spinop);
 	EDBM_clear_flag_all(em, BM_SELECT);
 	BMO_HeaderFlag_Buffer(bm, &spinop, "lastout", BM_SELECT, BM_ALL);
-	if (!EDBM_FinishOp(em, &spinop, op, 1)) {
+	if (!EDBM_FinishOp(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3753,7 +3772,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(bm, &spinop);
 	EDBM_clear_flag_all(em, BM_SELECT);
 	BMO_HeaderFlag_Buffer(bm, &spinop, "lastout", BM_SELECT, BM_ALL);
-	if (!EDBM_FinishOp(em, &spinop, op, 1)) {
+	if (!EDBM_FinishOp(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4441,7 +4460,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		
 		BMO_Exec_Op(em->bm, &bmop);
-		if (!EDBM_FinishOp(em, &bmop, op, 1))
+		if (!EDBM_FinishOp(em, &bmop, op, TRUE))
 			return OPERATOR_CANCELLED;
 	}
 	

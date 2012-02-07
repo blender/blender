@@ -727,8 +727,9 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "faceout", BM_SELECT, BM_ALL);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
@@ -768,8 +769,9 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	EDBM_selectmode_flush(em);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
@@ -811,8 +813,9 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT, BM_ALL);
 
 	/* finish the operator */
-	if ( !EDBM_FinishOp(em, &bmop, op, 1) )
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_selectmode_flush(em);
 
@@ -2002,7 +2005,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	}
 
 	/* Walker restrictions uses BMO flags, not header flags,
-	   so transfer BM_SELECT from HFlags onto a BMO flag layer. */
+	 * so transfer BM_SELECT from HFlags onto a BMO flag layer. */
 	BMO_push(bm, NULL);
 	BM_ITER(h, &iter, bm, itertype, NULL) {
 		if (BM_TestHFlag(h, BM_SELECT)) {

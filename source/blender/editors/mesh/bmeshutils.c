@@ -119,9 +119,12 @@ void EDBM_ClearMesh(BMEditMesh *em)
 
 void EDBM_stats_update(BMEditMesh *em)
 {
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
 	BMIter iter;
 	BMHeader *ele;
-	const char itypes[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	int *tots[3];
 	int i;
 
@@ -132,7 +135,7 @@ void EDBM_stats_update(BMEditMesh *em)
 	em->bm->totvertsel = em->bm->totedgesel = em->bm->totfacesel = 0;
 
 	for (i=0; i<3; i++) {
-		ele = BMIter_New(&iter, em->bm, itypes[i], NULL);
+		ele = BMIter_New(&iter, em->bm, iter_types[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (BM_TestHFlag(ele, BM_SELECT)) {
 				(*tots[i])++;
@@ -166,7 +169,7 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *f
 
 
 /*returns 0 on error, 1 on success.  executes and finishes a bmesh operator*/
-int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report)
+int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int report)
 {
 	const char *errmsg;
 	
@@ -224,7 +227,7 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 	BMO_Exec_Op(bm, &bmop);
 
 	va_end(list);
-	return EDBM_FinishOp(em, &bmop, op, 1);
+	return EDBM_FinishOp(em, &bmop, op, TRUE);
 }
 
 int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot, const char *fmt, ...)
@@ -250,7 +253,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, selectslot, BM_SELECT, BM_ALL);
 
 	va_end(list);
-	return EDBM_FinishOp(em, &bmop, op, 1);
+	return EDBM_FinishOp(em, &bmop, op, TRUE);
 }
 
 int EDBM_CallOpfSilent(BMEditMesh *em, const char *fmt, ...)
@@ -273,7 +276,7 @@ int EDBM_CallOpfSilent(BMEditMesh *em, const char *fmt, ...)
 	BMO_Exec_Op(bm, &bmop);
 
 	va_end(list);
-	return EDBM_FinishOp(em, &bmop, NULL, 0);
+	return EDBM_FinishOp(em, &bmop, NULL, FALSE);
 }
 
 void EDBM_selectmode_to_scene(bContext *C)
@@ -499,7 +502,9 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 
 void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 {
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
 	int i;
@@ -508,7 +513,7 @@ void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 		BM_clear_selection_history(em->bm);
 
 	for (i=0; i<3; i++) {
-		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
 			if (hflag & BM_SELECT) BM_Select(em->bm, ele, FALSE);
 			BM_ClearHFlag(ele, hflag);
 		}
@@ -517,13 +522,15 @@ void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 
 void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
 {
-	const char itypes[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
 	int i;
 
 	for (i=0; i<3; i++) {
-		ele= BMIter_New(&iter, em->bm, itypes[i], NULL);
+		ele= BMIter_New(&iter, em->bm, iter_types[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (hflag & BM_SELECT) {
 				BM_Select(em->bm, ele, TRUE);

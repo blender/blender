@@ -429,7 +429,8 @@ static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	CDBlockBytes min, max;
 	int i, tot, type = bm->ldata.layers[layer].type;
 
-	BMO_Clear_Flag_All(bm, op, BM_ALL, 65535);
+	/* clear all short flags */
+	BMO_Clear_Flag_All(bm, op, BM_ALL, (1 << 16) - 1);
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
 

@@ -555,22 +555,26 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 
 void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b)
 {
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+	const char *type_names[3] = {"vert", "edge", "face"};
+
 	BMIter iter;
 	BMHeader *ele;
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-	const char *type_names[3] = {"vert", "edge", "face"};
-	const char type_flags[3] = {BM_VERT, BM_EDGE, BM_FACE};
 	int i;
 	int is_any_error = 0;
 
 	for (i = 0; i < 3; i++) {
-		const int is_dirty = (type_flags[i] & bm->elem_index_dirty);
+		const int is_dirty = (flag_types[i] & bm->elem_index_dirty);
 		int index = 0;
 		int is_error = FALSE;
 		int err_val = 0;
 		int err_idx = 0;
 
-		BM_ITER(ele, &iter, bm, types[i], NULL) {
+		BM_ITER(ele, &iter, bm, iter_types[i], NULL) {
 			if (!is_dirty) {
 				if (BM_GetIndex(ele) != index) {
 					err_val = BM_GetIndex(ele);

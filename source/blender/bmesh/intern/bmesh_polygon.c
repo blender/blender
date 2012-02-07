@@ -851,7 +851,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
  * triangles, and will be NULL-terminated.
  */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         int newedgeflag, int newfaceflag, BMFace **newfaces)
+                         const int newedge_oflag, const int newface_oflag, BMFace **newfaces)
 {
 	int i, done, nvert, nf_i = 0;
 	BMLoop *newl, *nextloop;
@@ -899,8 +899,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 				break;
 			}
 
-			BMO_SetFlag(bm, newl->e, newedgeflag);
-			BMO_SetFlag(bm, f, newfaceflag);
+			BMO_SetFlag(bm, newl->e, newedge_oflag);
+			BMO_SetFlag(bm, f, newface_oflag);
 			
 			if (newfaces) newfaces[nf_i++] = f;
 
@@ -931,8 +931,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 			if (newfaces) newfaces[nf_i++] = f;
 			
-			BMO_SetFlag(bm, newl->e, newedgeflag);
-			BMO_SetFlag(bm, f, newfaceflag);
+			BMO_SetFlag(bm, newl->e, newedge_oflag);
+			BMO_SetFlag(bm, f, newface_oflag);
 			l_iter = nextloop;
 		}
 	}

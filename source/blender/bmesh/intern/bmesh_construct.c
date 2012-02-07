@@ -368,33 +368,39 @@ err:
  *
  */
 
-void BM_remove_tagged_faces(BMesh *bm, int flag)
+void BM_remove_tagged_faces(BMesh *bm, const int oflag)
 {
 	BMFace *f;
 	BMIter iter;
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, f, flag)) BM_Kill_Face(bm, f);
+		if (BMO_TestFlag(bm, f, oflag)) {
+			BM_Kill_Face(bm, f);
+		}
 	}
 }
 
-void BM_remove_tagged_edges(BMesh *bm, int flag)
+void BM_remove_tagged_edges(BMesh *bm, const int oflag)
 {
 	BMEdge *e;
 	BMIter iter;
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, e, flag)) BM_Kill_Edge(bm, e);
+		if (BMO_TestFlag(bm, e, oflag)) {
+			BM_Kill_Edge(bm, e);
+		}
 	}
 }
 
-void BM_remove_tagged_verts(BMesh *bm, int flag)
+void BM_remove_tagged_verts(BMesh *bm, const int oflag)
 {
 	BMVert *v;
 	BMIter iter;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, v, flag)) BM_Kill_Vert(bm, v);
+		if (BMO_TestFlag(bm, v, oflag)) {
+			BM_Kill_Vert(bm, v);
+		}
 	}
 }
 

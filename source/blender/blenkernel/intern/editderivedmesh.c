@@ -349,17 +349,16 @@ typedef struct EditDerivedBMesh {
 /* BMESH_TODO, since this is not called get functions fail! */
 static void UNUSED_FUNCTION(bmdm_recalc_lookups)(EditDerivedBMesh *bmdm)
 {
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	BMHeader **iters_table[3] = {(BMHeader **)bmdm->vtable,
+	                             (BMHeader **)bmdm->etable,
+	                             (BMHeader **)bmdm->ftable};
+
 	BMIter iter;
 	int a, i;
-
-	int iters[3] = {BM_VERTS_OF_MESH,
-	                BM_EDGES_OF_MESH,
-	                BM_FACES_OF_MESH};
-
-	BMHeader **iters_table[3] = {
-	        (BMHeader **)bmdm->vtable,
-	        (BMHeader **)bmdm->etable,
-	        (BMHeader **)bmdm->ftable};
 
 	bmdm->tv = bmdm->tc->bm->totvert;
 	bmdm->te = bmdm->tc->bm->totedge;
@@ -385,7 +384,7 @@ static void UNUSED_FUNCTION(bmdm_recalc_lookups)(EditDerivedBMesh *bmdm)
 		BMHeader **table = iters_table[a];
 		BMHeader *ele;
 
-		ele = BMIter_New(&iter, bmdm->tc->bm, iters[a], NULL);
+		ele = BMIter_New(&iter, bmdm->tc->bm, iter_types[a], NULL);
 		for (i=0; ele; ele=BMIter_Step(&iter), i++) {
 			table[i] = ele;
 			BM_SetIndex(ele, i);  /* set_ok */

@@ -82,10 +82,10 @@ int EDBM_CallOpfSilent(struct BMEditMesh *em, const char *fmt, ...);
   
   execute the operator with BM_Exec_Op*/
 int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
-		struct wmOperator *op, const char *fmt, ...);
+                 struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/
 int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
-		struct wmOperator *op, int report);
+                  struct wmOperator *op, const int report);
 
 void EDBM_clear_flag_all(struct BMEditMesh *em, const char hflag);
 void EDBM_store_selection(struct BMEditMesh *em, void *data);
