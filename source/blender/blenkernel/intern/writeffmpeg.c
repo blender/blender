@@ -78,7 +78,6 @@ static AVFormatContext* outfile = 0;
 static AVStream* video_stream = 0;
 static AVStream* audio_stream = 0;
 static AVFrame* current_frame = 0;
-static int img_convert_fmt = 0;
 static struct SwsContext *img_convert_ctx = 0;
 
 static uint8_t* video_buffer = 0;
@@ -293,8 +292,8 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	int height = c->height;
 	AVFrame* rgb_frame;
 
-	if (c->pix_fmt != img_convert_fmt) {
-		rgb_frame = alloc_picture(img_convert_fmt, width, height);
+	if (c->pix_fmt != PIX_FMT_BGR32) {
+		rgb_frame = alloc_picture(PIX_FMT_BGR32, width, height);
 		if (!rgb_frame) {
 			BKE_report(reports, RPT_ERROR, "Couldn't allocate temporary frame.");
 			return NULL;
@@ -344,7 +343,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 		}
 	}
 
-	if (c->pix_fmt != img_convert_fmt) {
+	if (c->pix_fmt != PIX_FMT_BGR32) {
 		sws_scale(img_convert_ctx, (const uint8_t * const*) rgb_frame->data,
 		          rgb_frame->linesize, 0, c->height,
 		          current_frame->data, current_frame->linesize);
@@ -487,8 +486,6 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	
 	/* Be sure to use the correct pixel format(e.g. RGB, YUV) */
 
-	img_convert_fmt = PIX_FMT_BGR32;
-
 	if (codec->pix_fmts) {
 		c->pix_fmt = codec->pix_fmts[0];
 	} else {
@@ -517,7 +514,6 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	if ( codec_id == CODEC_ID_QTRLE ) {
 		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
 			c->pix_fmt = PIX_FMT_ARGB;
-			img_convert_fmt = PIX_FMT_BGRA;
 		}
 	}
 
@@ -569,7 +565,7 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
 	img_convert_ctx = sws_getContext(c->width, c->height,
-					 img_convert_fmt,
+					 PIX_FMT_BGR32,
 					 c->width, c->height,
 					 c->pix_fmt,
 					 SWS_BICUBIC,
