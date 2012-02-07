@@ -36,7 +36,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.h" 
+#include "BKE_customdata.h"
 #include "BKE_utildefines.h"
 #include "BKE_multires.h"
 
@@ -104,7 +104,7 @@ static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNU
  *
  *  Walks around the faces of an edge and interpolates the per-face-edge
  *  data between two sources to a target.
- * 
+ *
  *  Returns -
  *	Nothing
  */
@@ -136,7 +136,7 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 			return;
 		
 		src[0] = v1loop->head.data;
-		src[1] = v2loop->head.data;					
+		src[1] = v2loop->head.data;
 
 		CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, vloop->head.data);
 		l = l->radial_next;
@@ -144,7 +144,7 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 }
 
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
-                         BMFace *f, int numTex, int numCol) 
+                         BMFace *f, int numTex, int numCol)
 {
 	BMLoop *l;
 	BMIter iter;
@@ -197,7 +197,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
  *
  *  projects target onto source, and pulls interpolated customdata from
  *  source.
- * 
+ *
  *  Returns -
  *	Nothing
  */
@@ -636,11 +636,11 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		
 		/*
 		 *  mdisps is a grid of displacements, ordered thus:
-		 *  
+		 *
 		 *                     v4/next
-		 *                       |		                
+		 *                       |
 		 *   |      v1/cent-----mid2 ---> x
-		 *   |         |         | 
+		 *   |         |         |
 		 *   |         |         |
 		 *  v2/prev---mid1-----v3/cur
 		 *             |
@@ -667,11 +667,11 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		
 		/*
 		 *  mdisps is a grid of displacements, ordered thus:
-		 *  
+		 *
 		 *                     v4/next
-		 *                       |		                
+		 *                       |
 		 *   |      v1/cent-----mid2 ---> x
-		 *   |         |         | 
+		 *   |         |         |
 		 *   |         |         |
 		 *  v2/prev---mid1-----v3/cur
 		 *             |
@@ -725,7 +725,7 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 	bmesh_loop_interp_mdisps(bm, target, source);
 }
 
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, 
+void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
                               int do_vertex, int do_multires)
 {
 	BMLoop *l_iter;

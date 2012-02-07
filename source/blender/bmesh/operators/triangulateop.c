@@ -65,12 +65,10 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 				BLI_array_growone(newfaces);
 			}
 		}
-		
-		BM_Triangulate_Face(bm, face, projectverts, EDGE_NEW, 
-		                    FACE_NEW, newfaces);
 
-		BMO_Insert_MapPointer(bm, op, "facemap", 
-		                      face, face);
+		BM_Triangulate_Face(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces);
+
+		BMO_Insert_MapPointer(bm, op, "facemap", face, face);
 		for (i = 0; newfaces[i]; i++) {
 			BMO_Insert_MapPointer(bm, op, "facemap",
 			                      newfaces[i], face);

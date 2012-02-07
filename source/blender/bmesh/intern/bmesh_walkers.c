@@ -47,20 +47,20 @@
 
 /* - joeedh -
  * design notes:
- * 
+ *
  * original desing: walkers directly emulation recursive functions.
  * functions save their state onto a worklist, and also add new states
  * to implement recursive or looping behaviour.  generally only one
  * state push per call with a specific state is desired.
- * 
+ *
  * basic design pattern: the walker step function goes through it's
  * list of possible choices for recursion, and recurses (by pushing a new state)
  * using the first non-visited one.  this choise is the flagged as visited using
  * the ghash.  each step may push multiple new states onto the worklist at once.
- * 
+ *
  * - walkers use tool flags, not header flags
- * - walkers now use ghash for storing visited elements, 
- *   rather then stealing flags.  ghash can be rewritten 
+ * - walkers now use ghash for storing visited elements,
+ *   rather then stealing flags.  ghash can be rewritten
  *   to be faster if necassary, in the far future :) .
  * - tools should ALWAYS have necassary error handling
  *   for if walkers fail.
@@ -75,8 +75,8 @@ void *BMW_Begin(BMWalker *walker, void *start)
 
 /*
  * BMW_CREATE
- * 
- * Allocates and returns a new mesh walker of 
+ *
+ * Allocates and returns a new mesh walker of
  * a given type. The elements visited are filtered
  * by the bitmask 'searchmask'.
  */
@@ -253,7 +253,7 @@ void *BMW_addstate(BMWalker *walker)
 	default:
 		BLI_assert(0);
 		break;
-	}		
+	}
 	return newstate;
 }
 

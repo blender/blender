@@ -49,8 +49,8 @@ def main():
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
-        if not 'bevel' in c: continue
-        if 'MOD' in c: continue
+        # if not 'bevel' in c: continue
+        # if 'MOD' in c: continue
         cmd = ([CHECKER_BIN] +
                 CHECKER_ARGS +
                [c] +

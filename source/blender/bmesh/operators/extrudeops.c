@@ -255,7 +255,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (delorig) {
-		BMO_InitOpf(bm, &delop, "del geom=%fvef context=%d", 
+		BMO_InitOpf(bm, &delop, "del geom=%fvef context=%d",
 		            EXT_DEL, DEL_ONLYTAGGED);
 	}
 
@@ -506,7 +506,7 @@ static void calc_solidify_normals(BMesh *bm)
 				}
 			}
 			copy_v3_v3(v->no, f->no);
-		}	
+		}
 	}
 }
 

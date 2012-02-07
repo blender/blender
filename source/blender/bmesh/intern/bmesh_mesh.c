@@ -98,7 +98,7 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 	return bm;
 }
 
-/*	
+/*
  *	BMESH FREE MESH
  *
  *	Frees a BMesh structure.
@@ -198,7 +198,7 @@ void BM_Clear_Mesh(BMesh *bm)
 	bm->totflags = 1;
 }
 
-/*	
+/*
  *	BMESH FREE MESH
  *
  *	Frees a BMesh structure.
@@ -214,7 +214,7 @@ void BM_Free_Mesh(BMesh *bm)
  *  BMESH COMPUTE NORMALS
  *
  *  Updates the normals of a mesh.
- *  Note that this can only be called  
+ *  Note that this can only be called
  *
  */
 
@@ -426,11 +426,11 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 	}
 }
 
-/*	
+/*
  *	BMESH BEGIN/END EDIT
  *
- *	Functions for setting up a mesh for editing and cleaning up after 
- *  the editing operations are done. These are called by the tools/operator 
+ *	Functions for setting up a mesh for editing and cleaning up after
+ *  the editing operations are done. These are called by the tools/operator
  *  API for each time a tool is executed.
  */
 void bmesh_begin_edit(BMesh *bm, int flag)

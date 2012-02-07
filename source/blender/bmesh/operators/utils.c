@@ -21,7 +21,7 @@
  */
 
 #include "MEM_guardedalloc.h"
-#include "BKE_customdata.h" 
+#include "BKE_customdata.h"
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
@@ -52,7 +52,7 @@
 /*
  * UTILS.C
  *
- * utility bmesh operators, e.g. transform, 
+ * utility bmesh operators, e.g. transform,
  * translate, rotate, scale, etc.
  *
  */
@@ -63,7 +63,7 @@ void bmesh_makevert_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Get_Vec(op, "co", vec);
 
-	BMO_SetFlag(bm, BM_Make_Vert(bm, vec, NULL), 1);	
+	BMO_SetFlag(bm, BM_Make_Vert(bm, vec, NULL), 1);
 	BMO_Flag_To_Slot(bm, op, "newvertout", 1, BM_VERT);
 }
 
@@ -1256,8 +1256,9 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 
 	h = BLI_heap_new();
 
-	for (i = 0; i < num_total; i++ )
+	for (i = 0; i < num_total; i++) {
 		vert_list[i].hn = BLI_heap_insert(h, vert_list[i].weight, vert_list[i].v);
+	}
 
 	while (!BLI_heap_empty(h)) {
 		BMEdge *e;
@@ -1280,7 +1281,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 				e_weight += len_v3v3(e->v1->co, e->v2->co);
 			else e_weight += 1.0f;
 
-			u = ( e->v1 == v ) ? e->v2 : e->v1;
+			u = (e->v1 == v) ? e->v2 : e->v1;
 
 			if (e_weight < vert_list[BM_GetIndex(u)].weight) { /* is this path shorter ? */
 				/* add it if so */

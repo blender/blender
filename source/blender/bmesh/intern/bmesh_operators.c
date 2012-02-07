@@ -94,7 +94,7 @@ void BMO_Clear_OpFlag(BMesh *UNUSED(bm), BMOperator *op, int flag)
 /*
  * BMESH OPSTACK PUSH
  *
- * Pushes the opstack down one level 
+ * Pushes the opstack down one level
  * and allocates a new flag layer if
  * appropriate.
  */
@@ -112,7 +112,7 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 /*
  * BMESH OPSTACK POP
  *
- * Pops the opstack one level  
+ * Pops the opstack one level
  * and frees a flag layer if appropriate
  * BMESH_TODO: investigate NOT freeing flag
  * layers.
@@ -128,7 +128,7 @@ void BMO_pop(BMesh *bm)
 /*
  * BMESH OPSTACK INIT OP
  *
- * Initializes an operator structure  
+ * Initializes an operator structure
  * to a certain type
  */
 void BMO_Init_Op(BMesh *bm, BMOperator *op, const char *opname)
@@ -184,7 +184,7 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
 	if (bm->stackdepth == 2)
 		bmesh_end_edit(bm, op->flag);
 	
-	BMO_pop(bm);	
+	BMO_pop(bm);
 }
 
 /*
@@ -201,7 +201,7 @@ void BMO_Finish_Op(BMesh *bm, BMOperator *op)
 	for (i = 0; opdefines[op->type]->slottypes[i].type; i++) {
 		slot = &op->slots[i];
 		if (slot->slottype == BMOP_OPSLOT_MAPPING) {
-			if (slot->data.ghash) 
+			if (slot->data.ghash)
 				BLI_ghash_free(slot->data.ghash, NULL, NULL);
 		}
 	}
@@ -230,7 +230,7 @@ int BMO_HasSlot(BMOperator *op, const char *slotname)
 /*
  * BMESH OPSTACK GET SLOT
  *
- * Returns a pointer to the slot of  
+ * Returns a pointer to the slot of
  * type 'slotcode'
  */
 BMOpSlot *BMO_GetSlot(BMOperator *op, const char *slotname)
@@ -279,24 +279,21 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, c
 			if (!source_slot->data.ghash) return;
 			
 			if (!dest_slot->data.ghash) {
-				dest_slot->data.ghash = 
-				      BLI_ghash_new(BLI_ghashutil_ptrhash, 
-					  BLI_ghashutil_ptrcmp, "bmesh operator 2");
+				dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
+				                                      BLI_ghashutil_ptrcmp, "bmesh operator 2");
 			}
 
 			BLI_ghashIterator_init(&it, source_slot->data.ghash);
 			for ( ; (srcmap = BLI_ghashIterator_getValue(&it));
 			      BLI_ghashIterator_step(&it))
 			{
-				dstmap = BLI_memarena_alloc(dest_op->arena, 
-				            sizeof(*dstmap) + srcmap->len);
+				dstmap = BLI_memarena_alloc(dest_op->arena, sizeof(*dstmap) + srcmap->len);
 
 				dstmap->element = srcmap->element;
 				dstmap->len = srcmap->len;
 				memcpy(dstmap + 1, srcmap + 1, srcmap->len);
 
-				BLI_ghash_insert(dest_slot->data.ghash,
-				                 dstmap->element, dstmap);
+				BLI_ghash_insert(dest_slot->data.ghash, dstmap->element, dstmap);
 			}
 		}
 	}
@@ -461,7 +458,7 @@ int BMO_CountFlag(BMesh *bm, int flag, const char htype)
 		}
 	}
 
-	return count;	
+	return count;
 }
 
 void BMO_Clear_Flag_All(BMesh *bm, BMOperator *UNUSED(op), const char htype, int flag)
@@ -538,7 +535,7 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 }
 #endif
 
-void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op, 
+void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 			 const char *slotname, int flag)
 {
 	GHashIterator it;
@@ -616,7 +613,7 @@ static void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, con
 /*
  * BMO_HEADERFLAG_TO_SLOT
  *
- * Copies elements of a certain type, which have a certain header flag set 
+ * Copies elements of a certain type, which have a certain header flag set
  * into a slot for an operator.
  */
 
@@ -669,7 +666,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
  *
  * BMO_FLAG_TO_SLOT
  *
- * Copies elements of a certain type, which have a certain flag set 
+ * Copies elements of a certain type, which have a certain flag set
  * into an output slot for an operator.
  */
 void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
@@ -831,7 +828,7 @@ void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
  *
  *	ALLOC/FREE FLAG LAYER
  *
- *  Used by operator stack to free/allocate 
+ *  Used by operator stack to free/allocate
  *  private flag data. This is allocated
  *  using a mempool so the allocation/frees
  *  should be quite fast.
@@ -1101,7 +1098,7 @@ typedef struct BMOFlag {
 	int flag;
 } BMOFlag;
 
-#define PAIR(f) {#f, f},
+#define PAIR(f) {#f, f},fv
 static const char *bmesh_flags = {
 	PAIR(BM_SELECT);
 	PAIR(BM_SEAM);
@@ -1309,26 +1306,30 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					ret = 0;
 					stop = 0;
 					while (1) {
-					switch (NEXT_CHAR(fmt)) {
-						case 'f': ret |= BM_FACE; break;
-						case 'e': ret |= BM_EDGE; break;
-						case 'v': ret |= BM_VERT; break;
-						default:
-							stop = 1;
+						switch (NEXT_CHAR(fmt)) {
+							case 'f': ret |= BM_FACE; break;
+							case 'e': ret |= BM_EDGE; break;
+							case 'v': ret |= BM_VERT; break;
+							default:
+								stop = 1;
+								break;
+						}
+						if (stop) {
 							break;
+						}
+
+						fmt++;
 					}
-					if (stop) break;
-					fmt++;
+
+					if (type == 'h') {
+						BMO_HeaderFlag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
 					}
-					
-					if (type == 'h')
-						BMO_HeaderFlag_To_Slot(bm, op, 
-						   slotname, va_arg(vlist, int), ret);
-					else if (type == 'a')
+					else if (type == 'a') {
 						BMO_All_To_Slot(bm, op, slotname, ret);
-					else
-						BMO_Flag_To_Slot(bm, op, slotname, 
-							     va_arg(vlist, int), ret);
+					}
+					else {
+						BMO_Flag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
+					}
 				}
 
 				state = 1;

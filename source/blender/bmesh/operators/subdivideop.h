@@ -34,7 +34,7 @@ typedef struct subdparams {
 	float off[3];
 } subdparams;
 
-typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts, 
+typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts,
                                      const subdparams *params);
 
 /*

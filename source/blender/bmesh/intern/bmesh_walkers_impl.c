@@ -45,13 +45,13 @@
 
 /*	Shell Walker:
  *
- *	Starts at a vertex on the mesh and walks over the 'shell' it belongs 
+ *	Starts at a vertex on the mesh and walks over the 'shell' it belongs
  *	to via visiting connected edges.
  *
  *	TODO:
  *
  *  Add restriction flag/callback for wire edges.
- * 
+ *
  */
 
 static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e)
@@ -150,7 +150,7 @@ static void *shellWalker_step(BMWalker *walker)
 	/* find the next edge whose other vertex has not been visite */
 	curedge = shellWalk.curedge;
 	do {
-		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
+		if (!BLI_ghash_haskey(walker->visithash, curedge)) {
 			if (!walker->restrictflag || (walker->restrictflag &&
 			   BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
 			{
@@ -178,7 +178,7 @@ static void *shellWalker_step(BMWalker *walker)
 /*	Connected Vertex Walker:
  *
  *	Similar to shell walker, but visits vertices instead of edges.
- * 
+ *
  */
 
 static void connectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
@@ -240,7 +240,7 @@ static void *connectedVertexWalker_step(BMWalker *walker)
  *	TODO:
  *
  *  Add restriction flag/callback for wire edges.
- * 
+ *
  */
 
 static void islandboundWalker_begin(BMWalker *walker, void *data)
@@ -323,7 +323,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 	//if (!BMO_TestFlag(walker->bm, l->f, walker->restrictflag))
 	//	iwalk->curloop = l->radial_next;
 	iwalk->curloop = l; //else iwalk->curloop = l;
-	iwalk->lastv = v;				
+	iwalk->lastv = v;
 
 	return owalk.curloop;
 }
@@ -336,7 +336,7 @@ static void *islandboundWalker_step(BMWalker *walker)
  *	TODO:
  *
  *  Add restriction flag/callback for wire edges.
- * 
+ *
  */
 
 static void islandWalker_begin(BMWalker *walker, void *data)
@@ -532,7 +532,7 @@ static void *loopWalker_step(BMWalker *walker)
  *	Starts at a tool-flagged face and walks over the face loop
  * Conditions for starting and stepping the face loop have been
  * tuned in an attempt to match the face loops built by EditMesh
- * 
+ *
  */
 
 /* Check whether the face loop should includes the face specified
@@ -664,7 +664,7 @@ static void *faceloopWalker_step(BMWalker *walker)
  *	Starts at a tool-flagged edge and walks over the edge ring
  * Conditions for starting and stepping the edge ring have been
  * tuned in an attempt to match the edge rings built by EditMesh
- * 
+ *
  */
 
 static void edgeringWalker_begin(BMWalker *walker, void *data)

@@ -91,7 +91,7 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 
 		cross_v3_v3v3(no, l_vec_prev, l_vec_next);
 		if (dot_v3v3(no, no) == 0.0f) {
-			no[0] = no[1] = 0.0f; no[2] = -1.0f;	
+			no[0] = no[1] = 0.0f; no[2] = -1.0f;
 		}
 		
 		is_concave = dot_v3v3(no, up) < 0.0f;
@@ -299,7 +299,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
 						BLI_array_growone(etags);
 						BM_SetIndex(l2->e, BLI_array_count(etags) - 1); /* set_dirty! */
-						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);						
+						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);
 						BMO_SetFlag(bm, l2->e, EDGE_OLD);
 					}
 				}
@@ -382,7 +382,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 			else if (BMO_TestFlag(bm, l->v, BEVEL_FLAG)) {
 				tag = tags + BM_GetIndex(l);
-				tag->newv = ETAG_GET(l->e, l->v);				
+				tag->newv = ETAG_GET(l->e, l->v);
 		
 				if (!tag->newv) {
 					sub_v3_v3v3(co, l->next->v->co, l->v->co);
@@ -400,7 +400,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					tag->newv = BM_Make_Vert(bm, co, l->v);
 					
 					ETAG_SET(l->e, l->v, tag->newv);
-				}					
+				}
 			}
 			else {
 				tag = tags + BM_GetIndex(l);
@@ -453,8 +453,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		e = BM_Make_Edge(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, 1);
-		if (BM_FACE_FIRST_LOOP(faces[i])->prev->e != e) 
+		if (BM_FACE_FIRST_LOOP(faces[i])->prev->e != e) {
 			BM_Copy_Attributes(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
+		}
 		BLI_array_append(edges, e);
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), 0);
@@ -588,7 +589,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			else {
 				f = NULL;
 			}
-		}	
+		}
 	}
 	
 	/* fill in holes at vertices */

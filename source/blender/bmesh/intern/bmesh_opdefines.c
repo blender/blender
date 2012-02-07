@@ -61,34 +61,34 @@
 
 /* ok, I'm going to write a little docgen script. so all
  * bmop comments must conform to the following template/rules:
- * 
+ *
  * template (py quotes used because nested comments don't work
  * on all C compilers):
- * 
+ *
  * """
  * Region Extend.
- * 
+ *
  * paragraph1, Extends bleh bleh bleh.
  * Bleh Bleh bleh.
- * 
+ *
  * Another paragraph.
- * 
+ *
  * Another paragraph.
  * """
- * 
+ *
  * so the first line is the "title" of the bmop.
  * subsequent line blocks seperated by blank lines
- * are paragraphs.  individual descriptions of slots 
+ * are paragraphs.  individual descriptions of slots
  * would be extracted from comments
  * next to them, e.g.
- * 
+ *
  * {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output slot, boundary region
- * 
+ *
  * the doc generator would automatically detect the presence of "output slot"
  * and flag the slot as an output.  the same happens for "input slot".  also
- * note that "edges", "faces", "verts", "loops", and "geometry" are valid 
- * substitutions for "slot". 
- * 
+ * note that "edges", "faces", "verts", "loops", and "geometry" are valid
+ * substitutions for "slot".
+ *
  * note that slots default to being input slots.
  */
 
@@ -128,12 +128,12 @@ static BMOpDefine def_righthandfaces = {
 
 /*
  * Region Extend
- * 
+ *
  * used to implement the select more/less tools.
  * this puts some geometry surrounding regions of
  * geometry in geom into geomout.
- * 
- * if usefaces is 0 then geomout spits out verts and edges, 
+ *
+ * if usefaces is 0 then geomout spits out verts and edges,
  * otherwise it spits out faces.
  */
 static BMOpDefine def_regionextend = {
@@ -182,7 +182,7 @@ static BMOpDefine def_reversefaces = {
 
 /*
  * Edge Bisect
- * 
+ *
  * Splits input edges (but doesn't do anything else).
  * This creates a 2-valence vert.
  */
@@ -253,7 +253,7 @@ static BMOpDefine def_removedoubles = {
 
 /*
  * Auto Merge
- * 
+ *
  * Finds groups of vertices closer then dist and merges them together,
  * using the weld verts bmop.  The merges must go from a vert not in
  * verts to one in verts.

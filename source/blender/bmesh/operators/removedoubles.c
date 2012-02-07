@@ -74,9 +74,9 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 #define FACE_MARK	2
 
 #if 0
-int remdoubles_face_overlaps(BMesh *bm, BMVert **varr, 
-			     int len, BMFace *exclude, 
-			     BMFace **overlapface)
+int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
+                             int len, BMFace *exclude,
+                             BMFace **overlapface)
 {
 	BMIter vertfaces;
 	BMFace *f;
@@ -144,10 +144,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_SetIndex(f, 0); /* set_dirty! */
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			if (BMO_TestFlag(bm, l->v, ELE_DEL))
+			if (BMO_TestFlag(bm, l->v, ELE_DEL)) {
 				BMO_SetFlag(bm, f, FACE_MARK|ELE_DEL);
-			if (BMO_TestFlag(bm, l->e, EDGE_COL)) 
+			}
+			if (BMO_TestFlag(bm, l->e, EDGE_COL)) {
 				BM_SetIndex(f, BM_GetIndex(f) + 1); /* set_dirty! */
+			}
 		}
 	}
 	bm->elem_index_dirty |= BM_FACE;
@@ -167,10 +169,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			v = l->v;
 			v2 = ((BMLoop *)l->next)->v;
-			if (BMO_TestFlag(bm, v, ELE_DEL)) 
+			if (BMO_TestFlag(bm, v, ELE_DEL)) {
 				v = BMO_Get_MapPointer(bm, op, "targetmap", v);
-			if (BMO_TestFlag(bm, v2, ELE_DEL)) 
+			}
+			if (BMO_TestFlag(bm, v2, ELE_DEL)) {
 				v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
+			}
 			
 			e2 = v != v2 ? BM_Edge_Exist(v, v2) : NULL;
 			if (e2) {
@@ -198,10 +202,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		v = loops[0]->v;
 		v2 = loops[1]->v;
 
-		if (BMO_TestFlag(bm, v, ELE_DEL)) 
+		if (BMO_TestFlag(bm, v, ELE_DEL)) {
 			v = BMO_Get_MapPointer(bm, op, "targetmap", v);
-		if (BMO_TestFlag(bm, v2, ELE_DEL)) 
+		}
+		if (BMO_TestFlag(bm, v2, ELE_DEL)) {
 			v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
+		}
 		
 		f2 = BM_Make_Ngon(bm, v, v2, edges, a, 1);
 		if (f2 && (f2 != f)) {
@@ -252,7 +258,7 @@ void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 	float fac;
 	int i, tot;
 
-	snapv = BMO_IterNew(&siter, bm, op, "snapv", BM_VERT);	
+	snapv = BMO_IterNew(&siter, bm, op, "snapv", BM_VERT);
 	tot = BM_Vert_FaceCount(snapv);
 
 	if (!tot)
@@ -269,7 +275,7 @@ void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 				int type = bm->ldata.layers[i].type;
 				void *e1, *e2;
 
-				e1 = CustomData_bmesh_get_layer_n(&bm->ldata, firstl->head.data, i); 
+				e1 = CustomData_bmesh_get_layer_n(&bm->ldata, firstl->head.data, i);
 				e2 = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
 				
 				CustomData_data_multiply(type, e2, fac);
@@ -282,8 +288,9 @@ void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
-			if (l == firstl) 
+			if (l == firstl) {
 				continue;
+			}
 
 			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, firstl->head.data, &l->head.data);
 		}
@@ -310,7 +317,7 @@ void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
 		BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
 			BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
 				block = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
-				CustomData_data_dominmax(type, block, &min, &max);	
+				CustomData_data_dominmax(type, block, &min, &max);
 			}
 		}
 
@@ -346,7 +353,7 @@ void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
 		}
 		else {
 			BMO_Insert_MapPointer(bm, &weldop, "targetmap", v, snapv);
-		}		
+		}
 	}
 
 	BMO_Exec_Op(bm, &weldop);
@@ -397,7 +404,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 			copy_v3_v3(edges[i]->v2->co, min);
 			
 			if (edges[i]->v1 != edges[0]->v1)
-				BMO_Insert_MapPointer(bm, &weldop, "targetmap", edges[i]->v1, edges[0]->v1);			
+				BMO_Insert_MapPointer(bm, &weldop, "targetmap", edges[i]->v1, edges[0]->v1);
 			if (edges[i]->v2 != edges[0]->v1)
 				BMO_Insert_MapPointer(bm, &weldop, "targetmap", edges[i]->v2, edges[0]->v1);
 		}

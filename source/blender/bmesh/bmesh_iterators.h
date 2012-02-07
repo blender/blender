@@ -22,9 +22,9 @@
 
 /*
  * BMESH ITERATORS
- * 
- * The functions and structures in this file 
- * provide a unified method for iterating over 
+ *
+ * The functions and structures in this file
+ * provide a unified method for iterating over
  * the elements of a mesh and answering simple
  * adjacency queries. Tool authors should use
  * the iterators provided in this file instead
@@ -58,8 +58,8 @@
 #define BM_VERTS_OF_FACE 			8
 #define BM_EDGES_OF_FACE 			9
 #define BM_LOOPS_OF_FACE 			10
-/* returns elements from all boundaries, and returns 
- * the first element at the end to flag that we're entering 
+/* returns elements from all boundaries, and returns
+ * the first element at the end to flag that we're entering
  * a different face hole boundary*/
 #define BM_ALL_LOOPS_OF_FACE		11
 

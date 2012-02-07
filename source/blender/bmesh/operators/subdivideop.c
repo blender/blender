@@ -275,7 +275,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 			co[2] = 0.0f;
 		}
 	}
-#endif	
+#endif
 	
 	return ev;
 }
@@ -288,8 +288,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	float percent, percent2 = 0.0f;
 	 
 	if (BMO_TestFlag(bm, edge, EDGE_PERCENT) && totpoint == 1)
-		percent = BMO_Get_MapFloat(bm, params->op, 
-			                "edgepercents", edge);
+		percent = BMO_Get_MapFloat(bm, params->op, "edgepercents", edge);
 	else {
 		percent = 1.0f / (float)(totpoint + 1-curpoint);
 		percent2 = (float)(curpoint + 1) / (float)(totpoint + 1);
@@ -312,8 +311,7 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const subdparams *par
 	temp.v2 = &ov2;
 	
 	for (i = 0; i < numcuts; i++) {
-		v = subdivideedgenum(bm, eed, &temp, i, params->numcuts, params, 
-		                     &newe, vsta, vend);
+		v = subdivideedgenum(bm, eed, &temp, i, params->numcuts, params, &newe, vsta, vend);
 
 		BMO_SetFlag(bm, v, SUBD_SPLIT);
 		BMO_SetFlag(bm, eed, SUBD_SPLIT);
@@ -388,7 +386,7 @@ static SubDPattern quad_1edge = {
  *  |   s  s   |
  *  v7-v0--v1-v2
  */
-static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts, 
+static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                   const subdparams *params)
 {
 	BMFace *nf;
@@ -414,7 +412,7 @@ static SubDPattern quad_2edge_path = {
  *  |   s  s   |
  *  v7-v0--v1-v2
  */
-static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts, 
+static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                        const subdparams *params)
 {
 	BMFace *nf;
@@ -520,7 +518,7 @@ static SubDPattern quad_3edge = {
  * first line |          |   last line
  *            |v10s s   s|v3
  *            v11-v0--v1-v2
- * 
+ *
  *            it goes from bottom up
  */
 static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
@@ -1037,7 +1035,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		j = a = 0;
 		for (nl = BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
-		     nl; nl = BMIter_Step(&liter)) {
+		     nl;
+		     nl = BMIter_Step(&liter))
+		{
 			if (nl->v == facedata[i].start) {
 				a = j + 1;
 				break;
@@ -1085,9 +1085,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 /* editmesh-emulating functio */
 void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth,
-               float fractal, int beauty, int numcuts, 
-               int seltype, int cornertype, int singleedge, 
-               int gridfill, int seed)
+                       float fractal, int beauty, int numcuts,
+                       int seltype, int cornertype, int singleedge,
+                       int gridfill, int seed)
 {
 	BMOperator op;
 	

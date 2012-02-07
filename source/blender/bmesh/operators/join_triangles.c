@@ -21,7 +21,7 @@
  */
 
 #include "MEM_guardedalloc.h"
-#include "BKE_customdata.h" 
+#include "BKE_customdata.h"
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
@@ -52,7 +52,7 @@
 /*
  * JOIN_TRIANGLES.C
  *
- * utility bmesh operators, e.g. transform, 
+ * utility bmesh operators, e.g. transform,
  * translate, rotate, scale, etc.
  *
  */
@@ -252,7 +252,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 
 	/* flag all edges of all input face */
 	BMO_ITER(f1, &siter, bm, op, "faces", BM_FACE) {
-		BMO_SetFlag(bm, f1, FACE_INPUT); 
+		BMO_SetFlag(bm, f1, FACE_INPUT);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f1) {
 			BMO_SetFlag(bm, l->e, EDGE_MARK);
 		}

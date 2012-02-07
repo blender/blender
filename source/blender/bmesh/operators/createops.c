@@ -149,8 +149,8 @@ static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert 
 	e1->next = e1->prev = NULL;
 }
 
-static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v, 
-									EdgeData *edata, VertData *UNUSED(vdata))
+static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
+                                      EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
 		return edata[BM_GetIndex(e)].dlink1.next;
@@ -159,8 +159,8 @@ static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
 	return NULL;
 }
 
-static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v, 
-						EdgeData *edata, VertData *UNUSED(vdata))
+static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
+                               EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
 		return edata[BM_GetIndex(e)].dlink1.prev;
@@ -545,7 +545,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 						SWAP(BMEdge *, edges[(i + totedge - 1) % totedge], edges[(i + 1) % totedge])
 						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge])
 					}
-				} 
+				}
 			}
 		}
 		
@@ -726,8 +726,8 @@ static void edge_free_path(PathBase *pathbase, EPath *path)
 	BLI_mempool_free(pathbase->pathpool, path);
 }
 
-static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, EdgeData *edata, 
-								VertData *vdata, PathBase *pathbase, int group)
+static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, EdgeData *edata,
+                                      VertData *vdata, PathBase *pathbase, int group)
 {
 	BMEdge *e;
 	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createops find shortest path");
@@ -781,7 +781,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			continue;
 		
 		v2 = NULL;
-		while (1) {		
+		while (1) {
 			if (!last->cure) {
 				last->cure = e = vdata[BM_GetIndex(last->v)].e;
 			}
@@ -931,7 +931,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	 			if (use_restrict) {
 					int i = 0, j = 0, gi = 0;
 					
-					group = BMO_Get_MapInt(bm, op, "restrict", e);				
+					group = BMO_Get_MapInt(bm, op, "restrict", e);
 					
 					for (i = 0; i < 30; i++) {
 						if (group & (1 << i)) {

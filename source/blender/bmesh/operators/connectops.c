@@ -121,7 +121,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(verts);
 }
 
-static BMVert *get_outer_vert(BMesh *bm, BMEdge *e) 
+static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
 	BMEdge *e2;
@@ -241,7 +241,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 					e2 = e3;
 			} while (e3 && e2 != e);
 			
-			if (v && !e3) {			
+			if (v && !e3) {
 				if (c == 0) {
 					if (BLI_array_count(vv1) && v == vv1[BLI_array_count(vv1) - 1]) {
 						printf("%s: internal state waning *TODO DESCRIPTION!*\n", __func__);
@@ -399,12 +399,12 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				SWAP(int, i2, i2next);
 			}
 
-			f = BM_Make_Face_QuadTri(bm, 
-				vv1[i1],
-				vv2[i2],
-				vv2[i2next],
-				vv1[i1next],
-				NULL, 1);
+			f = BM_Make_Face_QuadTri(bm,
+			                         vv1[i1],
+			                         vv2[i2],
+			                         vv2[i2next],
+			                         vv1[i1next],
+			                         NULL, 1);
 			if (!f || f->len != 4) {
 				fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 			}

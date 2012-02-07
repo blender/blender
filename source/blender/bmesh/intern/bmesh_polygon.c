@@ -105,8 +105,8 @@ static int point_in_triangle(const double v1[2], const double v2[2], const doubl
 /*
  * COMPUTE POLY NORMAL
  *
- * Computes the normal of a planar 
- * polygon See Graphics Gems for 
+ * Computes the normal of a planar
+ * polygon See Graphics Gems for
  * computing newell normal.
  *
  */
@@ -209,7 +209,7 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	j = 0;
 	
 	while (j < nverts) {
-		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];				
+		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];
 		atmp += ai;
 		xtmp += (verts[j][0] + verts[i][0]) * ai;
 		ytmp += (verts[j][1] + verts[i][1]) * ai;
@@ -290,7 +290,7 @@ void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
 /*
  * COMPUTE POLY PLANE
  *
- * Projects a set polygon's vertices to 
+ * Projects a set polygon's vertices to
  * a plane defined by the average
  * of its edges cross products
  *
@@ -337,7 +337,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		v1 = verts[i];
 		mag = dot_v3v3(v1, avgn);
 		madd_v3_v3fl(v1, avgn, -mag);
-	}	
+	}
 }
 
 /*
@@ -607,13 +607,13 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 
 /*
  * BMESH FLIP NORMAL
- * 
+ *
  *  Reverses the winding of a face.
- *  Note that this updates the calculated 
+ *  Note that this updates the calculated
  *  normal.
  */
 void BM_flip_normal(BMesh *bm, BMFace *f)
-{	
+{
 	bmesh_loop_reverse(bm, f);
 	negate_v3(f->no);
 }
@@ -837,10 +837,10 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 /*
  * BMESH TRIANGULATE FACE
  *
- * Triangulates a face using a 
+ * Triangulates a face using a
  * simple 'ear clipping' algorithm
  * that tries to favor non-skinny
- * triangles (angles less than 
+ * triangles (angles less than
  * 90 degrees). If the triangulator
  * has bits left over (or cannot
  * triangulate at all) it uses a
@@ -850,7 +850,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
  * with a length equal to f->len.  it will be filled with the new
  * triangles, and will be NULL-terminated.
  */
-void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], 
+void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          int newedgeflag, int newfaceflag, BMFace **newfaces)
 {
 	int i, done, nvert, nf_i = 0;

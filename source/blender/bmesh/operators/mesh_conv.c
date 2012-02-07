@@ -33,7 +33,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.h" 
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_DerivedMesh.h"
@@ -139,8 +139,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		keyco = actkey->data;
 		bm->shapenr = ob->shapenr;
 		for (i = 0, block = me->key->block.first; block; block = block->next, i++) {
-			CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, 
-			                 CD_ASSIGN, NULL, 0, block->name);
+			CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY,
+			                           CD_ASSIGN, NULL, 0, block->name);
 			
 			j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
 			bm->vdata.layers[j].uid = block->uid;
@@ -182,8 +182,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 			}
 			
 			for (block = me->key->block.first, j = 0; block; block = block->next, j++) {
-				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, 
-				                                   CD_SHAPEKEY, j);
+				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, j);
+
 				if (co) {
 					copy_v3_v3(co, ((float *)block->data) + 3 * i);
 				}

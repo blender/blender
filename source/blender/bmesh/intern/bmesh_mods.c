@@ -49,19 +49,19 @@
 /**
  *			bmesh_dissolve_disk
  *
- *  Turns the face region surrounding a manifold vertex into 
+ *  Turns the face region surrounding a manifold vertex into
  *  A single polygon.
  *
- * 
+ *
  * Example:
- * 
+ *
  *          |=========|             |=========|
  *          |  \   /  |             |         |
  * Before:  |    V    |      After: |         |
  *          |  /   \  |             |         |
  *          |=========|             |=========|
- * 
- * 
+ *
+ *
  */
 #if 1
 int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
@@ -80,7 +80,7 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
 	}
 	
 	if (len == 1) {
-		if (v->e) 
+		if (v->e)
 			BM_Kill_Edge(bm, v->e);
 		BM_Kill_Vert(bm, v);
 		return TRUE;
@@ -244,7 +244,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
  * BM_Join_TwoFaces
  *
  *  Joins two adjacenct faces togather.
- * 
+ *
  *  Because this method calls to BM_Join_Faces to do its work, ff a pair
  *  of faces share multiple edges, the pair of faces will be joined at
  *  every edge (not just edge e). This part of the functionality might need
@@ -338,7 +338,7 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
  *   v1 & v2 - vertices which define the split edge, must be different
  *   nl - pointer which will receive the BMLoop for the split edge in the new face
  *
- *  Notes: the 
+ *  Notes: the
 
  *  Returns -
  *	  Pointer to the newly created face representing one side of the split
@@ -532,7 +532,7 @@ BMEdge *BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
 
 /**
  *			BM_split_edge
- *	
+ *
  *	Splits an edge. v should be one of the vertices in e and
  *  defines the direction of the splitting operation for interpolation
  *  purposes.
@@ -550,7 +550,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	SmallHash hash;
 
 	/* we need this for handling multire */
-	if (!ne) 
+	if (!ne)
 		ne = &dummy;
 
 	/* do we have a multires layer */
@@ -570,7 +570,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 		for (i = 0; i < BLI_array_count(oldfaces); i++) {
 			oldfaces[i] = BM_Copy_Face(bm, oldfaces[i], 1, 1);
 			BLI_smallhash_insert(&hash, (intptr_t)oldfaces[i], NULL);
-		}		
+		}
 	}
 
 	v2 = bmesh_edge_getothervert(e, v);
@@ -588,7 +588,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	}
 
 	/* v->nv->v2 */
-	BM_Data_Facevert_Edgeinterp(bm, v2, v, nv, e, percent);	
+	BM_Data_Facevert_Edgeinterp(bm, v2, v, nv, e, percent);
 	BM_Data_Interp_From_Verts(bm, v, v2, nv, percent);
 
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l && nv) {
@@ -638,7 +638,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 			}
 			
 			do {
-				BM_multires_smooth_bounds(bm, l->f);				
+				BM_multires_smooth_bounds(bm, l->f);
 				l = l->radial_next;
 			} while (l != e1->l);
 		}
@@ -664,7 +664,7 @@ BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 	return nv;
 }
 
-int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err) 
+int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 {
 	BMIter iter;
 	BLI_array_declare(verts);

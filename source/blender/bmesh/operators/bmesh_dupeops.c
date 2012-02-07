@@ -52,7 +52,7 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
 	target_vertex = BM_Make_Vert(target_mesh, source_vertex->co,  NULL);
 	
 	/* Insert new vertex into the vert has */
-	BLI_ghash_insert(vhash, source_vertex, target_vertex);	
+	BLI_ghash_insert(vhash, source_vertex, target_vertex);
 	
 	/* Copy attribute */
 	BM_Copy_Attributes(source_mesh, target_mesh, source_vertex, target_vertex);
@@ -106,7 +106,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	}
 
 	/* Insert new edge into the edge hash */
-	BLI_ghash_insert(ehash, source_edge, target_edge);	
+	BLI_ghash_insert(ehash, source_edge, target_edge);
 	
 	/* Copy attributes */
 	BM_Copy_Attributes(source_mesh, target_mesh, source_edge, target_edge);
@@ -124,7 +124,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
  */
 
 static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
-                         BMFace *source_face, BMesh *target_mesh, 
+                         BMFace *source_face, BMesh *target_mesh,
                          BMVert **vtar, BMEdge **edar, GHash *vhash, GHash *ehash)
 {
 	/* BMVert *target_vert1, *target_vert2; */ /* UNUSED */
@@ -226,9 +226,10 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 					}
 				}
 			}
-			
-			if (iso) 
+
+			if (iso) {
 				BMO_Insert_MapPointer(source, op, "isovertmap", v, v2);
+			}
 
 			BMO_SetFlag(source, (BMHeader *)v, DUPE_DONE);
 		}
@@ -247,7 +248,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 				BMO_SetFlag(source, (BMHeader *)e->v2, DUPE_DONE);
 			}
 			/* now copy the actual edg */
-			copy_edge(op, source, e, target,  vhash,  ehash);			
+			copy_edge(op, source, e, target,  vhash,  ehash);
 			BMO_SetFlag(source, (BMHeader *)e, DUPE_DONE);
 		}
 	}
@@ -285,7 +286,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	
 	/* free pointer hashe */
 	BLI_ghash_free(vhash, NULL, NULL);
-	BLI_ghash_free(ehash, NULL, NULL);	
+	BLI_ghash_free(ehash, NULL, NULL);
 
 	BLI_array_free(vtar); /* free vert pointer array */
 	BLI_array_free(edar); /* free edge pointer array */
@@ -303,7 +304,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
  * BMOP_DUPE_FINPUT: Buffer containing pointers to mesh faces to be duplicated
  *
  * OUTPUT SLOTS:
- * 
+ *
  * BMOP_DUPE_VORIGINAL: Buffer containing pointers to the original mesh vertices
  * BMOP_DUPE_EORIGINAL: Buffer containing pointers to the original mesh edges
  * BMOP_DUPE_FORIGINAL: Buffer containing pointers to the original mesh faces
@@ -362,7 +363,7 @@ void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, const char hflag)
  * BMOP_DUPE_FINPUT: Buffer containing pointers to mesh faces to be split
  *
  * OUTPUT SLOTS:
- * 
+ *
  * BMOP_DUPE_VOUTPUT: Buffer containing pointers to the split mesh vertices
  * BMOP_DUPE_EOUTPUT: Buffer containing pointers to the split mesh edges
  * BMOP_DUPE_FOUTPUT: Buffer containing pointers to the split mesh faces

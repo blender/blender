@@ -46,9 +46,9 @@
 /*
  * BMESH SELECTMODE FLUSH
  *
- * Makes sure to flush selections 
+ * Makes sure to flush selections
  * 'upwards' (ie: all verts of an edge
- * selects the edge and so on). This 
+ * selects the edge and so on). This
  * should only be called by system and not
  * tool authors.
  *
@@ -142,7 +142,7 @@ void BM_SelectMode_Flush(BMesh *bm)
 /*
  * BMESH SELECT VERT
  *
- * Changes selection state of a single vertex 
+ * Changes selection state of a single vertex
  * in a mesh
  *
  */

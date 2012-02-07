@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-#include "BKE_customdata.h" 
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_DerivedMesh.h"

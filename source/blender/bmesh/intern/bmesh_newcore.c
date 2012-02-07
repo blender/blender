@@ -194,7 +194,7 @@ static BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge 
 	
 	l->f = f;
 	
-	return l;	
+	return l;
 }
 
 BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
@@ -580,7 +580,7 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e)
 			lnext = l->radial_next;
 			if (lnext->f == l->f) {
 				BM_Kill_Face(bm, l->f);
-				break;					
+				break;
 			}
 			
 			BM_Kill_Face(bm, l->f);
@@ -913,7 +913,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	/* create region fac */
 	newf = BM_Make_Ngon(bm, v1, v2, edges, tote, 0);
 	if (!newf || BMO_HasError(bm)) {
-		if (!BMO_HasError(bm)) 
+		if (!BMO_HasError(bm))
 			err = "Invalid boundary region to join faces";
 		goto error;
 	}
@@ -964,7 +964,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 				BM_loop_interp_multires(bm, l_iter, faces[i]);
 			}
 		} while ((l_iter = l_iter->next) != l_first);
-	}	
+	}
 
 	/* delete old geometr */
 	for (i = 0; i < BLI_array_count(deledges); i++) {
@@ -1334,14 +1334,14 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
  *	JOIN EDGE KILL VERT:
  *	Takes a an edge and pointer to one of its vertices and collapses
  *	the edge on that vertex.
- *	
+ *
  *	Before:    OE      KE
  *             	 ------- -------
  *               |     ||      |
  *		OV     KV      TV
  *
  *
- *   After:             OE      
+ *   After:             OE
  *             	 ---------------
  *               |             |
  *		OV             TV
@@ -1375,7 +1375,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 	if (len == 2) {
 		oe = bmesh_disk_nextedge(ke, kv);
 		tv = bmesh_edge_getothervert(ke, kv);
-		ov = bmesh_edge_getothervert(oe, kv);		
+		ov = bmesh_edge_getothervert(oe, kv);
 		halt = bmesh_verts_in_edge(kv, tv, oe); /* check for double edge */
 		
 		if (halt) {
@@ -1481,21 +1481,21 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
  *			bmesh_JFKE
  *
  *	JOIN FACE KILL EDGE:
- *	
+ *
  *	Takes two faces joined by a single 2-manifold edge and fuses them togather.
  *	The edge shared by the faces must not be connected to any other edges which have
  *	Both faces in its radial cycle
  *
  *	Examples:
- *	
+ *
  *        A                   B
  *	 ----------           ----------
- *	 |        |           |        | 
+ *	 |        |           |        |
  *	 |   f1   |           |   f1   |
  *	v1========v2 = Ok!    v1==V2==v3 == Wrong!
  *	 |   f2   |           |   f2   |
  *	 |        |           |        |
- *	 ----------           ---------- 
+ *	 ----------           ----------
  *
  *	In the example A, faces f1 and f2 are joined by a single edge, and the euler can safely be used.
  *	In example B however, f1 and f2 are joined by multiple edges and will produce an error. The caller

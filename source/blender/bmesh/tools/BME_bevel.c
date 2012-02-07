@@ -737,7 +737,7 @@ static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, 
 
 	if (BMO_TestFlag(bm, v, BME_BEVEL_NONMAN)) return;
 	BMO_SetFlag(bm, v, BME_BEVEL_BEVEL);
-	if ( (vtd = BME_get_transdata(td, v)) ) {
+	if ((vtd = BME_get_transdata(td, v))) {
 		if (options & BME_BEVEL_EMIN) {
 			vtd->factor = 1.0;
 			if (vtd->weight < 0 || weight < vtd->weight) {

@@ -100,7 +100,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		f2 = BMW_Begin(&regwalker, f);
 		for ( ; f2; f2 = BMW_Step(&regwalker)) {
 			BLI_array_append(faces, f2);
-		}				
+		}
 		BMW_End(&regwalker);
 		
 		for (i = 0; i < BLI_array_count(faces); i++) {
@@ -124,7 +124,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		
 		faces = regions[i];
 		if (!faces[0]) {
-			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
+			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED,
 			               "Could not find boundary of dissolve region");
 			goto cleanup;
 		}
@@ -134,7 +134,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		
 		f = BM_Join_Faces(bm, faces, tot);
 		if (!f) {
-			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
+			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED,
 			               "Could not create merged face");
 			goto cleanup;
 		}
@@ -429,7 +429,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 					//check for duplicate edges
 					l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 					for ( ; l; l = BMIter_Step(&liter)) {
-						ed[i] = l->e;	
+						ed[i] = l->e;
 						lp[i] = l;
 						vt[i++] = l->v;
 					}

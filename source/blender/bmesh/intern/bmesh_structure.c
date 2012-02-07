@@ -5,7 +5,7 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * about this.	
+ * about this.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -98,29 +98,29 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *  circular linked list, each one is considered to have a 'base' or 'head',
  *	and care must be taken by Euler code when modifying the contents of a cycle.
  *
- *	The contents of this file are split into two parts. First there are the 
- *	bmesh_cycle family of functions which are generic circular double linked list 
- *	procedures. The second part contains higher level procedures for supporting 
+ *	The contents of this file are split into two parts. First there are the
+ *	bmesh_cycle family of functions which are generic circular double linked list
+ *	procedures. The second part contains higher level procedures for supporting
  *	modification of specific cycle types.
  *
  *	The three cycles explicitly stored in the BM data structure are as follows:
  *
  *	1: The Disk Cycle - A circle of edges around a vertex
  *     Base: vertex->edge pointer.
- *	   
- *     This cycle is the most complicated in terms of its structure. Each bmesh_Edge contains	
+ *
+ *     This cycle is the most complicated in terms of its structure. Each bmesh_Edge contains
  *	   two bmesh_CycleNode structures to keep track of that edge's membership in the disk cycle
  *	   of each of its vertices. However for any given vertex it may be the first in some edges
  *	   in its disk cycle and the second for others. The bmesh_disk_XXX family of functions contain
- *	   some nice utilities for navigating disk cycles in a way that hides this detail from the 
+ *	   some nice utilities for navigating disk cycles in a way that hides this detail from the
  *	   tool writer.
  *
  *		Note that the disk cycle is completley independant from face data. One advantage of this
- *		is that wire edges are fully integrated into the topology database. Another is that the 
+ *		is that wire edges are fully integrated into the topology database. Another is that the
  *	    the disk cycle has no problems dealing with non-manifold conditions involving faces.
  *
  *		Functions relating to this cycle:
- *		
+ *
  *			bmesh_disk_append_edge
  *			bmesh_disk_remove_edge
  *			bmesh_disk_nextedge
@@ -130,33 +130,33 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *	   Base: edge->l->radial structure.
  *
  *		The radial cycle is similar to the radial cycle in the radial edge data structure.*
- *		Unlike the radial edge however, the radial cycle does not require a large amount of memory 
+ *		Unlike the radial edge however, the radial cycle does not require a large amount of memory
  *		to store non-manifold conditions since BM does not keep track of region/shell
  *		information.
- *		
+ *
  *		Functions relating to this cycle:
- *			
+ *
  *			bmesh_radial_append
  *			bmesh_radial_remove_loop
  *			bmesh_radial_nextloop
  *			bmesh_radial_find_face
- *		
+ *
  *
  *	3: The Loop Cycle - A circle of face edges around a polygon.
  *     Base: polygon->lbase.
  *
  *	   The loop cycle keeps track of a faces vertices and edges. It should be noted that the
- *     direction of a loop cycle is either CW or CCW depending on the face normal, and is 
- *     not oriented to the faces editedges. 
+ *     direction of a loop cycle is either CW or CCW depending on the face normal, and is
+ *     not oriented to the faces editedges.
  *
  *		Functions relating to this cycle:
- *		
+ *
  *			bmesh_cycle_XXX family of functions.
  *
- *	
- *	Note that the order of elements in all cycles except the loop cycle is undefined. This 
- *  leads to slightly increased seek time for deriving some adjacency relations, however the 
- *  advantage is that no intrinsic properties of the data structures are dependant upon the 
+ *
+ *	Note that the order of elements in all cycles except the loop cycle is undefined. This
+ *  leads to slightly increased seek time for deriving some adjacency relations, however the
+ *  advantage is that no intrinsic properties of the data structures are dependant upon the
  *  cycle order and all non-manifold conditions are represented trivially.
  *
  */
@@ -716,7 +716,7 @@ int bmesh_cycle_validate(int len, void *h)
  */
  
 BMEdge *bmesh_disk_nextedge(BMEdge *e, BMVert *v)
-{	
+{
 	if (bmesh_vert_in_edge(e, v)) {
 		if (e->v1 == v) {
 			return e->d1.next->data;
@@ -758,7 +758,7 @@ BMNode *bmesh_disk_getpointer(BMEdge *e, BMVert *v)
  */
 
 int bmesh_disk_append_edge(BMEdge *e, BMVert *v)
-{ 
+{
 	
 	BMNode *base, *tail;
 
@@ -816,7 +816,7 @@ void bmesh_disk_remove_edge(BMEdge *e, BMVert *v)
 /**
  *			bmesh_disk_next_edgeflag
  *
- *	Searches the disk cycle of v, starting with e, for the 
+ *	Searches the disk cycle of v, starting with e, for the
  *  next edge that has either eflag or tflag.
  *
  *	bmesh_Edge pointer.
@@ -854,7 +854,7 @@ BMEdge *bmesh_disk_next_edgeflag(BMEdge *e, BMVert *v, int eflag, int tflag)
 /**
  *			bmesh_disk_count_edgeflag
  *
- *	Counts number of edges in this verts disk cycle which have 
+ *	Counts number of edges in this verts disk cycle which have
  *	either eflag or tflag (but not both!)
  *
  *  Returns -

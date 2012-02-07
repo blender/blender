@@ -179,7 +179,7 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 /*
  * BMESH VERTS IN EDGE
  *
- * Returns whether or not two vertices are in 
+ * Returns whether or not two vertices are in
  * a given edge
  *
  */
@@ -233,7 +233,7 @@ int BM_Edge_FaceCount(BMEdge *e)
 	}
 
 	return count;
-}	
+}
 
 /*
  *  BMESH VERT FACECOUNT
@@ -318,7 +318,7 @@ int BM_Wire_Edge(BMesh *UNUSED(bm), BMEdge *e)
  *    2: Joins two distinct regions - (two pyramids joined at the tip)
  *    3: Is part of a non-manifold edge (edge with more than 2 faces)
  *    4: Is part of a wire edge
- * 
+ *
  *  Returns -
  *	1 for true, 0 for false.
  */
@@ -429,7 +429,7 @@ int BM_Boundary_Edge(BMEdge *e)
  *
  *  BMESH_TODO:
  *    Move this to structure, and wrap.
- * 
+ *
  *  Returns -
  *	Integer
  */
@@ -526,7 +526,7 @@ void BM_Edge_OrderedVerts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
  *
  *  Calculates the angle between two faces. Assumes
  *  That face normals are correct.
- * 
+ *
  *  Returns -
  *	Float.
  */
@@ -552,7 +552,7 @@ float BM_Face_Angle(BMesh *UNUSED(bm), BMEdge *e)
  * Returns:
  * 0 for no overlap
  * 1 for overlap
- * 
+ *
  *
  */
 
