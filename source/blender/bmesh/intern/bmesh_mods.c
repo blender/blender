@@ -71,7 +71,7 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
 	int len = 0;
 
 	if (!v) {
-		return 0;
+		return FALSE;
 	}
 	
 	e = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v);
@@ -83,7 +83,7 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
 		if (v->e) 
 			BM_Kill_Edge(bm, v->e);
 		BM_Kill_Vert(bm, v);
-		return 1;
+		return TRUE;
 	}
 
 	if (BM_Nonmanifold_Vert(bm, v)) {
@@ -93,10 +93,10 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
 			BM_Kill_Vert(bm, v);
 		}
 		else {
-			return 0;
+			return FALSE;
 		}
 
-		return 1;
+		return TRUE;
 	}
 
 	return BM_Dissolve_Disk(bm, v);
@@ -109,7 +109,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 	int len = 0;
 
 	if (BM_Nonmanifold_Vert(bm, v)) {
-		return 0;
+		return FALSE;
 	}
 	
 	if (v->e) {
@@ -134,19 +134,19 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		BMLoop *loop = e->l;
 		if (loop->v == v) loop = loop->next;
 		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL))
-			return 0;
+			return FALSE;
 
 		if (!BM_Dissolve_Disk(bm, v)) {
-			return 0;
+			return FALSE;
 		}
-		return 1;
+		return TRUE;
 	}
 	else if (keepedge == NULL && len == 2) {
 		/* collapse the verte */
 		e = BM_Collapse_Vert_Faces(bm, v->e, v, 1.0, TRUE);
 
 		if (!e) {
-			return 0;
+			return FALSE;
 		}
 
 		/* handle two-valenc */
@@ -154,10 +154,10 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		f2 = e->l->radial_next->f;
 
 		if (f != f2 && !BM_Join_TwoFaces(bm, f, f2, e)) {
-			return 0;
+			return FALSE;
 		}
 
-		return 1;
+		return TRUE;
 	}
 
 	if (keepedge) {
@@ -175,7 +175,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 					 * conditions */
 					//!disabled for testing why bad things happen
 					if (!f) {
-						return 0;
+						return FALSE;
 					}
 				}
 
@@ -191,7 +191,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		e = BM_Collapse_Vert_Faces(bm, baseedge, v, 1.0, TRUE);
 
 		if (!e) {
-			return 0;
+			return FALSE;
 		}
 		
 		/* get remaining two face */
@@ -201,12 +201,12 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		if (f != f2) {
 			/* join two remaining face */
 			if (!BM_Join_TwoFaces(bm, f, f2, e)) {
-				return 0;
+				return FALSE;
 			}
 		}
 	}
 
-	return 1;
+	return TRUE;
 }
 #else
 void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
@@ -575,7 +575,9 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 
 	v2 = bmesh_edge_getothervert(e, v);
 	nv = bmesh_semv(bm, v, e, ne);
-	if (nv == NULL) return NULL;
+	if (nv == NULL) {
+		return NULL;
+	}
 
 	sub_v3_v3v3(nv->co, v2->co, v->co);
 	madd_v3_v3v3fl(nv->co, v->co, nv->co, percent);

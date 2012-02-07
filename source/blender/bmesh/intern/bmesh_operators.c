@@ -1209,7 +1209,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 	if (i == -1) {
 		MEM_freeN(ofmt);
-		return 0;
+		return FALSE;
 	}
 
 	BMO_Init_Op(bm, op, opname);
@@ -1344,7 +1344,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	}
 
 	MEM_freeN(ofmt);
-	return 1;
+	return TRUE;
 error:
 
 	/* non urgent todo - explain exactly what is failing */
@@ -1354,7 +1354,7 @@ error:
 	MEM_freeN(ofmt);
 
 	BMO_Finish_Op(bm, op);
-	return 0;
+	return FALSE;
 
 #undef GOTO_ERROR
 
@@ -1369,11 +1369,11 @@ int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...)
 	if (!BMO_VInitOpf(bm, op, fmt, list)) {
 		printf("%s: failed\n", __func__);
 		va_end(list);
-		return 0;
+		return FALSE;
 	}
 	va_end(list);
 
-	return 1;
+	return TRUE;
 }
 
 int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
@@ -1385,14 +1385,14 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
 	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
 		printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
 		va_end(list);
-		return 0;
+		return FALSE;
 	}
 
 	BMO_Exec_Op(bm, &op);
 	BMO_Finish_Op(bm, &op);
 
 	va_end(list);
-	return 1;
+	return TRUE;
 }
 
 /*
@@ -1450,6 +1450,6 @@ static int BMO_TestFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
 	if (head->flags[bm->stackdepth - 1].f & flag)
-		return 1;
-	return 0;
+		return TRUE;
+	return FALSE;
 }

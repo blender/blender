@@ -540,14 +540,16 @@ static void *loopWalker_step(BMWalker *walker)
 static int faceloopWalker_include_face(BMWalker *walker, BMLoop *l)
 {
 	/* face must have degree 4 */
-	if (l->f->len != 4)
-		return 0;
+	if (l->f->len != 4) {
+		return FALSE;
+	}
 
 	/* the face must not have been already visite */
-	if (BLI_ghash_haskey(walker->visithash, l->f))
-		return 0;
+	if (BLI_ghash_haskey(walker->visithash, l->f)) {
+		return FALSE;
+	}
 
-	return 1;
+	return TRUE;
 }
 
 /* Check whether the face loop can start from the given edge */
@@ -557,22 +559,23 @@ static int faceloopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
 
 	/* There is no face loop starting from a wire edge */
 	if (BM_Wire_Edge(bm, e)) {
-		return 0;
+		return FALSE;
 	}
 	
 	/* Don't start a loop from a boundary edge if it cannot
 	 * be extended to cover any faces */
 	if (BM_Edge_FaceCount(e) == 1) {
-		if (!faceloopWalker_include_face(walker, e->l))
-			return 0;
+		if (!faceloopWalker_include_face(walker, e->l)) {
+			return FALSE;
+		}
 	}
 	
 	/* Don't start a face loop from non-manifold edges */
 	if (BM_Nonmanifold_Edge(bm, e)) {
-		return 0;
+		return FALSE;
 	}
 
-	return 1;
+	return TRUE;
 }
 
 static void faceloopWalker_begin(BMWalker *walker, void *data)

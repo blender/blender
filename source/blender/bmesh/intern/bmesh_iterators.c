@@ -260,7 +260,10 @@ void  *bmiter__loop_of_vert_step(BMIter *iter)
 	if (!iter->count) iter->nextloop = NULL;
 
 	
-	if (current) return current;
+	if (current) {
+		return current;
+	}
+
 	return NULL;
 }
 
@@ -287,7 +290,10 @@ void  *bmiter__loops_of_edge_step(BMIter *iter)
 	if (iter->nextloop == iter->firstloop)
 		iter->nextloop = NULL;
 
-	if (current) return current;
+	if (current) {
+		return current;
+	}
+
 	return NULL;
 }
 
@@ -314,7 +320,11 @@ void  *bmiter__loops_of_loop_step(BMIter *iter)
 	if (iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
 
 	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
-	if (current) return current;
+
+	if (current) {
+		return current;
+	}
+
 	return NULL;
 }
 

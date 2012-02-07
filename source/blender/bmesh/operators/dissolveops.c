@@ -58,18 +58,18 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 		l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		for ( ; l2; l2 = BMIter_Step(&liter2)) {
 			l3 = bmesh_radial_nextloop(l2);
-			if (BMO_TestFlag(bm, l3->f, FACE_MARK) 
-			    != BMO_TestFlag(bm, l2->f, FACE_MARK))
+			if ( BMO_TestFlag(bm, l3->f, FACE_MARK) !=
+			     BMO_TestFlag(bm, l2->f, FACE_MARK))
 			{
 				if (!BMO_TestFlag(bm, l2->e, EDGE_MARK)) {
-					return 0;
+					return FALSE;
 				}
 			}
 		}
 	}
 	BMW_End(&regwalker);
 
-	return 1;
+	return TRUE;
 }
 
 void dissolvefaces_exec(BMesh *bm, BMOperator *op)

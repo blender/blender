@@ -86,7 +86,9 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	else angle2 = angle_v3v3(n1, n2);
 
 	measure += (angle1 + angle2) * 0.5f;
-	if (measure > limit) return measure;
+	if (measure > limit) {
+		return measure;
+	}
 
 	/* Second test: Colinearit */
 	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
@@ -103,7 +105,9 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	if (!diff) return 0.0;
 
 	measure +=  diff;
-	if (measure > limit) return measure;
+	if (measure > limit) {
+		return measure;
+	}
 
 	/* Third test: Concavit */
 	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
@@ -204,9 +208,11 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 		}
 	}
 
-	if (douvs == mergeok_uvs && dovcols == mergeok_vcols)
-		return 1;
-	return 0;
+	if (douvs == mergeok_uvs && dovcols == mergeok_vcols) {
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 typedef struct JoinEdge {

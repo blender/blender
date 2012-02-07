@@ -90,12 +90,12 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 			amount = BM_Verts_In_Face(bm, f, varr, len);
 			if (amount >= len) {
 				if (overlapface) *overlapface = f;
-				return 1;				
+				return TRUE;
 			}
 			f = BMIter_Step(&vertfaces);
 		}
 	}
-	return 0;
+	return FALSE;
 }
 #endif
 

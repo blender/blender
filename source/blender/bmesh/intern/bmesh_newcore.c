@@ -794,21 +794,21 @@ static int disk_is_flagged(BMVert *v, int flag)
 	BMEdge *e = v->e;
 
 	if (!e)
-		return 0;
+		return FALSE;
 
 	do {
 		BMLoop *l = e->l;
 
 		if (!l) {
-			return 0;
+			return FALSE;
 		}
 		
 		if (bmesh_radial_length(l) == 1)
-			return 0;
+			return FALSE;
 		
 		do {
 			if (!bmesh_api_getflag(l->f, flag))
-				return 0;
+				return FALSE;
 
 			l = l->radial_next;
 		} while (l != e->l);
@@ -816,7 +816,7 @@ static int disk_is_flagged(BMVert *v, int flag)
 		e = bmesh_disk_nextedge(e, v);
 	} while (e != v->e);
 
-	return 1;
+	return TRUE;
 }
 
 /* Midlevel Topology Manipulation Functions */
@@ -1079,7 +1079,9 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 		else if (curloop->v == v2) v2loop = curloop;
 	}
 
-	if (!v1loop || !v2loop) return NULL;
+	if (!v1loop || !v2loop) {
+		return NULL;
+	}
 
 	/* allocate new edge between v1 and v2 */
 	e = BM_Make_Edge(bm, v1, v2, NULL, 0);
@@ -1365,7 +1367,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 	int len, radlen = 0, halt = 0, i, valence1, valence2, edok;
 
 	if (bmesh_vert_in_edge(ke, kv) == 0) {
-		return 0;
+		return FALSE;
 	}
 
 	len = bmesh_disk_count(kv);
@@ -1377,7 +1379,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 		halt = bmesh_verts_in_edge(kv, tv, oe); /* check for double edge */
 		
 		if (halt) {
-			return 0;
+			return FALSE;
 		}
 		else {
 			/* For verification later, count valence of ov and t */
@@ -1469,10 +1471,10 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 			BM_CHECK_ELEMENT(bm, tv);
 			BM_CHECK_ELEMENT(bm, oe);
 
-			return 1;
+			return TRUE;
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
 /**
@@ -1543,7 +1545,9 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	}
 
 	/* validate direction of f2's loop cycle is compatible */
-	if (f1loop->v == f2loop->v) return NULL;
+	if (f1loop->v == f2loop->v) {
+		return NULL;
+	}
 
 	/* validate that for each face, each vertex has another edge in its disk cycle that is
 	 * not e, and not shared. */
@@ -1651,7 +1655,7 @@ static int bmesh_splicevert(BMesh *bm, BMVert *v, BMVert *vtarget)
 
 	/* verts already spliced */
 	if (v == vtarget) {
-		return 0;
+		return FALSE;
 	}
 
 	/* retarget all the loops of v to vtarget */
@@ -1674,7 +1678,7 @@ static int bmesh_splicevert(BMesh *bm, BMVert *v, BMVert *vtarget)
 	/* v is unused now, and can be killed */
 	BM_Kill_Vert(bm, v);
 
-	return 1;
+	return TRUE;
 }
 
 /* BMESH CUT VERT
@@ -1777,7 +1781,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		MEM_freeN(verts);
 	}
 
-	return 1;
+	return TRUE;
 }
 
 /* BMESH SPLICE EDGE
@@ -1792,7 +1796,7 @@ static int UNUSED_FUNCTION(bmesh_spliceedge)(BMesh *bm, BMEdge *e, BMEdge *etarg
 
 	if (!BM_Vert_In_Edge(e, etarget->v1) || !BM_Vert_In_Edge(e, etarget->v2)) {
 		/* not the same vertices can't splice */
-		return 0;
+		return FALSE;
 	}
 
 	while (e->l) {
@@ -1810,7 +1814,7 @@ static int UNUSED_FUNCTION(bmesh_spliceedge)(BMesh *bm, BMEdge *e, BMEdge *etarg
 
 	BM_Kill_Edge(bm, e);
 
-	return 1;
+	return TRUE;
 }
 
 /*
@@ -1833,7 +1837,7 @@ static int bmesh_cutedge(BMesh *bm, BMEdge *e, BMLoop *cutl)
 	radlen = bmesh_radial_length(e->l);
 	if (radlen < 2) {
 		/* no cut required */
-		return 1;
+		return TRUE;
 	}
 
 	if (cutl == e->l) {
@@ -1851,7 +1855,7 @@ static int bmesh_cutedge(BMesh *bm, BMEdge *e, BMLoop *cutl)
 	BM_CHECK_ELEMENT(bm, ne);
 	BM_CHECK_ELEMENT(bm, e);
 
-	return 1;
+	return TRUE;
 }
 
 /*

@@ -384,9 +384,9 @@ static int bmeshface_to_mface(BMMesh *bm, BMFace *f, MFace *mf, int index, Custo
 		if(bmesh_test_flag(f, BMESH_SELECT)) mf->flag |= 1;
 		if(bmesh_test_flag(f, BMESH_HIDDEN)) mf->flag |= ME_HIDE;
 		CustomData_from_bmesh_block(&bm->pdata, data, &f->data, index);
-		return 1;
+		return TRUE;
 	}
-	return 0;
+	return FALSE;
 }
 
 /*

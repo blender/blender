@@ -87,10 +87,14 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code * */
 
-#define RS_GET_EDGE_LINK(e, v, ed) \
-	((v) == ((BMEdge *)(e))->v1 ? (Link *)&(((EdgeData *)(ed))->dlink1) : (Link *)&(((EdgeData *)(ed))->dlink2))
+#define RS_GET_EDGE_LINK(e, v, ed)  (                                         \
+	(v) == ((BMEdge *)(e))->v1 ?                                              \
+			(Link *)&(((EdgeData *)(ed))->dlink1) :                           \
+			(Link *)&(((EdgeData *)(ed))->dlink2)                             \
+	)
 
-static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v, 
+
+static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 						EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = &edata[BM_GetIndex(e)];
@@ -118,7 +122,7 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 			e3->next = (Link *)e;
 	}
 
-	return 1;
+	return TRUE;
 }
 
 static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert *v,

@@ -67,13 +67,13 @@ static short testedgeside(const double v1[2], const double v2[2], const double v
 	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
 	if (inp < 0.0) {
-		return 0;
+		return FALSE;
 	}
 	else if (inp == 0) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return FALSE;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return FALSE;
 	}
-	return 1;
+	return TRUE;
 }
 
 static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
@@ -85,20 +85,21 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
 	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
 	if (inp < 0.0) {
-		return 0;
+		return FALSE;
 	}
 	else if (inp == 0) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return FALSE;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return FALSE;
 	}
-	return 1;
+	return TRUE;
 }
 
 static int point_in_triangle(const double v1[2], const double v2[2], const double v3[2], const double pt[2])
 {
-	if (testedgeside(v1, v2, pt) && testedgeside(v2, v3, pt) && testedgeside(v3, v1, pt))
-		return 1;
-	return 0;
+	if (testedgeside(v1, v2, pt) && testedgeside(v2, v3, pt) && testedgeside(v3, v1, pt)) {
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /*
@@ -202,7 +203,7 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	zero_v3(center);
 
 	if (nverts < 3)
-		return 0;
+		return FALSE;
 
 	i = nverts - 1;
 	j = 0;
@@ -222,9 +223,9 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	if (atmp != 0) {
 		center[0] = xtmp /  (3.0f * atmp);
 		center[1] = xtmp /  (3.0f * atmp);
-		return 1;
+		return TRUE;
 	}
-	return 0;
+	return FALSE;
 }
 
 float BM_Compute_Face_Area(BMesh *bm, BMFace *f)
@@ -652,8 +653,9 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	w4 = testedgesidef(v3, v2, v4);
 	w5 = !testedgesidef(v3, v1, v4);
 	
-	if (w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5)
-		return 1;
+	if (w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5) {
+		return TRUE;
+	}
 	
 #define GETMIN2_AXIS(a, b, ma, mb, axis) ma[axis] = MIN2(a[axis], b[axis]), mb[axis] = MAX2(a[axis], b[axis])
 #define GETMIN2(a, b, ma, mb) GETMIN2_AXIS(a, b, ma, mb, 0); GETMIN2_AXIS(a, b, ma, mb, 1);
@@ -679,7 +681,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
 	}
 
-	return 0; 
+	return FALSE;
 }
 
 /*
@@ -753,7 +755,7 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	VECCOPY(v3, projectverts[v3i]);
 	
 	if (testedgeside(v1, v2, v3)) {
-		return 0;
+		return FALSE;
 	}
 
 	//for (i = 0; i < nvert; i++) {
@@ -768,15 +770,15 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 		VECCOPY(pv1, projectverts[BM_GetIndex(l_iter->v)]);
 		VECCOPY(pv2, projectverts[BM_GetIndex(l_iter->next->v)]);
 		
-		//if (linecrosses(pv1, pv2, v1, v3)) return 0;
+		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
 
 		if ( point_in_triangle(v1, v2, v3, pv1) ||
 		     point_in_triangle(v3, v2, v1, pv1))
 		{
-			return 0;
+			return FALSE;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
-	return 1;
+	return TRUE;
 }
 /*
  * FIND EAR

@@ -107,20 +107,18 @@ BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 int BM_Vert_In_Face(BMFace *f, BMVert *v)
 {
 	BMLoopList *lst;
-	BMLoop *l;
+	BMLoop *l_iter;
 
 	for (lst = f->loops.first; lst; lst = lst->next) {
-		l = lst->first;
+		l_iter = lst->first;
 		do {
-			if (l->v == v) {
-				return 1;
+			if (l_iter->v == v) {
+				return TRUE;
 			}
-
-			l = l->next;
-		} while (l != lst->first);
+		} while ((l_iter = l_iter->next) != lst->first);
 	}
 
-	return 0;
+	return FALSE;
 }
 
 /*
@@ -171,11 +169,11 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 
 	do {
 		if (l_iter->e == e) {
-			return 1;
+			return TRUE;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 
-	return 0;
+	return FALSE;
 }
 
 /*
@@ -281,18 +279,20 @@ int BM_Wire_Vert(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *curedge;
 
-	if (!(v->e)) return 0;
+	if (v->e == NULL) {
+		return FALSE;
+	}
 	
 	curedge = v->e;
 	do {
 		if (curedge->l) {
-			return 0;
+			return FALSE;
 		}
 
 		curedge = bmesh_disk_nextedge(curedge, v);
 	} while (curedge != v->e);
 
-	return 1;
+	return TRUE;
 }
 
 /*
@@ -307,8 +307,7 @@ int BM_Wire_Vert(BMesh *UNUSED(bm), BMVert *v)
 
 int BM_Wire_Edge(BMesh *UNUSED(bm), BMEdge *e)
 {
-	if (e->l) return 0;
-	return 1;
+	return (e->l) ? FALSE : TRUE;
 }
 
 /*
@@ -332,7 +331,7 @@ int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
 
 	if (v->e == NULL) {
 		/* loose vert */
-		return 1;
+		return TRUE;
 	}
 
 	/* count edges while looking for non-manifold edges */
@@ -340,12 +339,12 @@ int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
 	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_nextedge(e, v)) {
 		if (e->l == NULL) {
 			/* loose edge */
-			return 1;
+			return TRUE;
 		}
 
 		if (bmesh_radial_length(e->l) > 2) {
 			/* edge shared by more than two faces */
-			return 1;
+			return TRUE;
 		}
 	}
 
@@ -378,10 +377,10 @@ int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
 
 	if (count < len) {
 		/* vert shared by multiple regions */
-		return 1;
+		return TRUE;
 	}
 
-	return 0;
+	return FALSE;
 }
 
 /*
@@ -398,8 +397,10 @@ int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
 int BM_Nonmanifold_Edge(BMesh *UNUSED(bm), BMEdge *e)
 {
 	int count = BM_Edge_FaceCount(e);
-	if (count != 2 && count != 1) return 1;
-	return 0;
+	if (count != 2 && count != 1) {
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /*
@@ -415,8 +416,10 @@ int BM_Nonmanifold_Edge(BMesh *UNUSED(bm), BMEdge *e)
 int BM_Boundary_Edge(BMEdge *e)
 {
 	int count = BM_Edge_FaceCount(e);
-	if (count == 1) return 1;
-	return 0;
+	if (count == 1) {
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /*
@@ -465,12 +468,12 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 		do {
 			f = l->f;
 			if (bmesh_radial_find_face(e2, f)) {
-				return 1;
+				return TRUE;
 			}
 			l = l->radial_next;
 		} while (l != e1->l);
 	}
-	return 0;
+	return FALSE;
 }
 
 /**
@@ -567,12 +570,12 @@ int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapfa
 			amount = BM_Verts_In_Face(bm, f, varr, len);
 			if (amount >= len) {
 				if (overlapface) *overlapface = f;
-				return 1;				
+				return TRUE;
 			}
 			f = BMIter_Step(&vertfaces);
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
 /*
@@ -601,10 +604,10 @@ int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
 			amount = BM_Verts_In_Face(bm, f, varr, len);
 			if (amount == len && amount == f->len) {
 				if (existface) *existface = f;
-				return 1;				
+				return TRUE;
 			}
 			f = BMIter_Step(&vertfaces);
 		}
 	}
-	return 0;
+	return FALSE;
 }
