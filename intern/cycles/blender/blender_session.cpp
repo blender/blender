@@ -191,14 +191,8 @@ void BlenderSession::render()
 	BL::RenderResult::layers_iterator b_iter;
 	BL::RenderLayers b_rr_layers(r.ptr);
 	
-	int active = 0;
-
 	/* render each layer */
-	for(b_rr.layers.begin(b_iter); b_iter != b_rr.layers.end(); ++b_iter, ++active) {
-		/* single layer render */
-		if(r.use_single_layer())
-			active = b_rr_layers.active_index();
-
+	for(b_rr.layers.begin(b_iter); b_iter != b_rr.layers.end(); ++b_iter) {
 		/* set layer */
 		b_rlay = *b_iter;
 
@@ -226,7 +220,7 @@ void BlenderSession::render()
 		session->reset(buffer_params, session_params.samples);
 
 		/* update scene */
-		sync->sync_data(b_v3d, active);
+		sync->sync_data(b_v3d, b_iter->name().c_str());
 
 		/* render */
 		session->start();
