@@ -82,7 +82,7 @@ int bmesh_get_filter_argtype(int type);
 /* Polygon Utilities ? FIXME... where do these each go? */
 /* newedgeflag sets a flag layer flag, obviously not the header flag. */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         int newedgeflag, int newfaceflag, BMFace **newfaces);
+                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
 void bmesh_update_face_normal(struct BMesh *bm, struct BMFace *f, float no[3],
                               float (*projectverts)[3]);
 void bmesh_update_face_normal_vertex_cos(struct BMesh *bm, struct BMFace *f, float no[3],

@@ -851,7 +851,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
  * triangles, and will be NULL-terminated.
  */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         const int newedge_oflag, const int newface_oflag, BMFace **newfaces)
+                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces)
 {
 	int i, done, nvert, nf_i = 0;
 	BMLoop *newl, *nextloop;

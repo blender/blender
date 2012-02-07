@@ -181,13 +181,13 @@ void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
 #define BMO_ToggleFlag(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f ^= (oflag))
 
 /*profiling showed a significant amount of time spent in BMO_TestFlag
-void BMO_SetFlag(struct BMesh *bm, void *element, int oflag);
-void BMO_ClearFlag(struct BMesh *bm, void *element, int oflag);
-int BMO_TestFlag(struct BMesh *bm, void *element, int oflag);*/
+void BMO_SetFlag(struct BMesh *bm, void *element, const short oflag);
+void BMO_ClearFlag(struct BMesh *bm, void *element, const short oflag);
+int BMO_TestFlag(struct BMesh *bm, void *element, const short oflag);*/
 
 /* count the number of elements with a specific flag.
  * type can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE. */
-int BMO_CountFlag(struct BMesh *bm, const int oflag, const char htype);
+int BMO_CountFlag(struct BMesh *bm, const short oflag, const char htype);
 
 /*---------formatted operator initialization/execution-----------*/
 /*
@@ -251,13 +251,13 @@ BMOpSlot *BMO_GetSlot(struct BMOperator *op, const char *slotname);
 void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op,
                   const char *src, const char *dst);
 
-/*remove tool flagged elements*/
-void BM_remove_tagged_faces(struct BMesh *bm, const int oflag);
-void BM_remove_tagged_edges(struct BMesh *bm, const int oflag);
-void BM_remove_tagged_verts(struct BMesh *bm, const int oflag);
+/* remove tool flagged elements */
+void BM_remove_tagged_faces(struct BMesh *bm, const short oflag);
+void BM_remove_tagged_edges(struct BMesh *bm, const short oflag);
+void BM_remove_tagged_verts(struct BMesh *bm, const short oflag);
 
-void BMO_Set_OpFlag(struct BMesh *bm, struct BMOperator *op, const int oflag);
-void BMO_Clear_OpFlag(struct BMesh *bm, struct BMOperator *op, const int oflag);
+void BMO_Set_OpFlag(struct BMesh *bm, struct BMOperator *op, const int op_flag);
+void BMO_Clear_OpFlag(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 
 void BMO_Set_Float(struct BMOperator *op, const char *slotname, float f);
 float BMO_Get_Float(BMOperator *op, const char *slotname);
@@ -282,19 +282,19 @@ void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int si
 void BMO_Get_Mat4(struct BMOperator *op, const char *slotname, float mat[4][4]);
 void BMO_Get_Mat3(struct BMOperator *op, const char *slotname, float mat[3][3]);
 
-void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, const char htype, const int oflag);
+void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, const char htype, const short oflag);
 
 /* puts every element of type type (which is a bitmask) with tool flag flag,
  * into a slot. */
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                      const int oflag, const char htype);
+                      const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                     const int oflag, const char htype);
+                     const short oflag, const char htype);
 /* clears tool-flag flag from all elements inside a slot array. */
 void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                       const int oflag, const char htype);
+                       const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname,
@@ -315,7 +315,7 @@ int BMO_CountSlotMap(struct BMesh *bm, struct BMOperator *op, const char *slotna
 
 /* Counts the number of edges with tool flag toolflag around
  */
-int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, const int oflag);
+int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, const short oflag);
 
 /* inserts a key/value mapping into a mapping slot.  note that it copies the
  * value, it doesn't store a reference to it. */
@@ -339,7 +339,7 @@ int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, const int oflag);
 /* flags all elements in a mapping.  note that the mapping must only have
  * bmesh elements in it.*/
 void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
-                         const char *slotname, const int oflag);
+                         const char *slotname, const short oflag);
 
 /* pointer versoins of BMO_Get_MapFloat and BMO_Insert_MapFloat.
  *

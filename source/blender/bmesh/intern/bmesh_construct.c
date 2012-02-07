@@ -368,7 +368,7 @@ err:
  *
  */
 
-void BM_remove_tagged_faces(BMesh *bm, const int oflag)
+void BM_remove_tagged_faces(BMesh *bm, const short oflag)
 {
 	BMFace *f;
 	BMIter iter;
@@ -380,7 +380,7 @@ void BM_remove_tagged_faces(BMesh *bm, const int oflag)
 	}
 }
 
-void BM_remove_tagged_edges(BMesh *bm, const int oflag)
+void BM_remove_tagged_edges(BMesh *bm, const short oflag)
 {
 	BMEdge *e;
 	BMIter iter;
@@ -392,7 +392,7 @@ void BM_remove_tagged_edges(BMesh *bm, const int oflag)
 	}
 }
 
-void BM_remove_tagged_verts(BMesh *bm, const int oflag)
+void BM_remove_tagged_verts(BMesh *bm, const short oflag)
 {
 	BMVert *v;
 	BMIter iter;
