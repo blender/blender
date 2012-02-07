@@ -1567,32 +1567,23 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate no internal join */
 	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, curloop = curloop->next) {
-		bmesh_api_setindex(curloop->v, 0);
+		BM_ClearHFlag(curloop->v, BM_TMP_TAG);
 	}
 	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, curloop = curloop->next) {
-		bmesh_api_setindex(curloop->v, 0);
+		BM_ClearHFlag(curloop->v, BM_TMP_TAG);
 	}
 
 	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, curloop = curloop->next) {
 		if (curloop != f1loop) {
-			bmesh_api_setindex(curloop->v, bmesh_api_getindex(curloop->v) + 1);
+			BM_SetHFlag(curloop->v, BM_TMP_TAG);
 		}
 	}
 	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, curloop = curloop->next) {
 		if (curloop != f2loop) {
-			bmesh_api_setindex(curloop->v, bmesh_api_getindex(curloop->v) + 1);
-		}
-	}
-
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, curloop = curloop->next) {
-		if (bmesh_api_getindex(curloop->v) > 1) {
-			return NULL;
-		}
-	}
-	
-	for (i = 0, curloop = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, curloop = curloop->next) {
-		if (bmesh_api_getindex(curloop->v) > 1) {
-			return NULL;
+			/* as soon as a duplicate is found, bail out */
+			if (BM_TestHFlag(curloop->v, BM_TMP_TAG)) {
+				return NULL;
+			}
 		}
 	}
 
