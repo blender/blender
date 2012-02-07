@@ -2875,7 +2875,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "video_bitrate");
-	RNA_def_property_range(prop, 1, 220000);
+	RNA_def_property_range(prop, 1, 14000);
 	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
