@@ -380,8 +380,16 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	lcd = op->customdata;
 	
 	if (lcd->em->selectmode == SCE_SELECT_FACE) {
+		PointerRNA props_ptr;
+		int extend = RNA_boolean_get(op->ptr, "extend");
+
 		ringsel_exit(op);
-		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
+
+		WM_operator_properties_create(&props_ptr, "MESH_OT_loop_select");
+		RNA_boolean_set(&props_ptr, "extend", extend);
+		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+
 		return OPERATOR_CANCELLED;
 	}
 
