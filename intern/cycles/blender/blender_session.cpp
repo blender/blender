@@ -394,7 +394,7 @@ void BlenderSession::get_progress(float& progress, double& total_time)
 
 void BlenderSession::update_status_progress()
 {
-	string status, substatus;
+	string timestatus, status, substatus;
 	float progress;
 	double total_time;
 	char time_str[128];
@@ -403,13 +403,13 @@ void BlenderSession::update_status_progress()
 	get_progress(progress, total_time);
 
 	BLI_timestr(total_time, time_str);
-	status = "Elapsed: " + string(time_str) + " | " + status;
+	timestatus = "Elapsed: " + string(time_str) + " | ";
 
 	if(substatus.size() > 0)
 		status += " | " + substatus;
 
 	if(status != last_status) {
-		RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", status.c_str());
+		RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", (timestatus + status).c_str());
 		last_status = status;
 	}
 	if(progress != last_progress) {
