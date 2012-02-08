@@ -751,6 +751,10 @@ class VIEW3D_MT_object_animation(Menu):
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
         layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
 
+        layout.separator()
+
+        layout.operator("nla.bake", text="Bake Action...")
+
 
 class VIEW3D_MT_object_clear(Menu):
     bl_label = "Clear"
