@@ -437,8 +437,9 @@ def set_quiet_output(env):
     static_ob, shared_ob = SCons.Tool.createObjBuilders(env)
     static_ob.add_action('.c', mycaction)
     static_ob.add_action('.cpp', mycppaction)
+    static_ob.add_action('.cc', mycppaction)
     shared_ob.add_action('.c', myshcaction)
-    shared_ob.add_action('.cpp', myshcppaction)
+    shared_ob.add_action('.cc', myshcppaction)
 
     static_lib = SCons.Builder.Builder(action = mylibaction,
                                        emitter = '$LIBEMITTER',
@@ -648,8 +649,11 @@ def UnixPyBundle(target=None, source=None, env=None):
 
     dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
 
+    lib = env['BF_PYTHON_LIBPATH'].split(os.sep)[-1]
+    target_lib = "lib64" if lib == "lib64" else "lib"
+
     py_src =    env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
-    py_target =    env.subst( dir + '/python/lib/python'+env['BF_PYTHON_VERSION'] )
+    py_target =    env.subst( dir + '/python/' + target_lib + '/python'+env['BF_PYTHON_VERSION'] )
     
     # This is a bit weak, but dont install if its been installed before, makes rebuilds quite slow.
     if os.path.exists(py_target):

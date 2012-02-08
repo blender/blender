@@ -326,7 +326,7 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
 
                 for i in range(3):
                     if not bone.lock_rotation[i]:
-                        ksi.addProp(ks, bone, prop, i + 1)  # i + 1, since here x,y,z = 1,2,3, and w=0
+                        ksi.addProp(ks, bone, prop, i + 1)  # i + 1, since here x/y/z = 1,2,3, and w=0
         elif True not in bone.lock_rotation:
             # if axis-angle rotations get locked as eulers, then it's too messy to allow anything
             # other than all open unless we keyframe the whole lot

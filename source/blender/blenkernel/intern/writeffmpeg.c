@@ -49,6 +49,8 @@
 #  include "AUD_C-API.h"
 #endif
 
+#include "BLI_utildefines.h"
+
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
@@ -250,7 +252,8 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame* frame, ReportLis
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
 					   frame);
-	if (outsize != 0) {
+
+	if (outsize > 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
 
@@ -268,14 +271,13 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame* frame, ReportLis
 		packet.data = video_buffer;
 		packet.size = outsize;
 		ret = av_interleaved_write_frame(outfile, &packet);
-	} else {
-		ret = 0;
+		success = (ret == 0);
+	} else if (outsize < 0) {
+		success = 0;
 	}
 
-	if (ret != 0) {
-		success= 0;
+	if (!success)
 		BKE_report(reports, RPT_ERROR, "Error writing frame.");
-	}
 
 	return success;
 }
@@ -483,7 +485,7 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	if (!codec) return NULL;
 	
 	/* Be sure to use the correct pixel format(e.g. RGB, YUV) */
-	
+
 	if (codec->pix_fmts) {
 		c->pix_fmt = codec->pix_fmts[0];
 	} else {
@@ -507,6 +509,12 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	if (codec_id == CODEC_ID_HUFFYUV || codec_id == CODEC_ID_FFV1) {
 		/* HUFFYUV was PIX_FMT_YUV422P before */
 		c->pix_fmt = PIX_FMT_RGB32;
+	}
+
+	if ( codec_id == CODEC_ID_QTRLE ) {
+		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
+			c->pix_fmt = PIX_FMT_ARGB;
+		}
 	}
 
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
@@ -538,7 +546,19 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		return NULL;
 	}
 
-	video_buffersize = avpicture_get_size(c->pix_fmt, c->width, c->height);
+	if ( codec_id == CODEC_ID_QTRLE ) {
+		// normally it should be enough to have buffer with actual image size,
+		// but some codecs like QTRLE might store extra information in this buffer,
+		// so it should be a way larger
+
+		// maximum video buffer size is 6-bytes per pixel, plus DPX header size (1664)
+		// (from FFmpeg sources)
+		int size = c->width * c->height;
+		video_buffersize = 7*size + 10000;
+	}
+	else
+		video_buffersize = avpicture_get_size(c->pix_fmt, c->width, c->height);
+
 	video_buffer = (uint8_t*)MEM_mallocN(video_buffersize*sizeof(uint8_t),
 						 "FFMPEG video buffer");
 	
@@ -1200,12 +1220,14 @@ int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * s
 	return 1;
 }
 
-static void ffmpeg_set_expert_options(RenderData *rd, int preset)
+static void ffmpeg_set_expert_options(RenderData *rd)
 {
+	int codec_id = rd->ffcodecdata.codec;
+
 	if(rd->ffcodecdata.properties)
 		IDP_FreeProperty(rd->ffcodecdata.properties);
 
-	if(preset == FFMPEG_PRESET_H264) {
+	if(codec_id == CODEC_ID_H264) {
 		/*
 		 * All options here are for x264, but must be set via ffmpeg.
 		 * The names are therefore different - Search for "x264 to FFmpeg option mapping"
@@ -1248,6 +1270,12 @@ static void ffmpeg_set_expert_options(RenderData *rd, int preset)
 		if(rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
 			ffmpeg_property_add_string(rd, "video", "cqp:0");
 	}
+#if 0	/* disabled for after release */
+	else if(codec_id == CODEC_ID_DNXHD) {
+		if(rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
+			ffmpeg_property_add_string(rd, "video", "mbd:rd");
+	}
+#endif
 }
 
 void ffmpeg_set_preset(RenderData *rd, int preset)
@@ -1317,7 +1345,6 @@ void ffmpeg_set_preset(RenderData *rd, int preset)
 		rd->ffcodecdata.mux_packet_size = 2048;
 		rd->ffcodecdata.mux_rate = 10080000;
 
-		ffmpeg_set_expert_options(rd, preset);
 		break;
 
 	case FFMPEG_PRESET_THEORA:
@@ -1341,6 +1368,8 @@ void ffmpeg_set_preset(RenderData *rd, int preset)
 		break;
 
 	}
+
+	ffmpeg_set_expert_options(rd);
 }
 
 void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
@@ -1388,11 +1417,9 @@ void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 	}
 }
 
-void ffmpeg_verify_lossless_format(RenderData *rd, ImageFormatData *imf)
+void ffmpeg_verify_codec_settings(RenderData *rd)
 {
-	if(imf->imtype == R_IMF_IMTYPE_H264) {
-		ffmpeg_set_expert_options(rd, FFMPEG_PRESET_H264);
-	}
+	ffmpeg_set_expert_options(rd);
 }
 
 #endif

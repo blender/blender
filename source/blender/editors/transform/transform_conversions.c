@@ -3805,8 +3805,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 		Scene * scene= t->scene;
 		int cfra= CFRA;
-		int left= seq_tx_get_final_left(seq, 0);
-		int right= seq_tx_get_final_right(seq, 0);
+		int left= seq_tx_get_final_left(seq, 1);
+		int right= seq_tx_get_final_right(seq, 1);
 
 		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
 			*recursive= 0;
@@ -3906,7 +3906,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 
 
-static int SeqTransCount(TransInfo *t, ListBase *seqbase, int depth)
+static int SeqTransCount(TransInfo *t, Sequence *parent, ListBase *seqbase, int depth)
 {
 	Sequence *seq;
 	int tot= 0, recursive, count, flag;
@@ -3914,11 +3914,15 @@ static int SeqTransCount(TransInfo *t, ListBase *seqbase, int depth)
 	for (seq= seqbase->first; seq; seq= seq->next) {
 		seq->depth= depth;
 
+		/* seq->tmp is used by seq_tx_get_final_{left,right} to check sequence's range and clamp to it if needed.
+		 * it's first place where digging into sequences tree, so store link to parent here */
+		seq->tmp = parent;
+
 		SeqTransInfo(t, seq, &recursive, &count, &flag); /* ignore the flag */
 		tot += count;
 
 		if (recursive) {
-			tot += SeqTransCount(t, &seq->seqbase, depth+1);
+			tot += SeqTransCount(t, seq, &seq->seqbase, depth+1);
 		}
 	}
 
@@ -4216,7 +4220,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	}
 #endif
 
-	count = SeqTransCount(t, ed->seqbasep, 0);
+	count = SeqTransCount(t, NULL, ed->seqbasep, 0);
 
 	/* allocate memory for data */
 	t->total= count;

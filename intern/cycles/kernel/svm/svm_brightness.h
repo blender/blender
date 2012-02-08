@@ -27,28 +27,12 @@ __device void svm_node_brightness(ShaderData *sd, float *stack, uint in_color, u
 	float brightness = stack_load_float(stack, bright_offset);
 	float contrast  = stack_load_float(stack, contrast_offset);
 
-	brightness *= 1.0f/100.0f;
-	float delta = contrast * (1.0f/200.0f);
-	float a = 1.0f - delta * 2.0f;
-	float b;
+	float a = 1.0f + contrast;
+	float b = brightness - contrast*0.5f;
 
-	/*
-	* The algorithm is by Werner D. Streidt
-	* (http://visca.com/ffactory/archives/5-99/msg00021.html)
-	* Extracted of OpenCV demhist.c
-	*/
-	if (contrast > 0.0f) {
-		a = (a > 0.0f? (1.0f / a): 0.0f);
-		b = a * (brightness - delta);
-	}
-	else {
-		delta *= -1.0f;
-		b = a * (brightness + delta);
-	}
-
-	color.x = a*color.x + b;
-	color.y = a*color.y + b;
-	color.z = a*color.z + b;
+	color.x = max(a*color.x + b, 0.0f);
+	color.y = max(a*color.y + b, 0.0f);
+	color.z = max(a*color.z + b, 0.0f);
 
 	if (stack_valid(out_color))
 		stack_store_float3(stack, out_color, color);

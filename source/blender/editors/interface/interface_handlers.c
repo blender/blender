@@ -5859,15 +5859,17 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 			retval= WM_UI_HANDLER_BREAK;
 		}
 		else if(ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-			/* list template will clamp */
-			if(event->type == WHEELUPMOUSE)
-				pa->list_scroll--;
-			else
-				pa->list_scroll++;
+			if(pa->list_last_len > pa->list_size) {
+				/* list template will clamp */
+				if(event->type == WHEELUPMOUSE)
+					pa->list_scroll--;
+				else
+					pa->list_scroll++;
 
-			ED_region_tag_redraw(ar);
+				ED_region_tag_redraw(ar);
 
-			retval= WM_UI_HANDLER_BREAK;
+				retval= WM_UI_HANDLER_BREAK;
+			}
 		}
 	}
 

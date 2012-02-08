@@ -215,7 +215,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
                  # toggle active preview
                 layout.prop(surface, "preview_id")
 
-                # paintmap output
+                # paint-map output
                 row = layout.row()
                 row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap layer: ")
                 if surface.output_exists(object=ob, index=0):
@@ -225,7 +225,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
                 row.operator("dpaint.output_toggle", icon=ic, text="").output = 'A'
 
-                # wetmap output
+                # wet-map output
                 row = layout.row()
                 row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap layer: ")
                 if surface.output_exists(object=ob, index=1):

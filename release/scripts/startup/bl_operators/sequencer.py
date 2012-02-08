@@ -25,7 +25,7 @@ from bpy.props import IntProperty
 
 
 class SequencerCrossfadeSounds(Operator):
-    '''Do crossfading volume animation of two selected sound strips'''
+    '''Do cross-fading volume animation of two selected sound strips'''
 
     bl_idname = "sequencer.crossfade_sounds"
     bl_label = "Crossfade sounds"
@@ -76,7 +76,7 @@ class SequencerCrossfadeSounds(Operator):
 
 
 class SequencerCutMulticam(Operator):
-    '''Cut multicam strip and select camera'''
+    '''Cut multi-cam strip and select camera'''
 
     bl_idname = "sequencer.cut_multicam"
     bl_label = "Cut multicam"

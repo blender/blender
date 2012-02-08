@@ -232,7 +232,7 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, 
 
 	/* note: it looks like there is no length limit on the srna id since its
 	 * just a char pointer, but take care here, also be careful that python
-	 * owns the string pointer which it could potentually free while blender
+	 * owns the string pointer which it could potentially free while blender
 	 * is running. */
 	if(BLI_strnlen(identifier, MAX_IDPROP_NAME) == MAX_IDPROP_NAME) {
 		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is " STRINGIFY(MAX_IDPROP_NAME), identifier);

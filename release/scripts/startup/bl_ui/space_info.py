@@ -273,7 +273,7 @@ class INFO_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # note, dont use 'EXEC_SCREEN' or operators wont get the 'v3d' context.
+        # note, don't use 'EXEC_SCREEN' or operators wont get the 'v3d' context.
 
         layout.operator_context = 'EXEC_AREA'
 
