@@ -315,14 +315,7 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
 	if (tottex_tessface != tottex_original ||
 	    totcol_tessface != totcol_original )
 	{
-		CustomData_free(&me->fdata, me->totface);
-		
-		me->mface = NULL;
-		me->mtface = NULL;
-		me->mcol = NULL;
-		me->totface = 0;
-
-		memset(&me->fdata, 0, sizeof(&me->fdata));
+		BKE_mesh_clear_tessface(me);
 
 		CustomData_from_bmeshpoly(&me->fdata, &me->pdata, &me->ldata, me->totface);
 
@@ -2973,4 +2966,16 @@ void BKE_mesh_ensure_tessface(Mesh *mesh)
 	if (mesh->totpoly && mesh->totface == 0) {
 		BKE_mesh_calc_tessface(mesh);
 	}
+}
+
+void BKE_mesh_clear_tessface(Mesh *mesh)
+{
+	CustomData_free(&mesh->fdata, mesh->totface);
+
+	mesh->mface = NULL;
+	mesh->mtface = NULL;
+	mesh->mcol = NULL;
+	mesh->totface = 0;
+
+	memset(&mesh->fdata, 0, sizeof(&mesh->fdata));
 }

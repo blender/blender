@@ -3371,7 +3371,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				GPU_disable_material();
 			}
 			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)) {
-				if(me->mcol)
+				if(me->mloopcol)
 					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, NULL, 1);
 				else {
 					glColor3f(1.0f, 1.0f, 1.0f);
