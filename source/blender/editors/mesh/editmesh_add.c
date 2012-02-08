@@ -1036,6 +1036,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	float phi, phid, vec[3];
 	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a, b;
+	float len, len2, vec2[3];
 	
 	EM_clear_flag_all(em, SELECT);
 
@@ -1117,7 +1118,19 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			rotateflag(em, 2, v1->co, cmat);
 		}
 
-		removedoublesflag(em, 4, 0, 0.0001);
+		/* length of one segment on meridian */
+		len= 2*dia*sinf(phid / 2.0f);
+
+		/* length of one segment in shortest parallen */
+		vec[0]= dia*sinf(phid);
+		vec[1]= 0.0;
+		vec[2]= dia*cosf(phid);
+
+		mul_v3_m3v3(vec2, cmat, vec);
+		len2= len_v3v3(vec, vec2);
+
+		/* use shortest segment length divided by 3 as merge threshold */
+		removedoublesflag(em, 4, 0, MIN2(len, len2) / 3.0f);
 
 		/* and now do imat */
 		eve= em->verts.first;
