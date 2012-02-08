@@ -141,6 +141,95 @@ void BM_SelectMode_Flush(BMesh *bm)
 	recount_totsels(bm);
 }
 
+/* BMESH NOTE: matches EM_deselect_flush() behavior from trunk */
+void BM_DeSelect_Flush(BMesh *bm)
+{
+	BMEdge *e;
+	BMLoop *l_iter;
+	BMLoop *l_first;
+	BMFace *f;
+
+	BMIter edges;
+	BMIter faces;
+
+	int ok;
+
+	for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
+		if (!(BM_TestHFlag(e->v1, BM_SELECT) && BM_TestHFlag(e->v2, BM_SELECT) && !BM_TestHFlag(e, BM_HIDDEN))) {
+			BM_ClearHFlag(e, BM_SELECT);
+		}
+	}
+
+	for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
+		ok = TRUE;
+		if (!BM_TestHFlag(f, BM_HIDDEN)) {
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				if (!BM_TestHFlag(l_iter->v, BM_SELECT)) {
+					ok = FALSE;
+					break;
+				}
+			} while ((l_iter = l_iter->next) != l_first);
+		}
+		else {
+			ok = FALSE;
+		}
+
+		if (ok == FALSE) {
+			BM_ClearHFlag(f, BM_SELECT);
+		}
+	}
+
+	/* Remove any deselected elements from the BMEditSelection */
+	BM_validate_selections(bm);
+
+	recount_totsels(bm);
+}
+
+
+/* BMESH NOTE: matches EM_select_flush() behavior from trunk */
+void BM_Select_Flush(BMesh *bm)
+{
+	BMEdge *e;
+	BMLoop *l_iter;
+	BMLoop *l_first;
+	BMFace *f;
+
+	BMIter edges;
+	BMIter faces;
+
+	int ok;
+
+	for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
+		if (BM_TestHFlag(e->v1, BM_SELECT) && BM_TestHFlag(e->v2, BM_SELECT) && !BM_TestHFlag(e, BM_HIDDEN)) {
+			BM_SetHFlag(e, BM_SELECT);
+		}
+	}
+
+	for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
+		ok = TRUE;
+		if (!BM_TestHFlag(f, BM_HIDDEN)) {
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				if (!BM_TestHFlag(l_iter->v, BM_SELECT)) {
+					ok = FALSE;
+					break;
+				}
+			} while ((l_iter = l_iter->next) != l_first);
+		}
+		else {
+			ok = FALSE;
+		}
+
+		if (ok) {
+			BM_SetHFlag(f, BM_SELECT);
+		}
+	}
+
+	recount_totsels(bm);
+}
+
+
 /*
  * BMESH SELECT VERT
  *

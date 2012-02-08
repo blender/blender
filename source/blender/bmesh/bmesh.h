@@ -293,6 +293,10 @@ void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float center[3]);
 
 void BM_SelectMode_Flush(BMesh *bm);
 
+/* mode independant flushing up/down */
+void BM_DeSelect_Flush(BMesh *bm);
+void BM_Select_Flush(BMesh *bm);
+
 /*convert an editmesh to a bmesh*/
 BMesh *editmesh_to_bmesh(struct EditMesh *em);
 

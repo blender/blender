@@ -425,16 +425,16 @@ void EDBM_select_flush(BMEditMesh *em, int selectmode)
 	em->bm->selectmode = em->selectmode;
 }
 
-/*BMESH_TODO*/
-void EDBM_deselect_flush(BMEditMesh *UNUSED(em))
+void EDBM_deselectmode_flush(BMEditMesh *em)
 {
+	BM_DeSelect_Flush(em->bm);
 }
 
 
 void EDBM_selectmode_flush(BMEditMesh *em)
 {
 	em->bm->selectmode = em->selectmode;
-	BM_SelectMode_Flush(em->bm);
+	BM_Select_Flush(em->bm);
 }
 
 void EDBM_select_more(BMEditMesh *em)

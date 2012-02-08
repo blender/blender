@@ -148,11 +148,10 @@ struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *em, int index);
 int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op, 
 						  const char *selectslot, const char *fmt, ...);
 
-/*flushes based on the current select mode.  if in vertex select mode,
-  verts select/deselect edges and faces, if in edge select mode,
-  edges select/deselect faces and vertices, and in face select mode faces select/deselect
-  edges and vertices.*/
-void EDBM_selectmode_flush(struct BMEditMesh *em);
+/* flushes based on the current select mode.  if in vertex select mode,
+ * verts select/deselect edges and faces, if in edge select mode,
+ * edges select/deselect faces and vertices, and in face select mode faces select/deselect
+ * edges and vertices.*/
 void EDBM_select_more(struct BMEditMesh *em);
 void EDBM_select_less(struct BMEditMesh *em);
 
@@ -161,7 +160,9 @@ int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
 /*exactly the same as EDBM_selectmode_flush, but you pass in the selectmode
   instead of using the current one*/
 void EDBM_select_flush(struct BMEditMesh *em, int selectmode);
-void EDBM_deselect_flush(struct BMEditMesh *em);
+
+void EDBM_deselectmode_flush(struct BMEditMesh *em);
+void EDBM_selectmode_flush(struct BMEditMesh *em);
 
 void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
