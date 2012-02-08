@@ -520,22 +520,27 @@ static void add_tface_color_layer(DerivedMesh *dm)
 
 static int draw_tface_mapped__set_draw(void *userData, int index)
 {
-	Mesh *me = (Mesh*)userData;
-	MTexPoly *tpoly = (me->mtpoly)? &me->mtpoly[index]: NULL;
-	MPoly *mpoly = (me->mpoly)? &me->mpoly[index]: NULL;
-	MTFace mtf;
-	int matnr = me->mpoly[index].mat_nr;
+	Mesh *me = (Mesh *)userData;
+
+	/* array checked for NULL before calling */
+	MPoly *mpoly = &me->mpoly[index];
 
 	BLI_assert(index >= 0 && index < me->totpoly);
 
-	if (mpoly && mpoly->flag&ME_HIDE) return 0;
-
-	memset(&mtf, 0, sizeof(mtf));
-	if (tpoly) {
-		ME_MTEXFACE_CPY(&mtf, tpoly);
+	if (mpoly->flag & ME_HIDE) {
+		return 0;
 	}
+	else {
+		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[index] : NULL;
+		MTFace mtf= {{{0}}};
+		int matnr = mpoly->mat_nr;
 
-	return draw_tface__set_draw(&mtf, (me->mcol != NULL), matnr);
+		if (tpoly) {
+			ME_MTEXFACE_CPY(&mtf, tpoly);
+		}
+
+		return draw_tface__set_draw(&mtf, (me->mloopcol != NULL), matnr);
+	}
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
@@ -589,15 +594,24 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *ddm;
-	MFace *mf, *mface= me->mface;
-	MTFace *tface= me->mtface;
-	MCol *mcol= me->mcol;	/* why does mcol exist? */
+	MPoly *mp, *mface  = me->mpoly;
+	MTexPoly *mtpoly   = me->mtpoly;
+	MLoopUV *mloopuv   = me->mloopuv;
+	MLoopUV *luv;
+	MLoopCol *mloopcol = me->mloopcol;	/* why does mcol exist? */
+	MLoopCol *lcol;
+
 	bProperty *prop = get_ob_property(ob, "Text");
 	GPUVertexAttribs gattribs;
-	int a, totface= me->totface;
+	int a, totpoly = me->totpoly;
+
+	/* fake values to pass to GPU_render_text() */
+	MCol  tmp_mcol[4]  = {{0}};
+	MCol *tmp_mcol_pt  = mloopcol ? tmp_mcol : NULL;
+	MTFace tmp_tf      = {{{0}}};
 
 	/* don't draw without tfaces */
-	if(!tface)
+	if(!mtpoly || !mloopuv)
 		return;
 
 	/* don't draw when editing */
@@ -609,16 +623,22 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
-	for(a=0, mf=mface; a<totface; a++, tface++, mf++) {
-		short matnr= mf->mat_nr;
-		int mf_smooth= mf->flag & ME_SMOOTH;
+	for(a=0, mp=mface; a<totpoly ; a++, mtpoly++, mp++) {
+		short matnr= mp->mat_nr;
+		int mf_smooth= mp->flag & ME_SMOOTH;
 		Material *mat = me->mat[matnr];
 		int mode= mat->game.flag;
 
-		if (!(mode&GEMAT_INVISIBLE) && (mode&GEMAT_TEXT)) {
+		if (!(mode&GEMAT_INVISIBLE) && (mode&GEMAT_TEXT) && mp->totloop >= 3) {
+			/* get the polygon as a tri/quad */
+			int mp_vi[4];
 			float v1[3], v2[3], v3[3], v4[3];
 			char string[MAX_PROPSTRING];
 			int characters, i, glattrib= -1, badtex= 0;
+
+
+			/* TEXFACE */
+			ME_MTEXFACE_CPY(&tmp_tf, mtpoly);
 
 			if(glsl) {
 				GPU_enable_material(matnr+1, &gattribs);
@@ -631,17 +651,49 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				}
 			}
 			else {
-				badtex = set_draw_settings_cached(0, tface, mat, Gtexdraw);
+				badtex = set_draw_settings_cached(0, &tmp_tf, mat, Gtexdraw);
 				if (badtex) {
-					if (mcol) mcol+=4;
 					continue;
 				}
 			}
 
-			ddm->getVertCo(ddm, mf->v1, v1);
-			ddm->getVertCo(ddm, mf->v2, v2);
-			ddm->getVertCo(ddm, mf->v3, v3);
-			if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
+			mp_vi[0] = me->mloop[mp->loopstart + 0].v;
+		    mp_vi[1] = me->mloop[mp->loopstart + 1].v;
+		    mp_vi[2] = me->mloop[mp->loopstart + 2].v;
+		    mp_vi[3] = (mp->totloop >= 4) ? me->mloop[mp->loopstart + 3].v : 0;
+
+			/* UV */
+			luv = &mloopuv[mp->loopstart];
+			copy_v2_v2(tmp_tf.uv[0], luv->uv); luv++;
+			copy_v2_v2(tmp_tf.uv[1], luv->uv); luv++;
+			copy_v2_v2(tmp_tf.uv[2], luv->uv); luv++;
+			if (mp->totloop >= 4) {
+				copy_v2_v2(tmp_tf.uv[3], luv->uv);
+			}
+
+			/* COLOR */
+			if (mloopcol) {
+				unsigned int totloop_clamp = MIN2(4, mp->totloop);
+				unsigned int j;
+				lcol = &mloopcol[mp->loopstart];
+
+				for (j = 0; j <= totloop_clamp; j++, lcol++) {
+					tmp_mcol[j].a = lcol->a;
+					tmp_mcol[j].r = lcol->r;
+					tmp_mcol[j].g = lcol->g;
+					tmp_mcol[j].b = lcol->b;
+				}
+			}
+
+			/* LOCATION */
+			ddm->getVertCo(ddm, mp_vi[0], v1);
+			ddm->getVertCo(ddm, mp_vi[1], v2);
+			ddm->getVertCo(ddm, mp_vi[2], v3);;
+			if (mp->totloop >= 4) {
+				ddm->getVertCo(ddm, mp_vi[3], v4);
+			}
+
+
 
 			// The BM_FONT handling is in the gpu module, shared with the
 			// game engine, was duplicated previously
@@ -649,7 +701,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			set_property_valstr(prop, string);
 			characters = strlen(string);
 			
-			if(!BKE_image_get_ibuf(tface->tpage, NULL))
+			if(!BKE_image_get_ibuf(mtpoly->tpage, NULL))
 				characters = 0;
 
 			if (!mf_smooth) {
@@ -660,11 +712,8 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				glNormal3fv(nor);
 			}
 
-			GPU_render_text(tface, mode, string, characters,
-				(unsigned int*)mcol, v1, v2, v3, (mf->v4? v4: NULL), glattrib);
-		}
-		if (mcol) {
-			mcol+=4;
+			GPU_render_text(&tmp_tf, mode, string, characters,
+				(unsigned int*)tmp_mcol_pt, v1, v2, v3, (mp->totloop >= 4 ? v4: NULL), glattrib);
 		}
 	}
 
