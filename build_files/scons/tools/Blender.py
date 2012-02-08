@@ -437,8 +437,9 @@ def set_quiet_output(env):
     static_ob, shared_ob = SCons.Tool.createObjBuilders(env)
     static_ob.add_action('.c', mycaction)
     static_ob.add_action('.cpp', mycppaction)
+    static_ob.add_action('.cc', mycppaction)
     shared_ob.add_action('.c', myshcaction)
-    shared_ob.add_action('.cpp', myshcppaction)
+    shared_ob.add_action('.cc', myshcppaction)
 
     static_lib = SCons.Builder.Builder(action = mylibaction,
                                        emitter = '$LIBEMITTER',
