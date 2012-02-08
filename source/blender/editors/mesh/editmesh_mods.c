@@ -2463,6 +2463,8 @@ static void linked_limit_default(bContext *C, wmOperator *op)
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 		if(em->selectmode == SCE_SELECT_FACE)
 			RNA_boolean_set(op->ptr, "limit", TRUE);
+		else
+			RNA_boolean_set(op->ptr, "limit", FALSE);
 	}
 }
 
