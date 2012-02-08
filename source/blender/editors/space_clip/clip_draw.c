@@ -1178,6 +1178,11 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 		while(layer) {
 			bGPDframe *frame= layer->frames.first;
 
+			if(layer->flag & GP_LAYER_HIDE) {
+				layer= layer->next;
+				continue;
+			}
+
 			glColor4fv(layer->color);
 			glLineWidth(layer->thickness);
 			glPointSize((float)(layer->thickness + 2));
