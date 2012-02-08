@@ -159,12 +159,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
-		texface->tpage = texpoly->tpage;
-		texface->flag = texpoly->flag;
-		texface->transp = texpoly->transp;
-		texface->mode = texpoly->mode;
-		texface->tile = texpoly->tile;
-		texface->unwrap = texpoly->unwrap;
+		ME_MTEXFACE_CPY(texface, texpoly);
 
 		j = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {

@@ -98,6 +98,17 @@ typedef struct MTexPoly {
 	short mode,tile,unwrap;
 } MTexPoly;
 
+/* can copy from/to MTexPoly/MTFace */
+#define ME_MTEXFACE_CPY(dst, src)   \
+{                                   \
+	(dst)->tpage  = (src)->tpage;   \
+	(dst)->flag   = (src)->flag;    \
+	(dst)->transp = (src)->transp;  \
+	(dst)->mode   = (src)->mode;    \
+	(dst)->tile   = (src)->tile;    \
+	(dst)->unwrap = (src)->unwrap;  \
+}
+
 typedef struct MLoopUV {
 	float uv[2];
 	int flag;

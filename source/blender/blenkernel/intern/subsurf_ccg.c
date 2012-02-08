@@ -2402,12 +2402,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
 		
-		texface->tpage = texpoly->tpage;
-		texface->flag = texpoly->flag;
-		texface->transp = texpoly->transp;
-		texface->mode = texpoly->mode;
-		texface->tile = texpoly->tile;
-		texface->unwrap = texpoly->unwrap;
+		ME_MTEXFACE_CPY(texface, texpoly);
 
 		mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
 		for (j=0; j<4; j++, mloopuv++) {

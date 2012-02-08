@@ -1846,12 +1846,7 @@ static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numT
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_get_n(&me->pdata, CD_MTEXPOLY, findex, i); 
 		
-		texpoly->tpage = texface->tpage;
-		texpoly->flag = texface->flag;
-		texpoly->transp = texface->transp;
-		texpoly->mode = texface->mode;
-		texpoly->tile = texface->tile;
-		texpoly->unwrap = texface->unwrap;
+		ME_MTEXFACE_CPY(texpoly, texface);
 	
 		mloopuv = CustomData_get_n(&me->ldata, CD_MLOOPUV, loopstart, i);
 		copy_v2_v2(mloopuv->uv, texface->uv[0]); mloopuv++;
@@ -2194,13 +2189,8 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
-		
-		texface->tpage = texpoly->tpage;
-		texface->flag = texpoly->flag;
-		texface->transp = texpoly->transp;
-		texface->mode = texpoly->mode;
-		texface->tile = texpoly->tile;
-		texface->unwrap = texpoly->unwrap;
+
+		ME_MTEXFACE_CPY(texface, texpoly);
 
 		for (j=0; j < mf_len; j++) {
 			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);

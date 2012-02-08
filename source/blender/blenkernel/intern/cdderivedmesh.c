@@ -1949,12 +1949,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
-		texface->tpage = texpoly->tpage;
-		texface->flag = texpoly->flag;
-		texface->transp = texpoly->transp;
-		texface->mode = texpoly->mode;
-		texface->tile = texpoly->tile;
-		texface->unwrap = texpoly->unwrap;
+		ME_MTEXFACE_CPY(texface, texpoly);
 	
 		for (j=0; j<3; j++) {
 			l = l3[j];

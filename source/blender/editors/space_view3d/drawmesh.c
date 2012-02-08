@@ -532,12 +532,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 
 	memset(&mtf, 0, sizeof(mtf));
 	if (tpoly) {
-		mtf.flag = tpoly->flag;
-		mtf.tpage = tpoly->tpage;
-		mtf.transp = tpoly->transp;
-		mtf.mode = tpoly->mode;
-		mtf.tile = tpoly->tile;
-		mtf.unwrap = tpoly->unwrap;
+		ME_MTEXFACE_CPY(&mtf, tpoly);
 	}
 
 	return draw_tface__set_draw(&mtf, (me->mcol != NULL), matnr);
@@ -558,13 +553,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 
 		if (data->has_mtface) {
 			MTexPoly *tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-			mtf.flag = tpoly->flag;
-			mtf.tpage = tpoly->tpage;
-			mtf.transp = tpoly->transp;
-			mtf.mode = tpoly->mode;
-			mtf.tile = tpoly->tile;
-			mtf.unwrap = tpoly->unwrap;
-
+			ME_MTEXFACE_CPY(&mtf, tpoly);
 		}
 
 		return draw_tface__set_draw_legacy(&mtf, data->has_mcol, matnr);

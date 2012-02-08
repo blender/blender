@@ -877,12 +877,7 @@ static void emDM_drawFacesTex_common(
 			efa = ls[0]->f;
 
 			if (has_uv) {
-				mtf.flag = tp->flag;
-				mtf.tpage = tp->tpage;
-				mtf.transp = tp->transp;
-				mtf.mode = tp->mode;
-				mtf.tile = tp->tile;
-				mtf.unwrap = tp->unwrap;
+				ME_MTEXFACE_CPY(&mtf, tp);
 			}
 
 			if (drawParams)
@@ -952,12 +947,7 @@ static void emDM_drawFacesTex_common(
 			efa = ls[0]->f;
 
 			if (has_uv) {
-				mtf.flag = tp->flag;
-				mtf.tpage = tp->tpage;
-				mtf.transp = tp->transp;
-				mtf.mode = tp->mode;
-				mtf.tile = tp->tile;
-				mtf.unwrap = tp->unwrap;
+				ME_MTEXFACE_CPY(&mtf, tp);
 			}
 
 			if (drawParams)
