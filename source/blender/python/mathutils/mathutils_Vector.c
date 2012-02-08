@@ -378,9 +378,6 @@ PyDoc_STRVAR(Vector_resize_doc,
 ".. method:: resize(size=3)\n"
 "\n"
 "   Resize the vector to have size number of elements.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 );
 static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 {
@@ -473,9 +470,6 @@ PyDoc_STRVAR(Vector_resize_2d_doc,
 ".. method:: resize_2d()\n"
 "\n"
 "   Resize the vector to 2D  (x, y).\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 );
 static PyObject *Vector_resize_2d(VectorObject *self)
 {
@@ -508,9 +502,6 @@ PyDoc_STRVAR(Vector_resize_3d_doc,
 ".. method:: resize_3d()\n"
 "\n"
 "   Resize the vector to 3D  (x, y, z).\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 );
 static PyObject *Vector_resize_3d(VectorObject *self)
 {
@@ -546,9 +537,6 @@ PyDoc_STRVAR(Vector_resize_4d_doc,
 ".. method:: resize_4d()\n"
 "\n"
 "   Resize the vector to 4D (x, y, z, w).\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 );
 static PyObject *Vector_resize_4d(VectorObject *self)
 {
@@ -2676,9 +2664,6 @@ PyDoc_STRVAR(Vector_negate_doc,
 ".. method:: negate()\n"
 "\n"
 "   Set all values to their negative.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 );
 static PyObject *Vector_negate(VectorObject *self)
 {

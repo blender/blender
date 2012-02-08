@@ -334,8 +334,8 @@ class ShapeTransfer(Operator):
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
         orig_normals = me_nos(me.vertices)
-        # the actual mverts location isn't as reliable as the base shape :S
-        # orig_coords = me_cos(me.vertices)
+        # actual mesh vertex location isn't as reliable as the base shape :S
+        #~ orig_coords = me_cos(me.vertices)
         orig_coords = me_cos(me.shape_keys.key_blocks[0].data)
 
         for ob_other in objects:
@@ -653,8 +653,8 @@ class MakeDupliFace(Operator):
 
 
 class IsolateTypeRender(Operator):
-    '''Hide unselected render objects of same type as active ''' \
-    '''by setting the hide render flag'''
+    """Hide unselected render objects of same type as active """ \
+    """by setting the hide render flag"""
     bl_idname = "object.isolate_type_render"
     bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}

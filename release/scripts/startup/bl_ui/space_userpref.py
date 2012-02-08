@@ -293,7 +293,7 @@ class USERPREF_PT_edit(Panel):
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        #col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
+        #~ col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "use_grease_pencil_smooth_stroke", text="Smooth Stroke")
         col.separator()
@@ -316,7 +316,7 @@ class USERPREF_PT_edit(Panel):
 
         sub = col.column()
 
-        # sub.active = edit.use_keyframe_insert_auto # incorrect, timeline can enable
+        #~ sub.active = edit.use_keyframe_insert_auto # incorrect, time-line can enable
         sub.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
 
         col.separator()
@@ -833,7 +833,7 @@ from .space_userpref_keymap import InputKeyMapPanel
 
 
 class USERPREF_MT_ndof_settings(Menu):
-    # accessed from the window keybindings in C (only)
+    # accessed from the window key-bindings in C (only)
     bl_label = "3D Mouse Settings"
 
     def draw(self, context):
@@ -965,7 +965,7 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
 class USERPREF_MT_addons_dev_guides(Menu):
     bl_label = "Development Guides"
 
-    # menu to open webpages with addons development guides
+    # menu to open web-pages with addons development guides
     def draw(self, context):
         layout = self.layout
         layout.operator("wm.url_open", text="API Concepts", icon='URL').url = "http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro"
@@ -1097,7 +1097,7 @@ class USERPREF_PT_addons(Panel):
                 else:
                     row.operator("wm.addon_enable", icon='CHECKBOX_DEHLT', text="", emboss=False).module = module_name
 
-                # Expanded UI (only if additional infos are available)
+                # Expanded UI (only if additional info is available)
                 if info["show_expanded"]:
                     if info["description"]:
                         split = colsub.row().split(percentage=0.15)

@@ -167,7 +167,7 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
             flipped = False
 
             while 1:
-                # from knowing the last 2, look for th next.
+                # from knowing the last 2, look for the next.
                 ed_adj = edges[context_loop[-1]]
                 if len(ed_adj) != 2:
                     # the original edge had 2 other edges
@@ -175,7 +175,7 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
                         flipped = True  # only flip the list once
                         context_loop.reverse()
                         ed_adj[:] = []
-                        context_loop.append(other_dir)  # save 1 lookiup
+                        context_loop.append(other_dir)  # save 1 look-up
 
                         ed_adj = edges[context_loop[-1]]
                         if len(ed_adj) != 2:
@@ -375,7 +375,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
             if s1[0][1] == s1[-1][1]:  # remove endpoints double
                 s1.pop()
 
-            s2[:] = []  # Empty this segment s2 so we dont use it again.
+            s2[:] = []  # Empty this segment s2 so we don't use it again.
             return True
 
         joining_segments = True

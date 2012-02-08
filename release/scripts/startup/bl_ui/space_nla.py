@@ -143,7 +143,7 @@ class NLA_MT_edit(Menu):
         layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
 
         layout.separator()
-        # TODO: names of these tools for 'tweakmode' need changing?
+        # TODO: names of these tools for 'tweak-mode' need changing?
         if scene.is_nla_tweakmode:
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
         else:

@@ -1637,8 +1637,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.operator("TRANSFORM_OT_edge_crease")
         layout.operator("mesh.loop_multi_select", text="Edge Loop").ring = False
 
-        # uiItemO(layout, "Loopcut", 0, "mesh.loop_cut"); // CutEdgeloop(em, 1);
-        # uiItemO(layout, "Edge Slide", 0, "mesh.edge_slide"); // EdgeSlide(em, 0,0.0);
+        #~ uiItemO(layout, "Loopcut", 0, "mesh.loop_cut"); // CutEdgeloop(em, 1);
+        #~ uiItemO(layout, "Edge Slide", 0, "mesh.edge_slide"); // EdgeSlide(em, 0,0.0);
 
         layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
 

@@ -15,7 +15,7 @@ class CustomMenu(bpy.types.Menu):
 
         layout.label(text="Hello world!", icon='WORLD_DATA')
 
-        # use an operator enum property to populate a submenu
+        # use an operator enum property to populate a sub-menu
         layout.operator_menu_enum("object.select_by_type",
                                   property="type",
                                   text="Select All by Type...",
