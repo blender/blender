@@ -227,7 +227,7 @@ class BakeAction(Operator):
 
 
 class ClearUselessActions(Operator):
-    """Mark actions with no F-Curves for deletion after save+reload of """ \
+    """Mark actions with no F-Curves for deletion after save & reload of """ \
     """file preserving \"action libraries\""""
     bl_idname = "anim.clear_useless_actions"
     bl_label = "Clear Useless Actions"

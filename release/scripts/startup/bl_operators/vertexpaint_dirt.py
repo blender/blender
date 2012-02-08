@@ -21,15 +21,6 @@
 
 # <pep8 compliant>
 
-# History
-#
-# Originally written by Campbell Barton aka ideasman42
-#
-# 2009-11-01: * 2.5 port by Keith "Wahooney" Boshoff
-#              * Replaced old method with my own, speed is similar (about 0.001 sec on Suzanne)
-#               but results are far more accurate
-#
-
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only):
     from mathutils import Vector

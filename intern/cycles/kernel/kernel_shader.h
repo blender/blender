@@ -368,12 +368,13 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 #else
 	label = svm_bsdf_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 #endif
+	if(*pdf != 0.0f) {
+		bsdf_eval_init(bsdf_eval, sc->type, eval*sc->weight, kernel_data.film.use_light_pass);
 
-	bsdf_eval_init(bsdf_eval, sc->type, eval*sc->weight, kernel_data.film.use_light_pass);
-
-	if(sd->num_closure > 1 && *pdf != 0.0f) {
-		float sweight = sc->sample_weight;
-		_shader_bsdf_multi_eval(sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
+		if(sd->num_closure > 1) {
+			float sweight = sc->sample_weight;
+			_shader_bsdf_multi_eval(sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
+		}
 	}
 
 	return label;

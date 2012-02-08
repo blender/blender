@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -347,7 +347,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
-	
+
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
 	
@@ -394,6 +394,56 @@ static int ringcut_cancel (bContext *C, wmOperator *op)
 	ringsel_exit(C, op);
 	return OPERATOR_CANCELLED;
 }
+
+/* for bmesh this tool is in bmesh_select.c */
+#if 0
+
+static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	tringselOpData *lcd;
+	EditEdge *edge;
+	int dist = 75;
+	
+	view3d_operator_needs_opengl(C);
+
+	if (!ringsel_init(C, op, 0))
+		return OPERATOR_CANCELLED;
+	
+	lcd = op->customdata;
+	
+	if (lcd->em->selectmode == SCE_SELECT_FACE) {
+		PointerRNA props_ptr;
+		int extend = RNA_boolean_get(op->ptr, "extend");
+
+		ringsel_exit(op);
+
+		WM_operator_properties_create(&props_ptr, "MESH_OT_loop_select");
+		RNA_boolean_set(&props_ptr, "extend", extend);
+		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+
+		return OPERATOR_CANCELLED;
+	}
+
+	lcd->vc.mval[0] = evt->mval[0];
+	lcd->vc.mval[1] = evt->mval[1];
+	
+	edge = findnearestedge(&lcd->vc, &dist);
+	if(!edge) {
+		ringsel_exit(op);
+		return OPERATOR_CANCELLED;
+	}
+
+	lcd->eed = edge;
+	ringsel_find_edge(lcd, 1);
+
+	ringsel_finish(C, op);
+	ringsel_exit(op);
+
+	return OPERATOR_FINISHED;
+}
+
+#endif
 
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
@@ -530,6 +580,28 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	/* keep going until the user confirms */
 	return OPERATOR_RUNNING_MODAL;
 }
+
+/* for bmesh this tool is in bmesh_select.c */
+#if 0
+
+void MESH_OT_edgering_select (wmOperatorType *ot)
+{
+	/* description */
+	ot->name= "Edge Ring Select";
+	ot->idname= "MESH_OT_edgering_select";
+	ot->description= "Select an edge ring";
+	
+	/* callbacks */
+	ot->invoke= ringsel_invoke;
+	ot->poll= ED_operator_editmesh_region_view3d; 
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+}
+
+#endif
 
 void MESH_OT_loopcut (wmOperatorType *ot)
 {
