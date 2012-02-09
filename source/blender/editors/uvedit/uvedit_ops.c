@@ -1304,6 +1304,28 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	EDBM_free_index_arrays(em);
 }
 
+/* WATCH IT: this returns first selected UV,
+ * not ideal in many cases since there could be multiple */
+static float *uv_sel_co_from_eve(Scene *scene, Image *ima, BMEditMesh *em, BMVert *eve)
+{
+	BMIter liter;
+	BMLoop *l;
+
+	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, eve) {
+		MTexPoly *tf = CustomData_bmesh_get(&em->bm->pdata, l->f->head.data, CD_MTEXPOLY);
+
+		if (!uvedit_face_visible(scene, ima, l->f, tf))
+			continue;
+
+		if (uvedit_uv_selected(em, scene, l)) {
+			MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			return luv->uv;
+		}
+	}
+
+	return NULL;
+}
+
 /* ******************** align operator **************** */
 
 static void weld_align_uv(bContext *C, int tool)
@@ -1313,8 +1335,6 @@ static void weld_align_uv(bContext *C, int tool)
 	Object *obedit;
 	Image *ima;
 	BMEditMesh *em;
-	BMFace *efa;
-	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
@@ -1329,6 +1349,9 @@ static void weld_align_uv(bContext *C, int tool)
 	INIT_MINMAX2(min, max);
 
 	if(tool == 'a') {
+		BMFace *efa;
+		BMLoop *l;
+
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
@@ -1349,6 +1372,9 @@ static void weld_align_uv(bContext *C, int tool)
 	uvedit_center(scene, ima, obedit, cent, 0);
 
 	if(tool == 'x' || tool == 'w') {
+		BMFace *efa;
+		BMLoop *l;
+
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if(!uvedit_face_visible(scene, ima, efa, tf))
@@ -1365,6 +1391,9 @@ static void weld_align_uv(bContext *C, int tool)
 	}
 
 	if(tool == 'y' || tool == 'w') {
+		BMFace *efa;
+		BMLoop *l;
+
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if(!uvedit_face_visible(scene, ima, efa, tf))
@@ -1380,137 +1409,132 @@ static void weld_align_uv(bContext *C, int tool)
 		}
 	}
 
-#if 0	// BMESH_TODO
-
 	if(tool == 's' || tool == 't' || tool == 'u') {
-		 /* pass 1&2 variables */
-		int i, j;
-		int starttmpl= -1, connectedtostarttmpl= -1, startcorner;
-		int endtmpl= -1,   connectedtoendtmpl= -1,   endcorner;
-		MTFace *startface, *endface;
-		int itmpl, jtmpl;
-		EditVert *eve;
-		int pass; /* first 2 passes find endpoints, 3rd pass moves middle points, 4th pass is fail-on-face-selected */
-		EditFace *startefa, *endefa= NULL; /* endefa shouldnt need to be initialized but just incase */
+		BMEdge *eed;
+		BMLoop *l;
+		BMVert *eve;
+		BMVert *eve_start;
+		BMIter iter, liter, eiter;
 
-		 /* pass 3 variables */
-		float startx, starty, firstm,  firstb,  midx,      midy;
-		float endx,   endy,   secondm, secondb, midmovedx, midmovedy;
-		float IsVertical_check= -1;
-		float IsHorizontal_check= -1;
+		/* clear tag */
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ClearHFlag(eve, BM_TMP_TAG);
+		}
 
-		for(i= 0, eve= em->verts.first; eve; eve= eve->next, i++) /* give each point a unique name */
-			eve->tmp.l= i;
-		for(pass= 1; pass <= 3; pass++) { /* do this for each endpoint */
-			if(pass == 3){ /* calculate */
-				startx= startface->uv[startcorner][0];
-				starty= startface->uv[startcorner][1];
-				endx= endface->uv[endcorner][0];
-				endy= endface->uv[endcorner][1];
-				firstm= (endy-starty)/(endx-startx);
-				firstb= starty-(firstm*startx);
-				secondm= -1.0f/firstm;
-				if(startx == endx) IsVertical_check= startx;
-				if(starty == endy) IsHorizontal_check= starty;
+		/* tag verts with a selected UV */
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, eve) {
+				tf = CustomData_bmesh_get(&em->bm->pdata, l->f->head.data, CD_MTEXPOLY);
+
+				if (!uvedit_face_visible(scene, ima, l->f, tf))
+					continue;
+
+				if (uvedit_uv_selected(em, scene, l)) {
+					BM_SetHFlag(eve, BM_TMP_TAG);
+					break;
+				}
 			}
-			for(efa= em->faces.first; efa; efa= efa->next) { /* for each face */
-				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE); /* get face */
-				if(uvedit_face_visible(scene, ima, efa, tf)) { /* if you can see it */
-					if(uvedit_face_selected(scene, efa, tf)) { /* if the face is selected, get out now! */
-						pass= 4;
-						break;
-					}
-					for(i= 0; (i < 3 || (i == 3 && efa->v4)); i++) { /* for each point of the face */
-						itmpl= (*(&efa->v1 + i))->tmp.l; /* get unique name for points */
-						if(pass == 3) { /* move */
-							if(uvedit_uv_selected(scene, efa, tf, i)) {
-								if(!(itmpl == starttmpl || itmpl == endtmpl)) {
-									if(IsVertical_check != -1) tf->uv[i][0]= IsVertical_check;
-									if(IsHorizontal_check != -1) tf->uv[i][1]= IsHorizontal_check;
-									if((IsVertical_check == -1) && (IsHorizontal_check == -1)) {
-										midx= tf->uv[i][0];
-										midy= tf->uv[i][1];
-										if(tool == 's') {
-											secondb= midy-(secondm*midx);
-											midmovedx= (secondb-firstb)/(firstm-secondm);
-											midmovedy= (secondm*midmovedx)+secondb;
-											tf->uv[i][0]= midmovedx;
-											tf->uv[i][1]= midmovedy;
-										}
-										else if(tool == 't') {
-											tf->uv[i][0]= (midy-firstb)/firstm; /* midmovedx */
-										}
-										else if(tool == 'u') {
-											tf->uv[i][1]= (firstm*midx)+firstb; /* midmovedy */
-										}
-									}
-								}
-							}
+		}
+
+		/* flush vertex tags to edges */
+		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(eed->v1, BM_TMP_TAG) && BM_TestHFlag(eed->v2, BM_TMP_TAG)) {
+				BM_SetHFlag(eed, BM_TMP_TAG);
+			}
+			else {
+				BM_ClearHFlag(eed, BM_TMP_TAG);
+			}
+		}
+
+		/* find a vertex with only one tagged edge */
+		eve_start = NULL;
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			int tot_eed_tag = 0;
+			BM_ITER(eed, &eiter, em->bm, BM_EDGES_OF_VERT, eve) {
+				if (BM_TestHFlag(eed, BM_TMP_TAG)) {
+					tot_eed_tag++;
+				}
+			}
+
+			if (tot_eed_tag == 1) {
+				eve_start = eve;
+				break;
+			}
+		}
+
+		if (eve_start) {
+			BMVert **eve_line = NULL;
+			BMVert *eve_next = NULL;
+			BLI_array_declare(eve_line);
+			int i;
+
+			eve = eve_start;
+
+			/* walk over edges, building an array of verts in a line */
+			while (eve) {
+				BLI_array_append(eve_line, eve);
+				/* dont touch again */
+				BM_ClearHFlag(eve, BM_TMP_TAG);
+
+				eve_next = NULL;
+
+				/* find next eve */
+				BM_ITER(eed, &eiter, em->bm, BM_EDGES_OF_VERT, eve) {
+					if (BM_TestHFlag(eed, BM_TMP_TAG)) {
+						BMVert *eve_other = BM_OtherEdgeVert(eed, eve);
+						if (BM_TestHFlag(eve_other, BM_TMP_TAG)) {
+							/* this is a tagged vert we didnt walk over yet, step onto it */
+							eve_next = eve_other;
+							break;
 						}
-						else {
-							for(j= 0; (j < 3 || (j == 3 && efa->v4)); j++) { /* also for each point on the face */
-								jtmpl= (*(&efa->v1 + j))->tmp.l;
-								if(i != j && (!efa->v4 || ABS(i-j) !=  2)) { /* if the points are connected */
-									/* quad   (0,1,2,3) 0,1 0,3 1,0 1,2 2,1 2,3 3,0 3,2
-									 * triangle (0,1,2) 0,1 0,2 1,0 1,2 2,0 2,1 */
-									if(uvedit_uv_selected(scene, efa, tf, i) && uvedit_uv_selected(scene, efa, tf, j)) {
-										 /* if the edge is selected */
-										if(pass == 1) { /* if finding first endpoint */
-											if(starttmpl == -1) { /* if the first endpoint isn't found yet */
-												starttmpl= itmpl; /* set unique name for endpoint */
-												connectedtostarttmpl= jtmpl;
-												 /* get point that endpoint is connected to */
-												startface= tf; /* get face it's on */
-												startcorner= i; /* what corner of the face? */
-												startefa= efa;
-												efa= em->faces.first;
-												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-												i= -1;
-												break;
-											}
-											if(starttmpl == itmpl && jtmpl != connectedtostarttmpl) {
-												starttmpl= -1; /* not an endpoint */
-												efa= startefa;
-												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-												i= startcorner;
-												break;
-											}
-										}
-										else if(pass == 2) { /* if finding second endpoint */
-											if(endtmpl == -1 && itmpl != starttmpl) {
-												endtmpl= itmpl;
-												connectedtoendtmpl= jtmpl;
-												endface= tf;
-												endcorner= i;
-												endefa= efa;
-												efa= em->faces.first;
-												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-												i= -1;
-												break;
-											}
-											if(endtmpl == itmpl && jtmpl != connectedtoendtmpl) {
-												endtmpl= -1;
-												efa= endefa;
-												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-												i= endcorner;
-												break;
-											}
-										}
-									}
-								}
-							}
+					}
+				}
+
+				eve = eve_next;
+			}
+
+			/* now we have all verts, make into a line */
+			if (BLI_array_count(eve_line) > 2) {
+
+				/* we know the returns from these must be valid */
+				float *uv_start = uv_sel_co_from_eve(scene, ima, em, eve_line[0]);
+				float *uv_end   = uv_sel_co_from_eve(scene, ima, em, eve_line[BLI_array_count(eve_line) - 1]);
+
+				if (tool == 't') {
+					uv_start[0] = uv_end[0] = (uv_start[0] + uv_end[0]) * 0.5f;
+				}
+				else if (tool == 'u') {
+					uv_start[1] = uv_end[1] = (uv_start[1] + uv_end[1]) * 0.5f;
+				}
+
+				/* go over all verts except for endpoints */
+				for (i = 0; i < BLI_array_count(eve_line); i++) {
+					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, eve_line[i]) {
+						tf = CustomData_bmesh_get(&em->bm->pdata, l->f->head.data, CD_MTEXPOLY);
+
+						if (!uvedit_face_visible(scene, ima, l->f, tf))
+							continue;
+
+						if (uvedit_uv_selected(em, scene, l)) {
+							MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+							closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
 						}
 					}
 				}
 			}
-			if(pass == 2 && (starttmpl == -1 || endtmpl == -1)) {
-				/* if endpoints aren't found */
-				pass=4;
+			else {
+				/* error - not a line, needs 3+ points  */
 			}
+
+			if (eve_line) {
+				MEM_freeN(eve_line);
+			}
+		}
+		else {
+			/* error - cant find an endpoint */
 		}
 	}
 
-#endif
 
 	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
