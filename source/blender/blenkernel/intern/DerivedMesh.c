@@ -1663,7 +1663,15 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		/* --------------------------------------------------------------------- */
 		/* First calculate the polygon and vertex normals, re-tesselation
 		 * copies these into the tessface's normal layer */
+
+
+		/* comment because this causes a bug when deform is applied after a
+		 * bug when applied after a subsurf modifier (SubSurf -> Cast) for eg,
+		 * it also looks like this isn't even needed since code above recalc's
+		 * normals - campbell */
+#if 0
 		finaldm->calcNormals(finaldm);
+#endif
 
 		/* Re-tesselation is necessary to push render data (uvs, textures, colors)
 		 * from loops and polys onto the tessfaces. This may be currently be
