@@ -1711,6 +1711,18 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 //	if (EM_texFaceCheck())
 }
 
+static void linked_limit_default(bContext *C, wmOperator *op)
+{
+	if(!RNA_struct_property_is_set(op->ptr, "limit")) {
+		Object *obedit= CTX_data_edit_object(C);
+		BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+		if(em->selectmode == SCE_SELECT_FACE)
+			RNA_boolean_set(op->ptr, "limit", TRUE);
+		else
+			RNA_boolean_set(op->ptr, "limit", FALSE);
+	}
+}
+
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -1722,7 +1734,13 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	BMEdge *e, *eed;
 	BMFace *efa;
 	int sel= !RNA_boolean_get(op->ptr, "deselect");
-	
+
+	int limit;
+
+	linked_limit_default(C, op);
+
+	limit = RNA_boolean_get(op->ptr, "limit");
+
 	/* unified_finednearest needs ogl */
 	view3d_operator_needs_opengl(C);
 	
@@ -1739,12 +1757,6 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	vc.mval[1]= event->mval[1];
 	
 	/* return warning! */
-
-	/*if (limit) {
-		int retval= select_linked_limited_invoke(&vc, 0, sel);
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
-		return retval;
-	}*/
 	
 	if ( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
@@ -1758,14 +1770,16 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 		if (efa == NULL)
 			return OPERATOR_CANCELLED;
 
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BM_TestHFlag(e, BM_SEAM)) BMO_SetFlag(bm, e, BM_SELECT);
-			else                           BMO_ClearFlag(bm, e, BM_SELECT); /* is this needed ? */
+		if (limit) {
+			BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				if (!BM_TestHFlag(e, BM_SEAM)) BMO_SetFlag(bm, e, BM_SELECT);
+				else                           BMO_ClearFlag(bm, e, BM_SELECT); /* is this needed ? */
+			}
 		}
 
 		/* walk */
 		BMW_Init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, BM_SELECT, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, limit ? BM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_NIL_LAY);
 
 		e = BMW_Begin(&walker, efa);
@@ -1821,7 +1835,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 }
 
 
-static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
@@ -1830,6 +1844,12 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	BMVert *v;
 	BMEdge *e;
 	BMWalker walker;
+
+	int limit;
+
+	linked_limit_default(C, op);
+
+	limit = RNA_boolean_get(op->ptr, "limit");
 
 	if (em->selectmode == SCE_SELECT_FACE) {
 		BMFace *efa;
@@ -1843,13 +1863,15 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BM_TestHFlag(e, BM_SEAM)) BMO_SetFlag(bm, e, BM_SELECT);
-			else                           BMO_ClearFlag(bm, e, BM_SELECT); /* is this needed ? */
+		if (limit) {
+			BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				if (!BM_TestHFlag(e, BM_SEAM)) BMO_SetFlag(bm, e, BM_SELECT);
+				else                           BMO_ClearFlag(bm, e, BM_SELECT); /* is this needed ? */
+			}
 		}
 
 		BMW_Init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, BM_SELECT, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, limit ? BM_SELECT : BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_NIL_LAY);
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {

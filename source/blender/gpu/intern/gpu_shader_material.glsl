@@ -2077,19 +2077,21 @@ void node_tex_coord(vec3 I, vec3 N, mat4 toworld,
 
 /* textures */
 
-void node_tex_blend(vec3 co, out float fac)
+void node_tex_gradient(vec3 co, out vec4 color, out float fac)
 {
+	color = vec4(1.0);
+	fac = 1.0;
+}
+
+void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 color, out float fac)
+{
+	color = vec4(1.0);
 	fac = 1.0;
 }
 
 void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
 {
 	color = vec4(1.0);
-	fac = 1.0;
-}
-
-void node_tex_distnoise(vec3 co, float size, float distortion, out float fac)
-{
 	fac = 1.0;
 }
 
@@ -2106,88 +2108,19 @@ void node_tex_image(vec3 co, sampler2D ima, out vec4 color)
 	color = texture2D(ima, co.xy);
 }
 
-void node_tex_magic(vec3 p, float turbulence, float n, out vec4 color)
+void node_tex_magic(vec3 p, float scale, float distortion, out vec4 color, out float fac)
 {
-	float turb = turbulence/5.0;
-
-	float x = sin((p.x + p.y + p.z)*5.0);
-	float y = cos((-p.x + p.y - p.z)*5.0);
-	float z = -cos((-p.x - p.y + p.z)*5.0);
-
-	if(n > 0.0) {
-		x *= turb;
-		y *= turb;
-		z *= turb;
-		y = -cos(x-y+z);
-		y *= turb;
-
-		if(n > 1.0) {
-			x= cos(x-y-z);
-			x *= turb;
-
-			if(n > 2.0) {
-				z= sin(-x-y-z);
-				z *= turb;
-
-				if(n > 3.0) {
-					x= -cos(-x+y-z);
-					x *= turb;
-
-					if(n > 4.0) {
-						y= -sin(-x+y+z);
-						y *= turb;
-
-						if(n > 5.0) {
-							y= -cos(-x+y+z);
-							y *= turb;
-
-							if(n > 6.0) {
-								x= cos(x+y+z);
-								x *= turb;
-
-								if(n > 7.0) {
-									z= sin(x+y-z);
-									z *= turb;
-
-									if(n > 8.0) {
-										x= -cos(-x-y+z);
-										x *= turb;
-
-										if(n > 9.0) {
-											y= -sin(x-y+z);
-											y *= turb;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if(turb != 0.0) {
-		turb *= 2.0;
-		x /= turb;
-		y /= turb;
-		z /= turb;
-	}
-
-	color = vec4(0.5 - x, 0.5 - y, 0.5 - z, 1.0);
-}
-
-void node_tex_marble(vec3 co, float size, float turbulence, out float fac)
-{
+	color = vec4(1.0);
 	fac = 1.0;
 }
 
-void node_tex_musgrave(vec3 co, float size, float dimension, float lacunarity, float octaves, float offset, float gain, out float fac)
+void node_tex_musgrave(vec3 co, float scale, float detail, float dimension, float lacunarity, float offset, float gain, out vec4 color, out float fac)
 {
+	color = vec4(1.0);
 	fac = 1.0;
 }
 
-void node_tex_noise(vec3 co, out vec4 color, out float fac)
+void node_tex_noise(vec3 co, float scale, float detail, float distortion, out vec4 color, out float fac)
 {
 	color = vec4(1.0);
 	fac = 1.0;
@@ -2198,19 +2131,15 @@ void node_tex_sky(vec3 co, out vec4 color)
 	color = vec4(1.0);
 }
 
-void node_tex_stucci(vec3 co, float size, float turbulence, out float fac)
-{
-	fac = 1.0;
-}
-
-void node_tex_voronoi(vec3 co, float size, float weight1, float weight2, float weight3, float weight4, float exponent, out vec4 color, out float fac)
+void node_tex_voronoi(vec3 co, float scale, out vec4 color, out float fac)
 {
 	color = vec4(1.0);
 	fac = 1.0;
 }
 
-void node_tex_wood(vec3 co, float size, float turbulence, out float fac)
+void node_tex_wave(vec3 co, float scale, float distortion, float detail, float detail_scale, out vec4 color, out float fac)
 {
+	color = vec4(1.0);
 	fac = 1.0;
 }
 

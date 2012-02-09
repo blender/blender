@@ -161,7 +161,7 @@ class ANIM_OT_keying_set_export(Operator):
 
 
 class BakeAction(Operator):
-    """Bake animation to an Action"""
+    """Bake object/pose loc/scale/rotation animation to a new action"""
     bl_idname = "nla.bake"
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}

@@ -1166,7 +1166,7 @@ PyDoc_STRVAR(Matrix_invert_doc,
 "\n"
 "   Set the matrix to its inverse.\n"
 "\n"
-"   .. note:: :exc:`ValueError` exception is raised.\n"
+"   .. note:: When the matrix cant be inverted a :exc:`ValueError` exception is raised.\n"
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
 );
@@ -1240,7 +1240,7 @@ PyDoc_STRVAR(Matrix_inverted_doc,
 "   :return: the  inverted matrix.\n"
 "   :rtype: :class:`Matrix`\n"
 "\n"
-"   .. note:: :exc:`ValueError` exception is raised.\n"
+"   .. note:: When the matrix cant be inverted a :exc:`ValueError` exception is raised.\n"
 );
 static PyObject *Matrix_inverted(MatrixObject *self)
 {
