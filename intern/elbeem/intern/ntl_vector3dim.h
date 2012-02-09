@@ -27,6 +27,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* absolute value */
+template < class T >
+inline T
+ABS( T a )
+{ return (0 < a) ? a : -a ; }
+
 // hack for MSVC6.0 compiler
 #ifdef _MSC_VER
 #if _MSC_VER < 1300

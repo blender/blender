@@ -177,12 +177,6 @@ inline T
 MAX( T a, T b )
 { return (a < b) ? b : a ; }
 
-/* absolute value */
-template < class T >
-inline T
-ABS( T a )
-{ return (0 < a) ? a : -a ; }
-
 /* sign of the value */
 template < class T >
 inline T
