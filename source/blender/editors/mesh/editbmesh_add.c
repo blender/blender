@@ -115,9 +115,8 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 	sub_v3_v3(primmat[3], obedit->obmat[3]);
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
-	
-	if(v3d) return v3d->grid;
-	return 1.0f;
+
+	return v3d ? v3d->grid : 1.0f;
 }
 
 /* ********* add primitive operators ************* */

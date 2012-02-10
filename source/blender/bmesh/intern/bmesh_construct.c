@@ -296,7 +296,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 
 	/* ok, edges are in correct order, now ensure they are going
 	 * in the correct direction */
-	v1found = reverse = 0;
+	v1found = reverse = FALSE;
 	for (i = 0; i < len; i++) {
 		if (BM_Vert_In_Edge(edges2[i], v1)) {
 			/* see if v1 and v2 are in the same edge */
@@ -304,16 +304,16 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 				/* if v1 is shared by the *next* edge, then the winding
 				 * is incorrect */
 				if (BM_Vert_In_Edge(edges2[(i + 1) % len], v1)) {
-					reverse = 1;
+					reverse = TRUE;
 					break;
 				}
 			}
 
-			v1found = 1;
+			v1found = TRUE;
 		}
 
-		if (!v1found && BM_Vert_In_Edge(edges2[i], v2)) {
-			reverse = 1;
+		if ((v1found == FALSE) && BM_Vert_In_Edge(edges2[i], v2)) {
+			reverse = TRUE;
 			break;
 		}
 	}

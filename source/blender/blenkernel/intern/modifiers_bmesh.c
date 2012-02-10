@@ -101,8 +101,8 @@
 #include "RE_shader_ext.h"
 #include "LOD_decimation.h"
 
-/*converts a cddm to a BMEditMesh.  if existing is non-NULL, the
-  new geometry will be put in there.*/
+/* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
+ * new geometry will be put in there.*/
 BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
 {
 	int allocsize[4] = {512, 512, 2048, 512};
@@ -112,8 +112,8 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	MEdge *me, *medge;
 	MPoly *mpoly, *mp;
 	MLoop *mloop, *ml;
-	BMVert *v, **vtable, **verts=NULL;
-	BMEdge *e, **etable, **edges=NULL;
+	BMVert *v, **vtable, **verts = NULL;
+	BMEdge *e, **etable, **edges = NULL;
 	BMFace *f;
 	BMIter liter;
 	BLI_array_declare(verts);
@@ -140,7 +140,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 
 	/*do verts*/
 	mv = mvert = dm->dupVertArray(dm);
-	for (i=0; i<totvert; i++, mv++) {
+	for (i = 0; i < totvert; i++, mv++) {
 		v = BM_Make_Vert(bm, mv->co, NULL);
 		normal_short_to_float_v3(v->no, mv->no);
 		v->head.hflag = BM_Vert_Flag_From_MEFlag(mv->flag);
@@ -152,7 +152,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 
 	/*do edges*/
 	me = medge = dm->dupEdgeArray(dm);
-	for (i=0; i<totedge; i++, me++) {
+	for (i = 0; i < totedge; i++, me++) {
 		e = BM_Make_Edge(bm, vtable[me->v1], vtable[me->v2], NULL, FALSE);
 
 		e->head.hflag = BM_Edge_Flag_From_MEFlag(me->flag);
@@ -165,7 +165,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	/*do faces*/
 	mpoly = mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
-	for (i=0; i<dm->numPolyData; i++, mp++) {
+	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l;
 
 		BLI_array_empty(verts);
@@ -192,12 +192,11 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		k = mp->loopstart;
 
-		for (j=0; l; l=BMIter_Step(&liter), k++) {
+		for (j = 0; l; l = BMIter_Step(&liter), k++) {
 			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data);
 		}
 
-		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata,
-			i, &f->head.data);
+		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data);
 	}
 
 	MEM_freeN(vtable);
@@ -217,4 +216,3 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 
 	return em;
 }
-

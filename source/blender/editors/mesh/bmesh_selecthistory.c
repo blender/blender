@@ -85,10 +85,10 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-/*these wrap equivilent bmesh functions.  I'm in two minds of it we should
-  just use the bm functions directly; on the one hand, there's no real
-  need (at the moment) to wrap them, but on the other hand having these
-  wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces.*/
+/* these wrap equivilent bmesh functions.  I'm in two minds of it we should
+ * just use the bm functions directly; on the one hand, there's no real
+ * need (at the moment) to wrap them, but on the other hand having these
+ * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */
 
 void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
 {
