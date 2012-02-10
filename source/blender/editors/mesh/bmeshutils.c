@@ -478,7 +478,7 @@ void EDBM_select_less(BMEditMesh *em)
 int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 {
 	BMEditSelection *ese_last = em->bm->selected.last;
-	BMFace *efa = BM_get_actFace(em->bm, 0);
+	BMFace *efa = BM_get_actFace(em->bm, FALSE);
 
 	ese->next = ese->prev = NULL;
 	

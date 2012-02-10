@@ -608,7 +608,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 			if(em && EDBM_texFaceCheck(em)) {
 				sima->image= NULL;
 				
-				tf = EDBM_get_active_mtexpoly(em, NULL, 1); /* partially selected face is ok */
+				tf = EDBM_get_active_mtexpoly(em, NULL, TRUE); /* partially selected face is ok */
 				
 				if(tf) {
 					/* don't need to check for pin here, see above */

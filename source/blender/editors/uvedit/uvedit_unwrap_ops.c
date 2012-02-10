@@ -196,7 +196,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	handle = param_construct_begin();
 
 	if(correct_aspect) {
-		efa = BM_get_actFace(em->bm, 1);
+		efa = BM_get_actFace(em->bm, TRUE);
 
 		if(efa) {
 			float aspx, aspy;
@@ -1022,7 +1022,7 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
 
 static void correct_uv_aspect(BMEditMesh *em)
 {
-	BMFace *efa= BM_get_actFace(em->bm, 1);
+	BMFace *efa= BM_get_actFace(em->bm, TRUE);
 	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf;

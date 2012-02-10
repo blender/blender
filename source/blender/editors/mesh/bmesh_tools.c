@@ -1442,7 +1442,7 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 
 	BM_ITER(h, &iter, em->bm, itermode, NULL) {
 		if (BM_TestHFlag(h, BM_SELECT) ^ swap)
-			BM_Hide(em->bm, h, 1);
+			BM_Hide(em->bm, h, TRUE);
 	}
 
 	EDBM_selectmode_flush(em);

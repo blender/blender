@@ -2953,7 +2953,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 {
 	Mesh *me = ob->data;
-	BMFace *efa_act = BM_get_actFace(em->bm, 0); /* annoying but active faces is stored differently */
+	BMFace *efa_act = BM_get_actFace(em->bm, FALSE); /* annoying but active faces is stored differently */
 	BMEdge *eed_act = NULL;
 	BMVert *eve_act = NULL;
 	

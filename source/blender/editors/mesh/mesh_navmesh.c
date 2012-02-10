@@ -487,7 +487,7 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
 	/* do work here */
-	BMFace *efa_act= BM_get_actFace(em->bm, 0);
+	BMFace *efa_act= BM_get_actFace(em->bm, FALSE);
 
 	if(efa_act) {
 		if(CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
