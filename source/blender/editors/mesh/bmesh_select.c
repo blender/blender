@@ -766,7 +766,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	/* select the output */
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT, BM_ALL);
-	EDBM_select_flush(em);
+	EDBM_selectmode_flush(em);
 
 	/* finish the operator */
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
@@ -817,7 +817,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_select_flush(em);
+	EDBM_selectmode_flush(em);
 
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
@@ -956,14 +956,14 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 			eed = edarray[edindex];
 			walker_select(em, BMW_EDGERING, eed, 1);
 		}
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	else{
 		for(edindex = 0; edindex < totedgesel; edindex +=1) {
 			eed = edarray[edindex];
 			walker_select(em, BMW_LOOP, eed, 1);
 		}
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	MEM_freeN(edarray);
 //	if (EM_texFaceCheck())
@@ -1041,7 +1041,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 				walker_select(em, BMW_LOOP, eed, select);
 		}
 
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
 		
 		/* sets as active, useful for other tools */
@@ -1394,7 +1394,7 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 			edgetag_context_set(em, vc.scene, e, act); /* switch the edge option */
 		}
 		
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 
 		/* even if this is selected it may not be in the selection list */
 		if (edgetag_context_check(vc.scene, em, e)==0)
@@ -1506,7 +1506,7 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 			}
 		}
 		
-		EDBM_select_flush(vc.em);
+		EDBM_selectmode_flush(vc.em);
 		  
 //		if (EM_texFaceCheck()) {
 
@@ -1567,14 +1567,6 @@ void EDBM_selectmode_set(BMEditMesh *em)
 	EDBM_strip_selections(em); /*strip BMEditSelections from em->selected that are not relevant to new mode*/
 	
 	if (em->selectmode & SCE_SELECT_VERTEX) {
-		/*BMIter iter;
-		
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, FALSE);
-		
-		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, FALSE);*/
-
 		EDBM_select_flush(em);
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
@@ -1590,7 +1582,7 @@ void EDBM_selectmode_set(BMEditMesh *em)
 		}
 		
 		/* selects faces based on edge status */
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
 		/* deselect eges, and select again based on face select */
@@ -1809,7 +1801,16 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 				BM_Select(bm, e->v2, sel);
 		}
 		BMW_End(&walker);
-		EDBM_select_mode_flush(em, SCE_SELECT_VERTEX);
+
+		/* BMESH_TODO, see trunks 'select_linked_pick_invoke' this uses 'f1' flag and does its own flushing
+		 * the problem with calling selectmode flush below is that it will select edges from parts
+		 * of the mesh that didnt change, perhaps we should have selection flushing functions that only check
+		 * tagged geometry.
+		 * For now I dont think this is a showstopper - campbell */
+
+		/* now use vertex select flag to select rest */
+		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
+
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
@@ -1908,7 +1909,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 		}
 		BMW_End(&walker);
 	}
-	EDBM_select_mode_flush(em, SCE_SELECT_VERTEX);
+	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
@@ -2052,7 +2053,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	BMO_pop(bm);
 
 	/* Flush selection up */
-	EDBM_select_mode_flush(em, flushtype);
+	EDBM_selectmode_flush_ex(em, flushtype);
 }
 
 static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFace **f_p)
@@ -2067,7 +2068,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFa
 	*e_p= NULL;
 	*f_p= NULL;
 
-	EDBM_select_flush(em);
+	EDBM_selectmode_flush(em);
 	ese= (BMEditSelection*)em->bm->selected.last;
 
 	if (ese) {
@@ -2399,7 +2400,7 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 				BM_Select(em->bm, eve, TRUE);
 			}
 		}
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
@@ -2407,7 +2408,7 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 				BM_Select(em->bm, eed, TRUE);
 			}
 		}
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	else {
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -2415,7 +2416,7 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 				BM_Select(em->bm, efa, TRUE);
 			}
 		}
-		EDBM_select_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);

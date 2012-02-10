@@ -151,8 +151,8 @@ static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 	em = me->edit_btmesh;
 
 	/* Primitive has all verts selected, use vert select flush
-	   to push this up to edges & faces. */
-	EDBM_select_mode_flush(em, SCE_SELECT_VERTEX);
+	 * to push this up to edges & faces. */
+	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);

@@ -2176,15 +2176,19 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 	}
 
+#if 0	/* BM_Select API handles all of this? */
+
 	if(sync) {
 		/* flush for mesh selection */
 		if(ts->selectmode != SCE_SELECT_FACE) {
-			if(flush==1)		EDBM_select_mode_flush(em, ts->selectmode);
-			//else if(flush==-1)	EDBM_deselect_flush(em); <-- I think this takes care of itself. . .
+			if(flush==1)		EDBM_select_flush(em);
+			else if(flush==-1)	EDBM_deselect_flush(em);
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, 0);
+#endif
+
+ 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BLI_array_free(hitv);
@@ -2680,11 +2684,11 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 	if(change) {
 		/* make sure newly selected vert selection is updated*/
-#if 0 //ok, I think the BM_Select API handles all of this?
+#if 0	/* BM_Select API handles all of this? */
 		if(ts->uv_flag & UV_SYNC_SELECTION) {
 			if(ts->selectmode != SCE_SELECT_FACE) {
-				if(select)	EM_select_flush(em);
-				else		EM_deselect_flush(em);
+				if(select)	EDBM_select_flush(em);
+				else		EDBM_deselect_flush(em);
 			}
 		}
 #endif
