@@ -2207,9 +2207,9 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 			continue;
 
 		/* edge has exactly two neighboring faces, check angle */
-		angle = saacos(l1->f->no[0]*l2->f->no[0]+l1->f->no[1]*l2->f->no[1]+l1->f->no[2]*l2->f->no[2]);
+		angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
 
-		if (fabsf(angle) < sharp) {
+		if (fabsf(angle) > sharp) {
 			BM_Select(em->bm, e, TRUE);
 		}
 
