@@ -421,11 +421,11 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 		mul_v3_fl(co, 1.0f / (float)j);
 		mid_v3_v3v3(co, co, v->co);
 
-		if (clipx && fabsf(v->co[0]) < clipdist)
+		if (clipx && fabsf(v->co[0]) <= clipdist)
 			co[0] = 0.0f;
-		if (clipy && fabsf(v->co[1]) < clipdist)
+		if (clipy && fabsf(v->co[1]) <= clipdist)
 			co[1] = 0.0f;
-		if (clipz && fabsf(v->co[2]) < clipdist)
+		if (clipz && fabsf(v->co[2]) <= clipdist)
 			co[2] = 0.0f;
 
 		i++;

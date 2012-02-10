@@ -1608,6 +1608,7 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 	ModifierData *md;
 	int mirrx=0, mirry=0, mirrz=0;
 	int i, repeat;
+	float clipdist = 0.0f;
 
 	/* mirror before smooth */
 	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
@@ -1628,6 +1629,8 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 					mirry = 1;
 				if (mmd->flag & MOD_MIR_AXIS_Z)
 					mirrz = 1;
+
+				clipdist = mmd->tolerance;
 			}
 		}
 	}
@@ -1637,8 +1640,9 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 		repeat = 1;
 	
 	for (i=0; i<repeat; i++) {
-		if (!EDBM_CallOpf(em, op, "vertexsmooth verts=%hv mirror_clip_x=%d mirror_clip_y=%d mirror_clip_z=%d",
-				  BM_SELECT, mirrx, mirry, mirrz))
+		if (!EDBM_CallOpf(em, op,
+		                  "vertexsmooth verts=%hv mirror_clip_x=%d mirror_clip_y=%d mirror_clip_z=%d clipdist=%f",
+		                  BM_SELECT, mirrx, mirry, mirrz, clipdist))
 		{
 			return OPERATOR_CANCELLED;
 		}
