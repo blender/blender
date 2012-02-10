@@ -327,7 +327,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "INFO_MT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_vert_connect", YKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_split", YKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_vert_connect", JKEY, KM_PRESS, 0, 0);
 
 	/* use KM_CLICK because same key is used for tweaks */
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
