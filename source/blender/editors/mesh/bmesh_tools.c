@@ -1445,7 +1445,7 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 			BM_Hide(em->bm, h, 1);
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 
 	/*original hide flushing comment (OUTDATED): 
 	  hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
@@ -1532,7 +1532,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 		}
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 }
 
 static int reveal_mesh_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2296,7 +2296,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 
 	/* dependencies graph and notification stuff */
 /*	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
@@ -2541,7 +2541,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		BM_Select(bm, ripvert, TRUE);
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 
 	BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
 
@@ -2788,7 +2788,7 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3303,7 +3303,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 
 	/*Flush the selection to clear edge/face selections to match
 	  selected vertices*/
-	EDBM_select_flush(em, SCE_SELECT_VERTEX);
+	EDBM_select_mode_flush(em, SCE_SELECT_VERTEX);
 
 	/*A "while(true)" loop should work here as each iteration should
 	  select and remove at least one vertex and when all vertices
@@ -3342,7 +3342,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 				
 		/*Flush the selection to get edge/face selections matching
 		  the vertex selection*/
-		EDBM_select_flush(em, SCE_SELECT_VERTEX);
+		EDBM_select_mode_flush(em, SCE_SELECT_VERTEX);
 
 		if (bm->totvert == bm->totvertsel) {
 			/* Every vertex selected, nothing to separate, work is done */
@@ -3849,7 +3849,7 @@ static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
@@ -3905,7 +3905,7 @@ static int select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
@@ -3933,7 +3933,7 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 	int extend= RNA_boolean_get(op->ptr, "extend");
 
 	EDBM_select_mirrored(obedit, em, extend);
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;

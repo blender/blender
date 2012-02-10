@@ -562,7 +562,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	}
 	
 	EDBM_free_backbuf();
-	EDBM_selectmode_flush(vc->em);	
+	EDBM_select_flush(vc->em);	
 }
 
 #if 0
@@ -1819,7 +1819,7 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	
 	EDBM_free_backbuf();
 		
-	EDBM_selectmode_flush(vc->em);
+	EDBM_select_flush(vc->em);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2348,7 +2348,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 	}
 
 	EDBM_free_backbuf();
-	EDBM_selectmode_flush(vc->em);
+	EDBM_select_flush(vc->em);
 }
 
 static void paint_facesel_circle_select(ViewContext *vc, int select, const int mval[2], float rad)

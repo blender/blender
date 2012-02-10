@@ -418,21 +418,24 @@ BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)
 	return (tm->face_index && index<tm->bm->totface && index>=0) ? tm->face_index[index] : NULL;
 }
 
-void EDBM_select_flush(BMEditMesh *em, int selectmode)
+void EDBM_select_mode_flush(BMEditMesh *em, int selectmode)
 {
 	em->bm->selectmode = selectmode;
 	BM_SelectMode_Flush(em->bm);
 	em->bm->selectmode = em->selectmode;
 }
 
-void EDBM_deselectmode_flush(BMEditMesh *em)
+void EDBM_deselect_flush(BMEditMesh *em)
 {
+	/* function below doesnt use. just do this to keep the values in sync */
+	em->bm->selectmode = em->selectmode;
 	BM_DeSelect_Flush(em->bm);
 }
 
 
-void EDBM_selectmode_flush(BMEditMesh *em)
+void EDBM_select_flush(BMEditMesh *em)
 {
+	/* function below doesnt use. just do this to keep the values in sync */
 	em->bm->selectmode = em->selectmode;
 	BM_Select_Flush(em->bm);
 }
@@ -449,7 +452,7 @@ void EDBM_select_more(BMEditMesh *em)
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
 	BMO_Finish_Op(em->bm, &bmop);
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 }
 
 void EDBM_select_less(BMEditMesh *em)
@@ -464,7 +467,7 @@ void EDBM_select_less(BMEditMesh *em)
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
 	BMO_Finish_Op(em->bm, &bmop);
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 }
 
 int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)

@@ -2179,7 +2179,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	if(sync) {
 		/* flush for mesh selection */
 		if(ts->selectmode != SCE_SELECT_FACE) {
-			if(flush==1)		EDBM_select_flush(em, ts->selectmode);
+			if(flush==1)		EDBM_select_mode_flush(em, ts->selectmode);
 			//else if(flush==-1)	EDBM_deselect_flush(em); <-- I think this takes care of itself. . .
 		}
 	}

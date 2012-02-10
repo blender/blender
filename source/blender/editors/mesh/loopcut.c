@@ -333,11 +333,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			
 			/* sets as active, useful for other tools */
 			if(em->selectmode & SCE_SELECT_VERTEX)
-				EDBM_selectmode_flush(em);
+				EDBM_select_flush(em);
 			if(em->selectmode & SCE_SELECT_EDGE)
-				EDBM_selectmode_flush(em);
+				EDBM_select_flush(em);
 			
-			EDBM_selectmode_flush(lcd->em);
+			EDBM_select_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, lcd->ob->data);
 		}
 	}

@@ -155,7 +155,7 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 		nr++;
 	}
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)

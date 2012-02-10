@@ -602,8 +602,8 @@ static void vgroup_select_verts(Object *ob, int select)
 			}
 
 			/* this has to be called, because this function operates on vertices only */
-			if(select) EDBM_selectmode_flush(em);	// vertices to edges/faces
-			else EDBM_deselectmode_flush(em);
+			if(select) EDBM_select_flush(em);	// vertices to edges/faces
+			else EDBM_deselect_flush(em);
 		}
 		else {
 			if (me->dvert) {
