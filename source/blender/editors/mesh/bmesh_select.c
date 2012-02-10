@@ -1797,20 +1797,9 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 		e = BMW_Begin(&walker, eed->v1);
 		for (; e; e=BMW_Step(&walker)) {
-				BM_Select(bm, e->v1, sel);
-				BM_Select(bm, e->v2, sel);
+			BM_Select(bm, e, sel);
 		}
 		BMW_End(&walker);
-
-		/* BMESH_TODO, see trunks 'select_linked_pick_invoke' this uses 'f1' flag and does its own flushing
-		 * the problem with calling selectmode flush below is that it will select edges from parts
-		 * of the mesh that didnt change, perhaps we should have selection flushing functions that only check
-		 * tagged geometry.
-		 * For now I dont think this is a showstopper - campbell */
-
-		/* now use vertex select flag to select rest */
-		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
-
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
