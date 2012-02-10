@@ -636,6 +636,7 @@ static BMOpDefine def_dissolveedgessop = {
 	"dissolveedges",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	{BMOP_OPSLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
 	{0} /* null-terminating sentine */},
 	dissolveedges_exec,
 	BMOP_UNTAN_MULTIRES
@@ -654,6 +655,7 @@ static BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	{BMOP_OPSLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
 	{0} /* null-terminating sentine */},
 	dissolvefaces_exec,
 	BMOP_UNTAN_MULTIRES

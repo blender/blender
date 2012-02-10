@@ -83,6 +83,24 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMWalker regwalker;
 	int i;
 
+	int use_verts = BMO_Get_Int(op, "use_verts");
+
+	if (use_verts) {
+		/* tag verts that start out with only 2 edges,
+		 * don't remove these later */
+		BMIter viter;
+		BMVert *v;
+
+		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_Vert_EdgeCount(v) == 2) {
+				BMO_ClearFlag(bm, v, VERT_MARK);
+			}
+			else {
+				BMO_SetFlag(bm, v, VERT_MARK);
+			}
+		}
+	}
+
 	BMO_Flag_Buffer(bm, op, "faces", FACE_MARK, BM_FACE);
 	
 	/* collect region */
@@ -147,6 +165,21 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_CallOpf(bm, "del geom=%ff context=%d", FACE_ORIG, DEL_FACES);
+
+
+	if (use_verts) {
+		BMIter viter;
+		BMVert *v;
+
+		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (BMO_TestFlag(bm, v, VERT_MARK)) {
+				if (BM_Vert_EdgeCount(v) == 2) {
+					BM_Collapse_Vert_Edges(bm, v->e, v);
+				}
+			}
+		}
+	}
+
 	if (BMO_HasError(bm)) goto cleanup;
 
 	BMO_Flag_To_Slot(bm, op, "regionout", FACE_NEW, BM_FACE);
@@ -210,33 +243,31 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 void dissolveedges_exec(BMesh *bm, BMOperator *op)
 {
 	/* might want to make this an option or mode - campbell */
-#define DISSOLVE_EDGE_VERTS
 
 	/* BMOperator fop; */
 	BMOIter eiter;
 	BMEdge *e;
 
-#ifdef DISSOLVE_EDGE_VERTS
 	BMIter viter;
 	BMVert *v;
-#endif
 
+	int use_verts = BMO_Get_Int(op, "use_verts");
 
-#ifdef DISSOLVE_EDGE_VERTS
-	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		BMO_ClearFlag(bm, v, VERT_MARK);
+	if (use_verts) {
+		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			BMO_ClearFlag(bm, v, VERT_MARK);
+		}
 	}
-#endif /* DISSOLVE_EDGE_VERTS */
 
 	BMO_ITER(e, &eiter, bm, op, "edges", BM_EDGE) {
 		const int edge_face_count = BM_Edge_FaceCount(e);
 		if (edge_face_count == 2) {
 
-#ifdef DISSOLVE_EDGE_VERTS
-			/* later check if these verts are between 2 edges and can dissolve */
-			BMO_SetFlag(bm, e->v1, VERT_MARK);
-			BMO_SetFlag(bm, e->v2, VERT_MARK);
-#endif /* DISSOLVE_EDGE_VERTS */
+			if (use_verts) {
+				/* later check if these verts are between 2 edges and can dissolve */
+				BMO_SetFlag(bm, e->v1, VERT_MARK);
+				BMO_SetFlag(bm, e->v2, VERT_MARK);
+			}
 
 			/* join faces */
 			BM_Join_TwoFaces(bm, e->l->f,
@@ -254,16 +285,15 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-#ifdef DISSOLVE_EDGE_VERTS
-	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, v, VERT_MARK)) {
-			if (BM_Vert_EdgeCount(v) == 2) {
-				BM_Collapse_Vert_Edges(bm, v->e, v);
+	if (use_verts) {
+		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (BMO_TestFlag(bm, v, VERT_MARK)) {
+				if (BM_Vert_EdgeCount(v) == 2) {
+					BM_Collapse_Vert_Edges(bm, v->e, v);
+				}
 			}
 		}
 	}
-#endif /* DISSOLVE_EDGE_VERTS */
-
 }
 
 static int test_extra_verts(BMesh *bm, BMVert *v)

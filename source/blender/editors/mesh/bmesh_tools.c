@@ -915,13 +915,14 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 			return OPERATOR_CANCELLED;
 	}
 	else if (event==7) {
+		int use_verts = RNA_boolean_get(op->ptr, "use_verts");
 		//"Dissolve"
 		if (bem->selectmode & SCE_SELECT_FACE) {
-			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf",BM_SELECT))
+			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf use_verts=%i", BM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_EDGE) {
-			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he",BM_SELECT))
+			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he use_verts=%i", BM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_VERTEX) {
@@ -1008,9 +1009,13 @@ void MESH_OT_delete(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
+
 	/*props */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
+
+	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
+	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
+	                "When dissolving faaces/edges, also dissolve remaining vertices");
 }
 
 
