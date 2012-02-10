@@ -255,7 +255,12 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 
 	if (use_verts) {
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-			BMO_ClearFlag(bm, v, VERT_MARK);
+			if (BM_Vert_EdgeCount(v) == 2) {
+				BMO_ClearFlag(bm, v, VERT_MARK);
+			}
+			else {
+				BMO_SetFlag(bm, v, VERT_MARK);
+			}
 		}
 	}
 
@@ -263,25 +268,10 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 		const int edge_face_count = BM_Edge_FaceCount(e);
 		if (edge_face_count == 2) {
 
-			if (use_verts) {
-				/* later check if these verts are between 2 edges and can dissolve */
-				BMO_SetFlag(bm, e->v1, VERT_MARK);
-				BMO_SetFlag(bm, e->v2, VERT_MARK);
-			}
-
 			/* join faces */
 			BM_Join_TwoFaces(bm, e->l->f,
 			                 e->l->radial_next->f,
 			                 e);
-		}
-		else if (edge_face_count < 2) {
-			/* join verts, assign because first join frees the edge */
-			BMVert *v1 = e->v1, *v2 = e->v2;
-
-			/* collapse the ver */
-			if (BM_Vert_EdgeCount(v1) == 2) BM_Collapse_Vert_Edges(bm, v1->e, v1);
-			if (BM_Vert_EdgeCount(v2) == 2) BM_Collapse_Vert_Edges(bm, v2->e, v2);
-
 		}
 	}
 
