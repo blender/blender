@@ -292,7 +292,7 @@ void GPC_RenderTools::RenderText3D(	int fontid,
 									float aspect)
 {
 	/* the actual drawing */
-	glColor3fv(color);
+	glColor4fv(color);
  
 	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT|BLF_TEXFILTER);
 	/* multiply the text matrix by the object matrix */
