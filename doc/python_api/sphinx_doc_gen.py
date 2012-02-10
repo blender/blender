@@ -1135,7 +1135,9 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("Welcome, this document is an API reference for Blender %s. built %s.\n" % (version_string, bpy.app.build_date))
     fw("\n")
-    fw("`A PDF version of this document is also available <blender_python_reference_%s.pdf>`_\n" % version_string_pdf)
+
+    # fw("`A PDF version of this document is also available <blender_python_reference_%s.pdf>`_\n" % version_string_pdf)
+    fw("`A compressed ZIP file of this site is available <blender_python_reference_%s.zip>`_\n" % version_string_pdf)
 
     fw("\n")
 
