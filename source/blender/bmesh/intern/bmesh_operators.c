@@ -1044,10 +1044,10 @@ float BMO_IterMapValf(BMOIter *iter)
 
 /* error syste */
 typedef struct BMOpError {
-       struct BMOpError *next, *prev;
-       int errorcode;
-       BMOperator *op;
-       const char *msg;
+	struct BMOpError *next, *prev;
+	int errorcode;
+	BMOperator *op;
+	const char *msg;
 } BMOpError;
 
 void BMO_ClearStack(BMesh *bm)
@@ -1250,103 +1250,103 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		}
 		else {
 			switch (*fmt) {
-			case ' ':
-			case '\t':
-			case '=':
-			case '%':
-				break;
-			case 'm': {
-				int size, c;
-				
-				c = NEXT_CHAR(fmt);
-				fmt++;
+				case ' ':
+				case '\t':
+				case '=':
+				case '%':
+					break;
+				case 'm': {
+					int size, c;
 
-				if (c == '3') size = 3;
-				else if (c == '4') size = 4;
-				else GOTO_ERROR;
+					c = NEXT_CHAR(fmt);
+					fmt++;
 
-				BMO_Set_Mat(op, slotname, va_arg(vlist, void *), size);
-				state = 1;
-				break;
-			}
-			case 'v': {
-				BMO_Set_Vec(op, slotname, va_arg(vlist, float *));
-				state = 1;
-				break;
-			}
-			case 'e': {
-				BMHeader *ele = va_arg(vlist, void *);
-				BMOpSlot *slot = BMO_GetSlot(op, slotname);
+					if (c == '3') size = 3;
+					else if (c == '4') size = 4;
+					else GOTO_ERROR;
 
-				slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void *) * 4);
-				slot->len = 1;
-				*((void **)slot->data.buf) = ele;
-
-				state = 1;
-				break;
-			}
-			case 's': {
-				BMOperator *op2 = va_arg(vlist, void *);
-				const char *slotname2 = va_arg(vlist, char *);
-
-				BMO_CopySlot(op2, op, slotname2, slotname);
-				state = 1;
-				break;
-			}
-			case 'i':
-			case 'd':
-				BMO_Set_Int(op, slotname, va_arg(vlist, int));
-				state = 1;
-				break;
-			case 'p':
-				BMO_Set_Pnt(op, slotname, va_arg(vlist, void *));
-				state = 1;
-				break;
-			case 'f':
-			case 'h':
-			case 'a':
-				type = *fmt;
-
-				if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\t' || NEXT_CHAR(fmt) == '\0') {
-					BMO_Set_Float(op, slotname, va_arg(vlist, double));
+					BMO_Set_Mat(op, slotname, va_arg(vlist, void *), size);
+					state = 1;
+					break;
 				}
-				else {
-					ret = 0;
-					stop = 0;
-					while (1) {
-						switch (NEXT_CHAR(fmt)) {
-							case 'f': ret |= BM_FACE; break;
-							case 'e': ret |= BM_EDGE; break;
-							case 'v': ret |= BM_VERT; break;
-							default:
-								stop = 1;
-								break;
-						}
-						if (stop) {
-							break;
-						}
+				case 'v': {
+					BMO_Set_Vec(op, slotname, va_arg(vlist, float *));
+					state = 1;
+					break;
+				}
+				case 'e': {
+					BMHeader *ele = va_arg(vlist, void *);
+					BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
-						fmt++;
-					}
+					slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void *) * 4);
+					slot->len = 1;
+					*((void **)slot->data.buf) = ele;
 
-					if (type == 'h') {
-						BMO_HeaderFlag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
-					}
-					else if (type == 'a') {
-						BMO_All_To_Slot(bm, op, slotname, ret);
+					state = 1;
+					break;
+				}
+				case 's': {
+					BMOperator *op2 = va_arg(vlist, void *);
+					const char *slotname2 = va_arg(vlist, char *);
+
+					BMO_CopySlot(op2, op, slotname2, slotname);
+					state = 1;
+					break;
+				}
+				case 'i':
+				case 'd':
+					BMO_Set_Int(op, slotname, va_arg(vlist, int));
+					state = 1;
+					break;
+				case 'p':
+					BMO_Set_Pnt(op, slotname, va_arg(vlist, void *));
+					state = 1;
+					break;
+				case 'f':
+				case 'h':
+				case 'a':
+					type = *fmt;
+
+					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\t' || NEXT_CHAR(fmt) == '\0') {
+						BMO_Set_Float(op, slotname, va_arg(vlist, double));
 					}
 					else {
-						BMO_Flag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
-					}
-				}
+						ret = 0;
+						stop = 0;
+						while (1) {
+							switch (NEXT_CHAR(fmt)) {
+								case 'f': ret |= BM_FACE; break;
+								case 'e': ret |= BM_EDGE; break;
+								case 'v': ret |= BM_VERT; break;
+								default:
+									stop = 1;
+									break;
+							}
+							if (stop) {
+								break;
+							}
 
-				state = 1;
-				break;
-			default:
-				fprintf(stderr,
-				        "%s: unrecognized bmop format char: %c, %d in '%s'\n",
-				        __func__, *fmt, (int)(fmt - ofmt), ofmt);
-				break;
+							fmt++;
+						}
+
+						if (type == 'h') {
+							BMO_HeaderFlag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
+						}
+						else if (type == 'a') {
+							BMO_All_To_Slot(bm, op, slotname, ret);
+						}
+						else {
+							BMO_Flag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
+						}
+					}
+
+					state = 1;
+					break;
+				default:
+					fprintf(stderr,
+					        "%s: unrecognized bmop format char: %c, %d in '%s'\n",
+					        __func__, *fmt, (int)(fmt - ofmt), ofmt);
+					break;
 			}
 		}
 		fmt++;

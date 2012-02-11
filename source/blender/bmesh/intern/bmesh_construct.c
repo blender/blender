@@ -5,7 +5,6 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * about this.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -183,9 +182,9 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace 
 		else {
 			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, FALSE);
 		}
-	
+
 		f = BM_Make_Face(bm, verts, edar, len, FALSE);
-	
+
 		if (example && f) {
 			BM_Copy_Attributes(bm, bm, example, f);
 		}
@@ -799,9 +798,9 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 /* ME -> BM */
 char BM_Vert_Flag_From_MEFlag(const char  meflag)
 {
-    return ( ((meflag & SELECT)       ? BM_SELECT : 0) |
-             ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
-             );
+	return ( ((meflag & SELECT)       ? BM_SELECT : 0) |
+	         ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
+	         );
 }
 char BM_Edge_Flag_From_MEFlag(const short meflag)
 {
@@ -813,20 +812,20 @@ char BM_Edge_Flag_From_MEFlag(const short meflag)
 }
 char BM_Face_Flag_From_MEFlag(const char  meflag)
 {
-    return ( ((meflag & ME_FACE_SEL)  ? BM_SELECT : 0) |
-             ((meflag & ME_SMOOTH)    ? BM_SMOOTH : 0) |
-             ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
-             );
+	return ( ((meflag & ME_FACE_SEL)  ? BM_SELECT : 0) |
+	         ((meflag & ME_SMOOTH)    ? BM_SMOOTH : 0) |
+	         ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
+	         );
 }
 
 /* BM -> ME */
 char  BM_Vert_Flag_To_MEFlag(BMVert *eve)
 {
-    const char hflag = eve->head.hflag;
+	const char hflag = eve->head.hflag;
 
-    return ( ((hflag & BM_SELECT)  ? SELECT  : 0) |
-             ((hflag & BM_HIDDEN)  ? ME_HIDE : 0)
-             );
+	return ( ((hflag & BM_SELECT)  ? SELECT  : 0) |
+	         ((hflag & BM_HIDDEN)  ? ME_HIDE : 0)
+	         );
 }
 short BM_Edge_Flag_To_MEFlag(BMEdge *eed)
 {
@@ -842,12 +841,12 @@ short BM_Edge_Flag_To_MEFlag(BMEdge *eed)
 }
 char  BM_Face_Flag_To_MEFlag(BMFace *efa)
 {
-    const char hflag = efa->head.hflag;
+	const char hflag = efa->head.hflag;
 
-    return ( ((hflag & BM_SELECT) ? ME_FACE_SEL : 0) |
-             ((hflag & BM_SMOOTH) ? ME_SMOOTH   : 0) |
-             ((hflag & BM_HIDDEN) ? ME_HIDE     : 0)
-             );
+	return ( ((hflag & BM_SELECT) ? ME_FACE_SEL : 0) |
+	         ((hflag & BM_SMOOTH) ? ME_SMOOTH   : 0) |
+	         ((hflag & BM_HIDDEN) ? ME_HIDE     : 0)
+	         );
 }
 
 /* unused, type spesific functions below */

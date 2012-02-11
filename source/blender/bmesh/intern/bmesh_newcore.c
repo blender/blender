@@ -339,102 +339,102 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 		return 2;
 	
 	switch (htype) {
-	case BM_VERT: {
-		BMVert *v = element;
-		if (v->e && v->e->head.htype != BM_EDGE) {
-			err |= 4;
+		case BM_VERT: {
+			BMVert *v = element;
+			if (v->e && v->e->head.htype != BM_EDGE) {
+				err |= 4;
+			}
+			break;
 		}
-		break;
-	}
-	case BM_EDGE: {
-		BMEdge *e = element;
-		if (e->l && e->l->head.htype != BM_LOOP)
-			err |= 8;
-		if (e->l && e->l->f->head.htype != BM_FACE)
-			err |= 16;
-		if (e->dlink1.prev == NULL || e->dlink2.prev == NULL || e->dlink1.next == NULL || e->dlink2.next == NULL)
-			err |= 32;
-		if (e->l && (e->l->radial_next == NULL || e->l->radial_prev == NULL))
-			err |= 64;
-		if (e->l && e->l->f->len <= 0)
-			err |= 128;
-		break;
-	}
-	case BM_LOOP: {
-		BMLoop *l = element, *l2;
-		int i;
-
-		if (l->f->head.htype != BM_FACE)
-			err |= 256;
-		if (l->e->head.htype != BM_EDGE)
-			err |= 512;
-		if (l->v->head.htype !=  BM_VERT)
-			err |= 1024;
-		if (!BM_Vert_In_Edge(l->e, l->v)) {
-			fprintf(stderr, "%s: fatal bmesh error (vert not in edge)! (bmesh internal error)\n", __func__);
-			err |= 2048;
+		case BM_EDGE: {
+			BMEdge *e = element;
+			if (e->l && e->l->head.htype != BM_LOOP)
+				err |= 8;
+			if (e->l && e->l->f->head.htype != BM_FACE)
+				err |= 16;
+			if (e->dlink1.prev == NULL || e->dlink2.prev == NULL || e->dlink1.next == NULL || e->dlink2.next == NULL)
+				err |= 32;
+			if (e->l && (e->l->radial_next == NULL || e->l->radial_prev == NULL))
+				err |= 64;
+			if (e->l && e->l->f->len <= 0)
+				err |= 128;
+			break;
 		}
+		case BM_LOOP: {
+			BMLoop *l = element, *l2;
+			int i;
 
-		if (l->radial_next == NULL || l->radial_prev == NULL)
-			err |= (1 << 12);
-		if (l->f->len <= 0)
-			err |= (1 << 13);
+			if (l->f->head.htype != BM_FACE)
+				err |= 256;
+			if (l->e->head.htype != BM_EDGE)
+				err |= 512;
+			if (l->v->head.htype !=  BM_VERT)
+				err |= 1024;
+			if (!BM_Vert_In_Edge(l->e, l->v)) {
+				fprintf(stderr, "%s: fatal bmesh error (vert not in edge)! (bmesh internal error)\n", __func__);
+				err |= 2048;
+			}
 
-		/* validate boundary loop--invalid for hole loops, of course,
+			if (l->radial_next == NULL || l->radial_prev == NULL)
+				err |= (1 << 12);
+			if (l->f->len <= 0)
+				err |= (1 << 13);
+
+			/* validate boundary loop--invalid for hole loops, of course,
 		 * but we won't be allowing those for a while ye */
-		l2 = l;
-		i = 0;
-		do {
-			if (i >= BM_NGON_MAX)
-				break;
+			l2 = l;
+			i = 0;
+			do {
+				if (i >= BM_NGON_MAX)
+					break;
 
-			i++;
-			l2 = l2->next;
-		} while (l2 != l);
+				i++;
+				l2 = l2->next;
+			} while (l2 != l);
 
-		if (i != l->f->len || l2 != l)
-			err |= (1 << 14);
+			if (i != l->f->len || l2 != l)
+				err |= (1 << 14);
 
-		if (!bmesh_radial_validate(bmesh_radial_length(l), l))
-			err |= (1 << 15);
+			if (!bmesh_radial_validate(bmesh_radial_length(l), l))
+				err |= (1 << 15);
 
-		break;
-	}
-	case BM_FACE: {
-		BMFace *f = element;
-		BMLoop *l_iter;
-		BMLoop *l_first;
-		int len = 0;
+			break;
+		}
+		case BM_FACE: {
+			BMFace *f = element;
+			BMLoop *l_iter;
+			BMLoop *l_first;
+			int len = 0;
 
-		if (!f->loops.first)
-			err |= (1 << 16);
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-		do {
-			if (l_iter->f != f) {
-				fprintf(stderr, "%s: loop inside one face points to another! (bmesh internal error)\n", __func__);
-				err |= (1 << 17);
-			}
+			if (!f->loops.first)
+				err |= (1 << 16);
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				if (l_iter->f != f) {
+					fprintf(stderr, "%s: loop inside one face points to another! (bmesh internal error)\n", __func__);
+					err |= (1 << 17);
+				}
 
-			if (!l_iter->e)
-				err |= (1 << 18);
-			if (!l_iter->v)
-				err |= (1 << 19);
-			if (!BM_Vert_In_Edge(l_iter->e, l_iter->v) || !BM_Vert_In_Edge(l_iter->e, l_iter->next->v)) {
-				err |= (1 << 20);
-			}
+				if (!l_iter->e)
+					err |= (1 << 18);
+				if (!l_iter->v)
+					err |= (1 << 19);
+				if (!BM_Vert_In_Edge(l_iter->e, l_iter->v) || !BM_Vert_In_Edge(l_iter->e, l_iter->next->v)) {
+					err |= (1 << 20);
+				}
 
-			if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter))
-				err |= (1 << 21);
+				if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter))
+					err |= (1 << 21);
 
-			if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v))
-				err |= (1 << 22);
+				if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v))
+					err |= (1 << 22);
 
-			len++;
-		} while ((l_iter = l_iter->next) != l_first);
+				len++;
+			} while ((l_iter = l_iter->next) != l_first);
 
-		if (len != f->len)
-			err |= (1 << 23);
-	}
+			if (len != f->len)
+				err |= (1 << 23);
+		}
 	}
 
 	if (err) {
@@ -572,10 +572,10 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e)
 
 	bmesh_disk_remove_edge(e, e->v1);
 	bmesh_disk_remove_edge(e, e->v2);
-		
+
 	if (e->l) {
 		BMLoop *l = e->l, *lnext, *startl = e->l;
-			
+
 		do {
 			lnext = l->radial_next;
 			if (lnext->f == l->f) {
@@ -584,7 +584,7 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e)
 			}
 			
 			BM_Kill_Face(bm, l->f);
-		
+
 			if (l == lnext)
 				break;
 			l = lnext;
@@ -671,7 +671,7 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
 			md = CustomData_bmesh_get(&bm->ldata, curloop->head.data, CD_MDISPS);
 			if (!md->totdisp || !md->disps)
 				continue;
-					
+
 			sides = (int)sqrt(md->totdisp);
 			co = md->disps;
 			
@@ -1063,7 +1063,7 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
  *  A BMFace pointer
  */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
-				   BMLoop **rl, ListBase *holes)
+                   BMLoop **rl, ListBase *holes)
 {
 
 	BMFace *f2;
@@ -1394,7 +1394,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 			bmesh_disk_append_edge(oe, tv);
 			/* remove ke from tv's disk cycl */
 			bmesh_disk_remove_edge(ke, tv);
-		
+
 			/* deal with radial cycle of k */
 			radlen = bmesh_radial_length(ke->l);
 			if (ke->l) {
@@ -1936,7 +1936,7 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
 		if (sl->v == sv) break;
 		sl = sl->next;
 	} while (sl != hl);
-		
+
 	if (sl->v != sv) {
 		/* sv is not part of sf */
 		return NULL;

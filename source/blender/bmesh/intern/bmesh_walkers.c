@@ -244,15 +244,15 @@ void *BMW_addstate(BMWalker *walker)
 	newstate->depth = walker->depth;
 	switch (walker->order)
 	{
-	case BMW_DEPTH_FIRST:
-		BLI_addhead(&walker->states, newstate);
-		break;
-	case BMW_BREADTH_FIRST:
-		BLI_addtail(&walker->states, newstate);
-		break;
-	default:
-		BLI_assert(0);
-		break;
+		case BMW_DEPTH_FIRST:
+			BLI_addhead(&walker->states, newstate);
+			break;
+		case BMW_BREADTH_FIRST:
+			BLI_addtail(&walker->states, newstate);
+			break;
+		default:
+			BLI_assert(0);
+			break;
 	}
 	return newstate;
 }

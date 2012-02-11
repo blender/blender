@@ -108,7 +108,7 @@ static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNU
  *  Returns -
  *	Nothing
  */
- 
+
 void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac)
 {
 	void *src[2];
@@ -342,7 +342,7 @@ static double UNUSED_FUNCTION(dist_to_line_segment_v2_d)(double v1[3], double v2
 MINLINE double line_point_side_v2_d(const double *l1, const double *l2, const double *pt)
 {
 	return	((l1[0] - pt[0]) * (l2[1] - pt[1])) -
-			((l2[0] - pt[0]) * (l1[1] - pt[1]));
+	        ((l2[0] - pt[0]) * (l1[1] - pt[1]));
 }
 
 /* point in quad - only convex quads */
@@ -371,16 +371,16 @@ static int isect_point_quad_v2_d(double pt[2], double v1[2], double v2[2], doubl
 }
 
 /***** multires interpolation*****
-
-mdisps is a grid of displacements, ordered thus:
-
- v1/center----v4/next -> x
-     |           |
-     |           |
-  v2/prev------v3/cur
-     |
-     V
-     y
+ *
+ * mdisps is a grid of displacements, ordered thus:
+ *
+ *  v1/center----v4/next -> x
+ *      |           |
+ *      |           |
+ *   v2/prev------v3/cur
+ *      |
+ *      V
+ *      y
  */
 
 static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3], double v4[3],
@@ -515,7 +515,7 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 		BM_Vert_UpdateAllNormals(bm, l->v);
 	if (len_v3(tl->v->no) == 0.0f)
 		BM_Vert_UpdateAllNormals(bm, tl->v);
-		
+
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
 
 	/* expand quad a bit */
@@ -533,7 +533,7 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 	
 	*x *= res - 1;
 	*y *= res - 1;
-		  
+
 	return 1;
 }
 
@@ -642,7 +642,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		 *             V
 		 *             y
 		 */
-		  
+
 		sides = (int)sqrt(mdp->totdisp);
 		for (y = 0; y < sides; y++) {
 			add_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
@@ -673,7 +673,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		 *             V
 		 *             y
 		 */
-		 
+
 		if (l->radial_next == l)
 			continue;
 
@@ -681,7 +681,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->head.data, CD_MDISPS);
 		else
 			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->next->head.data, CD_MDISPS);
-			
+
 		sides = (int)sqrt(mdl1->totdisp);
 		for (y = 0; y < sides; y++) {
 			int a1, a2, o1, o2;
@@ -820,7 +820,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	} while ((l_iter = l_iter->next) != l_first);
 
 	/* scale source face coordinates a bit, so points sitting directonly on an
-     * edge will work. */
+	 * edge will work. */
 	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {
 		float vec[3];

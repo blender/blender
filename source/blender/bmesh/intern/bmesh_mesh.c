@@ -83,7 +83,7 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 
 	bm->ob = ob;
 	
-   /* allocate the memory pools for the mesh elements */
+	/* allocate the memory pools for the mesh elements */
 	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
 	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
 	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
@@ -136,7 +136,7 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	if (bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
 	if (bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
 
- 	/* free custom data */
+	/* free custom data */
 	CustomData_free(&bm->vdata, 0);
 	CustomData_free(&bm->edata, 0);
 	CustomData_free(&bm->ldata, 0);
@@ -185,7 +185,7 @@ void BM_Clear_Mesh(BMesh *bm)
 
 	bm->ob = ob;
 	
-   /* allocate the memory pools for the mesh elements */
+	/* allocate the memory pools for the mesh elements */
 	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
 	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
 	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
@@ -609,8 +609,8 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 #ifdef DEBUG
 	if (is_any_error == 0) {
 		fprintf(stderr,
-				"Valid Index Success: at %s, %s, '%s', '%s'\n",
-				location, func, msg_a, msg_b);
+		        "Valid Index Success: at %s, %s, '%s', '%s'\n",
+		        location, func, msg_a, msg_b);
 	}
 #endif
 #endif

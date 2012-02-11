@@ -139,7 +139,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		}
 #endif
 		/* newell's method
-		
+
 		so thats?:
 		(a[1] - b[1]) * (a[2] + b[2]);
 		a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
@@ -553,7 +553,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
 }
 /* exact same as 'bmesh_update_face_normal' but accepts vertex coords */
 void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
-                                   float (*projectverts)[3], float (*vertexCos)[3])
+                                         float (*projectverts)[3], float (*vertexCos)[3])
 {
 	BMLoop *l;
 
@@ -665,7 +665,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	
 	/* do an interval test on the x and y axe */
 	/* first do x axi */
-	#define T FLT_EPSILON * 15
+#define T FLT_EPSILON * 15
 	if ( ABS(v1[1] - v2[1]) < T &&
 	     ABS(v3[1] - v4[1]) < T &&
 	     ABS(v1[1] - v3[1]) < T)

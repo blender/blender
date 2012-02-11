@@ -141,8 +141,9 @@ static void *shellWalker_step(BMWalker *walker)
 	int restrictpass = 1;
 	shellWalker shellWalk = *((shellWalker *)BMW_currentstate(walker));
 	
-	if (!BLI_ghash_haskey(walker->visithash, shellWalk.base))
+	if (!BLI_ghash_haskey(walker->visithash, shellWalk.base)) {
 		BLI_ghash_insert(walker->visithash, shellWalk.base, NULL);
+	}
 
 	BMW_removestate(walker);
 
@@ -151,8 +152,8 @@ static void *shellWalker_step(BMWalker *walker)
 	curedge = shellWalk.curedge;
 	do {
 		if (!BLI_ghash_haskey(walker->visithash, curedge)) {
-			if (!walker->restrictflag || (walker->restrictflag &&
-			   BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
+			if (!walker->restrictflag ||
+			    (walker->restrictflag && BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
 			{
 				shellWalker *newstate;
 
@@ -746,7 +747,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 
 	/* only walk to manifold edge */
 	if ((l->f->len == 4) && !BM_Nonmanifold_Edge(bm, l->e) &&
-		 !BLI_ghash_haskey(walker->visithash, l->e)) {
+	    !BLI_ghash_haskey(walker->visithash, l->e)) {
 		lwalk = BMW_addstate(walker);
 		lwalk->l = l;
 		lwalk->wireedge = NULL;

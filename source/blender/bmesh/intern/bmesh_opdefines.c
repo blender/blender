@@ -414,7 +414,7 @@ static BMOpDefine def_bridge_loops = {
 	"bridge_loops",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /* input edge */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, /* new face */
-	{0, /* null-terminating sentine */}},
+	 {0, /* null-terminating sentine */}},
 	bmesh_bridge_loops_exec,
 	0,
 };
@@ -427,7 +427,7 @@ static BMOpDefine def_edgenet_fill = {
 	 {BMOP_OPSLOT_ELEMENT_BUF, "excludefaces"}, /* list of faces to ignore for manifold check */
 	 {BMOP_OPSLOT_MAPPING,     "faceout_groupmap"}, /* maps new faces to the group numbers they came fro */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, /* new face */
-	{0, /* null-terminating sentine */}},
+	 {0, /* null-terminating sentine */}},
 	bmesh_edgenet_fill_exec,
 	0,
 };
@@ -446,7 +446,7 @@ static BMOpDefine def_edgenet_prepare = {
 	"edgenet_prepare",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //new edges
-	{0, /* null-terminating sentine */}},
+	 {0, /* null-terminating sentine */}},
 	bmesh_edgenet_prepare,
 	0,
 };
@@ -461,8 +461,8 @@ static BMOpDefine def_rotate = {
 	"rotate",
 	{{BMOP_OPSLOT_VEC, "cent"}, //center of rotation
 	 {BMOP_OPSLOT_MAT, "mat"}, //matrix defining rotation
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
-	{0, /* null-terminating sentine */}},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {0, /* null-terminating sentine */}},
 	bmesh_rotate_exec,
 	0,
 };
@@ -476,8 +476,8 @@ static BMOpDefine def_rotate = {
 static BMOpDefine def_translate = {
 	"translate",
 	{{BMOP_OPSLOT_VEC, "vec"}, //translation offset
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
-	{0, /* null-terminating sentine */}},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {0, /* null-terminating sentine */}},
 	bmesh_translate_exec,
 	0,
 };
@@ -490,8 +490,8 @@ static BMOpDefine def_translate = {
 static BMOpDefine def_scale = {
 	"scale",
 	{{BMOP_OPSLOT_VEC, "vec"}, //scale factor
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
-	{0, /* null-terminating sentine */}},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {0, /* null-terminating sentine */}},
 	bmesh_scale_exec,
 	0,
 };
@@ -506,8 +506,8 @@ static BMOpDefine def_scale = {
 static BMOpDefine def_transform = {
 	"transform",
 	{{BMOP_OPSLOT_MAT, "mat"}, //transform matrix
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
-	{0, /* null-terminating sentine */}},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {0, /* null-terminating sentine */}},
 	bmesh_transform_exec,
 	0,
 };
@@ -521,8 +521,8 @@ static BMOpDefine def_transform = {
 static BMOpDefine def_object_load_bmesh = {
 	"object_load_bmesh",
 	{{BMOP_OPSLOT_PNT, "scene"},
-	{BMOP_OPSLOT_PNT, "object"},
-	{0, /* null-terminating sentine */}},
+	 {BMOP_OPSLOT_PNT, "object"},
+	 {0, /* null-terminating sentine */}},
 	object_load_bmesh_exec,
 	0,
 };
@@ -567,9 +567,9 @@ static BMOpDefine def_mesh_to_bmesh = {
 static BMOpDefine def_extrude_indivface = {
 	"extrude_face_indiv",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input faces
-	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //output faces
-	{BMOP_OPSLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //output faces
+	 {BMOP_OPSLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
+	 {0} /* null-terminating sentine */},
 	bmesh_extrude_face_indiv_exec,
 	0
 };
@@ -583,8 +583,8 @@ static BMOpDefine def_extrude_indivface = {
 static BMOpDefine def_extrude_onlyedge = {
 	"extrude_edge_only",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input vertices
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output geometry
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output geometry
+	 {0} /* null-terminating sentine */},
 	bmesh_extrude_onlyedge_exec,
 	0
 };
@@ -597,9 +597,9 @@ static BMOpDefine def_extrude_onlyedge = {
 static BMOpDefine def_extrudeverts_indiv = {
 	"extrude_vert_indiv",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
-	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //output wire edges
-	{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output vertices
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //output wire edges
+	 {BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output vertices
+	 {0} /* null-terminating sentine */},
 	extrude_vert_indiv_exec,
 	0
 };
@@ -607,8 +607,8 @@ static BMOpDefine def_extrudeverts_indiv = {
 static BMOpDefine def_connectverts = {
 	"connectverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
+	 {0} /* null-terminating sentine */},
 	connectverts_exec,
 	BMOP_UNTAN_MULTIRES
 };
@@ -616,10 +616,10 @@ static BMOpDefine def_connectverts = {
 static BMOpDefine def_extrudefaceregion = {
 	"extrudefaceregion",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edgefacein"},
-	{BMOP_OPSLOT_MAPPING, "exclude"},
-	{BMOP_OPSLOT_INT, "alwayskeeporig"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_MAPPING, "exclude"},
+	 {BMOP_OPSLOT_INT, "alwayskeeporig"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
+	 {0} /* null-terminating sentine */},
 	extrude_edge_context_exec,
 	0
 };
@@ -627,7 +627,7 @@ static BMOpDefine def_extrudefaceregion = {
 static BMOpDefine def_dissolvevertsop = {
 	"dissolveverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
-	{0} /* null-terminating sentine */},
+	 {0} /* null-terminating sentine */},
 	dissolveverts_exec,
 	BMOP_UNTAN_MULTIRES
 };
@@ -635,9 +635,9 @@ static BMOpDefine def_dissolvevertsop = {
 static BMOpDefine def_dissolveedgessop = {
 	"dissolveedges",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
-	{BMOP_OPSLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	 {BMOP_OPSLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
+	 {0} /* null-terminating sentine */},
 	dissolveedges_exec,
 	BMOP_UNTAN_MULTIRES
 };
@@ -645,8 +645,8 @@ static BMOpDefine def_dissolveedgessop = {
 static BMOpDefine def_dissolveedgeloopsop = {
 	"dissolveedgeloop",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	 {0} /* null-terminating sentine */},
 	dissolve_edgeloop_exec,
 	BMOP_UNTAN_MULTIRES
 };
@@ -654,9 +654,9 @@ static BMOpDefine def_dissolveedgeloopsop = {
 static BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
-	{BMOP_OPSLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	 {BMOP_OPSLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
+	 {0} /* null-terminating sentine */},
 	dissolvefaces_exec,
 	BMOP_UNTAN_MULTIRES
 };
@@ -665,10 +665,10 @@ static BMOpDefine def_dissolvefacesop = {
 static BMOpDefine def_triangop = {
 	"triangulate",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
-	{BMOP_OPSLOT_MAPPING, "facemap"},
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
+	 {BMOP_OPSLOT_MAPPING, "facemap"},
+	 {0} /* null-terminating sentine */},
 	triangulate_exec,
 	BMOP_UNTAN_MULTIRES
 };
@@ -676,24 +676,24 @@ static BMOpDefine def_triangop = {
 static BMOpDefine def_subdop = {
 	"esubd",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
-	{BMOP_OPSLOT_INT, "numcuts"},
-	{BMOP_OPSLOT_FLT, "smooth"},
-	{BMOP_OPSLOT_FLT, "fractal"},
-	{BMOP_OPSLOT_INT, "beauty"},
-	{BMOP_OPSLOT_INT, "seed"},
-	{BMOP_OPSLOT_MAPPING, "custompatterns"},
-	{BMOP_OPSLOT_MAPPING, "edgepercents"},
-	
+	 {BMOP_OPSLOT_INT, "numcuts"},
+	 {BMOP_OPSLOT_FLT, "smooth"},
+	 {BMOP_OPSLOT_FLT, "fractal"},
+	 {BMOP_OPSLOT_INT, "beauty"},
+	 {BMOP_OPSLOT_INT, "seed"},
+	 {BMOP_OPSLOT_MAPPING, "custompatterns"},
+	 {BMOP_OPSLOT_MAPPING, "edgepercents"},
+
 	/* these next three can have multiple types of elements in them */
-	{BMOP_OPSLOT_ELEMENT_BUF, "outinner"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, /* contains all output geometr */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "outinner"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, /* contains all output geometr */
 
-	{BMOP_OPSLOT_INT, "quadcornertype"}, //quad corner type, see bmesh_operators.h
-	{BMOP_OPSLOT_INT, "gridfill"}, //fill in fully-selected faces with a grid
-	{BMOP_OPSLOT_INT, "singleedge"}, //tesselate the case of one edge selected in a quad or triangle
+	 {BMOP_OPSLOT_INT, "quadcornertype"}, //quad corner type, see bmesh_operators.h
+	 {BMOP_OPSLOT_INT, "gridfill"}, //fill in fully-selected faces with a grid
+	 {BMOP_OPSLOT_INT, "singleedge"}, //tesselate the case of one edge selected in a quad or triangle
 
-	{0} /* null-terminating sentine */,
+	 {0} /* null-terminating sentine */,
 	},
 	esubdivide_exec,
 	BMOP_UNTAN_MULTIRES
@@ -702,7 +702,7 @@ static BMOpDefine def_subdop = {
 static BMOpDefine def_delop = {
 	"del",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, {BMOP_OPSLOT_INT, "context"},
-	{0} /* null-terminating sentine */},
+	 {0} /* null-terminating sentine */},
 	delop_exec,
 	0
 };
@@ -710,15 +710,15 @@ static BMOpDefine def_delop = {
 static BMOpDefine def_dupeop = {
 	"dupe",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "origout"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "newout"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "origout"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "newout"},
 	/* facemap maps from source faces to dupe
 	 * faces, and from dupe faces to source faces */
-	{BMOP_OPSLOT_MAPPING, "facemap"},
-	{BMOP_OPSLOT_MAPPING, "boundarymap"},
-	{BMOP_OPSLOT_MAPPING, "isovertmap"},
-	{BMOP_OPSLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_MAPPING, "facemap"},
+	 {BMOP_OPSLOT_MAPPING, "boundarymap"},
+	 {BMOP_OPSLOT_MAPPING, "isovertmap"},
+	 {BMOP_OPSLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
+	 {0} /* null-terminating sentine */},
 	dupeop_exec,
 	0
 };
@@ -726,11 +726,11 @@ static BMOpDefine def_dupeop = {
 static BMOpDefine def_splitop = {
 	"split",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
-	{BMOP_OPSLOT_MAPPING, "boundarymap"},
-	{BMOP_OPSLOT_MAPPING, "isovertmap"},
-	{BMOP_OPSLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
+	 {BMOP_OPSLOT_MAPPING, "boundarymap"},
+	 {BMOP_OPSLOT_MAPPING, "isovertmap"},
+	 {BMOP_OPSLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
+	 {0} /* null-terminating sentine */},
 	splitop_exec,
 	0
 };
@@ -744,14 +744,14 @@ static BMOpDefine def_splitop = {
 static BMOpDefine def_spinop = {
 	"spin",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "lastout"}, /* result of last step */
-	{BMOP_OPSLOT_VEC, "cent"}, /* rotation center */
-	{BMOP_OPSLOT_VEC, "axis"}, /* rotation axis */
-	{BMOP_OPSLOT_VEC, "dvec"}, /* translation delta per step */
-	{BMOP_OPSLOT_FLT, "ang"}, /* total rotation angle (degrees) */
-	{BMOP_OPSLOT_INT, "steps"}, /* number of steps */
-	{BMOP_OPSLOT_INT, "dupli"}, /* duplicate or extrude? */
-	{0} /* null-terminating sentine */},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "lastout"}, /* result of last step */
+	 {BMOP_OPSLOT_VEC, "cent"}, /* rotation center */
+	 {BMOP_OPSLOT_VEC, "axis"}, /* rotation axis */
+	 {BMOP_OPSLOT_VEC, "dvec"}, /* translation delta per step */
+	 {BMOP_OPSLOT_FLT, "ang"}, /* total rotation angle (degrees) */
+	 {BMOP_OPSLOT_INT, "steps"}, /* number of steps */
+	 {BMOP_OPSLOT_INT, "dupli"}, /* duplicate or extrude? */
+	 {0} /* null-terminating sentine */},
 	spinop_exec,
 	0
 };
@@ -974,16 +974,16 @@ static BMOpDefine def_create_cone = {
  * Creates a circle
  */
 static BMOpDefine def_create_circle = {
-  "create_circle",
-  {{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
-   {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
-   {BMOP_OPSLOT_INT, "cap_tris"}, //fill ends with triangles instead of ngons
-   {BMOP_OPSLOT_INT, "segments"},
-   {BMOP_OPSLOT_FLT, "diameter"}, //diameter of one end
-   {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
-   {0, /* null-terminating sentine */}},
-  bmesh_create_circle_exec,
-  0,
+	"create_circle",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
+	 {BMOP_OPSLOT_INT, "cap_tris"}, //fill ends with triangles instead of ngons
+	 {BMOP_OPSLOT_INT, "segments"},
+	 {BMOP_OPSLOT_FLT, "diameter"}, //diameter of one end
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
+	 {0, /* null-terminating sentine */}},
+	bmesh_create_circle_exec,
+	0,
 };
 
 /*
@@ -1059,9 +1059,9 @@ static BMOpDefine def_triangle_fill = {
 static BMOpDefine def_solidify = {
 	"solidify",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
-	{BMOP_OPSLOT_FLT, "thickness"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
-	{0}},
+	 {BMOP_OPSLOT_FLT, "thickness"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
+	 {0}},
 	bmesh_solidify_face_region_exec,
 	0
 };

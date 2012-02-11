@@ -90,9 +90,7 @@ set(SRC
 	intern/bmesh_mods.c
 	intern/bmesh_structure.h
 	intern/bmesh_construct.c
-	intern/bmesh_to_editmesh.c
 	intern/bmesh_operators_private.h
-	intern/editmesh_to_bmesh.c
 	intern/bmesh_structure.c
 	intern/bmesh_polygon.c
 	intern/bmesh_queries.c

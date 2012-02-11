@@ -256,7 +256,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
  * Returns:
  *	 pointer to the combined face
  */
- 
+
 BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *l1, *l2;
@@ -362,7 +362,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	if (nf) {
 		BM_Copy_Attributes(bm, bm, f, nf);
 		copy_v3_v3(nf->no, f->no);
-	
+
 		/* handle multires update */
 		if (has_mdisp && (nf != f)) {
 			BMLoop *l_iter;
@@ -709,18 +709,18 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 }
 
 /*
-            BM Rotate Edge
-
-    Spins an edge topologically, either counter-clockwise or clockwise.
-    If ccw is true, the edge is spun counter-clockwise, otherwise it is
-    spun clockwise.
-    
-    Returns the spun edge.  Note that this works by dissolving the edge
-    then re-creating it, so the returned edge won't have the same pointer
-    address as the original one.
-
-    Returns NULL on error (e.g., if the edge isn't surrounded by exactly
-    two faces).
+ *         BM Rotate Edge
+ *
+ * Spins an edge topologically, either counter-clockwise or clockwise.
+ * If ccw is true, the edge is spun counter-clockwise, otherwise it is
+ * spun clockwise.
+ *
+ * Returns the spun edge.  Note that this works by dissolving the edge
+ * then re-creating it, so the returned edge won't have the same pointer
+ * address as the original one.
+ *
+ * Returns NULL on error (e.g., if the edge isn't surrounded by exactly
+ * two faces).
  */
 BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 {

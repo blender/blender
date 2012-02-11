@@ -247,8 +247,9 @@ int BM_Vert_FaceCount(BMVert *v)
 	BMLoop *l;
 	BMIter iter;
 
-	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_VERT, v)
+	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_VERT, v) {
 		count++;
+	}
 
 	return count;
 #if 0 //this code isn't working

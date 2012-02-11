@@ -5,7 +5,6 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * about this.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -50,7 +49,7 @@
  *	MISC utility functions.
  *
  */
- 
+
 int bmesh_vert_in_edge(BMEdge *e, BMVert *v)
 {
 	if (e->v1 == v || e->v2 == v) return TRUE;
@@ -665,7 +664,7 @@ int bmesh_cycle_remove(void *h, void *remn)
 				//remnode->next = NULL;
 				//remnode->prev = NULL;
 				return TRUE;
-		
+
 			}
 		}
 	}
@@ -714,7 +713,7 @@ int bmesh_cycle_validate(int len, void *h)
  *  Returns -
  *	Pointer to the next edge in the disk cycle for the vertex v.
  */
- 
+
 BMEdge *bmesh_disk_nextedge(BMEdge *e, BMVert *v)
 {
 	if (bmesh_vert_in_edge(e, v)) {
@@ -958,7 +957,7 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 
 int bmesh_radial_find_face(BMEdge *e, BMFace *f)
 {
-		
+
 	BMLoop *curloop;
 	int i, len;
 	
