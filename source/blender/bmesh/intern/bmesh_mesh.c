@@ -46,7 +46,6 @@
 
 #include "ED_mesh.h"
 
-#include "bmesh.h"
 #include "bmesh_private.h"
 
 /* bmesh_error stub */

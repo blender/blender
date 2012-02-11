@@ -26,6 +26,8 @@
 #include "BLI_math.h"
 #include "BLI_smallhash.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 
 #define BEVEL_FLAG	1

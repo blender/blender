@@ -23,29 +23,20 @@
 /** \file blender/bmesh/intern/bmesh_newcore.c
  *  \ingroup bmesh
  *
- * TODO
  */
 
 #include <limits.h>
 
-#include "BLI_math_vector.h"
-
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
-#include "BLI_mempool.h"
-#include "BLI_ghash.h"
-#include "BLI_array.h"
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
+#include "BLI_math_vector.h"
 
-#include "bmesh_class.h"
+#include "BKE_DerivedMesh.h"
 
-#include "bmesh_iterators.h"
+#include "BLI_listbase.h"
+#include "BLI_array.h"
+
+#include "bmesh.h"
 #include "bmesh_private.h"
 
 /* use so valgrinds memcheck alerts us when undefined index is used.

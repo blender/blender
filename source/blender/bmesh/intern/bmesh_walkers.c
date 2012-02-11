@@ -26,23 +26,14 @@
  * BMesh Walker API.
  */
 
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
-#include "BKE_customdata.h"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BLI_mempool.h"
-#include "BLI_array.h"
 
 #include "bmesh.h"
 
-#include "bmesh_private.h"
 #include "bmesh_walkers_private.h"
 
 /* - joeedh -

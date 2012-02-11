@@ -28,13 +28,7 @@
  *
  */
 
-#include "string.h"
-#include "stdarg.h"
-#include "math.h"
-#include "float.h"
-#include "ctype.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"

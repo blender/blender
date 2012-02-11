@@ -33,15 +33,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_utildefines.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
 
-#include <string.h>
 
 /*
  * BMESH SELECTMODE FLUSH

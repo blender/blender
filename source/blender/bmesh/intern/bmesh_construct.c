@@ -33,24 +33,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_customdata.h"
-#include "BKE_utildefines.h"
-
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
+
+#include "BKE_customdata.h"
 
 #include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
 
 #define SELECT 1
 

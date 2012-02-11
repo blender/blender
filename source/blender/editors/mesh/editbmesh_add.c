@@ -25,10 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
-
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -46,10 +45,6 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_object.h"
-
-
-
-
 
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */

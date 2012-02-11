@@ -25,11 +25,6 @@
 
 /*bmesh data structures*/
 
-#include "DNA_listBase.h"
-
-#include "BKE_utildefines.h"
-#include "BLI_utildefines.h"
-
 struct BMesh;
 struct BMVert;
 struct BMEdge;

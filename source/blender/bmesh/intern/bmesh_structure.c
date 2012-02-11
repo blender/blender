@@ -31,19 +31,8 @@
  * Low level routines for manipulating the BM structure.
  */
 
-#include <limits.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_listBase.h"
-#include "BKE_utildefines.h"
 #include "bmesh.h"
 #include "bmesh_private.h"
-#include "BLI_linklist.h"
-#include "BLI_ghash.h"
 
 /**
  *	MISC utility functions.

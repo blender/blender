@@ -30,12 +30,11 @@ extern "C" {
 #endif
 
 #include "DNA_listBase.h"
-#include "DNA_scene_types.h"
 #include "DNA_customdata_types.h"
 
-#include "BKE_customdata.h"
-
 #include "BLI_utildefines.h"
+
+#include "bmesh_class.h"
 
 /*
  * short introduction:
@@ -106,8 +105,6 @@ struct EditMesh;
                             * always assume dirty & clear before use. */
 
 /* #define BM_NONORMCALC (1<<8) */ /* UNUSED */
-
-#include "bmesh_class.h"
 
 /* stub */
 void bmesh_error(void);

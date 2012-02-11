@@ -29,14 +29,10 @@
 #include "BLI_array.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 #include "bmesh_operators_private.h" /* own include */
-
-/*
- * MIRROR.C
- *
- * mirror bmop.
- */
 
 #define ELE_NEW		1
 

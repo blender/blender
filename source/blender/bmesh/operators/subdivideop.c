@@ -29,6 +29,8 @@
 #include "BLI_array.h"
 #include "BLI_noise.h"
 
+#include "BKE_customdata.h"
+
 #include "DNA_object_types.h"
 
 #include "ED_mesh.h" /* XXX BAD LEVEL CALL */

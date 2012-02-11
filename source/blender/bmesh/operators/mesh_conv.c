@@ -34,6 +34,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
+#include "BKE_customdata.h"
 
 #include "BLI_math.h"
 #include "BLI_array.h"

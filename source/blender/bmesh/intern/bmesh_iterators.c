@@ -28,7 +28,6 @@
  * See: bmesh_iterators_inlin.c too, some functions are here for speed reasons.
  */
 
-#include <string.h>
 
 #include "bmesh.h"
 #include "bmesh_private.h"

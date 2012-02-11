@@ -35,15 +35,8 @@
  *    degenerate faces.
  */
 
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
-
-#include "BKE_utildefines.h"
-
 #include "BLI_math.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 

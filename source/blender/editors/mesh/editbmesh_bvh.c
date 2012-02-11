@@ -29,7 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
-
+#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
@@ -41,12 +41,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_tessmesh.h"
 
-
-
 #include "ED_mesh.h"
 #include "ED_view3d.h"
-
-
 
 
 typedef struct BMBVHTree {

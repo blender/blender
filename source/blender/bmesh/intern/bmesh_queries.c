@@ -31,15 +31,10 @@
  * of inspecting the mesh structure directly.
  */
 
-#include <string.h>
+#include "BLI_math.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
-
-#include "BKE_utildefines.h"
-
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #define BM_OVERLAP (1 << 13)
 

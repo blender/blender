@@ -23,9 +23,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-
 #include "BLI_math.h"
 #include "BLI_array.h"
+
+#include "BKE_customdata.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"

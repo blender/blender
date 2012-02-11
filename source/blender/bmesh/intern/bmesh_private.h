@@ -36,7 +36,6 @@
 #ifndef BMESH_PRIVATE_H
 #define BMESH_PRIVATE_H
 
-#include "bmesh.h"
 struct Link;
 struct BMLoop;
 

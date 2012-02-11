@@ -25,9 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
 #include "MEM_guardedalloc.h"
-
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -46,7 +44,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -59,6 +56,7 @@
 
 #include "BIF_gl.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 

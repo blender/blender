@@ -27,24 +27,17 @@
  * the topology of existing mesh data. (split, join, flip etc).
  */
 
-#include <limits.h>
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_linklist.h"
-#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 #include "BLI_smallhash.h"
+
+#include "BKE_customdata.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 /**
  *			bmesh_dissolve_disk
