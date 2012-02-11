@@ -220,7 +220,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max= ob->totcol > 1 ? ob->totcol - 1 : 0;
 	const short mat_ofs= mat_nr_max ? smd->mat_ofs : 0;
-	/* const short mat_ofs_rim= mat_nr_max ? smd->mat_ofs_rim : 0; */ /* UNUSED */
+	const short mat_ofs_rim= mat_nr_max ? smd->mat_ofs_rim : 0;
 
 	/* use for edges */
 	int *new_vert_arr= NULL;
@@ -365,13 +365,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (j=0; j<mp->totloop; j++) {
 			CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart+j, 
 			                     mp->loopstart+(mp->totloop-j-1)+dm->numLoopData, 1);
-
-			if(mat_ofs) {
-				mp->mat_nr += mat_ofs;
-				CLAMP(mp->mat_nr, 0, mat_nr_max);
-			}
 		}
-		
+
+		if(mat_ofs) {
+			mp->mat_nr += mat_ofs;
+			CLAMP(mp->mat_nr, 0, mat_nr_max);
+		}
+
 		e = ml2[0].e;
 		for (j=0; j<mp->totloop-1; j++) {
 			ml2[j].e = ml2[j+1].e;
@@ -640,6 +640,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			if (edge_origIndex) {
 				edge_origIndex[ml[j-3].e] = ORIGINDEX_NONE;
 				edge_origIndex[ml[j-1].e] = ORIGINDEX_NONE;
+			}
+
+			/* use the next material index if option enabled */
+			if(mat_ofs_rim) {
+				mp->mat_nr += mat_ofs_rim;
+				CLAMP(mp->mat_nr, 0, mat_nr_max);
 			}
 			if(crease_outer) {
 				/* crease += crease_outer; without wrapping */
