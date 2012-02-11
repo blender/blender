@@ -713,7 +713,8 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 
 	if (is_type_set && type==SEQ_PLUGIN) {
 		/* only plugins need the file selector */
-		return WM_operator_filesel(C, op, event);
+		WM_event_add_fileselect(C, op);
+		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
 		return sequencer_add_effect_strip_exec(C, op);
