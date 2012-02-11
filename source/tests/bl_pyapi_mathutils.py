@@ -111,8 +111,8 @@ class MatrixTesting(unittest.TestCase):
 
         vec = Vector((1, 2))
 
-        self.assertRaises(TypeError, mat1.__mul__, vec)
-        self.assertRaises(ValueError, vec.__mul__, mat1)  # Why are these different?!
+        self.assertRaises(ValueError, mat1.__mul__, vec)
+        self.assertRaises(ValueError, vec.__mul__, mat1)
 
         mat2 = Matrix(((1, 2),
                        (-2, 3)))
