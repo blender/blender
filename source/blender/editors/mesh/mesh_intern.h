@@ -35,16 +35,6 @@
 #ifndef MESH_INTERN_H
 #define MESH_INTERN_H
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-
-#include "BKE_tessmesh.h"
-
-#include "BLI_editVert.h"
-
-#include "RNA_types.h"
-
 struct bContext;
 struct wmOperatorType;
 struct ViewContext;
@@ -52,9 +42,11 @@ struct BMEditMesh;
 struct BMesh;
 struct BMEdge;
 struct BMFace;
+struct BMOperator;
 struct wmOperator;
 struct wmKeyMap;
 struct wmKeyConfig;
+struct EnumPropertyItem;
 
 /* ******************** bmeshutils.c */
 
@@ -98,7 +90,7 @@ float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 
 /* ******************** editface.c */
 
-
+#if 0 /* REMOVE AFTER BMESH MERGE */
 
 /* ******************* editmesh.c */
 
@@ -121,6 +113,8 @@ extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct Ed
 extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
 extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
 
+#endif
+
 void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 void MESH_OT_separate(struct wmOperatorType *ot);
@@ -142,6 +136,8 @@ void MESH_OT_duplicate(struct wmOperatorType *ot);
 
 void MESH_OT_fgon_make(struct wmOperatorType *ot);
 void MESH_OT_fgon_clear(struct wmOperatorType *ot);
+
+#if 0 /* REMOVE AFTER BMESH MERGE */
 
 /* ******************* editmesh_lib.c */
 void EM_stats_update(EditMesh *em);
@@ -190,6 +186,8 @@ extern int convex(float *v1, float *v2, float *v3, float *v4);
 
 extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 										   struct EditFace *efa2, int i1, int i2, int i3, int i4);
+
+#endif
 
 extern int EM_view3d_poll(struct bContext *C);
 
@@ -240,12 +238,16 @@ void MESH_OT_select_next_loop(struct wmOperatorType *ot);
 #define SUBDIV_CORNER_INNERVERT	1
 #define SUBDIV_CORNER_FAN		2
 
-extern EnumPropertyItem corner_type_items[];
+extern struct EnumPropertyItem *corner_type_items;
+
+#if 0 /* REMOVE AFTER BMESH MERGE */
 
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
 void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int corner_pattern, int seltype);
 int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
+
+#endif
 
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);

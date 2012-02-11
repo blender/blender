@@ -22,15 +22,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 
-#include "BLI_ghash.h"
-#include "BLI_memarena.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_operators_private.h"
 
 /* local flag define */
 #define DUPE_INPUT		1 /* input from operato */

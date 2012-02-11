@@ -24,66 +24,43 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <float.h>
 #define _USE_MATH_DEFINES
-#include <math.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
 
-#include "DNA_ID.h"
-#include "DNA_screen_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
-#include "BLI_dynstr.h" /* for WM_operator_pystring */
-#include "BLI_editVert.h"
 #include "BLI_array.h"
-#include "BLI_ghash.h"
-#include "BLI_memarena.h"
-#include "BLI_mempool.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
-#include "BLI_kdopbvh.h"
 #include "BLI_smallhash.h"
 #include "BLI_scanfill.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_blender.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_scene.h"
-#include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
 
-#include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "UI_interface.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "BKE_tessmesh.h"
+#include "BLI_editVert.h"
+#include "RNA_types.h"
+
 #include "mesh_intern.h"
-#include "editbmesh_bvh.h"
 
 /* this code here is kindof messy. . .I might need to eventually rework it - joeedh */
 

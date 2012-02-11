@@ -22,21 +22,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_memarena.h"
+#include "BKE_utildefines.h"
+
 #include "BLI_math.h"
 #include "BLI_array.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
-#include "bmesh_operators_private.h"
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "bmesh_operators_private.h" /* own include */
 
 #define EXT_INPUT 1
 #define EXT_KEEP  2

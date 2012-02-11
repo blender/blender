@@ -22,28 +22,17 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BKE_utildefines.h"
-#include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_ghash.h"
 #include "BLI_array.h"
 
-#include "DNA_object_types.h"
-
-#include "ED_mesh.h"
-
 #include "bmesh.h"
-#include "mesh_intern.h"
-#include "subdivideop.h"
 
 #include "bmesh_operators_private.h" /* own include */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 typedef struct EdgeTag {
 	BMVert *newv1, *newv2;

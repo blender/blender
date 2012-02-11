@@ -20,11 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_utildefines.h"
 
@@ -36,6 +35,8 @@
 
 #include "bmesh.h"
 #include "bmesh_private.h"
+
+#include "bmesh_operators_private.h" /* own include */
 
 #define EDGE_NEW	1
 #define FACE_NEW	1

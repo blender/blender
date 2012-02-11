@@ -27,63 +27,8 @@
 
 /* ********* Selection History ************ */
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_array.h"
-
-#include "BKE_context.h"
-#include "BKE_displist.h"
-#include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_material.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
-#include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-
-#include "RE_render_ext.h"  /* externtex */
-
-#include "WM_api.h"
-#include "WM_types.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
-#include "bmesh.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
-#include "mesh_intern.h"
-
-#include "BLO_sys_types.h" // for intptr_t support
 
 /* these wrap equivilent bmesh functions.  I'm in two minds of it we should
  * just use the bm functions directly; on the one hand, there's no real

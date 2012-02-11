@@ -23,29 +23,23 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
 #include "BLI_rand.h"
-#include "BLI_ghash.h"
 #include "BLI_array.h"
 #include "BLI_noise.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.h" /* XXX BAD LEVEL CALL */
+#include "mesh_intern.h" /* XXX EXTRA BAD LEVEL CALL - this is supposed to be internal! */
 
 #include "bmesh.h"
 #include "bmesh_private.h"
 
-#include "mesh_intern.h"
-#include "subdivideop.h"
+#include "bmesh_operators_private.h" /* own include */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include "subdivideop.h" /* own include */
 
 /* flags for all elements share a common bitfield space */
 #define SUBD_SPLIT	1

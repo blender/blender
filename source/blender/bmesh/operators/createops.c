@@ -22,12 +22,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "DNA_mesh_types.h"
 
-#include "BLI_memarena.h"
-#include "BLI_mempool.h"
+
 #include "BLI_heap.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
@@ -35,7 +33,7 @@
 #include "BLI_rand.h"
 
 #include "bmesh.h"
-#include "bmesh_operators_private.h"
+
 
 #define EDGE_MARK	1
 #define EDGE_VIS	2

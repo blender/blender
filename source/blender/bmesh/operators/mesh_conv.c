@@ -20,41 +20,28 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_key_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
+#include "DNA_key_types.h"
+#include "DNA_modifier_types.h"
 
-#include "BKE_customdata.h"
 #include "BKE_mesh.h"
+#include "BKE_utildefines.h"
+#include "BLI_listbase.h"
 #include "BKE_global.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
-#include "BLI_editVert.h"
-#include "BLI_scanfill.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 
-#include "ED_mesh.h"
-
-#include "mesh_intern.h"
 #include "bmesh.h"
 #include "bmesh_private.h"
+
+#include "bmesh_operators_private.h" /* own include */
 
 /*
  * MESH CONV.C

@@ -24,71 +24,31 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
 
-#include "MEM_guardedalloc.h"
-#include "PIL_time.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
 
 #include "DNA_mesh_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_key_types.h"
 
-#include "RNA_types.h"
 #include "RNA_define.h"
 #include "RNA_access.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_rand.h"
-#include "BLI_ghash.h"
-#include "BLI_linklist.h"
-#include "BLI_heap.h"
-#include "BLI_array.h"
 
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_bmesh.h"
-#include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_mesh.h"
-#include "ED_view3d.h"
-#include "ED_util.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_object.h"
 
-#include "UI_interface.h"
 
-#include "mesh_intern.h"
-#include "bmesh.h"
 
-#include "editbmesh_bvh.h"
 
 
 /* uses context to figure out transform for primitive */

@@ -22,17 +22,18 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BKE_utildefines.h"
 
-#include "bmesh.h"
-#include "mesh_intern.h"
-#include "bmesh_private.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "bmesh.h"
+#include "bmesh_private.h"
+
+#include "bmesh_operators_private.h" /* own include */
 
 #define FACE_MARK	1
 #define FACE_ORIG	2
