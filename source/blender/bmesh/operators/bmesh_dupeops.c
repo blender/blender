@@ -70,8 +70,8 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
  *
  */
 static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
-			 BMEdge *source_edge, BMesh *target_mesh,
-			 GHash *vhash, GHash *ehash)
+                         BMEdge *source_edge, BMesh *target_mesh,
+                         GHash *vhash, GHash *ehash)
 {
 	BMEdge *target_edge = NULL;
 	BMVert *target_vert1, *target_vert2;
@@ -84,7 +84,9 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	 * add it to the new/old map. */
 	rlen = 0;
 	for (face = BMIter_New(&fiter, source_mesh, BM_FACES_OF_EDGE, source_edge);
-		face; face = BMIter_Step(&fiter)) {
+	     face;
+	     face = BMIter_Step(&fiter))
+	{
 		if (BMO_TestFlag(source_mesh, face, DUPE_INPUT)) {
 			rlen++;
 		}
@@ -321,7 +323,7 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 	
 	if (!bm2)
 		bm2 = bm;
-		
+
 	/* flag inpu */
 	BMO_Flag_Buffer(bm, dupeop, "geom", DUPE_INPUT, BM_ALL);
 
@@ -458,7 +460,7 @@ void delop_exec(BMesh *bm, BMOperator *op)
 
 void spinop_exec(BMesh *bm, BMOperator *op)
 {
-    BMOperator dupop, extop;
+	BMOperator dupop, extop;
 	float cent[3], dvec[3];
 	float axis[3] = {0.0f, 0.0f, 1.0f};
 	float q[4];
@@ -488,16 +490,16 @@ void spinop_exec(BMesh *bm, BMOperator *op)
 			BMO_InitOpf(bm, &dupop, "dupe geom=%s", op, "lastout");
 			BMO_Exec_Op(bm, &dupop);
 			BMO_CallOpf(bm, "rotate cent=%v mat=%m3 verts=%s",
-				cent, rmat, &dupop, "newout");
+			            cent, rmat, &dupop, "newout");
 			BMO_CopySlot(&dupop, op, "newout", "lastout");
 			BMO_Finish_Op(bm, &dupop);
 		}
 		else {
 			BMO_InitOpf(bm, &extop, "extrudefaceregion edgefacein=%s",
-				op, "lastout");
+			            op, "lastout");
 			BMO_Exec_Op(bm, &extop);
 			BMO_CallOpf(bm, "rotate cent=%v mat=%m3 verts=%s",
-				cent, rmat, &extop, "geomout");
+			            cent, rmat, &extop, "geomout");
 			BMO_CopySlot(&extop, op, "geomout", "lastout");
 			BMO_Finish_Op(bm, &extop);
 		}

@@ -320,26 +320,29 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		BMEdge *edge;
 		BMFace *face;
 		BMVert **vertex_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
-		                                  "Selection Conversion Vertex Pointer Array");
+		                                    "Selection Conversion Vertex Pointer Array");
 		BMEdge **edge_array = MEM_callocN(sizeof(BMEdge *) * bm->totedge,
-		                                "Selection Conversion Edge Pointer Array");
+		                                  "Selection Conversion Edge Pointer Array");
 		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
-		                                "Selection Conversion Face Pointer Array");
+		                                  "Selection Conversion Face Pointer Array");
 
 		for (i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		    vertex; i++, vertex = BMIter_Step(&iter))
+		     vertex;
+		     i++, vertex = BMIter_Step(&iter))
 		{
 			vertex_array[i] = vertex;
 		}
 
 		for (i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		    edge; i++, edge = BMIter_Step(&iter))
+		     edge;
+		     i++, edge = BMIter_Step(&iter))
 		{
 			edge_array[i] = edge;
 		}
 
 		for (i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-		    face; i++, face = BMIter_Step(&iter))
+		     face;
+		     i++, face = BMIter_Step(&iter))
 		{
 			face_array[i] = face;
 		}

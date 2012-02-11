@@ -64,7 +64,7 @@
 
 /* assumes edges are validated before reaching this poin */
 static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
-							  BMVert *v3, BMVert *v4, float limit)
+                              BMVert *v3, BMVert *v4, float limit)
 {
 	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would mak */
 	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
@@ -97,12 +97,14 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	sub_v3_v3v3(edgeVec4, v4->co, v1->co);
 
 	/* a completely skinny face is 'pi' after halving */
-	diff = 0.25f * (
-		fabsf(angle_v3v3(edgeVec1, edgeVec2) - (float)M_PI_2) +
-		fabsf(angle_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
-		fabsf(angle_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
-		fabsf(angle_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
-	if (!diff) return 0.0;
+	diff = 0.25f * (fabsf(angle_v3v3(edgeVec1, edgeVec2) - (float)M_PI_2) +
+	                fabsf(angle_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
+	                fabsf(angle_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
+	                fabsf(angle_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
+
+	if (!diff) {
+		return 0.0;
+	}
 
 	measure +=  diff;
 	if (measure > limit) {
@@ -196,10 +198,10 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 
 			for (i = 0; i < 2; i++) {
 				if (luv1->uv[0] + T2QUV_LIMIT > luv3->uv[0] && luv1->uv[0] - T2QUV_LIMIT < luv3->uv[0] &&
-					luv1->uv[1] + T2QUV_LIMIT > luv3->uv[1] && luv1->uv[1] - T2QUV_LIMIT < luv3->uv[1])
+				    luv1->uv[1] + T2QUV_LIMIT > luv3->uv[1] && luv1->uv[1] - T2QUV_LIMIT < luv3->uv[1])
 				{
 					if (luv2->uv[0] + T2QUV_LIMIT > luv4->uv[0] && luv2->uv[0] - T2QUV_LIMIT < luv4->uv[0] &&
-						luv2->uv[1] + T2QUV_LIMIT > luv4->uv[1] && luv2->uv[1] - T2QUV_LIMIT < luv4->uv[1])
+					    luv2->uv[1] + T2QUV_LIMIT > luv4->uv[1] && luv2->uv[1] - T2QUV_LIMIT < luv4->uv[1])
 					{
 						mergeok_uvs = 1;
 					}
@@ -314,7 +316,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 
 			jedges[i].e = e;
 			jedges[i].weight = measure;
-	
+
 			i++;
 		}
 	}

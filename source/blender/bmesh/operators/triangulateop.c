@@ -125,15 +125,15 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				len4 = len_v3v3(v4->co, v1->co);
 				len5 = len_v3v3(v1->co, v3->co);
 				len6 = len_v3v3(v2->co, v4->co);
-	
+
 				opp1 = area_tri_v3(v1->co, v2->co, v3->co);
 				opp2 = area_tri_v3(v1->co, v3->co, v4->co);
-	
+
 				fac1 = opp1 / (len1 + len2 + len5) + opp2 / (len3 + len4 + len5);
-	
+
 				opp1 = area_tri_v3(v2->co, v3->co, v4->co);
 				opp2 = area_tri_v3(v2->co, v4->co, v1->co);
-	
+
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				
 				if (fac1 > fac2) {

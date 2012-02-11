@@ -540,7 +540,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 
 				BMO_SetFlag(bm, v2, VERT_DOUBLE);
 				BMO_SetFlag(bm, v, VERT_TARGET);
-			
+
 				BMO_Insert_MapPointer(bm, optarget, targetmapname, v2, v);
 			}
 		}

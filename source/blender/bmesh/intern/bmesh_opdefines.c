@@ -929,8 +929,8 @@ static BMOpDefine def_create_icosphere = {
 	"create_icosphere",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_INT,         "subdivisions"}, //how many times to recursively subdivide the sphere
-	 {BMOP_OPSLOT_FLT,       "diameter"}, //diameter
-	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with
+	 {BMOP_OPSLOT_FLT,         "diameter"}, //diameter
+	 {BMOP_OPSLOT_MAT,         "mat"}, //matrix to multiply the new geometry with
 	 {0, /* null-terminating sentine */}},
 	bmesh_create_icosphere_exec,
 	0,

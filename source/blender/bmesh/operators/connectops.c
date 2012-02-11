@@ -96,7 +96,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 
 			BLI_array_growone(verts);
 			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;
-		
+
 			BLI_array_growone(verts);
 			verts[BLI_array_count(verts) - 1] = loops[i * 2 + 1]->v;
 		}
@@ -216,7 +216,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			
 			if (!e2)
 				e2 = e;
-				
+
 			e = e2;
 			ov = v;
 			do {
@@ -317,7 +317,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			 * for v3 than v4, the loops are in opposite directions, so reverse
 			 * the order of reads from vv1. We can avoid sqrt for comparison */
 			if (len_squared_v3v3(v1->co, v3->co) > len_squared_v3v3(v1->co, v4->co) &&
-				len_squared_v3v3(v2->co, v4->co) > len_squared_v3v3(v2->co, v3->co))
+			    len_squared_v3v3(v2->co, v4->co) > len_squared_v3v3(v2->co, v3->co))
 			{
 				dir1 = -1;
 				starti = clamp_index(-1, lenv1);
@@ -389,7 +389,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			i1next = clamp_index((i + 1) * dir1 + starti, lenv1);
 			i2 = i;
 			i2next = clamp_index(i + 1, lenv2);
-		
+
 			if (vv1[i1] ==  vv1[i1next]) {
 				continue;
 			}

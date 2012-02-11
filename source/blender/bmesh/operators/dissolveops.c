@@ -380,11 +380,11 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_MARK);
 	if (BMO_HasError(bm)) {
-			const char *msg;
+		const char *msg;
 
-			BMO_GetError(bm, &msg, NULL);
-			BMO_ClearStack(bm);
-			BMO_RaiseError(bm, op, BMERR_DISSOLVEVERTS_FAILED, msg);
+		BMO_GetError(bm, &msg, NULL);
+		BMO_ClearStack(bm);
+		BMO_RaiseError(bm, op, BMERR_DISSOLVEVERTS_FAILED, msg);
 	}
 	
 	/* clean up any remainin */

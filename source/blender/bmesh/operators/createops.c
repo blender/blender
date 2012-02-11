@@ -95,7 +95,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 
 static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
-						EdgeData *edata, VertData *vdata)
+                              EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = &edata[BM_GetIndex(e)];
 	VertData *vd = &vdata[BM_GetIndex(v)];
@@ -255,10 +255,10 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 			ok = 1;
 			if (!v || !e2)
 				continue;
-				
+
 			do {
 				if (BLI_smallhash_haskey(hash, (intptr_t)e2) ||
-				    BLI_smallhash_haskey(hash, (intptr_t)v))
+				        BLI_smallhash_haskey(hash, (intptr_t)v))
 				{
 					ok = 0;
 					break;
@@ -268,7 +268,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				BLI_array_append(edges, e2);
 				
 				BLI_smallhash_insert(hash, (intptr_t)e2, NULL);
-	
+
 				v = BM_OtherEdgeVert(e2, v);
 				e2 = i ? rotsys_prevedge(e2, v, edata, vdata) : rotsys_nextedge(e2, v, edata, vdata);
 			} while (e2 != starte && v != startv);
@@ -368,7 +368,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	/* BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE); */ /* UNUSE */
 	int i;
 	
-	#define SIGN(n) ((n)<0.0f)
+#define SIGN(n) ((n)<0.0f)
 	
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMIter eiter;
@@ -517,7 +517,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				vd1 = vdata + BM_GetIndex(v1);
 				vd2 = vdata + BM_GetIndex(v2);
 				vd3 = vdata + BM_GetIndex(v3);
-	
+
 				sub_v3_v3v3(vec1, vd1->sco, cent);
 				sub_v3_v3v3(vec2, vd2->sco, cent);
 				sub_v3_v3v3(vec3, vd3->sco, cent);
@@ -531,7 +531,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				s1 = (dot_v3v3(n1, n1) < (0.0f + FLT_EPSILON * 10));
 				s2 = (dot_v3v3(n2, n2) < (0.0f + FLT_EPSILON * 10));
 				s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON * 10));
-								
+
 				normalize_v3(n1); normalize_v3(n2); normalize_v3(n3);
 				
 				if (s1 || s2 || s3) {
@@ -542,8 +542,8 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge]);
 					}
 					else {
-						SWAP(BMEdge *, edges[(i + totedge - 1) % totedge], edges[(i + 1) % totedge])
-						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge])
+						SWAP(BMEdge *, edges[(i + totedge - 1) % totedge], edges[(i + 1) % totedge]);
+						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge]);
 					}
 				}
 			}
@@ -598,7 +598,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			
 			if (!e)
 				break;
-				
+
 			if (!BM_OtherEdgeVert(e, v))
 				continue;
 			
@@ -795,7 +795,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			if (e == edge || !BMO_TestFlag(bm, e, EDGE_MARK)) {
 				continue;
 			}
-				
+
 			v2 = BM_OtherEdgeVert(e, last->v);
 			
 			if (BLI_ghash_haskey(gh, v2)) {
@@ -839,7 +839,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 		edge_free_path(pathbase, path);
 		path = NULL;
 	}
-		
+
 	BLI_array_free(verts);
 	BLI_heap_free(heap, NULL);
 	BLI_ghash_free(gh, NULL, NULL);
@@ -923,11 +923,11 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			/* if restrict is on, only start on faces in the restrict map */
 			if (use_restrict && !BMO_InMap(bm, op, "restrict", e))
 				continue;
-				
+
 			if (edata[BM_GetIndex(e)].tag < 2) {
 				edge = e;
 
-	 			if (use_restrict) {
+				if (use_restrict) {
 					int i = 0, j = 0, gi = 0;
 					
 					group = BMO_Get_MapInt(bm, op, "restrict", e);

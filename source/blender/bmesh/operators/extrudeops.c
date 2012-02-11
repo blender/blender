@@ -152,7 +152,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 			v3 = e->v2;
 			v4 = e->v1;
 		}
-			/* not sure what to do about example face, pass	 NULL for now */
+		/* not sure what to do about example face, pass	 NULL for now */
 		f = BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, FALSE);
 		
 		if (BMO_TestFlag(bm, e, EXT_INPUT))
@@ -221,7 +221,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 					break;
 				}
 			}
-		
+
 			if (!found && (rlen > 1)) BMO_SetFlag(bm, e, EXT_DEL);
 		}
 	}
@@ -573,7 +573,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOperator extrudeop;
 	BMOperator reverseop;
 	float thickness;
-  
+
 	thickness = BMO_Get_Float(op, "thickness");
 
 	/* Flip original faces (so the shell is extruded inward) */

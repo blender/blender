@@ -236,7 +236,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				if (BMO_TestFlag(bm, l->f, BEVEL_FLAG))
 					continue;
-			
+
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
 					BM_SetIndex(l2, BLI_array_count(tags)); /* set_loop */
 					BLI_array_growone(tags);
@@ -302,7 +302,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 						BMO_SetFlag(bm, l2->e, EDGE_OLD);
 					}
 				}
-	
+
 				BLI_smallhash_insert(&hash, (intptr_t)l->f, NULL);
 				BMO_SetFlag(bm, l->f, BEVEL_FLAG);
 				BLI_array_append(faces, l->f);
@@ -369,10 +369,10 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 							normalize_v3(co);
 							mul_v3_fl(co, elen);
 						}
-								
+
 						mul_v3_fl(co, fac);
 						add_v3_v3(co, l->v->co);
-					
+
 						tag->newv = BM_Make_Vert(bm, co, l->v);
 						
 						ETAG_SET(l->prev->e, l->v, tag->newv);
@@ -382,7 +382,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			else if (BMO_TestFlag(bm, l->v, BEVEL_FLAG)) {
 				tag = tags + BM_GetIndex(l);
 				tag->newv = ETAG_GET(l->e, l->v);
-		
+
 				if (!tag->newv) {
 					sub_v3_v3v3(co, l->next->v->co, l->v->co);
 					if (has_elens) {
@@ -394,7 +394,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					
 					mul_v3_fl(co, fac);
 					add_v3_v3(co, l->v->co);
-			
+
 					tag = tags + BM_GetIndex(l);
 					tag->newv = BM_Make_Vert(bm, co, l->v);
 					
@@ -462,7 +462,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			printf("%s: could not make face!\n", __func__);
 			continue;
 		}
-			
+
 		BMO_SetFlag(bm, f, FACE_NEW);
 	}
 
@@ -599,7 +599,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		int rad, insorig = 0, err = 0;
 
 		BLI_smallhash_init(&tmphash);
-				
+
 		if (!BMO_TestFlag(bm, v, BEVEL_FLAG))
 			continue;
 		

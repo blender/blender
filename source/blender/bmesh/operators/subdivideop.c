@@ -71,61 +71,6 @@
  *   split the edge only?
  */
 
-#if 0 //misc. code, maps a parametric coordinate to a fractal line
-	float lastrnd[3], vec2[3] = {0.0f, 0.0f, 0.0f};
-	int seed = BLI_rand();
-	int d, i, j, dp, lvl, wid;
-	float df;
-
-	BLI_srandom(seed);
-
-	wid = (params->numcuts + 2);
-	dp = perc * wid;
-	wid /= 2;
-	d = lvl = 0;
-	while (1) {
-		if (d > dp) {
-			d -= wid;
-		}
-		else if (d < dp) {
-			d += wid;
-		}
-		else {
-			break;
-		}
-
-
-		wid = MAX2((wid / 2), 1);
-		lvl++;
-	}
-
-	zero_v3(vec1);
-	df = 1.0f;
-	for (i = 0; i < lvl; i++, df /= 4.0f) {
-		int tot = (1 << i);
-
-		lastrnd[0] = BLI_drand() - 0.5f;
-		lastrnd[1] = BLI_drand() - 0.5f;
-		lastrnd[2] = BLI_drand() - 0.5f;
-		for (j = 0; j < tot; j++) {
-			float a, b, rnd[3], rnd2[3];
-
-			rnd[0] = BLI_drand() - 0.5f;
-			rnd[1] = BLI_drand() - 0.5f;
-			rnd[2] = BLI_drand() - 0.5f;
-
-			a = (float)j * (float)((float)params->numcuts / (float)tot);
-			b = (float)(j + 1) * (float)((float)params->numcuts / (float)tot);
-			if (d >= a && d <= b) {
-				interp_v3_v3v3(rnd2, lastrnd, rnd, (((float)d) - a) / (b - a));
-				mul_v3_fl(rnd2, df);
-				add_v3_v3(vec1, rnd2);
-			}
-
-			copy_v3_v3(lastrnd, rnd);
-		}
-	}
-#endif
 /* connects face with smallest len, which I think should always be correct for
  * edge subdivision */
 static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_nf)
@@ -276,7 +221,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 {
 	BMVert *ev;
 	float percent, percent2 = 0.0f;
-	 
+
 	if (BMO_TestFlag(bm, edge, EDGE_PERCENT) && totpoint == 1)
 		percent = BMO_Get_MapFloat(bm, params->op, "edgepercents", edge);
 	else {
@@ -555,7 +500,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		temp = *e;
 		for (a = 0; a < numcuts; a++) {
 			v = subdivideedgenum(bm, e, &temp, a, numcuts, params, &ne,
-			                    v1, v2);
+			                     v1, v2);
 			if (!v)
 				bmesh_error();
 
@@ -823,7 +768,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	                    EDGE_PERCENT);
 
 	for (face = BMIter_New(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
-	     face; face = BMIter_Step(&fiter)) {
+	     face;
+	     face = BMIter_Step(&fiter))
+	{
 		BMEdge *e1 = NULL, *e2 = NULL;
 		float vec1[3], vec2[3];
 
@@ -973,7 +920,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 			/* find the boundary of one of the split edge */
 			for (a = 1; a < vlen; a++) {
-				if ( !BMO_TestFlag(bmesh, loops[a - 1]->v, ELE_INNER) &&
+				if (!BMO_TestFlag(bmesh, loops[a - 1]->v, ELE_INNER) &&
 				     BMO_TestFlag(bmesh, loops[a]->v, ELE_INNER))
 				{
 					break;
@@ -987,7 +934,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				/* find the boundary of the other edge. */
 				for (j = 0; j < vlen; j++) {
 					b = (j + a + numcuts + 1) % vlen;
-					if ( !BMO_TestFlag(bmesh, loops[b == 0 ? vlen - 1 : b - 1]->v, ELE_INNER) &&
+					if (!BMO_TestFlag(bmesh, loops[b == 0 ? vlen - 1 : b - 1]->v, ELE_INNER) &&
 					     BMO_TestFlag(bmesh, loops[b]->v, ELE_INNER))
 					{
 						break;
@@ -1116,7 +1063,7 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 				BMIter eiter;
 
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, ele) {
-					if ( !BM_TestHFlag(e, BM_SELECT) &&
+					if (!BM_TestHFlag(e, BM_SELECT) &&
 					     BM_TestHFlag(e->v1, BM_SELECT) &&
 					     BM_TestHFlag(e->v2, BM_SELECT))
 					{
@@ -1158,8 +1105,7 @@ void esplit_exec(BMesh *bm, BMOperator *op)
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
 	}
 
-	BMO_Flag_To_Slot(bm, op, "outsplit",
-		         ELE_SPLIT, BM_ALL);
+	BMO_Flag_To_Slot(bm, op, "outsplit", ELE_SPLIT, BM_ALL);
 
 	BM_free_data_layer_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
 }
