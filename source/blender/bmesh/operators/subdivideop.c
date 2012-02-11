@@ -31,8 +31,7 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_mesh.h" /* XXX BAD LEVEL CALL */
-#include "mesh_intern.h" /* XXX EXTRA BAD LEVEL CALL - this is supposed to be internal! */
+#include "ED_mesh.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"

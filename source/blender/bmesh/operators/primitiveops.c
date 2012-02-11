@@ -22,10 +22,9 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "BLI_math.h"
 
-#include "ED_mesh.h" /* XXX BAD LEVEL CALL */
+#include "ED_mesh.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"

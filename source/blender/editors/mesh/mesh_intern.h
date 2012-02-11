@@ -227,16 +227,6 @@ void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
 void MESH_OT_select_next_loop(struct wmOperatorType *ot);
-		
-#define SUBDIV_SELECT_ORIG      0
-#define SUBDIV_SELECT_INNER     1
-#define SUBDIV_SELECT_INNER_SEL 2
-#define SUBDIV_SELECT_LOOPCUT 3
-
-/* edge subdivide corner cut types */
-#define SUBDIV_CORNER_PATH		0
-#define SUBDIV_CORNER_INNERVERT	1
-#define SUBDIV_CORNER_FAN		2
 
 extern struct EnumPropertyItem *corner_type_items;
 
