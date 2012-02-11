@@ -22,8 +22,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_utildefines.h"
-
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"

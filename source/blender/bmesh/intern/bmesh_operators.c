@@ -38,7 +38,6 @@
 
 #include "bmesh.h"
 #include "bmesh_private.h"
-#include "stdarg.h"
 
 /* forward declarations */
 static void alloc_flag_layer(BMesh *bm);

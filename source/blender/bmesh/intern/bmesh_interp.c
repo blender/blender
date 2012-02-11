@@ -37,7 +37,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_utildefines.h"
 #include "BKE_multires.h"
 
 #include "BLI_array.h"

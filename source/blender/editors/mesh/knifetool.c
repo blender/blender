@@ -55,10 +55,8 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "BKE_tessmesh.h"
 #include "BLI_editVert.h"
-#include "RNA_types.h"
 
 #include "mesh_intern.h"
 

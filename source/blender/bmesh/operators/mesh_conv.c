@@ -29,7 +29,6 @@
 #include "DNA_modifier_types.h"
 
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 #include "BLI_listbase.h"
 #include "BKE_global.h"
 #include "BKE_key.h"

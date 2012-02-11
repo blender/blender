@@ -41,7 +41,6 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_tessmesh.h"
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_multires.h"
 
 #include "ED_mesh.h"
