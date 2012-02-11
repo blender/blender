@@ -35,10 +35,11 @@ class AddPresetBase():
             name="Name",
             description="Name of the preset, used to make the path name",
             maxlen=64,
+            options={'SKIP_SAVE'},
             )
     remove_active = bpy.props.BoolProperty(
             default=False,
-            options={'HIDDEN'},
+            options={'HIDDEN', 'SKIP_SAVE'},
             )
 
     @staticmethod

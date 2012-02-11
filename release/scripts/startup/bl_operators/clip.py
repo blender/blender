@@ -143,6 +143,7 @@ class CLIP_OT_track_to_empty(Operator):
         if constraint is None:
             constraint = ob.constraints.new(type='FOLLOW_TRACK')
 
+        constraint.use_active_clip = False
         constraint.clip = sc.clip
         constraint.track = track.name
         constraint.use_3d_position = False
