@@ -40,14 +40,14 @@
 #include "bmesh_private.h"
 
 /* forward declarations */
-static void alloc_flag_layer(BMesh *bm);
-static void free_flag_layer(BMesh *bm);
-static void clear_flag_layer(BMesh *bm);
+static void bmo_flag_layer_alloc(BMesh *bm);
+static void bmo_flag_layer_free(BMesh *bm);
+static void bmo_flag_layer_clear(BMesh *bm);
 static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name);
 static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name);
 static int bmesh_opname_to_opcode(const char *opname);
 
-static const char *bmop_error_messages[] = {
+static const char *bmo_error_messages[] = {
 	NULL,
 	"Self intersection error",
 	"Could not dissolve vert",
@@ -63,7 +63,7 @@ static const char *bmop_error_messages[] = {
 
 
 /* operator slot type information - size of one element of the type given. */
-const int BMOP_OPSLOT_TYPEINFO[] = {
+const int BMO_OPSLOT_TYPEINFO[] = {
 	0,
 	sizeof(int),
 	sizeof(float),
@@ -101,9 +101,9 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 
 	/* add flag layer, if appropriate */
 	if (bm->stackdepth > 1)
-		alloc_flag_layer(bm);
+		bmo_flag_layer_alloc(bm);
 	else
-		clear_flag_layer(bm);
+		bmo_flag_layer_clear(bm);
 }
 
 /*
@@ -117,7 +117,7 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 void BMO_pop(BMesh *bm)
 {
 	if (bm->stackdepth > 1)
-		free_flag_layer(bm);
+		bmo_flag_layer_free(bm);
 
 	bm->stackdepth--;
 }
@@ -263,7 +263,7 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 			dest_slot->data.buf = NULL;
 			dest_slot->len = source_slot->len;
 			if (dest_slot->len) {
-				const int slot_alloc_size = BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len;
+				const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len;
 				dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, slot_alloc_size);
 				memcpy(dest_slot->data.buf, source_slot->data.buf, slot_alloc_size);
 			}
@@ -516,8 +516,8 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 			slot->size = (slot->size + 1 + totadd) * 2;
 
 			tmp = slot->data.buf;
-			slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size, "opslot dynamic array");
-			memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size);
+			slot->data.buf = MEM_callocN(BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size, "opslot dynamic array");
+			memcpy(slot->data.buf, tmp, BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size);
 			MEM_freeN(tmp);
 		}
 
@@ -528,8 +528,8 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 		slot->len += totadd;
 		slot->size = slot->len + 2;
 		tmp = slot->data.buf;
-		slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len, "opslot dynamic array");
-		memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len);
+		slot->data.buf = MEM_callocN(BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len, "opslot dynamic array");
+		memcpy(slot->data.buf, tmp, BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len);
 	}
 
 	return slot->data.buf;
@@ -553,7 +553,7 @@ void BMO_slot_map_to_flag(struct BMesh *bm, struct BMOperator *op,
 	}
 }
 
-static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len)
+static void *bmo_slot_buffer_alloc(BMOperator *op, const char *slotname, int len)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
@@ -563,7 +563,7 @@ static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len)
 	
 	slot->len = len;
 	if (len)
-		slot->data.buf = BLI_memarena_alloc(op->arena, BMOP_OPSLOT_TYPEINFO[slot->slottype] * len);
+		slot->data.buf = BLI_memarena_alloc(op->arena, BMO_OPSLOT_TYPEINFO[slot->slottype] * len);
 	return slot->data.buf;
 }
 
@@ -586,7 +586,7 @@ static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, c
 	if (htype & BM_FACE) totelement += bm->totface;
 
 	if (totelement) {
-		alloc_slot_buffer(op, slotname, totelement);
+		bmo_slot_buffer_alloc(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
 			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
@@ -629,7 +629,7 @@ void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 	totelement = BM_mesh_count_flag(bm, htype, hflag, 1);
 
 	if (totelement) {
-		alloc_slot_buffer(op, slotname, totelement);
+		bmo_slot_buffer_alloc(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
 			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
@@ -678,7 +678,7 @@ void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
 	int totelement = BMO_mesh_flag_count(bm, oflag, htype), i = 0;
 
 	if (totelement) {
-		alloc_slot_buffer(op, slotname, totelement);
+		bmo_slot_buffer_alloc(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
 			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
@@ -787,7 +787,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  *
  * Flags elements in a slots buffer
  */
-void BMO_slot_buffer_flag(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
                           const short oflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -808,7 +808,7 @@ void BMO_slot_buffer_flag(BMesh *bm, BMOperator *op, const char *slotname,
  *
  * Removes flags from elements in a slots buffer
  */
-void BMO_slot_buffer_flag_clear(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotname,
                                 const short oflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -838,7 +838,7 @@ void BMO_slot_buffer_flag_clear(BMesh *bm, BMOperator *op, const char *slotname,
  *  all operators have been executed. This would
  *  save a lot of realloc potentially.
  */
-static void alloc_flag_layer(BMesh *bm)
+static void bmo_flag_layer_alloc(BMesh *bm)
 {
 	BMHeader *ele;
 	/* set the index values since we are looping over all data anyway,
@@ -883,7 +883,7 @@ static void alloc_flag_layer(BMesh *bm)
 	BLI_mempool_destroy(oldpool);
 }
 
-static void free_flag_layer(BMesh *bm)
+static void bmo_flag_layer_free(BMesh *bm)
 {
 	BMHeader *ele;
 	/* set the index values since we are looping over all data anyway,
@@ -928,7 +928,7 @@ static void free_flag_layer(BMesh *bm)
 	BLI_mempool_destroy(oldpool);
 }
 
-static void clear_flag_layer(BMesh *bm)
+static void bmo_flag_layer_clear(BMesh *bm)
 {
 	BMHeader *ele;
 	/* set the index values since we are looping over all data anyway,
@@ -1057,7 +1057,7 @@ void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 	BMOpError *err = MEM_callocN(sizeof(BMOpError), "bmop_error");
 	
 	err->errorcode = errcode;
-	if (!msg) msg = bmop_error_messages[errcode];
+	if (!msg) msg = bmo_error_messages[errcode];
 	err->msg = msg;
 	err->op = owner;
 	

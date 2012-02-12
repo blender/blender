@@ -267,9 +267,9 @@ void dupeop_exec(BMMesh *bm, BMOperator *op)
 	finput = BMO_Get_Slot(dupeop, BMOP_DUPE_FINPUT);
 
 	/*go through vinput, einput, and finput and flag elements with private flags*/
-	BMO_slot_buffer_flag(bm, dupeop, BMOP_DUPE_VINPUT, DUPE_INPUT);
-	BMO_slot_buffer_flag(bm, dupeop, BMOP_DUPE_EINPUT, DUPE_INPUT);
-	BMO_slot_buffer_flag(bm, dupeop, BMOP_DUPE_FINPUT, DUPE_INPUT);
+	BMO_slot_buffer_flag_enable(bm, dupeop, BMOP_DUPE_VINPUT, DUPE_INPUT);
+	BMO_slot_buffer_flag_enable(bm, dupeop, BMOP_DUPE_EINPUT, DUPE_INPUT);
+	BMO_slot_buffer_flag_enable(bm, dupeop, BMOP_DUPE_FINPUT, DUPE_INPUT);
 
 	/*use the internal copy function*/
 	copy_mesh(bm, bm);

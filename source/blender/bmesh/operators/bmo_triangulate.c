@@ -87,7 +87,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	int stop = 0;
 	
-	BMO_slot_buffer_flag(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
 	
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		if (f->len == 3)
@@ -207,7 +207,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	/* clean up fill */
 	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
 	BMO_op_exec(bm, &bmop);
-	BMO_slot_buffer_flag(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);
 	BMO_op_finish(bm, &bmop);
 	
 	BMO_slot_from_flag(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);

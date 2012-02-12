@@ -1654,7 +1654,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", FACE_NEW, BOUNDARY);
 	
 	BMO_op_exec(bm, &bmop);
-	BMO_slot_buffer_flag(bm, &bmop, "geomout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", FACE_NEW, BM_FACE);
 	
 	BMO_op_finish(bm, &bmop);
 	

@@ -45,7 +45,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	int i;
 	
-	BMO_slot_buffer_flag(bm, op, "verts", VERT_INPUT, BM_VERT);
+	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_INPUT, BM_VERT);
 
 	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
 		BLI_array_empty(loops);
@@ -172,7 +172,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, *nexte;
 	int c = 0, cl1 = 0, cl2 = 0;
 
-	BMO_slot_buffer_flag(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
 
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_DONE)) {

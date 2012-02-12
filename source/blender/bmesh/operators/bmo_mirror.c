@@ -60,7 +60,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &dupeop, "dupe geom=%s", op, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag(bm, &dupeop, "newout", ELE_NEW, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, &dupeop, "newout", ELE_NEW, BM_ALL);
 
 	/* create old -> new mappin */
 	i = 0;

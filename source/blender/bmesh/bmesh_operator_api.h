@@ -310,10 +310,10 @@ void BMO_slot_from_flag(struct BMesh *bm, struct BMOperator *op, const char *slo
                         const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
-void BMO_slot_buffer_flag(struct BMesh *bm, struct BMOperator *op, const char *slotname,
+void BMO_slot_buffer_flag_enable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
                           const short oflag, const char htype);
 /* clears tool-flag flag from all elements inside a slot array. */
-void BMO_slot_buffer_flag_clear(struct BMesh *bm, struct BMOperator *op, const char *slotname,
+void BMO_slot_buffer_flag_disable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
                                 const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
@@ -449,7 +449,7 @@ typedef struct BMOElemMapping {
 	int len;
 } BMOElemMapping;
 
-extern const int BMOP_OPSLOT_TYPEINFO[];
+extern const int BMO_OPSLOT_TYPEINFO[];
 
 BM_INLINE void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
                                    void *element, void *data, int len)

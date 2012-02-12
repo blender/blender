@@ -321,7 +321,7 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 		bm2 = bm;
 
 	/* flag inpu */
-	BMO_slot_buffer_flag(bm, dupeop, "geom", DUPE_INPUT, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, dupeop, "geom", DUPE_INPUT, BM_ALL);
 
 	/* use the internal copy functio */
 	copy_mesh(dupeop, bm, bm2);
@@ -388,7 +388,7 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(splitop, &dupeop, "geom", "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag(bm, splitop, "geom", SPLIT_INPUT, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, splitop, "geom", SPLIT_INPUT, BM_ALL);
 
 	/* make sure to remove edges and verts we don't need */
 	for (e = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e = BM_iter_step(&iter)) {
@@ -442,7 +442,7 @@ void delop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/* Mark Buffer */
-	BMO_slot_buffer_flag(bm, delop, "geom", DEL_INPUT, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, delop, "geom", DEL_INPUT, BM_ALL);
 
 	BMO_remove_tagged_context(bm, DEL_INPUT, BMO_slot_int_get(op, "context"));
 

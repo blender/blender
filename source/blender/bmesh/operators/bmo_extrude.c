@@ -195,7 +195,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, "dupe");
 	
-	BMO_slot_buffer_flag(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
 	
 	/* if one flagged face is bordered by an unflagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */
@@ -579,7 +579,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &extrudeop);
 
 	/* Push the verts of the extruded faces inward to create thickness */
-	BMO_slot_buffer_flag(bm, &extrudeop, "geomout", FACE_MARK, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, &extrudeop, "geomout", FACE_MARK, BM_FACE);
 	calc_solidify_normals(bm);
 	solidify_add_thickness(bm, thickness);
 

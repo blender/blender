@@ -96,7 +96,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_flag(bm, op, "faces", FACE_MARK, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "faces", FACE_MARK, BM_FACE);
 	
 	/* collect region */
 	BMO_ITER(f, &oiter, bm, op, "faces", BM_FACE) {
@@ -335,7 +335,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 	/* int i; */
 	
 	vinput = BMO_slot_get(op, "verts");
-	BMO_slot_buffer_flag(bm, op, "verts", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_MARK, BM_VERT);
 	
 	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {

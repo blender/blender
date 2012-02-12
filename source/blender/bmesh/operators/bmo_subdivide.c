@@ -685,7 +685,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	int beauty, cornertype, singleedge, gridfill;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
-	BMO_slot_buffer_flag(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
 	
 	numcuts = BMO_slot_int_get(op, "numcuts");
 	seed = BMO_slot_int_get(op, "seed");

@@ -209,7 +209,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges_tmp);
 	int i, j;
 
-	BMO_slot_buffer_flag(bm, op, "edges", EDGE_SEAM, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_SEAM, BM_EDGE);
 	
 	/* single marked edges unconnected to any other marked edges
 	 * are illegal, go through and unmark them */

@@ -268,12 +268,12 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 			BMO_op_exec(bm, &bmop);
 			BMO_op_finish(bm, &prevop);
 
-			BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+			BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		}
 		else {
 			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
 			BMO_op_exec(bm, &bmop);
-			BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+			BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		}
 
 		BMO_op_callf(bm, "translate vec=%v verts=%s", vec, &bmop, "geomout");
@@ -339,7 +339,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 			BMO_op_exec(bm, &bmop);
 		}
 
-		BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s", vec, cmat, &bmop, "geomout");
 		
 		prevop = bmop;
@@ -426,8 +426,8 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		             "esubd edges=%fe smooth=%f numcuts=%i gridfill=%i beauty=%i",
 		             EDGE_MARK, dia, 1, 1, B_SPHERE);
 		BMO_op_exec(bm, &bmop);
-		BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
-		BMO_slot_buffer_flag(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
+		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
 		BMO_op_finish(bm, &bmop);
 	}
 

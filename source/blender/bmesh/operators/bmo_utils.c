@@ -224,7 +224,7 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 	int usefaces = BMO_slot_int_get(op, "usefaces");
 	int constrict = BMO_slot_int_get(op, "constrict");
 
-	BMO_slot_buffer_flag(bm, op, "geom", SEL_ORIG, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, op, "geom", SEL_ORIG, BM_ALL);
 
 	if (constrict)
 		bmesh_regionextend_constrict(bm, op, usefaces);
@@ -275,7 +275,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	startf = NULL;
 	maxx = -1.0e10;
 	
-	BMO_slot_buffer_flag(bm, op, "faces", FACE_FLAG, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "faces", FACE_FLAG, BM_FACE);
 
 	/* find a starting face */
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
