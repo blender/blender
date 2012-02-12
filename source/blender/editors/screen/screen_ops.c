@@ -44,6 +44,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -1821,8 +1822,9 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	
 	delta = RNA_int_get(op->ptr, "delta");
 
-	scene->r.cfra += delta;
-	scene->r.subframe = 0.f;
+	CFRA += delta;
+	FRAMENUMBER_MIN_CLAMP(CFRA);
+	SUBFRA = 0.f;
 	
 	sound_seek_scene(bmain, scene);
 
