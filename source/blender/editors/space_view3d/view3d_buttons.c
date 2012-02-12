@@ -436,7 +436,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 					BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+							float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
 							if (!crease) break;
 							
 							*crease= fixed_crease;
@@ -458,7 +458,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+								float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
 								
 								if (!crease) break;
 								
@@ -473,7 +473,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+								float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
 								if (!crease) break;
 
 								*crease = 1.0f - ((1.0f - *crease) * sca);
@@ -483,24 +483,27 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 			}
-			if (median[6] != 0.0f) {
-#if 0 // BMESH_TODO
-				EditEdge *eed;
-				const float fixed_bweight= (ve_median[6] <= 0.0f ? 0.0f : (ve_median[6] >= 1.0f ? 1.0f : FLT_MAX));
+
+			if(median[6] != 0.0f) {
+				BMEdge *eed;
+				const float fixed_bweight = (ve_median[6] <= 0.0f ? 0.0f : (ve_median[6] >= 1.0f ? 1.0f : FLT_MAX));
 
 				if(fixed_bweight != FLT_MAX) {
 					/* simple case */
 
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->f & SELECT) {
-							eed->bweight= fixed_bweight;
+					BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+							float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+							if(!bweight) break;
+							
+							*bweight = fixed_bweight;
 						}
 					}
 				}
 				else {
 					/* scale crease to target median */
-					float median_new= ve_median[6];
-					float median_orig= ve_median[6] - median[6]; /* previous median value */
+					float median_new = ve_median[6];
+					float median_orig = ve_median[6] - median[6]; /* previous median value */
 
 					/* incase of floating point error */
 					CLAMP(median_orig, 0.0f, 1.0f);
@@ -508,28 +511,33 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 					if(median_new < median_orig) {
 						/* scale down */
-						const float sca= median_new / median_orig;
-
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
-								eed->bweight *= sca;
-								CLAMP(eed->bweight, 0.0f, 1.0f);
+						const float sca = median_new / median_orig;
+						
+						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+								float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+								if(!bweight) break;
+								
+								*bweight *= sca;
+								CLAMP(*bweight, 0.0f, 1.0f);
 							}
 						}
 					}
 					else {
 						/* scale up */
-						const float sca= (1.0f - median_new) / (1.0f - median_orig);
+						const float sca = (1.0f - median_new) / (1.0f - median_orig);
 
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
-								eed->bweight = 1.0f - ((1.0f - eed->bweight) * sca);
-								CLAMP(eed->bweight, 0.0f, 1.0f);
+						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+								float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+								if(!bweight) break;
+
+								*bweight = 1.0f - ((1.0f - *bweight) * sca);
+								CLAMP(*bweight, 0.0f, 1.0f);
 							}
 						}
 					}
 				}
-#endif // BMESH_TODO
 			}
 			EDBM_RecalcNormals(em);
 		}
