@@ -4428,6 +4428,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 			if(psys->totpart == 0 && part->totpart == 0) {
 				psys_free_path_cache(psys, NULL);
 				free_hair(ob, psys, 0);
+				psys->flag |= PSYS_HAIR_DONE;
 			}
 			/* (re-)create hair */
 			else if(hair_needs_recalc(psys)) {
