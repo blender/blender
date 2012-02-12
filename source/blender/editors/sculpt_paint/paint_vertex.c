@@ -375,13 +375,13 @@ static void make_vertexcol(Object *ob)	/* single ob */
 			}
 
 			/* create tessfaces because they will be used for drawing & fast updates*/
-			BKE_mesh_calc_tessface(me); /* does own call to update pointers */
+			BKE_mesh_tessface_calc(me); /* does own call to update pointers */
 		}
 	}
 	else {
 		if (me->totface) {
 			/* this wont be used, theres no need to keep it */
-			BKE_mesh_clear_tessface(me);
+			BKE_mesh_tessface_clear(me);
 		}
 	}
 
@@ -489,7 +489,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	}
 	
 	/* remove stale me->mcol, will be added later */
-	BKE_mesh_clear_tessface(me);
+	BKE_mesh_tessface_clear(me);
 
 	DAG_id_tag_update(&me->id, 0);
 }

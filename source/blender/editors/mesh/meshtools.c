@@ -98,15 +98,14 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	Mesh *me;
 	MVert *mvert, *mv;
 	MEdge *medge = NULL;
-	MFace *mface = NULL;
 	MPoly *mpoly = NULL;
 	MLoop *mloop = NULL;
 	Key *key, *nkey=NULL;
 	KeyBlock *kb, *okb, *kbn;
 	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
-	int a, b, totcol, totmat=0, totedge=0, totvert=0, totface=0, ok=0;
+	int a, b, totcol, totmat=0, totedge=0, totvert=0, ok=0;
 	int totloop=0, totpoly=0, vertofs, *matmap=NULL;
-	int i, j, index, haskey=0, edgeofs, faceofs, loopofs, polyofs;
+	int i, j, index, haskey=0, edgeofs, loopofs, polyofs;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata, ldata, pdata;
@@ -129,7 +128,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			
 			totvert+= me->totvert;
 			totedge+= me->totedge;
-			totface+= me->totface;
 			totloop+= me->totloop;
 			totpoly+= me->totpoly;
 			totmat+= base->object->totcol;
@@ -290,13 +288,11 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	mvert= CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
 	medge= CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-	mface= CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
 	mloop= CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
 	mpoly= CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpoly);
 
 	vertofs= 0;
 	edgeofs= 0;
-	faceofs= 0;
 	loopofs= 0;
 	polyofs= 0;
 	
@@ -409,37 +405,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				mvert+= me->totvert;
 			}
 			
-			if(me->totface) {
-				/* make mapping for materials */
-				for(a=1; a<=base->object->totcol; a++) {
-					ma= give_current_material(base->object, a);
-
-					for(b=0; b<totcol; b++) {
-						if(ma == matar[b]) {
-							matmap[a-1]= b;
-							break;
-						}
-					}
-				}
-				
-				CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
-				CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
-				
-				for(a=0; a<me->totface; a++, mface++) {
-					mface->v1+= vertofs;
-					mface->v2+= vertofs;
-					mface->v3+= vertofs;
-					if(mface->v4) mface->v4+= vertofs;
-					
-					if (matmap)
-						mface->mat_nr= matmap[(int)mface->mat_nr];
-					else 
-						mface->mat_nr= 0;
-				}
-				
-				faceofs += me->totface;
-			}
-			
 			if(me->totedge) {
 				CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
 				CustomData_copy_data(&me->edata, &edata, 0, edgeofs, me->totedge);
@@ -506,19 +471,16 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
-	CustomData_free(&me->fdata, me->totface);
 	CustomData_free(&me->ldata, me->totloop);
 	CustomData_free(&me->pdata, me->totpoly);
 
 	me->totvert= totvert;
 	me->totedge= totedge;
-	me->totface= totface;
 	me->totloop= totloop;
 	me->totpoly= totpoly;
 	
 	me->vdata= vdata;
 	me->edata= edata;
-	me->fdata= fdata;
 	me->ldata= ldata;
 	me->pdata= pdata;
 

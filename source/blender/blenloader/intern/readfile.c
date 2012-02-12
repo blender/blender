@@ -3703,7 +3703,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			 *    waiting until edit mode has been entered/exited, making it easier
 			 *    to recognize problems that would otherwise only show up after edits).
 			 */
-			BKE_mesh_calc_tessface(me);
+			BKE_mesh_tessface_calc(me);
 
 			me->id.flag -= LIB_NEEDLINK;
 		}

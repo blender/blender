@@ -2724,7 +2724,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 	}
 
 	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
-	BKE_mesh_ensure_tessface(ob->data);
+	BKE_mesh_tessface_ensure(ob->data);
 
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap)? dm->getPolyMap(ob, dm): NULL;

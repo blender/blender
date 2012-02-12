@@ -268,9 +268,9 @@ void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
 
 void BKE_mesh_ensure_navmesh(struct Mesh *me);
 
-void BKE_mesh_calc_tessface(struct Mesh *mesh);
-void BKE_mesh_ensure_tessface(struct Mesh *mesh);
-void BKE_mesh_clear_tessface(struct Mesh *mesh);
+void BKE_mesh_tessface_calc(struct Mesh *mesh);
+void BKE_mesh_tessface_ensure(struct Mesh *mesh);
+void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
 /*convert a triangle of loop facedata to mface facedata*/
 void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,

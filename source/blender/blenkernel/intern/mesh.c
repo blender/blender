@@ -315,7 +315,7 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
 	if (tottex_tessface != tottex_original ||
 	    totcol_tessface != totcol_original )
 	{
-		BKE_mesh_clear_tessface(me);
+		BKE_mesh_tessface_clear(me);
 
 		CustomData_from_bmeshpoly(&me->fdata, &me->pdata, &me->ldata, me->totface);
 
@@ -2949,7 +2949,7 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 	}
 }
 
-void BKE_mesh_calc_tessface(Mesh *mesh)
+void BKE_mesh_tessface_calc(Mesh *mesh)
 {
 	mesh->totface = mesh_recalcTesselation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
 	                                       mesh->mvert,
@@ -2960,14 +2960,14 @@ void BKE_mesh_calc_tessface(Mesh *mesh)
 	mesh_update_customdata_pointers(mesh, TRUE);
 }
 
-void BKE_mesh_ensure_tessface(Mesh *mesh)
+void BKE_mesh_tessface_ensure(Mesh *mesh)
 {
 	if (mesh->totpoly && mesh->totface == 0) {
-		BKE_mesh_calc_tessface(mesh);
+		BKE_mesh_tessface_calc(mesh);
 	}
 }
 
-void BKE_mesh_clear_tessface(Mesh *mesh)
+void BKE_mesh_tessface_clear(Mesh *mesh)
 {
 	CustomData_free(&mesh->fdata, mesh->totface);
 

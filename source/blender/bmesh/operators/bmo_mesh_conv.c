@@ -647,7 +647,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (dotess) {
-		BKE_mesh_calc_tessface(me);
+		BKE_mesh_tessface_calc(me);
 	}
 
 	mesh_update_customdata_pointers(me, dotess);

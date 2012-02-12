@@ -446,7 +446,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	/* yes, must be before _and_ after tesselate */
 	mesh_update_customdata_pointers(&tmp, TRUE);
 
-	BKE_mesh_calc_tessface(&tmp);
+	BKE_mesh_tessface_calc(&tmp);
 
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);

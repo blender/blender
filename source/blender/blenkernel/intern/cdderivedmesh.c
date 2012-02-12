@@ -232,7 +232,7 @@ static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 		Mesh *me= ob->data;
 
 		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, me->mface,
-					 me->totvert, me->totface);
+		                     me->totvert, me->totface);
 	}
 
 	return cddm->fmap;
