@@ -25,6 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BMESH_STRUCTURE_H__
+#define __BMESH_STRUCTURE_H__
+
 /** \file blender/bmesh/intern/bmesh_structure.h
  *  \ingroup bmesh
  *
@@ -35,9 +38,6 @@
  * if absolutely necassary, see function defitions in code for
  * descriptive comments.  but seriously, don't use this stuff.
  */
-
-#ifndef BM_STRUCTURE_H
-#define BM_STRUCTURE_H
 
 struct ListBase;
 
@@ -99,4 +99,4 @@ struct BMFace *bmesh_jfke(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2
 struct BMVert *bmesh_urmv(struct BMesh *bm, struct BMFace *sf, struct BMVert *sv);
 //int *bmesh_grkv(struct BMesh *bm, struct BMFace *sf, struct BMVert *kv);
 
-#endif
+#endif /* __BMESH_STRUCTURE_H__ */

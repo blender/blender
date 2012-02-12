@@ -25,6 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BMESH_PRIVATE_H__
+#define __BMESH_PRIVATE_H__
+
 /** \file blender/bmesh/intern/bmesh_private.h
  *  \ingroup bmesh
  *
@@ -32,9 +35,6 @@
  *  This file is a grab-bag of functions from various
  *  parts of the bmesh internals.
  */
-
-#ifndef BMESH_PRIVATE_H
-#define BMESH_PRIVATE_H
 
 struct Link;
 struct BMLoop;
@@ -59,7 +59,7 @@ int bmesh_check_element(BMesh *bm, void *element, const char htype);
 int bmesh_radial_length(struct BMLoop *l);
 int bmesh_disk_count(BMVert *v);
 
-/*internal selection flushing*/
+/* internal selection flushing */
 void bmesh_selectmode_flush(struct BMesh *bm);
 
 /*internal filter API*/
@@ -91,8 +91,8 @@ void bmesh_flip_normal(struct BMesh *bm, struct BMFace *f);
 BMEdge *bmesh_disk_next(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_prev(BMEdge *e, BMVert *v);
 
-/*include the rest of our private declarations*/
+/* include the rest of our private declarations */
 #include "bmesh_structure.h"
 #include "bmesh_operators_private.h"
 
-#endif
+#endif /* __BMESH_PRIVATE_H__ */

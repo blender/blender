@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BM_WALKERS_H
-#define BM_WALKERS_H
+#ifndef __BMESH_WALKERS_H__
+#define __BMESH_WALKERS_H__
+
+/** \file blender/bmesh/bmesh_walkers.h
+ *  \ingroup bmesh
+ */
 
 #include "BLI_ghash.h"
 
@@ -132,4 +136,4 @@ enum {
 /* use with BMW_init, so as not to confuse with restrict flags */
 #define BMW_NIL_LAY  0
 
-#endif
+#endif /* __BMESH_WALKERS_H__ */

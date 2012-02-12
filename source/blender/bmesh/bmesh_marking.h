@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BM_MARKING_H
-#define BM_MARKING_H
+#ifndef __BMESH_MARKING_H__
+#define __BMESH_MARKING_H__
+
+/** \file blender/bmesh/bmesh_marking.h
+ *  \ingroup bmesh
+ */
 
 typedef struct BMEditSelection
 {
@@ -69,4 +73,4 @@ void BM_select_history_store(BMesh *bm, void *data);
 void BM_select_history_validate(BMesh *bm);
 void BM_select_history_clear(BMesh *em);
 
-#endif
+#endif /* __BMESH_MARKING_H__ */

@@ -24,6 +24,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BLI_SPARSEMAP_H__
+#define __BLI_SPARSEMAP_H__
+
+/** \file BLI_sparsemap.h
+ *  \ingroup bli
+ */
+
 #include "BLI_math_inline.h"
 
 typedef struct SparseMap {
@@ -68,4 +75,7 @@ MALWAYS_INLINE void BLI_sparsemap_set(SparseMap *sm, int index, void *ptr)
 	
 	sm->blocks[index/sm->blocksize] = ptr;
 }
+
+#endif /* __BLI_SPARSEMAP_H__ */
+
 #endif

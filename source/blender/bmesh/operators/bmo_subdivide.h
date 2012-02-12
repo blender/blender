@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _SUBDIVIDEOP_H
-#define _SUBDIVIDEOP_H
+#ifndef __BMO_SUBDIVIDE_H__
+#define __BMO_SUBDIVIDE_H__
+
+/** \file blender/bmesh/operators/bmo_subdivide.h
+ *  \ingroup bmesh
+ */
 
 typedef struct subdparams {
 	int numcuts;
@@ -59,4 +63,4 @@ typedef struct SubDPattern {
  *   split the edge only?
  */
 
-#endif /* _SUBDIVIDEOP_H */
+#endif /* __BMO_SUBDIVIDE_H__ */

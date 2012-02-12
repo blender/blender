@@ -20,6 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BMESH_ITERATORS_H__
+#define __BMESH_ITERATORS_H__
+
+/** \file blender/bmesh/bmesh_iterators.h
+ *  \ingroup bmesh
+ */
+
 /*
  * BMESH ITERATORS
  *
@@ -31,9 +38,6 @@
  * of inspecting the structure directly.
  *
 */
-
-#ifndef BM_ITERATORS_H
-#define BM_ITERATORS_H
 
 #include "BLI_mempool.h"
 
@@ -129,4 +133,4 @@ void *bmiter__loop_of_face_step(struct BMIter *iter);
 
 #include "intern/bmesh_iterators_inline.c"
 
-#endif
+#endif /* __BMESH_ITERATORS_H__ */

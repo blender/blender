@@ -29,8 +29,8 @@
  *  \ingroup edmesh
  */
 
-#ifndef _EDITBMESH_BVH
-#define _EDITBMESH_BVH
+#ifndef __EDITBMESH_BVH_H__
+#define __EDITBMESH_BVH_H__
 
 struct BMEditMesh;
 struct BMFace;
@@ -64,4 +64,4 @@ struct BMVert *BMBVH_FindClosestVert(struct BMBVHTree *tree, float *co, float ma
 #define BMBVH_USE_CAGE		1 /*project geometry onto modifier cage */
 #define BMBVH_RETURN_ORIG	2 /*use with BMBVH_USE_CAGE, returns hits in relation to original geometry*/
 
-#endif /* _EDITBMESH_H */
+#endif /* __EDITBMESH_BVH_H__ */

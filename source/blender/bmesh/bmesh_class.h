@@ -20,10 +20,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _BMESH_CLASS_H
-#define _BMESH_CLASS_H
+#ifndef __BMESH_CLASS_H__
+#define __BMESH_CLASS_H__
 
-/*bmesh data structures*/
+/** \file blender/bmesh/bmesh_class.h
+ *  \ingroup bmesh
+ */
+
+/* bmesh data structures */
 
 struct BMesh;
 struct BMVert;
@@ -158,4 +162,4 @@ typedef struct BMesh {
 #define BM_LOOP		4
 #define BM_FACE		8
 
-#endif /* _BMESH_CLASS_H */
+#endif /* __BMESH_CLASS_H__ */

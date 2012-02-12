@@ -28,6 +28,9 @@
 /** \file blender/source/blender/makesrna/intern/rna_mesh_utils.h
  *  \ingroup RNA
  */
+ 
+#ifndef __RNA_MESH_UTILS_H__
+#define __RNA_MESH_UTILS_H__
 
 /* Macros to help reduce code clutter in rna_mesh.c */
 
@@ -103,3 +106,5 @@
 		CustomData_set_layer_##active_type(data, layer_type, value);		\
 		mesh_update_customdata_pointers(me, TRUE);										\
 	}
+
+#endif /* __RNA_MESH_UTILS_H__ */

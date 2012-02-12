@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _BMESH_OPERATOR_API_H
-#define _BMESH_OPERATOR_API_H
+#ifndef __BMESH_OPERATOR_API_H__
+#define __BMESH_OPERATOR_API_H__
+
+/** \file blender/bmesh/bmesh_operator_api.h
+ *  \ingroup bmesh
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -549,4 +553,4 @@ BM_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slot
 }
 #endif
 
-#endif /* _BMESH_OPERATOR_API_H */
+#endif /* __BMESH_OPERATOR_API_H__ */

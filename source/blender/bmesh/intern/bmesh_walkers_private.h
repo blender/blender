@@ -20,6 +20,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BMESH_WALKERS_PRIVATE_H__
+#define __BMESH_WALKERS_PRIVATE_H__
+
 /** \file blender/bmesh/intern/bmesh_walkers_private.h
  *  \ingroup bmesh
  *
@@ -82,3 +85,5 @@ typedef struct connectedVertexWalker {
 	bmesh_walkerGeneric header;
 	BMVert *curvert;
 } connectedVertexWalker;
+
+#endif /* __BMESH_WALKERS_PRIVATE_H__ */

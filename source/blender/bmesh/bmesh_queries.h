@@ -20,8 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BMESH_QUERIES_H
-#define BMESH_QUERIES_H
+#ifndef __BMESH_QUERIES_H__
+#define __BMESH_QUERIES_H__
+
+/** \file blender/bmesh/bmesh_queries.h
+ *  \ingroup bmesh
+ */
+
 #include <stdio.h>
 
 /* Queries */
@@ -113,4 +118,4 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err);
  * edges in the face.*/
 void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
 
-#endif
+#endif /* __BMESH_QUERIES_H__ */

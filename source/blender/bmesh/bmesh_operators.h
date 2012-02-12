@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _BMESH_OPERATORS_H
-#define _BMESH_OPERATORS_H
+#ifndef __BMESH_OPERATORS_H__
+#define __BMESH_OPERATORS_H__
+
+/** \file blender/bmesh/bmesh_operators.h
+ *  \ingroup bmesh
+ */
 
 /*see comments in intern/bmesh_opdefines.c for documentation of specific operators*/
 
@@ -98,4 +102,4 @@ void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth,
                        float fractal, int beauty, int numcuts, int seltype,
                        int cornertype, int singleedge, int gridfill, int seed);
 
-#endif
+#endif /* __BMESH_OPERATORS_H__ */

@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BM_OPERATORS_PRIVATE_H
-#define BM_OPERATORS_PRIVATE_H
+#ifndef __BMESH_OPERATORS_PRIVATE_H__
+#define __BMESH_OPERATORS_PRIVATE_H__
+
+/** \file blender/bmesh/intern/bmesh_operators_private.h
+ *  \ingroup bmesh
+ */
 
 struct BMesh;
 struct BMOperator;
@@ -98,4 +102,4 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op);
 void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op);
 void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op);
 
-#endif
+#endif /* __BMESH_OPERATORS_PRIVATE_H__ */

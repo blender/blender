@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_SMALLHASH_H
-#define BLI_SMALLHASH_H
+#ifndef __BLI_SMALLHASH_H__
+#define __BLI_SMALLHASH_H__
 
 /** \file BLI_smallhash.h
  *  \ingroup bli
@@ -70,4 +70,4 @@ void *	BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key);
 void *	BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key);
 /* void BLI_smallhash_print(SmallHash *hash); */ /* UNUSED */
 
-#endif // BLI_SMALLHASH_H
+#endif /* __BLI_SMALLHASH_H__ */

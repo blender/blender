@@ -1,6 +1,4 @@
 /*
- *	BMesh API.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BMESH_H
-#define BMESH_H
+#ifndef __BMESH_H__
+#define __BMESH_H__
+
+/** \file blender/bmesh/bmesh.h
+ *  \ingroup bmesh
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -368,4 +370,4 @@ void bmesh_end_edit(BMesh *bm, int flag);
 }
 #endif
 
-#endif /* BMESH_H */
+#endif /* __BMESH_H__ */

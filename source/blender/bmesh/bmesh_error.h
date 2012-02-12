@@ -20,8 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _BMESH_ERROR_H
-#define _BMESH_ERROR_H
+#ifndef __BMESH_ERROR_H__
+#define __BMESH_ERROR_H__
+
+/** \file blender/bmesh/bmesh_error.h
+ *  \ingroup bmesh
+ */
 
 /*----------- bmop error system ----------*/
 
@@ -65,4 +69,4 @@ int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg
 #define BMERR_INVALID_SELECTION			9
 #define BMERR_MESH_ERROR				10
 
-#endif /* _BMESH_ERROR_H */
+#endif /* __BMESH_ERROR_H__ */
