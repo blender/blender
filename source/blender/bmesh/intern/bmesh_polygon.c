@@ -221,7 +221,7 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	return FALSE;
 }
 
-float BM_Compute_Face_Area(BMesh *bm, BMFace *f)
+float BM_face_area_calc(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
@@ -248,7 +248,7 @@ float BM_Compute_Face_Area(BMesh *bm, BMFace *f)
 /*
  * computes center of face in 3d.  uses center of bounding box.
  */
-void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float r_cent[3])
+void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float r_cent[3])
 {
 	BMIter iter;
 	BMLoop *l;
@@ -256,15 +256,15 @@ void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float r_cent[3])
 	int i;
 
 	INIT_MINMAX(min, max);
-	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (i = 0; l; l = BMIter_Step(&iter), i++) {
+	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (i = 0; l; l = BM_iter_step(&iter), i++) {
 		DO_MINMAX(l->v->co, min, max);
 	}
 
 	mid_v3_v3v3(r_cent, min, max);
 }
 
-void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
+void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
 {
 	BMIter iter;
 	BMLoop *l;
@@ -272,8 +272,8 @@ void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
 
 	zero_v3(r_cent);
 
-	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (i = 0; l; l = BMIter_Step(&iter), i++) {
+	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (i = 0; l; l = BM_iter_step(&iter), i++) {
 		add_v3_v3(r_cent, l->v->co);
 	}
 
@@ -415,7 +415,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
  *
  */
 
-void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
+void BM_face_normal_update(BMesh *bm, BMFace *f)
 {
 	if (f->len >= 3) {
 		float (*proj)[3];
@@ -427,8 +427,8 @@ void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 		BLI_array_fixedstack_free(proj);
 	}
 }
-/* same as BM_Face_UpdateNormal but takes vertex coords */
-void BM_Face_UpdateNormal_VertexCos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3])
+/* same as BM_face_normal_update but takes vertex coords */
+void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3])
 {
 	if (f->len >= 3) {
 		float (*proj)[3];
@@ -441,21 +441,21 @@ void BM_Face_UpdateNormal_VertexCos(BMesh *bm, BMFace *f, float no[3], float (*v
 	}
 }
 
-void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
+void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
 	BMFace *f;
 	
-	f = BMIter_New(&iter, bm, BM_FACES_OF_EDGE, e);
-	for ( ; f; f = BMIter_Step(&iter)) {
-		BM_Face_UpdateNormal(bm, f);
+	f = BM_iter_new(&iter, bm, BM_FACES_OF_EDGE, e);
+	for ( ; f; f = BM_iter_step(&iter)) {
+		BM_face_normal_update(bm, f);
 	}
 
-	BM_Vert_UpdateNormal(bm, e->v1);
-	BM_Vert_UpdateNormal(bm, e->v2);
+	BM_vert_normal_update(bm, e->v1);
+	BM_vert_normal_update(bm, e->v2);
 }
 
-void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
+void BM_vert_normal_update(BMesh *bm, BMVert *v)
 {
 	BMIter eiter, liter;
 	BMEdge *e;
@@ -468,7 +468,7 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
 			if (l->v == v) {
-				/* Same calculation used in BM_Compute_Normals */
+				/* Same calculation used in BM_mesh_normals_update */
 				sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
 				sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
 				normalize_v3(vec1);
@@ -488,18 +488,18 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 	}
 }
 
-void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
+void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
 {
 	BMIter iter;
 	BMFace *f;
 	int len = 0;
 
-	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
-	for ( ; f; f = BMIter_Step(&iter), len++) {
-		BM_Face_UpdateNormal(bm, f);
+	f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v);
+	for ( ; f; f = BM_iter_step(&iter), len++) {
+		BM_face_normal_update(bm, f);
 	}
 
-	BM_Vert_UpdateNormal(bm, v);
+	BM_vert_normal_update(bm, v);
 }
 
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
@@ -562,10 +562,10 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 			BMVert *v3 = (l = l->next)->v;
 			BMVert *v4 = (l->next)->v;
 			normal_quad_v3(no,
-			               vertexCos[BM_GetIndex(v1)],
-			               vertexCos[BM_GetIndex(v2)],
-			               vertexCos[BM_GetIndex(v3)],
-			               vertexCos[BM_GetIndex(v4)]);
+			               vertexCos[BM_elem_index_get(v1)],
+			               vertexCos[BM_elem_index_get(v2)],
+			               vertexCos[BM_elem_index_get(v3)],
+			               vertexCos[BM_elem_index_get(v4)]);
 			break;
 		}
 		case 3:
@@ -574,9 +574,9 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 			BMVert *v2 = (l = l->next)->v;
 			BMVert *v3 = (l->next)->v;
 			normal_tri_v3(no,
-			              vertexCos[BM_GetIndex(v1)],
-			              vertexCos[BM_GetIndex(v2)],
-			              vertexCos[BM_GetIndex(v3)]);
+			              vertexCos[BM_elem_index_get(v1)],
+			              vertexCos[BM_elem_index_get(v2)],
+			              vertexCos[BM_elem_index_get(v3)]);
 			break;
 		}
 		case 0:
@@ -589,7 +589,7 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 			BMIter iter;
 			int i = 0;
 			BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-				copy_v3_v3(projectverts[i], vertexCos[BM_GetIndex(l->v)]);
+				copy_v3_v3(projectverts[i], vertexCos[BM_elem_index_get(l->v)]);
 				i += 1;
 			}
 			compute_poly_normal(no, projectverts, f->len);
@@ -605,7 +605,7 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
  *  Note that this updates the calculated
  *  normal.
  */
-void BM_flip_normal(BMesh *bm, BMFace *f)
+void BM_face_normal_flip(BMesh *bm, BMFace *f)
 {
 	bmesh_loop_reverse(bm, f);
 	negate_v3(f->no);
@@ -685,7 +685,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
  * test, instead of projecting co directly into f's orientation
  * space, so there might be accuracy issues.
  */
-int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
+int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 {
 	int ax, ay;
 	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f, 0};
@@ -695,7 +695,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 	float eps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
 	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON * 10)
-		BM_Face_UpdateNormal(bm, f);
+		BM_face_normal_update(bm, f);
 	
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	 * the 2d projected coords are the same and faster to compute
@@ -754,13 +754,13 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	//for (i = 0; i < nvert; i++) {
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		i = BM_GetIndex(l_iter->v);
+		i = BM_elem_index_get(l_iter->v);
 		if (i == v1i || i == v2i || i == v3i) {
 			continue;
 		}
 		
-		VECCOPY(pv1, projectverts[BM_GetIndex(l_iter->v)]);
-		VECCOPY(pv2, projectverts[BM_GetIndex(l_iter->next->v)]);
+		VECCOPY(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
+		VECCOPY(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
 
@@ -799,10 +799,10 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 		v2 = l_iter->v;
 		v3 = l_iter->next->v;
 
-		if (BM_Edge_Exist(v1, v3)) {
+		if (BM_edge_exists(v1, v3)) {
 			isear = 0;
 		}
-		else if (!goodline(verts, f, BM_GetIndex(v1), BM_GetIndex(v2), BM_GetIndex(v3), nvert)) {
+		else if (!goodline(verts, f, BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3), nvert)) {
 			isear = 0;
 		}
 
@@ -857,7 +857,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		copy_v3_v3(projectverts[i], l_iter->v->co);
-		BM_SetIndex(l_iter->v, i); /* set dirty! */
+		BM_elem_index_set(l_iter->v, i); /* set dirty! */
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 
@@ -882,7 +882,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		if (l_iter) {
 			done = 0;
 			/* v = l->v; */ /* UNUSED */
-			f = BM_Split_Face(bm, l_iter->f, l_iter->prev->v,
+			f = BM_face_split(bm, l_iter->f, l_iter->prev->v,
 			                  l_iter->next->v,
 			                  &newl, NULL);
 			copy_v3_v3(f->no, l_iter->f->no);
@@ -892,8 +892,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 				break;
 			}
 
-			BMO_SetFlag(bm, newl->e, newedge_oflag);
-			BMO_SetFlag(bm, f, newface_oflag);
+			BMO_elem_flag_set(bm, newl->e, newedge_oflag);
+			BMO_elem_flag_set(bm, f, newface_oflag);
 			
 			if (newfaces) newfaces[nf_i++] = f;
 
@@ -912,7 +912,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		l_iter = BM_FACE_FIRST_LOOP(f);
 		while (l_iter->f->len > 3) {
 			nextloop = l_iter->next->next;
-			f = BM_Split_Face(bm, l_iter->f, l_iter->v, nextloop->v,
+			f = BM_face_split(bm, l_iter->f, l_iter->v, nextloop->v,
 			                  &newl, NULL);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
@@ -924,8 +924,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 			if (newfaces) newfaces[nf_i++] = f;
 			
-			BMO_SetFlag(bm, newl->e, newedge_oflag);
-			BMO_SetFlag(bm, f, newface_oflag);
+			BMO_elem_flag_set(bm, newl->e, newedge_oflag);
+			BMO_elem_flag_set(bm, f, newface_oflag);
 			l_iter = nextloop;
 		}
 	}
@@ -940,7 +940,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
  * edges in the face, or it intersects another split.  in the case of
  * intersecting splits, only the first of the set of intersecting
  * splits survives */
-void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
+void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -951,13 +951,13 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
 
-	BLI_array_fixedstack_declare(projverts, BM_NGON_STACK_SIZE, f->len,         "projvertsb");
+	BLI_array_fixedstack_declare(projverts, BM_NGON_STACK_SIZE, f->len,      "projvertsb");
 	BLI_array_fixedstack_declare(edgeverts, BM_NGON_STACK_SIZE * 2, len * 2, "edgevertsb");
 	
 	i = 0;
-	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l = BMIter_Step(&iter)) {
-		BM_SetIndex(l, i); /* set_loop */
+	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for ( ; l; l = BM_iter_step(&iter)) {
+		BM_elem_index_set(l, i); /* set_loop */
 		copy_v3_v3(projverts[i], l->v->co);
 		i++;
 	}

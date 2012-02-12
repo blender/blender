@@ -37,7 +37,7 @@
 
 #include "BLI_mempool.h"
 
-/* Defines for passing to BMIter_New.
+/* Defines for passing to BM_iter_new.
  *
  * "OF" can be substituted for "around"
  * so BM_VERTS_OF_FACE means "vertices
@@ -70,12 +70,12 @@
 #define BM_LOOPS_OF_EDGE		13
 
 #define BM_ITER(ele, iter, bm, itype, data)                                   \
-	ele = BMIter_New(iter, bm, itype, data);                                  \
-	for ( ; ele; ele=BMIter_Step(iter))
+	ele = BM_iter_new(iter, bm, itype, data);                                 \
+	for ( ; ele; ele=BM_iter_step(iter))
 
 #define BM_ITER_INDEX(ele, iter, bm, itype, data, indexvar)                   \
-	ele = BMIter_New(iter, bm, itype, data);                                  \
-	for (indexvar=0; ele; indexvar++, ele=BMIter_Step(iter))
+	ele = BM_iter_new(iter, bm, itype, data);                                 \
+	for (indexvar=0; ele; indexvar++, ele=BM_iter_step(iter))
 
 /*Iterator Structure*/
 typedef struct BMIter {
@@ -98,8 +98,8 @@ typedef struct BMIter {
 	char itype;
 } BMIter;
 
-void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index);
-int   BMIter_AsArray(struct BMesh *bm, const char htype, void *data, void **array, const int len);
+void *BM_iter_at_index(struct BMesh *bm, const char htype, void *data, int index);
+int   BM_iter_as_array(struct BMesh *bm, const char htype, void *data, void **array, const int len);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);

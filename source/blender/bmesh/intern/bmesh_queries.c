@@ -45,7 +45,7 @@
  * type 'type' in a given bmesh.
  */
 
-int BM_Count_Element(BMesh *bm, const char htype)
+int BM_mesh_elem_count(BMesh *bm, const char htype)
 {
 	if (htype == BM_VERT) return bm->totvert;
 	else if (htype == BM_EDGE) return bm->totedge;
@@ -63,7 +63,7 @@ int BM_Count_Element(BMesh *bm, const char htype)
  *
  */
 
-int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
+int BM_vert_in_edge(BMEdge *e, BMVert *v)
 {
 	return bmesh_vert_in_edge(e, v);
 }
@@ -75,7 +75,7 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
  *
  */
 
-BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
+BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -99,7 +99,7 @@ BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
  *
  */
 
-int BM_Vert_In_Face(BMFace *f, BMVert *v)
+int BM_vert_in_face(BMFace *f, BMVert *v)
 {
 	BMLoopList *lst;
 	BMLoop *l_iter;
@@ -123,26 +123,26 @@ int BM_Vert_In_Face(BMFace *f, BMVert *v)
  * that appear in a given face
  *
  */
-int BM_Verts_In_Face(BMesh *bm, BMFace *f, BMVert **varr, int len)
+int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 {
 	BMLoopList *lst;
 	BMLoop *curloop = NULL;
 	int i, count = 0;
 	
-	for (i = 0; i < len; i++) BMO_SetFlag(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) BMO_elem_flag_set(bm, varr[i], BM_OVERLAP);
 	
 	for (lst = f->loops.first; lst; lst = lst->next) {
 		curloop = lst->first;
 
 		do {
-			if (BMO_TestFlag(bm, curloop->v, BM_OVERLAP))
+			if (BMO_elem_flag_test(bm, curloop->v, BM_OVERLAP))
 				count++;
 
 			curloop = curloop->next;
 		} while (curloop != lst->first);
 	}
 
-	for (i = 0; i < len; i++) BMO_ClearFlag(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) BMO_elem_flag_clear(bm, varr[i], BM_OVERLAP);
 
 	return count;
 }
@@ -155,7 +155,7 @@ int BM_Verts_In_Face(BMesh *bm, BMFace *f, BMVert **varr, int len)
  *
  */
 
-int BM_Edge_In_Face(BMFace *f, BMEdge *e)
+int BM_edge_in_face(BMFace *f, BMEdge *e)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -179,7 +179,7 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
  *
  */
 
-int BM_Verts_In_Edge(BMVert *v1, BMVert *v2, BMEdge *e)
+int BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 {
 	return bmesh_verts_in_edge(v1, v2, e);
 }
@@ -192,7 +192,7 @@ int BM_Verts_In_Edge(BMVert *v1, BMVert *v2, BMEdge *e)
  *
  */
 
-BMVert *BM_OtherEdgeVert(BMEdge *e, BMVert *v)
+BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 {
 	return bmesh_edge_getothervert(e, v);
 }
@@ -203,7 +203,7 @@ BMVert *BM_OtherEdgeVert(BMEdge *e, BMVert *v)
  *	Returns the number of edges around this vertex.
  */
 
-int BM_Vert_EdgeCount(BMVert *v)
+int BM_vert_edge_count(BMVert *v)
 {
 	return bmesh_disk_count(v);
 }
@@ -214,7 +214,7 @@ int BM_Vert_EdgeCount(BMVert *v)
  *	Returns the number of faces around this edge
  */
 
-int BM_Edge_FaceCount(BMEdge *e)
+int BM_edge_face_count(BMEdge *e)
 {
 	int count = 0;
 	BMLoop *curloop = NULL;
@@ -236,7 +236,7 @@ int BM_Edge_FaceCount(BMEdge *e)
  *	Returns the number of faces around this vert
  */
 
-int BM_Vert_FaceCount(BMVert *v)
+int BM_vert_face_count(BMVert *v)
 {
 	int count = 0;
 	BMLoop *l;
@@ -253,7 +253,7 @@ int BM_Vert_FaceCount(BMVert *v)
 	if (v->e) {
 		curedge = v->e;
 		do {
-			if (curedge->l) count += BM_Edge_FaceCount(curedge);
+			if (curedge->l) count += BM_edge_face_count(curedge);
 			curedge = bmesh_disk_nextedge(curedge, v);
 		} while (curedge != v->e);
 	}
@@ -271,7 +271,7 @@ int BM_Vert_FaceCount(BMVert *v)
  *	1 for true, 0 for false.
  */
 
-int BM_Wire_Vert(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *curedge;
 
@@ -301,7 +301,7 @@ int BM_Wire_Vert(BMesh *UNUSED(bm), BMVert *v)
  *	1 for true, 0 for false.
  */
 
-int BM_Wire_Edge(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
 {
 	return (e->l) ? FALSE : TRUE;
 }
@@ -319,7 +319,7 @@ int BM_Wire_Edge(BMesh *UNUSED(bm), BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_nonmanifold(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *e, *oe;
 	BMLoop *l;
@@ -390,9 +390,9 @@ int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
  *	1 for true, 0 for false.
  */
 
-int BM_Nonmanifold_Edge(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_nonmanifold(BMesh *UNUSED(bm), BMEdge *e)
 {
-	int count = BM_Edge_FaceCount(e);
+	int count = BM_edge_face_count(e);
 	if (count != 2 && count != 1) {
 		return TRUE;
 	}
@@ -409,9 +409,9 @@ int BM_Nonmanifold_Edge(BMesh *UNUSED(bm), BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_Boundary_Edge(BMEdge *e)
+int BM_edge_is_boundry(BMEdge *e)
 {
-	int count = BM_Edge_FaceCount(e);
+	int count = BM_edge_face_count(e);
 	if (count == 1) {
 		return TRUE;
 	}
@@ -430,7 +430,7 @@ int BM_Boundary_Edge(BMEdge *e)
  *	Integer
  */
 
-int BM_Face_Share_Edges(BMFace *f1, BMFace *f2)
+int BM_face_share_edges(BMFace *f1, BMFace *f2)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -454,7 +454,7 @@ int BM_Face_Share_Edges(BMFace *f1, BMFace *f2)
  *
  */
 
-int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
+int BM_edge_share_faces(BMEdge *e1, BMEdge *e2)
 {
 	BMLoop *l;
 	BMFace *f;
@@ -480,7 +480,7 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
  *
  */
 
-int BM_Edge_Share_Vert(struct BMEdge *e1, struct BMEdge *e2)
+int BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2)
 {
 	return (e1->v1 == e2->v1 ||
 	        e1->v1 == e2->v2 ||
@@ -496,12 +496,12 @@ int BM_Edge_Share_Vert(struct BMEdge *e1, struct BMEdge *e2)
  *  if used in a face at all, otherwise just assign as used in the edge.
  *
  *  Useful to get a determanistic winding order when calling
- *  BM_Make_Ngon() on an arbitrary array of verts,
+ *  BM_face_create_ngon() on an arbitrary array of verts,
  *  though be sure to pick an edge which has a face.
  *
  */
 
-void BM_Edge_OrderedVerts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 {
 	if ( (edge->l == NULL) ||
 	     ( ((edge->l->prev->v == edge->v1) && (edge->l->v == edge->v2)) ||
@@ -527,9 +527,9 @@ void BM_Edge_OrderedVerts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
  *	Float.
  */
 
-float BM_Face_Angle(BMesh *UNUSED(bm), BMEdge *e)
+float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
 {
-	if (BM_Edge_FaceCount(e) == 2) {
+	if (BM_edge_face_count(e) == 2) {
 		BMLoop *l1 = e->l;
 		BMLoop *l2 = e->l->radial_next;
 		return acosf(dot_v3v3(l1->f->no, l2->f->no));
@@ -552,7 +552,7 @@ float BM_Face_Angle(BMesh *UNUSED(bm), BMEdge *e)
  *
  */
 
-int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapface)
+int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **overlapface)
 {
 	BMIter vertfaces;
 	BMFace *f;
@@ -561,14 +561,14 @@ int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapfa
 	if (overlapface) *overlapface = NULL;
 
 	for (i = 0; i < len; i++) {
-		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
+		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
 		while (f) {
-			amount = BM_Verts_In_Face(bm, f, varr, len);
+			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount >= len) {
 				if (overlapface) *overlapface = f;
 				return TRUE;
 			}
-			f = BMIter_Step(&vertfaces);
+			f = BM_iter_step(&vertfaces);
 		}
 	}
 	return FALSE;
@@ -586,7 +586,7 @@ int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapfa
  * 1 for face found
  */
 
-int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
+int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
 {
 	BMIter vertfaces;
 	BMFace *f;
@@ -595,14 +595,14 @@ int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
 	if (existface) *existface = NULL;
 
 	for (i = 0; i < len; i++) {
-		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
+		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
 		while (f) {
-			amount = BM_Verts_In_Face(bm, f, varr, len);
+			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount == len && amount == f->len) {
 				if (existface) *existface = f;
 				return TRUE;
 			}
-			f = BMIter_Step(&vertfaces);
+			f = BM_iter_step(&vertfaces);
 		}
 	}
 	return FALSE;

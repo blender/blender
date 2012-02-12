@@ -220,7 +220,7 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 				/* CustomData_external_remove is used here only to mark layer as non-external
 				   for further free-ing, so zero element count looks safer than em->totface */
 				CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
-				BM_free_data_layer(em->bm, &em->bm->ldata, CD_MDISPS);
+				BM_data_layer_free(em->bm, &em->bm->ldata, CD_MDISPS);
 			} else {
 				CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);

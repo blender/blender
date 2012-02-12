@@ -109,7 +109,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
 
 	if(me->edit_btmesh) {
-		BM_free_data_layer(me->edit_btmesh->bm, data, type);
+		BM_data_layer_free(me->edit_btmesh->bm, data, type);
 	}
 	else {
 		CustomData_free_layer_active(data, type, tot);
@@ -215,7 +215,7 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 		BLI_assert(CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV));
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BM_TestHFlag(efa, BM_ELEM_SELECT))
+			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 				continue;
 
 			i = 0;
@@ -312,7 +312,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		if (layernum >= MAX_MTFACE)
 			return -1;
 
-		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
+		BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 		CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 		CustomData_set_layer_name(&em->bm->pdata, CD_MTEXPOLY, layernum, name);
 
@@ -324,7 +324,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 		}
 
-		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
+		BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
 		CustomData_set_layer_name(&em->bm->ldata, CD_MLOOPUV, layernum, name);
 		
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);
@@ -402,7 +402,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 			return -1;
 		}
 
-		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MLOOPCOL);
+		BM_data_layer_add(em->bm, &em->bm->pdata, CD_MLOOPCOL);
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
 
 		/* copy data from active vertex color layer */

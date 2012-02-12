@@ -591,7 +591,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 
 		if(scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
-			BMFace *efa = BM_get_actFace(em->bm, sloppy);
+			BMFace *efa = BM_active_face_get(em->bm, sloppy);
 
 			if(efa) {
 				Image *node_ima;

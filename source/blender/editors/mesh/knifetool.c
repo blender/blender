@@ -220,7 +220,7 @@ static KnifeVert *get_bm_knife_vert(knifetool_opdata *kcd, BMVert *v)
 	KnifeVert *kfv = BLI_ghash_lookup(kcd->origvertmap, v);
 	
 	if (!kfv) {
-		kfv = new_knife_vert(kcd, v->co, kcd->cagecos[BM_GetIndex(v)]);
+		kfv = new_knife_vert(kcd, v->co, kcd->cagecos[BM_elem_index_get(v)]);
 		kfv->v = v;
 		BLI_ghash_insert(kcd->origvertmap, v, kfv);
 	}
@@ -281,7 +281,7 @@ static void knife_start_cut(knifetool_opdata *kcd)
 
 		knife_input_ray_cast(kcd, kcd->vc.mval, origin, ray);
 		add_v3_v3v3(co, origin, ray);
-		v0 = BM_Vert_AtIndex(kcd->em->bm, 0);
+		v0 = BM_vert_at_index(kcd->em->bm, 0);
 		if (v0) {
 			closest_to_line_v3(kcd->prevcage, v0->co, co, origin);
 			copy_v3_v3(kcd->prevco, kcd->prevcage);
@@ -1651,12 +1651,12 @@ static void remerge_faces(knifetool_opdata *kcd)
 	BMOperator bmop;
 	int idx;
 	
-	BMO_InitOpf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", FACE_NEW, BOUNDARY);
+	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", FACE_NEW, BOUNDARY);
 	
-	BMO_Exec_Op(bm, &bmop);
-	BMO_Flag_Buffer(bm, &bmop, "geomout", FACE_NEW, BM_FACE);
+	BMO_op_exec(bm, &bmop);
+	BMO_slot_buffer_flag(bm, &bmop, "geomout", FACE_NEW, BM_FACE);
 	
-	BMO_Finish_Op(bm, &bmop);
+	BMO_op_finish(bm, &bmop);
 	
 	BLI_smallhash_init(visit);
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
@@ -1664,7 +1664,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 		BMEdge *e;
 		BMFace *f2;
 		
-		if (!BMO_TestFlag(bm, f, FACE_NEW))
+		if (!BMO_elem_flag_test(bm, f, FACE_NEW))
 			continue;
 		
 		if (BLI_smallhash_haskey(visit, (intptr_t)f))
@@ -1684,11 +1684,11 @@ static void remerge_faces(knifetool_opdata *kcd)
 				BMIter fiter;
 				BMFace *f3;
 				
-				if (BMO_TestFlag(bm, e, BOUNDARY))
+				if (BMO_elem_flag_test(bm, e, BOUNDARY))
 					continue;
 				
 				BM_ITER(f3, &fiter, bm, BM_FACES_OF_EDGE, e) {
-					if (!BMO_TestFlag(bm, f3, FACE_NEW))
+					if (!BMO_elem_flag_test(bm, f3, FACE_NEW))
 						continue;
 					if (BLI_smallhash_haskey(visit, (intptr_t)f3))
 						continue;
@@ -1700,12 +1700,12 @@ static void remerge_faces(knifetool_opdata *kcd)
 		} while (BLI_array_count(stack) > 0);
 		
 		if (BLI_array_count(faces) > 0) {
-			idx = BM_GetIndex(faces[0]);
+			idx = BM_elem_index_get(faces[0]);
 			
-			f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
+			f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
 			if (f2)  {
-				BMO_SetFlag(bm, f2, FACE_NEW);
-				BM_SetIndex(f2, idx); /* set_dirty! */ /* BMESH_TODO, check if this is valid or not */
+				BMO_elem_flag_set(bm, f2, FACE_NEW);
+				BM_elem_index_set(f2, idx); /* set_dirty! */ /* BMESH_TODO, check if this is valid or not */
 			}
 		}
 	}
@@ -1741,14 +1741,14 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_SetIndex(f, i); /* set_inline */
+		BM_elem_index_set(f, i); /* set_inline */
 		faces[i] = f;
 		i++;
 	}
 	bm->elem_index_dirty &= ~BM_FACE;
 	
 	BM_ITER(e, &bmiter, bm, BM_EDGES_OF_MESH, NULL) {
-		BMO_SetFlag(bm, e, BOUNDARY);
+		BMO_elem_flag_set(bm, e, BOUNDARY);
 	}
 
 	/* turn knife verts into real verts, as necassary */
@@ -1756,16 +1756,16 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {
 		if (!kfv->v) {
 			/* shouldn't we be at least copying the normal? - if not some comment here should explain why - campbell */
-			kfv->v = BM_Make_Vert(bm, kfv->co, NULL);
+			kfv->v = BM_vert_create(bm, kfv->co, NULL);
 			kfv->flag = 1;
-			BMO_SetFlag(bm, kfv->v, DEL);
+			BMO_elem_flag_set(bm, kfv->v, DEL);
 		}
 		else {
 			kfv->flag = 0;
-			BMO_SetFlag(bm, kfv->v, VERT_ORIG);
+			BMO_elem_flag_set(bm, kfv->v, VERT_ORIG);
 		}
 
-		BMO_SetFlag(bm, kfv->v, MARK);
+		BMO_elem_flag_set(bm, kfv->v, MARK);
 	}
 	
 	/* we want to only do changed faces.  first, go over new edges and add to
@@ -1789,20 +1789,20 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		if (kfe->e) {
 			kfe->oe = kfe->e;
 
-			BMO_SetFlag(bm, kfe->e, DEL);
-			BMO_ClearFlag(bm, kfe->e, BOUNDARY);
+			BMO_elem_flag_set(bm, kfe->e, DEL);
+			BMO_elem_flag_clear(bm, kfe->e, BOUNDARY);
 			kfe->e = NULL;
 		}
 		
-		kfe->e = BM_Make_Edge(bm, kfe->v1->v, kfe->v2->v, NULL, TRUE);
-		BMO_SetFlag(bm, kfe->e, BOUNDARY);
+		kfe->e = BM_edge_create(bm, kfe->v1->v, kfe->v2->v, NULL, TRUE);
+		BMO_elem_flag_set(bm, kfe->e, BOUNDARY);
 		
 		for (ref = kfe->faces.first; ref; ref = ref->next) {
 			f = ref->ref;
 			
 			entry = BLI_memarena_alloc(arena, sizeof(*entry));
 			entry->kfe = kfe;
-			BLI_addtail(face_nets + BM_GetIndex(f), entry);
+			BLI_addtail(face_nets + BM_elem_index_get(f), entry);
 		}
 	}
 	
@@ -1818,16 +1818,16 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		
 		k++;
 		
-		BMO_SetFlag(bm, kfe->e, BOUNDARY);
+		BMO_elem_flag_set(bm, kfe->e, BOUNDARY);
 		kfe->oe = kfe->e;
 		
 		for (ref = kfe->faces.first; ref; ref = ref->next) {
 			f = ref->ref;
 			
-			if (face_nets[BM_GetIndex(f)].first) {
+			if (face_nets[BM_elem_index_get(f)].first) {
 				entry = BLI_memarena_alloc(arena, sizeof(*entry));
 				entry->kfe = kfe;
-				BLI_addtail(face_nets + BM_GetIndex(f), entry);
+				BLI_addtail(face_nets + BM_elem_index_get(f), entry);
 			}
 		}
 	}
@@ -1842,7 +1842,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BLI_smallhash_init(hash);
 		
 		if (face_nets[i].first)
-			BMO_SetFlag(bm, f, DEL);
+			BMO_elem_flag_set(bm, f, DEL);
 		
 		BLI_begin_edgefill();
 		
@@ -1882,8 +1882,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 				if (entry->kfe->oe)
 					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
 				
-				BMO_ClearFlag(bm, entry->kfe->e->v1, DEL);
-				BMO_ClearFlag(bm, entry->kfe->e->v2, DEL);
+				BMO_elem_flag_clear(bm, entry->kfe->e->v1, DEL);
+				BMO_elem_flag_clear(bm, entry->kfe->e->v2, DEL);
 			}
 			else {
 				if (lasteve->xs < 2)
@@ -1903,27 +1903,27 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			
 			if (v1 == v2 || v2 == v3 || v1 == v3)
 				continue;
-			if (BM_Face_Exists(bm, verts, 3, &f2))
+			if (BM_face_exists(bm, verts, 3, &f2))
 				continue;
 		
-			f2 = BM_Make_Face_QuadTri(bm,
+			f2 = BM_face_create_quad_tri(bm,
 			                          v1, v2, v3, NULL,
 			                          NULL, FALSE);
 
-			BMO_SetFlag(bm, f2, FACE_NEW);
+			BMO_elem_flag_set(bm, f2, FACE_NEW);
 			
 			l = BM_FACE_FIRST_LOOP(f2);
 			do {
-				BMO_ClearFlag(bm, l->e, DEL);
+				BMO_elem_flag_clear(bm, l->e, DEL);
 				l = l->next;
 			} while (l != BM_FACE_FIRST_LOOP(f2));
 	
-			BMO_ClearFlag(bm, f2, DEL);
-			BM_SetIndex(f2, i); /* set_dirty! */ /* note, not 100% sure this is dirty? need to check */
+			BMO_elem_flag_clear(bm, f2, DEL);
+			BM_elem_index_set(f2, i); /* set_dirty! */ /* note, not 100% sure this is dirty? need to check */
 
-			BM_Face_UpdateNormal(bm, f2);
+			BM_face_normal_update(bm, f2);
 			if (dot_v3v3(f->no, f2->no) < 0.0f) {
-				BM_flip_normal(bm, f2);
+				BM_face_normal_flip(bm, f2);
 			}
 		}
 		
@@ -1938,15 +1938,15 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BMFace *f2;
 		BMIter liter1;
 
-		if (!BMO_TestFlag(bm, f, FACE_NEW))
+		if (!BMO_elem_flag_test(bm, f, FACE_NEW))
 			continue;
 		
-		f2 = faces[BM_GetIndex(f)];
-		if (BM_GetIndex(f) < 0 || BM_GetIndex(f) >= totface) {
+		f2 = faces[BM_elem_index_get(f)];
+		if (BM_elem_index_get(f) < 0 || BM_elem_index_get(f) >= totface) {
 			fprintf(stderr, "%s: face index out of range! (bmesh internal error)\n", __func__);
 		}
 
-		BM_Copy_Attributes(bm, bm, f2, f);
+		BM_elem_copy_attrs(bm, bm, f2, f);
 		
 		BM_ITER(l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
 			BM_loop_interp_from_face(bm, l1, f2, TRUE, TRUE);
@@ -1957,9 +1957,9 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	remerge_faces(kcd);
 
 	/* delete left over faces */
-	BMO_CallOpf(bm, "del geom=%ff context=%i", DEL, DEL_ONLYFACES);
-	BMO_CallOpf(bm, "del geom=%fe context=%i", DEL, DEL_EDGES);
-	BMO_CallOpf(bm, "del geom=%fv context=%i", DEL, DEL_VERTS);
+	BMO_op_callf(bm, "del geom=%ff context=%i", DEL, DEL_ONLYFACES);
+	BMO_op_callf(bm, "del geom=%fe context=%i", DEL, DEL_EDGES);
+	BMO_op_callf(bm, "del geom=%fv context=%i", DEL, DEL_VERTS);
 
 	if (face_nets) 
 		MEM_freeN(face_nets);
@@ -1968,7 +1968,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	BLI_memarena_free(arena);
 	BLI_smallhash_release(hash);
 	
-	BMO_ClearStack(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
+	BMO_error_clear(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
 
 	bmesh_end_edit(bm, BMOP_UNTAN_MULTIRES);
 	BMO_pop(bm);
@@ -2084,7 +2084,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 
 	kcd->em = ((Mesh *)kcd->ob->data)->edit_btmesh;
 
-	BM_ElemIndex_Ensure(kcd->em->bm, BM_VERT);
+	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
 	cage = editbmesh_get_derived_cage_and_final(scene, obedit, kcd->em, &final, CD_MASK_DERIVEDMESH);
 	kcd->cagecos = MEM_callocN(sizeof(float) * 3 * kcd->em->bm->totvert, "knife cagecos");

@@ -91,17 +91,11 @@ extern int bmesh_total_ops;
 struct Object;
 struct EditMesh;
 
-void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, const char hflag);
+#if 0
+void BMO_dupe_from_flag(struct BMesh *bm, int etypeflag, const char hflag);
+#endif
 void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth,
                        float fractal, int beauty, int numcuts, int seltype,
                        int cornertype, int singleedge, int gridfill, int seed);
-void BM_extrudefaceflag(BMesh *bm, int flag);
-
-/* this next one return 1 if they did anything, or zero otherwise.
- * they're kindof a hackish way to integrate with fkey, until
- * such time as fkey is completely bmeshafied.*/
-
-/* this doesn't display errors to the user, btw */
-int BM_ConnectVerts(struct EditMesh *em, int flag);
 
 #endif

@@ -59,25 +59,25 @@ typedef struct BMWalker {
 	int depth;
 } BMWalker;
 
-/* define to make BMW_Init more clear */
+/* define to make BMW_init more clear */
 #define BMW_MASK_NOP 0
 
 /* initialize a walker.  searchmask restricts some (not all) walkers to
  * elements with a specific tool flag set.  flags is specific to each walker.*/
-void BMW_Init(struct BMWalker *walker, BMesh *bm, int type,
+void BMW_init(struct BMWalker *walker, BMesh *bm, int type,
               short mask_vert, short mask_edge, short mask_loop, short mask_face,
               int layer);
-void *BMW_Begin(BMWalker *walker, void *start);
-void *BMW_Step(struct BMWalker *walker);
-void BMW_End(struct BMWalker *walker);
-int BMW_CurrentDepth(BMWalker *walker);
+void *BMW_begin(BMWalker *walker, void *start);
+void *BMW_step(struct BMWalker *walker);
+void  BMW_end(struct BMWalker *walker);
+int   BMW_current_depth(BMWalker *walker);
 
 /*these are used by custom walkers*/
-void *BMW_currentstate(BMWalker *walker);
-void *BMW_addstate(BMWalker *walker);
-void BMW_removestate(BMWalker *walker);
+void *BMW_current_state(BMWalker *walker);
+void *BMW_state_add(BMWalker *walker);
+void  BMW_state_remove(BMWalker *walker);
 void *BMW_walk(BMWalker *walker);
-void BMW_reset(BMWalker *walker);
+void  BMW_reset(BMWalker *walker);
 
 /*
 example of usage, walking over an island of tool flagged faces:
@@ -85,12 +85,12 @@ example of usage, walking over an island of tool flagged faces:
 BMWalker walker;
 BMFace *f;
 
-BMW_Init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
-f = BMW_Begin(&walker, some_start_face);
-for (; f; f=BMW_Step(&walker)) {
+BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
+f = BMW_begin(&walker, some_start_face);
+for (; f; f=BMW_step(&walker)) {
 	//do something with f
 }
-BMW_End(&walker);
+BMW_end(&walker);
 */
 
 enum {
@@ -109,7 +109,7 @@ enum {
 	 * restricts the walking to loops whose vert has restrict flag set as a
 	 * tool flag.
 	 *
-	 * the flag parameter to BMW_Init maps to a loop customdata layer index.
+	 * the flag parameter to BMW_init maps to a loop customdata layer index.
 	 */
 	BMW_LOOPDATA_ISLAND,
 	/* walk over an island of flagged faces.  note, that this doesn't work on
@@ -124,12 +124,12 @@ enum {
 	BMW_CONNECTED_VERTEX,
 	/* end of array index enum vals */
 
-	/* do not intitialze function pointers and struct size in BMW_Init */
+	/* do not intitialze function pointers and struct size in BMW_init */
 	BMW_CUSTOM,
 	BMW_MAXWALKERS
 };
 
-/* use with BMW_Init, so as not to confuse with restrict flags */
+/* use with BMW_init, so as not to confuse with restrict flags */
 #define BMW_NIL_LAY  0
 
 #endif

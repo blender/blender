@@ -45,18 +45,18 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	int i;
 	
-	BMO_Flag_Buffer(bm, op, "verts", VERT_INPUT, BM_VERT);
+	BMO_slot_buffer_flag(bm, op, "verts", VERT_INPUT, BM_VERT);
 
-	for (f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BMIter_Step(&iter)) {
+	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
 		BLI_array_empty(loops);
 		BLI_array_empty(verts);
 		
-		if (BMO_TestFlag(bm, f, FACE_NEW)) continue;
+		if (BMO_elem_flag_test(bm, f, FACE_NEW)) continue;
 
-		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 		lastl = NULL;
-		for ( ; l; l = BMIter_Step(&liter)) {
-			if (BMO_TestFlag(bm, l->v, VERT_INPUT)) {
+		for ( ; l; l = BM_iter_step(&liter)) {
+			if (BMO_elem_flag_test(bm, l->v, VERT_INPUT)) {
 				if (!lastl) {
 					lastl = l;
 					continue;
@@ -84,7 +84,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 			loops[BLI_array_count(loops) - 1] = loops[0];
 		}
 
-		BM_LegalSplits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
+		BM_face_legal_splits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
 		
 		for (i = 0; i < BLI_array_count(loops) / 2; i++) {
 			if (loops[i * 2] == NULL) continue;
@@ -97,20 +97,20 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		for (i = 0; i < BLI_array_count(verts) / 2; i++) {
-			nf = BM_Split_Face(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL);
+			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL);
 			f = nf;
 			
 			if (!nl || !nf) {
-				BMO_RaiseError(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
+				BMO_error_raise(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
 				BLI_array_free(loops);
 				return;
 			}
-			BMO_SetFlag(bm, nf, FACE_NEW);
-			BMO_SetFlag(bm, nl->e, EDGE_OUT);
+			BMO_elem_flag_set(bm, nf, FACE_NEW);
+			BMO_elem_flag_set(bm, nl->e, EDGE_OUT);
 		}
 	}
 
-	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
+	BMO_slot_from_flag(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
 
 	BLI_array_free(loops);
 	BLI_array_free(verts);
@@ -124,7 +124,7 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 
 	i = 0;
 	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, e->v1) {
-		if (BMO_TestFlag(bm, e2, EDGE_MARK)) {
+		if (BMO_elem_flag_test(bm, e2, EDGE_MARK)) {
 			i++;
 		}
 	}
@@ -172,33 +172,33 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, *nexte;
 	int c = 0, cl1 = 0, cl2 = 0;
 
-	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag(bm, op, "edges", EDGE_MARK, BM_EDGE);
 
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		if (!BMO_TestFlag(bm, e, EDGE_DONE)) {
+		if (!BMO_elem_flag_test(bm, e, EDGE_DONE)) {
 			BMVert *v, *ov;
 			/* BMEdge *e2, *e3, *oe = e; */ /* UNUSED */
 			BMEdge *e2, *e3;
 			
 			if (c > 2) {
-				BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION, "Select only two edge loops");
+				BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Select only two edge loops");
 				goto cleanup;
 			}
 			
 			e2 = e;
 			v = e->v1;
 			do {
-				v = BM_OtherEdgeVert(e2, v);
+				v = BM_edge_other_vert(e2, v);
 				nexte = NULL;
 				BM_ITER(e3, &iter, bm, BM_EDGES_OF_VERT, v) {
-					if (e3 != e2 && BMO_TestFlag(bm, e3, EDGE_MARK)) {
+					if (e3 != e2 && BMO_elem_flag_test(bm, e3, EDGE_MARK)) {
 						if (nexte == NULL) {
 							nexte = e3;
 						}
 						else {
 							/* edges do not form a loop: there is a disk
 							 * with more than two marked edges. */
-							BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION,
+							BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 							               "Selection must only contain edges from two edge loops");
 							goto cleanup;
 						}
@@ -224,11 +224,11 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 					BLI_array_append(vv2, v);
 				}
 				
-				BMO_SetFlag(bm, e2, EDGE_DONE);
+				BMO_elem_flag_set(bm, e2, EDGE_DONE);
 				
-				v = BM_OtherEdgeVert(e2, v);
+				v = BM_edge_other_vert(e2, v);
 				BM_ITER(e3, &iter, bm, BM_EDGES_OF_VERT, v) {
-					if (e3 != e2 && BMO_TestFlag(bm, e3, EDGE_MARK) && !BMO_TestFlag(bm, e3, EDGE_DONE)) {
+					if (e3 != e2 && BMO_elem_flag_test(bm, e3, EDGE_MARK) && !BMO_elem_flag_test(bm, e3, EDGE_DONE)) {
 						break;
 					}
 				}
@@ -284,7 +284,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		 * have different edge counts by generating triangles & quads for
 		 * the bridge instead of quads only. */
 		if (BLI_array_count(ee1) != BLI_array_count(ee2)) {
-			BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION,
+			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 			               "Selected loops must have equal edge counts");
 			goto cleanup;
 		}
@@ -394,7 +394,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				SWAP(int, i2, i2next);
 			}
 
-			f = BM_Make_Face_QuadTri(bm,
+			f = BM_face_create_quad_tri(bm,
 			                         vv1[i1],
 			                         vv2[i2],
 			                         vv2[i2next],

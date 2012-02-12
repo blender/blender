@@ -57,11 +57,11 @@
  *   for if walkers fail.
  */
 
-void *BMW_Begin(BMWalker *walker, void *start)
+void *BMW_begin(BMWalker *walker, void *start)
 {
 	walker->begin(walker, start);
 	
-	return BMW_currentstate(walker) ? walker->step(walker) : NULL;
+	return BMW_current_state(walker) ? walker->step(walker) : NULL;
 }
 
 /*
@@ -72,7 +72,7 @@ void *BMW_Begin(BMWalker *walker, void *start)
  * by the bitmask 'searchmask'.
  */
 
-void BMW_Init(BMWalker *walker, BMesh *bm, int type,
+void BMW_init(BMWalker *walker, BMesh *bm, int type,
               short mask_vert, short mask_edge, short mask_loop, short mask_face,
               int layer)
 {
@@ -91,7 +91,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type,
 	if (type >= BMW_MAXWALKERS || type < 0) {
 		bmesh_error();
 		fprintf(stderr,
-		        "Invalid walker type in BMW_Init; type: %d, "
+		        "Invalid walker type in BMW_init; type: %d, "
 		        "searchmask: (v:%d, e:%d, l:%d, f:%d), flag: %d\n",
 		        type, mask_vert, mask_edge, mask_loop, mask_face, layer);
 	}
@@ -118,12 +118,12 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type,
 }
 
 /*
- * BMW_End
+ * BMW_end
  *
  * Frees a walker's worklist.
  */
 
-void BMW_End(BMWalker *walker)
+void BMW_end(BMWalker *walker)
 {
 	BLI_mempool_destroy(walker->worklist);
 	BLI_ghash_free(walker->visithash, NULL, NULL);
@@ -131,10 +131,10 @@ void BMW_End(BMWalker *walker)
 
 
 /*
- * BMW_Step
+ * BMW_step
  */
 
-void *BMW_Step(BMWalker *walker)
+void *BMW_step(BMWalker *walker)
 {
 	BMHeader *head;
 
@@ -144,12 +144,12 @@ void *BMW_Step(BMWalker *walker)
 }
 
 /*
- * BMW_CurrentDepth
+ * BMW_current_depth
  *
  * Returns the current depth of the walker.
  */
 
-int BMW_CurrentDepth(BMWalker *walker)
+int BMW_current_depth(BMWalker *walker)
 {
 	return walker->depth;
 }
@@ -167,7 +167,7 @@ void *BMW_walk(BMWalker *walker)
 {
 	void *current = NULL;
 
-	while (BMW_currentstate(walker)) {
+	while (BMW_current_state(walker)) {
 		current = walker->step(walker);
 		if (current) {
 			return current;
@@ -177,14 +177,14 @@ void *BMW_walk(BMWalker *walker)
 }
 
 /*
- * BMW_currentstate
+ * BMW_current_state
  *
  * Returns the first state from the walker state
  * worklist. This state is the the next in the
  * worklist for processing.
  */
 
-void *BMW_currentstate(BMWalker *walker)
+void *BMW_current_state(BMWalker *walker)
 {
 	bmesh_walkerGeneric *currentstate = walker->states.first;
 	if (currentstate) {
@@ -204,16 +204,16 @@ void *BMW_currentstate(BMWalker *walker)
 }
 
 /*
- * BMW_removestate
+ * BMW_state_remove
  *
  * Remove and free an item from the end of the walker state
  * worklist.
  */
 
-void BMW_removestate(BMWalker *walker)
+void BMW_state_remove(BMWalker *walker)
 {
 	void *oldstate;
-	oldstate = BMW_currentstate(walker);
+	oldstate = BMW_current_state(walker);
 	BLI_remlink(&walker->states, oldstate);
 	BLI_mempool_free(walker->worklist, oldstate);
 }
@@ -228,7 +228,7 @@ void BMW_removestate(BMWalker *walker)
  * breadth-first walks.
  */
 
-void *BMW_addstate(BMWalker *walker)
+void *BMW_state_add(BMWalker *walker)
 {
 	bmesh_walkerGeneric *newstate;
 	newstate = BLI_mempool_alloc(walker->worklist);
@@ -257,8 +257,8 @@ void *BMW_addstate(BMWalker *walker)
 
 void BMW_reset(BMWalker *walker)
 {
-	while (BMW_currentstate(walker)) {
-		BMW_removestate(walker);
+	while (BMW_current_state(walker)) {
+		BMW_state_remove(walker);
 	}
 	walker->depth = 0;
 	BLI_ghash_free(walker->visithash, NULL, NULL);

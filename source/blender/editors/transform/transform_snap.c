@@ -1464,16 +1464,16 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 							{
 								efa = EDBM_get_face_for_index(em, index);
 								
-								if (efa && BM_TestHFlag(efa, BM_ELEM_HIDDEN))
+								if (efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 								{
 									test = 0;
 								} else if (efa) {
 									BMIter iter;
 									BMLoop *l;
 									
-									l = BMIter_New(&iter, em->bm, BM_LOOPS_OF_FACE, efa);
-									for ( ; l; l=BMIter_Step(&iter)) {
-										if (BM_TestHFlag(l->v, BM_ELEM_SELECT)) {
+									l = BM_iter_new(&iter, em->bm, BM_LOOPS_OF_FACE, efa);
+									for ( ; l; l=BM_iter_step(&iter)) {
+										if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
 											test = 0;
 											break;
 										}
@@ -1548,7 +1548,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 							{
 								eve = EDBM_get_vert_for_index(em, index);
 								
-								if (eve && (BM_TestHFlag(eve, BM_ELEM_HIDDEN) || BM_TestHFlag(eve, BM_ELEM_SELECT)))
+								if (eve && (BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(eve, BM_ELEM_SELECT)))
 								{
 									test = 0;
 								}
@@ -1608,9 +1608,9 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 							{
 								eed = EDBM_get_edge_for_index(em, index);
 								
-								if (eed && (BM_TestHFlag(eed, BM_ELEM_HIDDEN) ||
-									BM_TestHFlag(eed->v1, BM_ELEM_SELECT) || 
-									BM_TestHFlag(eed->v2, BM_ELEM_SELECT)))
+								if (eed && (BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
+									BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) || 
+									BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
 								{
 									test = 0;
 								}

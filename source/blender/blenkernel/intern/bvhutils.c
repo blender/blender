@@ -619,14 +619,14 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 						/*Start with the assumption the triangle should be included for snapping.*/
 						insert = 1;
 
-						if (BM_TestHFlag(f, BM_ELEM_SELECT) || BM_TestHFlag(f, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 							/*Don't insert triangles tesselated from faces that are hidden
 							  or selected*/
 							insert = 0;
 						}
 						else {
 							BM_ITER(v, &iter, em->bm, BM_VERTS_OF_FACE, f) {
-								if (BM_TestHFlag(v, BM_ELEM_SELECT)) {
+								if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 									/*Don't insert triangles tesselated from faces that have
 									  any selected verts.*/
 									insert = 0;

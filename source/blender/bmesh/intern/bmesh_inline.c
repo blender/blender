@@ -31,39 +31,39 @@
 
 #include "bmesh.h"
 
-BM_INLINE char BM_TestHFlag(const void *element, const char hflag)
+BM_INLINE char BM_elem_flag_test(const void *element, const char hflag)
 {
 	return ((const BMHeader *)element)->hflag & hflag;
 }
 
-BM_INLINE void BM_SetHFlag(void *element, const char hflag)
+BM_INLINE void BM_elem_flag_set(void *element, const char hflag)
 {
 	((BMHeader *)element)->hflag |= hflag;
 }
 
-BM_INLINE void BM_ClearHFlag(void *element, const char hflag)
+BM_INLINE void BM_elem_flag_clear(void *element, const char hflag)
 {
 	((BMHeader *)element)->hflag &= ~hflag;
 }
 
-BM_INLINE void BM_ToggleHFlag(void *element, const char hflag)
+BM_INLINE void BM_elem_flag_toggle(void *element, const char hflag)
 {
 	((BMHeader *)element)->hflag ^= hflag;
 }
 
-BM_INLINE void BM_MergeHFlag(void *element_a, void *element_b)
+BM_INLINE void BM_elem_flag_merge(void *element_a, void *element_b)
 {
 	((BMHeader *)element_a)->hflag =
 	((BMHeader *)element_b)->hflag = (((BMHeader *)element_a)->hflag |
 	                                  ((BMHeader *)element_b)->hflag);
 }
 
-BM_INLINE void BM_SetIndex(void *element, const int index)
+BM_INLINE void BM_elem_index_set(void *element, const int index)
 {
 	((BMHeader *)element)->index = index;
 }
 
-BM_INLINE int BM_GetIndex(const void *element)
+BM_INLINE int BM_elem_index_get(const void *element)
 {
 	return ((BMHeader *)element)->index;
 }

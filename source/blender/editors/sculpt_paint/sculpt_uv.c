@@ -215,7 +215,7 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
 
-				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
@@ -279,7 +279,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
 
-				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
@@ -355,7 +355,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 					if(element->separate && element != sculptdata->uv[i].element)
 						break;
 
-					l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 				}
@@ -397,7 +397,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 				if(element->separate && element != sculptdata->uv[uvindex].element)
 					break;
 
-				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
 			}
@@ -572,7 +572,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 					}
 
 					efa = element->face;
-					l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 					counter++;

@@ -30,47 +30,43 @@ typedef struct BMEditSelection
 	char htype;
 } BMEditSelection;
 
-/* pinning code */
-void BM_Pin(BMesh *bm, void *element, int pin);
-void BM_Pin_Vert(BMesh *bm, BMVert *v, int pin);
-void BM_Pin_Edge(BMesh *bm, BMEdge *e, int pin);
-void BM_Pin_Face(BMesh *bm, BMFace *f, int pin);
-
 /* geometry hiding code */
-void BM_Hide(BMesh *bm, void *element, int hide);
-void BM_Hide_Vert(BMesh *bm, BMVert *v, int hide);
-void BM_Hide_Edge(BMesh *bm, BMEdge *e, int hide);
-void BM_Hide_Face(BMesh *bm, BMFace *f, int hide);
+void BM_elem_hide_set(BMesh *bm, void *element, int hide);
+void BM_vert_hide_set(BMesh *bm, BMVert *v, int hide);
+void BM_edge_hide_set(BMesh *bm, BMEdge *e, int hide);
+void BM_face_hide_set(BMesh *bm, BMFace *f, int hide);
 
 /* Selection code */
-void BM_Select(struct BMesh *bm, void *element, int select);
-/* I don't use this function anywhere, been using BM_TestHFlag instead.
+void BM_elem_select_set(struct BMesh *bm, void *element, int select);
+/* I don't use this function anywhere, been using BM_elem_flag_test instead.
  * Need to decide either to keep it and convert everything over, or
  * chuck it.*/
-int BM_Selected(BMesh *bm, const void *element);
+int BM_elem_select_test(BMesh *bm, const void *element);
 
 void BM_clear_flag_all(BMesh *bm, const char hflag);
 
-/* individual element select functions, BM_Select is a shortcut for these
+/* individual element select functions, BM_elem_select_set is a shortcut for these
  * that automatically detects which one to use*/
-void BM_Select_Vert(struct BMesh *bm, struct BMVert *v, int select);
-void BM_Select_Edge(struct BMesh *bm, struct BMEdge *e, int select);
-void BM_Select_Face(struct BMesh *bm, struct BMFace *f, int select);
+void BM_vert_select(struct BMesh *bm, struct BMVert *v, int select);
+void BM_edge_select(struct BMesh *bm, struct BMEdge *e, int select);
+void BM_face_select(struct BMesh *bm, struct BMFace *f, int select);
 
-void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
+void BM_select_mode_set(struct BMesh *bm, int selectmode);
 
 /* counts number of elements with flag set */
-int BM_CountFlag(struct BMesh *bm, const char htype, const char hflag, int respecthide);
+int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /* edit selection stuff */
-void BM_set_actFace(BMesh *em, BMFace *f);
-BMFace *BM_get_actFace(BMesh *bm, int sloppy);
+void    BM_active_face_set(BMesh *em, BMFace *f);
+BMFace *BM_active_face_get(BMesh *bm, int sloppy);
 void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese);
 void BM_editselection_normal(float r_normal[3], BMEditSelection *ese);
 void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese);
-void BM_remove_selection(BMesh *bm, void *data);
-void BM_store_selection(BMesh *bm, void *data);
-void BM_validate_selections(BMesh *bm);
-void BM_clear_selection_history(BMesh *em);
+
+int  BM_select_history_check(BMesh *bm, void *data);
+void BM_select_history_remove(BMesh *bm, void *data);
+void BM_select_history_store(BMesh *bm, void *data);
+void BM_select_history_validate(BMesh *bm);
+void BM_select_history_clear(BMesh *em);
 
 #endif

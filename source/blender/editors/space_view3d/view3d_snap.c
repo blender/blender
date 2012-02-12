@@ -102,7 +102,7 @@ static void special_transvert_update(Object *obedit)
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			BM_Compute_Normals(me->edit_btmesh->bm);	// does face centers too
+			BM_mesh_normals_update(me->edit_btmesh->bm);	// does face centers too
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
@@ -200,9 +200,9 @@ static void set_mapped_co(void *vuserdata, int index, float *co, float *UNUSED(n
 	TransVert *tv = userdata[1];
 	BMVert *eve = EDBM_get_vert_for_index(em, index);
 	
-	if (BM_GetIndex(eve) != -1 && !(tv[BM_GetIndex(eve)].flag & TX_VERT_USE_MAPLOC)) {
-		copy_v3_v3(tv[BM_GetIndex(eve)].maploc, co);
-		tv[BM_GetIndex(eve)].flag |= TX_VERT_USE_MAPLOC;
+	if (BM_elem_index_get(eve) != -1 && !(tv[BM_elem_index_get(eve)].flag & TX_VERT_USE_MAPLOC)) {
+		copy_v3_v3(tv[BM_elem_index_get(eve)].maploc, co);
+		tv[BM_elem_index_get(eve)].flag |= TX_VERT_USE_MAPLOC;
 	}
 }
 
@@ -242,48 +242,48 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		tottrans= 0;
 		if(em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(!BM_TestHFlag(eve, BM_ELEM_HIDDEN) && BM_TestHFlag(eve, BM_ELEM_SELECT)) {
-					BM_SetIndex(eve, 1); /* set_dirty! */
+				if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					BM_elem_index_set(eve, 1); /* set_dirty! */
 					tottrans++;
 				}
-				else BM_SetIndex(eve, 0); /* set_dirty! */
+				else BM_elem_index_set(eve, 0); /* set_dirty! */
 			}
 		}
 		else if(em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				BM_SetIndex(eve, 0); /* set_dirty! */
+				BM_elem_index_set(eve, 0); /* set_dirty! */
 
 			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-				if(!BM_TestHFlag(eed, BM_ELEM_HIDDEN) && BM_TestHFlag(eed, BM_ELEM_SELECT)) {
-					BM_SetIndex(eed->v1, 1); /* set_dirty! */
-					BM_SetIndex(eed->v2, 1); /* set_dirty! */
+				if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+					BM_elem_index_set(eed->v1, 1); /* set_dirty! */
+					BM_elem_index_set(eed->v2, 1); /* set_dirty! */
 				}
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				if(BM_GetIndex(eve)) tottrans++;
+				if(BM_elem_index_get(eve)) tottrans++;
 		}
 		else {
 			BMFace *efa;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				BM_SetIndex(eve, 0); /* set_dirty! */
+				BM_elem_index_set(eve, 0); /* set_dirty! */
 
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				if(!BM_TestHFlag(efa, BM_ELEM_HIDDEN) && BM_TestHFlag(efa, BM_ELEM_SELECT)) {
+				if(!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BMIter liter;
 					BMLoop *l;
 					
 					BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-						BM_SetIndex(l->v, 1); /* set_dirty! */
+						BM_elem_index_set(l->v, 1); /* set_dirty! */
 					}
 				}
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				if(BM_GetIndex(eve)) tottrans++;
+				if(BM_elem_index_get(eve)) tottrans++;
 		}
 		/* for any of the 3 loops above which all dirty the indicies */
 		bm->elem_index_dirty |= BM_VERT;
@@ -294,16 +294,16 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		
 			a = 0;
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(BM_GetIndex(eve)) {
-					BM_SetIndex(eve, a); /* set_dirty! */
+				if(BM_elem_index_get(eve)) {
+					BM_elem_index_set(eve, a); /* set_dirty! */
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
-					tv->flag= BM_GetIndex(eve) & SELECT;
+					tv->flag= BM_elem_index_get(eve) & SELECT;
 					tv++;
 					a++;
-				} else BM_SetIndex(eve, -1); /* set_dirty! */
+				} else BM_elem_index_set(eve, -1); /* set_dirty! */
 			}
 			/* set dirty already, above */
 

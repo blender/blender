@@ -763,8 +763,8 @@ static float *get_editbmesh_orco_verts(BMEditMesh *em)
 	
 	orco = MEM_mallocN(sizeof(float)*3*totvert, "EditMesh Orco");
 
-	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (a=0; eve; eve=BMIter_Step(&iter), a+=3) {
+	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	for (a=0; eve; eve=BM_iter_step(&iter), a+=3) {
 		copy_v3_v3(orco+a, eve->co);
 	}
 	
@@ -1709,8 +1709,8 @@ float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
 
 	cos = MEM_mallocN(sizeof(float)*3*numVerts, "vertexcos");
 
-	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
+	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	for (i=0; eve; eve=BM_iter_step(&iter), i++) {
 		copy_v3_v3(cos[i], eve->co);
 	}
 

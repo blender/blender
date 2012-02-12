@@ -50,7 +50,7 @@
  *
  *  Interpolates per-vertex data from two sources to a target.
  */
-void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, float fac)
+void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, float fac)
 {
 	if (v1->head.data && v2->head.data) {
 		/* first see if we can avoid interpolation */
@@ -108,7 +108,7 @@ static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNU
  *	Nothing
  */
 
-void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac)
+void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac)
 {
 	void *src[2];
 	float w[2];
@@ -207,7 +207,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BLI_array_fixedstack_declare(blocks,  BM_NGON_STACK_SIZE, source->len, __func__);
 	int i;
 	
-	BM_Copy_Attributes(bm, bm, source, target);
+	BM_elem_copy_attrs(bm, bm, source, target);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
@@ -511,9 +511,9 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 	double eps = FLT_EPSILON * 4000;
 	
 	if (len_v3(l->v->no) == 0.0f)
-		BM_Vert_UpdateAllNormals(bm, l->v);
+		BM_vert_normal_update_all(bm, l->v);
 	if (len_v3(tl->v->no) == 0.0f)
-		BM_Vert_UpdateAllNormals(bm, tl->v);
+		BM_vert_normal_update_all(bm, tl->v);
 
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
 
@@ -612,7 +612,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	}
 }
 
-void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
+void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
 	BMIter liter;
@@ -733,7 +733,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BLI_array_fixedstack_declare(vblocks,  BM_NGON_STACK_SIZE, do_vertex ? source->len : 0, __func__);
 	int i, ax, ay;
 	
-	BM_Copy_Attributes(bm, bm, source, target->f);
+	BM_elem_copy_attrs(bm, bm, source, target->f);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
@@ -901,7 +901,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 	}
 }
 
-void BM_add_data_layer(BMesh *bm, CustomData *data, int type)
+void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 {
 	CustomData olddata;
 
@@ -917,7 +917,7 @@ void BM_add_data_layer(BMesh *bm, CustomData *data, int type)
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
-void BM_add_data_layer_named(BMesh *bm, CustomData *data, int type, const char *name)
+void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name)
 {
 	CustomData olddata;
 
@@ -933,7 +933,7 @@ void BM_add_data_layer_named(BMesh *bm, CustomData *data, int type, const char *
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
-void BM_free_data_layer(BMesh *bm, CustomData *data, int type)
+void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 {
 	CustomData olddata;
 
@@ -949,7 +949,7 @@ void BM_free_data_layer(BMesh *bm, CustomData *data, int type)
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
-void BM_free_data_layer_n(BMesh *bm, CustomData *data, int type, int n)
+void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 {
 	CustomData olddata;
 
@@ -965,13 +965,13 @@ void BM_free_data_layer_n(BMesh *bm, CustomData *data, int type, int n)
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
-float BM_GetCDf(CustomData *cd, void *element, int type)
+float BM_elem_float_data_get(CustomData *cd, void *element, int type)
 {
 	float *f = CustomData_bmesh_get(cd, ((BMHeader *)element)->data, type);
 	return f ? *f : 0.0f;
 }
 
-void BM_SetCDf(CustomData *cd, void *element, int type, float val)
+void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val)
 {
 	float *f = CustomData_bmesh_get(cd, ((BMHeader *)element)->data, type);
 	if (f) *f = val;

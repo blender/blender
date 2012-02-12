@@ -339,7 +339,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		co[1]= bmin[1] + v[1]*ch;
 		co[2]= bmin[2] + v[2]*cs;
 		SWAP(float, co[1], co[2]);
-		BM_Make_Vert(em->bm, co, NULL);
+		BM_vert_create(em->bm, co, NULL);
 	}
 
 	/* create custom data layer to save polygon idx */
@@ -369,7 +369,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		for(j= nv; j<ndv; j++) {
 			copy_v3_v3(co, &dverts[3*(vbase + j)]);
 			SWAP(float, co[1], co[2]);
-			BM_Make_Vert(em->bm, co, NULL);
+			BM_vert_create(em->bm, co, NULL);
 		}
 
 		EDBM_init_index_arrays(em, 1, 0, 0);
@@ -386,7 +386,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 				else
 					face[k] = uniquevbase+tri[k]-nv; /* unique vertex */
 			}
-			newFace= BM_Make_Face_QuadTri(em->bm,
+			newFace= BM_face_create_quad_tri(em->bm,
 			                              EDBM_get_vert_for_index(em, face[0]),
 			                              EDBM_get_vert_for_index(em, face[2]),
 			                              EDBM_get_vert_for_index(em, face[1]), NULL,
@@ -487,7 +487,7 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
 	/* do work here */
-	BMFace *efa_act= BM_get_actFace(em->bm, FALSE);
+	BMFace *efa_act= BM_active_face_get(em->bm, FALSE);
 
 	if(efa_act) {
 		if(CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
@@ -499,7 +499,7 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 			if(targetPolyIdx > 0) {
 				/* set target poly idx to other selected faces */
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BM_TestHFlag(efa, BM_ELEM_SELECT) && efa != efa_act)  {
+					if(BM_elem_flag_test(efa, BM_ELEM_SELECT) && efa != efa_act)  {
 						int* recastDataBlock= (int*)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_RECAST);
 						*recastDataBlock= targetPolyIdx;
 					}
@@ -584,7 +584,7 @@ static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 			/*XXX this originally went last to first, but that isn't possible anymore*/
 			
 			BM_ITER(ef, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if(BM_TestHFlag(ef, BM_ELEM_SELECT)) {
+				if(BM_elem_flag_test(ef, BM_ELEM_SELECT)) {
 					int *recastDataBlock= (int*)CustomData_bmesh_get(&em->bm->pdata, ef->head.data, CD_RECAST);
 					*recastDataBlock= targetPolyIdx;
 				}

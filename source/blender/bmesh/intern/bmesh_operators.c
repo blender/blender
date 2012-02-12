@@ -78,12 +78,12 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
 /* Dummy slot so there is something to return when slot name lookup fails */
 static BMOpSlot BMOpEmptySlot = {0};
 
-void BMO_Set_OpFlag(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
+void BMO_op_flag_set(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 {
 	op->flag |= op_flag;
 }
 
-void BMO_Clear_OpFlag(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
+void BMO_op_flag_clear(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 {
 	op->flag &= ~op_flag;
 }
@@ -128,7 +128,7 @@ void BMO_pop(BMesh *bm)
  * Initializes an operator structure
  * to a certain type
  */
-void BMO_Init_Op(BMesh *bm, BMOperator *op, const char *opname)
+void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 {
 	int i, opcode = bmesh_opname_to_opcode(opname);
 
@@ -169,7 +169,7 @@ void BMO_Init_Op(BMesh *bm, BMOperator *op, const char *opname)
  * loop. Can be called from other operators
  * exec callbacks as well.
  */
-void BMO_Exec_Op(BMesh *bm, BMOperator *op)
+void BMO_op_exec(BMesh *bm, BMOperator *op)
 {
 	
 	BMO_push(bm, op);
@@ -190,7 +190,7 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
  * Does housekeeping chores related to finishing
  * up an operator.
  */
-void BMO_Finish_Op(BMesh *bm, BMOperator *op)
+void BMO_op_finish(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *slot;
 	int i;
@@ -218,7 +218,7 @@ void BMO_Finish_Op(BMesh *bm, BMOperator *op)
  * Returns 1 if the named slot exists on the given operator,
  * otherwise returns 0.
  */
-int BMO_HasSlot(BMOperator *op, const char *slotname)
+int BMO_slot_exists(BMOperator *op, const char *slotname)
 {
 	int slotcode = bmesh_name_to_slotcode(opdefines[op->type], slotname);
 	return (slotcode >= 0);
@@ -230,7 +230,7 @@ int BMO_HasSlot(BMOperator *op, const char *slotname)
  * Returns a pointer to the slot of
  * type 'slotcode'
  */
-BMOpSlot *BMO_GetSlot(BMOperator *op, const char *slotname)
+BMOpSlot *BMO_slot_get(BMOperator *op, const char *slotname)
 {
 	int slotcode = bmesh_name_to_slotcode_check(opdefines[op->type], slotname);
 
@@ -246,10 +246,10 @@ BMOpSlot *BMO_GetSlot(BMOperator *op, const char *slotname)
  *
  * Copies data from one slot to another
  */
-void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, const char *dst)
+void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, const char *dst)
 {
-	BMOpSlot *source_slot = BMO_GetSlot(source_op, src);
-	BMOpSlot *dest_slot = BMO_GetSlot(dest_op, dst);
+	BMOpSlot *source_slot = BMO_slot_get(source_op, src);
+	BMOpSlot *dest_slot = BMO_slot_get(dest_op, dst);
 
 	if (source_slot == dest_slot)
 		return;
@@ -306,18 +306,18 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, c
  *
  */
 
-void BMO_Set_Float(BMOperator *op, const char *slotname, float f)
+void BMO_slot_float_set(BMOperator *op, const char *slotname, float f)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_FLT))
 		return;
 
 	slot->data.f = f;
 }
 
-void BMO_Set_Int(BMOperator *op, const char *slotname, int i)
+void BMO_slot_int_set(BMOperator *op, const char *slotname, int i)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_INT))
 		return;
 
@@ -325,9 +325,9 @@ void BMO_Set_Int(BMOperator *op, const char *slotname, int i)
 }
 
 /* only supports square mats */
-void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int size)
+void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, float *mat, int size)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_MAT))
 		return;
 
@@ -348,36 +348,36 @@ void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int si
 	}
 }
 
-void BMO_Get_Mat4(struct BMOperator *op, const char *slotname, float mat[4][4])
+void BMO_slot_mat4_set(struct BMOperator *op, const char *slotname, float mat[4][4])
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_MAT))
 		return;
 
 	memcpy(mat, slot->data.p, sizeof(float) * 4 * 4);
 }
 
-void BMO_Get_Mat3(struct BMOperator *op, const char *slotname, float mat[3][3])
+void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float mat[3][3])
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_MAT))
 		return;
 
 	copy_m3_m4(mat, slot->data.p);
 }
 
-void BMO_Set_Pnt(BMOperator *op, const char *slotname, void *p)
+void BMO_slot_ptr_set(BMOperator *op, const char *slotname, void *p)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_PNT))
 		return;
 
 	slot->data.p = p;
 }
 
-void BMO_Set_Vec(BMOperator *op, const char *slotname, const float vec[3])
+void BMO_slot_vec_set(BMOperator *op, const char *slotname, const float vec[3])
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_VEC))
 		return;
 
@@ -385,18 +385,18 @@ void BMO_Set_Vec(BMOperator *op, const char *slotname, const float vec[3])
 }
 
 
-float BMO_Get_Float(BMOperator *op, const char *slotname)
+float BMO_slot_float_get(BMOperator *op, const char *slotname)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_FLT))
 		return 0.0f;
 
 	return slot->data.f;
 }
 
-int BMO_Get_Int(BMOperator *op, const char *slotname)
+int BMO_slot_int_get(BMOperator *op, const char *slotname)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_INT))
 		return 0;
 
@@ -404,18 +404,18 @@ int BMO_Get_Int(BMOperator *op, const char *slotname)
 }
 
 
-void *BMO_Get_Pnt(BMOperator *op, const char *slotname)
+void *BMO_slot_ptr_get(BMOperator *op, const char *slotname)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_PNT))
 		return NULL;
 
 	return slot->data.p;
 }
 
-void BMO_Get_Vec(BMOperator *op, const char *slotname, float r_vec[3])
+void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMOP_OPSLOT_VEC))
 		return;
 
@@ -430,27 +430,27 @@ void BMO_Get_Vec(BMOperator *op, const char *slotname, float r_vec[3])
  *
  */
 
-int BMO_CountFlag(BMesh *bm, const short oflag, const char htype)
+int BMO_mesh_flag_count(BMesh *bm, const short oflag, const char htype)
 {
 	BMIter elements;
 	BMHeader *e;
 	int count = 0;
 
 	if (htype & BM_VERT) {
-		for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-			if (BMO_TestFlag(bm, e, oflag))
+		for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+			if (BMO_elem_flag_test(bm, e, oflag))
 				count++;
 		}
 	}
 	if (htype & BM_EDGE) {
-		for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-			if (BMO_TestFlag(bm, e, oflag))
+		for (e = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+			if (BMO_elem_flag_test(bm, e, oflag))
 				count++;
 		}
 	}
 	if (htype & BM_FACE) {
-		for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-			if (BMO_TestFlag(bm, e, oflag))
+		for (e = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+			if (BMO_elem_flag_test(bm, e, oflag))
 				count++;
 		}
 	}
@@ -458,7 +458,7 @@ int BMO_CountFlag(BMesh *bm, const short oflag, const char htype)
 	return count;
 }
 
-void BMO_Clear_Flag_All(BMesh *bm, BMOperator *UNUSED(op), const char htype, const short oflag)
+void BMO_mesh_flag_clear_all(BMesh *bm, BMOperator *UNUSED(op), const char htype, const short oflag)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -473,15 +473,15 @@ void BMO_Clear_Flag_All(BMesh *bm, BMOperator *UNUSED(op), const char htype, con
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
 			BM_ITER(ele, &iter, bm, iter_types[i], NULL) {
-				BMO_ClearFlag(bm, ele, oflag);
+				BMO_elem_flag_clear(bm, ele, oflag);
 			}
 		}
 	}
 }
 
-int BMO_CountSlotBuf(struct BMesh *UNUSED(bm), struct BMOperator *op, const char *slotname)
+int BMO_slot_buf_count(struct BMesh *UNUSED(bm), struct BMOperator *op, const char *slotname)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	
 	/* check if its actually a buffer */
 	if (!(slot->slottype > BMOP_OPSLOT_VEC))
@@ -490,9 +490,9 @@ int BMO_CountSlotBuf(struct BMesh *UNUSED(bm), struct BMOperator *op, const char
 	return slot->len;
 }
 
-int BMO_CountSlotMap(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
+int BMO_slot_map_count(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	
 	/* check if its actually a buffer */
 	if (!(slot->slottype == BMOP_OPSLOT_MAPPING))
@@ -536,11 +536,11 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 }
 #endif
 
-void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
-                         const char *slotname, const short oflag)
+void BMO_slot_map_to_flag(struct BMesh *bm, struct BMOperator *op,
+                          const char *slotname, const short oflag)
 {
 	GHashIterator it;
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader *ele;
 
 	/* sanity check */
@@ -549,13 +549,13 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 
 	BLI_ghashIterator_init(&it, slot->data.ghash);
 	for ( ; (ele = BLI_ghashIterator_getKey(&it)); BLI_ghashIterator_step(&it)) {
-		BMO_SetFlag(bm, ele, oflag);
+		BMO_elem_flag_set(bm, ele, oflag);
 	}
 }
 
 static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	/* check if its actually a buffer */
 	if (!(slot->slottype > BMOP_OPSLOT_VEC))
@@ -574,11 +574,11 @@ static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len)
  *
  */
 
-static void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, const char htype)
+static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, const char htype)
 {
 	BMIter elements;
 	BMHeader *e;
-	BMOpSlot *output = BMO_GetSlot(op, slotname);
+	BMOpSlot *output = BMO_slot_get(op, slotname);
 	int totelement = 0, i = 0;
 	
 	if (htype & BM_VERT) totelement += bm->totvert;
@@ -589,21 +589,21 @@ static void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, con
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
-			for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
+			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
 				((BMHeader **)output->data.p)[i] = e;
 				i++;
 			}
 		}
 
 		if (htype & BM_EDGE) {
-			for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
+			for (e = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
 				((BMHeader **)output->data.p)[i] = e;
 				i++;
 			}
 		}
 
 		if (htype & BM_FACE) {
-			for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
+			for (e = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
 				((BMHeader **)output->data.p)[i] = e;
 				i++;
 			}
@@ -618,22 +618,22 @@ static void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, con
  * into a slot for an operator.
  */
 
-void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
                             const char hflag, const char htype)
 {
 	BMIter elements;
 	BMHeader *e;
-	BMOpSlot *output = BMO_GetSlot(op, slotname);
+	BMOpSlot *output = BMO_slot_get(op, slotname);
 	int totelement = 0, i = 0;
 	
-	totelement = BM_CountFlag(bm, htype, hflag, 1);
+	totelement = BM_mesh_count_flag(bm, htype, hflag, 1);
 
 	if (totelement) {
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
-			for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (!BM_TestHFlag(e, BM_ELEM_HIDDEN) && BM_TestHFlag(e, hflag)) {
+			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_elem_flag_test(e, hflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -641,8 +641,8 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 		}
 
 		if (htype & BM_EDGE) {
-			for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (!BM_TestHFlag(e, BM_ELEM_HIDDEN) && BM_TestHFlag(e, hflag)) {
+			for (e = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_elem_flag_test(e, hflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -650,8 +650,8 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 		}
 
 		if (htype & BM_FACE) {
-			for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (!BM_TestHFlag(e, BM_ELEM_HIDDEN) && BM_TestHFlag(e, hflag)) {
+			for (e = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_elem_flag_test(e, hflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -669,20 +669,20 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
  * Copies elements of a certain type, which have a certain flag set
  * into an output slot for an operator.
  */
-void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
-                      const short oflag, const char htype)
+void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                        const short oflag, const char htype)
 {
 	BMIter elements;
 	BMHeader *e;
-	BMOpSlot *output = BMO_GetSlot(op, slotname);
-	int totelement = BMO_CountFlag(bm, oflag, htype), i = 0;
+	BMOpSlot *output = BMO_slot_get(op, slotname);
+	int totelement = BMO_mesh_flag_count(bm, oflag, htype), i = 0;
 
 	if (totelement) {
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
-			for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (BMO_TestFlag(bm, e, oflag)) {
+			for (e = BM_iter_new(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+				if (BMO_elem_flag_test(bm, e, oflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -690,8 +690,8 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 		}
 
 		if (htype & BM_EDGE) {
-			for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (BMO_TestFlag(bm, e, oflag)) {
+			for (e = BM_iter_new(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+				if (BMO_elem_flag_test(bm, e, oflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -699,8 +699,8 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 		}
 
 		if (htype & BM_FACE) {
-			for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (BMO_TestFlag(bm, e, oflag)) {
+			for (e = BM_iter_new(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BM_iter_step(&elements)) {
+				if (BMO_elem_flag_test(bm, e, oflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -719,10 +719,10 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
  * Header Flags elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_buffer_hflag(BMesh *bm, BMOperator *op, const char *slotname,
                            const char hflag, const char htype)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
@@ -731,9 +731,9 @@ void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
 			continue;
 
 		if (hflag & BM_ELEM_SELECT) {
-			BM_Select(bm, data[i], TRUE);
+			BM_elem_select_set(bm, data[i], TRUE);
 		}
-		BM_SetHFlag(data[i], hflag);
+		BM_elem_flag_set(data[i], hflag);
 	}
 }
 
@@ -744,10 +744,10 @@ void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
  * Removes flags from elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_buffer_hflag_clear(BMesh *bm, BMOperator *op, const char *slotname,
                              const char hflag, const char htype)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
@@ -756,13 +756,13 @@ void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
 			continue;
 
 		if (hflag & BM_ELEM_SELECT) {
-			BM_Select(bm, data[i], FALSE);
+			BM_elem_select_set(bm, data[i], FALSE);
 		}
 
-		BM_ClearHFlag(data[i], hflag);
+		BM_elem_flag_clear(data[i], hflag);
 	}
 }
-int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, const short oflag)
+int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 {
 	int count = 0;
 
@@ -772,7 +772,7 @@ int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, const short oflag)
 		int i;
 		
 		for (i = 0, curedge = v->e; i < len; i++) {
-			if (BMO_TestFlag(bm, curedge, oflag))
+			if (BMO_elem_flag_test(bm, curedge, oflag))
 				count++;
 			curedge = bmesh_disk_nextedge(curedge, v);
 		}
@@ -787,10 +787,10 @@ int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, const short oflag)
  *
  * Flags elements in a slots buffer
  */
-void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_buffer_flag(BMesh *bm, BMOperator *op, const char *slotname,
                      const short oflag, const char htype)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
@@ -798,7 +798,7 @@ void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
 		if (!(htype & data[i]->htype))
 			continue;
 
-		BMO_SetFlag(bm, data[i], oflag);
+		BMO_elem_flag_set(bm, data[i], oflag);
 	}
 }
 
@@ -808,10 +808,10 @@ void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
  *
  * Removes flags from elements in a slots buffer
  */
-void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
+void BMO_slot_buffer_flag_clear(BMesh *bm, BMOperator *op, const char *slotname,
                        const short oflag, const char htype)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
@@ -819,7 +819,7 @@ void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
 		if (!(htype & data[i]->htype))
 			continue;
 
-		BMO_ClearFlag(bm, data[i], oflag);
+		BMO_elem_flag_clear(bm, data[i], oflag);
 	}
 }
 
@@ -859,23 +859,23 @@ static void alloc_flag_layer(BMesh *bm)
 	bm->toolflagpool = newpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, FALSE, FALSE);
 	
 	/* now go through and memcpy all the flags. Loops don't get a flag layer at this time.. */
-	for (ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		oldflags = ele->flags;
 		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, old_totflags_size);
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		oldflags = ele->flags;
 		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, old_totflags_size);
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		oldflags = ele->flags;
 		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, old_totflags_size);
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
 
 	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
@@ -904,23 +904,23 @@ static void free_flag_layer(BMesh *bm)
 	bm->toolflagpool = newpool = BLI_mempool_create(new_totflags_size, 512, 512, TRUE, FALSE);
 	
 	/* now go through and memcpy all the flag */
-	for (ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		oldflags = ele->flags;
 		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, new_totflags_size);
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		oldflags = ele->flags;
 		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, new_totflags_size);
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		oldflags = ele->flags;
 		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, new_totflags_size);
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
 
 	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
@@ -939,25 +939,25 @@ static void clear_flag_layer(BMesh *bm)
 	const int totflags_offset = bm->totflags - 1;
 
 	/* now go through and memcpy all the flag */
-	for (ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		memset(ele->flags + totflags_offset, 0, sizeof(BMFlagLayer));
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		memset(ele->flags + totflags_offset, 0, sizeof(BMFlagLayer));
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
-	for (ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+	for (ele = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {
 		memset(ele->flags + totflags_offset, 0, sizeof(BMFlagLayer));
-		BM_SetIndex(ele, i); /* set_inline */
+		BM_elem_index_set(ele, i); /* set_inline */
 	}
 
 	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
 }
 
-void *BMO_FirstElem(BMOperator *op, const char *slotname)
+void *BMO_slot_elem_first(BMOperator *op, const char *slotname)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	
 	if (slot->slottype != BMOP_OPSLOT_ELEMENT_BUF)
 		return NULL;
@@ -965,10 +965,10 @@ void *BMO_FirstElem(BMOperator *op, const char *slotname)
 	return slot->data.buf ? *(void **)slot->data.buf : NULL;
 }
 
-void *BMO_IterNew(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
+void *BMO_iter_new(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
                   const char *slotname, const char restrictmask)
 {
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	memset(iter, 0, sizeof(BMOIter));
 
@@ -985,10 +985,10 @@ void *BMO_IterNew(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
 		}
 	}
 
-	return BMO_IterStep(iter);
+	return BMO_iter_step(iter);
 }
 
-void *BMO_IterStep(BMOIter *iter)
+void *BMO_iter_step(BMOIter *iter)
 {
 	if (iter->slot->slottype == BMOP_OPSLOT_ELEMENT_BUF) {
 		BMHeader *h;
@@ -1024,17 +1024,17 @@ void *BMO_IterStep(BMOIter *iter)
 }
 
 /* used for iterating over mapping */
-void *BMO_IterMapVal(BMOIter *iter)
+void *BMO_iter_map_value(BMOIter *iter)
 {
 	return iter->val;
 }
 
-void *BMO_IterMapValp(BMOIter *iter)
+void *BMO_iter_map_value_p(BMOIter *iter)
 {
 	return *((void **)iter->val);
 }
 
-float BMO_IterMapValf(BMOIter *iter)
+float BMO_iter_map_value_f(BMOIter *iter)
 {
 	return *((float *)iter->val);
 }
@@ -1047,12 +1047,12 @@ typedef struct BMOpError {
 	const char *msg;
 } BMOpError;
 
-void BMO_ClearStack(BMesh *bm)
+void BMO_error_clear(BMesh *bm)
 {
-	while (BMO_PopError(bm, NULL, NULL));
+	while (BMO_error_pop(bm, NULL, NULL));
 }
 
-void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
+void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 {
 	BMOpError *err = MEM_callocN(sizeof(BMOpError), "bmop_error");
 	
@@ -1064,13 +1064,13 @@ void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 	BLI_addhead(&bm->errorstack, err);
 }
 
-int BMO_HasError(BMesh *bm)
+int BMO_error_occurred(BMesh *bm)
 {
 	return bm->errorstack.first != NULL;
 }
 
 /* returns error code or 0 if no erro */
-int BMO_GetError(BMesh *bm, const char **msg, BMOperator **op)
+int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op)
 {
 	BMOpError *err = bm->errorstack.first;
 	if (!err) {
@@ -1083,9 +1083,9 @@ int BMO_GetError(BMesh *bm, const char **msg, BMOperator **op)
 	return err->errorcode;
 }
 
-int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op)
+int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op)
 {
-	int errorcode = BMO_GetError(bm, msg, op);
+	int errorcode = BMO_error_get(bm, msg, op);
 	
 	if (errorcode) {
 		BMOpError *err = bm->errorstack.first;
@@ -1150,7 +1150,7 @@ static int bmesh_opname_to_opcode(const char *opname)
 	return -1;
 }
 
-int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
+int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 {
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt;
@@ -1183,7 +1183,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		return FALSE;
 	}
 
-	BMO_Init_Op(bm, op, opname);
+	BMO_op_init(bm, op, opname);
 	def = opdefines[i];
 	
 	i = 0;
@@ -1231,18 +1231,18 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					else if (c == '4') size = 4;
 					else GOTO_ERROR;
 
-					BMO_Set_Mat(op, slotname, va_arg(vlist, void *), size);
+					BMO_slot_mat_set(op, slotname, va_arg(vlist, void *), size);
 					state = 1;
 					break;
 				}
 				case 'v': {
-					BMO_Set_Vec(op, slotname, va_arg(vlist, float *));
+					BMO_slot_vec_set(op, slotname, va_arg(vlist, float *));
 					state = 1;
 					break;
 				}
 				case 'e': {
 					BMHeader *ele = va_arg(vlist, void *);
-					BMOpSlot *slot = BMO_GetSlot(op, slotname);
+					BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 					slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void *) * 4);
 					slot->len = 1;
@@ -1255,17 +1255,17 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					BMOperator *op2 = va_arg(vlist, void *);
 					const char *slotname2 = va_arg(vlist, char *);
 
-					BMO_CopySlot(op2, op, slotname2, slotname);
+					BMO_slot_copy(op2, op, slotname2, slotname);
 					state = 1;
 					break;
 				}
 				case 'i':
 				case 'd':
-					BMO_Set_Int(op, slotname, va_arg(vlist, int));
+					BMO_slot_int_set(op, slotname, va_arg(vlist, int));
 					state = 1;
 					break;
 				case 'p':
-					BMO_Set_Pnt(op, slotname, va_arg(vlist, void *));
+					BMO_slot_ptr_set(op, slotname, va_arg(vlist, void *));
 					state = 1;
 					break;
 				case 'f':
@@ -1274,7 +1274,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					type = *fmt;
 
 					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\t' || NEXT_CHAR(fmt) == '\0') {
-						BMO_Set_Float(op, slotname, va_arg(vlist, double));
+						BMO_slot_float_set(op, slotname, va_arg(vlist, double));
 					}
 					else {
 						ret = 0;
@@ -1296,13 +1296,13 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 						}
 
 						if (type == 'h') {
-							BMO_HeaderFlag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_from_hflag(bm, op, slotname, va_arg(vlist, int), ret);
 						}
 						else if (type == 'a') {
-							BMO_All_To_Slot(bm, op, slotname, ret);
+							BMO_slot_from_all(bm, op, slotname, ret);
 						}
 						else {
-							BMO_Flag_To_Slot(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_from_flag(bm, op, slotname, va_arg(vlist, int), ret);
 						}
 					}
 
@@ -1328,7 +1328,7 @@ error:
 	        __func__, (int)(fmt - ofmt), _fmt, __FILE__, lineno);
 	MEM_freeN(ofmt);
 
-	BMO_Finish_Op(bm, op);
+	BMO_op_finish(bm, op);
 	return FALSE;
 
 #undef GOTO_ERROR
@@ -1336,12 +1336,12 @@ error:
 }
 
 
-int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...)
+int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...)
 {
 	va_list list;
 
 	va_start(list, fmt);
-	if (!BMO_VInitOpf(bm, op, fmt, list)) {
+	if (!BMO_op_vinitf(bm, op, fmt, list)) {
 		printf("%s: failed\n", __func__);
 		va_end(list);
 		return FALSE;
@@ -1351,20 +1351,20 @@ int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...)
 	return TRUE;
 }
 
-int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
+int BMO_op_callf(BMesh *bm, const char *fmt, ...)
 {
 	va_list list;
 	BMOperator op;
 
 	va_start(list, fmt);
-	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
+	if (!BMO_op_vinitf(bm, &op, fmt, list)) {
 		printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
 		va_end(list);
 		return FALSE;
 	}
 
-	BMO_Exec_Op(bm, &op);
-	BMO_Finish_Op(bm, &op);
+	BMO_op_exec(bm, &op);
+	BMO_op_finish(bm, &op);
 
 	va_end(list);
 	return TRUE;
@@ -1375,10 +1375,10 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
  *
  * Toggles a flag for a certain element
  */
-#ifdef BMO_ToggleFlag
-#undef BMO_ToggleFlag
+#ifdef BMO_elem_flag_toggle
+#undef BMO_elem_flag_toggle
 #endif
-static void BMO_ToggleFlag(BMesh *bm, void *element, const short oflag)
+static void BMO_elem_flag_toggle(BMesh *bm, void *element, const short oflag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth - 1].f ^= oflag;
@@ -1389,10 +1389,10 @@ static void BMO_ToggleFlag(BMesh *bm, void *element, const short oflag)
  *
  * Sets a flag for a certain element
  */
-#ifdef BMO_SetFlag
-#undef BMO_SetFlag
+#ifdef BMO_elem_flag_set
+#undef BMO_elem_flag_set
 #endif
-static void BMO_SetFlag(BMesh *bm, void *element, const short oflag)
+static void BMO_elem_flag_set(BMesh *bm, void *element, const short oflag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth - 1].f |= oflag;
@@ -1403,10 +1403,10 @@ static void BMO_SetFlag(BMesh *bm, void *element, const short oflag)
  *
  * Clears a specific flag from a given element
  */
-#ifdef BMO_ClearFlag
-#undef BMO_ClearFlag
+#ifdef BMO_elem_flag_clear
+#undef BMO_elem_flag_clear
 #endif
-static void BMO_ClearFlag(BMesh *bm, void *element, const short oflag)
+static void BMO_elem_flag_clear(BMesh *bm, void *element, const short oflag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth - 1].f &= ~oflag;
@@ -1418,10 +1418,10 @@ static void BMO_ClearFlag(BMesh *bm, void *element, const short oflag)
  * Tests whether or not a flag is set for a specific element
  *
  */
-#ifdef BMO_TestFlag
-#undef BMO_TestFlag
+#ifdef BMO_elem_flag_test
+#undef BMO_elem_flag_test
 #endif
-static int BMO_TestFlag(BMesh *bm, void *element, const short oflag)
+static int BMO_elem_flag_test(BMesh *bm, void *element, const short oflag)
 {
 	BMHeader *head = element;
 	if (head->flags[bm->stackdepth - 1].f & oflag)

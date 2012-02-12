@@ -68,7 +68,7 @@ static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
  *
  */
 
-BMVert *BM_Make_Vert(BMesh *bm, float co[3], BMVert *example)
+BMVert *BM_vert_create(BMesh *bm, float co[3], BMVert *example)
 {
 	BMVert *v = NULL;
 	v = bmesh_mv(bm, co);
@@ -92,12 +92,12 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], BMVert *example)
  *
  */
 
-BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nodouble)
+BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nodouble)
 {
 	BMEdge *e = NULL;
 	
 	if (nodouble) /* test if edge already exists. */
-		e = BM_Edge_Exist(v1, v2);
+		e = BM_edge_exists(v1, v2);
 
 	if (!e) {
 		e = bmesh_me(bm, v1, v2);
@@ -127,57 +127,57 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
  * by the order of the vertices in the vertex array
  */
 
-BMFace *BM_Make_Face_QuadTri(BMesh *bm,
+BMFace *BM_face_create_quad_tri(BMesh *bm,
                              BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
                              const BMFace *example, const int nodouble)
 {
 	BMVert *vtar[4] = {v1, v2, v3, v4};
-	return BM_Make_Face_QuadTri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
+	return BM_face_create_quad_tri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
 }
 
 /* remove the edge array bits from this. Its not really needed? */
-BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
+BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
 {
 	BMEdge *edar[4] = {NULL};
 	BMFace *f = NULL;
 	int overlap = 0;
 
-	edar[0] = BM_Edge_Exist(verts[0], verts[1]);
-	edar[1] = BM_Edge_Exist(verts[1], verts[2]);
+	edar[0] = BM_edge_exists(verts[0], verts[1]);
+	edar[1] = BM_edge_exists(verts[1], verts[2]);
 	if (len == 4) {
-		edar[2] = BM_Edge_Exist(verts[2], verts[3]);
-		edar[3] = BM_Edge_Exist(verts[3], verts[0]);
+		edar[2] = BM_edge_exists(verts[2], verts[3]);
+		edar[3] = BM_edge_exists(verts[3], verts[0]);
 	}
 	else {
-		edar[2] = BM_Edge_Exist(verts[2], verts[0]);
+		edar[2] = BM_edge_exists(verts[2], verts[0]);
 	}
 
 	if (nodouble) {
 		/* check if face exists or overlaps */
 		if (len == 4) {
-			overlap = BM_Exist_Face_Overlaps(bm, verts, len, &f);
+			overlap = BM_face_exists_overlap(bm, verts, len, &f);
 		}
 		else {
-			overlap = BM_Exist_Face_Overlaps(bm, verts, len, &f);
+			overlap = BM_face_exists_overlap(bm, verts, len, &f);
 		}
 	}
 
 	/* make new face */
 	if ((!f) && (!overlap)) {
-		if (!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, FALSE);
-		if (!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, FALSE);
+		if (!edar[0]) edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, FALSE);
+		if (!edar[1]) edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, FALSE);
 		if (len == 4) {
-			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, FALSE);
-			if (!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, FALSE);
+			if (!edar[2]) edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, FALSE);
+			if (!edar[3]) edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, FALSE);
 		}
 		else {
-			if (!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, FALSE);
+			if (!edar[2]) edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, FALSE);
 		}
 
-		f = BM_Make_Face(bm, verts, edar, len, FALSE);
+		f = BM_face_create(bm, verts, edar, len, FALSE);
 
 		if (example && f) {
-			BM_Copy_Attributes(bm, bm, example, f);
+			BM_elem_copy_attrs(bm, bm, example, f);
 		}
 	}
 
@@ -186,15 +186,15 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace 
 
 
 /* copies face data from shared adjacent faces */
-void BM_Face_CopyShared(BMesh *bm, BMFace *f)
+void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
 	BMIter iter;
 	BMLoop *l, *l2;
 
 	if (!f) return;
 
-	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l = BMIter_Step(&iter)) {
+	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for ( ; l; l = BM_iter_step(&iter)) {
 		l2 = l->radial_next;
 		
 		if (l2 && l2 != l) {
@@ -220,10 +220,10 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f)
  *
  * Note that while this function will work fine when the edges
  * are already sorted, if the edges are always going to be sorted,
- * BM_Make_Face should be considered over this function as it
+ * BM_face_create should be considered over this function as it
  * avoids some unnecessary work.
  */
-BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
+BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
 {
 	BMEdge **edges2 = NULL;
 	BLI_array_staticdeclare(edges2, BM_NGON_STACK_SIZE);
@@ -235,7 +235,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	int i, /* j, */ v1found, reverse;
 
 	/* this code is hideous, yeek.  I'll have to think about ways of
-	 *  cleaning it up.  basically, it now combines the old BM_Make_Ngon
+	 *  cleaning it up.  basically, it now combines the old BM_face_create_ngon
 	 *  _and_ the old bmesh_mf functions, so its kindof smashed together
 	 * - joeedh */
 
@@ -269,7 +269,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 		do {
 			e2 = bmesh_disk_nextedge(e2, v);
 			if (e2 != e && bmesh_api_getflag(e2, _FLAG_MF)) {
-				v = BM_OtherEdgeVert(e2, v);
+				v = BM_edge_other_vert(e2, v);
 				break;
 			}
 		} while (e2 != e);
@@ -288,12 +288,12 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	 * in the correct direction */
 	v1found = reverse = FALSE;
 	for (i = 0; i < len; i++) {
-		if (BM_Vert_In_Edge(edges2[i], v1)) {
+		if (BM_vert_in_edge(edges2[i], v1)) {
 			/* see if v1 and v2 are in the same edge */
-			if (BM_Vert_In_Edge(edges2[i], v2)) {
+			if (BM_vert_in_edge(edges2[i], v2)) {
 				/* if v1 is shared by the *next* edge, then the winding
 				 * is incorrect */
-				if (BM_Vert_In_Edge(edges2[(i + 1) % len], v1)) {
+				if (BM_vert_in_edge(edges2[(i + 1) % len], v1)) {
 					reverse = TRUE;
 					break;
 				}
@@ -302,7 +302,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 			v1found = TRUE;
 		}
 
-		if ((v1found == FALSE) && BM_Vert_In_Edge(edges2[i], v2)) {
+		if ((v1found == FALSE) && BM_vert_in_edge(edges2[i], v2)) {
 			reverse = TRUE;
 			break;
 		}
@@ -317,13 +317,13 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	}
 
 	for (i = 0; i < len; i++) {
-		edges2[i] = BM_Edge_Exist(verts[i], verts[(i + 1) % len]);
+		edges2[i] = BM_edge_exists(verts[i], verts[(i + 1) % len]);
 		if (!edges2[i]) {
 			goto err;
 		}
 	}
 
-	f = BM_Make_Face(bm, verts, edges2, len, nodouble);
+	f = BM_face_create(bm, verts, edges2, len, nodouble);
 
 	/* clean up flags */
 	for (i = 0; i < len; i++) {
@@ -364,8 +364,8 @@ void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 	BMIter iter;
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, f, oflag)) {
-			BM_Kill_Face(bm, f);
+		if (BMO_elem_flag_test(bm, f, oflag)) {
+			BM_face_kill(bm, f);
 		}
 	}
 }
@@ -376,8 +376,8 @@ void BMO_remove_tagged_edges(BMesh *bm, const short oflag)
 	BMIter iter;
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, e, oflag)) {
-			BM_Kill_Edge(bm, e);
+		if (BMO_elem_flag_test(bm, e, oflag)) {
+			BM_edge_kill(bm, e);
 		}
 	}
 }
@@ -388,8 +388,8 @@ void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
 	BMIter iter;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, v, oflag)) {
-			BM_Kill_Vert(bm, v);
+		if (BMO_elem_flag_test(bm, v, oflag)) {
+			BM_vert_kill(bm, v);
 		}
 	}
 }
@@ -414,14 +414,14 @@ static void bmo_remove_tagged_context_verts(BMesh *bm, const short oflag)
 	BMIter edges;
 	BMIter faces;
 
-	for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
-		if (BMO_TestFlag(bm, (BMHeader *)v, oflag)) {
+	for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts)) {
+		if (BMO_elem_flag_test(bm, (BMHeader *)v, oflag)) {
 			/* Visit edge */
-			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_VERT, v); e; e = BMIter_Step(&edges))
-				BMO_SetFlag(bm, (BMHeader *)e, oflag);
+			for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_VERT, v); e; e = BM_iter_step(&edges))
+				BMO_elem_flag_set(bm, (BMHeader *)e, oflag);
 			/* Visit face */
-			for (f = BMIter_New(&faces, bm, BM_FACES_OF_VERT, v); f; f = BMIter_Step(&faces))
-				BMO_SetFlag(bm, (BMHeader *)f, oflag);
+			for (f = BM_iter_new(&faces, bm, BM_FACES_OF_VERT, v); f; f = BM_iter_step(&faces))
+				BMO_elem_flag_set(bm, (BMHeader *)f, oflag);
 		}
 	}
 
@@ -438,10 +438,10 @@ static void bmo_remove_tagged_context_edges(BMesh *bm, const short oflag)
 	BMIter edges;
 	BMIter faces;
 
-	for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
-		if (BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
-			for (f = BMIter_New(&faces, bm, BM_FACES_OF_EDGE, e); f; f = BMIter_Step(&faces)) {
-				BMO_SetFlag(bm, (BMHeader *)f, oflag);
+	for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
+		if (BMO_elem_flag_test(bm, (BMHeader *)e, oflag)) {
+			for (f = BM_iter_new(&faces, bm, BM_FACES_OF_EDGE, e); f; f = BM_iter_step(&faces)) {
+				BMO_elem_flag_set(bm, (BMHeader *)f, oflag);
 			}
 		}
 	}
@@ -473,17 +473,17 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_EDGES:
 		{
 			/* flush down to vert */
-			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
-				if (BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
-					BMO_SetFlag(bm, (BMHeader *)(e->v1), oflag);
-					BMO_SetFlag(bm, (BMHeader *)(e->v2), oflag);
+			for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
+				if (BMO_elem_flag_test(bm, (BMHeader *)e, oflag)) {
+					BMO_elem_flag_set(bm, (BMHeader *)(e->v1), oflag);
+					BMO_elem_flag_set(bm, (BMHeader *)(e->v2), oflag);
 				}
 			}
 			bmo_remove_tagged_context_edges(bm, oflag);
 			/* remove loose vertice */
-			for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
-				if (BMO_TestFlag(bm, (BMHeader *)v, oflag) && (!(v->e)))
-					BMO_SetFlag(bm, (BMHeader *)v, DEL_WIREVERT);
+			for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts)) {
+				if (BMO_elem_flag_test(bm, (BMHeader *)v, oflag) && (!(v->e)))
+					BMO_elem_flag_set(bm, (BMHeader *)v, DEL_WIREVERT);
 			}
 			BMO_remove_tagged_verts(bm, DEL_WIREVERT);
 
@@ -512,30 +512,30 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_FACES:
 		{
 			/* go through and mark all edges and all verts of all faces for delet */
-			for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
-				if (BMO_TestFlag(bm, (BMHeader *)f, oflag)) {
-					for (e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges))
-						BMO_SetFlag(bm, (BMHeader *)e, oflag);
-					for (v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts))
-						BMO_SetFlag(bm, (BMHeader *)v, oflag);
+			for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces)) {
+				if (BMO_elem_flag_test(bm, (BMHeader *)f, oflag)) {
+					for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&edges))
+						BMO_elem_flag_set(bm, (BMHeader *)e, oflag);
+					for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&verts))
+						BMO_elem_flag_set(bm, (BMHeader *)v, oflag);
 				}
 			}
 			/* now go through and mark all remaining faces all edges for keeping */
-			for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
-				if (!BMO_TestFlag(bm, (BMHeader *)f, oflag)) {
-					for (e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges)) {
-						BMO_ClearFlag(bm, (BMHeader *)e, oflag);
+			for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces)) {
+				if (!BMO_elem_flag_test(bm, (BMHeader *)f, oflag)) {
+					for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&edges)) {
+						BMO_elem_flag_clear(bm, (BMHeader *)e, oflag);
 					}
-					for (v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts)) {
-						BMO_ClearFlag(bm, (BMHeader *)v, oflag);
+					for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&verts)) {
+						BMO_elem_flag_clear(bm, (BMHeader *)v, oflag);
 					}
 				}
 			}
 			/* also mark all the vertices of remaining edges for keeping */
-			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
-				if (!BMO_TestFlag(bm, (BMHeader *)e, oflag)) {
-					BMO_ClearFlag(bm, (BMHeader *)e->v1, oflag);
-					BMO_ClearFlag(bm, (BMHeader *)e->v2, oflag);
+			for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
+				if (!BMO_elem_flag_test(bm, (BMHeader *)e, oflag)) {
+					BMO_elem_flag_clear(bm, (BMHeader *)e->v1, oflag);
+					BMO_elem_flag_clear(bm, (BMHeader *)e->v2, oflag);
 				}
 			}
 			/* now delete marked face */
@@ -550,12 +550,12 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		case DEL_ALL:
 		{
 			/* does this option even belong in here? */
-			for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces))
-				BMO_SetFlag(bm, (BMHeader *)f, oflag);
-			for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges))
-				BMO_SetFlag(bm, (BMHeader *)e, oflag);
-			for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts))
-				BMO_SetFlag(bm, (BMHeader *)v, oflag);
+			for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces))
+				BMO_elem_flag_set(bm, (BMHeader *)f, oflag);
+			for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges))
+				BMO_elem_flag_set(bm, (BMHeader *)e, oflag);
+			for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts))
+				BMO_elem_flag_set(bm, (BMHeader *)v, oflag);
 
 			BMO_remove_tagged_faces(bm, oflag);
 			BMO_remove_tagged_edges(bm, oflag);
@@ -622,7 +622,7 @@ static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh,
 
 /* BMESH_TODO: Special handling for hide flags? */
 
-void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
+void BM_elem_copy_attrs(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
 {
 	const BMHeader *sheader = source;
 	BMHeader *theader = target;
@@ -631,7 +631,7 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 		return;
 
 	/* First we copy select */
-	if (BM_Selected(source_mesh, source)) BM_Select(target_mesh, target, TRUE);
+	if (BM_elem_select_test(source_mesh, source)) BM_elem_select_set(target_mesh, target, TRUE);
 	
 	/* Now we copy flags */
 	theader->hflag = sheader->hflag;
@@ -647,7 +647,7 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 		bm_copy_face_attributes(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
 }
 
-BMesh *BM_Copy_Mesh(BMesh *bmold)
+BMesh *BM_mesh_copy(BMesh *bmold)
 {
 	BMesh *bm;
 	BMVert *v, *v2, **vtable = NULL;
@@ -662,7 +662,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	int i, j;
 
 	/* allocate a bmesh */
-	bm = BM_Make_Mesh(bmold->ob, allocsize);
+	bm = BM_mesh_create(bmold->ob, allocsize);
 
 	CustomData_copy(&bmold->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmold->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -674,17 +674,17 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
 	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
 
-	vtable = MEM_mallocN(sizeof(BMVert *) * bmold->totvert, "BM_Copy_Mesh vtable");
-	etable = MEM_mallocN(sizeof(BMEdge *) * bmold->totedge, "BM_Copy_Mesh etable");
-	ftable = MEM_mallocN(sizeof(BMFace *) * bmold->totface, "BM_Copy_Mesh ftable");
+	vtable = MEM_mallocN(sizeof(BMVert *) * bmold->totvert, "BM_mesh_copy vtable");
+	etable = MEM_mallocN(sizeof(BMEdge *) * bmold->totedge, "BM_mesh_copy etable");
+	ftable = MEM_mallocN(sizeof(BMFace *) * bmold->totface, "BM_mesh_copy ftable");
 
-	v = BMIter_New(&iter, bmold, BM_VERTS_OF_MESH, NULL);
-	for (i = 0; v; v = BMIter_Step(&iter), i++) {
-		v2 = BM_Make_Vert(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
-		BM_Copy_Attributes(bmold, bm, v, v2);
+	v = BM_iter_new(&iter, bmold, BM_VERTS_OF_MESH, NULL);
+	for (i = 0; v; v = BM_iter_step(&iter), i++) {
+		v2 = BM_vert_create(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
+		BM_elem_copy_attrs(bmold, bm, v, v2);
 		vtable[i] = v2;
-		BM_SetIndex(v, i); /* set_inline */
-		BM_SetIndex(v2, i); /* set_inline */
+		BM_elem_index_set(v, i); /* set_inline */
+		BM_elem_index_set(v2, i); /* set_inline */
 	}
 	bmold->elem_index_dirty &= ~BM_VERT;
 	bm->elem_index_dirty &= ~BM_VERT;
@@ -692,17 +692,17 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	/* safety check */
 	BLI_assert(i == bmold->totvert);
 	
-	e = BMIter_New(&iter, bmold, BM_EDGES_OF_MESH, NULL);
-	for (i = 0; e; e = BMIter_Step(&iter), i++) {
-		e2 = BM_Make_Edge(bm,
-		                  vtable[BM_GetIndex(e->v1)],
-		                  vtable[BM_GetIndex(e->v2)],
+	e = BM_iter_new(&iter, bmold, BM_EDGES_OF_MESH, NULL);
+	for (i = 0; e; e = BM_iter_step(&iter), i++) {
+		e2 = BM_edge_create(bm,
+		                  vtable[BM_elem_index_get(e->v1)],
+		                  vtable[BM_elem_index_get(e->v2)],
 		                  e, FALSE);
 
-		BM_Copy_Attributes(bmold, bm, e, e2);
+		BM_elem_copy_attrs(bmold, bm, e, e2);
 		etable[i] = e2;
-		BM_SetIndex(e, i); /* set_inline */
-		BM_SetIndex(e2, i); /* set_inline */
+		BM_elem_index_set(e, i); /* set_inline */
+		BM_elem_index_set(e2, i); /* set_inline */
 	}
 	bmold->elem_index_dirty &= ~BM_EDGE;
 	bm->elem_index_dirty &= ~BM_EDGE;
@@ -710,43 +710,43 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	/* safety check */
 	BLI_assert(i == bmold->totedge);
 	
-	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
-	for (i = 0; f; f = BMIter_Step(&iter), i++) {
-		BM_SetIndex(f, i); /* set_inline */
+	f = BM_iter_new(&iter, bmold, BM_FACES_OF_MESH, NULL);
+	for (i = 0; f; f = BM_iter_step(&iter), i++) {
+		BM_elem_index_set(f, i); /* set_inline */
 
 		BLI_array_empty(loops);
 		BLI_array_empty(edges);
 		BLI_array_growitems(loops, f->len);
 		BLI_array_growitems(edges, f->len);
 
-		l = BMIter_New(&liter, bmold, BM_LOOPS_OF_FACE, f);
-		for (j = 0; j < f->len; j++, l = BMIter_Step(&liter)) {
+		l = BM_iter_new(&liter, bmold, BM_LOOPS_OF_FACE, f);
+		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
 			loops[j] = l;
-			edges[j] = etable[BM_GetIndex(l->e)];
+			edges[j] = etable[BM_elem_index_get(l->e)];
 		}
 
-		v = vtable[BM_GetIndex(loops[0]->v)];
-		v2 = vtable[BM_GetIndex(loops[1]->v)];
+		v = vtable[BM_elem_index_get(loops[0]->v)];
+		v2 = vtable[BM_elem_index_get(loops[1]->v)];
 
 		if (!bmesh_verts_in_edge(v, v2, edges[0])) {
-			v = vtable[BM_GetIndex(loops[BLI_array_count(loops) - 1]->v)];
-			v2 = vtable[BM_GetIndex(loops[0]->v)];
+			v = vtable[BM_elem_index_get(loops[BLI_array_count(loops) - 1]->v)];
+			v2 = vtable[BM_elem_index_get(loops[0]->v)];
 		}
 
-		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, FALSE);
+		f2 = BM_face_create_ngon(bm, v, v2, edges, f->len, FALSE);
 		if (!f2)
 			continue;
 		/* use totface incase adding some faces fails */
-		BM_SetIndex(f2, (bm->totface - 1)); /* set_inline */
+		BM_elem_index_set(f2, (bm->totface - 1)); /* set_inline */
 
 		ftable[i] = f2;
 
-		BM_Copy_Attributes(bmold, bm, f, f2);
+		BM_elem_copy_attrs(bmold, bm, f, f2);
 		copy_v3_v3(f2->no, f->no);
 
-		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f2);
-		for (j = 0; j < f->len; j++, l = BMIter_Step(&liter)) {
-			BM_Copy_Attributes(bmold, bm, loops[j], l);
+		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f2);
+		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
+			BM_elem_copy_attrs(bmold, bm, loops[j], l);
 		}
 
 		if (f == bmold->act_face) bm->act_face = f2;
@@ -762,18 +762,18 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		void *ele = NULL;
 
 		if (ese->htype == BM_VERT)
-			ele = vtable[BM_GetIndex(ese->data)];
+			ele = vtable[BM_elem_index_get(ese->data)];
 		else if (ese->htype == BM_EDGE)
-			ele = etable[BM_GetIndex(ese->data)];
+			ele = etable[BM_elem_index_get(ese->data)];
 		else if (ese->htype == BM_FACE) {
-			ele = ftable[BM_GetIndex(ese->data)];
+			ele = ftable[BM_elem_index_get(ese->data)];
 		}
 		else {
 			BLI_assert(0);
 		}
 		
 		if (ele)
-			BM_store_selection(bm, ele);
+			BM_select_history_store(bm, ele);
 	}
 
 	MEM_freeN(etable);
@@ -787,13 +787,13 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 }
 
 /* ME -> BM */
-char BM_Vert_Flag_From_MEFlag(const char  meflag)
+char BM_vert_flag_from_mflag(const char  meflag)
 {
 	return ( ((meflag & SELECT)       ? BM_ELEM_SELECT : 0) |
 	         ((meflag & ME_HIDE)      ? BM_ELEM_HIDDEN : 0)
 	         );
 }
-char BM_Edge_Flag_From_MEFlag(const short meflag)
+char BM_edge_flag_from_mflag(const short meflag)
 {
 	return ( ((meflag & SELECT)       ? BM_ELEM_SELECT : 0) |
 	         ((meflag & ME_SEAM)      ? BM_ELEM_SEAM   : 0) |
@@ -801,7 +801,7 @@ char BM_Edge_Flag_From_MEFlag(const short meflag)
 	         ((meflag & ME_HIDE)      ? BM_ELEM_HIDDEN : 0)
 	         );
 }
-char BM_Face_Flag_From_MEFlag(const char  meflag)
+char BM_face_flag_from_mflag(const char  meflag)
 {
 	return ( ((meflag & ME_FACE_SEL)  ? BM_ELEM_SELECT : 0) |
 	         ((meflag & ME_SMOOTH)    ? BM_ELEM_SMOOTH : 0) |
@@ -810,7 +810,7 @@ char BM_Face_Flag_From_MEFlag(const char  meflag)
 }
 
 /* BM -> ME */
-char  BM_Vert_Flag_To_MEFlag(BMVert *eve)
+char  BM_vert_flag_to_mflag(BMVert *eve)
 {
 	const char hflag = eve->head.hflag;
 
@@ -818,7 +818,7 @@ char  BM_Vert_Flag_To_MEFlag(BMVert *eve)
 	         ((hflag & BM_ELEM_HIDDEN)  ? ME_HIDE : 0)
 	         );
 }
-short BM_Edge_Flag_To_MEFlag(BMEdge *eed)
+short BM_edge_flag_to_mflag(BMEdge *eed)
 {
 	const char hflag = eed->head.hflag;
 
@@ -826,11 +826,11 @@ short BM_Edge_Flag_To_MEFlag(BMEdge *eed)
 	         ((hflag & BM_ELEM_SEAM)         ? ME_SEAM   : 0) |
 	         ((hflag & BM_ELEM_SHARP)        ? ME_SHARP  : 0) |
 	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE   : 0) |
-	         ((BM_Wire_Edge(NULL, eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
+	         ((BM_edge_is_wire(NULL, eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
 	         (ME_EDGEDRAW | ME_EDGERENDER)
 	         );
 }
-char  BM_Face_Flag_To_MEFlag(BMFace *efa)
+char  BM_face_flag_to_mflag(BMFace *efa)
 {
 	const char hflag = efa->head.hflag;
 
@@ -839,56 +839,3 @@ char  BM_Face_Flag_To_MEFlag(BMFace *efa)
 	         ((hflag & BM_ELEM_HIDDEN) ? ME_HIDE     : 0)
 	         );
 }
-
-/* unused, type spesific functions below */
-#if 0
-/*
-  BM FLAGS TO ME FLAGS
-
-  Returns the flags stored in element,
-  which much be either a BMVert, BMEdge,
-  or BMFace, converted to mesh flags.
- */
-short BMFlags_To_MEFlags(void *element)
-{
-	const char src_htype = ((BMHeader *)element)->htype;
-
-	if (src_htype == BM_FACE) {
-		return BM_Face_Flag_To_MEFlag(element);
-	}
-	else if (src_htype == BM_EDGE) {
-		return BM_Edge_Flag_To_MEFlag(element);
-	}
-	else if (src_htype == BM_VERT) {
-		return BM_Vert_Flag_To_MEFlag(element);
-	}
-	else {
-		return 0;
-	}
-}
-
-/*
-  BM FLAGS TO ME FLAGS
-
-  Returns the flags stored in element,
-  which much be either a MVert, MEdge,
-  or MPoly, converted to mesh flags.
-  type must be either BM_VERT, BM_EDGE,
-  or BM_FACE.
- */
-char MEFlags_To_BMFlags(const short hflag, const char htype)
-{
-	if (htype == BM_FACE) {
-		return BM_Face_Flag_From_MEFlag(hflag);
-	}
-	else if (htype == BM_EDGE) {
-		return BM_Edge_Flag_From_MEFlag(hflag);
-	}
-	else if (htype == BM_VERT) {
-		return BM_Vert_Flag_From_MEFlag(hflag);
-	}
-	else {
-		return 0;
-	}
-}
-#endif

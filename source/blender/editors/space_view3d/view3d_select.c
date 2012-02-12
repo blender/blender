@@ -171,11 +171,11 @@ static void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 	BMIter iter;
 	int index= bm_wireoffs;
 
-	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for ( ; eve; eve=BMIter_Step(&iter), index++) {
-		if(!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
+	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	for ( ; eve; eve=BM_iter_step(&iter), index++) {
+		if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
-				BM_Select_Vert(em->bm, eve, select);
+				BM_vert_select(em->bm, eve, select);
 			}
 		}
 	}
@@ -187,11 +187,11 @@ static void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 	BMIter iter;
 	int index= bm_solidoffs;
 
-	eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	for ( ; eed; eed=BMIter_Step(&iter), index++) {
-		if(!BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
+	eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+	for ( ; eed; eed=BM_iter_step(&iter), index++) {
+		if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
-				BM_Select_Edge(em->bm, eed, select);
+				BM_edge_select(em->bm, eed, select);
 			}
 		}
 	}
@@ -203,11 +203,11 @@ static void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 	BMIter iter;
 	int index= 1;
 
-	efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-	for ( ; efa; efa=BMIter_Step(&iter), index++) {
-		if(!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+	for ( ; efa; efa=BM_iter_step(&iter), index++) {
+		if(!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
-				BM_Select_Face(em->bm, efa, select);
+				BM_face_select(em->bm, efa, select);
 			}
 		}
 	}
@@ -473,7 +473,7 @@ static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, int 
 	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		BM_Select(data->vc->em->bm, eve, data->select);
+		BM_elem_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
 static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
@@ -485,12 +485,12 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int 
 			if (	edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
 					lasso_inside(data->mcords, data->moves, x0, y0) &&
 					lasso_inside(data->mcords, data->moves, x1, y1)) {
-				BM_Select(data->vc->em->bm, eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		} else {
 			if (lasso_inside_edge(data->mcords, data->moves, x0, y0, x1, y1)) {
-				BM_Select(data->vc->em->bm, eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
@@ -500,7 +500,7 @@ static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, int 
 	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		BM_Select(data->vc->em->bm, efa, data->select);
+		BM_elem_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 
@@ -1741,7 +1741,7 @@ static void do_mesh_box_select__doSelectVert(void *userData, BMVert *eve, int x,
 	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		BM_Select(data->vc->em->bm, eve, data->select);
+		BM_elem_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
 static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
@@ -1751,12 +1751,12 @@ static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0
 	if(EDBM_check_backbuf(bm_solidoffs+index)) {
 		if (data->pass==0) {
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
-				BM_Select(data->vc->em->bm, eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		} else {
 			if (edge_inside_rect(data->rect, x0, y0, x1, y1)) {
-				BM_Select(data->vc->em->bm, eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
@@ -1766,7 +1766,7 @@ static void do_mesh_box_select__doSelectFace(void *userData, BMFace *efa, int x,
 	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		BM_Select(data->vc->em->bm, efa, data->select);
+		BM_elem_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int extend)
@@ -2284,7 +2284,7 @@ static void mesh_circle_doSelectVert(void *userData, BMVert *eve, int x, int y, 
 	float r = sqrt(mx*mx + my*my);
 
 	if (r<=data->radius) {
-		BM_Select(data->vc->em->bm, eve, data->select);
+		BM_elem_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
 static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
@@ -2292,7 +2292,7 @@ static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, int x0, int y0
 	CircleSelectUserData *data = userData;
 
 	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
-		BM_Select(data->vc->em->bm, eed, data->select);
+		BM_elem_select_set(data->vc->em->bm, eed, data->select);
 	}
 }
 static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
@@ -2302,7 +2302,7 @@ static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, 
 	float r = sqrt(mx*mx + my*my);
 	
 	if (r<=data->radius) {
-		BM_Select(data->vc->em->bm, efa, data->select);
+		BM_elem_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 

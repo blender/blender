@@ -528,9 +528,9 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 	BMesh *bm;
 	int allocsize[4] = {512,512,2048,512};
 
-	bm = BM_Make_Mesh(ob, allocsize);
+	bm = BM_mesh_create(ob, allocsize);
 
-	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 1);
+	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 1);
 
 	return bm;
 }

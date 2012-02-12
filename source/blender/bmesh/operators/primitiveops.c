@@ -228,13 +228,13 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 	BMOperator bmop, prevop;
 	BMVert *eve, *preveve;
 	BMEdge *e;
-	float vec[3], mat[4][4], phi, phid, dia = BMO_Get_Float(op, "size");
-	int a, tot = BMO_Get_Int(op, "xsegments"), seg = BMO_Get_Int(op, "ysegments");
+	float vec[3], mat[4][4], phi, phid, dia = BMO_slot_float_get(op, "size");
+	int a, tot = BMO_slot_int_get(op, "xsegments"), seg = BMO_slot_int_get(op, "ysegments");
 
 	if (tot < 2) tot = 2;
 	if (seg < 2) seg = 2;
 
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	/* one segment first: the X axis */
 	phi = 1.0f;
@@ -245,12 +245,12 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 		vec[2] = 0.0f;
 		mul_m4_v3(mat, vec);
 
-		eve = BM_Make_Vert(bm, vec, NULL);
-		BM_Select(bm, eve, TRUE);
+		eve = BM_vert_create(bm, vec, NULL);
+		BM_elem_select_set(bm, eve, TRUE);
 
 		if (a) {
-			e = BM_Make_Edge(bm, preveve, eve, NULL, TRUE);
-			BMO_SetFlag(bm, e, EDGE_ORIG);
+			e = BM_edge_create(bm, preveve, eve, NULL, TRUE);
+			BMO_elem_flag_set(bm, e, EDGE_ORIG);
 		}
 
 		preveve = eve;
@@ -264,26 +264,26 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 
 	for (a = 0; a < seg - 1; a++) {
 		if (a) {
-			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
-			BMO_Exec_Op(bm, &bmop);
-			BMO_Finish_Op(bm, &prevop);
+			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
+			BMO_op_exec(bm, &bmop);
+			BMO_op_finish(bm, &prevop);
 
-			BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+			BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		}
 		else {
-			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
-			BMO_Exec_Op(bm, &bmop);
-			BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
+			BMO_op_exec(bm, &bmop);
+			BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		}
 
-		BMO_CallOpf(bm, "translate vec=%v verts=%s", vec, &bmop, "geomout");
+		BMO_op_callf(bm, "translate vec=%v verts=%s", vec, &bmop, "geomout");
 		prevop = bmop;
 	}
 
 	if (a)
-		BMO_Finish_Op(bm, &bmop);
+		BMO_op_finish(bm, &bmop);
 
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
@@ -293,10 +293,10 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BMIter iter;
 	float vec[3], mat[4][4], cmat[3][3], phi, q[4];
-	float phid, dia = BMO_Get_Float(op, "diameter");
-	int a, seg = BMO_Get_Int(op, "segments"), tot = BMO_Get_Int(op, "revolutions");
+	float phid, dia = BMO_slot_float_get(op, "diameter");
+	int a, seg = BMO_slot_int_get(op, "segments"), tot = BMO_slot_int_get(op, "revolutions");
 
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / tot;
 	phi = 0.25f * (float)M_PI;
@@ -309,12 +309,12 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		vec[0] = -dia * sinf(phi);
 		vec[1] = 0.0;
 		vec[2] = dia * cosf(phi);
-		eve = BM_Make_Vert(bm, vec, NULL);
-		BMO_SetFlag(bm, eve, VERT_MARK);
+		eve = BM_vert_create(bm, vec, NULL);
+		BMO_elem_flag_set(bm, eve, VERT_MARK);
 
 		if (a != 0) {
-			e = BM_Make_Edge(bm, preveve, eve, NULL, FALSE);
-			BMO_SetFlag(bm, e, EDGE_ORIG);
+			e = BM_edge_create(bm, preveve, eve, NULL, FALSE);
+			BMO_elem_flag_set(bm, e, EDGE_ORIG);
 		}
 
 		phi+= phid;
@@ -330,23 +330,23 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 
 	for (a = 0; a < seg; a++) {
 		if (a) {
-			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
-			BMO_Exec_Op(bm, &bmop);
-			BMO_Finish_Op(bm, &prevop);
+			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
+			BMO_op_exec(bm, &bmop);
+			BMO_op_finish(bm, &prevop);
 		}
 		else {
-			BMO_InitOpf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
-			BMO_Exec_Op(bm, &bmop);
+			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
+			BMO_op_exec(bm, &bmop);
 		}
 
-		BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
-		BMO_CallOpf(bm, "rotate cent=%v mat=%m3 verts=%s", vec, cmat, &bmop, "geomout");
+		BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+		BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s", vec, cmat, &bmop, "geomout");
 		
 		prevop = bmop;
 	}
 
 	if (a)
-		BMO_Finish_Op(bm, &bmop);
+		BMO_op_finish(bm, &bmop);
 
 	{
 		float len, len2, vec2[3];
@@ -362,17 +362,17 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		len2= len_v3v3(vec, vec2);
 
 		/* use shortest segment length divided by 3 as merge threshold */
-		BMO_CallOpf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
+		BMO_op_callf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
 	}
 
 	/* and now do imat */
 	BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, eve, VERT_MARK)) {
+		if (BMO_elem_flag_test(bm, eve, VERT_MARK)) {
 			mul_m4_v3(mat, eve->co);
 		}
 	}
 
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
@@ -381,10 +381,10 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	BMIter liter;
 	BMLoop *l;
 	float vec[3], mat[4][4] /* , phi, phid */;
-	float dia = BMO_Get_Float(op, "diameter");
-	int a, subdiv = BMO_Get_Int(op, "subdivisions");
+	float dia = BMO_slot_float_get(op, "diameter");
+	int a, subdiv = BMO_slot_int_get(op, "subdivisions");
 
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	/* phid = 2.0f * (float)M_PI / subdiv; */ /* UNUSED */
 	/* phi = 0.25f * (float)M_PI; */         /* UNUSED */
@@ -394,10 +394,10 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		vec[0] = dia * icovert[a][0];
 		vec[1] = dia * icovert[a][1];
 		vec[2] = dia * icovert[a][2];
-		eva[a] = BM_Make_Vert(bm, vec, NULL);
+		eva[a] = BM_vert_create(bm, vec, NULL);
 
 		mul_m4_v3(mat, eva[a]->co);
-		BM_Select(bm, eva[a], TRUE);
+		BM_elem_select_set(bm, eva[a], TRUE);
 	}
 
 	for (a = 0; a < 20; a++) {
@@ -408,13 +408,13 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		v2 = eva[icoface[a][1]];
 		v3 = eva[icoface[a][2]];
 
-		eftemp = BM_Make_Face_QuadTri(bm, v1, v2, v3, NULL, NULL, FALSE);
+		eftemp = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, FALSE);
 		
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, eftemp) {
-			BMO_SetFlag(bm, l->e, EDGE_MARK);
+			BMO_elem_flag_set(bm, l->e, EDGE_MARK);
 		}
 
-		BMO_SetFlag(bm, eftemp, FACE_MARK);
+		BMO_elem_flag_set(bm, eftemp, FACE_MARK);
 	}
 
 	dia *= 200.0f;
@@ -422,16 +422,16 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	for (a = 1; a < subdiv; a++) {
 		BMOperator bmop;
 
-		BMO_InitOpf(bm, &bmop,
+		BMO_op_initf(bm, &bmop,
 		            "esubd edges=%fe smooth=%f numcuts=%i gridfill=%i beauty=%i",
 		            EDGE_MARK, dia, 1, 1, B_SPHERE);
-		BMO_Exec_Op(bm, &bmop);
-		BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
-		BMO_Flag_Buffer(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
-		BMO_Finish_Op(bm, &bmop);
+		BMO_op_exec(bm, &bmop);
+		BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+		BMO_slot_buffer_flag(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
+		BMO_op_finish(bm, &bmop);
 	}
 
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
@@ -441,31 +441,31 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 	float mat[4][4];
 	int i;
 
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	for (i = 0; i < monkeynv; i++) {
 		float v[3];
 
 		v[0] = (monkeyv[i][0] + 127) / 128.0, v[1] = monkeyv[i][1] / 128.0, v[2] = monkeyv[i][2] / 128.0;
 
-		tv[i] = BM_Make_Vert(bm, v, NULL);
-		BMO_SetFlag(bm, tv[i], VERT_MARK);
+		tv[i] = BM_vert_create(bm, v, NULL);
+		BMO_elem_flag_set(bm, tv[i], VERT_MARK);
 
-		tv[monkeynv + i] = (fabsf(v[0] = -v[0]) < 0.001f) ? tv[i]: (eve = BM_Make_Vert(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
-		BMO_SetFlag(bm, tv[monkeynv + i], VERT_MARK);
+		tv[monkeynv + i] = (fabsf(v[0] = -v[0]) < 0.001f) ? tv[i]: (eve = BM_vert_create(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
+		BMO_elem_flag_set(bm, tv[monkeynv + i], VERT_MARK);
 
 		mul_m4_v3(mat, tv[i]->co);
 	}
 
 	for (i = 0; i < monkeynf; i++) {
-		BM_Make_Face_QuadTri(bm,
+		BM_face_create_quad_tri(bm,
 		                     tv[monkeyf[i][0] + i - monkeyo],
 		                     tv[monkeyf[i][1] + i - monkeyo],
 		                     tv[monkeyf[i][2] + i - monkeyo],
 		                     (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeyf[i][3] + i - monkeyo] : NULL,
 		                     NULL, FALSE);
 
-		BM_Make_Face_QuadTri(bm,
+		BM_face_create_quad_tri(bm,
 		                     tv[monkeynv + monkeyf[i][2] + i - monkeyo],
 		                     tv[monkeynv + monkeyf[i][1] + i - monkeyo],
 		                     tv[monkeynv + monkeyf[i][0] + i - monkeyo],
@@ -475,7 +475,7 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 
 	MEM_freeN(tv);
 
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 
@@ -483,15 +483,15 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
-	float dia = BMO_Get_Float(op, "diameter");
-	int cap_ends = BMO_Get_Int(op, "cap_ends"), segs = BMO_Get_Int(op, "segments");
-	int cap_tris = BMO_Get_Int(op, "cap_tris");
+	float dia = BMO_slot_float_get(op, "diameter");
+	int cap_ends = BMO_slot_int_get(op, "cap_ends"), segs = BMO_slot_int_get(op, "segments");
+	int cap_tris = BMO_slot_int_get(op, "cap_tris");
 	int a;
 	
 	if (!segs)
 		return;
 	
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
 	phi = .25f * (float)M_PI;
@@ -501,7 +501,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 		vec[2] = 0.0;
 		mul_m4_v3(mat, vec);
 		
-		cent1 = BM_Make_Vert(bm, vec, NULL);
+		cent1 = BM_vert_create(bm, vec, NULL);
 	}
 
 	for (a = 0; a < segs; a++, phi += phid) {
@@ -510,18 +510,18 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 		vec[1] = dia * cosf(phi);
 		vec[2] = 0.0f;
 		mul_m4_v3(mat, vec);
-		v1 = BM_Make_Vert(bm, vec, NULL);
+		v1 = BM_vert_create(bm, vec, NULL);
 
-		BMO_SetFlag(bm, v1, VERT_MARK);
+		BMO_elem_flag_set(bm, v1, VERT_MARK);
 		
 		if (lastv1)
-			BM_Make_Edge(bm, v1, lastv1, NULL, FALSE);
+			BM_edge_create(bm, v1, lastv1, NULL, FALSE);
 		
 		if (a && cap_ends) {
 			BMFace *f;
 			
-			f = BM_Make_Face_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
-			BMO_SetFlag(bm, f, FACE_NEW);
+			f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
+			BMO_elem_flag_set(bm, f, FACE_NEW);
 		}
 		
 		if (!firstv1)
@@ -533,37 +533,37 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (!a)
 		return;
 
-	BM_Make_Edge(bm, lastv1, firstv1, NULL, FALSE);
+	BM_edge_create(bm, lastv1, firstv1, NULL, FALSE);
 
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_Make_Face_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
-		BMO_SetFlag(bm, f, FACE_NEW);
+		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
+		BMO_elem_flag_set(bm, f, FACE_NEW);
 	}
 	
 	if (!cap_tris) {
-		BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_NEW);
+		BMO_op_callf(bm, "dissolvefaces faces=%ff", FACE_NEW);
 	}
 	
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *v2, *lastv1 = NULL, *lastv2 = NULL, *cent1, *cent2, *firstv1, *firstv2;
 	float vec[3], mat[4][4], phi, phid;
-	float dia1 = BMO_Get_Float(op, "diameter1");
-	float dia2 = BMO_Get_Float(op, "diameter2");
-	float depth = BMO_Get_Float(op, "depth");
-	int cap_ends = BMO_Get_Int(op, "cap_ends"), segs = BMO_Get_Int(op, "segments");
-	int cap_tris = BMO_Get_Int(op, "cap_tris");
+	float dia1 = BMO_slot_float_get(op, "diameter1");
+	float dia2 = BMO_slot_float_get(op, "diameter2");
+	float depth = BMO_slot_float_get(op, "depth");
+	int cap_ends = BMO_slot_int_get(op, "cap_ends"), segs = BMO_slot_int_get(op, "segments");
+	int cap_tris = BMO_slot_int_get(op, "cap_tris");
 	int a;
 	
 	if (!segs)
 		return;
 	
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
 	phi = 0.25f * (float)M_PI;
@@ -574,16 +574,16 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		vec[2] = -depth;
 		mul_m4_v3(mat, vec);
 		
-		cent1 = BM_Make_Vert(bm, vec, NULL);
+		cent1 = BM_vert_create(bm, vec, NULL);
 
 		vec[0] = vec[1] = 0.0f;
 		vec[2] = depth;
 		mul_m4_v3(mat, vec);
 		
-		cent2 = BM_Make_Vert(bm, vec, NULL);
+		cent2 = BM_vert_create(bm, vec, NULL);
 
-		BMO_SetFlag(bm, cent1, VERT_MARK);
-		BMO_SetFlag(bm, cent2, VERT_MARK);
+		BMO_elem_flag_set(bm, cent1, VERT_MARK);
+		BMO_elem_flag_set(bm, cent2, VERT_MARK);
 	}
 
 	for (a = 0; a < segs; a++, phi += phid) {
@@ -591,27 +591,27 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		vec[1] = dia1 * cosf(phi);
 		vec[2] = -depth;
 		mul_m4_v3(mat, vec);
-		v1 = BM_Make_Vert(bm, vec, NULL);
+		v1 = BM_vert_create(bm, vec, NULL);
 
 		vec[0] = dia2 * sinf(phi);
 		vec[1] = dia2 * cosf(phi);
 		vec[2] = depth;
 		mul_m4_v3(mat, vec);
-		v2 = BM_Make_Vert(bm, vec, NULL);
+		v2 = BM_vert_create(bm, vec, NULL);
 
-		BMO_SetFlag(bm, v1, VERT_MARK);
-		BMO_SetFlag(bm, v2, VERT_MARK);
+		BMO_elem_flag_set(bm, v1, VERT_MARK);
+		BMO_elem_flag_set(bm, v2, VERT_MARK);
 
 		if (a) {
 			if (cap_ends) {
 				BMFace *f;
 				
-				f = BM_Make_Face_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
-				BMO_SetFlag(bm, f, FACE_NEW);
-				f = BM_Make_Face_QuadTri(bm, cent2, v2, lastv2, NULL, NULL, FALSE);
-				BMO_SetFlag(bm, f, FACE_NEW);
+				f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
+				BMO_elem_flag_set(bm, f, FACE_NEW);
+				f = BM_face_create_quad_tri(bm, cent2, v2, lastv2, NULL, NULL, FALSE);
+				BMO_elem_flag_set(bm, f, FACE_NEW);
 			}
-			BM_Make_Face_QuadTri(bm, lastv1, lastv2, v2, v1, NULL, FALSE);
+			BM_face_create_quad_tri(bm, lastv1, lastv2, v2, v1, NULL, FALSE);
 		}
 		else {
 			firstv1 = v1;
@@ -628,28 +628,28 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_Make_Face_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
-		BMO_SetFlag(bm, f, FACE_NEW);
-		f = BM_Make_Face_QuadTri(bm, cent2, firstv2, v2, NULL, NULL, FALSE);
-		BMO_SetFlag(bm, f, FACE_NEW);
+		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
+		BMO_elem_flag_set(bm, f, FACE_NEW);
+		f = BM_face_create_quad_tri(bm, cent2, firstv2, v2, NULL, NULL, FALSE);
+		BMO_elem_flag_set(bm, f, FACE_NEW);
 	}
 	
 	if (!cap_tris) {
-		BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_NEW);
+		BMO_op_callf(bm, "dissolvefaces faces=%ff", FACE_NEW);
 	}
 	
-	BM_Make_Face_QuadTri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
 
-	BMO_CallOpf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_op_callf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmesh_create_cube_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *v2, *v3, *v4, *v5, *v6, *v7, *v8;
-	float vec[3], mat[4][4], off = BMO_Get_Float(op, "size") / 2.0f;
+	float vec[3], mat[4][4], off = BMO_slot_float_get(op, "size") / 2.0f;
 
-	BMO_Get_Mat4(op, "mat", mat);
+	BMO_slot_mat4_set(op, "mat", mat);
 
 	if (!off) off = 0.5f;
 
@@ -657,67 +657,67 @@ void bmesh_create_cube_exec(BMesh *bm, BMOperator *op)
 	vec[1] = -off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
-	v1 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v1, VERT_MARK);
+	v1 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v1, VERT_MARK);
 
 	vec[0] = -off;
 	vec[1] = off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
-	v2 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v2, VERT_MARK);
+	v2 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v2, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
-	v3 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v3, VERT_MARK);
+	v3 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v3, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = -off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
-	v4 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v4, VERT_MARK);
+	v4 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v4, VERT_MARK);
 
 	vec[0] = -off;
 	vec[1] = -off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
-	v5 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v5, VERT_MARK);
+	v5 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v5, VERT_MARK);
 
 	vec[0] = -off;
 	vec[1] = off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
-	v6 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v6, VERT_MARK);
+	v6 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v6, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
-	v7 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v7, VERT_MARK);
+	v7 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v7, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = -off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
-	v8 = BM_Make_Vert(bm, vec, NULL);
-	BMO_SetFlag(bm, v8, VERT_MARK);
+	v8 = BM_vert_create(bm, vec, NULL);
+	BMO_elem_flag_set(bm, v8, VERT_MARK);
 
 	/* the four sides */
-	BM_Make_Face_QuadTri(bm, v5, v6, v2, v1, NULL, FALSE);
-	BM_Make_Face_QuadTri(bm, v6, v7, v3, v2, NULL, FALSE);
-	BM_Make_Face_QuadTri(bm, v7, v8, v4, v3, NULL, FALSE);
-	BM_Make_Face_QuadTri(bm, v8, v5, v1, v4, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v5, v6, v2, v1, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v6, v7, v3, v2, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v7, v8, v4, v3, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v8, v5, v1, v4, NULL, FALSE);
 	
 	/* top/bottom */
-	BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, FALSE);
-	BM_Make_Face_QuadTri(bm, v8, v7, v6, v5, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v8, v7, v6, v5, NULL, FALSE);
 
-	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }

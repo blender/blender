@@ -54,8 +54,8 @@
 
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
-	Object *ob = BMO_Get_Pnt(op, "object");
-	Mesh *me = BMO_Get_Pnt(op, "mesh");
+	Object *ob = BMO_slot_ptr_get(op, "object");
+	Mesh *me = BMO_slot_ptr_get(op, "mesh");
 	MVert *mvert;
 	BLI_array_declare(verts);
 	MEdge *medge;
@@ -69,7 +69,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(fedges);
 	float (*keyco)[3] = NULL;
 	int *keyi;
-	int set_key = BMO_Get_Int(op, "set_shapekey");
+	int set_key = BMO_slot_int_get(op, "set_shapekey");
 	int totuv, i, j, allocsize[4] = {512, 512, 2048, 512};
 
 	if (!me || !me->totvert) {
@@ -143,19 +143,19 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-		v = BM_Make_Vert(bm, keyco && set_key ? keyco[i] : mvert->co, NULL);
-		BM_SetIndex(v, i); /* set_ok */
+		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL);
+		BM_elem_index_set(v, i); /* set_ok */
 		vt[i] = v;
 
 		/* transfer flag */
-		v->head.hflag = BM_Vert_Flag_From_MEFlag(mvert->flag);
+		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag);
 
 		/* this is necassary for selection counts to work properl */
-		if (BM_TestHFlag(v, BM_ELEM_SELECT)) BM_Select_Vert(bm, v, TRUE);
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) BM_vert_select(bm, v, TRUE);
 
 		normal_short_to_float_v3(v->no, mvert->no);
 
-		BM_SetCDf(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
+		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
 		/* Copy Custom Dat */
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
@@ -189,21 +189,21 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 	medge = me->medge;
 	for (i = 0; i < me->totedge; i++, medge++) {
-		e = BM_Make_Edge(bm, vt[medge->v1], vt[medge->v2], NULL, FALSE);
-		BM_SetIndex(e, i); /* set_ok */
+		e = BM_edge_create(bm, vt[medge->v1], vt[medge->v2], NULL, FALSE);
+		BM_elem_index_set(e, i); /* set_ok */
 		et[i] = e;
 
 		/* transfer flags */
-		e->head.hflag = BM_Edge_Flag_From_MEFlag(medge->flag);
+		e->head.hflag = BM_edge_flag_from_mflag(medge->flag);
 
 		/* this is necassary for selection counts to work properly */
-		if (BM_TestHFlag(e, BM_ELEM_SELECT)) BM_Select(bm, e, TRUE);
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) BM_elem_select_set(bm, e, TRUE);
 		
 		/* Copy Custom Dat */
 		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
 		
-		BM_SetCDf(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
-		BM_SetCDf(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
+		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
+		BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
 	}
 
 	bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
@@ -251,7 +251,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 #endif
 
-		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, FALSE);
+		f = BM_face_create(bm, verts, fedges, mpoly->totloop, FALSE);
 
 		if (!f) {
 			printf("%s: Warning! Bad face in mesh"
@@ -261,13 +261,13 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* dont use 'i' since we may have skipped the face */
-		BM_SetIndex(f, bm->totface - 1); /* set_ok */
+		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */
-		f->head.hflag = BM_Face_Flag_From_MEFlag(mpoly->flag);
+		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag);
 
 		/* this is necassary for selection counts to work properl */
-		if (BM_TestHFlag(f, BM_ELEM_SELECT)) BM_Select(bm, f, TRUE);
+		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) BM_elem_select_set(bm, f, TRUE);
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
@@ -275,7 +275,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		j = 0;
 		BM_ITER_INDEX(l, &iter, bm, BM_LOOPS_OF_FACE, f, j) {
 			/* Save index of correspsonding MLoop */
-			BM_SetIndex(l, mpoly->loopstart + j); /* set_loop */
+			BM_elem_index_set(l, mpoly->loopstart + j); /* set_loop */
 		}
 
 		/* Copy Custom Dat */
@@ -294,9 +294,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		 * by freeing the interpolated data and overwriting it with data from the Mesh. */
 		BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-				int li = BM_GetIndex(l);
+				int li = BM_elem_index_get(l);
 				CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
-				BM_SetIndex(l, 0); /* set_loop */
+				BM_elem_index_set(l, 0); /* set_loop */
 			}
 		}
 	}
@@ -313,23 +313,23 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
 		                                  "Selection Conversion Face Pointer Array");
 
-		for (i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for (i = 0, vertex = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 		     vertex;
-		     i++, vertex = BMIter_Step(&iter))
+		     i++, vertex = BM_iter_step(&iter))
 		{
 			vertex_array[i] = vertex;
 		}
 
-		for (i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
+		for (i = 0, edge = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
 		     edge;
-		     i++, edge = BMIter_Step(&iter))
+		     i++, edge = BM_iter_step(&iter))
 		{
 			edge_array[i] = edge;
 		}
 
-		for (i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
+		for (i = 0, face = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
 		     face;
-		     i++, face = BMIter_Step(&iter))
+		     i++, face = BM_iter_step(&iter))
 		{
 			face_array[i] = face;
 		}
@@ -337,13 +337,13 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		if (me->mselect) {
 			for (i = 0; i < me->totselect; i++) {
 				if (me->mselect[i].type == ME_VSEL) {
-					BM_store_selection(bm, vertex_array[me->mselect[i].index]);
+					BM_select_history_store(bm, vertex_array[me->mselect[i].index]);
 				}
 				else if (me->mselect[i].type == ME_ESEL) {
-					BM_store_selection(bm, edge_array[me->mselect[i].index]);
+					BM_select_history_store(bm, edge_array[me->mselect[i].index]);
 				}
 				else if (me->mselect[i].type == ME_FSEL) {
-					BM_store_selection(bm, face_array[me->mselect[i].index]);
+					BM_select_history_store(bm, face_array[me->mselect[i].index]);
 				}
 			}
 		}
@@ -372,11 +372,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 void object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
-	Object *ob = BMO_Get_Pnt(op, "object");
-	/* Scene *scene = BMO_Get_Pnt(op, "scene"); */
+	Object *ob = BMO_slot_ptr_get(op, "object");
+	/* Scene *scene = BMO_slot_ptr_get(op, "scene"); */
 	Mesh *me = ob->data;
 
-	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p notesselation=%i", me, ob, TRUE);
+	BMO_op_callf(bm, "bmesh_to_mesh mesh=%p object=%p notesselation=%i", me, ob, TRUE);
 }
 
 
@@ -441,8 +441,8 @@ BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
-	Mesh *me = BMO_Get_Pnt(op, "mesh");
-	/* Object *ob = BMO_Get_Pnt(op, "object"); */
+	Mesh *me = BMO_slot_ptr_get(op, "mesh");
+	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
 	MLoop *mloop;
 	MPoly *mpoly;
 	MVert *mvert, *oldverts;
@@ -453,7 +453,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	BMIter iter, liter;
 	int i, j, *keyi, ototvert, totloop;
-	int dotess = !BMO_Get_Int(op, "notesselation");
+	int dotess = !BMO_slot_int_get(op, "notesselation");
 	
 	ototvert = me->totvert;
 
@@ -525,9 +525,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		copy_v3_v3(mvert->co, v->co);
 		normal_float_to_short_v3(mvert->no, v->no);
 		
-		mvert->flag = BM_Vert_Flag_To_MEFlag(v);
+		mvert->flag = BM_vert_flag_to_mflag(v);
 
-		BM_SetIndex(v, i); /* set_inline */
+		BM_elem_index_set(v, i); /* set_inline */
 
 		/* copy over customdat */
 		CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
@@ -545,14 +545,14 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		float *crease = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 		float *bweight = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 		
-		med->v1 = BM_GetIndex(e->v1);
-		med->v2 = BM_GetIndex(e->v2);
+		med->v1 = BM_elem_index_get(e->v1);
+		med->v2 = BM_elem_index_get(e->v2);
 		med->crease = crease ? (char)((*crease) * 255) : 0;
 		med->bweight = bweight ? (char)((*bweight) * 255) : 0;
 		
-		med->flag = BM_Edge_Flag_To_MEFlag(e);
+		med->flag = BM_edge_flag_to_mflag(e);
 		
-		BM_SetIndex(e, i); /* set_inline */
+		BM_elem_index_set(e, i); /* set_inline */
 
 		/* copy over customdat */
 		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
@@ -571,12 +571,12 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		mpoly->loopstart = j;
 		mpoly->totloop = f->len;
 		mpoly->mat_nr = f->mat_nr;
-		mpoly->flag = BM_Face_Flag_To_MEFlag(f);
+		mpoly->flag = BM_face_flag_to_mflag(f);
 
-		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		for ( ; l; l = BMIter_Step(&liter), j++, mloop++) {
-			mloop->e = BM_GetIndex(l->e);
-			mloop->v = BM_GetIndex(l->v);
+		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
+		for ( ; l; l = BM_iter_step(&liter), j++, mloop++) {
+			mloop->e = BM_elem_index_get(l->e);
+			mloop->v = BM_elem_index_get(l->v);
 
 			/* copy over customdat */
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
@@ -611,15 +611,15 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 				if (ob->par1 < ototvert) {
 					eve = vertMap[ob->par1];
-					if (eve) ob->par1 = BM_GetIndex(eve);
+					if (eve) ob->par1 = BM_elem_index_get(eve);
 				}
 				if (ob->par2 < ototvert) {
 					eve = vertMap[ob->par2];
-					if (eve) ob->par2 = BM_GetIndex(eve);
+					if (eve) ob->par2 = BM_elem_index_get(eve);
 				}
 				if (ob->par3 < ototvert) {
 					eve = vertMap[ob->par3];
-					if (eve) ob->par3 = BM_GetIndex(eve);
+					if (eve) ob->par3 = BM_elem_index_get(eve);
 				}
 				
 			}
@@ -637,7 +637,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 								eve = vertMap[hmd->indexar[i]];
 								
 								if (eve) {
-									hmd->indexar[j++] = BM_GetIndex(eve);
+									hmd->indexar[j++] = BM_elem_index_get(eve);
 								}
 							}
 							else j++;
@@ -680,7 +680,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				me->mselect[i].type = ME_FSEL;
 			}
 
-			me->mselect[i].index = BM_GetIndex(selected->data);
+			me->mselect[i].index = BM_elem_index_get(selected->data);
 		}
 	}
 
@@ -855,7 +855,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 			fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert,  "currkey->data");
 			oldkey = currkey->data;
 
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 
 			i = 0;
 			mvert = me->mvert;
@@ -894,7 +894,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				fp+= 3;
 				++i;
 				++mvert;
-				eve = BMIter_Step(&iter);
+				eve = BM_iter_step(&iter);
 			}
 			currkey->totelem = bm->totvert;
 			if (currkey->data) MEM_freeN(currkey->data);

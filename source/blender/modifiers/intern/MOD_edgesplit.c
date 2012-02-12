@@ -74,7 +74,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	em = CDDM_To_BMesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_Compute_Normals(bm);	
+	BM_mesh_normals_update(bm);	
 	BMO_push(bm, NULL);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
@@ -85,7 +85,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 			     (l2= e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
-					BMO_SetFlag(bm, e, EDGE_MARK);
+					BMO_elem_flag_set(bm, e, EDGE_MARK);
 				}
 			}
 		}
@@ -93,12 +93,12 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(e, BM_ELEM_SHARP))
-				BMO_SetFlag(bm, e, EDGE_MARK);
+			if (BM_elem_flag_test(e, BM_ELEM_SHARP))
+				BMO_elem_flag_set(bm, e, EDGE_MARK);
 		}
 	}
 	
-	BMO_CallOpf(bm, "edgesplit edges=%fe", EDGE_MARK);
+	BMO_op_callf(bm, "edgesplit edges=%fe", EDGE_MARK);
 	
 	BMO_pop(bm);
 	

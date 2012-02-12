@@ -803,7 +803,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	mesh_topo_store->prev_ob_mode = ob_mode;
 
 	if(em) {
-		BM_ElemIndex_Ensure(em->bm, BM_VERT);
+		BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
 		totvert = em->bm->totvert;
 	}
@@ -818,8 +818,8 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		totedge = me->edit_btmesh->bm->totedge;
 
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			topo_hash[BM_GetIndex(eed->v1)]++;
-			topo_hash[BM_GetIndex(eed->v2)]++;
+			topo_hash[BM_elem_index_get(eed->v1)]++;
+			topo_hash[BM_elem_index_get(eed->v2)]++;
 		}
 	}
 	else {
@@ -839,8 +839,8 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 
 		if(em) {
 			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-				topo_hash[BM_GetIndex(eed->v1)] += topo_hash_prev[BM_GetIndex(eed->v2)];
-				topo_hash[BM_GetIndex(eed->v2)] += topo_hash_prev[BM_GetIndex(eed->v1)];
+				topo_hash[BM_elem_index_get(eed->v1)] += topo_hash_prev[BM_elem_index_get(eed->v2)];
+				topo_hash[BM_elem_index_get(eed->v2)] += topo_hash_prev[BM_elem_index_get(eed->v1)];
 			}
 		}
 		else {

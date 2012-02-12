@@ -67,7 +67,7 @@ void bmesh_error(void)
  *
  */
 
-BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
+BMesh *BM_mesh_create(struct Object *ob, int allocsize[4])
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
@@ -102,7 +102,7 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
  *	Frees a BMesh structure.
  */
 
-void BM_Free_Mesh_Data(BMesh *bm)
+void BM_mesh_data_free(BMesh *bm)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -115,15 +115,15 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	BMIter faces;
 	BMIter loops;
 	
-	for (v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
+	for (v = BM_iter_new(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BM_iter_step(&verts)) {
 		CustomData_bmesh_free_block(&(bm->vdata), &(v->head.data));
 	}
-	for (e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
+	for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
 		CustomData_bmesh_free_block(&(bm->edata), &(e->head.data));
 	}
-	for (f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
+	for (f = BM_iter_new(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BM_iter_step(&faces)) {
 		CustomData_bmesh_free_block(&(bm->pdata), &(f->head.data));
-		for (l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f); l; l = BMIter_Step(&loops)) {
+		for (l = BM_iter_new(&loops, bm, BM_LOOPS_OF_FACE, f); l; l = BM_iter_step(&loops)) {
 			CustomData_bmesh_free_block(&(bm->ldata), &(l->head.data));
 		}
 	}
@@ -158,10 +158,10 @@ void BM_Free_Mesh_Data(BMesh *bm)
 
 	BLI_freelistN(&bm->selected);
 
-	BMO_ClearStack(bm);
+	BMO_error_clear(bm);
 }
 
-void BM_Clear_Mesh(BMesh *bm)
+void BM_mesh_clear(BMesh *bm)
 {
 	/* allocate the structure */
 	int vsize, esize, lsize, fsize, lstsize;
@@ -171,7 +171,7 @@ void BM_Clear_Mesh(BMesh *bm)
 	Object *ob = bm->ob;
 	
 	/* free old mesh */
-	BM_Free_Mesh_Data(bm);
+	BM_mesh_data_free(bm);
 	memset(bm, 0, sizeof(BMesh));
 	
 	/* re-initialize mesh */
@@ -202,9 +202,9 @@ void BM_Clear_Mesh(BMesh *bm)
  *	Frees a BMesh structure.
  */
 
-void BM_Free_Mesh(BMesh *bm)
+void BM_mesh_free(BMesh *bm)
 {
-	BM_Free_Mesh_Data(bm);
+	BM_mesh_data_free(bm);
 	MEM_freeN(bm);
 }
 
@@ -216,7 +216,7 @@ void BM_Free_Mesh(BMesh *bm)
  *
  */
 
-void BM_Compute_Normals(BMesh *bm)
+void BM_mesh_normals_update(BMesh *bm)
 {
 	BMVert *v;
 	BMFace *f;
@@ -233,7 +233,7 @@ void BM_Compute_Normals(BMesh *bm)
 
 	/* first, find out the largest face in mesh */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
 		if (f->len > maxlength) maxlength = f->len;
@@ -247,7 +247,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/* calculate all face normals */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 #if 0	/* UNUSED */
 		if (f->head.flag & BM_NONORMCALC)
@@ -259,7 +259,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/* Zero out vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
 		zero_v3(v->no);
@@ -271,7 +271,7 @@ void BM_Compute_Normals(BMesh *bm)
 	index = 0;
 	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
 	BM_ITER(e, &edges, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, index); /* set_inline */
+		BM_elem_index_set(e, index); /* set_inline */
 
 		if (e->l) {
 			sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
@@ -288,7 +288,7 @@ void BM_Compute_Normals(BMesh *bm)
 	/* add weighted face normals to vertices */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 
-		if (BM_TestHFlag(f, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
 		BM_ITER(l, &loops, bm, BM_LOOPS_OF_FACE, f) {
@@ -298,8 +298,8 @@ void BM_Compute_Normals(BMesh *bm)
 
 			/* calculate the dot product of the two edges that
 			 * meet at the loop's vertex */
-			e1diff = edgevec[BM_GetIndex(l->prev->e)];
-			e2diff = edgevec[BM_GetIndex(l->e)];
+			e1diff = edgevec[BM_elem_index_get(l->prev->e)];
+			e2diff = edgevec[BM_elem_index_get(l->e)];
 			dotprod = dot_v3v3(e1diff, e2diff);
 
 			/* edge vectors are calculated from e->v1 to e->v2, so
@@ -318,7 +318,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/* normalize the accumulated vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
 		if (normalize_v3(v->no) == 0.0f) {
@@ -348,28 +348,28 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	
 	if (undo) {
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if (BM_TestHFlag(f, BM_ELEM_TAG)) {
-				BM_flip_normal(bm, f);
+			if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+				BM_face_normal_flip(bm, f);
 			}
-			BM_ClearHFlag(f, BM_ELEM_TAG);
+			BM_elem_flag_clear(f, BM_ELEM_TAG);
 		}
 		
 		return;
 	}
 	
-	BMO_InitOpf(bm, &bmop, "righthandfaces faces=%af doflip=%d", FALSE);
+	BMO_op_initf(bm, &bmop, "righthandfaces faces=%af doflip=%d", FALSE);
 	
 	BMO_push(bm, &bmop);
 	bmesh_righthandfaces_exec(bm, &bmop);
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, f, FACE_FLIP))
-			BM_SetHFlag(f, BM_ELEM_TAG);
-		else BM_ClearHFlag(f, BM_ELEM_TAG);
+		if (BMO_elem_flag_test(bm, f, FACE_FLIP))
+			BM_elem_flag_set(f, BM_ELEM_TAG);
+		else BM_elem_flag_clear(f, BM_ELEM_TAG);
 	}
 
 	BMO_pop(bm);
-	BMO_Finish_Op(bm, &bmop);
+	BMO_op_finish(bm, &bmop);
 }
 
 static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
@@ -447,7 +447,7 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 
 		/* ensure correct normals, if possible */
 		bmesh_rationalize_normals(bm, 0);
-		BM_Compute_Normals(bm);
+		BM_mesh_normals_update(bm);
 	}
 	else if (flag & BMOP_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 0);
@@ -481,11 +481,11 @@ void bmesh_end_edit(BMesh *bm, int flag)
 	bm->opflag = 0;
 
 	/* compute normals, clear temp flags and flush selections */
-	BM_Compute_Normals(bm);
-	BM_SelectMode_Flush(bm);
+	BM_mesh_normals_update(bm);
+	BM_mesh_select_mode_flush(bm);
 }
 
-void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
+void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 {
 	BMIter iter;
 	BMHeader *ele;
@@ -498,7 +498,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 		if (bm->elem_index_dirty & BM_VERT) {
 			int index = 0;
 			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				BM_SetIndex(ele, index); /* set_ok */
+				BM_elem_index_set(ele, index); /* set_ok */
 				index++;
 			}
 			bm->elem_index_dirty &= ~BM_VERT;
@@ -513,7 +513,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 		if (bm->elem_index_dirty & BM_EDGE) {
 			int index = 0;
 			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-				BM_SetIndex(ele, index); /* set_ok */
+				BM_elem_index_set(ele, index); /* set_ok */
 				index++;
 			}
 			bm->elem_index_dirty &= ~BM_EDGE;
@@ -528,7 +528,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 		if (bm->elem_index_dirty & BM_FACE) {
 			int index = 0;
 			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				BM_SetIndex(ele, index); /* set_ok */
+				BM_elem_index_set(ele, index); /* set_ok */
 				index++;
 			}
 			bm->elem_index_dirty &= ~BM_FACE;
@@ -551,7 +551,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
  *
  */
 
-void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b)
+void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -574,14 +574,14 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 
 		BM_ITER(ele, &iter, bm, iter_types[i], NULL) {
 			if (!is_dirty) {
-				if (BM_GetIndex(ele) != index) {
-					err_val = BM_GetIndex(ele);
+				if (BM_elem_index_get(ele) != index) {
+					err_val = BM_elem_index_get(ele);
 					err_idx = index;
 					is_error = TRUE;
 				}
 			}
 
-			BM_SetIndex(ele, index); /* set_ok */
+			BM_elem_index_set(ele, index); /* set_ok */
 			index++;
 		}
 
@@ -616,17 +616,17 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 
 }
 
-BMVert *BM_Vert_AtIndex(BMesh *bm, const int index)
+BMVert *BM_vert_at_index(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->vpool, index);
 }
 
-BMEdge *BM_Edge_AtIndex(BMesh *bm, const int index)
+BMEdge *BM_edge_at_index(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->epool, index);
 }
 
-BMFace *BM_Face_AtIndex(BMesh *bm, const int index)
+BMFace *BM_face_at_index(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->fpool, index);
 }

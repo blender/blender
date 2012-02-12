@@ -76,7 +76,7 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 		
 		BM_ITER(l2, &iter, bm, BM_LOOPS_OF_VERT, l->v) {
 			if (l2->f != l->f) {
-				copy_v3_v3(l_co_next, BM_OtherEdgeVert(l2->e, l2->next->v)->co);
+				copy_v3_v3(l_co_next, BM_edge_other_vert(l2->e, l2->next->v)->co);
 				break;
 			}
 		}
@@ -147,14 +147,14 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 
 #define ETAG_SET(e, v, nv)  (                                                 \
 	(v) == (e)->v1 ?                                                          \
-		(etags[BM_GetIndex((e))].newv1 = (nv)) :                              \
-		(etags[BM_GetIndex((e))].newv2 = (nv))                                \
+		(etags[BM_elem_index_get((e))].newv1 = (nv)) :                              \
+		(etags[BM_elem_index_get((e))].newv2 = (nv))                                \
 	)
 
 #define ETAG_GET(e, v)  (                                                     \
 	(v) == (e)->v1 ?                                                          \
-		(etags[BM_GetIndex((e))].newv1) :                                     \
-		(etags[BM_GetIndex((e))].newv2)                                       \
+		(etags[BM_elem_index_get((e))].newv1) :                                     \
+		(etags[BM_elem_index_get((e))].newv2)                                       \
 	)
 
 void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
@@ -174,83 +174,83 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	BLI_array_declare(edges);
 	SmallHash hash;
-	float fac = BMO_Get_Float(op, "percent");
-	const short do_even = BMO_Get_Int(op, "use_even");
-	const short do_dist = BMO_Get_Int(op, "use_dist");
+	float fac = BMO_slot_float_get(op, "percent");
+	const short do_even = BMO_slot_int_get(op, "use_even");
+	const short do_dist = BMO_slot_int_get(op, "use_dist");
 	int i, li, has_elens, HasMDisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	
-	has_elens = CustomData_has_layer(&bm->edata, CD_PROP_FLT) && BMO_Get_Int(op, "use_lengths");
+	has_elens = CustomData_has_layer(&bm->edata, CD_PROP_FLT) && BMO_slot_int_get(op, "use_lengths");
 	if (has_elens) {
-		li = BMO_Get_Int(op, "lengthlayer");
+		li = BMO_slot_int_get(op, "lengthlayer");
 	}
 	
 	BLI_smallhash_init(&hash);
 	
 	BMO_ITER(e, &siter, bm, op, "geom", BM_EDGE) {
-		BMO_SetFlag(bm, e, BEVEL_FLAG|BEVEL_DEL);
-		BMO_SetFlag(bm, e->v1, BEVEL_FLAG|BEVEL_DEL);
-		BMO_SetFlag(bm, e->v2, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_set(bm, e, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_set(bm, e->v1, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_set(bm, e->v2, BEVEL_FLAG|BEVEL_DEL);
 		
-		if (BM_Edge_FaceCount(e) < 2) {
-			BMO_ClearFlag(bm, e, BEVEL_DEL);
-			BMO_ClearFlag(bm, e->v1, BEVEL_DEL);
-			BMO_ClearFlag(bm, e->v2, BEVEL_DEL);
+		if (BM_edge_face_count(e) < 2) {
+			BMO_elem_flag_clear(bm, e, BEVEL_DEL);
+			BMO_elem_flag_clear(bm, e->v1, BEVEL_DEL);
+			BMO_elem_flag_clear(bm, e->v2, BEVEL_DEL);
 		}
 #if 0
-		if (BM_Edge_FaceCount(e) == 0) {
+		if (BM_edge_face_count(e) == 0) {
 			BMVert *verts[2] = {e->v1, e->v2};
-			BMEdge *edges[2] = {e, BM_Make_Edge(bm, e->v1, e->v2, e, 0)};
+			BMEdge *edges[2] = {e, BM_edge_create(bm, e->v1, e->v2, e, 0)};
 			
-			BMO_SetFlag(bm, edges[1], BEVEL_FLAG);
-			BM_Make_Face(bm, verts, edges, 2, FALSE);
+			BMO_elem_flag_set(bm, edges[1], BEVEL_FLAG);
+			BM_face_create(bm, verts, edges, 2, FALSE);
 		}
 #endif
 	}
 	
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BMO_SetFlag(bm, v, VERT_OLD);
+		BMO_elem_flag_set(bm, v, VERT_OLD);
 	}
 
 #if 0
 	//a bit of cleaner code that, alas, doens't work.
 	/* build edge tag */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, e->v1, BEVEL_FLAG) || BMO_TestFlag(bm, e->v2, BEVEL_FLAG)) {
+		if (BMO_elem_flag_test(bm, e->v1, BEVEL_FLAG) || BMO_elem_flag_test(bm, e->v2, BEVEL_FLAG)) {
 			BMIter liter;
 			BMLoop *l;
 			
-			if (!BMO_TestFlag(bm, e, EDGE_OLD)) {
-				BM_SetIndex(e, BLI_array_count(etags)); /* set_dirty! */
+			if (!BMO_elem_flag_test(bm, e, EDGE_OLD)) {
+				BM_elem_index_set(e, BLI_array_count(etags)); /* set_dirty! */
 				BLI_array_growone(etags);
 				
-				BMO_SetFlag(bm, e, EDGE_OLD);
+				BMO_elem_flag_set(bm, e, EDGE_OLD);
 			}
 			
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
 				BMLoop *l2;
 				BMIter liter2;
 				
-				if (BMO_TestFlag(bm, l->f, BEVEL_FLAG))
+				if (BMO_elem_flag_test(bm, l->f, BEVEL_FLAG))
 					continue;
 
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
-					BM_SetIndex(l2, BLI_array_count(tags)); /* set_loop */
+					BM_elem_index_set(l2, BLI_array_count(tags)); /* set_loop */
 					BLI_array_growone(tags);
 
-					if (!BMO_TestFlag(bm, l2->e, EDGE_OLD)) {
-						BM_SetIndex(l2->e, BLI_array_count(etags)); /* set_dirty! */
+					if (!BMO_elem_flag_test(bm, l2->e, EDGE_OLD)) {
+						BM_elem_index_set(l2->e, BLI_array_count(etags)); /* set_dirty! */
 						BLI_array_growone(etags);
 						
-						BMO_SetFlag(bm, l2->e, EDGE_OLD);
+						BMO_elem_flag_set(bm, l2->e, EDGE_OLD);
 					}
 				}
 
-				BMO_SetFlag(bm, l->f, BEVEL_FLAG);
+				BMO_elem_flag_set(bm, l->f, BEVEL_FLAG);
 				BLI_array_append(faces, l->f);
 			}
 		}
 		else {
-			BM_SetIndex(e, -1); /* set_dirty! */
+			BM_elem_index_set(e, -1); /* set_dirty! */
 		}
 	}
 #endif
@@ -260,20 +260,20 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BMLoop *l;
 		BMIter liter;
 
-		BMO_SetFlag(bm, e->v1, BEVEL_FLAG|BEVEL_DEL);
-		BMO_SetFlag(bm, e->v2, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_set(bm, e->v1, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_set(bm, e->v2, BEVEL_FLAG|BEVEL_DEL);
 		
-		if (BM_Edge_FaceCount(e) < 2) {
-			BMO_ClearFlag(bm, e, BEVEL_DEL);
-			BMO_ClearFlag(bm, e->v1, BEVEL_DEL);
-			BMO_ClearFlag(bm, e->v2, BEVEL_DEL);
+		if (BM_edge_face_count(e) < 2) {
+			BMO_elem_flag_clear(bm, e, BEVEL_DEL);
+			BMO_elem_flag_clear(bm, e->v1, BEVEL_DEL);
+			BMO_elem_flag_clear(bm, e->v2, BEVEL_DEL);
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (intptr_t)e)) {
 			BLI_array_growone(etags);
-			BM_SetIndex(e, BLI_array_count(etags) - 1); /* set_dirty! */
+			BM_elem_index_set(e, BLI_array_count(etags) - 1); /* set_dirty! */
 			BLI_smallhash_insert(&hash, (intptr_t)e, NULL);
-			BMO_SetFlag(bm, e, EDGE_OLD);
+			BMO_elem_flag_set(bm, e, EDGE_OLD);
 		}
 		
 		/* find all faces surrounding e->v1 and, e->v2 */
@@ -289,18 +289,18 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				/* create tags for all loops in l-> */
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
 					BLI_array_growone(tags);
-					BM_SetIndex(l2, BLI_array_count(tags) - 1); /* set_loop */
+					BM_elem_index_set(l2, BLI_array_count(tags) - 1); /* set_loop */
 					
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
 						BLI_array_growone(etags);
-						BM_SetIndex(l2->e, BLI_array_count(etags) - 1); /* set_dirty! */
+						BM_elem_index_set(l2->e, BLI_array_count(etags) - 1); /* set_dirty! */
 						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);
-						BMO_SetFlag(bm, l2->e, EDGE_OLD);
+						BMO_elem_flag_set(bm, l2->e, EDGE_OLD);
 					}
 				}
 
 				BLI_smallhash_insert(&hash, (intptr_t)l->f, NULL);
-				BMO_SetFlag(bm, l->f, BEVEL_FLAG);
+				BMO_elem_flag_set(bm, l->f, BEVEL_FLAG);
 				BLI_array_append(faces, l->f);
 			}
 		}
@@ -311,15 +311,15 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMIter eiter;
 		
-		if (!BMO_TestFlag(bm, v, BEVEL_FLAG))
+		if (!BMO_elem_flag_test(bm, v, BEVEL_FLAG))
 			continue;
 		
 		BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-			if (!BMO_TestFlag(bm, e, BEVEL_FLAG) && !ETAG_GET(e, v)) {
+			if (!BMO_elem_flag_test(bm, e, BEVEL_FLAG) && !ETAG_GET(e, v)) {
 				BMVert *v2;
 				float co[3];
 				
-				v2 = BM_OtherEdgeVert(e, v);
+				v2 = BM_edge_other_vert(e, v);
 				sub_v3_v3v3(co, v2->co, v->co);
 				if (has_elens) {
 					float elen = *(float *)CustomData_bmesh_get_n(&bm->edata, e->head.data, CD_PROP_FLT, li);
@@ -331,7 +331,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				mul_v3_fl(co, fac);
 				add_v3_v3(co, v->co);
 				
-				v2 = BM_Make_Vert(bm, co, v);
+				v2 = BM_vert_create(bm, co, v);
 				ETAG_SET(e, v, v2);
 			}
 		}
@@ -341,20 +341,20 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BMLoop *l;
 		BMIter liter;
 		
-		BMO_SetFlag(bm, faces[i], FACE_OLD);
+		BMO_elem_flag_set(bm, faces[i], FACE_OLD);
 		
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, faces[i]) {
 			float co[3];
 
-			if (BMO_TestFlag(bm, l->e, BEVEL_FLAG)) {
-				if (BMO_TestFlag(bm, l->prev->e, BEVEL_FLAG))
+			if (BMO_elem_flag_test(bm, l->e, BEVEL_FLAG)) {
+				if (BMO_elem_flag_test(bm, l->prev->e, BEVEL_FLAG))
 				{
-					tag = tags + BM_GetIndex(l);
+					tag = tags + BM_elem_index_get(l);
 					calc_corner_co(bm, l, fac, co, do_dist, do_even);
-					tag->newv = BM_Make_Vert(bm, co, l->v);
+					tag->newv = BM_vert_create(bm, co, l->v);
 				}
 				else {
-					tag = tags + BM_GetIndex(l);
+					tag = tags + BM_elem_index_get(l);
 					tag->newv = ETAG_GET(l->prev->e, l->v);
 					
 					if (!tag->newv) {
@@ -369,14 +369,14 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 						mul_v3_fl(co, fac);
 						add_v3_v3(co, l->v->co);
 
-						tag->newv = BM_Make_Vert(bm, co, l->v);
+						tag->newv = BM_vert_create(bm, co, l->v);
 						
 						ETAG_SET(l->prev->e, l->v, tag->newv);
 					}
 				}
 			}
-			else if (BMO_TestFlag(bm, l->v, BEVEL_FLAG)) {
-				tag = tags + BM_GetIndex(l);
+			else if (BMO_elem_flag_test(bm, l->v, BEVEL_FLAG)) {
+				tag = tags + BM_elem_index_get(l);
 				tag->newv = ETAG_GET(l->e, l->v);
 
 				if (!tag->newv) {
@@ -391,16 +391,16 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					mul_v3_fl(co, fac);
 					add_v3_v3(co, l->v->co);
 
-					tag = tags + BM_GetIndex(l);
-					tag->newv = BM_Make_Vert(bm, co, l->v);
+					tag = tags + BM_elem_index_get(l);
+					tag->newv = BM_vert_create(bm, co, l->v);
 					
 					ETAG_SET(l->e, l->v, tag->newv);
 				}
 			}
 			else {
-				tag = tags + BM_GetIndex(l);
+				tag = tags + BM_elem_index_get(l);
 				tag->newv = l->v;
-				BMO_ClearFlag(bm, l->v, BEVEL_DEL);
+				BMO_elem_flag_clear(bm, l->v, BEVEL_DEL);
 			}
 		}
 	}
@@ -412,7 +412,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 		BMVert *lastv = NULL, *firstv = NULL;
 
-		BMO_SetFlag(bm, faces[i], BEVEL_DEL);
+		BMO_elem_flag_set(bm, faces[i], BEVEL_DEL);
 		
 		BLI_array_empty(verts);
 		BLI_array_empty(edges);
@@ -420,46 +420,46 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, faces[i]) {
 			BMVert *v2;
 			
-			tag = tags + BM_GetIndex(l);
+			tag = tags + BM_elem_index_get(l);
 			BLI_array_append(verts, tag->newv);
 			
 			if (!firstv)
 				firstv = tag->newv;
 			
 			if (lastv) {
-				e = BM_Make_Edge(bm, lastv, tag->newv, l->e, TRUE);
-				BM_Copy_Attributes(bm, bm, l->prev->e, e);
+				e = BM_edge_create(bm, lastv, tag->newv, l->e, TRUE);
+				BM_elem_copy_attrs(bm, bm, l->prev->e, e);
 				BLI_array_append(edges, e);
 			}
 			lastv = tag->newv;
 			
 			v2 = ETAG_GET(l->e, l->next->v);
 			
-			tag = tags + BM_GetIndex(l->next);
-			if (!BMO_TestFlag(bm, l->e, BEVEL_FLAG) && v2 && v2 != tag->newv) {
+			tag = tags + BM_elem_index_get(l->next);
+			if (!BMO_elem_flag_test(bm, l->e, BEVEL_FLAG) && v2 && v2 != tag->newv) {
 				BLI_array_append(verts, v2);
 				
-				e = BM_Make_Edge(bm, lastv, v2, l->e, TRUE);
-				BM_Copy_Attributes(bm, bm, l->e, e);
+				e = BM_edge_create(bm, lastv, v2, l->e, TRUE);
+				BM_elem_copy_attrs(bm, bm, l->e, e);
 				
 				BLI_array_append(edges, e);
 				lastv = v2;
 			}
 		}
 		
-		e = BM_Make_Edge(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, TRUE);
+		e = BM_edge_create(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, TRUE);
 		if (BM_FACE_FIRST_LOOP(faces[i])->prev->e != e) {
-			BM_Copy_Attributes(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
+			BM_elem_copy_attrs(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
 		}
 		BLI_array_append(edges, e);
 		
-		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), FALSE);
+		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), FALSE);
 		if (!f) {
 			printf("%s: could not make face!\n", __func__);
 			continue;
 		}
 
-		BMO_SetFlag(bm, f, FACE_NEW);
+		BMO_elem_flag_set(bm, f, FACE_NEW);
 	}
 
 	for (i = 0; i < BLI_array_count(faces); i++) {
@@ -471,19 +471,19 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, faces[i]) {
 			BMVert *v1 = NULL, *v2 = NULL, *v3 = NULL, *v4 = NULL;
 			
-			if (!BMO_TestFlag(bm, l->e, BEVEL_FLAG))
+			if (!BMO_elem_flag_test(bm, l->e, BEVEL_FLAG))
 				continue;
 			
-			v1 = tags[BM_GetIndex(l)].newv;
-			v2 = tags[BM_GetIndex(l->next)].newv;
+			v1 = tags[BM_elem_index_get(l)].newv;
+			v2 = tags[BM_elem_index_get(l->next)].newv;
 			if (l->radial_next != l) {
-				v3 = tags[BM_GetIndex(l->radial_next)].newv;
+				v3 = tags[BM_elem_index_get(l->radial_next)].newv;
 				if (l->radial_next->next->v == l->next->v) {
 					v4 = v3;
-					v3 = tags[BM_GetIndex(l->radial_next->next)].newv;
+					v3 = tags[BM_elem_index_get(l->radial_next->next)].newv;
 				}
 				else {
-					v4 = tags[BM_GetIndex(l->radial_next->next)].newv;
+					v4 = tags[BM_elem_index_get(l->radial_next->next)].newv;
 				}
 			}
 			else {
@@ -496,14 +496,14 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					BMVert *v = j ? v4 : v3;
 
 					BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-						if (!BM_Vert_In_Edge(e, v3) || !BM_Vert_In_Edge(e, v4))
+						if (!BM_vert_in_edge(e, v3) || !BM_vert_in_edge(e, v4))
 							continue;
 						
-						if (!BMO_TestFlag(bm, e, BEVEL_FLAG) && BMO_TestFlag(bm, e, EDGE_OLD)) {
+						if (!BMO_elem_flag_test(bm, e, BEVEL_FLAG) && BMO_elem_flag_test(bm, e, EDGE_OLD)) {
 							BMVert *vv;
 							
 							vv = ETAG_GET(e, v);
-							if (!vv || BMO_TestFlag(bm, vv, BEVEL_FLAG))
+							if (!vv || BMO_elem_flag_test(bm, vv, BEVEL_FLAG))
 								continue;
 							
 							if (j)
@@ -515,8 +515,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					}
 				}
 
-				BMO_ClearFlag(bm, v3, BEVEL_DEL);
-				BMO_ClearFlag(bm, v4, BEVEL_DEL);
+				BMO_elem_flag_clear(bm, v3, BEVEL_DEL);
+				BMO_elem_flag_clear(bm, v4, BEVEL_DEL);
 			}
 			
 			if (v1 != v2 && v2 != v3 && v3 != v4) {
@@ -525,12 +525,12 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BMEdge *e1, *e2;
 				float d1, d2, *d3;
 				
-				f = BM_Make_Face_QuadTri(bm, v4, v3, v2, v1, l->f, TRUE);
+				f = BM_face_create_quad_tri(bm, v4, v3, v2, v1, l->f, TRUE);
 
-				e1 = BM_Edge_Exist(v4, v3);
-				e2 = BM_Edge_Exist(v2, v1);
-				BM_Copy_Attributes(bm, bm, l->e, e1);
-				BM_Copy_Attributes(bm, bm, l->e, e2);
+				e1 = BM_edge_exists(v4, v3);
+				e2 = BM_edge_exists(v2, v1);
+				BM_elem_copy_attrs(bm, bm, l->e, e1);
+				BM_elem_copy_attrs(bm, bm, l->e, e2);
 				
 				/* set edge lengths of cross edges as the average of the cross edges they're based o */
 				if (has_elens) {
@@ -539,8 +539,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 #if 0
 					float ang;
 #endif
-					e1 = BM_Edge_Exist(v1, v4);
-					e2 = BM_Edge_Exist(v2, v3);
+					e1 = BM_edge_exists(v1, v4);
+					e2 = BM_edge_exists(v2, v3);
 					
 					if (l->radial_next->v == l->v) {
 						l2 = l->radial_next->prev;
@@ -555,7 +555,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					d1 = *(float *)CustomData_bmesh_get_n(&bm->edata, l->prev->e->head.data, CD_PROP_FLT, li);
 					d2 = *(float *)CustomData_bmesh_get_n(&bm->edata, l2->e->head.data, CD_PROP_FLT, li);
 #if 0
-					ang = angle_v3v3v3(l->prev->v->co, l->v->co, BM_OtherEdgeVert(l2->e, l->v)->co);
+					ang = angle_v3v3v3(l->prev->v->co, l->v->co, BM_edge_other_vert(l2->e, l->v)->co);
 #endif
 					*d3 = (d1 + d2) * 0.5f;
 					
@@ -563,8 +563,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					d1 = *(float *)CustomData_bmesh_get_n(&bm->edata, l->next->e->head.data, CD_PROP_FLT, li);
 					d2 = *(float *)CustomData_bmesh_get_n(&bm->edata, l3->e->head.data, CD_PROP_FLT, li);
 #if 0
-					ang = angle_v3v3v3(BM_OtherEdgeVert(l->next->e, l->next->v)->co, l->next->v->co,
-					                   BM_OtherEdgeVert(l3->e, l->next->v)->co);
+					ang = angle_v3v3v3(BM_edge_other_vert(l->next->e, l->next->v)->co, l->next->v->co,
+					                   BM_edge_other_vert(l3->e, l->next->v)->co);
 #endif
 					*d3 = (d1 + d2) * 0.5f;
 				}
@@ -574,11 +574,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					continue;
 				}
 				
-				BMO_SetFlag(bm, f, FACE_NEW|FACE_SPAN);
+				BMO_elem_flag_set(bm, f, FACE_NEW|FACE_SPAN);
 				
 				/* un-tag edges in f for deletio */
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, f) {
-					BMO_ClearFlag(bm, l2->e, BEVEL_DEL);
+					BMO_elem_flag_clear(bm, l2->e, BEVEL_DEL);
 				}
 			}
 			else {
@@ -596,7 +596,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 
 		BLI_smallhash_init(&tmphash);
 
-		if (!BMO_TestFlag(bm, v, BEVEL_FLAG))
+		if (!BMO_elem_flag_test(bm, v, BEVEL_FLAG))
 			continue;
 		
 		BLI_array_empty(verts);
@@ -607,20 +607,20 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMVert *v1 = NULL, *v2 = NULL;
 			BMLoop *l;
 			
-			if (BM_Edge_FaceCount(e) < 2)
+			if (BM_edge_face_count(e) < 2)
 				insorig = 1;
 			
-			if (BM_GetIndex(e) == -1)
+			if (BM_elem_index_get(e) == -1)
 				continue;
 			
 			rad = 0;
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
-				if (!BMO_TestFlag(bm, l->f, FACE_OLD))
+				if (!BMO_elem_flag_test(bm, l->f, FACE_OLD))
 					continue;
 				
 				rad++;
 				
-				tag = tags + BM_GetIndex((l->v == v) ? l : l->next);
+				tag = tags + BM_elem_index_get((l->v == v) ? l : l->next);
 				
 				if (!v1)
 					v1 = tag->newv;
@@ -663,7 +663,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		vv = vstart;
 		do {
 			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, vv) {
-				BMVert *vv2 = BM_OtherEdgeVert(e, vv);
+				BMVert *vv2 = BM_edge_other_vert(e, vv);
 				
 				if (vv2 != lastv && BLI_smallhash_haskey(&tmphash, (intptr_t)vv2)) {
 					/* if we've go over the same vert twice, break out of outer loop */
@@ -708,7 +708,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BLI_array_empty(edges);
 			do {
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, vv) {
-					BMVert *vv2 = BM_OtherEdgeVert(e, vv);
+					BMVert *vv2 = BM_edge_other_vert(e, vv);
 					
 					if (vv2 != lastv && BLI_smallhash_haskey(&tmphash, (intptr_t)vv2)) {
 						/* if we've go over the same vert twice, break out of outer loo */
@@ -733,7 +733,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			} while (vv != vstart);
 			
 			if (!err) {
-				e = BM_Make_Edge(bm, vv, vstart, NULL, TRUE);
+				e = BM_edge_create(bm, vv, vstart, NULL, TRUE);
 				BLI_array_append(edges, e);
 			}
 		}
@@ -744,15 +744,15 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		if (BLI_array_count(edges) >= 3) {
 			BMFace *f;
 			
-			if (BM_Face_Exists(bm, verts, BLI_array_count(verts), &f))
+			if (BM_face_exists(bm, verts, BLI_array_count(verts), &f))
 				continue;
 			
-			f = BM_Make_Ngon(bm, lastv, vstart, edges, BLI_array_count(edges), FALSE);
+			f = BM_face_create_ngon(bm, lastv, vstart, edges, BLI_array_count(edges), FALSE);
 			if (!f) {
 				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
 			}
 			else {
-				BMO_SetFlag(bm, f, FACE_NEW|FACE_HOLE);
+				BMO_elem_flag_set(bm, f, FACE_NEW|FACE_HOLE);
 			}
 		}
 		BLI_smallhash_release(&tmphash);
@@ -768,21 +768,21 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMLoop *l2;
 			BMIter liter2;
 			
-			tag = tags + BM_GetIndex(l);
+			tag = tags + BM_elem_index_get(l);
 			if (!tag->newv)
 				continue;
 			
 			BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_VERT, tag->newv) {
-				if (!BMO_TestFlag(bm, l2->f, FACE_NEW) || (l2->v != tag->newv && l2->v != l->v))
+				if (!BMO_elem_flag_test(bm, l2->f, FACE_NEW) || (l2->v != tag->newv && l2->v != l->v))
 					continue;
 				
 				if (tag->newv != l->v || HasMDisps) {
-					BM_Copy_Attributes(bm, bm, l->f, l2->f);
+					BM_elem_copy_attrs(bm, bm, l->f, l2->f);
 					BM_loop_interp_from_face(bm, l2, l->f, TRUE, TRUE);
 				}
 				else {
-					BM_Copy_Attributes(bm, bm, l->f, l2->f);
-					BM_Copy_Attributes(bm, bm, l, l2);
+					BM_elem_copy_attrs(bm, bm, l->f, l2->f);
+					BM_elem_copy_attrs(bm, bm, l, l2);
 				}
 				
 				if (HasMDisps) {
@@ -799,7 +799,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	
 	/* handle vertices along boundary edge */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, v, VERT_OLD) && BMO_TestFlag(bm, v, BEVEL_FLAG) && !BMO_TestFlag(bm, v, BEVEL_DEL)) {
+		if (BMO_elem_flag_test(bm, v, VERT_OLD) && BMO_elem_flag_test(bm, v, BEVEL_FLAG) && !BMO_elem_flag_test(bm, v, BEVEL_DEL)) {
 			BMLoop *l;
 			BMLoop *lorig = NULL;
 			BMIter liter;
@@ -808,7 +808,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				// BMIter liter2;
 				// BMLoop *l2 = l->v == v ? l : l->next, *l3;
 				
-				if (BMO_TestFlag(bm, l->f, FACE_OLD)) {
+				if (BMO_elem_flag_test(bm, l->f, FACE_OLD)) {
 					lorig = l;
 					break;
 				}
@@ -820,8 +820,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 				BMLoop *l2 = l->v == v ? l : l->next;
 				
-				BM_Copy_Attributes(bm, bm, lorig->f, l2->f);
-				BM_Copy_Attributes(bm, bm, lorig, l2);
+				BM_elem_copy_attrs(bm, bm, lorig->f, l2->f);
+				BM_elem_copy_attrs(bm, bm, lorig, l2);
 			}
 		}
 	}
@@ -832,23 +832,23 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMFace *faces[2] = {f, BM_FACE_FIRST_LOOP(f)->radial_next->f};
 			
 			if (faces[0] == faces[1])
-				BM_Kill_Face(bm, f);
+				BM_face_kill(bm, f);
 			else
-				BM_Join_Faces(bm, faces, 2);
+				BM_faces_join(bm, faces, 2);
 		}
 	}
 #endif
 	
-	BMO_CallOpf(bm, "del geom=%fv context=%i", BEVEL_DEL, DEL_VERTS);
+	BMO_op_callf(bm, "del geom=%fv context=%i", BEVEL_DEL, DEL_VERTS);
 
 	/* clean up any edges that might not get properly delete */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, e, EDGE_OLD) && !e->l)
-			BMO_SetFlag(bm, e, BEVEL_DEL);
+		if (BMO_elem_flag_test(bm, e, EDGE_OLD) && !e->l)
+			BMO_elem_flag_set(bm, e, BEVEL_DEL);
 	}
 
-	BMO_CallOpf(bm, "del geom=%fe context=%i", BEVEL_DEL, DEL_EDGES);
-	BMO_CallOpf(bm, "del geom=%ff context=%i", BEVEL_DEL, DEL_FACES);
+	BMO_op_callf(bm, "del geom=%fe context=%i", BEVEL_DEL, DEL_EDGES);
+	BMO_op_callf(bm, "del geom=%ff context=%i", BEVEL_DEL, DEL_FACES);
 	
 	BLI_smallhash_release(&hash);
 	BLI_array_free(tags);
@@ -857,6 +857,6 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 	BLI_array_free(faces);
 	
-	BMO_Flag_To_Slot(bm, op, "face_spans", FACE_SPAN, BM_FACE);
-	BMO_Flag_To_Slot(bm, op, "face_holes", FACE_HOLE, BM_FACE);
+	BMO_slot_from_flag(bm, op, "face_spans", FACE_SPAN, BM_FACE);
+	BMO_slot_from_flag(bm, op, "face_holes", FACE_HOLE, BM_FACE);
 }

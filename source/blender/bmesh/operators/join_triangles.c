@@ -231,26 +231,26 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BLI_array_declare(jedges);
 	JoinEdge *jedges = NULL;
-	int dosharp = BMO_Get_Int(op, "compare_sharp"), douvs = BMO_Get_Int(op, "compare_uvs");
-	int dovcols = BMO_Get_Int(op, "compare_vcols"), domat = BMO_Get_Int(op, "compare_materials");
-	float limit = BMO_Get_Float(op, "limit");
+	int dosharp = BMO_slot_int_get(op, "compare_sharp"), douvs = BMO_slot_int_get(op, "compare_uvs");
+	int dovcols = BMO_slot_int_get(op, "compare_vcols"), domat = BMO_slot_int_get(op, "compare_materials");
+	float limit = BMO_slot_float_get(op, "limit");
 	int i, totedge;
 
 	/* flag all edges of all input face */
 	BMO_ITER(f1, &siter, bm, op, "faces", BM_FACE) {
-		BMO_SetFlag(bm, f1, FACE_INPUT);
+		BMO_elem_flag_set(bm, f1, FACE_INPUT);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f1) {
-			BMO_SetFlag(bm, l->e, EDGE_MARK);
+			BMO_elem_flag_set(bm, l->e, EDGE_MARK);
 		}
 	}
 
 	/* unflag edges that are invalid; e.g. aren't surrounded by triangle */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BMO_TestFlag(bm, e, EDGE_MARK))
+		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		if (BM_Edge_FaceCount(e) < 2) {
-			BMO_ClearFlag(bm, e, EDGE_MARK);
+		if (BM_edge_face_count(e) < 2) {
+			BMO_elem_flag_clear(bm, e, EDGE_MARK);
 			continue;
 		}
 
@@ -258,12 +258,12 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		f2 = e->l->radial_next->f;
 
 		if (f1->len != 3 || f2->len != 3) {
-			BMO_ClearFlag(bm, e, EDGE_MARK);
+			BMO_elem_flag_clear(bm, e, EDGE_MARK);
 			continue;
 		}
 
-		if (!BMO_TestFlag(bm, f1, FACE_INPUT) || !BMO_TestFlag(bm, f2, FACE_INPUT)) {
-			BMO_ClearFlag(bm, e, EDGE_MARK);
+		if (!BMO_elem_flag_test(bm, f1, FACE_INPUT) || !BMO_elem_flag_test(bm, f2, FACE_INPUT)) {
+			BMO_elem_flag_clear(bm, e, EDGE_MARK);
 			continue;
 		}
 	}
@@ -274,7 +274,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		BMFace *f1, *f2;
 		float measure;
 
-		if (!BMO_TestFlag(bm, e, EDGE_MARK))
+		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
 		f1 = e->l->f;
@@ -285,7 +285,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		v3 = e->l->next->v;
 		v4 = e->l->radial_next->prev->v;
 
-		if (dosharp && BM_TestHFlag(e, BM_ELEM_SHARP))
+		if (dosharp && BM_elem_flag_test(e, BM_ELEM_SHARP))
 			continue;
 		
 		if ((douvs || dovcols) && compareFaceAttribs(bm, e, douvs, dovcols))
@@ -318,26 +318,26 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		f1 = e->l->f;
 		f2 = e->l->radial_next->f;
 
-		if (BMO_TestFlag(bm, f1, FACE_MARK) || BMO_TestFlag(bm, f2, FACE_MARK))
+		if (BMO_elem_flag_test(bm, f1, FACE_MARK) || BMO_elem_flag_test(bm, f2, FACE_MARK))
 			continue;
 
-		BMO_SetFlag(bm, f1, FACE_MARK);
-		BMO_SetFlag(bm, f2, FACE_MARK);
-		BMO_SetFlag(bm, e, EDGE_CHOSEN);
+		BMO_elem_flag_set(bm, f1, FACE_MARK);
+		BMO_elem_flag_set(bm, f2, FACE_MARK);
+		BMO_elem_flag_set(bm, e, EDGE_CHOSEN);
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BMO_TestFlag(bm, e, EDGE_CHOSEN))
+		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
 			continue;
 
 		f1 = e->l->f;
 		f2 = e->l->radial_next->f;
 
-		BM_Join_TwoFaces(bm, f1, f2, e);
+		BM_faces_join_pair(bm, f1, f2, e);
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
+		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			/* ok, this edge wasn't merged, check if it's
 			 * in a 2-tri-pair island, and if so merg */
 
@@ -349,7 +349,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 
 			for (i = 0; i < 2; i++) {
 				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, i ? f2 : f1) {
-					if (l->e != e && BMO_TestFlag(bm, l->e, EDGE_MARK)) {
+					if (l->e != e && BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
 						break;
 					}
 				}
@@ -365,7 +365,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			BM_Join_TwoFaces(bm, f1, f2, e);
+			BM_faces_join_pair(bm, f1, f2, e);
 		}
 	}
 

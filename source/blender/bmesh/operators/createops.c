@@ -92,8 +92,8 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
                               EdgeData *edata, VertData *vdata)
 {
-	EdgeData *ed = &edata[BM_GetIndex(e)];
-	VertData *vd = &vdata[BM_GetIndex(v)];
+	EdgeData *ed = &edata[BM_elem_index_get(e)];
+	VertData *vd = &vdata[BM_elem_index_get(v)];
 	
 	if (!vd->e) {
 		Link *e1 = (Link *)RS_GET_EDGE_LINK(e, v, ed);
@@ -103,11 +103,11 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 	}
 	else {
 		Link *e1, *e2, *e3;
-		EdgeData *ved = &edata[BM_GetIndex(vd->e)];
+		EdgeData *ved = &edata[BM_elem_index_get(vd->e)];
 
 		e1 = RS_GET_EDGE_LINK(e, v, ed);
 		e2 = RS_GET_EDGE_LINK(vd->e, v, ved);
-		e3 = e2->prev ? RS_GET_EDGE_LINK(e2->prev, v, &edata[BM_GetIndex(e2->prev)]) : NULL;
+		e3 = e2->prev ? RS_GET_EDGE_LINK(e2->prev, v, &edata[BM_elem_index_get(e2->prev)]) : NULL;
 
 		e1->next = (Link *)vd->e;
 		e1->prev = e2->prev;
@@ -123,8 +123,8 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert *v,
                                                 EdgeData *edata, VertData *vdata)
 {
-	EdgeData *ed = edata + BM_GetIndex(e);
-	VertData *vd = vdata + BM_GetIndex(v);
+	EdgeData *ed = edata + BM_elem_index_get(e);
+	VertData *vd = vdata + BM_elem_index_get(v);
 	Link *e1, *e2;
 
 	e1 = RS_GET_EDGE_LINK(e, v, ed);
@@ -148,9 +148,9 @@ static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
                                       EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
-		return edata[BM_GetIndex(e)].dlink1.next;
+		return edata[BM_elem_index_get(e)].dlink1.next;
 	if (v == e->v2)
-		return edata[BM_GetIndex(e)].dlink2.next;
+		return edata[BM_elem_index_get(e)].dlink2.next;
 	return NULL;
 }
 
@@ -158,9 +158,9 @@ static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
                                EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
-		return edata[BM_GetIndex(e)].dlink1.prev;
+		return edata[BM_elem_index_get(e)].dlink1.prev;
 	if (v == e->v2)
-		return edata[BM_GetIndex(e)].dlink2.prev;
+		return edata[BM_elem_index_get(e)].dlink2.prev;
 	return NULL;
 }
 
@@ -172,7 +172,7 @@ static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData 
 	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
 	int i, totedge;
 	
-	e = e_first = vdata[BM_GetIndex(v)].e;
+	e = e_first = vdata[BM_elem_index_get(v)].e;
 	do {
 		BLI_array_append(edges, e);
 		e = rotsys_nextedge(e, v, edata, vdata);
@@ -183,7 +183,7 @@ static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData 
 		SWAP(BMEdge *, edges[i], edges[totedge - 1 - i]);
 	}
 	
-	vdata[BM_GetIndex(v)].e = NULL;
+	vdata[BM_elem_index_get(v)].e = NULL;
 	for (i = 0; i < totedge; i++) {
 		rotsys_append_edge(edges[i], v, edata, vdata);
 	}
@@ -193,7 +193,7 @@ static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData 
 
 static int UNUSED_FUNCTION(rotsys_count)(struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
-	BMEdge *e = vdata[BM_GetIndex(v)].e;
+	BMEdge *e = vdata[BM_elem_index_get(v)].e;
 	int i = 0;
 
 	if (!e)
@@ -210,7 +210,7 @@ static int UNUSED_FUNCTION(rotsys_count)(struct BMVert *v, EdgeData *edata, Vert
 		}
 
 		i += 1;
-	} while (e != vdata[BM_GetIndex(v)].e);
+	} while (e != vdata[BM_elem_index_get(v)].e);
 
 	return i;
 }
@@ -264,7 +264,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				
 				BLI_smallhash_insert(hash, (intptr_t)e2, NULL);
 
-				v = BM_OtherEdgeVert(e2, v);
+				v = BM_edge_other_vert(e2, v);
 				e2 = i ? rotsys_prevedge(e2, v, edata, vdata) : rotsys_nextedge(e2, v, edata, vdata);
 			} while (e2 != starte && v != startv);
 			
@@ -273,7 +273,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 			if (!ok || BLI_array_count(edges) < 3)
 				continue;
 			
-			f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
+			f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
 			if (!f)
 				continue;
 		}
@@ -299,9 +299,9 @@ static void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 		BMVert *startv = NULL;
 		float dis;
 		
-		v = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for (i = 0; i < bm->totvert; i++, BMIter_Step(&iter)) {
-			vd = vdata + BM_GetIndex(v);
+		v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for (i = 0; i < bm->totvert; i++, BM_iter_step(&iter)) {
+			vd = vdata + BM_elem_index_get(v);
 			
 			if (vd->tag)
 				continue;
@@ -315,7 +315,7 @@ static void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 		if (!startv)
 			break;
 		
-		vd = vdata + BM_GetIndex(startv);
+		vd = vdata + BM_elem_index_get(startv);
 		
 		BLI_array_empty(stack);
 		BLI_array_append(stack, startv);
@@ -324,15 +324,15 @@ static void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 		
 		while (BLI_array_count(stack)) {
 			v = BLI_array_pop(stack);
-			vd = vdata + BM_GetIndex(v);
+			vd = vdata + BM_elem_index_get(v);
 			
 			if (!vd->e)
 				continue;
 			
 			e = vd->e;
 			do {
-				BMVert *v2 = BM_OtherEdgeVert(e, v);
-				VertData *vd2 = vdata + BM_GetIndex(v2);
+				BMVert *v2 = BM_edge_other_vert(e, v);
+				VertData *vd2 = vdata + BM_elem_index_get(v2);
 				
 				if (dot_v3v3(vd->no, vd2->no) < 0.0f + FLT_EPSILON * 2) {
 					rotsys_reverse(e, v2, edata, vdata);
@@ -370,13 +370,13 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 		float no[3], cent[3];
 		int j, k = 0, totedge = 0;
 		
-		if (BM_GetIndex(v) == -1)
+		if (BM_elem_index_get(v) == -1)
 			continue;
 		
 		BLI_array_empty(edges);
 		
 		BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-			if (BMO_TestFlag(bm, e, EDGE_MARK)) {
+			if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				BLI_array_append(edges, e);
 				totedge++;
 			}
@@ -392,8 +392,8 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			e1 = edges[i];
 			e2 = edges[(i + 1) % totedge];
 
-			sub_v3_v3v3(vec1, (BM_OtherEdgeVert(e1, v))->co, v->co);
-			sub_v3_v3v3(vec2, (BM_OtherEdgeVert(e2, v))->co, v->co);
+			sub_v3_v3v3(vec1, (BM_edge_other_vert(e1, v))->co, v->co);
+			sub_v3_v3v3(vec2, (BM_edge_other_vert(e2, v))->co, v->co);
 			
 			cross_v3_v3v3(cno, vec1, vec2);
 			normalize_v3(cno);
@@ -412,7 +412,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			float cvec[3], vec1[3];
 			
 			e1 = edges[i];
-			v2 = BM_OtherEdgeVert(e1, v);
+			v2 = BM_edge_other_vert(e1, v);
 			
 			sub_v3_v3v3(vec1, v2->co, v->co);
 			
@@ -423,7 +423,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			mul_v3_fl(vec1, len_v3v3(v2->co, v->co));
 			add_v3_v3(vec1, v->co);
 			
-			copy_v3_v3(vdata[BM_GetIndex(v2)].sco, vec1);
+			copy_v3_v3(vdata[BM_elem_index_get(v2)].sco, vec1);
 		}
 		
 		BLI_srandom(0);
@@ -444,13 +444,13 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			e2 = edges[i];
 			e3 = edges[(i + 1) % totedge];
 			
-			v1 = BM_OtherEdgeVert(e1, v);
-			v2 = BM_OtherEdgeVert(e2, v);
-			v3 = BM_OtherEdgeVert(e3, v);
+			v1 = BM_edge_other_vert(e1, v);
+			v2 = BM_edge_other_vert(e2, v);
+			v3 = BM_edge_other_vert(e3, v);
 
-			vd1 = vdata + BM_GetIndex(v1);
-			vd2 = vdata + BM_GetIndex(v2);
-			vd3 = vdata + BM_GetIndex(v3);
+			vd1 = vdata + BM_elem_index_get(v1);
+			vd2 = vdata + BM_elem_index_get(v2);
+			vd3 = vdata + BM_elem_index_get(v3);
 			
 			sub_v3_v3v3(vec1, vd1->sco, cent);
 			sub_v3_v3v3(vec2, vd2->sco, cent);
@@ -487,7 +487,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			}
 		}
 		
-		copy_v3_v3(vdata[BM_GetIndex(v)].offco, cent);
+		copy_v3_v3(vdata[BM_elem_index_get(v)].offco, cent);
 		//copy_v3_v3(v->co, cent);
 		
 		/* now, sort edges so the triangle fan of all edges
@@ -505,13 +505,13 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				e2 = edges[i];
 				e3 = edges[(i + 1) % totedge];
 				
-				v1 = BM_OtherEdgeVert(e1, v);
-				v2 = BM_OtherEdgeVert(e2, v);
-				v3 = BM_OtherEdgeVert(e3, v);
+				v1 = BM_edge_other_vert(e1, v);
+				v2 = BM_edge_other_vert(e2, v);
+				v3 = BM_edge_other_vert(e3, v);
 
-				vd1 = vdata + BM_GetIndex(v1);
-				vd2 = vdata + BM_GetIndex(v2);
-				vd3 = vdata + BM_GetIndex(v3);
+				vd1 = vdata + BM_elem_index_get(v1);
+				vd2 = vdata + BM_elem_index_get(v2);
+				vd3 = vdata + BM_elem_index_get(v3);
 
 				sub_v3_v3v3(vec1, vd1->sco, cent);
 				sub_v3_v3v3(vec2, vd2->sco, cent);
@@ -553,14 +553,14 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			BMEdge *e1 = edges[i], *e2 = edges[(i + 1) % totedge];
 			float eno[3];
 			
-			normal_tri_v3(eno, BM_OtherEdgeVert(e1, v)->co, v->co, BM_OtherEdgeVert(e2, v)->co);
+			normal_tri_v3(eno, BM_edge_other_vert(e1, v)->co, v->co, BM_edge_other_vert(e2, v)->co);
 			add_v3_v3(no, eno);
 			
 			rotsys_append_edge(edges[i], v, edata, vdata);
 		}
 		
 		normalize_v3(no);
-		copy_v3_v3(vdata[BM_GetIndex(v)].no, no);
+		copy_v3_v3(vdata[BM_elem_index_get(v)].no, no);
 	}
 	
 	/* now, make sure rotation system is topologically consistent
@@ -575,15 +575,15 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *v2;
 		BMFace *f;
-		int totedge = BM_Vert_EdgeCount(v);
+		int totedge = BM_vert_edge_count(v);
 
-		if (BM_GetIndex(v) == -1)
+		if (BM_elem_index_get(v) == -1)
 			continue;
 		
-		//cv = BM_Make_Vert(bm, cent, v);
-		//BM_SetIndex(cv, -1);  /* set_dirty! */
+		//cv = BM_vert_create(bm, cent, v);
+		//BM_elem_index_set(cv, -1);  /* set_dirty! */
 		i = 0;
-		e = vdata[BM_GetIndex(v)].e;
+		e = vdata[BM_elem_index_get(v)].e;
 		lastv = NULL;
 		do {
 			BMEdge *e2;
@@ -594,28 +594,28 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			if (!e)
 				break;
 
-			if (!BM_OtherEdgeVert(e, v))
+			if (!BM_edge_other_vert(e, v))
 				continue;
 			
-			sub_v3_v3v3(co, (BM_OtherEdgeVert(e, v))->co, vdata[BM_GetIndex(v)].offco);
+			sub_v3_v3v3(co, (BM_edge_other_vert(e, v))->co, vdata[BM_elem_index_get(v)].offco);
 			mul_v3_fl(co, f);
-			add_v3_v3(co, vdata[BM_GetIndex(v)].offco);
+			add_v3_v3(co, vdata[BM_elem_index_get(v)].offco);
 			
-			v2 = BM_Make_Vert(bm, co, NULL);
-			BM_SetIndex(v2, -1); /* set_dirty! */
-			//BM_Make_Edge(bm, cv, v2, NULL, FALSE);
+			v2 = BM_vert_create(bm, co, NULL);
+			BM_elem_index_set(v2, -1); /* set_dirty! */
+			//BM_edge_create(bm, cv, v2, NULL, FALSE);
 			
-			BM_Select(bm, v2, TRUE);
+			BM_elem_select_set(bm, v2, TRUE);
 			if (lastv) {
-				e2 = BM_Make_Edge(bm, lastv, v2, NULL, FALSE);
-				BM_Select(bm, e2, TRUE);
+				e2 = BM_edge_create(bm, lastv, v2, NULL, FALSE);
+				BM_elem_select_set(bm, e2, TRUE);
 			}
 			
 			lastv = v2;
 			
 			e = rotsys_nextedge(e, v, edata, vdata);
 			i++;
-		} while (e != vdata[BM_GetIndex(v)].e);
+		} while (e != vdata[BM_elem_index_get(v)].e);
 	}
 #endif
 
@@ -692,7 +692,7 @@ static float edge_weight_path(EPath *path, EdgeData *edata, VertData *UNUSED(vda
 
 	for (node = path->nodes.first; node; node = node->next) {
 		if (node->e && node != path->nodes.first) {
-			w += edata[BM_GetIndex(node->e)].ftag;
+			w += edata[BM_elem_index_get(node->e)].ftag;
 			if (node->prev) {
 				/* BMESH_TOD */
 				(void)first;
@@ -733,10 +733,10 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 	BMVert *startv;
 	BMVert *endv;
 	EPathNode *node;
-	int i, use_restrict = BMO_Get_Int(op, "use_restrict");
+	int i, use_restrict = BMO_slot_int_get(op, "use_restrict");
 
-	startv = edata[BM_GetIndex(edge)].ftag ? edge->v2 : edge->v1;
-	endv = edata[BM_GetIndex(edge)].ftag ? edge->v1 : edge->v2;
+	startv = edata[BM_elem_index_get(edge)].ftag ? edge->v2 : edge->v1;
+	endv = edata[BM_elem_index_get(edge)].ftag ? edge->v1 : edge->v2;
 	
 	path = edge_path_new(pathbase, startv, edge);
 	BLI_ghash_insert(gh, startv, NULL);
@@ -761,8 +761,8 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 				verts[i] = node->v;
 			}
 
-			if (BM_Face_Exists(bm, verts, i, &f)) {
-				if (!BMO_TestFlag(bm, f, FACE_IGNORE)) {
+			if (BM_face_exists(bm, verts, i, &f)) {
+				if (!BMO_elem_flag_test(bm, f, FACE_IGNORE)) {
 					BLI_ghash_remove(gh, endv, NULL, NULL);
 					continue;
 				}
@@ -770,36 +770,36 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			break;
 		}
 		
-		vd = vdata + BM_GetIndex(v1);
+		vd = vdata + BM_elem_index_get(v1);
 		if (!vd->e)
 			continue;
 		
 		v2 = NULL;
 		while (1) {
 			if (!last->cure) {
-				last->cure = e = vdata[BM_GetIndex(last->v)].e;
+				last->cure = e = vdata[BM_elem_index_get(last->v)].e;
 			}
 			else {
 				last->cure = e = rotsys_nextedge(last->cure, last->v, edata, vdata);
-				if (last->cure == vdata[BM_GetIndex(last->v)].e) {
+				if (last->cure == vdata[BM_elem_index_get(last->v)].e) {
 					v2 = NULL;
 					break;
 				}
 			}
 			
-			if (e == edge || !BMO_TestFlag(bm, e, EDGE_MARK)) {
+			if (e == edge || !BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				continue;
 			}
 
-			v2 = BM_OtherEdgeVert(e, last->v);
+			v2 = BM_edge_other_vert(e, last->v);
 			
 			if (BLI_ghash_haskey(gh, v2)) {
 				v2 = NULL;
 				continue;
 			}
 			
-			if (use_restrict && BMO_InMap(bm, op, "restrict", e)) {
-				int group = BMO_Get_MapInt(bm, op, "restrict", e);
+			if (use_restrict && BMO_slot_map_contains(bm, op, "restrict", e)) {
+				int group = BMO_slot_map_int_get(bm, op, "restrict", e);
 				
 				if (!(group & path->group)) {
 					v2 = NULL;
@@ -852,7 +852,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e)
 	}
 
 	do {
-		if (!BMO_TestFlag(bm, l->f, FACE_IGNORE)) {
+		if (!BMO_elem_flag_test(bm, l->f, FACE_IGNORE)) {
 			i++;
 		}
 
@@ -877,7 +877,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge **edges = NULL;
 	PathBase *pathbase = edge_pathbase_new();
 	BLI_array_declare(edges);
-	int use_restrict = BMO_Get_Int(op, "use_restrict");
+	int use_restrict = BMO_slot_int_get(op, "use_restrict");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 
@@ -887,20 +887,20 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	edata = MEM_callocN(sizeof(EdgeData)*bm->totedge, "EdgeData");
 	vdata = MEM_callocN(sizeof(VertData)*bm->totvert, "VertData");
 	
-	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
-	BMO_Flag_Buffer(bm, op, "excludefaces", FACE_IGNORE, BM_FACE);
+	BMO_slot_buffer_flag(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag(bm, op, "excludefaces", FACE_IGNORE, BM_FACE);
 	
-	BM_ElemIndex_Ensure(bm, BM_VERT);
+	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BMO_SetFlag(bm, f, ELE_ORIG);
+		BMO_elem_flag_set(bm, f, ELE_ORIG);
 	}
 
 	i = 0;
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, i); /* set_inline */
+		BM_elem_index_set(e, i); /* set_inline */
 		
-		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
+		if (!BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			edata[i].tag = 2;
 		}
 
@@ -916,23 +916,23 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		
 		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 			/* if restrict is on, only start on faces in the restrict map */
-			if (use_restrict && !BMO_InMap(bm, op, "restrict", e))
+			if (use_restrict && !BMO_slot_map_contains(bm, op, "restrict", e))
 				continue;
 
-			if (edata[BM_GetIndex(e)].tag < 2) {
+			if (edata[BM_elem_index_get(e)].tag < 2) {
 				edge = e;
 
 				if (use_restrict) {
 					int i = 0, j = 0, gi = 0;
 					
-					group = BMO_Get_MapInt(bm, op, "restrict", e);
+					group = BMO_slot_map_int_get(bm, op, "restrict", e);
 					
 					for (i = 0; i < 30; i++) {
 						if (group & (1 << i)) {
 							j++;
 							gi = i;
 
-							if (j - 1 == edata[BM_GetIndex(e)].tag) {
+							if (j - 1 == edata[BM_elem_index_get(e)].tag) {
 								break;
 							}
 						}
@@ -948,7 +948,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		if (!edge)
 			break;
 
-		edata[BM_GetIndex(edge)].tag += 1;
+		edata[BM_elem_index_get(edge)].tag += 1;
 
 		path = edge_find_shortest_path(bm, op, edge, edata, vdata, pathbase, group);
 		if (!path)
@@ -963,7 +963,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			if (!node->next)
 				continue;
 
-			e = BM_Edge_Exist(node->v, node->next->v);
+			e = BM_edge_exists(node->v, node->next->v);
 			
 			/* this should never happe */
 			if (!e)
@@ -973,13 +973,13 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			if (e->l) {
 				BMVert *test_v1, *test_v2;
 				/* we want to use the reverse winding to the existing order */
-				BM_Edge_OrderedVerts(edge, &test_v2, &test_v1);
+				BM_edge_ordered_verts(edge, &test_v2, &test_v1);
 
 				/* edges vote on which winding wins out */
 				winding[(test_v1 == node->v)]++;
 			}
 
-			edata[BM_GetIndex(e)].ftag++;
+			edata[BM_elem_index_get(e)].ftag++;
 			BLI_array_growone(edges);
 			edges[i++] = e;
 
@@ -988,7 +988,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		
 		BLI_array_growone(edges);
 		edges[i++] = edge;
-		edata[BM_GetIndex(edge)].ftag++;
+		edata[BM_elem_index_get(edge)].ftag++;
 		
 		for (j = 0; j < i; j++) {
 			if (count_edge_faces(bm, edges[j]) >= 2) {
@@ -1019,19 +1019,19 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				v2 = verts[0];
 			}
 
-			f = BM_Make_Ngon(bm, v1, v2, edges, i, TRUE);
-			if (f && !BMO_TestFlag(bm, f, ELE_ORIG)) {
-				BMO_SetFlag(bm, f, FACE_NEW);
+			f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
+			if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
+				BMO_elem_flag_set(bm, f, FACE_NEW);
 			}
 
 			if (use_restrict)
-				BMO_Insert_MapInt(bm, op, "faceout_groupmap", f, path->group);
+				BMO_slot_map_int_insert(bm, op, "faceout_groupmap", f, path->group);
 		}
 		
 		edge_free_path(pathbase, path);
 	}
 
-	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
+	BMO_slot_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
 
 	BLI_array_free(edges);
 	BLI_array_free(verts);
@@ -1048,8 +1048,8 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 
 	for (i = 0; i < 2; i++) {
 		BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
-			if ( (BMO_TestFlag(bm, e2, EDGE_MARK)) &&
-			     (!BMO_TestFlag(bm, e2, EDGE_VIS)) &&
+			if ( (BMO_elem_flag_test(bm, e2, EDGE_MARK)) &&
+			     (!BMO_elem_flag_test(bm, e2, EDGE_VIS)) &&
 			     (e2 != e))
 			{
 				return e2;
@@ -1071,13 +1071,13 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	int ok = 1;
 	int i, count;
 
-	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag(bm, op, "edges", EDGE_MARK, BM_EDGE);
 	
 	/* validate that each edge has at most one other tagged edge in the
 	 * disk cycle around each of it's vertices */
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		for (i = 0; i < 2; i++) {
-			count = BMO_Vert_CountEdgeFlags(bm, i ? e->v2 : e->v1, EDGE_MARK);
+			count = BMO_vert_edge_flags_count(bm, i ? e->v2 : e->v1, EDGE_MARK);
 			if (count > 2) {
 				ok = 0;
 				break;
@@ -1098,9 +1098,9 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	count = 0;
 	while (1) {
 		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-			if (!BMO_TestFlag(bm, e, EDGE_VIS)) {
-				if ( BMO_Vert_CountEdgeFlags(bm, e->v1, EDGE_MARK) == 1 ||
-				     BMO_Vert_CountEdgeFlags(bm, e->v2, EDGE_MARK) == 1)
+			if (!BMO_elem_flag_test(bm, e, EDGE_VIS)) {
+				if ( BMO_vert_edge_flags_count(bm, e->v1, EDGE_MARK) == 1 ||
+				     BMO_vert_edge_flags_count(bm, e->v2, EDGE_MARK) == 1)
 				{
 					break;
 				}
@@ -1123,7 +1123,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		
 		i = 0;
 		while (e) {
-			BMO_SetFlag(bm, e, EDGE_VIS);
+			BMO_elem_flag_set(bm, e, EDGE_VIS);
 			BLI_array_growone(edges);
 			edges[i] = e;
 
@@ -1144,8 +1144,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		count++;
 	}
 
-	if (edges1 && BLI_array_count(edges1) > 2 && BM_Edge_Share_Vert(edges1[0], edges1[BLI_array_count(edges1) - 1])) {
-		if (edges2 && BLI_array_count(edges2) > 2 && BM_Edge_Share_Vert(edges2[0], edges2[BLI_array_count(edges2) - 1])) {
+	if (edges1 && BLI_array_count(edges1) > 2 && BM_edge_share_vert(edges1[0], edges1[BLI_array_count(edges1) - 1])) {
+		if (edges2 && BLI_array_count(edges2) > 2 && BM_edge_share_vert(edges2[0], edges2[BLI_array_count(edges2) - 1])) {
 			BLI_array_free(edges1);
 			BLI_array_free(edges2);
 			return;
@@ -1156,7 +1156,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (edges2 && BLI_array_count(edges2) > 2 && BM_Edge_Share_Vert(edges2[0], edges2[BLI_array_count(edges2) - 1])) {
+	if (edges2 && BLI_array_count(edges2) > 2 && BM_edge_share_vert(edges2[0], edges2[BLI_array_count(edges2) - 1])) {
 		edges2 = NULL;
 	}
 
@@ -1169,12 +1169,12 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v2 = edges1[0]->v2;
 		}
 		else {
-			if (BM_Vert_In_Edge(edges1[1], edges1[0]->v1))
+			if (BM_vert_in_edge(edges1[1], edges1[0]->v1))
 				v1 = edges1[0]->v2;
 			else v1 = edges1[0]->v1;
 
 			i = BLI_array_count(edges1) - 1;
-			if (BM_Vert_In_Edge(edges1[i - 1], edges1[i]->v1))
+			if (BM_vert_in_edge(edges1[i - 1], edges1[i]->v1))
 				v2 = edges1[i]->v2;
 			else v2 = edges1[i]->v1;
 		}
@@ -1184,12 +1184,12 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = edges2[0]->v2;
 		}
 		else {
-			if (BM_Vert_In_Edge(edges2[1], edges2[0]->v1))
+			if (BM_vert_in_edge(edges2[1], edges2[0]->v1))
 				v3 = edges2[0]->v2;
 			else v3 = edges2[0]->v1;
 
 			i = BLI_array_count(edges2) - 1;
-			if (BM_Vert_In_Edge(edges2[i - 1], edges2[i]->v1))
+			if (BM_vert_in_edge(edges2[i - 1], edges2[i]->v1))
 				v4 = edges2[i]->v2;
 			else v4 = edges2[i]->v1;
 		}
@@ -1204,30 +1204,30 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = v;
 		}
 
-		e = BM_Make_Edge(bm, v1, v3, NULL, TRUE);
-		BMO_SetFlag(bm, e, ELE_NEW);
-		e = BM_Make_Edge(bm, v2, v4, NULL, TRUE);
-		BMO_SetFlag(bm, e, ELE_NEW);
+		e = BM_edge_create(bm, v1, v3, NULL, TRUE);
+		BMO_elem_flag_set(bm, e, ELE_NEW);
+		e = BM_edge_create(bm, v2, v4, NULL, TRUE);
+		BMO_elem_flag_set(bm, e, ELE_NEW);
 	}
 	else if (edges1) {
 		BMVert *v1, *v2;
 		
 		if (BLI_array_count(edges1) > 1) {
-			if (BM_Vert_In_Edge(edges1[1], edges1[0]->v1))
+			if (BM_vert_in_edge(edges1[1], edges1[0]->v1))
 				v1 = edges1[0]->v2;
 			else v1 = edges1[0]->v1;
 
 			i = BLI_array_count(edges1) - 1;
-			if (BM_Vert_In_Edge(edges1[i - 1], edges1[i]->v1))
+			if (BM_vert_in_edge(edges1[i - 1], edges1[i]->v1))
 				v2 = edges1[i]->v2;
 			else v2 = edges1[i]->v1;
 
-			e = BM_Make_Edge(bm, v1, v2, NULL, TRUE);
-			BMO_SetFlag(bm, e, ELE_NEW);
+			e = BM_edge_create(bm, v1, v2, NULL, TRUE);
+			BMO_elem_flag_set(bm, e, ELE_NEW);
 		}
 	}
 	
-	BMO_Flag_To_Slot(bm, op, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_slot_from_flag(bm, op, "edgeout", ELE_NEW, BM_EDGE);
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);
@@ -1253,7 +1253,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			case BM_FACE: totf++; break;
 		}
 
-		BMO_SetFlag(bm, h, ELE_NEW);
+		BMO_elem_flag_set(bm, h, ELE_NEW);
 	}
 	
 	/* --- Support for Special Case ---
@@ -1284,7 +1284,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			/* count how many flagged edges this vertex uses */
 			int tot_edges = 0;
 			BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-				if (BMO_TestFlag(bm, e, ELE_NEW)) {
+				if (BMO_elem_flag_test(bm, e, ELE_NEW)) {
 					tot_edges++;
 					if (tot_edges > 2) {
 						break;
@@ -1315,11 +1315,11 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (ok == TRUE && v_free && v_a && v_b) {
-			e = BM_Make_Edge(bm, v_free, v_a, NULL, TRUE);
-			BMO_SetFlag(bm, &e->head, ELE_NEW);
+			e = BM_edge_create(bm, v_free, v_a, NULL, TRUE);
+			BMO_elem_flag_set(bm, &e->head, ELE_NEW);
 
-			e = BM_Make_Edge(bm, v_free, v_b, NULL, TRUE);
-			BMO_SetFlag(bm, &e->head, ELE_NEW);
+			e = BM_edge_create(bm, v_free, v_b, NULL, TRUE);
+			BMO_elem_flag_set(bm, &e->head, ELE_NEW);
 		}
 	}
 	/* --- end special case support, continue as normal --- */
@@ -1328,40 +1328,40 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	/* call edgenet creat */
 	/*  call edgenet prepare op so additional face creation cases wor */
-	BMO_InitOpf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
-	BMO_Exec_Op(bm, &op2);
-	BMO_Flag_Buffer(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
-	BMO_Finish_Op(bm, &op2);
+	BMO_op_initf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
+	BMO_op_exec(bm, &op2);
+	BMO_slot_buffer_flag(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_op_finish(bm, &op2);
 
-	BMO_InitOpf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
-	BMO_Exec_Op(bm, &op2);
+	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
+	BMO_op_exec(bm, &op2);
 
 	/* return if edge net create did somethin */
-	if (BMO_CountSlotBuf(bm, &op2, "faceout")) {
-		BMO_CopySlot(&op2, op, "faceout", "faceout");
-		BMO_Finish_Op(bm, &op2);
+	if (BMO_slot_buf_count(bm, &op2, "faceout")) {
+		BMO_slot_copy(&op2, op, "faceout", "faceout");
+		BMO_op_finish(bm, &op2);
 		return;
 	}
 
-	BMO_Finish_Op(bm, &op2);
+	BMO_op_finish(bm, &op2);
 	
 	/* now call dissolve face */
-	BMO_InitOpf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
-	BMO_Exec_Op(bm, &op2);
+	BMO_op_initf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
+	BMO_op_exec(bm, &op2);
 	
 	/* if we dissolved anything, then return */
-	if (BMO_CountSlotBuf(bm, &op2, "regionout")) {
-		BMO_CopySlot(&op2, op, "regionout", "faceout");
-		BMO_Finish_Op(bm, &op2);
+	if (BMO_slot_buf_count(bm, &op2, "regionout")) {
+		BMO_slot_copy(&op2, op, "regionout", "faceout");
+		BMO_op_finish(bm, &op2);
 		return;
 	}
 
-	BMO_Finish_Op(bm, &op2);
+	BMO_op_finish(bm, &op2);
 
 	/* now, count how many verts we hav */
 	amount = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, v, ELE_NEW)) {
+		if (BMO_elem_flag_test(bm, v, ELE_NEW)) {
 			verts[amount] = v;
 			amount++;
 
@@ -1371,39 +1371,39 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	if (amount == 2) {
 		/* create edg */
-		e = BM_Make_Edge(bm, verts[0], verts[1], NULL, TRUE);
-		BMO_SetFlag(bm, e, ELE_OUT);
+		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
+		BMO_elem_flag_set(bm, e, ELE_OUT);
 	}
 	else if (amount == 3) {
 		/* create triangl */
-		BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
+		BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
 	}
 	else if (amount == 4) {
 		f = NULL;
 
 		/* the order of vertices can be anything, 6 cases to check */
 		if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, TRUE);
+			f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], verts[3], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, TRUE);
+			f = BM_face_create_quad_tri(bm, verts[0], verts[2], verts[3], verts[1], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, TRUE);
+			f = BM_face_create_quad_tri(bm, verts[0], verts[2], verts[1], verts[3], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, TRUE);
+			f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[3], verts[2], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, TRUE);
+			f = BM_face_create_quad_tri(bm, verts[0], verts[3], verts[2], verts[1], NULL, TRUE);
 		}
 		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co)) {
-			f = BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, TRUE);
+			f = BM_face_create_quad_tri(bm, verts[0], verts[3], verts[1], verts[2], NULL, TRUE);
 		}
 		else {
 			printf("cannot find nice quad from concave set of vertices\n");
 		}
 
-		if (f) BMO_SetFlag(bm, f, ELE_OUT);
+		if (f) BMO_elem_flag_set(bm, f, ELE_OUT);
 	}
 }

@@ -45,7 +45,7 @@ typedef struct BMHeader {
 	void *data; /* customdata layers */
 	struct BMFlagLayer *flags;
 	int index; /* notes:
-	            * - Use BM_GetIndex/SetIndex macros for index
+	            * - Use BM_elem_index_get/SetIndex macros for index
 	            * - Unitialized to -1 so we can easily tell its not set.
 	            * - Used for edge/vert/face, check BMesh.elem_index_dirty for valid index values,
 	            *   this is abused by various tools which set it dirty.
@@ -152,8 +152,6 @@ typedef struct BMesh {
 	
 	int opflag; /* current operator flag */
 } BMesh;
-
-BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts);
 
 #define BM_VERT		1
 #define BM_EDGE		2

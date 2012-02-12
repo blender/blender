@@ -2042,20 +2042,20 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
 
-	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; eve; eve=BMIter_Step(&iter), i++, index++) {
+	eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for (i=0; eve; eve=BM_iter_step(&iter), i++, index++) {
 		MVert *mv = &mvert[i];
 
 		copy_v3_v3(mv->co, eve->co);
 
-		BM_SetIndex(eve, i); /* set_inline */
+		BM_elem_index_set(eve, i); /* set_inline */
 
 		normal_float_to_short_v3(mv->no, eve->no);
 
-		mv->flag = BM_Vert_Flag_To_MEFlag(eve);
+		mv->flag = BM_vert_flag_to_mflag(eve);
 
 		if (has_vert_bweight)
-			mv->bweight = (unsigned char)(BM_GetCDf(&bm->vdata, eve, CD_BWEIGHT)*255.0f);
+			mv->bweight = (unsigned char)(BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT)*255.0f);
 
 		if (add_orig) *index = i;
 
@@ -2064,21 +2064,21 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	bm->elem_index_dirty &= ~BM_VERT;
 
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-	eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-	for (i=0; eed; eed=BMIter_Step(&iter), i++, index++) {
+	eed = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
+	for (i=0; eed; eed=BM_iter_step(&iter), i++, index++) {
 		MEdge *med = &medge[i];
 
-		BM_SetIndex(eed, i); /* set_inline */
+		BM_elem_index_set(eed, i); /* set_inline */
 
-		med->v1 = BM_GetIndex(eed->v1);
-		med->v2 = BM_GetIndex(eed->v2);
+		med->v1 = BM_elem_index_get(eed->v1);
+		med->v2 = BM_elem_index_get(eed->v2);
 
 		if (has_crease)
-			med->crease = (unsigned char)(BM_GetCDf(&bm->edata, eed, CD_CREASE)*255.0f);
+			med->crease = (unsigned char)(BM_elem_float_data_get(&bm->edata, eed, CD_CREASE)*255.0f);
 		if (has_edge_bweight)
-			med->bweight = (unsigned char)(BM_GetCDf(&bm->edata, eed, CD_BWEIGHT)*255.0f);
+			med->bweight = (unsigned char)(BM_elem_float_data_get(&bm->edata, eed, CD_BWEIGHT)*255.0f);
 		
-		med->flag = BM_Edge_Flag_To_MEFlag(eed);
+		med->flag = BM_edge_flag_to_mflag(eed);
 
 		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
 		if (add_orig) *index = i;
@@ -2089,7 +2089,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	if (use_tessface) {
 		int *polyindex;
 
-		BM_ElemIndex_Ensure(bm, BM_FACE);
+		BM_mesh_elem_index_ensure(bm, BM_FACE);
 
 		polyindex = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
 		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
@@ -2098,15 +2098,15 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 			BMLoop **l = em->looptris[i];
 			efa = l[0]->f;
 
-			mf->v1 = BM_GetIndex(l[0]->v);
-			mf->v2 = BM_GetIndex(l[1]->v);
-			mf->v3 = BM_GetIndex(l[2]->v);
+			mf->v1 = BM_elem_index_get(l[0]->v);
+			mf->v2 = BM_elem_index_get(l[1]->v);
+			mf->v3 = BM_elem_index_get(l[2]->v);
 			mf->v4 = 0;
 			mf->mat_nr = efa->mat_nr;
-			mf->flag = BM_Face_Flag_To_MEFlag(efa);
+			mf->flag = BM_face_flag_to_mflag(efa);
 
-			*index = add_orig ? BM_GetIndex(efa) : *(int*)CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_ORIGINDEX);
-			*polyindex = BM_GetIndex(efa);
+			*index = add_orig ? BM_elem_index_get(efa) : *(int*)CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_ORIGINDEX);
+			*polyindex = BM_elem_index_get(efa);
 
 			loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numTex);
 			test_index_face(mf, &dm->faceData, i, 3);
@@ -2115,21 +2115,21 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	
 	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
 	j = 0;
-	efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-	for (i=0; efa; i++, efa=BMIter_Step(&iter), index++) {
+	efa = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
+	for (i=0; efa; i++, efa=BM_iter_step(&iter), index++) {
 		BMLoop *l;
 		MPoly *mp = &mpoly[i];
 
-		BM_SetIndex(efa, i); /* set_inline */
+		BM_elem_index_set(efa, i); /* set_inline */
 
 		mp->totloop = efa->len;
-		mp->flag = BM_Face_Flag_To_MEFlag(efa);
+		mp->flag = BM_face_flag_to_mflag(efa);
 		mp->loopstart = j;
 		mp->mat_nr = efa->mat_nr;
 		
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-			mloop->v = BM_GetIndex(l->v);
-			mloop->e = BM_GetIndex(l->e);
+			mloop->v = BM_elem_index_get(l->v);
+			mloop->e = BM_elem_index_get(l->e);
 			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->head.data, j);
 
 			j++;

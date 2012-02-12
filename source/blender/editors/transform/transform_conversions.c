@@ -311,8 +311,8 @@ static void createTransEdge(TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
-			if (BM_TestHFlag(eed, BM_ELEM_SELECT)) countsel++;
+		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) countsel++;
 			if (propmode) count++;
 		}
 	}
@@ -333,7 +333,7 @@ static void createTransEdge(TransInfo *t)
 	invert_m3_m3(smtx, mtx);
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if(!BM_TestHFlag(eed, BM_ELEM_HIDDEN) && (BM_TestHFlag(eed, BM_ELEM_SELECT) || propmode)) { 
+		if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) { 
 			float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 			float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 			
@@ -342,7 +342,7 @@ static void createTransEdge(TransInfo *t)
 			mul_v3_fl(td->center, 0.5f);
 
 			td->loc= NULL;
-			if (BM_TestHFlag(eed, BM_ELEM_SELECT))
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
 				td->flag= TD_SELECTED;
 			else
 				td->flag= 0;
@@ -1880,19 +1880,19 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	
 	fill_vn_fl(dists, em->bm->totvert, FLT_MAX);
 
-	BM_ElemIndex_Ensure(em->bm, BM_VERT);
+	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
 	BLI_smallhash_init(visit);
 
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_ELEM_SELECT)==0 || BM_TestHFlag(v, BM_ELEM_HIDDEN))
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)==0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 			
 		
 		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);
 		BLI_array_append(queue, v);
 		BLI_array_append(dqueue, 0.0f);
-		dists[BM_GetIndex(v)] = 0.0f;
+		dists[BM_elem_index_get(v)] = 0.0f;
 	}
 	
 	start = 0;
@@ -1907,9 +1907,9 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 		
 		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
 			float d2;
-			v3 = BM_OtherEdgeVert(e, v2);
+			v3 = BM_edge_other_vert(e, v2);
 			
-			if (BM_TestHFlag(v3, BM_ELEM_SELECT) || BM_TestHFlag(v3, BM_ELEM_HIDDEN))
+			if (BM_elem_flag_test(v3, BM_ELEM_SELECT) || BM_elem_flag_test(v3, BM_ELEM_HIDDEN))
 				continue;
 			
 			sub_v3_v3v3(vec, v2->co, v3->co);
@@ -1917,12 +1917,12 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 			
 			d2 = d + len_v3(vec);
 			
-			if (dists[BM_GetIndex(v3)] != FLT_MAX)
-				dists[BM_GetIndex(v3)] = MIN2(d2, dists[BM_GetIndex(v3)]);
+			if (dists[BM_elem_index_get(v3)] != FLT_MAX)
+				dists[BM_elem_index_get(v3)] = MIN2(d2, dists[BM_elem_index_get(v3)]);
 			else
-				dists[BM_GetIndex(v3)] = d2;
+				dists[BM_elem_index_get(v3)] = d2;
 			
-			tots[BM_GetIndex(v3)] = 1;
+			tots[BM_elem_index_get(v3)] = 1;
 
 			if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
 				continue;
@@ -1956,8 +1956,8 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	BMIter iter;
 
 	BM_ITER(efa, &iter, bm, BM_FACES_OF_VERT, eve) {
-		if (BM_Selected(bm, efa)) {
-			BM_Compute_Face_CenterMean(bm, efa, cent_r);
+		if (BM_elem_select_test(bm, efa)) {
+			BM_face_center_mean_calc(bm, efa, cent_r);
 			break;
 		}
 	}
@@ -1969,7 +1969,7 @@ static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
 	BMIter iter;
 
 	BM_ITER(eed, &iter, bm, BM_EDGES_OF_VERT, eve) {
-		if (BM_Selected(bm, eed)) {
+		if (BM_elem_select_test(bm, eed)) {
 			mid_v3_v3v3(cent_r, eed->v1->co, eed->v2->co);
 			break;
 		}
@@ -2049,42 +2049,42 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_Selected(bm, eve)) {
-				BM_SetHFlag(eve, BM_ELEM_TAG);
+			if (BM_elem_select_test(bm, eve)) {
+				BM_elem_flag_set(eve, BM_ELEM_TAG);
 			}
 			else {
-				BM_ClearHFlag(eve, BM_ELEM_TAG);
+				BM_elem_flag_clear(eve, BM_ELEM_TAG);
 			}
 		}
 	}
 	else if(selectmode & SCE_SELECT_EDGE) {
 		BMEdge *eed;
 
-		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) BM_ClearHFlag(eve, BM_ELEM_TAG);
+		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BM_iter_step(&iter)) BM_elem_flag_clear(eve, BM_ELEM_TAG);
 
-		eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		for( ; eed; eed=BMIter_Step(&iter)) {
-			if (BM_Selected(bm, eed)) {
-				BM_SetHFlag(eed->v1, BM_ELEM_TAG);
-				BM_SetHFlag(eed->v2, BM_ELEM_TAG);
+		eed = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
+		for( ; eed; eed=BM_iter_step(&iter)) {
+			if (BM_elem_select_test(bm, eed)) {
+				BM_elem_flag_set(eed->v1, BM_ELEM_TAG);
+				BM_elem_flag_set(eed->v2, BM_ELEM_TAG);
 			}
 		}
 	}
 	else {
 		BMFace *efa;
-		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) BM_ClearHFlag(eve, BM_ELEM_TAG);
+		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BM_iter_step(&iter)) BM_elem_flag_clear(eve, BM_ELEM_TAG);
 
-		efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-		for( ; efa; efa=BMIter_Step(&iter)) {
-			if (BM_Selected(bm, efa)) {
+		efa = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
+		for( ; efa; efa=BM_iter_step(&iter)) {
+			if (BM_elem_select_test(bm, efa)) {
 				BMIter liter;
 				BMLoop *l;
 
-				l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l=BMIter_Step(&liter)) {
-					BM_SetHFlag(l->v, BM_ELEM_TAG);
+				l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BM_iter_step(&liter)) {
+					BM_elem_flag_set(l->v, BM_ELEM_TAG);
 				}
 			}
 		}
@@ -2094,10 +2094,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	 * get_crazy_mapped_editverts messes up the index state of the
 	 * verts*/
 	selstate = MEM_callocN(sizeof(*selstate) * bm->totvert, __func__);
-	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
-		if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
-			if (BM_TestHFlag(eve, BM_ELEM_TAG)) {
+	eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for(a=0; eve; eve=BM_iter_step(&iter), a++) {
+		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eve, BM_ELEM_TAG)) {
 				selstate[a] = 1;
 				countsel++;
 			}
@@ -2162,9 +2162,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	/* find out which half we do */
 	if(mirror) {
-		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for(a=0; eve; eve=BMIter_Step(&iter), a++) {
-			if(!BM_TestHFlag(eve, BM_ELEM_HIDDEN) && selstate[a] && eve->co[0]!=0.0f) {
+		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for(a=0; eve; eve=BM_iter_step(&iter), a++) {
+			if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && selstate[a] && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
 				{
 					t->mirror = -1;
@@ -2175,9 +2175,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 
-	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
-		if(!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
+	eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for(a=0; eve; eve=BM_iter_step(&iter), a++) {
+		if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if(propmode || selstate[a]) {
 				float *bweight = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_BWEIGHT);
 				
@@ -2199,12 +2199,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				}
 
 				/* CrazySpace */
-				if(defmats || (quats && BM_GetIndex(eve) != -1)) {
+				if(defmats || (quats && BM_elem_index_get(eve) != -1)) {
 					float mat[3][3], qmat[3][3], imat[3][3];
 
 					/* use both or either quat and defmat correction */
-					if(quats && BM_GetIndex(eve) != -1) {
-						quat_to_mat3(qmat, quats + 4*BM_GetIndex(eve));
+					if(quats && BM_elem_index_get(eve) != -1) {
+						quat_to_mat3(qmat, quats + 4*BM_elem_index_get(eve));
 
 						if(defmats)
 							mul_serie_m3(mat, mtx, qmat, defmats[a],
@@ -2457,11 +2457,11 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 		if(!uvedit_face_visible(scene, ima, efa, tf)) {
-			BM_ClearHFlag(efa, BM_ELEM_TAG);
+			BM_elem_flag_clear(efa, BM_ELEM_TAG);
 			continue;
 		}
 		
-		BM_SetHFlag(efa, BM_ELEM_TAG);
+		BM_elem_flag_set(efa, BM_ELEM_TAG);
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if (uvedit_uv_selected(em, scene, l)) 
 				countsel++;
@@ -2487,7 +2487,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td2d= t->data2d;
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_TestHFlag(efa, BM_ELEM_TAG))
+		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;
 
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);

@@ -33,9 +33,9 @@
 #include "bmesh_private.h"
 
 /*
- * note, we have BM_Vert_AtIndex/BM_Edge_AtIndex/BM_Face_AtIndex for arrays
+ * note, we have BM_vert_at_index/BM_edge_at_index/BM_face_at_index for arrays
  */
-void *BMIter_AtIndex(struct BMesh *bm, const char itype, void *data, int index)
+void *BM_iter_at_index(struct BMesh *bm, const char itype, void *data, int index)
 {
 	BMIter iter;
 	void *val;
@@ -46,11 +46,11 @@ void *BMIter_AtIndex(struct BMesh *bm, const char itype, void *data, int index)
 		return NULL;
 	}
 
-	val = BMIter_New(&iter, bm, itype, data);
+	val = BM_iter_new(&iter, bm, itype, data);
 
 	i = 0;
 	while (i < index) {
-		val = BMIter_Step(&iter);
+		val = BM_iter_step(&iter);
 		i++;
 	}
 
@@ -62,10 +62,10 @@ void *BMIter_AtIndex(struct BMesh *bm, const char itype, void *data, int index)
  * ITERATOR AS ARRAY
  *
  * Sometimes its convenient to get the iterator as an array
- * to avoid multiple calls to BMIter_AtIndex.
+ * to avoid multiple calls to BM_iter_at_index.
  */
 
-int BMIter_AsArray(struct BMesh *bm, const char type, void *data, void **array, const int len)
+int BM_iter_as_array(struct BMesh *bm, const char type, void *data, void **array, const int len)
 {
 	int i = 0;
 

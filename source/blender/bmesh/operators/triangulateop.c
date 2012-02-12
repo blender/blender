@@ -49,8 +49,8 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(projectverts);
 	int i, lastlen = 0 /* , count = 0 */;
 	
-	face = BMO_IterNew(&siter, bm, op, "faces", BM_FACE);
-	for ( ; face; face = BMO_IterStep(&siter)) {
+	face = BMO_iter_new(&siter, bm, op, "faces", BM_FACE);
+	for ( ; face; face = BMO_iter_step(&siter)) {
 		if (lastlen < face->len) {
 			BLI_array_empty(projectverts);
 			BLI_array_empty(newfaces);
@@ -64,16 +64,16 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 
 		BM_Triangulate_Face(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces);
 
-		BMO_Insert_MapPointer(bm, op, "facemap", face, face);
+		BMO_slot_map_ptr_insert(bm, op, "facemap", face, face);
 		for (i = 0; newfaces[i]; i++) {
-			BMO_Insert_MapPointer(bm, op, "facemap",
+			BMO_slot_map_ptr_insert(bm, op, "facemap",
 			                      newfaces[i], face);
 
 		}
 	}
 	
-	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_NEW, BM_EDGE);
-	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
+	BMO_slot_from_flag(bm, op, "edgeout", EDGE_NEW, BM_EDGE);
+	BMO_slot_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
 	
 	BLI_array_free(projectverts);
 	BLI_array_free(newfaces);
@@ -87,11 +87,11 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	int stop = 0;
 	
-	BMO_Flag_Buffer(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
 	
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		if (f->len == 3)
-			BMO_SetFlag(bm, f, FACE_MARK);
+			BMO_elem_flag_set(bm, f, FACE_MARK);
 	}
 
 	while (!stop) {
@@ -100,9 +100,9 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			BMVert *v1, *v2, *v3, *v4;
 			
-			if (BM_Edge_FaceCount(e) != 2 || BMO_TestFlag(bm, e, EDGE_MARK))
+			if (BM_edge_face_count(e) != 2 || BMO_elem_flag_test(bm, e, EDGE_MARK))
 				continue;
-			if (!BMO_TestFlag(bm, e->l->f, FACE_MARK) || !BMO_TestFlag(bm, e->l->radial_next->f, FACE_MARK))
+			if (!BMO_elem_flag_test(bm, e->l->f, FACE_MARK) || !BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
 				continue;
 			
 			v1 = e->l->prev->v;
@@ -133,12 +133,12 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				
 				if (fac1 > fac2) {
-					e = BM_Rotate_Edge(bm, e, 0);
+					e = BM_edge_rotate(bm, e, 0);
 					if (e) {
-						BMO_SetFlag(bm, e, ELE_NEW);
+						BMO_elem_flag_set(bm, e, ELE_NEW);
 
-						BMO_SetFlag(bm, e->l->f, FACE_MARK|ELE_NEW);
-						BMO_SetFlag(bm, e->l->radial_next->f, FACE_MARK|ELE_NEW);
+						BMO_elem_flag_set(bm, e->l->f, FACE_MARK|ELE_NEW);
+						BMO_elem_flag_set(bm, e->l->radial_next->f, FACE_MARK|ELE_NEW);
 						stop = 0;
 					}
 				}
@@ -146,7 +146,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_Flag_To_Slot(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
+	BMO_slot_from_flag(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
 }
 
 void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
@@ -164,7 +164,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_begin_edgefill();
 	
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		BMO_SetFlag(bm, e, EDGE_MARK);
+		BMO_elem_flag_set(bm, e, EDGE_MARK);
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
 			eve = BLI_addfillvert(e->v1->co);
@@ -187,16 +187,16 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_edgefill(0);
 	
 	for (efa = fillfacebase.first; efa; efa = efa->next) {
-		BMFace *f = BM_Make_Face_QuadTri(bm,
+		BMFace *f = BM_face_create_quad_tri(bm,
 		                                 efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL,
 		                                 NULL, TRUE);
 		BMLoop *l;
 		BMIter liter;
 		
-		BMO_SetFlag(bm, f, ELE_NEW);
+		BMO_elem_flag_set(bm, f, ELE_NEW);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			if (!BMO_TestFlag(bm, l->e, EDGE_MARK)) {
-				BMO_SetFlag(bm, l->e, ELE_NEW);
+			if (!BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
+				BMO_elem_flag_set(bm, l->e, ELE_NEW);
 			}
 		}
 	}
@@ -205,10 +205,10 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_smallhash_release(&hash);
 	
 	/* clean up fill */
-	BMO_InitOpf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
-	BMO_Exec_Op(bm, &bmop);
-	BMO_Flag_Buffer(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);
-	BMO_Finish_Op(bm, &bmop);
+	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
+	BMO_op_exec(bm, &bmop);
+	BMO_slot_buffer_flag(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);
+	BMO_op_finish(bm, &bmop);
 	
-	BMO_Flag_To_Slot(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
+	BMO_slot_from_flag(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
 }

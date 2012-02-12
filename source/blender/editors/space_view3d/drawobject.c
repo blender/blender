@@ -2006,7 +2006,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 	foreachScreenVert_userData *data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->vc.em, index);
 
-	if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 		short s[2]= {IS_CLIPPED, 0};
 
 		if (data->clipVerts != V3D_CLIP_TEST_OFF) {
@@ -2084,7 +2084,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 	foreachScreenEdge_userData *data = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(data->vc.em, index);
 
-	if (!BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		short s[2][2];
 
 		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
@@ -2141,7 +2141,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	foreachScreenFace_userData *data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->vc.em, index);
 
-	if (efa && !BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		float cent2[3];
 		short s[2];
 
@@ -2244,7 +2244,7 @@ static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent
 	drawDMNormal_userData *data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
 
-	if (!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		glVertex3fv(cent);
 		glVertex3f(cent[0] + no[0] * data->normalsize,
 		           cent[1] + no[1] * data->normalsize,
@@ -2268,7 +2268,7 @@ static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent
 	BMFace *efa = EDBM_get_face_for_index(((void **)userData)[0], index);
 	int sel = *(((int **)userData)[1]);
 	
-	if (efa && !BM_TestHFlag(efa, BM_ELEM_HIDDEN) && BM_TestHFlag(efa, BM_ELEM_SELECT)==sel) {
+	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)==sel) {
 		bglVertex3fv(cent);
 	}
 }
@@ -2286,7 +2286,7 @@ static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, 
 	drawDMNormal_userData *data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->em, index);
 
-	if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 		glVertex3fv(co);
 
 		if (no_f) {
@@ -2319,7 +2319,7 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 	drawDMVerts_userData * data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->em, index);
 
-	if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN) && BM_TestHFlag(eve, BM_ELEM_SELECT)==data->sel) {
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)==data->sel) {
 		/* draw active larger - need to stop/start point drawing for this :/ */
 		if (eve==data->eve_act) {
 			float size = UI_GetThemeValuef(TH_VERTEX_SIZE);
@@ -2363,11 +2363,11 @@ static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 
 	eed = EDBM_get_edge_for_index(data->em, index);
 
-	if (!BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		if (eed==data->eed_act) {
 			glColor4ubv(data->actCol);
 		} else {
-			if (BM_TestHFlag(eed, BM_ELEM_SELECT)) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				col = data->selCol;
 			} else {
 				col = data->baseCol;
@@ -2398,7 +2398,7 @@ static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 	/* Draw edges */
 static int draw_dm_edges__setDrawOptions(void *userData, int index)
 {
-	return !BM_TestHFlag(EDBM_get_edge_for_index(userData, index), BM_ELEM_HIDDEN);
+	return !BM_elem_flag_test(EDBM_get_edge_for_index(userData, index), BM_ELEM_HIDDEN);
 }
 static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm) 
 {
@@ -2408,14 +2408,14 @@ static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm)
 	/* Draw edges with color interpolated based on selection */
 static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, int index)
 {
-	return !BM_TestHFlag(EDBM_get_edge_for_index(((void**)userData)[0], index), BM_ELEM_HIDDEN);
+	return !BM_elem_flag_test(EDBM_get_edge_for_index(((void**)userData)[0], index), BM_ELEM_HIDDEN);
 }
 static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
 	BMEdge *eed = EDBM_get_edge_for_index(((void**)userData)[0], index);
 	unsigned char **cols = userData;
-	unsigned char *col0 = cols[(BM_TestHFlag(eed->v1, BM_ELEM_SELECT))?2:1];
-	unsigned char *col1 = cols[(BM_TestHFlag(eed->v2, BM_ELEM_SELECT))?2:1];
+	unsigned char *col0 = cols[(BM_elem_flag_test(eed->v1, BM_ELEM_SELECT))?2:1];
+	unsigned char *col1 = cols[(BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))?2:1];
 
 	glColor4ub(	col0[0] + (col1[0]-col0[0])*t,
 				col0[1] + (col1[1]-col0[1])*t,
@@ -2435,7 +2435,7 @@ static int draw_dm_edges_seams__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 
-	return !BM_TestHFlag(eed, BM_ELEM_HIDDEN) && BM_TestHFlag(eed, BM_ELEM_SEAM);
+	return !BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SEAM);
 }
 
 static void draw_dm_edges_seams(BMEditMesh *em, DerivedMesh *dm)
@@ -2448,7 +2448,7 @@ static int draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 
-	return !BM_TestHFlag(eed, BM_ELEM_HIDDEN) && BM_TestHFlag(eed, BM_ELEM_SHARP);
+	return !BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SHARP);
 }
 static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 {
@@ -2467,12 +2467,12 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 	if (!efa)
 		return 0;
 	
-	if (!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (efa == data->efa_act) {
 			glColor4ubv(data->cols[2]);
 			return 2; /* stipple */
 		} else {
-			col = data->cols[BM_TestHFlag(efa, BM_ELEM_SELECT)?1:0];
+			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT)?1:0];
 			if (col[3]==0) return 0;
 			glColor4ubv(col);
 			return 1;
@@ -2502,8 +2502,8 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 	if(efa == data->efa_act || next_efa == data->efa_act)
 		return 0;
 
-	col = data->cols[BM_TestHFlag(efa, BM_ELEM_SELECT)?1:0];
-	next_col = data->cols[BM_TestHFlag(next_efa, BM_ELEM_SELECT)?1:0];
+	col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT)?1:0];
+	next_col = data->cols[BM_elem_flag_test(next_efa, BM_ELEM_SELECT)?1:0];
 
 	if(col[3]==0 || next_col[3]==0)
 		return 0;
@@ -2536,7 +2536,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 	if (!crease)
 		return 0;
 	
-	if (!BM_TestHFlag(eed, BM_ELEM_HIDDEN) && *crease!=0.0f) {
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *crease!=0.0f) {
 		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_CREASE, *crease);
 		return 1;
 	} else {
@@ -2559,7 +2559,7 @@ static int draw_dm_bweights__setDrawOptions(void *userData, int index)
 	if (!bweight)
 		return 0;
 	
-	if (!BM_TestHFlag(eed, BM_ELEM_HIDDEN) && *bweight!=0.0f) {
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *bweight!=0.0f) {
 		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, *bweight);
 		return 1;
 	} else {
@@ -2575,7 +2575,7 @@ static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, floa
 	if (!bweight)
 		return;
 	
-	if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN) && *bweight!=0.0f) {
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && *bweight!=0.0f) {
 		UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, *bweight);
 		bglVertex3fv(co);
 	}
@@ -2753,11 +2753,11 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for(; eed; eed=BMIter_Step(&iter)) {
+		eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for(; eed; eed=BM_iter_step(&iter)) {
 			/* draw selected edges, or edges next to selected verts while draging */
-			if(BM_TestHFlag(eed, BM_ELEM_SELECT) ||
-			        (do_moving && (BM_TestHFlag(eed->v1, BM_ELEM_SELECT) || BM_TestHFlag(eed->v2, BM_ELEM_SELECT) ))) {
+			if(BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
+			        (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) || BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ))) {
 
 				copy_v3_v3(v1, eed->v1->co);
 				copy_v3_v3(v2, eed->v2->co);
@@ -2783,13 +2783,13 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 	}
 
 	if(me->drawflag & ME_DRAWEXTRA_FACEAREA) {
-		/* would be nice to use BM_Compute_Face_Area, but that is for 2d faces
+		/* would be nice to use BM_face_area_calc, but that is for 2d faces
 		so instead add up tessalation triangle areas */
 		BMFace *f;
 		int n;
 
 #define DRAW_EM_MEASURE_STATS_FACEAREA()                                             \
-		if (BM_TestHFlag(f, BM_ELEM_SELECT)) {                                            \
+		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                                            \
 			mul_v3_fl(vmid, 1.0/n);                                                  \
 			if(unit->system)                                                         \
 				bUnit_AsString(numstr, sizeof(numstr), area*unit->scale_length,      \
@@ -2842,15 +2842,15 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
 
-		for(efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		    efa; efa=BMIter_Step(&iter)) {
+		for(efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+		    efa; efa=BM_iter_step(&iter)) {
 			BMIter liter;
 			BMLoop *loop;
 
-			BM_Compute_Face_CenterBounds(em->bm, efa, vmid);
+			BM_face_center_bounds_calc(em->bm, efa, vmid);
 
-			for(loop = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-			    loop; loop = BMIter_Step(&liter)) {
+			for(loop = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
+			    loop; loop = BM_iter_step(&liter)) {
 
 				float v1[3], v2[3], v3[3];
 
@@ -2864,8 +2864,8 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					mul_mat3_m4_v3(ob->obmat, v3);
 				}
 
-				if ( (BM_TestHFlag(efa, BM_ELEM_SELECT)) ||
-				     (do_moving && BM_TestHFlag(loop->v, BM_ELEM_SELECT)))
+				if ( (BM_elem_flag_test(efa, BM_ELEM_SELECT)) ||
+				     (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT)))
 				{
 					BLI_snprintf(numstr, sizeof(numstr), "%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
 					interp_v3_v3v3(fvec, vmid, v2, 0.8f);
@@ -2894,7 +2894,7 @@ static void draw_em_indices(BMEditMesh *em)
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_TestHFlag(v, BM_ELEM_SELECT)) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				view3d_cached_text_draw_add(v->co, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
@@ -2906,7 +2906,7 @@ static void draw_em_indices(BMEditMesh *em)
 		i= 0;
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(e, BM_ELEM_SELECT)) {
+			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
 				view3d_cached_text_draw_add(pos, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
@@ -2919,8 +2919,8 @@ static void draw_em_indices(BMEditMesh *em)
 		i= 0;
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if (BM_TestHFlag(f, BM_ELEM_SELECT)) {
-				BM_Compute_Face_CenterMean(bm, f, pos);
+			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_face_center_mean_calc(bm, f, pos);
 				sprintf(numstr, "%d", i);
 				view3d_cached_text_draw_add(pos, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
@@ -2933,7 +2933,7 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *UNUSED(dra
 {
 	BMFace *efa = EDBM_get_face_for_index(userData, index);
 
-	if (efa && !BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		GPU_enable_material(efa->mat_nr+1, NULL);
 		return 1;
 	}
@@ -2945,7 +2945,7 @@ static int draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 {
 	BMFace *efa = EDBM_get_face_for_index(userData, index);
 
-	return !BM_TestHFlag(efa, BM_ELEM_HIDDEN);
+	return !BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
 }
 
 static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
@@ -2953,7 +2953,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 {
 	Mesh *me = ob->data;
-	BMFace *efa_act = BM_get_actFace(em->bm, FALSE); /* annoying but active faces is stored differently */
+	BMFace *efa_act = BM_active_face_get(em->bm, FALSE); /* annoying but active faces is stored differently */
 	BMEdge *eed_act = NULL;
 	BMVert *eve_act = NULL;
 	
@@ -7050,7 +7050,7 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float 
 	int offset = (intptr_t) ptrs[0];
 	BMVert *eve = EDBM_get_vert_for_index(ptrs[1], index);
 
-	if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 		WM_set_framebuffer_index_color(offset+index);
 		bglVertex3fv(co);
 	}
@@ -7072,7 +7072,7 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 	int offset = (intptr_t) ptrs[0];
 	BMEdge *eed = EDBM_get_edge_for_index(ptrs[1], index);
 
-	if (!BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		WM_set_framebuffer_index_color(offset+index);
 		return 1;
 	} else {
@@ -7089,7 +7089,7 @@ static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *U
 {
 	BMFace *efa = EDBM_get_face_for_index(((void**)userData)[0], index);
 	
-	if (efa && !BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (((void**)userData)[1]) {
 			WM_set_framebuffer_index_color(index+1);
 		}
@@ -7103,7 +7103,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, f
 {
 	BMFace *efa = EDBM_get_face_for_index(((void**)userData)[0], index);
 
-	if (!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		WM_set_framebuffer_index_color(index+1);
 
 		bglVertex3fv(cent);

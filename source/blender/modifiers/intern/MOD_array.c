@@ -299,21 +299,21 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_push(em->bm, NULL);
 	bmesh_begin_edit(em->bm, 0);
 
-	BMO_Init_Op(em->bm, &weldop, "weldverts");
-	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
+	BMO_op_init(em->bm, &weldop, "weldverts");
+	BMO_op_initf(em->bm, &op, "dupe geom=%avef");
 	oldop = op;
 	for (j=0; j < count - 1; j++) {
 		BMVert *v, *v2;
 		BMOpSlot *s1;
 		BMOpSlot *s2;
 
-		BMO_InitOpf(em->bm, &op, "dupe geom=%s", &oldop, j==0 ? "geom" : "newout");
-		BMO_Exec_Op(em->bm, &op);
+		BMO_op_initf(em->bm, &op, "dupe geom=%s", &oldop, j==0 ? "geom" : "newout");
+		BMO_op_exec(em->bm, &op);
 
-		s1 = BMO_GetSlot(&op, "geom");
-		s2 = BMO_GetSlot(&op, "newout");
+		s1 = BMO_slot_get(&op, "geom");
+		s2 = BMO_slot_get(&op, "newout");
 
-		BMO_CallOpf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
+		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
 
 		#define _E(s, i) ((BMVert**)(s)->data.buf)[i]
 
@@ -324,18 +324,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			BMVert *v, *v2;
 			BMHeader *h;
 
-			BMO_InitOpf(em->bm, &findop,
+			BMO_op_initf(em->bm, &findop,
 				"finddoubles verts=%av dist=%f keepverts=%s",
 				amd->merge_dist, &op, "geom");
 
 			i = 0;
 			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
-				BM_SetIndex(h, i); /* set_dirty */
+				BM_elem_index_set(h, i); /* set_dirty */
 				i++;
 			}
 
 			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
-				BM_SetIndex(h, i); /* set_dirty */
+				BM_elem_index_set(h, i); /* set_dirty */
 				i++;
 			}
 			/* above loops over all, so set all to dirty, if this is somehow
@@ -343,19 +343,19 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			em->bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 
 
-			BMO_Exec_Op(em->bm, &findop);
+			BMO_op_exec(em->bm, &findop);
 
 			indexLen = i;
 			indexMap = MEM_callocN(sizeof(int)*indexLen, "indexMap");
 
 			/*element type argument doesn't do anything here*/
 			BMO_ITER(v, &oiter, em->bm, &findop, "targetmapout", 0) {
-				v2 = BMO_IterMapValp(&oiter);
+				v2 = BMO_iter_map_value_p(&oiter);
 
-				indexMap[BM_GetIndex(v)] = BM_GetIndex(v2)+1;
+				indexMap[BM_elem_index_get(v)] = BM_elem_index_get(v2)+1;
 			}
 
-			BMO_Finish_Op(em->bm, &findop);
+			BMO_op_finish(em->bm, &findop);
 		}
 
 		/*generate merge mappping using index map.  we do this by using the
@@ -368,22 +368,22 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			v = E(i);
 			v2 = E(indexMap[i]-1);
 
-			BMO_Insert_MapPointer(em->bm, &weldop, "targetmap", v, v2);
+			BMO_slot_map_ptr_insert(em->bm, &weldop, "targetmap", v, v2);
 		}
 
 		#undef E
 		#undef _E
 
-		BMO_Finish_Op(em->bm, &oldop);
+		BMO_op_finish(em->bm, &oldop);
 		oldop = op;
 	}
 
-	if (j > 0) BMO_Finish_Op(em->bm, &op);
+	if (j > 0) BMO_op_finish(em->bm, &op);
 
 	if (amd->flags & MOD_ARR_MERGE)
-		BMO_Exec_Op(em->bm, &weldop);
+		BMO_op_exec(em->bm, &weldop);
 
-	BMO_Finish_Op(em->bm, &weldop);
+	BMO_op_finish(em->bm, &weldop);
 
 	/* Bump the stack level back down to match the adjustment up above */
 	BMO_pop(em->bm);

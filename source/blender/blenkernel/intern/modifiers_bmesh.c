@@ -61,7 +61,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	int i, j, k, totvert, totedge, totface;
 	
 	if (em) bm = em->bm;
-	else bm = BM_Make_Mesh(ob, allocsize);
+	else bm = BM_mesh_create(ob, allocsize);
 
 	bmold = *bm;
 
@@ -81,9 +81,9 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	/*do verts*/
 	mv = mvert = dm->dupVertArray(dm);
 	for (i = 0; i < totvert; i++, mv++) {
-		v = BM_Make_Vert(bm, mv->co, NULL);
+		v = BM_vert_create(bm, mv->co, NULL);
 		normal_short_to_float_v3(v->no, mv->no);
-		v->head.hflag = BM_Vert_Flag_From_MEFlag(mv->flag);
+		v->head.hflag = BM_vert_flag_from_mflag(mv->flag);
 
 		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data);
 		vtable[i] = v;
@@ -93,9 +93,9 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	/*do edges*/
 	me = medge = dm->dupEdgeArray(dm);
 	for (i = 0; i < totedge; i++, me++) {
-		e = BM_Make_Edge(bm, vtable[me->v1], vtable[me->v2], NULL, FALSE);
+		e = BM_edge_create(bm, vtable[me->v1], vtable[me->v2], NULL, FALSE);
 
-		e->head.hflag = BM_Edge_Flag_From_MEFlag(me->flag);
+		e->head.hflag = BM_edge_flag_from_mflag(me->flag);
 
 		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data);
 		etable[i] = e;
@@ -121,18 +121,18 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 			edges[j] = etable[ml->e];
 		}
 
-		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, mp->totloop, FALSE);
+		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, mp->totloop, FALSE);
 
 		if (!f)
 			continue;
 
-		f->head.hflag = BM_Face_Flag_From_MEFlag(mp->flag);
+		f->head.hflag = BM_face_flag_from_mflag(mp->flag);
 		f->mat_nr = mp->mat_nr;
 
-		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 		k = mp->loopstart;
 
-		for (j = 0; l; l = BMIter_Step(&liter), k++) {
+		for (j = 0; l; l = BM_iter_step(&liter), k++) {
 			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data);
 		}
 

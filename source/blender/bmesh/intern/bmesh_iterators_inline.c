@@ -41,7 +41,7 @@
  *  the next element.
  */
 
-BM_INLINE void *BMIter_Step(BMIter *iter)
+BM_INLINE void *BM_iter_step(BMIter *iter)
 {
 	return iter->step(iter);
 }
@@ -56,7 +56,7 @@ BM_INLINE void *BMIter_Step(BMIter *iter)
  * to return the first element of the iterator.
  *
  */
-BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char itype, void *data)
+BM_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	/* int argtype; */
 	iter->itype = itype;
@@ -153,7 +153,7 @@ BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char itype, void *data
 	}
 
 	iter->begin(iter);
-	return BMIter_Step(iter);
+	return BM_iter_step(iter);
 }
 
 

@@ -108,7 +108,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 		
 		tree->cos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cos");
 		BM_ITER_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
-			BM_SetIndex(v, i); /* set_inline */
+			BM_elem_index_set(v, i); /* set_inline */
 			copy_v3_v3(tree->cos[i], v->co);
 		}
 		em->bm->elem_index_dirty &= ~BM_VERT;
@@ -128,9 +128,9 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	
 	for (i=0; i<em->tottri; i++) {
 		if (flag & BMBVH_USE_CAGE) {
-			copy_v3_v3(cos[0], cagecos[BM_GetIndex(em->looptris[i][0]->v)]);
-			copy_v3_v3(cos[1], cagecos[BM_GetIndex(em->looptris[i][1]->v)]);
-			copy_v3_v3(cos[2], cagecos[BM_GetIndex(em->looptris[i][2]->v)]);
+			copy_v3_v3(cos[0], cagecos[BM_elem_index_get(em->looptris[i][0]->v)]);
+			copy_v3_v3(cos[1], cagecos[BM_elem_index_get(em->looptris[i][1]->v)]);
+			copy_v3_v3(cos[2], cagecos[BM_elem_index_get(em->looptris[i][2]->v)]);
 		} else {
 			copy_v3_v3(cos[0], em->looptris[i][0]->v->co);
 			copy_v3_v3(cos[1], em->looptris[i][1]->v->co);
@@ -339,7 +339,7 @@ static BMFace *edge_ray_cast(BMBVHTree *tree, float *co, float *dir, float *hito
 {
 	BMFace *f = BMBVH_RayCast(tree, co, dir, hitout, NULL);
 	
-	if (f && BM_Edge_In_Face(f, e))
+	if (f && BM_edge_in_face(f, e))
 		return NULL;
 
 	return f;

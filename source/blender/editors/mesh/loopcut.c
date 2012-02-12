@@ -145,9 +145,9 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 	l = eed->l;
 
 	/*find correct order for v[1]*/
-	if (!(BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))) {
+	if (!(BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))) {
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
-			if (BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))
+			if (BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))
 				break;
 		}
 	}
@@ -161,7 +161,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 		return;
 	}
 	
-	l2 = BM_OtherFaceLoop(l->e, l->f, eed->v1);
+	l2 = BM_face_other_loop(l->e, l->f, eed->v1);
 	rev = (l2 == l->prev);
 	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
 		l2 = rev ? l2->prev : l2->next;
@@ -204,26 +204,26 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	}
 
 	if (select) {
-		BMW_Init(&walker, em->bm, BMW_EDGERING,
+		BMW_init(&walker, em->bm, BMW_EDGERING,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_NIL_LAY);
 
-		eed = BMW_Begin(&walker, startedge);
-		for (; eed; eed=BMW_Step(&walker)) {
-			BM_Select(em->bm, eed, TRUE);
+		eed = BMW_begin(&walker, startedge);
+		for (; eed; eed=BMW_step(&walker)) {
+			BM_elem_select_set(em->bm, eed, TRUE);
 		}
-		BMW_End(&walker);
+		BMW_end(&walker);
 
 		return;
 	}
 
-	BMW_Init(&walker, em->bm, BMW_EDGERING,
+	BMW_init(&walker, em->bm, BMW_EDGERING,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_NIL_LAY);
 
-	eed = startedge = BMW_Begin(&walker, startedge);
+	eed = startedge = BMW_begin(&walker, startedge);
 	lastv1 = NULL;
-	for (lasteed=NULL; eed; eed=BMW_Step(&walker)) {
+	for (lasteed=NULL; eed; eed=BMW_step(&walker)) {
 		if (lasteed) {
 			if (lastv1) {
 				v[1][0] = v[0][0];
@@ -255,7 +255,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		lasteed = eed;
 	}
 	
-	if (lasteed != startedge && BM_Edge_Share_Faces(lasteed, startedge)) {
+	if (lasteed != startedge && BM_edge_share_faces(lasteed, startedge)) {
 		v[1][0] = v[0][0];
 		v[1][1] = v[0][1];
 
@@ -280,7 +280,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		}
 	}
 
-	BMW_End(&walker);
+	BMW_end(&walker);
 	lcd->edges = edges;
 	lcd->totedge = tot;
 }

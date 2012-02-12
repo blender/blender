@@ -126,7 +126,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	em = CDDM_To_BMesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_Compute_Normals(bm);
+	BM_mesh_normals_update(bm);
 	BMO_push(bm, NULL);
 
 	if (bmd->lim_flags & BME_BEVEL_ANGLE) {
@@ -137,7 +137,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 			     (l2= e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
-					BMO_SetFlag(bm, e, EDGE_MARK);
+					BMO_elem_flag_set(bm, e, EDGE_MARK);
 				}
 			}
 		}
@@ -145,11 +145,11 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	else {
 		/* crummy, is there a way just to operator on all? - campbell */
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			BMO_SetFlag(bm, e, EDGE_MARK);
+			BMO_elem_flag_set(bm, e, EDGE_MARK);
 		}
 	}
 
-	BMO_CallOpf(bm, "bevel geom=%fe percent=%f use_even=%i use_dist=%i",
+	BMO_op_callf(bm, "bevel geom=%fe percent=%f use_even=%i use_dist=%i",
 	            EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN)!=0, (bmd->flags & BME_BEVEL_DIST)!=0);
 	BMO_pop(bm);
 

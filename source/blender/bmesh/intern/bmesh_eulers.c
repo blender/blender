@@ -362,7 +362,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 int bmesh_kv(BMesh *bm, BMVert *v)
 {
 	if(v->e == NULL) {
-		if (BM_TestHFlag(v, BM_ELEM_SELECT)) bm->totvertsel--;
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) bm->totvertsel--;
 
 		BLI_remlink(&(bm->verts), &(v->head));
 		bmesh_free_vert(bm,v);
@@ -398,7 +398,7 @@ int bmesh_ke(BMesh *bm, BMEdge *e)
 		if(edok) bmesh_error();
 		
 		/*remove and deallocate*/
-		if (BM_TestHFlag(e, BM_ELEM_SELECT)) bm->totedgesel--;
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel--;
 		BLI_remlink(&(bm->edges), &(e->head));
 		bmesh_free_edge(bm, e);
 		return 1;
@@ -438,7 +438,7 @@ int bmesh_kf(BMesh *bm, BMFace *bply)
 		bply->loopbase = newbase;
 	}
 	
-	if (BM_TestHFlag(bply, BM_ELEM_SELECT)) bm->totfacesel--;
+	if (BM_elem_flag_test(bply, BM_ELEM_SELECT)) bm->totfacesel--;
 	BLI_remlink(&(bm->polys), &(bply->head));
 	bmesh_free_poly(bm, bply);
 	return 1;
@@ -982,7 +982,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	if(bmesh_radial_find_face( ((f2loop->prev))->e,f1)) return NULL;
 	
 	/*validate only one shared edge*/
-	shared = BM_Face_Share_Edges(f1,f2);
+	shared = BM_face_share_edges(f1,f2);
 	if(shared > 1) return NULL;
 
 	/*validate no internal joins*/
