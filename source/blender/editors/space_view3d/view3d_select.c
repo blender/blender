@@ -175,7 +175,7 @@ static void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 	for ( ; eve; eve=BM_iter_step(&iter), index++) {
 		if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
-				BM_vert_select(em->bm, eve, select);
+				BM_vert_select_set(em->bm, eve, select);
 			}
 		}
 	}
@@ -191,7 +191,7 @@ static void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 	for ( ; eed; eed=BM_iter_step(&iter), index++) {
 		if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
-				BM_edge_select(em->bm, eed, select);
+				BM_edge_select_set(em->bm, eed, select);
 			}
 		}
 	}
@@ -207,7 +207,7 @@ static void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 	for ( ; efa; efa=BM_iter_step(&iter), index++) {
 		if(!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
-				BM_face_select(em->bm, efa, select);
+				BM_face_select_set(em->bm, efa, select);
 			}
 		}
 	}
@@ -525,7 +525,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	data.pass = 0;
 
 	if (extend == 0 && select)
-		EDBM_clear_flag_all(vc->em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(vc->em, BM_ELEM_SELECT);
 
 	 /* for non zbuf projections, dont change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
@@ -1782,7 +1782,7 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	data.done = 0;
 
 	if (extend == 0 && select)
-		EDBM_clear_flag_all(vc->em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(vc->em, BM_ELEM_SELECT);
 
 	/* for non zbuf projections, dont change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);

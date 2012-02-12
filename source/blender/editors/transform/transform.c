@@ -4420,12 +4420,12 @@ static int createSlideVerts(TransInfo *t)
 	j = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-			BM_elem_flag_set(v, BM_ELEM_TAG);
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
 			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
 			j += 1;
 		}
 		else {
-			BM_elem_flag_clear(v, BM_ELEM_TAG);
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
 		}
 	}
 
@@ -4471,7 +4471,7 @@ static int createSlideVerts(TransInfo *t)
 			v = BM_edge_other_vert(e, v);
 		} while (e != first->e);
 
-		BM_elem_flag_clear(v, BM_ELEM_TAG);
+		BM_elem_flag_disable(v, BM_ELEM_TAG);
 
 		l1 = l2 = l = NULL;
 		l1 = e->l;
@@ -4527,8 +4527,8 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(sv->downvec, BM_edge_other_vert(l->e, v)->co, v->co);
 				}
 
-				BM_elem_flag_clear(v, BM_ELEM_TAG);
-				BM_elem_flag_clear(v2, BM_ELEM_TAG);
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
+				BM_elem_flag_disable(v2, BM_ELEM_TAG);
 				
 				j += 2;
 				break;
@@ -4539,12 +4539,12 @@ static int createSlideVerts(TransInfo *t)
 
 			j += 1;
 
-			BM_elem_flag_clear(v, BM_ELEM_TAG);
-			BM_elem_flag_clear(v2, BM_ELEM_TAG);
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
+			BM_elem_flag_disable(v2, BM_ELEM_TAG);
 		} while (e != first->e && l1);
 	}
 
-	//EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+	//EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	sld->sv = tempsv;
 	sld->totsv = j;
@@ -4616,12 +4616,12 @@ static int createSlideVerts(TransInfo *t)
 				BMFace *copyf = BM_face_copy(em->bm, f, 1, 1);
 				
 				BM_elem_select_set(em->bm, copyf, FALSE);
-				BM_elem_flag_set(copyf, BM_ELEM_HIDDEN);
+				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
 					BM_elem_select_set(em->bm, l->v, FALSE);
-					BM_elem_flag_set(l->v, BM_ELEM_HIDDEN);
+					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
 					BM_elem_select_set(em->bm, l->e, FALSE);
-					BM_elem_flag_set(l->e, BM_ELEM_HIDDEN);
+					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
 				}
 
 				BLI_smallhash_insert(&sld->origfaces, (uintptr_t)f, copyf);

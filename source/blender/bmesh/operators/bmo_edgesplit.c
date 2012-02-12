@@ -103,14 +103,14 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 			}
 
 			if (BMO_elem_flag_test(bm, l->e, EDGE_SEAM)) {
-				BMO_elem_flag_set(bm, l2->e, EDGE_SEAM);
+				BMO_elem_flag_enable(bm, l2->e, EDGE_SEAM);
 			}
 
 			BM_elem_copy_attrs(bm, bm, l->e, l2->e);
 		}
 
-		BMO_elem_flag_set(bm, l->e, EDGE_MARK);
-		BMO_elem_flag_set(bm, l2->e, EDGE_MARK);
+		BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
+		BMO_elem_flag_enable(bm, l2->e, EDGE_MARK);
 	}
 
 	return f2;
@@ -152,29 +152,29 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				et = &etags[BM_elem_index_get(l->e)];
 				if (et->newe1 == l->e) {
 					if (et->newe1) {
-						BMO_elem_flag_set(bm, et->newe1, EDGE_RET1);
-						BMO_elem_flag_clear(bm, et->newe1, EDGE_SEAM);
+						BMO_elem_flag_enable(bm, et->newe1, EDGE_RET1);
+						BMO_elem_flag_disable(bm, et->newe1, EDGE_SEAM);
 					}
 					if (et->newe2) {
-						BMO_elem_flag_set(bm, et->newe2, EDGE_RET2);
-						BMO_elem_flag_clear(bm, et->newe2, EDGE_SEAM);
+						BMO_elem_flag_enable(bm, et->newe2, EDGE_RET2);
+						BMO_elem_flag_disable(bm, et->newe2, EDGE_SEAM);
 					}
 				}
 				else {
 					if (et->newe1) {
-						BMO_elem_flag_set(bm, et->newe1, EDGE_RET2);
-						BMO_elem_flag_clear(bm, et->newe1, EDGE_SEAM);
+						BMO_elem_flag_enable(bm, et->newe1, EDGE_RET2);
+						BMO_elem_flag_disable(bm, et->newe1, EDGE_SEAM);
 					}
 					if (et->newe2) {
-						BMO_elem_flag_set(bm, et->newe2, EDGE_RET1);
-						BMO_elem_flag_clear(bm, et->newe2, EDGE_SEAM);
+						BMO_elem_flag_enable(bm, et->newe2, EDGE_RET1);
+						BMO_elem_flag_disable(bm, et->newe2, EDGE_SEAM);
 					}
 				}
 
 				/* If the original edge was non-manifold edges, then it is
 				 * possible l->e is not et->newe1 or et->newe2. So always clear
 				 * the flag on l->e as well, to prevent infinite looping. */
-				BMO_elem_flag_clear(bm, l->e, EDGE_SEAM);
+				BMO_elem_flag_disable(bm, l->e, EDGE_SEAM);
 
 				startl = l;
 				do {
@@ -226,7 +226,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (!e2) {
-			BMO_elem_flag_clear(bm, e, EDGE_SEAM);
+			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
 		}
 	}
 
@@ -380,8 +380,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		BMO_elem_flag_set(bm, f, FACE_DEL);
-		BMO_elem_flag_set(bm, f2, FACE_NEW);
+		BMO_elem_flag_enable(bm, f, FACE_DEL);
+		BMO_elem_flag_enable(bm, f2, FACE_NEW);
 	}
 	
 	/* remake_face() sets invalid indecies,
@@ -402,7 +402,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			if (!e->l) {
-				BMO_elem_flag_set(bm, e, EDGE_DEL);
+				BMO_elem_flag_enable(bm, e, EDGE_DEL);
 			}
 		}
 	}

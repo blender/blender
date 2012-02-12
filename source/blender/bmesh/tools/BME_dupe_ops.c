@@ -29,10 +29,10 @@ static BMVert *copy_vertex(BMMesh *source_mesh, BMVert *source_vertex, BMMesh *t
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->data, &target_vertex->data);	
 
 	/*Copy Markings*/
-	if(BM_Is_Selected((BMHeader*)source_vertex)) BM_vert_select(target_mesh, target_vertex, TRUE);
+	if(BM_Is_Selected((BMHeader*)source_vertex)) BM_vert_select_set(target_mesh, target_vertex, TRUE);
 	if(BM_Is_Hidden((BMHeader*)source_vertex)) BM_Mark_Hidden((BMHeader*)target_vertex, 1);
 
-	BMO_elem_flag_set(target_mesh, (BMHeader*)target_vertex, DUPE_NEW);
+	BMO_elem_flag_enable(target_mesh, (BMHeader*)target_vertex, DUPE_NEW);
 	
 	return target_vertex;
 }
@@ -63,13 +63,13 @@ static BMEdge *copy_edge(BMMesh *source_mesh, BMEdge *source_edge, BMMesh *targe
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->data, &target_edge->data);
 	
 	/*copy flags*/
-	if(BM_Is_Selected((BMHeader*) source_edge)) BM_edge_select(target_mesh, target_edge, TRUE);
+	if(BM_Is_Selected((BMHeader*) source_edge)) BM_edge_select_set(target_mesh, target_edge, TRUE);
 	if(BM_Is_Hidden((BMHeader*) source_edge)) BM_Mark_Hidden(target_mesh, target_edge, 1);
 	if(BM_Is_Sharp((BMHeader*) source_edge)) BM_Mark_Sharp(target_edge, 1);
 	if(BM_Is_Seam((BMHeader*) source_edge)) BM_Mark_Seam(target_edge, 1);
 	if(BM_Is_Fgon((BMHeader*) source_edge)) BM_Mark_Fgon(target_edge, 1);
 
-	BMO_elem_flag_set(target_mesh, (BMHeader*)target_edge, DUPE_NEW);
+	BMO_elem_flag_enable(target_mesh, (BMHeader*)target_edge, DUPE_NEW);
 	
 	return target_edge;
 }
@@ -113,7 +113,7 @@ static BMFace *copy_face(BMMesh *source_mesh, BMFace *source_face, BMMesh *targe
 	if(BM_Is_Hidden((BMHeader*)source_face)) BM_Mark_Hidden((BMHeader*)target_face, 1);
 
 	/*mark the face for output*/
-	BMO_elem_flag_set(target_mesh, (BMHeader*)target_face, DUPE_NEW);
+	BMO_elem_flag_enable(target_mesh, (BMHeader*)target_face, DUPE_NEW);
 	
 	/*copy per-loop custom data*/
 	source_loop = source_face->lbase;
@@ -175,7 +175,7 @@ static void copy_mesh(BMMesh *source, BMMesh *target)
 			for(v = BM_iter_new(&verts, source, BM_VERT_OF_FACE, f, 0, NULL); v; v = BM_iter_step(&verts)){
 				if(!BMO_elem_flag_test(source, (BMHeader*)v, DUPE_DONE)){ 
 					copy_vertex(source,v, target, vhash);
-					BMO_elem_flag_set(source, (BMHeader*)v, DUPE_DONE);
+					BMO_elem_flag_enable(source, (BMHeader*)v, DUPE_DONE);
 				}
 			}
 
@@ -183,11 +183,11 @@ static void copy_mesh(BMMesh *source, BMMesh *target)
 			for(e = BM_iter_new(&edges, source, BM_EDGE_OF_FACE, f, 0, NULL); e; e = BMeshIter_step(&edges)){
 				if(!BMO_elem_flag_test(source, (BMHeader*)e, DUPE_DONE)){
 					copy_edge(source, e, target,  vhash,  ehash);
-					BMO_elem_flag_set(source, (BMHeader*)e, DUPE_DONE);
+					BMO_elem_flag_enable(source, (BMHeader*)e, DUPE_DONE);
 				}
 			}
 			copy_face(source, f, target, edar, vhash, ehash);
-			BMO_elem_flag_set(source, (BMHeader*)f, DUPE_DONE);
+			BMO_elem_flag_enable(source, (BMHeader*)f, DUPE_DONE);
 		}
 	}
 	
@@ -197,15 +197,15 @@ static void copy_mesh(BMMesh *source, BMMesh *target)
 			/*make sure that verts are copied*/
 			if(!BMO_elem_flag_test(source, (BMHeader*)e->v1, DUPE_DONE){
 				copy_vertex(source, e->v1, target, vhash);
-				BMO_elem_flag_set(source, (BMHeader*)e->v1, DUPE_DONE);
+				BMO_elem_flag_enable(source, (BMHeader*)e->v1, DUPE_DONE);
 			}
 			if(!BMO_elem_flag_test(source, (BMHeader*)e->v2, DUPE_DONE){
 				copy_vertex(source, e->v2, target, vhash);
-				BMO_elem_flag_set(source, (BMHeader*)e->v2, DUPE_DONE);
+				BMO_elem_flag_enable(source, (BMHeader*)e->v2, DUPE_DONE);
 			}
 			/*now copy the actual edge*/
 			copy_edge(source, e, target,  vhash,  ehash);			
-			BMO_elem_flag_set(source, (BMHeader*)e, DUPE_DONE); 
+			BMO_elem_flag_enable(source, (BMHeader*)e, DUPE_DONE); 
 		}
 	}
 	
@@ -213,7 +213,7 @@ static void copy_mesh(BMMesh *source, BMMesh *target)
 	for(v = BM_iter_new(&verts, source, BM_VERTS, source, 0, NULL); v; v = BM_iter_step(&verts)){
 		if(BMO_elem_flag_test(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_elem_flag_test(source, (BMHeader*)v, DUPE_DONE))){
 			copy_vertex(source, v, target, vhash);
-			BMO_elem_flag_set(source, (BMHeader*)v, DUPE_DONE);
+			BMO_elem_flag_enable(source, (BMHeader*)v, DUPE_DONE);
 		}
 	}
 

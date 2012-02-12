@@ -200,7 +200,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	}
 
 	if (!lcd->extend) {
-		EDBM_clear_flag_all(lcd->em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(lcd->em, BM_ELEM_SELECT);
 	}
 
 	if (select) {

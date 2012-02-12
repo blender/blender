@@ -105,8 +105,8 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 				BLI_array_free(loops);
 				return;
 			}
-			BMO_elem_flag_set(bm, nf, FACE_NEW);
-			BMO_elem_flag_set(bm, nl->e, EDGE_OUT);
+			BMO_elem_flag_enable(bm, nf, FACE_NEW);
+			BMO_elem_flag_enable(bm, nl->e, EDGE_OUT);
 		}
 	}
 
@@ -224,7 +224,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 					BLI_array_append(vv2, v);
 				}
 				
-				BMO_elem_flag_set(bm, e2, EDGE_DONE);
+				BMO_elem_flag_enable(bm, e2, EDGE_DONE);
 				
 				v = BM_edge_other_vert(e2, v);
 				BM_ITER(e3, &iter, bm, BM_EDGES_OF_VERT, v) {

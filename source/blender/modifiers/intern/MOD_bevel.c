@@ -132,7 +132,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 			     (l2= e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
-					BMO_elem_flag_set(bm, e, EDGE_MARK);
+					BMO_elem_flag_enable(bm, e, EDGE_MARK);
 				}
 			}
 		}
@@ -140,7 +140,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	else {
 		/* crummy, is there a way just to operator on all? - campbell */
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			BMO_elem_flag_set(bm, e, EDGE_MARK);
+			BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		}
 	}
 

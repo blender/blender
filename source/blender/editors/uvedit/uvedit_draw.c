@@ -206,12 +206,12 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				totuvarea += poly_uv_area(tf_uv, efa->len);
 				
 				if(uvedit_face_visible(scene, ima, efa, tf)) {
-					BM_elem_flag_set(efa, BM_ELEM_TAG);
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
 				else {
 					if(tf == activetf)
 						activetf= NULL;
-					BM_elem_flag_clear(efa, BM_ELEM_TAG);
+					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
 			
@@ -569,7 +569,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				BM_elem_flag_set(efa, BM_ELEM_TAG);
+				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				if(tf==activetf) continue; /* important the temp boolean is set above */
 
 				if(uvedit_face_selected(scene, em, efa))
@@ -587,7 +587,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			else {
 				if(tf == activetf)
 					activetf= NULL;
-				BM_elem_flag_clear(efa, BM_ELEM_TAG);
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
 		glDisable(GL_BLEND);
@@ -599,12 +599,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			if(uvedit_face_visible(scene, ima, efa, tf)) {		
-				BM_elem_flag_set(efa, BM_ELEM_TAG);
+				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 			else {
 				if(tf == activetf)
 					activetf= NULL;
-				BM_elem_flag_clear(efa, BM_ELEM_TAG);
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
 		

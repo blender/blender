@@ -337,7 +337,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 			if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
 				BM_face_normal_flip(bm, f);
 			}
-			BM_elem_flag_clear(f, BM_ELEM_TAG);
+			BM_elem_flag_disable(f, BM_ELEM_TAG);
 		}
 		
 		return;
@@ -350,8 +350,8 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, f, FACE_FLIP))
-			BM_elem_flag_set(f, BM_ELEM_TAG);
-		else BM_elem_flag_clear(f, BM_ELEM_TAG);
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+		else BM_elem_flag_disable(f, BM_ELEM_TAG);
 	}
 
 	BMO_pop(bm);

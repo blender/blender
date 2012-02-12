@@ -47,13 +47,13 @@ void BM_elem_select_set(struct BMesh *bm, void *element, int select);
  * chuck it.*/
 int BM_elem_select_test(BMesh *bm, const void *element);
 
-void BM_clear_flag_all(BMesh *bm, const char hflag);
+void BM_mesh_flag_disable_all(BMesh *bm, const char hflag);
 
 /* individual element select functions, BM_elem_select_set is a shortcut for these
  * that automatically detects which one to use*/
-void BM_vert_select(struct BMesh *bm, struct BMVert *v, int select);
-void BM_edge_select(struct BMesh *bm, struct BMEdge *e, int select);
-void BM_face_select(struct BMesh *bm, struct BMFace *f, int select);
+void BM_vert_select_set(struct BMesh *bm, struct BMVert *v, int select);
+void BM_edge_select_set(struct BMesh *bm, struct BMEdge *e, int select);
+void BM_face_select_set(struct BMesh *bm, struct BMFace *f, int select);
 
 void BM_select_mode_set(struct BMesh *bm, int selectmode);
 

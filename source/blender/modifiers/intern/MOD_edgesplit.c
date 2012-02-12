@@ -80,7 +80,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 			     (l2= e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
-					BMO_elem_flag_set(bm, e, EDGE_MARK);
+					BMO_elem_flag_enable(bm, e, EDGE_MARK);
 				}
 			}
 		}
@@ -89,7 +89,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (BM_elem_flag_test(e, BM_ELEM_SHARP))
-				BMO_elem_flag_set(bm, e, EDGE_MARK);
+				BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		}
 	}
 	

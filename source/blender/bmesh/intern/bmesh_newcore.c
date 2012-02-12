@@ -1556,15 +1556,15 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate no internal join */
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_clear(l_iter->v, BM_ELEM_TAG);
+		BM_elem_flag_disable(l_iter->v, BM_ELEM_TAG);
 	}
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_clear(l_iter->v, BM_ELEM_TAG);
+		BM_elem_flag_disable(l_iter->v, BM_ELEM_TAG);
 	}
 
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
 		if (l_iter != f1loop) {
-			BM_elem_flag_set(l_iter->v, BM_ELEM_TAG);
+			BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
 		}
 	}
 	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {

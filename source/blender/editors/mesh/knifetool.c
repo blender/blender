@@ -1704,7 +1704,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 			
 			f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
 			if (f2)  {
-				BMO_elem_flag_set(bm, f2, FACE_NEW);
+				BMO_elem_flag_enable(bm, f2, FACE_NEW);
 				BM_elem_index_set(f2, idx); /* set_dirty! */ /* BMESH_TODO, check if this is valid or not */
 			}
 		}
@@ -1748,7 +1748,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	bm->elem_index_dirty &= ~BM_FACE;
 	
 	BM_ITER(e, &bmiter, bm, BM_EDGES_OF_MESH, NULL) {
-		BMO_elem_flag_set(bm, e, BOUNDARY);
+		BMO_elem_flag_enable(bm, e, BOUNDARY);
 	}
 
 	/* turn knife verts into real verts, as necassary */
@@ -1758,14 +1758,14 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			/* shouldn't we be at least copying the normal? - if not some comment here should explain why - campbell */
 			kfv->v = BM_vert_create(bm, kfv->co, NULL);
 			kfv->flag = 1;
-			BMO_elem_flag_set(bm, kfv->v, DEL);
+			BMO_elem_flag_enable(bm, kfv->v, DEL);
 		}
 		else {
 			kfv->flag = 0;
-			BMO_elem_flag_set(bm, kfv->v, VERT_ORIG);
+			BMO_elem_flag_enable(bm, kfv->v, VERT_ORIG);
 		}
 
-		BMO_elem_flag_set(bm, kfv->v, MARK);
+		BMO_elem_flag_enable(bm, kfv->v, MARK);
 	}
 	
 	/* we want to only do changed faces.  first, go over new edges and add to
@@ -1789,13 +1789,13 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		if (kfe->e) {
 			kfe->oe = kfe->e;
 
-			BMO_elem_flag_set(bm, kfe->e, DEL);
-			BMO_elem_flag_clear(bm, kfe->e, BOUNDARY);
+			BMO_elem_flag_enable(bm, kfe->e, DEL);
+			BMO_elem_flag_disable(bm, kfe->e, BOUNDARY);
 			kfe->e = NULL;
 		}
 		
 		kfe->e = BM_edge_create(bm, kfe->v1->v, kfe->v2->v, NULL, TRUE);
-		BMO_elem_flag_set(bm, kfe->e, BOUNDARY);
+		BMO_elem_flag_enable(bm, kfe->e, BOUNDARY);
 		
 		for (ref = kfe->faces.first; ref; ref = ref->next) {
 			f = ref->ref;
@@ -1818,7 +1818,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		
 		k++;
 		
-		BMO_elem_flag_set(bm, kfe->e, BOUNDARY);
+		BMO_elem_flag_enable(bm, kfe->e, BOUNDARY);
 		kfe->oe = kfe->e;
 		
 		for (ref = kfe->faces.first; ref; ref = ref->next) {
@@ -1842,7 +1842,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BLI_smallhash_init(hash);
 		
 		if (face_nets[i].first)
-			BMO_elem_flag_set(bm, f, DEL);
+			BMO_elem_flag_enable(bm, f, DEL);
 		
 		BLI_begin_edgefill();
 		
@@ -1882,8 +1882,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 				if (entry->kfe->oe)
 					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
 				
-				BMO_elem_flag_clear(bm, entry->kfe->e->v1, DEL);
-				BMO_elem_flag_clear(bm, entry->kfe->e->v2, DEL);
+				BMO_elem_flag_disable(bm, entry->kfe->e->v1, DEL);
+				BMO_elem_flag_disable(bm, entry->kfe->e->v2, DEL);
 			}
 			else {
 				if (lasteve->xs < 2)
@@ -1910,15 +1910,15 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			                          v1, v2, v3, NULL,
 			                          NULL, FALSE);
 
-			BMO_elem_flag_set(bm, f2, FACE_NEW);
+			BMO_elem_flag_enable(bm, f2, FACE_NEW);
 			
 			l = BM_FACE_FIRST_LOOP(f2);
 			do {
-				BMO_elem_flag_clear(bm, l->e, DEL);
+				BMO_elem_flag_disable(bm, l->e, DEL);
 				l = l->next;
 			} while (l != BM_FACE_FIRST_LOOP(f2));
 	
-			BMO_elem_flag_clear(bm, f2, DEL);
+			BMO_elem_flag_disable(bm, f2, DEL);
 			BM_elem_index_set(f2, i); /* set_dirty! */ /* note, not 100% sure this is dirty? need to check */
 
 			BM_face_normal_update(bm, f2);

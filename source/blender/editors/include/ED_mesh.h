@@ -202,8 +202,8 @@ void		EM_add_data_layer(struct BMEditMesh *em, struct CustomData *data, int type
 void		EM_free_data_layer(struct BMEditMesh *em, struct CustomData *data, int type);
 
 void EDBM_toggle_select_all(struct BMEditMesh *em);
-void EDBM_set_flag_all(struct BMEditMesh *em, const char hflag);
-void EDBM_clear_flag_all(struct BMEditMesh *em, const char hflag);
+void EDBM_flag_enable_all(struct BMEditMesh *em, const char hflag);
+void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_select_mirrored(struct Object *obedit, struct BMEditMesh *em, int extend);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
 

@@ -129,7 +129,7 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 	BMLoop *curloop = NULL;
 	int i, count = 0;
 	
-	for (i = 0; i < len; i++) BMO_elem_flag_set(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
 	
 	for (lst = f->loops.first; lst; lst = lst->next) {
 		curloop = lst->first;
@@ -142,7 +142,7 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 		} while (curloop != lst->first);
 	}
 
-	for (i = 0; i < len; i++) BMO_elem_flag_clear(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) BMO_elem_flag_disable(bm, varr[i], BM_OVERLAP);
 
 	return count;
 }

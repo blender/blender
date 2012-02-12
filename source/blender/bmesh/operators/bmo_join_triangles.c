@@ -238,9 +238,9 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 
 	/* flag all edges of all input face */
 	BMO_ITER(f1, &siter, bm, op, "faces", BM_FACE) {
-		BMO_elem_flag_set(bm, f1, FACE_INPUT);
+		BMO_elem_flag_enable(bm, f1, FACE_INPUT);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f1) {
-			BMO_elem_flag_set(bm, l->e, EDGE_MARK);
+			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
 		}
 	}
 
@@ -250,7 +250,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		if (BM_edge_face_count(e) < 2) {
-			BMO_elem_flag_clear(bm, e, EDGE_MARK);
+			BMO_elem_flag_disable(bm, e, EDGE_MARK);
 			continue;
 		}
 
@@ -258,12 +258,12 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		f2 = e->l->radial_next->f;
 
 		if (f1->len != 3 || f2->len != 3) {
-			BMO_elem_flag_clear(bm, e, EDGE_MARK);
+			BMO_elem_flag_disable(bm, e, EDGE_MARK);
 			continue;
 		}
 
 		if (!BMO_elem_flag_test(bm, f1, FACE_INPUT) || !BMO_elem_flag_test(bm, f2, FACE_INPUT)) {
-			BMO_elem_flag_clear(bm, e, EDGE_MARK);
+			BMO_elem_flag_disable(bm, e, EDGE_MARK);
 			continue;
 		}
 	}
@@ -321,9 +321,9 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		if (BMO_elem_flag_test(bm, f1, FACE_MARK) || BMO_elem_flag_test(bm, f2, FACE_MARK))
 			continue;
 
-		BMO_elem_flag_set(bm, f1, FACE_MARK);
-		BMO_elem_flag_set(bm, f2, FACE_MARK);
-		BMO_elem_flag_set(bm, e, EDGE_CHOSEN);
+		BMO_elem_flag_enable(bm, f1, FACE_MARK);
+		BMO_elem_flag_enable(bm, f2, FACE_MARK);
+		BMO_elem_flag_enable(bm, e, EDGE_CHOSEN);
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {

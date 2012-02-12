@@ -56,7 +56,6 @@ IGNORE = (
     "source/blender/bmesh/tools/BME_bevel.c",
     "source/blender/bmesh/tools/BME_dupe_ops.c",
     "source/blender/bmesh/tools/BME_duplicate.c",
-    "source/blender/bmesh/tools/BME_extrude.c",
     "source/blender/bmesh/tools/BME_weld.c",
     )
 

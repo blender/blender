@@ -36,12 +36,12 @@ BM_INLINE char BM_elem_flag_test(const void *element, const char hflag)
 	return ((const BMHeader *)element)->hflag & hflag;
 }
 
-BM_INLINE void BM_elem_flag_set(void *element, const char hflag)
+BM_INLINE void BM_elem_flag_enable(void *element, const char hflag)
 {
 	((BMHeader *)element)->hflag |= hflag;
 }
 
-BM_INLINE void BM_elem_flag_clear(void *element, const char hflag)
+BM_INLINE void BM_elem_flag_disable(void *element, const char hflag)
 {
 	((BMHeader *)element)->hflag &= ~hflag;
 }

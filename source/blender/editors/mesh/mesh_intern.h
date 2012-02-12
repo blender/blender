@@ -79,7 +79,7 @@ int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
 int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
                   struct wmOperator *op, const int report);
 
-void EDBM_clear_flag_all(struct BMEditMesh *em, const char hflag);
+void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_store_selection(struct BMEditMesh *em, void *data);
 void EDBM_validate_selections(struct BMEditMesh *em);
 void EDBM_remove_selection(struct BMEditMesh *em, void *data);

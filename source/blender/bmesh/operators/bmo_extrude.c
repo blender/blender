@@ -73,7 +73,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		e = BM_edge_create(bm, v, firstv, laste, FALSE);
 		edges[i++] = e;
 
-		BMO_elem_flag_set(bm, f, EXT_DEL);
+		BMO_elem_flag_enable(bm, f, EXT_DEL);
 
 		f2 = BM_face_create_ngon(bm, firstv, BM_edge_other_vert(edges[0], firstv), edges, f->len, FALSE);
 		if (!f2) {
@@ -82,7 +82,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			return;
 		}
 		
-		BMO_elem_flag_set(bm, f2, EXT_KEEP);
+		BMO_elem_flag_enable(bm, f2, EXT_KEEP);
 		BM_elem_copy_attrs(bm, bm, f, f2);
 
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
@@ -118,9 +118,9 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		BMO_elem_flag_set(bm, e, EXT_INPUT);
-		BMO_elem_flag_set(bm, e->v1, EXT_INPUT);
-		BMO_elem_flag_set(bm, e->v2, EXT_INPUT);
+		BMO_elem_flag_enable(bm, e, EXT_INPUT);
+		BMO_elem_flag_enable(bm, e->v1, EXT_INPUT);
+		BMO_elem_flag_enable(bm, e->v2, EXT_INPUT);
 	}
 
 	BMO_op_initf(bm, &dupeop, "dupe geom=%fve", EXT_INPUT);
@@ -149,10 +149,10 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
 			e = e2;
 		
-		BMO_elem_flag_set(bm, f, EXT_KEEP);
-		BMO_elem_flag_set(bm, e, EXT_KEEP);
-		BMO_elem_flag_set(bm, e->v1, EXT_KEEP);
-		BMO_elem_flag_set(bm, e->v2, EXT_KEEP);
+		BMO_elem_flag_enable(bm, f, EXT_KEEP);
+		BMO_elem_flag_enable(bm, e, EXT_KEEP);
+		BMO_elem_flag_enable(bm, e->v1, EXT_KEEP);
+		BMO_elem_flag_enable(bm, e->v2, EXT_KEEP);
 		
 	}
 
@@ -173,8 +173,8 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 
 		e = BM_edge_create(bm, v, dupev, NULL, FALSE);
 
-		BMO_elem_flag_set(bm, e, EXT_KEEP);
-		BMO_elem_flag_set(bm, dupev, EXT_KEEP);
+		BMO_elem_flag_enable(bm, e, EXT_KEEP);
+		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
 	BMO_slot_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
@@ -213,7 +213,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 
-			if (!found && (rlen > 1)) BMO_elem_flag_set(bm, e, EXT_DEL);
+			if (!found && (rlen > 1)) BMO_elem_flag_enable(bm, e, EXT_DEL);
 		}
 	}
 
@@ -236,13 +236,13 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (!found) {
-			BMO_elem_flag_set(bm, v, EXT_DEL);
+			BMO_elem_flag_enable(bm, v, EXT_DEL);
 		}
 	}
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, f, EXT_INPUT))
-			BMO_elem_flag_set(bm, f, EXT_DEL);
+			BMO_elem_flag_enable(bm, f, EXT_DEL);
 	}
 
 	if (delorig) {
@@ -368,7 +368,7 @@ static void calc_solidify_normals(BMesh *bm)
 	int *edge_face_count = MEM_callocN(sizeof(int) * bm->totedge, __func__);
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_elem_flag_set(v, BM_ELEM_TAG);
+		BM_elem_flag_enable(v, BM_ELEM_TAG);
 	}
 
 	BM_mesh_elem_index_ensure(bm, BM_EDGE);
@@ -382,9 +382,9 @@ static void calc_solidify_normals(BMesh *bm)
 
 			/* And mark all edges and vertices on the
 			 * marked faces */
-			BMO_elem_flag_set(bm, e, EDGE_MARK);
-			BMO_elem_flag_set(bm, e->v1, VERT_MARK);
-			BMO_elem_flag_set(bm, e->v2, VERT_MARK);
+			BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			BMO_elem_flag_enable(bm, e->v1, VERT_MARK);
+			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 			edge_face_count[BM_elem_index_get(e)]++;
 		}
 	}
@@ -399,9 +399,9 @@ static void calc_solidify_normals(BMesh *bm)
 		if (i == 0 || i > 2) {
 			/* Edge & vertices are non-manifold even when considering
 			 * only marked faces */
-			BMO_elem_flag_set(bm, e, EDGE_NONMAN);
-			BMO_elem_flag_set(bm, e->v1, VERT_NONMAN);
-			BMO_elem_flag_set(bm, e->v2, VERT_NONMAN);
+			BMO_elem_flag_enable(bm, e, EDGE_NONMAN);
+			BMO_elem_flag_enable(bm, e->v1, VERT_NONMAN);
+			BMO_elem_flag_enable(bm, e->v2, VERT_NONMAN);
 		}
 	}
 	MEM_freeN(edge_face_count);
@@ -409,7 +409,7 @@ static void calc_solidify_normals(BMesh *bm)
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_vert_is_nonmanifold(bm, v)) {
-			BMO_elem_flag_set(bm, v, VERT_NONMAN);
+			BMO_elem_flag_enable(bm, v, VERT_NONMAN);
 			continue;
 		}
 
@@ -461,8 +461,8 @@ static void calc_solidify_normals(BMesh *bm)
 			else {
 				/* can't do anything useful here!
 				 * Set the face index for a vert incase it gets a zero normal */
-				BM_elem_flag_clear(e->v1, BM_ELEM_TAG);
-				BM_elem_flag_clear(e->v2, BM_ELEM_TAG);
+				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 				continue;
 			}
 		}

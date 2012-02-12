@@ -250,7 +250,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 
 		if (a) {
 			e = BM_edge_create(bm, preveve, eve, NULL, TRUE);
-			BMO_elem_flag_set(bm, e, EDGE_ORIG);
+			BMO_elem_flag_enable(bm, e, EDGE_ORIG);
 		}
 
 		preveve = eve;
@@ -310,11 +310,11 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		vec[1] = 0.0;
 		vec[2] = dia * cosf(phi);
 		eve = BM_vert_create(bm, vec, NULL);
-		BMO_elem_flag_set(bm, eve, VERT_MARK);
+		BMO_elem_flag_enable(bm, eve, VERT_MARK);
 
 		if (a != 0) {
 			e = BM_edge_create(bm, preveve, eve, NULL, FALSE);
-			BMO_elem_flag_set(bm, e, EDGE_ORIG);
+			BMO_elem_flag_enable(bm, e, EDGE_ORIG);
 		}
 
 		phi+= phid;
@@ -411,10 +411,10 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		eftemp = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, FALSE);
 		
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, eftemp) {
-			BMO_elem_flag_set(bm, l->e, EDGE_MARK);
+			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
 		}
 
-		BMO_elem_flag_set(bm, eftemp, FACE_MARK);
+		BMO_elem_flag_enable(bm, eftemp, FACE_MARK);
 	}
 
 	dia *= 200.0f;
@@ -449,10 +449,10 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 		v[0] = (monkeyv[i][0] + 127) / 128.0, v[1] = monkeyv[i][1] / 128.0, v[2] = monkeyv[i][2] / 128.0;
 
 		tv[i] = BM_vert_create(bm, v, NULL);
-		BMO_elem_flag_set(bm, tv[i], VERT_MARK);
+		BMO_elem_flag_enable(bm, tv[i], VERT_MARK);
 
 		tv[monkeynv + i] = (fabsf(v[0] = -v[0]) < 0.001f) ? tv[i]: (eve = BM_vert_create(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
-		BMO_elem_flag_set(bm, tv[monkeynv + i], VERT_MARK);
+		BMO_elem_flag_enable(bm, tv[monkeynv + i], VERT_MARK);
 
 		mul_m4_v3(mat, tv[i]->co);
 	}
@@ -512,7 +512,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 		mul_m4_v3(mat, vec);
 		v1 = BM_vert_create(bm, vec, NULL);
 
-		BMO_elem_flag_set(bm, v1, VERT_MARK);
+		BMO_elem_flag_enable(bm, v1, VERT_MARK);
 		
 		if (lastv1)
 			BM_edge_create(bm, v1, lastv1, NULL, FALSE);
@@ -521,7 +521,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 			BMFace *f;
 			
 			f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
-			BMO_elem_flag_set(bm, f, FACE_NEW);
+			BMO_elem_flag_enable(bm, f, FACE_NEW);
 		}
 		
 		if (!firstv1)
@@ -539,7 +539,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 		
 		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
-		BMO_elem_flag_set(bm, f, FACE_NEW);
+		BMO_elem_flag_enable(bm, f, FACE_NEW);
 	}
 	
 	if (!cap_tris) {
@@ -582,8 +582,8 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		
 		cent2 = BM_vert_create(bm, vec, NULL);
 
-		BMO_elem_flag_set(bm, cent1, VERT_MARK);
-		BMO_elem_flag_set(bm, cent2, VERT_MARK);
+		BMO_elem_flag_enable(bm, cent1, VERT_MARK);
+		BMO_elem_flag_enable(bm, cent2, VERT_MARK);
 	}
 
 	for (a = 0; a < segs; a++, phi += phid) {
@@ -599,17 +599,17 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		mul_m4_v3(mat, vec);
 		v2 = BM_vert_create(bm, vec, NULL);
 
-		BMO_elem_flag_set(bm, v1, VERT_MARK);
-		BMO_elem_flag_set(bm, v2, VERT_MARK);
+		BMO_elem_flag_enable(bm, v1, VERT_MARK);
+		BMO_elem_flag_enable(bm, v2, VERT_MARK);
 
 		if (a) {
 			if (cap_ends) {
 				BMFace *f;
 				
 				f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
-				BMO_elem_flag_set(bm, f, FACE_NEW);
+				BMO_elem_flag_enable(bm, f, FACE_NEW);
 				f = BM_face_create_quad_tri(bm, cent2, v2, lastv2, NULL, NULL, FALSE);
-				BMO_elem_flag_set(bm, f, FACE_NEW);
+				BMO_elem_flag_enable(bm, f, FACE_NEW);
 			}
 			BM_face_create_quad_tri(bm, lastv1, lastv2, v2, v1, NULL, FALSE);
 		}
@@ -629,9 +629,9 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 		
 		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
-		BMO_elem_flag_set(bm, f, FACE_NEW);
+		BMO_elem_flag_enable(bm, f, FACE_NEW);
 		f = BM_face_create_quad_tri(bm, cent2, firstv2, v2, NULL, NULL, FALSE);
-		BMO_elem_flag_set(bm, f, FACE_NEW);
+		BMO_elem_flag_enable(bm, f, FACE_NEW);
 	}
 	
 	if (!cap_tris) {
@@ -658,56 +658,56 @@ void bmesh_create_cube_exec(BMesh *bm, BMOperator *op)
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
 	v1 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v1, VERT_MARK);
+	BMO_elem_flag_enable(bm, v1, VERT_MARK);
 
 	vec[0] = -off;
 	vec[1] = off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
 	v2 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v2, VERT_MARK);
+	BMO_elem_flag_enable(bm, v2, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
 	v3 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v3, VERT_MARK);
+	BMO_elem_flag_enable(bm, v3, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = -off;
 	vec[2] = -off;
 	mul_m4_v3(mat, vec);
 	v4 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v4, VERT_MARK);
+	BMO_elem_flag_enable(bm, v4, VERT_MARK);
 
 	vec[0] = -off;
 	vec[1] = -off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
 	v5 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v5, VERT_MARK);
+	BMO_elem_flag_enable(bm, v5, VERT_MARK);
 
 	vec[0] = -off;
 	vec[1] = off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
 	v6 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v6, VERT_MARK);
+	BMO_elem_flag_enable(bm, v6, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
 	v7 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v7, VERT_MARK);
+	BMO_elem_flag_enable(bm, v7, VERT_MARK);
 
 	vec[0] = off;
 	vec[1] = -off;
 	vec[2] = off;
 	mul_m4_v3(mat, vec);
 	v8 = BM_vert_create(bm, vec, NULL);
-	BMO_elem_flag_set(bm, v8, VERT_MARK);
+	BMO_elem_flag_enable(bm, v8, VERT_MARK);
 
 	/* the four sides */
 	BM_face_create_quad_tri(bm, v5, v6, v2, v1, NULL, FALSE);

@@ -78,12 +78,12 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
 /* Dummy slot so there is something to return when slot name lookup fails */
 static BMOpSlot BMOpEmptySlot = {0};
 
-void BMO_op_flag_set(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
+void BMO_op_flag_enable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 {
 	op->flag |= op_flag;
 }
 
-void BMO_op_flag_clear(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
+void BMO_op_flag_disable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 {
 	op->flag &= ~op_flag;
 }
@@ -458,7 +458,7 @@ int BMO_mesh_flag_count(BMesh *bm, const short oflag, const char htype)
 	return count;
 }
 
-void BMO_mesh_flag_clear_all(BMesh *bm, BMOperator *UNUSED(op), const char htype, const short oflag)
+void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char htype, const short oflag)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -473,7 +473,7 @@ void BMO_mesh_flag_clear_all(BMesh *bm, BMOperator *UNUSED(op), const char htype
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
 			BM_ITER(ele, &iter, bm, iter_types[i], NULL) {
-				BMO_elem_flag_clear(bm, ele, oflag);
+				BMO_elem_flag_disable(bm, ele, oflag);
 			}
 		}
 	}
@@ -549,7 +549,7 @@ void BMO_slot_map_to_flag(struct BMesh *bm, struct BMOperator *op,
 
 	BLI_ghashIterator_init(&it, slot->data.ghash);
 	for ( ; (ele = BLI_ghashIterator_getKey(&it)); BLI_ghashIterator_step(&it)) {
-		BMO_elem_flag_set(bm, ele, oflag);
+		BMO_elem_flag_enable(bm, ele, oflag);
 	}
 }
 
@@ -719,8 +719,8 @@ void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * Header Flags elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_slot_buffer_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                           const char hflag, const char htype)
+void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
+                                  const char hflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -733,7 +733,7 @@ void BMO_slot_buffer_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 		if (hflag & BM_ELEM_SELECT) {
 			BM_elem_select_set(bm, data[i], TRUE);
 		}
-		BM_elem_flag_set(data[i], hflag);
+		BM_elem_flag_enable(data[i], hflag);
 	}
 }
 
@@ -744,8 +744,8 @@ void BMO_slot_buffer_hflag(BMesh *bm, BMOperator *op, const char *slotname,
  * Removes flags from elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_slot_buffer_hflag_clear(BMesh *bm, BMOperator *op, const char *slotname,
-                                 const char hflag, const char htype)
+void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
+                                   const char hflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -759,7 +759,7 @@ void BMO_slot_buffer_hflag_clear(BMesh *bm, BMOperator *op, const char *slotname
 			BM_elem_select_set(bm, data[i], FALSE);
 		}
 
-		BM_elem_flag_clear(data[i], hflag);
+		BM_elem_flag_disable(data[i], hflag);
 	}
 }
 int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
@@ -798,7 +798,7 @@ void BMO_slot_buffer_flag(BMesh *bm, BMOperator *op, const char *slotname,
 		if (!(htype & data[i]->htype))
 			continue;
 
-		BMO_elem_flag_set(bm, data[i], oflag);
+		BMO_elem_flag_enable(bm, data[i], oflag);
 	}
 }
 
@@ -819,7 +819,7 @@ void BMO_slot_buffer_flag_clear(BMesh *bm, BMOperator *op, const char *slotname,
 		if (!(htype & data[i]->htype))
 			continue;
 
-		BMO_elem_flag_clear(bm, data[i], oflag);
+		BMO_elem_flag_disable(bm, data[i], oflag);
 	}
 }
 
@@ -1389,10 +1389,10 @@ static void BMO_elem_flag_toggle(BMesh *bm, void *element, const short oflag)
  *
  * Sets a flag for a certain element
  */
-#ifdef BMO_elem_flag_set
-#undef BMO_elem_flag_set
+#ifdef BMO_elem_flag_enable
+#undef BMO_elem_flag_enable
 #endif
-static void BMO_elem_flag_set(BMesh *bm, void *element, const short oflag)
+static void BMO_elem_flag_enable(BMesh *bm, void *element, const short oflag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth - 1].f |= oflag;
@@ -1403,10 +1403,10 @@ static void BMO_elem_flag_set(BMesh *bm, void *element, const short oflag)
  *
  * Clears a specific flag from a given element
  */
-#ifdef BMO_elem_flag_clear
-#undef BMO_elem_flag_clear
+#ifdef BMO_elem_flag_disable
+#undef BMO_elem_flag_disable
 #endif
-static void BMO_elem_flag_clear(BMesh *bm, void *element, const short oflag)
+static void BMO_elem_flag_disable(BMesh *bm, void *element, const short oflag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth - 1].f &= ~oflag;

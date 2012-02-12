@@ -892,8 +892,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 				break;
 			}
 
-			BMO_elem_flag_set(bm, newl->e, newedge_oflag);
-			BMO_elem_flag_set(bm, f, newface_oflag);
+			BMO_elem_flag_enable(bm, newl->e, newedge_oflag);
+			BMO_elem_flag_enable(bm, f, newface_oflag);
 			
 			if (newfaces) newfaces[nf_i++] = f;
 
@@ -924,8 +924,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 			if (newfaces) newfaces[nf_i++] = f;
 			
-			BMO_elem_flag_set(bm, newl->e, newedge_oflag);
-			BMO_elem_flag_set(bm, f, newface_oflag);
+			BMO_elem_flag_enable(bm, newl->e, newedge_oflag);
+			BMO_elem_flag_enable(bm, f, newface_oflag);
 			l_iter = nextloop;
 		}
 	}

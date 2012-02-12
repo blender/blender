@@ -996,7 +996,7 @@ static int uv_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, UvMapVert *first
 
 			if(iterv1->f == iterv2->f) {
 				efa= EDBM_get_face_for_index(em, iterv1->f);
-				BMO_elem_flag_set(em->bm, efa, EFA_F1_FLAG);
+				BMO_elem_flag_enable(em->bm, efa, EFA_F1_FLAG);
 				break;
 			}
 		}
@@ -1027,7 +1027,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 			uvedit_face_deselect(scene, em, efa);
 		}
 		
-		BMO_elem_flag_clear(em->bm, efa, EFA_F1_FLAG);
+		BMO_elem_flag_disable(em->bm, efa, EFA_F1_FLAG);
 
 		BM_elem_index_set(efa, count); /* set_inline */
 
@@ -1072,7 +1072,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 					if(iterv1->flag || iterv2->flag) {
 						if(uv_edge_tag_faces(em, iterv1, iterv2, &starttotf)) {
 							looking= 1;
-							BMO_elem_flag_set(em->bm, efa, EFA_F1_FLAG);
+							BMO_elem_flag_enable(em->bm, efa, EFA_F1_FLAG);
 
 							uv_vertex_loop_flag(iterv1);
 							uv_vertex_loop_flag(iterv2);
@@ -1418,7 +1418,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 		/* clear tag */
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BM_elem_flag_clear(eve, BM_ELEM_TAG);
+			BM_elem_flag_disable(eve, BM_ELEM_TAG);
 		}
 
 		/* tag verts with a selected UV */
@@ -1430,7 +1430,7 @@ static void weld_align_uv(bContext *C, int tool)
 					continue;
 
 				if (uvedit_uv_selected(em, scene, l)) {
-					BM_elem_flag_set(eve, BM_ELEM_TAG);
+					BM_elem_flag_enable(eve, BM_ELEM_TAG);
 					break;
 				}
 			}
@@ -1439,10 +1439,10 @@ static void weld_align_uv(bContext *C, int tool)
 		/* flush vertex tags to edges */
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 			if (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) && BM_elem_flag_test(eed->v2, BM_ELEM_TAG)) {
-				BM_elem_flag_set(eed, BM_ELEM_TAG);
+				BM_elem_flag_enable(eed, BM_ELEM_TAG);
 			}
 			else {
-				BM_elem_flag_clear(eed, BM_ELEM_TAG);
+				BM_elem_flag_disable(eed, BM_ELEM_TAG);
 			}
 		}
 
@@ -1474,7 +1474,7 @@ static void weld_align_uv(bContext *C, int tool)
 			while (eve) {
 				BLI_array_append(eve_line, eve);
 				/* dont touch again */
-				BM_elem_flag_clear(eve, BM_ELEM_TAG);
+				BM_elem_flag_disable(eve, BM_ELEM_TAG);
 
 				eve_next = NULL;
 
@@ -1793,10 +1793,10 @@ static void select_all_perform(bContext *C, int action)
 			EDBM_toggle_select_all(((Mesh*)obedit->data)->edit_btmesh);
 			break;
 		case SEL_SELECT:
-			EDBM_set_flag_all(em, BM_ELEM_SELECT);
+			EDBM_flag_enable_all(em, BM_ELEM_SELECT);
 			break;
 		case SEL_DESELECT:
-			EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 			break;
 		case SEL_INVERT:
 			EDBM_select_swap(em);
@@ -2481,13 +2481,13 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		BMVert *eve;
 		
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BM_elem_flag_clear(eve, BM_ELEM_TAG);
+			BM_elem_flag_disable(eve, BM_ELEM_TAG);
 		}
 		
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-					BM_elem_flag_set(l->v, BM_ELEM_TAG);
+					BM_elem_flag_enable(l->v, BM_ELEM_TAG);
 				}
 			}
 		}
@@ -2637,13 +2637,13 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			/* assume not touched */
-			BM_elem_flag_clear(efa, BM_ELEM_TAG);
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 
 			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
 				poly_uv_center(em, efa, cent);
 				if(BLI_in_rctf(&rectf, cent[0], cent[1])) {
-					BM_elem_flag_set(efa, BM_ELEM_TAG);
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					change = 1;
 				}
 			}
@@ -2942,10 +2942,10 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if(!uvedit_face_visible(scene, ima, efa, tface)) {
-			BM_elem_flag_clear(efa, BM_ELEM_TAG);
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			continue;
 		} else {
-			BM_elem_flag_set(efa, BM_ELEM_TAG);
+			BM_elem_flag_enable(efa, BM_ELEM_TAG);
 		}
 
 		change = 1;
@@ -3567,7 +3567,7 @@ static int seams_from_islands_exec(bContext *C, wmOperator *op)
 
 		mvinit1 = vmap->vert[BM_elem_index_get(editedge->v1)];
 		if(mark_seams)
-			BM_elem_flag_clear(editedge, BM_ELEM_SEAM);
+			BM_elem_flag_disable(editedge, BM_ELEM_SEAM);
 
 		for(mv1 = mvinit1; mv1 && !faces_separated; mv1 = mv1->next) {
 			if(mv1->separate && commonFaces)
@@ -3616,9 +3616,9 @@ static int seams_from_islands_exec(bContext *C, wmOperator *op)
 
 		if(faces_separated) {
 			if(mark_seams)
-				BM_elem_flag_set(editedge, BM_ELEM_SEAM);
+				BM_elem_flag_enable(editedge, BM_ELEM_SEAM);
 			if(mark_sharp)
-				BM_elem_flag_set(editedge, BM_ELEM_SHARP);
+				BM_elem_flag_enable(editedge, BM_ELEM_SHARP);
 		}
 	}
 
@@ -3667,7 +3667,7 @@ static int mark_seam_exec(bContext *C, wmOperator *UNUSED(op))
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(loop, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 			if(uvedit_edge_selected(em, scene, loop)) {
-				BM_elem_flag_set(loop, BM_ELEM_SEAM);
+				BM_elem_flag_enable(loop, BM_ELEM_SEAM);
 			}
 		}
 	}

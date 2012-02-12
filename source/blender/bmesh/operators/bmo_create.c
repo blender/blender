@@ -893,7 +893,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BMO_elem_flag_set(bm, f, ELE_ORIG);
+		BMO_elem_flag_enable(bm, f, ELE_ORIG);
 	}
 
 	i = 0;
@@ -1021,7 +1021,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 			f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
 			if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
-				BMO_elem_flag_set(bm, f, FACE_NEW);
+				BMO_elem_flag_enable(bm, f, FACE_NEW);
 			}
 
 			if (use_restrict)
@@ -1123,7 +1123,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		
 		i = 0;
 		while (e) {
-			BMO_elem_flag_set(bm, e, EDGE_VIS);
+			BMO_elem_flag_enable(bm, e, EDGE_VIS);
 			BLI_array_growone(edges);
 			edges[i] = e;
 
@@ -1205,9 +1205,9 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 
 		e = BM_edge_create(bm, v1, v3, NULL, TRUE);
-		BMO_elem_flag_set(bm, e, ELE_NEW);
+		BMO_elem_flag_enable(bm, e, ELE_NEW);
 		e = BM_edge_create(bm, v2, v4, NULL, TRUE);
-		BMO_elem_flag_set(bm, e, ELE_NEW);
+		BMO_elem_flag_enable(bm, e, ELE_NEW);
 	}
 	else if (edges1) {
 		BMVert *v1, *v2;
@@ -1223,7 +1223,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			else v2 = edges1[i]->v1;
 
 			e = BM_edge_create(bm, v1, v2, NULL, TRUE);
-			BMO_elem_flag_set(bm, e, ELE_NEW);
+			BMO_elem_flag_enable(bm, e, ELE_NEW);
 		}
 	}
 	
@@ -1253,7 +1253,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			case BM_FACE: totf++; break;
 		}
 
-		BMO_elem_flag_set(bm, h, ELE_NEW);
+		BMO_elem_flag_enable(bm, h, ELE_NEW);
 	}
 	
 	/* --- Support for Special Case ---
@@ -1316,10 +1316,10 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 		if (ok == TRUE && v_free && v_a && v_b) {
 			e = BM_edge_create(bm, v_free, v_a, NULL, TRUE);
-			BMO_elem_flag_set(bm, &e->head, ELE_NEW);
+			BMO_elem_flag_enable(bm, &e->head, ELE_NEW);
 
 			e = BM_edge_create(bm, v_free, v_b, NULL, TRUE);
-			BMO_elem_flag_set(bm, &e->head, ELE_NEW);
+			BMO_elem_flag_enable(bm, &e->head, ELE_NEW);
 		}
 	}
 	/* --- end special case support, continue as normal --- */
@@ -1372,7 +1372,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	if (amount == 2) {
 		/* create edg */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
-		BMO_elem_flag_set(bm, e, ELE_OUT);
+		BMO_elem_flag_enable(bm, e, ELE_OUT);
 	}
 	else if (amount == 3) {
 		/* create triangl */
@@ -1404,6 +1404,6 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			printf("cannot find nice quad from concave set of vertices\n");
 		}
 
-		if (f) BMO_elem_flag_set(bm, f, ELE_OUT);
+		if (f) BMO_elem_flag_enable(bm, f, ELE_OUT);
 	}
 }

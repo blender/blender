@@ -180,14 +180,14 @@ void BMO_op_finish(struct BMesh *bm, struct BMOperator *op);
 
 /* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
 #define BMO_elem_flag_test(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f & (oflag))
-#define BMO_elem_flag_set(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f |= (oflag))
-#define BMO_elem_flag_clear(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f &= ~(oflag))
+#define BMO_elem_flag_enable(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f |= (oflag))
+#define BMO_elem_flag_disable(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f &= ~(oflag))
 #define BMO_elem_flag_toggle(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f ^= (oflag))
 
 /* profiling showed a significant amount of time spent in BMO_elem_flag_test */
 #if 0
-void BMO_elem_flag_set(struct BMesh *bm, void *element, const short oflag);
-void BMO_elem_flag_clear(struct BMesh *bm, void *element, const short oflag);
+void BMO_elem_flag_enable(struct BMesh *bm, void *element, const short oflag);
+void BMO_elem_flag_disable(struct BMesh *bm, void *element, const short oflag);
 int BMO_elem_flag_test(struct BMesh *bm, void *element, const short oflag);
 #endif
 
@@ -276,8 +276,8 @@ enum {
 	DEL_ONLYTAGGED
 };
 
-void BMO_op_flag_set(struct BMesh *bm, struct BMOperator *op, const int op_flag);
-void BMO_op_flag_clear(struct BMesh *bm, struct BMOperator *op, const int op_flag);
+void BMO_op_flag_enable(struct BMesh *bm, struct BMOperator *op, const int op_flag);
+void BMO_op_flag_disable(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 
 void  BMO_slot_float_set(struct BMOperator *op, const char *slotname, float f);
 float BMO_slot_float_get(BMOperator *op, const char *slotname);
@@ -302,7 +302,7 @@ void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, float *mat, i
 void BMO_slot_mat4_set(struct BMOperator *op, const char *slotname, float mat[4][4]);
 void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float mat[3][3]);
 
-void BMO_mesh_flag_clear_all(BMesh *bm, BMOperator *op, const char htype, const short oflag);
+void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, const short oflag);
 
 /* puts every element of type type (which is a bitmask) with tool flag flag,
  * into a slot. */
@@ -317,11 +317,11 @@ void BMO_slot_buffer_flag_clear(struct BMesh *bm, struct BMOperator *op, const c
                                 const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
-void BMO_slot_buffer_hflag(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                           const char hflag, const char htype);
+void BMO_slot_buffer_hflag_enable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
+                                  const char hflag, const char htype);
 /* clears tool-flag flag from all elements inside a slot array. */
-void BMO_slot_buffer_hflag_clear(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                                 const char hflag, const char htype);
+void BMO_slot_buffer_hflag_disable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
+                                   const char hflag, const char htype);
 
 /* puts every element of type type (which is a bitmask) with header flag
  * flag, into a slot.  note: ignores hidden elements (e.g. elements with

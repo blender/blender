@@ -145,10 +145,10 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 BM_INLINE char BM_elem_flag_test(const void *element, const char hflag);
 
 /* stuff for dealing with header flags */
-BM_INLINE void BM_elem_flag_set(void *element, const char hflag);
+BM_INLINE void BM_elem_flag_enable(void *element, const char hflag);
 
 /* stuff for dealing with header flags */
-BM_INLINE void BM_elem_flag_clear(void *element, const char hflag);
+BM_INLINE void BM_elem_flag_disable(void *element, const char hflag);
 
 /* stuff for dealing BM_elem_flag_toggle header flags */
 BM_INLINE void BM_elem_flag_toggle(void *element, const char hflag);

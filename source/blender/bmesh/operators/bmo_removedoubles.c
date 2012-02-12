@@ -102,7 +102,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if ((v2 = BMO_slot_map_ptr_get(bm, op, "targetmap", v))) {
-			BMO_elem_flag_set(bm, v, ELE_DEL);
+			BMO_elem_flag_enable(bm, v, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
 			BM_elem_flag_merge(v, v2);
@@ -122,11 +122,11 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			if (!v2) v2 = e->v2;
 
 			if (v == v2)
-				BMO_elem_flag_set(bm, e, EDGE_COL);
+				BMO_elem_flag_enable(bm, e, EDGE_COL);
 			else if (!BM_edge_exists(v, v2))
 				BM_edge_create(bm, v, v2, e, TRUE);
 
-			BMO_elem_flag_set(bm, e, ELE_DEL);
+			BMO_elem_flag_enable(bm, e, ELE_DEL);
 		}
 	}
 
@@ -135,7 +135,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		BM_elem_index_set(f, 0); /* set_dirty! */
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_elem_flag_test(bm, l->v, ELE_DEL)) {
-				BMO_elem_flag_set(bm, f, FACE_MARK|ELE_DEL);
+				BMO_elem_flag_enable(bm, f, FACE_MARK|ELE_DEL);
 			}
 			if (BMO_elem_flag_test(bm, l->e, EDGE_COL)) {
 				BM_elem_index_set(f, BM_elem_index_get(f) + 1); /* set_dirty! */
@@ -149,7 +149,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		if (f->len - BM_elem_index_get(f) < 3) {
-			BMO_elem_flag_set(bm, f, ELE_DEL);
+			BMO_elem_flag_enable(bm, f, ELE_DEL);
 			continue;
 		}
 
@@ -420,7 +420,7 @@ static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	int i, tot, type = bm->ldata.layers[layer].type;
 
 	/* clear all short flags */
-	BMO_mesh_flag_clear_all(bm, op, BM_ALL, (1 << 16) - 1);
+	BMO_mesh_flag_disable_all(bm, op, BM_ALL, (1 << 16) - 1);
 
 	BMO_slot_buffer_flag(bm, op, "edges", EDGE_MARK, BM_EDGE);
 
@@ -528,8 +528,8 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 					SWAP(BMVert *, v, v2);
 				}
 
-				BMO_elem_flag_set(bm, v2, VERT_DOUBLE);
-				BMO_elem_flag_set(bm, v, VERT_TARGET);
+				BMO_elem_flag_enable(bm, v2, VERT_DOUBLE);
+				BMO_elem_flag_enable(bm, v, VERT_TARGET);
 
 				BMO_slot_map_ptr_insert(bm, optarget, targetmapname, v2, v);
 			}
@@ -567,7 +567,7 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag(bm, op, "verts", VERT_IN, BM_VERT);
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BMO_elem_flag_test(bm, v, VERT_IN)) {
-			BMO_elem_flag_set(bm, v, VERT_KEEP);
+			BMO_elem_flag_enable(bm, v, VERT_KEEP);
 		}
 	}
 

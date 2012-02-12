@@ -91,7 +91,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		if (f->len == 3)
-			BMO_elem_flag_set(bm, f, FACE_MARK);
+			BMO_elem_flag_enable(bm, f, FACE_MARK);
 	}
 
 	while (!stop) {
@@ -135,10 +135,10 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				if (fac1 > fac2) {
 					e = BM_edge_rotate(bm, e, 0);
 					if (e) {
-						BMO_elem_flag_set(bm, e, ELE_NEW);
+						BMO_elem_flag_enable(bm, e, ELE_NEW);
 
-						BMO_elem_flag_set(bm, e->l->f, FACE_MARK|ELE_NEW);
-						BMO_elem_flag_set(bm, e->l->radial_next->f, FACE_MARK|ELE_NEW);
+						BMO_elem_flag_enable(bm, e->l->f, FACE_MARK|ELE_NEW);
+						BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK|ELE_NEW);
 						stop = 0;
 					}
 				}
@@ -164,7 +164,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_begin_edgefill();
 	
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		BMO_elem_flag_set(bm, e, EDGE_MARK);
+		BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
 			eve = BLI_addfillvert(e->v1->co);
@@ -193,10 +193,10 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		BMLoop *l;
 		BMIter liter;
 		
-		BMO_elem_flag_set(bm, f, ELE_NEW);
+		BMO_elem_flag_enable(bm, f, ELE_NEW);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (!BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
-				BMO_elem_flag_set(bm, l->e, ELE_NEW);
+				BMO_elem_flag_enable(bm, l->e, ELE_NEW);
 			}
 		}
 	}

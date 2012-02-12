@@ -208,7 +208,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 	em->emcopyusers++;
 
 	BMO_op_exec(bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL);
 
 	va_end(list);
 	return EDBM_FinishOp(em, &bmop, op, TRUE);
@@ -412,7 +412,7 @@ void EDBM_select_more(BMEditMesh *em)
 	            "regionextend geom=%hvef constrict=%d usefaces=%d",
 	            BM_ELEM_SELECT, 0, usefaces);
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -427,7 +427,7 @@ void EDBM_select_less(BMEditMesh *em)
 	            "regionextend geom=%hvef constrict=%d usefaces=%d",
 	            BM_ELEM_SELECT, 0, usefaces);
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -466,7 +466,7 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 	return 1;
 }
 
-void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
+void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -481,12 +481,12 @@ void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 	for (i = 0; i < 3; i++) {
 		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
 			if (hflag & BM_ELEM_SELECT) BM_elem_select_set(em->bm, ele, FALSE);
-			BM_elem_flag_clear(ele, hflag);
+			BM_elem_flag_disable(ele, hflag);
 		}
 	}
 }
 
-void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
+void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -502,7 +502,7 @@ void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
 				BM_elem_select_set(em->bm, ele, TRUE);
 			}
 			else {
-				BM_elem_flag_set(ele, hflag);
+				BM_elem_flag_enable(ele, hflag);
 			}
 		}
 	}

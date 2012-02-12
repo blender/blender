@@ -88,10 +88,10 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_vert_edge_count(v) == 2) {
-				BMO_elem_flag_clear(bm, v, VERT_MARK);
+				BMO_elem_flag_disable(bm, v, VERT_MARK);
 			}
 			else {
-				BMO_elem_flag_set(bm, v, VERT_MARK);
+				BMO_elem_flag_enable(bm, v, VERT_MARK);
 			}
 		}
 	}
@@ -118,8 +118,8 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		
 		for (i = 0; i < BLI_array_count(faces); i++) {
 			f2 = faces[i];
-			BMO_elem_flag_clear(bm, f2, FACE_MARK);
-			BMO_elem_flag_set(bm, f2, FACE_ORIG);
+			BMO_elem_flag_disable(bm, f2, FACE_MARK);
+			BMO_elem_flag_enable(bm, f2, FACE_ORIG);
 		}
 
 		if (BMO_error_occurred(bm)) {
@@ -154,8 +154,8 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 
 		/* if making the new face failed (e.g. overlapping test)
 		 * unmark the original faces for deletion */
-		BMO_elem_flag_clear(bm, f, FACE_ORIG);
-		BMO_elem_flag_set(bm, f, FACE_NEW);
+		BMO_elem_flag_disable(bm, f, FACE_ORIG);
+		BMO_elem_flag_enable(bm, f, FACE_NEW);
 
 	}
 
@@ -202,8 +202,8 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
 		if (BM_edge_face_count(e) == 2) {
-			BMO_elem_flag_set(bm, e->v1, VERT_MARK);
-			BMO_elem_flag_set(bm, e->v2, VERT_MARK);
+			BMO_elem_flag_enable(bm, e->v1, VERT_MARK);
+			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 
 			BM_faces_join_pair(bm, e->l->f,
 			                   e->l->radial_next->f,
@@ -251,10 +251,10 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 	if (use_verts) {
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_vert_edge_count(v) == 2) {
-				BMO_elem_flag_clear(bm, v, VERT_MARK);
+				BMO_elem_flag_disable(bm, v, VERT_MARK);
 			}
 			else {
-				BMO_elem_flag_set(bm, v, VERT_MARK);
+				BMO_elem_flag_enable(bm, v, VERT_MARK);
 			}
 		}
 	}
@@ -349,8 +349,8 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 
 			f = BM_iter_new(&fiter, bm, BM_FACES_OF_VERT, v);
 			for ( ; f; f = BM_iter_step(&fiter)) {
-				BMO_elem_flag_set(bm, f, FACE_ORIG);
-				BMO_elem_flag_set(bm, f, FACE_MARK);
+				BMO_elem_flag_enable(bm, f, FACE_ORIG);
+				BMO_elem_flag_enable(bm, f, FACE_MARK);
 			}
 			
 			/* check if our additions to the input to face dissolve
@@ -359,15 +359,15 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 				f = BM_iter_new(&fiter, bm, BM_FACES_OF_VERT, v);
 				for ( ; f; f = BM_iter_step(&fiter)) {
 					if (BMO_elem_flag_test(bm, f, FACE_ORIG)) {
-						BMO_elem_flag_clear(bm, f, FACE_MARK);
-						BMO_elem_flag_clear(bm, f, FACE_ORIG);
+						BMO_elem_flag_disable(bm, f, FACE_MARK);
+						BMO_elem_flag_disable(bm, f, FACE_ORIG);
 					}
 				}
 			}
 			else {
 				f = BM_iter_new(&fiter, bm, BM_FACES_OF_VERT, v);
 				for ( ; f; f = BM_iter_step(&fiter)) {
-					BMO_elem_flag_clear(bm, f, FACE_ORIG);
+					BMO_elem_flag_disable(bm, f, FACE_ORIG);
 				}
 			}
 		}

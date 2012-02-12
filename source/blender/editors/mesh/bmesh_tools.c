@@ -176,7 +176,7 @@ static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 	EDBM_InitOpf(em, &bmop, op, "extrude_face_indiv faces=%hf", hflag);
 
 	/* deselect original verts */
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BMO_op_exec(em->bm, &bmop);
 	
@@ -204,10 +204,10 @@ static short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 	EDBM_InitOpf(em, &bmop, op, "extrude_edge_only edges=%he", hflag);
 
 	/* deselect original verts */
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_VERT|BM_EDGE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_VERT|BM_EDGE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return 0;
@@ -224,10 +224,10 @@ static short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", hflag);
 
 	/* deselect original verts */
-	BMO_slot_buffer_hflag_clear(em->bm, &bmop, "verts", BM_ELEM_SELECT, BM_VERT);
+	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "verts", BM_ELEM_SELECT, BM_VERT);
 
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_VERT);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_VERT);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return 0;
@@ -309,7 +309,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 		}
 	}
 
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BMO_op_exec(bm, &extop);
 
@@ -346,8 +346,8 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 				BM_elem_select_set(em->bm, eed->v2, TRUE);
 			}
 
-			BM_elem_flag_set(eed->v1, hflag & ~BM_ELEM_SELECT);
-			BM_elem_flag_set(eed->v2, hflag & ~BM_ELEM_SELECT);
+			BM_elem_flag_enable(eed->v1, hflag & ~BM_ELEM_SELECT);
+			BM_elem_flag_enable(eed->v2, hflag & ~BM_ELEM_SELECT);
 		}
 		else {
 			if (BM_elem_flag_test(eed->v1, hflag) && BM_elem_flag_test(eed->v2, hflag)) {
@@ -355,7 +355,7 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 					BM_elem_select_set(em->bm, eed, TRUE);
 				}
 
-				BM_elem_flag_set(eed, hflag & ~BM_ELEM_SELECT);
+				BM_elem_flag_enable(eed, hflag & ~BM_ELEM_SELECT);
 			}
 		}
 	}
@@ -632,9 +632,9 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
 {
 	if (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel)
-		EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	else 
-		EDBM_set_flag_all(em, BM_ELEM_SELECT);
+		EDBM_flag_enable_all(em, BM_ELEM_SELECT);
 }
 
 static int mesh_select_all_exec(bContext *C, wmOperator *op)
@@ -648,10 +648,10 @@ static int mesh_select_all_exec(bContext *C, wmOperator *op)
 		EDBM_toggle_select_all(em);
 		break;
 	case SEL_SELECT:
-		EDBM_set_flag_all(em, BM_ELEM_SELECT);
+		EDBM_flag_enable_all(em, BM_ELEM_SELECT);
 		break;
 	case SEL_DESELECT:
-		EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 		break;
 	case SEL_INVERT:
 		EDBM_select_swap(em);
@@ -951,7 +951,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 	if (type != 12) {
 		if (delete_mesh(C, obedit, op, type, scene) == OPERATOR_CANCELLED)
 			return OPERATOR_CANCELLED;
-		EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	}
 	else {
 		if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
@@ -999,7 +999,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "faceout", BM_ELEM_SELECT, BM_FACE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ELEM_SELECT, BM_FACE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -1048,14 +1048,14 @@ static int editbmesh_mark_seam(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_elem_flag_clear(eed, BM_ELEM_SEAM);
+			BM_elem_flag_disable(eed, BM_ELEM_SEAM);
 		}
 	}
 	else {
 		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
-			BM_elem_flag_set(eed, BM_ELEM_SEAM);
+			BM_elem_flag_enable(eed, BM_ELEM_SEAM);
 		}
 	}
 
@@ -1102,7 +1102,7 @@ static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_elem_flag_set(eed, BM_ELEM_SHARP);
+			BM_elem_flag_enable(eed, BM_ELEM_SHARP);
 		}
 	}
 	else {
@@ -1110,7 +1110,7 @@ static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_elem_flag_clear(eed, BM_ELEM_SHARP);
+			BM_elem_flag_disable(eed, BM_ELEM_SHARP);
 		}
 	}
 
@@ -1227,9 +1227,9 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 	EDBM_InitOpf(em, &bmop, op, "dupe geom=%hvef", BM_ELEM_SELECT);
 	
 	BMO_op_exec(em->bm, &bmop);
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag(em->bm, &bmop, "newout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "newout", BM_ELEM_SELECT, BM_ALL);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -1361,10 +1361,10 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	/* avoid adding to the selection if we start off with only a selected edge,
 	 * we could also just deselect the single edge easily but use the BMO api
 	 * since it seems this is more 'correct' */
-	if (do_deselect) BMO_slot_buffer_hflag_clear(em->bm, &bmop, "edges", BM_ELEM_SELECT, BM_EDGE);
+	if (do_deselect) BMO_slot_buffer_hflag_disable(em->bm, &bmop, "edges", BM_ELEM_SELECT, BM_EDGE);
 
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_EDGE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_EDGE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -1478,16 +1478,16 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	for (i = 0; i < 3; i++) {
 		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
 			if (BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
-				BM_elem_flag_set(ele, BM_ELEM_TAG);
+				BM_elem_flag_enable(ele, BM_ELEM_TAG);
 			}
 			else {
-				BM_elem_flag_clear(ele, BM_ELEM_TAG);
+				BM_elem_flag_disable(ele, BM_ELEM_TAG);
 			}
 		}
 	}
 
 	/* Reveal everything */
-	EDBM_clear_flag_all(em, BM_ELEM_HIDDEN);
+	EDBM_flag_disable_all(em, BM_ELEM_HIDDEN);
 
 	/* Select relevant just-revealed elements */
 	for (i = 0; i < 3; i++) {
@@ -1734,9 +1734,9 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			if (smooth)
-				BM_elem_flag_set(efa, BM_ELEM_SMOOTH);
+				BM_elem_flag_enable(efa, BM_ELEM_SMOOTH);
 			else
-				BM_elem_flag_clear(efa, BM_ELEM_SMOOTH);
+				BM_elem_flag_disable(efa, BM_ELEM_SMOOTH);
 		}
 	}
 }
@@ -2265,10 +2265,10 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(em->bm, &bmop);
 
 	/* DO NOT clear the existing selection */
-	/* EDBM_clear_flag_all(em, BM_ELEM_SELECT); */
+	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
 	/* select the output */
-	BMO_slot_buffer_hflag(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_ALL);
 
 	/* finish the operator */
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
@@ -2349,10 +2349,10 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			BM_elem_flag_set(e, BM_ELEM_TAG);
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 		else {
-			BM_elem_flag_clear(e, BM_ELEM_TAG);
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 	}
 
@@ -2403,12 +2403,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else if (BM_edge_face_count(e2) == 2) {
 			l = e2->l;
 			e = BM_face_other_loop(e2, l->f, v)->e;
-			BM_elem_flag_set(e, BM_ELEM_TAG);
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 			BM_elem_select_set(bm, e, TRUE);
 			
 			l = e2->l->radial_next;
 			e = BM_face_other_loop(e2, l->f, v)->e;
-			BM_elem_flag_set(e, BM_ELEM_TAG);
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 			BM_elem_select_set(bm, e, TRUE);
 		}
 
@@ -2485,15 +2485,15 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	BMBVH_FreeBVH(bvhtree);
 
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag(bm, &bmop, side?"edgeout2":"edgeout1", BM_ELEM_SELECT, BM_EDGE);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	BMO_slot_buffer_hflag_enable(bm, &bmop, side?"edgeout2":"edgeout1", BM_ELEM_SELECT, BM_EDGE);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			BM_elem_flag_set(e, BM_ELEM_TAG);
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 		else {
-			BM_elem_flag_clear(e, BM_ELEM_TAG);
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 	}
 
@@ -2821,13 +2821,13 @@ static int solidify_exec(bContext *C, wmOperator *op)
 	/* deselect only the faces in the region to be solidified (leave wire
 	   edges and loose verts selected, as there will be no corresponding
 	   geometry selected below) */
-	BMO_slot_buffer_hflag_clear(bm, &bmop, "geom", BM_ELEM_SELECT, BM_FACE);
+	BMO_slot_buffer_hflag_disable(bm, &bmop, "geom", BM_ELEM_SELECT, BM_FACE);
 
 	/* run the solidify operator */
 	BMO_op_exec(bm, &bmop);
 
 	/* select the newly generated faces */
-	BMO_slot_buffer_hflag(bm, &bmop, "geomout", BM_ELEM_SELECT, BM_FACE);
+	BMO_slot_buffer_hflag_enable(bm, &bmop, "geomout", BM_ELEM_SELECT, BM_FACE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -3127,14 +3127,14 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 					                    be, isect);
 
 				}
-				BMO_elem_flag_set(bm, be, 1);
+				BMO_elem_flag_enable(bm, be, 1);
 			}
 			else {
-				BMO_elem_flag_clear(bm, be, 1);
+				BMO_elem_flag_disable(bm, be, 1);
 			}
 		}
 		else {
-			BMO_elem_flag_clear(bm, be, 1);
+			BMO_elem_flag_disable(bm, be, 1);
 		}
 	}
 	
@@ -3396,7 +3396,7 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(em->bm, &bmop);
 	
 	/* select new geometry */
-	BMO_slot_buffer_hflag(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_FACE|BM_EDGE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_FACE|BM_EDGE);
 	
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -3570,8 +3570,8 @@ static int split_mesh_exec(bContext *C, wmOperator *op)
 
 	EDBM_InitOpf(em, &bmop, op, "split geom=%hvef", BM_ELEM_SELECT);
 	BMO_op_exec(em->bm, &bmop);
-	BM_clear_flag_all(em->bm, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
+	BM_mesh_flag_disable_all(em->bm, BM_ELEM_SELECT);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -3632,8 +3632,8 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &spinop);
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag(bm, &spinop, "lastout", BM_ELEM_SELECT, BM_ALL);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	BMO_slot_buffer_hflag_enable(bm, &spinop, "lastout", BM_ELEM_SELECT, BM_ALL);
 	if (!EDBM_FinishOp(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -3758,8 +3758,8 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &spinop);
-	EDBM_clear_flag_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag(bm, &spinop, "lastout", BM_ELEM_SELECT, BM_ALL);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	BMO_slot_buffer_hflag_enable(bm, &spinop, "lastout", BM_ELEM_SELECT, BM_ALL);
 	if (!EDBM_FinishOp(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
