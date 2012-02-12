@@ -3122,6 +3122,9 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		if(edit->totcached && !(point->flag & PEP_EDIT_RECALC))
 			continue;
 
+		if(point->totkey == 0)
+			continue;
+
 		ekey = point->keys;
 
 		pind.keyed = 0;
