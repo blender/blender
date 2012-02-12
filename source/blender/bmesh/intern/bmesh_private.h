@@ -69,8 +69,7 @@ int bmesh_get_filter_argtype(int type);
 /* NOTE: ensure different parts of the API do not conflict
  * on using these internal flags!*/
 #define _FLAG_JF	1 /* join faces */
-#define _FLAG_SF	2 /* split faces */
-#define _FLAG_MF	4 /* make face */
+#define _FLAG_MF	2 /* make face */
 
 #define bmesh_api_setflag(element, f) (((BMHeader*)(element))->flags[0].pflag |= (f))
 #define bmesh_api_getflag(element, f) (((BMHeader*)(element))->flags[0].pflag & (f))

@@ -89,7 +89,7 @@ struct GHashIterator;
 //it's very important this remain a power of two
 #define BMOP_OPSLOT_ELEMENT_BUF		8
 #define BMOP_OPSLOT_MAPPING			9
-#define BMOP_OPSLOT_TYPES			10
+/* #define BMOP_OPSLOT_TOTAL_TYPES		10 */ /* not used yet */
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/

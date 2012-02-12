@@ -94,17 +94,18 @@ struct EditMesh;
 #define BM_SELECT	(1<<0)
 
 #define BM_SEAM		(1<<1)
-#define BM_FGON		(1<<2)
-#define BM_HIDDEN	(1<<3)
-#define BM_SHARP	(1<<4)
-#define BM_SMOOTH	(1<<5)
-#define BM_ACTIVE	(1<<6)
-#define BM_TMP_TAG	(1<<7) /* internal flag, used for ensuring correct normals
+#define BM_HIDDEN	(1<<2)
+#define BM_SHARP	(1<<3)
+#define BM_SMOOTH	(1<<4)
+#define BM_TMP_TAG	(1<<5) /* internal flag, used for ensuring correct normals
                             * during multires interpolation, and any other time
                             * when temp tagging is handy.
                             * always assume dirty & clear before use. */
 
-/* #define BM_NONORMCALC (1<<8) */ /* UNUSED */
+/* we have 2 spare flags which is awesome but since we're limited to 8
+ * only add new flags with care! - campbell */
+/* #define BM_TMP_SPARE	 (1<<6) */
+/* #define BM_NONORMCALC (1<<7) */ /* UNUSED */
 
 /* stub */
 void bmesh_error(void);

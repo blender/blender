@@ -1097,37 +1097,6 @@ int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op)
 	return errorcode;
 }
 
-#if 0
-typedef struct BMOFlag {
-	const char *str;
-	int flag;
-} BMOFlag;
-
-#define PAIR(f) {#f, f},fv
-static const char *bmesh_flags = {
-	PAIR(BM_SELECT);
-	PAIR(BM_SEAM);
-	PAIR(BM_FGON);
-	PAIR(BM_HIDDEN);
-	PAIR(BM_SHARP);
-	PAIR(BM_SMOOTH);
-	{NULL, 0};
-};
-#undef PAIR
-
-int bmesh_str_to_flag(const char *str)
-{
-	int i;
-
-	while (bmesh_flags[i]->name) {
-		if (!strcmp(bmesh_flags[i]->name, str))
-			return bmesh_flags[i]->flag;
-	}
-
-	return -1;
-}
-#endif
-
 /* example:
  * BMO_CallOp(bm, "del %d %hv", DEL_ONLYFACES, BM_SELECT);
  *
