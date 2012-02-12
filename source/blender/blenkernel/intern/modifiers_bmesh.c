@@ -43,7 +43,7 @@
 
 /* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
  * new geometry will be put in there.*/
-BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
+BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
 {
 	int allocsize[4] = {512, 512, 2048, 512};
 	BMesh *bm, bmold; /*bmold is for storing old customdata layout*/
@@ -75,8 +75,8 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumPolys(dm);
 
-	vtable = MEM_callocN(sizeof(void**)*totvert, "vert table in BMDM_Copy");
-	etable = MEM_callocN(sizeof(void**)*totedge, "edge table in BMDM_Copy");
+	vtable = MEM_callocN(sizeof(void**) * totvert, "vert table in BMDM_Copy");
+	etable = MEM_callocN(sizeof(void**) * totedge, "edge table in BMDM_Copy");
 
 	/*do verts*/
 	mv = mvert = dm->dupVertArray(dm);

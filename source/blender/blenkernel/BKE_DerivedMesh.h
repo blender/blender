@@ -440,6 +440,9 @@ int DM_release(DerivedMesh *dm);
  */
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob);
 
+struct BMEditMesh *DM_to_editbmesh(struct Object *ob, struct DerivedMesh *dm,
+                               struct BMEditMesh *existing, int do_tesselate);
+
 /* utility function to convert a DerivedMesh to a shape key block 
  */
 void DM_to_meshkey(DerivedMesh *dm, struct Mesh *me, struct KeyBlock *kb);

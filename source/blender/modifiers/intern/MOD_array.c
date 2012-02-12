@@ -208,8 +208,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
 										  int UNUSED(initFlags))
 {
-	DerivedMesh *cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
-	BMEditMesh *em = CDDM_To_BMesh(ob, cddm, NULL, FALSE);
+	DerivedMesh *result;
+	BMEditMesh *em = DM_to_editbmesh(ob, dm, NULL, FALSE);
 	BMOperator op, oldop, weldop;
 	int i, j, indexLen;
 	/* offset matrix */
@@ -228,8 +228,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	unit_m4(offset);
 
-	src_mvert = cddm->getVertArray(dm);
-	maxVerts = cddm->getNumVerts(dm);
+	src_mvert = dm->getVertArray(dm);
+	maxVerts = dm->getNumVerts(dm);
 
 	if(amd->offset_type & MOD_ARR_OFF_CONST)
 		add_v3_v3v3(offset[3], offset[3], amd->offset);
@@ -389,13 +389,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_pop(em->bm);
 
 	BLI_assert(em->looptris == NULL);
-	cddm = CDDM_from_BMEditMesh(em, NULL, FALSE, FALSE);
+	result = CDDM_from_BMEditMesh(em, NULL, FALSE, FALSE);
 
 	BMEdit_Free(em);
 	MEM_freeN(em);
 	MEM_freeN(indexMap);
 
-	return cddm;
+	return result;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,

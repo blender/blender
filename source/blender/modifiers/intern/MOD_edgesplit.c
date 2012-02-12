@@ -59,19 +59,15 @@
 
 static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob)
 {
+	DerivedMesh *result;
 	BMesh *bm;
 	BMEditMesh *em;
-	DerivedMesh *cddm;
 	BMIter iter;
 	BMEdge *e;
 	/* int allocsize[] = {512, 512, 2048, 512}; */ /* UNUSED */
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
-	
-	if (!CDDM_Check(dm)) {
-		cddm = CDDM_copy(dm);
-	} else cddm = dm;
-	
-	em = CDDM_To_BMesh(ob, dm, NULL, FALSE);
+
+	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_mesh_normals_update(bm);	
@@ -101,18 +97,13 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMO_op_callf(bm, "edgesplit edges=%fe", EDGE_MARK);
 	
 	BMO_pop(bm);
-	
-	if (cddm != dm) {
-		cddm->needsFree = 1;
-		cddm->release(cddm);
-	}
 
 	BLI_assert(em->looptris == NULL);
-	cddm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
+	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 	BMEdit_Free(em);
 	MEM_freeN(em);
 	
-	return cddm;
+	return result;
 }
 
 static void initData(ModifierData *md)
