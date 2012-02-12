@@ -25,9 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
-#include <string.h>
 
 #include "BLI_smallhash.h"
 
@@ -43,7 +44,7 @@
 #define SMHASH_CELL_FREE	((void *)0x7FFFFFFD)
 
 #define SMHASH_NONZERO(n) ((n) + !(n))
-#define SMHASH_NEXT(h, hoff) ABS(((h) + ((hoff=SMHASH_NONZERO(hoff*2)+1), hoff)))
+#define SMHASH_NEXT(h, hoff) ABS(((h) + ((hoff = SMHASH_NONZERO(hoff * 2) + 1), hoff)))
 
 extern unsigned int hashsizes[];
 
@@ -60,7 +61,7 @@ void BLI_smallhash_init(SmallHash *hash)
 	hash->copytable = hash->_copytable;
 	hash->stacktable = hash->_stacktable;
 
-	for (i=0; i<hash->size; i++) {
+	for (i = 0; i < hash->size; i++) {
 		hash->table[i].val = SMHASH_CELL_FREE;
 	}
 }
@@ -98,11 +99,11 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 
 		hash->size = newsize;
 
-		for (i=0; i<hash->size; i++) {
+		for (i = 0; i < hash->size; i++) {
 			hash->table[i].val = SMHASH_CELL_FREE;
 		}
 
-		for (i=0; i<hashsizes[hash->curhash-1]; i++) {
+		for (i = 0; i<hashsizes[hash->curhash - 1]; i++) {
 			if (ELEM(tmp[i].val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE)) {
 				continue;
 			}
@@ -228,7 +229,7 @@ void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
 
 			iter->i++;
 
-			return iter->hash->table[iter->i-1].val;
+			return iter->hash->table[iter->i - 1].val;
 		}
 
 		iter->i++;

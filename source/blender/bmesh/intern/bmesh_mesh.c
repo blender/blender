@@ -47,6 +47,9 @@
 
 #include "bmesh_private.h"
 
+/* used as an extern, defined in bmesh.h */
+int bm_mesh_allocsize_default[4] = {512, 512, 2048, 512};
+
 /* bmesh_error stub */
 void bmesh_error(void)
 {
@@ -58,6 +61,18 @@ void bmesh_error(void)
 	BLI_assert(0);
 }
 
+static void bmesh_mempool_init(BMesh *bm, const int allocsize[4])
+{
+	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize[0], allocsize[0], FALSE, TRUE);
+	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize[1], allocsize[1], FALSE, TRUE);
+	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize[2], allocsize[2], FALSE, FALSE);
+	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
+	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize[3], allocsize[3], FALSE, TRUE);
+
+	/* allocate one flag pool that we dont get rid of. */
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
+}
+
 /*
  *	BMESH MAKE MESH
  *
@@ -67,29 +82,17 @@ void bmesh_error(void)
  *
  */
 
-BMesh *BM_mesh_create(struct Object *ob, int allocsize[4])
+BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
-	int vsize, esize, lsize, fsize, lstsize;
-
-	vsize = sizeof(BMVert);
-	esize = sizeof(BMEdge);
-	lsize = sizeof(BMLoop);
-	fsize = sizeof(BMFace);
-	lstsize = sizeof(BMLoopList);
 
 	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
-	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
-	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
-	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], FALSE, FALSE);
-	bm->fpool = BLI_mempool_create(fsize, allocsize[3], allocsize[3], FALSE, TRUE);
+	bmesh_mempool_init(bm, allocsize);
 
 	/* allocate one flag pool that we dont get rid of. */
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 
@@ -163,11 +166,6 @@ void BM_mesh_data_free(BMesh *bm)
 
 void BM_mesh_clear(BMesh *bm)
 {
-	/* allocate the structure */
-	int vsize, esize, lsize, fsize, lstsize;
-	/* I really need to make the allocation sizes defines, there's no reason why the API
-	 * should allow client code to mess around with this - joeedh */
-	int allocsize[5] = {512, 512, 512, 2048, 512};
 	Object *ob = bm->ob;
 	
 	/* free old mesh */
@@ -175,23 +173,11 @@ void BM_mesh_clear(BMesh *bm)
 	memset(bm, 0, sizeof(BMesh));
 	
 	/* re-initialize mesh */
-	vsize = sizeof(BMVert);
-	esize = sizeof(BMEdge);
-	lsize = sizeof(BMLoop);
-	fsize = sizeof(BMFace);
-	lstsize = sizeof(BMLoopList);
-
 	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
-	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
-	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
-	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], FALSE, FALSE);
-	bm->fpool = BLI_mempool_create(fsize, allocsize[4], allocsize[4], FALSE, TRUE);
+	bmesh_mempool_init(bm, bm_mesh_allocsize_default);
 
-	/* allocate one flag pool that we dont get rid of. */
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 }

@@ -116,7 +116,6 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	BMIter iter;
 	BMEdge *e;
 	BevelModifierData *bmd = (BevelModifierData*) md;
-	/* int allocsize[] = {512, 512, 2048, 512}; */ /* UNUSED */
 	float threshold = cos((bmd->bevel_angle + 0.00001) * M_PI / 180.0);
 
 	em = DM_to_editbmesh(ob, dm, NULL, FALSE);

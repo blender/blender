@@ -22,12 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  *
- * Modifier stack implementation.
- *
- * BKE_modifier.h contains the function prototypes for this file.
- *
  */
 
+/** \file blender/blenkernel/intern/modifiers_bmesh.c
+ *  \ingroup bke
+ */
 
 #include "BLI_math.h"
 
@@ -40,14 +39,9 @@
 #include "BKE_bmesh.h"
 #include "BKE_tessmesh.h"
 
-
-/* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
- * new geometry will be put in there.*/
-BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
+/* main function for copying DerivedMesh data into BMesh */
+void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 {
-	int allocsize[4] = {512, 512, 2048, 512};
-	BMesh *bm, bmold; /*bmold is for storing old customdata layout*/
-	BMEditMesh *em = existing;
 	MVert *mv, *mvert;
 	MEdge *me, *medge;
 	MPoly *mpoly, *mp;
@@ -59,11 +53,6 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 	BLI_array_declare(verts);
 	BLI_array_declare(edges);
 	int i, j, k, totvert, totedge, totface;
-	
-	if (em) bm = em->bm;
-	else bm = BM_mesh_create(ob, allocsize);
-
-	bmold = *bm;
 
 	/*merge custom data layout*/
 	CustomData_bmesh_merge(&dm->vertData, &bm->vdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_VERT);
@@ -101,7 +90,7 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 		etable[i] = e;
 	}
 	MEM_freeN(medge);
-	
+
 	/*do faces*/
 	mpoly = mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
@@ -141,9 +130,22 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 
 	MEM_freeN(vtable);
 	MEM_freeN(etable);
-	
+
 	BLI_array_free(verts);
 	BLI_array_free(edges);
+}
+
+/* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
+ * new geometry will be put in there.*/
+BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
+{
+	BMEditMesh *em = existing;
+	BMesh *bm;
+
+	if (em) bm = em->bm;
+	else bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+
+	DM_to_bmesh_ex(dm, bm);
 
 	if (!em) {
 		em = BMEdit_Create(bm, do_tesselate);
@@ -155,4 +157,15 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 	}
 
 	return em;
+}
+
+BMesh *DM_to_bmesh(Object *ob, DerivedMesh *dm)
+{
+	BMesh *bm;
+
+	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+
+	DM_to_bmesh_ex(dm, bm);
+
+	return bm;
 }

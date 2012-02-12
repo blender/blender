@@ -526,9 +526,8 @@ Mesh *copy_mesh(Mesh *me)
 BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 {
 	BMesh *bm;
-	int allocsize[4] = {512,512,2048,512};
 
-	bm = BM_mesh_create(ob, allocsize);
+	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
 
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 1);
 

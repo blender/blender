@@ -560,14 +560,13 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 	Object *ob;
 	undomesh *um = umv;
 	BMesh *bm;
-	int allocsize[4] = {512, 512, 2048, 512};
 	
 	ob = (Object *)find_id("OB", um->obname);
 	ob->shapenr = em->bm->shapenr;
 
 	BMEdit_Free(em);
 
-	bm = BM_mesh_create(ob, allocsize);
+	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", &um->me, ob, 0);
 
 	em2 = BMEdit_Create(bm, TRUE);

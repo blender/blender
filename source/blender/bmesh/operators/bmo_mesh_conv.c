@@ -70,7 +70,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	float (*keyco)[3] = NULL;
 	int *keyi;
 	int set_key = BMO_slot_int_get(op, "set_shapekey");
-	int totuv, i, j, allocsize[4] = {512, 512, 2048, 512};
+	int totuv, i, j;
 
 	if (!me || !me->totvert) {
 		return; /* sanity check */
@@ -137,10 +137,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		printf("shapekey<->mesh mismatch!\n");
 	}
 	
-	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
-	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
-	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
-	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default[0]);
+	CustomData_bmesh_init_pool(&bm->edata, bm_mesh_allocsize_default[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, bm_mesh_allocsize_default[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, bm_mesh_allocsize_default[3]);
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
 		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL);

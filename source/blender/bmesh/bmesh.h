@@ -112,9 +112,10 @@ struct EditMesh;
 void bmesh_error(void);
 
 /* Mesh Level Ops */
+extern int bm_mesh_allocsize_default[4];
 
 /* ob is needed by multires */
-BMesh *BM_mesh_create(struct Object *ob, int allocsize[4]);
+BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4]);
 BMesh *BM_mesh_copy(BMesh *bmold);
 void   BM_mesh_free(BMesh *bm);
 
