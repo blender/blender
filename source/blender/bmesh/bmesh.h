@@ -83,24 +83,23 @@ struct EditMesh;
  *
 */
 
-/*BMHeader->htype (char) */
+/* BMHeader->htype (char) */
 #define BM_VERT 	1
 #define BM_EDGE 	2
 #define BM_LOOP 	4
 #define BM_FACE 	8
 #define BM_ALL		(BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 
-/*BMHeader->hflag (char, all bits used!) */
-#define BM_SELECT	(1<<0)
-
-#define BM_SEAM		(1<<1)
-#define BM_HIDDEN	(1<<2)
-#define BM_SHARP	(1<<3)
-#define BM_SMOOTH	(1<<4)
-#define BM_TMP_TAG	(1<<5) /* internal flag, used for ensuring correct normals
-                            * during multires interpolation, and any other time
-                            * when temp tagging is handy.
-                            * always assume dirty & clear before use. */
+/* BMHeader->hflag (char, all bits used!) */
+#define BM_ELEM_SELECT	(1<<0)
+#define BM_ELEM_HIDDEN	(1<<1)
+#define BM_ELEM_SEAM	(1<<2)
+#define BM_ELEM_SHARP	(1<<3)
+#define BM_ELEM_SMOOTH	(1<<4)
+#define BM_ELEM_TAG     (1<<5) /* internal flag, used for ensuring correct normals
+                                * during multires interpolation, and any other time
+                                * when temp tagging is handy.
+                                * always assume dirty & clear before use. */
 
 /* we have 2 spare flags which is awesome but since we're limited to 8
  * only add new flags with care! - campbell */

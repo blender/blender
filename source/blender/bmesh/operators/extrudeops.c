@@ -368,7 +368,7 @@ static void calc_solidify_normals(BMesh *bm)
 	int *edge_face_count = MEM_callocN(sizeof(int) * bm->totedge, __func__);
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetHFlag(v, BM_TMP_TAG);
+		BM_SetHFlag(v, BM_ELEM_TAG);
 	}
 
 	BM_ElemIndex_Ensure(bm, BM_EDGE);
@@ -461,8 +461,8 @@ static void calc_solidify_normals(BMesh *bm)
 			else {
 				/* can't do anything useful here!
 				 * Set the face index for a vert incase it gets a zero normal */
-				BM_ClearHFlag(e->v1, BM_TMP_TAG);
-				BM_ClearHFlag(e->v2, BM_TMP_TAG);
+				BM_ClearHFlag(e->v1, BM_ELEM_TAG);
+				BM_ClearHFlag(e->v2, BM_ELEM_TAG);
 				continue;
 			}
 		}
@@ -488,7 +488,7 @@ static void calc_solidify_normals(BMesh *bm)
 			/* use standard normals for vertices connected to non-manifold edges */
 			BM_Vert_UpdateNormal(bm, v);
 		}
-		else if (normalize_v3(v->no) == 0.0f && !BM_TestHFlag(v, BM_TMP_TAG)) {
+		else if (normalize_v3(v->no) == 0.0f && !BM_TestHFlag(v, BM_ELEM_TAG)) {
 			/* exceptional case, totally flat. use the normal
 			 * of any marked face around the vertex */
 			BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, v) {

@@ -93,7 +93,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(e, BM_SHARP))
+			if (BM_TestHFlag(e, BM_ELEM_SHARP))
 				BMO_SetFlag(bm, e, EDGE_MARK);
 		}
 	}

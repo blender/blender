@@ -149,7 +149,7 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_TestHFlag(v, BM_SELECT) || BM_TestHFlag(v, BM_HIDDEN))
+		if (!BM_TestHFlag(v, BM_ELEM_SELECT) || BM_TestHFlag(v, BM_ELEM_HIDDEN))
 			continue;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, v) {

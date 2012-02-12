@@ -242,7 +242,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		tottrans= 0;
 		if(em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
+				if(!BM_TestHFlag(eve, BM_ELEM_HIDDEN) && BM_TestHFlag(eve, BM_ELEM_SELECT)) {
 					BM_SetIndex(eve, 1); /* set_dirty! */
 					tottrans++;
 				}
@@ -256,7 +256,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				BM_SetIndex(eve, 0); /* set_dirty! */
 
 			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-				if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT)) {
+				if(!BM_TestHFlag(eed, BM_ELEM_HIDDEN) && BM_TestHFlag(eed, BM_ELEM_SELECT)) {
 					BM_SetIndex(eed->v1, 1); /* set_dirty! */
 					BM_SetIndex(eed->v2, 1); /* set_dirty! */
 				}
@@ -272,7 +272,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				BM_SetIndex(eve, 0); /* set_dirty! */
 
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
+				if(!BM_TestHFlag(efa, BM_ELEM_HIDDEN) && BM_TestHFlag(efa, BM_ELEM_SELECT)) {
 					BMIter liter;
 					BMLoop *l;
 					

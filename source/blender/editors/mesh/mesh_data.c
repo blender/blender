@@ -215,7 +215,7 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 		BLI_assert(CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV));
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BM_TestHFlag(efa, BM_SELECT))
+			if (!BM_TestHFlag(efa, BM_ELEM_SELECT))
 				continue;
 
 			i = 0;

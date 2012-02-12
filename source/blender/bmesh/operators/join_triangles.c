@@ -285,7 +285,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		v3 = e->l->next->v;
 		v4 = e->l->radial_next->prev->v;
 
-		if (dosharp && BM_TestHFlag(e, BM_SHARP))
+		if (dosharp && BM_TestHFlag(e, BM_ELEM_SHARP))
 			continue;
 		
 		if ((douvs || dovcols) && compareFaceAttribs(bm, e, douvs, dovcols))

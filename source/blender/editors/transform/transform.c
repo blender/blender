@@ -4294,7 +4294,7 @@ static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
 	BMEdge *e2;
 
 	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, v) {
-		if (BM_TestHFlag(e2, BM_SELECT) && e2 != e)
+		if (BM_TestHFlag(e2, BM_ELEM_SELECT) && e2 != e)
 			return e2;
 	}
 
@@ -4392,10 +4392,10 @@ static int createSlideVerts(TransInfo *t)
 	
 	/*ensure valid selection*/
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_SELECT)) {
+		if (BM_TestHFlag(v, BM_ELEM_SELECT)) {
 			numsel = 0;
 			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
-				if (BM_TestHFlag(e, BM_SELECT)) {
+				if (BM_TestHFlag(e, BM_ELEM_SELECT)) {
 					/*BMESH_TODO: this is probably very evil,
 					  set v->e to a selected edge*/
 					v->e = e;
@@ -4411,7 +4411,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_SELECT)) {
+		if (BM_TestHFlag(e, BM_ELEM_SELECT)) {
 			if (BM_Edge_FaceCount(e) != 2)
 				return 0; //can only handle exactly 2 faces around each edge
 		}
@@ -4419,13 +4419,13 @@ static int createSlideVerts(TransInfo *t)
 
 	j = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_SELECT)) {
-			BM_SetHFlag(v, BM_TMP_TAG);
+		if (BM_TestHFlag(v, BM_ELEM_SELECT)) {
+			BM_SetHFlag(v, BM_ELEM_TAG);
 			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
 			j += 1;
 		}
 		else {
-			BM_ClearHFlag(v, BM_TMP_TAG);
+			BM_ClearHFlag(v, BM_ELEM_TAG);
 		}
 	}
 
@@ -4438,7 +4438,7 @@ static int createSlideVerts(TransInfo *t)
 	while (1) {
 		v = NULL;
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_TestHFlag(v, BM_TMP_TAG))
+			if (BM_TestHFlag(v, BM_ELEM_TAG))
 				break;
 
 		}
@@ -4465,13 +4465,13 @@ static int createSlideVerts(TransInfo *t)
 
 			numsel += 1;
 
-			if (!BM_TestHFlag(BM_OtherEdgeVert(e, v), BM_TMP_TAG))
+			if (!BM_TestHFlag(BM_OtherEdgeVert(e, v), BM_ELEM_TAG))
 				break;
 
 			v = BM_OtherEdgeVert(e, v);
 		} while (e != first->e);
 
-		BM_ClearHFlag(v, BM_TMP_TAG);
+		BM_ClearHFlag(v, BM_ELEM_TAG);
 
 		l1 = l2 = l = NULL;
 		l1 = e->l;
@@ -4527,8 +4527,8 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(sv->downvec, BM_OtherEdgeVert(l->e, v)->co, v->co);
 				}
 
-				BM_ClearHFlag(v, BM_TMP_TAG);
-				BM_ClearHFlag(v2, BM_TMP_TAG);
+				BM_ClearHFlag(v, BM_ELEM_TAG);
+				BM_ClearHFlag(v2, BM_ELEM_TAG);
 				
 				j += 2;
 				break;
@@ -4539,12 +4539,12 @@ static int createSlideVerts(TransInfo *t)
 
 			j += 1;
 
-			BM_ClearHFlag(v, BM_TMP_TAG);
-			BM_ClearHFlag(v2, BM_TMP_TAG);
+			BM_ClearHFlag(v, BM_ELEM_TAG);
+			BM_ClearHFlag(v2, BM_ELEM_TAG);
 		} while (e != first->e && l1);
 	}
 
-	//EDBM_clear_flag_all(em, BM_SELECT);
+	//EDBM_clear_flag_all(em, BM_ELEM_SELECT);
 
 	sld->sv = tempsv;
 	sld->totsv = j;
@@ -4555,7 +4555,7 @@ static int createSlideVerts(TransInfo *t)
 	zero_v3(lastvec); zero_v3(dir);
 	ee = le = NULL;
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_SELECT)) {
+		if (BM_TestHFlag(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
 			float vec1[3], dis2, mval[2] = {t->mval[0], t->mval[1]}, d;
@@ -4566,7 +4566,7 @@ static int createSlideVerts(TransInfo *t)
 			for (i=0; i<2; i++) {
 				v = i?e->v1:e->v2;
 				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
-					if (BM_TestHFlag(e2, BM_SELECT))
+					if (BM_TestHFlag(e2, BM_ELEM_SELECT))
 						continue;
 					
 					if (!BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
@@ -4616,12 +4616,12 @@ static int createSlideVerts(TransInfo *t)
 				BMFace *copyf = BM_Copy_Face(em->bm, f, 1, 1);
 				
 				BM_Select(em->bm, copyf, FALSE);
-				BM_SetHFlag(copyf, BM_HIDDEN);
+				BM_SetHFlag(copyf, BM_ELEM_HIDDEN);
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
 					BM_Select(em->bm, l->v, FALSE);
-					BM_SetHFlag(l->v, BM_HIDDEN);
+					BM_SetHFlag(l->v, BM_ELEM_HIDDEN);
 					BM_Select(em->bm, l->e, FALSE);
-					BM_SetHFlag(l->e, BM_HIDDEN);
+					BM_SetHFlag(l->e, BM_ELEM_HIDDEN);
 				}
 
 				BLI_smallhash_insert(&sld->origfaces, (uintptr_t)f, copyf);
@@ -4693,8 +4693,8 @@ void projectSVData(TransInfo *t, int final)
 			/*the face attributes of the copied face will get
 			  copied over, so its necessary to save the selection
 			  and hidden state*/
-			sel = BM_TestHFlag(f, BM_SELECT);
-			hide = BM_TestHFlag(f, BM_HIDDEN);
+			sel = BM_TestHFlag(f, BM_ELEM_SELECT);
+			hide = BM_TestHFlag(f, BM_ELEM_HIDDEN);
 			
 			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
@@ -4703,12 +4703,12 @@ void projectSVData(TransInfo *t, int final)
 				copyf = copyf2;
 				do_vdata = l2->v==tempsv->v;
 				
-				if (BM_TestHFlag(l2->e, BM_SELECT) || BM_TestHFlag(l2->prev->e, BM_SELECT)) {
+				if (BM_TestHFlag(l2->e, BM_ELEM_SELECT) || BM_TestHFlag(l2->prev->e, BM_ELEM_SELECT)) {
 					BMLoop *l3 = l2;
 					
 					do_vdata = 1;
 					
-					if (!BM_TestHFlag(l2->e, BM_SELECT))
+					if (!BM_TestHFlag(l2->e, BM_ELEM_SELECT))
 						l3 = l3->prev;
 					
 					if (sld->perc < 0.0 && BM_Vert_In_Face(l3->radial_next->f, tempsv->down)) {

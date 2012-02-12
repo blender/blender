@@ -194,7 +194,7 @@ int BMO_CountFlag(struct BMesh *bm, const short oflag, const char htype);
  * this system is used to execute or initialize an operator,
  * using a formatted-string system.
  *
- * for example, BMO_CallOpf(bm, "del geom=%hf context=%d", BM_SELECT, DEL_FACES);
+ * for example, BMO_CallOpf(bm, "del geom=%hf context=%d", BM_ELEM_SELECT, DEL_FACES);
  * . . .will execute the delete operator, feeding in selected faces, deleting them.
  *
  * the basic format for the format string is:
@@ -319,7 +319,7 @@ void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char
 
 /* puts every element of type type (which is a bitmask) with header flag
  * flag, into a slot.  note: ignores hidden elements (e.g. elements with
- * header flag BM_HIDDEN set).*/
+ * header flag BM_ELEM_HIDDEN set).*/
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname,
                             const char hflag, const char htype);
 

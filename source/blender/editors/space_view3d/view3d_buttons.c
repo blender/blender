@@ -161,7 +161,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BMIter iter;
 		
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if(BM_TestHFlag(eve, BM_SELECT)) {
+			if(BM_TestHFlag(eve, BM_ELEM_SELECT)) {
 				evedef= eve;
 				tot++;
 				add_v3_v3(median, eve->co);
@@ -169,7 +169,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 
 		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if(BM_TestHFlag(eed, BM_SELECT)) {
+			if(BM_TestHFlag(eed, BM_ELEM_SELECT)) {
 				float *f;
 
 				totedge++;
@@ -419,7 +419,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			if(len_v3(median) > 0.000001f) {
 
 				BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-					if(BM_TestHFlag(eve, BM_SELECT)) {
+					if(BM_TestHFlag(eve, BM_ELEM_SELECT)) {
 						add_v3_v3(eve->co, median);
 					}
 				}
@@ -435,7 +435,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					/* simple case */
 
 					BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-						if(BM_TestHFlag(eed, BM_SELECT)) {
+						if(BM_TestHFlag(eed, BM_ELEM_SELECT)) {
 							float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 							if (!crease) break;
 							
@@ -457,7 +457,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						const float sca= median_new / median_orig;
 						
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-							if(BM_TestHFlag(eed, BM_SELECT) && !BM_TestHFlag(eed, BM_HIDDEN)) {
+							if(BM_TestHFlag(eed, BM_ELEM_SELECT) && !BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
 								float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 								
 								if (!crease) break;
@@ -472,7 +472,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						const float sca= (1.0f - median_new) / (1.0f - median_orig);
 
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-							if(BM_TestHFlag(eed, BM_SELECT) && !BM_TestHFlag(eed, BM_HIDDEN)) {
+							if(BM_TestHFlag(eed, BM_ELEM_SELECT) && !BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
 								float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 								if (!crease) break;
 
@@ -688,7 +688,7 @@ static void vgroup_copy_active_to_sel(Object *ob)
 		int index= 0;
 
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if(BM_TestHFlag(eve, BM_SELECT) && eve != eve_act) {
+			if(BM_TestHFlag(eve, BM_ELEM_SELECT) && eve != eve_act) {
 				dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 				if(dvert) {
 					defvert_copy(dvert, dvert_act);
@@ -733,7 +733,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
 		eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 		for (index=0; eve; eve=BMIter_Step(&iter), index++) {
-			if(BM_TestHFlag(eve, BM_SELECT) && eve != eve_act) {
+			if(BM_TestHFlag(eve, BM_ELEM_SELECT) && eve != eve_act) {
 				dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 				dw= defvert_find_index(dv, def_nr);
 				if (dw) {

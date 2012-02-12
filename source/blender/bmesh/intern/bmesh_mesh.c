@@ -233,7 +233,7 @@ void BM_Compute_Normals(BMesh *bm)
 
 	/* first, find out the largest face in mesh */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_HIDDEN))
+		if (BM_TestHFlag(f, BM_ELEM_HIDDEN))
 			continue;
 
 		if (f->len > maxlength) maxlength = f->len;
@@ -247,7 +247,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/* calculate all face normals */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_HIDDEN))
+		if (BM_TestHFlag(f, BM_ELEM_HIDDEN))
 			continue;
 #if 0	/* UNUSED */
 		if (f->head.flag & BM_NONORMCALC)
@@ -259,7 +259,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/* Zero out vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_HIDDEN))
+		if (BM_TestHFlag(v, BM_ELEM_HIDDEN))
 			continue;
 
 		zero_v3(v->no);
@@ -288,7 +288,7 @@ void BM_Compute_Normals(BMesh *bm)
 	/* add weighted face normals to vertices */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 
-		if (BM_TestHFlag(f, BM_HIDDEN))
+		if (BM_TestHFlag(f, BM_ELEM_HIDDEN))
 			continue;
 
 		BM_ITER(l, &loops, bm, BM_LOOPS_OF_FACE, f) {
@@ -318,7 +318,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/* normalize the accumulated vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_HIDDEN))
+		if (BM_TestHFlag(v, BM_ELEM_HIDDEN))
 			continue;
 
 		if (normalize_v3(v->no) == 0.0f) {
@@ -332,7 +332,7 @@ void BM_Compute_Normals(BMesh *bm)
 
 /*
  This function ensures correct normals for the mesh, but
- sets the flag BM_TMP_TAG in flipped faces, to allow restoration
+ sets the flag BM_ELEM_TAG in flipped faces, to allow restoration
  of original normals.
  
  if undo is 0: calculate right normals
@@ -348,10 +348,10 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	
 	if (undo) {
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if (BM_TestHFlag(f, BM_TMP_TAG)) {
+			if (BM_TestHFlag(f, BM_ELEM_TAG)) {
 				BM_flip_normal(bm, f);
 			}
-			BM_ClearHFlag(f, BM_TMP_TAG);
+			BM_ClearHFlag(f, BM_ELEM_TAG);
 		}
 		
 		return;
@@ -364,8 +364,8 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, f, FACE_FLIP))
-			BM_SetHFlag(f, BM_TMP_TAG);
-		else BM_ClearHFlag(f, BM_TMP_TAG);
+			BM_SetHFlag(f, BM_ELEM_TAG);
+		else BM_ClearHFlag(f, BM_ELEM_TAG);
 	}
 
 	BMO_pop(bm);

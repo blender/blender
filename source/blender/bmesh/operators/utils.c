@@ -260,7 +260,7 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 /* NOTE: this function uses recursion, which is a little unusual for a bmop
  *       function, but acceptable I think. */
 
-/* NOTE: BM_TMP_TAG is used on faces to tell if they are flipped. */
+/* NOTE: BM_ELEM_TAG is used on faces to tell if they are flipped. */
 
 void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 {
@@ -281,7 +281,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 
 		/* clear dirty flag */
-		BM_ClearHFlag(f, BM_TMP_TAG);
+		BM_ClearHFlag(f, BM_ELEM_TAG);
 
 		if (BMO_TestFlag(bm, f, FACE_VIS))
 			continue;
@@ -307,7 +307,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 		BMO_ToggleFlag(bm, startf, FACE_FLIP);
 
 		if (flagflip)
-			BM_ToggleHFlag(startf, BM_TMP_TAG);
+			BM_ToggleHFlag(startf, BM_ELEM_TAG);
 	}
 	
 	/* now that we've found our starting face, make all connected faces
@@ -339,12 +339,12 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 						
 						BMO_ToggleFlag(bm, l2->f, FACE_FLIP);
 						if (flagflip)
-							BM_ToggleHFlag(l2->f, BM_TMP_TAG);
+							BM_ToggleHFlag(l2->f, BM_ELEM_TAG);
 					}
-					else if (BM_TestHFlag(l2->f, BM_TMP_TAG) || BM_TestHFlag(l->f, BM_TMP_TAG)) {
+					else if (BM_TestHFlag(l2->f, BM_ELEM_TAG) || BM_TestHFlag(l->f, BM_ELEM_TAG)) {
 						if (flagflip) {
-							BM_ClearHFlag(l->f, BM_TMP_TAG);
-							BM_ClearHFlag(l2->f, BM_TMP_TAG);
+							BM_ClearHFlag(l->f, BM_ELEM_TAG);
+							BM_ClearHFlag(l2->f, BM_ELEM_TAG);
 						}
 					}
 					
@@ -593,7 +593,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 	/* now select the rest (if any) */
 	for (i = 0; i < num_total; i++) {
 		fm = f_ext[i].f;
-		if (!BMO_TestFlag(bm, fm, FACE_MARK)  && !BM_TestHFlag(fm, BM_HIDDEN)) {
+		if (!BMO_TestFlag(bm, fm, FACE_MARK)  && !BM_TestHFlag(fm, BM_ELEM_HIDDEN)) {
 			int cont = 1;
 			for (idx = 0; idx < num_sels && cont == 1; idx++) {
 				fs = f_ext[indices[idx]].f;
@@ -767,7 +767,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 	/* select the edges if any */
 	for (i = 0; i < num_total; i++) {
 		e = e_ext[i].e;
-		if (!BMO_TestFlag(bm, e, EDGE_MARK) && !BM_TestHFlag(e, BM_HIDDEN)) {
+		if (!BMO_TestFlag(bm, e, EDGE_MARK) && !BM_TestHFlag(e, BM_ELEM_HIDDEN)) {
 			int cont = 1;
 			for (idx = 0; idx < num_sels && cont == 1; idx++) {
 				es = e_ext[indices[idx]].e;
@@ -828,14 +828,14 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMEDGE_SEAM:
-						if (BM_TestHFlag(e, BM_SEAM) == BM_TestHFlag(es, BM_SEAM)) {
+						if (BM_TestHFlag(e, BM_ELEM_SEAM) == BM_TestHFlag(es, BM_ELEM_SEAM)) {
 							BMO_SetFlag(bm, e, EDGE_MARK);
 							cont = 0;
 						}
 						break;
 
 					case SIMEDGE_SHARP:
-						if (BM_TestHFlag(e, BM_SHARP) == BM_TestHFlag(es, BM_SHARP)) {
+						if (BM_TestHFlag(e, BM_ELEM_SHARP) == BM_TestHFlag(es, BM_ELEM_SHARP)) {
 							BMO_SetFlag(bm, e, EDGE_MARK);
 							cont = 0;
 						}
@@ -923,7 +923,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 	/* select the vertices if any */
 	for (i = 0; i < num_total; i++) {
 		v = v_ext[i].v;
-		if (!BMO_TestFlag(bm, v, VERT_MARK) && !BM_TestHFlag(v, BM_HIDDEN)) {
+		if (!BMO_TestFlag(bm, v, VERT_MARK) && !BM_TestHFlag(v, BM_ELEM_HIDDEN)) {
 			int cont = 1;
 			for (idx = 0; idx < num_sels && cont == 1; idx++) {
 				vs = v_ext[indices[idx]].v;

@@ -773,7 +773,7 @@ static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
 		if (!BMO_TestFlag(bm, v, BME_BEVEL_NONMAN)) {
 			/* modifiers should not use selection */
 			if(options & BME_BEVEL_SELECT){
-				if(BM_TestHFlag(v, BM_SELECT)) weight = 1.0;
+				if(BM_TestHFlag(v, BM_ELEM_SELECT)) weight = 1.0;
 			}
 			/* bevel weight NYI */
 			else if(options & BME_BEVEL_WEIGHT)
@@ -798,7 +798,7 @@ static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
 		weight = 0.0;
 		if (!BMO_TestFlag(bm, e, BME_BEVEL_NONMAN)) {
 			if(options & BME_BEVEL_SELECT){
-				if(BM_TestHFlag(e, BM_SELECT)) weight = 1.0;
+				if(BM_TestHFlag(e, BM_ELEM_SELECT)) weight = 1.0;
 			}
 			else if(options & BME_BEVEL_WEIGHT) {
 				weight = BM_GetCDf(&bm->edata, e, CD_BWEIGHT);

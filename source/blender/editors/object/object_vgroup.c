@@ -206,7 +206,7 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 					i = 0;
 					if (use_vert_sel) {
 						BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-							(*dvert_arr)[i] = BM_TestHFlag(eve, BM_SELECT) ?
+							(*dvert_arr)[i] = BM_TestHFlag(eve, BM_ELEM_SELECT) ?
 							                  CustomData_em_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT) : NULL;
 							i++;
 						}
@@ -593,7 +593,7 @@ static void vgroup_select_verts(Object *ob, int select)
 			BMVert *eve;
 
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				if (!BM_TestHFlag(eve, BM_HIDDEN)) {
+				if (!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
 					dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 					if (defvert_find_index(dv, def_nr)) {
 						BM_Select(em->bm, eve, select);
@@ -1311,8 +1311,8 @@ static void vgroup_blend(Object *ob)
 		vg_users= MEM_callocN(sizeof(int)*dvert_tot, "vgroup_blend_i");
 
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			sel1= BM_TestHFlag(eed->v1, BM_SELECT);
-			sel2= BM_TestHFlag(eed->v2, BM_SELECT);
+			sel1= BM_TestHFlag(eed->v1, BM_ELEM_SELECT);
+			sel2= BM_TestHFlag(eed->v2, BM_ELEM_SELECT);
 
 			if(sel1 != sel2) {
 				/* i1 is always the selected one */
@@ -1343,7 +1343,7 @@ static void vgroup_blend(Object *ob)
 
 		i= 0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if(BM_TestHFlag(eve, BM_SELECT) && vg_users[i] > 0) {
+			if(BM_TestHFlag(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
 				/* TODO, we may want object mode blending */
 				if(em)  dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 				else	dvert= dvert_array+i;
@@ -1559,8 +1559,8 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			/* Go through the list of editverts and assign them */
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				if((eve_mirr= EDBM_GetMirrorVert(em, eve))) {
-					sel= BM_TestHFlag(eve, BM_SELECT);
-					sel_mirr= BM_TestHFlag(eve_mirr, BM_SELECT);
+					sel= BM_TestHFlag(eve, BM_ELEM_SELECT);
+					sel_mirr= BM_TestHFlag(eve_mirr, BM_ELEM_SELECT);
 
 					if((sel || sel_mirr) && (eve != eve_mirr)) {
 						dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
@@ -1785,7 +1785,7 @@ static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGr
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
-				if(dv && dv->dw && (allverts || BM_TestHFlag(eve, BM_SELECT))) {
+				if(dv && dv->dw && (allverts || BM_TestHFlag(eve, BM_ELEM_SELECT))) {
 					MDeformWeight *dw = defvert_find_index(dv, def_nr);
 					defvert_remove_group(dv, dw); /* dw can be NULL */
 				}
@@ -1985,7 +1985,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
 			/* Go through the list of editverts and assign them */
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				if (BM_TestHFlag(eve, BM_SELECT)) {
+				if (BM_TestHFlag(eve, BM_ELEM_SELECT)) {
 					MDeformWeight *dw;
 					dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT); /* can be NULL */
 					dw= defvert_verify_index(dv, def_nr);

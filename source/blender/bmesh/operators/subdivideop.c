@@ -1045,7 +1045,7 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 		// int i;
 		
 		/* deselect inpu */
-		BM_clear_flag_all(bm, BM_SELECT);
+		BM_clear_flag_all(bm, BM_ELEM_SELECT);
 
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for ( ; ele; ele = BMO_IterStep(&iter)) {
@@ -1056,16 +1056,16 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 				BMIter eiter;
 
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, ele) {
-					if (!BM_TestHFlag(e, BM_SELECT) &&
-					     BM_TestHFlag(e->v1, BM_SELECT) &&
-					     BM_TestHFlag(e->v2, BM_SELECT))
+					if (!BM_TestHFlag(e, BM_ELEM_SELECT) &&
+					     BM_TestHFlag(e->v1, BM_ELEM_SELECT) &&
+					     BM_TestHFlag(e->v2, BM_ELEM_SELECT))
 					{
 						BM_Select(bm, e, TRUE);
 						bm->totedgesel += 1;
 					}
-					else if (BM_TestHFlag(e, BM_SELECT) &&
-					         (!BM_TestHFlag(e->v1, BM_SELECT) ||
-					          !BM_TestHFlag(e->v2, BM_SELECT)))
+					else if (BM_TestHFlag(e, BM_ELEM_SELECT) &&
+					         (!BM_TestHFlag(e->v1, BM_ELEM_SELECT) ||
+					          !BM_TestHFlag(e->v2, BM_ELEM_SELECT)))
 					{
 						BM_Select(bm, e, FALSE);
 						bm->totedgesel -= 1;

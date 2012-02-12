@@ -553,7 +553,7 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 		BMLoop *l;
 		MLoopUV *lastluv = NULL, *firstluv = NULL;
 
-		if (BM_TestHFlag(efa, BM_HIDDEN))
+		if (BM_TestHFlag(efa, BM_ELEM_HIDDEN))
 			continue;
 
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -672,7 +672,7 @@ static void emDM_drawMappedFaces(
 			int drawSmooth;
 
 			efa = l[0]->f;
-			drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
+			drawSmooth= BM_TestHFlag(efa, BM_ELEM_SMOOTH);
 
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_GetIndex(efa), &drawSmooth);
 			if (draw) {
@@ -744,7 +744,7 @@ static void emDM_drawMappedFaces(
 			int drawSmooth;
 
 			efa = l[0]->f;
-			drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
+			drawSmooth= BM_TestHFlag(efa, BM_ELEM_SMOOTH);
 
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_GetIndex(efa), &drawSmooth);
 			if (draw) {
@@ -871,7 +871,7 @@ static void emDM_drawFacesTex_common(
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
 			MTFace mtf = {{{0}}};
 			/*unsigned char *cp= NULL;*/ /*UNUSED*/
-			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
+			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_ELEM_SMOOTH);
 			int flag;
 
 			efa = ls[0]->f;
@@ -941,7 +941,7 @@ static void emDM_drawFacesTex_common(
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
 			MTFace mtf = {{{0}}};
 			/*unsigned char *cp= NULL;*/ /*UNUSED*/
-			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
+			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_ELEM_SMOOTH);
 			int flag;
 
 			efa = ls[0]->f;
@@ -1095,7 +1095,7 @@ static void emDM_drawMappedFacesGLSL(
 		int drawSmooth;
 
 		efa = ltri[0]->f;
-		drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
+		drawSmooth= BM_TestHFlag(efa, BM_ELEM_SMOOTH);
 
 		if (setDrawOptions && !setDrawOptions(userData, BM_GetIndex(efa)))
 			continue;
@@ -1217,7 +1217,7 @@ static void emDM_drawMappedFacesMat(
 		int drawSmooth;
 
 		efa = ltri[0]->f;
-		drawSmooth = BM_TestHFlag(efa, BM_SMOOTH);
+		drawSmooth = BM_TestHFlag(efa, BM_ELEM_SMOOTH);
 
 		/* face hiding */
 		if (setFace && !setFace(userData, BM_GetIndex(efa)))

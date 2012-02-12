@@ -633,7 +633,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 
 		if (htype & BM_VERT) {
 			for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (!BM_TestHFlag(e, BM_HIDDEN) && BM_TestHFlag(e, hflag)) {
+				if (!BM_TestHFlag(e, BM_ELEM_HIDDEN) && BM_TestHFlag(e, hflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -642,7 +642,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 
 		if (htype & BM_EDGE) {
 			for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (!BM_TestHFlag(e, BM_HIDDEN) && BM_TestHFlag(e, hflag)) {
+				if (!BM_TestHFlag(e, BM_ELEM_HIDDEN) && BM_TestHFlag(e, hflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -651,7 +651,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 
 		if (htype & BM_FACE) {
 			for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if (!BM_TestHFlag(e, BM_HIDDEN) && BM_TestHFlag(e, hflag)) {
+				if (!BM_TestHFlag(e, BM_ELEM_HIDDEN) && BM_TestHFlag(e, hflag)) {
 					((BMHeader **)output->data.p)[i] = e;
 					i++;
 				}
@@ -730,7 +730,7 @@ void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
 		if (!(htype & data[i]->htype))
 			continue;
 
-		if (hflag & BM_SELECT) {
+		if (hflag & BM_ELEM_SELECT) {
 			BM_Select(bm, data[i], TRUE);
 		}
 		BM_SetHFlag(data[i], hflag);
@@ -755,7 +755,7 @@ void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
 		if (!(htype & data[i]->htype))
 			continue;
 
-		if (hflag & BM_SELECT) {
+		if (hflag & BM_ELEM_SELECT) {
 			BM_Select(bm, data[i], FALSE);
 		}
 
@@ -1098,7 +1098,7 @@ int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op)
 }
 
 /* example:
- * BMO_CallOp(bm, "del %d %hv", DEL_ONLYFACES, BM_SELECT);
+ * BMO_CallOp(bm, "del %d %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
  *
  *  d - int
  *  i - int

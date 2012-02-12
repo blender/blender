@@ -151,7 +151,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		v->head.hflag = BM_Vert_Flag_From_MEFlag(mvert->flag);
 
 		/* this is necassary for selection counts to work properl */
-		if (BM_TestHFlag(v, BM_SELECT)) BM_Select_Vert(bm, v, TRUE);
+		if (BM_TestHFlag(v, BM_ELEM_SELECT)) BM_Select_Vert(bm, v, TRUE);
 
 		normal_short_to_float_v3(v->no, mvert->no);
 
@@ -197,7 +197,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		e->head.hflag = BM_Edge_Flag_From_MEFlag(medge->flag);
 
 		/* this is necassary for selection counts to work properly */
-		if (BM_TestHFlag(e, BM_SELECT)) BM_Select(bm, e, TRUE);
+		if (BM_TestHFlag(e, BM_ELEM_SELECT)) BM_Select(bm, e, TRUE);
 		
 		/* Copy Custom Dat */
 		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
@@ -267,7 +267,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		f->head.hflag = BM_Face_Flag_From_MEFlag(mpoly->flag);
 
 		/* this is necassary for selection counts to work properl */
-		if (BM_TestHFlag(f, BM_SELECT)) BM_Select(bm, f, TRUE);
+		if (BM_TestHFlag(f, BM_ELEM_SELECT)) BM_Select(bm, f, TRUE);
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;

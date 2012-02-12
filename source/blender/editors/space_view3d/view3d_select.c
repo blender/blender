@@ -173,7 +173,7 @@ static void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 
 	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 	for ( ; eve; eve=BMIter_Step(&iter), index++) {
-		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
+		if(!BM_TestHFlag(eve, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
 				BM_Select_Vert(em->bm, eve, select);
 			}
@@ -189,7 +189,7 @@ static void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 
 	eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 	for ( ; eed; eed=BMIter_Step(&iter), index++) {
-		if(!BM_TestHFlag(eed, BM_HIDDEN)) {
+		if(!BM_TestHFlag(eed, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
 				BM_Select_Edge(em->bm, eed, select);
 			}
@@ -205,7 +205,7 @@ static void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 
 	efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 	for ( ; efa; efa=BMIter_Step(&iter), index++) {
-		if(!BM_TestHFlag(efa, BM_HIDDEN)) {
+		if(!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
 			if(EDBM_check_backbuf(index)) {
 				BM_Select_Face(em->bm, efa, select);
 			}
@@ -525,7 +525,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	data.pass = 0;
 
 	if (extend == 0 && select)
-		EDBM_clear_flag_all(vc->em, BM_SELECT);
+		EDBM_clear_flag_all(vc->em, BM_ELEM_SELECT);
 
 	 /* for non zbuf projections, dont change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
@@ -1782,7 +1782,7 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	data.done = 0;
 
 	if (extend == 0 && select)
-		EDBM_clear_flag_all(vc->em, BM_SELECT);
+		EDBM_clear_flag_all(vc->em, BM_ELEM_SELECT);
 
 	/* for non zbuf projections, dont change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);

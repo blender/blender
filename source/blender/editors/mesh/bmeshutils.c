@@ -95,7 +95,7 @@ void EDBM_stats_update(BMEditMesh *em)
 	for (i = 0; i < 3; i++) {
 		ele = BMIter_New(&iter, em->bm, iter_types[i], NULL);
 		for ( ; ele; ele = BMIter_Step(&iter)) {
-			if (BM_TestHFlag(ele, BM_SELECT)) {
+			if (BM_TestHFlag(ele, BM_ELEM_SELECT)) {
 				(*tots[i])++;
 			}
 		}
@@ -208,7 +208,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 	em->emcopyusers++;
 
 	BMO_Exec_Op(bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, selectslot, BM_SELECT, BM_ALL);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL);
 
 	va_end(list);
 	return EDBM_FinishOp(em, &bmop, op, TRUE);
@@ -410,9 +410,9 @@ void EDBM_select_more(BMEditMesh *em)
 
 	BMO_InitOpf(em->bm, &bmop, 
 	            "regionextend geom=%hvef constrict=%d usefaces=%d",
-	            BM_SELECT, 0, usefaces);
+	            BM_ELEM_SELECT, 0, usefaces);
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_Finish_Op(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -425,9 +425,9 @@ void EDBM_select_less(BMEditMesh *em)
 
 	BMO_InitOpf(em->bm, &bmop, 
 	            "regionextend geom=%hvef constrict=%d usefaces=%d",
-	            BM_SELECT, 0, usefaces);
+	            BM_ELEM_SELECT, 0, usefaces);
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_Finish_Op(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -475,12 +475,12 @@ void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 	BMHeader *ele;
 	int i;
 
-	if (hflag & BM_SELECT)
+	if (hflag & BM_ELEM_SELECT)
 		BM_clear_selection_history(em->bm);
 
 	for (i = 0; i < 3; i++) {
 		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
-			if (hflag & BM_SELECT) BM_Select(em->bm, ele, FALSE);
+			if (hflag & BM_ELEM_SELECT) BM_Select(em->bm, ele, FALSE);
 			BM_ClearHFlag(ele, hflag);
 		}
 	}
@@ -498,7 +498,7 @@ void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
 	for (i = 0; i < 3; i++) {
 		ele = BMIter_New(&iter, em->bm, iter_types[i], NULL);
 		for ( ; ele; ele = BMIter_Step(&iter)) {
-			if (hflag & BM_SELECT) {
+			if (hflag & BM_ELEM_SELECT) {
 				BM_Select(em->bm, ele, TRUE);
 			}
 			else {
@@ -621,7 +621,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 
 	/* generate UvMapVert array */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!selected || ((!BM_TestHFlag(efa, BM_HIDDEN)) && BM_TestHFlag(efa, BM_SELECT)))
+		if (!selected || ((!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) && BM_TestHFlag(efa, BM_ELEM_SELECT)))
 			totuv += efa->len;
 	}
 
@@ -649,7 +649,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 	
 	a = 0;
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!selected || ((!BM_TestHFlag(efa, BM_HIDDEN)) && BM_TestHFlag(efa, BM_SELECT))) {
+		if (!selected || ((!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) && BM_TestHFlag(efa, BM_ELEM_SELECT))) {
 			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				buf->tfindex = i;
@@ -761,7 +761,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 
 	/* generate UvElement array */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!selected || ((!BM_TestHFlag(efa, BM_HIDDEN)) && BM_TestHFlag(efa, BM_SELECT)))
+		if (!selected || ((!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) && BM_TestHFlag(efa, BM_ELEM_SELECT)))
 			totuv += efa->len;
 	}
 
@@ -782,7 +782,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	}
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!selected || ((!BM_TestHFlag(efa, BM_HIDDEN)) && BM_TestHFlag(efa, BM_SELECT))) {
+		if (!selected || ((!BM_TestHFlag(efa, BM_ELEM_HIDDEN)) && BM_TestHFlag(efa, BM_ELEM_SELECT))) {
 			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				buf->tfindex = i;
@@ -1060,7 +1060,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 
 		/* temporary for testing, check for selection */
-		if (use_select && !BM_TestHFlag(v, BM_SELECT)) {
+		if (use_select && !BM_TestHFlag(v, BM_ELEM_SELECT)) {
 			/* do nothing */
 		}
 		else {
@@ -1146,10 +1146,10 @@ void EDBM_ApplyMirrorCache(BMEditMesh *em, const int sel_from, const int sel_to)
 	BLI_assert(em->vert_index != NULL);
 
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_SELECT) == sel_from) {
+		if (BM_TestHFlag(v, BM_ELEM_SELECT) == sel_from) {
 			BMVert *mirr = EDBM_GetMirrorVert(em, v);
 			if (mirr) {
-				if (BM_TestHFlag(mirr, BM_SELECT) == sel_to) {
+				if (BM_TestHFlag(mirr, BM_ELEM_SELECT) == sel_to) {
 					copy_v3_v3(mirr->co, v->co);
 					mirr->co[0] *= -1.0f;
 				}

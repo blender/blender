@@ -789,23 +789,23 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 /* ME -> BM */
 char BM_Vert_Flag_From_MEFlag(const char  meflag)
 {
-	return ( ((meflag & SELECT)       ? BM_SELECT : 0) |
-	         ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
+	return ( ((meflag & SELECT)       ? BM_ELEM_SELECT : 0) |
+	         ((meflag & ME_HIDE)      ? BM_ELEM_HIDDEN : 0)
 	         );
 }
 char BM_Edge_Flag_From_MEFlag(const short meflag)
 {
-	return ( ((meflag & SELECT)       ? BM_SELECT : 0) |
-	         ((meflag & ME_SEAM)      ? BM_SEAM   : 0) |
-	         ((meflag & ME_SHARP)     ? BM_SHARP  : 0) |
-	         ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
+	return ( ((meflag & SELECT)       ? BM_ELEM_SELECT : 0) |
+	         ((meflag & ME_SEAM)      ? BM_ELEM_SEAM   : 0) |
+	         ((meflag & ME_SHARP)     ? BM_ELEM_SHARP  : 0) |
+	         ((meflag & ME_HIDE)      ? BM_ELEM_HIDDEN : 0)
 	         );
 }
 char BM_Face_Flag_From_MEFlag(const char  meflag)
 {
-	return ( ((meflag & ME_FACE_SEL)  ? BM_SELECT : 0) |
-	         ((meflag & ME_SMOOTH)    ? BM_SMOOTH : 0) |
-	         ((meflag & ME_HIDE)      ? BM_HIDDEN : 0)
+	return ( ((meflag & ME_FACE_SEL)  ? BM_ELEM_SELECT : 0) |
+	         ((meflag & ME_SMOOTH)    ? BM_ELEM_SMOOTH : 0) |
+	         ((meflag & ME_HIDE)      ? BM_ELEM_HIDDEN : 0)
 	         );
 }
 
@@ -814,18 +814,18 @@ char  BM_Vert_Flag_To_MEFlag(BMVert *eve)
 {
 	const char hflag = eve->head.hflag;
 
-	return ( ((hflag & BM_SELECT)  ? SELECT  : 0) |
-	         ((hflag & BM_HIDDEN)  ? ME_HIDE : 0)
+	return ( ((hflag & BM_ELEM_SELECT)  ? SELECT  : 0) |
+	         ((hflag & BM_ELEM_HIDDEN)  ? ME_HIDE : 0)
 	         );
 }
 short BM_Edge_Flag_To_MEFlag(BMEdge *eed)
 {
 	const char hflag = eed->head.hflag;
 
-	return ( ((hflag & BM_SELECT)       ? SELECT    : 0) |
-	         ((hflag & BM_SEAM)         ? ME_SEAM   : 0) |
-	         ((hflag & BM_SHARP)        ? ME_SHARP  : 0) |
-	         ((hflag & BM_HIDDEN)       ? ME_HIDE   : 0) |
+	return ( ((hflag & BM_ELEM_SELECT)       ? SELECT    : 0) |
+	         ((hflag & BM_ELEM_SEAM)         ? ME_SEAM   : 0) |
+	         ((hflag & BM_ELEM_SHARP)        ? ME_SHARP  : 0) |
+	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE   : 0) |
 	         ((BM_Wire_Edge(NULL, eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
 	         (ME_EDGEDRAW | ME_EDGERENDER)
 	         );
@@ -834,9 +834,9 @@ char  BM_Face_Flag_To_MEFlag(BMFace *efa)
 {
 	const char hflag = efa->head.hflag;
 
-	return ( ((hflag & BM_SELECT) ? ME_FACE_SEL : 0) |
-	         ((hflag & BM_SMOOTH) ? ME_SMOOTH   : 0) |
-	         ((hflag & BM_HIDDEN) ? ME_HIDE     : 0)
+	return ( ((hflag & BM_ELEM_SELECT) ? ME_FACE_SEL : 0) |
+	         ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH   : 0) |
+	         ((hflag & BM_ELEM_HIDDEN) ? ME_HIDE     : 0)
 	         );
 }
 

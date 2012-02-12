@@ -171,7 +171,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 			if(em) {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BM_TestHFlag(efa, BM_SELECT))
+					if(BM_TestHFlag(efa, BM_ELEM_SELECT))
 						efa->mat_nr= ob->actcol-1;
 				}
 			}

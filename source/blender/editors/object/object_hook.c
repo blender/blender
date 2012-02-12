@@ -79,7 +79,7 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	int *index, nr, totvert=0;
 	
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if(BM_TestHFlag(eve, BM_SELECT)) totvert++;
+		if(BM_TestHFlag(eve, BM_ELEM_SELECT)) totvert++;
 	}
 	if(totvert==0) return 0;
 	
@@ -89,7 +89,7 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	zero_v3(cent);
 	
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if(BM_TestHFlag(eve, BM_SELECT)) {
+		if(BM_TestHFlag(eve, BM_ELEM_SELECT)) {
 			*index= nr; index++;
 			add_v3_v3(cent, eve->co);
 		}

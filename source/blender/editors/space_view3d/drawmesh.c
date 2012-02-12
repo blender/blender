@@ -549,7 +549,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	BMEditMesh *em = data->em;
 	BMFace *efa= EDBM_get_face_for_index(em, index);
 
-	if (efa==NULL || BM_TestHFlag(efa, BM_HIDDEN)) {
+	if (efa==NULL || BM_TestHFlag(efa, BM_ELEM_HIDDEN)) {
 		return 0;
 	}
 	else {
@@ -911,7 +911,7 @@ static int tex_mat_set_face_editmesh_cb(void *userData, int index)
 	Mesh *me = (Mesh*)data->me;
 	BMFace *efa= EDBM_get_face_for_index(me->edit_btmesh, index);
 
-	return !BM_TestHFlag(efa, BM_HIDDEN);
+	return !BM_TestHFlag(efa, BM_ELEM_HIDDEN);
 }
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
