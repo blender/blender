@@ -423,8 +423,8 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMOperator bmop;
 
 		BMO_op_initf(bm, &bmop,
-		            "esubd edges=%fe smooth=%f numcuts=%i gridfill=%i beauty=%i",
-		            EDGE_MARK, dia, 1, 1, B_SPHERE);
+		             "esubd edges=%fe smooth=%f numcuts=%i gridfill=%i beauty=%i",
+		             EDGE_MARK, dia, 1, 1, B_SPHERE);
 		BMO_op_exec(bm, &bmop);
 		BMO_slot_buffer_flag(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		BMO_slot_buffer_flag(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
@@ -459,18 +459,18 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 
 	for (i = 0; i < monkeynf; i++) {
 		BM_face_create_quad_tri(bm,
-		                     tv[monkeyf[i][0] + i - monkeyo],
-		                     tv[monkeyf[i][1] + i - monkeyo],
-		                     tv[monkeyf[i][2] + i - monkeyo],
-		                     (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeyf[i][3] + i - monkeyo] : NULL,
-		                     NULL, FALSE);
+		                        tv[monkeyf[i][0] + i - monkeyo],
+		                        tv[monkeyf[i][1] + i - monkeyo],
+		                        tv[monkeyf[i][2] + i - monkeyo],
+		                        (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeyf[i][3] + i - monkeyo] : NULL,
+		                        NULL, FALSE);
 
 		BM_face_create_quad_tri(bm,
-		                     tv[monkeynv + monkeyf[i][2] + i - monkeyo],
-		                     tv[monkeynv + monkeyf[i][1] + i - monkeyo],
-		                     tv[monkeynv + monkeyf[i][0] + i - monkeyo],
-		                     (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeynv + monkeyf[i][3] + i - monkeyo]: NULL,
-		                     NULL, FALSE);
+		                        tv[monkeynv + monkeyf[i][2] + i - monkeyo],
+		                        tv[monkeynv + monkeyf[i][1] + i - monkeyo],
+		                        tv[monkeynv + monkeyf[i][0] + i - monkeyo],
+		                        (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeynv + monkeyf[i][3] + i - monkeyo]: NULL,
+		                        NULL, FALSE);
 	}
 
 	MEM_freeN(tv);

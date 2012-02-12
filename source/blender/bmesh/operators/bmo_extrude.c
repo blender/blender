@@ -247,7 +247,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 
 	if (delorig) {
 		BMO_op_initf(bm, &delop, "del geom=%fvef context=%d",
-		            EXT_DEL, DEL_ONLYTAGGED);
+		             EXT_DEL, DEL_ONLYTAGGED);
 	}
 
 	BMO_slot_copy(op, &dupeop, "edgefacein", "geom");

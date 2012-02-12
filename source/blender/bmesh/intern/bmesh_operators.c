@@ -619,7 +619,7 @@ static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, c
  */
 
 void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                            const char hflag, const char htype)
+                         const char hflag, const char htype)
 {
 	BMIter elements;
 	BMHeader *e;
@@ -745,7 +745,7 @@ void BMO_slot_buffer_hflag(BMesh *bm, BMOperator *op, const char *slotname,
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_clear(BMesh *bm, BMOperator *op, const char *slotname,
-                             const char hflag, const char htype)
+                                 const char hflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -788,7 +788,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  * Flags elements in a slots buffer
  */
 void BMO_slot_buffer_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                     const short oflag, const char htype)
+                          const short oflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -809,7 +809,7 @@ void BMO_slot_buffer_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * Removes flags from elements in a slots buffer
  */
 void BMO_slot_buffer_flag_clear(BMesh *bm, BMOperator *op, const char *slotname,
-                       const short oflag, const char htype)
+                                const short oflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -966,7 +966,7 @@ void *BMO_slot_elem_first(BMOperator *op, const char *slotname)
 }
 
 void *BMO_iter_new(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
-                  const char *slotname, const char restrictmask)
+                   const char *slotname, const char restrictmask)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 

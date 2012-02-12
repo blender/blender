@@ -91,7 +91,7 @@ int bmesh_ke(struct BMesh *bm, struct BMEdge *e);
 int bmesh_kf(struct BMesh *bm, struct BMFace *bply);
 struct BMVert *bmesh_semv(struct BMesh *bm, struct BMVert *tv, struct BMEdge *e, struct BMEdge **re);
 struct BMFace *bmesh_sfme(struct BMesh *bm, struct BMFace *f, struct BMVert *v1,
-						  struct BMVert *v2, struct BMLoop **rl, struct ListBase *holes);
+                          struct BMVert *v2, struct BMLoop **rl, struct ListBase *holes);
 int bmesh_jekv(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv);
 int bmesh_loop_reverse(struct BMesh *bm, struct BMFace *f);
 struct BMFace *bmesh_jfke(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2, struct BMEdge *e);

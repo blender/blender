@@ -271,8 +271,8 @@ static void *islandboundWalker_step(BMWalker *walker)
 	if (BM_vert_is_nonmanifold(walker->bm, v)) {
 		BMW_reset(walker);
 		BMO_error_raise(walker->bm, NULL, BMERR_WALKER_FAILED,
-		               "Non-manifold vert "
-		               "while searching region boundary");
+		                "Non-manifold vert "
+		                "while searching region boundary");
 		return NULL;
 	}
 	

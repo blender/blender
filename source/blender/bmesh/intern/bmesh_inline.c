@@ -69,4 +69,3 @@ BM_INLINE int BM_elem_index_get(const void *element)
 }
 
 #endif /* BM_INLINE_C */
-

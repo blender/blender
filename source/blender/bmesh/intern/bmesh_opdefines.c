@@ -118,7 +118,7 @@ static BMOpDefine def_righthandfaces = {
 	"righthandfaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	 {BMOP_OPSLOT_INT, "doflip"}, //internal flag, used by bmesh_rationalize_normals
-	{0} /* null-terminating sentine */,
+	 {0} /* null-terminating sentine */,
 	},
 	bmesh_righthandfaces_exec,
 	BMOP_UNTAN_MULTIRES,
@@ -140,7 +140,7 @@ static BMOpDefine def_regionextend = {
 	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output slot, computed boundary geometry.
 	 {BMOP_OPSLOT_INT, "constrict"}, //find boundary inside the regions, not outside.
 	 {BMOP_OPSLOT_INT, "usefaces"}, //extend from faces instead of edges
-	{0} /* null-terminating sentine */,
+	 {0} /* null-terminating sentine */,
 	},
 	bmesh_regionextend_exec,
 	0
@@ -157,7 +157,7 @@ static BMOpDefine def_edgerotate = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
 	 {BMOP_OPSLOT_INT, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
-	{0} /* null-terminating sentine */,
+	 {0} /* null-terminating sentine */,
 	},
 	bmesh_edgerotate_exec,
 	BMOP_UNTAN_MULTIRES
@@ -172,7 +172,7 @@ static BMOpDefine def_edgerotate = {
 static BMOpDefine def_reversefaces = {
 	"reversefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input faces
-	{0} /* null-terminating sentine */,
+	 {0} /* null-terminating sentine */,
 	},
 	bmesh_reversefaces_exec,
 	BMOP_UNTAN_MULTIRES,
@@ -187,9 +187,9 @@ static BMOpDefine def_reversefaces = {
 static BMOpDefine def_edgebisect = {
 	"edgebisect",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
-	{BMOP_OPSLOT_INT, "numcuts"}, //number of cuts
-	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"}, //newly created vertices and edges
-	{0} /* null-terminating sentine */,
+	 {BMOP_OPSLOT_INT, "numcuts"}, //number of cuts
+	 {BMOP_OPSLOT_ELEMENT_BUF, "outsplit"}, //newly created vertices and edges
+	 {0} /* null-terminating sentine */,
 	},
 	esplit_exec,
 	BMOP_UNTAN_MULTIRES
@@ -359,8 +359,8 @@ static BMOpDefine def_weldverts = {
 static BMOpDefine def_makevert = {
 	"makevert",
 	{{BMOP_OPSLOT_VEC, "co"}, //the coordinate of the new vert
-	{BMOP_OPSLOT_ELEMENT_BUF, "newvertout"}, //the new vert
-	{0, /* null-terminating sentine */}},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "newvertout"}, //the new vert
+	 {0, /* null-terminating sentine */}},
 	bmesh_makevert_exec,
 	0,
 };

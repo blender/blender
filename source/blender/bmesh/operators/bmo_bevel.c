@@ -147,14 +147,14 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 
 #define ETAG_SET(e, v, nv)  (                                                 \
 	(v) == (e)->v1 ?                                                          \
-		(etags[BM_elem_index_get((e))].newv1 = (nv)) :                              \
-		(etags[BM_elem_index_get((e))].newv2 = (nv))                                \
+		(etags[BM_elem_index_get((e))].newv1 = (nv)) :                        \
+		(etags[BM_elem_index_get((e))].newv2 = (nv))                          \
 	)
 
 #define ETAG_GET(e, v)  (                                                     \
 	(v) == (e)->v1 ?                                                          \
-		(etags[BM_elem_index_get((e))].newv1) :                                     \
-		(etags[BM_elem_index_get((e))].newv2)                                       \
+		(etags[BM_elem_index_get((e))].newv1) :                               \
+		(etags[BM_elem_index_get((e))].newv2)                                 \
 	)
 
 void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
@@ -838,7 +838,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 #endif
-	
+
 	BMO_op_callf(bm, "del geom=%fv context=%i", BEVEL_DEL, DEL_VERTS);
 
 	/* clean up any edges that might not get properly delete */

@@ -138,7 +138,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		faces = regions[i];
 		if (!faces[0]) {
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED,
-			               "Could not find boundary of dissolve region");
+			                "Could not find boundary of dissolve region");
 			goto cleanup;
 		}
 		
@@ -148,7 +148,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		f = BM_faces_join(bm, faces, tot);
 		if (!f) {
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED,
-			               "Could not create merged face");
+			                "Could not create merged face");
 			goto cleanup;
 		}
 
@@ -206,8 +206,8 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_set(bm, e->v2, VERT_MARK);
 
 			BM_faces_join_pair(bm, e->l->f,
-			                 e->l->radial_next->f,
-			                 e);
+			                   e->l->radial_next->f,
+			                   e);
 		}
 	}
 
@@ -265,8 +265,8 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 
 			/* join faces */
 			BM_faces_join_pair(bm, e->l->f,
-			                 e->l->radial_next->f,
-			                 e);
+			                   e->l->radial_next->f,
+			                   e);
 		}
 	}
 

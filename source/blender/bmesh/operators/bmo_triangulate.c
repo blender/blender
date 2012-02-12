@@ -67,7 +67,7 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 		BMO_slot_map_ptr_insert(bm, op, "facemap", face, face);
 		for (i = 0; newfaces[i]; i++) {
 			BMO_slot_map_ptr_insert(bm, op, "facemap",
-			                      newfaces[i], face);
+			                        newfaces[i], face);
 
 		}
 	}
@@ -188,8 +188,8 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	
 	for (efa = fillfacebase.first; efa; efa = efa->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
-		                                 efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL,
-		                                 NULL, TRUE);
+		                                    efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL,
+		                                    NULL, TRUE);
 		BMLoop *l;
 		BMIter liter;
 		

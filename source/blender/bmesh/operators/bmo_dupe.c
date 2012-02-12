@@ -100,7 +100,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 		/* not sure what non-manifold cases of greater then three
 		 * radial should do. */
 		BMO_slot_map_ptr_insert(source_mesh, op, "boundarymap",
-		                      source_edge, target_edge);
+		                        source_edge, target_edge);
 	}
 
 	/* Insert new edge into the edge hash */
@@ -152,9 +152,9 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	/* create new fac */
 	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, FALSE);
 	BMO_slot_map_ptr_insert(source_mesh, op,
-	                      "facemap", source_face, target_face);
+	                        "facemap", source_face, target_face);
 	BMO_slot_map_ptr_insert(source_mesh, op,
-	                      "facemap", target_face, source_face);
+	                        "facemap", target_face, source_face);
 
 	BM_elem_copy_attrs(source_mesh, target_mesh, source_face, target_face);
 
@@ -425,9 +425,9 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	/* now we make our outputs by copying the dupe output */
 	BMO_slot_copy(&dupeop, splitop, "newout", "geomout");
 	BMO_slot_copy(&dupeop, splitop, "boundarymap",
-	             "boundarymap");
+	              "boundarymap");
 	BMO_slot_copy(&dupeop, splitop, "isovertmap",
-	             "isovertmap");
+	              "isovertmap");
 	
 	/* cleanu */
 	BMO_op_finish(bm, &delop);
@@ -488,16 +488,16 @@ void spinop_exec(BMesh *bm, BMOperator *op)
 			BMO_op_initf(bm, &dupop, "dupe geom=%s", op, "lastout");
 			BMO_op_exec(bm, &dupop);
 			BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s",
-			            cent, rmat, &dupop, "newout");
+			             cent, rmat, &dupop, "newout");
 			BMO_slot_copy(&dupop, op, "newout", "lastout");
 			BMO_op_finish(bm, &dupop);
 		}
 		else {
 			BMO_op_initf(bm, &extop, "extrudefaceregion edgefacein=%s",
-			            op, "lastout");
+			             op, "lastout");
 			BMO_op_exec(bm, &extop);
 			BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s",
-			            cent, rmat, &extop, "geomout");
+			             cent, rmat, &extop, "geomout");
 			BMO_slot_copy(&extop, op, "geomout", "lastout");
 			BMO_op_finish(bm, &extop);
 		}

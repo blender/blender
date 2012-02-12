@@ -253,7 +253,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 
 			do {
 				if (BLI_smallhash_haskey(hash, (intptr_t)e2) ||
-				        BLI_smallhash_haskey(hash, (intptr_t)v))
+				    BLI_smallhash_haskey(hash, (intptr_t)v))
 				{
 					ok = 0;
 					break;

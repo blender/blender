@@ -199,7 +199,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 							/* edges do not form a loop: there is a disk
 							 * with more than two marked edges. */
 							BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-							               "Selection must only contain edges from two edge loops");
+							                "Selection must only contain edges from two edge loops");
 							goto cleanup;
 						}
 					}
@@ -285,7 +285,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		 * the bridge instead of quads only. */
 		if (BLI_array_count(ee1) != BLI_array_count(ee2)) {
 			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-			               "Selected loops must have equal edge counts");
+			                "Selected loops must have equal edge counts");
 			goto cleanup;
 		}
 
@@ -395,11 +395,11 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 
 			f = BM_face_create_quad_tri(bm,
-			                         vv1[i1],
-			                         vv2[i2],
-			                         vv2[i2next],
-			                         vv1[i1next],
-			                         NULL, TRUE);
+			                            vv1[i1],
+			                            vv2[i2],
+			                            vv2[i2next],
+			                            vv1[i1next],
+			                            NULL, TRUE);
 			if (!f || f->len != 4) {
 				fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 			}

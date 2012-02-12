@@ -224,7 +224,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	}
 	
 	ev = bm_subdivide_edge_addvert(bm, edge, oedge, params, percent,
-	                              percent2, newe, vsta, vend);
+	                               percent2, newe, vsta, vend);
 	return ev;
 }
 
@@ -741,7 +741,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 	/* first go through and tag edge */
 	BMO_slot_from_flag(bmesh, op, "edges",
-	                 SUBD_SPLIT, BM_EDGE);
+	                   SUBD_SPLIT, BM_EDGE);
 
 	params.numcuts = numcuts;
 	params.op = op;
@@ -755,10 +755,10 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	params.off[2] = (float)BLI_drand() * 200.0f;
 	
 	BMO_slot_map_to_flag(bmesh, op, "custompatterns",
-	                    FACE_CUSTOMFILL);
+	                     FACE_CUSTOMFILL);
 
 	BMO_slot_map_to_flag(bmesh, op, "edgepercents",
-	                    EDGE_PERCENT);
+	                     EDGE_PERCENT);
 
 	for (face = BM_iter_new(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face;
@@ -809,7 +809,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		if (BMO_elem_flag_test(bmesh, face, FACE_CUSTOMFILL)) {
 			pat = BMO_slot_map_data_get(bmesh, op,
-			                      "custompatterns", face);
+			                            "custompatterns", face);
 			for (i = 0; i < pat->len; i++) {
 				matched = 1;
 				for (j = 0; j < pat->len; j++) {
@@ -914,7 +914,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			/* find the boundary of one of the split edge */
 			for (a = 1; a < vlen; a++) {
 				if (!BMO_elem_flag_test(bmesh, loops[a - 1]->v, ELE_INNER) &&
-				     BMO_elem_flag_test(bmesh, loops[a]->v, ELE_INNER))
+				    BMO_elem_flag_test(bmesh, loops[a]->v, ELE_INNER))
 				{
 					break;
 				}
@@ -928,7 +928,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				for (j = 0; j < vlen; j++) {
 					b = (j + a + numcuts + 1) % vlen;
 					if (!BMO_elem_flag_test(bmesh, loops[b == 0 ? vlen - 1 : b - 1]->v, ELE_INNER) &&
-					     BMO_elem_flag_test(bmesh, loops[b]->v, ELE_INNER))
+					    BMO_elem_flag_test(bmesh, loops[b]->v, ELE_INNER))
 					{
 						break;
 					}
@@ -1005,12 +1005,12 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	BLI_array_free(loops);
 
 	BMO_slot_from_flag(bmesh, op, "outinner",
-	                 ELE_INNER, BM_ALL);
+	                   ELE_INNER, BM_ALL);
 	BMO_slot_from_flag(bmesh, op, "outsplit",
-	                 ELE_SPLIT, BM_ALL);
+	                   ELE_SPLIT, BM_ALL);
 	
 	BMO_slot_from_flag(bmesh, op, "geomout",
-	                 ELE_INNER|ELE_SPLIT|SUBD_SPLIT, BM_ALL);
+	                   ELE_INNER|ELE_SPLIT|SUBD_SPLIT, BM_ALL);
 }
 
 /* editmesh-emulating functio */
@@ -1022,10 +1022,10 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 	BMOperator op;
 	
 	BMO_op_initf(bm, &op, "esubd edges=%he smooth=%f fractal=%f "
-	            "beauty=%d numcuts=%d quadcornertype=%d singleedge=%d "
-	            "gridfill=%d seed=%d",
-	            flag, smooth, fractal, beauty, numcuts,
-	            cornertype, singleedge, gridfill, seed);
+	             "beauty=%d numcuts=%d quadcornertype=%d singleedge=%d "
+	             "gridfill=%d seed=%d",
+	             flag, smooth, fractal, beauty, numcuts,
+	             cornertype, singleedge, gridfill, seed);
 	
 	BMO_op_exec(bm, &op);
 	

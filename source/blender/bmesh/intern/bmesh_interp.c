@@ -726,13 +726,14 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BMLoop *l_first;
 	void **blocks = NULL;
 	void **vblocks = NULL;
-	float (*cos)[3] = NULL, co[3], *w = NULL, cent[3] = {0.0f, 0.0f, 0.0f};
+	float (*cos)[3] = NULL, co[3], *w = NULL;
+	float cent[3] = {0.0f, 0.0f, 0.0f};
 	BLI_array_fixedstack_declare(cos,      BM_NGON_STACK_SIZE, source->len, __func__);
 	BLI_array_fixedstack_declare(w,        BM_NGON_STACK_SIZE, source->len, __func__);
 	BLI_array_fixedstack_declare(blocks,   BM_NGON_STACK_SIZE, source->len, __func__);
 	BLI_array_fixedstack_declare(vblocks,  BM_NGON_STACK_SIZE, do_vertex ? source->len : 0, __func__);
 	int i, ax, ay;
-	
+
 	BM_elem_copy_attrs(bm, bm, source, target->f);
 
 	i = 0;
@@ -740,15 +741,15 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	do {
 		copy_v3_v3(cos[i], l_iter->v->co);
 		add_v3_v3(cent, cos[i]);
-		
+
 		w[i] = 0.0f;
 		blocks[i] = l_iter->head.data;
-	
+
 		if (do_vertex) {
 			vblocks[i] = l_iter->v->head.data;
 		}
 		i++;
-	
+
 	} while ((l_iter = l_iter->next) != l_first);
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
@@ -764,19 +765,19 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 		sub_v3_v3v3(vec, cent, cos[i]);
 		mul_v3_fl(vec, 0.001f);
 		add_v3_v3(cos[i], vec);
-		
+
 		copy_v3_v3(tmp, cos[i]);
 		cos[i][0] = tmp[ax];
 		cos[i][1] = tmp[ay];
 		cos[i][2] = 0.0;
 	}
-	
-	
+
+
 	/* interpolate */
 	co[0] = target->v->co[ax];
 	co[1] = target->v->co[ay];
 	co[2] = 0.0f;
-	
+
 	interp_weights_poly_v3(w, cos, source->len, co);
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
 	if (do_vertex) {
@@ -787,7 +788,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BLI_array_fixedstack_free(cos);
 	BLI_array_fixedstack_free(w);
 	BLI_array_fixedstack_free(blocks);
-	
+
 	if (do_multires) {
 		if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 			bmesh_loop_interp_mdisps(bm, target, source);
@@ -801,7 +802,8 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	void **blocks = NULL;
-	float (*cos)[3] = NULL, *w = NULL, cent[3] = {0.0f, 0.0f, 0.0f};
+	float (*cos)[3] = NULL, *w = NULL;
+	float cent[3] = {0.0f, 0.0f, 0.0f};
 	BLI_array_fixedstack_declare(cos,      BM_NGON_STACK_SIZE, source->len, __func__);
 	BLI_array_fixedstack_declare(w,        BM_NGON_STACK_SIZE, source->len, __func__);
 	BLI_array_fixedstack_declare(blocks,   BM_NGON_STACK_SIZE, source->len, __func__);
@@ -827,11 +829,11 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 		mul_v3_fl(vec, 0.01);
 		add_v3_v3(cos[i], vec);
 	}
-	
+
 	/* interpolate */
 	interp_weights_poly_v3(w, cos, source->len, v->co);
 	CustomData_bmesh_interp(&bm->vdata, blocks, w, NULL, source->len, v->head.data);
-	
+
 	BLI_array_fixedstack_free(cos);
 	BLI_array_fixedstack_free(w);
 	BLI_array_fixedstack_free(blocks);

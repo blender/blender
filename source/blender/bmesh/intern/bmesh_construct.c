@@ -128,8 +128,8 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int n
  */
 
 BMFace *BM_face_create_quad_tri(BMesh *bm,
-                             BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                             const BMFace *example, const int nodouble)
+                                BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+                                const BMFace *example, const int nodouble)
 {
 	BMVert *vtar[4] = {v1, v2, v3, v4};
 	return BM_face_create_quad_tri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
@@ -695,9 +695,9 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 	e = BM_iter_new(&iter, bmold, BM_EDGES_OF_MESH, NULL);
 	for (i = 0; e; e = BM_iter_step(&iter), i++) {
 		e2 = BM_edge_create(bm,
-		                  vtable[BM_elem_index_get(e->v1)],
-		                  vtable[BM_elem_index_get(e->v2)],
-		                  e, FALSE);
+		                    vtable[BM_elem_index_get(e->v1)],
+		                    vtable[BM_elem_index_get(e->v2)],
+		                    e, FALSE);
 
 		BM_elem_copy_attrs(bmold, bm, e, e2);
 		etable[i] = e2;
