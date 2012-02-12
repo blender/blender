@@ -598,9 +598,6 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		if(use_high_bit_depth) {
 			fscalerect= MEM_mallocN(rectw*recth*sizeof(*fscalerect)*4, "fscalerect");
 			gluScaleImage(GL_RGBA, tpx, tpy, GL_FLOAT, frect, rectw, recth, GL_FLOAT, fscalerect);
-			/* frect will refer to ibuf->rect_float when not color converting. We don't want to free that */
-			if(do_color_management)
-				MEM_freeN(frect);
 
 			frect = fscalerect;
 		}
