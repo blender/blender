@@ -97,8 +97,6 @@ struct ToolSettings;
 #define B_FRACTAL		0x2000
 #define B_SPHERE		0x4000
 
-float *bm_get_cd_float(struct CustomData *cdata, void *data, int type);
-
 intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 int         mesh_mirrtopo_table(struct Object *ob, char mode);
 

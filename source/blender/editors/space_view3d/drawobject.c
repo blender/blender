@@ -2531,7 +2531,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 {
 	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
-	float *crease = eed ? bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE) : NULL;
+	float *crease = eed ? (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE) : NULL;
 	
 	if (!crease)
 		return 0;
@@ -2554,7 +2554,7 @@ static int draw_dm_bweights__setDrawOptions(void *userData, int index)
 {
 	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
-	float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+	float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 
 	if (!bweight)
 		return 0;
@@ -2570,7 +2570,7 @@ static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, floa
 {
 	BMEditMesh *em = userData;
 	BMVert *eve = EDBM_get_vert_for_index(userData, index);
-	float *bweight = bm_get_cd_float(&em->bm->vdata, eve->head.data, CD_BWEIGHT);
+	float *bweight = (float *)CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_BWEIGHT);
 	
 	if (!bweight)
 		return;

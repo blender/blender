@@ -1296,13 +1296,6 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-float *bm_get_cd_float(CustomData *cdata, void *data, int type)
-{
-	float *f = CustomData_bmesh_get(cdata, data, type);
-
-	return f;
-}
-
 static const EnumPropertyItem direction_items[] = {
 	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
 	{DIRECTION_CCW, "CCW", 0, "Counter Clockwise", ""},

@@ -173,10 +173,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				float *f;
 
 				totedge++;
-				f = bm_get_cd_float(&bm->edata, eed->head.data, CD_CREASE);
+				f = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
 				median[3]+= f ? *f : 0.0f;
 
-				f = bm_get_cd_float(&bm->edata, eed->head.data, CD_BWEIGHT);
+				f = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
 				median[6]+= f ? *f : 0.0f;
 			}
 		}
@@ -436,7 +436,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 					BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
+							float *crease = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 							if (!crease) break;
 							
 							*crease= fixed_crease;
@@ -458,7 +458,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
+								float *crease = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 								
 								if (!crease) break;
 								
@@ -473,7 +473,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
+								float *crease = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 								if (!crease) break;
 
 								*crease = 1.0f - ((1.0f - *crease) * sca);
@@ -493,7 +493,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 					BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+							float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 							if(!bweight) break;
 							
 							*bweight = fixed_bweight;
@@ -515,7 +515,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+								float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 								if(!bweight) break;
 								
 								*bweight *= sca;
@@ -529,7 +529,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+								float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 								if(!bweight) break;
 
 								*bweight = 1.0f - ((1.0f - *bweight) * sca);
