@@ -500,7 +500,7 @@ static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_RENDER, scene);
 	
 	return OPERATOR_FINISHED;
 }
