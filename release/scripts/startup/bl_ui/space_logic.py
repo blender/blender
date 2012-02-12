@@ -57,7 +57,8 @@ class LOGIC_PT_properties(Panel):
                 props.name = 'Text'
                 props.type = 'STRING'
 
-        layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
+        props = layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
+        props.name = ''
 
         for i, prop in enumerate(game.properties):
 

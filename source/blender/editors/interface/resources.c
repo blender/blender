@@ -590,9 +590,9 @@ static void ui_theme_init_new(bTheme *btheme)
 
 
 /* initialize default theme
-   Note: when you add new colors, created & saved themes need initialized
-   use function below, init_userdef_do_versions() 
-*/
+ * Note: when you add new colors, created & saved themes need initialized
+ * use function below, init_userdef_do_versions()
+ */
 void ui_theme_init_default(void)
 {
 	bTheme *btheme;
@@ -613,7 +613,9 @@ void ui_theme_init_default(void)
 	/* UI buttons */
 	ui_widget_color_init(&btheme->tui);
 	btheme->tui.iconfile[0]= 0;
-	
+	btheme->tui.panel.show_header = FALSE;
+	SETCOL(btheme->tui.panel.header, 0, 0, 0, 25);
+
 	/* Bone Color Sets */
 	ui_theme_init_boneColorSets(btheme);
 	

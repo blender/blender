@@ -173,10 +173,10 @@ void KX_FontObject::DrawText()
 	this->GetObjectColor().getValue(m_color);
 
 	/* HARDCODED MULTIPLICATION FACTOR - this will affect the render resolution directly */
-	float RES = BGE_FONT_RES * m_resolution;
+	const float RES = BGE_FONT_RES * m_resolution;
 
-	float size = m_fsize * m_object->size[0] * RES;
-	float aspect = 1.f / (m_object->size[0] * RES);
+	const float size = m_fsize * this->NodeGetWorldScaling()[0] * RES;
+	const float aspect = m_fsize / size;
 
 	/* Get a working copy of the OpenGLMatrix to use */
 	double mat[16];

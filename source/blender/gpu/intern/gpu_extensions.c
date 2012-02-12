@@ -174,7 +174,8 @@ void GPU_extensions_init(void)
 		   strstr(renderer, "R5") || strstr(renderer, "RV5") ||
 		   strstr(renderer, "RS600") || strstr(renderer, "RS690") ||
 		   strstr(renderer, "RS740") || strstr(renderer, "X1") ||
-		   strstr(renderer, "X2"))
+		   strstr(renderer, "X2") || strstr(renderer, "Radeon 9") ||
+		   strstr(renderer, "RADEON 9"))
 			GG.npotdisabled = 1;
 	}
 

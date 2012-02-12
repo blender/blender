@@ -1976,6 +1976,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Grease Pencil", "Display and edit the grease pencil freehand annotations overlay");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
+	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_DRAWFRAMES);
+	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
+
 	/* grease pencil */
 	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");

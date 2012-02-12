@@ -67,6 +67,14 @@ EnumPropertyItem event_value_items[] = {
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+	{EVT_GESTURE_N, "NORTH", 0, "North", ""},
+	{EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
+	{EVT_GESTURE_E, "EAST", 0, "East", ""},
+	{EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
+	{EVT_GESTURE_S, "SOUTH", 0, "South", ""},
+	{EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
+	{EVT_GESTURE_W, "WEST", 0, "West", ""},
+	{EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_type_items[]= {

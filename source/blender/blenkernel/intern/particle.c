@@ -1365,6 +1365,35 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 	if(pind->keyed || pind->cache || point_vel)
 		mul_v3_fl(result->vel, 1.f/invdt);
 }
+
+static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCacheKey *result)
+{
+	int i=0;
+	ParticleCacheKey *cur = first;
+
+	/* scale the requested time to fit the entire path even if the path is cut early */
+	t *= (first+first->steps)->time;
+
+	while(i<first->steps && cur->time < t)
+		cur++;
+
+	if(cur->time == t)
+		*result = *cur;
+	else {
+		float dt = (t-(cur-1)->time)/(cur->time-(cur-1)->time);
+		interp_v3_v3v3(result->co, (cur-1)->co, cur->co, dt);
+		interp_v3_v3v3(result->vel, (cur-1)->vel, cur->vel, dt);
+		interp_qt_qtqt(result->rot, (cur-1)->rot, cur->rot, dt);
+		result->time = t;
+	}
+
+	/* first is actual base rotation, others are incremental from first */
+	if(cur==first || cur-1==first)
+		copy_qt_qt(result->rot, first->rot);
+	else
+		mul_qt_qtqt(result->rot, first->rot, result->rot);
+}
+
 /************************************************/
 /*			Particles on a dm					*/
 /************************************************/
@@ -2648,6 +2677,8 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			/* offset the child from the parent position */
 			offset_child(cpa, (ParticleKey*)(key[0]+k), par_rot, (ParticleKey*)child, part->childflat, part->childrad);
 		}
+
+		child->time = (float)k/(float)ctx->steps;
 	}
 
 	/* apply effectors */
@@ -3009,6 +3040,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 
 			if(k==1)
 				copy_v3_v3((ca-1)->vel, ca->vel);
+
+			ca->time = (float)k/(float)steps;
 		}
 		/* First rotation is based on emitting face orientation.
 		 * This is way better than having flipping rotations resulting
@@ -3087,6 +3120,9 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0, point=edit->points; i<totpart; i++, pa+=pa?1:0, point++){
 		if(edit->totcached && !(point->flag & PEP_EDIT_RECALC))
+			continue;
+
+		if(point->totkey == 0)
 			continue;
 
 		ekey = point->keys;
@@ -4013,84 +4049,105 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 	CLAMP(t, 0.0f, 1.0f);
 
 	if(p<totpart){
-		pa = psys->particles + p;
-		pind.keyed = keyed;
-		pind.cache = cached ? psys->pointcache : NULL;
-		pind.epoint = NULL;
-		pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-		/* pind.dm disabled in editmode means we dont get effectors taken into
-		 * account when subdividing for instance */
-		pind.dm = psys_in_edit_mode(sim->scene, psys) ? NULL : psys->hair_out_dm;
-		init_particle_interpolation(sim->ob, psys, pa, &pind);
-		do_particle_interpolation(psys, p, pa, t, &pind, state);
-
-		if(pind.dm) {
-			mul_m4_v3(sim->ob->obmat, state->co);
-			mul_mat3_m4_v3(sim->ob->obmat, state->vel);
+		/* interpolate pathcache directly if it exist */
+		if(psys->pathcache) {
+			ParticleCacheKey result;
+			interpolate_pathcache(psys->pathcache[p], t, &result);
+			copy_v3_v3(state->co, result.co);
+			copy_v3_v3(state->vel, result.vel);
+			copy_qt_qt(state->rot, result.rot);
 		}
-		else if(!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-			if((pa->flag & PARS_REKEY)==0) {
-				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, part->from, pa, hairmat);
-				mul_m4_v3(hairmat, state->co);
-				mul_mat3_m4_v3(hairmat, state->vel);
+		/* otherwise interpolate with other means */
+		else {
+			pa = psys->particles + p;
 
-				if(sim->psys->effectors && (part->flag & PART_CHILD_GUIDE)==0) {
-					do_guides(sim->psys->effectors, state, p, state->time);
-					/* TODO: proper velocity handling */
+			pind.keyed = keyed;
+			pind.cache = cached ? psys->pointcache : NULL;
+			pind.epoint = NULL;
+			pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
+			/* pind.dm disabled in editmode means we dont get effectors taken into
+			 * account when subdividing for instance */
+			pind.dm = psys_in_edit_mode(sim->scene, psys) ? NULL : psys->hair_out_dm;
+			init_particle_interpolation(sim->ob, psys, pa, &pind);
+			do_particle_interpolation(psys, p, pa, t, &pind, state);
+
+			if(pind.dm) {
+				mul_m4_v3(sim->ob->obmat, state->co);
+				mul_mat3_m4_v3(sim->ob->obmat, state->vel);
+			}
+			else if(!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
+				if((pa->flag & PARS_REKEY)==0) {
+					psys_mat_hair_to_global(sim->ob, sim->psmd->dm, part->from, pa, hairmat);
+					mul_m4_v3(hairmat, state->co);
+					mul_mat3_m4_v3(hairmat, state->vel);
+
+					if(sim->psys->effectors && (part->flag & PART_CHILD_GUIDE)==0) {
+						do_guides(sim->psys->effectors, state, p, state->time);
+						/* TODO: proper velocity handling */
+					}
+
+					if(psys->lattice && edit==0)
+						calc_latt_deform(psys->lattice, state->co,1.0f);
 				}
-
-				if(psys->lattice && edit==0)
-					calc_latt_deform(psys->lattice, state->co,1.0f);
 			}
 		}
 	}
 	else if(totchild){
 		//invert_m4_m4(imat,ob->obmat);
 
-		cpa=psys->child+p-totpart;
+		/* interpolate childcache directly if it exists */
+		if(psys->childcache) {
+			ParticleCacheKey result;
+			interpolate_pathcache(psys->childcache[p-totpart], t, &result);
+			copy_v3_v3(state->co, result.co);
+			copy_v3_v3(state->vel, result.vel);
+			copy_qt_qt(state->rot, result.rot);
+		}
+		else {
+			cpa=psys->child+p-totpart;
 
-		if(state->time < 0.0f)
-			t = psys_get_child_time(psys, cpa, -state->time, NULL, NULL);
+			if(state->time < 0.0f)
+				t = psys_get_child_time(psys, cpa, -state->time, NULL, NULL);
 		
-		if(totchild && part->childtype==PART_CHILD_FACES){
-			/* part->parents could still be 0 so we can't test with totparent */
-			between=1;
-		}
-		if(between){
-			int w = 0;
-			float foffset;
-
-			/* get parent states */
-			while(w<4 && cpa->pa[w]>=0){
-				keys[w].time = state->time;
-				psys_get_particle_on_path(sim, cpa->pa[w], keys+w, 1);
-				w++;
+			if(totchild && part->childtype==PART_CHILD_FACES){
+				/* part->parents could still be 0 so we can't test with totparent */
+				between=1;
 			}
+			if(between){
+				int w = 0;
+				float foffset;
 
-			/* get the original coordinates (orco) for texture usage */
-			cpa_num=cpa->num;
+				/* get parent states */
+				while(w<4 && cpa->pa[w]>=0){
+					keys[w].time = state->time;
+					psys_get_particle_on_path(sim, cpa->pa[w], keys+w, 1);
+					w++;
+				}
+
+				/* get the original coordinates (orco) for texture usage */
+				cpa_num=cpa->num;
 			
-			foffset= cpa->foffset;
-			cpa_fuv = cpa->fuv;
-			cpa_from = PART_FROM_FACE;
+				foffset= cpa->foffset;
+				cpa_fuv = cpa->fuv;
+				cpa_from = PART_FROM_FACE;
 
-			psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,0,0,0,orco,0);
+				psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,0,0,0,orco,0);
 
-			/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
-			//copy_v3_v3(cpa_1st,co);
+				/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
+				//copy_v3_v3(cpa_1st,co);
 
-			//mul_m4_v3(ob->obmat,cpa_1st);
+				//mul_m4_v3(ob->obmat,cpa_1st);
 
-			pa = psys->particles + cpa->parent;
+				pa = psys->particles + cpa->parent;
 
-			if(part->type == PART_HAIR)
-				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
-			else
-				unit_m4(hairmat);
+				if(part->type == PART_HAIR)
+					psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+				else
+					unit_m4(hairmat);
 
-			pa=0;
-		}
-		else{
+				pa=0;
+			}
+																					else{
 			/* get the parent state */
 			keys->time = state->time;
 			psys_get_particle_on_path(sim, cpa->parent, keys,1);
@@ -4114,74 +4171,75 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			}
 		}
 
-		/* correct child ipo timing */
-#if 0 // XXX old animation system
-		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
-			calc_ipo(part->ipo, 100.0f*t);
-			execute_ipo((ID *)part, part->ipo);
-		}
-#endif // XXX old animation system
-		
-		/* get different child parameters from textures & vgroups */
-		memset(&ctx, 0, sizeof(ParticleThreadContext));
-		ctx.sim = *sim;
-		ctx.dm = psmd->dm;
-		ctx.ma = ma;
-		/* TODO: assign vertex groups */
-		get_child_modifier_parameters(part, &ctx, cpa, cpa_from, cpa_num, cpa_fuv, orco, &ptex);
-
-		if(between){
-			int w=0;
-
-			state->co[0] = state->co[1] = state->co[2] = 0.0f;
-			state->vel[0] = state->vel[1] = state->vel[2] = 0.0f;
-
-			/* child position is the weighted sum of parent positions */
-			while(w<4 && cpa->pa[w]>=0){
-				state->co[0] += cpa->w[w] * keys[w].co[0];
-				state->co[1] += cpa->w[w] * keys[w].co[1];
-				state->co[2] += cpa->w[w] * keys[w].co[2];
-
-				state->vel[0] += cpa->w[w] * keys[w].vel[0];
-				state->vel[1] += cpa->w[w] * keys[w].vel[1];
-				state->vel[2] += cpa->w[w] * keys[w].vel[2];
-				w++;
+			/* correct child ipo timing */
+	#if 0 // XXX old animation system
+			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
+				calc_ipo(part->ipo, 100.0f*t);
+				execute_ipo((ID *)part, part->ipo);
 			}
-			/* apply offset for correct positioning */
-			//add_v3_v3(state->co, cpa_1st);
-		}
-		else{
-			/* offset the child from the parent position */
-			offset_child(cpa, keys, keys->rot, state, part->childflat, part->childrad);
-		}
+	#endif // XXX old animation system
+		
+			/* get different child parameters from textures & vgroups */
+			memset(&ctx, 0, sizeof(ParticleThreadContext));
+			ctx.sim = *sim;
+			ctx.dm = psmd->dm;
+			ctx.ma = ma;
+			/* TODO: assign vertex groups */
+			get_child_modifier_parameters(part, &ctx, cpa, cpa_from, cpa_num, cpa_fuv, orco, &ptex);
 
-		par = keys;
+			if(between){
+				int w=0;
 
-		if(vel)
-			copy_particle_key(&tstate, state, 1);
+				state->co[0] = state->co[1] = state->co[2] = 0.0f;
+				state->vel[0] = state->vel[1] = state->vel[2] = 0.0f;
 
-		/* apply different deformations to the child path */
-		do_child_modifiers(sim, &ptex, par, par->rot, cpa, orco, hairmat, state, t);
+				/* child position is the weighted sum of parent positions */
+				while(w<4 && cpa->pa[w]>=0){
+					state->co[0] += cpa->w[w] * keys[w].co[0];
+					state->co[1] += cpa->w[w] * keys[w].co[1];
+					state->co[2] += cpa->w[w] * keys[w].co[2];
 
-		/* try to estimate correct velocity */
-		if(vel){
-			ParticleKey tstate;
-			float length = len_v3(state->vel);
-
-			if(t>=0.001f){
-				tstate.time=t-0.001f;
-				psys_get_particle_on_path(sim,p,&tstate,0);
-				sub_v3_v3v3(state->vel,state->co,tstate.co);
-				normalize_v3(state->vel);
+					state->vel[0] += cpa->w[w] * keys[w].vel[0];
+					state->vel[1] += cpa->w[w] * keys[w].vel[1];
+					state->vel[2] += cpa->w[w] * keys[w].vel[2];
+					w++;
+				}
+				/* apply offset for correct positioning */
+				//add_v3_v3(state->co, cpa_1st);
 			}
 			else{
-				tstate.time=t+0.001f;
-				psys_get_particle_on_path(sim,p,&tstate,0);
-				sub_v3_v3v3(state->vel,tstate.co,state->co);
-				normalize_v3(state->vel);
+				/* offset the child from the parent position */
+				offset_child(cpa, keys, keys->rot, state, part->childflat, part->childrad);
 			}
 
-			mul_v3_fl(state->vel, length);
+			par = keys;
+
+			if(vel)
+				copy_particle_key(&tstate, state, 1);
+
+			/* apply different deformations to the child path */
+			do_child_modifiers(sim, &ptex, par, par->rot, cpa, orco, hairmat, state, t);
+
+			/* try to estimate correct velocity */
+			if(vel){
+				ParticleKey tstate;
+				float length = len_v3(state->vel);
+
+				if(t>=0.001f){
+					tstate.time=t-0.001f;
+					psys_get_particle_on_path(sim,p,&tstate,0);
+					sub_v3_v3v3(state->vel,state->co,tstate.co);
+					normalize_v3(state->vel);
+				}
+				else{
+					tstate.time=t+0.001f;
+					psys_get_particle_on_path(sim,p,&tstate,0);
+					sub_v3_v3v3(state->vel,tstate.co,state->co);
+					normalize_v3(state->vel);
+				}
+
+				mul_v3_fl(state->vel, length);
+			}
 		}
 	}
 }

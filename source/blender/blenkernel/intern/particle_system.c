@@ -3407,6 +3407,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
+	Base *base;
 	int distr=0, alloc=0, skip=0;
 
 	if((psys->part->childtype && psys->totchild != get_psys_tot_child(sim->scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
@@ -3446,6 +3447,19 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 				skip = 1;
 			else if(part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
 				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
+		}
+	}
+
+
+	/* particle instance modifier with "path" option need cached paths even if particle system doesn't */
+	for (base = sim->scene->base.first; base; base= base->next) {
+		ModifierData *md = modifiers_findByType(base->object, eModifierType_ParticleInstance);
+		if(md) {
+			ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+			if(pimd->flag & eParticleInstanceFlag_Path && pimd->ob == sim->ob && pimd->psys == (psys - (ParticleSystem*)sim->ob->particlesystem.first)) {
+				skip = 0;
+				break;
+			}
 		}
 	}
 
@@ -4414,6 +4428,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 			if(psys->totpart == 0 && part->totpart == 0) {
 				psys_free_path_cache(psys, NULL);
 				free_hair(ob, psys, 0);
+				psys->flag |= PSYS_HAIR_DONE;
 			}
 			/* (re-)create hair */
 			else if(hair_needs_recalc(psys)) {
