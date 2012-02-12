@@ -4524,7 +4524,6 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	madd_v3_v3fl(center, yvec, bb->offset[1]);
 }
 
-
 void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSimulationData sim= {0};

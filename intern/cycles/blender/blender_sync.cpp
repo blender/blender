@@ -122,7 +122,7 @@ bool BlenderSync::sync_recalc()
 	return recalc;
 }
 
-void BlenderSync::sync_data(BL::SpaceView3D b_v3d, int layer)
+void BlenderSync::sync_data(BL::SpaceView3D b_v3d, const char *layer)
 {
 	sync_render_layers(b_v3d);
 	sync_integrator(layer);
@@ -133,7 +133,7 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, int layer)
 
 /* Integrator */
 
-void BlenderSync::sync_integrator(int layer)
+void BlenderSync::sync_integrator(const char *layer)
 {
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
@@ -155,7 +155,20 @@ void BlenderSync::sync_integrator(int layer)
 
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
 	integrator->seed = get_int(cscene, "seed");
-	integrator->layer_flag = render_layers[layer].layer;
+
+	/* render layer */
+	int active_layer = 0;
+
+	if(layer) {
+		for(int i = 0; i < render_layers.size(); i++) {
+			if(render_layers[i].name == layer) {
+				active_layer = i;
+				break;
+			}
+		}
+	}
+
+	integrator->layer_flag = render_layers[active_layer].layer;
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
@@ -208,6 +221,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d)
 			/* single layer for now */
 			RenderLayerInfo rlay;
 
+			rlay.name = b_rlay->name();
 			rlay.scene_layer = get_layer(b_scene.layers());
 			rlay.layer = get_layer(b_rlay->layers());
 			rlay.material_override = b_rlay->material_override();

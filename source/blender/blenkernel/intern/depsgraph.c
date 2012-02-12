@@ -398,8 +398,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 								// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
 								node3 = dag_get_node(dag, ct->tar);
 								
-								if (ct->subtarget[0])
+								if (ct->subtarget[0]) {
 									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, cti->name);
+									if(ct->tar->type == OB_MESH)
+										node3->customdata_mask |= CD_MASK_MDEFORMVERT;
+								}
 								else if(ELEM3(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) 	
 									dag_add_relation(dag,node3,node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, cti->name);
 								else

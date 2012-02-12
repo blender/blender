@@ -157,7 +157,7 @@ static SpaceLink *clip_new(const bContext *C)
 
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
-	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_SHOW_GPENCIL|SC_MANUAL_CALIBRATION|SC_SHOW_GRAPH_TRACKS|SC_SHOW_GRAPH_FRAMES;
+	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_MANUAL_CALIBRATION|SC_SHOW_GRAPH_TRACKS|SC_SHOW_GRAPH_FRAMES;
 	sc->zoom= 1.0f;
 	sc->path_length= 20;
 	sc->scopes.track_preview_height= 120;
@@ -530,6 +530,12 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_selection");
 
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", DKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_disabled");
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_marker_search");
+
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_mute_footage");
 
@@ -587,6 +593,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *window= CTX_wm_window(C);
+	Scene *scene = CTX_data_scene(C);
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	ARegion *ar_main= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 	ARegion *ar_preview= clip_has_preview_region(C, sa);
@@ -628,7 +635,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		ED_area_tag_redraw(sa);
 	}
 
-	BKE_movieclip_user_set_frame(&sc->user, CTX_data_scene(C)->r.cfra);
+	BKE_movieclip_user_set_frame(&sc->user, scene->r.cfra);
 }
 
 /********************* main region ********************/

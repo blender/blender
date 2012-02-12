@@ -246,10 +246,10 @@ def lightmap_uvpack(meshes,
 
         pretty_faces = [prettyface(f) for f in face_sel if len(f.vertices) == 4]
 
-        # Do we have any tri's
+        # Do we have any triangles?
         if len(pretty_faces) != len(face_sel):
 
-            # Now add tri's, not so simple because we need to pair them up.
+            # Now add triangles, not so simple because we need to pair them up.
             def trylens(f):
                 # f must be a tri
 

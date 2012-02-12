@@ -49,8 +49,8 @@ class LOGIC_PT_properties(Panel):
                 sub.prop(prop, "name", text="")
                 row.prop(prop, "type", text="")
                 # get the property from the body, not the game property
-                # note, don't do this - it's too slow and body can potentually be a really long string.
-                # row.prop(ob.data, "body", text="")
+                # note, don't do this - it's too slow and body can potentially be a really long string.
+                #~ row.prop(ob.data, "body", text="")
                 row.label("See Text Object")
             else:
                 props = layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')

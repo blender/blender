@@ -71,7 +71,7 @@ def pointInTri2D(v, v1, v2, v3):
 
         mtx = Matrix((side1, side2, nor))
 
-        # Zero area 2d tri, even tho we throw away zerop area faces
+        # Zero area 2d tri, even tho we throw away zero area faces
         # the projection UV can result in a zero area UV.
         if not mtx.determinant():
             dict_matrix[key] = None
@@ -162,7 +162,7 @@ def island2Edge(island):
     return length_sorted_edges, [v.to_3d() for v in unique_points.values()]
 
 # ========================= NOT WORKING????
-# Find if a points inside an edge loop, un-ordered.
+# Find if a points inside an edge loop, unordered.
 # pt is and x/y
 # edges are a non ordered loop of edges.
 # offsets are the edge x and y offset.

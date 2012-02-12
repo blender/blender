@@ -103,7 +103,8 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 static void eyedropper_sample(bContext *C, Eyedropper *eye, int mx, int my)
 {
 	if(RNA_property_type(eye->prop) == PROP_FLOAT) {
-		const int color_manage = CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		Scene *scene = CTX_data_scene(C);
+		const int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 		float col[4];
 	
 		RNA_property_float_get_array(&eye->ptr, eye->prop, col);

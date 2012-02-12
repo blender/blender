@@ -143,6 +143,7 @@ class CLIP_OT_track_to_empty(Operator):
         if constraint is None:
             constraint = ob.constraints.new(type='FOLLOW_TRACK')
 
+        constraint.use_active_clip = False
         constraint.clip = sc.clip
         constraint.track = track.name
         constraint.use_3d_position = False
@@ -275,8 +276,8 @@ class CLIP_OT_delete_proxy(Operator):
 
 
 class CLIP_OT_set_viewport_background(Operator):
-    """Set current movie clip as a camera background in 3D viewport \
-(works only when a 3D viewport is visible)"""
+    """Set current movie clip as a camera background in 3D view-port """ \
+    """(works only when a 3D view-port is visible)"""
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
@@ -314,9 +315,9 @@ object's movement caused by this constraint"""
         frame_current = scene.frame_current
         matrices = []
 
-        # Find constraint which would eb converting
+        # Find constraint which would be converting
         # TODO: several camera solvers and track followers would fail,
-        #       but can't think about eal workflow where it'll be useful
+        #       but can't think about real work-flow where it'll be useful
         for x in ob.constraints:
             if x.type in {'CAMERA_SOLVER', 'FOLLOW_TRACK', 'OBJECT_SOLVER'}:
                 con = x
@@ -368,7 +369,7 @@ object's movement caused by this constraint"""
 
         ob.animation_data_create()
 
-        # Apply matrices on object and insert keyframes
+        # Apply matrices on object and insert key-frames
         i = 0
         for x in range(sfra, efra + 1):
             scene.frame_set(x)
@@ -791,7 +792,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         all_layers = self._mergeLayers(fg.layers, bg.layers)
 
-        # enshure all lamps are active on foreground and background
+        # ensure all lamps are active on foreground and background
         has_lamp = False
         has_mesh = False
         for ob in scene.objects:

@@ -84,8 +84,9 @@ __device uint phash(int kx, int ky, int kz, int3 p)
 
 __device float floorfrac(float x, int* i)
 {
-    *i = quick_floor(x);
-    return x - *i;
+    float f = floorf(x);
+    *i = (int)f;
+    return x - f;
 }
 
 __device float fade(float t)

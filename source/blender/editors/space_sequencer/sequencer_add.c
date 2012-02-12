@@ -325,20 +325,22 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
-			seq= seq_load_func(C, ed->seqbasep, &seq_load);
-
-			if(overlap == FALSE) {
-				if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+			seq = seq_load_func(C, ed->seqbasep, &seq_load);
+			if (seq) {
+				if(overlap == FALSE) {
+					if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+				}
 			}
 		}
 		RNA_END;
 	}
 	else {
 		/* single file */
-		seq= seq_load_func(C, ed->seqbasep, &seq_load);
-
-		if(overlap == FALSE) {
-			if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		seq = seq_load_func(C, ed->seqbasep, &seq_load);
+		if (seq) {
+			if(overlap == FALSE) {
+				if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+			}
 		}
 	}
 
@@ -711,7 +713,8 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 
 	if (is_type_set && type==SEQ_PLUGIN) {
 		/* only plugins need the file selector */
-		return WM_operator_filesel(C, op, event);
+		WM_event_add_fileselect(C, op);
+		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
 		return sequencer_add_effect_strip_exec(C, op);

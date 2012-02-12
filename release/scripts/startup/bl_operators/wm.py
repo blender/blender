@@ -397,7 +397,7 @@ class WM_OT_context_cycle_int(Operator):
         exec("context.%s = value" % data_path)
 
         if value != eval("context.%s" % data_path):
-            # relies on rna clamping int's out of the range
+            # relies on rna clamping integers out of the range
             if self.reverse:
                 value = (1 << 31) - 1
             else:
@@ -731,7 +731,7 @@ class WM_OT_context_modal_mouse(Operator):
 
 
 class WM_OT_url_open(Operator):
-    "Open a website in the Webbrowser"
+    "Open a website in the web-browser"
     bl_idname = "wm.url_open"
     bl_label = ""
 
@@ -1180,7 +1180,7 @@ class WM_OT_copy_prev_settings(Operator):
 
 
 class WM_OT_blenderplayer_start(Operator):
-    '''Launch the Blenderplayer with the current blendfile'''
+    '''Launch the blender-player with the current blend-file'''
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"
 
@@ -1202,7 +1202,7 @@ class WM_OT_blenderplayer_start(Operator):
 
 
 class WM_OT_keyconfig_test(Operator):
-    "Test keyconfig for conflicts"
+    "Test key-config for conflicts"
     bl_idname = "wm.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
 

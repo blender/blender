@@ -1030,12 +1030,17 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float spec[3])
 /* preprocess, textures were not done, don't use shi->amb for that reason */
 void ambient_occlusion(ShadeInput *shi)
 {
-	if(R.wrld.ao_gather_method == WO_AOGATHER_APPROX)
+	if((R.wrld.ao_gather_method == WO_AOGATHER_APPROX) && shi->mat->amb!=0.0f) {
 		sample_occ(&R, shi);
-	else if(R.r.mode & R_RAYTRACE)
+	}
+	else if((R.r.mode & R_RAYTRACE) && shi->mat->amb!=0.0f) {
 		ray_ao(shi, shi->ao, shi->env);
-	else
+	}
+	else {
 		shi->ao[0]= shi->ao[1]= shi->ao[2]= 1.0f;
+		zero_v3(shi->env);
+		zero_v3(shi->indirect);
+	}
 }
 
 

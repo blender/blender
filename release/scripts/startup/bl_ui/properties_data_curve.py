@@ -217,7 +217,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
 
         if is_poly:
             # These settings are below but its easier to have
-            # poly's set aside since they use so few settings
+            # polys set aside since they use so few settings
             row = layout.row()
             row.label(text="Cyclic:")
             row.prop(act_spline, "use_cyclic_u", text="U")
@@ -250,7 +250,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                 col = split.column()
                 col.prop(act_spline, "use_cyclic_v", text="V")
 
-                # its a surface, assume its a nurb.
+                # its a surface, assume its a nurbs
                 sub = col.column()
                 sub.active = (not act_spline.use_cyclic_v)
                 sub.prop(act_spline, "use_bezier_v", text="V")

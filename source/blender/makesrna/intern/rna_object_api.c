@@ -80,7 +80,7 @@
 Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
-	Curve *tmpcu = NULL;
+	Curve *tmpcu = NULL, *copycu;
 	Object *tmpobj = NULL;
 	int render = settings == eModifierMode_Render, i;
 	int cage = !apply_modifiers;
@@ -101,22 +101,20 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			object_free_modifiers(tmpobj);
 
 		/* copies the data */
-		tmpobj->data = copy_curve( (Curve *) ob->data );
+		copycu = tmpobj->data = copy_curve( (Curve *) ob->data );
 
-#if 0
-		/* copy_curve() sets disp.first null, so currently not need */
-		{
-			Curve *cu;
-			cu = (Curve *)tmpobj->data;
-			if( cu->disp.first )
-				MEM_freeN( cu->disp.first );
-			cu->disp.first = NULL;
-		}
-	
-#endif
+		/* temporarily set edit so we get updates from edit mode, but
+		   also because for text datablocks copying it while in edit
+		   mode gives invalid data structures */
+		copycu->editfont = tmpcu->editfont;
+		copycu->editnurb = tmpcu->editnurb;
 
 		/* get updated display list, and convert to a mesh */
 		makeDispListCurveTypes( sce, tmpobj, 0 );
+
+		copycu->editfont = NULL;
+		copycu->editnurb = NULL;
+
 		nurbs_to_mesh( tmpobj );
 		
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */

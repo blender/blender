@@ -161,7 +161,7 @@ class ANIM_OT_keying_set_export(Operator):
 
 
 class BakeAction(Operator):
-    """Bake animation to an Action"""
+    """Bake object/pose loc/scale/rotation animation to a new action"""
     bl_idname = "nla.bake"
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}
@@ -227,7 +227,7 @@ class BakeAction(Operator):
 
 
 class ClearUselessActions(Operator):
-    """Mark actions with no F-Curves for deletion after save+reload of """ \
+    """Mark actions with no F-Curves for deletion after save & reload of """ \
     """file preserving \"action libraries\""""
     bl_idname = "anim.clear_useless_actions"
     bl_label = "Clear Useless Actions"

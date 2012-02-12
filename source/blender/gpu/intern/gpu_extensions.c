@@ -126,12 +126,6 @@ void GPU_extensions_init(void)
 	if(strstr(vendor, "ATI")) {
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OFFICIAL;
-
-		/* ATI X1xxx cards (R500 chipset) lack full support for npot textures
-		 * although they report the GLEW_ARB_texture_non_power_of_two extension.
-		 */
-		if(strstr(renderer, "X1"))
-			GG.npotdisabled = 1;
 	}
 	else if(strstr(vendor, "NVIDIA")) {
 		GG.device = GPU_DEVICE_NVIDIA;
@@ -147,17 +141,6 @@ void GPU_extensions_init(void)
 	else if(strstr(renderer, "Mesa DRI R") || (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI "))) {
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OPENSOURCE;
-		/* ATI 9500 to X2300 cards support NPoT textures poorly
-		 * Incomplete list http://dri.freedesktop.org/wiki/ATIRadeon
-		 * New IDs from MESA's src/gallium/drivers/r300/r300_screen.c
-		 */
-		if(strstr(renderer, "R3") || strstr(renderer, "RV3") ||
-		   strstr(renderer, "R4") || strstr(renderer, "RV4") ||
-		   strstr(renderer, "RS4") || strstr(renderer, "RC4") ||
-		   strstr(renderer, "R5") || strstr(renderer, "RV5") ||
-		   strstr(renderer, "RS600") || strstr(renderer, "RS690") ||
-		   strstr(renderer, "RS740"))
-			GG.npotdisabled = 1;
 	}
 	else if(strstr(renderer, "Nouveau") || strstr(vendor, "nouveau")) {
 		GG.device = GPU_DEVICE_NVIDIA;
@@ -178,6 +161,22 @@ void GPU_extensions_init(void)
 	else {
 		GG.device = GPU_DEVICE_ANY;
 		GG.driver = GPU_DRIVER_ANY;
+	}
+
+	if(GG.device == GPU_DEVICE_ATI) {
+		/* ATI 9500 to X2300 cards support NPoT textures poorly
+		 * Incomplete list http://dri.freedesktop.org/wiki/ATIRadeon
+		 * New IDs from MESA's src/gallium/drivers/r300/r300_screen.c
+		 */
+		if(strstr(renderer, "R3") || strstr(renderer, "RV3") ||
+		   strstr(renderer, "R4") || strstr(renderer, "RV4") ||
+		   strstr(renderer, "RS4") || strstr(renderer, "RC4") ||
+		   strstr(renderer, "R5") || strstr(renderer, "RV5") ||
+		   strstr(renderer, "RS600") || strstr(renderer, "RS690") ||
+		   strstr(renderer, "RS740") || strstr(renderer, "X1") ||
+		   strstr(renderer, "X2") || strstr(renderer, "Radeon 9") ||
+		   strstr(renderer, "RADEON 9"))
+			GG.npotdisabled = 1;
 	}
 
 	GG.os = GPU_OS_UNIX;
@@ -202,11 +201,6 @@ int GPU_glsl_support(void)
 
 int GPU_non_power_of_two_support(void)
 {
-	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
-	 * they claim to support this but can cause system freeze */
-	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
-		return 0;
-
 	if(GG.npotdisabled)
 		return 0;
 

@@ -273,7 +273,7 @@ class INFO_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # note, dont use 'EXEC_SCREEN' or operators wont get the 'v3d' context.
+        # note, don't use 'EXEC_SCREEN' or operators wont get the 'v3d' context.
 
         layout.operator_context = 'EXEC_AREA'
 
@@ -362,7 +362,7 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:2.6/Manual'
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-261/'
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-262/'
 
         layout.separator()
 

@@ -327,9 +327,6 @@ def refresh_script_paths():
             _sys_path_ensure(path)
 
 
-_presets = _os.path.join(_scripts[0], "presets")  # FIXME - multiple paths
-
-
 def preset_paths(subdir):
     """
     Returns a list of paths for a specific preset.

@@ -136,8 +136,8 @@ void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* 
 	/* the actual drawing */
 	glColor4fv(color);
 
-	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT|BLF_TEXFILTER);
 	/* multiply the text matrix by the object matrix */
+	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT);
 	BLF_matrix(fontid, mat);
 
 	/* aspect is the inverse scale that allows you to increase */
@@ -149,7 +149,7 @@ void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* 
 	BLF_position(fontid, 0, 0, 0);
 	BLF_draw(fontid, (char *)text, 65535);
 
-	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT|BLF_TEXFILTER);
+	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
 }
 
 void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height)

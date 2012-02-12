@@ -99,7 +99,7 @@ def extend(obj, operator, EXTEND_MODE):
             iA = 1
             iB = 0
 
-        # Set the target UV's touching source face, no tricky calc needed,
+        # Set the target UV's touching source face, no tricky calculations needed,
         uvs_vhash_target[edgepair_inner_target[0]][:] = uvs_vhash_source[edgepair_inner_source[iA]]
         uvs_vhash_target[edgepair_inner_target[1]][:] = uvs_vhash_source[edgepair_inner_source[iB]]
 
@@ -156,8 +156,8 @@ def extend(obj, operator, EXTEND_MODE):
         return
 
     # Modes
-    # 0 unsearched
-    # 1:mapped, use search from this face. - removed!!
+    # 0 not yet searched for.
+    # 1:mapped, use search from this face - removed!
     # 2:all siblings have been searched. don't search again.
     face_modes = [0] * len(face_sel)
     face_modes[face_act_local_index] = 1  # extend UV's from this face.

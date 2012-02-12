@@ -11,7 +11,8 @@
 DO_UPLOAD=true
 DO_EXE_BLENDER=true
 DO_OUT_HTML=true
-DO_OUT_PDF=true
+DO_OUT_HTML_ZIP=true
+DO_OUT_PDF=false
 
 
 BLENDER="./blender.bin"
@@ -61,6 +62,17 @@ if $DO_OUT_HTML ; then
 	# annoying bug in sphinx makes it very slow unless we do this. should report.
 	cd $SPHINXBASE
 	sphinx-build -n -b html sphinx-in sphinx-out
+
+	# ------------------------------------------------------------------------
+	# ZIP the HTML dir for upload
+
+	if $DO_OUT_HTML_ZIP ; then
+		# lame, temp rename dir
+		mv sphinx-out blender_python_reference_$BLENDER_VERSION
+		zip -r -9 blender_python_reference_$BLENDER_VERSION.zip blender_python_reference_$BLENDER_VERSION
+		mv blender_python_reference_$BLENDER_VERSION sphinx-out
+	fi
+
 	cd -
 fi
 
@@ -73,6 +85,7 @@ if $DO_OUT_PDF ; then
 	make -C $SPHINXBASE/sphinx-out
 	mv $SPHINXBASE/sphinx-out/contents.pdf $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf
 fi
+
 
 # ----------------------------------------------------------------------------
 # Upload to blender servers, comment this section for testing
@@ -89,8 +102,14 @@ if $DO_UPLOAD ; then
 	# better redirect
 	ssh $SSH_USER@emo.blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/250PythonDoc/index.html'
 
-	# rename so local PDF has matching name.
-	rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf $SSH_HOST:$SSH_UPLOAD_FULL/blender_python_reference_$BLENDER_VERSION.pdf
+	if $DO_OUT_PDF ; then
+		# rename so local PDF has matching name.
+		rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf $SSH_HOST:$SSH_UPLOAD_FULL/blender_python_reference_$BLENDER_VERSION.pdf
+	fi
+
+	if $DO_OUT_HTML_ZIP ; then
+		rsync --progress -avze "ssh -p 22" $SPHINXBASE/blender_python_reference_$BLENDER_VERSION.zip $SSH_HOST:$SSH_UPLOAD_FULL/blender_python_reference_$BLENDER_VERSION.zip
+	fi
 
 fi
 

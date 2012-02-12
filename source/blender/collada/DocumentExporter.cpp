@@ -257,7 +257,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	}
 
 	// <library_animations>
-	AnimationExporter ae(&sw);
+	AnimationExporter ae(&sw, this->export_settings);
 	ae.exportAnimations(sce);
 
 	// <library_controllers>

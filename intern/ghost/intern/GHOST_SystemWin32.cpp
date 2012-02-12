@@ -717,10 +717,11 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 
 	if (key != GHOST_kKeyUnknown) {
 		char utf8_char[6] = {0} ;
+		char ascii = 0;
 
 		wchar_t utf16[2]={0};
-		BYTE state[256];
-		GetKeyboardState((PBYTE)state);  
+		BYTE state[256] ={0};
+		GetKeyboardState(state);  
 
 		if(ToUnicodeEx(vk, 0, state, utf16, 2, 0, system->m_keylayout))
 			WideCharToMultiByte(CP_UTF8, 0, 
@@ -728,9 +729,14 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 									(LPSTR) utf8_char, 5,
 									NULL,NULL); else *utf8_char = 0;
 
-		if(!keyDown) utf8_char[0] = '\0';
 		
-		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, (*utf8_char & 0x80)?'?':*utf8_char, utf8_char);
+
+		if(!keyDown) {utf8_char[0] = '\0'; ascii='\0';}
+			else ascii = utf8_char[0]& 0x80?'?':utf8_char[0];
+
+		if(0x80&state[VK_MENU]) utf8_char[0]='\0';
+
+		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii, utf8_char);
 		
 #ifdef GHOST_DEBUG
 		std::cout << ascii << std::endl;
