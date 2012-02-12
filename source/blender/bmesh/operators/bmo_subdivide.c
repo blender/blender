@@ -38,7 +38,7 @@
 
 #include "bmesh_operators_private.h" /* own include */
 
-#include "subdivideop.h" /* own include */
+#include "bmo_subdivide.h" /* own include */
 
 /* flags for all elements share a common bitfield space */
 #define SUBD_SPLIT	1

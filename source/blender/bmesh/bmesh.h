@@ -355,7 +355,6 @@ void bmesh_end_edit(BMesh *bm, int flag);
 #define BM_NGON_MAX 100000
 
 /* include the rest of the API */
-#include "bmesh_filters.h"
 #include "bmesh_marking.h"
 #include "bmesh_operator_api.h"
 #include "bmesh_operators.h"

@@ -63,24 +63,23 @@ set(INC_SYS
 )
 
 set(SRC
-	operators/bevel.c
-	operators/bmesh_dupeops.c
-	operators/utils.c
-	operators/subdivideop.c
-	operators/connectops.c
-	operators/removedoubles.c
-	operators/mirror.c
-	operators/primitiveops.c
-	operators/join_triangles.c
-	operators/edgesplitop.c
-	operators/createops.c
-	operators/dissolveops.c
-	operators/subdivideop.h
-	operators/triangulateop.c
-	operators/mesh_conv.c
-	operators/extrudeops.c
-	bmesh_operators.h
-	bmesh_iterators.h
+	operators/bmo_bevel.c
+	operators/bmo_connect.c
+	operators/bmo_create.c
+	operators/bmo_dissolve.c
+	operators/bmo_dupe.c
+	operators/bmo_edgesplit.c
+	operators/bmo_extrude.c
+	operators/bmo_join_triangles.c
+	operators/bmo_mesh_conv.c
+	operators/bmo_mirror.c
+	operators/bmo_primitive.c
+	operators/bmo_removedoubles.c
+	operators/bmo_subdivide.c
+	operators/bmo_subdivide.h
+	operators/bmo_triangulate.c
+	operators/bmo_utils.c
+
 	intern/bmesh_newcore.c
 	intern/bmesh_interp.c
 	intern/bmesh_iterators.c
@@ -102,14 +101,16 @@ set(SRC
 	intern/bmesh_walkers_impl.c
 	intern/bmesh_walkers_private.h
 	intern/bmesh_inline.c
+
 	tools/BME_bevel.c
-	bmesh_error.h
-	bmesh_queries.h
 	bmesh.h
+	bmesh_class.h
+	bmesh_error.h
+	bmesh_iterators.h
 	bmesh_marking.h
 	bmesh_operator_api.h
-	bmesh_filters.h
-	bmesh_class.h
+	bmesh_operators.h
+	bmesh_queries.h
 	bmesh_walkers.h
 )
 
