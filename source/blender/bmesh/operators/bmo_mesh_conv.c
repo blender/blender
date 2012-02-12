@@ -207,12 +207,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	}
 
 	bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
-	
-	if (!me->totpoly) {
-		MEM_freeN(vt);
-		MEM_freeN(et);
-		return;
-	}
 
 	mpoly = me->mpoly;
 	for (i = 0; i < me->totpoly; i++, mpoly++) {
