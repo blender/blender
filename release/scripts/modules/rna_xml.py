@@ -150,13 +150,14 @@ def rna2xml(fw=print_ln,
 
         # declare + attributes
         if pretty_format:
-            tmp_str = "<%s " % value_type_name
-            tmp_ident = "\n" + ident + (" " * len(tmp_str))
-
-            fw("%s%s%s>\n" % (ident, tmp_str, tmp_ident.join(node_attrs)))
-
-            del tmp_str
-            del tmp_ident
+            if node_attrs:
+                tmp_str = "<%s " % value_type_name
+                tmp_ident = "\n" + ident + (" " * len(tmp_str))
+                fw("%s%s%s>\n" % (ident, tmp_str, tmp_ident.join(node_attrs)))
+                del tmp_str
+                del tmp_ident
+            else:
+                fw("%s<%s>\n" % (ident, value_type_name))
         else:
             fw("%s<%s %s>\n" % (ident, value_type_name, " ".join(node_attrs)))
 
