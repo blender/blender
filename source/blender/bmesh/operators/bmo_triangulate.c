@@ -100,10 +100,15 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			BMVert *v1, *v2, *v3, *v4;
 			
-			if (BM_edge_face_count(e) != 2 || BMO_elem_flag_test(bm, e, EDGE_MARK))
+			if (BM_edge_face_count(e) != 2 || BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				continue;
-			if (!BMO_elem_flag_test(bm, e->l->f, FACE_MARK) || !BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
+			}
+
+			if (!BMO_elem_flag_test(bm, e->l->f, FACE_MARK) ||
+			    !BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
+			{
 				continue;
+			}
 			
 			v1 = e->l->prev->v;
 			v2 = e->l->v;

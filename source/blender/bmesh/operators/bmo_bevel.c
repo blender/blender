@@ -360,7 +360,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					if (!tag->newv) {
 						sub_v3_v3v3(co, l->prev->v->co, l->v->co);
 						if (has_elens) {
-							float elen = *(float *)CustomData_bmesh_get_n(&bm->edata, l->prev->e->head.data, CD_PROP_FLT, li);
+							float elen = *(float *)CustomData_bmesh_get_n(&bm->edata, l->prev->e->head.data,
+							                                              CD_PROP_FLT, li);
 
 							normalize_v3(co);
 							mul_v3_fl(co, elen);
@@ -799,7 +800,10 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	
 	/* handle vertices along boundary edge */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_elem_flag_test(bm, v, VERT_OLD) && BMO_elem_flag_test(bm, v, BEVEL_FLAG) && !BMO_elem_flag_test(bm, v, BEVEL_DEL)) {
+		if (BMO_elem_flag_test(bm, v, VERT_OLD) &&
+		    BMO_elem_flag_test(bm, v, BEVEL_FLAG) &&
+		    !BMO_elem_flag_test(bm, v, BEVEL_DEL))
+		{
 			BMLoop *l;
 			BMLoop *lorig = NULL;
 			BMIter liter;

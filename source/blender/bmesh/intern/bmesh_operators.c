@@ -506,6 +506,7 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 {
 	BMOpSlot *slot = &op->slots[slotcode];
 	void *tmp;
+	ssize_t allocsize;
 	
 	/* check if its actually a buffer */
 	if (!(slot->slottype > BMO_OP_SLOT_VEC))
@@ -515,9 +516,11 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 		if (slot->len >= slot->size) {
 			slot->size = (slot->size + 1 + totadd) * 2;
 
+			allocsize = BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size;
+
 			tmp = slot->data.buf;
-			slot->data.buf = MEM_callocN(BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size, "opslot dynamic array");
-			memcpy(slot->data.buf, tmp, BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size);
+			slot->data.buf = MEM_callocN(allocsize, "opslot dynamic array");
+			memcpy(slot->data.buf, tmp, allocsize);
 			MEM_freeN(tmp);
 		}
 
@@ -527,9 +530,12 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 		slot->flag |= BMOS_DYNAMIC_ARRAY;
 		slot->len += totadd;
 		slot->size = slot->len + 2;
+
+		allocsize = BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len;
+
 		tmp = slot->data.buf;
-		slot->data.buf = MEM_callocN(BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len, "opslot dynamic array");
-		memcpy(slot->data.buf, tmp, BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len);
+		slot->data.buf = MEM_callocN(allocsize, "opslot dynamic array");
+		memcpy(slot->data.buf, tmp, allocsize);
 	}
 
 	return slot->data.buf;

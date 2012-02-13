@@ -451,7 +451,10 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 		tv[i] = BM_vert_create(bm, v, NULL);
 		BMO_elem_flag_enable(bm, tv[i], VERT_MARK);
 
-		tv[monkeynv + i] = (fabsf(v[0] = -v[0]) < 0.001f) ? tv[i]: (eve = BM_vert_create(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
+		tv[monkeynv + i] = (fabsf(v[0] = -v[0]) < 0.001f) ?
+		            tv[i] :
+		            (eve = BM_vert_create(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
+
 		BMO_elem_flag_enable(bm, tv[monkeynv + i], VERT_MARK);
 
 		mul_m4_v3(mat, tv[i]->co);

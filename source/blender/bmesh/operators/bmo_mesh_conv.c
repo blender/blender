@@ -760,7 +760,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 					currkey->totelem = bm->totvert;
 
 					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-						co = currkey == actkey ? eve->co : CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
+						co = (currkey == actkey) ?
+						            eve->co :
+						            CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
 						
 						copy_v3_v3(fp, co);
 

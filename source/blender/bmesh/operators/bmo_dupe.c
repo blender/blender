@@ -203,7 +203,9 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops e");
 	
 	for (v = BM_iter_new(&verts, source, BM_VERTS_OF_MESH, source); v; v = BM_iter_step(&verts)) {
-		if (BMO_elem_flag_test(source, (BMHeader *)v, DUPE_INPUT) && (!BMO_elem_flag_test(source, (BMHeader *)v, DUPE_DONE))) {
+		if ( BMO_elem_flag_test(source, (BMHeader *)v, DUPE_INPUT) &&
+		    !BMO_elem_flag_test(source, (BMHeader *)v, DUPE_DONE))
+		{
 			BMIter iter;
 			int iso = 1;
 
@@ -235,7 +237,9 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 
 	/* now we dupe all the edge */
 	for (e = BM_iter_new(&edges, source, BM_EDGES_OF_MESH, source); e; e = BM_iter_step(&edges)) {
-		if (BMO_elem_flag_test(source, (BMHeader *)e, DUPE_INPUT) && (!BMO_elem_flag_test(source, (BMHeader *)e, DUPE_DONE))) {
+		if ( BMO_elem_flag_test(source, (BMHeader *)e, DUPE_INPUT) &&
+		    !BMO_elem_flag_test(source, (BMHeader *)e, DUPE_DONE))
+		{
 			/* make sure that verts are copie */
 			if (!BMO_elem_flag_test(source, (BMHeader *)e->v1, DUPE_DONE)) {
 				copy_vertex(source, e->v1, target, vhash);

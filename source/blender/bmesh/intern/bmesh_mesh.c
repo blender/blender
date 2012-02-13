@@ -537,7 +537,8 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
  *
  */
 
-void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b)
+void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,
+                                 const char *msg_a, const char *msg_b)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,

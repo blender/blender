@@ -90,7 +90,10 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 
 	if (bm->selectmode & SCE_SELECT_VERTEX) {
 		for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
-			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+			    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+			{
 				BM_elem_flag_enable(e, BM_ELEM_SELECT);
 			}
 			else {
@@ -165,7 +168,10 @@ void BM_mesh_deselect_flush(BMesh *bm)
 	int ok;
 
 	for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
-		if (!(BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN))) {
+		if (!(BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+		      BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+		      !BM_elem_flag_test(e, BM_ELEM_HIDDEN)))
+		{
 			BM_elem_flag_disable(e, BM_ELEM_SELECT);
 		}
 	}
@@ -211,7 +217,10 @@ void BM_mesh_select_flush(BMesh *bm)
 	int ok;
 
 	for (e = BM_iter_new(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BM_iter_step(&edges)) {
-		if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+		if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+		    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+		    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+		{
 			BM_elem_flag_enable(e, BM_ELEM_SELECT);
 		}
 	}
