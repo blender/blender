@@ -618,7 +618,7 @@ static int navmesh_obmode_data_poll(bContext *C)
 	Object *ob = ED_object_active_context(C);
 	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
 		Mesh *me= ob->data;
-		return CustomData_has_layer(&me->fdata, CD_RECAST);
+		return CustomData_has_layer(&me->pdata, CD_RECAST);
 	}
 	return FALSE;
 }
@@ -637,7 +637,7 @@ static int navmesh_reset_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	CustomData_free_layers(&me->fdata, CD_RECAST, me->totface);
+	CustomData_free_layers(&me->pdata, CD_RECAST, me->totpoly);
 
 	BKE_mesh_ensure_navmesh(me);
 
@@ -667,7 +667,7 @@ static int navmesh_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	CustomData_free_layers(&me->fdata, CD_RECAST, me->totface);
+	CustomData_free_layers(&me->pdata, CD_RECAST, me->totpoly);
 
 	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, &me->id);

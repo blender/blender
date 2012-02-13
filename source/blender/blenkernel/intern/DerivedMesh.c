@@ -2715,6 +2715,15 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 /* --- NAVMESH (begin) --- */
 #ifdef WITH_GAMEENGINE
 
+/* BMESH_TODO, navmesh is not working right currently
+ * All tools set this as MPoly data, but derived mesh currently draws from MFace (tessface)
+ *
+ * Proposed solution, rather then copy CD_RECAST into the MFace array,
+ * use ORIGINDEX to get the original poly index and then get the CD_RECAST
+ * data from the original me->mpoly layer. - campbell
+ */
+
+
 BM_INLINE int navmesh_bit(int a, int b)
 {
 	return (a & (1 << b)) >> b;
