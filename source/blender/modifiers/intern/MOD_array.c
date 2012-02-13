@@ -162,6 +162,29 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	return max_co - min_co;
 }
 
+/* Used for start/end cap.
+ *
+ * this function expects all existing vertices to be tagged,
+ * so we can know new verts are not tagged.
+ *
+ * All verts will be tagged on exit.
+ */
+static void bmesh_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
+{
+	BMVert *v;
+	BMIter iter;
+
+	DM_to_bmesh_ex(dm, bm);
+
+	/* transform all verts */
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+			mul_m4_v3(mat, v->co);
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
+		}
+	}
+}
+
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
 										  int UNUSED(initFlags))
@@ -172,6 +195,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	int i, j, indexLen;
 	/* offset matrix */
 	float offset[4][4];
+	float final_offset[4][4];
+	float tmp_mat[4][4];
 	float length = amd->length;
 	int count = amd->count, maxVerts;
 	int *indexMap = NULL;
@@ -210,6 +235,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		             obinv, amd->offset_ob->obmat,
 		             NULL, NULL, NULL, NULL, NULL);
 		copy_m4_m4(offset, result_mat);
+	}
+
+	/* calculate the offset matrix of the final copy (for merging) */
+	unit_m4(final_offset);
+
+	for(j=0; j < count - 1; j++) {
+		mult_m4_m4m4(tmp_mat, offset, final_offset);
+		copy_m4_m4(final_offset, tmp_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -337,6 +370,33 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	}
 
 	if (j > 0) BMO_op_finish(em->bm, &op);
+
+	/* BMESH_TODO - cap ends are not welded, even though weld is called after */
+
+	/* start capping */
+	if ((start_cap || end_cap) &&
+
+	    /* BMESH_TODO - theres a bug in DM_to_bmesh_ex() when in editmode!
+		 * this needs investigation, but for now at least dont crash */
+	    ob->mode != OB_MODE_EDIT
+
+	    )
+	{
+		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG);
+
+		if (start_cap) {
+			float startoffset[4][4];
+			invert_m4_m4(startoffset, offset);
+			bmesh_merge_dm_transform(em->bm, start_cap, startoffset);
+		}
+
+		if (end_cap) {
+			float endoffset[4][4];
+			mult_m4_m4m4(endoffset, offset, final_offset);
+			bmesh_merge_dm_transform(em->bm, end_cap, endoffset);
+		}
+	}
+	/* done capping */
 
 	if (amd->flags & MOD_ARR_MERGE)
 		BMO_op_exec(em->bm, &weldop);
