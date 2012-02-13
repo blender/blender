@@ -180,6 +180,22 @@ static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco
 	ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
 }
 
+static ListBase *knife_empty_list(knifetool_opdata *kcd) {
+	ListBase *lst;
+
+	lst = BLI_memarena_alloc(kcd->arena, sizeof(ListBase));
+	lst->first = lst->last = NULL;
+	return lst;
+}
+
+static void knife_append_list(knifetool_opdata *kcd, ListBase *lst, void *elem) {
+	Ref *ref;
+
+	ref = BLI_mempool_calloc(kcd->refs);
+	ref->ref = elem;
+	BLI_addtail(lst, ref);
+}
+
 static KnifeEdge *new_knife_edge(knifetool_opdata *kcd)
 {
 	kcd->totkedge++;
@@ -188,15 +204,8 @@ static KnifeEdge *new_knife_edge(knifetool_opdata *kcd)
 
 static void knife_add_to_vert_edges(knifetool_opdata *kcd, KnifeEdge* kfe)
 {
-	Ref *ref;
-
-	ref = BLI_mempool_calloc(kcd->refs);
-	ref->ref = kfe;
-	BLI_addtail(&kfe->v1->edges, ref);
-
-	ref = BLI_mempool_calloc(kcd->refs);
-	ref->ref = kfe;
-	BLI_addtail(&kfe->v2->edges, ref);
+	knife_append_list(kcd, &kfe->v1->edges, kfe);
+	knife_append_list(kcd, &kfe->v2->edges, kfe);
 }
 
 static KnifeVert *new_knife_vert(knifetool_opdata *kcd, float *co, float *cageco)
@@ -233,7 +242,6 @@ static KnifeEdge *get_bm_knife_edge(knifetool_opdata *kcd, BMEdge *e)
 {
 	KnifeEdge *kfe = BLI_ghash_lookup(kcd->origedgemap, e);
 	if (!kfe) {
-		Ref *ref;
 		BMIter iter;
 		BMFace *f;
 		
@@ -247,9 +255,7 @@ static KnifeEdge *get_bm_knife_edge(knifetool_opdata *kcd, BMEdge *e)
 		BLI_ghash_insert(kcd->origedgemap, e, kfe);
 		
 		BM_ITER(f, &iter, kcd->em->bm, BM_FACES_OF_EDGE, e) {
-			ref = BLI_mempool_calloc(kcd->refs);
-			ref->ref = f;
-			BLI_addtail(&kfe->faces, ref);
+			knife_append_list(kcd, &kfe->faces, f);
 			
 			/* ensures the kedges lst for this f is initialized,
 			 * it automatically adds kfe by itself */
@@ -311,13 +317,10 @@ static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f)
 		BMIter iter;
 		BMEdge *e;
 		
-		lst = BLI_memarena_alloc(kcd->arena, sizeof(ListBase));
-		lst->first = lst->last = NULL;
+		lst = knife_empty_list(kcd);
 		
 		BM_ITER(e, &iter, kcd->em->bm, BM_EDGES_OF_FACE, f) {
-			Ref *ref = BLI_mempool_calloc(kcd->refs);
-			ref->ref = get_bm_knife_edge(kcd, e);
-			BLI_addtail(lst, ref);
+			knife_append_list(kcd, lst, get_bm_knife_edge(kcd, e));
 		}
 		
 		BLI_ghash_insert(kcd->kedgefacemap, f, lst);
@@ -360,15 +363,8 @@ static void knife_find_basef(knifetool_opdata *kcd, KnifeEdge *kfe)
 
 static void knife_edge_append_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f)
 {
-	ListBase *lst = knife_get_face_kedges(kcd, f);
-	Ref *ref = BLI_mempool_calloc(kcd->refs);
-	
-	ref->ref = kfe;
-	BLI_addtail(lst, ref);
-	
-	ref = BLI_mempool_calloc(kcd->refs);
-	ref->ref = f;
-	BLI_addtail(&kfe->faces, ref);
+	knife_append_list(kcd, knife_get_face_kedges(kcd, f), kfe);
+	knife_append_list(kcd, &kfe->faces, f);
 }
 
 static KnifeVert *knife_split_edge(knifetool_opdata *kcd, KnifeEdge *kfe, float co[3], KnifeEdge **newkfe_out)
@@ -403,27 +399,6 @@ static KnifeVert *knife_split_edge(knifetool_opdata *kcd, KnifeEdge *kfe, float 
 			
 	return newkfe->v2;
 }
-
-#if 0
-static void knife_copy_edge_facelist(knifetool_opdata *kcd, KnifeEdge *dest, KnifeEdge *source) 
-{
-	Ref *ref, *ref2;
-	
-	for (ref2 = source->faces.first; ref2; ref2 = ref2->next) {
-		ListBase *lst = knife_get_face_kedges(kcd, ref2->ref);
-		
-		/* add new edge to face knife edge list */
-		ref = BLI_mempool_calloc(kcd->refs);
-		ref->ref = dest;
-		BLI_addtail(lst, ref);
-		
-		/* add face to new edge's face list */
-		ref = BLI_mempool_calloc(kcd->refs);
-		ref->ref = ref2->ref;
-		BLI_addtail(&dest->faces, ref);
-	}
-}
-#endif
 
 static void knife_add_single_cut(knifetool_opdata *kcd)
 {
@@ -531,20 +506,15 @@ static void knife_add_single_cut_through(knifetool_opdata *kcd,
 static void knife_get_vert_faces(knifetool_opdata *kcd, KnifeVert* kfv, BMFace *facef, ListBase *lst)
 {
 	BMIter bmiter;
-	Ref *ref;
 	BMFace *f;
 
 	if (kfv->isface && facef) {
-		ref = BLI_mempool_calloc(kcd->refs);
-		ref->ref = facef;
-		BLI_addtail(lst, ref);
+		knife_append_list(kcd, lst, facef);
 	}
 	else if (kfv->v) {
 		BMesh *bm = kcd->em->bm;
 		BM_ITER(f, &bmiter, bm, BM_FACES_OF_VERT, kfv->v) {
-			ref = BLI_mempool_calloc(kcd->refs);
-			ref->ref = f;
-			BLI_addtail(lst, ref);
+			knife_append_list(kcd, lst, f);
 		}
 	}
 }
@@ -552,15 +522,12 @@ static void knife_get_vert_faces(knifetool_opdata *kcd, KnifeVert* kfv, BMFace *
 static void knife_get_edge_faces(knifetool_opdata *kcd, KnifeEdge* kfe, ListBase *lst)
 {
 	BMIter bmiter;
-	Ref *ref;
 	BMFace *f;
 
 	if (kfe->e) {
 		BMesh *bm = kcd->em->bm;
 		BM_ITER(f, &bmiter, bm, BM_FACES_OF_EDGE, kfe->e) {
-			ref = BLI_mempool_calloc(kcd->refs);
-			ref->ref = f;
-			BLI_addtail(lst, ref);
+			knife_append_list(kcd, lst, f);
 		}
 	}
 }
