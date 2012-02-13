@@ -754,7 +754,7 @@ void BM_select_history_validate(BMesh *bm)
 	}
 }
 
-void BM_mesh_flag_disable_all(BMesh *bm, const char hflag)
+void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -768,14 +768,43 @@ void BM_mesh_flag_disable_all(BMesh *bm, const char hflag)
 	}
 
 	for (i = 0; i < 3; i++) {
-		ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
-		for ( ; ele; ele = BM_iter_step(&iter)) {
-			if (hflag & BM_ELEM_SELECT) BM_elem_select_set(bm, ele, FALSE);
-			BM_elem_flag_disable(ele, hflag);
+		if (htype & iter_types[i]) {
+			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
+			for ( ; ele; ele = BM_iter_step(&iter)) {
+				if (hflag & BM_ELEM_SELECT) {
+					BM_elem_select_set(bm, ele, FALSE);
+				}
+				BM_elem_flag_disable(ele, hflag);
+			}
 		}
 	}
 }
 
+void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
+{
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+	BMIter iter;
+	BMHeader *ele;
+	int i;
+
+	if (hflag & BM_ELEM_SELECT) {
+		BM_select_history_clear(bm);
+	}
+
+	for (i = 0; i < 3; i++) {
+		if (htype & iter_types[i]) {
+			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
+			for ( ; ele; ele = BM_iter_step(&iter)) {
+				if (hflag & BM_ELEM_SELECT) {
+					BM_elem_select_set(bm, ele, TRUE);
+				}
+				BM_elem_flag_enable(ele, hflag);
+			}
+		}
+	}
+}
 
 /***************** Mesh Hiding stuff *********** */
 

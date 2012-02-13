@@ -47,7 +47,8 @@ void BM_elem_select_set(struct BMesh *bm, void *element, int select);
  * chuck it.*/
 int BM_elem_select_test(BMesh *bm, const void *element);
 
-void BM_mesh_flag_disable_all(BMesh *bm, const char hflag);
+void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag);
+void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag);
 
 /* individual element select functions, BM_elem_select_set is a shortcut for these
  * that automatically detects which one to use*/

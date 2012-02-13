@@ -468,44 +468,12 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
-	const char iter_types[3] = {BM_VERTS_OF_MESH,
-	                            BM_EDGES_OF_MESH,
-	                            BM_FACES_OF_MESH};
-	BMIter iter;
-	BMHeader *ele;
-	int i;
-
-	if (hflag & BM_ELEM_SELECT)
-		BM_select_history_clear(em->bm);
-
-	for (i = 0; i < 3; i++) {
-		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
-			if (hflag & BM_ELEM_SELECT) BM_elem_select_set(em->bm, ele, FALSE);
-			BM_elem_flag_disable(ele, hflag);
-		}
-	}
+	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, hflag);
 }
 
 void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 {
-	const char iter_types[3] = {BM_VERTS_OF_MESH,
-	                            BM_EDGES_OF_MESH,
-	                            BM_FACES_OF_MESH};
-	BMIter iter;
-	BMHeader *ele;
-	int i;
-
-	for (i = 0; i < 3; i++) {
-		ele = BM_iter_new(&iter, em->bm, iter_types[i], NULL);
-		for ( ; ele; ele = BM_iter_step(&iter)) {
-			if (hflag & BM_ELEM_SELECT) {
-				BM_elem_select_set(em->bm, ele, TRUE);
-			}
-			else {
-				BM_elem_flag_enable(ele, hflag);
-			}
-		}
-	}
+	BM_mesh_elem_flag_enable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, hflag);
 }
 
 /**************-------------- Undo ------------*****************/
