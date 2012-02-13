@@ -46,24 +46,31 @@ typedef unsigned int uint;
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
-static int isFacePlanar(CSG_IFace &face, std::vector<carve::geom3d::Vector> &vertices)
+static bool isQuadPlanar(carve::geom3d::Vector &v1, carve::geom3d::Vector &v2,
+                         carve::geom3d::Vector &v3, carve::geom3d::Vector &v4)
 {
-	carve::geom3d::Vector v1, v2, v3, cross;
+	carve::geom3d::Vector vec1, vec2, vec3, cross;
 
+	vec1 = v2 - v1;
+	vec2 = v4 - v1;
+	vec3 = v3 - v1;
+
+	cross = carve::geom::cross(vec1, vec2);
+
+	float production = carve::geom::dot(cross, vec3);
+	float magnitude = 1e-6 * cross.length();
+
+	return fabs(production) < magnitude;
+}
+
+static bool isFacePlanar(CSG_IFace &face, std::vector<carve::geom3d::Vector> &vertices)
+{
 	if (face.vertex_number == 4) {
-		v1 = vertices[face.vertex_index[1]] - vertices[face.vertex_index[0]];
-		v2 = vertices[face.vertex_index[3]] - vertices[face.vertex_index[0]];
-		v3 = vertices[face.vertex_index[2]] - vertices[face.vertex_index[0]];
-
-		cross = carve::geom::cross(v1, v2);
-
-		float production = carve::geom::dot(cross, v3);
-		float magnitude = 1e-6 * cross.length();
-
-		return fabs(production) < magnitude;
+		return isQuadPlanar(vertices[face.vertex_index[0]], vertices[face.vertex_index[1]],
+		                    vertices[face.vertex_index[2]], vertices[face.vertex_index[3]]);
 	}
 
-	return 1;
+	return true;
 }
 
 static void Carve_copyMeshes(std::vector<MeshSet<3>::mesh_t*> &meshes, std::vector<MeshSet<3>::mesh_t*> &new_meshes)
@@ -396,8 +403,63 @@ static MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor &face_it,
 	return poly;
 }
 
+static bool checkValidQuad(std::vector<MeshSet<3>::vertex_t> &vertex_storage, uint quad[4])
+{
+	carve::geom3d::Vector &v1 = vertex_storage[quad[0]].v;
+	carve::geom3d::Vector &v2 = vertex_storage[quad[1]].v;
+	carve::geom3d::Vector &v3 = vertex_storage[quad[2]].v;
+	carve::geom3d::Vector &v4 = vertex_storage[quad[3]].v;
+
+#if 0
+	/* disabled for now to prevent initially non-planar be triangulated
+	 * in theory this might cause some artifacts if intersections happens by non-planar
+	 * non-concave quad, but in practice it's acceptable */
+	if (!isQuadPlanar(v1, v2, v3, v4)) {
+		/* non-planar faces better not be merged because of possible differences in triangulation
+		 * of non-planar faces in opengl and renderer */
+		return false;
+	}
+#endif
+
+	carve::geom3d::Vector edges[4];
+	carve::geom3d::Vector normal;
+	bool normal_set = false;
+
+	edges[0] = v2 - v1;
+	edges[1] = v3 - v2;
+	edges[2] = v4 - v3;
+	edges[3] = v1 - v4;
+
+	for (int i = 0; i < 4; i++) {
+		int n = i + 1;
+
+		if (n == 4)
+			n = 0;
+
+		carve::geom3d::Vector current_normal = carve::geom::cross(edges[i], edges[n]);
+
+		if (current_normal.length() > 1e-6) {
+			if (!normal_set) {
+				normal = current_normal;
+				normal_set = true;
+			}
+			else if (carve::geom::dot(normal, current_normal) < -1e-6) {
+				return false;
+			}
+		}
+	}
+
+	if (!normal_set) {
+		/* normal wasn't set means face is degraded and better merge it in such way */
+		return false;
+	}
+
+	return true;
+}
+
 // check whether two faces share an edge, and if so merge them
 static uint quadMerge(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
+					  std::vector<MeshSet<3>::vertex_t> &vertex_storage,
                       MeshSet<3>::face_t *f1, MeshSet<3>::face_t *f2,
                       uint v, uint quad[4])
 {
@@ -432,7 +494,7 @@ static uint quadMerge(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
 		quad[2] = v1[p1];
 		quad[3] = v2[p2];
 
-		return 1;
+		return checkValidQuad(vertex_storage, quad);
 	}
 	else if (v1[n1] == v2[p2]) {
 		quad[0] = v1[current];
@@ -440,7 +502,7 @@ static uint quadMerge(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
 		quad[2] = v1[n1];
 		quad[3] = v1[p1];
 
-		return 1;
+		return checkValidQuad(vertex_storage, quad);
 	}
 
 	return 0;
@@ -539,7 +601,7 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 					if (other_index == fl.size()) continue;
 
 					// see if the faces share an edge
-					result = quadMerge(&vertexToIndex_map, f, f2, v, quadverts);
+					result = quadMerge(&vertexToIndex_map, poly->vertex_storage, f, f2, v, quadverts);
 					// if faces can be merged, then remove the other face
 					// from the current set
 					if (result) {
