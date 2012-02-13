@@ -265,6 +265,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_ANIMATION:
 			switch(wmn->data) {
 				case ND_NLA_ACTCHANGE:
+				case ND_KEYFRAME:
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_ANIMCHAN:

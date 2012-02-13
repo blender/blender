@@ -496,11 +496,10 @@ static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_RENDER, scene);
 	
 	return OPERATOR_FINISHED;
 }

@@ -196,7 +196,7 @@ class ExecutePreset(Operator):
                                  preset_class.preset_xml_map)
         else:
             self.report({'ERROR'}, "unknown filetype: %r" % ext)
-            return {'CANCELLED '}
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 

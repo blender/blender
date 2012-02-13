@@ -103,8 +103,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 		if(ob->parentinv[i%4][i/4] != f) add_parinv = true;
 	}
 
-	// Eat this 3ds Max et friends
-	if(add_parinv)
+	if(add_parinv && ob->parent)
 	{
 		double dmat[4][4];
 		UnitConverter converter;

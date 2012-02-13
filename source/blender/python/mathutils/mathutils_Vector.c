@@ -1497,7 +1497,7 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
 			vec_cpy[3] = 1.0f;
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "matrix * vector: "
 							"len(matrix.col) and len(vector) must be the same, "
 			                "except for 4x4 matrix * 3D vector.");

@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_PyBooleanOps_h
-#define BKE_PyBooleanOps_h
+#ifndef BKE_BOOLEANOPS_MESH_H
+#define BKE_BOOLEANOPS_MESH_H
 
 /** \file BKE_booleanops_mesh.h
  *  \ingroup bke

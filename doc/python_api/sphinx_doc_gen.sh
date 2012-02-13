@@ -63,6 +63,13 @@ if $DO_OUT_HTML ; then
 	cd $SPHINXBASE
 	sphinx-build -n -b html sphinx-in sphinx-out
 
+	# XXX, saves space on upload and zip, should move HTML outside
+	# and zip up there, for now this is OK
+	rm -rf sphinx-out/.doctrees
+
+	# incase we have a zip already
+	rm -f blender_python_reference_$BLENDER_VERSION.zip
+
 	# ------------------------------------------------------------------------
 	# ZIP the HTML dir for upload
 

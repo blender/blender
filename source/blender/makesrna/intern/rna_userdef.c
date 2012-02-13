@@ -2080,6 +2080,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Name of the theme");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE); /* XXX: for now putting this in presets is silly - its just Default */
 
 	prop= RNA_def_property(srna, "theme_area", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "active_theme_area");
