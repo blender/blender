@@ -517,11 +517,11 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 	}
 }
 
-/**
+/*
  *			BMESH FACE ANGLE
  *
- *  Calculates the angle between two faces. Assumes
- *  That face normals are correct.
+ *  Calculates the angle between two faces.
+ *  Assumes the face normals are correct.
  *
  *  Returns -
  *	Float.
@@ -532,7 +532,37 @@ float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
 	if (BM_edge_face_count(e) == 2) {
 		BMLoop *l1 = e->l;
 		BMLoop *l2 = e->l->radial_next;
-		return acosf(dot_v3v3(l1->f->no, l2->f->no));
+		return angle_normalized_v3v3(l1->f->no, l2->f->no);
+	}
+	else {
+		return (float)M_PI / 2.0f; /* acos(0.0) */
+	}
+}
+
+/*
+ *			BMESH FACE ANGLE
+ *
+ *  Calculates the angle a verts 2 edges.
+ *
+ *  Returns -
+ *	Float.
+ */
+float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
+{
+	BMEdge *e1, *e2;
+
+	/* saves BM_vert_edge_count(v) and and edge iterator,
+	 * get the edges and count them both at once */
+
+	if ((e1 = v->e) &&
+		(e2 =  bmesh_disk_nextedge(e1, v)) &&
+	    /* make sure we come full circle and only have 2 connected edges */
+		(e1 == bmesh_disk_nextedge(e2, v)))
+	{
+		BMVert *v1 = BM_edge_other_vert(e1, v);
+		BMVert *v2 = BM_edge_other_vert(e2, v);
+
+		return angle_v3v3v3(v1->co, v->co, v2->co);
 	}
 	else {
 		return (float)M_PI / 2.0f; /* acos(0.0) */

@@ -118,7 +118,7 @@ float angle_v3v3v3(const float v1[3], const float v2[3], const float v3[3])
 {
 	float vec1[3], vec2[3];
 
-	sub_v3_v3v3(vec1, v2, v1);
+	sub_v3_v3v3(vec1, v1, v2); /* BMESH_TODO!!! merge this line into trunk, cant now, too close to release - campbell */
 	sub_v3_v3v3(vec2, v2, v3);
 	normalize_v3(vec1);
 	normalize_v3(vec2);

@@ -3522,7 +3522,46 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
 	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
 	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+}
 
+static int dissolve_limited_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+
+	if (!EDBM_CallOpf(em, op,
+	                  "dissolvelimit edges=%he verts=%hv angle_limit=%f",
+	                  BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_dissolve_limited(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Limited Dissolve";
+	ot->idname = "MESH_OT_dissolve_limited";
+	ot->description = "Dissolve selected edges and verts, limited by the angle of surrounding geometry";
+
+	/* api callbacks */
+	ot->exec = dissolve_limited_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(15.0f));
 }
 
 static int edge_flip_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))

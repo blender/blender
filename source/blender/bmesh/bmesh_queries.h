@@ -88,6 +88,10 @@ int BM_edge_is_boundry(struct BMEdge *e);
  * exactly two faces sharing the edge.*/
 float BM_edge_face_angle(struct BMesh *bm, struct BMEdge *e);
 
+/* returns angle of two faces surrounding edges.  note there must be
+ * exactly two edges sharing the vertex.*/
+float BM_vert_edge_angle(struct BMesh *bm, struct BMVert *v);
+
 /* checks overlapping of existing faces with the verts in varr. */
 int BM_face_exists_overlap(struct BMesh *bm, struct BMVert **varr, int len, struct BMFace **existface);
 

@@ -659,6 +659,15 @@ static BMOpDefine def_dissolvefacesop = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+static BMOpDefine def_dissolvelimitop = {
+	"dissolvelimit",
+	{{BMO_OP_SLOT_FLT, "angle_limit"}, /* total rotation angle (degrees) */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edges"},
+	 {0} /* null-terminating sentine */},
+	dissolvelimit_exec,
+	BMO_OP_FLAG_UNTAN_MULTIRES
+};
 
 static BMOpDefine def_triangop = {
 	"triangulate",
@@ -1075,6 +1084,7 @@ BMOpDefine *opdefines[] = {
 	&def_dissolveedgessop,
 	&def_dissolveedgeloopsop,
 	&def_dissolvevertsop,
+    &def_dissolvelimitop,
 	&def_extrudefaceregion,
 	&def_connectverts,
 	//&def_makeprim,

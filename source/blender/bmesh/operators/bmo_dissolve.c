@@ -23,6 +23,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
+#include "BLI_math.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -397,6 +398,9 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 /* this code is for cleaning up two-edged faces, it shall become
  * it's own function one day */
 #if 0
+void dummy_exec(BMesh *bm, BMOperator *op)
+{
+	{
 		/* clean up two-edged face */
 		/* basic idea is to keep joining 2-edged faces until their
 		 * gone.  this however relies on joining two 2-edged faces
@@ -456,5 +460,100 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 		}
 		if (oldlen == len) break;
 		oldlen = len;
+	}
+}
 
 #endif
+
+/**/
+typedef struct DissolveElemWeight_t {
+	BMHeader *ele;
+	float weight;
+} DissolveElemWeight_t;
+
+static int dissolve_elem_cmp(const void *a1, const void *a2)
+{
+	const struct DissolveElemWeight_t *d1 = a1, *d2 = a2;
+
+	if      (d1->weight > d2->weight) return  1;
+	else if (d1->weight < d2->weight) return -1;
+	return 0;
+}
+
+void dissolvelimit_exec(BMesh *bm, BMOperator *op)
+{
+	BMOpSlot *einput = BMO_slot_get(op, "edges");
+	BMOpSlot *vinput = BMO_slot_get(op, "verts");
+	const float angle_max = (float)M_PI / 2.0f;
+	const float angle_limit = minf(angle_max, BMO_slot_float_get(op, "angle_limit"));
+	DissolveElemWeight_t *weight_elems = MEM_mallocN(MAX2(einput->len, vinput->len) *
+	                                                 sizeof(DissolveElemWeight_t), __func__);
+	int i, tot_found;
+
+	/* --- first edges --- */
+
+	/* go through and split edge */
+	for (i = 0, tot_found = 0; i < einput->len; i++) {
+		BMEdge *e = ((BMEdge **)einput->data.p)[i];
+		const float angle = BM_edge_face_angle(bm, e);
+
+		if (angle < angle_limit) {
+			weight_elems[i].ele = (BMHeader *)e;
+			weight_elems[i].weight = angle;
+			tot_found++;
+		}
+		else {
+			weight_elems[i].ele = NULL;
+			weight_elems[i].weight = angle_max;
+		}
+	}
+
+	if (tot_found != 0) {
+		qsort(weight_elems, einput->len, sizeof(DissolveElemWeight_t), dissolve_elem_cmp);
+
+		for (i = 0; i < tot_found; i++) {
+			BMEdge *e = (BMEdge *)weight_elems[i].ele;
+			/* check twice because cumulative effect could disolve over angle limit */
+			if (BM_edge_face_angle(bm, e) < angle_limit) {
+				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
+				                                e->l->radial_next->f,
+				                                e); /* join faces */
+
+				/* there may be some errors, we dont mind, just move on */
+				if (nf == NULL) {
+					BMO_error_clear(bm);
+				}
+			}
+		}
+	}
+
+	/* --- second verts --- */
+	for (i = 0, tot_found = 0; i < vinput->len; i++) {
+		BMVert *v = ((BMVert **)vinput->data.p)[i];
+		const float angle = BM_vert_edge_angle(bm, v);
+
+		if (angle < angle_limit) {
+			weight_elems[i].ele = (BMHeader *)v;
+			weight_elems[i].weight = angle;
+			tot_found++;
+		}
+		else {
+			weight_elems[i].ele = NULL;
+			weight_elems[i].weight = angle_max;
+		}
+	}
+
+	if (tot_found != 0) {
+		qsort(weight_elems, vinput->len, sizeof(DissolveElemWeight_t), dissolve_elem_cmp);
+
+		for (i = 0; i < tot_found; i++) {
+			BMVert *v = (BMVert *)weight_elems[i].ele;
+			/* check twice because cumulative effect could disolve over angle limit */
+			if (BM_vert_edge_angle(bm, v) < angle_limit) {
+				BM_vert_collapse_edges(bm, v->e, v); /* join edges */
+			}
+		}
+	}
+
+	MEM_freeN(weight_elems);
+}

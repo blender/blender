@@ -1476,6 +1476,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
+        layout.operator("mesh.dissolve_limited")  # BMESH ONLY
         layout.operator("mesh.duplicate_move")
         layout.operator("mesh.delete", text="Delete...")
 
@@ -1511,6 +1512,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         """
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
+        layout.operator("mesh.dissolve_limited")  # BMESH ONLY
         layout.operator("mesh.hide", text="Hide")
         layout.operator("mesh.reveal", text="Reveal")
         layout.operator("mesh.select_all").action = 'INVERT'
