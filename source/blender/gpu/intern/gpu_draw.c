@@ -732,6 +732,8 @@ void GPU_paint_set_mipmap(int mipmap)
 				else
 					GPU_free_image(ima);
 			}
+			else
+				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 		}
 
 	}
@@ -742,6 +744,8 @@ void GPU_paint_set_mipmap(int mipmap)
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 			}
+			else
+				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 		}
 	}
 }
@@ -939,7 +943,6 @@ void GPU_free_image(Image *ima)
 	if(ima->bindcode) {
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
 		ima->bindcode= 0;
-		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 
 	/* free glsl image binding */
@@ -954,8 +957,9 @@ void GPU_free_image(Image *ima)
 	
 		MEM_freeN(ima->repbind);
 		ima->repbind= NULL;
-		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
+
+	ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 }
 
 void GPU_free_images(void)
