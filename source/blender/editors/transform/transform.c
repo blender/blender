@@ -4601,7 +4601,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 	
 	em->bm->ob = t->obedit;
-	bmesh_begin_edit(em->bm, BMOP_UNTAN_MULTIRES);
+	bmesh_begin_edit(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
 	tempsv = sld->sv;
@@ -4731,7 +4731,7 @@ void projectSVData(TransInfo *t, int final)
 			}
 			
 			/*make sure face-attributes are correct (e.g. MTexPoly)*/
-			BM_elem_copy_attrs(em->bm, em->bm, copyf2, f);
+			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
 			
 			/*restore selection and hidden flags*/
 			BM_elem_select_set(em->bm, f, sel);
@@ -4783,7 +4783,7 @@ void freeSlideVerts(TransInfo *t)
 	}
 	
 	sld->em->bm->ob = t->obedit;
-	bmesh_end_edit(sld->em->bm, BMOP_UNTAN_MULTIRES);
+	bmesh_end_edit(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	BLI_smallhash_release(&sld->vhash);
 	BLI_smallhash_release(&sld->origfaces);

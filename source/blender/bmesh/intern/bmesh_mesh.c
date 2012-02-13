@@ -421,25 +421,25 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 {
 	bm->opflag = flag;
 	
-	/* Most operators seem to be using BMOP_UNTAN_MULTIRES to change the MDisps to
+	/* Most operators seem to be using BMO_OP_FLAG_UNTAN_MULTIRES to change the MDisps to
 	 * absolute space during mesh edits. With this enabled, changes to the topology
 	 * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
 	 * the mesh at all, which doesn't seem right. Turning off completely for now,
 	 * until this is shown to be better for certain types of mesh edits. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data out of tangent space */
-	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
 
 		/* ensure correct normals, if possible */
 		bmesh_rationalize_normals(bm, 0);
 		BM_mesh_normals_update(bm);
 	}
-	else if (flag & BMOP_RATIONALIZE_NORMALS) {
+	else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 0);
 	}
 #else
-	if (flag & BMOP_RATIONALIZE_NORMALS) {
+	if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 0);
 	}
 #endif
@@ -447,19 +447,19 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 
 void bmesh_end_edit(BMesh *bm, int flag)
 {
-	/* BMOP_UNTAN_MULTIRES disabled for now, see comment above in bmesh_begin_edit. */
+	/* BMO_OP_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_begin_edit. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data into tangent space */
-	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		/* set normals to their previous winding */
 		bmesh_rationalize_normals(bm, 1);
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
 	}
-	else if (flag & BMOP_RATIONALIZE_NORMALS) {
+	else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 1);
 	}
 #else
-	if (flag & BMOP_RATIONALIZE_NORMALS) {
+	if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 1);
 	}
 #endif

@@ -207,7 +207,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BLI_array_fixedstack_declare(blocks,  BM_NGON_STACK_SIZE, source->len, __func__);
 	int i;
 	
-	BM_elem_copy_attrs(bm, bm, source, target);
+	BM_elem_attrs_copy(bm, bm, source, target);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
@@ -734,7 +734,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BLI_array_fixedstack_declare(vblocks,  BM_NGON_STACK_SIZE, do_vertex ? source->len : 0, __func__);
 	int i, ax, ay;
 
-	BM_elem_copy_attrs(bm, bm, source, target->f);
+	BM_elem_attrs_copy(bm, bm, source, target->f);
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);

@@ -77,23 +77,23 @@ struct GHashIterator;
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0.*/
-#define BMOP_OPSLOT_SENTINEL	0
-#define BMOP_OPSLOT_INT			1
-#define BMOP_OPSLOT_FLT			2
-#define BMOP_OPSLOT_PNT			3
-#define BMOP_OPSLOT_MAT			4
-#define BMOP_OPSLOT_VEC			7
+#define BMO_OP_SLOT_SENTINEL	0
+#define BMO_OP_SLOT_INT			1
+#define BMO_OP_SLOT_FLT			2
+#define BMO_OP_SLOT_PNT			3
+#define BMO_OP_SLOT_MAT			4
+#define BMO_OP_SLOT_VEC			7
 
-/* after BMOP_OPSLOT_VEC, everything is
+/* after BMO_OP_SLOT_VEC, everything is
 
  * dynamically allocated arrays.  we
  * leave a space in the identifiers
  * for future growth.
  */
 //it's very important this remain a power of two
-#define BMOP_OPSLOT_ELEMENT_BUF		8
-#define BMOP_OPSLOT_MAPPING			9
-/* #define BMOP_OPSLOT_TOTAL_TYPES		10 */ /* not used yet */
+#define BMO_OP_SLOT_ELEMENT_BUF		8
+#define BMO_OP_SLOT_MAPPING			9
+/* #define BMO_OP_SLOT_TOTAL_TYPES		10 */ /* not used yet */
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
@@ -113,7 +113,7 @@ typedef struct BMOpSlot{
 	} data;
 } BMOpSlot;
 
-#define BMOP_MAX_SLOTS 16 /* way more than probably needed */
+#define BMO_OP_MAX_SLOTS 16 /* way more than probably needed */
 
 #ifdef slots
 #undef slots
@@ -124,7 +124,7 @@ typedef struct BMOperator {
 	int slottype;
 	int needflag;
 	int flag;
-	struct BMOpSlot slots[BMOP_MAX_SLOTS];
+	struct BMOpSlot slots[BMO_OP_MAX_SLOTS];
 	void (*exec)(struct BMesh *bm, struct BMOperator *op);
 	MemArena *arena;
 } BMOperator;
@@ -138,20 +138,19 @@ typedef struct BMOSlotType {
 
 typedef struct BMOpDefine {
 	const char *name;
-	BMOSlotType slottypes[BMOP_MAX_SLOTS];
+	BMOSlotType slottypes[BMO_OP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
 	int flag;
 } BMOpDefine;
 
-/*BMOpDefine->flag*/
-#define BMOP_UNTAN_MULTIRES		1 /*switch from multires tangent space to absolute coordinates*/
-
+/* BMOpDefine->flag */
+#define BMO_OP_FLAG_UNTAN_MULTIRES		1 /*switch from multires tangent space to absolute coordinates*/
 
 /* ensures consistent normals before operator execution,
  * restoring the original ones windings/normals afterwards.
  * keep in mind, this won't work if the input mesh isn't
  * manifold.*/
-#define BMOP_RATIONALIZE_NORMALS 2
+#define BMO_OP_FLAG_RATIONALIZE_NORMALS 2
 
 /*------------- Operator API --------------*/
 
@@ -458,7 +457,7 @@ BM_INLINE void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	/*sanity check*/
-	if (slot->slottype != BMOP_OPSLOT_MAPPING) {
+	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
 		return;
 	}
 
@@ -499,7 +498,7 @@ BM_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const cha
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	/*sanity check*/
-	if (slot->slottype != BMOP_OPSLOT_MAPPING) return 0;
+	if (slot->slottype != BMO_OP_SLOT_MAPPING) return 0;
 	if (!slot->data.ghash) return 0;
 
 	return BLI_ghash_haskey(slot->data.ghash, element);
@@ -512,7 +511,7 @@ BM_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const c
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	/*sanity check*/
-	if (slot->slottype != BMOP_OPSLOT_MAPPING) return NULL;
+	if (slot->slottype != BMO_OP_SLOT_MAPPING) return NULL;
 	if (!slot->data.ghash) return NULL;
 
 	mapping = (BMOElemMapping *)BLI_ghash_lookup(slot->data.ghash, element);

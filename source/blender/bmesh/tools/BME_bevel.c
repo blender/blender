@@ -395,6 +395,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 	return sv;
 }
 
+#if 0 /* UNUSED */
 static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransData_Head *td)
 {
 	BME_TransData *vtd1, *vtd2;
@@ -449,6 +450,7 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 
 	return max;
 }
+#endif
 
 #if 0 /* UNUSED */
 static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int UNUSED(options), BME_TransData_Head *td)
@@ -867,6 +869,8 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 
 }
 
+#if 0
+
 static BMesh *BME_bevel_reinitialize(BMesh *bm)
 {
 	BMVert *v;
@@ -886,6 +890,8 @@ static BMesh *BME_bevel_reinitialize(BMesh *bm)
 	return bm;
 
 }
+
+#endif
 
 /**
  *			BME_bevel_mesh

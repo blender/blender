@@ -83,21 +83,21 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		BMO_elem_flag_enable(bm, f2, EXT_KEEP);
-		BM_elem_copy_attrs(bm, bm, f, f2);
+		BM_elem_attrs_copy(bm, bm, f, f2);
 
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			BM_elem_copy_attrs(bm, bm, l, l2);
+			BM_elem_attrs_copy(bm, bm, l, l2);
 
 			l3 = l->next;
 			l4 = l2->next;
 
 			f3 = BM_face_create_quad_tri(bm, l3->v, l4->v, l2->v, l->v, f, FALSE);
 			
-			BM_elem_copy_attrs(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3));
-			BM_elem_copy_attrs(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3)->next);
-			BM_elem_copy_attrs(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next);
-			BM_elem_copy_attrs(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next->next);
+			BM_elem_attrs_copy(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3));
+			BM_elem_attrs_copy(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3)->next);
+			BM_elem_attrs_copy(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next);
+			BM_elem_attrs_copy(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next->next);
 
 			l2 = BM_iter_step(&liter2);
 		}
@@ -309,29 +309,29 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			
 			if (l2 == l) {
 				l2 = newedge->l;
-				BM_elem_copy_attrs(bm, bm, l2->f, l->f);
+				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
 
-				BM_elem_copy_attrs(bm, bm, l2, l);
+				BM_elem_attrs_copy(bm, bm, l2, l);
 				l2 = l2->next;
 				l = l->next;
-				BM_elem_copy_attrs(bm, bm, l2, l);
+				BM_elem_attrs_copy(bm, bm, l2, l);
 			}
 			else {
-				BM_elem_copy_attrs(bm, bm, l2->f, l->f);
+				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
 
 				/* copy dat */
 				if (l2->v == l->v) {
-					BM_elem_copy_attrs(bm, bm, l2, l);
+					BM_elem_attrs_copy(bm, bm, l2, l);
 					l2 = l2->next;
 					l = l->next;
-					BM_elem_copy_attrs(bm, bm, l2, l);
+					BM_elem_attrs_copy(bm, bm, l2, l);
 				}
 				else {
 					l2 = l2->next;
-					BM_elem_copy_attrs(bm, bm, l2, l);
+					BM_elem_attrs_copy(bm, bm, l2, l);
 					l2 = l2->prev;
 					l = l->next;
-					BM_elem_copy_attrs(bm, bm, l2, l);
+					BM_elem_attrs_copy(bm, bm, l2, l);
 				}
 			}
 		}

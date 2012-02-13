@@ -66,7 +66,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 
 	v->head.htype = BM_VERT;
 
-	/* 'v->no' is handled by BM_elem_copy_attrs */
+	/* 'v->no' is handled by BM_elem_attrs_copy */
 	if (co) copy_v3_v3(v->co, co);
 	
 	/* allocate flag */
@@ -75,7 +75,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
 	if (example) {
-		BM_elem_copy_attrs(bm, bm, (BMVert *)example, (BMVert *)v);
+		BM_elem_attrs_copy(bm, bm, (BMVert *)example, (BMVert *)v);
 	}
 
 	BM_CHECK_ELEMENT(bm, v);
@@ -141,7 +141,7 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	bmesh_disk_append_edge(e, e->v2);
 	
 	if (example)
-		BM_elem_copy_attrs(bm, bm, (BMEdge *)example, (BMEdge *)e);
+		BM_elem_attrs_copy(bm, bm, (BMEdge *)example, (BMEdge *)e);
 	
 	BM_CHECK_ELEMENT(bm, e);
 
@@ -237,12 +237,12 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 	
 	f2 = BM_face_create(bm, verts, edges, f->len, FALSE);
 	
-	BM_elem_copy_attrs(bm, bm, f, f2);
+	BM_elem_attrs_copy(bm, bm, f, f2);
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	l2 = BM_FACE_FIRST_LOOP(f2);
 	do {
-		BM_elem_copy_attrs(bm, bm, l_iter, l2);
+		BM_elem_attrs_copy(bm, bm, l_iter, l2);
 		l2 = l2->next;
 	} while ((l_iter = l_iter->next) != l_first);
 	
@@ -719,7 +719,7 @@ static void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int f
 	int i;
 
 	for (i = 0; i < tot; i++) {
-		bmesh_api_setflag(eles[i], flag);
+		BM_ELEM_API_FLAG_ENABLE(eles[i], flag);
 	}
 }
 
@@ -729,7 +729,7 @@ static void bmesh_clear_systag_elements(BMesh *UNUSED(bm), void *veles, int tot,
 	int i;
 
 	for (i = 0; i < tot; i++) {
-		bmesh_api_clearflag(eles[i], flag);
+		BM_ELEM_API_FLAG_DISABLE(eles[i], flag);
 	}
 }
 
@@ -746,7 +746,7 @@ static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 			goto error;
 		}
 		
-		i += bmesh_api_getflag(l2->f, flag) ? 1 : 0;
+		i += BM_ELEM_API_FLAG_TEST(l2->f, flag) ? 1 : 0;
 		l2 = bmesh_radial_nextloop(l2);
 		if (c >= BM_LOOP_RADIAL_MAX) {
 			bmesh_error();
@@ -771,7 +771,7 @@ static int UNUSED_FUNCTION(count_flagged_disk)(BMVert *v, int flag)
 		return 0;
 
 	do {
-		i += bmesh_api_getflag(e, flag) ? 1 : 0;
+		i += BM_ELEM_API_FLAG_TEST(e, flag) ? 1 : 0;
 		e = bmesh_disk_nextedge(e, v);
 	} while (e != v->e);
 
@@ -796,7 +796,7 @@ static int disk_is_flagged(BMVert *v, int flag)
 			return FALSE;
 		
 		do {
-			if (!bmesh_api_getflag(l->f, flag))
+			if (!BM_ELEM_API_FLAG_TEST(l->f, flag))
 				return FALSE;
 
 			l = l->radial_next;
@@ -873,19 +873,19 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 				d1 = disk_is_flagged(l_iter->e->v1, _FLAG_JF);
 				d2 = disk_is_flagged(l_iter->e->v2, _FLAG_JF);
 
-				if (!d1 && !d2 && !bmesh_api_getflag(l_iter->e, _FLAG_JF)) {
+				if (!d1 && !d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e, _FLAG_JF)) {
 					BLI_array_append(deledges, l_iter->e);
-					bmesh_api_setflag(l_iter->e, _FLAG_JF);
+					BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_JF);
 				}
 				else {
-					if (d1 && !bmesh_api_getflag(l_iter->e->v1, _FLAG_JF)) {
+					if (d1 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v1, _FLAG_JF)) {
 						BLI_array_append(delverts, l_iter->e->v1);
-						bmesh_api_setflag(l_iter->e->v1, _FLAG_JF);
+						BM_ELEM_API_FLAG_ENABLE(l_iter->e->v1, _FLAG_JF);
 					}
 
-					if (d2 && !bmesh_api_getflag(l_iter->e->v2, _FLAG_JF)) {
+					if (d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v2, _FLAG_JF)) {
 						BLI_array_append(delverts, l_iter->e->v2);
-						bmesh_api_setflag(l_iter->e->v2, _FLAG_JF);
+						BM_ELEM_API_FLAG_ENABLE(l_iter->e->v2, _FLAG_JF);
 					}
 				}
 			}
@@ -913,7 +913,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 		BMLoop *l2 = l_iter->radial_next;
 
 		do {
-			if (bmesh_api_getflag(l2->f, _FLAG_JF))
+			if (BM_ELEM_API_FLAG_TEST(l2->f, _FLAG_JF))
 				break;
 			l2 = l2->radial_next;
 		} while (l2 != l_iter);
@@ -924,11 +924,11 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 				l2 = l2->next;
 			}
 
-			BM_elem_copy_attrs(bm, bm, l2, l_iter);
+			BM_elem_attrs_copy(bm, bm, l2, l_iter);
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	BM_elem_copy_attrs(bm, bm, faces[0], newf);
+	BM_elem_attrs_copy(bm, bm, faces[0], newf);
 
 	/* add hole */
 	BLI_movelisttolist(&newf->loops, &holes);
@@ -943,7 +943,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 	}
 
 	bmesh_clear_systag_elements(bm, faces, totface, _FLAG_JF);
-	bmesh_api_clearflag(newf, _FLAG_JF);
+	BM_ELEM_API_FLAG_DISABLE(newf, _FLAG_JF);
 
 	/* handle multires data */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {

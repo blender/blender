@@ -98,8 +98,8 @@ struct EditMesh;
 #if 0
 void BMO_dupe_from_flag(struct BMesh *bm, int etypeflag, const char hflag);
 #endif
-void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth,
-                       float fractal, int beauty, int numcuts, int seltype,
-                       int cornertype, int singleedge, int gridfill, int seed);
+void BM_mesh_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth,
+                            float fractal, int beauty, int numcuts, int seltype,
+                            int cornertype, int singleedge, int gridfill, int seed);
 
 #endif /* __BMESH_OPERATORS_H__ */

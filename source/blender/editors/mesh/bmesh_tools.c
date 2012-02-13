@@ -94,7 +94,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 		RNA_enum_set(op->ptr, "quadcorner", SUBD_INNERVERT);
 	}
 	
-	BM_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT, 
+	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
 	                  smooth, fractal,
 	                  ts->editbutflag|flag, 
 	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
@@ -2896,8 +2896,8 @@ static EnumPropertyItem knife_items[] = {
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
 
-static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
-                              struct GHash *gh, int *isected)
+static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
+                               struct GHash *gh, int *isected)
 {
 #define MAXSLOPE 100000
 	float  x11, y11, x12 = 0, y12 = 0, x2max, x2min, y2max;
@@ -3111,7 +3111,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	/* store percentage of edge cut for KNIFE_EXACT here.*/
 	for (be = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be = BM_iter_step(&iter)) {
 		if (BM_elem_select_test(bm, be)) {
-			isect = bm_seg_intersect(be, curve, len, mode, gh, &isected);
+			isect = bm_edge_seg_isect(be, curve, len, mode, gh, &isected);
 			
 			if (isect != 0.0f) {
 				if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {

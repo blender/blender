@@ -151,7 +151,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
 int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v)
 {
 	if (!v->e) {
-		Link *e1 = bm_get_edge_link(e, v);
+		Link *e1 = BM_EDGE_LINK_GET(e, v);
 
 		v->e = e;
 		e1->next = e1->prev = (Link *)e;
@@ -159,9 +159,9 @@ int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v)
 	else {
 		Link *e1, *e2, *e3;
 
-		e1 = bm_get_edge_link(e, v);
-		e2 = bm_get_edge_link(v->e, v);
-		e3 = e2->prev ? bm_get_edge_link(e2->prev, v) : NULL;
+		e1 = BM_EDGE_LINK_GET(e, v);
+		e2 = BM_EDGE_LINK_GET(v->e, v);
+		e3 = e2->prev ? BM_EDGE_LINK_GET(e2->prev, v) : NULL;
 
 		e1->next = (Link *)v->e;
 		e1->prev = e2->prev;
@@ -178,14 +178,14 @@ void bmesh_disk_remove_edge(struct BMEdge *e, struct BMVert *v)
 {
 	Link *e1, *e2;
 
-	e1 = bm_get_edge_link(e, v);
+	e1 = BM_EDGE_LINK_GET(e, v);
 	if (e1->prev) {
-		e2 = bm_get_edge_link(e1->prev, v);
+		e2 = BM_EDGE_LINK_GET(e1->prev, v);
 		e2->next = e1->next;
 	}
 
 	if (e1->next) {
-		e2 = bm_get_edge_link(e1->next, v);
+		e2 = BM_EDGE_LINK_GET(e1->next, v);
 		e2->prev = e1->prev;
 	}
 

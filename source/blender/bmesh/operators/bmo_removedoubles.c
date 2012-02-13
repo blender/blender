@@ -201,12 +201,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		
 		f2 = BM_face_create_ngon(bm, v, v2, edges, a, TRUE);
 		if (f2 && (f2 != f)) {
-			BM_elem_copy_attrs(bm, bm, f, f2);
+			BM_elem_attrs_copy(bm, bm, f, f2);
 
 			a = 0;
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f2) {
 				l2 = loops[a];
-				BM_elem_copy_attrs(bm, bm, l2, l);
+				BM_elem_attrs_copy(bm, bm, l2, l);
 
 				a++;
 			}

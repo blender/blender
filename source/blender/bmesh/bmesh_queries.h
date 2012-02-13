@@ -52,8 +52,6 @@ struct BMVert *BM_edge_other_vert(struct BMEdge *e, struct BMVert *v);
 /*finds other loop that shares v with e's loop in f.*/
 struct BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v);
 
-//#define BM_edge_other_vert(e, v) (v==e->v1?e->v2:e->v1)
-
 /*returns the edge existing between v1 and v2, or NULL if there isn't one.*/
 struct BMEdge *BM_edge_exists(struct BMVert *v1, struct BMVert *v2);
 

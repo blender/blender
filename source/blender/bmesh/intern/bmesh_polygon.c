@@ -843,7 +843,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
  * with a length equal to f->len.  it will be filled with the new
  * triangles, and will be NULL-terminated.
  */
-void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
+void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces)
 {
 	int i, done, nvert, nf_i = 0;

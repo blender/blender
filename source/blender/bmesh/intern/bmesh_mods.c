@@ -353,7 +353,7 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	nf = bmesh_sfme(bm, f, v1, v2, nl, NULL);
 	
 	if (nf) {
-		BM_elem_copy_attrs(bm, bm, f, nf);
+		BM_elem_attrs_copy(bm, bm, f, nf);
 		copy_v3_v3(nf->no, f->no);
 
 		/* handle multires update */
@@ -577,7 +577,7 @@ BMVert *BM_edge_split(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 
 	if (ne) {
 		(*ne)->head.hflag = e->head.hflag;
-		BM_elem_copy_attrs(bm, bm, e, *ne);
+		BM_elem_attrs_copy(bm, bm, e, *ne);
 	}
 
 	/* v->nv->v2 */

@@ -194,7 +194,7 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f);
 
 /* copies attributes, e.g. customdata, header flags, etc, from one element
  * to another of the same type.*/
-void BM_elem_copy_attrs(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target);
+void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target);
 
 /* Modification */
 /* join two adjacent faces together along an edge.  note that

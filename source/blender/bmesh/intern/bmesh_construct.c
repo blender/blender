@@ -46,8 +46,8 @@
 #define SELECT 1
 
 /* prototypes */
-static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
-                                    const BMLoop *source_loop, BMLoop *target_loop);
+static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
+                               const BMLoop *source_loop, BMLoop *target_loop);
 #if 0
 
 /*
@@ -177,7 +177,7 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 		f = BM_face_create(bm, verts, edar, len, FALSE);
 
 		if (example && f) {
-			BM_elem_copy_attrs(bm, bm, example, f);
+			BM_elem_attrs_copy(bm, bm, example, f);
 		}
 	}
 
@@ -199,11 +199,11 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
 		
 		if (l2 && l2 != l) {
 			if (l2->v == l->v) {
-				bm_copy_loop_attributes(bm, bm, l2, l);
+				bm_loop_attrs_copy(bm, bm, l2, l);
 			}
 			else {
 				l2 = l2->next;
-				bm_copy_loop_attributes(bm, bm, l2, l);
+				bm_loop_attrs_copy(bm, bm, l2, l);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 
 	/* put edges in correct order */
 	for (i = 0; i < len; i++) {
-		bmesh_api_setflag(edges[i], _FLAG_MF);
+		BM_ELEM_API_FLAG_ENABLE(edges[i], _FLAG_MF);
 	}
 
 	ev1 = edges[0]->v1;
@@ -268,7 +268,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 
 		do {
 			e2 = bmesh_disk_nextedge(e2, v);
-			if (e2 != e && bmesh_api_getflag(e2, _FLAG_MF)) {
+			if (e2 != e && BM_ELEM_API_FLAG_TEST(e2, _FLAG_MF)) {
 				v = BM_edge_other_vert(e2, v);
 				break;
 			}
@@ -327,7 +327,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 
 	/* clean up flags */
 	for (i = 0; i < len; i++) {
-		bmesh_api_clearflag(edges2[i], _FLAG_MF);
+		BM_ELEM_API_FLAG_DISABLE(edges2[i], _FLAG_MF);
 	}
 
 	BLI_array_free(verts);
@@ -337,7 +337,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 
 err:
 	for (i = 0; i < len; i++) {
-		bmesh_api_clearflag(edges[i], _FLAG_MF);
+		BM_ELEM_API_FLAG_DISABLE(edges[i], _FLAG_MF);
 	}
 
 	BLI_array_free(verts);
@@ -568,13 +568,8 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 /*************************************************************/
 
 
-
-
-
-
-
-static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh,
-                                    const BMVert *source_vertex, BMVert *target_vertex)
+static void bm_vert_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
+                               const BMVert *source_vertex, BMVert *target_vertex)
 {
 	if ((source_mesh == target_mesh) && (source_vertex == target_vertex)) {
 		return;
@@ -585,8 +580,8 @@ static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh,
 	                           source_vertex->head.data, &target_vertex->head.data);
 }
 
-static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh,
-                                    const BMEdge *source_edge, BMEdge *target_edge)
+static void bm_edge_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
+                               const BMEdge *source_edge, BMEdge *target_edge)
 {
 	if ((source_mesh == target_mesh) && (source_edge == target_edge)) {
 		return;
@@ -596,8 +591,8 @@ static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh,
 	                           source_edge->head.data, &target_edge->head.data);
 }
 
-static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
-                                    const BMLoop *source_loop, BMLoop *target_loop)
+static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
+                               const BMLoop *source_loop, BMLoop *target_loop)
 {
 	if ((source_mesh == target_mesh) && (source_loop == target_loop)) {
 		return;
@@ -607,8 +602,8 @@ static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
 	                           source_loop->head.data, &target_loop->head.data);
 }
 
-static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh,
-                                    const BMFace *source_face, BMFace *target_face)
+static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
+                               const BMFace *source_face, BMFace *target_face)
 {
 	if ((source_mesh == target_mesh) && (source_face == target_face)) {
 		return;
@@ -622,7 +617,7 @@ static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh,
 
 /* BMESH_TODO: Special handling for hide flags? */
 
-void BM_elem_copy_attrs(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
+void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
 {
 	const BMHeader *sheader = source;
 	BMHeader *theader = target;
@@ -638,13 +633,13 @@ void BM_elem_copy_attrs(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 	
 	/* Copy specific attributes */
 	if (theader->htype == BM_VERT)
-		bm_copy_vert_attributes(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
+		bm_vert_attrs_copy(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
 	else if (theader->htype == BM_EDGE)
-		bm_copy_edge_attributes(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
+		bm_edge_attrs_copy(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
 	else if (theader->htype == BM_LOOP)
-		bm_copy_loop_attributes(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
+		bm_loop_attrs_copy(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
 	else if (theader->htype == BM_FACE)
-		bm_copy_face_attributes(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
+		bm_face_attrs_copy(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
 }
 
 BMesh *BM_mesh_copy(BMesh *bmold)
@@ -680,7 +675,7 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 	v = BM_iter_new(&iter, bmold, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; v; v = BM_iter_step(&iter), i++) {
 		v2 = BM_vert_create(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
-		BM_elem_copy_attrs(bmold, bm, v, v2);
+		BM_elem_attrs_copy(bmold, bm, v, v2);
 		vtable[i] = v2;
 		BM_elem_index_set(v, i); /* set_inline */
 		BM_elem_index_set(v2, i); /* set_inline */
@@ -698,7 +693,7 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 		                    vtable[BM_elem_index_get(e->v2)],
 		                    e, FALSE);
 
-		BM_elem_copy_attrs(bmold, bm, e, e2);
+		BM_elem_attrs_copy(bmold, bm, e, e2);
 		etable[i] = e2;
 		BM_elem_index_set(e, i); /* set_inline */
 		BM_elem_index_set(e2, i); /* set_inline */
@@ -740,12 +735,12 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 
 		ftable[i] = f2;
 
-		BM_elem_copy_attrs(bmold, bm, f, f2);
+		BM_elem_attrs_copy(bmold, bm, f, f2);
 		copy_v3_v3(f2->no, f->no);
 
 		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f2);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
-			BM_elem_copy_attrs(bmold, bm, loops[j], l);
+			BM_elem_attrs_copy(bmold, bm, loops[j], l);
 		}
 
 		if (f == bmold->act_face) bm->act_face = f2;

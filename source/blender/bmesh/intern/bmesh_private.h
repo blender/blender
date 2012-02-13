@@ -50,7 +50,7 @@ int bmesh_check_element(BMesh *bm, void *element, const char htype);
         __LINE__, __FILE__);                                                  \
     }
 
-#define bm_get_edge_link(e, v)  (                                             \
+#define BM_EDGE_LINK_GET(e, v)  (                                             \
 	((v) == ((BMEdge*)(e))->v1) ?                                             \
 		(Link *)&(((BMEdge*)(e))->dlink1) :                                   \
 		(Link *)&(((BMEdge*)(e))->dlink2)                                     \
@@ -71,13 +71,13 @@ int bmesh_get_filter_argtype(int type);
 #define _FLAG_JF	1 /* join faces */
 #define _FLAG_MF	2 /* make face */
 
-#define bmesh_api_setflag(element, f) (((BMHeader*)(element))->flags[0].pflag |= (f))
-#define bmesh_api_getflag(element, f) (((BMHeader*)(element))->flags[0].pflag & (f))
-#define bmesh_api_clearflag(element, f) (((BMHeader*)(element))->flags[0].pflag &= ~(f))
+#define BM_ELEM_API_FLAG_ENABLE(element, f)  (((BMHeader*)(element))->flags[0].pflag |=  (f))
+#define BM_ELEM_API_FLAG_DISABLE(element, f) (((BMHeader*)(element))->flags[0].pflag &= ~(f))
+#define BM_ELEM_API_FLAG_TEST(element, f)    (((BMHeader*)(element))->flags[0].pflag &   (f))
 
 /* Polygon Utilities ? FIXME... where do these each go? */
 /* newedgeflag sets a flag layer flag, obviously not the header flag. */
-void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
+void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
 void bmesh_update_face_normal(struct BMesh *bm, struct BMFace *f, float no[3],
                               float (*projectverts)[3]);

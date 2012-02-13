@@ -428,7 +428,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			
 			if (lastv) {
 				e = BM_edge_create(bm, lastv, tag->newv, l->e, TRUE);
-				BM_elem_copy_attrs(bm, bm, l->prev->e, e);
+				BM_elem_attrs_copy(bm, bm, l->prev->e, e);
 				BLI_array_append(edges, e);
 			}
 			lastv = tag->newv;
@@ -440,7 +440,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BLI_array_append(verts, v2);
 				
 				e = BM_edge_create(bm, lastv, v2, l->e, TRUE);
-				BM_elem_copy_attrs(bm, bm, l->e, e);
+				BM_elem_attrs_copy(bm, bm, l->e, e);
 				
 				BLI_array_append(edges, e);
 				lastv = v2;
@@ -449,7 +449,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		
 		e = BM_edge_create(bm, firstv, lastv, BM_FACE_FIRST_LOOP(faces[i])->e, TRUE);
 		if (BM_FACE_FIRST_LOOP(faces[i])->prev->e != e) {
-			BM_elem_copy_attrs(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
+			BM_elem_attrs_copy(bm, bm, BM_FACE_FIRST_LOOP(faces[i])->prev->e, e);
 		}
 		BLI_array_append(edges, e);
 		
@@ -529,8 +529,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 
 				e1 = BM_edge_exists(v4, v3);
 				e2 = BM_edge_exists(v2, v1);
-				BM_elem_copy_attrs(bm, bm, l->e, e1);
-				BM_elem_copy_attrs(bm, bm, l->e, e2);
+				BM_elem_attrs_copy(bm, bm, l->e, e1);
+				BM_elem_attrs_copy(bm, bm, l->e, e2);
 				
 				/* set edge lengths of cross edges as the average of the cross edges they're based o */
 				if (has_elens) {
@@ -777,12 +777,12 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					continue;
 				
 				if (tag->newv != l->v || HasMDisps) {
-					BM_elem_copy_attrs(bm, bm, l->f, l2->f);
+					BM_elem_attrs_copy(bm, bm, l->f, l2->f);
 					BM_loop_interp_from_face(bm, l2, l->f, TRUE, TRUE);
 				}
 				else {
-					BM_elem_copy_attrs(bm, bm, l->f, l2->f);
-					BM_elem_copy_attrs(bm, bm, l, l2);
+					BM_elem_attrs_copy(bm, bm, l->f, l2->f);
+					BM_elem_attrs_copy(bm, bm, l, l2);
 				}
 				
 				if (HasMDisps) {
@@ -820,8 +820,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 				BMLoop *l2 = l->v == v ? l : l->next;
 				
-				BM_elem_copy_attrs(bm, bm, lorig->f, l2->f);
-				BM_elem_copy_attrs(bm, bm, lorig, l2);
+				BM_elem_attrs_copy(bm, bm, lorig->f, l2->f);
+				BM_elem_attrs_copy(bm, bm, lorig, l2);
 			}
 		}
 	}

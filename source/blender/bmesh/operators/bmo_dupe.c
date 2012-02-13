@@ -51,7 +51,7 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
 	BLI_ghash_insert(vhash, source_vertex, target_vertex);
 	
 	/* Copy attribute */
-	BM_elem_copy_attrs(source_mesh, target_mesh, source_vertex, target_vertex);
+	BM_elem_attrs_copy(source_mesh, target_mesh, source_vertex, target_vertex);
 	
 	/* Set internal op flag */
 	BMO_elem_flag_enable(target_mesh, (BMHeader *)target_vertex, DUPE_NEW);
@@ -107,7 +107,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	BLI_ghash_insert(ehash, source_edge, target_edge);
 	
 	/* Copy attributes */
-	BM_elem_copy_attrs(source_mesh, target_mesh, source_edge, target_edge);
+	BM_elem_attrs_copy(source_mesh, target_mesh, source_edge, target_edge);
 	
 	/* Set internal op flags */
 	BMO_elem_flag_enable(target_mesh, (BMHeader *)target_edge, DUPE_NEW);
@@ -156,7 +156,7 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	BMO_slot_map_ptr_insert(source_mesh, op,
 	                        "facemap", target_face, source_face);
 
-	BM_elem_copy_attrs(source_mesh, target_mesh, source_face, target_face);
+	BM_elem_attrs_copy(source_mesh, target_mesh, source_face, target_face);
 
 	/* mark the face for outpu */
 	BMO_elem_flag_enable(target_mesh, (BMHeader *)target_face, DUPE_NEW);
@@ -165,7 +165,7 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	BM_ITER(source_loop, &iter, source_mesh, BM_LOOPS_OF_FACE, source_face) {
 		BM_ITER(target_loop, &iter2, target_mesh, BM_LOOPS_OF_FACE, target_face) {
 			if (BLI_ghash_lookup(vhash, source_loop->v) == target_loop->v) {
-				BM_elem_copy_attrs(source_mesh, target_mesh, source_loop, target_loop);
+				BM_elem_attrs_copy(source_mesh, target_mesh, source_loop, target_loop);
 				break;
 			}
 		}

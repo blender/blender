@@ -1736,7 +1736,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	int i, j, k = 0, totface = bm->totface;
 	
 	BMO_push(bm, NULL);
-	bmesh_begin_edit(bm, BMOP_UNTAN_MULTIRES);
+	bmesh_begin_edit(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
@@ -1946,7 +1946,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			fprintf(stderr, "%s: face index out of range! (bmesh internal error)\n", __func__);
 		}
 
-		BM_elem_copy_attrs(bm, bm, f2, f);
+		BM_elem_attrs_copy(bm, bm, f2, f);
 		
 		BM_ITER(l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
 			BM_loop_interp_from_face(bm, l1, f2, TRUE, TRUE);
@@ -1970,7 +1970,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	BMO_error_clear(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
 
-	bmesh_end_edit(bm, BMOP_UNTAN_MULTIRES);
+	bmesh_end_edit(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 	BMO_pop(bm);
 }
 

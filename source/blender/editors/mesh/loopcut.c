@@ -308,7 +308,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		edgering_sel(lcd, cuts, 1);
 		
 		if (lcd->do_cut) {
-			BM_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f, 
+			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
 			                  SUBD_PATH, 0, 0, 0);
 			

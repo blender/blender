@@ -74,12 +74,12 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 		return NULL;
 	}
 
-	BM_elem_copy_attrs(bm, bm, f, f2);
+	BM_elem_attrs_copy(bm, bm, f, f2);
 
 	l = BM_iter_new(&liter1, bm, BM_LOOPS_OF_FACE, f);
 	l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 	for ( ; l && l2; l = BM_iter_step(&liter1), l2 = BM_iter_step(&liter2)) {
-		BM_elem_copy_attrs(bm, bm, l, l2);
+		BM_elem_attrs_copy(bm, bm, l, l2);
 		if (l->e != l2->e) {
 			/* set up data for figuring out the two sides of
 			 * the split */
@@ -106,7 +106,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 				BMO_elem_flag_enable(bm, l2->e, EDGE_SEAM);
 			}
 
-			BM_elem_copy_attrs(bm, bm, l->e, l2->e);
+			BM_elem_attrs_copy(bm, bm, l->e, l2->e);
 		}
 
 		BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
