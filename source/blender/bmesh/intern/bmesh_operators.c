@@ -306,7 +306,7 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
  *
  */
 
-void BMO_slot_float_set(BMOperator *op, const char *slotname, float f)
+void BMO_slot_float_set(BMOperator *op, const char *slotname, const float f)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMO_OP_SLOT_FLT))
@@ -315,7 +315,7 @@ void BMO_slot_float_set(BMOperator *op, const char *slotname, float f)
 	slot->data.f = f;
 }
 
-void BMO_slot_int_set(BMOperator *op, const char *slotname, int i)
+void BMO_slot_int_set(BMOperator *op, const char *slotname, const int i)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMO_OP_SLOT_INT))
@@ -325,7 +325,7 @@ void BMO_slot_int_set(BMOperator *op, const char *slotname, int i)
 }
 
 /* only supports square mats */
-void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, float *mat, int size)
+void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, const float *mat, int size)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMO_OP_SLOT_MAT))
@@ -344,26 +344,25 @@ void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, float *mat, i
 		fprintf(stderr, "%s: invalid size argument %d (bmesh internal error)\n", __func__, size);
 
 		memset(slot->data.p, 0, sizeof(float) * 4 * 4);
-		return;
 	}
 }
 
-void BMO_slot_mat4_set(struct BMOperator *op, const char *slotname, float mat[4][4])
+void BMO_slot_mat4_get(struct BMOperator *op, const char *slotname, float r_mat[4][4])
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMO_OP_SLOT_MAT))
 		return;
 
-	memcpy(mat, slot->data.p, sizeof(float) * 4 * 4);
+	copy_m4_m4(r_mat, (float (*)[4])slot->data.p);
 }
 
-void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float mat[3][3])
+void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float r_mat[3][3])
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMO_OP_SLOT_MAT))
 		return;
 
-	copy_m3_m4(mat, slot->data.p);
+	copy_m3_m4(r_mat, slot->data.p);
 }
 
 void BMO_slot_ptr_set(BMOperator *op, const char *slotname, void *p)

@@ -278,9 +278,9 @@ enum {
 void BMO_op_flag_enable(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 void BMO_op_flag_disable(struct BMesh *bm, struct BMOperator *op, const int op_flag);
 
-void  BMO_slot_float_set(struct BMOperator *op, const char *slotname, float f);
+void  BMO_slot_float_set(struct BMOperator *op, const char *slotname, const float f);
 float BMO_slot_float_get(BMOperator *op, const char *slotname);
-void  BMO_slot_int_set(struct BMOperator *op, const char *slotname, int i);
+void  BMO_slot_int_set(struct BMOperator *op, const char *slotname, const int i);
 int   BMO_slot_int_get(BMOperator *op, const char *slotname);
 
 /* don't pass in arrays that are supposed to map to elements this way.
@@ -297,9 +297,9 @@ void  BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3]);
 /* size must be 3 or 4; this api is meant only for transformation matrices.
  * note that internally the matrix is stored in 4x4 form, and it's safe to
  * call whichever BMO_Get_Mat* function you want. */
-void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, float *mat, int size);
-void BMO_slot_mat4_set(struct BMOperator *op, const char *slotname, float mat[4][4]);
-void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float mat[3][3]);
+void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, const float *mat, int size);
+void BMO_slot_mat4_get(struct BMOperator *op, const char *slotname, float r_mat[4][4]);
+void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float r_mat[3][3]);
 
 void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, const short oflag);
 

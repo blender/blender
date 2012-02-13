@@ -162,48 +162,6 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	return max_co - min_co;
 }
 
-typedef struct IndexMapEntry {
-	/* the new vert index that this old vert index maps to */
-	int new;
-	/* -1 if this vert isn't merged, otherwise the old vert index it
-	* should be replaced with
-	*/
-	int merge;
-	/* 1 if this vert's first copy is merged with the last copy of its
-	* merge target, otherwise 0
-	*/
-	short merge_final;
-} IndexMapEntry;
-
-#if 0 /* BMESH_TODO, keep this function??? */
-
-/* indexMap - an array of IndexMap entries
- * oldIndex - the old index to map
- * copyNum - the copy number to map to (original = 0, first copy = 1, etc.)
- */
-static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
-{
-	if(indexMap[oldIndex].merge < 0) {
-		/* vert wasn't merged, so use copy of this vert */
-		return indexMap[oldIndex].new + copyNum;
-	} else if(indexMap[oldIndex].merge == oldIndex) {
-		/* vert was merged with itself */
-		return indexMap[oldIndex].new;
-	} else {
-		/* vert was merged with another vert */
-		/* follow the chain of merges to the end, or until we've passed
-		* a number of vertices equal to the copy number
-		*/
-		if(copyNum <= 0)
-			return indexMap[oldIndex].new;
-		else
-			return calc_mapping(indexMap, indexMap[oldIndex].merge,
-						copyNum - 1);
-	}
-}
-
-#endif
-
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
 										  int UNUSED(initFlags))
@@ -325,8 +283,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			BMHeader *h;
 
 			BMO_op_initf(em->bm, &findop,
-				"finddoubles verts=%av dist=%f keepverts=%s",
-				amd->merge_dist, &op, "geom");
+			             "finddoubles verts=%av dist=%f keepverts=%s",
+			             amd->merge_dist, &op, "geom");
 
 			i = 0;
 			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {

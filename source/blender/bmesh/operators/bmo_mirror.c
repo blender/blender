@@ -54,7 +54,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 	ototvert = bm->totvert;
 	ototedge = bm->totedge;
 	
-	BMO_slot_mat4_set(op, "mat", mtx);
+	BMO_slot_mat4_get(op, "mat", mtx);
 	invert_m4_m4(imtx, mtx);
 	
 	BMO_op_initf(bm, &dupeop, "dupe geom=%s", op, "geom");

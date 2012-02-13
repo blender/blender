@@ -408,9 +408,9 @@ void EDBM_select_more(BMEditMesh *em)
 	BMOperator bmop;
 	int usefaces = em->selectmode > SCE_SELECT_EDGE;
 
-	BMO_op_initf(em->bm, &bmop, 
-	            "regionextend geom=%hvef constrict=%d usefaces=%d",
-	            BM_ELEM_SELECT, 0, usefaces);
+	BMO_op_initf(em->bm, &bmop,
+	             "regionextend geom=%hvef constrict=%d usefaces=%d",
+	             BM_ELEM_SELECT, 0, usefaces);
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_op_finish(em->bm, &bmop);
@@ -423,9 +423,9 @@ void EDBM_select_less(BMEditMesh *em)
 	BMOperator bmop;
 	int usefaces = em->selectmode > SCE_SELECT_EDGE;
 
-	BMO_op_initf(em->bm, &bmop, 
-	            "regionextend geom=%hvef constrict=%d usefaces=%d",
-	            BM_ELEM_SELECT, 0, usefaces);
+	BMO_op_initf(em->bm, &bmop,
+	             "regionextend geom=%hvef constrict=%d usefaces=%d",
+	             BM_ELEM_SELECT, 0, usefaces);
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_op_finish(em->bm, &bmop);

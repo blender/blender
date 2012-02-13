@@ -58,7 +58,7 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 	float mat[4][4];
 
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	BMO_ITER(v, &iter, bm, op, "verts", BM_VERT) {
 		mul_m4_v3(mat, v->co);

@@ -234,7 +234,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 	if (tot < 2) tot = 2;
 	if (seg < 2) seg = 2;
 
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	/* one segment first: the X axis */
 	phi = 1.0f;
@@ -296,7 +296,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	float phid, dia = BMO_slot_float_get(op, "diameter");
 	int a, seg = BMO_slot_int_get(op, "segments"), tot = BMO_slot_int_get(op, "revolutions");
 
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / tot;
 	phi = 0.25f * (float)M_PI;
@@ -384,7 +384,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	float dia = BMO_slot_float_get(op, "diameter");
 	int a, subdiv = BMO_slot_int_get(op, "subdivisions");
 
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	/* phid = 2.0f * (float)M_PI / subdiv; */ /* UNUSED */
 	/* phi = 0.25f * (float)M_PI; */         /* UNUSED */
@@ -441,7 +441,7 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 	float mat[4][4];
 	int i;
 
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	for (i = 0; i < monkeynv; i++) {
 		float v[3];
@@ -494,7 +494,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (!segs)
 		return;
 	
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
 	phi = .25f * (float)M_PI;
@@ -566,7 +566,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (!segs)
 		return;
 	
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / segs;
 	phi = 0.25f * (float)M_PI;
@@ -652,7 +652,7 @@ void bmesh_create_cube_exec(BMesh *bm, BMOperator *op)
 	BMVert *v1, *v2, *v3, *v4, *v5, *v6, *v7, *v8;
 	float vec[3], mat[4][4], off = BMO_slot_float_get(op, "size") / 2.0f;
 
-	BMO_slot_mat4_set(op, "mat", mat);
+	BMO_slot_mat4_get(op, "mat", mat);
 
 	if (!off) off = 0.5f;
 
