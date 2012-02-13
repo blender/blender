@@ -525,27 +525,27 @@ void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
 
 static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 {
-  Sequence *seq;
+	Sequence *seq;
 
-  /* for sound we go over full meta tree to update bounds of the sound strips,
-     since sound is played outside of evaluating the imbufs, */
-  for(seq=metaseq->seqbase.first; seq; seq=seq->next) {
-    if(seq->type == SEQ_META) {
-      seq_update_sound_bounds_recursive(scene, seq);
-    }
-    else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
-      if(seq->scene_sound) {
-        int startofs = seq->startofs;
-        int endofs = seq->endofs;
-        if(seq->startofs + seq->start < metaseq->start + metaseq->startofs)
-          startofs = metaseq->start + metaseq->startofs - seq->start;
+	/* for sound we go over full meta tree to update bounds of the sound strips,
+	 * since sound is played outside of evaluating the imbufs, */
+	for(seq=metaseq->seqbase.first; seq; seq=seq->next) {
+		if(seq->type == SEQ_META) {
+			seq_update_sound_bounds_recursive(scene, seq);
+		}
+		else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
+			if(seq->scene_sound) {
+				int startofs = seq->startofs;
+				int endofs = seq->endofs;
+				if(seq->startofs + seq->start < metaseq->start + metaseq->startofs)
+					startofs = metaseq->start + metaseq->startofs - seq->start;
 
-        if(seq->start + seq->len - seq->endofs > metaseq->start + metaseq->len - metaseq->endofs)
-          endofs = seq->start + seq->len - metaseq->start - metaseq->len + metaseq->endofs;
-        sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs, seq->start+seq->len - endofs, startofs);
-      }
-    }
-  }
+				if(seq->start + seq->len - seq->endofs > metaseq->start + metaseq->len - metaseq->endofs)
+					endofs = seq->start + seq->len - metaseq->start - metaseq->len + metaseq->endofs;
+				sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs, seq->start+seq->len - endofs, startofs);
+			}
+		}
+	}
 }
 
 void calc_sequence_disp(Scene *scene, Sequence *seq)
@@ -564,11 +564,11 @@ void calc_sequence_disp(Scene *scene, Sequence *seq)
 		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
 	}
 
-  if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
-    seq_update_sound_bounds(scene, seq);
-  }
-  else if(seq->type == SEQ_META)
-    seq_update_sound_bounds_recursive(scene, seq);
+	if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
+		seq_update_sound_bounds(scene, seq);
+	}
+	else if(seq->type == SEQ_META)
+		seq_update_sound_bounds_recursive(scene, seq);
 }
 
 void calc_sequence(Scene *scene, Sequence *seq)
@@ -2580,8 +2580,8 @@ static void seq_stop_threads()
 
 	seq_thread_shutdown = TRUE;
 
-		pthread_cond_broadcast(&wakeup_cond);
-		pthread_mutex_unlock(&wakeup_lock);
+	pthread_cond_broadcast(&wakeup_cond);
+	pthread_mutex_unlock(&wakeup_lock);
 
 	for(tslot = running_threads.first; tslot; tslot= tslot->next) {
 		pthread_join(tslot->pthread, NULL);
@@ -3232,7 +3232,7 @@ void seq_update_sound_bounds_all(Scene *scene)
 
 void seq_update_sound_bounds(Scene* scene, Sequence *seq)
 {
-  sound_move_scene_sound_defaults(scene, seq);
+	sound_move_scene_sound_defaults(scene, seq);
 	/* mute is set in seq_update_muting_recursive */
 }
 
