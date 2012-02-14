@@ -43,6 +43,9 @@ using namespace carve::mesh;
 using namespace carve::geom;
 typedef unsigned int uint;
 
+static void Carve_unionIntersections(MeshSet<3> **left_r, MeshSet<3> **right_r,
+                                     carve::interpolate::FaceAttr<uint> &oface_num);
+
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
@@ -276,6 +279,10 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 				left = right;
 			}
 			else {
+				/* there might be intersections between manifolds of one operand and another mesh which isn't
+				 * taking into accound in Carve_getIntersectedOperand because of optimization purposes */
+				Carve_unionIntersections(&left, &right, oface_num);
+
 				MeshSet<3> *result = csg.compute(left, right, carve::csg::CSG::UNION, NULL, carve::csg::CSG::CLASSIFY_EDGE);
 
 				delete left;
