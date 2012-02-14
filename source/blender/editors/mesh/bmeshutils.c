@@ -713,7 +713,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	UvElementMap *element_map;
 	UvElement *buf;
 	UvElement *islandbuf;
-	/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
+	/* island number for faces */
 	int *island_number;
 
 	MLoopUV *luv;
@@ -838,6 +838,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 		stack = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_face_stack");
 		islandbuf = MEM_callocN(sizeof(*islandbuf)*totuv, "uvelement_island_buffer");
 
+		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
 		for (i = 0; i < totuv; i++) {
 			if (element_map->buf[i].island == INVALID_ISLAND) {
 				element_map->buf[i].island = nislands;

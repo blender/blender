@@ -510,11 +510,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges;
 	Image *ima= sima->image;
 
-#if 0 /* BMESH_TODO */
 	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
-#else
-	StitchPreviewer *stitch_preview = NULL;
-#endif
 
 	em= me->edit_btmesh;
 	activetf= EDBM_get_active_mtexpoly(em, &efa_act, FALSE); /* will be set to NULL if hidden */
