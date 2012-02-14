@@ -821,16 +821,16 @@ static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
 #ifdef WITH_QUICKTIME
 static int rna_RenderSettings_qtcodecsettings_codecType_get(PointerRNA *ptr)
 {
-	RenderData *rd= (RenderData*)ptr->data;
+	QuicktimeCodecSettings *settings = (QuicktimeCodecSettings*)ptr->data;
 	
-	return quicktime_rnatmpvalue_from_videocodectype(rd->qtcodecsettings.codecType);
+	return quicktime_rnatmpvalue_from_videocodectype(settings->codecType);
 }
 
 static void rna_RenderSettings_qtcodecsettings_codecType_set(PointerRNA *ptr, int value)
 {
-	RenderData *rd= (RenderData*)ptr->data;
+	QuicktimeCodecSettings *settings = (QuicktimeCodecSettings*)ptr->data;
 
-	rd->qtcodecsettings.codecType = quicktime_videocodecType_from_rnatmpvalue(value);
+	settings->codecType = quicktime_videocodecType_from_rnatmpvalue(value);
 }
 
 static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *C, PointerRNA *ptr,
@@ -863,16 +863,16 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bCon
 #ifdef USE_QTKIT
 static int rna_RenderSettings_qtcodecsettings_audiocodecType_get(PointerRNA *ptr)
 {
-	RenderData *rd= (RenderData*)ptr->data;
+	QuicktimeCodecSettings *settings = (QuicktimeCodecSettings*)ptr->data;
 	
-	return quicktime_rnatmpvalue_from_audiocodectype(rd->qtcodecsettings.audiocodecType);
+	return quicktime_rnatmpvalue_from_audiocodectype(settings->audiocodecType);
 }
 
 static void rna_RenderSettings_qtcodecsettings_audiocodecType_set(PointerRNA *ptr, int value)
 {
-	RenderData *rd= (RenderData*)ptr->data;
+	QuicktimeCodecSettings *settings = (QuicktimeCodecSettings*)ptr->data;
 	
-	rd->qtcodecsettings.audiocodecType = quicktime_audiocodecType_from_rnatmpvalue(value);
+	settings->audiocodecType = quicktime_audiocodecType_from_rnatmpvalue(value);
 }
 
 static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *C, PointerRNA *ptr,

@@ -176,6 +176,8 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 		}
 
 		m_factory->m_volume.read(frame, &volume);
+		if(m_factory->m_muted)
+			volume = 0.0f;
 		m_device.setVolume(volume);
 
 		m_factory->m_orientation.read(frame, q.get());

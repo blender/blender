@@ -23,6 +23,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+remove_strict_flags()
+
 set(INC	
 	.
 	extern

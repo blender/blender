@@ -604,7 +604,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 }
 
 
-int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports)
+int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty, reports);
 	return 1;

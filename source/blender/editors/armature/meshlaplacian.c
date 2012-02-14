@@ -682,8 +682,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 				mask[mface->v4]= (mvert[mface->v4].flag & SELECT) != 0;
 			}
 		}
-		else {
-			if(use_face_sel) {
+		else if (use_face_sel) {
+			if (mface->flag & ME_FACE_SEL) {
 				mask[mface->v1]= 1;
 				mask[mface->v2]= 1;
 				mask[mface->v3]= 1;
