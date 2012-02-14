@@ -728,6 +728,11 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw)
 	if (BM_edge_face_count(e) != 2)
 		return NULL;
 
+	/* If either of e's vertices has valence 2, then
+	 * dissolving the edge would leave a spur, so not allowed */
+	if (BM_vert_edge_count(e->v1) == 2 || BM_vert_edge_count(e->v2) == 2)
+		return NULL;
+
 	f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
 
 	if (f == NULL)
