@@ -322,10 +322,12 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	return handle;
 }
 
-#if 0 /* BMESH_TODO */
-static void texface_from_original_index(EditFace *editFace, MTFace *texFace, int index, float **uv, ParamBool *pin, ParamBool *select, Scene *scene)
+
+static void texface_from_original_index(BMFace *efa, int index, float **uv, ParamBool *pin, ParamBool *select, Scene *scene, BMEditMesh *em)
 {
-	int i, nverts = (editFace->v4)? 4: 3;
+	BMLoop *l;
+	BMIter liter;
+	MLoopUV *luv;
 
 	*uv = NULL;
 	*pin = 0;
@@ -334,29 +336,28 @@ static void texface_from_original_index(EditFace *editFace, MTFace *texFace, int
 	if(index == ORIGINDEX_NONE)
 		return;
 
-	for(i = 0; i < nverts; i++) {
-		if((*(&editFace->v1 + i))->tmp.t == index) {
-			*uv = texFace->uv[i];
-			*pin = ((texFace->unwrap & TF_PIN_MASK(i)) != 0);
-			*select = (uvedit_uv_selected(scene, editFace, texFace, i) != 0);
+	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+		if(BM_elem_index_get(l->v) == index) {
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			*uv = luv->uv;
+			*pin = (luv->flag & MLOOPUV_PINNED)? 1 : 0;
+			*select = (uvedit_uv_selected(em, scene, l) != 0);
 		}
 	}
 }
 
-/* unwrap handle initialization for subsurf aware-unwrapper. The many modifications required to make the original function(see above)
+/* unwrap handle initialisation for subsurf aware-unwrapper. The many modifications required to make the original function(see above)
  * work justified the existence of a new function. */
-static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *editMesh, short fill, short sel, short correct_aspect)
+static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *em, short fill, short sel, short correct_aspect)
 {
 	ParamHandle *handle;
 	/* index pointers */
 	MFace *face;
 	MEdge *edge;
-	EditVert *editVert;
-	EditFace *editFace, **editFaceTmp;
-	EditEdge *editEdge, **editEdgeTmp;
+	BMFace *editFace;
 	int i;
 
-	/* modifier initialization data, will  control what type of subdivision will happen*/
+	/* modifier initialisation data, will  control what type of subdivision will happen*/
 	SubsurfModifierData smd = {{0}};
 	/* Used to hold subsurfed Mesh */
 	DerivedMesh *derivedMesh, *initialDerived;
@@ -366,29 +367,26 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 	MVert *subsurfedVerts;
 	MEdge *subsurfedEdges;
 	MFace *subsurfedFaces;
-	/* MTFace *subsurfedTexfaces; */ /* UNUSED */
 	/* number of vertices and faces for subsurfed mesh*/
 	int numOfEdges, numOfFaces;
 
 	/* holds a map to editfaces for every subsurfed MFace. These will be used to get hidden/ selected flags etc. */
-	EditFace **faceMap;
-	/* Mini container to hold all EditFaces so that they may be indexed easily and fast. */
-	EditFace **editFaceArray;
+	BMFace **faceMap;
 	/* similar to the above, we need a way to map edges to their original ones */
-	EditEdge **edgeMap;
-	EditEdge **editEdgeArray;
+	BMEdge **edgeMap;
 
 	handle = param_construct_begin();
 
 	if(correct_aspect) {
-		EditFace *eface = EM_get_actFace(editMesh, 1);
+		editFace = BM_active_face_get(em->bm, TRUE);
 
-		if(eface) {
+		if(editFace) {
+			MTexPoly *tf;
 			float aspx, aspy;
-			MTFace *texface= CustomData_em_get(&editMesh->fdata, eface->data, CD_MTFACE);
+			tf= CustomData_bmesh_get(&em->bm->pdata, editFace->head.data, CD_MTEXPOLY);
 
-			ED_image_uv_aspect(texface->tpage, &aspx, &aspy);
-		
+			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
+
 			if(aspx!=aspy)
 				param_aspect_ratio(handle, aspx, aspy);
 		}
@@ -398,7 +396,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 	smd.levels = scene->toolsettings->uv_subsurf_level;
 	smd.subdivType = ME_CC_SUBSURF;
 		
-	initialDerived = CDDM_from_editmesh(editMesh, NULL);
+	initialDerived = CDDM_from_BMEditMesh(em, NULL, 0, 0);
 	derivedMesh = subsurf_make_derived_from_derived(initialDerived, &smd,
 		0, NULL, 0, 0, 1);
 
@@ -407,49 +405,34 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 	/* get the derived data */
 	subsurfedVerts = derivedMesh->getVertArray(derivedMesh);
 	subsurfedEdges = derivedMesh->getEdgeArray(derivedMesh);
-	subsurfedFaces = derivedMesh->getFaceArray(derivedMesh);
+	subsurfedFaces = derivedMesh->getTessFaceArray(derivedMesh);
 
 	origVertIndices = derivedMesh->getVertDataArray(derivedMesh, CD_ORIGINDEX);
 	origEdgeIndices = derivedMesh->getEdgeDataArray(derivedMesh, CD_ORIGINDEX);
-	origFaceIndices = derivedMesh->getFaceDataArray(derivedMesh, CD_ORIGINDEX);
-
-	/* subsurfedTexfaces = derivedMesh->getFaceDataArray(derivedMesh, CD_MTFACE); */ /* UNUSED */
+	origFaceIndices = derivedMesh->getTessFaceDataArray(derivedMesh, CD_ORIGINDEX);
 
 	numOfEdges = derivedMesh->getNumEdges(derivedMesh);
-	numOfFaces = derivedMesh->getNumFaces(derivedMesh);
+	numOfFaces = derivedMesh->getNumTessFaces(derivedMesh);
 
 	faceMap = MEM_mallocN(numOfFaces*sizeof(EditFace *), "unwrap_edit_face_map");
-	editFaceArray = MEM_mallocN(editMesh->totface*sizeof(EditFace *), "unwrap_editFaceArray");
 
-	/* fill edit face array with edit faces */
-	for(editFace = editMesh->faces.first, editFaceTmp = editFaceArray; editFace; editFace= editFace->next, editFaceTmp++)
-		*editFaceTmp = editFace;
+	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+	EDBM_init_index_arrays(em, 0, 1, 1);
 
 	/* map subsurfed faces to original editFaces */
 	for(i = 0; i < numOfFaces; i++)
-		faceMap[i] = editFaceArray[origFaceIndices[i]];
-
-	MEM_freeN(editFaceArray);
+		faceMap[i] = EDBM_get_face_for_index(em, origFaceIndices[i]);
 
 	edgeMap = MEM_mallocN(numOfEdges*sizeof(EditEdge *), "unwrap_edit_edge_map");
-	editEdgeArray = MEM_mallocN(editMesh->totedge*sizeof(EditEdge *), "unwrap_editEdgeArray");
-
-	/* fill edit edge array with edit edges */
-	for(editEdge = editMesh->edges.first, editEdgeTmp = editEdgeArray; editEdge; editEdge= editEdge->next, editEdgeTmp++)
-		*editEdgeTmp = editEdge;
 
 	/* map subsurfed edges to original editEdges */
 	for(i = 0; i < numOfEdges; i++) {
 		/* not all edges correspond to an old edge */
 		edgeMap[i] = (origEdgeIndices[i] != -1)?
-			editEdgeArray[origEdgeIndices[i]] : NULL;
+			EDBM_get_edge_for_index(em, origEdgeIndices[i]) : NULL;
 	}
 
-	MEM_freeN(editEdgeArray);
-
-	/* we need the editvert indices too */
-	for(editVert = editMesh->verts.first, i=0; editVert; editVert = editVert->next, i++)
-		editVert->tmp.t = i;
+	EDBM_free_index_arrays(em);
 
 	/* Prepare and feed faces to the solver */
 	for(i = 0; i < numOfFaces; i++) {
@@ -457,22 +440,18 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 		ParamBool pin[4], select[4];
 		float *co[4];
 		float *uv[4];
-		EditFace *origFace = faceMap[i];
-		MTFace *origtexface = (MTFace *)CustomData_em_get(&editMesh->fdata, origFace->data, CD_MTFACE);
+		BMFace *origFace = faceMap[i];
 		
 		face = subsurfedFaces+i;
 
 		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			if(origFace->h)
+			if(BM_elem_flag_test(origFace, BM_ELEM_HIDDEN))
 				continue;
 		}
 		else {
-			if((origFace->h) || (sel && (origFace->f & SELECT)==0))
+			if(BM_elem_flag_test(origFace, BM_ELEM_HIDDEN) || (sel && !BM_elem_flag_test(origFace, BM_ELEM_SELECT)))
 				continue;
 		}
-
-		/* Now we feed the rest of the data from the subsurfed faces */
-		/* texface= subsurfedTexfaces+i; */ /* UNUSED */
 
 		/* We will not check for v4 here. Subsurfed mfaces always have 4 vertices. */
 		key = (ParamKey)face;
@@ -488,17 +467,17 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 		
 		/* This is where all the magic is done. If the vertex exists in the, we pass the original uv pointer to the solver, thus
 		 * flushing the solution to the edit mesh. */
-		texface_from_original_index(origFace, origtexface, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene);
-		texface_from_original_index(origFace, origtexface, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene);
-		texface_from_original_index(origFace, origtexface, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene);
-		texface_from_original_index(origFace, origtexface, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene);
+		texface_from_original_index(origFace, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene, em);
+		texface_from_original_index(origFace, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene, em);
+		texface_from_original_index(origFace, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene, em);
+		texface_from_original_index(origFace, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene, em);
 
 		param_face_add(handle, key, 4, vkeys, co, uv, pin, select);
 	}
 
 	/* these are calculated from original mesh too */
 	for(edge = subsurfedEdges, i = 0; i < numOfEdges; i++, edge++) {
-		if((edgeMap[i] != NULL) && edgeMap[i]->seam) {
+		if((edgeMap[i] != NULL) && BM_elem_flag_test(edgeMap[i], BM_ELEM_SEAM)) {
 			ParamKey vkeys[2];
 			vkeys[0] = (ParamKey)edge->v1;
 			vkeys[1] = (ParamKey)edge->v2;
@@ -515,20 +494,6 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, EditMesh *edi
 
 	return handle;
 }
-
-#else
-
-static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *editMesh, short fill, short sel, short correct_aspect)
-{
-	(void)scene;
-	(void)editMesh;
-	(void)fill;
-	(void)sel;
-	(void)correct_aspect;
-	return NULL;
-}
-
-#endif /* BMESH_TODO */
 
 /* ******************** Minimize Stretch operator **************** */
 
