@@ -88,26 +88,19 @@ void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, str
 
 /* object that stores display data for previewing before accepting stitching */
 typedef struct StitchPreviewer {
-	/* OpenGL requires different calls for Triangles and Quads.
-	 * here we'll store the quads of the mesh */
-	float *preview_quads;
-	/* ...and here we'll store the triangles*/
+	/* here we'll store the preview triangles of the mesh */
 	float *preview_tris;
 	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
 	float *preview_stitchable;
 	float *preview_unstitchable;
 	/* here we'll store the number of triangles and quads to be drawn */
 	unsigned int num_tris;
-	unsigned int num_quads;
 	unsigned int num_stitchable;
 	unsigned int num_unstitchable;
 
-	/* store static island Quads */
-	float *static_quads;
 	/* ...and here we'll store the triangles*/
 	float *static_tris;
 	unsigned int num_static_tris;
-	unsigned int num_static_quads;
 } StitchPreviewer;
 
 StitchPreviewer *uv_get_stitch_previewer(void);

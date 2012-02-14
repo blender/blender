@@ -892,9 +892,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
 		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris*3);
 
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_quads);
-		glDrawArrays(GL_QUADS, 0, stitch_preview->num_static_quads*4);
-
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_tris);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
@@ -905,18 +902,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		/*UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
 		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);*/
-
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_quads);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
-		glDrawArrays(GL_QUADS, 0, stitch_preview->num_quads*4);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
-		glDrawArrays(GL_QUADS, 0, stitch_preview->num_quads*4);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		/*UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
-		glDrawArrays(GL_QUADS, 0, stitch_preview->num_quads*4);*/
-
 		glDisable(GL_BLEND);
 
 		/* draw vert preview */

@@ -713,6 +713,8 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	UvElementMap *element_map;
 	UvElement *buf;
 	UvElement *islandbuf;
+	/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
+	int *island_number;
 
 	MLoopUV *luv;
 	int totverts, i, totuv, j, nislands = 0, islandbufsize = 0;
@@ -726,6 +728,11 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	totverts = em->bm->totvert;
 	totuv = 0;
 
+	island_number = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_number_face");
+	if (!island_number) {
+		return NULL;
+	}
+
 	/* generate UvElement array */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT)))
@@ -733,10 +740,12 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	}
 
 	if (totuv == 0) {
+		MEM_freeN(island_number);
 		return NULL;
 	}
 	element_map = (UvElementMap *)MEM_callocN(sizeof(*element_map), "UvElementMap");
 	if (!element_map) {
+		MEM_freeN(island_number);
 		return NULL;
 	}
 	element_map->totalUVs = totuv;
@@ -745,10 +754,13 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 
 	if (!element_map->vert || !element_map->buf) {
 		EDBM_free_uv_element_map(element_map);
+		MEM_freeN(island_number);
 		return NULL;
 	}
 
+	j = 0;
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		island_number[j++] = INVALID_ISLAND;
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
 			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -821,13 +833,10 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	}
 
 	if (do_islands) {
-		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
-		int *island_number;
 		/* map holds the map from current vmap->buf to the new, sorted map */
 		map = MEM_mallocN(sizeof(*map)*totuv, "uvelement_remap");
 		stack = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_face_stack");
 		islandbuf = MEM_callocN(sizeof(*islandbuf)*totuv, "uvelement_island_buffer");
-		island_number = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_number_face");
 
 		for (i = 0; i < totuv; i++) {
 			if (element_map->buf[i].island == INVALID_ISLAND) {
@@ -911,8 +920,8 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 		element_map->totalIslands = nislands;
 		MEM_freeN(stack);
 		MEM_freeN(map);
-		MEM_freeN(island_number);
 	}
+	MEM_freeN(island_number);
 
 	return element_map;
 }
