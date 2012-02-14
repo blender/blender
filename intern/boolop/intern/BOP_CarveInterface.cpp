@@ -43,9 +43,6 @@ using namespace carve::mesh;
 using namespace carve::geom;
 typedef unsigned int uint;
 
-static void Carve_unionIntersections(MeshSet<3> **left_r, MeshSet<3> **right_r,
-                                     carve::interpolate::FaceAttr<uint> &oface_num);
-
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
@@ -210,30 +207,35 @@ static void Carve_getIntersectedOperandMeshes(std::vector<MeshSet<3>::mesh_t*> &
 
 	while(it != meshes.end()) {
 		MeshSet<3>::mesh_t *mesh = *it;
-		bool isIntersect = false;
+		bool isAdded = false;
 
 		RTreeNode<3, Face<3> *> *rtree = RTreeNode<3, Face<3> *>::construct_STR(mesh->faces.begin(), mesh->faces.end(), 4, 4);
 
-		std::vector<MeshSet<3>::mesh_t*>::iterator operand_it = operandMeshes.begin();
-		std::vector<RTreeNode<3, Face<3> *> *>::iterator tree_it = meshRTree.begin();
-		for(; operand_it!=operandMeshes.end(); operand_it++, tree_it++) {
-			RTreeNode<3, Face<3> *> *operandRTree = *tree_it;
+		if (rtree->bbox.intersects(otherAABB)) {
+			bool isIntersect = false;
 
-			if(operandRTree->bbox.intersects(otherAABB)) {
+			std::vector<MeshSet<3>::mesh_t*>::iterator operand_it = operandMeshes.begin();
+			std::vector<RTreeNode<3, Face<3> *> *>::iterator tree_it = meshRTree.begin();
+			for(; operand_it!=operandMeshes.end(); operand_it++, tree_it++) {
+				RTreeNode<3, Face<3> *> *operandRTree = *tree_it;
+
 				if(Carve_checkMeshSetInterseciton(rtree, operandRTree)) {
 					isIntersect = true;
 					break;
 				}
 			}
+
+			if(!isIntersect) {
+				operandMeshes.push_back(mesh);
+				meshRTree.push_back(rtree);
+
+				it = meshes.erase(it);
+				isAdded = true;
+			}
 		}
 
-		if(!isIntersect) {
-			operandMeshes.push_back(mesh);
-			meshRTree.push_back(rtree);
-
-			it = meshes.erase(it);
-		}
-		else {
+		if (!isAdded) {
+			delete rtree;
 			it++;
 		}
 	}
@@ -248,6 +250,9 @@ static MeshSet<3> *Carve_getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> 
 {
 	std::vector<MeshSet<3>::mesh_t*> operandMeshes;
 	Carve_getIntersectedOperandMeshes(meshes, otherAABB, operandMeshes);
+
+	if (operandMeshes.size() == 0)
+		return NULL;
 
 	return Carve_meshSetFromMeshes(operandMeshes);
 }
@@ -269,8 +274,18 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 
 	MeshSet<3> *left = Carve_getIntersectedOperand(orig_meshes, otherAABB);
 
+	if (!left) {
+		/* no maniforlds which intersects another object at all */
+		return poly;
+	}
+
 	while(orig_meshes.size()) {
 		MeshSet<3> *right = Carve_getIntersectedOperand(orig_meshes, otherAABB);
+
+		if (!right) {
+			/* no more intersecting manifolds which intersects other object */
+			break;
+		}
 
 		try {
 			if(left->meshes.size()==0) {
@@ -279,10 +294,6 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 				left = right;
 			}
 			else {
-				/* there might be intersections between manifolds of one operand and another mesh which isn't
-				 * taking into accound in Carve_getIntersectedOperand because of optimization purposes */
-				Carve_unionIntersections(&left, &right, oface_num);
-
 				MeshSet<3> *result = csg.compute(left, right, carve::csg::CSG::UNION, NULL, carve::csg::CSG::CLASSIFY_EDGE);
 
 				delete left;
@@ -307,6 +318,15 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 
 			throw "Unknown error in Carve library";
 		}
+	}
+
+	/* append all meshes which doesn't have intersection with another operand as-is */
+	if (orig_meshes.size()) {
+		MeshSet<3> *result = Carve_meshSetFromTwoMeshes(left->meshes, orig_meshes);
+
+		delete left;
+
+		return result;
 	}
 
 	return left;
