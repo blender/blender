@@ -546,6 +546,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Distance", "Distance between two bundles used for scene scaling");
 
 	/* frames count */
@@ -665,6 +666,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "object_distance");
 	RNA_def_property_ui_text(prop, "Distance", "Distance between two bundles used for object scaling");
 	RNA_def_property_range(prop, 0.001, 10000);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_range(prop, 0.001, 10000.0, 1, 3);
 }
 
@@ -1227,6 +1229,7 @@ static void rna_def_trackingObject(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_range(prop, 0.0001f, 10000.0f);
 	RNA_def_property_ui_range(prop, 0.0001f, 10000.0, 1, 4);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Scale", "Scale of object solution in camera space");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_trackingObject_flushUpdate");
 }
