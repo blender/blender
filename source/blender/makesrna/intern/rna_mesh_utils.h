@@ -51,7 +51,8 @@
 																								\
 	static int rna_Mesh_##collection_name##s_length(PointerRNA *ptr)		\
 	{																							\
-		return CustomData_number_of_layers(rna_mesh_##customdata_type(ptr), layer_type); \
+		CustomData *data = rna_mesh_##customdata_type(ptr);					\
+		return data ? CustomData_number_of_layers(data, layer_type) : 0;	\
 	}																							\
 																								\
 	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max) \
@@ -59,7 +60,7 @@
 		CustomData *data= rna_mesh_##customdata_type(ptr);						\
 																								\
 		*min= 0;																				\
-		*max= CustomData_number_of_layers(data, layer_type)-1;				\
+		*max= data ? CustomData_number_of_layers(data, layer_type) - 1 : 0;		\
 		*max= MAX2(0, *max);																\
 	}
 
