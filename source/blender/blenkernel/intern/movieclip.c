@@ -64,6 +64,7 @@
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
 
+#include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
@@ -889,6 +890,8 @@ static void free_buffers(MovieClip *clip)
 		IMB_free_anim(clip->anim);
 		clip->anim= FALSE;
 	}
+
+	BKE_free_animdata((ID *) clip);
 }
 
 void BKE_movieclip_reload(MovieClip *clip)
