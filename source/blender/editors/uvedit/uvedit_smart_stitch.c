@@ -331,7 +331,7 @@ static void stitch_calculate_island_snapping(StitchState *state, StitchPreviewer
 						luv->uv[0] += island_stitch_data[i].translation[0];
 						luv->uv[1] += island_stitch_data[i].translation[1];
 					}
-					/* TODO preview
+					/* BMESH_TODO preview
 					else if(efa->tmp.l != STITCH_NO_PREVIEW){
 						if(efa->v4){
 
@@ -348,6 +348,7 @@ static void stitch_calculate_island_snapping(StitchState *state, StitchPreviewer
 							preview->preview_tris[efa->tmp.l + 2*element->tfindex + 1] += island_stitch_data[i].translation[1];
 						}
 					}*/
+					(void)preview;
 				}
 				/* cleanup */
 				element->flag &= STITCH_SELECTED;
@@ -510,7 +511,7 @@ static void stitch_set_face_preview_buffer_position(BMFace *efa, StitchPreviewer
 	{
 		preview_position[index] = preview->num_tris*6;
 
-		/* bmesh TODO, count per face triangles */
+		/* BMESH_TODO, count per face triangles */
 		//preview->num_tris += 4;
 	}
 }
@@ -686,14 +687,15 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				int index = BM_elem_index_get(efa);
 
 				if(preview_position[index] != STITCH_NO_PREVIEW){
-					/* TODO preview */
+					/* BMESH_TODO preview */
 					//memcpy(preview->preview_tris+efa->tmp.l, &mt->uv[0][0], 6*sizeof(float));
 				}
 
 				if(element->island == state->static_island){
-					/* TODO preview */
+					/* BMESH_TODO preview */
 					//memcpy(preview->static_tris + tricount*6, &mt->uv[0][0], 6*sizeof(float));
 					//tricount++;
+					(void)tricount;
 				}
 			}
 		}
@@ -833,7 +835,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 
 					uvedit_uv_select(state->em, scene, l);
 				}else if(preview_position[BM_elem_index_get(element_iter->face)] != STITCH_NO_PREVIEW){
-					/* TODO bmesh preview for stitch
+					/* BMESH_TODO: preview for stitch
 					 *(preview->preview_tris+efa->tmp.l + element_iter->tfindex*2) = final_position[i].uv[0];
 					 *(preview->preview_tris+efa->tmp.l + element_iter->tfindex*2 + 1) = final_position[i].uv[1];
 					 */
@@ -918,7 +920,8 @@ static void stitch_select_uv(UvElement *element, StitchState *state, int always_
 
 static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *normal)
 {
-	/* TODO need a way to disambiguate between normals for bmesh.
+	/* BMESH_TODO need a way to disambiguate between normals for bmesh. */
+#if 0
 	UvElement *element = edge->element;
 	BMFace *efa = element->face;
 	MTFace *mt = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -939,7 +942,11 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 	}
 
 	normalize_v2(normal);
-	*/
+#else
+	(void)em;
+	(void)edge;
+	(void)normal;
+#endif
 }
 
 static int stitch_init(bContext *C, wmOperator *op)
@@ -1182,7 +1189,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		UvElement *element = ED_get_uv_element(state->element_map, efa, 0);
 
 		if(element){
-			/* TODO preview active island */
+			/* BMESH_TODO preview active island */
 			//state->tris_per_island[element->island]++;
 		}
 	}
