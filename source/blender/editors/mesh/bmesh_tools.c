@@ -2664,7 +2664,7 @@ static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  Prop
 {	
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = (obedit) ? obedit->data : NULL;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = (me) ? me->edit_btmesh : NULL;
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
