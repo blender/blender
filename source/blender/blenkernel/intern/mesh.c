@@ -538,7 +538,7 @@ static void expand_local_mesh(Mesh *me)
 {
 	id_lib_extern((ID *)me->texcomesh);
 
-	if(me->mtface) {
+	if(me->mtface || me->mtpoly) {
 		int a, i;
 
 		for(i=0; i<me->pdata.totlayer; i++) {
