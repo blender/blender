@@ -450,6 +450,8 @@ typedef struct KernelFilm {
 
 	int pass_emission;
 	int pass_background;
+	int pass_pad1;
+	int pass_pad2;
 } KernelFilm;
 
 typedef struct KernelBackground {
@@ -499,6 +501,7 @@ typedef struct KernelIntegrator {
 
 	/* render layer */
 	int layer_flag;
+	int pad1, pad2, pad3;
 } KernelIntegrator;
 
 typedef struct KernelBVH {
