@@ -1636,14 +1636,6 @@ Removed
 * **use_exr_half**
 * **use_tiff_16bit**
 
-bpy.types.Curve
----------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Curve.cycles`
-
 bpy.types.RegionView3D
 ----------------------
 
@@ -1660,7 +1652,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.Scene.active_clip`
-* :class:`bpy.types.Scene.cycles`
 
 bpy.types.NodeLinks
 -------------------
@@ -1725,7 +1716,6 @@ bpy.types.Lamp
 Added
 ^^^^^
 
-* :class:`bpy.types.Lamp.cycles`
 * :class:`bpy.types.Lamp.node_tree`
 * :class:`bpy.types.Lamp.use_nodes`
 
@@ -1767,7 +1757,6 @@ bpy.types.Object
 Added
 ^^^^^
 
-* :class:`bpy.types.Object.cycles_visibility`
 * :class:`bpy.types.Object.slow_parent_offset`
 
 Removed
@@ -1970,14 +1959,6 @@ Removed
 
 * **ndof_orbit_invert_axes**
 
-bpy.types.Mesh
---------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Mesh.cycles`
-
 bpy.types.BlendDataCameras
 --------------------------
 
@@ -1985,14 +1966,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.BlendDataCameras.is_updated`
-
-bpy.types.MetaBall
-------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.MetaBall.cycles`
 
 bpy.types.UILayout
 ------------------
@@ -2028,7 +2001,6 @@ bpy.types.World
 Added
 ^^^^^
 
-* :class:`bpy.types.World.cycles`
 * :class:`bpy.types.World.node_tree`
 * :class:`bpy.types.World.use_nodes`
 
@@ -2064,14 +2036,6 @@ Added
 
 * :class:`bpy.types.SpaceFileBrowser.active_operator`
 
-bpy.types.Material
-------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Material.cycles`
-
 bpy.types.BlendDataSpeakers
 ---------------------------
 
@@ -2088,7 +2052,6 @@ Added
 
 * :class:`bpy.types.Camera.angle_x`
 * :class:`bpy.types.Camera.angle_y`
-* :class:`bpy.types.Camera.cycles`
 * :class:`bpy.types.Camera.sensor_fit`
 * :class:`bpy.types.Camera.sensor_height`
 * :class:`bpy.types.Camera.sensor_width`
@@ -2117,3 +2080,320 @@ Added
 ^^^^^
 
 * :class:`bpy.types.BlendDataFonts.is_updated`
+
+
+2.61 to 2.62
+============
+
+bpy.types.SpaceTimeline
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceTimeline.show_seconds`
+
+bpy.types.MovieClipProxy
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieClipProxy.build_undistorted_100`
+* :class:`bpy.types.MovieClipProxy.build_undistorted_25`
+* :class:`bpy.types.MovieClipProxy.build_undistorted_50`
+* :class:`bpy.types.MovieClipProxy.build_undistorted_75`
+
+Removed
+^^^^^^^
+
+* **build_undistorted**
+
+bpy.types.ToolSettings
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ToolSettings.unified_paint_settings`
+* :class:`bpy.types.ToolSettings.use_uv_sculpt`
+* :class:`bpy.types.ToolSettings.uv_relax_method`
+* :class:`bpy.types.ToolSettings.uv_sculpt`
+* :class:`bpy.types.ToolSettings.uv_sculpt_all_islands`
+* :class:`bpy.types.ToolSettings.uv_sculpt_lock_borders`
+* :class:`bpy.types.ToolSettings.uv_sculpt_tool`
+
+Removed
+^^^^^^^
+
+* **sculpt_paint_use_unified_size**
+* **sculpt_paint_use_unified_strength**
+
+bpy.types.DupliObject
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DupliObject.hide`
+
+bpy.types.Curve
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Curve.use_fill_caps`
+
+bpy.types.DomainFluidSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DomainFluidSettings.frame_offset`
+* :class:`bpy.types.DomainFluidSettings.simulation_rate`
+
+bpy.types.SceneGameData
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneGameData.exit_key`
+* :class:`bpy.types.SceneGameData.samples`
+* :class:`bpy.types.SceneGameData.use_desktop`
+
+bpy.types.Sensor
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Sensor.controllers`
+
+bpy.types.Scene
+---------------
+
+Removed
+^^^^^^^
+
+* **collada_export**
+
+bpy.types.Controller
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Controller.actuators`
+
+bpy.types.SceneRenderLayer
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneRenderLayer.use_pass_diffuse_color`
+* :class:`bpy.types.SceneRenderLayer.use_pass_diffuse_direct`
+* :class:`bpy.types.SceneRenderLayer.use_pass_diffuse_indirect`
+* :class:`bpy.types.SceneRenderLayer.use_pass_glossy_color`
+* :class:`bpy.types.SceneRenderLayer.use_pass_glossy_direct`
+* :class:`bpy.types.SceneRenderLayer.use_pass_glossy_indirect`
+* :class:`bpy.types.SceneRenderLayer.use_pass_transmission_color`
+* :class:`bpy.types.SceneRenderLayer.use_pass_transmission_direct`
+* :class:`bpy.types.SceneRenderLayer.use_pass_transmission_indirect`
+
+bpy.types.ClothSettings
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ClothSettings.vel_damping`
+
+bpy.types.FollowTrackConstraint
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.FollowTrackConstraint.camera`
+* :class:`bpy.types.FollowTrackConstraint.depth_object`
+* :class:`bpy.types.FollowTrackConstraint.object`
+
+bpy.types.ImageFormatSettings
+-----------------------------
+
+Removed
+^^^^^^^
+
+* **exr_codec**
+* **use_jpeg2k_cinema_48**
+* **use_jpeg2k_cinema_preset**
+* **use_jpeg2k_ycc**
+
+bpy.types.Property
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Property.translation_context`
+
+bpy.types.MovieTrackingTrack
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingTrack.use_grayscale_preview`
+
+Removed
+^^^^^^^
+
+* **marker_find_frame**
+
+bpy.types.Object
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Object.dm_info`
+
+
+bpy.types.UserPreferencesSystem
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesSystem.compute_device`
+* :class:`bpy.types.UserPreferencesSystem.compute_device_type`
+* :class:`bpy.types.UserPreferencesSystem.use_16bit_textures`
+
+bpy.types.SpaceClipEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceClipEditor.lock_time_cursor`
+* :class:`bpy.types.SpaceClipEditor.show_blue_channel`
+* :class:`bpy.types.SpaceClipEditor.show_green_channel`
+* :class:`bpy.types.SpaceClipEditor.show_red_channel`
+* :class:`bpy.types.SpaceClipEditor.use_grayscale_preview`
+
+Removed
+^^^^^^^
+
+* **show_grease_pencil**
+* **show_pyramid_levels**
+
+bpy.types.VertexPaint
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.VertexPaint.use_group_restrict`
+
+bpy.types.DynamicPaintSurface
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DynamicPaintSurface.brush_influence_scale`
+* :class:`bpy.types.DynamicPaintSurface.brush_radius_scale`
+* :class:`bpy.types.DynamicPaintSurface.color_dry_threshold`
+* :class:`bpy.types.DynamicPaintSurface.use_drying`
+
+bpy.types.RenderLayer
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderLayer.use_pass_diffuse_color`
+* :class:`bpy.types.RenderLayer.use_pass_diffuse_direct`
+* :class:`bpy.types.RenderLayer.use_pass_diffuse_indirect`
+* :class:`bpy.types.RenderLayer.use_pass_glossy_color`
+* :class:`bpy.types.RenderLayer.use_pass_glossy_direct`
+* :class:`bpy.types.RenderLayer.use_pass_glossy_indirect`
+* :class:`bpy.types.RenderLayer.use_pass_transmission_color`
+* :class:`bpy.types.RenderLayer.use_pass_transmission_direct`
+* :class:`bpy.types.RenderLayer.use_pass_transmission_indirect`
+
+bpy.types.MovieTracking
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTracking.active_object_index`
+* :class:`bpy.types.MovieTracking.objects`
+
+bpy.types.MovieTrackingSettings
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingSettings.object_distance`
+* :class:`bpy.types.MovieTrackingSettings.use_default_blue_channel`
+* :class:`bpy.types.MovieTrackingSettings.use_default_green_channel`
+* :class:`bpy.types.MovieTrackingSettings.use_default_red_channel`
+
+bpy.types.Mesh
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Mesh.show_extra_indices`
+
+bpy.types.SpaceSequenceEditor
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceSequenceEditor.show_seconds`
+
+Removed
+^^^^^^^
+
+* **offset_x**
+* **offset_y**
+* **zoom**
+
+bpy.types.RenderSettings
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderSettings.ffmpeg`
+* :class:`bpy.types.RenderSettings.use_color_unpremultiply`
+
+Removed
+^^^^^^^
+
+* **ffmpeg_audio_bitrate**
+* **ffmpeg_audio_channels**
+* **ffmpeg_audio_codec**
+* **ffmpeg_audio_mixrate**
+* **ffmpeg_audio_volume**
+* **ffmpeg_autosplit**
+* **ffmpeg_buffersize**
+* **ffmpeg_codec**
+* **ffmpeg_format**
+* **ffmpeg_gopsize**
+* **ffmpeg_maxrate**
+* **ffmpeg_minrate**
+* **ffmpeg_muxrate**
+* **ffmpeg_packetsize**
+* **ffmpeg_video_bitrate**
+
