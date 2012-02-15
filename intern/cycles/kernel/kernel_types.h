@@ -450,6 +450,8 @@ typedef struct KernelFilm {
 
 	int pass_emission;
 	int pass_background;
+	int pass_pad1;
+	int pass_pad2;
 } KernelFilm;
 
 typedef struct KernelBackground {
