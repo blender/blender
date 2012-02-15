@@ -2863,65 +2863,76 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 #ifdef WITH_FFMPEG
 	prop = RNA_def_property(srna, "format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_format_items);
 	RNA_def_property_ui_text(prop, "Format", "Output file format");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
 	prop = RNA_def_property(srna, "codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "codec");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
 	RNA_def_property_ui_text(prop, "Codec", "FFmpeg codec to use");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
 	prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "video_bitrate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 14000);
 	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "minrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_min_rate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 9000);
 	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "maxrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_max_rate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 14000);
 	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "muxrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "mux_rate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 100000000);
 	RNA_def_property_ui_text(prop, "Mux Rate", "Mux rate (bits/s(!))");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "gopsize", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gop_size");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "GOP Size", "Distance between key frames");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "buffersize", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_buffer_size");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 2000);
 	RNA_def_property_ui_text(prop, "Buffersize", "Rate control: buffer size (kb)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "packetsize", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "mux_packet_size");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 16384);
 	RNA_def_property_ui_text(prop, "Mux Packet Size", "Mux packet size (byte)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "use_autosplit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_AUTOSPLIT_OUTPUT);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Autosplit Output", "Autosplit output at 2GB boundary");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_lossless_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_LOSSLESS_OUTPUT);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_FFmpegSettings_lossless_output_set");
 	RNA_def_property_ui_text(prop, "Lossless Output", "Use lossless output for video streams");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
