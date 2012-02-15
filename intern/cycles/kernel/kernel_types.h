@@ -501,6 +501,7 @@ typedef struct KernelIntegrator {
 
 	/* render layer */
 	int layer_flag;
+	int pad1, pad2, pad3;
 } KernelIntegrator;
 
 typedef struct KernelBVH {
