@@ -398,12 +398,21 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_PYTHON)
 		if(WITH_PYTHON_INSTALL)
+			# on some platforms (like openSUSE) Python is linked
+			# to be used from lib64 folder.
+			# determine this from Python's libraries path
+			if(${PYTHON_LIBPATH} MATCHES "lib64$")
+				set(_target_LIB "lib64")
+			else()
+				set(_target_LIB "lib")
+			endif()
+
 			# Copy the systems python into the install directory
 			# Scons copy in tools/Blender.py
 			# install(CODE "message(\"copying a subset of the systems python...\")")
 			install(
 				DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}
-				DESTINATION ${TARGETDIR_VER}/python/lib
+				DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}
 				PATTERN ".svn" EXCLUDE
 				PATTERN "__pycache__" EXCLUDE               # * any cache *
 				PATTERN "distutils" EXCLUDE                 # ./distutils
@@ -421,6 +430,7 @@ if(UNIX AND NOT APPLE)
 
 			# # doesnt work, todo
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
+			unset(_target_LIB)
 		endif()
 	endif()
 elseif(WIN32)

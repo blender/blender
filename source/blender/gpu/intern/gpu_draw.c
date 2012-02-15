@@ -518,6 +518,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
 						ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
 						ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+					/* clamp buffer colours to 1.0 to avoid artifacts due to glu for hdr images */
+					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
 					frect= srgb_frect + texwinsy*ibuf->x + texwinsx;
 				}
 				else
@@ -541,6 +543,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
 							ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
 							ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+					/* clamp buffer colours to 1.0 to avoid artifacts due to glu for hdr images */
+					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
 				}
 				else
 					frect= ibuf->rect_float;
@@ -615,7 +619,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	if (!(gpu_get_mipmap() && mipmap)) {
 		if(use_high_bit_depth)
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);			
+			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 		else
 			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -732,6 +736,8 @@ void GPU_paint_set_mipmap(int mipmap)
 				else
 					GPU_free_image(ima);
 			}
+			else
+				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 		}
 
 	}
@@ -742,6 +748,8 @@ void GPU_paint_set_mipmap(int mipmap)
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 			}
+			else
+				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 		}
 	}
 }
@@ -939,7 +947,6 @@ void GPU_free_image(Image *ima)
 	if(ima->bindcode) {
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
 		ima->bindcode= 0;
-		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 
 	/* free glsl image binding */
@@ -954,8 +961,9 @@ void GPU_free_image(Image *ima)
 	
 		MEM_freeN(ima->repbind);
 		ima->repbind= NULL;
-		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
+
+	ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 }
 
 void GPU_free_images(void)

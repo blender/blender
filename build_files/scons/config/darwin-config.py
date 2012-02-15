@@ -99,7 +99,7 @@ else:
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-BF_FFMPEG = LIBDIR + '/ffmpeg'
+BF_FFMPEG = LIBDIR + '/ffmpeg_0.10'
 BF_FFMPEG_INC = "${BF_FFMPEG}/include"
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
