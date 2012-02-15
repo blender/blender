@@ -774,6 +774,8 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 	psys->renderdata= NULL;
 }
 
+/* BMESH_TODO, for orig face data, we need to use MPoly */
+
 int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 {
 	DerivedMesh *dm= ctx->dm;

@@ -949,6 +949,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 
 			ok= 0;
 		} else {
+			/* BMESH_TODO - use MPoly rather then tessface */
 			a= me->totface;
 			while (ok && a--) {
 				Image *ima= me->mtface[a].tpage;

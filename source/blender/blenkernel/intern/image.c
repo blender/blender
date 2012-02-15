@@ -327,6 +327,8 @@ static void extern_local_image(Image *UNUSED(ima))
 	   match id_make_local pattern. */
 }
 
+/* BMESH_TODO - MTexPoly, currently this function only does 'me->mtface' */
+
 void make_local_image(struct Image *ima)
 {
 	Main *bmain= G.main;

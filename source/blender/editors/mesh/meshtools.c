@@ -1079,6 +1079,7 @@ static int mirror_facecmp(const void *a, const void *b)
 	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
 }
 
+/* BMESH_TODO, convert to MPoly (functions above also) */
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 {
 	Mesh *me= ob->data;

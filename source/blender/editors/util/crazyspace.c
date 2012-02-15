@@ -257,6 +257,8 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 #endif
 }
 
+/* BMESH_TODO - use MPolys over MFace's */
+
 void crazyspace_set_quats_mesh(Mesh *me, float *origcos, float *mappedcos, float *quats)
 {
 	int i;

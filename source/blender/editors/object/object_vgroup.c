@@ -778,6 +778,8 @@ static int tryToAddVerts(int *verts, int length, int a, int b)
 	return added;
 }
 
+/* BMESH_TODO - use MPoly's */
+
 /* This finds all of the vertices connected to vert by an edge
 and returns an array of indices of size count
 
