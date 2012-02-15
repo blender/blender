@@ -232,9 +232,8 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 				ED_space_clip_load_movieclip_buffer(sc, ibuf);
 
 				glPushMatrix();
-				glTranslatef(x, y, 0);
+				glTranslatef(x, y, 0.0f);
 				glScalef(zoomx, zoomy, 1.0f);
-				glMultMatrixf(sc->stabmat);
 
 				glBegin(GL_QUADS);
 					glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f,  0.0f);
@@ -268,9 +267,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glLogicOp(GL_NOR);
 
 		glPushMatrix();
-		glTranslatef(x, y, 0);
+		glTranslatef(x, y, 0.0f);
 
-		glScalef(zoomx, zoomy, 0);
+		glScalef(zoomx, zoomy, 1.0f);
 		glMultMatrixf(sc->stabmat);
 
 		glBegin(GL_LINE_LOOP);

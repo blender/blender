@@ -323,6 +323,7 @@ typedef struct SpaceClipDrawContext {
 	struct ImBuf *texture_ibuf;	/* image buffer for which texture was created */
 	int image_width, image_height;	/* image width and height for which texture was created */
 	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
+	int framenr;
 } SpaceClipDrawContext;
 
 void ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
@@ -342,6 +343,7 @@ void ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	 * assuming displaying happens of footage frames only on which painting doesn't heppen.
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
+	need_rebind |= context->framenr != sc->user.framenr;
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
@@ -423,6 +425,7 @@ void ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->texture_ibuf = ibuf;
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
+		context->framenr = sc->user.framenr;
 
 		if (fscalerect)
 			MEM_freeN(fscalerect);
