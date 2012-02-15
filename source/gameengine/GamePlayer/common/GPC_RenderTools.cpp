@@ -291,6 +291,29 @@ void GPC_RenderTools::RenderText3D(	int fontid,
 									double* mat,
 									float aspect)
 {
+	if(GLEW_ARB_multitexture) {
+		for(int i=0; i<MAXTEX; i++) {
+			glActiveTextureARB(GL_TEXTURE0_ARB+i);
+
+			if(GLEW_ARB_texture_cube_map)
+				if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+					glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+			if(glIsEnabled(GL_TEXTURE_2D))
+				glDisable(GL_TEXTURE_2D);
+		}
+
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	else {
+		if(GLEW_ARB_texture_cube_map)
+			if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+		if(glIsEnabled(GL_TEXTURE_2D))
+			glDisable(GL_TEXTURE_2D);
+	}
+
 	/* the actual drawing */
 	glColor4fv(color);
  

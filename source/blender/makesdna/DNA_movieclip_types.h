@@ -51,7 +51,7 @@ typedef struct MovieClipUser {
 } MovieClipUser;
 
 typedef struct MovieClipProxy {
-	char dir[768];			/* custom directory for index and proxy files (defaults to BL_proxy) */
+	char dir[768];			/* 768=FILE_MAXDIR custom directory for index and proxy files (defaults to BL_proxy) */
 
 	short tc;				/* time code in use */
 	short quality;			/* proxy build quality */
