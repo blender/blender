@@ -13062,20 +13062,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
-	/* put compatibility code here until next subversion bump */
-	{
-		{
-			Object *ob;
-			for(ob=main->object.first; ob; ob= ob->id.next) {
-				ModifierData *md;
 
-				for (md=ob->modifiers.first; md; md=md->next) {
-					if (md->type==eModifierType_Cloth) {
-						ClothModifierData *clmd = (ClothModifierData*) md;
-						if(clmd->sim_parms)
-							clmd->sim_parms->vel_damping = 1.0f;
-					}
+	if (main->versionfile < 262)
+	{
+		Object *ob;
+		for(ob=main->object.first; ob; ob= ob->id.next) {
+			ModifierData *md;
+
+			for (md=ob->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData*) md;
+					if(clmd->sim_parms)
+						clmd->sim_parms->vel_damping = 1.0f;
 				}
 			}
 		}
