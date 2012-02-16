@@ -333,7 +333,7 @@ static void islandWalker_begin(BMWalker *walker, void *data)
 {
 	islandWalker *iwalk = NULL;
 
-	if (walker->mask_face && !BMO_elem_flag_test(walker->bm, data, walker->mask_face)) {
+	if (walker->mask_face && !BMO_elem_flag_test(walker->bm, (BMElemF *)data, walker->mask_face)) {
 		return;
 	}
 

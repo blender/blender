@@ -1254,7 +1254,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			case BM_FACE: totf++; break;
 		}
 
-		BMO_elem_flag_enable(bm, h, ELE_NEW);
+		BMO_elem_flag_enable(bm, (BMElemF *)h, ELE_NEW);
 	}
 	
 	/* --- Support for Special Case ---
@@ -1317,10 +1317,10 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 		if (ok == TRUE && v_free && v_a && v_b) {
 			e = BM_edge_create(bm, v_free, v_a, NULL, TRUE);
-			BMO_elem_flag_enable(bm, &e->head, ELE_NEW);
+			BMO_elem_flag_enable(bm, e, ELE_NEW);
 
 			e = BM_edge_create(bm, v_free, v_b, NULL, TRUE);
-			BMO_elem_flag_enable(bm, &e->head, ELE_NEW);
+			BMO_elem_flag_enable(bm, e, ELE_NEW);
 		}
 	}
 	/* --- end special case support, continue as normal --- */

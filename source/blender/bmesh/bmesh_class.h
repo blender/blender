@@ -50,7 +50,6 @@ struct Object;
 */
 typedef struct BMHeader {
 	void *data; /* customdata layers */
-	struct BMFlagLayer *flags;
 	int index; /* notes:
 	            * - Use BM_elem_index_get/SetIndex macros for index
 	            * - Unitialized to -1 so we can easily tell its not set.
@@ -68,6 +67,8 @@ typedef struct BMHeader {
 
 typedef struct BMVert {
 	BMHeader head;
+	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
+
 	float co[3];
 	float no[3];
 	struct BMEdge *e;
@@ -80,6 +81,8 @@ typedef struct BMDiskLink {
 
 typedef struct BMEdge {
 	BMHeader head;
+	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
+
 	struct BMVert *v1, *v2;
 	struct BMLoop *l;
 	
@@ -89,6 +92,8 @@ typedef struct BMEdge {
 
 typedef struct BMLoop {
 	BMHeader head;
+	/* notice no flags layer */
+
 	struct BMVert *v;
 	struct BMEdge *e;
 	struct BMFace *f;
@@ -100,6 +105,12 @@ typedef struct BMLoop {
 	struct BMLoop *next, *prev;
 } BMLoop;
 
+/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these dont have a flag layer */
+typedef struct BMElemF {
+	BMHeader head;
+	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
+} BMElemF;
+
 #ifdef USE_BMESH_HOLES
 /* eventually, this structure will be used for supporting holes in faces */
 typedef struct BMLoopList {
@@ -110,6 +121,8 @@ typedef struct BMLoopList {
 
 typedef struct BMFace {
 	BMHeader head;
+	struct BMFlagLayer *oflags; /* an array of flags, mostly used by the operator stack */
+
 	int len; /*includes all boundary loops*/
 #ifdef USE_BMESH_HOLES
 	int totbounds; /*total boundaries, is one plus the number of holes in the face*/

@@ -1221,7 +1221,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT /* | BM_EDGE */);
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		e->head.flags[0].f = 0;
+		e->oflags[0].f = 0; /* XXX, whats this for, BMESH_TODO, double check if this is needed */
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
 		}
@@ -2012,7 +2012,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	BMO_push(bm, NULL);
 	BM_ITER(h, &iter, bm, itertype, NULL) {
 		if (BM_elem_flag_test(h, BM_ELEM_SELECT)) {
-			BMO_elem_flag_enable(bm, h, BM_ELEM_SELECT);
+			BMO_elem_flag_enable(bm, (BMElemF *)h, BM_ELEM_SELECT);
 		}
 	}
 

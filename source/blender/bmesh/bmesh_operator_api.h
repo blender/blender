@@ -178,10 +178,10 @@ void BMO_op_finish(struct BMesh *bm, struct BMOperator *op);
  * ghash or a mapping slot to do it. */
 
 /* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
-#define BMO_elem_flag_test(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f & (oflag))
-#define BMO_elem_flag_enable(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f |= (oflag))
-#define BMO_elem_flag_disable(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f &= ~(oflag))
-#define BMO_elem_flag_toggle(bm, element, oflag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f ^= (oflag))
+#define BMO_elem_flag_test(bm, element, oflag)    ((element)->oflags[bm->stackdepth-1].f &   (oflag))
+#define BMO_elem_flag_enable(bm, element, oflag)  ((element)->oflags[bm->stackdepth-1].f |=  (oflag))
+#define BMO_elem_flag_disable(bm, element, oflag) ((element)->oflags[bm->stackdepth-1].f &= ~(oflag))
+#define BMO_elem_flag_toggle(bm, element, oflag)  ((element)->oflags[bm->stackdepth-1].f ^=  (oflag))
 
 /* profiling showed a significant amount of time spent in BMO_elem_flag_test */
 #if 0

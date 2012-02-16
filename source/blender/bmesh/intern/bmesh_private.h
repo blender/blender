@@ -71,9 +71,9 @@ int bmesh_get_filter_argtype(int type);
 #define _FLAG_JF	1 /* join faces */
 #define _FLAG_MF	2 /* make face */
 
-#define BM_ELEM_API_FLAG_ENABLE(element, f)  (((BMHeader*)(element))->flags[0].pflag |=  (f))
-#define BM_ELEM_API_FLAG_DISABLE(element, f) (((BMHeader*)(element))->flags[0].pflag &= ~(f))
-#define BM_ELEM_API_FLAG_TEST(element, f)    (((BMHeader*)(element))->flags[0].pflag &   (f))
+#define BM_ELEM_API_FLAG_ENABLE(element, f)  ((element)->oflags[0].pflag |=  (f))
+#define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))
+#define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->oflags[0].pflag &   (f))
 
 /* Polygon Utilities ? FIXME... where do these each go? */
 /* newedgeflag sets a flag layer flag, obviously not the header flag. */

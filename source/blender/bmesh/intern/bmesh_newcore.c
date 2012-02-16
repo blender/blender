@@ -70,7 +70,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 	if (co) copy_v3_v3(v->co, co);
 	
 	/* allocate flag */
-	v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
+	v->oflags = BLI_mempool_calloc(bm->toolflagpool);
 
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
@@ -129,7 +129,7 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	e->head.htype = BM_EDGE;
 	
 	/* allocate flag */
-	e->head.flags = BLI_mempool_calloc(bm->toolflagpool);
+	e->oflags = BLI_mempool_calloc(bm->toolflagpool);
 
 	e->v1 = (BMVert *) v1;
 	e->v2 = (BMVert *) v2;
@@ -307,7 +307,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	}
 	
 	/* allocate flag */
-	f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
+	f->oflags = BLI_mempool_calloc(bm->toolflagpool);
 
 	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
 	
@@ -464,7 +464,7 @@ static void bmesh_kill_only_vert(BMesh *bm, BMVert *v)
 	if (v->head.data)
 		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, v->head.flags);
+	BLI_mempool_free(bm->toolflagpool, v->oflags);
 	BLI_mempool_free(bm->vpool, v);
 }
 
@@ -478,7 +478,7 @@ static void bmesh_kill_only_edge(BMesh *bm, BMEdge *e)
 	if (e->head.data)
 		CustomData_bmesh_free_block(&bm->edata, &e->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, e->head.flags);
+	BLI_mempool_free(bm->toolflagpool, e->oflags);
 	BLI_mempool_free(bm->epool, e);
 }
 
@@ -495,7 +495,7 @@ static void bmesh_kill_only_face(BMesh *bm, BMFace *f)
 	if (f->head.data)
 		CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, f->head.flags);
+	BLI_mempool_free(bm->toolflagpool, f->oflags);
 	BLI_mempool_free(bm->fpool, f);
 }
 
@@ -505,8 +505,6 @@ static void bmesh_kill_only_loop(BMesh *bm, BMLoop *l)
 	if (l->head.data)
 		CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
 
-	if (l->head.flags)
-		BLI_mempool_free(bm->toolflagpool, l->head.flags);
 	BLI_mempool_free(bm->lpool, l);
 }
 
@@ -766,7 +764,7 @@ static void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int f
 	int i;
 
 	for (i = 0; i < tot; i++) {
-		BM_ELEM_API_FLAG_ENABLE(eles[i], flag);
+		BM_ELEM_API_FLAG_ENABLE((BMElemF *)eles[i], flag);
 	}
 }
 
@@ -776,7 +774,7 @@ static void bmesh_clear_systag_elements(BMesh *UNUSED(bm), void *veles, int tot,
 	int i;
 
 	for (i = 0; i < tot; i++) {
-		BM_ELEM_API_FLAG_DISABLE(eles[i], flag);
+		BM_ELEM_API_FLAG_DISABLE((BMElemF *)eles[i], flag);
 	}
 }
 
@@ -1070,7 +1068,7 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 	bm->totface++;
 
 	/* allocate flag */
-	f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
+	f->oflags = BLI_mempool_calloc(bm->toolflagpool);
 
 	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
 
@@ -1685,14 +1683,14 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	bmesh_disk_remove_edge(f1loop->e, f1loop->e->v2);
 	
 	/* deallocate edge and its two loops as well as f2 */
-	BLI_mempool_free(bm->toolflagpool, f1loop->e->head.flags);
+	BLI_mempool_free(bm->toolflagpool, f1loop->e->oflags);
 	BLI_mempool_free(bm->epool, f1loop->e);
 	bm->totedge--;
 	BLI_mempool_free(bm->lpool, f1loop);
 	bm->totloop--;
 	BLI_mempool_free(bm->lpool, f2loop);
 	bm->totloop--;
-	BLI_mempool_free(bm->toolflagpool, f2->head.flags);
+	BLI_mempool_free(bm->toolflagpool, f2->oflags);
 	BLI_mempool_free(bm->fpool, f2);
 	bm->totface--;
 	/* account for both above */
