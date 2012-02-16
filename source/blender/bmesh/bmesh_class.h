@@ -29,6 +29,9 @@
 
 /* bmesh data structures */
 
+/* dissable holes for now, these are ifdef'd because they use more memory and cant be saved in DNA currently */
+// define USE_BMESH_HOLES
+
 struct BMesh;
 struct BMVert;
 struct BMEdge;
@@ -97,17 +100,23 @@ typedef struct BMLoop {
 	struct BMLoop *next, *prev;
 } BMLoop;
 
+#ifdef USE_BMESH_HOLES
 /* eventually, this structure will be used for supporting holes in faces */
 typedef struct BMLoopList {
 	struct BMLoopList *next, *prev;
 	struct BMLoop *first, *last;
 } BMLoopList;
+#endif
 
 typedef struct BMFace {
 	BMHeader head;
 	int len; /*includes all boundary loops*/
+#ifdef USE_BMESH_HOLES
 	int totbounds; /*total boundaries, is one plus the number of holes in the face*/
 	ListBase loops;
+#else
+	BMLoop *l_first;
+#endif
 	float no[3]; /*yes, we do store this here*/
 	short mat_nr;
 } BMFace;
@@ -136,8 +145,10 @@ typedef struct BMesh {
 	
 	CustomData vdata, edata, ldata, pdata;
 
+#ifdef USE_BMESH_HOLES
 	struct BLI_mempool *looplistpool;
-	
+#endif
+
 	/* should be copy of scene select mode */
 	/* stored in BMEditMesh too, this is a bit confusing,
 	 * make sure the're in sync!

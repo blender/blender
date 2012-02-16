@@ -101,11 +101,18 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 
 int BM_vert_in_face(BMFace *f, BMVert *v)
 {
-	BMLoopList *lst;
 	BMLoop *l_iter, *l_first;
 
-	for (lst = f->loops.first; lst; lst = lst->next) {
+#ifdef USE_BMESH_HOLES
+	BMLoopList *lst;
+	for (lst = f->loops.first; lst; lst = lst->next)
+#endif
+	{
+#ifdef USE_BMESH_HOLES
 		l_iter = l_first = lst->first;
+#else
+		l_iter = l_first = f->l_first;
+#endif
 		do {
 			if (l_iter->v == v) {
 				return TRUE;
@@ -125,14 +132,26 @@ int BM_vert_in_face(BMFace *f, BMVert *v)
  */
 int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 {
-	BMLoopList *lst;
 	BMLoop *l_iter, *l_first;
+
+#ifdef USE_BMESH_HOLES
+	BMLoopList *lst;
+#endif
+
 	int i, count = 0;
 	
 	for (i = 0; i < len; i++) BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
-	
-	for (lst = f->loops.first; lst; lst = lst->next) {
+
+#ifdef USE_BMESH_HOLES
+	for (lst = f->loops.first; lst; lst = lst->next)
+#endif
+	{
+
+#ifdef USE_BMESH_HOLES
 		l_iter = l_first = lst->first;
+#else
+		l_iter = l_first = f->l_first;
+#endif
 
 		do {
 			if (BMO_elem_flag_test(bm, l_iter->v, BM_OVERLAP)) {

@@ -345,7 +345,11 @@ void bmesh_begin_edit(BMesh *bm, int flag);
 void bmesh_end_edit(BMesh *bm, int flag);
 
 
-#define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
+#ifdef USE_BMESH_HOLES
+#  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
+#else
+#  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
+#endif
 
 /* size to use for static arrays when dealing with NGons,
  * alloc after this limit is reached.

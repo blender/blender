@@ -350,7 +350,11 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 		of = BM_face_copy(bm, f, 0, 0);
 	}
 	
+#ifdef USE_BMESH_HOLES
 	nf = bmesh_sfme(bm, f, v1, v2, nl, NULL);
+#else
+	nf = bmesh_sfme(bm, f, v1, v2, nl);
+#endif
 	
 	if (nf) {
 		BM_elem_attrs_copy(bm, bm, f, nf);

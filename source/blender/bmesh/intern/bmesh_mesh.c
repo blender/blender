@@ -66,8 +66,11 @@ static void bmesh_mempool_init(BMesh *bm, const int allocsize[4])
 	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize[0], allocsize[0], FALSE, TRUE);
 	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize[1], allocsize[1], FALSE, TRUE);
 	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
 	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize[3], allocsize[3], FALSE, TRUE);
+
+#ifdef USE_BMESH_HOLES
+	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
+#endif
 
 	/* allocate one flag pool that we dont get rid of. */
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
@@ -151,7 +154,10 @@ void BM_mesh_data_free(BMesh *bm)
 
 	/* destroy flag pool */
 	BLI_mempool_destroy(bm->toolflagpool);
+
+#ifdef USE_BMESH_HOLES
 	BLI_mempool_destroy(bm->looplistpool);
+#endif
 
 	/* These tables aren't used yet, so it's not stricly necessary
 	 * to 'end' them (with 'e' param) but if someone tries to start

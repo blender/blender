@@ -173,14 +173,20 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, con
 
 static BMLoop *bm_face_boundry_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
 {
+#ifdef USE_BMESH_HOLES
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
+#endif
 	BMLoop *l = bmesh_create_loop(bm, startv, starte, f, NULL);
 	
 	bmesh_radial_append(starte, l);
 
+#ifdef USE_BMESH_HOLES
 	lst->first = lst->last = l;
 	BLI_addtail(&f->loops, lst);
-	
+#else
+	f->l_first = l;
+#endif
+
 	l->f = f;
 	
 	return l;
@@ -309,7 +315,10 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	lastl->next = startl;
 	
 	f->len = len;
+
+#ifdef USE_BMESH_HOLES
 	f->totbounds = 0;
+#endif
 	
 	BM_CHECK_ELEMENT(bm, f);
 
@@ -400,8 +409,14 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 			BMLoop *l_first;
 			int len = 0;
 
+#ifdef USE_BMESH_HOLES
 			if (!f->loops.first)
+#else
+			if (!f->l_first)
+#endif
+			{
 				err |= (1 << 16);
+			}
 			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
 				if (l_iter->f != f) {
@@ -537,23 +552,38 @@ void BM_face_verts_kill(BMesh *bm, BMFace *f)
 
 void BM_face_kill(BMesh *bm, BMFace *f)
 {
+#ifdef USE_BMESH_HOLES
 	BMLoopList *ls, *ls_next;
+#endif
 
 	BM_CHECK_ELEMENT(bm, f);
 
-	for (ls = f->loops.first; ls; ls = ls_next) {
+#ifdef USE_BMESH_HOLES
+	for (ls = f->loops.first; ls; ls = ls_next)
+#else
+	if (f->l_first)
+#endif
+	{
 		BMLoop *l_iter, *l_next, *l_first;
 
+#ifdef USE_BMESH_HOLES
 		ls_next = ls->next;
-		l_first = l_iter = ls->first;
+		l_iter = l_first = ls->first;
+#else
+		l_iter = l_first = f->l_first;
+#endif
+
 		do {
 			l_next = l_iter->next;
 
 			bmesh_radial_remove_loop(l_iter, l_iter->e);
 			bmesh_kill_only_loop(bm, l_iter);
+
 		} while ((l_iter = l_next) != l_first);
-		
+
+#ifdef USE_BMESH_HOLES
 		BLI_mempool_free(bm->looplistpool, ls);
+#endif
 	}
 
 	bmesh_kill_only_face(bm, f);
@@ -631,9 +661,19 @@ static int bmesh_loop_length(BMLoop *l)
 	return i;
 }
 
-static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
+static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f
+#ifdef USE_BMESH_HOLES
+                                   , BMLoopList *lst
+#endif
+                                   )
 {
+
+#ifdef USE_BMESH_HOLES
 	BMLoop *l_first = lst->first;
+#else
+	BMLoop *l_first = f->l_first;
+#endif
+
 	BMLoop *l_iter, *oldprev, *oldnext;
 	BMEdge **edar = NULL;
 	MDisps *md;
@@ -713,7 +753,11 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
 
 int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 {
+#ifdef USE_BMESH_HOLES
 	return bmesh_loop_reverse_loop(bm, f, f->loops.first);
+#else
+	return bmesh_loop_reverse_loop(bm, f);
+#endif
 }
 
 static void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
@@ -827,7 +871,10 @@ static int disk_is_flagged(BMVert *v, int flag)
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 {
 	BMFace *f, *newf;
+#ifdef USE_BMESH_HOLES
 	BMLoopList *lst;
+	ListBase holes = {NULL, NULL};
+#endif
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	BMEdge **edges = NULL;
@@ -837,7 +884,6 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 	BLI_array_staticdeclare(deledges, BM_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(delverts, BM_NGON_STACK_SIZE);
 	BMVert *v1 = NULL, *v2 = NULL;
-	ListBase holes = {NULL, NULL};
 	const char *err = NULL;
 	int i, tote = 0;
 
@@ -894,12 +940,15 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 			}
 		} while ((l_iter = l_iter->next) != l_first);
 
+#ifdef USE_BMESH_HOLES
 		for (lst = f->loops.first; lst; lst = lst->next) {
 			if (lst == f->loops.first) continue;
 			
 			BLI_remlink(&f->loops, lst);
 			BLI_addtail(&holes, lst);
 		}
+#endif
+
 	}
 
 	/* create region fac */
@@ -933,12 +982,21 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 	
 	BM_elem_attrs_copy(bm, bm, faces[0], newf);
 
+#ifdef USE_BMESH_HOLES
 	/* add hole */
 	BLI_movelisttolist(&newf->loops, &holes);
+#endif
 
 	/* update loop face pointer */
-	for (lst = newf->loops.first; lst; lst = lst->next) {
+#ifdef USE_BMESH_HOLES
+	for (lst = newf->loops.first; lst; lst = lst->next)
+#endif
+	{
+#ifdef USE_BMESH_HOLES
 		l_iter = l_first = lst->first;
+#else
+		l_iter = l_first = BM_FACE_FIRST_LOOP(newf);
+#endif
 		do {
 			l_iter->f = newf;
 		} while ((l_iter = l_iter->next) != l_first);
@@ -987,13 +1045,19 @@ error:
 static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 {
 	BMFace *f;
+#ifdef USE_BMESH_HOLES
 	BMLoopList *lst;
+#endif
 
 	f = BLI_mempool_calloc(bm->fpool);
+#ifdef USE_BMESH_HOLES
 	lst = BLI_mempool_calloc(bm->looplistpool);
+#endif
 
 	f->head.htype = BM_FACE;
+#ifdef USE_BMESH_HOLES
 	BLI_addtail(&f->loops, lst);
+#endif
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
 	DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
@@ -1011,7 +1075,10 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
 
 	f->len = 0;
+
+#ifdef USE_BMESH_HOLES
 	f->totbounds = 1;
+#endif
 
 	return (BMFace *) f;
 }
@@ -1054,14 +1121,20 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
  *  A BMFace pointer
  */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
-                   BMLoop **rl, ListBase *holes)
+                   BMLoop **rl
+#ifdef USE_BMESH_HOLES
+                   , ListBase *holes
+#endif
+                   )
 {
+#ifdef USE_BMESH_HOLES
+	BMLoopList *lst, *lst2;
+#endif
 
 	BMFace *f2;
 	BMLoop *l_iter, *l_first;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *f1loop = NULL, *f2loop = NULL;
 	BMEdge *e;
-	BMLoopList *lst, *lst2;
 	int i, len, f1len, f2len;
 
 	/* verify that v1 and v2 are in face */
@@ -1092,11 +1165,16 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	v1loop->prev = f1loop;
 	v2loop->prev = f2loop;
 
+#ifdef USE_BMESH_HOLES
 	lst = f->loops.first;
 	lst2 = f2->loops.first;
 
 	lst2->first = lst2->last = f2loop;
 	lst->first = lst->last = f1loop;
+#else
+	f2->l_first = f2loop;
+	f->l_first = f1loop;
+#endif
 
 	/* validate both loop */
 	/* I dont know how many loops are supposed to be in each face at this point! FIXME */
@@ -1125,6 +1203,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 
 	if (rl) *rl = f2loop;
 
+#ifdef USE_BMESH_HOLES
 	if (holes) {
 		BLI_movelisttolist(&f2->loops, holes);
 	}
@@ -1136,6 +1215,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 			BLI_mempool_free(bm->looplistpool, lst);
 		}
 	}
+#endif
 
 	BM_CHECK_ELEMENT(bm, e);
 	BM_CHECK_ELEMENT(bm, f);
