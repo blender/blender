@@ -1152,8 +1152,9 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "show_brush")
 
         # TODO, make available from paint menu!
-        layout.prop(toolsettings, "sculpt_paint_use_unified_size", text="Unify Size")
-        layout.prop(toolsettings, "sculpt_paint_use_unified_strength", text="Unify Strength")
+        ups = context.tool_settings.unified_paint_settings
+        layout.prop(ups, "use_unified_size")
+        layout.prop(ups, "use_unified_strength")
 
 # ********** Particle menu **********
 
