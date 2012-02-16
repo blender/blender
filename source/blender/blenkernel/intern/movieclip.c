@@ -280,7 +280,7 @@ typedef struct MovieClipCache {
 		int postprocess_flag;
 
 		float loc[2], scale, angle, aspect;
-		int proxy;
+		int proxy, filter;
 		short render_flag;
 	} stabilized;
 } MovieClipCache;
@@ -706,6 +706,7 @@ ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user
 static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr, int postprocess_flag)
 {
 	MovieClipCache *cache = clip->cache;
+	MovieTracking *tracking = &clip->tracking;
 	ImBuf *stableibuf;
 	float tloc[2], tscale, tangle;
 	short proxy = IMB_PROXY_NONE;
@@ -728,7 +729,10 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 		return NULL;
 
 	/* stabilization also depends on pixel aspect ratio */
-	if(cache->stabilized.aspect != clip->tracking.camera.pixel_aspect)
+	if(cache->stabilized.aspect != tracking->camera.pixel_aspect)
+		return NULL;
+
+	if(cache->stabilized.filter != tracking->stabilization.filter)
 		return NULL;
 
 	stableibuf = cache->stabilized.ibuf;
@@ -752,6 +756,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
                                             int framenr, int postprocess_flag)
 {
 	MovieClipCache *cache = clip->cache;
+	MovieTracking *tracking = &clip->tracking;
 	ImBuf *stableibuf;
 	float tloc[2], tscale, tangle;
 
@@ -767,7 +772,8 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	cache->stabilized.scale = tscale;
 	cache->stabilized.angle = tangle;
 	cache->stabilized.framenr = framenr;
-	cache->stabilized.aspect = clip->tracking.camera.pixel_aspect;
+	cache->stabilized.aspect = tracking->camera.pixel_aspect;
+	cache->stabilized.filter = tracking->stabilization.filter;
 
 	if(clip->flag&MCLIP_USE_PROXY) {
 		cache->stabilized.proxy= rendersize_to_proxy(user, clip->flag);

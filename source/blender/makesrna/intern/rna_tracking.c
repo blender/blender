@@ -1064,6 +1064,12 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem filter_items[] = {
+		{TRACKING_FILTER_NEAREAST, "NEAREST",   0, "Nearest",   ""},
+		{TRACKING_FILTER_BILINEAR, "BILINEAR",   0, "Bilinear",   ""},
+		{TRACKING_FILTER_BICUBIC, "BICUBIC", 0, "Bicubic", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "MovieTrackingStabilization", NULL);
 	RNA_def_struct_path_func(srna, "rna_trackingStabilization_path");
 	RNA_def_struct_ui_text(srna, "Movie tracking stabilization data", "Match-moving stabilization data for tracking");
@@ -1136,6 +1142,13 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rotinf");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Rotation Influence", "Influence of stabilization algorithm on footage rotation");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
+
+	/* filter */
+	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "filter");
+	RNA_def_property_enum_items(prop, filter_items);
+	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter stabilization");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 }
 

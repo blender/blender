@@ -2688,10 +2688,18 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 		IMB_rectcpy(tmpibuf, ibuf, tloc[0]-(tscale-1.0f)*width/2.0f, tloc[1]-(tscale-1.0f)*height/2.0f, 0, 0, ibuf->x, ibuf->y);
 	} else {
 		float mat[4][4];
-		int i, j;
+		int i, j, filter= tracking->stabilization.filter;
+		void (*interpolation) (struct ImBuf*, struct ImBuf*, float, float, int, int) = NULL;
 
 		BKE_tracking_stabdata_to_mat4(ibuf->x, ibuf->y, aspect, tloc, tscale, tangle, mat);
 		invert_m4(mat);
+
+		if(filter == TRACKING_FILTER_NEAREAST)
+			interpolation = neareast_interpolation;
+		else if(filter == TRACKING_FILTER_BILINEAR)
+			interpolation = bilinear_interpolation;
+		else if(filter == TRACKING_FILTER_BICUBIC)
+			interpolation = bicubic_interpolation;
 
 		for(j=0; j<tmpibuf->y; j++) {
 			for(i=0; i<tmpibuf->x;i++) {
@@ -2699,8 +2707,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 
 				mul_v3_m4v3(vec, mat, vec);
 
-				/* TODO: add selector for interpolation method */
-				neareast_interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
+				interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
 			}
 		}
 	}
