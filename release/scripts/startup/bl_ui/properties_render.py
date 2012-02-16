@@ -314,15 +314,14 @@ class RENDER_PT_freestyle_lineset(RenderButtonsPanel, Panel):
             sub = row.column()
             self.draw_edge_type_buttons(sub, lineset, "silhouette")
             self.draw_edge_type_buttons(sub, lineset, "border")
-
-            self.draw_edge_type_buttons(sub, lineset, "crease")
-            self.draw_edge_type_buttons(sub, lineset, "ridge_valley")
-            self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
-            self.draw_edge_type_buttons(sub, lineset, "material_boundary")
-            self.draw_edge_type_buttons(sub, lineset, "edge_mark")
-            sub = row.column()
             self.draw_edge_type_buttons(sub, lineset, "contour")
+            self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
+            self.draw_edge_type_buttons(sub, lineset, "ridge_valley")
+            sub = row.column()
+            self.draw_edge_type_buttons(sub, lineset, "crease")
+            self.draw_edge_type_buttons(sub, lineset, "edge_mark")
             self.draw_edge_type_buttons(sub, lineset, "external_contour")
+            self.draw_edge_type_buttons(sub, lineset, "material_boundary")
             col.separator() # XXX
 
         col.prop(lineset, "select_by_face_marks")
