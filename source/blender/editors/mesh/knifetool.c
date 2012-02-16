@@ -1865,7 +1865,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		for (efa = fillfacebase.first; efa; efa = efa->next) {
 			BMVert *v1 = efa->v3->tmp.p, *v2 = efa->v2->tmp.p, *v3 = efa->v1->tmp.p;
 			BMFace *f2;
-			BMLoop *l;
+			BMLoop *l_iter;
 			BMVert *verts[3] = {v1, v2, v3};
 			
 			if (v1 == v2 || v2 == v3 || v1 == v3)
@@ -1879,11 +1879,10 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 
 			BMO_elem_flag_enable(bm, f2, FACE_NEW);
 			
-			l = BM_FACE_FIRST_LOOP(f2);
+			l_iter = BM_FACE_FIRST_LOOP(f2);
 			do {
-				BMO_elem_flag_disable(bm, l->e, DEL);
-				l = l->next;
-			} while (l != BM_FACE_FIRST_LOOP(f2));
+				BMO_elem_flag_disable(bm, l_iter->e, DEL);
+			} while ((l_iter = l_iter->next) != BM_FACE_FIRST_LOOP(f2));
 	
 			BMO_elem_flag_disable(bm, f2, DEL);
 			BM_elem_index_set(f2, i); /* set_dirty! */ /* note, not 100% sure this is dirty? need to check */

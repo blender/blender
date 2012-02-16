@@ -358,7 +358,9 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 	}
 
 	if (select) {
-		if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) bm->totfacesel += 1;
+		if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+			bm->totfacesel++;
+		}
 
 		BM_elem_flag_enable(&(f->head), BM_ELEM_SELECT);
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);

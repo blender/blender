@@ -92,8 +92,9 @@ typedef struct BMLoop {
 
 	struct BMLoop *radial_next, *radial_prev;
 	
-	/*private variables*/
-	struct BMLoop *next, *prev; /* won't be able to use listbase API, ger, due to head */
+	/* these were originally commented as private but are used all over the code */
+	/* can't use ListBase API, due to head */
+	struct BMLoop *next, *prev;
 } BMLoop;
 
 /* eventually, this structure will be used for supporting holes in faces */

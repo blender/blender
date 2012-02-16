@@ -37,15 +37,18 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 	BMIter liter;
 	BMLoop *l;
 	BMVert *v2, *doub;
-	int split = 0;
+	int split = FALSE;
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		v2 = BMO_slot_map_ptr_get(bm, op, "targetmap", l->v);
 		/* ok: if v2 is NULL (e.g. not in the map) then it's
 		 *     a target vert, otherwise it's a doubl */
-		if (v2 && BM_vert_in_face(f, v2) && (v2 != ((BMLoop *)l->prev)->v) && (v2 != ((BMLoop *)l->next)->v)) {
+		if ((v2 && BM_vert_in_face(f, v2)) &&
+		    (v2 != l->prev->v) &&
+		    (v2 != l->next->v))
+		{
 			doub = l->v;
-			split = 1;
+			split = TRUE;
 			break;
 		}
 	}
@@ -158,7 +161,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		a = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			v = l->v;
-			v2 = ((BMLoop *)l->next)->v;
+			v2 = l->next->v;
 			if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
 				v = BMO_slot_map_ptr_get(bm, op, "targetmap", v);
 			}

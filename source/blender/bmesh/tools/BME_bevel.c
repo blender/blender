@@ -326,8 +326,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 		if (BME_bevel_is_split_vert(bm, lv1)) {
 			is_split_vert = 1;
 			sv = v1;
-			if (forward) v1 = l->next->next->v;
-			else v1 = l->prev->v;
+			v1 = forward ? l->next->next->v : l->prev->v;
 		}
 		else {
 			is_split_vert = 0;
@@ -342,8 +341,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 		}
 
 		if (BME_bevel_is_split_vert(bm, lv2)) {
-			if (forward) v2 = lv2->prev->v;
-			else v2 = lv2->next->v;
+			v2 = forward ? lv2->prev->v : lv2->next->v;
 		}
 	}
 
@@ -507,8 +505,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 	     !BMO_elem_flag_test(bm, l->v, BME_BEVEL_NONMAN))
 	{
 		kl = l->prev->radial_next;
-		if (kl->v == l->v) kl = kl->prev;
-		else kl = kl->next;
+		kl = (kl->v == l->v) ? kl->prev : kl->next;
 		kv = l->v;
 	}
 	else {
@@ -554,8 +551,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 	     !BMO_elem_flag_test(bm, l->next->v, BME_BEVEL_NONMAN))
 	{
 		kl = l->next->radial_next;
-		if (kl->v == l->next->v) kl = kl->prev;
-		else kl = kl->next;
+		kl = (kl->v == l->next->v) ? kl->prev : kl->next;
 		kv = l->next->v;
 	}
 	else {

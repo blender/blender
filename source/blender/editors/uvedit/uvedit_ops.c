@@ -373,13 +373,16 @@ int uvedit_edge_selected(BMEditMesh *em, Scene *scene, BMLoop *l)
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode & SCE_SELECT_FACE)
+		if (ts->selectmode & SCE_SELECT_FACE) {
 			return BM_elem_flag_test(l->f, BM_ELEM_SELECT);
-		else if(ts->selectmode == SCE_SELECT_EDGE) {
+		}
+		else if (ts->selectmode == SCE_SELECT_EDGE) {
 			return BM_elem_flag_test(l->e, BM_ELEM_SELECT);
-		} else
+		}
+		else {
 			return BM_elem_flag_test(l->v, BM_ELEM_SELECT) && 
 			       BM_elem_flag_test(l->next->v, BM_ELEM_SELECT);
+		}
 	}
 	else {
 		MLoopUV *luv1, *luv2;

@@ -457,6 +457,8 @@ void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 
 void BM_vert_normal_update(BMesh *bm, BMVert *v)
 {
+	/* TODO, we can normalize each edge only once, then compare with previous edge */
+
 	BMIter eiter, liter;
 	BMEdge *e;
 	BMLoop *l;
@@ -977,9 +979,8 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	compute_poly_normal(no, projverts, f->len);
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len * 2);
-	
-	l = BM_FACE_FIRST_LOOP(f);
-	for (i = 0; i < f->len; i++) {
+
+	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		p1 = projverts[i];
 		out[0] = MAX2(out[0], p1[0]) + 0.01f;
 		out[1] = MAX2(out[1], p1[1]) + 0.01f;
@@ -987,8 +988,6 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		p1[2] = 0.0f;
 
 		//copy_v3_v3(l->v->co, p1);
-
-		l = l->next;
 	}
 	
 	for (i = 0; i < len; i++) {

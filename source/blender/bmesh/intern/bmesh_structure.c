@@ -535,32 +535,33 @@ int bmesh_loop_validate(BMFace *f)
 {
 	int i;
 	int len = f->len;
-	BMLoop *curloop, *head;
-	head = BM_FACE_FIRST_LOOP(f);
-	
-	if (head == NULL) {
+	BMLoop *l_iter, *l_first;
+
+	l_first = BM_FACE_FIRST_LOOP(f);
+
+	if (l_first == NULL) {
 		return FALSE;
 	}
 
 	/* Validate that the face loop cycle is the length specified by f->len */
-	for (i = 1, curloop = head->next; i < len; i++, curloop = curloop->next) {
-		if ( (curloop->f != f) ||
-		     (curloop == head))
+	for (i = 1, l_iter = l_first->next; i < len; i++, l_iter = l_iter->next) {
+		if ( (l_iter->f != f) ||
+		     (l_iter == l_first))
 		{
 			return FALSE;
 		}
 	}
-	if (curloop != head) {
+	if (l_iter != l_first) {
 		return FALSE;
 	}
 
 	/* Validate the loop->prev links also form a cycle of length f->len */
-	for (i = 1, curloop = head->prev; i < len; i++, curloop = curloop->prev) {
-		if (curloop == head) {
+	for (i = 1, l_iter = l_first->prev; i < len; i++, l_iter = l_iter->prev) {
+		if (l_iter == l_first) {
 			return FALSE;
 		}
 	}
-	if (curloop != head) {
+	if (l_iter != l_first) {
 		return FALSE;
 	}
 

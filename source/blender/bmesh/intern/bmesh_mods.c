@@ -412,7 +412,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 	BMVert *tv2;
 
 	BMIter iter;
-	BMLoop *l = NULL, *kvloop = NULL, *tvloop = NULL;
+	BMLoop *l_iter = NULL, *kvloop = NULL, *tvloop = NULL;
 
 	void *src[2];
 	float w[2];
@@ -426,18 +426,17 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 	w[1] = fac;
 
 	if (ke->l) {
-		l = ke->l;
+		l_iter = ke->l;
 		do {
-			if (l->v == tv && l->next->v == kv) {
-				tvloop = l;
-				kvloop = l->next;
+			if (l_iter->v == tv && l_iter->next->v == kv) {
+				tvloop = l_iter;
+				kvloop = l_iter->next;
 
 				src[0] = kvloop->head.data;
 				src[1] = tvloop->head.data;
 				CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, kvloop->head.data);
 			}
-			l = l->radial_next;
-		} while (l != ke->l);
+		} while ((l_iter = l_iter->radial_next) != ke->l);
 	}
 
 	/* now interpolate the vertex data */

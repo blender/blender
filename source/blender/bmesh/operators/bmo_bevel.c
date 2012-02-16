@@ -436,7 +436,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			
 			v2 = ETAG_GET(l->e, l->next->v);
 			
-			tag = tags + BM_elem_index_get(l->next);
+			tag = &tags[BM_elem_index_get(l->next)];
 			if (!BMO_elem_flag_test(bm, l->e, BEVEL_FLAG) && v2 && v2 != tag->newv) {
 				BLI_array_append(verts, v2);
 				

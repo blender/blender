@@ -44,7 +44,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter liter, liter2;
 	BMFace *f, *f2, *f3;
-	BMLoop *l, *l2, *l3, *l4;
+	BMLoop *l, *l2, *l3, *l4, *l_tmp;
 	BMEdge **edges = NULL, *e, *laste;
 	BMVert *v, *lastv, *firstv;
 	BLI_array_declare(edges);
@@ -93,11 +93,13 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			l4 = l2->next;
 
 			f3 = BM_face_create_quad_tri(bm, l3->v, l4->v, l2->v, l->v, f, FALSE);
-			
-			BM_elem_attrs_copy(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3));
-			BM_elem_attrs_copy(bm, bm, l->next, BM_FACE_FIRST_LOOP(f3)->next);
-			BM_elem_attrs_copy(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next);
-			BM_elem_attrs_copy(bm, bm, l, BM_FACE_FIRST_LOOP(f3)->next->next->next);
+
+			l_tmp = BM_FACE_FIRST_LOOP(f3);
+
+			BM_elem_attrs_copy(bm, bm, l->next, l_tmp);  l_tmp = l_tmp->next;
+			BM_elem_attrs_copy(bm, bm, l->next, l_tmp);  l_tmp = l_tmp->next;
+			BM_elem_attrs_copy(bm, bm, l, l_tmp);        l_tmp = l_tmp->next;
+			BM_elem_attrs_copy(bm, bm, l, l_tmp);
 
 			l2 = BM_iter_step(&liter2);
 		}

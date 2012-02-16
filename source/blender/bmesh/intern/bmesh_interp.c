@@ -112,23 +112,27 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 {
 	void *src[2];
 	float w[2];
-	BMLoop *l = NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
-	
+	BMLoop *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
+	BMLoop *l_iter = NULL;
+
+	if (!e1->l) {
+		return;
+	}
+
 	w[1] = 1.0f - fac;
 	w[0] = fac;
 
-	if (!e1->l) return;
-	l = e1->l;
+	l_iter = e1->l;
 	do {
-		if (l->v == v1) {
-			v1loop = l;
+		if (l_iter->v == v1) {
+			v1loop = l_iter;
 			vloop = v1loop->next;
 			v2loop = vloop->next;
 		}
-		else if (l->v == v) {
-			v1loop = l->next;
-			vloop = l;
-			v2loop = l->prev;
+		else if (l_iter->v == v) {
+			v1loop = l_iter->next;
+			vloop = l_iter;
+			v2loop = l_iter->prev;
 		}
 		
 		if (!v1loop || !v2loop)
@@ -138,8 +142,7 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 		src[1] = v2loop->head.data;
 
 		CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, vloop->head.data);
-		l = l->radial_next;
-	} while (l != e1->l);
+	} while ((l_iter = l_iter->radial_next) != e1->l);
 }
 
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,

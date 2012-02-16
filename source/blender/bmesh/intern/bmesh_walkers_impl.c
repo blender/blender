@@ -800,8 +800,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 			for (j = 0; j < rlen; j++) {
 				if (BLI_ghash_haskey(walker->visithash, l2))
 					continue;
-				if (walker->mask_edge && !(BMO_elem_flag_test(walker->bm, l2->e, walker->mask_edge)))
-				{
+				if (walker->mask_edge && !(BMO_elem_flag_test(walker->bm, l2->e, walker->mask_edge))) {
 					if (l2->v != cl->v)
 						continue;
 				}
