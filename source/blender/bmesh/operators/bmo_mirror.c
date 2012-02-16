@@ -69,7 +69,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 		BLI_array_growone(vmap);
 		vmap[i] = v;
 
-		/* BMESH_TODO, double check this is being made dirty, 99% sure it is - campbell */
+		/* BMESH_TODO, double check this is being used, calling following operators will overwrite anyway - campbell */
 		BM_elem_index_set(v2, i); /* set_dirty! */
 		v2 = BM_iter_step(&iter);
 
