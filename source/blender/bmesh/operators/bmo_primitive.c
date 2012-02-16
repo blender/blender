@@ -246,7 +246,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 		mul_m4_v3(mat, vec);
 
 		eve = BM_vert_create(bm, vec, NULL);
-		BM_elem_select_set(bm, eve, TRUE);
+		BMO_elem_flag_enable(bm, eve, VERT_MARK);
 
 		if (a) {
 			e = BM_edge_create(bm, preveve, eve, NULL, TRUE);
@@ -397,7 +397,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		eva[a] = BM_vert_create(bm, vec, NULL);
 
 		mul_m4_v3(mat, eva[a]->co);
-		BM_elem_select_set(bm, eva[a], TRUE);
+		BMO_elem_flag_enable(bm, eva[a], VERT_MARK);
 	}
 
 	for (a = 0; a < 20; a++) {

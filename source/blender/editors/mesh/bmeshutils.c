@@ -208,6 +208,9 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 	em->emcopyusers++;
 
 	BMO_op_exec(bm, &bmop);
+
+	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, BM_ELEM_SELECT);
+
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL);
 
 	va_end(list);
