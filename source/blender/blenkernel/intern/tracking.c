@@ -2485,6 +2485,7 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 {
 	float firstmedian[2];
 	MovieTrackingStabilization *stab= &tracking->stabilization;
+	float aspect= tracking->camera.pixel_aspect;
 
 	if(stab->ok)
 		return stab->scale;
@@ -2535,7 +2536,7 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 				float mat[4][4];
 				float points[4][2]={{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
 
-				BKE_tracking_stabdata_to_mat4(width, height, loc, scale, angle, mat);
+				BKE_tracking_stabdata_to_mat4(width, height, aspect, loc, scale, angle, mat);
 
 				for(i= 0; i<4; i++) {
 					int j;
@@ -2650,6 +2651,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 	ImBuf *tmpibuf;
 	float width= ibuf->x, height= ibuf->y;
+	float aspect= tracking->camera.pixel_aspect;
 
 	if(loc)		copy_v2_v2(tloc, loc);
 	if(scale)	tscale= *scale;
@@ -2688,7 +2690,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 		float mat[4][4];
 		int i, j;
 
-		BKE_tracking_stabdata_to_mat4(ibuf->x, ibuf->y, tloc, tscale, tangle, mat);
+		BKE_tracking_stabdata_to_mat4(ibuf->x, ibuf->y, aspect, tloc, tscale, tangle, mat);
 		invert_m4(mat);
 
 		for(j=0; j<tmpibuf->y; j++) {
@@ -2715,15 +2717,20 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 	return tmpibuf;
 }
 
-void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float scale, float angle, float mat[4][4])
+void BKE_tracking_stabdata_to_mat4(int width, int height, float aspect, float loc[2], float scale, float angle, float mat[4][4])
 {
-	float lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4];
+	float lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4], amat[4][4], iamat[4][4];
 	float svec[3]= {scale, scale, scale};
 
 	unit_m4(rmat);
 	unit_m4(lmat);
 	unit_m4(smat);
 	unit_m4(cmat);
+	unit_m4(amat);
+
+	/* aspect ratio correction matrix */
+	amat[0][0] = 1.0f / aspect;
+	invert_m4_m4(iamat, amat);
 
 	/* image center as rotation center */
 	cmat[3][0]= (float)width/2.0f;
@@ -2735,7 +2742,7 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float sc
 	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
 
 	/* compose transformation matrix */
-	mul_serie_m4(mat, lmat, cmat, rmat, smat, icmat, NULL, NULL, NULL);
+	mul_serie_m4(mat, amat, lmat, cmat, rmat, smat, icmat, iamat, NULL);
 }
 
 MovieDistortion *BKE_tracking_distortion_create(void)
