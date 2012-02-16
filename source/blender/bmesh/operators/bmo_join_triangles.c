@@ -249,7 +249,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		if (BM_edge_face_count(e) < 2) {
+		if (BM_edge_face_count(e) != 2) {
 			BMO_elem_flag_disable(bm, e, EDGE_MARK);
 			continue;
 		}
