@@ -277,6 +277,7 @@ typedef struct MovieClipCache {
 	struct {
 		ImBuf *ibuf;
 		int framenr;
+		int postprocess_flag;
 
 		float loc[2], scale, angle;
 		int proxy;
@@ -702,7 +703,7 @@ ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user
 	return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag, 0);
 }
 
-static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr)
+static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr, int postprocess_flag)
 {
 	MovieClipCache *cache = clip->cache;
 	ImBuf *stableibuf;
@@ -723,6 +724,9 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 	if(cache->stabilized.render_flag!=render_flag || cache->stabilized.proxy!=proxy)
 		return NULL;
 
+	if(cache->stabilized.postprocess_flag != postprocess_flag)
+		return NULL;
+
 	stableibuf = cache->stabilized.ibuf;
 
 	BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
@@ -740,7 +744,8 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 	return stableibuf;
 }
 
-static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int framenr)
+static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf,
+                                            int framenr, int postprocess_flag)
 {
 	MovieClipCache *cache = clip->cache;
 	ImBuf *stableibuf;
@@ -768,6 +773,8 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 		cache->stabilized.render_flag = 0;
 	}
 
+	cache->stabilized.postprocess_flag = postprocess_flag;
+
 	IMB_refImBuf(stableibuf);
 
 	return stableibuf;
@@ -786,10 +793,10 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float
 	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
 		MovieClipCache *cache= clip->cache;
 
-		stableibuf= get_stable_cached_frame(clip, user, framenr);
+		stableibuf= get_stable_cached_frame(clip, user, framenr, postprocess_flag);
 
 		if(!stableibuf)
-			stableibuf= put_stabilized_frame_to_cache(clip, user, ibuf, framenr);
+			stableibuf= put_stabilized_frame_to_cache(clip, user, ibuf, framenr, postprocess_flag);
 
 		if(loc)		copy_v2_v2(loc, cache->stabilized.loc);
 		if(scale)	*scale= cache->stabilized.scale;
