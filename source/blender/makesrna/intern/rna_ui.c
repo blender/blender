@@ -698,7 +698,10 @@ static void rna_def_panel(BlenderRNA *brna)
 	                         "name of the class used to define the panel. For example, if the "
 	                         "class name is \"OBJECT_PT_hello\", and bl_idname is not set by the "
 	                         "script, then bl_idname = \"OBJECT_PT_hello\"");
-	
+
+	/* panel's label indeed doesn't need PROP_TRANSLATE flag: translation of label happens in runtime
+	 * when drawing panel and having this flag set will make runtime switching of language much more tricky
+	 * because label will be stored translated */
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
@@ -823,7 +826,10 @@ static void rna_def_menu(BlenderRNA *brna)
 	                         "class name is \"OBJECT_MT_hello\", and bl_idname is not set by the "
 	                         "script, then bl_idname = \"OBJECT_MT_hello\")");
 
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
+	/* menu's label indeed doesn't need PROP_TRANSLATE flag: translation of label happens in runtime
+	 * when drawing panel and having this flag set will make runtime switching of language much more tricky
+	 * because label will be stored translated */
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Label", "The menu label");
