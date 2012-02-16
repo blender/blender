@@ -50,10 +50,10 @@ int bmesh_check_element(BMesh *bm, void *element, const char htype);
         __LINE__, __FILE__);                                                  \
     }
 
-#define BM_EDGE_LINK_GET(e, v)  (                                             \
+#define BM_EDGE_DISK_LINK_GET(e, v)  (                                        \
 	((v) == ((BMEdge*)(e))->v1) ?                                             \
-		(Link *)&(((BMEdge*)(e))->dlink1) :                                   \
-		(Link *)&(((BMEdge*)(e))->dlink2)                                     \
+		&((e)->v1_disk_link) :                                                \
+		&((e)->v2_disk_link)                                                  \
     )
 
 int bmesh_radial_length(struct BMLoop *l);

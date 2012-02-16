@@ -50,7 +50,7 @@
  *
  *  Interpolates per-vertex data from two sources to a target.
  */
-void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, float fac)
+void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
 {
 	if (v1->head.data && v2->head.data) {
 		/* first see if we can avoid interpolation */
@@ -108,7 +108,7 @@ static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNU
  *	Nothing
  */
 
-void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac)
+void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, const float fac)
 {
 	void *src[2];
 	float w[2];
@@ -295,9 +295,9 @@ static void cent_quad_v3_d(double *cent, double *v1, double *v2, double *v3, dou
 
 static void UNUSED_FUNCTION(cent_tri_v3_d)(double *cent, double *v1, double *v2, double *v3)
 {
-	cent[0] = 0.33333 * (v1[0] + v2[0] + v3[0]);
-	cent[1] = 0.33333 * (v1[1] + v2[1] + v3[1]);
-	cent[2] = 0.33333 * (v1[2] + v2[2] + v3[2]);
+	cent[0] = (1.0 / 3.0) * (v1[0] + v2[0] + v3[0]);
+	cent[1] = (1.0 / 3.0) * (v1[1] + v2[1] + v3[1]);
+	cent[2] = (1.0 / 3.0) * (v1[2] + v2[2] + v3[2]);
 }
 
 static void UNUSED_FUNCTION(cross_v3_v3v3_d)(double r[3], const double a[3], const double b[3])

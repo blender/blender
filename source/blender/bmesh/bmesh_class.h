@@ -59,9 +59,9 @@ typedef struct BMHeader {
 	char hflag; /* this would be a CD layer, see below */
 } BMHeader;
 
-/*note: need some way to specify custom locations for custom data layers.  so we can
-make them point directly into structs.  and some way to make it only happen to the
-active layer, and properly update when switching active layers.*/
+/* note: need some way to specify custom locations for custom data layers.  so we can
+ * make them point directly into structs.  and some way to make it only happen to the
+ * active layer, and properly update when switching active layers.*/
 
 typedef struct BMVert {
 	BMHeader head;
@@ -70,18 +70,18 @@ typedef struct BMVert {
 	struct BMEdge *e;
 } BMVert;
 
+/* disk link structure, only used by edges */
+typedef struct BMDiskLink {
+	struct BMEdge *next, *prev;
+} BMDiskLink;
+
 typedef struct BMEdge {
 	BMHeader head;
 	struct BMVert *v1, *v2;
 	struct BMLoop *l;
 	
-	/*disk cycle pointers*/
-	struct {
-		struct BMEdge *next, *prev;
-	} dlink1;
-	struct {
-		struct BMEdge *next, *prev;
-	} dlink2;
+	/* disk cycle pointers */
+	BMDiskLink v1_disk_link, v2_disk_link;
 } BMEdge;
 
 typedef struct BMLoop {

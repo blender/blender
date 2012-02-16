@@ -341,8 +341,13 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 				err |= 8;
 			if (e->l && e->l->f->head.htype != BM_FACE)
 				err |= 16;
-			if (e->dlink1.prev == NULL || e->dlink2.prev == NULL || e->dlink1.next == NULL || e->dlink2.next == NULL)
+			if (e->v1_disk_link.prev == NULL ||
+			    e->v2_disk_link.prev == NULL ||
+			    e->v1_disk_link.next == NULL ||
+			    e->v2_disk_link.next == NULL)
+			{
 				err |= 32;
+			}
 			if (e->l && (e->l->radial_next == NULL || e->l->radial_prev == NULL))
 				err |= 64;
 			if (e->l && e->l->f->len <= 0)

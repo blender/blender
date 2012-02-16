@@ -63,13 +63,7 @@ typedef struct PathBase {
 typedef struct EdgeData {
 	int tag;
 	int ftag;
-	
-	struct {
-		struct BMEdge *next, *prev;
-	} dlink1;
-	struct {
-		struct BMEdge *next, *prev;
-	} dlink2;
+	BMDiskLink v1_disk_link, v2_disk_link;
 } EdgeData;
 
 typedef struct VertData {
@@ -82,10 +76,10 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code * */
 
-#define RS_GET_EDGE_LINK(e, v, ed)  (                                         \
+#define RS_GET_EDGE_LINK(e, v, e_data)  (                                     \
 	(v) == ((BMEdge *)(e))->v1 ?                                              \
-			(Link *)&(((EdgeData *)(ed))->dlink1) :                           \
-			(Link *)&(((EdgeData *)(ed))->dlink2)                             \
+			&(((EdgeData *)(e_data))->v1_disk_link) :                         \
+			&(((EdgeData *)(e_data))->v2_disk_link)                           \
 	)
 
 
@@ -102,19 +96,20 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 		e1->next = e1->prev = (Link *)e;
 	}
 	else {
-		Link *e1, *e2, *e3;
+		BMDiskLink *dl1, *dl2, *dl3;
 		EdgeData *ved = &edata[BM_elem_index_get(vd->e)];
 
-		e1 = RS_GET_EDGE_LINK(e, v, ed);
-		e2 = RS_GET_EDGE_LINK(vd->e, v, ved);
-		e3 = e2->prev ? RS_GET_EDGE_LINK(e2->prev, v, &edata[BM_elem_index_get(e2->prev)]) : NULL;
+		dl1 = RS_GET_EDGE_LINK(e, v, ed);
+		dl2 = RS_GET_EDGE_LINK(vd->e, v, ved);
+		dl3 = dl2->prev ? RS_GET_EDGE_LINK(dl2->prev, v, &edata[BM_elem_index_get(dl2->prev)]) : NULL;
 
-		e1->next = (Link *)vd->e;
-		e1->prev = e2->prev;
+		dl1->next = vd->e;
+		dl1->prev = dl2->prev;
 
-		e2->prev = (Link *)e;
-		if (e3)
-			e3->next = (Link *)e;
+		dl2->prev = e;
+		if (dl3) {
+			dl3->next = e;
+		}
 	}
 
 	return TRUE;
@@ -125,7 +120,7 @@ static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert 
 {
 	EdgeData *ed = edata + BM_elem_index_get(e);
 	VertData *vd = vdata + BM_elem_index_get(v);
-	Link *e1, *e2;
+	BMDiskLink *e1, *e2;
 
 	e1 = RS_GET_EDGE_LINK(e, v, ed);
 	if (e1->prev) {
@@ -148,9 +143,9 @@ static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
                                       EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
-		return edata[BM_elem_index_get(e)].dlink1.next;
+		return edata[BM_elem_index_get(e)].v1_disk_link.next;
 	if (v == e->v2)
-		return edata[BM_elem_index_get(e)].dlink2.next;
+		return edata[BM_elem_index_get(e)].v2_disk_link.next;
 	return NULL;
 }
 
@@ -158,9 +153,9 @@ static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
                                EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
-		return edata[BM_elem_index_get(e)].dlink1.prev;
+		return edata[BM_elem_index_get(e)].v1_disk_link.prev;
 	if (v == e->v2)
-		return edata[BM_elem_index_get(e)].dlink2.prev;
+		return edata[BM_elem_index_get(e)].v2_disk_link.prev;
 	return NULL;
 }
 
