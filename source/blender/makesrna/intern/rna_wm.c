@@ -1309,7 +1309,10 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
+	/* menu's label indeed doesn't need PROP_TRANSLATE flag: translation of label happens in runtime
+	 * when drawing panel and having this flag set will make runtime switching of language much more tricky
+	 * because label will be stored translated */
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_PROP);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
