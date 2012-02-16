@@ -537,23 +537,21 @@ void BM_face_verts_kill(BMesh *bm, BMFace *f)
 
 void BM_face_kill(BMesh *bm, BMFace *f)
 {
-	BMLoopList *ls, *lsnext;
+	BMLoopList *ls, *ls_next;
 
 	BM_CHECK_ELEMENT(bm, f);
 
-	for (ls = f->loops.first; ls; ls = lsnext) {
-		BMLoop *l, *lnext;
+	for (ls = f->loops.first; ls; ls = ls_next) {
+		BMLoop *l_iter, *l_next, *l_first;
 
-		lsnext = ls->next;
-		l = ls->first;
+		ls_next = ls->next;
+		l_first = l_iter = ls->first;
 		do {
-			lnext = l->next;
+			l_next = l_iter->next;
 
-			bmesh_radial_remove_loop(l, l->e);
-			bmesh_kill_only_loop(bm, l);
-
-			l = lnext;
-		} while (l != ls->first);
+			bmesh_radial_remove_loop(l_iter, l_iter->e);
+			bmesh_kill_only_loop(bm, l_iter);
+		} while ((l_iter = l_next) != l_first);
 		
 		BLI_mempool_free(bm->looplistpool, ls);
 	}
@@ -635,33 +633,34 @@ static int bmesh_loop_length(BMLoop *l)
 
 static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
 {
-	BMLoop *l = lst->first, *curloop, *oldprev, *oldnext;
+	BMLoop *l_first = lst->first;
+	BMLoop *l_iter, *oldprev, *oldnext;
 	BMEdge **edar = NULL;
 	MDisps *md;
 	BLI_array_staticdeclare(edar, BM_NGON_STACK_SIZE);
 	int i, j, edok, len = 0, do_disps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 
-	len = bmesh_loop_length(l);
+	len = bmesh_loop_length(l_first);
 
-	for (i = 0, curloop = l; i < len; i++, curloop = curloop->next) {
-		BMEdge *curedge = curloop->e;
-		bmesh_radial_remove_loop(curloop, curedge);
+	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
+		BMEdge *curedge = l_iter->e;
+		bmesh_radial_remove_loop(l_iter, curedge);
 		BLI_array_append(edar, curedge);
 	}
 
 	/* actually reverse the loop */
-	for (i = 0, curloop = l; i < len; i++) {
-		oldnext = curloop->next;
-		oldprev = curloop->prev;
-		curloop->next = oldprev;
-		curloop->prev = oldnext;
-		curloop = oldnext;
+	for (i = 0, l_iter = l_first; i < len; i++) {
+		oldnext = l_iter->next;
+		oldprev = l_iter->prev;
+		l_iter->next = oldprev;
+		l_iter->prev = oldnext;
+		l_iter = oldnext;
 		
 		if (do_disps) {
 			float (*co)[3];
 			int x, y, sides;
 			
-			md = CustomData_bmesh_get(&bm->ldata, curloop->head.data, CD_MDISPS);
+			md = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
 			if (!md->totdisp || !md->disps)
 				continue;
 
@@ -678,31 +677,31 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
 
 	if (len == 2) { /* two edged face */
 		/* do some verification here! */
-		l->e = edar[1];
-		l->next->e = edar[0];
+		l_first->e = edar[1];
+		l_first->next->e = edar[0];
 	}
 	else {
-		for (i = 0, curloop = l; i < len; i++, curloop = curloop->next) {
+		for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
 			edok = 0;
 			for (j = 0; j < len; j++) {
-				edok = bmesh_verts_in_edge(curloop->v, curloop->next->v, edar[j]);
+				edok = bmesh_verts_in_edge(l_iter->v, l_iter->next->v, edar[j]);
 				if (edok) {
-					curloop->e = edar[j];
+					l_iter->e = edar[j];
 					break;
 				}
 			}
 		}
 	}
 	/* rebuild radia */
-	for (i = 0, curloop = l; i < len; i++, curloop = curloop->next)
-		bmesh_radial_append(curloop->e, curloop);
+	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next)
+		bmesh_radial_append(l_iter->e, l_iter);
 
 	/* validate radia */
-	for (i = 0, curloop = l; i < len; i++, curloop = curloop->next) {
-		BM_CHECK_ELEMENT(bm, curloop);
-		BM_CHECK_ELEMENT(bm, curloop->e);
-		BM_CHECK_ELEMENT(bm, curloop->v);
-		BM_CHECK_ELEMENT(bm, curloop->f);
+	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
+		BM_CHECK_ELEMENT(bm, l_iter);
+		BM_CHECK_ELEMENT(bm, l_iter->e);
+		BM_CHECK_ELEMENT(bm, l_iter->v);
+		BM_CHECK_ELEMENT(bm, l_iter->f);
 	}
 
 	BLI_array_free(edar);
@@ -939,11 +938,10 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 
 	/* update loop face pointer */
 	for (lst = newf->loops.first; lst; lst = lst->next) {
-		l_iter = lst->first;
+		l_iter = l_first = lst->first;
 		do {
 			l_iter->f = newf;
-			l_iter = l_iter->next;
-		} while (l_iter != lst->first);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 
 	bmesh_clear_systag_elements(bm, faces, totface, _FLAG_JF);
@@ -1060,7 +1058,8 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 {
 
 	BMFace *f2;
-	BMLoop *v1loop = NULL, *v2loop = NULL, *l_iter, *f1loop = NULL, *f2loop = NULL;
+	BMLoop *l_iter, *l_first;
+	BMLoop *v1loop = NULL, *v2loop = NULL, *f1loop = NULL, *f2loop = NULL;
 	BMEdge *e;
 	BMLoopList *lst, *lst2;
 	int i, len, f1len, f2len;
@@ -1103,12 +1102,12 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	/* I dont know how many loops are supposed to be in each face at this point! FIXME */
 
 	/* go through all of f2's loops and make sure they point to it properly */
-	l_iter = lst2->first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f2);
 	f2len = 0;
 	do {
 		l_iter->f = f2;
 		f2len++;
-	} while ((l_iter = l_iter->next) != lst2->first);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	/* link up the new loops into the new edges radia */
 	bmesh_radial_append(e, f1loop);
@@ -1117,10 +1116,10 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	f2->len = f2len;
 
 	f1len = 0;
-	l_iter = lst->first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		f1len++;
-	} while ((l_iter = l_iter->next) != lst->first);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	f->len = f1len;
 

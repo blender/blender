@@ -620,8 +620,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						if(BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 							add_v3_v3(normal, efa->no);
 							sub_v3_v3v3(vec,
-							            ((BMLoopList*)efa->loops.first)->first->v->co,
-							            (((BMLoopList*)efa->loops.first)->first->next)->v->co);
+							            BM_FACE_FIRST_LOOP(efa)->v->co,
+							            BM_FACE_FIRST_LOOP(efa)->next->v->co);
 							add_v3_v3(plane, vec);
 						}
 					}

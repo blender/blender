@@ -102,15 +102,15 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 int BM_vert_in_face(BMFace *f, BMVert *v)
 {
 	BMLoopList *lst;
-	BMLoop *l_iter;
+	BMLoop *l_iter, *l_first;
 
 	for (lst = f->loops.first; lst; lst = lst->next) {
-		l_iter = lst->first;
+		l_iter = l_first = lst->first;
 		do {
 			if (l_iter->v == v) {
 				return TRUE;
 			}
-		} while ((l_iter = l_iter->next) != lst->first);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 
 	return FALSE;
@@ -126,20 +126,20 @@ int BM_vert_in_face(BMFace *f, BMVert *v)
 int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 {
 	BMLoopList *lst;
-	BMLoop *l_iter = NULL;
+	BMLoop *l_iter, *l_first;
 	int i, count = 0;
 	
 	for (i = 0; i < len; i++) BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
 	
 	for (lst = f->loops.first; lst; lst = lst->next) {
-		l_iter = lst->first;
+		l_iter = l_first = lst->first;
 
 		do {
 			if (BMO_elem_flag_test(bm, l_iter->v, BM_OVERLAP)) {
 				count++;
 			}
 
-		} while ((l_iter = l_iter->next) != lst->first);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 
 	for (i = 0; i < len; i++) BMO_elem_flag_disable(bm, varr[i], BM_OVERLAP);
