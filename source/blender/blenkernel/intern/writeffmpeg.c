@@ -1244,7 +1244,7 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		 * The other options were taken from the libx264-default.preset
 		 * included in the ffmpeg distribution.
 		 */
-		if(!FFMPEG_MOV) ffmpeg_property_add_string(rd, "video", "flags:loop"); // this preserves compatibility for QT
+//		ffmpeg_property_add_string(rd, "video", "flags:loop"); // this breaks compatibility for QT
 		ffmpeg_property_add_string(rd, "video", "cmp:chroma");
 		ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
 		ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
