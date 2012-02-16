@@ -277,7 +277,7 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 	RNA_def_property_string_sdna(prop, NULL, "modifier.name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, set_name_func);
 	RNA_def_property_ui_text(prop, "Modifier Name", "Name of the modifier");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
 	if (blend) {
@@ -285,13 +285,13 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 		RNA_def_property_enum_sdna(prop, NULL, "modifier.blend");
 		RNA_def_property_enum_items(prop, (color) ? color_blend_items : value_blend_items);
 		RNA_def_property_ui_text(prop, "Blend", "Specify how the modifier value is blended into the base value");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 		prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_FACTOR);
 		RNA_def_property_float_sdna(prop, NULL, "modifier.influence");
 		RNA_def_property_range(prop, 0.0f, 1.0f);
 		RNA_def_property_ui_text(prop, "Influence", "Influence factor by which the modifier changes the property");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 	}
 
 	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
@@ -335,18 +335,18 @@ static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
 	RNA_def_property_pointer_sdna(prop, NULL, "color_ramp");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Color Ramp", "Color ramp used to change line color");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	if (range) {
 		prop= RNA_def_property(srna, "range_min", PROP_FLOAT, PROP_NONE);
 		RNA_def_property_float_sdna(prop, NULL, "range_min");
 		RNA_def_property_ui_text(prop, "Range Min", "Lower bound of the input range the mapping is applied");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 		prop= RNA_def_property(srna, "range_max", PROP_FLOAT, PROP_NONE);
 		RNA_def_property_float_sdna(prop, NULL, "range_max");
 		RNA_def_property_ui_text(prop, "Range Max", "Upper bound of the input range the mapping is applied");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 	}
 }
 
@@ -363,41 +363,41 @@ static void rna_def_modifier_curve_common(StructRNA *srna, int range, int value)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
 	RNA_def_property_enum_items(prop, mapping_items);
 	RNA_def_property_ui_text(prop, "Mapping", "Select the mapping type");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_INVERT);
 	RNA_def_property_ui_text(prop, "Invert", "Invert the fade-out direction of the linear mapping");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curve");
 	RNA_def_property_struct_type(prop, "CurveMapping");
 	RNA_def_property_ui_text(prop, "Curve", "Curve used for the curve mapping");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	if (range) {
 		prop= RNA_def_property(srna, "range_min", PROP_FLOAT, PROP_NONE);
 		RNA_def_property_float_sdna(prop, NULL, "range_min");
 		RNA_def_property_ui_text(prop, "Range Min", "Lower bound of the input range the mapping is applied");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 		prop= RNA_def_property(srna, "range_max", PROP_FLOAT, PROP_NONE);
 		RNA_def_property_float_sdna(prop, NULL, "range_max");
 		RNA_def_property_ui_text(prop, "Range Max", "Upper bound of the input range the mapping is applied");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 	}
 
 	if (value) {
 		prop= RNA_def_property(srna, "value_min", PROP_FLOAT, PROP_NONE);
 		RNA_def_property_float_sdna(prop, NULL, "value_min");
 		RNA_def_property_ui_text(prop, "Value Min", "Minimum output value of the mapping");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 		prop= RNA_def_property(srna, "value_max", PROP_FLOAT, PROP_NONE);
 		RNA_def_property_float_sdna(prop, NULL, "value_max");
 		RNA_def_property_ui_text(prop, "Value Max", "Maximum output value of the mapping");
-		RNA_def_property_update(prop, NC_SCENE, NULL);
+		RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 	}
 }
 
@@ -422,7 +422,7 @@ static void rna_def_modifier_material_common(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "mat_attr");
 	RNA_def_property_enum_items(prop, mat_attr_items);
 	RNA_def_property_ui_text(prop, "Material Attribute", "Specify which material attribute is used");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 }
 
@@ -476,7 +476,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target", "Target object from which the distance is measured");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleColorModifier_Material", "LineStyleColorModifier");
 	RNA_def_struct_ui_text(srna, "Material", "Change line color based on a material attribute");
@@ -487,7 +487,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_ramp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_USE_RAMP);
 	RNA_def_property_ui_text(prop, "Ramp", "Use color ramp to map the BW average into an RGB color");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	/* alpha transparency modifiers */
 
@@ -517,7 +517,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target", "Target object from which the distance is measured");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleAlphaModifier_Material", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Material", "Change alpha transparency based on a material attribute");
@@ -553,7 +553,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target", "Target object from which the distance is measured");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleThicknessModifier_Material", "LineStyleThicknessModifier");
 	RNA_def_struct_ui_text(srna, "Material", "Change line thickness based on a material attribute");
@@ -568,19 +568,19 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "orientation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "orientation");
 	RNA_def_property_ui_text(prop, "Orientation", "Angle of the main direction");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "min_thickness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min_thickness");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Min Thickness", "Minimum thickness in the direction perpendicular to the main direction");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "max_thickness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_thickness");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Max Thickness", "Maximum thickness in the main direction");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	/* geometry modifiers */
 
@@ -597,7 +597,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sampling", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sampling");
 	RNA_def_property_ui_text(prop, "Sampling", "New sampling value to be used for subsequent modifiers");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_BezierCurve", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Bezier Curve", "Replace stroke backbone geometry by a Bezier curve approximation of the original backbone geometry");
@@ -606,7 +606,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "error", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "error");
 	RNA_def_property_ui_text(prop, "Error", "Maximum distance allowed between the new Bezier curve and the original backbone geometry)");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_SinusDisplacement", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Sinus Displacement", "Add sinus displacement to stroke backbone geometry");
@@ -615,17 +615,17 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "wavelength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "wavelength");
 	RNA_def_property_ui_text(prop, "Wavelength", "Wavelength of the sinus displacement");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "amplitude");
 	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the sinus displacement");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "phase");
 	RNA_def_property_ui_text(prop, "Phase", "Phase of the sinus displacement");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_SpatialNoise", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Spatial Noise", "Add spatial noise to stroke backbone geometry");
@@ -634,27 +634,27 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "amplitude");
 	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the spatial noise");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_ui_text(prop, "Scale", "Scale of the spatial noise");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "octaves");
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the spatial noise)");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_SPATIAL_NOISE_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "If true, the spatial noise is smooth");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "pure_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_SPATIAL_NOISE_PURERANDOM);
 	RNA_def_property_ui_text(prop, "Pure Random", "If true, the spatial noise does not show any coherence");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_PerlinNoise1D", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Perlin Noise 1D", "Add one-dimensional Perlin noise to stroke backbone geometry");
@@ -663,27 +663,27 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frequency", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "frequency");
 	RNA_def_property_ui_text(prop, "Frequency", "Frequency of the Perlin noise");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "amplitude");
 	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the Perlin noise");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "octaves");
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise)");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_ui_text(prop, "Angle", "Displacement direction in degrees");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "seed");
 	RNA_def_property_ui_text(prop, "Seed", "Seed for random number generation.  If negative, time is used as a seed instead");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_PerlinNoise2D", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Perlin Noise 2D", "Add two-dimensional Perlin noise to stroke backbone geometry");
@@ -692,27 +692,27 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frequency", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "frequency");
 	RNA_def_property_ui_text(prop, "Frequency", "Frequency of the Perlin noise");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "amplitude");
 	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the Perlin noise");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "octaves");
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise)");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_ui_text(prop, "Angle", "Displacement direction in degrees");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "seed");
 	RNA_def_property_ui_text(prop, "Seed", "Seed for random number generation.  If negative, time is used as a seed instead");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_BackboneStretcher", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Backbone Stretcher", "Stretch the beginning and the end of stroke backbone");
@@ -721,7 +721,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "backbone_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "backbone_length");
 	RNA_def_property_ui_text(prop, "Backbone Length", "Amount of backbone stretching");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_TipRemover", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Tip Remover", "Remove a piece of stroke at the beginning and the end of stroke backbone");
@@ -730,7 +730,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tip_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "tip_length");
 	RNA_def_property_ui_text(prop, "Tip Length", "Length of tips to be removed");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_Polygonalization", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Polygonalization", "Modify the stroke geometry so that it looks more \"polygonal\"");
@@ -739,7 +739,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "error", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "error");
 	RNA_def_property_ui_text(prop, "Error", "Maximum distance between the original stroke and its polygonal approximation");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_GuidingLines", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Guiding Lines", "Modify the stroke geometry so that it corresponds to its main direction line");
@@ -748,7 +748,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Offset", "Displacement that is applied to the main direction line along its normal");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_Blueprint", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "Blueprint", "Produce a blueprint using circular, elliptic, and square contour strokes");
@@ -758,33 +758,33 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
 	RNA_def_property_enum_items(prop, blueprint_shape_items);
 	RNA_def_property_ui_text(prop, "Shape", "Select the shape of blueprint contour strokes");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "rounds", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "rounds");
 	RNA_def_property_range(prop, 1, 1000);
 	RNA_def_property_ui_text(prop, "Rounds", "Number of rounds in contour strokes");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "backbone_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "backbone_length");
 	RNA_def_property_ui_text(prop, "Backbone Length", "Amount of backbone stretching");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "random_radius", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "random_radius");
 	RNA_def_property_ui_text(prop, "Random Radius", "Randomness of the radius");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "random_center", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "random_center");
 	RNA_def_property_ui_text(prop, "Random Center", "Randomness of the center");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "random_backbone", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "random_backbone");
 	RNA_def_property_ui_text(prop, "Random Backbone", "Randomness of the backbone stretching");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_2DOffset", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "2D Offset", "Add two-dimensional offsets to stroke backbone geometry");
@@ -793,22 +793,22 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_ui_text(prop, "Start", "Displacement that is applied from the beginning of the stroke");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_ui_text(prop, "End", "Displacement that is applied from the end of the stroke");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_ui_text(prop, "X", "Displacement that is applied to the X coordinates of stroke vertices");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "y");
 	RNA_def_property_ui_text(prop, "Y", "Displacement that is applied to the Y coordinates of stroke vertices");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_2DTransform", "LineStyleGeometryModifier");
 	RNA_def_struct_ui_text(srna, "2D Transform", "Apply two-dimensional scaling and rotation to stroke backbone geometry");
@@ -818,38 +818,38 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "pivot");
 	RNA_def_property_enum_items(prop, transform_pivot_items);
 	RNA_def_property_ui_text(prop, "Pivot", "Pivot of scaling and rotation operations");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale_x");
 	RNA_def_property_ui_text(prop, "Scale X", "Scaling factor that is applied along the X axis");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale_y");
 	RNA_def_property_ui_text(prop, "Scale Y", "Scaling factor that is applied along the Y axis");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation angle in degrees");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "pivot_u", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "pivot_u");
 	RNA_def_property_range(prop, 0.f, 1.f);
 	RNA_def_property_ui_text(prop, "Stroke Point Parameter", "Pivot in terms of the stroke point parameter u (0 <= u <= 1)");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "pivot_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pivot_x");
 	RNA_def_property_ui_text(prop, "Pivot X", "2D X coordinate of the absolute pivot");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "pivot_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pivot_y");
 	RNA_def_property_ui_text(prop, "Pivot Y", "2D Y coordinate of the absolute pivot");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 }
 
@@ -884,25 +884,25 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "panel");
 	RNA_def_property_enum_items(prop, panel_items);
 	RNA_def_property_ui_text(prop, "Panel", "Select the property panel to be shown");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Base line color, possibly modified by line color modifiers");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Alpha", "Base alpha transparency, possibly modified by alpha transparency modifiers");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "thickness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "thickness");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Thickness", "Base line thickness, possibly modified by line thickness modifiers");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "color_modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "color_modifiers", NULL);
@@ -922,19 +922,19 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_chaining", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", LS_NO_CHAINING);
 	RNA_def_property_ui_text(prop, "Chaining", "Enable chaining of feature edges");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "chaining", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "chaining");
 	RNA_def_property_enum_items(prop, chaining_items);
 	RNA_def_property_ui_text(prop, "Chaining", "Select the way how feature edges are jointed to form chains");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "rounds", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "rounds");
 	RNA_def_property_range(prop, 1, 1000);
 	RNA_def_property_ui_text(prop, "Rounds", "Number of rounds in a sketchy multiple touch");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "geometry_modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "geometry_modifiers", NULL);
@@ -944,114 +944,114 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "same_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);
 	RNA_def_property_ui_text(prop, "Same Object", "If true, only feature edges of the same object are joined");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "use_split_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SPLIT_LENGTH);
 	RNA_def_property_ui_text(prop, "Use Split Length", "Enable chain splitting by curvilinear 2D length");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "split_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "split_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Split Length", "Curvilinear 2D length for chain splitting");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "use_min_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MIN_2D_ANGLE);
 	RNA_def_property_ui_text(prop, "Use Min 2D Angle", "Split chains at points with angles smaller than the minimum 2D angle");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "min_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "min_angle");
 	RNA_def_property_range(prop, 0.0f, (float)M_PI);
 	RNA_def_property_ui_text(prop, "Min 2D Angle", "Minimum 2D angle for splitting chains");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "use_max_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MAX_2D_ANGLE);
 	RNA_def_property_ui_text(prop, "Use Max 2D Angle", "Split chains at points with angles larger than the maximum 2D angle");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "max_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "max_angle");
 	RNA_def_property_range(prop, 0.0f, (float)M_PI);
 	RNA_def_property_ui_text(prop, "Max 2D Angle", "Maximum 2D angle for splitting chains");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "use_min_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MIN_2D_LENGTH);
 	RNA_def_property_ui_text(prop, "Use Min 2D Length", "Enable the selection of chains by a minimum 2D length");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "min_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Min 2D Length", "Minimum curvilinear 2D length for the selection of chains");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "use_max_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MAX_2D_LENGTH);
 	RNA_def_property_ui_text(prop, "Use Max 2D Length", "Enable the selection of chains by a maximum 2D length");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "max_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Max 2D Length", "Maximum curvilinear 2D length for the selection of chains");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "material_boundary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MATERIAL_BOUNDARY);
 	RNA_def_property_ui_text(prop, "Material Boundary", "If true, chains of feature edges are split at material boundaries");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "use_dashed_line", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_DASHED_LINE);
 	RNA_def_property_ui_text(prop, "Dashed Line", "Enable or disable dashed line");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "caps", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "caps");
 	RNA_def_property_enum_items(prop, cap_items);
 	RNA_def_property_ui_text(prop, "Cap", "Select the shape of both ends of strokes");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "dash1", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "dash1");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Dash #1", "Length of the 1st dash");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "gap1", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "gap1");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Gap #1", "Length of the 1st gap");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "dash2", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "dash2");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Dash #2", "Length of the 2nd dash");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "gap2", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "gap2");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Gap #2", "Length of the 2nd gap");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "dash3", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "dash3");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Dash #3", "Length of the 3rd dash");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "gap3", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "gap3");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Gap #3", "Length of the 3rd gap");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 }
 

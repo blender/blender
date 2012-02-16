@@ -369,6 +369,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
 			break;
+		case NC_LINESTYLE:
+			ED_area_tag_redraw(sa);
+			sbuts->preview= 1;
+			break;
 	}
 
 	if(wmn->data == ND_KEYS)
