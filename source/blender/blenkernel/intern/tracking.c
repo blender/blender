@@ -2445,8 +2445,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 	*scale= (stab->scale-1.0f)*stab->scaleinf+1.0f;
 	*angle= 0.0f;
 
-	loc[0]= (firstmedian[0]-median[0])*width*(*scale);
-	loc[1]= (firstmedian[1]-median[1])*height*(*scale);
+	loc[0]= (firstmedian[0]-median[0])*width;
+	loc[1]= (firstmedian[1]-median[1])*height;
 
 	mul_v2_fl(loc, stab->locinf);
 
@@ -2725,7 +2725,7 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float sc
 	invert_m4_m4(icmat, cmat);
 
 	size_to_mat4(smat, svec);		/* scale matrix */
-	add_v2_v2(lmat[3], loc);		/* tranlation matrix */
+	add_v2_v2(lmat[3], loc);		/* translation matrix */
 	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
 
 	/* compose transformation matrix */
