@@ -1149,10 +1149,13 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
+        layout.prop(sculpt, "show_low_resolution")
         layout.prop(sculpt, "show_brush")
+        layout.prop(sculpt, "use_deform_only")
 
         # TODO, make available from paint menu!
         ups = context.tool_settings.unified_paint_settings
+        layout.separator()
         layout.prop(ups, "use_unified_size")
         layout.prop(ups, "use_unified_strength")
 
