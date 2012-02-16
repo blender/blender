@@ -1326,9 +1326,11 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* --- end special case support, continue as normal --- */
 
 
+	/* possible bug?, selecting 2 triangles and pressing F will make a quad rather then joining them,
+	 * perhaps this should be looked into? - campbell */
 
-	/* call edgenet creat */
-	/*  call edgenet prepare op so additional face creation cases wor */
+	/* call edgenet create */
+	/* call edgenet prepare op so additional face creation cases wor */
 	BMO_op_initf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
 	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);

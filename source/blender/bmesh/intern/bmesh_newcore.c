@@ -921,8 +921,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 				d2 = disk_is_flagged(l_iter->e->v2, _FLAG_JF);
 
 				if (!d1 && !d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e, _FLAG_JF)) {
-					BLI_array_append(deledges, l_iter->e);
-					BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_JF);
+					/* don't remove an edge it makes up the side of another face
+					 * else this will remove the face as well - campbell */
+					if (BM_edge_face_count(l_iter->e) <= 2) {
+						BLI_array_append(deledges, l_iter->e);
+						BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_JF);
+					}
 				}
 				else {
 					if (d1 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v1, _FLAG_JF)) {
@@ -957,7 +961,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 		goto error;
 	}
 
-	/* copy over loop dat */
+	/* copy over loop data */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(newf);
 	do {
 		BMLoop *l2 = l_iter->radial_next;
