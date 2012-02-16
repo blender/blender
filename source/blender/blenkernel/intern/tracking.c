@@ -726,6 +726,7 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 {
 	MovieTrackingTrack *track;
 	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	MovieTrackingTrack *rot_track= tracking->stabilization.rot_track;
 	ListBase tracks= {NULL, NULL}, new_tracks= {NULL, NULL};
 	ListBase *old_tracks;
 	int a;
@@ -747,7 +748,7 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 	   this is needed to keep names in unique state and it's faster to change names
 	   of currently operating tracks (if needed) */
 	for(a= 0; a<map->num_tracks; a++) {
-		int replace_sel= 0;
+		int replace_sel= 0, replace_rot= 0;
 		MovieTrackingTrack *new_track, *old;
 
 		track= &map->tracks[a];
@@ -766,8 +767,10 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 
 			/* original track was found, re-use flags and remove this track */
 			if(cur) {
-				if(act_track)
+				if(cur==act_track)
 					replace_sel= 1;
+				if(cur==rot_track)
+					replace_rot= 1;
 
 				track->flag= cur->flag;
 				track->pat_flag= cur->pat_flag;
@@ -785,6 +788,9 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 
 		if(replace_sel)		/* update current selection in clip */
 			tracking->act_track= new_track;
+
+		if(replace_rot)		/* update track used for rotation stabilization */
+			tracking->stabilization.rot_track= new_track;
 
 		BLI_addtail(&tracks, new_track);
 	}
