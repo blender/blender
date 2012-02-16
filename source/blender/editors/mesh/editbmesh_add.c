@@ -36,6 +36,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_library.h"
 #include "BKE_tessmesh.h"
 
 
@@ -76,7 +77,8 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 
 /* ********* add primitive operators ************* */
 
-static void make_prim_init(bContext *C, float *dia, float mat[][4], 
+static void make_prim_init(bContext *C, const char *idname,
+                           float *dia, float mat[][4],
 						   int *state, float *loc, float *rot, unsigned int layer)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -85,6 +87,9 @@ static void make_prim_init(bContext *C, float *dia, float mat[][4],
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
 		
+		rename_id((ID *)obedit, idname);
+		rename_id((ID *)obedit->data, idname);
+
 		/* create editmode */
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
@@ -129,7 +134,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Plane", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -173,7 +178,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Cube", &dia, mat, &state, loc, rot, layer);
 
 	obedit= CTX_data_edit_object(C);
 	me = obedit->data;
@@ -226,7 +231,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	cap_tri = cap_end==2;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Circle", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -283,7 +288,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	cap_tri = cap_end==2;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Cylinder", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -342,7 +347,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	cap_tri = cap_end==2;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Cone", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -398,7 +403,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Grid", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -457,7 +462,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	if (!view_aligned)
 		rot[0] += M_PI/2.0f;
 	
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Monkey", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -501,7 +506,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Sphere", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -555,7 +560,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
-	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
+	make_prim_init(C, "Icosphere", &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
