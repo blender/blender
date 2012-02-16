@@ -378,7 +378,9 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *eva[12];
+	BMVert *v;
 	BMIter liter;
+	BMIter viter;
 	BMLoop *l;
 	float vec[3], mat[4][4] /* , phi, phid */;
 	float dia = BMO_slot_float_get(op, "diameter");
@@ -396,7 +398,6 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		vec[2] = dia * icovert[a][2];
 		eva[a] = BM_vert_create(bm, vec, NULL);
 
-		mul_m4_v3(mat, eva[a]->co);
 		BMO_elem_flag_enable(bm, eva[a], VERT_MARK);
 	}
 
@@ -429,6 +430,13 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
 		BMO_op_finish(bm, &bmop);
+	}
+
+	/* must transform after becayse of sphere subdivision */
+	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
+			mul_m4_v3(mat, v->co);
+		}
 	}
 
 	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
