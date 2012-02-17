@@ -45,7 +45,10 @@
 
 class STR_String;
 class GHOST_SystemX11;
+
+#ifdef WITH_XDND
 class GHOST_DropTargetX11;
+#endif
 
 /**
  * X11 implementation of GHOST_IWindow.
@@ -225,8 +228,10 @@ public:
 	XIC getX11_XIC() { return m_xic; }
 #endif
 
+#ifdef WITH_XDND
 	GHOST_DropTargetX11* getDropTarget()
 	{ return m_dropTarget; }
+#endif
 
 	/*
 	 * Need this in case that we want start the window
@@ -365,7 +370,9 @@ private :
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;
 
+#ifdef WITH_XDND
 	GHOST_DropTargetX11 * m_dropTarget;
+#endif
 
 #ifdef WITH_X11_XINPUT
 	/* Tablet devices */
