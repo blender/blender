@@ -57,7 +57,6 @@
 
 /**************************** registration **********************************/
 
-void EXPORT_MESH_OT_wavefront(wmOperatorType *ot);
 void ED_operatortypes_mesh(void)
 {
 	WM_operatortype_append(MESH_OT_select_all);
@@ -159,8 +158,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_bevel);
 
 	WM_operatortype_append(MESH_OT_select_next_loop);
-	
-	WM_operatortype_append(EXPORT_MESH_OT_wavefront);
+
 	WM_operatortype_append(MESH_OT_bridge_edge_loops);
 
 #ifdef WITH_GAMEENGINE
