@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BLENDER_H
-#define BKE_BLENDER_H
+#ifndef __BKE_BLENDER_H__
+#define __BKE_BLENDER_H__
 
 /** \file BKE_blender.h
  *  \ingroup bke

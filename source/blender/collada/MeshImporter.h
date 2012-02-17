@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef __BC__MESHIMPORTER_H__
-#define __BC__MESHIMPORTER_H__
+#ifndef __MESHIMPORTER_H__
+#define __MESHIMPORTER_H__
 
 #include <map>
 #include <vector>

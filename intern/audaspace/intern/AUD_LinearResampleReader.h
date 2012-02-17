@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_LINEARRESAMPLEREADER
-#define AUD_LINEARRESAMPLEREADER
+#ifndef __AUD_LINEARRESAMPLEREADER_H__
+#define __AUD_LINEARRESAMPLEREADER_H__
 
 #include "AUD_ResampleReader.h"
 #include "AUD_Buffer.h"
@@ -83,4 +83,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_LINEARRESAMPLEREADER
+#endif //__AUD_LINEARRESAMPLEREADER_H__

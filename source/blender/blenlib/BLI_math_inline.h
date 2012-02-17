@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_INLINE_H
-#define BLI_MATH_INLINE_H
+#ifndef __BLI_MATH_INLINE_H__
+#define __BLI_MATH_INLINE_H__
 
 /** \file BLI_math_inline.h
  *  \ingroup bli
@@ -35,9 +35,9 @@ extern "C" {
 #endif
 
 /* add platform/compiler checks here if it is not supported */
-#define BLI_MATH_INLINE_H
+#define __BLI_MATH_INLINE_H__
 
-#ifdef BLI_MATH_INLINE_H
+#ifdef __BLI_MATH_INLINE_H__
 #ifdef _MSC_VER
 #define MINLINE static __forceinline
 #define MALWAYS_INLINE MINLINE
@@ -59,5 +59,5 @@ extern "C" {
 }
 #endif
 
-#endif /* BLI_MATH_INLINE_H */
+#endif /* __BLI_MATH_INLINE_H__ */
 

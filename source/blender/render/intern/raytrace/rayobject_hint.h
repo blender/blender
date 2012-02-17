@@ -30,8 +30,8 @@
  */
 
 
-#ifndef RE_RAYTRACE_RAYOBJECT_HINT_H
-#define RE_RAYTRACE_RAYOBJECT_HINT_H
+#ifndef __RAYOBJECT_HINT_H__
+#define __RAYOBJECT_HINT_H__
 
 #define HINT_RECURSE	 1
 #define HINT_ACCEPT		 0

@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef __BC_ANIMATIONIMPORTER_H__
-#define __BC_ANIMATIONIMPORTER_H__
+#ifndef __ANIMATIONIMPORTER_H__
+#define __ANIMATIONIMPORTER_H__
 
 #include <map>
 #include <vector>

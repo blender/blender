@@ -31,8 +31,8 @@
  *  \author nzc
  */
 
-#ifndef DNA_SENSOR_TYPES_H
-#define DNA_SENSOR_TYPES_H
+#ifndef __DNA_SENSOR_TYPES_H__
+#define __DNA_SENSOR_TYPES_H__
 
 struct Object;
 struct Material;

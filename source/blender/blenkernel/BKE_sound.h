@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SOUND_H
-#define BKE_SOUND_H
+#ifndef __BKE_SOUND_H__
+#define __BKE_SOUND_H__
 
 /** \file BKE_sound.h
  *  \ingroup bke

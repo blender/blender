@@ -29,8 +29,8 @@
  */
 
 
-#ifndef _GHOST_SYSTEM_PATHS_COCOA_H_
-#define _GHOST_SYSTEM_PATHS_COCOA_H_
+#ifndef __GHOST_SYSTEMPATHSCOCOA_H__
+#define __GHOST_SYSTEMPATHSCOCOA_H__
 
 #ifndef __APPLE__
 #error Apple OSX only!
@@ -78,5 +78,4 @@ public:
 	void addToSystemRecentFiles(const char* filename) const;
 };
 
-#endif // _GHOST_SYSTEM_COCOA_H_
-
+#endif // __GHOST_SYSTEMPATHSCOCOA_H__

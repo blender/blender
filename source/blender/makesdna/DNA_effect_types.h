@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_EFFECT_TYPES_H
-#define DNA_EFFECT_TYPES_H
+#ifndef __DNA_EFFECT_TYPES_H__
+#define __DNA_EFFECT_TYPES_H__
 
 /* don't forget, new effects also in writefile.c for dna!!! */
 

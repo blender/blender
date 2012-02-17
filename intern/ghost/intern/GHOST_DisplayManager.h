@@ -30,8 +30,8 @@
  * Declaration of GHOST_DisplayManager class.
  */
 
-#ifndef _GHOST_DISPLAY_MANAGER_H_
-#define _GHOST_DISPLAY_MANAGER_H_
+#ifndef __GHOST_DISPLAYMANAGER_H__
+#define __GHOST_DISPLAYMANAGER_H__
 
 #include "GHOST_Types.h"
 
@@ -136,5 +136,5 @@ protected:
 };
 
 
-#endif // _GHOST_DISPLAY_MANAGER_H_
+#endif // __GHOST_DISPLAYMANAGER_H__
 

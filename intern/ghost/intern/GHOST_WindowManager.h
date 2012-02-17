@@ -30,8 +30,8 @@
  * Declaration of GHOST_WindowManager class.
  */
 
-#ifndef _GHOST_WINDOW_MANAGER_H_
-#define _GHOST_WINDOW_MANAGER_H_
+#ifndef __GHOST_WINDOWMANAGER_H__
+#define __GHOST_WINDOWMANAGER_H__
 
 #include <vector>
 
@@ -169,5 +169,5 @@ public:
 	
 };
 
-#endif // _GHOST_WINDOW_MANAGER_H_
+#endif // __GHOST_WINDOWMANAGER_H__
 

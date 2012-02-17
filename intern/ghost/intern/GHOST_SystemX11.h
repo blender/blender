@@ -30,8 +30,8 @@
  * Declaration of GHOST_SystemX11 class.
  */
 
-#ifndef _GHOST_SYSTEM_X11_H_
-#define _GHOST_SYSTEM_X11_H_
+#ifndef __GHOST_SYSTEMX11_H__
+#define __GHOST_SYSTEMX11_H__
 
 #include <X11/Xlib.h>
 #include <GL/glx.h>

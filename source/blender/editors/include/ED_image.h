@@ -27,8 +27,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_IMAGE_H
-#define ED_IMAGE_H
+#ifndef __ED_IMAGE_H__
+#define __ED_IMAGE_H__
 
 struct SpaceImage;
 struct Main;
@@ -70,5 +70,5 @@ void ED_image_update_frame(const struct Main *mainp, int cfra);
 void ED_image_draw_info(struct ARegion *ar, int color_manage, int channels, int x, int y,
                         const unsigned char cp[4], const float fp[4], int *zp, float *zpf);
 
-#endif /* ED_IMAGE_H */
+#endif /* __ED_IMAGE_H__ */
 

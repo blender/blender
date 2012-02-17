@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_DYNSTR_H
-#define BLI_DYNSTR_H
+#ifndef __BLI_DYNSTR_H__
+#define __BLI_DYNSTR_H__
 
 /** \file BLI_dynstr.h
  *  \ingroup bli

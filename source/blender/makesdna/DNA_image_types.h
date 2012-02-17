@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_IMAGE_TYPES_H
-#define DNA_IMAGE_TYPES_H
+#ifndef __DNA_IMAGE_TYPES_H__
+#define __DNA_IMAGE_TYPES_H__
 
 #include "DNA_ID.h"
 

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_NODE_H
-#define BKE_NODE_H
+#ifndef __BKE_NODE_H__
+#define __BKE_NODE_H__
 
 /** \file BKE_node.h
  *  \ingroup bke

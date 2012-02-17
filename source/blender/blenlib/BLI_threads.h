@@ -27,8 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_THREADS_H
-#define BLI_THREADS_H 
+#ifndef __BLI_THREADS_H__
+#define __BLI_THREADS_H__ 
 
 /** \file BLI_threads.h
  *  \ingroup bli

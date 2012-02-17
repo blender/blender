@@ -30,8 +30,8 @@
  *  \ingroup editorui
  */
 
-#ifndef UI_RESOURCES_H
-#define UI_RESOURCES_H
+#ifndef __UI_RESOURCES_H__
+#define __UI_RESOURCES_H__
 
 /* elubie: TODO: move the typedef for icons to UI_interface_icons.h */
 /* and add/replace include of UI_resources.h by UI_interface_icons.h */

@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NODE_EXEC_H_
-#define NODE_EXEC_H_
+#ifndef __NODE_EXEC_H__
+#define __NODE_EXEC_H__
 
 #include "DNA_listBase.h"
 

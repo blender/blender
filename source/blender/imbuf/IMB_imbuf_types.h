@@ -44,8 +44,8 @@
  * \todo Clean up includes.
  */
 
-#ifndef IMB_IMBUF_TYPES_H
-#define IMB_IMBUF_TYPES_H
+#ifndef __IMB_IMBUF_TYPES_H__
+#define __IMB_IMBUF_TYPES_H__
 
 struct ImMetaData;
 

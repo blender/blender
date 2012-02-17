@@ -30,8 +30,8 @@
  * Declaration of GHOST_CallbackEventConsumer class.
  */
 
-#ifndef _GHOST_CALLBACK_EVENT_CONSUMER_H_
-#define _GHOST_CALLBACK_EVENT_CONSUMER_H_
+#ifndef __GHOST_CALLBACKEVENTCONSUMER_H__
+#define __GHOST_CALLBACKEVENTCONSUMER_H__
 
 #include "GHOST_IEventConsumer.h"
 #include "GHOST_C-api.h"
@@ -75,5 +75,5 @@ protected:
 	GHOST_TUserDataPtr			m_userData;
 };
 
-#endif // _GHOST_CALLBACK_EVENT_CONSUMER_H_
+#endif // __GHOST_CALLBACKEVENTCONSUMER_H__
 

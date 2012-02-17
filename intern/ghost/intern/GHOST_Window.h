@@ -30,8 +30,8 @@
  * Declaration of GHOST_Window class.
  */
 
-#ifndef _GHOST_WINDOW_H_
-#define _GHOST_WINDOW_H_
+#ifndef __GHOST_WINDOW_H__
+#define __GHOST_WINDOW_H__
 
 #include "GHOST_IWindow.h"
 

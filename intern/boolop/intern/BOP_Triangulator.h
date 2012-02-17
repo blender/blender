@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_TRIANGULATOR_H
-#define BOP_TRIANGULATOR_H
+#ifndef __BOP_TRIANGULATOR_H__
+#define __BOP_TRIANGULATOR_H__
 
 #include "BOP_MathUtils.h"
 #include "BOP_Mesh.h"

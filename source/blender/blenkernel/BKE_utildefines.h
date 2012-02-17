@@ -33,8 +33,8 @@
  */
 
 
-#ifndef BKE_UTILDEFINES_H
-#define BKE_UTILDEFINES_H
+#ifndef __BKE_UTILDEFINES_H__
+#define __BKE_UTILDEFINES_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,4 +89,4 @@ extern "C" {
 }
 #endif
 
-#endif // BKE_UTILDEFINES_H
+#endif // __BKE_UTILDEFINES_H__

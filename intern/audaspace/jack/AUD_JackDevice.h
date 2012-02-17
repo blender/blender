@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_JACKDEVICE
-#define AUD_JACKDEVICE
+#ifndef __AUD_JACKDEVICE_H__
+#define __AUD_JACKDEVICE_H__
 
 
 #include "AUD_SoftwareDevice.h"
@@ -205,4 +205,4 @@ public:
 	bool doesPlayback();
 };
 
-#endif //AUD_JACKDEVICE
+#endif //__AUD_JACKDEVICE_H__

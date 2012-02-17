@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BVHUTILS_H
-#define BKE_BVHUTILS_H
+#ifndef __BKE_BVHUTILS_H__
+#define __BKE_BVHUTILS_H__
 
 /** \file BKE_bvhutils.h
  *  \ingroup bke

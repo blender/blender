@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_I3DDEVICE
-#define AUD_I3DDEVICE
+#ifndef __AUD_I3DDEVICE_H__
+#define __AUD_I3DDEVICE_H__
 
 #include "AUD_Space.h"
 #include "AUD_3DMath.h"
@@ -119,4 +119,4 @@ public:
 	virtual void setDistanceModel(AUD_DistanceModel model)=0;
 };
 
-#endif //AUD_I3DDEVICE
+#endif //__AUD_I3DDEVICE_H__

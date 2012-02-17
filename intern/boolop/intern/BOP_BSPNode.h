@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_BSPNODE_H
-#define BOP_BSPNODE_H
+#ifndef __BOP_BSPNODE_H__
+#define __BOP_BSPNODE_H__
 
 #include "MT_Plane3.h"
 #include "BOP_Tag.h"

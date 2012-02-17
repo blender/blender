@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_ARGS_H
-#define BLI_ARGS_H
+#ifndef __BLI_ARGS_H__
+#define __BLI_ARGS_H__
 
 /** \file BLI_args.h
  *  \ingroup bli

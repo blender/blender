@@ -33,8 +33,8 @@
  */
 
 
-#ifndef INITRENDER_H
-#define INITRENDER_H 
+#ifndef __INITRENDER_H__
+#define __INITRENDER_H__ 
 
 struct Object;
 
@@ -49,5 +49,5 @@ void initparts(Render *re);
 void freeparts(Render *re);
 
 
-#endif /* INITRENDER_H */
+#endif /* __INITRENDER_H__ */
 

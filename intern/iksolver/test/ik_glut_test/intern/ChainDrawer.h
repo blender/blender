@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef NAN_INCLUDED_ChainDrawer_h
-#define NAN_INCLUDED_ChainDrawer_h
+#ifndef __CHAINDRAWER_H__
+#define __CHAINDRAWER_H__
 
 #include "../common/GlutDrawer.h"
 #include "MyGlutMouseHandler.h"

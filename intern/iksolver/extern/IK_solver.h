@@ -65,8 +65,8 @@
  * This module only depends on Moto.
  */
 
-#ifndef NAN_INCLUDED_IK_solver_h
-#define NAN_INCLUDED_IK_solver_h
+#ifndef __IK_SOLVER_H__
+#define __IK_SOLVER_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -168,5 +168,5 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
 }
 #endif
 
-#endif // NAN_INCLUDED_IK_solver_h
+#endif // __IK_SOLVER_H__
 

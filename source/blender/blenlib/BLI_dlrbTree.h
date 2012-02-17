@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_DLRB_TREE_H
-#define BLI_DLRB_TREE_H
+#ifndef __BLI_DLRBTREE_H__
+#define __BLI_DLRBTREE_H__
 
 /** \file BLI_dlrbTree.h
  *  \ingroup bli
@@ -158,4 +158,4 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* ********************************************** */
 
-#endif // BLI_DLRB_TREE_H
+#endif // __BLI_DLRBTREE_H__

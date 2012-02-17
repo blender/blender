@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_BANDPASSREADER
-#define AUD_BANDPASSREADER
+#ifndef __AUD_BANDPASSREADER_H__
+#define __AUD_BANDPASSREADER_H__
 
 #include <fftw3.h>
 
@@ -99,4 +99,4 @@ public:
 	virtual void read(int & length, sample_t* & buffer);
 };
 
-#endif //AUD_BANDPASSREADER
+#endif //__AUD_BANDPASSREADER_H__

@@ -36,8 +36,8 @@
  *             hierarchy here is a bit strange, and not desirable.
  */
 
-#ifndef DNA_PROPERTY_TYPES_H
-#define DNA_PROPERTY_TYPES_H
+#ifndef __DNA_PROPERTY_TYPES_H__
+#define __DNA_PROPERTY_TYPES_H__
 
 /* ********************* PROPERTY ************************ */
 

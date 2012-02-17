@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_TYPES_H
-#define ED_TYPES_H
+#ifndef __ED_TYPES_H__
+#define __ED_TYPES_H__
 
 /* **************** GENERAL EDITOR-WIDE TYPES AND DEFINES ************************** */
 
@@ -44,5 +44,5 @@
 
 
 
-#endif /* ED_TYPES_H */
+#endif /* __ED_TYPES_H__ */
 

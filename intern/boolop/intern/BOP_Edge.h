@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_EDGE_H
-#define BOP_EDGE_H
+#ifndef __BOP_EDGE_H__
+#define __BOP_EDGE_H__
 
 #include "BOP_Indexs.h"
 #include "BOP_Misc.h"

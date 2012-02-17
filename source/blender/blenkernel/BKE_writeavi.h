@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_WRITEAVI_H
-#define BKE_WRITEAVI_H
+#ifndef __BKE_WRITEAVI_H__
+#define __BKE_WRITEAVI_H__
 
 /** \file BKE_writeavi.h
  *  \ingroup bke

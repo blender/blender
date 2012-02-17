@@ -28,8 +28,8 @@
  */
 
 
-#ifndef PIXELBLENDING_EXT_H
-#define PIXELBLENDING_EXT_H 
+#ifndef __PIXELBLENDING_H__
+#define __PIXELBLENDING_H__ 
 
 
 /**
@@ -69,5 +69,5 @@ void addalphaUnderGammaFloat(float *doel, float *bron);
 
 
 
-#endif /* PIXELBLENDING_EXT_H */
+#endif /* __PIXELBLENDING_H__ */
 

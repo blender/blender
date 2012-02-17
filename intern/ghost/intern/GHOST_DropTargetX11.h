@@ -29,8 +29,8 @@
  *  \ingroup GHOST
  */
 
-#ifndef _GHOST_DROP_TARGET_X11_H_
-#define _GHOST_DROP_TARGET_X11_H_
+#ifndef __GHOST_DROPTARGETX11_H__
+#define __GHOST_DROPTARGETX11_H__
 
 #include <GHOST_Types.h>
 #include "GHOST_WindowX11.h"
@@ -132,4 +132,4 @@ private:
 	static int m_refCounter;
 };
 
-#endif  // _GHOST_DROP_TARGET_X11_H_
+#endif  // __GHOST_DROPTARGETX11_H__

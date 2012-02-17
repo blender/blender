@@ -29,8 +29,8 @@
  *  \ingroup render
  */
 
-#ifndef RE_PIPELINE_H
-#define RE_PIPELINE_H
+#ifndef __RE_PIPELINE_H__
+#define __RE_PIPELINE_H__
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -272,5 +272,5 @@ struct Scene *RE_GetScene(struct Render *re);
 
 int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 
-#endif /* RE_PIPELINE_H */
+#endif /* __RE_PIPELINE_H__ */
 

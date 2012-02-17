@@ -33,8 +33,8 @@
  */
 
 
-#ifndef RENDERCORE_H
-#define RENDERCORE_H 
+#ifndef __RENDERCORE_H__
+#define __RENDERCORE_H__ 
 
 #include "render_types.h"
 

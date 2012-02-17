@@ -19,8 +19,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SKETCH_H
-#define BKE_SKETCH_H
+#ifndef __BKE_SKETCH_H__
+#define __BKE_SKETCH_H__
 
 /** \file BKE_sketch.h
  *  \ingroup bke

@@ -30,8 +30,8 @@
  * Declaration of GHOST_WindowX11 class.
  */
 
-#ifndef _GHOST_WINDOWX11_H_
-#define _GHOST_WINDOWX11_H_
+#ifndef __GHOST_WINDOWX11_H__
+#define __GHOST_WINDOWX11_H__
 
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
@@ -390,4 +390,4 @@ private :
 };
 
 
-#endif // _GHOST_WINDOWX11_H_
+#endif // __GHOST_WINDOWX11_H__

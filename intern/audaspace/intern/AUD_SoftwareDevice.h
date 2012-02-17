@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SOFTWAREDEVICE
-#define AUD_SOFTWAREDEVICE
+#ifndef __AUD_SOFTWAREDEVICE_H__
+#define __AUD_SOFTWAREDEVICE_H__
 
 #include "AUD_IDevice.h"
 #include "AUD_IHandle.h"
@@ -342,4 +342,4 @@ public:
 	virtual void setDistanceModel(AUD_DistanceModel model);
 };
 
-#endif //AUD_SOFTWAREDEVICE
+#endif //__AUD_SOFTWAREDEVICE_H__

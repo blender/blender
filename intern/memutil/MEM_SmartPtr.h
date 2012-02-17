@@ -35,8 +35,8 @@
  * @author Laurence
  */
 
-#ifndef NAN_INCLUDED_MEM_SmartPtr_h
-#define NAN_INCLUDED_MEM_SmartPtr_h
+#ifndef __MEM_SMARTPTR_H__
+#define __MEM_SMARTPTR_H__
 
 
 #include <stdlib.h> // for NULL !

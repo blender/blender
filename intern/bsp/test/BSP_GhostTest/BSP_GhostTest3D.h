@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BSP_GhostTest_h
-#define BSP_GhostTest_h
+#ifndef __BSP_GHOSTTEST3D_H__
+#define __BSP_GHOSTTEST3D_H__
 
 #include "GHOST_IEventConsumer.h"
 #include "MT_Vector3.h"

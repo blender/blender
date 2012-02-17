@@ -30,8 +30,8 @@
  */
 
 
-#ifndef ZBUF_H
-#define ZBUF_H
+#ifndef __ZBUF_H__
+#define __ZBUF_H__
 
 struct RenderPart;
 struct RenderLayer;

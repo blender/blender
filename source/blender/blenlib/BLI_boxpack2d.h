@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _BLI_BOXPACK2D_H_
-#define _BLI_BOXPACK2D_H_
+#ifndef __BLI_BOXPACK2D_H__
+#define __BLI_BOXPACK2D_H__
 
 /** \file BLI_boxpack2d.h
  *  \ingroup bli

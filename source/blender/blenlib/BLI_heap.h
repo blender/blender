@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_HEAP_H
-#define BLI_HEAP_H
+#ifndef __BLI_HEAP_H__
+#define __BLI_HEAP_H__
 
 /** \file BLI_heap.h
  *  \ingroup bli

@@ -28,8 +28,8 @@
  */
 
  
-#ifndef ANIM_INTERN_H
-#define ANIM_INTERN_H
+#ifndef __ANIM_INTERN_H__
+#define __ANIM_INTERN_H__
 
 /* KeyingSets/Keyframing Interface ------------- */
 
@@ -79,4 +79,4 @@ void ANIM_OT_driver_button_remove(struct wmOperatorType *ot);
 void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
 void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 
-#endif // ANIM_INTERN_H
+#endif // __ANIM_INTERN_H__

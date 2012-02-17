@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_IDEVICE
-#define AUD_IDEVICE
+#ifndef __AUD_IDEVICE_H__
+#define __AUD_IDEVICE_H__
 
 #include "AUD_Space.h"
 #include "AUD_Reference.h"

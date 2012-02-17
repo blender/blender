@@ -24,8 +24,8 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef BKE_COLORTOOLS_H
-#define BKE_COLORTOOLS_H
+#ifndef __BKE_COLORTOOLS_H__
+#define __BKE_COLORTOOLS_H__
 
 /** \file BKE_colortools.h
  *  \ingroup bke

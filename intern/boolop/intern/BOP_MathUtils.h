@@ -32,8 +32,8 @@
  */
 
  
-#ifndef BOP_MATHUTILS_H
-#define BOP_MATHUTILS_H
+#ifndef __BOP_MATHUTILS_H__
+#define __BOP_MATHUTILS_H__
 
 #include <math.h>
 #include <float.h>

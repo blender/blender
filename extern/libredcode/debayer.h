@@ -1,5 +1,5 @@
-#ifndef __redcode_debayer_h_included__
-#define __redcode_debayer_h_included__ 1
+#ifndef __DEBAYER_H__
+#define __DEBAYER_H__
 
 void redcode_ycbcr2rgb_fullscale(
 	int ** planes, int width, int height, float * out);

@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_CSGException_h
-#define NAN_INCLUDED_CSGException_h
+#ifndef __BSP_CSGEXCEPTION_H__
+#define __BSP_CSGEXCEPTION_H__
 
 // stick in more error types as you think of them
 

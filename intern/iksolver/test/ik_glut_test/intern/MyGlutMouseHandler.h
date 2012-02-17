@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef NAN_INCLUDED_MyGlutMouseHandler_h
-#define NAN_INCLUDED_MyGlutMouseHandler_h
+#ifndef __MYGLUTMOUSEHANDLER_H__
+#define __MYGLUTMOUSEHANDLER_H__
 
 #include "../common/GlutMouseManager.h"
 #include <GL/glut.h>

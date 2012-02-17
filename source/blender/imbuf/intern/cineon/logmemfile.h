@@ -22,11 +22,11 @@
  *
  */
  
-#ifndef _LOGMEMFILE_H
-#define _LOGMEMFILE_H
+#ifndef __LOGMEMFILE_H__
+#define __LOGMEMFILE_H__
 
 int logimage_fseek(void* logfile, intptr_t offsett, int origin);
 int logimage_fwrite(void *buffer, unsigned int size, unsigned int count, void *logfile);
 int logimage_fread(void *buffer, unsigned int size, unsigned int count, void *logfile);
 
-#endif /* _LOGMEMFILE_H */
+#endif /* __LOGMEMFILE_H__ */

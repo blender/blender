@@ -30,8 +30,8 @@
  *  \brief ID and Library types, which are fundamental for sdna.
  */
 
-#ifndef DNA_ID_H
-#define DNA_ID_H
+#ifndef __DNA_ID_H__
+#define __DNA_ID_H__
 
 #include "DNA_listBase.h"
 

@@ -27,8 +27,8 @@
  *  \ingroup bke
  */
 
-#ifndef DEPSGRAPH_PRIVATE
-#define DEPSGRAPH_PRIVATE
+#ifndef __DEPSGRAPH_PRIVATE_H__
+#define __DEPSGRAPH_PRIVATE_H__
 
 #include "BKE_depsgraph.h"
 #include "DNA_constraint_types.h"

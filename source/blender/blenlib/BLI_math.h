@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_H
-#define BLI_MATH_H
+#ifndef __BLI_MATH_H__
+#define __BLI_MATH_H__
 
 /** \file BLI_math.h
  *  \ingroup bli
@@ -59,5 +59,5 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_geom.h"
 
-#endif /* BLI_MATH_H */
+#endif /* __BLI_MATH_H__ */
 

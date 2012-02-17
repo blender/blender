@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_MERGE2_H
-#define BOP_MERGE2_H
+#ifndef __BOP_MERGE2_H__
+#define __BOP_MERGE2_H__
 
 #include "BOP_Misc.h"
 

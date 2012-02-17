@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_GLOBAL_H
-#define BKE_GLOBAL_H
+#ifndef __BKE_GLOBAL_H__
+#define __BKE_GLOBAL_H__
 
 /** \file BKE_global.h
  *  \ingroup bke

@@ -26,8 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_KDTREE_H
-#define BLI_KDTREE_H
+#ifndef __BLI_KDTREE_H__
+#define __BLI_KDTREE_H__
 
 /** \file BLI_kdtree.h
  *  \ingroup bli

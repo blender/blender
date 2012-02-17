@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_REPORT_H
-#define BKE_REPORT_H
+#ifndef __BKE_REPORT_H__
+#define __BKE_REPORT_H__
 
 /** \file BKE_report.h
  *  \ingroup bke

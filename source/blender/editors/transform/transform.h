@@ -30,8 +30,8 @@
  */
 
 
-#ifndef TRANSFORM_H
-#define TRANSFORM_H
+#ifndef __TRANSFORM_H__
+#define __TRANSFORM_H__
 
 #include "ED_transform.h"
 #include "ED_numinput.h"

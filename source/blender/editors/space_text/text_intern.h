@@ -28,8 +28,8 @@
  *  \ingroup sptext
  */
 
-#ifndef ED_TEXT_INTERN_H
-#define ED_TEXT_INTERN_H
+#ifndef __TEXT_INTERN_H__
+#define __TEXT_INTERN_H__
 
 /* internal exports only */
 
@@ -163,5 +163,5 @@ void TEXT_OT_resolve_conflict(struct wmOperatorType *ot);
 /* space_text.c */
 extern const char *text_context_dir[]; /* doc access */
 
-#endif /* ED_TEXT_INTERN_H */
+#endif /* __TEXT_INTERN_H__ */
 

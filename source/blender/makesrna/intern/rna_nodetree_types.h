@@ -24,6 +24,7 @@
  *  \ingroup RNA
  */
 
+/* intentionally no include guard */
 
 /* Empty definitions for undefined macros to avoid warnings */
 #ifndef DefNode

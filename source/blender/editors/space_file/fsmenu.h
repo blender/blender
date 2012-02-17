@@ -31,8 +31,8 @@
  */
 
 
-#ifndef BSE_FSMENU_H
-#define BSE_FSMENU_H
+#ifndef __FSMENU_H__
+#define __FSMENU_H__
 
 /* XXX could become UserPref */
 #define FSMENU_RECENT_MAX 10

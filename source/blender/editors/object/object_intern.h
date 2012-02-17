@@ -28,8 +28,8 @@
  *  \ingroup edobj
  */
 
-#ifndef ED_OBJECT_INTERN_H
-#define ED_OBJECT_INTERN_H
+#ifndef __OBJECT_INTERN_H__
+#define __OBJECT_INTERN_H__
 
 struct wmOperatorType;
 struct KeyBlock;
@@ -225,5 +225,5 @@ void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 /* object_bake.c */
 void OBJECT_OT_bake_image(wmOperatorType *ot);
 
-#endif /* ED_OBJECT_INTERN_H */
+#endif /* __OBJECT_INTERN_H__ */
 

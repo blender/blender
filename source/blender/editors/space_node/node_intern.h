@@ -28,8 +28,8 @@
  *  \ingroup spnode
  */
 
-#ifndef ED_NODE_INTERN_H
-#define ED_NODE_INTERN_H
+#ifndef __NODE_INTERN_H__
+#define __NODE_INTERN_H__
 
 #include <stddef.h> /* for size_t */
 #include "UI_interface.h"
@@ -190,4 +190,4 @@ enum {
 	B_NODE_SETIMAGE,
 } eNodeSpace_ButEvents;
 
-#endif /* ED_NODE_INTERN_H */
+#endif /* __NODE_INTERN_H__ */

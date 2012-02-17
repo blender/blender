@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_ID_INFO_H
-#define BKE_ID_INFO_H
+#ifndef __BKE_IDCODE_H__
+#define __BKE_IDCODE_H__
 
 /** \file BKE_idcode.h
  *  \ingroup bke

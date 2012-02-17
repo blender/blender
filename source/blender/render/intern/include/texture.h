@@ -33,8 +33,8 @@
  */
 
 
-#ifndef TEXTURE_EXT_H
-#define TEXTURE_EXT_H
+#ifndef __TEXTURE_H__
+#define __TEXTURE_H__
 
 #define BRICONT                                                               \
 	texres->tin= (texres->tin-0.5f) * tex->contrast+tex->bright-0.5f;         \
@@ -85,5 +85,5 @@ int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const f
 int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], struct TexResult *texres);
 void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float *result);
 
-#endif /* TEXTURE_EXT_H */
+#endif /* __TEXTURE_H__ */
 

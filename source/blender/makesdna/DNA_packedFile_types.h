@@ -31,8 +31,8 @@
  *  \since 12-oct-2000 nzc
  */
 
-#ifndef DNA_PACKEDFILE_TYPES_H
-#define DNA_PACKEDFILE_TYPES_H
+#ifndef __DNA_PACKEDFILE_TYPES_H__
+#define __DNA_PACKEDFILE_TYPES_H__
 
 typedef struct PackedFile {
 	int size;

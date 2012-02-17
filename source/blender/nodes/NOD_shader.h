@@ -29,8 +29,8 @@
  *  \ingroup nodes
  */
 
-#ifndef NOD_SHADER_H
-#define NOD_SHADER_H
+#ifndef __NOD_SHADER_H__
+#define __NOD_SHADER_H__
 
 #include "BKE_node.h"
 

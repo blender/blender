@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_CONTEXT_H
-#define BKE_CONTEXT_H
+#ifndef __BKE_CONTEXT_H__
+#define __BKE_CONTEXT_H__
 
 /** \file BKE_context.h
  *  \ingroup bke

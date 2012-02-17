@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_UTIL_H
-#define ED_UTIL_H
+#ifndef __ED_UTIL_H__
+#define __ED_UTIL_H__
 
 struct Scene;
 struct Object;
@@ -93,5 +93,5 @@ int GetButStringLength(const char *str);
 /* where else to go ? */
 void unpack_menu(struct bContext *C, const char *opname, const char *id_name, const char *abs_name, const char *folder, struct PackedFile *pf);
 
-#endif /* ED_UTIL_H */
+#endif /* __ED_UTIL_H__ */
 

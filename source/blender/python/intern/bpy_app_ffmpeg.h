@@ -24,9 +24,9 @@
  *  \ingroup pythonintern
  */
 
-#ifndef BPY_APP_FFMPEG_H
-#define BPY_APP_FFMPEG_H
+#ifndef __BPY_APP_FFMPEG_H__
+#define __BPY_APP_FFMPEG_H__
 
 PyObject *BPY_app_ffmpeg_struct(void);
 
-#endif // BPY_APP_FFMPEG_H
+#endif // __BPY_APP_FFMPEG_H__

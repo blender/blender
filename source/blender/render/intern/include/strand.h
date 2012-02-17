@@ -30,8 +30,8 @@
  */
 
 
-#ifndef STRAND_H
-#define STRAND_H 
+#ifndef __STRAND_H__
+#define __STRAND_H__ 
 
 struct StrandVert;
 struct StrandRen;

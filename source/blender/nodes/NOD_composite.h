@@ -29,8 +29,8 @@
  *  \ingroup nodes
  */
 
-#ifndef NOD_composite_H
-#define NOD_composite_H
+#ifndef __NOD_COMPOSITE_H__
+#define __NOD_COMPOSITE_H__
 
 #include "BKE_node.h"
 

@@ -30,8 +30,8 @@
  * Declaration of GHOST_WindowCarbon class.
  */
 
-#ifndef _GHOST_WINDOW_CARBON_H_
-#define _GHOST_WINDOW_CARBON_H_
+#ifndef __GHOST_WINDOWCARBON_H__
+#define __GHOST_WINDOWCARBON_H__
 
 #ifndef __APPLE__
 #error Apple OSX only!
@@ -308,5 +308,5 @@ protected:
 #endif // GHOST_DRAW_CARBON_GUTTER
 };
 
-#endif // _GHOST_WINDOW_CARBON_H_
+#endif // __GHOST_WINDOWCARBON_H__
 

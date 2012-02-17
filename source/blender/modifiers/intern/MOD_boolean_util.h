@@ -30,8 +30,8 @@
  */
 
 
-#ifndef MOD_BOOLEAN_UTILS_H
-#define MOD_BOOLEAN_UTILS_H
+#ifndef __MOD_BOOLEAN_UTIL_H__
+#define __MOD_BOOLEAN_UTIL_H__
 
 struct Scene;
 struct Object;

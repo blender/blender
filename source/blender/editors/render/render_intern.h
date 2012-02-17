@@ -29,8 +29,8 @@
  */
 
 
-#ifndef RENDER_INTERN_H
-#define RENDER_INTERN_H
+#ifndef __RENDER_INTERN_H__
+#define __RENDER_INTERN_H__
 
 struct wmOperatorType;
 struct RenderResult;
@@ -77,5 +77,5 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot);
 /* render_opengl.c */
 void RENDER_OT_opengl(struct wmOperatorType *ot);
 
-#endif /* RENDER_INTERN_H */
+#endif /* __RENDER_INTERN_H__ */
 

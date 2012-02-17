@@ -28,8 +28,8 @@
  */
 
 
-#ifndef RENDER_TYPES_H
-#define RENDER_TYPES_H
+#ifndef __RENDER_TYPES_H__
+#define __RENDER_TYPES_H__
 
 /* ------------------------------------------------------------------------- */
 /* exposed internal in render module only! */
@@ -628,5 +628,5 @@ typedef struct LampRen {
 #define R_ENV_TRANSFORMED	2
 #define R_TRANSFORMED		(1|2)
 
-#endif /* RENDER_TYPES_H */
+#endif /* __RENDER_TYPES_H__ */
 

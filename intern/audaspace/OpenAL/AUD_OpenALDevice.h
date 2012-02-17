@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_OPENALDEVICE
-#define AUD_OPENALDEVICE
+#ifndef __AUD_OPENALDEVICE_H__
+#define __AUD_OPENALDEVICE_H__
 
 #include "AUD_IDevice.h"
 #include "AUD_IHandle.h"
@@ -277,4 +277,4 @@ public:
 	virtual void setDistanceModel(AUD_DistanceModel model);
 };
 
-#endif //AUD_OPENALDEVICE
+#endif //__AUD_OPENALDEVICE_H__

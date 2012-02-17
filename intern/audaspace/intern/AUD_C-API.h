@@ -26,8 +26,8 @@
  *  \ingroup audaspace
  */
  
-#ifndef AUD_CAPI
-#define AUD_CAPI
+#ifndef __AUD_C_API_H__
+#define __AUD_C_API_H__
 
 #ifdef WITH_PYTHON
 #include "Python.h"
@@ -755,4 +755,4 @@ AUD_Reference<AUD_IDevice> AUD_getDevice();
 AUD_I3DDevice* AUD_get3DDevice();
 #endif
 
-#endif //AUD_CAPI
+#endif //__AUD_C_API_H__

@@ -31,8 +31,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_OBJECT_FORCE_H
-#define DNA_OBJECT_FORCE_H
+#ifndef __DNA_OBJECT_FORCE_H__
+#define __DNA_OBJECT_FORCE_H__
 
 #ifdef __cplusplus
 extern "C" {

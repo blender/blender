@@ -27,8 +27,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_UVEDIT_H
-#define ED_UVEDIT_H
+#ifndef __ED_UVEDIT_H__
+#define __ED_UVEDIT_H__
 
 struct ARegionType;
 struct EditFace;
@@ -86,5 +86,5 @@ void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene 
 /* uvedit_buttons.c */
 void ED_uvedit_buttons_register(struct ARegionType *art);
 
-#endif /* ED_UVEDIT_H */
+#endif /* __ED_UVEDIT_H__ */
 

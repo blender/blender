@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_ANIM_SYS_H
-#define BKE_ANIM_SYS_H
+#ifndef __BKE_ANIMSYS_H__
+#define __BKE_ANIMSYS_H__
 
 /** \file BKE_animsys.h
  *  \ingroup bke
@@ -160,4 +160,4 @@ void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, 
 
 /* ************************************* */
 
-#endif /* BKE_ANIM_SYS_H*/
+#endif /* __BKE_ANIMSYS_H__*/

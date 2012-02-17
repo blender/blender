@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef BLI_RECT_H
-#define BLI_RECT_H
+#ifndef __BLI_RECT_H__
+#define __BLI_RECT_H__
 
 /** \file BLI_rect.h
  *  \ingroup bli

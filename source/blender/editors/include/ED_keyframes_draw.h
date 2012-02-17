@@ -29,8 +29,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_KEYFRAMES_DRAW_H
-#define ED_KEYFRAMES_DRAW_H
+#ifndef __ED_KEYFRAMES_DRAW_H__
+#define __ED_KEYFRAMES_DRAW_H__
 
 struct bAnimContext;
 struct AnimData;
@@ -150,5 +150,5 @@ short compare_ab_cfraPtr(void *node, void *data);
 /* Checks if ActKeyBlock can be used (i.e. drawn/used to detect "holds") */
 short actkeyblock_is_valid(ActKeyBlock *ab, struct DLRBT_Tree *keys);
 
-#endif  /*  ED_KEYFRAMES_DRAW_H */
+#endif  /*  __ED_KEYFRAMES_DRAW_H__ */
 

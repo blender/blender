@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_NLA_TYPES_H
-#define DNA_NLA_TYPES_H
+#ifndef __DNA_NLA_TYPES_H__
+#define __DNA_NLA_TYPES_H__
 
 #include "DNA_listBase.h"
 

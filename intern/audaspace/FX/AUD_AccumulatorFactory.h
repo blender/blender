@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_ACCUMULATORFACTORY
-#define AUD_ACCUMULATORFACTORY
+#ifndef __AUD_ACCUMULATORFACTORY_H__
+#define __AUD_ACCUMULATORFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 class AUD_CallbackIIRFilterReader;
@@ -66,4 +66,4 @@ public:
 	static sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless);
 };
 
-#endif //AUD_ACCUMULATORFACTORY
+#endif //__AUD_ACCUMULATORFACTORY_H__

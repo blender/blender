@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_SPACE_API_H
-#define ED_SPACE_API_H
+#ifndef __ED_SPACE_API_H__
+#define __ED_SPACE_API_H__
 
 struct ARegionType;
 struct bContext;
@@ -73,5 +73,5 @@ void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
 void ED_region_draw_cb_exit(struct ARegionType *, void *);
 void *ED_region_draw_cb_customdata(void *handle);
 
-#endif /* ED_SPACE_API_H */
+#endif /* __ED_SPACE_API_H__ */
 

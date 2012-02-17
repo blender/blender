@@ -30,8 +30,8 @@
  * Declaration of GHOST_SystemCarbon class.
  */
 
-#ifndef _GHOST_SYSTEM_CARBON_H_
-#define _GHOST_SYSTEM_CARBON_H_
+#ifndef __GHOST_SYSTEMCARBON_H__
+#define __GHOST_SYSTEMCARBON_H__
 
 #ifndef __APPLE__
 #error Apple OSX only!
@@ -285,5 +285,5 @@ protected:
 	bool m_ignoreWindowSizedMessages;
 };
 
-#endif // _GHOST_SYSTEM_CARBON_H_
+#endif // __GHOST_SYSTEMCARBON_H__
 

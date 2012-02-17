@@ -29,8 +29,8 @@
  */
 
 
-#ifndef _GHOST_SYSTEM_PATHS_CARBON_H_
-#define _GHOST_SYSTEM_PATHS_CARBON_H_
+#ifndef __GHOST_SYSTEMPATHSCARBON_H__
+#define __GHOST_SYSTEMPATHSCARBON_H__
 
 #ifndef __APPLE__
 #error Apple OSX only!
@@ -84,7 +84,4 @@ public:
 	void addToSystemRecentFiles(const char* filename) const;
 };
 
-#endif // _GHOST_SYSTEM_CARBON_H_
-
-
-
+#endif // __GHOST_SYSTEMPATHSCARBON_H__

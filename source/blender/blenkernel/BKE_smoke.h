@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_SMOKE_H_
-#define BKE_SMOKE_H_
+#ifndef __BKE_SMOKE_H__
+#define __BKE_SMOKE_H__
 
 /** \file BKE_smoke.h
  *  \ingroup bke
@@ -45,4 +45,4 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 
 long long smoke_get_mem_req(int xres, int yres, int zres, int amplify);
 
-#endif /* BKE_SMOKE_H_ */
+#endif /* __BKE_SMOKE_H__ */

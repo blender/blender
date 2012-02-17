@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_CONVERTERREADER
-#define AUD_CONVERTERREADER
+#ifndef __AUD_CONVERTERREADER_H__
+#define __AUD_CONVERTERREADER_H__
 
 #include "AUD_EffectReader.h"
 #include "AUD_ConverterFunctions.h"
@@ -70,4 +70,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_CONVERTERREADER
+#endif //__AUD_CONVERTERREADER_H__

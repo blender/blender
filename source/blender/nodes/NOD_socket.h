@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NOD_SOCKET_H_
-#define NOD_SOCKET_H_
+#ifndef __NOD_SOCKET_H__
+#define __NOD_SOCKET_H__
 
 #include "DNA_listBase.h"
 

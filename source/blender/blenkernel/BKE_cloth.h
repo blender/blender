@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_CLOTH_H
-#define BKE_CLOTH_H
+#ifndef __BKE_CLOTH_H__
+#define __BKE_CLOTH_H__
 
 /** \file BKE_cloth.h
  *  \ingroup bke

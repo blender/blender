@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_WRITEFFMPEG_H
-#define BKE_WRITEFFMPEG_H
+#ifndef __BKE_WRITEFFMPEG_H__
+#define __BKE_WRITEFFMPEG_H__
 
 /** \file BKE_writeffmpeg.h
  *  \ingroup bke

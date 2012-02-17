@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef __BC_UTILS_H__
-#define __BC_UTILS_H__
+#ifndef __COLLADA_UTILS_H__
+#define __COLLADA_UTILS_H__
 
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWGeometry.h"

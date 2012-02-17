@@ -29,8 +29,8 @@
  *  \ingroup GHOST
  */
 
-#ifndef _GHOST_DROP_TARGET_WIN32_H_
-#define _GHOST_DROP_TARGET_WIN32_H_
+#ifndef __GHOST_DROPTARGETWIN32_H__
+#define __GHOST_DROPTARGETWIN32_H__
 
 #include <string.h>
 #include <GHOST_Types.h>
@@ -155,4 +155,4 @@ private:
 
 };
 
-#endif  // _GHOST_DROP_TARGET_WIN32_H_
+#endif  // __GHOST_DROPTARGETWIN32_H__

@@ -30,8 +30,8 @@
  * Declaration of GHOST_EventKey class.
  */
 
-#ifndef _GHOST_EVENT_KEY_H_
-#define _GHOST_EVENT_KEY_H_
+#ifndef __GHOST_EVENTKEY_H__
+#define __GHOST_EVENTKEY_H__
 
 #include "GHOST_Event.h"
 
@@ -88,5 +88,5 @@ protected:
 	GHOST_TEventKeyData m_keyEventData;
 };
 
-#endif // _GHOST_EVENT_KEY_H_
+#endif // __GHOST_EVENTKEY_H__
 

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_UTILDEFINES_H
-#define BLI_UTILDEFINES_H
+#ifndef __BLI_UTILDEFINES_H__
+#define __BLI_UTILDEFINES_H__
 
 /** \file BLI_utildefines.h
  *  \ingroup bli
@@ -310,4 +310,4 @@
 #  define UNLIKELY(x)     (x)
 #endif
 
-#endif // BLI_UTILDEFINES_H
+#endif // __BLI_UTILDEFINES_H__

@@ -30,8 +30,8 @@
  * Declaration of GHOST_Event class.
  */
 
-#ifndef _GHOST_EVENT_H_
-#define _GHOST_EVENT_H_
+#ifndef __GHOST_EVENT_H__
+#define __GHOST_EVENT_H__
 
 #include "GHOST_IEvent.h"
 
@@ -103,5 +103,5 @@ protected:
 	GHOST_TEventDataPtr m_data;
 };
 
-#endif // _GHOST_EVENT_H_
+#endif // __GHOST_EVENT_H__
 

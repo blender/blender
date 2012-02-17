@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
-#ifndef BKE_MULTIRES_H
-#define BKE_MULTIRES_H
+#ifndef __BKE_MULTIRES_H__
+#define __BKE_MULTIRES_H__
 
 /** \file BKE_multires.h
  *  \ingroup bke
@@ -94,5 +94,5 @@ void mdisp_apply_weight(const int S, const int corners, int x, int y, const int 
 void mdisp_flip_disp(const int S, const int corners, const float axis_x[2], const float axis_y[2], float disp[3]);
 void mdisp_join_tris(struct MDisps *dst, struct MDisps *tri1, struct MDisps *tri2);
 
-#endif // BKE_MULTIRES_H
+#endif // __BKE_MULTIRES_H__
 

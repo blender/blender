@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_PBVH_H
-#define BLI_PBVH_H
+#ifndef __BLI_PBVH_H__
+#define __BLI_PBVH_H__
 
 /** \file BLI_pbvh.h
  *  \ingroup bli
@@ -246,5 +246,5 @@ void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** nodes,  int* totnode);
 //void BLI_pbvh_node_BB_reset(PBVHNode* node);
 //void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3]);
 
-#endif /* BLI_PBVH_H */
+#endif /* __BLI_PBVH_H__ */
 

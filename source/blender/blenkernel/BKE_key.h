@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_KEY_H
-#define BKE_KEY_H
+#ifndef __BKE_KEY_H__
+#define __BKE_KEY_H__
 
 /** \file BKE_key.h
  *  \ingroup bke
@@ -87,4 +87,4 @@ extern int slurph_opt;
 };
 #endif
 
-#endif // BKE_KEY_H
+#endif // __BKE_KEY_H__

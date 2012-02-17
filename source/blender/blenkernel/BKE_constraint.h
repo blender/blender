@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_CONSTRAINT_H
-#define BKE_CONSTRAINT_H
+#ifndef __BKE_CONSTRAINT_H__
+#define __BKE_CONSTRAINT_H__
 
 /** \file BKE_constraint.h
  *  \ingroup bke

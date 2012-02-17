@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_PINGPONGFACTORY
-#define AUD_PINGPONGFACTORY
+#ifndef __AUD_PINGPONGFACTORY_H__
+#define __AUD_PINGPONGFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 
@@ -53,4 +53,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_PINGPONGFACTORY
+#endif //__AUD_PINGPONGFACTORY_H__

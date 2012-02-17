@@ -29,8 +29,8 @@
  *  \ingroup bli
  */
 
-#ifndef BLI_CALLBACKS_H
-#define BLI_CALLBACKS_H
+#ifndef __BLI_CALLBACKS_H__
+#define __BLI_CALLBACKS_H__
 
 struct bContext;
 struct Main;
@@ -70,4 +70,4 @@ void BLI_cb_finalize(void);
 /* This is blenlib internal only, unrelated to above */
 void callLocalErrorCallBack(const char* msg);
 
-#endif /* BLI_CALLBACKS_H */
+#endif /* __BLI_CALLBACKS_H__ */

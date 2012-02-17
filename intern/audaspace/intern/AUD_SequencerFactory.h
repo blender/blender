@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SEQUENCERFACTORY
-#define AUD_SEQUENCERFACTORY
+#ifndef __AUD_SEQUENCERFACTORY_H__
+#define __AUD_SEQUENCERFACTORY_H__
 
 #include "AUD_IFactory.h"
 #include "AUD_AnimateableProperty.h"
@@ -210,4 +210,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_SEQUENCERFACTORY
+#endif //__AUD_SEQUENCERFACTORY_H__

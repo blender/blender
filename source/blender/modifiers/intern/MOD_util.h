@@ -25,8 +25,8 @@
  */
 
 
-#ifndef MOD_UTIL_H
-#define MOD_UTIL_H
+#ifndef __MOD_UTIL_H__
+#define __MOD_UTIL_H__
 
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
@@ -48,4 +48,4 @@ struct DerivedMesh *get_cddm(struct Object *ob, struct EditMesh *em, struct Deri
 struct DerivedMesh *get_dm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3], int orco);
 void modifier_get_vgroup(struct Object *ob, struct DerivedMesh *dm, const char *name, struct MDeformVert **dvert, int *defgrp_index);
 
-#endif /* MOD_UTIL_H */
+#endif /* __MOD_UTIL_H__ */

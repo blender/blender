@@ -30,8 +30,8 @@
  */
 
 
-#ifndef	GHOST_PATH_API_H
-#define GHOST_PATH_API_H
+#ifndef	__GHOST_PATH_API_H__
+#define __GHOST_PATH_API_H__
 
 #include "GHOST_Types.h"
 
