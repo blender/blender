@@ -30,12 +30,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/bmesh_private.h
+ *  \ingroup bke
+ */
+
+
 #ifndef __BMESH_PRIVATE_H__
 #define __BMESH_PRIVATE_H__
 
-/** \file blender/bmesh/bmesh_private.h
- *  \ingroup bmesh
- */
+#include "BKE_bmesh.h"
 
 /*ALLOCATION/DEALLOCATION*/
 struct BME_Vert *BME_addvertlist(struct BME_Mesh *bm, struct BME_Vert *example);

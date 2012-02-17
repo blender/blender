@@ -57,7 +57,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
 #include "BLI_dynstr.h"
-#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
 
@@ -700,18 +699,10 @@ char *BKE_undo_menu_string(void)
 	/* saves quit.blend */
 void BKE_undo_save_quit(void)
 {
-	char str[FILE_MAXDIR+FILE_MAXFILE];
-
-	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
-
-	BKE_undo_save(str);
-}
-
-void BKE_undo_save(char *fname)
-{
 	UndoElem *uel;
 	MemFileChunk *chunk;
 	int file;
+	char str[FILE_MAX];
 	
 	if( (U.uiflag & USER_GLOBALUNDO)==0) return;
 	
@@ -724,7 +715,9 @@ void BKE_undo_save(char *fname)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	file = open(fname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
+
+	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
 		//XXX error("Unable to save %s, check you have permissions", str);
 		return;
@@ -738,8 +731,8 @@ void BKE_undo_save(char *fname)
 	
 	close(file);
 	
-	if(chunk) ; //XXX error("Unable to save %s, internal error", fname);
-	else printf("Saved session recovery to %s\n", fname);
+	if(chunk) ; //XXX error("Unable to save %s, internal error", str);
+	else printf("Saved session recovery to %s\n", str);
 }
 
 /* sets curscene */

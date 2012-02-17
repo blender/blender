@@ -43,8 +43,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include <signal.h>
-
 
 /* This little block needed for linking to Blender... */
 
@@ -126,8 +124,6 @@
 #ifdef WITH_LIBMV
 #include "libmv-capi.h"
 #endif
-
-static int no_handler = 0;
 
 // from buildinfo.c
 #ifdef BUILD_DATE
@@ -325,32 +321,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 
 double PIL_check_seconds_timer(void);
-
-static void segmentation_handler(int UNUSED(sig))
-{
-	char fname[256];
-
-	if (!G.main->name[0]) {
-		BLI_make_file_string("/", fname, BLI_temporary_dir(), "crash.blend");
-	}
-	else {
-		sprintf(fname, "%s.crash.blend", G.main->name);
-	}
-
-	BKE_undo_save(fname);
-
-	/*induce a real crash*/
-	signal(SIGSEGV, SIG_DFL);
-	*(int*)NULL = 0;
-}
-
-static int nocrashhandler(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
-{
-	no_handler = 1;
-
-	return 0;
-}
-
 
 static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
@@ -1106,8 +1076,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-con", "--start-console", "\n\tStart with the console window open (ignored if -b is set)", start_with_console, NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension, then exit (Windows only)", register_extension, NULL);
 	BLI_argsAdd(ba, 2, "-r", NULL, "\n\tSilently register .blend extension, then exit (Windows only)", register_extension, ba);
-	BLI_argsAdd(ba, 2,  "--no_crash_handler", NULL, "disable crash handler", nocrashhandler, NULL);
-	
+
 	/* third pass: disabling things and forcing settings */
 	BLI_argsAddCase(ba, 3, "-nojoystick", 1, NULL, 0, "\n\tDisable joystick support", no_joystick, syshandle);
 	BLI_argsAddCase(ba, 3, "-noglsl", 1, NULL, 0, "\n\tDisable GLSL shading", no_glsl, NULL);
@@ -1132,6 +1101,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-F", "--render-format", format_doc, set_image_type, C);
 	BLI_argsAdd(ba, 4, "-t", "--threads", "<threads>\n\tUse amount of <threads> for rendering in background\n\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 for systems processor count.", set_threads, NULL);
 	BLI_argsAdd(ba, 4, "-x", "--use-extension", "<bool>\n\tSet option to add the file extension to the end of the file", set_extension, C);
+
 }
 
 #ifdef WITH_PYTHON_MODULE
@@ -1223,11 +1193,6 @@ int main(int argc, const char **argv)
 	setupArguments(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
-
-	if (!no_handler) {
-		signal(SIGSEGV, segmentation_handler);
-		//signal(SIGFPE, segmentation_handler);
-	}
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
