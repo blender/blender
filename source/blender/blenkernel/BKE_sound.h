@@ -79,7 +79,7 @@ void sound_load(struct Main *main, struct bSound* sound);
 
 void sound_free(struct bSound* sound);
 
-#ifdef AUD_CAPI
+#ifdef __AUD_C_API_H__
 AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 

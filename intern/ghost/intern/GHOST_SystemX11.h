@@ -235,6 +235,7 @@ public:
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
+#if WITH_XDND
 	/**
 	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
 	 * Called by GHOST_DropTargetX11 class.
@@ -246,6 +247,7 @@ public:
 	 * @return Indication whether the event was handled. 
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
+#endif
 
 	/**
 	 * @see GHOST_ISystem

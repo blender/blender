@@ -160,6 +160,11 @@ if(UNIX AND NOT APPLE)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
 	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
 	mark_as_advanced(WITH_XDG_USER_DIRS)
+
+	# freebsd doesn't seems to support XDND
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+		option(WITH_GHOST_XDND   "Enable drag'n'drop support on Linux using XDND protocol" ON)
+	endif()
 else()
 	# not an option for other OS's
 	set(WITH_BUILTIN_GLEW ON)

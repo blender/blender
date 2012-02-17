@@ -42,10 +42,13 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_DisplayManagerX11.h"
-#include "GHOST_DropTargetX11.h"
 #include "GHOST_EventDragnDrop.h"
 #ifdef WITH_INPUT_NDOF
 #include "GHOST_NDOFManagerX11.h"
+#endif
+
+#ifdef WITH_XDND
+#include "GHOST_DropTargetX11.h"
 #endif
 
 #include "GHOST_Debug.h"
@@ -711,10 +714,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					}
 				}
 			} else {
+#ifdef WITH_XDND
 				/* try to handle drag event (if there's no such events, GHOST_HandleClientMessage will return zero) */
 				if (window->getDropTarget()->GHOST_HandleClientMessage(xe) == false) {
 					/* Unknown client message, ignore */
 				}
+#else
+				/* Unknown client message, ignore */
+#endif
 			}
 
 			break;
@@ -1485,6 +1492,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
+#ifdef WITH_XDND
 GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType, 
 													GHOST_TDragnDropTypes draggedObjectType,
 													GHOST_IWindow* window,
@@ -1498,3 +1506,4 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
 													  window,mouseX,mouseY,data)
 			);
 }
+#endif
