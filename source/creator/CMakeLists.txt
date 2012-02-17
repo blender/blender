@@ -829,7 +829,6 @@ endif()
 		extern_minilzo
 		extern_lzma
 		extern_colamd
-		extern_xdnd
 		ge_logic_ketsji
 		extern_recastnavigation
 		ge_phys_common
@@ -891,6 +890,10 @@ endif()
 
 	if(WITH_CARVE)
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
+	endif()
+
+	if(WITH_GHOST_XDND)
+		list(APPEND BLENDER_SORTED_LIBS extern_xdnd)
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})
