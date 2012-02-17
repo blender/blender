@@ -293,6 +293,13 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				WM_main_add_notifier(NC_TEXTURE, tex);
 			}
 				break;
+			case ID_LS:
+			{
+				FreestyleLineStyle *linestyle= ptr->id.data;
+
+				WM_main_add_notifier(NC_LINESTYLE, linestyle);
+			}
+				break;
 			default:
 				break;
 		}
