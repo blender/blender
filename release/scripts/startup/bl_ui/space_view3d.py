@@ -83,7 +83,7 @@ class VIEW3D_HT_header(Header):
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
-        if obj.mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT'}:
+        if not obj or obj.mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT'}:
             snap_element = toolsettings.snap_element
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
