@@ -164,6 +164,19 @@ typedef struct ShaderPreview {
 	
 } ShaderPreview;
 
+typedef struct IconPreviewSize {
+	struct IconPreviewSize *next, *prev;
+	int sizex, sizey;
+	unsigned int *rect;
+} IconPreviewSize;
+
+typedef struct IconPreview {
+	Scene *scene;
+	void *owner;
+	ID *id;
+	ListBase sizes;
+} IconPreview;
+
 /* *************************** Preview for buttons *********************** */
 
 static Main *pr_main= NULL;
@@ -944,38 +957,96 @@ static void common_preview_startjob(void *customdata, short *stop, short *do_upd
 		shader_preview_startjob(customdata, stop, do_update);
 }
 
-static void common_preview_endjob(void *customdata)
-{
-	ShaderPreview *sp= customdata;
+/* exported functions */
 
-	if(sp->id && GS(sp->id->name) == ID_BR)
-		WM_main_add_notifier(NC_BRUSH|NA_EDITED, sp->id);
+static void icon_preview_add_size(IconPreview *ip, unsigned int *rect, int sizex, int sizey)
+{
+	IconPreviewSize *cur_size = ip->sizes.first, *new_size;
+
+	while (cur_size) {
+		if (cur_size->sizex == sizex && cur_size->sizey == sizey) {
+			/* requested size is already in list, no need to add it again */
+			return;
+		}
+
+		cur_size = cur_size->next;
+	}
+
+	new_size = MEM_callocN(sizeof(IconPreviewSize), "IconPreviewSize");
+	new_size->sizex = sizex;
+	new_size->sizey = sizey;
+	new_size->rect = rect;
+
+	BLI_addtail(&ip->sizes, new_size);
 }
 
-/* exported functions */
+static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short *do_update, float *progress)
+{
+	IconPreview *ip = (IconPreview *)customdata;
+	IconPreviewSize *cur_size = ip->sizes.first;
+
+	while (cur_size) {
+		ShaderPreview sp;
+
+		memset(&sp, 0, sizeof(ShaderPreview));
+
+		/* construct shader preview from image size and previewcustomdata */
+		sp.scene= ip->scene;
+		sp.owner= ip->owner;
+		sp.sizex= cur_size->sizex;
+		sp.sizey= cur_size->sizey;
+		sp.pr_method= PR_ICON_RENDER;
+		sp.pr_rect= cur_size->rect;
+		sp.id = ip->id;
+
+		common_preview_startjob(&sp, stop, do_update, progress);
+
+		cur_size = cur_size->next;
+	}
+}
+
+static void icon_preview_endjob(void *customdata)
+{
+	IconPreview *ip = customdata;
+
+	if (ip->id && GS(ip->id->name) == ID_BR)
+		WM_main_add_notifier(NC_BRUSH|NA_EDITED, ip->id);
+}
+
+static void icon_preview_free(void *customdata)
+{
+	IconPreview *ip = (IconPreview *)customdata;
+
+	BLI_freelistN(&ip->sizes);
+	MEM_freeN(ip);
+}
 
 void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *rect, int sizex, int sizey)
 {
 	wmJob *steve;
-	ShaderPreview *sp;
+	IconPreview *ip, *old_ip;
 	
 	/* suspended start means it starts after 1 timer step, see WM_jobs_timer below */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Icon Preview", WM_JOB_EXCL_RENDER|WM_JOB_SUSPEND);
-	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
+
+	ip= MEM_callocN(sizeof(IconPreview), "icon preview");
+
+	/* render all resolutions from suspended job too */
+	old_ip= WM_jobs_get_customdata(steve);
+	if (old_ip)
+		BLI_movelisttolist(&ip->sizes, &old_ip->sizes);
 
 	/* customdata for preview thread */
-	sp->scene= CTX_data_scene(C);
-	sp->owner= id;
-	sp->sizex= sizex;
-	sp->sizey= sizey;
-	sp->pr_method= PR_ICON_RENDER;
-	sp->pr_rect= rect;
-	sp->id = id;
+	ip->scene= CTX_data_scene(C);
+	ip->owner= id;
+	ip->id= id;
+
+	icon_preview_add_size(ip, rect, sizex, sizey);
 
 	/* setup job */
-	WM_jobs_customdata(steve, sp, shader_preview_free);
+	WM_jobs_customdata(steve, ip, icon_preview_free);
 	WM_jobs_timer(steve, 0.25, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL, common_preview_endjob);
+	WM_jobs_callbacks(steve, icon_preview_startjob_all_sizes, NULL, NULL, icon_preview_endjob);
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }

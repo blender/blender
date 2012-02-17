@@ -873,6 +873,12 @@ static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_TEXTURE:
+		case NC_MATERIAL:
+			/* sending by texture render job and needed to properly update displaying
+			 * brush texture icon */
+			ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
