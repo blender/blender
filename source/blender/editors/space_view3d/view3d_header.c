@@ -493,8 +493,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* mode */
 	if(ob) {
 		v3d->modeselect = ob->mode;
-		is_paint = ELEM5(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT,
-		                 OB_MODE_TEXTURE_PAINT, OB_MODE_PARTICLE_EDIT);
+		is_paint = ELEM4(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT,OB_MODE_TEXTURE_PAINT);
 	}
 	else {
 		v3d->modeselect = OB_MODE_OBJECT;
