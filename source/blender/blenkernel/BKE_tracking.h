@@ -138,7 +138,7 @@ void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ListBase *t
 /* 2D stabilization */
 void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale, float *angle);
 struct ImBuf *BKE_tracking_stabilize(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf, float loc[2], float *scale, float *angle);
-void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float scale, float angle, float mat[4][4]);
+void BKE_tracking_stabdata_to_mat4(int width, int height, float aspect, float loc[2], float scale, float angle, float mat[4][4]);
 
 /* Distortion/Undistortion */
 void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float nco[2]);
