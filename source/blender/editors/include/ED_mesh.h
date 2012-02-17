@@ -43,6 +43,7 @@ struct EditVert;
 struct EditEdge;
 struct EditFace;
 struct bContext;
+struct wmOperator;
 struct wmWindowManager;
 struct wmKeyConfig;
 struct ReportList;
@@ -69,33 +70,30 @@ struct BMEdge;
 struct BMFace;
 struct UvVertMap;
 struct UvMapVert;
+struct ToolSettings;
 struct Material;
 struct Object;
 struct rcti;
-struct wmOperator;
-struct ToolSettings;
 
-// edge and face flag both
-#define EM_FGON		2
-// face flag
-#define EM_FGON_DRAW	1
+#define EM_FGON_DRAW	1 // face flag
+#define EM_FGON			2 // edge and face flag both
 
 /* editbutflag */
-#define B_CLOCKWISE		1
-#define B_KEEPORIG		2
-#define B_BEAUTY		4
-#define B_SMOOTH		8
-#define B_BEAUTY_SHORT  	16
-#define B_AUTOFGON		32
-#define B_KNIFE			0x80
+#define B_CLOCKWISE			1
+#define B_KEEPORIG			2
+#define B_BEAUTY			4
+#define B_SMOOTH			8
+#define B_BEAUTY_SHORT  	0x10
+#define B_AUTOFGON			0x20
+#define B_KNIFE				0x80
 #define B_PERCENTSUBD		0x40
 //#define B_MESH_X_MIRROR		0x100 // deprecated, use mesh
 #define B_JOINTRIA_UV		0x200
 #define B_JOINTRIA_VCOL		0X400
 #define B_JOINTRIA_SHARP	0X800
 #define B_JOINTRIA_MAT		0X1000
-#define B_FRACTAL		0x2000
-#define B_SPHERE		0x4000
+#define B_FRACTAL			0x2000
+#define B_SPHERE			0x4000
 
 intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 int         mesh_mirrtopo_table(struct Object *ob, char mode);

@@ -42,7 +42,6 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 struct DerivedMesh;
-struct BLI_mempool;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditVert
@@ -156,8 +155,6 @@ typedef struct EditMesh
 	HashEdge *hashedgetab;
 	
 	/* this is for the editmesh_fastmalloc */
-	struct BLI_mempool *vertpool, *edgepool, *facepool;
-
 	EditVert *allverts, *curvert;
 	EditEdge *alledges, *curedge;
 	EditFace *allfaces, *curface;
