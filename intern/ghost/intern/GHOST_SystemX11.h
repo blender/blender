@@ -236,6 +236,18 @@ public:
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
+	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
+	 * Called by GHOST_DropTargetX11 class.
+	 * @param eventType The type of drag'n'drop event
+	 * @param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
+	 * @param mouseX x mouse coordinate (in window coordinates)
+	 * @param mouseY y mouse coordinate
+	 * @param window The window on which the event occurred
+	 * @return Indication whether the event was handled. 
+	 */
+	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
+
+	/**
 	 * @see GHOST_ISystem
 	 */
 	int toggleConsole(int action) { return 0; }

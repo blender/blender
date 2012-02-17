@@ -42,6 +42,8 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_DisplayManagerX11.h"
+#include "GHOST_DropTargetX11.h"
+#include "GHOST_EventDragnDrop.h"
 #ifdef WITH_INPUT_NDOF
 #include "GHOST_NDOFManagerX11.h"
 #endif
@@ -709,8 +711,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					}
 				}
 			} else {
-				/* Unknown client message, ignore */
+				/* try to handle drag event (if there's no such events, GHOST_HandleClientMessage will return zero) */
+				if (window->getDropTarget()->GHOST_HandleClientMessage(xe) == false) {
+					/* Unknown client message, ignore */
+				}
 			}
+
 			break;
 		}
 		
@@ -1477,4 +1483,18 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 		if (owner != m_window)
 			fprintf(stderr, "failed to own primary\n");
 	}
+}
+
+GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType, 
+													GHOST_TDragnDropTypes draggedObjectType,
+													GHOST_IWindow* window,
+													int mouseX, int mouseY,
+													void* data)
+{
+	GHOST_SystemX11* system = ((GHOST_SystemX11*)getSystem());
+	return system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
+													  eventType,
+													  draggedObjectType,
+													  window,mouseX,mouseY,data)
+			);
 }
