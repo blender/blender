@@ -2285,7 +2285,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	/* float offset; unused for now */
 	float time, nexttime;
 
-	/* TODO: this has to be sorter out once bsystem_time gets redone, */
+	/* TODO: this has to be sorted out once bsystem_time gets redone, */
 	/*       now caches can handle interpolating etc. too - jahka */
 
 	/* time handling for point cache:

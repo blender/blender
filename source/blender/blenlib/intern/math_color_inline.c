@@ -163,7 +163,7 @@ MINLINE void linearrgb_to_srgb_ushort4_predivide(unsigned short srgb[4], const f
 
 	for(i=0; i<3; ++i) {
 		t = linear[i] * inv_alpha;
-		srgb[i] = (t < 1.0f)? to_srgb_table_lookup(t) * alpha : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
+		srgb[i] = (t < 1.0f)? (unsigned short)(to_srgb_table_lookup(t) * alpha) : FTOUSHORT(linearrgb_to_srgb(t) * alpha);
 	}
 
 	srgb[3] = FTOUSHORT(linear[3]);

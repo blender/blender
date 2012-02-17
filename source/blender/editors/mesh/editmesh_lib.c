@@ -2410,7 +2410,7 @@ UvElementMap *EM_make_uv_element_map(EditMesh *em, int selected, int do_islands)
 
 	vmap->totalUVs = totuv;
 
-	for(efa = em->faces.first; efa; a++, efa = efa->next) {
+	for(efa = em->faces.first; efa; efa = efa->next) {
 		if(!selected || ((!efa->h) && (efa->f & SELECT))) {
 			nverts = (efa->v4)? 4: 3;
 

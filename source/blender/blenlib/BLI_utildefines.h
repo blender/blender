@@ -225,10 +225,13 @@
 #define GET_INT_FROM_POINTER(i) ((int)(intptr_t)(i))
 
 /* Macro to convert a value to string in the preprocessor
- * STRINGIFY_ARG: gives the defined name in the string
- * STRINGIFY: gives the defined value. */
-#define STRINGIFY_ARG(x) #x
-#define STRINGIFY(x) STRINGIFY_ARG(x)
+ * STRINGIFY_ARG: gives the argument as a string
+ * STRINGIFY_APPEND: appends any argument 'b' onto the string argument 'a',
+ *   used by STRINGIFY because some preprocessors warn about zero arguments
+ * STRINGIFY: gives the argument's value as a string */
+#define STRINGIFY_ARG(x) "" #x
+#define STRINGIFY_APPEND(a, b) "" a #b
+#define STRINGIFY(x) STRINGIFY_APPEND("", x)
 
 /* useful for debugging */
 #define AT __FILE__ ":" STRINGIFY(__LINE__)

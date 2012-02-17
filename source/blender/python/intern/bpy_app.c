@@ -94,9 +94,6 @@ static PyStructSequence_Desc app_info_desc = {
 	(sizeof(app_info_fields) / sizeof(PyStructSequence_Field)) - 1
 };
 
-#define DO_EXPAND(VAL)  VAL ## 1
-#define EXPAND(VAL)     DO_EXPAND(VAL)
-
 static PyObject *make_app_info(void)
 {
 	PyObject *app_info;
@@ -119,11 +116,7 @@ static PyObject *make_app_info(void)
 	SetObjItem(PyUnicode_FromFormat("%d.%02d (sub %d)",
 	                                BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION));
 
-#if defined(BLENDER_VERSION_CHAR) && EXPAND(BLENDER_VERSION_CHAR) != 1
 	SetStrItem(STRINGIFY(BLENDER_VERSION_CHAR));
-#else
-	SetStrItem("");
-#endif
 	SetStrItem(STRINGIFY(BLENDER_VERSION_CYCLE));
 	SetStrItem(BLI_program_path());
 	SetObjItem(PyBool_FromLong(G.background));
