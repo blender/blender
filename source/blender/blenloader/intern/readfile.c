@@ -14085,6 +14085,11 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
 }
 
+static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
+{
+	if (clip->adt)
+		expand_animdata(fd, mainvar, clip->adt);
+}
 
 static void expand_main(FileData *fd, Main *mainvar)
 {
@@ -14168,6 +14173,10 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+						break;
+					case ID_MC:
+						expand_movieclip(fd, mainvar, (MovieClip *)id);
+						break;
 					}
 
 					doit= 1;

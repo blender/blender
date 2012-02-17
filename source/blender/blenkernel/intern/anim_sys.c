@@ -794,6 +794,9 @@ void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *
 	/* speakers */
 	ANIMDATA_IDS_CB(mainptr->speaker.first);
 
+	/* movie clips */
+	ANIMDATA_IDS_CB(mainptr->movieclip.first);
+
 	/* objects */
 	ANIMDATA_IDS_CB(mainptr->object.first);
 	
@@ -874,6 +877,9 @@ void BKE_all_animdata_fix_paths_rename (const char *prefix, const char *oldName,
 
 	/* speakers */
 	RENAMEFIX_ANIM_IDS(mainptr->speaker.first);
+
+	/* movie clips */
+	RENAMEFIX_ANIM_IDS(mainptr->movieclip.first);
 
 	/* objects */
 	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
