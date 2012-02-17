@@ -1,7 +1,8 @@
 #!/bin/sh
 
 #BRANCH="keir"
-BRANCH="Matthias-Fauconneau"
+#BRANCH="Matthias-Fauconneau"
+BRANCH="Nazg-Gul"
 
 if [ -d ./.svn ]; then
   echo "This script is supposed to work only when using git-svn"
@@ -24,7 +25,7 @@ done
 rm -rf libmv
 rm -rf third_party
 
-cat "files.txt" | while f=`line`; do
+cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
   cp $tmp/libmv/src/$f $f
 done
@@ -36,14 +37,14 @@ chmod 664 ./third_party/glog/src/windows/*.cc ./third_party/glog/src/windows/*.h
 sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | sort -d`
 headers=`find ./libmv -type f -iname '*.h' | sed -r 's/^\.\//\t/' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | sed -r 's/^\.\//\t/' | sort`
-third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | sed -r 's/^\.\//\t/' | sort`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | sed -r 's/^\.\//\t/' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | sed -r 's/^\.\//\t/' | sort -d`
 
-third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort`
-third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort`
+third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
+third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
 
-src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/' | sort | uniq`
-src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/'  | sort | uniq`
+src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/' | sort -d | uniq`
+src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/'  | sort -d | uniq`
 src=""
 win_src=""
 for x in $src_dir $src_third_dir; do
@@ -103,7 +104,7 @@ cat > CMakeLists.txt << EOF
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2011, Blender Foundation
 # All rights reserved.

@@ -42,7 +42,7 @@ struct TrkltRegionTracker : public RegionTracker {
         min_update_squared_distance(1e-6),
         sigma(0.9),
         lambda(0.05) {}
-  
+
   virtual ~TrkltRegionTracker() {}
 
   // Tracker interface.

@@ -279,25 +279,7 @@ double InternalReprojectionError(const Tracks &image_tracks,
         PipelineRoutines::ProjectMarker(*point, *camera, intrinsics);
     double ex = reprojected_marker.x - markers[i].x;
     double ey = reprojected_marker.y - markers[i].y;
-#if 0
-    const int N = 100;
-    char line[N];
-    snprintf(line, N,
-           "image %-3d track %-3d "
-           "x %7.1f y %7.1f "
-           "rx %7.1f ry %7.1f "
-           "ex %7.1f ey %7.1f"
-           "    e %7.1f",
-           markers[i].image,
-           markers[i].track,
-           markers[i].x,
-           markers[i].y,
-           reprojected_marker.x,
-           reprojected_marker.y,
-           ex,
-           ey,
-           sqrt(ex*ex + ey*ey));
-#endif
+
     total_error += sqrt(ex*ex + ey*ey);
   }
   LG << "Skipped " << num_skipped << " markers.";
