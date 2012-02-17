@@ -2564,6 +2564,9 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 			MovieTrackingObject *object;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
+			if(clip->adt)
+				write_animdata(wd, clip->adt);
+
 			write_movieTracks(wd, &tracking->tracks);
 			write_movieReconstruction(wd, &tracking->reconstruction);
 

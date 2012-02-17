@@ -6050,6 +6050,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingObject *object;
 
+	clip->adt= newdataadr(fd, clip->adt);
+
 	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
 	else clip->cache= NULL;
 
@@ -6087,6 +6089,9 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	clip= main->movieclip.first;
 	while(clip) {
 		if(clip->id.flag & LIB_NEEDLINK) {
+			if (clip->adt)
+				lib_link_animdata(fd, &clip->id, clip->adt);
+
 			clip->gpd= newlibadr_us(fd, clip->id.lib, clip->gpd);
 
 			clip->id.flag -= LIB_NEEDLINK;

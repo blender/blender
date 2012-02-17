@@ -88,6 +88,7 @@ short id_type_can_have_animdata (ID *id)
 		case ID_LA: case ID_CA: case ID_WO:
 		case ID_SPK:
 		case ID_SCE:
+		case ID_MC:
 		{
 			return 1;
 		}
@@ -2334,6 +2335,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	
 	/* speakers */
 	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);
+
+	/* movie clips */
+	EVAL_ANIM_IDS(main->movieclip.first, ADT_RECALC_ANIM);
 
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
