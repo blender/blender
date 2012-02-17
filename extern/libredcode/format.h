@@ -1,5 +1,5 @@
-#ifndef __redcode_format_h_included__
-#define __redcode_format_h_included__
+#ifndef __FORMAT_H__
+#define __FORMAT_H__
 
 struct redcode_handle;
 struct redcode_frame {

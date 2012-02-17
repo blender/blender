@@ -30,8 +30,8 @@
  *  \author Andrea Weikert
  */
  
-#ifndef MMAP_WIN_H
-#define MMAP_WIN_H
+#ifndef __MMAP_WIN_H__
+#define __MMAP_WIN_H__
 
 #define PROT_NONE 0
 #define PROT_READ 1

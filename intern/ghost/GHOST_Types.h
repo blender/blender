@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _GHOST_TYPES_H_
-#define _GHOST_TYPES_H_
+#ifndef __GHOST_TYPES_H__
+#define __GHOST_TYPES_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -515,5 +515,5 @@ struct GHOST_TimerTaskHandle__;
 typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__* task, GHOST_TUns64 time);
 #endif
 
-#endif // _GHOST_TYPES_H_
+#endif // __GHOST_TYPES_H__
 

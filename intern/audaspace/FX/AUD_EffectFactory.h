@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_EFFECTFACTORY
-#define AUD_EFFECTFACTORY
+#ifndef __AUD_EFFECTFACTORY_H__
+#define __AUD_EFFECTFACTORY_H__
 
 #include "AUD_IFactory.h"
 
@@ -79,4 +79,4 @@ public:
 	AUD_Reference<AUD_IFactory> getFactory() const;
 };
 
-#endif //AUD_EFFECTFACTORY
+#endif //__AUD_EFFECTFACTORY_H__

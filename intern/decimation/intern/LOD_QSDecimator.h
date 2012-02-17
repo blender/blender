@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_LOD_QSDecimator_H
-#define NAN_INCLUDED_LOD_QSDecimator_H
+#ifndef __LOD_QSDECIMATOR_H__
+#define __LOD_QSDECIMATOR_H__
 
 #include "MEM_NonCopyable.h"
 #include "LOD_ManMesh2.h"

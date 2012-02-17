@@ -42,6 +42,8 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     # defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
     defs += ['WITH_X11_XINPUT']  # XXX, make an option
 
+    incs += ' #/extern/xdnd'
+
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     for f in pf:
         try:

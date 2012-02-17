@@ -34,8 +34,8 @@
 
 
 
-#ifndef __QUICKTIME_IMP_H__
-#define __QUICKTIME_IMP_H__
+#ifndef __QUICKTIME_IMPORT_H__
+#define __QUICKTIME_IMPORT_H__
 
 #define __AIFF__
 
@@ -76,4 +76,4 @@ ImBuf  *qtime_fetchibuf (struct anim *anim, int position);
 int		imb_is_a_quicktime (char *name);
 ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags);
 
-#endif  // __QUICKTIME_IMP_H__
+#endif  // __QUICKTIME_IMPORT_H__

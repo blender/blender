@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_LOGIC_INTERN_H
-#define ED_LOGIC_INTERN_H
+#ifndef __LOGIC_INTERN_H__
+#define __LOGIC_INTERN_H__
 
 /* internal exports only */
 struct bContext;
@@ -56,5 +56,5 @@ void LOGIC_OT_links_cut(struct wmOperatorType *ot);
 void logic_buttons(struct bContext *C, struct ARegion *ar);
 void make_unique_prop_names(struct bContext *C, char *str);
 
-#endif /* ED_LOGIC_INTERN_H */
+#endif /* __LOGIC_INTERN_H__ */
 

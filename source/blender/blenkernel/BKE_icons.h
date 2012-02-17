@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_ICONS_H
-#define BKE_ICONS_H
+#ifndef __BKE_ICONS_H__
+#define __BKE_ICONS_H__
 
 /** \file BKE_icons.h
  *  \ingroup bke
@@ -90,4 +90,4 @@ struct PreviewImage* BKE_previewimg_copy(struct PreviewImage *prv);
 /* retrieve existing or create new preview image */
 struct PreviewImage* BKE_previewimg_get(struct ID *id);
 
-#endif /*  BKE_ICONS_H */
+#endif /*  __BKE_ICONS_H__ */

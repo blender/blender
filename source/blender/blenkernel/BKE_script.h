@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SCRIPT_H
-#define BKE_SCRIPT_H
+#ifndef __BKE_SCRIPT_H__
+#define __BKE_SCRIPT_H__
 
 /** \file BKE_script.h
  *  \ingroup bke
@@ -46,4 +46,4 @@ void free_script (struct Script *script);
 }
 #endif
 
-#endif /* BKE_SCRIPT_H */
+#endif /* __BKE_SCRIPT_H__ */

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_BOIDS_H
-#define BKE_BOIDS_H
+#ifndef __BKE_BOIDS_H__
+#define __BKE_BOIDS_H__
 
 /** \file BKE_boids.h
  *  \ingroup bke

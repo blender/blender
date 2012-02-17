@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_COLOR_H
-#define BLI_MATH_COLOR_H
+#ifndef __BLI_MATH_COLOR_H__
+#define __BLI_MATH_COLOR_H__
 
 /** \file BLI_math_color.h
  *  \ingroup bli
@@ -113,7 +113,7 @@ void rgba_float_to_uchar(unsigned char col_r[4], const float col_f[4]);
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
 
-#ifdef BLI_MATH_INLINE_H
+#ifdef __BLI_MATH_INLINE_H__
 #include "intern/math_color_inline.c"
 #endif
 
@@ -121,5 +121,5 @@ void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *o
 }
 #endif
 
-#endif /* BLI_MATH_COLOR_H */
+#endif /* __BLI_MATH_COLOR_H__ */
 

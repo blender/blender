@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SUBSURF_H
-#define BKE_SUBSURF_H
+#ifndef __BKE_SUBSURF_H__
+#define __BKE_SUBSURF_H__
 
 /** \file BKE_subsurf.h
  *  \ingroup bke

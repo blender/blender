@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLDUED_EgdeCollapser_h
-#define NAN_INCLDUED_EgdeCollapser_h
+#ifndef __LOD_EDGECOLLAPSER_H__
+#define __LOD_EDGECOLLAPSER_H__
 
 // This is a helper class that collapses edges of a 2 - manifold mesh.
 

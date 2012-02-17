@@ -28,8 +28,8 @@
  *  \ingroup spbuttons
  */
 
-#ifndef ED_BUTTONS_INTERN_H
-#define ED_BUTTONS_INTERN_H
+#ifndef __BUTTONS_INTERN_H__
+#define __BUTTONS_INTERN_H__
 
 #include "DNA_listBase.h"
 #include "RNA_types.h"
@@ -117,5 +117,5 @@ void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_toolbox(struct wmOperatorType *ot);
 
-#endif /* ED_BUTTONS_INTERN_H */
+#endif /* __BUTTONS_INTERN_H__ */
 

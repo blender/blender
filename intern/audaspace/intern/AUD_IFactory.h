@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_IFACTORY
-#define AUD_IFACTORY
+#ifndef __AUD_IFACTORY_H__
+#define __AUD_IFACTORY_H__
 
 #include "AUD_Space.h"
 #include "AUD_Reference.h"
@@ -57,4 +57,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader()=0;
 };
 
-#endif //AUD_IFACTORY
+#endif //__AUD_IFACTORY_H__

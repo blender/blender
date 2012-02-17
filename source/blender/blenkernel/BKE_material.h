@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_MATERIAL_H
-#define BKE_MATERIAL_H
+#ifndef __BKE_MATERIAL_H__
+#define __BKE_MATERIAL_H__
 
 /** \file BKE_material.h
  *  \ingroup bke

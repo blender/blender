@@ -30,8 +30,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BMESH_PRIVATE
-#define BMESH_PRIVATE
+#ifndef __BMESH_PRIVATE_H__
+#define __BMESH_PRIVATE_H__
 
 /** \file blender/bmesh/bmesh_private.h
  *  \ingroup bmesh

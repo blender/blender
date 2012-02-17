@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_VERTEX_H
-#define BOP_VERTEX_H
+#ifndef __BOP_VERTEX_H__
+#define __BOP_VERTEX_H__
 
 #include "BOP_Tag.h"
 #include "BOP_Indexs.h"

@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_MeshExceptions_h
-#define NAN_INCLUDED_MeshExceptions_h
+#ifndef __LOD_MESHEXCEPTION_H__
+#define __LOD_MESHEXCEPTION_H__
 
 class LOD_MeshException {
 

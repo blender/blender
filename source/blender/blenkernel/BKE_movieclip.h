@@ -24,8 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_MOVIECLIP_H
-#define BKE_MOVIECLIP_H
+#ifndef __BKE_MOVIECLIP_H__
+#define __BKE_MOVIECLIP_H__
 
 /** \file BKE_movieclip.h
  *  \ingroup bke

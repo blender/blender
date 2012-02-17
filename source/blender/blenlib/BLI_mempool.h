@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_MEMPOOL_H
-#define BLI_MEMPOOL_H
+#ifndef __BLI_MEMPOOL_H__
+#define __BLI_MEMPOOL_H__
 
 /** \file BLI_mempool.h
  *  \ingroup bli

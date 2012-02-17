@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_ENUM_TYPES_H
-#define RNA_ENUM_TYPES_H
+#ifndef __RNA_ENUM_TYPES_H__
+#define __RNA_ENUM_TYPES_H__
 
 /** \file RNA_enum_types.h
  *  \ingroup RNA
@@ -137,4 +137,4 @@ EnumPropertyItem *RNA_image_local_itemf(struct bContext *C, struct PointerRNA *p
 EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int *free);
 EnumPropertyItem *RNA_scene_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int *free);
 
-#endif /* RNA_ENUM_TYPES_H */
+#endif /* __RNA_ENUM_TYPES_H__ */

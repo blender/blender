@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BMFONT_H
-#define BKE_BMFONT_H
+#ifndef __BKE_BMFONT_H__
+#define __BKE_BMFONT_H__
 
 /** \file BKE_bmfont.h
  *  \ingroup bke

@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BULLET_H
-#define BKE_BULLET_H
+#ifndef __BKE_BULLET_H__
+#define __BKE_BULLET_H__
 
 /** \file BKE_bullet.h
  *  \ingroup bke

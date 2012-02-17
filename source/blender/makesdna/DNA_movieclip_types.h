@@ -32,8 +32,8 @@
  *  \author Sergey Sharybin
  */
 
-#ifndef DNA_MOVIECLIP_TYPES_H
-#define DNA_MOVIECLIP_TYPES_H
+#ifndef __DNA_MOVIECLIP_TYPES_H__
+#define __DNA_MOVIECLIP_TYPES_H__
 
 #include "DNA_ID.h"
 #include "DNA_tracking_types.h"

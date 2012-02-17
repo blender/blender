@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _GHOST_EVENT_DRAGNDROP_H_
-#define _GHOST_EVENT_DRAGNDROP_H_
+#ifndef __GHOST_EVENTDRAGNDROP_H__
+#define __GHOST_EVENTDRAGNDROP_H__
 
 #include "GHOST_Event.h"
 extern "C" {
@@ -131,5 +131,5 @@ protected:
 	GHOST_TEventDragnDropData m_dragnDropEventData;
 };
 
-#endif // _GHOST_EVENT_DRAGNDROP_H_
+#endif // __GHOST_EVENTDRAGNDROP_H__
 

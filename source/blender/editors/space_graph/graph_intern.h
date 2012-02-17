@@ -28,8 +28,8 @@
  *  \ingroup spgraph
  */
 
-#ifndef ED_GRAPH_INTERN_H
-#define ED_GRAPH_INTERN_H
+#ifndef __GRAPH_INTERN_H__
+#define __GRAPH_INTERN_H__
 
 struct bContext;
 struct wmWindowManager;
@@ -173,5 +173,5 @@ void graphedit_keymap(struct wmKeyConfig *keyconf);
 void graphedit_operatortypes(void);
 
 
-#endif /* ED_GRAPH_INTERN_H */
+#endif /* __GRAPH_INTERN_H__ */
 

@@ -29,8 +29,8 @@
  *  \ingroup nodes
  */
 
-#ifndef NOD_TEXTURE_H
-#define NOD_TEXTURE_H
+#ifndef __NOD_TEXTURE_H__
+#define __NOD_TEXTURE_H__
 
 #include "BKE_node.h"
 

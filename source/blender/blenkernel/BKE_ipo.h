@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_IPO_H
-#define BKE_IPO_H
+#ifndef __BKE_IPO_H__
+#define __BKE_IPO_H__
 
 /** \file BKE_ipo.h
  *  \ingroup bke

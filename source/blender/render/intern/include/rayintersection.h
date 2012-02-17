@@ -31,8 +31,8 @@
  */
 
 
-#ifndef __RENDER_RAYINTERSECTION_H__
-#define __RENDER_RAYINTERSECTION_H__
+#ifndef __RAYINTERSECTION_H__
+#define __RAYINTERSECTION_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -123,5 +123,5 @@ typedef struct Isect {
 }
 #endif
 
-#endif /* __RENDER_RAYINTERSECTION_H__ */
+#endif /* __RAYINTERSECTION_H__ */
 

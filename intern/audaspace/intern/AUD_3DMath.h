@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_3DMATH
-#define AUD_3DMATH
+#ifndef __AUD_3DMATH_H__
+#define __AUD_3DMATH_H__
 
 #include <cmath>
 #include <cstring>
@@ -325,4 +325,4 @@ public:
 	}
 };
 
-#endif //AUD_3DMATH
+#endif //__AUD_3DMATH_H__

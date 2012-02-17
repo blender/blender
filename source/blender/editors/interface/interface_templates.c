@@ -96,6 +96,7 @@ typedef struct TemplateID {
 
 	ListBase *idlb;
 	int prv_rows, prv_cols;
+	int preview;
 } TemplateID;
 
 /* Search browse menu, assign  */
@@ -143,7 +144,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 				char name_ui[MAX_ID_NAME];
 				name_uiprefix_id(name_ui, id);
 
-				iconid= ui_id_icon_get((bContext*)C, id, 1);
+				iconid= ui_id_icon_get((bContext*)C, id, template->preview);
 
 				if(!uiSearchItemAdd(items, name_ui, id, iconid))
 					break;
@@ -370,6 +371,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		
 		uiLayoutRow(layout, 1);
+		template->preview= 1;
 	}
 	else if(flag & UI_ID_BROWSE) {
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y,

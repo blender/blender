@@ -31,8 +31,8 @@
  *  \author nzc
  */
 
-#ifndef DNA_VFONT_TYPES_H
-#define DNA_VFONT_TYPES_H
+#ifndef __DNA_VFONT_TYPES_H__
+#define __DNA_VFONT_TYPES_H__
 
 #include "DNA_ID.h"
 

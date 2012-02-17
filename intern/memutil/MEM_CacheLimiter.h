@@ -25,8 +25,8 @@
  */
 
 
-#ifndef MEM_CACHELIMITER_H
-#define MEM_CACHELIMITER_H
+#ifndef __MEM_CACHELIMITER_H__
+#define __MEM_CACHELIMITER_H__
 
 /**
  * @section MEM_CacheLimiter
@@ -63,7 +63,7 @@
 template<class T>
 class MEM_CacheLimiter;
 
-#ifndef __MEM_cache_limiter_c_api_h_included__
+#ifndef __MEM_CACHELIMITERC_API_H__
 extern "C" {
 	extern void MEM_CacheLimiter_set_maximum(size_t m);
 	extern size_t MEM_CacheLimiter_get_maximum();
@@ -201,4 +201,4 @@ private:
 	MEM_CacheLimiter_DataSize_Func getDataSize;
 };
 
-#endif // MEM_CACHELIMITER_H
+#endif // __MEM_CACHELIMITER_H__

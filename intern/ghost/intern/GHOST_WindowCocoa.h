@@ -30,8 +30,8 @@
  * Declaration of GHOST_WindowCocoa class.
  */
 
-#ifndef _GHOST_WINDOW_COCOA_H_
-#define _GHOST_WINDOW_COCOA_H_
+#ifndef __GHOST_WINDOWCOCOA_H__
+#define __GHOST_WINDOWCOCOA_H__
 
 #ifndef __APPLE__
 #error Apple OSX only!
@@ -325,5 +325,5 @@ protected:
 	GHOST_TabletData m_tablet;
 };
 
-#endif // _GHOST_WINDOW_COCOA_H_
+#endif // __GHOST_WINDOWCOCOA_H__
 

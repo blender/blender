@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_ANIM_H
-#define BKE_ANIM_H
+#ifndef __BKE_ANIM_H__
+#define __BKE_ANIM_H__
 
 /** \file BKE_anim.h
  *  \ingroup bke

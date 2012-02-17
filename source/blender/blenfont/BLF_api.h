@@ -29,8 +29,8 @@
  */
 
 
-#ifndef BLF_API_H
-#define BLF_API_H
+#ifndef __BLF_API_H__
+#define __BLF_API_H__
 
 struct rctf;
 
@@ -204,4 +204,4 @@ void BLF_dir_free(char **dirs, int count);
 extern int blf_mono_font;
 extern int blf_mono_font_render; // dont mess drawing with render threads.
 
-#endif /* BLF_API_H */
+#endif /* __BLF_API_H__ */

@@ -29,8 +29,8 @@
  */
 
 
-#ifndef _GHOST_SYSTEM_PATHS_X11_H_
-#define _GHOST_SYSTEM_PATHS_X11_H_
+#ifndef __GHOST_SYSTEMPATHSX11_H__
+#define __GHOST_SYSTEMPATHSX11_H__
 
 #include "GHOST_SystemPaths.h"
 #include "../GHOST_Types.h"

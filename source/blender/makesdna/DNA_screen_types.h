@@ -27,8 +27,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_SCREEN_TYPES_H
-#define DNA_SCREEN_TYPES_H
+#ifndef __DNA_SCREEN_TYPES_H__
+#define __DNA_SCREEN_TYPES_H__
 
 #include "DNA_listBase.h"
 #include "DNA_view2d_types.h"

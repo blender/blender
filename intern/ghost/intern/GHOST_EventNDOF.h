@@ -25,8 +25,8 @@
  * Declaration of GHOST_EventManager class.
  */
 
-#ifndef _GHOST_EVENT_NDOF_H_
-#define _GHOST_EVENT_NDOF_H_
+#ifndef __GHOST_EVENTNDOF_H__
+#define __GHOST_EVENTNDOF_H__
 
 #include "GHOST_Event.h"
 
@@ -59,4 +59,4 @@ class GHOST_EventNDOFButton : public GHOST_Event
 	};
 
 
-#endif // _GHOST_EVENT_NDOF_H_
+#endif // __GHOST_EVENTNDOF_H__

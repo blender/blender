@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_CHANNELMAPPERREADER
-#define AUD_CHANNELMAPPERREADER
+#ifndef __AUD_CHANNELMAPPERREADER_H__
+#define __AUD_CHANNELMAPPERREADER_H__
 
 #include "AUD_EffectReader.h"
 #include "AUD_Buffer.h"
@@ -133,4 +133,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_CHANNELMAPPERREADER
+#endif //__AUD_CHANNELMAPPERREADER_H__

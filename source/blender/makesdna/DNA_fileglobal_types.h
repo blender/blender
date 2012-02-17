@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_FILEGLOBAL_TYPES_H
-#define DNA_FILEGLOBAL_TYPES_H
+#ifndef __DNA_FILEGLOBAL_TYPES_H__
+#define __DNA_FILEGLOBAL_TYPES_H__
 
 struct bScreen;
 struct Scene;

@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DUALCON_H
-#define DUALCON_H
+#ifndef __DUALCON_H__
+#define __DUALCON_H__
 
 #ifdef __cplusplus
 extern "C" { 
@@ -92,4 +92,4 @@ void *dualcon(const DualConInput *input_mesh,
 } 
 #endif
 
-#endif
+#endif /* __DUALCON_H__ */

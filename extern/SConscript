@@ -34,3 +34,6 @@ if env['WITH_BF_LIBMV']:
 
 if env['WITH_BF_CARVE']:
     SConscript(['carve/SConscript'])
+
+if env['OURPLATFORM'] in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'aix4', 'aix5'):
+    SConscript(['xdnd/SConscript'])

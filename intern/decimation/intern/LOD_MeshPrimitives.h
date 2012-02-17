@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_MeshPrimitives_h
-#define NAN_INCLUDED_MeshPrimitives_h
+#ifndef __LOD_MESHPRIMITIVES_H__
+#define __LOD_MESHPRIMITIVES_H__
 
 #include "MT_Vector3.h"
 #include "CTR_TaggedIndex.h"

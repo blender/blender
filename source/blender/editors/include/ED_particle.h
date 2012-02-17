@@ -30,8 +30,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_PARTICLE_H
-#define ED_PARTICLE_H
+#ifndef __ED_PARTICLE_H__
+#define __ED_PARTICLE_H__
 
 struct bContext;
 struct Object;
@@ -74,5 +74,5 @@ int PE_undo_valid(struct Scene *scene);
 void PE_undo_number(struct Scene *scene, int nr);
 const char *PE_undo_get_name(struct Scene *scene, int nr, int *active);
 
-#endif /* ED_PARTICLE_H */
+#endif /* __ED_PARTICLE_H__ */
 

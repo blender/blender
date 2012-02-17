@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_BMESH_H
-#define BKE_BMESH_H
+#ifndef __BKE_BMESH_H__
+#define __BKE_BMESH_H__
 
 /** \file BKE_bmesh.h
  *  \ingroup bke

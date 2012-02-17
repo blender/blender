@@ -55,8 +55,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef _DDS_BLOCKDXT_H
-#define _DDS_BLOCKDXT_H
+#ifndef __BLOCKDXT_H__
+#define __BLOCKDXT_H__
 
 #include <Common.h>
 #include <Color.h>
@@ -271,4 +271,4 @@ void mem_read(Stream & mem, BlockATI1 & block);
 void mem_read(Stream & mem, BlockATI2 & block);
 void mem_read(Stream & mem, BlockCTX1 & block);
 
-#endif // _DDS_BLOCKDXT_H
+#endif // __BLOCKDXT_H__

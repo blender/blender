@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _OPENEXR_MULTI_H
-#define _OPENEXR_MULTI_H
+#ifndef __OPENEXR_MULTI_H__
+#define __OPENEXR_MULTI_H__
 
 /* experiment with more advanced exr api */
 

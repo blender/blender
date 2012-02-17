@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_DEFORM_H
-#define BKE_DEFORM_H
+#ifndef __BKE_DEFORM_H__
+#define __BKE_DEFORM_H__
 
 /** \file BKE_deform.h
  *  \ingroup bke

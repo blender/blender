@@ -32,8 +32,8 @@
  *   mesh elements (vertices, edges and faces) as layers of custom element data.
  */
 
-#ifndef BKE_CDDERIVEDMESH_H
-#define BKE_CDDERIVEDMESH_H
+#ifndef __BKE_CDDERIVEDMESH_H__
+#define __BKE_CDDERIVEDMESH_H__
 
 #include "BKE_DerivedMesh.h"
 

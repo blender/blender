@@ -27,8 +27,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_SCULPT_H
-#define ED_SCULPT_H
+#ifndef __ED_SCULPT_H__
+#define __ED_SCULPT_H__
 
 struct ARegion;
 struct bContext;

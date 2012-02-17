@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef BLENDER_COLLADA_H
-#define BLENDER_COLLADA_H
+#ifndef __COLLADA_H__
+#define __COLLADA_H__
 
 struct bContext;
 struct Scene;

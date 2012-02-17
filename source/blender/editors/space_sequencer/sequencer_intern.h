@@ -28,8 +28,8 @@
  *  \ingroup spseq
  */
 
-#ifndef ED_SEQUENCER_INTERN_H
-#define ED_SEQUENCER_INTERN_H
+#ifndef __SEQUENCER_INTERN_H__
+#define __SEQUENCER_INTERN_H__
 
 #include "RNA_access.h"
 #include "DNA_sequence_types.h"
@@ -176,5 +176,5 @@ struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
 void SEQUENCER_OT_properties(struct wmOperatorType *ot);
 void sequencer_buttons_register(struct ARegionType *art);
 
-#endif /* ED_SEQUENCER_INTERN_H */
+#endif /* __SEQUENCER_INTERN_H__ */
 

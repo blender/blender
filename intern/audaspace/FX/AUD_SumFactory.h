@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SUMFACTORY
-#define AUD_SUMFACTORY
+#ifndef __AUD_SUMFACTORY_H__
+#define __AUD_SUMFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 
@@ -52,4 +52,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_SUMFACTORY
+#endif //__AUD_SUMFACTORY_H__

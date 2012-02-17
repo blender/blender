@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _LOG_IMAGE_LIB_H_
-#define _LOG_IMAGE_LIB_H_
+#ifndef __LOGIMAGELIB_H__
+#define __LOGIMAGELIB_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,4 +87,4 @@ void logImageDump(const char* filename);
 }
 #endif
 
-#endif /* _LOG_IMAGE_LIB_H_ */
+#endif /* __LOGIMAGELIB_H__ */

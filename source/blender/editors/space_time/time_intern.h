@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_TIME_INTERN_H
-#define ED_TIME_INTERN_H
+#ifndef __TIME_INTERN_H__
+#define __TIME_INTERN_H__
 
 /* internal exports only */
 
@@ -40,5 +40,5 @@ struct wmWindowManager;
 void time_operatortypes(void);
 void time_keymap(struct wmKeyConfig *keyconf);
 
-#endif /* ED_TIME_INTERN_H */
+#endif /* __TIME_INTERN_H__ */
 

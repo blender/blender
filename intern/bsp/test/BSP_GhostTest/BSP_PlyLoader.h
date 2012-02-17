@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BSP_PlyLoader_h
-#define BSP_PlyLoader_h
+#ifndef __BSP_PLYLOADER_H__
+#define __BSP_PLYLOADER_H__
 
 #include "MEM_SmartPtr.h"
 #include "BSP_TMesh.h"

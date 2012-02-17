@@ -28,8 +28,8 @@
  */
 
 
-#ifndef BLF_INTERNAL_H
-#define BLF_INTERNAL_H
+#ifndef __BLF_INTERNAL_H__
+#define __BLF_INTERNAL_H__
 
 struct FontBLF;
 struct GlyphBLF;
@@ -72,4 +72,4 @@ struct GlyphBLF *blf_glyph_add(struct FontBLF *font, unsigned int index, unsigne
 void blf_glyph_free(struct GlyphBLF *g);
 int blf_glyph_render(struct FontBLF *font, struct GlyphBLF *g, float x, float y);
 
-#endif /* BLF_INTERNAL_H */
+#endif /* __BLF_INTERNAL_H__ */

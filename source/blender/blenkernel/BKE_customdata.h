@@ -31,8 +31,8 @@
  *  \brief CustomData interface, see also DNA_customdata_types.h.
  */
 
-#ifndef BKE_CUSTOMDATA_H
-#define BKE_CUSTOMDATA_H
+#ifndef __BKE_CUSTOMDATA_H__
+#define __BKE_CUSTOMDATA_H__
 
 #ifdef __cplusplus
 extern "C" {

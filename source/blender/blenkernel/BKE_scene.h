@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SCENE_H
-#define BKE_SCENE_H
+#ifndef __BKE_SCENE_H__
+#define __BKE_SCENE_H__
 
 /** \file BKE_scene.h
  *  \ingroup bke

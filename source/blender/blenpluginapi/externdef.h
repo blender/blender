@@ -30,8 +30,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _EXTERNDEF_H
-#define _EXTERNDEF_H
+#ifndef __EXTERNDEF_H__
+#define __EXTERNDEF_H__
 
 #ifdef WIN32
  #ifdef PLUGIN_INTERN
@@ -46,4 +46,4 @@
 	#define LIBIMPORT extern
 #endif
 
-#endif /* _EXTERNDEF_H */
+#endif /* __EXTERNDEF_H__ */

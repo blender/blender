@@ -30,8 +30,8 @@
  */
 
 
-#ifndef BOP_BBOX_H
-#define BOP_BBOX_H
+#ifndef __BOP_BBOX_H__
+#define __BOP_BBOX_H__
 
 #include "MT_Point3.h"
 #include "BOP_MathUtils.h"

@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _GHOST_SYSTEM_PATHS_WIN32_H_
-#define _GHOST_SYSTEM_PATHS_WIN32_H_
+#ifndef __GHOST_SYSTEMPATHSWIN32_H__
+#define __GHOST_SYSTEMPATHSWIN32_H__
 
 #ifndef WIN32
 #error WIN32 only!
@@ -88,5 +88,5 @@ public:
 	void addToSystemRecentFiles(const char* filename) const;
 };
 
-#endif // _GHOST_SYSTEM_PATHS_WIN32_H_
+#endif // __GHOST_SYSTEMPATHSWIN32_H__
 

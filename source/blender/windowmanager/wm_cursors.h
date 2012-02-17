@@ -32,8 +32,8 @@
 
 
 
-#ifndef WM_CURSORS_H
-#define WM_CURSORS_H
+#ifndef __WM_CURSORS_H__
+#define __WM_CURSORS_H__
 
 void wm_init_cursor_data(void);
 
@@ -120,5 +120,5 @@ struct wmEvent;
 int wm_cursor_arrow_move(struct wmWindow *win, struct wmEvent *event);
 
 
-#endif /* WM_CURSORS_H */
+#endif /* __WM_CURSORS_H__ */
 

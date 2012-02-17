@@ -26,8 +26,8 @@
  */
 
 
-#ifndef BLI_KDOPBVH_H
-#define BLI_KDOPBVH_H
+#ifndef __BLI_KDOPBVH_H__
+#define __BLI_KDOPBVH_H__
 
 /** \file BLI_kdopbvh.h
  *  \ingroup bli
@@ -111,5 +111,5 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 }
 #endif
 
-#endif // BLI_KDOPBVH_H
+#endif // __BLI_KDOPBVH_H__
 

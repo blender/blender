@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_FACE2FACE_H
-#define BOP_FACE2FACE_H
+#ifndef __BOP_FACE2FACE_H__
+#define __BOP_FACE2FACE_H__
 
 #include "BOP_Mesh.h"
 #include "BOP_Segment.h"

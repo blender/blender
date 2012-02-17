@@ -29,8 +29,8 @@
  *  \ingroup spclip
  */
 
-#ifndef ED_CLIP_INTERN_H
-#define ED_CLIP_INTERN_H
+#ifndef __CLIP_INTERN_H__
+#define __CLIP_INTERN_H__
 
 struct bContext;
 struct ARegion;
@@ -152,4 +152,4 @@ void CLIP_OT_tracking_object_remove(struct wmOperatorType *ot);
 void CLIP_OT_copy_tracks(struct wmOperatorType *ot);
 void CLIP_OT_paste_tracks(struct wmOperatorType *ot);
 
-#endif /* ED_CLIP_INTERN_H */
+#endif /* __CLIP_INTERN_H__ */

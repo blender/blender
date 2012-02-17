@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_MODIFIER_H
-#define BKE_MODIFIER_H
+#ifndef __BKE_MODIFIER_H__
+#define __BKE_MODIFIER_H__
 
 /** \file BKE_modifier.h
  *  \ingroup bke

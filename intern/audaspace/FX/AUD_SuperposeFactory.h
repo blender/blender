@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SUPERPOSEFACTORY
-#define AUD_SUPERPOSEFACTORY
+#ifndef __AUD_SUPERPOSEFACTORY_H__
+#define __AUD_SUPERPOSEFACTORY_H__
 
 #include "AUD_IFactory.h"
 
@@ -65,4 +65,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_SUPERPOSEFACTORY
+#endif //__AUD_SUPERPOSEFACTORY_H__

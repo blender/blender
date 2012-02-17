@@ -24,8 +24,8 @@
  *  \ingroup mathutils
  */
 
-#ifndef MATHUTILS_NOISE_H
-#define MATHUTILS_NOISE_H
+#ifndef __MATHUTILS_NOISE_H__
+#define __MATHUTILS_NOISE_H__
 
 #include "mathutils.h"
 
@@ -33,4 +33,4 @@ PyMODINIT_FUNC PyInit_mathutils_noise(void);
 PyMODINIT_FUNC PyInit_mathutils_noise_types(void);
 PyMODINIT_FUNC PyInit_mathutils_noise_metrics(void);
 
-#endif // MATHUTILS_NOISE_H
+#endif // __MATHUTILS_NOISE_H__

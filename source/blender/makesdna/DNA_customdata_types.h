@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_CUSTOMDATA_TYPES_H
-#define DNA_CUSTOMDATA_TYPES_H
+#ifndef __DNA_CUSTOMDATA_TYPES_H__
+#define __DNA_CUSTOMDATA_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {

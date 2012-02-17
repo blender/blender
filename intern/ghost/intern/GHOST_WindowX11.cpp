@@ -32,6 +32,7 @@
 
 #include "GHOST_WindowX11.h"
 #include "GHOST_SystemX11.h"
+#include "GHOST_DropTargetX11.h"
 #include "STR_String.h"
 #include "GHOST_Debug.h"
 
@@ -326,6 +327,10 @@ GHOST_WindowX11(
 		
 	}	
 	
+	/* initialize drop target for newly created window */
+	m_dropTarget = new GHOST_DropTargetX11(this, m_system);
+	GHOST_PRINT("Set drop target\n");
+
 	/*
 	 * One of the problem with WM-spec is that can't set a property
 	 * to a window that isn't mapped. That is why we can't "just
@@ -1318,6 +1323,7 @@ GHOST_WindowX11::
 	}
 #endif
 
+	delete m_dropTarget;
 
 	XDestroyWindow(m_display, m_window);
 	XFree(m_visual);

@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_IMAGE_H
-#define BKE_IMAGE_H
+#ifndef __BKE_IMAGE_H__
+#define __BKE_IMAGE_H__
 
 /** \file BKE_image.h
  *  \ingroup bke
@@ -54,10 +54,10 @@ int		BKE_alphatest_ibuf(struct ImBuf *ibuf);
 int		BKE_write_ibuf_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int		BKE_write_ibuf(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_write_ibuf_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const short is_copy);
-void	BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, char imtype, const short use_ext, const short use_frames);
+void	BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames);
 int		BKE_add_image_extension(char *string, const char imtype);
 char	BKE_ftype_to_imtype(const int ftype);
-int		BKE_imtype_to_ftype(char imtype);
+int		BKE_imtype_to_ftype(const char imtype);
 
 int		BKE_imtype_is_movie(const char imtype);
 int		BKE_imtype_supports_zbuf(const char imtype);

@@ -30,8 +30,8 @@
  * Declaration of GHOST_WindowWin32 class.
  */
 
-#ifndef _GHOST_WINDOW_WIN32_H_
-#define _GHOST_WINDOW_WIN32_H_
+#ifndef __GHOST_WINDOWWIN32_H__
+#define __GHOST_WINDOWWIN32_H__
 
 #ifndef WIN32
 #error WIN32 only!
@@ -390,4 +390,4 @@ protected:
 	GHOST_TEmbedderWindowID m_parentWindowHwnd;
 };
 
-#endif // _GHOST_WINDOW_WIN32_H_
+#endif // __GHOST_WINDOWWIN32_H__

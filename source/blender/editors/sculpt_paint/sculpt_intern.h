@@ -30,8 +30,8 @@
  */
  
 
-#ifndef BDR_SCULPTMODE_H
-#define BDR_SCULPTMODE_H
+#ifndef __SCULPT_INTERN_H__
+#define __SCULPT_INTERN_H__
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"

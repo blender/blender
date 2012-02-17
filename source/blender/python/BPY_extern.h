@@ -34,8 +34,8 @@
 
 
 
-#ifndef BPY_EXTERN_H
-#define BPY_EXTERN_H
+#ifndef __BPY_EXTERN_H__
+#define __BPY_EXTERN_H__
 
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
@@ -89,4 +89,4 @@ void	BPY_id_release(struct ID *id);
 }				/* extern "C" */
 #endif
 
-#endif  /* BPY_EXTERN_H */
+#endif  /* __BPY_EXTERN_H__ */

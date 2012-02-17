@@ -25,8 +25,8 @@
  */
 
 
-#ifndef IMB_FILETYPE_H
-#define IMB_FILETYPE_H
+#ifndef __IMB_FILETYPE_H__
+#define __IMB_FILETYPE_H__
 
 /* Generic File Type */
 
@@ -119,5 +119,5 @@ void imb_loadtiletiff(struct ImBuf *ibuf, unsigned char *mem, size_t size,
 int imb_savetiff(struct ImBuf *ibuf, const char *name, int flags);
 void *libtiff_findsymbol(char *name);
 
-#endif	/* IMB_FILETYPE_H */
+#endif	/* __IMB_FILETYPE_H__ */
 

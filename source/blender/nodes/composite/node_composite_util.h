@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NODE_COMPOSITE_UTIL_H_
-#define NODE_COMPOSITE_UTIL_H_
+#ifndef __NODE_COMPOSITE_UTIL_H__
+#define __NODE_COMPOSITE_UTIL_H__
 
 #include <stdlib.h>
 #include <string.h>

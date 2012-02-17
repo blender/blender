@@ -34,8 +34,8 @@
 */
 
 
-#ifndef PIXELSHADING_H
-#define PIXELSHADING_H
+#ifndef __PIXELSHADING_H__
+#define __PIXELSHADING_H__
 
 /**
  * Render the pixel at (x,y) for object ap. Apply the jitter mask. 

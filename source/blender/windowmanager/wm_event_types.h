@@ -35,8 +35,8 @@
  */ 
 
 
-#ifndef WM_EVENT_TYPES_H
-#define WM_EVENT_TYPES_H
+#ifndef __WM_EVENT_TYPES_H__
+#define __WM_EVENT_TYPES_H__
 
 /* customdata type */
 #define EVT_DATA_TABLET		1
@@ -365,5 +365,5 @@ enum {
 #define GESTURE_MODAL_OUT			10
 
 
-#endif	/* WM_EVENT_TYPES_H */
+#endif	/* __WM_EVENT_TYPES_H__ */
 

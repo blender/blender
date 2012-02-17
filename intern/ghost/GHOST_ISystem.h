@@ -32,8 +32,8 @@
  * Contains the doxygen documentation main page.
  */
 
-#ifndef _GHOST_ISYSTEM_H_
-#define _GHOST_ISYSTEM_H_
+#ifndef __GHOST_ISYSTEM_H__
+#define __GHOST_ISYSTEM_H__
 
 #include "GHOST_Types.h"
 #include "GHOST_ITimerTask.h"
@@ -416,5 +416,5 @@ public:
 #endif
 };
 
-#endif // _GHOST_ISYSTEM_H_
+#endif // __GHOST_ISYSTEM_H__
 

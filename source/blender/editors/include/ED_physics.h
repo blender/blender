@@ -30,8 +30,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_PHYSICS_H
-#define ED_PHYSICS_H
+#ifndef __ED_PHYSICS_H__
+#define __ED_PHYSICS_H__
 
 struct wmKeyConfig;
 
@@ -44,5 +44,5 @@ int PE_poll_view3d(struct bContext *C);
 void ED_operatortypes_physics(void);
 void ED_keymap_physics(struct wmKeyConfig *keyconf);
 
-#endif /* ED_PHYSICS_H */
+#endif /* __ED_PHYSICS_H__ */
 

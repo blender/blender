@@ -29,8 +29,8 @@
  */
 
 
-#ifndef WM_SUBWINDOW_H
-#define WM_SUBWINDOW_H
+#ifndef __WM_SUBWINDOW_H__
+#define __WM_SUBWINDOW_H__
 
 
 /* *************** internal api ************** */
@@ -50,5 +50,5 @@ void	wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4]);
 
 unsigned int index_to_framebuffer(int index);
 
-#endif /* WM_SUBWINDOW_H */
+#endif /* __WM_SUBWINDOW_H__ */
 

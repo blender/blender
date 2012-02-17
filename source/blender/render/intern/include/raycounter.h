@@ -30,8 +30,8 @@
  */
 
 
-#ifndef RE_RAYCOUNTER_H
-#define RE_RAYCOUNTER_H
+#ifndef __RAYCOUNTER_H__
+#define __RAYCOUNTER_H__
 
 //#define RE_RAYCOUNTER			/* enable counters per ray, useful for measuring raytrace structures performance */
 

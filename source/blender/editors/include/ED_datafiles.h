@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_DATAFILES_H
-#define ED_DATAFILES_H
+#ifndef __ED_DATAFILES_H__
+#define __ED_DATAFILES_H__
 
 /* Datafiles embedded in Blender */
 
@@ -142,5 +142,5 @@ extern int datatoc_vertexdraw_png_size;
 extern char datatoc_vertexdraw_png[];
 
 
-#endif /* ED_DATAFILES_H */
+#endif /* __ED_DATAFILES_H__ */
 

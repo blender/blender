@@ -29,8 +29,8 @@
  */
 
 
-#ifndef RE_SHADER_EXT_H
-#define RE_SHADER_EXT_H
+#ifndef __RE_SHADER_EXT_H__
+#define __RE_SHADER_EXT_H__
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is for shading and texture exports            */
@@ -214,4 +214,4 @@ void RE_bake_ibuf_filter(struct ImBuf *ibuf, char *mask, const int filter);
 #define BAKE_RESULT_NO_OBJECTS		1
 #define BAKE_RESULT_FEEDBACK_LOOP	2
 
-#endif /* RE_SHADER_EXT_H */
+#endif /* __RE_SHADER_EXT_H__ */

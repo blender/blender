@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_KEYFRAMES_EDIT_H
-#define ED_KEYFRAMES_EDIT_H
+#ifndef __ED_KEYFRAMES_EDIT_H__
+#define __ED_KEYFRAMES_EDIT_H__
 
 struct bAnimContext;
 struct bAnimListElem;
@@ -254,4 +254,4 @@ short paste_animedit_keys(struct bAnimContext *ac, ListBase *anim_data,
 
 /* ************************************************ */
 
-#endif /* ED_KEYFRAMES_EDIT_H */
+#endif /* __ED_KEYFRAMES_EDIT_H__ */

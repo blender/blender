@@ -30,8 +30,8 @@
  * Declaration of GHOST_ModifierKeys struct.
  */
 
-#ifndef _GHOST_MODIFIER_KEYS_H_
-#define _GHOST_MODIFIER_KEYS_H_
+#ifndef __GHOST_MODIFIERKEYS_H__
+#define __GHOST_MODIFIERKEYS_H__
 
 #include "GHOST_Types.h"
 
@@ -100,5 +100,5 @@ struct GHOST_ModifierKeys
 	GHOST_TUns8 m_OS : 1;
 };
 
-#endif // _GHOST_MODIFIER_KEYS_H_
+#endif // __GHOST_MODIFIERKEYS_H__
 

@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_MBALL_H
-#define BKE_MBALL_H
+#ifndef __BKE_MBALL_H__
+#define __BKE_MBALL_H__
 
 /** \file BKE_mball.h
  *  \ingroup bke

@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef _GHOST_NDOFMANAGER_H_
-#define _GHOST_NDOFMANAGER_H_
+#ifndef __GHOST_NDOFMANAGER_H__
+#define __GHOST_NDOFMANAGER_H__
 
 #include "GHOST_System.h"
 

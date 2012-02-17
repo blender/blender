@@ -55,8 +55,8 @@
  * standard libraries.
  */
 
-#ifndef BLI_BLENLIB_H
-#define BLI_BLENLIB_H
+#ifndef __BLI_BLENLIB_H__
+#define __BLI_BLENLIB_H__
 
 struct ListBase;
 

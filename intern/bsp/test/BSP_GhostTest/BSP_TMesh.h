@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BSP_TMesh_h
-#define BSP_TMesh_h
+#ifndef __BSP_TMESH_H__
+#define __BSP_TMESH_H__
 
 #include "MT_Point3.h"
 #include "MT_Vector3.h"

@@ -2,8 +2,8 @@
  *  \ingroup eduv
  */
 
-#ifndef __PARAMETRIZER_H__
-#define __PARAMETRIZER_H__
+#ifndef __UVEDIT_PARAMETRIZER_H__
+#define __UVEDIT_PARAMETRIZER_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,5 +98,5 @@ void param_flush_restore(ParamHandle *handle);
 }
 #endif
 
-#endif /*__PARAMETRIZER_H__*/
+#endif /*__UVEDIT_PARAMETRIZER_H__*/
 

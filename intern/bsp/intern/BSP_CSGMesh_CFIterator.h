@@ -30,9 +30,9 @@
  */
 
 
-#ifndef BSP_CSGMesh_CFIterator_h
+#ifndef __BSP_CSGMESH_CFITERATOR_H__
 
-#define BSP_CSGMesh_CFIterator_h
+#define __BSP_CSGMESH_CFITERATOR_H__
 
 #include "BSP_CSGMesh.h"
 #include "../extern/CSG_BooleanOps.h"

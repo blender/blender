@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SUPERPOSEREADER
-#define AUD_SUPERPOSEREADER
+#ifndef __AUD_SUPERPOSEREADER_H__
+#define __AUD_SUPERPOSEREADER_H__
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
@@ -81,4 +81,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_SUPERPOSEREADER
+#endif //__AUD_SUPERPOSEREADER_H__

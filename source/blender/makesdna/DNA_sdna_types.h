@@ -29,8 +29,8 @@
  * \ingroup DNA
  */
 
-#ifndef DNA_SDNA_H
-#define DNA_SDNA_H
+#ifndef __DNA_SDNA_TYPES_H__
+#define __DNA_SDNA_TYPES_H__
 
 #
 #

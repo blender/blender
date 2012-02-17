@@ -37,8 +37,8 @@
  * @date	April, 25, 2001
  */
 
-#ifndef _STR_String_H_
-#define _STR_String_H_
+#ifndef __STR_STRING_H__
+#define __STR_STRING_H__
 
 #ifndef STR_NO_ASSERTD
 #undef  assertd
@@ -217,5 +217,5 @@ inline  STR_String operator+(rcSTR_String    lhs, const char *rhs)	{ return STR_
 inline  STR_String operator+(const char  *lhs, rcSTR_String   rhs)	{ return STR_String(lhs, strlen(lhs), rhs.ReadPtr(), rhs.Length()); }
 
 
-#endif //_STR_String_H_
+#endif //__STR_STRING_H__
 

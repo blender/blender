@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_CONVERTERFACTORY
-#define AUD_CONVERTERFACTORY
+#ifndef __AUD_CONVERTERFACTORY_H__
+#define __AUD_CONVERTERFACTORY_H__
 
 #include "AUD_MixerFactory.h"
 
@@ -54,4 +54,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_CONVERTERFACTORY
+#endif //__AUD_CONVERTERFACTORY_H__

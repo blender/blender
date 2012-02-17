@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_CAMERA_H
-#define BKE_CAMERA_H
+#ifndef __BKE_CAMERA_H__
+#define __BKE_CAMERA_H__
 
 /** \file BKE_camera.h
  *  \ingroup bke

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_NAVMESH_CONVERSION_H
-#define BKE_NAVMESH_CONVERSION_H
+#ifndef __BKE_NAVMESH_CONVERSION_H__
+#define __BKE_NAVMESH_CONVERSION_H__
 
 struct DerivedMesh;
 

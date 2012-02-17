@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLO_WRITEFILE_H
-#define BLO_WRITEFILE_H
+#ifndef __BLO_WRITEFILE_H__
+#define __BLO_WRITEFILE_H__
 
 /** \file BLO_writefile.h
  *  \ingroup blenloader

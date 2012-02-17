@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_BUTTERWORTHFACTORY
-#define AUD_BUTTERWORTHFACTORY
+#ifndef __AUD_BUTTERWORTHFACTORY_H__
+#define __AUD_BUTTERWORTHFACTORY_H__
 
 #include "AUD_DynamicIIRFilterFactory.h"
 
@@ -60,4 +60,4 @@ public:
 										 std::vector<float>& a);
 };
 
-#endif //AUD_BUTTERWORTHFACTORY
+#endif //__AUD_BUTTERWORTHFACTORY_H__

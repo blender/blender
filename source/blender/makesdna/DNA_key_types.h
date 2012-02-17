@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_KEY_TYPES_H
-#define DNA_KEY_TYPES_H
+#ifndef __DNA_KEY_TYPES_H__
+#define __DNA_KEY_TYPES_H__
 
 /** \file DNA_key_types.h
  *  \ingroup DNA

@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SNDFILEFACTORY
-#define AUD_SNDFILEFACTORY
+#ifndef __AUD_SNDFILEFACTORY_H__
+#define __AUD_SNDFILEFACTORY_H__
 
 #include "AUD_IFactory.h"
 #include "AUD_Reference.h"
@@ -73,4 +73,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_SNDFILEFACTORY
+#endif //__AUD_SNDFILEFACTORY_H__

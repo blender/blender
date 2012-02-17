@@ -32,8 +32,8 @@
  *  \author nzc
  */
 
-#ifndef DNA_VEC_TYPES_H
-#define DNA_VEC_TYPES_H
+#ifndef __DNA_VEC_TYPES_H__
+#define __DNA_VEC_TYPES_H__
 
 /* types */
 

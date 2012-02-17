@@ -28,8 +28,8 @@
  *  \ingroup GHOST
  */
 
-#ifndef _GHOST_ISYSTEMPATHS_H_
-#define _GHOST_ISYSTEMPATHS_H_
+#ifndef __GHOST_ISYSTEMPATHS_H__
+#define __GHOST_ISYSTEMPATHS_H__
 
 #include "GHOST_Types.h"
 

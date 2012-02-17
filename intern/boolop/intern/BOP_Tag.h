@@ -33,8 +33,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifndef BOP_TAG_H
-#define BOP_TAG_H
+#ifndef __BOP_TAG_H__
+#define __BOP_TAG_H__
 
 #define IN_TAG           0x02  // Below the plane
 #define ON_TAG           0x00  // On the plane

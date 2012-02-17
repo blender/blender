@@ -31,8 +31,8 @@
  */
 
 
-#ifndef BIF_MESHLAPLACIAN_H
-#define BIF_MESHLAPLACIAN_H
+#ifndef __MESHLAPLACIAN_H__
+#define __MESHLAPLACIAN_H__
 
 //#define RIGID_DEFORM
 

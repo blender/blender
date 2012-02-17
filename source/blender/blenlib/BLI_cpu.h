@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_CPU_H
-#define BLI_CPU_H 
+#ifndef __BLI_CPU_H__
+#define __BLI_CPU_H__ 
 
 /** \file BLI_cpu.h
  *  \ingroup bli

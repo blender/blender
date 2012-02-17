@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_OCEAN_H
-#define BKE_OCEAN_H
+#ifndef __BKE_OCEAN_H__
+#define __BKE_OCEAN_H__
 
 #ifdef __cplusplus
 extern "C" {

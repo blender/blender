@@ -71,3 +71,7 @@ endif()
 if(WITH_CARVE)
 	add_subdirectory(carve)
 endif()
+
+if(UNIX AND NOT APPLE)
+	add_subdirectory(xdnd)
+endif()

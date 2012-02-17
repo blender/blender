@@ -1,8 +1,4 @@
-#ifndef __ffmpeg_compat_h_included__
-#define __ffmpeg_compat_h_included__ 1
-
 /*
- *
  * compatibility macros to make every ffmpeg installation appear
  * like the most current installation (wrapping some functionality sometimes)
  * it also includes all ffmpeg header files at once, no need to do it 
@@ -22,9 +18,10 @@
  *
  */
 
+#ifndef __FFMPEG_COMPAT_H__
+#define __FFMPEG_COMPAT_H__
 
 #include <libavformat/avformat.h>
-
 
 /* check our ffmpeg is new enough, avoids user complaints */
 #if (LIBAVFORMAT_VERSION_MAJOR < 52) || ((LIBAVFORMAT_VERSION_MAJOR == 52) && (LIBAVFORMAT_VERSION_MINOR <= 64))

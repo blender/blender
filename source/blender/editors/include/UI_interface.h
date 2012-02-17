@@ -29,8 +29,8 @@
  *  \ingroup editorui
  */
 
-#ifndef UI_INTERFACE_H
-#define UI_INTERFACE_H
+#ifndef __UI_INTERFACE_H__
+#define __UI_INTERFACE_H__
 
 #include "BLO_sys_types.h" /* size_t */
 #include "RNA_types.h"
@@ -838,5 +838,5 @@ void UI_template_fix_linking(void);
 int  UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
 
-#endif /*  UI_INTERFACE_H */
+#endif /*  __UI_INTERFACE_H__ */
 

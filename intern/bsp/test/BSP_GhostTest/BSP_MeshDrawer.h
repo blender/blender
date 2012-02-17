@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BSP_MeshDrawer_h
-#define BSP_MeshDrawer_h
+#ifndef __BSP_MESHDRAWER_H__
+#define __BSP_MESHDRAWER_H__
 
 class BSP_TMesh;
 class MT_Vector3;

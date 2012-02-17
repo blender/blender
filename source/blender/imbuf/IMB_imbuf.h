@@ -68,8 +68,8 @@
  *     posix-compliant.
  */
 
-#ifndef IMB_IMBUF_H
-#define IMB_IMBUF_H
+#ifndef __IMB_IMBUF_H__
+#define __IMB_IMBUF_H__
 
 /**
  *

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_GSQUEUE_H
-#define BLI_GSQUEUE_H
+#ifndef __BLI_GSQUEUE_H__
+#define __BLI_GSQUEUE_H__
 
 /** \file BLI_gsqueue.h
  *  \ingroup bli
@@ -95,5 +95,5 @@ void		BLI_gsqueue_pushback	(GSQueue *gq, void *item);
 	 */
 void		BLI_gsqueue_free	(GSQueue *gq);
 
-#endif /* BLI_GSQUEUE_H */
+#endif /* __BLI_GSQUEUE_H__ */
 

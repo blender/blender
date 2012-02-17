@@ -27,8 +27,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_GPENCIL_H
-#define ED_GPENCIL_H
+#ifndef __ED_GPENCIL_H__
+#define __ED_GPENCIL_H__
 
 struct ListBase;
 struct bContext;
@@ -109,4 +109,4 @@ void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 int ED_gpencil_session_active(void);
 int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
 
-#endif /*  ED_GPENCIL_H */
+#endif /*  __ED_GPENCIL_H__ */

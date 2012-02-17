@@ -25,8 +25,8 @@
  */
 
 
-#ifndef MEM_CACHELIMITERC_API_H
-#define MEM_CACHELIMITERC_API_H
+#ifndef __MEM_CACHELIMITERC_API_H__
+#define __MEM_CACHELIMITERC_API_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,10 +44,10 @@ typedef void(*MEM_CacheLimiter_Destruct_Func)(void*);
 /* function used to measure stored data element size */
 typedef size_t(*MEM_CacheLimiter_DataSize_Func) (void*);
 
-#ifndef MEM_CACHELIMITER_H
+#ifndef __MEM_CACHELIMITER_H__
 extern void MEM_CacheLimiter_set_maximum(size_t m);
 extern int MEM_CacheLimiter_get_maximum(void);
-#endif // MEM_CACHELIMITER_H
+#endif /* __MEM_CACHELIMITER_H__ */
 /** 
  * Create new MEM_CacheLimiter object 
  * managed objects are destructed with the data_destructor
@@ -145,4 +145,4 @@ extern void * MEM_CacheLimiter_get(MEM_CacheLimiterHandleC * handle);
 #endif
 
 
-#endif // MEM_CACHELIMITERC_API_H
+#endif // __MEM_CACHELIMITERC_API_H__

@@ -1178,7 +1178,8 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is enabled, since this operator is assumed to be called independently
 	 */
-	prop= RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	prop= RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert",
+	                      "Show a popup when the keyframes get successfully added");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -1233,7 +1234,8 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	 *	- by default, this is disabled so that if a menu is shown, this doesn't come up too
 	 */
 	// XXX should this just be always on?
-	prop= RNA_def_boolean(ot->srna, "confirm_success", 0, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	prop= RNA_def_boolean(ot->srna, "confirm_success", 0, "Confirm Successful Insert",
+	                      "Show a popup when the keyframes get successfully added");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	
 	/* whether the menu should always be shown 
@@ -1273,7 +1275,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* try to insert keyframes for the channels specified by KeyingSet */
+	/* try to delete keyframes for the channels specified by KeyingSet */
 	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
 	if (G.f & G_DEBUG)
 		printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
@@ -1325,7 +1327,8 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is enabled, since this operator is assumed to be called independently
 	 */
-	RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Delete",
+	                "Show a popup when the keyframes get successfully removed");
 }
 
 /* Delete Key Operator ------------------------ */

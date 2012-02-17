@@ -35,8 +35,8 @@
  */
 
 
-#ifndef IMBUF_H
-#define IMBUF_H
+#ifndef __IMBUF_H__
+#define __IMBUF_H__
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -78,5 +78,5 @@ typedef unsigned char uchar;
 #define TRUE 1
 #define FALSE 0
 
-#endif	/* IMBUF_H */
+#endif	/* __IMBUF_H__ */
 

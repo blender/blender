@@ -28,8 +28,8 @@
  */
 
 
-#ifndef BLF_INTERNAL_TYPES_H
-#define BLF_INTERNAL_TYPES_H
+#ifndef __BLF_INTERNAL_TYPES_H__
+#define __BLF_INTERNAL_TYPES_H__
 
 typedef struct GlyphCacheBLF {
 	struct GlyphCacheBLF *next;
@@ -223,4 +223,4 @@ typedef struct DirBLF {
 	char *path;
 } DirBLF;
 
-#endif /* BLF_INTERNAL_TYPES_H */
+#endif /* __BLF_INTERNAL_TYPES_H__ */

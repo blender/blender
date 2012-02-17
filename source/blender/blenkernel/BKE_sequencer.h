@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_SEQUENCER_H
-#define BKE_SEQUENCER_H
+#ifndef __BKE_SEQUENCER_H__
+#define __BKE_SEQUENCER_H__
 
 /** \file BKE_sequencer.h
  *  \ingroup bke
@@ -341,4 +341,4 @@ extern SequencerDrawView sequencer_view3d_cb;
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
 
-#endif // BKE_SEQUENCER_H
+#endif // __BKE_SEQUENCER_H__

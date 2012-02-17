@@ -27,8 +27,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_ARMATURE_H
-#define ED_ARMATURE_H
+#ifndef __ED_ARMATURE_H__
+#define __ED_ARMATURE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -182,7 +182,7 @@ void mesh_deform_bind(struct Scene *scene,
 }
 #endif
 
-#endif /* ED_ARMATURE_H */
+#endif /* __ED_ARMATURE_H__ */
 
 
 

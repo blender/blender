@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_DELAYREADER
-#define AUD_DELAYREADER
+#ifndef __AUD_DELAYREADER_H__
+#define __AUD_DELAYREADER_H__
 
 #include "AUD_EffectReader.h"
 #include "AUD_Buffer.h"
@@ -67,4 +67,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_DELAYREADER
+#endif //__AUD_DELAYREADER_H__

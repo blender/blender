@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_POINTCACHE_H
-#define BKE_POINTCACHE_H
+#ifndef __BKE_POINTCACHE_H__
+#define __BKE_POINTCACHE_H__
 
 /** \file BKE_pointcache.h
  *  \ingroup bke

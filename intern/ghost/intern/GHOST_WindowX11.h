@@ -30,8 +30,8 @@
  * Declaration of GHOST_WindowX11 class.
  */
 
-#ifndef _GHOST_WINDOWX11_H_
-#define _GHOST_WINDOWX11_H_
+#ifndef __GHOST_WINDOWX11_H__
+#define __GHOST_WINDOWX11_H__
 
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
@@ -45,6 +45,7 @@
 
 class STR_String;
 class GHOST_SystemX11;
+class GHOST_DropTargetX11;
 
 /**
  * X11 implementation of GHOST_IWindow.
@@ -224,6 +225,9 @@ public:
 	XIC getX11_XIC() { return m_xic; }
 #endif
 
+	GHOST_DropTargetX11* getDropTarget()
+	{ return m_dropTarget; }
+
 	/*
 	 * Need this in case that we want start the window
 	 * in FullScree or Maximized state.
@@ -361,6 +365,8 @@ private :
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;
 
+	GHOST_DropTargetX11 * m_dropTarget;
+
 #ifdef WITH_X11_XINPUT
 	/* Tablet devices */
 	XTablet m_xtablet;
@@ -384,4 +390,4 @@ private :
 };
 
 
-#endif // _GHOST_WINDOWX11_H_
+#endif // __GHOST_WINDOWX11_H__

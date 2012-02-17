@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_PYAPI
-#define AUD_PYAPI
+#ifndef __AUD_PYAPI_H__
+#define __AUD_PYAPI_H__
 
 #include "Python.h"
 
@@ -71,4 +71,4 @@ extern Factory* checkFactory(PyObject* factory);
 }
 #endif
 
-#endif //AUD_PYAPI
+#endif //__AUD_PYAPI_H__

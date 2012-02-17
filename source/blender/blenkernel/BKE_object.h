@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_OBJECT_H
-#define BKE_OBJECT_H
+#ifndef __BKE_OBJECT_H__
+#define __BKE_OBJECT_H__
 
 /** \file BKE_object.h
  *  \ingroup bke

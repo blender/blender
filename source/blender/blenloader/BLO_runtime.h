@@ -26,8 +26,8 @@
  * 
  */
 
-#ifndef BLO_RUNTIME_H
-#define BLO_RUNTIME_H
+#ifndef __BLO_RUNTIME_H__
+#define __BLO_RUNTIME_H__
 
 /** \file BLO_runtime.h
  *  \ingroup blenloader
@@ -47,5 +47,5 @@ struct BlendFileData *BLO_read_runtime(const char *file, struct ReportList *repo
 }
 #endif
 
-#endif /* BLO_RUNTIME_H */
+#endif /* __BLO_RUNTIME_H__ */
 

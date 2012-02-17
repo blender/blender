@@ -220,11 +220,17 @@ elseif(UNIX)
 		intern/GHOST_SystemX11.cpp
 		intern/GHOST_SystemPathsX11.cpp
 		intern/GHOST_WindowX11.cpp
+		intern/GHOST_DropTargetX11.cpp
 
 		intern/GHOST_DisplayManagerX11.h
 		intern/GHOST_SystemX11.h
 		intern/GHOST_SystemPathsX11.h
 		intern/GHOST_WindowX11.h
+		intern/GHOST_DropTargetX11.h
+	)
+
+	list(APPEND INC
+		../../extern/xdnd
 	)
 
 	if(X11_XF86keysym_INCLUDE_PATH)

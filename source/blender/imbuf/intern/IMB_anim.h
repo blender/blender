@@ -33,8 +33,8 @@
  */
 
 
-#ifndef IMB_ANIM_H
-#define IMB_ANIM_H
+#ifndef __IMB_ANIM_H__
+#define __IMB_ANIM_H__
 
 #ifdef _WIN32
 #  define INC_OLE2
