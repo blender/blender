@@ -1680,6 +1680,8 @@ static void remerge_faces(knifetool_opdata *kcd)
 	/* bm->elem_index_dirty &= ~BM_FACE; */
 	bm->elem_index_dirty |= BM_FACE;
 
+	BLI_smallhash_release(visit);
+
 	BLI_array_free(stack);
 	BLI_array_free(faces);
 }

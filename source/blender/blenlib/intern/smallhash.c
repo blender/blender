@@ -88,7 +88,7 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 		int i = 0;
 
 		if (hash->table != hash->stacktable || newsize > SMSTACKSIZE) {
-			tmp = MEM_callocN(sizeof(*hash->table) * newsize, "new hashkeys");
+			tmp = MEM_callocN(sizeof(*hash->table) * newsize, __func__);
 		}
 		else {
 			SWAP(SmallHashEntry *, hash->stacktable, hash->copytable);
