@@ -83,22 +83,23 @@ class VIEW3D_HT_header(Header):
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
-        snap_element = toolsettings.snap_element
-        row = layout.row(align=True)
-        row.prop(toolsettings, "use_snap", text="")
-        row.prop(toolsettings, "snap_element", text="", icon_only=True)
-        if snap_element != 'INCREMENT':
-            row.prop(toolsettings, "snap_target", text="")
-            if obj:
-                if obj.mode == 'OBJECT':
-                    row.prop(toolsettings, "use_snap_align_rotation", text="")
-                elif obj.mode == 'EDIT':
-                    row.prop(toolsettings, "use_snap_self", text="")
+        if obj.mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT'}:
+            snap_element = toolsettings.snap_element
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_snap", text="")
+            row.prop(toolsettings, "snap_element", text="", icon_only=True)
+            if snap_element != 'INCREMENT':
+                row.prop(toolsettings, "snap_target", text="")
+                if obj:
+                    if obj.mode == 'OBJECT':
+                        row.prop(toolsettings, "use_snap_align_rotation", text="")
+                    elif obj.mode == 'EDIT':
+                        row.prop(toolsettings, "use_snap_self", text="")
 
-        if snap_element == 'VOLUME':
-            row.prop(toolsettings, "use_snap_peel_object", text="")
-        elif snap_element == 'FACE':
-            row.prop(toolsettings, "use_snap_project", text="")
+            if snap_element == 'VOLUME':
+                row.prop(toolsettings, "use_snap_peel_object", text="")
+            elif snap_element == 'FACE':
+                row.prop(toolsettings, "use_snap_project", text="")
 
         # OpenGL render
         row = layout.row(align=True)
