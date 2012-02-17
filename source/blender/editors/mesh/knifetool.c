@@ -1698,8 +1698,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	ListBase *face_nets = MEM_callocN(sizeof(ListBase)*bm->totface, "face_nets");
 	BMFace **faces = MEM_callocN(sizeof(BMFace *) * bm->totface, "faces knife");
 	MemArena *arena = BLI_memarena_new(1 << 16, "knifenet_fill_faces");
-	SmallHash shash, *hash = &shash;
-	/* SmallHash shash2, *visited = &shash2; */ /* UNUSED */
+	SmallHash shash;
 	int i, j, k = 0, totface = bm->totface;
 	
 	BMO_push(bm, NULL);
@@ -1800,6 +1799,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	}
 	
 	for (i = 0; i < totface; i++) {
+		SmallHash *hash = &shash;
 		EditFace *efa;
 		EditVert *eve, *lasteve;
 		int j;
@@ -1932,7 +1932,6 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	if (faces)
 		MEM_freeN(faces);
 	BLI_memarena_free(arena);
-	BLI_smallhash_release(hash);
 	
 	BMO_error_clear(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
 
