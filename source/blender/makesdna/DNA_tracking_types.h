@@ -159,8 +159,10 @@ typedef struct MovieTrackingStabilization {
 
 	float locinf, scaleinf, rotinf;	/* influence on location, scale and rotation */
 
+	int filter;		/* filter used for pixel interpolation */
+
 	/* some pre-computing run-time variables */
-	int ok, pad;				/* are precomputed values and scaled buf relevant? */
+	int ok;						/* are precomputed values and scaled buf relevant? */
 	float scale;				/* autoscale factor */
 
 	struct ImBuf *scaleibuf;	/* currently scaled ibuf */
@@ -257,6 +259,11 @@ enum {
 #define TRACKING_2D_STABILIZATION	(1<<0)
 #define TRACKING_AUTOSCALE			(1<<1)
 #define TRACKING_STABILIZE_ROTATION	(1<<2)
+
+/* MovieTrackingStrabilization->filter */
+#define TRACKING_FILTER_NEAREAST	0
+#define TRACKING_FILTER_BILINEAR	1
+#define TRACKING_FILTER_BICUBIC		2
 
 /* MovieTrackingReconstruction->flag */
 #define TRACKING_RECONSTRUCTED	(1<<0)

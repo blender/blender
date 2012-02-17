@@ -6124,6 +6124,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingObject *object;
 
+	clip->adt= newdataadr(fd, clip->adt);
+
 	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
 	else clip->cache= NULL;
 
@@ -6161,6 +6163,9 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	clip= main->movieclip.first;
 	while(clip) {
 		if(clip->id.flag & LIB_NEEDLINK) {
+			if (clip->adt)
+				lib_link_animdata(fd, &clip->id, clip->adt);
+
 			clip->gpd= newlibadr_us(fd, clip->id.lib, clip->gpd);
 
 			clip->id.flag -= LIB_NEEDLINK;
@@ -14154,6 +14159,11 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
 }
 
+static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
+{
+	if (clip->adt)
+		expand_animdata(fd, mainvar, clip->adt);
+}
 
 static void expand_main(FileData *fd, Main *mainvar)
 {
@@ -14237,6 +14247,10 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+						break;
+					case ID_MC:
+						expand_movieclip(fd, mainvar, (MovieClip *)id);
+						break;
 					}
 
 					doit= 1;

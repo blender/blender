@@ -684,6 +684,8 @@ class CLIP_PT_stabilization(Panel):
         row.active = stab.rotation_track is not None
         row.prop(stab, "influence_rotation")
 
+        layout.prop(stab, "filter_type")
+
 
 class CLIP_PT_marker(Panel):
     bl_space_type = 'CLIP_EDITOR'

@@ -1269,13 +1269,14 @@ void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		if(ibuf) {
 			float loc[2];
+			float aspect= clip->tracking.camera.pixel_aspect;
 
 			if(width != ibuf->x)
 				mul_v2_v2fl(loc, sc->loc, (float)width / ibuf->x);
 			else
 				copy_v2_v2(loc, sc->loc);
 
-			BKE_tracking_stabdata_to_mat4(width, height, loc, sc->scale, sc->angle, sc->stabmat);
+			BKE_tracking_stabdata_to_mat4(width, height, aspect, loc, sc->scale, sc->angle, sc->stabmat);
 
 			unit_m4(smat);
 			smat[0][0]= 1.0f/width;

@@ -86,6 +86,9 @@ else :
 
 LIBDIR = '${LCGDIR}'
 
+if XCODE_CUR_VER >= '4.3':  ## since version 4.3, XCode and developer dir are bundled ##
+	MACOSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform' + MACOSX_SDK
+
 #############################################################################
 ###################          Dependency settings           ##################
 #############################################################################
