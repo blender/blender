@@ -42,10 +42,8 @@ void BM_face_hide_set(BMesh *bm, BMFace *f, int hide);
 
 /* Selection code */
 void BM_elem_select_set(struct BMesh *bm, void *element, int select);
-/* I don't use this function anywhere, been using BM_elem_flag_test instead.
- * Need to decide either to keep it and convert everything over, or
- * chuck it.*/
-int BM_elem_select_test(BMesh *bm, const void *element);
+
+/* use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection */
 
 void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag);
 void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag);

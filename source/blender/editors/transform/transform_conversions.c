@@ -1956,7 +1956,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	BMIter iter;
 
 	BM_ITER(efa, &iter, bm, BM_FACES_OF_VERT, eve) {
-		if (BM_elem_select_test(bm, efa)) {
+		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			BM_face_center_mean_calc(bm, efa, cent_r);
 			break;
 		}
@@ -1969,7 +1969,7 @@ static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
 	BMIter iter;
 
 	BM_ITER(eed, &iter, bm, BM_EDGES_OF_VERT, eve) {
-		if (BM_elem_select_test(bm, eed)) {
+		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 			mid_v3_v3v3(cent_r, eed->v1->co, eed->v2->co);
 			break;
 		}
@@ -2049,7 +2049,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_select_test(bm, eve)) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				BM_elem_flag_enable(eve, BM_ELEM_TAG);
 			}
 			else {
@@ -2065,7 +2065,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 		eed = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
 		for( ; eed; eed=BM_iter_step(&iter)) {
-			if (BM_elem_select_test(bm, eed)) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				BM_elem_flag_enable(eed->v1, BM_ELEM_TAG);
 				BM_elem_flag_enable(eed->v2, BM_ELEM_TAG);
 			}
@@ -2078,7 +2078,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 		efa = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
 		for( ; efa; efa=BM_iter_step(&iter)) {
-			if (BM_elem_select_test(bm, efa)) {
+			if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 				BMIter liter;
 				BMLoop *l;
 

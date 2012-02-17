@@ -494,14 +494,6 @@ void BM_elem_select_set(struct BMesh *bm, void *element, int select)
 	else if (head->htype == BM_FACE) BM_face_select_set(bm, (BMFace *)element, select);
 }
 
-int BM_elem_select_test(BMesh *UNUSED(bm), const void *element)
-{
-	const BMHeader *head = element;
-	int selected = BM_elem_flag_test(head, BM_ELEM_SELECT);
-	BLI_assert(!selected || !BM_elem_flag_test(head, BM_ELEM_HIDDEN));
-	return selected;
-}
-
 /* this replaces the active flag used in uv/face mode */
 void BM_active_face_set(BMesh *bm, BMFace *efa)
 {

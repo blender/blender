@@ -3110,7 +3110,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 
 	/* store percentage of edge cut for KNIFE_EXACT here.*/
 	for (be = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be = BM_iter_step(&iter)) {
-		if (BM_elem_select_test(bm, be)) {
+		if (BM_elem_flag_test(be, BM_ELEM_SELECT)) {
 			isect = bm_edge_seg_isect(be, curve, len, mode, gh, &isected);
 			
 			if (isect != 0.0f) {
