@@ -111,10 +111,11 @@ private:
 
 	bool is_bone_defgroup(Object *ob_arm, bDeformGroup* def);
 
-	std::string add_weights_source(Mesh *me, const std::string& controller_id);
+	std::string add_weights_source(Mesh *me, const std::string& controller_id,
+								   const std::list<float>& weights);
 
-	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id, Mesh *me,
-									Object *ob_arm, ListBase *defbase);
+	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id,
+									const std::list<int>& vcount, const std::list<int>& joints);
 };
 
 #endif
