@@ -43,6 +43,7 @@
 
 #include "GeometryExporter.h"
 #include "ArmatureExporter.h"
+#include "SceneExporter.h"
 
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
@@ -50,14 +51,16 @@
 ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryControllers(sw), export_settings(export_settings) {}
 
 // write bone nodes
-void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene *sce)
+void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene* sce,
+										  SceneExporter* se,
+										  std::list<Object*>& child_objects)
 {
 	// write bone nodes
 	bArmature *arm = (bArmature*)ob_arm->data;
 	for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
 		if (!bone->parent)
-			add_bone_node(bone, ob_arm);
+			add_bone_node(bone, ob_arm, sce, se, child_objects);
 	}
 }
 
@@ -163,7 +166,9 @@ std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
 }
 
 // parent_mat is armature-space
-void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
+void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
+									 SceneExporter* se,
+									 std::list<Object*>& child_objects)
 {
 	std::string node_id = get_joint_id(bone, ob_arm);
 	std::string node_name = std::string(bone->name);
@@ -183,14 +188,54 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 
 	add_bone_transform(ob_arm, bone, node);
 
+	// Write nodes of childobjects, remove written objects from list
+	std::list<Object*>::iterator i = child_objects.begin();
+
+	while( i != child_objects.end() )
+	{
+		if((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name)))
+		{
+			float backup_parinv[4][4];
+
+			// SECOND_LIFE_COMPATIBILITY
+			// crude, temporary change to parentinv
+			// so transform gets exported correctly.
+			// TODO: when such objects are animated as
+			// single matrix the tweak must be applied
+			// to the result.
+			if(export_settings->second_life)
+			{
+				copy_m4_m4(backup_parinv, (*i)->parentinv);
+				// tweak objects parentinverse to match
+				// the second life- compatibility
+				float temp[4][4];
+
+				copy_m4_m4(temp, bone->arm_mat);
+				temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+
+				mult_m4_m4m4((*i)->parentinv, temp, backup_parinv);
+			}
+
+			se->writeNodes(*i, sce);
+
+			// restore original parentinv
+			if(export_settings->second_life)
+			{
+				copy_m4_m4((*i)->parentinv, backup_parinv);
+			}
+			child_objects.erase(i++);
+		}
+		else i++;
+	}
+
 	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
-		add_bone_node(child, ob_arm);
+		add_bone_node(child, ob_arm, sce, se, child_objects);
 	}
 	node.end();
 	//}
 }
 
-void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
+/*void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
 {
 	node.start();
 	
@@ -201,11 +246,11 @@ void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADA
 	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2] );
 	
 	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
-		add_bone_node(child, ob_arm);
+		add_bone_node(child, ob_arm, sce, se, child_objects);
 	}
 	node.end();
 	
-}
+}*/
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
 	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);

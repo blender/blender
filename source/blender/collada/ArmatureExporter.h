@@ -28,6 +28,7 @@
 #ifndef __ARMATUREEXPORTER_H__
 #define __ARMATUREEXPORTER_H__
 
+#include <list>
 #include <string>
 //#include <vector>
 
@@ -47,6 +48,8 @@
 
 #include "ExportSettings.h"
 
+class SceneExporter;
+
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
 // we make controller ids then?
@@ -56,7 +59,8 @@ public:
 	ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
 	// write bone nodes
-	void add_armature_bones(Object *ob_arm, Scene *sce);
+	void add_armature_bones(Object *ob_arm, Scene* sce, SceneExporter* se,
+							std::list<Object*>& child_objects);
 
 	bool is_skinned_mesh(Object *ob);
 
@@ -85,8 +89,10 @@ private:
 
 	std::string get_joint_sid(Bone *bone, Object *ob_arm);
 
-	// parent_mat is armature-space
-	void add_bone_node(Bone *bone, Object *ob_arm);
+	// Scene, SceneExporter and the list of child_objects
+	// are required for writing bone parented objects
+	void add_bone_node(Bone *bone, Object *ob_arm, Scene* sce, SceneExporter* se,
+					   std::list<Object*>& child_objects);
 
 	void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node);
 
