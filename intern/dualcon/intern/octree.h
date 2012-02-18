@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Tao Ju
+ * Contributor(s): Tao Ju, Nicholas Bishop
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -23,6 +23,8 @@
 #ifndef OCTREE_H
 #define OCTREE_H
 
+#include <cassert>
+#include <cstring>
 #include <stdio.h>
 #include <math.h>
 #include "GeoCommon.h"
@@ -50,52 +52,56 @@
 // #define IN_VERBOSE_MODE
 
 /* Set scan convert params */
-// Uncomment to use Dual Contouring on Hermit representation
-// for better sharp feature reproduction, but more mem is required
-// The number indicates how far do we allow the minimizer to shoot
-// outside the cell
-#define USE_HERMIT 1.0f
 
-#ifdef USE_HERMIT
-//#define CINDY
-#endif
-
-///#define QIANYI
-
-//#define TESTMANIFOLD
-
-
-/* Set output options */
-// Comment out to prevent writing output files
-#define OUTPUT_REPAIRED
-
-
-/* Set node bytes */
-#ifdef USE_HERMIT
-#define EDGE_BYTES 16
 #define EDGE_FLOATS 4
-#else
-#define EDGE_BYTES 4
-#define EDGE_FLOATS 1
-#endif
 
-#define CINDY_BYTES 0
+union Node;
 
-/*#define LEAF_EXTRA_BYTES FLOOD_BYTES + CINDY_BYTES
+struct InternalNode {
+	/* Treat as bitfield, bit N indicates whether child N exists or not */
+	unsigned char has_child;
+	/* Treat as bitfield, bit N indicates whether child N is a leaf or not */
+	unsigned char child_is_leaf;
 
-#ifdef USE_HERMIT
-#define LEAF_NODE_BYTES 7 + LEAF_EXTRA_BYTES
-#else
-#define LEAF_NODE_BYTES 3 + LEAF_EXTRA_BYTES
-#endif*/
+	/* Can have up to eight children */
+	Node *children[0];
+};
 
-#define INTERNAL_NODE_BYTES 2
-#define POINTER_BYTES 8
-#define FLOOD_FILL_BYTES 2
 
-#define signtype short
-#define nodetype int
-#define numtype int
+/**
+ * Bits order
+ *
+ * Leaf node:
+ * Byte 0,1(0-11): edge parity
+ * Byte 1(4,5,6): mask of primary edges intersections stored
+ * Byte 1(7): in flood fill mode, whether the cell is in process
+ * Byte 2(0-8): signs
+ * Byte 3,4: in coloring mode, the mask for edges
+ * Byte 5: edge intersections(4 bytes per inter, or 12 bytes if USE_HERMIT)
+ */
+struct LeafNode /* TODO: remove this attribute once everything is fixed */ {
+	unsigned short edge_parity : 12;
+	unsigned short primary_edge_intersections : 3;
+
+	/* XXX: maybe actually unused? */
+	unsigned short in_process : 1;
+
+	/* bitfield */
+	char signs;
+
+	int minimizer_index;
+	
+	unsigned short flood_fill;
+
+	float edge_intersections[0];
+};
+
+/* Doesn't get directly allocated anywhere, just used for passing
+   pointers to nodes that could be internal or leaf. */
+union Node {
+	InternalNode internal;
+	LeafNode leaf;
+};
 
 /* Global variables */
 extern const int edgemask[3];
@@ -116,23 +122,23 @@ extern const int dirEdge[3][4];
 struct PathElement
 {
 	// Origin
-	int pos[3] ;
+	int pos[3];
 
 	// link
-	PathElement* next ;
+	PathElement* next;
 };
 
 struct PathList
 {
 	// Head
-	PathElement* head ;
-	PathElement* tail ;
+	PathElement* head;
+	PathElement* tail;
 
 	// Length of the list
-	int length ;
+	int length;
 
 	// Next list
-	PathList* next ;
+	PathList* next;
 };
 
 
@@ -145,78 +151,71 @@ public:
 	/* Public members */
 
 	/// Memory allocators
-	VirtualMemoryAllocator * alloc[ 9 ] ;
-	VirtualMemoryAllocator * leafalloc[ 4 ] ;
+	VirtualMemoryAllocator * alloc[9];
+	VirtualMemoryAllocator * leafalloc[4];
 
 	/// Root node
-	UCHAR* root ;
+	Node* root;
 
 	/// Model reader
-	ModelReader* reader ;
+	ModelReader* reader;
 
 	/// Marching cubes table
-	Cubes* cubes ;
+	Cubes* cubes;
 
 	/// Length of grid
-	int dimen ;
-	int mindimen, minshift ;
+	int dimen;
+	int mindimen, minshift;
 
 	/// Maximum depth
-	int maxDepth ;
+	int maxDepth;
 	
 	/// The lower corner of the bounding box and the size
 	float origin[3];
 	float range;
 
 	/// Counting information
-	int nodeCount ;
-	int nodeSpace ;
-	int nodeCounts[ 9 ] ;
+	int nodeCount;
+	int nodeSpace;
+	int nodeCounts[9];
 
-	int actualQuads, actualVerts ;
+	int actualQuads, actualVerts;
 
-	PathList* ringList ;
+	PathList* ringList;
 
-	int maxTrianglePerCell ;
-	int outType ; // 0 for OFF, 1 for PLY, 2 for VOL
+	int maxTrianglePerCell;
+	int outType; // 0 for OFF, 1 for PLY, 2 for VOL
 
 	// For flood filling
 	int use_flood_fill;
-	float thresh ;
+	float thresh;
 
 	int use_manifold;
-
-	// testing
-	FILE* testfout ;
 
 	float hermite_num;
 
 	DualConMode mode;
 
-	int leaf_node_bytes;
-	int leaf_extra_bytes;
-	int flood_bytes;
-
 public:
 	/**
 	 * Construtor
 	 */
-	Octree ( ModelReader* mr,
+	Octree(ModelReader* mr,
 			 DualConAllocOutput alloc_output_func,
 			 DualConAddVert add_vert_func,
 			 DualConAddQuad add_quad_func,
 			 DualConFlags flags, DualConMode mode, int depth,
-			 float threshold, float hermite_num ) ;
+			 float threshold, float hermite_num);
 
 	/**
 	 * Destructor
 	 */
-	~Octree ( ) ;
+	~Octree();
 
 	/**
 	 * Scan convert
 	 */
-	void scanConvert() ;
+	void scanConvert();
 
 	void *getOutputMesh() { return output_mesh; }
 
@@ -226,164 +225,129 @@ private:
 	/**
 	 * Initialize memory allocators
 	 */
-	void initMemory ( ) ;
+	void initMemory();
 
 	/**
 	 * Release memory
 	 */
-	void freeMemory ( ) ;
+	void freeMemory();
 
 	/**
 	 * Print memory usage
 	 */
-	void printMemUsage( ) ;
+	void printMemUsage();
 
 
 	/**
 	 * Methods to set / restore minimum edges
 	 */
-	void resetMinimalEdges( ) ;
+	void resetMinimalEdges();
 
-	void cellProcParity ( UCHAR* node, int leaf, int depth ) ;
-	void faceProcParity ( UCHAR* node[2], int leaf[2], int depth[2], int maxdep, int dir ) ;
-	void edgeProcParity ( UCHAR* node[4], int leaf[4], int depth[4], int maxdep, int dir ) ;
+	void cellProcParity(Node* node, int leaf, int depth);
+	void faceProcParity(Node* node[2], int leaf[2], int depth[2], int maxdep, int dir);
+	void edgeProcParity(Node* node[4], int leaf[4], int depth[4], int maxdep, int dir);
 
-	void processEdgeParity ( UCHAR* node[4], int depths[4], int maxdep, int dir ) ;
+	void processEdgeParity(LeafNode* node[4], int depths[4], int maxdep, int dir);
 
 	/**
 	 * Add triangles to the tree
 	 */
-	void addTrian ( );
-	void addTrian ( Triangle* trian, int triind );
-	UCHAR* addTrian ( UCHAR* node, Projections* p, int height );
+	void addTrian();
+	void addTrian(Triangle* trian, int triind);
+	InternalNode* addTrian(InternalNode* node, Projections* p, int height);
 
 	/**
 	 * Method to update minimizer in a cell: update edge intersections instead
 	 */
-	UCHAR* updateCell( UCHAR* node, Projections* p ) ;
+	LeafNode* updateCell(LeafNode* node, Projections* p);
 
 	/* Routines to detect and patch holes */
-	int numRings ;
-	int totRingLengths ;
-	int maxRingLength ;
+	int numRings;
+	int totRingLengths;
+	int maxRingLength;
 
 	/**
 	 * Entry routine.
 	 */
-	void trace ( ) ;
+	void trace();
 	/**
 	 * Trace the given node, find patches and fill them in
 	 */
-	UCHAR* trace ( UCHAR* node, int* st, int len, int depth, PathList*& paths ) ;
+	Node* trace(Node* node, int* st, int len, int depth, PathList*& paths);
 	/**
 	 * Look for path on the face and add to paths
 	 */
-	void findPaths ( UCHAR* node[2], int leaf[2], int depth[2], int* st[2], int maxdep, int dir, PathList*& paths ) ;
+	void findPaths(Node* node[2], int leaf[2], int depth[2], int* st[2], int maxdep, int dir, PathList*& paths);
 	/**
 	 * Combine two list1 and list2 into list1 using connecting paths list3, 
 	 * while closed paths are appended to rings
 	 */
-	void combinePaths ( PathList*& list1, PathList* list2, PathList* paths, PathList*& rings ) ;
+	void combinePaths(PathList*& list1, PathList* list2, PathList* paths, PathList*& rings);
 	/**
 	 * Helper function: combine current paths in list1 and list2 to a single path and append to list3
 	 */
-	PathList* combineSinglePath ( PathList*& head1, PathList* pre1, PathList*& list1, PathList*& head2, PathList* pre2, PathList*& list2 ) ;
+	PathList* combineSinglePath(PathList*& head1, PathList* pre1, PathList*& list1, PathList*& head2, PathList* pre2, PathList*& list2);
 	
 	/**
 	 * Functions to patch rings in a node
 	 */
-	UCHAR* patch ( UCHAR* node, int st[3], int len, PathList* rings ) ;
-	UCHAR* patchSplit ( UCHAR* node, int st[3], int len, PathList* rings, int dir, PathList*& nrings1, PathList*& nrings2 ) ;
-	UCHAR* patchSplitSingle ( UCHAR* node, int st[3], int len, PathElement* head, int dir, PathList*& nrings1, PathList*& nrings2 ) ;
-	UCHAR* connectFace ( UCHAR* node, int st[3], int len, int dir, PathElement* f1, PathElement* f2 ) ;
-	UCHAR* locateCell( UCHAR* node, int st[3], int len, int ori[3], int dir, int side, UCHAR*& rleaf, int rst[3], int& rlen ) ;
-	void compressRing ( PathElement*& ring ) ;
-	void getFacePoint( PathElement* leaf, int dir, int& x, int& y, float& p, float& q ) ;
-	UCHAR* patchAdjacent( UCHAR* node, int len, int st1[3], UCHAR* leaf1, int st2[3], UCHAR* leaf2, int walkdir, int inc, int dir, int side, float alpha ) ;
-	int findPair ( PathElement* head, int pos, int dir, PathElement*& pre1, PathElement*& pre2 ) ;
-	int getSide( PathElement* e, int pos, int dir ) ;
-	int isEqual( PathElement* e1, PathElement* e2 )	;
-	void preparePrimalEdgesMask( UCHAR* node ) ;
-	void testFacePoint( PathElement* e1, PathElement* e2 ) ;
+	Node* patch(Node* node, int st[3], int len, PathList* rings);
+	Node* patchSplit(Node* node, int st[3], int len, PathList* rings, int dir, PathList*& nrings1, PathList*& nrings2);
+	Node* patchSplitSingle(Node* node, int st[3], int len, PathElement* head, int dir, PathList*& nrings1, PathList*& nrings2);
+	Node* connectFace(Node* node, int st[3], int len, int dir, PathElement* f1, PathElement* f2);
+	Node* locateCell(InternalNode* node, int st[3], int len, int ori[3], int dir, int side, Node*& rleaf, int rst[3], int& rlen);
+	void compressRing(PathElement*& ring);
+	void getFacePoint(PathElement* leaf, int dir, int& x, int& y, float& p, float& q);
+	LeafNode* patchAdjacent(InternalNode* node, int len, int st1[3], LeafNode* leaf1, int st2[3], LeafNode* leaf2, int walkdir, int inc, int dir, int side, float alpha);
+	int findPair(PathElement* head, int pos, int dir, PathElement*& pre1, PathElement*& pre2);
+	int getSide(PathElement* e, int pos, int dir);
+	int isEqual(PathElement* e1, PathElement* e2)	;
+	void preparePrimalEdgesMask(InternalNode* node);
+	void testFacePoint(PathElement* e1, PathElement* e2);
 	
 	/**
 	 * Path-related functions
 	 */
-	void deletePath ( PathList*& head, PathList* pre, PathList*& curr ) ;
-	void printPath( PathList* path ) ;
-	void printPath( PathElement* path ) ;
-	void printElement( PathElement* ele ) ;
-	void printPaths( PathList* path ) ;
-	void checkElement ( PathElement* ele ) ;
-	void checkPath( PathElement* path ) ;
+	void deletePath(PathList*& head, PathList* pre, PathList*& curr);
+	void printPath(PathList* path);
+	void printPath(PathElement* path);
+	void printElement(PathElement* ele);
+	void printPaths(PathList* path);
+	void checkElement(PathElement* ele);
+	void checkPath(PathElement* path);
 
 
 	/**
 	 * Routines to build signs to create a partitioned volume
-	 * (after patching rings)
+	 *(after patching rings)
 	 */
-	void buildSigns( ) ;
-	void buildSigns( unsigned char table[], UCHAR* node, int isLeaf, int sg, int rvalue[8] ) ;
+	void buildSigns();
+	void buildSigns(unsigned char table[], Node* node, int isLeaf, int sg, int rvalue[8]);
 
 	/************************************************************************/
 	/* To remove disconnected components */
 	/************************************************************************/
-	void floodFill( ) ;
-	void clearProcessBits( UCHAR* node, int height ) ;
-	int floodFill( UCHAR* node, int st[3], int len, int height, int threshold ) ;
+	void floodFill();
+	void clearProcessBits(Node* node, int height);
+	int floodFill(LeafNode* leaf, int st[3], int len, int height, int threshold);
+	int floodFill(Node* node, int st[3], int len, int height, int threshold);
 
 	/**
 	 * Write out polygon file
 	 */
 	void writeOut();
-	void writeOFF ( char* fname ) ;
-	void writePLY ( char* fname ) ;
-	void writeOpenEdges( FILE* fout ) ;
-	void writeAllEdges( FILE* fout, int mode ) ;
-	void writeAllEdges( FILE* fout, UCHAR* node, int height, int st[3], int len, int mode ) ;
 	
-	void writeOctree( char* fname ) ;
-	void writeOctree( FILE* fout, UCHAR* node, int depth ) ;
-#ifdef USE_HERMIT
-	void writeOctreeGeom( char* fname ) ;
-	void writeOctreeGeom( FILE* fout, UCHAR* node, int st[3], int len, int depth ) ;
-#endif
-#ifdef USE_HERMIT
-	void writeDCF ( char* fname ) ;
-	void writeDCF ( FILE* fout, UCHAR* node, int height, int st[3], int len ) ;
-	void countEdges ( UCHAR* node, int height, int& nedge, int mode ) ;
-	void countIntersection( UCHAR* node, int height, int& nedge, int& ncell, int& nface ) ;
-	void generateMinimizer( UCHAR* node, int st[3], int len, int height, int& offset ) ;
-	void computeMinimizer( UCHAR* leaf, int st[3], int len, float rvalue[3] ) ;
+	void countIntersection(Node* node, int height, int& nedge, int& ncell, int& nface);
+	void generateMinimizer(Node* node, int st[3], int len, int height, int& offset);
+	void computeMinimizer(LeafNode* leaf, int st[3], int len, float rvalue[3]);
 	/**
 	 * Traversal functions to generate polygon model
 	 * op: 0 for counting, 1 for writing OBJ, 2 for writing OFF, 3 for writing PLY
 	 */
-	void cellProcContour ( UCHAR* node, int leaf, int depth ) ;
-	void faceProcContour ( UCHAR* node[2], int leaf[2], int depth[2], int maxdep, int dir ) ;
-	void edgeProcContour ( UCHAR* node[4], int leaf[4], int depth[4], int maxdep, int dir ) ;
-	void processEdgeWrite ( UCHAR* node[4], int depths[4], int maxdep, int dir ) ;
-#else
-	void countIntersection( UCHAR* node, int height, int& nquad, int& nvert ) ;
-	void writeVertex( UCHAR* node, int st[3], int len, int height, int& offset, FILE* fout ) ;
-	void writeQuad( UCHAR* node, int st[3], int len, int height, FILE* fout ) ;
-#endif
-
-	/**
-	 * Write out original model
-	 */
-	void writeModel( char* fname ) ;
-
-	/************************************************************************/
-	/* Write out original vertex tags */
-	/************************************************************************/
-#ifdef CINDY
-	void writeTags( char* fname ) ;
-	void readVertices( ) ;
-	void readVertex(  UCHAR* node, int st[3], int len, int height, float v[3], int index ) ;
-    void outputTags( UCHAR* node, int height, FILE* fout ) ;
-	void clearCindyBits( UCHAR* node, int height ) ;
-#endif
+	void cellProcContour(Node* node, int leaf, int depth);
+	void faceProcContour(Node* node[2], int leaf[2], int depth[2], int maxdep, int dir);
+	void edgeProcContour(Node* node[4], int leaf[4], int depth[4], int maxdep, int dir);
+	void processEdgeWrite(Node* node[4], int depths[4], int maxdep, int dir);
 
 	/* output callbacks/data */
 	DualConAllocOutput alloc_output;
@@ -394,858 +358,753 @@ private:
 private:
 	/************ Operators for all nodes ************/
 
-	/**
-	 * Bits order
-	 *
-	 * Leaf node:
-	 * Byte 0,1 (0-11): edge parity
-	 * Byte 1 (4,5,6): mask of primary edges intersections stored
-	 * Byte 1 (7): in flood fill mode, whether the cell is in process
-	 * Byte 2 (0-8): signs
-	 * Byte 3 (or 5) -- : edge intersections ( 4 bytes per inter, or 12 bytes if USE_HERMIT )
-	 * Byte 3,4: in coloring mode, the mask for edges
-	 *
-	 * Internal node:
-	 * Byte 0: child mask
-	 * Byte 1: leaf child mask
-	 */
-
 	/// Lookup table
-	int numChildrenTable[ 256 ] ;
-	int childrenCountTable[ 256 ][ 8 ] ;
-	int childrenIndexTable[ 256 ][ 8 ] ;
-	int numEdgeTable[ 8 ] ;
-	int edgeCountTable[ 8 ][ 3 ] ;
+	int numChildrenTable[256];
+	int childrenCountTable[256][8];
+	int childrenIndexTable[256][8];
+	int numEdgeTable[8];
+	int edgeCountTable[8][3];
 
 	/// Build up lookup table
-	void buildTable ( )
+	void buildTable()
 	{
-		for ( int i = 0 ; i < 256 ; i ++ )
+		for(int i = 0; i < 256; i ++)
 		{
-			numChildrenTable[ i ] = 0 ;
-			int count = 0 ;
-			for ( int j = 0 ; j < 8 ; j ++ )
+			numChildrenTable[i] = 0;
+			int count = 0;
+			for(int j = 0; j < 8; j ++)
 			{
-				numChildrenTable[ i ] += ( ( i >> j ) & 1 ) ;
-				childrenCountTable[ i ][ j ] = count ;
-				childrenIndexTable[ i ][ count ] = j ;
-				count += ( ( i >> j ) & 1 ) ;
+				numChildrenTable[i] +=((i >> j) & 1);
+				childrenCountTable[i][j] = count;
+				childrenIndexTable[i][count] = j;
+				count +=((i >> j) & 1);
 			}
 		}
 
-		for ( int i = 0 ; i < 8 ; i ++ )
+		for(int i = 0; i < 8; i ++)
 		{
-			numEdgeTable[ i ] = 0 ;
-			int count = 0 ;
-			for ( int j = 0 ; j < 3 ; j ++ )
+			numEdgeTable[i] = 0;
+			int count = 0;
+			for(int j = 0; j < 3; j ++)
 			{
-				numEdgeTable[ i ] += ( ( i >> j ) & 1 ) ;
-				edgeCountTable[ i ][ j ] = count ;
-				count += ( ( i >> j ) & 1 ) ;
+				numEdgeTable[i] +=((i >> j) & 1);
+				edgeCountTable[i][j] = count;
+				count +=((i >> j) & 1);
 			}
 		}
-	};
+	}
 
-	int getSign( UCHAR* node, int height, int index )
+	int getSign(Node* node, int height, int index)
 	{
-		if ( height == 0 )
+		if(height == 0)
 		{
-			return getSign( node, index ) ;
+			return getSign(&node->leaf, index);
 		}
 		else
 		{
-			if ( hasChild( node, index ) )
+			if(hasChild(&node->internal, index))
 			{
-				return getSign( getChild( node, getChildCount( node, index ) ), height - 1, index ) ;
+				return getSign(getChild(&node->internal, getChildCount(&node->internal, index)),
+							   height - 1,
+							   index);
 			}
 			else
 			{
-				return getSign( getChild( node, 0 ), height - 1, 7 - getChildIndex( node, 0 ) ) ;
+				return getSign(getChild(&node->internal, 0),
+							   height - 1,
+							   7 - getChildIndex(&node->internal, 0));
 			}
 		}
 	}
 
 	/************ Operators for leaf nodes ************/
 
-	void printInfo( int st[3] )
+	void printInfo(int st[3])
 	{
-		printf("INFO AT: %d %d %d\n", st[0] >> minshift, st[1] >>minshift, st[2] >> minshift ) ;
-		UCHAR* leaf = locateLeafCheck( st ) ;
-		if ( leaf == NULL )
-		{
-			printf("Leaf not exists!\n") ;
-		}
+		printf("INFO AT: %d %d %d\n", st[0] >> minshift, st[1] >>minshift, st[2] >> minshift);
+		LeafNode* leaf = (LeafNode*)locateLeafCheck(st);
+		if(leaf)
+			printInfo(leaf);
 		else
-		{
-			printInfo( leaf ) ;
-		}
+			printf("Leaf not exists!\n");
 	}
 
-	void printInfo( UCHAR* leaf )
+	void printInfo(const LeafNode* leaf)
 	{
 		/*
-		printf("Edge mask: ") ;
-		for ( int i = 0 ; i < 12 ; i ++ )
+		printf("Edge mask: ");
+		for(int i = 0; i < 12; i ++)
 		{
-			printf("%d ", getEdgeParity( leaf, i ) ) ;
+			printf("%d ", getEdgeParity(leaf, i));
 		}
-		printf("\n") ;
-		printf("Stored edge mask: ") ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		printf("\n");
+		printf("Stored edge mask: ");
+		for(i = 0; i < 3; i ++)
 		{
-			printf("%d ", getStoredEdgesParity( leaf, i ) ) ;
+			printf("%d ", getStoredEdgesParity(leaf, i));
 		}
-		printf("\n") ;
+		printf("\n");
 		*/
-		printf("Sign mask: ") ;
-		for ( int i = 0 ; i < 8 ; i ++ )
+		printf("Sign mask: ");
+		for(int i = 0; i < 8; i ++)
 		{
-			printf("%d ", getSign( leaf, i ) ) ;
+			printf("%d ", getSign(leaf, i));
 		}
-		printf("\n") ;
+		printf("\n");
 
 	}
 
 	/// Retrieve signs
-	int getSign ( UCHAR* leaf, int index )
+	int getSign(const LeafNode* leaf, int index)
 	{
-		return (( leaf[2] >> index ) & 1 );		
-	};
+		return ((leaf->signs >> index) & 1);		
+	}
 
 	/// Set sign
-	void setSign ( UCHAR* leaf, int index ) 
+	void setSign(LeafNode* leaf, int index) 
 	{
-		leaf[2] |= ( 1 << index ) ;
-	};
-
-	void setSign ( UCHAR* leaf, int index, int sign ) 
-	{
-		leaf[2] &= ( ~ ( 1 << index ) ) ;
-		leaf[2] |= ( ( sign & 1 ) << index ) ;
-	};
-
-	int getSignMask( UCHAR* leaf )
-	{
-		return leaf[2] ;
+		leaf->signs |= (1 << index);
 	}
 
-	void setInProcessAll( int st[3], int dir )
+	void setSign(LeafNode* leaf, int index, int sign) 
 	{
-		int nst[3], eind ;
-		for ( int i = 0 ; i < 4 ; i ++ )
-		{
-			nst[0] = st[0] + dirCell[dir][i][0] * mindimen ;
-			nst[1] = st[1] + dirCell[dir][i][1] * mindimen ;
-			nst[2] = st[2] + dirCell[dir][i][2] * mindimen ;
-			eind = dirEdge[dir][i] ;
+		leaf->signs &= (~(1 << index));
+		leaf->signs |= ((sign & 1) << index);
+	}
 
-			UCHAR* cell = locateLeafCheck( nst ) ;
-			if ( cell == NULL )
-			{
-				printf("Wrong!\n") ;
-			}
-			setInProcess( cell, eind ) ;
+	int getSignMask(const LeafNode* leaf)
+	{
+		return leaf->signs;
+	}
+
+	void setInProcessAll(int st[3], int dir)
+	{
+		int nst[3], eind;
+		for(int i = 0; i < 4; i ++)
+		{
+			nst[0] = st[0] + dirCell[dir][i][0] * mindimen;
+			nst[1] = st[1] + dirCell[dir][i][1] * mindimen;
+			nst[2] = st[2] + dirCell[dir][i][2] * mindimen;
+			eind = dirEdge[dir][i];
+
+			LeafNode* cell = locateLeafCheck(nst);
+			assert(cell);
+
+			setInProcess(cell, eind);
 		}
 	}
 
-	void flipParityAll( int st[3], int dir )
+	void flipParityAll(int st[3], int dir)
 	{
-		int nst[3], eind ;
-		for ( int i = 0 ; i < 4 ; i ++ )
+		int nst[3], eind;
+		for(int i = 0; i < 4; i ++)
 		{
-			nst[0] = st[0] + dirCell[dir][i][0] * mindimen ;
-			nst[1] = st[1] + dirCell[dir][i][1] * mindimen ;
-			nst[2] = st[2] + dirCell[dir][i][2] * mindimen ;
-			eind = dirEdge[dir][i] ;
+			nst[0] = st[0] + dirCell[dir][i][0] * mindimen;
+			nst[1] = st[1] + dirCell[dir][i][1] * mindimen;
+			nst[2] = st[2] + dirCell[dir][i][2] * mindimen;
+			eind = dirEdge[dir][i];
 
-			UCHAR* cell = locateLeaf( nst ) ;
-			flipEdge( cell, eind ) ;
+			LeafNode* cell = locateLeaf(nst);
+			flipEdge(cell, eind);
 		}
 	}
 
-	void setInProcess( UCHAR* leaf, int eind )
+	void setInProcess(LeafNode* leaf, int eind)
 	{
-		// leaf[1] |= ( 1 << 7 ) ;
-		( (USHORT*) (leaf + leaf_node_bytes - (flood_bytes + CINDY_BYTES)))[0] |= ( 1 << eind ) ;
+		assert(eind >= 0 && eind <= 11);
+
+		leaf->flood_fill |= (1 << eind);
 	}
-	void setOutProcess( UCHAR* leaf, int eind )
-	{
-		// leaf[1] &= ( ~ ( 1 << 7 ) ) ;
-		( (USHORT*) (leaf + leaf_node_bytes - (flood_bytes + CINDY_BYTES)))[0] &= ( ~ ( 1 << eind ) ) ;
-	}
-
-	int isInProcess( UCHAR* leaf, int eind )
-	{
-		//int a = ( ( leaf[1] >> 7 ) & 1 ) ;
-		int a = ( ( ( (USHORT*) (leaf + leaf_node_bytes - (flood_bytes + CINDY_BYTES)))[0] >> eind ) & 1 ) ;
-		return a ;
-	}
-
-#ifndef USE_HERMIT
-	/// Set minimizer index
-	void setEdgeIntersectionIndex( UCHAR* leaf, int count, int index )
-	{
-		((int *)( leaf + leaf_node_bytes ))[ count ] = index ;
-	}
-
-	/// Get minimizer index
-	int getEdgeIntersectionIndex( UCHAR* leaf, int count )
-	{
-		return 	((int *)( leaf + leaf_node_bytes ))[ count ] ;
-	}
-
-	/// Get all intersection indices associated with a cell
-	void fillEdgeIntersectionIndices( UCHAR* leaf, int st[3], int len, int inds[12] )
-	{
-		int i ;
-
-		// The three primal edges are easy
-		int pmask[3] = { 0, 4, 8 } ;
-		for ( i = 0 ; i < 3 ; i ++ )
-		{
-			if ( getEdgeParity( leaf, pmask[i] ) )
-			{
-				inds[pmask[i]] = getEdgeIntersectionIndex( leaf, getEdgeCount( leaf, i ) ) ;
-			}
-		}
-		
-		// 3 face adjacent cubes
-		int fmask[3][2] = {{6,10},{2,9},{1,5}} ;
-		int femask[3][2] = {{1,2},{0,2},{0,1}} ;
-		for ( i = 0 ; i < 3 ; i ++ )
-		{
-			int e1 = getEdgeParity( leaf, fmask[i][0] ) ;
-			int e2 = getEdgeParity( leaf, fmask[i][1] ) ;
-			if ( e1 || e2 )
-			{
-				int nst[3] = {st[0], st[1], st[2]} ;
-				nst[ i ] += len ;
-				// int nstt[3] = {0, 0, 0} ;
-				// nstt[ i ] += 1 ;
-				UCHAR* node = locateLeaf( nst ) ;
-				
-				if ( e1 )
-				{
-					inds[ fmask[i][0] ] = getEdgeIntersectionIndex( node, getEdgeCount( node, femask[i][0] ) ) ;
-				}
-				if ( e2 )
-				{
-					inds[ fmask[i][1] ] = getEdgeIntersectionIndex( node, getEdgeCount( node, femask[i][1] ) ) ;
-				}
-			}
-		}
-		
-		// 3 edge adjacent cubes
-		int emask[3] = {3, 7, 11} ;
-		int eemask[3] = {0, 1, 2} ;
-		for ( i = 0 ; i < 3 ; i ++ )
-		{
-			if ( getEdgeParity( leaf, emask[i] ) )
-			{
-				int nst[3] = {st[0] + len, st[1] + len, st[2] + len} ;
-				nst[ i ] -= len ;
-				// int nstt[3] = {1, 1, 1} ;
-				// nstt[ i ] -= 1 ;
-				UCHAR* node = locateLeaf( nst ) ;
-				
-				inds[ emask[i] ] = getEdgeIntersectionIndex( node, getEdgeCount( node, eemask[i] ) ) ;
-			}
-		}
-	}
-
-
-#endif
 	
-	/// Generate signs at the corners from the edge parity
-	void generateSigns ( UCHAR* leaf, UCHAR table[], int start )
+	void setOutProcess(LeafNode* leaf, int eind)
 	{
-		leaf[2] = table[ ( ((USHORT *) leaf)[ 0 ] ) & ( ( 1 << 12 ) - 1 ) ] ; 
+		assert(eind >= 0 && eind <= 11);
+		
+		leaf->flood_fill &= ~(1 << eind);
+	}
 
-		if ( ( start ^ leaf[2] ) & 1 ) 
+	int isInProcess(LeafNode* leaf, int eind)
+	{
+		assert(eind >= 0 && eind <= 11);
+		
+		return (leaf->flood_fill >> eind) & 1;
+	}
+
+	/// Generate signs at the corners from the edge parity
+	void generateSigns(LeafNode* leaf, unsigned char table[], int start)
+	{
+		leaf->signs = table[leaf->edge_parity]; 
+
+		if((start ^ leaf->signs) & 1)
 		{
-			leaf[2] = ~ ( leaf[2] ) ;
+			leaf->signs = ~(leaf->signs);
 		}
 	}
 
 	/// Get edge parity
-	int getEdgeParity( UCHAR* leaf, int index ) 
+	int getEdgeParity(LeafNode* leaf, int index) 
 	{
-		int a = ( ( ((USHORT *) leaf)[ 0 ] >> index ) & 1 ) ;
-		return 	a ;
-	};
+		assert(index >= 0 && index <= 11);
+		
+		return (leaf->edge_parity >> index) & 1;
+	}
 
 	/// Get edge parity on a face
-	int getFaceParity ( UCHAR* leaf, int index )
+	int getFaceParity(LeafNode* leaf, int index)
 	{
-		int a = getEdgeParity( leaf, faceMap[ index ][ 0 ] ) + 
-				getEdgeParity( leaf, faceMap[ index ][ 1 ] ) + 
-				getEdgeParity( leaf, faceMap[ index ][ 2 ] ) + 
-				getEdgeParity( leaf, faceMap[ index ][ 3 ] ) ;
-		return ( a & 1 ) ;
+		int a = getEdgeParity(leaf, faceMap[index][0]) + 
+				getEdgeParity(leaf, faceMap[index][1]) + 
+				getEdgeParity(leaf, faceMap[index][2]) + 
+				getEdgeParity(leaf, faceMap[index][3]);
+		return (a & 1);
 	}
-	int getFaceEdgeNum ( UCHAR* leaf, int index )
+	int getFaceEdgeNum(LeafNode* leaf, int index)
 	{
-		int a = getEdgeParity( leaf, faceMap[ index ][ 0 ] ) + 
-				getEdgeParity( leaf, faceMap[ index ][ 1 ] ) + 
-				getEdgeParity( leaf, faceMap[ index ][ 2 ] ) + 
-				getEdgeParity( leaf, faceMap[ index ][ 3 ] ) ;
-		return a ;
+		int a = getEdgeParity(leaf, faceMap[index][0]) + 
+				getEdgeParity(leaf, faceMap[index][1]) + 
+				getEdgeParity(leaf, faceMap[index][2]) + 
+				getEdgeParity(leaf, faceMap[index][3]);
+		return a;
 	}
 
 	/// Set edge parity
-	void flipEdge( UCHAR* leaf, int index ) 
+	void flipEdge(LeafNode* leaf, int index) 
 	{
-		((USHORT *) leaf)[ 0 ] ^= ( 1 << index ) ;	
-	};
+		assert(index >= 0 && index <= 11);
+
+		leaf->edge_parity ^= (1 << index);
+	}
+	
 	/// Set 1
-	void setEdge( UCHAR* leaf, int index ) 
+	void setEdge(LeafNode* leaf, int index) 
 	{
-		((USHORT *) leaf)[ 0 ] |= ( 1 << index ) ;	
-	};
+		assert(index >= 0 && index <= 11);
+
+		leaf->edge_parity |= (1 << index);
+	}
+	
 	/// Set 0
-	void resetEdge( UCHAR* leaf, int index ) 
+	void resetEdge(LeafNode* leaf, int index) 
 	{
-		((USHORT *) leaf)[ 0 ] &= ( ~ ( 1 << index ) ) ;	
-	};
+		assert(index >= 0 && index <= 11);
+
+		leaf->edge_parity &= ~(1 << index);
+	}
 
 	/// Flipping with a new intersection offset
-	void createPrimalEdgesMask( UCHAR* leaf )
+	void createPrimalEdgesMask(LeafNode* leaf)
 	{
-		int mask = (( leaf[0] & 1 ) | ( (leaf[0] >> 3) & 2 ) | ( (leaf[1] & 1) << 2 ) ) ;
-		leaf[1] |= ( mask << 4 ) ;
-
+		leaf->primary_edge_intersections = getPrimalEdgesMask2(leaf);
 	}
 
-	void setStoredEdgesParity( UCHAR* leaf, int pindex )
+	void setStoredEdgesParity(LeafNode* leaf, int pindex)
 	{
-		leaf[1] |= ( 1 << ( 4 + pindex ) ) ;
+		assert(pindex <= 2 && pindex >= 0);
+		
+		leaf->primary_edge_intersections |= (1 << pindex);
 	}
-	int getStoredEdgesParity( UCHAR* leaf, int pindex )
+	int getStoredEdgesParity(LeafNode* leaf, int pindex)
 	{
-		return ( ( leaf[1] >> ( 4 + pindex ) ) & 1 ) ;
+		assert(pindex <= 2 && pindex >= 0);
+		
+		return (leaf->primary_edge_intersections >> pindex) & 1;
 	}
 
-	UCHAR* flipEdge( UCHAR* leaf, int index, float alpha ) 
+	LeafNode* flipEdge(LeafNode* leaf, int index, float alpha)
 	{
-		flipEdge( leaf, index ) ;
+		flipEdge(leaf, index);
 
-		if ( ( index & 3 ) == 0 )
+		if((index & 3) == 0)
 		{
-			int ind = index / 4 ;
-			if ( getEdgeParity( leaf, index ) && ! getStoredEdgesParity( leaf, ind ) )
+			int ind = index / 4;
+			if(getEdgeParity(leaf, index) && ! getStoredEdgesParity(leaf, ind))
 			{
 				// Create a new node
-				int num = getNumEdges( leaf ) + 1 ;
-				setStoredEdgesParity( leaf, ind ) ;
-				int count = getEdgeCount( leaf, ind ) ;
-				UCHAR* nleaf = createLeaf( num ) ;
-				for ( int i = 0 ; i < leaf_node_bytes ; i ++ )
-				{
-					nleaf[i] = leaf[i] ;
-				}
+				int num = getNumEdges(leaf) + 1;
+				setStoredEdgesParity(leaf, ind);
+				int count = getEdgeCount(leaf, ind);
+				LeafNode* nleaf = createLeaf(num);
+				*nleaf = *leaf;
 
-				setEdgeOffset( nleaf, alpha, count ) ;
+				setEdgeOffset(nleaf, alpha, count);
 
-				if ( num > 1 )
+				if(num > 1)
 				{
-					float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
-					float * npts = ( float * ) ( nleaf + leaf_node_bytes ) ;
-					for ( int i = 0 ; i < count ; i ++ )
+					float *pts = leaf->edge_intersections;
+					float *npts = nleaf->edge_intersections;
+					for(int i = 0; i < count; i ++)
 					{
-						for ( int j = 0 ; j < EDGE_FLOATS ; j ++ )
+						for(int j = 0; j < EDGE_FLOATS; j ++)
 						{
-							npts[i * EDGE_FLOATS + j] = pts[i * EDGE_FLOATS + j] ;
+							npts[i * EDGE_FLOATS + j] = pts[i * EDGE_FLOATS + j];
 						}
 					}
-					for ( int i = count + 1 ; i < num ; i ++ )
+					for(int i = count + 1; i < num; i ++)
 					{
-						for ( int j = 0 ; j < EDGE_FLOATS ; j ++ )
+						for(int j = 0; j < EDGE_FLOATS; j ++)
 						{
-							npts[i * EDGE_FLOATS + j] = pts[ (i - 1) * EDGE_FLOATS + j] ;
+							npts[i * EDGE_FLOATS + j] = pts[(i - 1) * EDGE_FLOATS + j];
 						}
 					}
 				}
 
 				
-				removeLeaf( num-1, leaf ) ;
-				leaf = nleaf ;
+				removeLeaf(num-1, (LeafNode*)leaf);
+				leaf = nleaf;
 			}
 		}
 
-		return leaf ;
-	};
-
-	/// Update parent link
-	void updateParent( UCHAR* node, int len, int st[3], UCHAR* leaf ) 
-	{
-		// First, locate the parent
-		int count ;
-		UCHAR* parent = locateParent( node, len, st, count ) ;
-
-		// UPdate
-		setChild( parent, count, leaf ) ;
+		return leaf;
 	}
 
-	void updateParent( UCHAR* node, int len, int st[3] ) 
+	/// Update parent link
+	void updateParent(InternalNode* node, int len, int st[3], LeafNode* leaf)
 	{
-		if ( len == dimen )
+		// First, locate the parent
+		int count;
+		InternalNode* parent = locateParent(node, len, st, count);
+
+		// Update
+		setChild(parent, count, (Node*)leaf);
+	}
+
+	void updateParent(InternalNode* node, int len, int st[3]) 
+	{
+		if(len == dimen)
 		{
-			root = node ;
-			return ;
+			root = (Node*)node;
+			return;
 		}
 
 		// First, locate the parent
-		int count ;
-		UCHAR* parent = locateParent( len, st, count ) ;
+		int count;
+		InternalNode* parent = locateParent(len, st, count);
 
 		// UPdate
-		setChild( parent, count, node ) ;
+		setChild(parent, count, (Node*)node);
 	}
 
 	/// Find edge intersection on a given edge
-	int getEdgeIntersectionByIndex( int st[3], int index, float pt[3], int check )
+	int getEdgeIntersectionByIndex(int st[3], int index, float pt[3], int check)
 	{
 		// First, locat the leaf
-		UCHAR* leaf ;
-		if ( check )
+		LeafNode* leaf;
+		if(check)
 		{
-			leaf = locateLeafCheck( st ) ;
+			leaf = locateLeafCheck(st);
 		}
 		else
 		{
-			leaf = locateLeaf( st ) ;
+			leaf = locateLeaf(st);
 		}
 
-		if ( leaf && getStoredEdgesParity( leaf, index ) )
+		if(leaf && getStoredEdgesParity(leaf, index))
 		{
-			float off = getEdgeOffset( leaf, getEdgeCount( leaf, index ) ) ;
-			pt[0] = (float) st[0] ;
-			pt[1] = (float) st[1] ;
-			pt[2] = (float) st[2] ;
-			pt[index] += off * mindimen ;
+			float off = getEdgeOffset(leaf, getEdgeCount(leaf, index));
+			pt[0] =(float) st[0];
+			pt[1] =(float) st[1];
+			pt[2] =(float) st[2];
+			pt[index] += off * mindimen;
 
-			return 1 ;
+			return 1;
 		}
 		else
 		{
-			return 0 ;
+			return 0;
 		}
 	}
 
 	/// Retrieve number of edges intersected
-	int getPrimalEdgesMask( UCHAR* leaf )
+	int getPrimalEdgesMask(LeafNode* leaf)
 	{
-		// return (( leaf[0] & 1 ) | ( (leaf[0] >> 3) & 2 ) | ( (leaf[1] & 1) << 2 ) ) ;
-		return ( ( leaf[1] >> 4 ) & 7 ) ;
+		return leaf->primary_edge_intersections;
 	}
 
-	int getPrimalEdgesMask2( UCHAR* leaf )
+	int getPrimalEdgesMask2(LeafNode* leaf)
 	{
-		return (( leaf[0] & 1 ) | ( (leaf[0] >> 3) & 2 ) | ( (leaf[1] & 1) << 2 ) ) ;
+		return (((leaf->edge_parity &   0x1) >> 0) |
+				((leaf->edge_parity &  0x10) >> 3) |
+				((leaf->edge_parity & 0x100) >> 6));
 	}
 
 	/// Get the count for a primary edge
-	int getEdgeCount( UCHAR* leaf, int index )
+	int getEdgeCount(LeafNode* leaf, int index)
 	{
-		return edgeCountTable[ getPrimalEdgesMask( leaf ) ][ index ] ;
+		return edgeCountTable[getPrimalEdgesMask(leaf)][index];
 	}
-	int getNumEdges( UCHAR* leaf )
+	int getNumEdges(LeafNode* leaf)
 	{
-		return numEdgeTable[ getPrimalEdgesMask( leaf ) ] ;
+		return numEdgeTable[getPrimalEdgesMask(leaf)];
 	}
 
-	int getNumEdges2( UCHAR* leaf )
+	int getNumEdges2(LeafNode* leaf)
 	{
-		return numEdgeTable[ getPrimalEdgesMask2( leaf ) ] ;
+		return numEdgeTable[getPrimalEdgesMask2(leaf)];
 	}
 
 	/// Set edge intersection
-	void setEdgeOffset( UCHAR* leaf, float pt, int count )
+	void setEdgeOffset(LeafNode* leaf, float pt, int count)
 	{
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
-#ifdef USE_HERMIT
-		pts[ EDGE_FLOATS * count ] = pt ;
-		pts[ EDGE_FLOATS * count + 1 ] = 0 ;
-		pts[ EDGE_FLOATS * count + 2 ] = 0 ;
-		pts[ EDGE_FLOATS * count + 3 ] = 0 ;
-#else
-		pts[ count ] = pt ;
-#endif
+		float *pts = leaf->edge_intersections;
+		pts[EDGE_FLOATS * count] = pt;
+		pts[EDGE_FLOATS * count + 1] = 0;
+		pts[EDGE_FLOATS * count + 2] = 0;
+		pts[EDGE_FLOATS * count + 3] = 0;
 	}
 
 	/// Set multiple edge intersections
-	void setEdgeOffsets( UCHAR* leaf, float pt[3], int len )
+	void setEdgeOffsets(LeafNode* leaf, float pt[3], int len)
 	{
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
-		for ( int i = 0 ; i < len ; i ++ )
+		float * pts = leaf->edge_intersections;
+		for(int i = 0; i < len; i ++)
 		{
-			pts[i] = pt[i] ;
+			pts[i] = pt[i];
 		}
 	}
 
 	/// Retrieve edge intersection
-	float getEdgeOffset( UCHAR* leaf, int count )
+	float getEdgeOffset(LeafNode* leaf, int count)
 	{
-#ifdef USE_HERMIT
-		return (( float * ) ( leaf + leaf_node_bytes ))[ 4 * count ] ;
-#else
-		return (( float * ) ( leaf + leaf_node_bytes ))[ count ] ;
-#endif
+		return leaf->edge_intersections[4 * count];
 	}
 
 	/// Update method
-	UCHAR* updateEdgeOffsets( UCHAR* leaf, int oldlen, int newlen, float offs[3] )
+	LeafNode* updateEdgeOffsets(LeafNode* leaf, int oldlen, int newlen, float offs[3])
 	{
 		// First, create a new leaf node
-		UCHAR* nleaf = createLeaf( newlen ) ;
-		for ( int i = 0 ; i < leaf_node_bytes ; i ++ )
-		{
-			nleaf[i] = leaf[i] ;
-		}
+		LeafNode* nleaf = createLeaf(newlen);
+		*nleaf = *leaf;
 
 		// Next, fill in the offsets
-		setEdgeOffsets( nleaf, offs, newlen ) ;
+		setEdgeOffsets(nleaf, offs, newlen);
 
 		// Finally, delete the old leaf
-		removeLeaf( oldlen, leaf ) ;
+		removeLeaf(oldlen, leaf);
 
-		return nleaf ;
+		return nleaf;
 	}
 
-	/// Set original vertex index
-	void setOriginalIndex( UCHAR* leaf, int index )
-	{
-		((int *)( leaf + leaf_node_bytes ))[ 0 ] = index ;
-	}
-	int getOriginalIndex( UCHAR* leaf )
-	{
-		return 	((int *)( leaf + leaf_node_bytes ))[ 0 ] ;
-	}
-#ifdef USE_HERMIT
 	/// Set minimizer index
-	void setMinimizerIndex( UCHAR* leaf, int index )
+	void setMinimizerIndex(LeafNode* leaf, int index)
 	{
-		((int *)( leaf + leaf_node_bytes - leaf_extra_bytes - 4 ))[ 0 ] = index ;
+		leaf->minimizer_index = index;
 	}
 
 	/// Get minimizer index
-	int getMinimizerIndex( UCHAR* leaf )
+	int getMinimizerIndex(LeafNode* leaf)
 	{
-		return ((int *)( leaf + leaf_node_bytes - leaf_extra_bytes - 4 ))[ 0 ] ;
+		return leaf->minimizer_index;
 	}
 	
-	int getMinimizerIndex( UCHAR* leaf, int eind )
+	int getMinimizerIndex(LeafNode* leaf, int eind)
 	{
-		int add = manifold_table[ getSignMask( leaf ) ].pairs[ eind ][ 0 ] - 1 ;
-		if ( add < 0 )
-		{
-			printf("Manifold components wrong!\n") ;
-		}
-		return ((int *)( leaf + leaf_node_bytes - leaf_extra_bytes - 4 ))[ 0 ] + add ;
+		int add = manifold_table[getSignMask(leaf)].pairs[eind][0] - 1;
+		assert(add >= 0);
+		return leaf->minimizer_index + add;
 	}
 
-	void getMinimizerIndices( UCHAR* leaf, int eind, int inds[2] )
+	void getMinimizerIndices(LeafNode* leaf, int eind, int inds[2])
 	{
-		const int* add = manifold_table[ getSignMask( leaf ) ].pairs[ eind ] ;
-		inds[0] = ((int *)( leaf + leaf_node_bytes - leaf_extra_bytes - 4 ))[ 0 ] + add[0] - 1 ;
-		if ( add[0] == add[1] )
+		const int* add = manifold_table[getSignMask(leaf)].pairs[eind];
+		inds[0] = leaf->minimizer_index + add[0] - 1;
+		if(add[0] == add[1])
 		{
-			inds[1] = -1 ;
+			inds[1] = -1;
 		}
 		else
 		{
-			inds[1] = ((int *)( leaf + leaf_node_bytes - leaf_extra_bytes - 4 ))[ 0 ] + add[1] - 1 ;
+			inds[1] = leaf->minimizer_index + add[1] - 1;
 		}
 	}
 
 
 	/// Set edge intersection
-	void setEdgeOffsetNormal( UCHAR* leaf, float pt, float a, float b, float c, int count )
+	void setEdgeOffsetNormal(LeafNode* leaf, float pt, float a, float b, float c, int count)
 	{
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
-		pts[ 4 * count ] = pt ;
-		pts[ 4 * count + 1 ] = a ;
-		pts[ 4 * count + 2 ] = b ;
-		pts[ 4 * count + 3 ] = c ;
+		float * pts = leaf->edge_intersections;
+		pts[4 * count] = pt;
+		pts[4 * count + 1] = a;
+		pts[4 * count + 2] = b;
+		pts[4 * count + 3] = c;
 	}
 
-	float getEdgeOffsetNormal( UCHAR* leaf, int count, float& a, float& b, float& c )
+	float getEdgeOffsetNormal(LeafNode* leaf, int count, float& a, float& b, float& c)
 	{
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
-		a = pts[ 4 * count + 1 ] ;
-		b = pts[ 4 * count + 2 ] ;
-		c = pts[ 4 * count + 3 ] ;
-		return pts[ 4 * count ] ;
+		float * pts = leaf->edge_intersections;
+		a = pts[4 * count + 1];
+		b = pts[4 * count + 2];
+		c = pts[4 * count + 3];
+		return pts[4 * count];
 	}
 
 	/// Set multiple edge intersections
-	void setEdgeOffsetsNormals( UCHAR* leaf, float pt[], float a[], float b[], float c[], int len )
+	void setEdgeOffsetsNormals(LeafNode* leaf, float pt[], float a[], float b[], float c[], int len)
 	{
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
-		for ( int i = 0 ; i < len ; i ++ )
+		float *pts = leaf->edge_intersections;
+		for(int i = 0; i < len; i ++)
 		{
-			if ( pt[i] > 1 || pt[i] < 0 )
+			if(pt[i] > 1 || pt[i] < 0)
 			{
-				printf("\noffset: %f\n", pt[i]) ;
+				printf("\noffset: %f\n", pt[i]);
 			}
-			pts[ i * 4 ] = pt[i] ;
-			pts[ i * 4 + 1 ] = a[i] ;
-			pts[ i * 4 + 2 ] = b[i] ;
-			pts[ i * 4 + 3 ] = c[i] ;
+			pts[i * 4] = pt[i];
+			pts[i * 4 + 1] = a[i];
+			pts[i * 4 + 2] = b[i];
+			pts[i * 4 + 3] = c[i];
 		}
 	}
 
 	/// Retrieve complete edge intersection
-	void getEdgeIntersectionByIndex( UCHAR* leaf, int index, int st[3], int len, float pt[3], float nm[3] )
+	void getEdgeIntersectionByIndex(LeafNode* leaf, int index, int st[3], int len, float pt[3], float nm[3])
 	{
-		int count = getEdgeCount( leaf, index ) ;
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
+		int count = getEdgeCount(leaf, index);
+		float *pts = leaf->edge_intersections;
 		
-		float off = pts[ 4 * count ] ;
+		float off = pts[4 * count];
 		
-		pt[0] =  (float) st[0] ;
-		pt[1] =  (float) st[1] ;
-		pt[2] =  (float) st[2] ;
-		pt[ index ] += ( off * len ) ;
+		pt[0] = (float) st[0];
+		pt[1] = (float) st[1];
+		pt[2] = (float) st[2];
+		pt[index] +=(off * len);
 
-		nm[0] = pts[ 4 * count + 1 ] ;
-		nm[1] = pts[ 4 * count + 2 ] ;
-		nm[2] = pts[ 4 * count + 3 ] ;
+		nm[0] = pts[4 * count + 1];
+		nm[1] = pts[4 * count + 2];
+		nm[2] = pts[4 * count + 3];
 	}
 
-	float getEdgeOffsetNormalByIndex( UCHAR* leaf, int index, float nm[3] )
+	float getEdgeOffsetNormalByIndex(LeafNode* leaf, int index, float nm[3])
 	{
-		int count = getEdgeCount( leaf, index ) ;
-		float * pts = ( float * ) ( leaf + leaf_node_bytes ) ;
+		int count = getEdgeCount(leaf, index);
+		float *pts = leaf->edge_intersections;
 		
-		float off = pts[ 4 * count ] ;
+		float off = pts[4 * count];
 		
-		nm[0] = pts[ 4 * count + 1 ] ;
-		nm[1] = pts[ 4 * count + 2 ] ;
-		nm[2] = pts[ 4 * count + 3 ] ;
+		nm[0] = pts[4 * count + 1];
+		nm[1] = pts[4 * count + 2];
+		nm[2] = pts[4 * count + 3];
 
-		return off ;
+		return off;
 	}
 
-	void fillEdgeIntersections( UCHAR* leaf, int st[3], int len, float pts[12][3], float norms[12][3] )
+	void fillEdgeIntersections(LeafNode* leaf, int st[3], int len, float pts[12][3], float norms[12][3])
 	{
-		int i ;
-		// int stt[3] = { 0, 0, 0 } ;
+		int i;
+		// int stt[3] = {0, 0, 0};
 
 		// The three primal edges are easy
-		int pmask[3] = { 0, 4, 8 } ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int pmask[3] = {0, 4, 8};
+		for(i = 0; i < 3; i ++)
 		{
-			if ( getEdgeParity( leaf, pmask[i] ) )
+			if(getEdgeParity(leaf, pmask[i]))
 			{
-				// getEdgeIntersectionByIndex( leaf, i, stt, 1, pts[ pmask[i] ], norms[ pmask[i] ] ) ;
-				getEdgeIntersectionByIndex( leaf, i, st, len, pts[ pmask[i] ], norms[ pmask[i] ] ) ;
+				// getEdgeIntersectionByIndex(leaf, i, stt, 1, pts[pmask[i]], norms[pmask[i]]);
+				getEdgeIntersectionByIndex(leaf, i, st, len, pts[pmask[i]], norms[pmask[i]]);
 			}
 		}
 		
 		// 3 face adjacent cubes
-		int fmask[3][2] = {{6,10},{2,9},{1,5}} ;
-		int femask[3][2] = {{1,2},{0,2},{0,1}} ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int fmask[3][2] = {{6,10},{2,9},{1,5}};
+		int femask[3][2] = {{1,2},{0,2},{0,1}};
+		for(i = 0; i < 3; i ++)
 		{
-			int e1 = getEdgeParity( leaf, fmask[i][0] ) ;
-			int e2 = getEdgeParity( leaf, fmask[i][1] ) ;
-			if ( e1 || e2 )
+			int e1 = getEdgeParity(leaf, fmask[i][0]);
+			int e2 = getEdgeParity(leaf, fmask[i][1]);
+			if(e1 || e2)
 			{
-				int nst[3] = {st[0], st[1], st[2]} ;
-				nst[ i ] += len ;
-				// int nstt[3] = {0, 0, 0} ;
-				// nstt[ i ] += 1 ;
-				UCHAR* node = locateLeaf( nst ) ;
+				int nst[3] = {st[0], st[1], st[2]};
+				nst[i] += len;
+				// int nstt[3] = {0, 0, 0};
+				// nstt[i] += 1;
+				LeafNode* node = locateLeaf(nst);
 				
-				if ( e1 )
+				if(e1)
 				{
-					// getEdgeIntersectionByIndex( node, femask[i][0], nstt, 1, pts[ fmask[i][0] ], norms[ fmask[i][0] ] ) ;
-					getEdgeIntersectionByIndex( node, femask[i][0], nst, len, pts[ fmask[i][0] ], norms[ fmask[i][0] ] ) ;
+					// getEdgeIntersectionByIndex(node, femask[i][0], nstt, 1, pts[fmask[i][0]], norms[fmask[i][0]]);
+					getEdgeIntersectionByIndex(node, femask[i][0], nst, len, pts[fmask[i][0]], norms[fmask[i][0]]);
 				}
-				if ( e2 )
+				if(e2)
 				{
-					// getEdgeIntersectionByIndex( node, femask[i][1], nstt, 1, pts[ fmask[i][1] ], norms[ fmask[i][1] ] ) ;
-					getEdgeIntersectionByIndex( node, femask[i][1], nst, len, pts[ fmask[i][1] ], norms[ fmask[i][1] ] ) ;
+					// getEdgeIntersectionByIndex(node, femask[i][1], nstt, 1, pts[fmask[i][1]], norms[fmask[i][1]]);
+					getEdgeIntersectionByIndex(node, femask[i][1], nst, len, pts[fmask[i][1]], norms[fmask[i][1]]);
 				}
 			}
 		}
 		
 		// 3 edge adjacent cubes
-		int emask[3] = {3, 7, 11} ;
-		int eemask[3] = {0, 1, 2} ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int emask[3] = {3, 7, 11};
+		int eemask[3] = {0, 1, 2};
+		for(i = 0; i < 3; i ++)
 		{
-			if ( getEdgeParity( leaf, emask[i] ) )
+			if(getEdgeParity(leaf, emask[i]))
 			{
-				int nst[3] = {st[0] + len, st[1] + len, st[2] + len} ;
-				nst[ i ] -= len ;
-				// int nstt[3] = {1, 1, 1} ;
-				// nstt[ i ] -= 1 ;
-				UCHAR* node = locateLeaf( nst ) ;
+				int nst[3] = {st[0] + len, st[1] + len, st[2] + len};
+				nst[i] -= len;
+				// int nstt[3] = {1, 1, 1};
+				// nstt[i] -= 1;
+				LeafNode* node = locateLeaf(nst);
 				
-				// getEdgeIntersectionByIndex( node, eemask[i], nstt, 1, pts[ emask[i] ], norms[ emask[i] ] ) ;
-				getEdgeIntersectionByIndex( node, eemask[i], nst, len, pts[ emask[i] ], norms[ emask[i] ] ) ;
+				// getEdgeIntersectionByIndex(node, eemask[i], nstt, 1, pts[emask[i]], norms[emask[i]]);
+				getEdgeIntersectionByIndex(node, eemask[i], nst, len, pts[emask[i]], norms[emask[i]]);
 			}
 		}
 	}
 
 
-	void fillEdgeIntersections( UCHAR* leaf, int st[3], int len, float pts[12][3], float norms[12][3], int parity[12] )
+	void fillEdgeIntersections(LeafNode* leaf, int st[3], int len, float pts[12][3], float norms[12][3], int parity[12])
 	{
-		int i ;
-		for ( i = 0 ; i < 12 ; i ++ )
+		int i;
+		for(i = 0; i < 12; i ++)
 		{
-			parity[ i ] = 0 ;
+			parity[i] = 0;
 		}
-		// int stt[3] = { 0, 0, 0 } ;
+		// int stt[3] = {0, 0, 0};
 
 		// The three primal edges are easy
-		int pmask[3] = { 0, 4, 8 } ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int pmask[3] = {0, 4, 8};
+		for(i = 0; i < 3; i ++)
 		{
-			if ( getStoredEdgesParity( leaf, i ) )
+			if(getStoredEdgesParity(leaf, i))
 			{
-				// getEdgeIntersectionByIndex( leaf, i, stt, 1, pts[ pmask[i] ], norms[ pmask[i] ] ) ;
-				getEdgeIntersectionByIndex( leaf, i, st, len, pts[ pmask[i] ], norms[ pmask[i] ] ) ;
-				parity[ pmask[i] ] = 1 ;
+				// getEdgeIntersectionByIndex(leaf, i, stt, 1, pts[pmask[i]], norms[pmask[i]]);
+				getEdgeIntersectionByIndex(leaf, i, st, len, pts[pmask[i]], norms[pmask[i]]);
+				parity[pmask[i]] = 1;
 			}
 		}
 		
 		// 3 face adjacent cubes
-		int fmask[3][2] = {{6,10},{2,9},{1,5}} ;
-		int femask[3][2] = {{1,2},{0,2},{0,1}} ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int fmask[3][2] = {{6,10},{2,9},{1,5}};
+		int femask[3][2] = {{1,2},{0,2},{0,1}};
+		for(i = 0; i < 3; i ++)
 		{
 			{
-				int nst[3] = {st[0], st[1], st[2]} ;
-				nst[ i ] += len ;
-				// int nstt[3] = {0, 0, 0} ;
-				// nstt[ i ] += 1 ;
-				UCHAR* node = locateLeafCheck( nst ) ;
-				if ( node == NULL )
+				int nst[3] = {st[0], st[1], st[2]};
+				nst[i] += len;
+				// int nstt[3] = {0, 0, 0};
+				// nstt[i] += 1;
+				LeafNode* node = locateLeafCheck(nst);
+				if(node == NULL)
 				{
-					continue ;
+					continue;
 				}
 		
-				int e1 = getStoredEdgesParity( node, femask[i][0] ) ;
-				int e2 = getStoredEdgesParity( node, femask[i][1] ) ;
+				int e1 = getStoredEdgesParity(node, femask[i][0]);
+				int e2 = getStoredEdgesParity(node, femask[i][1]);
 				
-				if ( e1 )
+				if(e1)
 				{
-					// getEdgeIntersectionByIndex( node, femask[i][0], nstt, 1, pts[ fmask[i][0] ], norms[ fmask[i][0] ] ) ;
-					getEdgeIntersectionByIndex( node, femask[i][0], nst, len, pts[ fmask[i][0] ], norms[ fmask[i][0] ] ) ;
-					parity[ fmask[i][0] ] = 1 ;
+					// getEdgeIntersectionByIndex(node, femask[i][0], nstt, 1, pts[fmask[i][0]], norms[fmask[i][0]]);
+					getEdgeIntersectionByIndex(node, femask[i][0], nst, len, pts[fmask[i][0]], norms[fmask[i][0]]);
+					parity[fmask[i][0]] = 1;
 				}
-				if ( e2 )
+				if(e2)
 				{
-					// getEdgeIntersectionByIndex( node, femask[i][1], nstt, 1, pts[ fmask[i][1] ], norms[ fmask[i][1] ] ) ;
-					getEdgeIntersectionByIndex( node, femask[i][1], nst, len, pts[ fmask[i][1] ], norms[ fmask[i][1] ] ) ;
-					parity[ fmask[i][1] ] = 1 ;
+					// getEdgeIntersectionByIndex(node, femask[i][1], nstt, 1, pts[fmask[i][1]], norms[fmask[i][1]]);
+					getEdgeIntersectionByIndex(node, femask[i][1], nst, len, pts[fmask[i][1]], norms[fmask[i][1]]);
+					parity[fmask[i][1]] = 1;
 				}
 			}
 		}
 		
 		// 3 edge adjacent cubes
-		int emask[3] = {3, 7, 11} ;
-		int eemask[3] = {0, 1, 2} ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int emask[3] = {3, 7, 11};
+		int eemask[3] = {0, 1, 2};
+		for(i = 0; i < 3; i ++)
 		{
-//			if ( getEdgeParity( leaf, emask[i] ) )
+//			if(getEdgeParity(leaf, emask[i]))
 			{
-				int nst[3] = {st[0] + len, st[1] + len, st[2] + len} ;
-				nst[ i ] -= len ;
-				// int nstt[3] = {1, 1, 1} ;
-				// nstt[ i ] -= 1 ;
-				UCHAR* node = locateLeafCheck( nst ) ;
-				if ( node == NULL )
+				int nst[3] = {st[0] + len, st[1] + len, st[2] + len};
+				nst[i] -= len;
+				// int nstt[3] = {1, 1, 1};
+				// nstt[i] -= 1;
+				LeafNode* node = locateLeafCheck(nst);
+				if(node == NULL)
 				{
-					continue ;
+					continue;
 				}
 				
-				if ( getStoredEdgesParity( node, eemask[i] ) )
+				if(getStoredEdgesParity(node, eemask[i]))
 				{
-					// getEdgeIntersectionByIndex( node, eemask[i], nstt, 1, pts[ emask[i] ], norms[ emask[i] ] ) ;
-					getEdgeIntersectionByIndex( node, eemask[i], nst, len, pts[ emask[i] ], norms[ emask[i] ] ) ;
-					parity[ emask[ i ] ] = 1 ;
+					// getEdgeIntersectionByIndex(node, eemask[i], nstt, 1, pts[emask[i]], norms[emask[i]]);
+					getEdgeIntersectionByIndex(node, eemask[i], nst, len, pts[emask[i]], norms[emask[i]]);
+					parity[emask[i]] = 1;
 				}
 			}
 		}
 	}
 
-	void fillEdgeOffsetsNormals( UCHAR* leaf, int st[3], int len, float pts[12], float norms[12][3], int parity[12] )
+	void fillEdgeOffsetsNormals(LeafNode* leaf, int st[3], int len, float pts[12], float norms[12][3], int parity[12])
 	{
-		int i ;
-		for ( i = 0 ; i < 12 ; i ++ )
+		int i;
+		for(i = 0; i < 12; i ++)
 		{
-			parity[ i ] = 0 ;
+			parity[i] = 0;
 		}
-		// int stt[3] = { 0, 0, 0 } ;
+		// int stt[3] = {0, 0, 0};
 
 		// The three primal edges are easy
-		int pmask[3] = { 0, 4, 8 } ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int pmask[3] = {0, 4, 8};
+		for(i = 0; i < 3; i ++)
 		{
-			if ( getStoredEdgesParity( leaf, i ) )
+			if(getStoredEdgesParity(leaf, i))
 			{
-				pts[ pmask[i] ] = getEdgeOffsetNormalByIndex( leaf, i, norms[ pmask[i] ] ) ;
-				parity[ pmask[i] ] = 1 ;
+				pts[pmask[i]] = getEdgeOffsetNormalByIndex(leaf, i, norms[pmask[i]]);
+				parity[pmask[i]] = 1;
 			}
 		}
 		
 		// 3 face adjacent cubes
-		int fmask[3][2] = {{6,10},{2,9},{1,5}} ;
-		int femask[3][2] = {{1,2},{0,2},{0,1}} ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int fmask[3][2] = {{6,10},{2,9},{1,5}};
+		int femask[3][2] = {{1,2},{0,2},{0,1}};
+		for(i = 0; i < 3; i ++)
 		{
 			{
-				int nst[3] = {st[0], st[1], st[2]} ;
-				nst[ i ] += len ;
-				// int nstt[3] = {0, 0, 0} ;
-				// nstt[ i ] += 1 ;
-				UCHAR* node = locateLeafCheck( nst ) ;
-				if ( node == NULL )
+				int nst[3] = {st[0], st[1], st[2]};
+				nst[i] += len;
+				// int nstt[3] = {0, 0, 0};
+				// nstt[i] += 1;
+				LeafNode* node = locateLeafCheck(nst);
+				if(node == NULL)
 				{
-					continue ;
+					continue;
 				}
 		
-				int e1 = getStoredEdgesParity( node, femask[i][0] ) ;
-				int e2 = getStoredEdgesParity( node, femask[i][1] ) ;
+				int e1 = getStoredEdgesParity(node, femask[i][0]);
+				int e2 = getStoredEdgesParity(node, femask[i][1]);
 				
-				if ( e1 )
+				if(e1)
 				{
-					pts[ fmask[i][0] ] = getEdgeOffsetNormalByIndex( node, femask[i][0], norms[ fmask[i][0] ] ) ;
-					parity[ fmask[i][0] ] = 1 ;
+					pts[fmask[i][0]] = getEdgeOffsetNormalByIndex(node, femask[i][0], norms[fmask[i][0]]);
+					parity[fmask[i][0]] = 1;
 				}
-				if ( e2 )
+				if(e2)
 				{
-					pts[ fmask[i][1] ] = getEdgeOffsetNormalByIndex( node, femask[i][1], norms[ fmask[i][1] ] ) ;
-					parity[ fmask[i][1] ] = 1 ;
+					pts[fmask[i][1]] = getEdgeOffsetNormalByIndex(node, femask[i][1], norms[fmask[i][1]]);
+					parity[fmask[i][1]] = 1;
 				}
 			}
 		}
 		
 		// 3 edge adjacent cubes
-		int emask[3] = {3, 7, 11} ;
-		int eemask[3] = {0, 1, 2} ;
-		for ( i = 0 ; i < 3 ; i ++ )
+		int emask[3] = {3, 7, 11};
+		int eemask[3] = {0, 1, 2};
+		for(i = 0; i < 3; i ++)
 		{
-//			if ( getEdgeParity( leaf, emask[i] ) )
+//			if(getEdgeParity(leaf, emask[i]))
 			{
-				int nst[3] = {st[0] + len, st[1] + len, st[2] + len} ;
-				nst[ i ] -= len ;
-				// int nstt[3] = {1, 1, 1} ;
-				// nstt[ i ] -= 1 ;
-				UCHAR* node = locateLeafCheck( nst ) ;
-				if ( node == NULL )
+				int nst[3] = {st[0] + len, st[1] + len, st[2] + len};
+				nst[i] -= len;
+				// int nstt[3] = {1, 1, 1};
+				// nstt[i] -= 1;
+				LeafNode* node = locateLeafCheck(nst);
+				if(node == NULL)
 				{
-					continue ;
+					continue;
 				}
 				
-				if ( getStoredEdgesParity( node, eemask[i] ) )
+				if(getStoredEdgesParity(node, eemask[i]))
 				{
-					pts[ emask[i] ] = getEdgeOffsetNormalByIndex( node, eemask[i], norms[ emask[i] ] ) ;
-					parity[ emask[ i ] ] = 1 ;
+					pts[emask[i]] = getEdgeOffsetNormalByIndex(node, eemask[i], norms[emask[i]]);
+					parity[emask[i]] = 1;
 				}
 			}
 		}
@@ -1253,344 +1112,320 @@ private:
 
 
 	/// Update method
-	UCHAR* updateEdgeOffsetsNormals( UCHAR* leaf, int oldlen, int newlen, float offs[3], float a[3], float b[3], float c[3] )
+	LeafNode* updateEdgeOffsetsNormals(LeafNode* leaf, int oldlen, int newlen, float offs[3], float a[3], float b[3], float c[3])
 	{
 		// First, create a new leaf node
-		UCHAR* nleaf = createLeaf( newlen ) ;
-		for ( int i = 0 ; i < leaf_node_bytes ; i ++ )
-		{
-			nleaf[i] = leaf[i] ;
-		}
+		LeafNode* nleaf = createLeaf(newlen);
+		*nleaf = *leaf;
 
 		// Next, fill in the offsets
-		setEdgeOffsetsNormals( nleaf, offs, a, b, c, newlen ) ;
+		setEdgeOffsetsNormals(nleaf, offs, a, b, c, newlen);
 
 		// Finally, delete the old leaf
-		removeLeaf( oldlen, leaf ) ;
+		removeLeaf(oldlen, leaf);
 
-		return nleaf ;
+		return nleaf;
 	}
-#endif
 
 	/// Locate a leaf
 	/// WARNING: assuming this leaf already exists!
 	
-	UCHAR* locateLeaf( int st[3] )
+	LeafNode* locateLeaf(int st[3])
 	{
-		UCHAR* node = root ;
-		for ( int i = GRID_DIMENSION - 1 ; i > GRID_DIMENSION - maxDepth - 1 ; i -- )
+		Node* node = (Node*)root;
+		for(int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i --)
 		{
-			int index = ( ( ( st[0] >> i ) & 1 ) << 2 ) | 
-						( ( ( st[1] >> i ) & 1 ) << 1 ) | 
-						( ( ( st[2] >> i ) & 1 ) ) ;
-			node = getChild( node, getChildCount( node, index ) ) ;
+			int index =(((st[0] >> i) & 1) << 2) | 
+						(((st[1] >> i) & 1) << 1) | 
+						(((st[2] >> i) & 1));
+			node = getChild(&node->internal, getChildCount(&node->internal, index));
 		}
 
-		return node ;
+		return &node->leaf;
 	}
 	
-	UCHAR* locateLeaf( UCHAR* node, int len, int st[3] )
+	LeafNode* locateLeaf(InternalNode* parent, int len, int st[3])
 	{
-		int index ;
-		for ( int i = len / 2 ; i >= mindimen ; i >>= 1 )
+		Node *node = (Node*)parent;
+		int index;
+		for(int i = len / 2; i >= mindimen; i >>= 1)
 		{
-			index = ( ( ( st[0] & i ) ? 4 : 0 ) | 
-					( ( st[1] & i ) ? 2 : 0 ) | 
-					( ( st[2] & i ) ? 1 : 0 ) ) ;
-			node = getChild( node, getChildCount( node, index ) ) ;
+			index =(((st[0] & i) ? 4 : 0) | 
+					((st[1] & i) ? 2 : 0) | 
+					((st[2] & i) ? 1 : 0));
+			node = getChild(&node->internal,
+							getChildCount(&node->internal, index));
 		}
 
-		return node ;
+		return &node->leaf;
 	}
-	UCHAR* locateLeafCheck( int st[3] )
+
+	LeafNode* locateLeafCheck(int st[3])
 	{
-		UCHAR* node = root ;
-		for ( int i = GRID_DIMENSION - 1 ; i > GRID_DIMENSION - maxDepth - 1 ; i -- )
+		Node* node = (Node*)root;
+		for(int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i --)
 		{
-			int index = ( ( ( st[0] >> i ) & 1 ) << 2 ) | 
-						( ( ( st[1] >> i ) & 1 ) << 1 ) | 
-						( ( ( st[2] >> i ) & 1 ) ) ;
-			if ( ! hasChild( node, index ) )
+			int index =(((st[0] >> i) & 1) << 2) | 
+						(((st[1] >> i) & 1) << 1) | 
+						(((st[2] >> i) & 1));
+			if(!hasChild(&node->internal, index))
 			{
-				return NULL ;
+				return NULL;
 			}
-			node = getChild( node, getChildCount( node, index ) ) ;
+			node = getChild(&node->internal, getChildCount(&node->internal, index));
 		}
 
-		return node ;
+		return &node->leaf;
 	}
-	UCHAR* locateParent( int len, int st[3], int& count )
-	{
-		UCHAR* node = root ;
-		UCHAR* pre = NULL ;
-		int index = 0 ;
-		for ( int i = dimen / 2 ; i >= len ; i >>= 1 )
-		{
-			index = ( ( ( st[0] & i ) ? 4 : 0 ) | 
-					( ( st[1] & i ) ? 2 : 0 ) | 
-					( ( st[2] & i ) ? 1 : 0 ) ) ;
-			pre = node ;
-			node = getChild( node, getChildCount( node, index ) ) ;
-		}
 
-		count = getChildCount( pre, index ) ;
-		return pre ;
-	}
-	UCHAR* locateParent( UCHAR* papa, int len, int st[3], int& count )
+	InternalNode* locateParent(int len, int st[3], int& count)
 	{
-		UCHAR* node = papa ;
-		UCHAR* pre = NULL ;
+		InternalNode* node = (InternalNode*)root;
+		InternalNode* pre = NULL;
 		int index = 0;
-		for ( int i = len / 2 ; i >= mindimen ; i >>= 1 )
+		for(int i = dimen / 2; i >= len; i >>= 1)
 		{
-			index = ( ( ( st[0] & i ) ? 4 : 0 ) | 
-					( ( st[1] & i ) ? 2 : 0 ) | 
-					( ( st[2] & i ) ? 1 : 0 ) ) ;
-			pre = node ;
-			node = getChild( node, getChildCount( node, index ) ) ;
+			index =(((st[0] & i) ? 4 : 0) | 
+					((st[1] & i) ? 2 : 0) | 
+					((st[2] & i) ? 1 : 0));
+			pre = node;
+			node = &getChild(node, getChildCount(node, index))->internal;
 		}
 
-		count = getChildCount( pre, index ) ;
-		return pre ;
+		count = getChildCount(pre, index);
+		return pre;
 	}
+	
+	InternalNode* locateParent(InternalNode* parent, int len, int st[3], int& count)
+	{
+		InternalNode* node = parent;
+		InternalNode* pre = NULL;
+		int index = 0;
+		for(int i = len / 2; i >= mindimen; i >>= 1)
+		{
+			index =(((st[0] & i) ? 4 : 0) | 
+					((st[1] & i) ? 2 : 0) | 
+					((st[2] & i) ? 1 : 0));
+			pre = node;
+			node = (InternalNode*)getChild(node, getChildCount(node, index));
+		}
+
+		count = getChildCount(pre, index);
+		return pre;
+	}
+	
 	/************ Operators for internal nodes ************/
 
-	/// Print the node information
-	void printNode( UCHAR* node )
+	/// If child index exists
+	int hasChild(InternalNode* node, int index)
 	{
-		printf("Address: %p ", node ) ;
-		printf("Leaf Mask: ") ;
-		for ( int i = 0 ; i < 8 ; i ++ )
-		{
-			printf( "%d ", isLeaf( node, i ) ) ;
-		}
-		printf("Child Mask: ") ;
-		for ( int i = 0 ; i < 8 ; i ++ )
-		{
-			printf( "%d ", hasChild( node, i ) ) ;
-		}
-		printf("\n") ;
+		return (node->has_child >> index) & 1;
 	}
 
-	/// Get size of an internal node
-	int getSize ( int length )
-	{
-		return INTERNAL_NODE_BYTES + length * 4 ;	
-	};
-
-	/// If child index exists
-	int hasChild( UCHAR* node, int index )
-	{
-		return ( node[0] >> index ) & 1 ;
-	};
-
 	/// Test if child is leaf
-	int isLeaf ( UCHAR* node, int index )
+	int isLeaf(InternalNode* node, int index)
 	{
-		return ( node[1] >> index ) & 1 ;
-	};
+		return (node->child_is_leaf >> index) & 1;
+	}
 
 	/// Get the pointer to child index
-	UCHAR* getChild ( UCHAR* node, int count )
+	Node* getChild(InternalNode* node, int count)
 	{
-		return (( UCHAR ** ) ( node + INTERNAL_NODE_BYTES )) [ count ] ;	
+		return node->children[count];
 	};
 
 	/// Get total number of children
-	int getNumChildren( UCHAR* node )
+	int getNumChildren(InternalNode* node)
 	{
-		return numChildrenTable[ node[0] ] ;
-	};
+		return numChildrenTable[node->has_child];
+	}
 
 	/// Get the count of children
-	int getChildCount( UCHAR* node, int index )
+	int getChildCount(InternalNode* node, int index)
 	{
-		return childrenCountTable[ node[0] ][ index ] ;
+		return childrenCountTable[node->has_child][index];
 	}
-	int getChildIndex( UCHAR* node, int count )
+	int getChildIndex(InternalNode* node, int count)
 	{
-		return childrenIndexTable[ node[0] ][ count ] ;
+		return childrenIndexTable[node->has_child][count];
 	}
-	int* getChildCounts( UCHAR* node )
+	int* getChildCounts(InternalNode* node)
 	{
-		return childrenCountTable[ node[0] ] ;
+		return childrenCountTable[node->has_child];
 	}
 
 	/// Get all children
-	void fillChildren( UCHAR* node, UCHAR* chd[ 8 ], int leaf[ 8 ] )
+	void fillChildren(InternalNode* node, Node* children[8], int leaf[8])
 	{
-		int count = 0 ;
-		for ( int i = 0 ; i < 8 ; i ++ )
+		int count = 0;
+		for(int i = 0; i < 8; i ++)
 		{	
-			leaf[ i ] = isLeaf( node, i ) ;
-			if ( hasChild( node, i ) )
+			leaf[i] = isLeaf(node, i);
+			if(hasChild(node, i))
 			{
-				chd[ i ] = getChild( node, count ) ;
-				count ++ ;
+				children[i] = getChild(node, count);
+				count ++;
 			}
 			else
 			{
-			 	chd[ i ] = NULL ;
-				leaf[ i ] = 0 ;
+			 	children[i] = NULL;
+				leaf[i] = 0;
 			}
 		}
 	}
 
 	/// Sets the child pointer
-	void setChild ( UCHAR* node, int count, UCHAR* chd )
+	void setChild(InternalNode* node, int count, Node* chd)
 	{
-		(( UCHAR ** ) ( node + INTERNAL_NODE_BYTES )) [ count ] = chd ;
+		node->children[count] = chd;
 	}
-	void setInternalChild ( UCHAR* node, int index, int count, UCHAR* chd )
+	void setInternalChild(InternalNode* node, int index, int count, InternalNode* chd)
 	{
-		setChild( node, count, chd ) ;
-		node[0] |= ( 1 << index ) ;
-	};
-	void setLeafChild ( UCHAR* node, int index, int count, UCHAR* chd )
+		setChild(node, count, (Node*)chd);
+		node->has_child |= (1 << index);
+	}
+	void setLeafChild(InternalNode* node, int index, int count, LeafNode* chd)
 	{
-		setChild( node, count, chd ) ;
-		node[0] |= ( 1 << index ) ;
-		node[1] |= ( 1 << index ) ;
-	};
+		setChild(node, count, (Node*)chd);
+		node->has_child |=(1 << index);
+		node->child_is_leaf |= (1 << index);
+	}
 
 	/// Add a kid to an existing internal node
 	/// Fix me: can we do this without wasting memory ?
 	/// Fixed: using variable memory
-	UCHAR* addChild( UCHAR* node, int index, UCHAR* chd, int aLeaf )
+	InternalNode* addChild(InternalNode* node, int index, Node* child, int aLeaf)
 	{
 		// Create new internal node
-		int num = getNumChildren( node ) ;
-		UCHAR* rnode = createInternal( num + 1 ) ;
+		int num = getNumChildren(node);
+		InternalNode* rnode = createInternal(num + 1);
 
 		// Establish children
-		int i ;
-		int count1 = 0, count2 = 0 ;
-		for ( i = 0 ; i < 8 ; i ++ )
+		int i;
+		int count1 = 0, count2 = 0;
+		for(i = 0; i < 8; i ++)
 		{
-			if ( i == index )
+			if(i == index)
 			{
-				if ( aLeaf )
+				if(aLeaf)
 				{
-					setLeafChild( rnode, i, count2, chd ) ;
+					setLeafChild(rnode, i, count2, &child->leaf);
 				}
 				else
 				{
-					setInternalChild( rnode, i, count2, chd ) ;
+					setInternalChild(rnode, i, count2, &child->internal);
 				}
-				count2 ++ ;
+				count2 ++;
 			}
-			else if ( hasChild( node, i ) )
+			else if(hasChild(node, i))
 			{
-				if ( isLeaf( node, i ) )
+				if(isLeaf(node, i))
 				{
-					setLeafChild( rnode, i, count2, getChild( node, count1 ) ) ;
+					setLeafChild(rnode, i, count2, &getChild(node, count1)->leaf);
 				}
 				else
 				{
-					setInternalChild( rnode, i, count2, getChild( node, count1 ) ) ;
+					setInternalChild(rnode, i, count2, &getChild(node, count1)->internal);
 				}
-				count1 ++ ;
-				count2 ++ ;
+				count1 ++;
+				count2 ++;
 			}
 		}
 
-		removeInternal( num, node ) ;
-		return rnode ;
+		removeInternal(num, node);
+		return rnode;
 	}
 
 	/// Allocate a node
-	UCHAR* createInternal( int length )
+	InternalNode* createInternal(int length)
 	{
-		UCHAR* inode = alloc[ length ]->allocate( ) ;
-		inode[0] = inode[1] = 0 ;
-		return inode ;
-	};
-	UCHAR* createLeaf( int length )
+		InternalNode* inode = (InternalNode*)alloc[length]->allocate();
+		inode->has_child = 0;
+		inode->child_is_leaf = 0;
+		return inode;
+	}
+	
+	LeafNode* createLeaf(int length)
 	{
-		if ( length > 3 )
-		{
-			printf("wierd");
-		}
-		UCHAR* lnode = leafalloc[ length ]->allocate( ) ;
-		lnode[0] = lnode[1] = lnode[2] = 0 ;
+		assert(length <= 3);
 
-		return lnode ;
-	};
+		LeafNode* lnode = (LeafNode*)leafalloc[length]->allocate();
+		lnode->edge_parity = 0;
+		lnode->primary_edge_intersections = 0;
+		lnode->signs = 0;
 
-	void removeInternal ( int num, UCHAR* node )
-	{
-		alloc[ num ]->deallocate( node ) ;
+		return lnode;
 	}
 
-	void removeLeaf ( int num, UCHAR* leaf )
+	void removeInternal(int num, InternalNode* node)
 	{
-		if ( num > 3 || num < 0 )
-		{
-			printf("wierd");
-		}
-		leafalloc[ num ]->deallocate( leaf ) ;
+		alloc[num]->deallocate(node);
+	}
+
+	void removeLeaf(int num, LeafNode* leaf)
+	{
+		assert(num >= 0 && num <= 3);
+		leafalloc[num]->deallocate(leaf);
 	}
 
 	/// Add a leaf (by creating a new par node with the leaf added)
-	UCHAR* addLeafChild ( UCHAR* par, int index, int count, UCHAR* leaf )
+	InternalNode* addLeafChild(InternalNode* par, int index, int count,
+							   LeafNode* leaf)
 	{
-		int num = getNumChildren( par ) + 1 ;
-		UCHAR* npar = createInternal( num ) ;
-		npar[0] = par[0] ;
-		npar[1] = par[1] ;
+		int num = getNumChildren(par) + 1;
+		InternalNode* npar = createInternal(num);
+		*npar = *par;
 		
-		if ( num == 1 )
+		if(num == 1)
 		{
-			setLeafChild( npar, index, 0, leaf ) ;
+			setLeafChild(npar, index, 0, leaf);
 		}
 		else
 		{
-			int i ;
-			for ( i = 0 ; i < count ; i ++ )
+			int i;
+			for(i = 0; i < count; i ++)
 			{
-				setChild( npar, i, getChild( par, i ) ) ;
+				setChild(npar, i, getChild(par, i));
 			}
-			setLeafChild( npar, index, count, leaf ) ;
-			for ( i = count + 1 ; i < num ; i ++ )
+			setLeafChild(npar, index, count, leaf);
+			for(i = count + 1; i < num; i ++)
 			{
-				setChild( npar, i, getChild( par, i - 1 ) ) ;
+				setChild(npar, i, getChild(par, i - 1));
 			}
 		}
 		
-		removeInternal( num-1, par ) ;
-		return npar ;
-	};
+		removeInternal(num-1, par);
+		return npar;
+	}
 
-	UCHAR* addInternalChild ( UCHAR* par, int index, int count, UCHAR* node )
+	InternalNode* addInternalChild(InternalNode* par, int index, int count,
+								   InternalNode* node)
 	{
-		int num = getNumChildren( par ) + 1 ;
-		UCHAR* npar = createInternal( num ) ;
-		npar[0] = par[0] ;
-		npar[1] = par[1] ;
+		int num = getNumChildren(par) + 1;
+		InternalNode* npar = createInternal(num);
+		*npar = *par;
 		
-		if ( num == 1 )
+		if(num == 1)
 		{
-			setInternalChild( npar, index, 0, node ) ;
+			setInternalChild(npar, index, 0, node);
 		}
 		else
 		{
-			int i ;
-			for ( i = 0 ; i < count ; i ++ )
+			int i;
+			for(i = 0; i < count; i ++)
 			{
-				setChild( npar, i, getChild( par, i ) ) ;
+				setChild(npar, i, getChild(par, i));
 			}
-			setInternalChild( npar, index, count, node ) ;
-			for ( i = count + 1 ; i < num ; i ++ )
+			setInternalChild(npar, index, count, node);
+			for(i = count + 1; i < num; i ++)
 			{
-				setChild( npar, i, getChild( par, i - 1 ) ) ;
+				setChild(npar, i, getChild(par, i - 1));
 			}
 		}
 		
-		removeInternal( num-1, par ) ;
-		return npar ;
-	};
+		removeInternal(num-1, par);
+		return npar;
+	}
 };
-
-
 
 #endif
