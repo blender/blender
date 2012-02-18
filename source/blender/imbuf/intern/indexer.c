@@ -517,7 +517,7 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 
 	/* there's no  way to set JPEG quality in the same way as in AVI JPEG and image sequence,
 	 * but this seems to be giving expected quality result */
-	ffmpeg_quality = 31 * (1.0f - (float)quality / 100.0f);
+	ffmpeg_quality = (int)(1.0f + 30.0f * (1.0f - (float)quality / 100.0f) + 0.5f);
 	av_set_int(rv->c, "qmin", ffmpeg_quality);
 	av_set_int(rv->c, "qmax", ffmpeg_quality);
 
