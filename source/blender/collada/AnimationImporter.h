@@ -153,6 +153,8 @@ public:
 	void apply_matrix_curves( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node,
 									COLLADAFW::Transformation * tm );
 
+	void add_bone_animation_sampled(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node, COLLADAFW::Transformation * tm);
+
 	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
 									 const COLLADAFW::AnimationList::AnimationBinding * binding,
 									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
