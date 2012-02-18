@@ -789,10 +789,10 @@ char BM_vert_flag_from_mflag(const char  meflag)
 }
 char BM_edge_flag_from_mflag(const short meflag)
 {
-	return ( ((meflag & SELECT)       ? BM_ELEM_SELECT : 0) |
-	         ((meflag & ME_SEAM)      ? BM_ELEM_SEAM   : 0) |
-	         ((meflag & ME_SHARP)     ? BM_ELEM_SHARP  : 0) |
-	         ((meflag & ME_HIDE)      ? BM_ELEM_HIDDEN : 0)
+	return ( ((meflag & SELECT)        ? BM_ELEM_SELECT : 0) |
+	         ((meflag & ME_SEAM)       ? BM_ELEM_SEAM   : 0) |
+	         ((meflag & ME_SHARP) == 0 ? BM_ELEM_SMOOTH : 0) | /* invert */
+	         ((meflag & ME_HIDE)       ? BM_ELEM_HIDDEN : 0)
 	         );
 }
 char BM_face_flag_from_mflag(const char  meflag)
@@ -818,7 +818,7 @@ short BM_edge_flag_to_mflag(BMEdge *eed)
 
 	return ( ((hflag & BM_ELEM_SELECT)       ? SELECT    : 0) |
 	         ((hflag & BM_ELEM_SEAM)         ? ME_SEAM   : 0) |
-	         ((hflag & BM_ELEM_SHARP)        ? ME_SHARP  : 0) |
+	         ((hflag & BM_ELEM_SMOOTH) == 0  ? ME_SHARP  : 0) |
 	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE   : 0) |
 	         ((BM_edge_is_wire(NULL, eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
 	         (ME_EDGEDRAW | ME_EDGERENDER)

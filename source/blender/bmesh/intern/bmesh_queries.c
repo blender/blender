@@ -338,7 +338,7 @@ int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_vert_is_nonmanifold(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *e, *oe;
 	BMLoop *l;
@@ -346,7 +346,7 @@ int BM_vert_is_nonmanifold(BMesh *UNUSED(bm), BMVert *v)
 
 	if (v->e == NULL) {
 		/* loose vert */
-		return TRUE;
+		return FALSE;
 	}
 
 	/* count edges while looking for non-manifold edges */
@@ -354,12 +354,12 @@ int BM_vert_is_nonmanifold(BMesh *UNUSED(bm), BMVert *v)
 	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_nextedge(e, v)) {
 		if (e->l == NULL) {
 			/* loose edge */
-			return TRUE;
+			return FALSE;
 		}
 
 		if (bmesh_radial_length(e->l) > 2) {
 			/* edge shared by more than two faces */
-			return TRUE;
+			return FALSE;
 		}
 	}
 
@@ -392,10 +392,10 @@ int BM_vert_is_nonmanifold(BMesh *UNUSED(bm), BMVert *v)
 
 	if (count < len) {
 		/* vert shared by multiple regions */
-		return TRUE;
+		return FALSE;
 	}
 
-	return FALSE;
+	return TRUE;
 }
 
 /*
@@ -409,13 +409,13 @@ int BM_vert_is_nonmanifold(BMesh *UNUSED(bm), BMVert *v)
  *	1 for true, 0 for false.
  */
 
-int BM_edge_is_nonmanifold(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
 	if (count != 2 && count != 1) {
-		return TRUE;
+		return FALSE;
 	}
-	return FALSE;
+	return TRUE;
 }
 
 /*

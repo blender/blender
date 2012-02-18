@@ -72,13 +72,13 @@ int BM_vert_is_wire(struct BMesh *bm, struct BMVert *v);
 /*returns true if e is a wire edge*/
 int BM_edge_is_wire(struct BMesh *bm, struct BMEdge *e);
 
-/* returns true if v is part of a non-manifold edge in the mesh,
+/* returns FALSE if v is part of a non-manifold edge in the mesh,
  * I believe this includes if it's part of both a wire edge and
  * a face.*/
-int BM_vert_is_nonmanifold(struct BMesh *bm, struct BMVert *v);
+int BM_vert_is_manifold(struct BMesh *bm, struct BMVert *v);
 
-/* returns true if e is shared by more then two faces. */
-int BM_edge_is_nonmanifold(struct BMesh *bm, struct BMEdge *e);
+/* returns FALSE if e is shared by more then two faces. */
+int BM_edge_is_manifold(struct BMesh *bm, struct BMEdge *e);
 
 /* returns true if e is a boundary edge, e.g. has only 1 face bordering it. */
 int BM_edge_is_boundry(struct BMEdge *e);

@@ -3452,7 +3452,7 @@ static int seams_from_islands_exec(bContext *C, wmOperator *op)
 			if(mark_seams)
 				BM_elem_flag_enable(editedge, BM_ELEM_SEAM);
 			if(mark_sharp)
-				BM_elem_flag_enable(editedge, BM_ELEM_SHARP);
+				BM_elem_flag_disable(editedge, BM_ELEM_SMOOTH);
 		}
 	}
 

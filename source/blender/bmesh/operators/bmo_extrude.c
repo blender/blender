@@ -410,7 +410,7 @@ static void calc_solidify_normals(BMesh *bm)
 	edge_face_count = NULL; /* dont re-use */
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_vert_is_nonmanifold(bm, v)) {
+		if (!BM_vert_is_manifold(bm, v)) {
 			BMO_elem_flag_enable(bm, v, VERT_NONMAN);
 			continue;
 		}

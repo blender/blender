@@ -835,7 +835,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMEDGE_SHARP:
-						if (BM_elem_flag_test(e, BM_ELEM_SHARP) == BM_elem_flag_test(es, BM_ELEM_SHARP)) {
+						if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == BM_elem_flag_test(es, BM_ELEM_SMOOTH)) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
 							cont = 0;
 						}

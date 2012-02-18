@@ -1196,7 +1196,7 @@ static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
 	case EDGE_MODE_TAG_SEAM:
 		return BM_elem_flag_test(e, BM_ELEM_SEAM);
 	case EDGE_MODE_TAG_SHARP:
-		return BM_elem_flag_test(e, BM_ELEM_SHARP);
+		return !BM_elem_flag_test(e, BM_ELEM_SMOOTH);
 	case EDGE_MODE_TAG_CREASE:	
 		return BM_elem_float_data_get(&em->bm->edata, e, CD_CREASE) ? 1 : 0;
 	case EDGE_MODE_TAG_BEVEL:
@@ -2328,7 +2328,7 @@ static int select_non_manifold_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(em->bm, BM_ELEM_HIDDEN) && BM_vert_is_nonmanifold(em->bm, v)) {
+		if (!BM_elem_flag_test(em->bm, BM_ELEM_HIDDEN) && !BM_vert_is_manifold(em->bm, v)) {
 			BM_elem_select_set(em->bm, v, TRUE);
 		}
 	}

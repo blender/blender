@@ -1102,7 +1102,7 @@ static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_elem_flag_enable(eed, BM_ELEM_SHARP);
+			BM_elem_flag_disable(eed, BM_ELEM_SMOOTH);
 		}
 	}
 	else {
@@ -1110,7 +1110,7 @@ static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
 			
-			BM_elem_flag_disable(eed, BM_ELEM_SHARP);
+			BM_elem_flag_enable(eed, BM_ELEM_SMOOTH);
 		}
 	}
 

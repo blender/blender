@@ -268,7 +268,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 	if (iwalk->lastv == e->v1) v = e->v2;
 	else v = e->v1;
 
-	if (BM_vert_is_nonmanifold(walker->bm, v)) {
+	if (!BM_vert_is_manifold(walker->bm, v)) {
 		BMW_reset(walker);
 		BMO_error_raise(walker->bm, NULL, BMERR_WALKER_FAILED,
 		                "Non-manifold vert "
@@ -561,7 +561,7 @@ static int faceloopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
 	}
 	
 	/* Don't start a face loop from non-manifold edges */
-	if (BM_edge_is_nonmanifold(bm, e)) {
+	if (!BM_edge_is_manifold(bm, e)) {
 		return FALSE;
 	}
 
@@ -719,7 +719,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 		return lwalk->wireedge;
 
 	e = l->e;
-	if (BM_edge_is_nonmanifold(bm, e)) {
+	if (!BM_edge_is_manifold(bm, e)) {
 		/* walker won't traverse to a non-manifold edge, but may
 		 * be started on one, and should not traverse *away* from
 		 * a non-manfold edge (non-manifold edges are never in an
@@ -730,12 +730,12 @@ static void *edgeringWalker_step(BMWalker *walker)
 	l = l->radial_next;
 	l = l->next->next;
 	
-	if ((l->f->len != 4) || BM_edge_is_nonmanifold(bm, l->e)) {
+	if ((l->f->len != 4) || !BM_edge_is_manifold(bm, l->e)) {
 		l = lwalk->l->next->next;
 	}
 
 	/* only walk to manifold edge */
-	if ((l->f->len == 4) && !BM_edge_is_nonmanifold(bm, l->e) &&
+	if ((l->f->len == 4) && BM_edge_is_manifold(bm, l->e) &&
 	    !BLI_ghash_haskey(walker->visithash, l->e)) {
 		lwalk = BMW_state_add(walker);
 		lwalk->l = l;

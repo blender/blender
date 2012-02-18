@@ -2448,7 +2448,7 @@ static int draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 
-	return !BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SHARP);
+	return !BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && !BM_elem_flag_test(eed, BM_ELEM_SMOOTH);
 }
 static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 {
