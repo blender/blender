@@ -558,6 +558,7 @@ elseif(WIN32)
 		install(
 			FILES
 				${LIBDIR}/openal/lib/OpenAL32.dll
+				${LIBDIR}/openal/lib/wrap_oal.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()
@@ -889,6 +890,10 @@ endif()
 
 	if(WITH_CARVE)
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
+	endif()
+
+	if(WITH_GHOST_XDND)
+		list(APPEND BLENDER_SORTED_LIBS extern_xdnd)
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})

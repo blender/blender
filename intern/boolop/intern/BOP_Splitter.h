@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_SPLITTER_H
-#define BOP_SPLITTER_H
+#ifndef __BOP_SPLITTER_H__
+#define __BOP_SPLITTER_H__
 
 #include "BOP_MathUtils.h"
 #include "BOP_Segment.h"

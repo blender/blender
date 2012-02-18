@@ -478,6 +478,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBut *but;
 	uiLayout *row;
 	const float dpi_fac= UI_DPI_FAC;
+	int is_paint = 0;
 	
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
@@ -492,6 +493,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* mode */
 	if(ob) {
 		v3d->modeselect = ob->mode;
+		is_paint = ELEM4(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT,OB_MODE_TEXTURE_PAINT);
 	}
 	else {
 		v3d->modeselect = OB_MODE_OBJECT;
@@ -504,20 +506,21 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* Draw type */
 	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
-	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
-		/* Manipulators aren't used in weight paint mode */
-		
-		PointerRNA meshptr;
+	if (obedit==NULL && is_paint) {
+		/* Manipulators aren't used in paint modes */
+		if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
+			/* masks aren't used for sculpt and particle painting */
+			PointerRNA meshptr;
 
-		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
-		if(ob->mode & (OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT)) {
-			uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-		}
-		else {
-			
-			row= uiLayoutRow(layout, 1);
-			uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-			uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+			RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
+			if(ob->mode & (OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT)) {
+				uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+			}
+			else {
+				row= uiLayoutRow(layout, 1);
+				uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+				uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+			}
 		}
 	} else {
 		const char *str_menu;

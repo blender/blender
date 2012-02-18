@@ -24,8 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_TRACKING_H
-#define BKE_TRACKING_H
+#ifndef __BKE_TRACKING_H__
+#define __BKE_TRACKING_H__
 
 /** \file BKE_trackingp.h
  *  \ingroup bke

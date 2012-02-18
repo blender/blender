@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef _CINEON_LIB_H_
-#define _CINEON_LIB_H_
+#ifndef __CINEONLIB_H__
+#define __CINEONLIB_H__
 
 #include "logImageCore.h"
 
@@ -68,4 +68,4 @@ void cineonClose(CineonFile* cineon);
 }
 #endif
 
-#endif /* _CINEON_LIB_H_ */
+#endif /* __CINEONLIB_H__ */

@@ -30,8 +30,8 @@
  *  \brief Object is a sort of wrapper for general info.
  */
 
-#ifndef DNA_OBJECT_TYPES_H
-#define DNA_OBJECT_TYPES_H
+#ifndef __DNA_OBJECT_TYPES_H__
+#define __DNA_OBJECT_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

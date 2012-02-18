@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_LIMITERFACTORY
-#define AUD_LIMITERFACTORY
+#ifndef __AUD_LIMITERFACTORY_H__
+#define __AUD_LIMITERFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 
@@ -76,4 +76,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_LIMITERFACTORY
+#endif //__AUD_LIMITERFACTORY_H__

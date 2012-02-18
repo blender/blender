@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef	_FNMATCH_H
-#define	_FNMATCH_H	1
+#ifndef	__BLI_FNMATCH_H__
+#define	__BLI_FNMATCH_H__
 
 /** \file BLI_fnmatch.h
  *  \ingroup bli
@@ -69,4 +69,4 @@ extern int fnmatch __P ((const char *__pattern, const char *__string,
 }
 #endif
 
-#endif /* fnmatch.h */
+#endif /* __BLI_FNMATCH_H__ */

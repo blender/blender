@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_ANIMATEABLEPROPERTY
-#define AUD_ANIMATEABLEPROPERTY
+#ifndef __AUD_ANIMATEABLEPROPERTY_H__
+#define __AUD_ANIMATEABLEPROPERTY_H__
 
 #include "AUD_Buffer.h"
 
@@ -103,4 +103,4 @@ public:
 	bool isAnimated() const;
 };
 
-#endif //AUD_ANIMATEABLEPROPERTY
+#endif //__AUD_ANIMATEABLEPROPERTY_H__

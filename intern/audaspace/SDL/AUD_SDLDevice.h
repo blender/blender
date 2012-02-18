@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SDLDEVICE
-#define AUD_SDLDEVICE
+#ifndef __AUD_SDLDEVICE_H__
+#define __AUD_SDLDEVICE_H__
 
 #include "AUD_SoftwareDevice.h"
 
@@ -72,4 +72,4 @@ public:
 	virtual ~AUD_SDLDevice();
 };
 
-#endif //AUD_SDLDEVICE
+#endif //__AUD_SDLDEVICE_H__

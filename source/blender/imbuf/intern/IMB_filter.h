@@ -33,8 +33,8 @@
  * \brief Function declarations for filter.c
  */
 
-#ifndef IMB_FILTER_H
-#define IMB_FILTER_H
+#ifndef __IMB_FILTER_H__
+#define __IMB_FILTER_H__
 
 struct ImBuf;
 

@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_FFMPEGWRITER
-#define AUD_FFMPEGWRITER
+#ifndef __AUD_FFMPEGWRITER_H__
+#define __AUD_FFMPEGWRITER_H__
 
 #include "AUD_ConverterFunctions.h"
 #include "AUD_Buffer.h"
@@ -135,4 +135,4 @@ public:
 	virtual void write(unsigned int length, sample_t* buffer);
 };
 
-#endif //AUD_FFMPEGWRITER
+#endif //__AUD_FFMPEGWRITER_H__

@@ -200,7 +200,7 @@ void AUD_JOSResampleReader::updateBuffer(int size, double factor, int samplesize
 				left\
 			}\
 \
-			P = -P;\
+			P = 0 - P;\
 \
 			end = (int_to_fp(m_len) - P) / P_increment - 1;\
 			if(m_cache_valid - m_n - 2 < end)\

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
-#ifndef BKE_PAINT_H
-#define BKE_PAINT_H
+#ifndef __BKE_PAINT_H__
+#define __BKE_PAINT_H__
 
 /** \file BKE_paint.h
  *  \ingroup bke

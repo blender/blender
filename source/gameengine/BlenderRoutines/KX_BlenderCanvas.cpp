@@ -39,6 +39,8 @@ KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect, struct 
 m_win(win),
 m_frame_rect(rect)
 {
+	// initialize area so that it's available for game logic on frame 1 (ImageViewport)
+	m_area_rect = rect;
 	// area boundaries needed for mouse coordinates in Letterbox framing mode
 	m_area_left = ar->winrct.xmin;
 	m_area_top = ar->winrct.ymax;

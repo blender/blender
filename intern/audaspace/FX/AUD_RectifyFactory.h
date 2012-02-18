@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_RECTIFYFACTORY
-#define AUD_RECTIFYFACTORY
+#ifndef __AUD_RECTIFYFACTORY_H__
+#define __AUD_RECTIFYFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 class AUD_CallbackIIRFilterReader;
@@ -55,4 +55,4 @@ public:
 	static sample_t rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless);
 };
 
-#endif //AUD_RECTIFYFACTORY
+#endif //__AUD_RECTIFYFACTORY_H__

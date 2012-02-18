@@ -30,8 +30,8 @@
  */
 
 
-#ifndef SSS_H
-#define SSS_H
+#ifndef __SSS_H__
+#define __SSS_H__
 
 /* Generic multiple scattering API */
 
@@ -64,5 +64,5 @@ void free_sss(struct Render *re);
 int sample_sss(struct Render *re, struct Material *mat, float *co, float *col);
 int sss_pass_done(struct Render *re, struct Material *mat);
 
-#endif /*SSS_H*/
+#endif /*__SSS_H__*/
 

@@ -25,8 +25,8 @@
  * Declaration of GHOST_DisplayManagerSDL class.
  */
 
-#ifndef _GHOST_DISPLAY_MANAGER_SDL_H_
-#define _GHOST_DISPLAY_MANAGER_SDL_H_
+#ifndef __GHOST_DISPLAYMANAGERSDL_H__
+#define __GHOST_DISPLAYMANAGERSDL_H__
 
 #include "GHOST_DisplayManager.h"
 
@@ -69,4 +69,4 @@ private :
 	GHOST_SystemSDL * m_system;
 };
 
-#endif /* _GHOST_DISPLAY_MANAGER_SDL_H_ */
+#endif /* __GHOST_DISPLAYMANAGERSDL_H__ */

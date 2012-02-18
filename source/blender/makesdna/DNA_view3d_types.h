@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_VIEW3D_TYPES_H
-#define DNA_VIEW3D_TYPES_H
+#ifndef __DNA_VIEW3D_TYPES_H__
+#define __DNA_VIEW3D_TYPES_H__
 
 struct ViewDepths;
 struct Object;

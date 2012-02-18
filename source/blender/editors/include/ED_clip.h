@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_MOVIECLIP_H
-#define ED_MOVIECLIP_H
+#ifndef __ED_CLIP_H__
+#define __ED_CLIP_H__
 
 struct ARegion;
 struct bContext;

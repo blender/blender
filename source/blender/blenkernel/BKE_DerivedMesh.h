@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_DERIVEDMESH_H
-#define BKE_DERIVEDMESH_H
+#ifndef __BKE_DERIVEDMESH_H__
+#define __BKE_DERIVEDMESH_H__
 
 /** \file BKE_DerivedMesh.h
  *  \ingroup bke

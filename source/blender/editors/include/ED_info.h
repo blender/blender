@@ -24,11 +24,11 @@
  *  \ingroup editors
  */
 
-#ifndef ED_INFO_H
-#define ED_INFO_H
+#ifndef __ED_INFO_H__
+#define __ED_INFO_H__
 
 /* info_stats.c */
 void ED_info_stats_clear(struct Scene *scene);
 const char *ED_info_stats_string(struct Scene *scene);
 
-#endif /*  ED_INFO_H */
+#endif /*  __ED_INFO_H__ */

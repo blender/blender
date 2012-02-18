@@ -27,13 +27,13 @@ namespace libmv {
 
 /*!
     A Marker is the 2D location of a tracked point in an image.
-  
+
     \a x, \a y is the position of the marker in pixels from the top left corner
     in the image identified by \a image. All markers for to the same target
     form a track identified by a common \a track number.
-  
+
     \note Markers are typically aggregated with the help of the \l Tracks class.
-  
+
     \sa Tracks
 */
 struct Marker {
@@ -44,18 +44,18 @@ struct Marker {
 
 /*!
     The Tracks class stores \link Marker reconstruction markers \endlink.
-    
+
     The Tracks container is intended as the store of correspondences between
     images, which must get created before any 3D reconstruction can take place.
-    
+
     The container has several fast lookups for queries typically needed for
     structure from motion algorithms, such as \l MarkersForTracksInBothImages().
-    
+
     \sa Marker
 */
 class Tracks {
  public:
-  Tracks() {}
+  Tracks() { }
 
   // Copy constructor for a tracks object.
   Tracks(const Tracks &other);
@@ -67,10 +67,10 @@ class Tracks {
       Inserts a marker into the set. If there is already a marker for the given
       \a image and \a track, the existing marker is replaced. If there is no
       marker for the given \a image and \a track, a new one is added.
-    
+
       \a image and \a track are the keys used to retrieve the markers with the
       other methods in this class.
-    
+
       \note To get an identifier for a new track, use \l MaxTrack() + 1.
   */
   void Insert(int image, int track, double x, double y);
@@ -86,7 +86,7 @@ class Tracks {
 
   /*!
       Returns the markers in \a image1 and \a image2 which have a common track.
-      
+
       This is not the same as the union of the markers in \a image1 and \a
       image2; each marker is for a track that appears in both images.
   */

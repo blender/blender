@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BOOLEANOPS_MESH_H
-#define BKE_BOOLEANOPS_MESH_H
+#ifndef __BKE_BOOLEANOPS_MESH_H__
+#define __BKE_BOOLEANOPS_MESH_H__
 
 /** \file BKE_booleanops_mesh.h
  *  \ingroup bke

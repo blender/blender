@@ -29,8 +29,8 @@
  * and example code from Brian Smits, another author of that paper in 
  * http://www.cs.utah.edu/vissim/papers/sunsky/code/
  * */
-#ifndef SUNSKY_H_
-#define SUNSKY_H_
+#ifndef __SUNSKY_H__
+#define __SUNSKY_H__
 
 #define SPECTRUM_MAX_COMPONENTS     100
 #define SPECTRUM_START              350.0
@@ -146,4 +146,4 @@ void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float
  * */
 void ClipColor(float c[3]);
 
-#endif /*SUNSKY_H_*/
+#endif /*__SUNSKY_H__*/

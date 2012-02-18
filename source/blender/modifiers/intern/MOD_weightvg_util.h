@@ -29,8 +29,8 @@
  */
 
 
-#ifndef MOD_WEIGHTVG_UTIL_H
-#define MOD_WEIGHTVG_UTIL_H
+#ifndef __MOD_WEIGHTVG_UTIL_H__
+#define __MOD_WEIGHTVG_UTIL_H__
 
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
@@ -85,4 +85,4 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
                         const int *indices, const float *weights, int do_add,
                         float add_thresh, int do_rem, float rem_thresh);
 
-#endif /* MOD_WEIGHTVG_UTIL_H */
+#endif /* __MOD_WEIGHTVG_UTIL_H__ */

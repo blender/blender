@@ -34,8 +34,8 @@
 
 // This code is in the public domain -- castanyo@yahoo.es
 
-#ifndef _DDS_IMAGE_H
-#define _DDS_IMAGE_H
+#ifndef __IMAGE_H__
+#define __IMAGE_H__
 
 #include <Common.h>
 #include <Color.h>
@@ -101,4 +101,4 @@ inline Color32 & Image::pixel(uint x, uint y)
 	return pixel(y * width() + x);
 }
 
-#endif // _DDS_IMAGE_H
+#endif // __IMAGE_H__

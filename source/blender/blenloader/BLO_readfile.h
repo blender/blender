@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLO_READFILE_H
-#define BLO_READFILE_H
+#ifndef __BLO_READFILE_H__
+#define __BLO_READFILE_H__
 
 /** \file BLO_readfile.h
  *  \ingroup blenloader

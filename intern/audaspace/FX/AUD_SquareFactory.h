@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SQUAREFACTORY
-#define AUD_SQUAREFACTORY
+#ifndef __AUD_SQUAREFACTORY_H__
+#define __AUD_SQUAREFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 class AUD_CallbackIIRFilterReader;
@@ -67,4 +67,4 @@ public:
 	static void endSquareFilter(float* threshold);
 };
 
-#endif //AUD_SQUAREFACTORY
+#endif //__AUD_SQUAREFACTORY_H__

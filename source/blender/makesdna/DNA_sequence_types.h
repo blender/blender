@@ -30,8 +30,8 @@
  *  \author nzc
  */
 
-#ifndef DNA_SEQUENCE_TYPES_H
-#define DNA_SEQUENCE_TYPES_H
+#ifndef __DNA_SEQUENCE_TYPES_H__
+#define __DNA_SEQUENCE_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

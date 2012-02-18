@@ -28,8 +28,8 @@
  *  \ingroup spfile
  */
 
-#ifndef ED_FILE_INTERN_H
-#define ED_FILE_INTERN_H
+#ifndef __FILE_INTERN_H__
+#define __FILE_INTERN_H__
 
 /* internal exports only */
 
@@ -112,5 +112,5 @@ void autocomplete_file(struct bContext *C, char *str, void *arg_v);
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);
 
-#endif /* ED_FILE_INTERN_H */
+#endif /* __FILE_INTERN_H__ */
 

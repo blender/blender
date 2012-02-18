@@ -25,8 +25,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_RENDER_H
-#define ED_RENDER_H
+#ifndef __ED_RENDER_H__
+#define __ED_RENDER_H__
 
 #include "DNA_vec_types.h"
 

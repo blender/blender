@@ -28,10 +28,10 @@
  *  \ingroup wm
  */
 
-#ifndef WM_FILES_H
-#define WM_FILES_H
+#ifndef __WM_FILES_H__
+#define __WM_FILES_H__
 
 void WM_read_history(void);
 
-#endif /* WM_FILES_H */
+#endif /* __WM_FILES_H__ */
 

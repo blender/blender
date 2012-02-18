@@ -22,8 +22,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLI_GRAPH_H_
-#define BLI_GRAPH_H_
+#ifndef __BLI_GRAPH_H__
+#define __BLI_GRAPH_H__
 
 /** \file BLI_graph.h
  *  \ingroup bli
@@ -184,4 +184,4 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3]);
 /* Anything higher is the order in radial symmetry */
 #define SYM_SIDE_RADIAL			3
 
-#endif /*BLI_GRAPH_H_*/
+#endif /*__BLI_GRAPH_H__*/

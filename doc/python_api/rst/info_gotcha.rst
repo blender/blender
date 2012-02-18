@@ -118,14 +118,6 @@ If you insist - yes its possible, but scripts that use this hack wont be conside
    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
 
-Matrix multiplication is wrong
-==============================
-
-Every so often users complain that Blenders matrix math is wrong, the confusion comes from mathutils matrices being column-major to match OpenGL and the rest of Blenders matrix operations and stored matrix data.
-
-This is different to **numpy** which is row-major which matches what you would expect when using conventional matrix math notation.
-
-
 I can't edit the mesh in edit-mode!
 ===================================
 

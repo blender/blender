@@ -32,8 +32,8 @@
  */
 
  
-#ifndef BOP_MESH_H
-#define BOP_MESH_H
+#ifndef __BOP_MESH_H__
+#define __BOP_MESH_H__
 
 #include "BOP_Vertex.h"
 #include "BOP_Edge.h"

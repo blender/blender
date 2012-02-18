@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from .properties_paint_common import UnifiedPaintPanel
 
 
 class VIEW3D_HT_header(Header):
@@ -51,6 +52,8 @@ class VIEW3D_HT_header(Header):
             elif obj:
                 if mode_string not in {'PAINT_TEXTURE'}:
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
+                if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
+                    sub.menu("VIEW3D_MT_brush")
             else:
                 sub.menu("VIEW3D_MT_object")
 
@@ -80,22 +83,23 @@ class VIEW3D_HT_header(Header):
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
-        snap_element = toolsettings.snap_element
-        row = layout.row(align=True)
-        row.prop(toolsettings, "use_snap", text="")
-        row.prop(toolsettings, "snap_element", text="", icon_only=True)
-        if snap_element != 'INCREMENT':
-            row.prop(toolsettings, "snap_target", text="")
-            if obj:
-                if obj.mode == 'OBJECT':
-                    row.prop(toolsettings, "use_snap_align_rotation", text="")
-                elif obj.mode == 'EDIT':
-                    row.prop(toolsettings, "use_snap_self", text="")
+        if not obj or obj.mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+            snap_element = toolsettings.snap_element
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_snap", text="")
+            row.prop(toolsettings, "snap_element", text="", icon_only=True)
+            if snap_element != 'INCREMENT':
+                row.prop(toolsettings, "snap_target", text="")
+                if obj:
+                    if obj.mode == 'OBJECT':
+                        row.prop(toolsettings, "use_snap_align_rotation", text="")
+                    elif obj.mode == 'EDIT':
+                        row.prop(toolsettings, "use_snap_self", text="")
 
-        if snap_element == 'VOLUME':
-            row.prop(toolsettings, "use_snap_peel_object", text="")
-        elif snap_element == 'FACE':
-            row.prop(toolsettings, "use_snap_project", text="")
+            if snap_element == 'VOLUME':
+                row.prop(toolsettings, "use_snap_peel_object", text="")
+            elif snap_element == 'FACE':
+                row.prop(toolsettings, "use_snap_project", text="")
 
         # OpenGL render
         row = layout.row(align=True)
@@ -1013,6 +1017,45 @@ class VIEW3D_MT_object_game(Menu):
 
         layout.operator("object.game_property_clear")
 
+        
+# ********** Brush menu **********
+class VIEW3D_MT_brush(Menu):
+    bl_label = "Brush"
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = settings.brush
+
+        ups = context.tool_settings.unified_paint_settings
+        layout.prop(ups, "use_unified_size", text="Unified Size")
+        layout.prop(ups, "use_unified_strength", text="Unified Strength")
+
+        # skip if no active brush
+        if not brush:
+            return
+
+        # TODO: still missing a lot of brush options here
+
+        # sculpt options
+        if context.sculpt_object:
+
+            sculpt_tool = brush.sculpt_tool
+
+            layout.separator()
+            layout.operator_menu_enum("brush.curve_preset", "shape", text='Curve Preset')
+            layout.separator()
+
+            if sculpt_tool != 'GRAB':
+                layout.prop_menu_enum(brush, "stroke_method")
+
+                if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
+                    layout.prop_menu_enum(brush, "direction")
+
+                if sculpt_tool == 'LAYER':
+                    layout.prop(brush, "use_persistent")
+                    layout.operator("sculpt.set_persistent_base")
 
 # ********** Vertex paint menu **********
 
@@ -1116,7 +1159,6 @@ class VIEW3D_MT_sculpt(Menu):
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
-        brush = toolsettings.sculpt.brush
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
@@ -1130,30 +1172,13 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "lock_x")
         layout.prop(sculpt, "lock_y")
         layout.prop(sculpt, "lock_z")
-        layout.separator()
-        layout.operator_menu_enum("brush.curve_preset", "shape")
-        layout.separator()
-
-        if brush is not None:  # unlikely but can happen
-            sculpt_tool = brush.sculpt_tool
-
-            if sculpt_tool != 'GRAB':
-                layout.prop_menu_enum(brush, "stroke_method")
-
-                if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
-                    layout.prop_menu_enum(brush, "direction")
-
-                if sculpt_tool == 'LAYER':
-                    layout.prop(brush, "use_persistent")
-                    layout.operator("sculpt.set_persistent_base")
 
         layout.separator()
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
+        layout.prop(sculpt, "show_low_resolution")
         layout.prop(sculpt, "show_brush")
+        layout.prop(sculpt, "use_deform_only")
 
-        # TODO, make available from paint menu!
-        layout.prop(toolsettings, "sculpt_paint_use_unified_size", text="Unify Size")
-        layout.prop(toolsettings, "sculpt_paint_use_unified_strength", text="Unify Strength")
 
 # ********** Particle menu **********
 

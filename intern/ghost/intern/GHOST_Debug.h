@@ -30,8 +30,8 @@
  * Macro's used in GHOST debug target.
  */
 
-#ifndef _GHOST_DEBUG_H_
-#define _GHOST_DEBUG_H_
+#ifndef __GHOST_DEBUG_H__
+#define __GHOST_DEBUG_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #  ifdef DEBUG
@@ -72,5 +72,5 @@
 #  define GHOST_ASSERT(x, info)
 #endif // GHOST_DEBUG
 
-#endif // _GHOST_DEBUG_H_
+#endif // __GHOST_DEBUG_H__
 

@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_LOD_QuadricEditor_h
-#define NAN_INCLUDED_LOD_QuadricEditor_h
+#ifndef __LOD_QUADRICEDITOR_H__
+#define __LOD_QUADRICEDITOR_H__
 
 #include "MEM_NonCopyable.h"
 #include "LOD_ManMesh2.h"

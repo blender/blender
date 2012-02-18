@@ -11,6 +11,36 @@ index 067da52..af86c4b 100644
  
  #define LG LOG(INFO)
  #define V0 LOG(INFO)
+diff --git a/src/libmv/simple_pipeline/pipeline.cc b/src/libmv/simple_pipeline/pipeline.cc
+index 2459d05..2e4e5a6 100644
+--- a/src/libmv/simple_pipeline/pipeline.cc
++++ b/src/libmv/simple_pipeline/pipeline.cc
+@@ -280,25 +280,6 @@ double InternalReprojectionError(const Tracks &image_tracks,
+     double ex = reprojected_marker.x - markers[i].x;
+     double ey = reprojected_marker.y - markers[i].y;
+ 
+-    const int N = 100;
+-    char line[N];
+-    snprintf(line, N,
+-           "image %-3d track %-3d "
+-           "x %7.1f y %7.1f "
+-           "rx %7.1f ry %7.1f "
+-           "ex %7.1f ey %7.1f"
+-           "    e %7.1f",
+-           markers[i].image,
+-           markers[i].track,
+-           markers[i].x,
+-           markers[i].y,
+-           reprojected_marker.x,
+-           reprojected_marker.y,
+-           ex,
+-           ey,
+-           sqrt(ex*ex + ey*ey));
+-    LG << line;
+-
+     total_error += sqrt(ex*ex + ey*ey);
+   }
+   LG << "Skipped " << num_skipped << " markers.";
 diff --git a/src/third_party/glog/src/glog/logging.h b/src/third_party/glog/src/glog/logging.h
 index 57615ef..a58d478 100644
 --- a/src/third_party/glog/src/glog/logging.h
@@ -65,7 +95,7 @@ index 50c6a71..b179a1e 100644
  
  #ifdef HAVE_STACKTRACE
 diff --git a/src/third_party/glog/src/utilities.h b/src/third_party/glog/src/utilities.h
-index ee54f94..2d4e99e 100644
+index c4ae256..5c841a0 100644
 --- a/src/third_party/glog/src/utilities.h
 +++ b/src/third_party/glog/src/utilities.h
 @@ -79,7 +79,7 @@
@@ -106,7 +136,7 @@ index 114762e..682a1b9 100755
  /* define if you have libunwind */
  #undef HAVE_LIB_UNWIND
 diff --git a/src/third_party/glog/src/windows/glog/logging.h b/src/third_party/glog/src/windows/glog/logging.h
-index 7a6df74..de51586 100755
+index 4257375..2f41681 100755
 --- a/src/third_party/glog/src/windows/glog/logging.h
 +++ b/src/third_party/glog/src/windows/glog/logging.h
 @@ -82,8 +82,8 @@
@@ -119,4 +149,4 @@ index 7a6df74..de51586 100755
 +#include "third_party/gflags/gflags.h"
  #endif
  
- namespace google {
+ #ifdef __MINGW32__

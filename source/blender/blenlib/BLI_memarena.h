@@ -35,8 +35,8 @@
  * data, which are all freed at the same moment.
  */
 
-#ifndef BLI_MEMARENA_H
-#define BLI_MEMARENA_H
+#ifndef __BLI_MEMARENA_H__
+#define __BLI_MEMARENA_H__
 
 #ifdef __cplusplus
 extern "C" {

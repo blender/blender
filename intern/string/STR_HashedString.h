@@ -37,8 +37,8 @@
  * @date	November, 14, 2001
  */
 
-#ifndef __STR_HASHSTRING
-#define __STR_HASHSTRING
+#ifndef __STR_HASHEDSTRING_H__
+#define __STR_HASHEDSTRING_H__
 
 #include "STR_String.h"
 
@@ -150,5 +150,5 @@ private:
 	mutable dword m_CachedHash;
 };
 
-#endif //__STR_HASHSTRING
+#endif //__STR_HASHEDSTRING_H__
 

@@ -26,8 +26,8 @@
  *  \ingroup audfx
  */
 
-#ifndef AUD_DYNAMICIIRFILTERREADER
-#define AUD_DYNAMICIIRFILTERREADER
+#ifndef __AUD_DYNAMICIIRFILTERREADER_H__
+#define __AUD_DYNAMICIIRFILTERREADER_H__
 
 #include "AUD_IIRFilterReader.h"
 #include "AUD_DynamicIIRFilterFactory.h"
@@ -51,4 +51,4 @@ public:
 	virtual void sampleRateChanged(AUD_SampleRate rate);
 };
 
-#endif // AUD_DYNAMICIIRFILTERREADER
+#endif // __AUD_DYNAMICIIRFILTERREADER_H__

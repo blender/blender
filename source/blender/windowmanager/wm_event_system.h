@@ -28,8 +28,8 @@
  *  \ingroup wm
  */
 
-#ifndef WM_EVENT_SYSTEM_H
-#define WM_EVENT_SYSTEM_H
+#ifndef __WM_EVENT_SYSTEM_H__
+#define __WM_EVENT_SYSTEM_H__
 
 /* return value of handler-operator call */
 #define WM_HANDLER_CONTINUE	0
@@ -107,5 +107,5 @@ void		wm_dropbox_free(void);
 void		wm_drags_check_ops(bContext *C, wmEvent *event);
 void		wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
 
-#endif /* WM_EVENT_SYSTEM_H */
+#endif /* __WM_EVENT_SYSTEM_H__ */
 

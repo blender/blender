@@ -1,5 +1,5 @@
-#ifndef __redcode_codec_h_included__
-#define __redcode_codec_h_included__
+#ifndef __CODEC_H__
+#define __CODEC_H__
 
 struct redcode_frame;
 

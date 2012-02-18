@@ -32,8 +32,8 @@
 
 /* Note, the BGE needs to use this too, keep it minimal */
 
-#ifndef BPY_INTERNAL_IMPORT_H
-#define BPY_INTERNAL_IMPORT_H
+#ifndef __BPY_INTERNAL_IMPORT_H__
+#define __BPY_INTERNAL_IMPORT_H__
 
 /* python redefines :/ */
 #ifdef _POSIX_C_SOURCE
@@ -62,4 +62,4 @@ extern PyMethodDef bpy_reload_meth;
 struct Main *bpy_import_main_get(void);
 void bpy_import_main_set(struct Main *maggie);
 
-#endif				/* BPY_INTERNAL_IMPORT_H */
+#endif				/* __BPY_INTERNAL_IMPORT_H__ */

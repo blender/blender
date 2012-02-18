@@ -11,8 +11,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_DYNAMIC_PAINT_H_
-#define BKE_DYNAMIC_PAINT_H_
+#ifndef __BKE_DYNAMICPAINT_H__
+#define __BKE_DYNAMICPAINT_H__
 
 struct bContext;
 struct wmOperator;
@@ -88,4 +88,4 @@ void dynamicPaint_outputSurfaceImage(struct DynamicPaintSurface *surface, char* 
 #define DPAINT_WAVE_OBSTACLE 1
 #define DPAINT_WAVE_REFLECT_ONLY 2
 
-#endif /* BKE_DYNAMIC_PAINT_H_ */
+#endif /* __BKE_DYNAMICPAINT_H__ */

@@ -164,6 +164,8 @@ BF_EXPAT = '/usr/local'
 BF_EXPAT_LIB = 'expat'
 BF_EXPAT_LIBPATH = '${BF_EXPAT}/lib'
 
+WITH_GHOST_XDND = False
+
 WITH_BF_OPENMP = True
 
 #Ray trace optimization

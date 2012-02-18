@@ -31,8 +31,8 @@
  * Declaration of GHOST_SystemCocoa class.
  */
 
-#ifndef _GHOST_SYSTEM_COCOA_H_
-#define _GHOST_SYSTEM_COCOA_H_
+#ifndef __GHOST_SYSTEMCOCOA_H__
+#define __GHOST_SYSTEMCOCOA_H__
 
 #ifndef __APPLE__
 #error Apple OSX only!
@@ -300,5 +300,5 @@ protected:
 	bool m_isGestureInProgress;
 };
 
-#endif // _GHOST_SYSTEM_COCOA_H_
+#endif // __GHOST_SYSTEMCOCOA_H__
 

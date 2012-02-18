@@ -32,8 +32,8 @@
 
 /* Internal for editmesh_xxxx.c functions */
 
-#ifndef MESH_INTERN_H
-#define MESH_INTERN_H
+#ifndef __MESH_INTERN_H__
+#define __MESH_INTERN_H__
 
 struct bContext;
 struct wmOperatorType;
@@ -261,5 +261,5 @@ void MESH_OT_navmesh_face_add(struct wmOperatorType *ot);
 void MESH_OT_navmesh_reset(struct wmOperatorType *ot);
 void MESH_OT_navmesh_clear(struct wmOperatorType *ot);
 
-#endif // MESH_INTERN_H
+#endif // __MESH_INTERN_H__
 

@@ -28,8 +28,8 @@
  *  \ingroup spaction
  */
 
-#ifndef ED_ACTION_INTERN_H
-#define ED_ACTION_INTERN_H
+#ifndef __ACTION_INTERN_H__
+#define __ACTION_INTERN_H__
 
 struct bContext;
 struct bAnimContext;
@@ -135,5 +135,5 @@ enum {
 void action_operatortypes(void);
 void action_keymap(struct wmKeyConfig *keyconf);
 
-#endif /* ED_ACTION_INTERN_H */
+#endif /* __ACTION_INTERN_H__ */
 

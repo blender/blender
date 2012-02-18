@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef NAN_INCLUDED_GlutKeyboardManager
-#define NAN_INCLUDED_GlutKeyboardManager
+#ifndef __GLUTKEYBOARDMANAGER_H__
+#define __GLUTKEYBOARDMANAGER_H__
 
 #include "MEM_NonCopyable.h"
 #include "MEM_SmartPtr.h"

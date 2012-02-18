@@ -138,6 +138,7 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENMP', 'BF_OPENMP', 'BF_OPENMP_LIBPATH',
             'WITH_GHOST_COCOA',
             'WITH_GHOST_SDL',
+            'WITH_GHOST_XDND',
             'BF_GHOST_DEBUG',
             'USE_QTKIT',
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
@@ -567,7 +568,9 @@ def read_opts(env, cfg, args):
         ('BF_BOOST_INC', 'Boost include path', ''),
         ('BF_BOOST_LIB', 'Boost library', ''),
         ('BF_BOOST_LIBPATH', 'Boost library path', ''),
-        ('BF_BOOST_LIB_STATIC', 'Boost static library', '')
+        ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
+
+        (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True))
     ) # end of opts.AddOptions()
 
     return localopts

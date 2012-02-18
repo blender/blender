@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef NAN_INCLUDED_GlutDrawer
-#define NAN_INCLUDED_GlutDrawer
+#ifndef __GLUTDRAWER_H__
+#define __GLUTDRAWER_H__
 
 #include "MEM_NonCopyable.h"
 #include "MEM_SmartPtr.h"

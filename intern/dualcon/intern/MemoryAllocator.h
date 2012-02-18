@@ -43,8 +43,8 @@
 class VirtualMemoryAllocator
 {
 public:
-	virtual UCHAR * allocate( ) = 0 ;
-	virtual void deallocate( UCHAR * obj ) = 0 ;
+	virtual void * allocate( ) = 0 ;
+	virtual void deallocate( void * obj ) = 0 ;
 	virtual void destroy( ) = 0 ;
 	virtual void printInfo( ) = 0 ;
 
@@ -161,7 +161,7 @@ public:
 	/**
 	 * Allocation method
 	 */
-	UCHAR * allocate ( )
+	void * allocate ( )
 	{
 		if ( available == 0 )
 		{
@@ -170,13 +170,13 @@ public:
 
 		// printf("Allocating %d\n", header[ allocated ]) ;
 		available -- ;
-		return stack[ available >> HEAP_BASE ][ available & HEAP_MASK ] ;
+		return (void*)stack[ available >> HEAP_BASE ][ available & HEAP_MASK ] ;
 	}
 
 	/**
 	 * De-allocation method
 	 */
-	void deallocate ( UCHAR * obj )
+	void deallocate ( void * obj )
 	{
 		if ( available == stacksize )
 		{
@@ -184,7 +184,7 @@ public:
 		}
 
 		// printf("De-allocating %d\n", ( obj - data ) / N ) ;
-		stack[ available >> HEAP_BASE ][ available & HEAP_MASK ] = obj ;
+		stack[ available >> HEAP_BASE ][ available & HEAP_MASK ] = (UCHAR*)obj ;
 		available ++ ;
 		// printf("%d %d\n", allocated, header[ allocated ]) ;
 	}

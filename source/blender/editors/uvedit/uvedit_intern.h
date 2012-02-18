@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_UVEDIT_INTERN_H
-#define ED_UVEDIT_INTERN_H
+#ifndef __UVEDIT_INTERN_H__
+#define __UVEDIT_INTERN_H__
 
 struct EditFace;
 struct EditMesh;
@@ -111,5 +111,5 @@ void UV_OT_sphere_project(struct wmOperatorType *ot);
 void UV_OT_unwrap(struct wmOperatorType *ot);
 void UV_OT_stitch(struct wmOperatorType *ot);
 
-#endif /* ED_UVEDIT_INTERN_H */
+#endif /* __UVEDIT_INTERN_H__ */
 

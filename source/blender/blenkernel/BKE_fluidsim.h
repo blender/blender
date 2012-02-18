@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_FLUIDSIM_H
-#define BKE_FLUIDSIM_H
+#ifndef __BKE_FLUIDSIM_H__
+#define __BKE_FLUIDSIM_H__
 
 /** \file BKE_fluidsim.h
  *  \ingroup bke

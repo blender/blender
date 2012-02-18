@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_PITCHREADER
-#define AUD_PITCHREADER
+#ifndef __AUD_PITCHREADER_H__
+#define __AUD_PITCHREADER_H__
 
 #include "AUD_EffectReader.h"
 
@@ -70,4 +70,4 @@ public:
 	void setPitch(float pitch);
 };
 
-#endif //AUD_PITCHREADER
+#endif //__AUD_PITCHREADER_H__

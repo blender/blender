@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_SCANFILL_H
-#define BLI_SCANFILL_H
+#ifndef __BLI_SCANFILL_H__
+#define __BLI_SCANFILL_H__
 
 /** \file BLI_scanfill.h
  *  \ingroup bli

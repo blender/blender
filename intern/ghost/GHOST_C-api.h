@@ -30,8 +30,8 @@
  * \brief GHOST C-API function and type declarations.
  */
 
-#ifndef	GHOST_C_API_H
-#define GHOST_C_API_H
+#ifndef	__GHOST_C_API_H__
+#define __GHOST_C_API_H__
 
 #include "GHOST_Types.h"
 

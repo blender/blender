@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_GPENCIL_H
-#define BKE_GPENCIL_H
+#ifndef __BKE_GPENCIL_H__
+#define __BKE_GPENCIL_H__
 
 /** \file BKE_gpencil.h
  *  \ingroup bke
@@ -63,4 +63,4 @@ struct bGPDlayer *gpencil_layer_getactive(struct bGPdata *gpd);
 void gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
 void gpencil_layer_delactive(struct bGPdata *gpd);
 
-#endif /*  BKE_GPENCIL_H */
+#endif /*  __BKE_GPENCIL_H__ */

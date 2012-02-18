@@ -27,10 +27,10 @@
  *  \ingroup editors
  */
 
-#ifndef ED_LOGIC_H
-#define ED_LOGIC_H
+#ifndef __ED_LOGIC_H__
+#define __ED_LOGIC_H__
 
 /* logic_ops.c */
 void ED_operatortypes_logic(void);
 
-#endif /* ED_LOGIC_H */
+#endif /* __ED_LOGIC_H__ */

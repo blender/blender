@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_COLOR_TYPES_H
-#define DNA_COLOR_TYPES_H
+#ifndef __DNA_COLOR_TYPES_H__
+#define __DNA_COLOR_TYPES_H__
 
 #include "DNA_vec_types.h"
 

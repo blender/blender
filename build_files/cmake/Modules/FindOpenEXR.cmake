@@ -8,7 +8,7 @@
 #                    This can also be an environment variable.
 #  OPENEXR_FOUND, If false, do not try to use OpenEXR.
 #
-# For indervidual library access these advanced settings are available
+# For individual library access these advanced settings are available
 #  OPENEXR_HALF_LIBRARY, Path to Half library
 #  OPENEXR_IEX_LIBRARY, Path to Half library
 #  OPENEXR_ILMIMF_LIBRARY, Path to Ilmimf library

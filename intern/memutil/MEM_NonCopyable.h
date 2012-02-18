@@ -34,8 +34,8 @@
  * Declaration of MEM_NonCopyable class.
  */
 
-#ifndef NAN_INCLUDED_NonCopyable_h
-#define NAN_INCLUDED_NonCopyable_h
+#ifndef __MEM_NONCOPYABLE_H__
+#define __MEM_NONCOPYABLE_H__
 
 /**
  * Simple class that makes sure sub classes cannot

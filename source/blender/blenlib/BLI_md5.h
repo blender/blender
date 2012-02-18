@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_MD5_H
-#define BLI_MD5_H 
+#ifndef __BLI_MD5_H__
+#define __BLI_MD5_H__ 
 
 /** \file BLI_md5.h
  *  \ingroup bli

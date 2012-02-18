@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_ANIM_API_H
-#define ED_ANIM_API_H
+#ifndef __ED_ANIM_API_H__
+#define __ED_ANIM_API_H__
 
 struct ID;
 struct ListBase;
@@ -605,5 +605,5 @@ void ED_operatormacros_action(void);
 
 /* ************************************************ */
 
-#endif /* ED_ANIM_API_H */
+#endif /* __ED_ANIM_API_H__ */
 

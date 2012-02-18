@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_I3DHANDLE
-#define AUD_I3DHANDLE
+#ifndef __AUD_I3DHANDLE_H__
+#define __AUD_I3DHANDLE_H__
 
 #include "AUD_Space.h"
 #include "AUD_3DMath.h"
@@ -213,4 +213,4 @@ public:
 	virtual bool setConeVolumeOuter(float volume)=0;
 };
 
-#endif //AUD_I3DHANDLE
+#endif //__AUD_I3DHANDLE_H__

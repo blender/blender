@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_MESHDATA_TYPES_H
-#define DNA_MESHDATA_TYPES_H
+#ifndef __DNA_MESHDATA_TYPES_H__
+#define __DNA_MESHDATA_TYPES_H__
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"

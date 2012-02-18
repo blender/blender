@@ -2,8 +2,8 @@
  *  \ingroup render
  */
 
-#ifndef RE_RAYOBJECT_INTERNAL_H
-#define RE_RAYOBJECT_INTERNAL_H
+#ifndef __RAYOBJECT_INTERNAL_H__
+#define __RAYOBJECT_INTERNAL_H__
 
 #ifdef __cplusplus
 extern "C" {

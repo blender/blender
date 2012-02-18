@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_LAMP_TYPES_H
-#define DNA_LAMP_TYPES_H
+#ifndef __DNA_LAMP_TYPES_H__
+#define __DNA_LAMP_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"
@@ -206,5 +206,5 @@ typedef struct Lamp {
 #define LAMAP_SHAD		2
 
 
-#endif /* DNA_LAMP_TYPES_H */
+#endif /* __DNA_LAMP_TYPES_H__ */
 

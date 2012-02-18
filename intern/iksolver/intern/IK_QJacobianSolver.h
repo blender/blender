@@ -31,9 +31,9 @@
  */
 
 
-#ifndef NAN_INCLUDED_IK_QJacobianSolver_h
+#ifndef __IK_QJACOBIANSOLVER_H__
 
-#define NAN_INCLUDED_IK_QJacobianSolver_h
+#define __IK_QJACOBIANSOLVER_H__
 
 /**
  * @author Laurence Bourn

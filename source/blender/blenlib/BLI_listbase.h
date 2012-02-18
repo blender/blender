@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_LISTBASE_H
-#define BLI_LISTBASE_H
+#ifndef __BLI_LISTBASE_H__
+#define __BLI_LISTBASE_H__
 
 /** \file BLI_listbase.h
  *  \ingroup bli

@@ -30,8 +30,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_BOID_TYPES_H
-#define DNA_BOID_TYPES_H
+#ifndef __DNA_BOID_TYPES_H__
+#define __DNA_BOID_TYPES_H__
 
 #include "DNA_listBase.h"
 

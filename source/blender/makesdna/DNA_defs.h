@@ -24,8 +24,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_DEFS_H
-#define DNA_DEFS_H
+#ifndef __DNA_DEFS_H__
+#define __DNA_DEFS_H__
 
 /* makesdna ignores */
 #ifdef DNA_DEPRECATED_ALLOW
@@ -50,4 +50,4 @@
 /* non-id name variables should use this length */
 #define MAX_NAME 64
 
-#endif /* DNA_DEFS_H */
+#endif /* __DNA_DEFS_H__ */

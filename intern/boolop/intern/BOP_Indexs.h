@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_Indexs_H
-#define BOP_Indexs_H
+#ifndef __BOP_INDEXS_H__
+#define __BOP_INDEXS_H__
 
 #include <vector>
 

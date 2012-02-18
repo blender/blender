@@ -30,8 +30,8 @@
  * Declaration of GHOST_EventManager class.
  */
 
-#ifndef _GHOST_EVENT_MANAGER_H_
-#define _GHOST_EVENT_MANAGER_H_
+#ifndef __GHOST_EVENTMANAGER_H__
+#define __GHOST_EVENTMANAGER_H__
 
 #include <deque>
 #include <vector>
@@ -170,5 +170,5 @@ protected:
 	TConsumerVector m_consumers;
 };
 
-#endif // _GHOST_EVENT_MANAGER_H_
+#endif // __GHOST_EVENTMANAGER_H__
 

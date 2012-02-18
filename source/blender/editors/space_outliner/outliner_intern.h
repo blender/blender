@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_OUTLINER_INTERN_H
-#define ED_OUTLINER_INTERN_H
+#ifndef __OUTLINER_INTERN_H__
+#define __OUTLINER_INTERN_H__
 
 #include "RNA_types.h"
 
@@ -237,4 +237,4 @@ void OUTLINER_OT_action_set(struct wmOperatorType *ot);
 void outliner_operatortypes(void);
 void outliner_keymap(struct wmKeyConfig *keyconf);
 
-#endif /* ED_OUTLINER_INTERN_H */
+#endif /* __OUTLINER_INTERN_H__ */

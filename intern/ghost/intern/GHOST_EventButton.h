@@ -30,8 +30,8 @@
  * Declaration of GHOST_EventButton class.
  */
 
-#ifndef _GHOST_EVENT_BUTTON_H_
-#define _GHOST_EVENT_BUTTON_H_
+#ifndef __GHOST_EVENTBUTTON_H__
+#define __GHOST_EVENTBUTTON_H__
 
 #include "GHOST_Event.h"
 
@@ -63,5 +63,5 @@ protected:
 	GHOST_TEventButtonData m_buttonEventData;
 };
 
-#endif // _GHOST_EVENT_BUTTON_H_
+#endif // __GHOST_EVENTBUTTON_H__
 

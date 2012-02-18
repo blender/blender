@@ -30,8 +30,8 @@
  * Macro's used in GHOST debug target.
  */
 
-#ifndef _H_GHOST_Rect
-#define _H_GHOST_Rect
+#ifndef __GHOST_RECT_H__
+#define __GHOST_RECT_H__
 
 #include "GHOST_Types.h"
 
@@ -254,5 +254,5 @@ inline bool GHOST_Rect::isInside(GHOST_TInt32 x, GHOST_TInt32 y) const
 	return (x >= m_l) && (x <= m_r) && (y >= m_t) && (y <= m_b);
 }
 
-#endif // _H_GHOST_Rect
+#endif // __GHOST_RECT_H__
 

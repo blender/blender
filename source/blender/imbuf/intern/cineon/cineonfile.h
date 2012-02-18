@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef _CINEON_FILE_H_
-#define _CINEON_FILE_H_
+#ifndef __CINEONFILE_H__
+#define __CINEONFILE_H__
 
 #include "logImageCore.h"
 
@@ -130,4 +130,4 @@ typedef struct {
 }
 #endif
 
-#endif /* _CINEON_FILE_H_ */
+#endif /* __CINEONFILE_H__ */

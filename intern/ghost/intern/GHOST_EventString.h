@@ -30,8 +30,8 @@
  * Declaration of GHOST_EventString class.
  */
 
-#ifndef _GHOST_EVENTSTRING_H_
-#define _GHOST_EVENTSTRING_H_
+#ifndef __GHOST_EVENTSTRING_H__
+#define __GHOST_EVENTSTRING_H__
 
 #include "GHOST_Event.h"
 
@@ -62,5 +62,5 @@ public:
 	}
 };
 
-#endif // _GHOST_EVENTSTRING_H_
+#endif // __GHOST_EVENTSTRING_H__
 

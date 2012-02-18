@@ -32,8 +32,8 @@
 
 //Include this file for access to vector, quat, matrix, euler, etc...
 
-#ifndef MATHUTILS_H
-#define MATHUTILS_H
+#ifndef __MATHUTILS_H__
+#define __MATHUTILS_H__
 
 /* Can cast different mathutils types to this, use for generic funcs */
 
@@ -125,4 +125,4 @@ int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject 
 /* dynstr as python string utility funcions */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 
-#endif /* MATHUTILS_H */
+#endif /* __MATHUTILS_H__ */

@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_ACCESS_H
-#define RNA_ACCESS_H
+#ifndef __RNA_ACCESS_H__
+#define __RNA_ACCESS_H__
 
 /** \file RNA_access.h
  *  \ingroup RNA
@@ -1017,4 +1017,4 @@ __attribute__ ((format (printf, 1, 2)))
 }
 #endif
 
-#endif /* RNA_ACCESS_H */
+#endif /* __RNA_ACCESS_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup boolop
  */
 
-#ifndef BOP_INTERFACE_H
-#define BOP_INTERFACE_H
+#ifndef __BOP_INTERFACE_H__
+#define __BOP_INTERFACE_H__
 
 #include "../../bsp/intern/BSP_CSGMesh.h"
 

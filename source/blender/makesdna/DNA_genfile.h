@@ -30,8 +30,8 @@
  *  \brief blenloader genfile private function prototypes
  */
 
-#ifndef DNA_GENFILE_H
-#define DNA_GENFILE_H
+#ifndef __DNA_GENFILE_H__
+#define __DNA_GENFILE_H__
 
 struct SDNA;
 

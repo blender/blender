@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _IMB_THUMBS_H
-#define _IMB_THUMBS_H
+#ifndef __IMB_THUMBS_H__
+#define __IMB_THUMBS_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,5 +85,5 @@ void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float as
 }
 #endif /* __cplusplus */
 
-#endif /* _IMB_THUMBS_H */
+#endif /* __IMB_THUMBS_H__ */
 

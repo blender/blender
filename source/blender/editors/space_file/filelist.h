@@ -30,8 +30,8 @@
  */
 
 
-#ifndef FILELIST_H
-#define FILELIST_H
+#ifndef __FILELIST_H__
+#define __FILELIST_H__
 
 #ifdef __cplusplus
 extern "C" {

@@ -29,8 +29,8 @@
  *  \ingroup avi
  */
 
-#ifndef AVI_INTERN_H
-#define AVI_INTERN_H
+#ifndef __AVI_INTERN_H__
+#define __AVI_INTERN_H__
 
 #include <stdio.h> /* for FILE */
 

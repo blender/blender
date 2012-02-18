@@ -25,8 +25,8 @@
  */
 
 
-#ifndef _DDS_API_H
-#define _DDS_API_H
+#ifndef __DDS_API_H__
+#define __DDS_API_H__
 
 #ifdef __cplusplus
 extern "C" {

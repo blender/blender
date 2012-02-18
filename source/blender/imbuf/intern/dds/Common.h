@@ -25,8 +25,8 @@
  */
 
 
-#ifndef _DDS_COMMON_H
-#define _DDS_COMMON_H
+#ifndef __COMMON_H__
+#define __COMMON_H__
 
 #ifndef min
 #define min(a,b) ((a) <= (b) ? (a) : (b))

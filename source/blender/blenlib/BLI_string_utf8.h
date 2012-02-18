@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_STRING_UTF8_H
-#define BLI_STRING_UTF8_H
+#ifndef __BLI_STRING_UTF8_H__
+#define __BLI_STRING_UTF8_H__
 
 /** \file BLI_string_utf8.h
  *  \ingroup bli

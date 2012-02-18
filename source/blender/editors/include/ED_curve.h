@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_CURVE_H
-#define ED_CURVE_H
+#ifndef __ED_CURVE_H__
+#define __ED_CURVE_H__
 
 struct Base;
 struct bContext;
@@ -95,5 +95,5 @@ int ED_curve_actSelection(struct Curve *cu, float center[3]);
 /* debug only */
 void printknots(struct Object *obedit);
 
-#endif /* ED_CURVE_H */
+#endif /* __ED_CURVE_H__ */
 

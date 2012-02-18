@@ -29,8 +29,8 @@
  */
 
 
-#ifndef B_DYNAMIC_LIST_H
-#define B_DYNAMIC_LIST_H
+#ifndef __DYNAMICLIST_H__
+#define __DYNAMICLIST_H__
 
 #define PAGE_SIZE 4
 

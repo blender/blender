@@ -46,8 +46,8 @@
 #include <xmmintrin.h>
 #endif
 
-#ifndef RE_RAYTRACE_BVH_H
-#define RE_RAYTRACE_BVH_H
+#ifndef __BVH_H__
+#define __BVH_H__
 
 #ifdef __SSE__
 inline int test_bb_group4(__m128 *bb_group, const Isect *isec)

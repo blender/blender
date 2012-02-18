@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_LIBRARY_TYPES_H
-#define BKE_LIBRARY_TYPES_H
+#ifndef __BKE_LIBRARY_H__
+#define __BKE_LIBRARY_H__
 
 /** \file BKE_library.h
  *  \ingroup bke

@@ -24,8 +24,8 @@
  *  \ingroup pythonintern
  */
 
-#ifndef BPY_OPERATOR_WRAP_H
-#define BPY_OPERATOR_WRAP_H
+#ifndef __BPY_OPERATOR_WRAP_H__
+#define __BPY_OPERATOR_WRAP_H__
 
 struct wmOperatorType;
 

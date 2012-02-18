@@ -3838,7 +3838,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
-		unsigned int i;
+		int i;
 
 		for (i=0; i< (mesh->totface); i++, tf++) {
 			SWITCH_INT(tf->col[0]);
@@ -7498,15 +7498,16 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 
 void do_versions_image_settings_2_60(Scene *sce)
 {
-	/* note: rd->subimtype is moved into indervidual settings now and no longer
+	/* note: rd->subimtype is moved into individual settings now and no longer
 	 * exists */
 	RenderData *rd= &sce->r;
 	ImageFormatData *imf= &sce->r.im_format;
 
-	imf->imtype= rd->imtype;
-	imf->planes= rd->planes;
-	imf->compress= rd->quality;
-	imf->quality= rd->quality;
+	/* we know no data loss happens here, the old values were in char range */
+	imf->imtype=   (char)rd->imtype;
+	imf->planes=   (char)rd->planes;
+	imf->compress= (char)rd->quality;
+	imf->quality=  (char)rd->quality;
 
 	/* default, was stored in multiple places, may override later */
 	imf->depth= R_IMF_CHAN_DEPTH_8;
@@ -14086,6 +14087,11 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
 }
 
+static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
+{
+	if (clip->adt)
+		expand_animdata(fd, mainvar, clip->adt);
+}
 
 static void expand_main(FileData *fd, Main *mainvar)
 {
@@ -14169,6 +14175,10 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+						break;
+					case ID_MC:
+						expand_movieclip(fd, mainvar, (MovieClip *)id);
+						break;
 					}
 
 					doit= 1;

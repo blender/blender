@@ -30,8 +30,8 @@
  * Declaration of GHOST_Buttons struct.
  */
 
-#ifndef _GHOST_BUTTONS_H_
-#define _GHOST_BUTTONS_H_
+#ifndef __GHOST_BUTTONS_H__
+#define __GHOST_BUTTONS_H__
 
 #include "GHOST_Types.h"
 
@@ -74,5 +74,5 @@ struct GHOST_Buttons {
 	GHOST_TUns8 m_ButtonRight		: 1;
 };
 
-#endif // _GHOST_BUTTONS_H_
+#endif // __GHOST_BUTTONS_H__
 

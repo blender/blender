@@ -30,8 +30,8 @@
  */
 
 
-#ifndef RENDERDATABASE_H
-#define RENDERDATABASE_H
+#ifndef __RENDERDATABASE_H__
+#define __RENDERDATABASE_H__
 
 struct Object;
 struct VlakRen;
@@ -144,5 +144,5 @@ void init_render_world(Render *re);
 void RE_Database_FromScene_Vectors(Render *re, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
 
-#endif /* RENDERDATABASE_H */
+#endif /* __RENDERDATABASE_H__ */
 

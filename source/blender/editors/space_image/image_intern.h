@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_IMAGE_INTERN_H
-#define ED_IMAGE_INTERN_H
+#ifndef __IMAGE_INTERN_H__
+#define __IMAGE_INTERN_H__
 
 /* internal exports only */
 struct bContext;
@@ -95,5 +95,5 @@ void image_buttons_register(struct ARegionType *art);
 void IMAGE_OT_properties(struct wmOperatorType *ot);
 void IMAGE_OT_scopes(struct wmOperatorType *ot);
 
-#endif /* ED_IMAGE_INTERN_H */
+#endif /* __IMAGE_INTERN_H__ */
 

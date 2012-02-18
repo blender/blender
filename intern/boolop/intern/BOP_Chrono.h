@@ -30,8 +30,8 @@
  */
 
 
-#ifndef BOP_CHRONO_H
-#define BOP_CHRONO_H
+#ifndef __BOP_CHRONO_H__
+#define __BOP_CHRONO_H__
 
 #include <time.h>
 

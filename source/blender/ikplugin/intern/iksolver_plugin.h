@@ -31,8 +31,8 @@
  */
 
 
-#ifndef IKSOLVER_PLUGIN_H
-#define IKSOLVER_PLUGIN_H
+#ifndef __IKSOLVER_PLUGIN_H__
+#define __IKSOLVER_PLUGIN_H__
 
 #include "ikplugin_api.h"
 
@@ -47,5 +47,5 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 }
 #endif
 
-#endif // IKSOLVER_PLUGIN_H
+#endif // __IKSOLVER_PLUGIN_H__
 

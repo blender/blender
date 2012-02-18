@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_PLUGIN_TYPES_H
-#define BKE_PLUGIN_TYPES_H
+#ifndef __BKE_PLUGIN_TYPES_H__
+#define __BKE_PLUGIN_TYPES_H__
 
 /** \file BKE_plugin_types.h
  *  \ingroup bke

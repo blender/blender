@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_FACE_H
-#define BOP_FACE_H
+#ifndef __BOP_FACE_H__
+#define __BOP_FACE_H__
 
 #include "BOP_Tag.h"
 #include "MT_Plane3.h"

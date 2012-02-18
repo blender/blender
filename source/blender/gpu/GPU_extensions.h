@@ -29,8 +29,8 @@
  *  \ingroup gpu
  */
 
-#ifndef GPU_EXTENSIONS_H
-#define GPU_EXTENSIONS_H
+#ifndef __GPU_EXTENSIONS_H__
+#define __GPU_EXTENSIONS_H__
 
 #ifdef __cplusplus
 extern "C" {

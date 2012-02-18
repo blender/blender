@@ -112,8 +112,12 @@ void mid_v3_v3v3(float v[3], const float v1[3], const float v2[3])
 /********************************** Angles ***********************************/
 
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
-   If v1 is a shoulder, v2 is the elbow and v3 is the hand,
-   this would return the angle at the elbow */
+ * If v1 is a shoulder, v2 is the elbow and v3 is the hand,
+ * this would return the angle at the elbow.
+ *
+ * note that when v1/v2/v3 represent 3 points along a straight line
+ * that the angle returned will be pi (180deg), rather then 0.0
+ */
 float angle_v3v3v3(const float v1[3], const float v2[3], const float v3[3])
 {
 	float vec1[3], vec2[3];

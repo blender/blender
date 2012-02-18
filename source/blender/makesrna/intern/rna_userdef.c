@@ -2827,7 +2827,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */
-		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_PE"},
+		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
 		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},

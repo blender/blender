@@ -30,8 +30,8 @@
  *  \ingroup editorui
  */
 
-#ifndef BIF_GL_H
-#define BIF_GL_H
+#ifndef __BIF_GL_H__
+#define __BIF_GL_H__
 
 #include "GL/glew.h"
 
@@ -50,5 +50,5 @@
 #define glMultMatrixf(x)		glMultMatrixf( (float *)(x))
 #define glLoadMatrixf(x)		glLoadMatrixf( (float *)(x))
 
-#endif /* #ifdef BIF_GL_H */
+#endif /* #ifdef __BIF_GL_H__ */
 

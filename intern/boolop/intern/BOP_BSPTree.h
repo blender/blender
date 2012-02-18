@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_BSPTREE_H
-#define BOP_BSPTREE_H
+#ifndef __BOP_BSPTREE_H__
+#define __BOP_BSPTREE_H__
 
 #include "BOP_BSPNode.h"
 #include "BOP_Mesh.h"

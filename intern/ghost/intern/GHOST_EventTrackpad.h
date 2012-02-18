@@ -31,8 +31,8 @@
  * Declaration of GHOST_EventTrackpad class.
  */
 
-#ifndef _GHOST_EVENT_TRACKPAD_H_
-#define _GHOST_EVENT_TRACKPAD_H_
+#ifndef __GHOST_EVENTTRACKPAD_H__
+#define __GHOST_EVENTTRACKPAD_H__
 
 #include "GHOST_Event.h"
 

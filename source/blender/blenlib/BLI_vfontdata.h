@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_VFONTDATA_H
-#define BLI_VFONTDATA_H
+#ifndef __BLI_VFONTDATA_H__
+#define __BLI_VFONTDATA_H__
 
 /** \file BLI_vfontdata.h
  *  \ingroup bli

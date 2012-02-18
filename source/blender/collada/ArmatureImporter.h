@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef __BC_ARMATUREIMPORTER_H__
-#define __BC_ARMATUREIMPORTER_H__
+#ifndef __ARMATUREIMPORTER_H__
+#define __ARMATUREIMPORTER_H__
 
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"

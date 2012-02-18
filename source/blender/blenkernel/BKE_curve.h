@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_CURVE_H
-#define BKE_CURVE_H
+#ifndef __BKE_CURVE_H__
+#define __BKE_CURVE_H__
 
 /** \file BKE_curve.h
  *  \ingroup bke

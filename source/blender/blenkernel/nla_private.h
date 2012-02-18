@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NLA_PRIVATE
-#define NLA_PRIVATE
+#ifndef __NLA_PRIVATE_H__
+#define __NLA_PRIVATE_H__
 
 /* --------------- NLA Evaluation DataTypes ----------------------- */
 
@@ -85,4 +85,4 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short 
 void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes);
 void nladata_flush_channels(ListBase *channels);
 
-#endif // NLA_PRIVATE
+#endif // __NLA_PRIVATE_H__

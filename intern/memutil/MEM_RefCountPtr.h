@@ -35,8 +35,8 @@
  * @author Laurence
  */
 
-#ifndef NAN_INCLUDED_MEM_RefCountPtr_h
-#define NAN_INCLUDED_MEM_RefCountPtr_h
+#ifndef __MEM_REFCOUNTPTR_H__
+#define __MEM_REFCOUNTPTR_H__
 
 #include <stdlib.h> // for NULL !
 

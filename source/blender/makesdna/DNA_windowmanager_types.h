@@ -28,8 +28,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_WINDOWMANAGER_TYPES_H
-#define DNA_WINDOWMANAGER_TYPES_H
+#ifndef __DNA_WINDOWMANAGER_TYPES_H__
+#define __DNA_WINDOWMANAGER_TYPES_H__
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -338,4 +338,4 @@ typedef struct wmOperator {
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1
 
-#endif /* DNA_WINDOWMANAGER_TYPES_H */
+#endif /* __DNA_WINDOWMANAGER_TYPES_H__ */

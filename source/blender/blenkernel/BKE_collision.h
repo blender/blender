@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_COLLISIONS_H
-#define BKE_COLLISIONS_H
+#ifndef __BKE_COLLISION_H__
+#define __BKE_COLLISION_H__
 
 /** \file BKE_collision.h
  *  \ingroup bke

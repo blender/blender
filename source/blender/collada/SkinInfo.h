@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef __BC_SKININFO_H__
-#define __BC_SKININFO_H__
+#ifndef __SKININFO_H__
+#define __SKININFO_H__
 
 #include <map>
 #include <vector>

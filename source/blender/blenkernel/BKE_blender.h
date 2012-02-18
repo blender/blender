@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BLENDER_H
-#define BKE_BLENDER_H
+#ifndef __BKE_BLENDER_H__
+#define __BKE_BLENDER_H__
 
 /** \file BKE_blender.h
  *  \ingroup bke
@@ -51,7 +51,7 @@ extern "C" {
 		/* can be left blank, otherwise a,b,c... etc with no quotes */
 #define BLENDER_VERSION_CHAR	
 		/* alpha/beta/rc/release, docs use this */
-#define BLENDER_VERSION_CYCLE	release
+#define BLENDER_VERSION_CYCLE	alpha
 
 extern char versionstr[]; /* from blender.c */
 

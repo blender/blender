@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_BRUSH_TYPES_H
-#define DNA_BRUSH_TYPES_H
+#ifndef __DNA_BRUSH_TYPES_H__
+#define __DNA_BRUSH_TYPES_H__
 
 
 #include "DNA_ID.h"

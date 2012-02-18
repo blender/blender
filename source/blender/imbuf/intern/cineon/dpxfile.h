@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef _DPX_FILE_H_
-#define _DPX_FILE_H_
+#ifndef __DPXFILE_H__
+#define __DPXFILE_H__
 
 #include "logImageCore.h"
 
@@ -124,4 +124,4 @@ typedef struct {
 }
 #endif
 
-#endif /* _DPX_FILE_H_ */
+#endif /* __DPXFILE_H__ */

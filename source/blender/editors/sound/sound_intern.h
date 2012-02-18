@@ -29,10 +29,10 @@
  */
 
 
-#ifndef ED_SOUND_INTERN_H
-#define ED_SOUND_INTERN_H
+#ifndef __SOUND_INTERN_H__
+#define __SOUND_INTERN_H__
 
 struct wmOperatorType;
 
-#endif /* ED_SOUND_INTERN_H */
+#endif /* __SOUND_INTERN_H__ */
 

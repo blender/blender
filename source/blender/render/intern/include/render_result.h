@@ -29,8 +29,8 @@
  *  \ingroup render
  */
 
-#ifndef RENDER_RESULT_H
-#define RENDER_RESULT_H
+#ifndef __RENDER_RESULT_H__
+#define __RENDER_RESULT_H__
 
 #define PASS_VECTOR_MAX	10000.0f
 
@@ -90,5 +90,5 @@ void render_result_rect_fill_zero(struct RenderResult *rr);
 void render_result_rect_get_pixels(struct RenderResult *rr, struct RenderData *rd,
 	unsigned int *rect, int rectx, int recty);
 
-#endif /* RENDER_RESULT_H */
+#endif /* __RENDER_RESULT_H__ */
 

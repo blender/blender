@@ -30,8 +30,8 @@
  */
 
 
-#ifndef BLF_TRANSLATION_H
-#define BLF_TRANSLATION_H
+#ifndef __BLF_TRANSLATION_H__
+#define __BLF_TRANSLATION_H__
 
 #define TEXT_DOMAIN_NAME "blender"
 
@@ -75,4 +75,4 @@ const char *BLF_translate_do_tooltip(const char *msgid);
 #define IFACE_(msgid) BLF_translate_do_iface(msgid)
 #define TIP_(msgid) BLF_translate_do_tooltip(msgid)
 
-#endif /* BLF_TRANSLATION_H */
+#endif /* __BLF_TRANSLATION_H__ */

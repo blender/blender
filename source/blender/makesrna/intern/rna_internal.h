@@ -25,8 +25,8 @@
  */
 
 
-#ifndef RNA_INTERNAL_H
-#define RNA_INTERNAL_H
+#ifndef __RNA_INTERNAL_H__
+#define __RNA_INTERNAL_H__
 
 #include "UI_resources.h"
 
@@ -387,6 +387,6 @@ void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct Re
 
 int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
-#endif /* RNA_INTERNAL_H */
+#endif /* __RNA_INTERNAL_H__ */
 
 

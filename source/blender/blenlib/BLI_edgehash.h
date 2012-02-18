@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_EDGEHASH_H
-#define BLI_EDGEHASH_H
+#ifndef __BLI_EDGEHASH_H__
+#define __BLI_EDGEHASH_H__
 
 /** \file BLI_edgehash.h
  *  \ingroup bli

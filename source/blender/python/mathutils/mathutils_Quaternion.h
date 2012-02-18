@@ -32,8 +32,8 @@
  */
 
 
-#ifndef MATHUTILS_QUAT_H
-#define MATHUTILS_QUAT_H
+#ifndef __MATHUTILS_QUATERNION_H__
+#define __MATHUTILS_QUATERNION_H__
 
 extern PyTypeObject quaternion_Type;
 #define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
@@ -51,4 +51,4 @@ blender (stored in blend_data). This is an either/or struct not both*/
 PyObject *Quaternion_CreatePyObject( float *quat, int type, PyTypeObject *base_type);
 PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif /* MATHUTILS_QUAT_H */
+#endif /* __MATHUTILS_QUATERNION_H__ */

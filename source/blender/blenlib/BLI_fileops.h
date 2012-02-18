@@ -30,8 +30,8 @@
  *  \brief File and directory operations.
  * */
 
-#ifndef BLI_FILEOPS_H
-#define BLI_FILEOPS_H
+#ifndef __BLI_FILEOPS_H__
+#define __BLI_FILEOPS_H__
 
 #ifdef __cplusplus
 extern "C" {

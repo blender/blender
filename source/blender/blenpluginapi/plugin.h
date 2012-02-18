@@ -30,8 +30,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef PLUGIN_H
-#define PLUGIN_H
+#ifndef __PLUGIN_H__
+#define __PLUGIN_H__
 
 #include "externdef.h"
 #include "iff.h"
@@ -102,5 +102,5 @@ LIBIMPORT float turbulence(float noisesize, float x, float y, float z, int depth
 	/* hard turbulence */
 LIBIMPORT float turbulence1(float noisesize, float x, float y, float z, int depth);
 
-#endif /* PLUGIN_H */
+#endif /* __PLUGIN_H__ */
 

@@ -31,8 +31,8 @@
  *  \author nzc
  */
 
-#ifndef DNA_TEXTURE_TYPES_H
-#define DNA_TEXTURE_TYPES_H
+#ifndef __DNA_TEXTURE_TYPES_H__
+#define __DNA_TEXTURE_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"

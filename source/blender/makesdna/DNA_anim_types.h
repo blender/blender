@@ -27,8 +27,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_ANIM_TYPES_H
-#define DNA_ANIM_TYPES_H
+#ifndef __DNA_ANIM_TYPES_H__
+#define __DNA_ANIM_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -909,4 +909,4 @@ typedef struct IdAdtTemplate {
 };
 #endif
 
-#endif /* DNA_ANIM_TYPES_H */
+#endif /* __DNA_ANIM_TYPES_H__ */
