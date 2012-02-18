@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_FCURVE_H
-#define BKE_FCURVE_H
+#ifndef __BKE_FCURVE_H__
+#define __BKE_FCURVE_H__
 
 /** \file BKE_fcurve.h
  *  \ingroup bke
@@ -270,4 +270,4 @@ void fcurve_store_samples(struct FCurve *fcu, void *data, int start, int end, Fc
 }
 #endif
 
-#endif /* BKE_FCURVE_H*/
+#endif /* __BKE_FCURVE_H__*/

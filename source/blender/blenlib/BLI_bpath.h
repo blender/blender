@@ -31,8 +31,8 @@
  *   so for BPath we dont need to malloc
  */
 
-#ifndef BLI_BPATH_H
-#define BLI_BPATH_H
+#ifndef __BLI_BPATH_H__
+#define __BLI_BPATH_H__
 
 struct ID;
 struct ListBase;
@@ -64,4 +64,4 @@ void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportLis
 void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void findMissingFiles(struct Main *bmain, const char *searchpath, struct ReportList *reports);
 
-#endif // BLI_BPATH_H
+#endif // __BLI_BPATH_H__

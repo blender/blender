@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_EFFECT_H
-#define BKE_EFFECT_H
+#ifndef __BKE_EFFECT_H__
+#define __BKE_EFFECT_H__
 
 /** \file BKE_effect.h
  *  \ingroup bke

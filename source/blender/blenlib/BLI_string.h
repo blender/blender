@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_STRING_H
-#define BLI_STRING_H
+#ifndef __BLI_STRING_H__
+#define __BLI_STRING_H__
 
 /** \file BLI_string.h
  *  \ingroup bli

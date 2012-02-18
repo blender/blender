@@ -26,8 +26,8 @@
  * 
  */
 
-#ifndef BLI_NOISE_H
-#define BLI_NOISE_H
+#ifndef __BLI_NOISE_H__
+#define __BLI_NOISE_H__
 
 /** \file BLI_noise.h
  *  \ingroup bli

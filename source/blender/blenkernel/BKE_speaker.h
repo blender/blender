@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_SPEAKER_H
-#define BKE_SPEAKER_H
+#ifndef __BKE_SPEAKER_H__
+#define __BKE_SPEAKER_H__
 
 /** \file BKE_speaker.h
  *  \ingroup bke

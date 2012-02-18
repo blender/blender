@@ -403,6 +403,10 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		free_editMesh(me->edit_mesh);
 		MEM_freeN(me->edit_mesh);
 		me->edit_mesh= NULL;
+
+		/* load_editMesh free's pointers used by CustomData layers which might be used by DerivedMesh too,
+		 * so signal to re-create DerivedMesh here (sergey) */
+		DAG_id_tag_update(&me->id, 0);
 	}
 
 	/* dummie drop support; ensure view shows a result :) */

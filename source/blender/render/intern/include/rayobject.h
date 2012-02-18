@@ -30,8 +30,8 @@
  */
 
 
-#ifndef RE_RAYOBJECT_H
-#define RE_RAYOBJECT_H
+#ifndef __RAYOBJECT_H__
+#define __RAYOBJECT_H__
 
 #ifdef __cplusplus
 extern "C" {

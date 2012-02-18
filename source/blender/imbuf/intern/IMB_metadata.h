@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _IMB_IMGINFO_H
-#define _IMB_IMGINFO_H
+#ifndef __IMB_METADATA_H__
+#define __IMB_METADATA_H__
 
 struct ImBuf;
 
@@ -80,4 +80,4 @@ int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* field
  */
 int IMB_metadata_del_field(struct ImBuf *img, const char *key);
 
-#endif /* _IMB_IMGINFO_H */
+#endif /* __IMB_METADATA_H__ */

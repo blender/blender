@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_MESH_H
-#define ED_MESH_H
+#ifndef __ED_MESH_H__
+#define __ED_MESH_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -268,5 +268,5 @@ void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 }
 #endif
 
-#endif /* ED_MESH_H */
+#endif /* __ED_MESH_H__ */
 

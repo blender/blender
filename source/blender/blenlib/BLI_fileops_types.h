@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_FILEOPS_TYPES_H
-#define BLI_FILEOPS_TYPES_H
+#ifndef __BLI_FILEOPS_TYPES_H__
+#define __BLI_FILEOPS_TYPES_H__
 
 /** \file BLI_fileops_types.h
  *  \ingroup bli
@@ -74,5 +74,5 @@ struct dirlink
 	char *name;
 };
 
-#endif /* BLI_FILEOPS_TYPES_H */
+#endif /* __BLI_FILEOPS_TYPES_H__ */
 

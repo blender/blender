@@ -26,8 +26,8 @@
  */
 
 
-#ifndef BKE_BMESHCUSTOMDATA_H
-#define BKE_BMESHCUSTOMDATA_H
+#ifndef __BKE_BMESHCUSTOMDATA_H__
+#define __BKE_BMESHCUSTOMDATA_H__
 
 /** \file BKE_bmeshCustomData.h
  *  \ingroup bke

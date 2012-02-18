@@ -31,8 +31,8 @@
  *  \ingroup editorui
  */
 
-#ifndef UI_VIEW2D_H
-#define UI_VIEW2D_H
+#ifndef __UI_VIEW2D_H__
+#define __UI_VIEW2D_H__
 
 /* ------------------------------------------ */
 /* Settings and Defines: 					*/
@@ -201,5 +201,5 @@ void UI_view2d_text_cache_draw(struct ARegion *ar);
 void UI_view2d_operatortypes(void);
 void UI_view2d_keymap(struct wmKeyConfig *keyconf);
 
-#endif /* UI_VIEW2D_H */
+#endif /* __UI_VIEW2D_H__ */
 

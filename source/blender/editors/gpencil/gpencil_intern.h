@@ -28,8 +28,8 @@
  *  \ingroup edgpencil
  */
 
-#ifndef ED_GPENCIL_INTERN_H
-#define ED_GPENCIL_INTERN_H
+#ifndef __GPENCIL_INTERN_H__
+#define __GPENCIL_INTERN_H__
 
 /* internal exports only */
 
@@ -117,5 +117,5 @@ typedef enum ACTCONT_TYPES {
 
 
 
-#endif /* ED_GPENCIL_INTERN_H */
+#endif /* __GPENCIL_INTERN_H__ */
 

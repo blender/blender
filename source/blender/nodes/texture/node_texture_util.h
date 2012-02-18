@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NODE_TEXTURE_UTIL_H_
-#define NODE_TEXTURE_UTIL_H_
+#ifndef __NODE_TEXTURE_UTIL_H__
+#define __NODE_TEXTURE_UTIL_H__
 
 #include <math.h>
 #include <string.h>

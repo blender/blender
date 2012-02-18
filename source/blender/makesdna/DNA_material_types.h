@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_MATERIAL_TYPES_H
-#define DNA_MATERIAL_TYPES_H
+#ifndef __DNA_MATERIAL_TYPES_H__
+#define __DNA_MATERIAL_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"

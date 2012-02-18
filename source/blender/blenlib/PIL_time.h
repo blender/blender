@@ -32,8 +32,8 @@
  */
 
  
-#ifndef PIL_TIME_H
-#define PIL_TIME_H
+#ifndef __PIL_TIME_H__
+#define __PIL_TIME_H__
 
 #ifdef __cplusplus
 extern "C" { 
@@ -78,4 +78,4 @@ void	PIL_sleep_ms				(int ms);
 }
 #endif
 
-#endif /* !PIL_TIME_H */
+#endif /* !__PIL_TIME_H__ */

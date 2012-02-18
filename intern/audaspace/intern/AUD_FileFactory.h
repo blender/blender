@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_FILEFACTORY
-#define AUD_FILEFACTORY
+#ifndef __AUD_FILEFACTORY_H__
+#define __AUD_FILEFACTORY_H__
 
 #include "AUD_IFactory.h"
 #include "AUD_Reference.h"
@@ -73,4 +73,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_FILEFACTORY
+#endif //__AUD_FILEFACTORY_H__

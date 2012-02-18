@@ -1013,21 +1013,26 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 }
 
+static void ui_id_preview_image_render_size(bContext *C, ID *id, PreviewImage *pi, int size)
+{
+	if ((pi->changed[size] ||!pi->rect[size])) /* changed only ever set by dynamic icons */
+	{
+		/* create the rect if necessary */
+		icon_set_image(C, id, pi, size);
+
+		pi->changed[size] = 0;
+	}
+}
+
 static void ui_id_icon_render(bContext *C, ID *id, int big)
 {
-	PreviewImage *pi = BKE_previewimg_get(id); 
-	
-	if (pi) {			
-		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
-		{
-			/* create the rect if necessary */				
-			
-			icon_set_image(C, id, pi, ICON_SIZE_ICON);		/* icon size */
-			if (big)
-				icon_set_image(C, id, pi, ICON_SIZE_PREVIEW);	/* bigger preview size */
-			
-			pi->changed[0] = 0;
-		}
+	PreviewImage *pi = BKE_previewimg_get(id);
+
+	if (pi) {
+		if (big)
+			ui_id_preview_image_render_size(C, id, pi, ICON_SIZE_PREVIEW);	/* bigger preview size */
+		else
+			ui_id_preview_image_render_size(C, id, pi, ICON_SIZE_ICON);		/* icon size */
 	}
 }
 

@@ -30,8 +30,8 @@
  *  \author nzc
  */
 
-#ifndef DNA_SOUND_TYPES_H
-#define DNA_SOUND_TYPES_H
+#ifndef __DNA_SOUND_TYPES_H__
+#define __DNA_SOUND_TYPES_H__
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

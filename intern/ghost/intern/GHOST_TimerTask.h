@@ -30,8 +30,8 @@
  * Declaration of GHOST_TimerTask class.
  */
 
-#ifndef _GHOST_TIMER_TASK_H_
-#define _GHOST_TIMER_TASK_H_
+#ifndef __GHOST_TIMERTASK_H__
+#define __GHOST_TIMERTASK_H__
 
 #include "GHOST_ITimerTask.h"
 
@@ -192,5 +192,5 @@ protected:
 	GHOST_TUns32 m_auxData;
 };
 
-#endif // _GHOST_TIMER_TASK_H_
+#endif // __GHOST_TIMERTASK_H__
 

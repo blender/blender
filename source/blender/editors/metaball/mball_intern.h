@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_MBALL_INTERN_H
-#define ED_MBALL_INTERN_H
+#ifndef __MBALL_INTERN_H__
+#define __MBALL_INTERN_H__
 
 #include "DNA_object_types.h"
 

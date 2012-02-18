@@ -35,8 +35,8 @@
  */
 
 
-#ifndef BMESH_PRIVATE
-#define BMESH_PRIVATE
+#ifndef __BMESH_PRIVATE_H__
+#define __BMESH_PRIVATE_H__
 
 #include "BKE_bmesh.h"
 

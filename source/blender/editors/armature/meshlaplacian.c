@@ -181,9 +181,9 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 	t2= cotan_weight(v2, v3, v1);
 	t3= cotan_weight(v3, v1, v2);
 
-	if(RAD2DEGF(angle_v3v3v3(v2, v1, v3)) > 90) obtuse= 1;
-	else if(RAD2DEGF(angle_v3v3v3(v1, v2, v3)) > 90) obtuse= 2;
-	else if(RAD2DEGF(angle_v3v3v3(v1, v3, v2)) > 90) obtuse= 3;
+	if     (angle_v3v3v3(v2, v1, v3) > DEG2RADF(90.0f)) obtuse= 1;
+	else if(angle_v3v3v3(v1, v2, v3) > DEG2RADF(90.0f)) obtuse= 2;
+	else if(angle_v3v3v3(v1, v3, v2) > DEG2RADF(90.0f)) obtuse= 3;
 
 	if (obtuse > 0) {
 		area= area_tri_v3(v1, v2, v3);
@@ -682,8 +682,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 				mask[mface->v4]= (mvert[mface->v4].flag & SELECT) != 0;
 			}
 		}
-		else {
-			if(use_face_sel) {
+		else if (use_face_sel) {
+			if (mface->flag & ME_FACE_SEL) {
 				mask[mface->v1]= 1;
 				mask[mface->v2]= 1;
 				mask[mface->v3]= 1;

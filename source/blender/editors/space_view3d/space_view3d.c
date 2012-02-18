@@ -933,6 +933,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_TEXTURE:
+		case NC_MATERIAL:
 			/* for brush textures */
 			ED_region_tag_redraw(ar);
 			break;

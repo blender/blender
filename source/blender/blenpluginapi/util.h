@@ -30,8 +30,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
 #include <sys/types.h>
 #include <stdlib.h>
@@ -98,5 +98,5 @@ LIBEXPORT          void *mallocT(int len, char *str);
 LIBEXPORT          void *callocT(int len, char *str);
 LIBEXPORT          void freeT(void *vmemh);   
 
-#endif /* UTIL_H */
+#endif /* __UTIL_H__ */
 

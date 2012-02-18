@@ -24,8 +24,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_NUMINPUT_H
-#define ED_NUMINPUT_H
+#ifndef __ED_NUMINPUT_H__
+#define __ED_NUMINPUT_H__
 
 
 typedef struct NumInput {

@@ -50,8 +50,8 @@
  *
  */
 
-#ifndef __AVI_H__
-#define __AVI_H__
+#ifndef __AVI_AVI_H__
+#define __AVI_AVI_H__
 
 #include "MEM_sys_types.h"
 #include <stdio.h> /* for FILE */
@@ -305,5 +305,5 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...);
 AviError AVI_print_error (AviError error);
 void AVI_set_debug (int mode);
 
-#endif /* __AVI_H__ */
+#endif /* __AVI_AVI_H__ */
 

@@ -32,8 +32,8 @@
  */
 
 
-#ifndef MATHUTILS_EULER_H
-#define MATHUTILS_EULER_H
+#ifndef __MATHUTILS_EULER_H__
+#define __MATHUTILS_EULER_H__
 
 extern PyTypeObject euler_Type;
 #define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
@@ -56,4 +56,4 @@ PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order, int cb_type, i
 short euler_order_from_string(const char *str, const char *error_prefix);
 
 
-#endif /* MATHUTILS_EULER_H */
+#endif /* __MATHUTILS_EULER_H__ */

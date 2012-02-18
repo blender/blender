@@ -30,8 +30,8 @@
  * Declaration of GHOST_EventWheel class.
  */
 
-#ifndef _GHOST_EVENT_WHEEL_H_
-#define _GHOST_EVENT_WHEEL_H_
+#ifndef __GHOST_EVENTWHEEL_H__
+#define __GHOST_EVENTWHEEL_H__
 
 #include "GHOST_Event.h"
 
@@ -64,5 +64,5 @@ protected:
 };
 
 
-#endif // _GHOST_EVENT_WHEEL_H_
+#endif // __GHOST_EVENTWHEEL_H__
 

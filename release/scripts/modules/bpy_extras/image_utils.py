@@ -97,7 +97,7 @@ def load_image(imagepath,
 
         # image path has been checked so the path could not be read for some
         # reason, so be sure to return a placeholder
-        if place_holder:
+        if place_holder and image is None:
             image = _image_load_placeholder(path)
 
         return image

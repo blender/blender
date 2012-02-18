@@ -28,8 +28,8 @@
  *  \ingroup wm
  */
 
-#ifndef WM_H
-#define WM_H
+#ifndef __WM_H__
+#define __WM_H__
 
 struct wmWindow;
 struct ReportList;
@@ -85,5 +85,5 @@ void wm_autosave_location(char *filepath);
 extern int circle_select_size;
 #endif
 
-#endif /* WM_H */
+#endif /* __WM_H__ */
 

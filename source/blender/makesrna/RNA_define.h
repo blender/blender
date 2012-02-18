@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_DEFINE_H
-#define RNA_DEFINE_H
+#ifndef __RNA_DEFINE_H__
+#define __RNA_DEFINE_H__
 
 /** \file RNA_define.h
  *  \ingroup RNA
@@ -218,5 +218,5 @@ const char *RNA_property_typename(PropertyType type);
 }
 #endif
 
-#endif /* RNA_DEFINE_H */
+#endif /* __RNA_DEFINE_H__ */
 

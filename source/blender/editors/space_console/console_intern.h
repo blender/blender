@@ -24,8 +24,8 @@
  *  \ingroup spconsole
  */
 
-#ifndef ED_CONSOLE_INTERN_H
-#define ED_CONSOLE_INTERN_H
+#ifndef __CONSOLE_INTERN_H__
+#define __CONSOLE_INTERN_H__
 
 /* internal exports only */
 
@@ -69,4 +69,4 @@ void CONSOLE_OT_select_set(struct wmOperatorType *ot);
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD };
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
 
-#endif /* ED_CONSOLE_INTERN_H */
+#endif /* __CONSOLE_INTERN_H__ */

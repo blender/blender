@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_JITTER_H
-#define BLI_JITTER_H 
+#ifndef __BLI_JITTER_H__
+#define __BLI_JITTER_H__ 
 
 /** \file BLI_jitter.h
  *  \ingroup bli

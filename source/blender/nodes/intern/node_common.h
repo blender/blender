@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NODE_COMMON_H_
-#define NODE_COMMON_H_
+#ifndef __NODE_COMMON_H__
+#define __NODE_COMMON_H__
 
 #include "DNA_listBase.h"
 

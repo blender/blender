@@ -28,8 +28,8 @@
  *  \ingroup wm
  */
 
-#ifndef WM_TYPES_H
-#define WM_TYPES_H
+#ifndef __WM_TYPES_H__
+#define __WM_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -570,5 +570,5 @@ typedef struct RecentFile {
 }
 #endif
 
-#endif /* WM_TYPES_H */
+#endif /* __WM_TYPES_H__ */
 

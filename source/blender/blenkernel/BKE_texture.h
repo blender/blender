@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_TEXTURE_H
-#define BKE_TEXTURE_H
+#ifndef __BKE_TEXTURE_H__
+#define __BKE_TEXTURE_H__
 
 /** \file BKE_texture.h
  *  \ingroup bke

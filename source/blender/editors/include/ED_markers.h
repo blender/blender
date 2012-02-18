@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_MARKERS_H
-#define ED_MARKERS_H
+#ifndef __ED_MARKERS_H__
+#define __ED_MARKERS_H__
 
 struct wmKeyConfig;
 struct wmKeyMap;
@@ -77,5 +77,5 @@ void ED_marker_keymap_animedit_conflictfree(struct wmKeyMap *keymap);
 /* debugging only */
 void debug_markers_print_list(struct ListBase *markers);
 
-#endif /* ED_MARKERS_H */
+#endif /* __ED_MARKERS_H__ */
 

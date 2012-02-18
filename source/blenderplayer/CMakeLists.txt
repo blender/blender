@@ -184,6 +184,10 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
 
+	if(WITH_GHOST_XDND)
+		list(APPEND BLENDER_SORTED_LIBS extern_xdnd)
+	endif()
+
 	if(WITH_CODEC_QUICKTIME)
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
 	endif()

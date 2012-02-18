@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_DOUBLEFACTORY
-#define AUD_DOUBLEFACTORY
+#ifndef __AUD_DOUBLEFACTORY_H__
+#define __AUD_DOUBLEFACTORY_H__
 
 #include "AUD_IFactory.h"
 
@@ -63,4 +63,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_DOUBLEFACTORY
+#endif //__AUD_DOUBLEFACTORY_H__

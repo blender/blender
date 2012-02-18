@@ -24,9 +24,9 @@
  *  \ingroup editors
  */
 
-#ifndef ED_SEQUENCER_H
-#define ED_SEQUENCER_H
+#ifndef __ED_SEQUENCER_H__
+#define __ED_SEQUENCER_H__
 
 #define SEQ_ZOOM_FAC(szoom) ((szoom) > 0.0f)? (szoom) : ((szoom) == 0.0f)? (1.0f) : (-1.0f/(szoom))
 
-#endif /*  ED_SEQUENCER_H */
+#endif /*  __ED_SEQUENCER_H__ */

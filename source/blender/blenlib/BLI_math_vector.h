@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_VECTOR_H
-#define BLI_MATH_VECTOR_H
+#ifndef __BLI_MATH_VECTOR_H__
+#define __BLI_MATH_VECTOR_H__
 
 /** \file BLI_math_vector.h
  *  \ingroup bli
@@ -36,7 +36,7 @@ extern "C" {
 
 #include "BLI_math_inline.h"
 
-#ifdef BLI_MATH_INLINE_H
+#ifdef __BLI_MATH_INLINE_H__
 #include "intern/math_vector_inline.c"
 #endif
 
@@ -216,5 +216,5 @@ void fill_vn_fl(float *array_tar, const int size, const float val);
 }
 #endif
 
-#endif /* BLI_MATH_VECTOR_H */
+#endif /* __BLI_MATH_VECTOR_H__ */
 

@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef _LOG_IMAGE_CORE_H_
-#define _LOG_IMAGE_CORE_H_
+#ifndef __LOGIMAGECORE_H__
+#define __LOGIMAGECORE_H__
 
 #include <stdio.h>
 #include "logImageLib.h"
@@ -119,4 +119,4 @@ R32 reverseR32(R32 value);
 }
 #endif
 
-#endif /* _LOG_IMAGE_CORE_H_ */
+#endif /* __LOGIMAGECORE_H__ */

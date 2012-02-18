@@ -31,8 +31,8 @@
  */
 
 
-#ifndef MATHUTILS_MATRIX_H
-#define MATHUTILS_MATRIX_H
+#ifndef __MATHUTILS_MATRIX_H__
+#define __MATHUTILS_MATRIX_H__
 
 extern PyTypeObject matrix_Type;
 extern PyTypeObject matrix_access_Type;
@@ -83,4 +83,4 @@ extern struct Mathutils_Callback mathutils_matrix_translation_cb;
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self);
 
-#endif /* MATHUTILS_MATRIX_H */
+#endif /* __MATHUTILS_MATRIX_H__ */

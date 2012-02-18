@@ -30,8 +30,8 @@
  * Declaration of GHOST_TimerManager class.
  */
 
-#ifndef _GHOST_TIMER_MANAGER_H_
-#define _GHOST_TIMER_MANAGER_H_
+#ifndef __GHOST_TIMERMANAGER_H__
+#define __GHOST_TIMERMANAGER_H__
 
 #include <vector>
 
@@ -121,5 +121,5 @@ protected:
 	TTimerVector m_timers;
 };
 
-#endif // _GHOST_TIMER_MANAGER_H_
+#endif // __GHOST_TIMERMANAGER_H__
 

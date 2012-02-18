@@ -24,8 +24,8 @@
  *  \ingroup pythonintern
  */
 
-#ifndef BPY_RNA_H
-#define BPY_RNA_H
+#ifndef __BPY_RNA_H__
+#define __BPY_RNA_H__
 
 /* --- bpy build options --- */
 #ifdef WITH_PYTHON_SAFETY

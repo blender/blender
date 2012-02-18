@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_EDITVERT_H
-#define BLI_EDITVERT_H
+#ifndef __BLI_EDITVERT_H__
+#define __BLI_EDITVERT_H__
 
 /** \file BLI_editVert.h
  *  \ingroup bli

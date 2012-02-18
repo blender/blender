@@ -31,8 +31,8 @@
  */
 
 
-#ifndef BIK_API_H
-#define BIK_API_H
+#ifndef __BIK_API_H__
+#define __BIK_API_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,5 +92,5 @@ int BIK_get_solver_param(struct bPose *pose, struct bPoseChannel *pchan, int id,
 }
 #endif
 
-#endif // BIK_API_H
+#endif // __BIK_API_H__
 

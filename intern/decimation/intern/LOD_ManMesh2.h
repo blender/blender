@@ -30,8 +30,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_ManMesh2_h
-#define NAN_INCLUDED_ManMesh2_h
+#ifndef __LOD_MANMESH2_H__
+#define __LOD_MANMESH2_H__
 
 #include "LOD_MeshPrimitives.h"
 #include "MEM_SmartPtr.h"

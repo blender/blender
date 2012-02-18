@@ -33,8 +33,8 @@
  */
 
 
-#ifndef SHADBUF_EXT_H
-#define SHADBUF_EXT_H
+#ifndef __SHADBUF_H__
+#define __SHADBUF_H__
 
 #include "render_types.h"
 
@@ -114,5 +114,5 @@ typedef struct ISBData {
 	int minx, miny, rectx, recty;	/* copy from part disprect */
 } ISBData;
 
-#endif /* SHADBUF_EXT_H */
+#endif /* __SHADBUF_H__ */
 

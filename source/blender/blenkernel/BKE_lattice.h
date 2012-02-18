@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_LATTICE_H
-#define BKE_LATTICE_H
+#ifndef __BKE_LATTICE_H__
+#define __BKE_LATTICE_H__
 
 /** \file BKE_lattice.h
  *  \ingroup bke

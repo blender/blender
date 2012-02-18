@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_TEXT_H
-#define BKE_TEXT_H
+#ifndef __BKE_TEXT_H__
+#define __BKE_TEXT_H__
 
 /** \file BKE_text.h
  *  \ingroup bke

@@ -1,12 +1,12 @@
 diff --git a/src/libmv/simple_pipeline/bundle.cc b/src/libmv/simple_pipeline/bundle.cc
-index 310660d..f819603 100644
+index fa0b6cc..d382cd5 100644
 --- a/src/libmv/simple_pipeline/bundle.cc
 +++ b/src/libmv/simple_pipeline/bundle.cc
-@@ -141,7 +141,6 @@ void Bundle(const Tracks &tracks, Reconstruction *reconstruction) {
-   v3d_distortion.p2 = 0;
+@@ -194,7 +194,6 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
+   double v3d_inlier_threshold = 500000.0;
  
    // Finally, run the bundle adjustment.
 -  V3D::optimizerVerbosenessLevel = 1;
-   double const inlierThreshold = 500000.0;
-   V3D::CommonInternalsMetricBundleOptimizer opt(V3D::FULL_BUNDLE_METRIC,
-                                                 inlierThreshold,
+   V3D::CommonInternalsMetricBundleOptimizer opt(v3d_bundle_intrinsics,
+                                                 v3d_inlier_threshold,
+                                                 v3d_K,

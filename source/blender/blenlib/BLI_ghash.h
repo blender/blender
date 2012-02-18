@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_GHASH_H
-#define BLI_GHASH_H
+#ifndef __BLI_GHASH_H__
+#define __BLI_GHASH_H__
 
 /** \file BLI_ghash.h
  *  \ingroup bli
@@ -156,4 +156,4 @@ void			BLI_ghashutil_pairfree	(void *ptr);
 }
 #endif
 
-#endif /* BLI_GHASH_H */
+#endif /* __BLI_GHASH_H__ */

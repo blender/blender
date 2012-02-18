@@ -84,6 +84,8 @@ class vector {
         T& front()                 { return data_[0];         }
   const T& operator[](int n) const { return data_[n];         }
         T& operator[](int n)       { return data_[n];         }
+  const T& at(int n)         const { return data_[n];         }
+        T& at(int n)               { return data_[n];         }
   const T * begin()          const { return data_;            }
   const T * end()            const { return data_+size_;      }
         T * begin()                { return data_;            }

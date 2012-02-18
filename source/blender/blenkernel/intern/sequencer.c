@@ -523,31 +523,12 @@ void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
 }
 
 
-void calc_sequence_disp(Scene *scene, Sequence *seq)
-{
-	if(seq->startofs && seq->startstill) seq->startstill= 0;
-	if(seq->endofs && seq->endstill) seq->endstill= 0;
-	
-	seq->startdisp= seq->start + seq->startofs - seq->startstill;
-	seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
-	
-	seq->handsize= 10.0;	/* 10 frames */
-	if( seq->enddisp-seq->startdisp < 10 ) {
-		seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
-	}
-	else if(seq->enddisp-seq->startdisp > 250) {
-		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
-	}
-
-	seq_update_sound_bounds(scene, seq);
-}
-
 static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 {
 	Sequence *seq;
 
 	/* for sound we go over full meta tree to update bounds of the sound strips,
-	   since sound is played outside of evaluating the imbufs, */
+	 * since sound is played outside of evaluating the imbufs, */
 	for(seq=metaseq->seqbase.first; seq; seq=seq->next) {
 		if(seq->type == SEQ_META) {
 			seq_update_sound_bounds_recursive(scene, seq);
@@ -565,6 +546,29 @@ static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 			}
 		}
 	}
+}
+
+void calc_sequence_disp(Scene *scene, Sequence *seq)
+{
+	if(seq->startofs && seq->startstill) seq->startstill= 0;
+	if(seq->endofs && seq->endstill) seq->endstill= 0;
+	
+	seq->startdisp= seq->start + seq->startofs - seq->startstill;
+	seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
+	
+	seq->handsize= 10.0;	/* 10 frames */
+	if( seq->enddisp-seq->startdisp < 10 ) {
+		seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
+	}
+	else if(seq->enddisp-seq->startdisp > 250) {
+		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
+	}
+
+	if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
+		seq_update_sound_bounds(scene, seq);
+	}
+	else if(seq->type == SEQ_META)
+		seq_update_sound_bounds_recursive(scene, seq);
 }
 
 void calc_sequence(Scene *scene, Sequence *seq)
@@ -1188,11 +1192,10 @@ static void seq_open_anim_file(Sequence * seq)
 }
 
 
-static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, char * name)
+static int seq_proxy_get_fname(Sequence * seq, int cfra, int render_size, char * name)
 {
 	int frameno;
 	char dir[PROXY_MAXFILE];
-	int render_size = context.preview_render_size;
 
 	if (!seq->strip->proxy) {
 		return FALSE;
@@ -1222,22 +1225,17 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 		return TRUE;
 	}
 
-	/* dirty hack to distinguish 100% render size from PROXY_100 */
-	if (render_size == 99) {
-		render_size = 100;
-	}
-
 	/* generate a separate proxy directory for each preview size */
 
 	if (seq->type == SEQ_IMAGE) {
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
-		             context.preview_render_size,
+		             render_size,
 		             give_stripelem(seq, cfra)->name);
 		frameno = 1;
 	} else {
 		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
-		             context.preview_render_size);
+		             render_size);
 	}
 
 	BLI_path_abs(name, G.main->name);
@@ -1254,6 +1252,12 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 	IMB_Proxy_Size psize = seq_rendersize_to_proxysize(
 		context.preview_render_size);
 	int size_flags;
+	int render_size = context.preview_render_size;
+
+	/* dirty hack to distinguish 100% render size from PROXY_100 */
+	if (render_size == 99) {
+		render_size = 100;
+	}
 
 	if (!(seq->flag & SEQ_USE_PROXY)) {
 		return NULL;
@@ -1269,7 +1273,7 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		int frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		if (seq->strip->proxy->anim == NULL) {
-			if (seq_proxy_get_fname(context, seq, cfra, name)==0) {
+			if (seq_proxy_get_fname(seq, cfra, render_size, name)==0) {
 				return NULL;
 			}
  
@@ -1288,7 +1292,7 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 					 IMB_TC_NONE, IMB_PROXY_NONE);
 	}
  
-	if (seq_proxy_get_fname(context, seq, cfra, name) == 0) {
+	if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
 		return NULL;
 	}
 
@@ -1309,7 +1313,7 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	int ok;
 	struct ImBuf * ibuf;
 
-	if (!seq_proxy_get_fname(context, seq, cfra, name)) {
+	if (!seq_proxy_get_fname(seq, cfra, proxy_render_size, name)) {
 		return;
 	}
 
@@ -2576,8 +2580,8 @@ static void seq_stop_threads()
 
 	seq_thread_shutdown = TRUE;
 
-		pthread_cond_broadcast(&wakeup_cond);
-		pthread_mutex_unlock(&wakeup_lock);
+	pthread_cond_broadcast(&wakeup_cond);
+	pthread_mutex_unlock(&wakeup_lock);
 
 	for(tslot = running_threads.first; tslot; tslot= tslot->next) {
 		pthread_join(tslot->pthread, NULL);

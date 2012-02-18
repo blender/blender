@@ -30,8 +30,8 @@
  */
 
 
-#ifndef _OPENEXR_API_H
-#define _OPENEXR_API_H
+#ifndef __OPENEXR_API_H__
+#define __OPENEXR_API_H__
 
 #ifdef __cplusplus
 extern "C" {

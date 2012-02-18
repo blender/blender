@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLO_SOUNDFILE_H
-#define BLO_SOUNDFILE_H
+#ifndef __BLO_SOUNDFILE_H__
+#define __BLO_SOUNDFILE_H__
 
 /** \file BLO_soundfile.h
  *  \ingroup blenloader

@@ -27,8 +27,8 @@
  *  \ingroup editorui
  */
 
-#ifndef BIF_GLUTIL_H
-#define BIF_GLUTIL_H
+#ifndef __BIF_GLUTIL_H__
+#define __BIF_GLUTIL_H__
 
 struct rcti;
 struct rctf;
@@ -216,5 +216,5 @@ typedef struct bglMats {
 } bglMats;
 void bgl_get_mats(bglMats *mats);
 
-#endif /* BIF_GLUTIL_H */
+#endif /* __BIF_GLUTIL_H__ */
 

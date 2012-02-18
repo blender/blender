@@ -29,8 +29,8 @@
  *  \ingroup gpu
  */
 
-#ifndef __GPU_MATERIAL__
-#define __GPU_MATERIAL__
+#ifndef __GPU_MATERIAL_H__
+#define __GPU_MATERIAL_H__
 
 #include "DNA_listBase.h"
 
@@ -238,5 +238,5 @@ int GPU_lamp_shadow_layer(GPULamp *lamp);
 }
 #endif
 
-#endif /*__GPU_MATERIAL__*/
+#endif /*__GPU_MATERIAL_H__*/
 

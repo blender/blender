@@ -18,6 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+/* needed for M_E when building with msvc */
 #define _USE_MATH_DEFINES
 
 #include "libmv/tracking/esm_region_tracker.h"

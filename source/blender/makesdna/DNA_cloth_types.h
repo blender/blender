@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_CLOTH_TYPES_H
-#define DNA_CLOTH_TYPES_H
+#ifndef __DNA_CLOTH_TYPES_H__
+#define __DNA_CLOTH_TYPES_H__
 
 /**
 * This struct contains all the global data required to run a simulation.

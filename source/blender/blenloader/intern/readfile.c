@@ -3839,7 +3839,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
-		unsigned int i;
+		int i;
 
 		for (i=0; i< (mesh->totface); i++, tf++) {
 			SWITCH_INT(tf->col[0]);
@@ -6064,6 +6064,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingObject *object;
 
+	clip->adt= newdataadr(fd, clip->adt);
+
 	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
 	else clip->cache= NULL;
 
@@ -6101,6 +6103,9 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	clip= main->movieclip.first;
 	while(clip) {
 		if(clip->id.flag & LIB_NEEDLINK) {
+			if (clip->adt)
+				lib_link_animdata(fd, &clip->id, clip->adt);
+
 			clip->gpd= newlibadr_us(fd, clip->id.lib, clip->gpd);
 
 			clip->id.flag -= LIB_NEEDLINK;
@@ -7681,15 +7686,16 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 
 void do_versions_image_settings_2_60(Scene *sce)
 {
-	/* note: rd->subimtype is moved into indervidual settings now and no longer
+	/* note: rd->subimtype is moved into individual settings now and no longer
 	 * exists */
 	RenderData *rd= &sce->r;
 	ImageFormatData *imf= &sce->r.im_format;
 
-	imf->imtype= rd->imtype;
-	imf->planes= rd->planes;
-	imf->compress= rd->quality;
-	imf->quality= rd->quality;
+	/* we know no data loss happens here, the old values were in char range */
+	imf->imtype=   (char)rd->imtype;
+	imf->planes=   (char)rd->planes;
+	imf->compress= (char)rd->quality;
+	imf->quality=  (char)rd->quality;
 
 	/* default, was stored in multiple places, may override later */
 	imf->depth= R_IMF_CHAN_DEPTH_8;
@@ -13251,20 +13257,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
-	/* put compatibility code here until next subversion bump */
-	{
-		{
-			Object *ob;
-			for(ob=main->object.first; ob; ob= ob->id.next) {
-				ModifierData *md;
 
-				for (md=ob->modifiers.first; md; md=md->next) {
-					if (md->type==eModifierType_Cloth) {
-						ClothModifierData *clmd = (ClothModifierData*) md;
-						if(clmd->sim_parms)
-							clmd->sim_parms->vel_damping = 1.0f;
-					}
+	if (main->versionfile < 262)
+	{
+		Object *ob;
+		for(ob=main->object.first; ob; ob= ob->id.next) {
+			ModifierData *md;
+
+			for (md=ob->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData*) md;
+					if(clmd->sim_parms)
+						clmd->sim_parms->vel_damping = 1.0f;
 				}
 			}
 		}
@@ -14301,6 +14305,11 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
 }
 
+static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
+{
+	if (clip->adt)
+		expand_animdata(fd, mainvar, clip->adt);
+}
 static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *m;
@@ -14403,6 +14412,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+						break;
+					case ID_MC:
+						expand_movieclip(fd, mainvar, (MovieClip *)id);
 						break;
 					case ID_LS:
 						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);

@@ -33,8 +33,8 @@
  *         library system.
  */
 
-#ifndef DNA_LISTBASE_H
-#define DNA_LISTBASE_H
+#ifndef __DNA_LISTBASE_H__
+#define __DNA_LISTBASE_H__
 
 #ifdef __cplusplus
 extern "C" {

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BLI_RAND_H
-#define BLI_RAND_H
+#ifndef __BLI_RAND_H__
+#define __BLI_RAND_H__
 
 /** \file BLI_rand.h
  *  \ingroup bli

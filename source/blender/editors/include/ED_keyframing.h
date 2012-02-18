@@ -27,8 +27,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_KEYFRAMING_H
-#define ED_KEYFRAMING_H
+#ifndef __ED_KEYFRAMING_H__
+#define __ED_KEYFRAMING_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -330,4 +330,4 @@ int ED_autokeyframe_pchan(struct bContext *C, struct Scene *scene, struct Object
 }
 #endif
 
-#endif /*  ED_KEYFRAMING_H */
+#endif /*  __ED_KEYFRAMING_H__ */

@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SOFTBODY_H
-#define BKE_SOFTBODY_H
+#ifndef __BKE_SOFTBODY_H__
+#define __BKE_SOFTBODY_H__
 
 /** \file BKE_softbody.h
  *  \ingroup bke

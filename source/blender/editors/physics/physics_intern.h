@@ -30,8 +30,8 @@
  */
 
 
-#ifndef ED_PHYSICS_INTERN_H
-#define ED_PHYSICS_INTERN_H
+#ifndef __PHYSICS_INTERN_H__
+#define __PHYSICS_INTERN_H__
 
 struct wmOperatorType;
 
@@ -105,5 +105,5 @@ void PTCACHE_OT_bake_from_cache(struct wmOperatorType *ot);
 void PTCACHE_OT_add(struct wmOperatorType *ot);
 void PTCACHE_OT_remove(struct wmOperatorType *ot);
 
-#endif /* ED_PHYSICS_INTERN_H */
+#endif /* __PHYSICS_INTERN_H__ */
 

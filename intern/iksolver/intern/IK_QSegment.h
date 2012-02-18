@@ -31,8 +31,8 @@
  */
 
 
-#ifndef NAN_INCLUDED_IK_QSegment_h
-#define NAN_INCLUDED_IK_QSegment_h
+#ifndef __IK_QSEGMENT_H__
+#define __IK_QSEGMENT_H__
 
 #include "MT_Vector3.h"
 #include "MT_Transform.h"

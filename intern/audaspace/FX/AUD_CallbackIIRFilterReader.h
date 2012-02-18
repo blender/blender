@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_CALLBACKIIRFILTERREADER
-#define AUD_CALLBACKIIRFILTERREADER
+#ifndef __AUD_CALLBACKIIRFILTERREADER_H__
+#define __AUD_CALLBACKIIRFILTERREADER_H__
 
 #include "AUD_BaseIIRFilterReader.h"
 #include "AUD_Buffer.h"
@@ -84,4 +84,4 @@ public:
 	virtual sample_t filter();
 };
 
-#endif //AUD_CALLBACKIIRFILTERREADER
+#endif //__AUD_CALLBACKIIRFILTERREADER_H__

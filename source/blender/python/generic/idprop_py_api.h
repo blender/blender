@@ -25,8 +25,8 @@
  */
 
 
-#ifndef PY_IDPROP_API_H
-#define PY_IDPROP_API_H
+#ifndef __IDPROP_PY_API_H__
+#define __IDPROP_PY_API_H__
 
 struct ID;
 struct IDProperty;
@@ -67,4 +67,4 @@ void IDProp_Init_Types(void);
 #define IDPROP_ITER_KEYS	0
 #define IDPROP_ITER_ITEMS	1
 
-#endif /* PY_IDPROP_API_H */
+#endif /* __IDPROP_PY_API_H__ */

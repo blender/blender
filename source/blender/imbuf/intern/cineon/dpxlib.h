@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _DPX_LIB_H_
-#define _DPX_LIB_H_
+#ifndef __DPXLIB_H__
+#define __DPXLIB_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,4 +56,4 @@ void dpxDump(const char* filename);
 }
 #endif
 
-#endif /* _DPX_LIB_H_ */
+#endif /* __DPXLIB_H__ */

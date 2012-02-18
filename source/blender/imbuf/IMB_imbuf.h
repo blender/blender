@@ -68,8 +68,8 @@
  *     posix-compliant.
  */
 
-#ifndef IMB_IMBUF_H
-#define IMB_IMBUF_H
+#ifndef __IMB_IMBUF_H__
+#define __IMB_IMBUF_H__
 
 /**
  *
@@ -391,6 +391,7 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect_from,
 	int profile_to, int profile_from, int predivide,
 	int width, int height, int stride_to, int stride_from);
+void IMB_buffer_float_clamp(float *buf, int width, int height);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from

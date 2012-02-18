@@ -32,8 +32,8 @@
  */
 
 
-#ifndef MATHUTILS_COLOR_H
-#define MATHUTILS_COLOR_H
+#ifndef __MATHUTILS_COLOR_H__
+#define __MATHUTILS_COLOR_H__
 
 extern PyTypeObject color_Type;
 #define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
@@ -51,4 +51,4 @@ blender (stored in blend_data). This is an either/or struct not both*/
 PyObject *Color_CreatePyObject( float *col, int type, PyTypeObject *base_type);
 PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif /* MATHUTILS_COLOR_H */
+#endif /* __MATHUTILS_COLOR_H__ */

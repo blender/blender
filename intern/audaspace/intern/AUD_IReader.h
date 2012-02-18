@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_IREADER
-#define AUD_IREADER
+#ifndef __AUD_IREADER_H__
+#define __AUD_IREADER_H__
 
 #include "AUD_Space.h"
 
@@ -94,4 +94,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer)=0;
 };
 
-#endif //AUD_IREADER
+#endif //__AUD_IREADER_H__

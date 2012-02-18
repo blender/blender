@@ -138,6 +138,7 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENMP', 'BF_OPENMP', 'BF_OPENMP_LIBPATH',
             'WITH_GHOST_COCOA',
             'WITH_GHOST_SDL',
+            'WITH_GHOST_XDND',
             'BF_GHOST_DEBUG',
             'USE_QTKIT',
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
@@ -158,7 +159,7 @@ def validate_arguments(args, bc):
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
             'BUILDBOT_BRANCH',
             'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC',
-            'WITH_BF_CYCLES', 'WITH_BF_CYCLES_CUDA_BINARIES' 'BF_CYCLES_CUDA_NVCC', 'BF_CYCLES_CUDA_NVCC', 'WITH_BF_CYCLES_CUDA_THREADED_COMPILE',
+            'WITH_BF_CYCLES', 'WITH_BF_CYCLES_CUDA_BINARIES', 'BF_CYCLES_CUDA_NVCC', 'BF_CYCLES_CUDA_NVCC', 'WITH_BF_CYCLES_CUDA_THREADED_COMPILE',
             'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
             'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
             'WITH_BF_LIBMV', 'WITH_BF_CARVE'
@@ -567,7 +568,9 @@ def read_opts(env, cfg, args):
         ('BF_BOOST_INC', 'Boost include path', ''),
         ('BF_BOOST_LIB', 'Boost library', ''),
         ('BF_BOOST_LIBPATH', 'Boost library path', ''),
-        ('BF_BOOST_LIB_STATIC', 'Boost static library', '')
+        ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
+
+        (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True))
     ) # end of opts.AddOptions()
 
     return localopts

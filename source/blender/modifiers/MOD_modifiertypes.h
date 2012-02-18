@@ -24,8 +24,8 @@
  *  \ingroup modifiers
  */
 
-#ifndef MOD_MODIFIERTYPES_H
-#define MOD_MODIFIERTYPES_H
+#ifndef __MOD_MODIFIERTYPES_H__
+#define __MOD_MODIFIERTYPES_H__
 
 #include "BKE_modifier.h"
 
@@ -78,4 +78,4 @@ extern ModifierTypeInfo modifierType_Remesh;
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);
 
-#endif //MOD_MODIFIERTYPES_H
+#endif //__MOD_MODIFIERTYPES_H__

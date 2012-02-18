@@ -29,8 +29,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_TRANSFORM_H
-#define ED_TRANSFORM_H
+#ifndef __ED_TRANSFORM_H__
+#define __ED_TRANSFORM_H__
 
 /* ******************* Registration Function ********************** */
 

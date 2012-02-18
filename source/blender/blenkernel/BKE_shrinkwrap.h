@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_SHRINKWRAP_H
-#define BKE_SHRINKWRAP_H
+#ifndef __BKE_SHRINKWRAP_H__
+#define __BKE_SHRINKWRAP_H__
 
 /** \file BKE_shrinkwrap.h
  *  \ingroup bke

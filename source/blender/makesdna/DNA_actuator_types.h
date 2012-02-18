@@ -29,8 +29,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_ACTUATOR_TYPES_H
-#define DNA_ACTUATOR_TYPES_H
+#ifndef __DNA_ACTUATOR_TYPES_H__
+#define __DNA_ACTUATOR_TYPES_H__
 
 struct Object;
 struct Mesh;

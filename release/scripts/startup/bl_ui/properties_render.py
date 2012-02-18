@@ -1037,7 +1037,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
                 subsplit = split.split()
                 col = subsplit.column()
 
-                if rquicktime.audiocodec_type == 'AAC':
+                if quicktime.audiocodec_type == 'AAC':
                     col.prop(quicktime, "audio_codec_isvbr")
 
                 col = subsplit.column()

@@ -26,8 +26,8 @@
  * external writefile function prototypes
  */
 
-#ifndef BLO_UNDOFILE_H
-#define BLO_UNDOFILE_H
+#ifndef __BLO_UNDOFILE_H__
+#define __BLO_UNDOFILE_H__
 
 /** \file BLO_undofile.h
  *  \ingroup blenloader

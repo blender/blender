@@ -227,6 +227,20 @@ elseif(UNIX)
 		intern/GHOST_WindowX11.h
 	)
 
+	if(WITH_GHOST_XDND)
+		add_definitions(-DWITH_XDND)
+
+		list(APPEND INC
+			../../extern/xdnd
+		)
+
+		list(APPEND SRC
+			intern/GHOST_DropTargetX11.cpp
+
+			intern/GHOST_DropTargetX11.h
+		)
+	endif()
+
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)
 		list(APPEND INC_SYS

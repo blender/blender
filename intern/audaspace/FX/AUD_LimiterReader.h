@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_LIMITERREADER
-#define AUD_LIMITERREADER
+#ifndef __AUD_LIMITERREADER_H__
+#define __AUD_LIMITERREADER_H__
 
 #include "AUD_EffectReader.h"
 
@@ -68,4 +68,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_LIMITERREADER
+#endif //__AUD_LIMITERREADER_H__

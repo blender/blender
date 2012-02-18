@@ -30,8 +30,8 @@
  *  \ingroup blenloader
  */
 
-#ifndef READFILE_H
-#define READFILE_H
+#ifndef __READFILE_H__
+#define __READFILE_H__
 
 #include "zlib.h"
 

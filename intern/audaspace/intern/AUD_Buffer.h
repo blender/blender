@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_BUFFER
-#define AUD_BUFFER
+#ifndef __AUD_BUFFER_H__
+#define __AUD_BUFFER_H__
 
 #include "AUD_Space.h"
 
@@ -90,4 +90,4 @@ public:
 	void assureSize(int size, bool keep = false);
 };
 
-#endif //AUD_BUFFER
+#endif //__AUD_BUFFER_H__

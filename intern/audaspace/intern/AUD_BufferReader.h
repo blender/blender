@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_BUFFERREADER
-#define AUD_BUFFERREADER
+#ifndef __AUD_BUFFERREADER_H__
+#define __AUD_BUFFERREADER_H__
 
 #include "AUD_IReader.h"
 #include "AUD_Reference.h"
@@ -77,4 +77,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_BUFFERREADER
+#endif //__AUD_BUFFERREADER_H__

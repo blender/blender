@@ -27,8 +27,8 @@
 
 #include "BLO_sys_types.h"
 
-#ifndef RNA_TYPES_H
-#define RNA_TYPES_H
+#ifndef __RNA_TYPES_H__
+#define __RNA_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -371,4 +371,4 @@ typedef struct ExtensionRNA {
 }
 #endif
 
-#endif /* RNA_TYPES_H */
+#endif /* __RNA_TYPES_H__ */

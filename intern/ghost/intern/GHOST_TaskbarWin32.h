@@ -1,8 +1,8 @@
 /** \file ghost/intern/GHOST_TaskbarWin32.h
  *  \ingroup GHOST
  */
-#ifndef GHOST_TASKBARWIN32_H_
-#define GHOST_TASKBARWIN32_H_
+#ifndef __GHOST_TASKBARWIN32_H__
+#define __GHOST_TASKBARWIN32_H__
 
 #ifndef WIN32
 #error WIN32 only!
@@ -69,4 +69,4 @@ typedef enum TBPFLAG  {TBPF_NOPROGRESS = 0, TBPF_INDETERMINATE = 0x1, TBPF_NORMA
 	};
 #endif 	/* ITaskbarList3 */
 
-#endif /*GHOST_TASKBARWIN32_H_*/
+#endif /*__GHOST_TASKBARWIN32_H__*/

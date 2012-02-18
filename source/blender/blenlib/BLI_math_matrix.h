@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_MATRIX_H
-#define BLI_MATH_MATRIX_H
+#ifndef __BLI_MATH_MATRIX_H__
+#define __BLI_MATH_MATRIX_H__
 
 /** \file BLI_math_matrix.h
  *  \ingroup bli
@@ -179,5 +179,5 @@ void print_m4(const char *str, float M[3][4]);
 }
 #endif
 
-#endif /* BLI_MATH_MATRIX_H */
+#endif /* __BLI_MATH_MATRIX_H__ */
 

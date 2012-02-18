@@ -101,7 +101,7 @@ static const char *locales[] = {
 	"greek", "el_GR",
 	"korean", "ko_KR",
 	"nepali", "ne_NP",
-	"persian", "fa_PE",
+	"persian", "fa_IR",
 	"indonesian", "id_ID",
 	"serbian (latin)", "sr_RS@latin",
 	"kyrgyz", "ky",

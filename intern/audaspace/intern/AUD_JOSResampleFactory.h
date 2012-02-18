@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_JOSRESAMPLEFACTORY
-#define AUD_JOSRESAMPLEFACTORY
+#ifndef __AUD_JOSRESAMPLEFACTORY_H__
+#define __AUD_JOSRESAMPLEFACTORY_H__
 
 #include "AUD_MixerFactory.h"
 
@@ -53,4 +53,4 @@ public:
 	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
-#endif //AUD_JOSRESAMPLEFACTORY
+#endif //__AUD_JOSRESAMPLEFACTORY_H__

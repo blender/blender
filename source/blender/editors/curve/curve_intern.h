@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_CURVE_INTERN_H
-#define ED_CURVE_INTERN_H
+#ifndef __CURVE_INTERN_H__
+#define __CURVE_INTERN_H__
 
 /* internal exports only */
 struct wmOperatorType;

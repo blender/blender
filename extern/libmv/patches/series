@@ -1,13 +1,2 @@
 v3d_verbosity.patch
-snrptinf_fix.patch
 bundle_tweaks.patch
-fast.patch
-config_mac.patch
-levenberg_marquardt.patch
-function_derivative.patch
-high_distortion_crash_fix.patch
-mingw.patch
-msvc2010.patch
-scaled_distortion.patch
-overscan.patch
-detect.patch

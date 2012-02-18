@@ -84,7 +84,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
-	{eModifierType_Warp, "WARP", ICON_MOD_SUBSURF, "Warp", ""},
+	{eModifierType_Warp, "WARP", ICON_MOD_WARP, "Warp", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
 	{0, "", 0, "Simulate", ""},
 	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
@@ -92,7 +92,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_DynamicPaint, "DYNAMIC_PAINT", ICON_MOD_DYNAMICPAINT, "Dynamic Paint", ""},
 	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
 	{eModifierType_Fluidsim, "FLUID_SIMULATION", ICON_MOD_FLUIDSIM, "Fluid Simulation", ""},
-	{eModifierType_Ocean, "OCEAN", ICON_MOD_WAVE, "Ocean", ""},
+	{eModifierType_Ocean, "OCEAN", ICON_MOD_OCEAN, "Ocean", ""},
 	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
 	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
@@ -832,7 +832,7 @@ static void rna_def_modifier_warp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "WarpModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Warp Modifier", "Warp modifier");
 	RNA_def_struct_sdna(srna, "WarpModifierData");
-	//RNA_def_struct_ui_icon(srna, ICON_MOD_SUBSURF);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_WARP);
 
 	prop= RNA_def_property(srna, "object_from", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "From", "Object to transform from");
@@ -2901,7 +2901,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OceanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Ocean Modifier", "Simulate an ocean surface");
 	RNA_def_struct_sdna(srna, "OceanModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_WAVE);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_OCEAN);
 	
 	/* General check if blender was built with OceanSim modifier support */
 	prop= RNA_def_property(srna, "is_build_enabled", PROP_BOOLEAN, PROP_NONE);

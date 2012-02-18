@@ -38,8 +38,8 @@
  * This is the external interface for the decimation module.
  */
 
-#ifndef NAN_INCLUDED_LOD_decimation_h
-#define NAN_INCLUDED_LOD_decimation_h
+#ifndef __LOD_DECIMATION_H__
+#define __LOD_DECIMATION_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -113,5 +113,5 @@ extern int LOD_FreeDecimationData(LOD_Decimation_InfoPtr);
 }
 #endif
 
-#endif // NAN_INCLUDED_LOD_decimation_h
+#endif // __LOD_DECIMATION_H__
 

@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_VIEW3D_H
-#define ED_VIEW3D_H
+#ifndef __ED_VIEW3D_H__
+#define __ED_VIEW3D_H__
 
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
@@ -308,4 +308,4 @@ void ED_view3d_operator_properties_viewmat(struct wmOperatorType *ot);
 void ED_view3d_operator_properties_viewmat_set(struct bContext *C, struct wmOperator *op);
 void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx, int *winy, float persmat[4][4]);
 
-#endif /* ED_VIEW3D_H */
+#endif /* __ED_VIEW3D_H__ */

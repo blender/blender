@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef _BKE_IDPROP_H
-#define _BKE_IDPROP_H
+#ifndef __BKE_IDPROP_H__
+#define __BKE_IDPROP_H__
 
 /** \file BKE_idprop.h
  *  \ingroup bke
@@ -204,4 +204,4 @@ void IDP_UnlinkProperty(struct IDProperty *prop);
 #define IDP_IDPArray(prop) ((IDProperty*)(prop)->data.pointer)
 #define IDP_Double(prop) (*(double*)&(prop)->data.val)
 
-#endif /* _BKE_IDPROP_H */
+#endif /* __BKE_IDPROP_H__ */

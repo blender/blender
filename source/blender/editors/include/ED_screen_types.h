@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_SCREEN_TYPES_H__
-#define ED_SCREEN_TYPES_H__
+#ifndef __ED_SCREEN_TYPES_H__
+#define __ED_SCREEN_TYPES_H__
 
 /* ----------------------------------------------------- */
 
@@ -100,4 +100,4 @@ typedef struct AZone {
 #define	AZONE_AREA			1
 #define AZONE_REGION		2
 
-#endif /* ED_SCREEN_TYPES_H__ */
+#endif /* __ED_SCREEN_TYPES_H__ */

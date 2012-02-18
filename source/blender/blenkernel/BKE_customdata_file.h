@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_CUSTOMDATA_FILE_H
-#define BKE_CUSTOMDATA_FILE_H
+#ifndef __BKE_CUSTOMDATA_FILE_H__
+#define __BKE_CUSTOMDATA_FILE_H__
 
 /** \file BKE_customdata_file.h
  *  \ingroup bke
@@ -57,5 +57,5 @@ void cdf_remove(const char *filename);
 CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name);
 CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t datasize);
 
-#endif /* BKE_CUSTOMDATA_FILE_H */
+#endif /* __BKE_CUSTOMDATA_FILE_H__ */
 

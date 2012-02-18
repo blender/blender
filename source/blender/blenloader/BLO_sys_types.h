@@ -40,8 +40,8 @@
  *
  */
 
-#ifndef BLO_SYS_TYPES_H
-#define BLO_SYS_TYPES_H
+#ifndef __BLO_SYS_TYPES_H__
+#define __BLO_SYS_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {

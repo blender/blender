@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_UNIT_H
-#define BKE_UNIT_H
+#ifndef __BKE_UNIT_H__
+#define __BKE_UNIT_H__
 
 /** \file BKE_unit.h
  *  \ingroup bke
@@ -76,4 +76,4 @@ double		bUnit_GetScaler(void *usys_pt, int index);
 }
 #endif
 
-#endif /* BKE_UNIT_H */
+#endif /* __BKE_UNIT_H__ */

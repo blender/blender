@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_SCREEN_H
-#define ED_SCREEN_H
+#ifndef __ED_SCREEN_H__
+#define __ED_SCREEN_H__
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -181,5 +181,5 @@ int		ED_operator_posemode(struct bContext *C);
 #define ED_KEYMAP_GPENCIL	32
 #define ED_KEYMAP_HEADER	64
 
-#endif /* ED_SCREEN_H */
+#endif /* __ED_SCREEN_H__ */
 

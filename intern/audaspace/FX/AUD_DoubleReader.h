@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_DOUBLEREADER
-#define AUD_DOUBLEREADER
+#ifndef __AUD_DOUBLEREADER_H__
+#define __AUD_DOUBLEREADER_H__
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
@@ -80,4 +80,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_DOUBLEREADER
+#endif //__AUD_DOUBLEREADER_H__

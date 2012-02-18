@@ -24,8 +24,8 @@
  *  \ingroup collada
  */
 
-#ifndef COLLADA_INTERNAL_H
-#define COLLADA_INTERNAL_H
+#ifndef __COLLADA_INTERNAL_H__
+#define __COLLADA_INTERNAL_H__
 
 #include <string>
 #include <vector>
@@ -98,4 +98,4 @@ extern std::string get_material_id(Material *mat);
 
 extern bool has_object_type(Scene* sce, short obtype);
 
-#endif /* COLLADA_INTERNAL_H */
+#endif /* __COLLADA_INTERNAL_H__ */

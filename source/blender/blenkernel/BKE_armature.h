@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_ARMATURE_H
-#define BKE_ARMATURE_H
+#ifndef __BKE_ARMATURE_H__
+#define __BKE_ARMATURE_H__
 
 /** \file BKE_armature.h
  *  \ingroup bke

@@ -101,7 +101,7 @@
 // correctly when GetStackTrace() is called with max_depth == 0.
 // Some code may do that.
 
-#if __MINGW32__
+#if defined(__MINGW32__) || defined(__FreeBSD__)
 # undef STACKTRACE_H
 #elif defined(HAVE_LIB_UNWIND)
 # define STACKTRACE_H "stacktrace_libunwind-inl.h"

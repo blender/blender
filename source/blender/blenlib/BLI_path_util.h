@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLI_PATH_UTIL_H
-#define BLI_PATH_UTIL_H
+#ifndef __BLI_PATH_UTIL_H__
+#define __BLI_PATH_UTIL_H__
 
 /** \file BLI_path_util.h
  *  \ingroup bli

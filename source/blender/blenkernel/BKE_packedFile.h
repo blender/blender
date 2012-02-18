@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_PACKEDFILE_H
-#define BKE_PACKEDFILE_H
+#ifndef __BKE_PACKEDFILE_H__
+#define __BKE_PACKEDFILE_H__
 
 /** \file BKE_packedFile.h
  *  \ingroup bke

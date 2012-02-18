@@ -206,7 +206,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if( fabsf(nray[2]) < FLT_EPSILON ) use_yco= 1;
+		if( fabs(nray[2]) < FLT_EPSILON ) use_yco= 1;
 	}
 	
 	/* scale z to make sure volume is normalized */	

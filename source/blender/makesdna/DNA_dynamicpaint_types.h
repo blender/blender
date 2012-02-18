@@ -25,8 +25,8 @@
  *  \ingroup DNA
  */
 
-#ifndef DNA_DYNAMICPAINT_TYPES_H
-#define DNA_DYNAMICPAINT_TYPES_H
+#ifndef __DNA_DYNAMICPAINT_TYPES_H__
+#define __DNA_DYNAMICPAINT_TYPES_H__
 
 #include "DNA_listBase.h"
 struct CurveMapping;

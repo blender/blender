@@ -29,8 +29,8 @@
  */
 
 /* Note: this is included twice with different #defines for DEF_ICON
-   once from UI_resources.h for the internal icon enum and
-   once for interface_api.c for the definition of the RNA enum for the icons */
+ * once from UI_resources.h for the internal icon enum and
+ * once for interface_api.c for the definition of the RNA enum for the icons */
 
 /* ICON_ prefix added */
 DEF_ICON(NONE)
@@ -590,9 +590,9 @@ DEF_ICON(MOD_SCREW)
 DEF_ICON(MOD_VERTEX_WEIGHT)
 DEF_ICON(MOD_DYNAMICPAINT)
 DEF_ICON(MOD_REMESH)
+DEF_ICON(MOD_OCEAN)
+DEF_ICON(MOD_WARP)
 #ifndef DEF_ICON_BLANK_SKIP
-	DEF_ICON(BLANK163)
-	DEF_ICON(BLANK164)
 	DEF_ICON(BLANK165)
 	DEF_ICON(BLANK166)
 	DEF_ICON(BLANK167)

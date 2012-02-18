@@ -30,8 +30,8 @@
  * Declaration of GHOST_SystemX11 class.
  */
 
-#ifndef _GHOST_SYSTEM_X11_H_
-#define _GHOST_SYSTEM_X11_H_
+#ifndef __GHOST_SYSTEMX11_H__
+#define __GHOST_SYSTEMX11_H__
 
 #include <X11/Xlib.h>
 #include <GL/glx.h>
@@ -234,6 +234,20 @@ public:
 	 * @param selection	Set the selection into the clipboard, X11 only feature
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+
+#if WITH_XDND
+	/**
+	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
+	 * Called by GHOST_DropTargetX11 class.
+	 * @param eventType The type of drag'n'drop event
+	 * @param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
+	 * @param mouseX x mouse coordinate (in window coordinates)
+	 * @param mouseY y mouse coordinate
+	 * @param window The window on which the event occurred
+	 * @return Indication whether the event was handled. 
+	 */
+	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
+#endif
 
 	/**
 	 * @see GHOST_ISystem

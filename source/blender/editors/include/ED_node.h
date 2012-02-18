@@ -28,8 +28,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_NODE_H
-#define ED_NODE_H
+#ifndef __ED_NODE_H__
+#define __ED_NODE_H__
 
 struct ID;
 struct Main;
@@ -63,5 +63,5 @@ void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNod
 /* node ops.c */
 void ED_operatormacros_node(void);
 
-#endif /* ED_NODE_H */
+#endif /* __ED_NODE_H__ */
 

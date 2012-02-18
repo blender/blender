@@ -30,8 +30,8 @@
  */
 
 
-#ifndef MOD_FLUIDSIM_UTIL_H
-#define MOD_FLUIDSIM_UTIL_H
+#ifndef __MOD_FLUIDSIM_UTIL_H__
+#define __MOD_FLUIDSIM_UTIL_H__
 
 struct Object;
 struct Scene;

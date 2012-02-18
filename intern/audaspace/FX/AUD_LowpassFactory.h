@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_LOWPASSFACTORY
-#define AUD_LOWPASSFACTORY
+#ifndef __AUD_LOWPASSFACTORY_H__
+#define __AUD_LOWPASSFACTORY_H__
 
 #include "AUD_DynamicIIRFilterFactory.h"
 
@@ -64,4 +64,4 @@ public:
 	virtual void recalculateCoefficients(AUD_SampleRate rate, std::vector<float> &b, std::vector<float> &a);
 };
 
-#endif //AUD_LOWPASSFACTORY
+#endif //__AUD_LOWPASSFACTORY_H__

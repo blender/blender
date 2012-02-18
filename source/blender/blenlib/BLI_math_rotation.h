@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_ROTATION_H
-#define BLI_MATH_ROTATION_H
+#ifndef __BLI_MATH_ROTATION_H__
+#define __BLI_MATH_ROTATION_H__
 
 /** \file BLI_math_rotation.h
  *  \ingroup bli
@@ -189,5 +189,5 @@ float angle_wrap_deg(float angle);
 }
 #endif
 
-#endif /* BLI_MATH_ROTATION_H */
+#endif /* __BLI_MATH_ROTATION_H__ */
 

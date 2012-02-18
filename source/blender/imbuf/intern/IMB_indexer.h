@@ -22,8 +22,8 @@
  */
 
 
-#ifndef IMB_INDEXER_H
-#define IMB_INDEXER_H
+#ifndef __IMB_INDEXER_H__
+#define __IMB_INDEXER_H__
 
 #ifdef WIN32
 #  include <io.h>

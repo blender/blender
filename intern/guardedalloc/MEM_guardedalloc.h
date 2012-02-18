@@ -57,8 +57,8 @@
  * See \ref MEM_guardedalloc.h
  */
 
-#ifndef MEM_MALLOCN_H
-#define MEM_MALLOCN_H
+#ifndef __MEM_GUARDEDALLOC_H__
+#define __MEM_GUARDEDALLOC_H__
 
 #include <stdio.h> /* needed for FILE* */
 #include "MEM_sys_types.h" /* needed for uintptr_t */

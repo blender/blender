@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SEQUENCERHANDLE
-#define AUD_SEQUENCERHANDLE
+#ifndef __AUD_SEQUENCERHANDLE_H__
+#define __AUD_SEQUENCERHANDLE_H__
 
 #include "AUD_SequencerEntry.h"
 #include "AUD_IHandle.h"
@@ -103,4 +103,4 @@ public:
 	void seek(float position);
 };
 
-#endif //AUD_SEQUENCERHANDLE
+#endif //__AUD_SEQUENCERHANDLE_H__

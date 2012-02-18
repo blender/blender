@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SNDFILEREADER
-#define AUD_SNDFILEREADER
+#ifndef __AUD_SNDFILEREADER_H__
+#define __AUD_SNDFILEREADER_H__
 
 #include "AUD_IReader.h"
 #include "AUD_Reference.h"
@@ -125,4 +125,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_SNDFILEREADER
+#endif //__AUD_SNDFILEREADER_H__

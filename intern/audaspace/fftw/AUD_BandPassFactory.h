@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_BANDPASSFACTORY
-#define AUD_BANDPASSFACTORY
+#ifndef __AUD_BANDPASSFACTORY_H__
+#define __AUD_BANDPASSFACTORY_H__
 
 #include "AUD_EffectFactory.h"
 
@@ -89,4 +89,4 @@ public:
 	virtual AUD_IReader* createReader();
 };
 
-#endif //AUD_BANDPASSFACTORY
+#endif //__AUD_BANDPASSFACTORY_H__

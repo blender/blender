@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_READDEVICE
-#define AUD_READDEVICE
+#ifndef __AUD_READDEVICE_H__
+#define __AUD_READDEVICE_H__
 
 #include "AUD_SoftwareDevice.h"
 
@@ -85,4 +85,4 @@ public:
 	void changeSpecs(AUD_Specs specs);
 };
 
-#endif //AUD_READDEVICE
+#endif //__AUD_READDEVICE_H__

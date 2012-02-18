@@ -89,6 +89,7 @@ short id_type_can_have_animdata (ID *id)
 		case ID_LS:
 		case ID_SPK:
 		case ID_SCE:
+		case ID_MC:
 		{
 			return 1;
 		}
@@ -794,6 +795,9 @@ void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *
 	/* speakers */
 	ANIMDATA_IDS_CB(mainptr->speaker.first);
 
+	/* movie clips */
+	ANIMDATA_IDS_CB(mainptr->movieclip.first);
+
 	/* objects */
 	ANIMDATA_IDS_CB(mainptr->object.first);
 	
@@ -877,6 +881,9 @@ void BKE_all_animdata_fix_paths_rename (const char *prefix, const char *oldName,
 
 	/* speakers */
 	RENAMEFIX_ANIM_IDS(mainptr->speaker.first);
+
+	/* movie clips */
+	RENAMEFIX_ANIM_IDS(mainptr->movieclip.first);
 
 	/* objects */
 	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
@@ -2341,6 +2348,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	
 	/* speakers */
 	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);
+
+	/* movie clips */
+	EVAL_ANIM_IDS(main->movieclip.first, ADT_RECALC_ANIM);
 
 	/* linestyles */
 	EVAL_ANIM_IDS(main->linestyle.first, ADT_RECALC_ANIM);

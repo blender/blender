@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DEPSGRAPH_API
-#define DEPSGRAPH_API
+#ifndef __BKE_DEPSGRAPH_H__
+#define __BKE_DEPSGRAPH_H__
 
 /** \file BKE_depsgraph.h
  *  \ingroup bke

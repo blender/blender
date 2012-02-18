@@ -30,8 +30,8 @@
  */
 
  
-#ifndef BOP_SEGMENT_H
-#define BOP_SEGMENT_H
+#ifndef __BOP_SEGMENT_H__
+#define __BOP_SEGMENT_H__
 
 #include "BOP_Indexs.h"
 #include <iostream>

@@ -23,8 +23,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef WM_API_H
-#define WM_API_H
+#ifndef __WM_API_H__
+#define __WM_API_H__
 
 /** \file WM_api.h
  *  \ingroup wm
@@ -344,5 +344,5 @@ int write_crash_blend(void);
 }
 #endif
 
-#endif /* WM_API_H */
+#endif /* __WM_API_H__ */
 

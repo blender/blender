@@ -834,34 +834,33 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 				std::vector<FCurve*> animcurves;
 				for (unsigned int j = 0; j < bindings.getCount(); j++) {
 					animcurves = curve_map[bindings[j].animation];
-					if ( is_matrix )
+					if ( is_matrix ) {
 						apply_matrix_curves(ob, animcurves, root , node,  transform  );
+					}
 					else {				
-						//calculate rnapaths and array index of fcurves according to transformation and animation class
-						Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path ); 
 
-						std::vector<FCurve*>::iterator iter;
-						//Add the curves of the current animation to the object
-						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-							FCurve * fcu = *iter;
-							if ((ob->type == OB_ARMATURE))
-								add_bone_fcurve( ob, node , fcu );
-							else 
-								BLI_addtail(AnimCurves, fcu);	
+						if (is_joint) {
+
+							add_bone_animation_sampled(ob, animcurves, root, node, transform);
 						}
+						else {
+							//calculate rnapaths and array index of fcurves according to transformation and animation class
+							Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path ); 
+
+							std::vector<FCurve*>::iterator iter;
+							//Add the curves of the current animation to the object
+							for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+								FCurve * fcu = *iter;
+							
+								BLI_addtail(AnimCurves, fcu);
+							}
+						}
+						
 					}
 				}
 			}
-			if (is_rotation) {
-				if (is_joint) 
-				{
-					bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
-					chan->rotmode = ROT_MODE_EUL;
-				}
-				else 
-				{
-					ob->rotmode = ROT_MODE_EUL;
-				}
+			if (is_rotation && !is_joint) {
+				ob->rotmode = ROT_MODE_EUL;
 			}
 		}
 	}
@@ -990,6 +989,136 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 			}
 		}	
 	}
+}
+
+void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root, COLLADAFW::Node* node, COLLADAFW::Transformation * tm)
+{
+	const char *bone_name = bc_get_joint_name(node);
+	char joint_path[200];
+	armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+
+	std::vector<float> frames;
+	find_frames(&frames, &animcurves);
+
+	// convert degrees to radians
+	if (tm->getTransformationType() == COLLADAFW::Transformation::ROTATE) {
+
+		std::vector<FCurve*>::iterator iter;
+		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+			FCurve* fcu = *iter;
+
+			fcurve_deg_to_rad(fcu);		 
+		}					
+	}
+
+
+	float irest_dae[4][4];
+	float rest[4][4], irest[4][4];
+
+	get_joint_rest_mat(irest_dae, root, node);
+	invert_m4(irest_dae);
+
+	Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+	if (!bone) {
+		fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
+		return;
+	}
+
+	unit_m4(rest);
+	copy_m4_m4(rest, bone->arm_mat);
+	invert_m4_m4(irest, rest);
+
+	// new curves to assign matrix transform animation
+	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
+	unsigned int totcu = 10 ;
+	const char *tm_str = NULL;
+	char rna_path[200];
+	for (int i = 0; i < totcu; i++) {
+
+		int axis = i;
+
+		if (i < 4) {
+			tm_str = "rotation_quaternion";
+			axis = i;
+		}
+		else if (i < 7) {
+			tm_str = "location";
+			axis = i - 4;
+		}
+		else {
+			tm_str = "scale";
+			axis = i - 7;
+		}
+
+
+		BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+
+		newcu[i] = create_fcurve(axis, rna_path);
+		newcu[i]->totvert = frames.size();
+	}
+
+	if (frames.size() == 0)
+		return;
+
+	std::sort(frames.begin(), frames.end());
+
+	std::vector<float>::iterator it;
+
+	// sample values at each frame
+	for (it = frames.begin(); it != frames.end(); it++) {
+		float fra = *it;
+
+		float mat[4][4];
+		float matfra[4][4];
+
+		unit_m4(matfra);
+
+		// calc object-space mat
+		evaluate_transform_at_frame(matfra, node, fra);
+
+
+		// for joints, we need a special matrix
+		// special matrix: iR * M * iR_dae * R
+		// where R, iR are bone rest and inverse rest mats in world space (Blender bones),
+		// iR_dae is joint inverse rest matrix (DAE) and M is an evaluated joint world-space matrix (DAE)
+		float temp[4][4], par[4][4];
+
+
+		// calc M
+		calc_joint_parent_mat_rest(par, NULL, root, node);
+		mult_m4_m4m4(temp, par, matfra);
+
+		// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
+
+		// calc special matrix
+		mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);
+
+		float  rot[4], loc[3], scale[3];
+
+		mat4_to_quat(rot, mat);
+		copy_v3_v3(loc, mat[3]);
+		mat4_to_size(scale, mat);
+
+		// add keys
+		for (int i = 0; i < totcu; i++) {
+			if (i < 4)
+				add_bezt(newcu[i], fra, rot[i]);
+			else if (i < 7)
+				add_bezt(newcu[i], fra, loc[i - 4]);
+			else
+				add_bezt(newcu[i], fra, scale[i - 7]);
+		}
+	}
+	verify_adt_action((ID*)&ob->id, 1);
+
+	// add curves
+	for (int i= 0; i < totcu; i++) {
+		add_bone_fcurve(ob, node, newcu[i]);
+	}
+
+	bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+	chan->rotmode = ROT_MODE_QUAT;
+
 }
 
 
@@ -1406,12 +1535,10 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 		float m[4][4];
 
 		unit_m4(m);
-		if ( type != COLLADAFW::Transformation::MATRIX )
-			continue;
 
 		std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
 		if (!evaluate_animation(tm, m, fra, nodename.c_str())) {
-			/*switch (type) {
+			switch (type) {
 			case COLLADAFW::Transformation::ROTATE:
 				dae_rotate_to_mat4(tm, m);
 				break;
@@ -1426,8 +1553,8 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 				break;
 			default:
 				fprintf(stderr, "unsupported transformation type %d\n", type);
-			}*/
-			dae_matrix_to_mat4(tm, m);
+			}
+			// dae_matrix_to_mat4(tm, m);
 			
 		}
 
@@ -1510,6 +1637,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 				}
 
 				COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
+
 				float ax[3] = {axis[0], axis[1], axis[2]};
 				float angle = evaluate_fcurve(curves[0], fra);
 				axis_angle_to_mat4(mat, ax, angle);

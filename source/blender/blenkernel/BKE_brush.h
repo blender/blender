@@ -26,8 +26,8 @@
  * General operations for brushes.
  */
 
-#ifndef BKE_BRUSH_H
-#define BKE_BRUSH_H
+#ifndef __BKE_BRUSH_H__
+#define __BKE_BRUSH_H__
 
 /** \file BKE_brush.h
  *  \ingroup bke

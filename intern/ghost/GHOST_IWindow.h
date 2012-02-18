@@ -30,8 +30,8 @@
  * Declaration of GHOST_IWindow interface class.
  */
 
-#ifndef _GHOST_IWINDOW_H_
-#define _GHOST_IWINDOW_H_
+#ifndef __GHOST_IWINDOW_H__
+#define __GHOST_IWINDOW_H__
 
 #include "STR_String.h"
 #include "GHOST_Rect.h"
@@ -312,5 +312,5 @@ public:
 #endif
 };
 
-#endif // _GHOST_IWINDOW_H_
+#endif // __GHOST_IWINDOW_H__
 

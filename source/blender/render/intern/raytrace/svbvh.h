@@ -32,8 +32,8 @@
 
 #ifdef __SSE__
  
-#ifndef RE_RAYTRACE_SVBVH_H
-#define RE_RAYTRACE_SVBVH_H
+#ifndef __SVBVH_H__
+#define __SVBVH_H__
 
 #include "bvh.h"
 #include "BLI_memarena.h"

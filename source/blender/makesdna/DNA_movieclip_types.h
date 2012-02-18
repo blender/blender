@@ -32,13 +32,14 @@
  *  \author Sergey Sharybin
  */
 
-#ifndef DNA_MOVIECLIP_TYPES_H
-#define DNA_MOVIECLIP_TYPES_H
+#ifndef __DNA_MOVIECLIP_TYPES_H__
+#define __DNA_MOVIECLIP_TYPES_H__
 
 #include "DNA_ID.h"
 #include "DNA_tracking_types.h"
 
 struct anim;
+struct AnimData;
 struct bGPdata;
 struct ImBuf;
 struct MovieClipProxy;
@@ -51,7 +52,7 @@ typedef struct MovieClipUser {
 } MovieClipUser;
 
 typedef struct MovieClipProxy {
-	char dir[768];			/* custom directory for index and proxy files (defaults to BL_proxy) */
+	char dir[768];			/* 768=FILE_MAXDIR custom directory for index and proxy files (defaults to BL_proxy) */
 
 	short tc;				/* time code in use */
 	short quality;			/* proxy build quality */
@@ -61,6 +62,7 @@ typedef struct MovieClipProxy {
 
 typedef struct MovieClip {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
 
 	char name[1024];		/* file path, 1024 = FILE_MAX */
 

@@ -25,8 +25,8 @@
  */
 
  
-#ifndef REEB_H_
-#define REEB_H_
+#ifndef __REEB_H__
+#define __REEB_H__
 
 #define WITH_BF_REEB
 
@@ -203,4 +203,4 @@ void REEB_exportGraph(ReebGraph *rg, int count);
 void REEB_draw(void);
 
 
-#endif /*REEB_H_*/
+#endif /*__REEB_H__*/

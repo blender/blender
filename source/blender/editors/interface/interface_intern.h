@@ -30,8 +30,8 @@
  */
 
 
-#ifndef INTERFACE_H
-#define INTERFACE_H
+#ifndef __INTERFACE_INTERN_H__
+#define __INTERFACE_INTERN_H__
 
 #include "UI_resources.h"
 #include "RNA_types.h"

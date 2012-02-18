@@ -23,8 +23,8 @@
  */
 
  
-#ifndef BIF_GENERATE_H
-#define BIF_GENERATE_H
+#ifndef __BIF_GENERATE_H__
+#define __BIF_GENERATE_H__
 
 struct ToolSettings;
 struct EditBone;
@@ -45,4 +45,4 @@ struct EditBone * subdivideArcBy(struct ToolSettings *toolsettings, struct bArma
 void setBoneRollFromNormal(struct EditBone *bone, float *no, float invmat[][4], float tmat[][3]);
  
 
-#endif /* BIF_GENERATE_H */
+#endif /* __BIF_GENERATE_H__ */

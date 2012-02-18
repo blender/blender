@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_MESH_H
-#define BKE_MESH_H
+#ifndef __BKE_MESH_H__
+#define __BKE_MESH_H__
 
 /** \file BKE_mesh.h
  *  \ingroup bke
@@ -213,4 +213,4 @@ void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ld
 }
 #endif
 
-#endif /* BKE_MESH_H */
+#endif /* __BKE_MESH_H__ */

@@ -25,8 +25,8 @@
  * Declaration of GHOST_SystemNULL class.
  */
 
-#ifndef _GHOST_SYSTEM_NULL_H_
-#define _GHOST_SYSTEM_NULL_H_
+#ifndef __GHOST_SYSTEMNULL_H__
+#define __GHOST_SYSTEMNULL_H__
 
 #include "GHOST_System.h"
 #include "../GHOST_Types.h"

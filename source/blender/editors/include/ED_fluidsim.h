@@ -32,8 +32,8 @@
  *  \ingroup editors
  */
 
-#ifndef ED_FLUIDSIM_H
-#define ED_FLUIDSIM_H
+#ifndef __ED_FLUIDSIM_H__
+#define __ED_FLUIDSIM_H__
 
 struct Object;
 struct FluidsimSettings;
@@ -48,4 +48,4 @@ void fluidsimSettingsFree(struct FluidsimSettings* sb);
 /* duplicate internal data */
 struct FluidsimSettings* fluidsimSettingsCopy(struct FluidsimSettings* sb);
 
-#endif /* ED_FLUIDSIM_H */
+#endif /* __ED_FLUIDSIM_H__ */

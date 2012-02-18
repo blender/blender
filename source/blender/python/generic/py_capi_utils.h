@@ -25,8 +25,8 @@
  */
 
  
-#ifndef PY_CAPI_UTILS_H
-#define PY_CAPI_UTILS_H
+#ifndef __PY_CAPI_UTILS_H__
+#define __PY_CAPI_UTILS_H__
 
 void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
@@ -54,4 +54,4 @@ void PyC_SetHomePath(const char *py_path_bundle);
 
 #define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
-#endif // PY_CAPI_UTILS_H
+#endif // __PY_CAPI_UTILS_H__

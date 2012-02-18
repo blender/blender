@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_GEOM_H
-#define BLI_MATH_GEOM_H
+#ifndef __BLI_MATH_GEOM_H__
+#define __BLI_MATH_GEOM_H__
 
 /** \file BLI_math_geom.h
  *  \ingroup bli
@@ -36,7 +36,7 @@ extern "C" {
 
 #include "BLI_math_inline.h"
 
-#ifdef BLI_MATH_INLINE_H
+#ifdef __BLI_MATH_INLINE_H__
 #include "intern/math_geom_inline.c"
 #endif
 
@@ -273,5 +273,5 @@ void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3]);
 }
 #endif
 
-#endif /* BLI_MATH_GEOM_H */
+#endif /* __BLI_MATH_GEOM_H__ */
 

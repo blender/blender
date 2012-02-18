@@ -29,9 +29,8 @@
  *  \ingroup bli
  */
 
-
-#ifndef BLI_CALLBACKS_H
-#define BLI_CALLBACKS_H
+#ifndef __BLI_CALLBACKS_H__
+#define __BLI_CALLBACKS_H__
 
 struct bContext;
 struct Main;
@@ -64,12 +63,11 @@ typedef struct {
 void BLI_exec_cb(struct Main *main, struct ID *self, eCbEvent evt);
 void BLI_add_cb(bCallbackFuncStore *funcstore, eCbEvent evt);
 
-#endif
-
-
 void BLI_cb_init(void);
 void BLI_cb_finalize(void);
 
 
 /* This is blenlib internal only, unrelated to above */
 void callLocalErrorCallBack(const char* msg);
+
+#endif /* __BLI_CALLBACKS_H__ */

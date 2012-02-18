@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BLI_VOXEL_H
-#define BLI_VOXEL_H
+#ifndef __BLI_VOXEL_H__
+#define __BLI_VOXEL_H__
 
 /** \file BLI_voxel.h
  *  \ingroup bli
@@ -41,4 +41,4 @@ float voxel_sample_trilinear(float *data, const int res[3], const float co[3]);
 float voxel_sample_triquadratic(float *data, const int res[3], const float co[3]);
 float voxel_sample_tricubic(float *data, const int res[3], const float co[3], int bspline);
 
-#endif /* BLI_VOXEL_H */
+#endif /* __BLI_VOXEL_H__ */

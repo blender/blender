@@ -24,8 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_ACTION_H
-#define BKE_ACTION_H
+#ifndef __BKE_ACTION_H__
+#define __BKE_ACTION_H__
 /** \file BKE_action.h
  *  \ingroup bke
  *  \brief Blender kernel action and pose functionality.

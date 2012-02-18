@@ -27,8 +27,8 @@
  */
 
 
-#ifndef AUD_SINUSREADER
-#define AUD_SINUSREADER
+#ifndef __AUD_SINUSREADER_H__
+#define __AUD_SINUSREADER_H__
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
@@ -75,4 +75,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_SINUSREADER
+#endif //__AUD_SINUSREADER_H__

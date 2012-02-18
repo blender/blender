@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_LAMP_H
-#define BKE_LAMP_H
+#ifndef __BKE_LAMP_H__
+#define __BKE_LAMP_H__
 
 /** \file BKE_lamp.h
  *  \ingroup bke

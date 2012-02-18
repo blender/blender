@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef WM_KEYMAP_H
-#define WM_KEYMAP_H
+#ifndef __WM_KEYMAP_H__
+#define __WM_KEYMAP_H__
 
 /** \file WM_keymap.h
  *  \ingroup wm
@@ -98,5 +98,5 @@ char		*WM_key_event_operator_string(const struct bContext *C, const char *opname
 }
 #endif
 
-#endif /* WM_KEYMAP_H */
+#endif /* __WM_KEYMAP_H__ */
 

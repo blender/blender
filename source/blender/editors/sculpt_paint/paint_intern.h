@@ -29,8 +29,8 @@
  */
 
 
-#ifndef ED_PAINT_INTERN_H
-#define ED_PAINT_INTERN_H
+#ifndef __PAINT_INTERN_H__
+#define __PAINT_INTERN_H__
 
 struct ARegion;
 struct bContext;
@@ -168,5 +168,5 @@ struct ListBase *undo_paint_push_get_list(int type);
 void undo_paint_push_count_alloc(int type, int size);
 void undo_paint_push_end(int type);
 
-#endif /* ED_PAINT_INTERN_H */
+#endif /* __PAINT_INTERN_H__ */
 
