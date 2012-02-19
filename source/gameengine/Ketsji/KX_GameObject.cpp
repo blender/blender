@@ -1169,8 +1169,6 @@ void KX_GameObject::NodeSetWorldScale(const MT_Vector3& scale)
 			return; 
 		}
 
-		MT_Vector3 *local = new MT_Vector3(scale);
-
 		p_scale[0] = 1/p_scale[0];
 		p_scale[1] = 1/p_scale[1];
 		p_scale[2] = 1/p_scale[2];

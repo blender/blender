@@ -1417,7 +1417,7 @@ static void my_tex_space_mesh(Mesh *me)
 
 	my_boundbox_mesh(me, loc, size);
 	
-	if(me->texflag & AUTOSPACE) {
+	if(me->texflag & ME_AUTOSPACE) {
 		if(me->key) {
 			kb= me->key->refkey;
 			if (kb) {
