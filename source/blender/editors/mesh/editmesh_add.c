@@ -25,6 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_add.c
+ *  \ingroup edmesh
+ */
+
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -79,7 +83,7 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 
 static void make_prim_init(bContext *C, const char *idname,
                            float *dia, float mat[][4],
-						   int *state, float *loc, float *rot, unsigned int layer)
+                           int *state, float *loc, float *rot, unsigned int layer)
 {
 	Object *obedit= CTX_data_edit_object(C);
 
@@ -121,8 +125,8 @@ static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 		ED_object_exit_editmode(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
 	}
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
-
 }
+
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
@@ -190,7 +194,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	/* BMESH_TODO make plane side this: M_SQRT2 - plane (diameter of 1.41 makes it unit size) */
 	make_prim_finish(C, &state, enter_editmode);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_cube_add(wmOperatorType *ot)
@@ -266,7 +270,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 3, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
 	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "fill_type", fill_type_items, 0, "Fill Type", "");
@@ -310,8 +314,8 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Tube";
-	ot->description= "Construct a tube mesh";
+	ot->name= "Add Cylinder";
+	ot->description= "Construct a cylinder mesh";
 	ot->idname= "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
@@ -323,7 +327,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
 	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
@@ -382,13 +386,15 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius1", 1.0f, 0.0, FLT_MAX, "Radius 1", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "radius2", 0.0f, 0.0, FLT_MAX, "Radius 2", "", 0.001, 100.00);
+	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
+	prop = RNA_def_float(ot->srna, "radius1", 1.0f, 0.0, FLT_MAX, "Radius 1", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	prop = RNA_def_float(ot->srna, "radius2", 0.0f, 0.0, FLT_MAX, "Radius 2", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Base Fill Type", "");
-	
+
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -440,8 +446,8 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, "X Subdivisions", "", 3, 1000);
-	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, "Y Subdivisions", "", 3, 1000);
+	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
+	RNA_def_int(ot->srna, "y_subdivisions", 10, 3, INT_MAX, "Y Subdivisions", "", 3, 1000);
 	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
@@ -494,7 +500,6 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
@@ -514,7 +519,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
 			"create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4", 
-			RNA_int_get(op->ptr, "rings"), RNA_int_get(op->ptr, "segments"),
+			RNA_int_get(op->ptr, "ring_count"), RNA_int_get(op->ptr, "segments"),
 			RNA_float_get(op->ptr,"size"), mat)) 
 		return OPERATOR_CANCELLED;
 	
@@ -541,9 +546,9 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, "Segments", "", 3, 500);
-	RNA_def_int(ot->srna, "rings", 24, INT_MIN, INT_MAX, "Rings", "", 3, 500);
-	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
+	RNA_def_int(ot->srna, "segments", 32, 3, INT_MAX, "Segments", "", 3, 500);
+	RNA_def_int(ot->srna, "ring_count", 16, 3, INT_MAX, "Rings", "", 3, 500);
+	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -596,8 +601,8 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "subdivisions", 2, 0, 6, "Subdivisions", "", 0, 8);
-	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
+	RNA_def_int(ot->srna, "subdivisions", 2, 1, INT_MAX, "Subdivisions", "", 1, 8);
+	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, "Size", "", 0.001f, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
 	ED_object_add_generic_props(ot, TRUE);

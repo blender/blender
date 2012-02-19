@@ -43,9 +43,9 @@ set(SRC
 	mesh_ops.c
 	editmesh_bvh.c
 	editmesh_add.c
-	bmeshutils.c
 	bmesh_selecthistory.c
 	bmesh_select.c
+	bmesh_utils.c
 	mesh_data.c
 	bmesh_tools.c
 	knifetool.c
