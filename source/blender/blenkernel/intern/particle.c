@@ -806,7 +806,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	mface= dm->getTessFaceArray(dm);
 	origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	totface= dm->getNumTessFaces(dm);
-	totorigface= me->totface;
+	totorigface= me->totpoly;
 
 	if(totface == 0 || totorigface == 0)
 		return tot;
@@ -2935,6 +2935,11 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 		
 		if(!psys->totchild)
 			vg_length = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_LENGTH);
+	}
+
+	/* ensure we have tessfaces to be used for mapping */
+	if (part->from != PART_FROM_VERT) {
+		DM_ensure_tessface(psmd->dm);
 	}
 
 	/*---first main loop: create all actual particles' paths---*/
