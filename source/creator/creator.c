@@ -727,7 +727,7 @@ static int render_frame(int argc, const char **argv, void *data)
 
 			BKE_reports_init(&reports, RPT_PRINT);
 
-			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
+			frame = CLAMPIS(frame, MINAFRAME, MAXFRAME);
 
 			RE_SetReports(re, &reports);
 			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);

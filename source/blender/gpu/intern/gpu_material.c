@@ -1071,7 +1071,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						else
 							newnor = tnor;
 						
-						norfac = MIN2(fabsf(mtex->norfac), 1.0f);
+						norfac = minf(fabsf(mtex->norfac), 1.0f);
 						
 						if(norfac == 1.0f && !GPU_link_changed(stencil)) {
 							shi->vn = newnor;

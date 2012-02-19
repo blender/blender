@@ -4881,8 +4881,8 @@ static int doEdgeSlide(TransInfo *t, float perc)
 	upVert = editedge_getOtherVert(tempsv->up, centerVert);
 	downVert = editedge_getOtherVert(tempsv->down, centerVert);
 
-	len = MIN2(perc, len_v3v3(upVert->co,downVert->co));
-	len = MAX2(len, 0);
+	len = minf(perc, len_v3v3(upVert->co, downVert->co));
+	len = maxf(len, 0.0f);
 
 	//Adjust Edgeloop
 	if(prop) {
