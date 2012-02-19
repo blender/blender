@@ -107,6 +107,7 @@ void armature_mat_world_to_pose(struct Object *ob, float inmat[][4], float outma
 void armature_loc_world_to_pose(struct Object *ob, float *inloc, float *outloc);
 void armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
 void armature_loc_pose_to_bone(struct bPoseChannel *pchan, float *inloc, float *outloc);
+void armature_mat_bone_to_pose(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4]);
 
 void armature_mat_pose_to_bone_ex(struct Object *ob, struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);

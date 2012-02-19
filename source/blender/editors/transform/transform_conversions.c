@@ -409,7 +409,7 @@ static short apply_targetless_ik(Object *ob)
 			}
 			for(;segcount;segcount--) {
 				Bone *bone;
-				float rmat[4][4], tmat[4][4], imat[4][4];
+				float rmat[4][4]/*, tmat[4][4], imat[4][4]*/;
 
 				/* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
 				/* we put in channel the entire result of rmat= (channel * constraint * IK) */
@@ -420,6 +420,8 @@ static short apply_targetless_ik(Object *ob)
 				bone= parchan->bone;
 				bone->flag |= BONE_TRANSFORM;	/* ensures it gets an auto key inserted */
 
+	/* XXX Old code. Will remove it later. */
+#if 0
 				if(parchan->parent) {
 					Bone *parbone= parchan->parent->bone;
 					float offs_bone[4][4];
@@ -462,6 +464,8 @@ static short apply_targetless_ik(Object *ob)
 				}
 				/* result matrix */
 				mult_m4_m4m4(rmat, imat, parchan->pose_mat);
+#endif
+				armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
