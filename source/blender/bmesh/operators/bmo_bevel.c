@@ -100,7 +100,9 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 		normalize_v3(l_vec_next);
 
 		add_v3_v3v3(co_ofs, l_vec_prev, l_vec_next);
-		normalize_v3(co_ofs);
+		if (UNLIKELY(normalize_v3(co_ofs) == 0.0f)) { /* edges form a straignt line */
+			cross_v3_v3v3(co_ofs, l_vec_prev, l->f->no);
+		}
 
 		if (do_even) {
 			negate_v3(l_vec_next);
@@ -119,18 +121,31 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 		 *
 		 * Use the minimum rather then the middle value so skinny faces don't flip along the short axis */
 		float min_fac = minf(normalize_v3(l_vec_prev), normalize_v3(l_vec_next));
-		float angle = do_even ? angle_normalized_v3v3(l_vec_prev, l_vec_next) : 0.0f; /* get angle while normalized */
+		float angle;
+
+		if (do_even) {
+			negate_v3(l_vec_next);
+			angle = angle_normalized_v3v3(l_vec_prev, l_vec_next);
+			negate_v3(l_vec_next); /* no need unless we use again */
+		}
+		else {
+			angle = 0.0f;
+		}
 
 		mul_v3_fl(l_vec_prev, min_fac);
 		mul_v3_fl(l_vec_next, min_fac);
 
 		add_v3_v3v3(co_ofs, l_vec_prev, l_vec_next);
 
+		if (UNLIKELY(is_zero_v3(co_ofs))) {
+			cross_v3_v3v3(co_ofs, l_vec_prev, l->f->no);
+			normalize_v3(co_ofs);
+			mul_v3_fl(co_ofs, min_fac);
+		}
+
 		/* done */
 		if (do_even) {
-			negate_v3(l_vec_next);
 			mul_v3_fl(co_ofs, (fac * 0.5) * shell_angle_to_dist(0.5f * angle));
-			/* negate_v3(l_vec_next); */ /* no need unless we use again */
 		}
 		else {
 			mul_v3_fl(co_ofs, fac * 0.5);
