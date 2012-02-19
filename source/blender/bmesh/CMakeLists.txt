@@ -80,28 +80,29 @@ set(SRC
 	operators/bmo_triangulate.c
 	operators/bmo_utils.c
 
-	intern/bmesh_newcore.c
+	intern/bmesh_construct.c
+	intern/bmesh_inline.c
 	intern/bmesh_interp.c
 	intern/bmesh_iterators.c
 	intern/bmesh_iterators_inline.c
 	intern/bmesh_marking.c
 	intern/bmesh_mesh.c
 	intern/bmesh_mods.c
-	intern/bmesh_structure.h
-	intern/bmesh_construct.c
-	intern/bmesh_operators_private.h
-	intern/bmesh_structure.c
-	intern/bmesh_polygon.c
-	intern/bmesh_queries.c
+	intern/bmesh_newcore.c
 	intern/bmesh_opdefines.c
 	intern/bmesh_operators.c
+	intern/bmesh_operators_private.h
+	intern/bmesh_polygon.c
 	intern/bmesh_private.h
+	intern/bmesh_queries.c
+	intern/bmesh_structure.c
+	intern/bmesh_structure.h
 	intern/bmesh_walkers.c
 	intern/bmesh_walkers_impl.c
 	intern/bmesh_walkers_private.h
-	intern/bmesh_inline.c
 
 	tools/BME_bevel.c
+
 	bmesh.h
 	bmesh_class.h
 	bmesh_error.h

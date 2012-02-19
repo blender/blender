@@ -38,18 +38,18 @@ set(INC_SYS
 )
 
 set(SRC
-	meshtools.c
-	loopcut.c
-	mesh_ops.c
-	editmesh_bvh.c
-	editmesh_add.c
-	bmesh_selecthistory.c
 	bmesh_select.c
-	bmesh_utils.c
-	mesh_data.c
+	bmesh_selecthistory.c
 	bmesh_tools.c
-	knifetool.c
+	bmesh_utils.c
 	editface.c
+	editmesh_add.c
+	editmesh_bvh.c
+	knifetool.c
+	loopcut.c
+	mesh_data.c
+	mesh_ops.c
+	meshtools.c
 
 	editmesh_bvh.h
 	mesh_intern.h
