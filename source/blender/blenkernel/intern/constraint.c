@@ -40,7 +40,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
 

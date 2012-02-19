@@ -38,7 +38,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 
 #include "BKE_context.h"
 

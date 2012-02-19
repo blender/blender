@@ -39,6 +39,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_customdata_types.h"
@@ -46,7 +47,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_scanfill.h"
@@ -71,7 +71,6 @@
 #include "BLI_edgehash.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_edgehash.h"
@@ -461,7 +460,7 @@ Mesh *add_mesh(const char *name)
 	
 	me->size[0]= me->size[1]= me->size[2]= 1.0;
 	me->smoothresh= 30;
-	me->texflag= AUTOSPACE;
+	me->texflag= ME_AUTOSPACE;
 	me->flag= ME_TWOSIDED;
 	me->bb= unit_boundbox();
 	me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
@@ -658,7 +657,7 @@ void tex_space_mesh(Mesh *me)
 
 	boundbox_mesh(me, loc, size);
 
-	if(me->texflag & AUTOSPACE) {
+	if (me->texflag & ME_AUTOSPACE) {
 		for (a=0; a<3; a++) {
 			if(size[a]==0.0f) size[a]= 1.0f;
 			else if(size[a]>0.0f && size[a]<0.00001f) size[a]= 0.00001f;
@@ -2252,8 +2251,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 	MLoop *ml, *mloop;
 	MFace *mface = NULL, *mf;
 	BLI_array_declare(mface);
-	EditVert *v, *lastv, *firstv;
-	EditFace *f;
+	ScanFillVert *v, *lastv, *firstv;
+	ScanFillFace *f;
 	int *mface_orig_index = NULL;
 	BLI_array_declare(mface_orig_index);
 	int *mface_to_poly_map = NULL;

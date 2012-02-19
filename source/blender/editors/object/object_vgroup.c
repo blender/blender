@@ -207,13 +207,13 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 					if (use_vert_sel) {
 						BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 							(*dvert_arr)[i] = BM_elem_flag_test(eve, BM_ELEM_SELECT) ?
-							                  CustomData_em_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT) : NULL;
+							                  CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT) : NULL;
 							i++;
 						}
 					}
 					else {
 						BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-							(*dvert_arr)[i] = CustomData_em_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+							(*dvert_arr)[i] = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 							i++;
 						}
 					}

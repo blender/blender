@@ -36,7 +36,6 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 

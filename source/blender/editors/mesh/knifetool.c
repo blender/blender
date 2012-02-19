@@ -54,9 +54,9 @@
 #include "WM_types.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "BKE_tessmesh.h"
-#include "BLI_editVert.h"
 
 #include "mesh_intern.h"
 
@@ -1802,8 +1802,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	for (i = 0; i < totface; i++) {
 		SmallHash *hash = &shash;
-		EditFace *efa;
-		EditVert *eve, *lasteve;
+		ScanFillFace *efa;
+		ScanFillVert *eve, *lasteve;
 		int j;
 		float rndscale = FLT_EPSILON * 25;
 		
@@ -1818,7 +1818,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		for (entry = face_nets[i].first; entry; entry = entry->next) {
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
 				eve = BLI_addfillvert(entry->kfe->v1->v->co);
-				eve->xs = 0;
+				eve->poly_nr = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v1->v;
 				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v1, eve);
@@ -1826,7 +1826,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
 				eve = BLI_addfillvert(entry->kfe->v2->v->co);
-				eve->xs = 0;
+				eve->poly_nr = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v2->v;
 				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v2, eve);
@@ -1837,16 +1837,16 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
 			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 			
-			eve->xs++;
-			lasteve->xs++;
+			eve->poly_nr++;
+			lasteve->poly_nr++;
 		}
 		
 		for (j = 0, entry = face_nets[i].first; entry; entry = entry->next, j++) {
 			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
 			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 			
-			if (eve->xs > 1 && lasteve->xs > 1) {
-				EditEdge *eed;
+			if (eve->poly_nr > 1 && lasteve->poly_nr > 1) {
+				ScanFillEdge *eed;
 				eed = BLI_addfilledge(lasteve, eve);
 				if (entry->kfe->oe)
 					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
@@ -1855,9 +1855,9 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 				BMO_elem_flag_disable(bm, entry->kfe->e->v2, DEL);
 			}
 			else {
-				if (lasteve->xs < 2)
+				if (lasteve->poly_nr < 2)
 					BLI_remlink(&fillvertbase, lasteve);
-				if (eve->xs < 2)
+				if (eve->poly_nr < 2)
 					BLI_remlink(&fillvertbase, eve);
 			}
 		}

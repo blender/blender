@@ -50,7 +50,6 @@
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_editVert.h"
 
 #include "PIL_time.h"
 

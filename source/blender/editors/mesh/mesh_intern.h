@@ -90,31 +90,6 @@ float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 
 /* ******************** editface.c */
 
-#if 0 /* REMOVE AFTER BMESH MERGE */
-
-/* ******************* editmesh.c */
-
-extern void free_editvert(EditMesh *em, EditVert *eve);
-extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);
-
-/*frees dst mesh, then copies the contents of 
-  *src (the struct) to dst. */
-void set_editMesh(EditMesh *dst, EditMesh *src);
-
-extern void free_vertlist(EditMesh *em, ListBase *edve);
-extern void free_edgelist(EditMesh *em, ListBase *lb);
-extern void free_facelist(EditMesh *em, ListBase *lb);
-
-extern void remedge(EditMesh *em, EditEdge *eed);
-
-extern struct EditVert *addvertlist(EditMesh *em, float *vec, struct EditVert *example);
-extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
-extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
-extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
-
-#endif
-
 void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 void MESH_OT_separate(struct wmOperatorType *ot);
@@ -136,58 +111,6 @@ void MESH_OT_duplicate(struct wmOperatorType *ot);
 
 void MESH_OT_fgon_make(struct wmOperatorType *ot);
 void MESH_OT_fgon_clear(struct wmOperatorType *ot);
-
-#if 0 /* REMOVE AFTER BMESH MERGE */
-
-/* ******************* editmesh_lib.c */
-void EM_stats_update(EditMesh *em);
-
-extern void EM_fgon_flags(EditMesh *em);
-extern void EM_hide_reset(EditMesh *em);
-
-extern int faceselectedOR(EditFace *efa, int flag);
-extern int faceselectedAND(EditFace *efa, int flag);
-
-void EM_remove_selection(EditMesh *em, void *data, int type);
-void EM_clear_flag_all(EditMesh *em, int flag);
-void EM_set_flag_all(EditMesh *em, int flag);
-void EM_set_flag_all_selectmode(EditMesh *em, int flag);
-
-void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
-void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
-
-int EM_nvertices_selected(EditMesh *em);
-int EM_nedges_selected(EditMesh *em);
-int EM_nfaces_selected(EditMesh *em);
-
-float EM_face_perimeter(EditFace *efa);
-
-void EM_store_selection(EditMesh *em, void *data, int type);
-
-extern EditFace *exist_face(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4);
-extern void flipface(EditMesh *em, EditFace *efa); // flips for normal direction
-extern int compareface(EditFace *vl1, EditFace *vl2);
-
-/* flag for selection bits, *nor will be filled with normal for extrusion constraint */
-/* return value defines if such normal was set */
-extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all);
-extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all);
-
-extern void adduplicateflag(EditMesh *em, int flag);
-extern void delfaceflag(EditMesh *em, int flag);
-
-extern void rotateflag(EditMesh *em, short flag, float *cent, float rotmat[][3]);
-extern void translateflag(EditMesh *em, short flag, float *vec);
-
-extern int convex(float *v1, float *v2, float *v3, float *v4);
-
-extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
-										   struct EditFace *efa2, int i1, int i2, int i3, int i4);
-
-#endif
 
 extern int EM_view3d_poll(struct bContext *C);
 

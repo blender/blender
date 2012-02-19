@@ -54,7 +54,6 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 
 #include "BKE_customdata.h"
@@ -447,7 +446,7 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 static int rna_Mesh_texspace_editable(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	return (me->texflag & AUTOSPACE)? 0: PROP_EDITABLE;
+	return (me->texflag & ME_AUTOSPACE)? 0: PROP_EDITABLE;
 }
 
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1932,7 +1931,7 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 
 	/* texture space */
 	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
 
 	prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
@@ -2511,7 +2510,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	
 	/* texture space */
 	prop= RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
 
 	/*prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);

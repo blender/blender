@@ -41,7 +41,6 @@
 #include "BLI_mempool.h"
 #include "BLI_memarena.h"
 #include "DNA_image_types.h"
-#include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
 //XXX #include "transform.h"
 #include "bmesh.h"
@@ -250,9 +249,4 @@ void BME_free_transdata(struct BME_TransData_Head *td);
 float *BME_bevel_calc_polynormal(struct BME_Poly *f, struct BME_TransData_Head *td);
 struct BMesh *BME_bevel(struct BMEditMesh *em, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd);
 
-/*CONVERSION FUNCTIONS*/
-struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em);
-void   BME_bmesh_to_editmesh(struct BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em);
-struct BME_Mesh *BME_derivedmesh_to_bmesh(struct DerivedMesh *dm);
-struct DerivedMesh *BME_bmesh_to_derivedmesh(struct BME_Mesh *bm, struct DerivedMesh *dm);
 #endif

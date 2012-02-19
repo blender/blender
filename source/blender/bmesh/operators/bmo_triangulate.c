@@ -25,7 +25,6 @@
 #include "BLI_scanfill.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
-#include "BLI_editVert.h"
 #include "BLI_smallhash.h"
 
 #include "bmesh.h"
@@ -159,9 +158,9 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e;
 	BMOperator bmop;
-	EditEdge *eed;
-	EditVert *eve, *v1, *v2;
-	EditFace *efa;
+	ScanFillEdge *eed;
+	ScanFillVert *eve, *v1, *v2;
+	ScanFillFace *efa;
 	SmallHash hash;
 
 	BLI_smallhash_init(&hash);
@@ -186,7 +185,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
 		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
 		eed = BLI_addfilledge(v1, v2);
-		eed->tmp.p = e;
+		/* eed->tmp.p = e; */ /* UNUSED */
 	}
 	
 	BLI_edgefill(0);

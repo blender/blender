@@ -256,7 +256,6 @@ EnumPropertyItem image_color_depth_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "BLI_threads.h"
-#include "BLI_editVert.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"

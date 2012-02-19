@@ -37,6 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -45,7 +46,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_editVert.h"
 #include "BLI_uvproject.h"
 #include "BLI_utildefines.h"
 #include "BLI_rand.h"
@@ -64,7 +64,6 @@
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_editVert.h"
 #include "BLI_scanfill.h"
 #include "BLI_array.h"
 #include "BLI_uvproject.h"
@@ -213,8 +212,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		EditVert *v, *lastv, *firstv;
-		EditFace *sefa;
+		ScanFillVert *v, *lastv, *firstv;
+		ScanFillFace *sefa;
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
 		BMLoop *ls[3];
@@ -226,7 +225,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		if((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT)==0))
 			continue;
 
-		/* tf= (MTexPoly *)CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
+		/* tf= (MTexPoly *)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		lsel = 0;
 
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -414,7 +413,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	numOfEdges = derivedMesh->getNumEdges(derivedMesh);
 	numOfFaces = derivedMesh->getNumTessFaces(derivedMesh);
 
-	faceMap = MEM_mallocN(numOfFaces*sizeof(EditFace *), "unwrap_edit_face_map");
+	faceMap = MEM_mallocN(numOfFaces*sizeof(BMFace *), "unwrap_edit_face_map");
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 	EDBM_init_index_arrays(em, 0, 1, 1);
@@ -423,7 +422,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	for(i = 0; i < numOfFaces; i++)
 		faceMap[i] = EDBM_get_face_for_index(em, origFaceIndices[i]);
 
-	edgeMap = MEM_mallocN(numOfEdges*sizeof(EditEdge *), "unwrap_edit_edge_map");
+	edgeMap = MEM_mallocN(numOfEdges*sizeof(BMEdge *), "unwrap_edit_edge_map");
 
 	/* map subsurfed edges to original editEdges */
 	for(i = 0; i < numOfEdges; i++) {

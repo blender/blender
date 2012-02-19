@@ -43,12 +43,10 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
-#include "BLI_editVert.h"
 #include "BLI_scanfill.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
 #include "BLI_array.h"
@@ -61,6 +59,7 @@
 #include "BKE_paint.h"
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h" /* for Curve */
@@ -1788,104 +1787,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	polyindex = CustomData_get_layer(&dm->faceData, CD_POLYINDEX);
 	if (!CustomData_has_layer(&cddm->dm.faceData, CD_ORIGINDEX)) {
 		CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_REFERENCE, polyindex, mesh->totface);
-	}
-
-	return dm;
-}
-
-static DerivedMesh *UNUSED_FUNCTION(CDDM_from_editmesh)(EditMesh *em, Mesh *UNUSED(me))
-{
-	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),
-	                           BLI_countlist(&em->edges),
-	                           BLI_countlist(&em->faces), 0, 0);
-	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
-	EditVert *eve;
-	EditEdge *eed;
-	EditFace *efa;
-	MVert *mvert = cddm->mvert;
-	MEdge *medge = cddm->medge;
-	MFace *mface = cddm->mface;
-	int i, *index;
-
-	dm->deformedOnly = 1;
-
-	CustomData_merge(&em->vdata, &dm->vertData, CD_MASK_DERIVEDMESH,
-					 CD_CALLOC, dm->numVertData);
-	/* CustomData_merge(&em->edata, &dm->edgeData, CD_MASK_DERIVEDMESH,
-					 CD_CALLOC, dm->numEdgeData); */
-	CustomData_merge(&em->fdata, &dm->faceData, CD_MASK_DERIVEDMESH,
-					 CD_CALLOC, dm->numTessFaceData);
-	CustomData_merge(&em->fdata, &dm->faceData, CD_MASK_DERIVEDMESH,
-	                 CD_CALLOC, dm->numTessFaceData);
-
-	/* set eve->hash to vert index */
-	for(i = 0, eve = em->verts.first; eve; eve = eve->next, ++i)
-		eve->tmp.l = i;
-
-	/* Need to be able to mark loose edges */
-	for(eed = em->edges.first; eed; eed = eed->next) {
-		eed->f2 = 0;
-	}
-	for(efa = em->faces.first; efa; efa = efa->next) {
-		efa->e1->f2 = 1;
-		efa->e2->f2 = 1;
-		efa->e3->f2 = 1;
-		if(efa->e4) efa->e4->f2 = 1;
-	}
-
-	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
-	for(i = 0, eve = em->verts.first; i < dm->numVertData;
-		i++, eve = eve->next, index++) {
-		MVert *mv = &mvert[i];
-
-		copy_v3_v3(mv->co, eve->co);
-
-		normal_float_to_short_v3(mv->no, eve->no);
-		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
-
-		mv->flag = 0;
-
-		*index = i;
-
-		CustomData_from_em_block(&em->vdata, &dm->vertData, eve->data, i);
-	}
-
-	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-	for(i = 0, eed = em->edges.first; i < dm->numEdgeData;
-		i++, eed = eed->next, index++) {
-		MEdge *med = &medge[i];
-
-		med->v1 = eed->v1->tmp.l;
-		med->v2 = eed->v2->tmp.l;
-		med->crease = (unsigned char) (eed->crease * 255.0f);
-		med->bweight = (unsigned char) (eed->bweight * 255.0f);
-		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
-		
-		if(eed->seam) med->flag |= ME_SEAM;
-		if(eed->sharp) med->flag |= ME_SHARP;
-		if(!eed->f2) med->flag |= ME_LOOSEEDGE;
-
-		*index = i;
-
-		/* CustomData_from_em_block(&em->edata, &dm->edgeData, eed->data, i); */
-	}
-
-	index = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
-	for(i = 0, efa = em->faces.first; i < dm->numTessFaceData;
-		i++, efa = efa->next, index++) {
-		MFace *mf = &mface[i];
-
-		mf->v1 = efa->v1->tmp.l;
-		mf->v2 = efa->v2->tmp.l;
-		mf->v3 = efa->v3->tmp.l;
-		mf->v4 = efa->v4 ? efa->v4->tmp.l : 0;
-		mf->mat_nr = efa->mat_nr;
-		mf->flag = efa->flag;
-
-		*index = i;
-
-		CustomData_from_em_block(&em->fdata, &dm->faceData, efa->data, i);
-		test_index_face(mf, &dm->faceData, i, efa->v4?4:3);
 	}
 
 	return dm;

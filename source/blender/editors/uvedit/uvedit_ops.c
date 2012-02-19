@@ -39,6 +39,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_image_types.h"
@@ -47,7 +48,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_array.h"
 #include "BLI_utildefines.h"
 

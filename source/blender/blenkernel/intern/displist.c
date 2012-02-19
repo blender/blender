@@ -44,7 +44,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
 
@@ -417,8 +416,8 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 
 void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 {
-	EditVert *eve, *v1, *vlast;
-	EditFace *efa;
+	ScanFillVert *eve, *v1, *vlast;
+	ScanFillFace *efa;
 	DispList *dlnew=NULL, *dl;
 	float *f1;
 	int colnr=0, charidx=0, cont=1, tot, a, *index, nextcol= 0;

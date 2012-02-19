@@ -34,6 +34,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
@@ -53,7 +54,6 @@
 #include "ED_armature.h"
 #include "ED_mesh.h"
 
-#include "BLI_editVert.h"
 
 typedef struct SceneStats {
 	int totvert, totvertsel;
