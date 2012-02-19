@@ -391,7 +391,10 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 
-		if(retval == BKE_READ_FILE_OK_USERPREFS) wm_init_userdef(C);	// in case a userdef is read from regular .blend
+		if(retval == BKE_READ_FILE_OK_USERPREFS) {
+			/* in case a userdef is read from regular .blend */
+			wm_init_userdef(C);
+		}
 		
 		if (retval != BKE_READ_FILE_FAIL) {
 			G.relbase_valid = 1;
@@ -420,13 +423,20 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 
 		CTX_wm_window_set(C, NULL); /* exits queues */
 
-#if 0	/* gives popups on windows but not linux, bug in report API but disable for now to stop users getting annoyed  */
+#if 0
+		/* gives popups on windows but not linux, bug in report API
+		 * but disable for now to stop users getting annoyed  */
 		/* TODO, make this show in header info window */
 		{
 			Scene *sce;
-			for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-				if(sce->r.engine[0] && BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
-					BKE_reportf(reports, RPT_WARNING, "Engine not available: '%s' for scene: %s, an addon may need to be installed or enabled", sce->r.engine, sce->id.name+2);
+			for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+				if (sce->r.engine[0] &&
+				    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
+				{
+					BKE_reportf(reports, RPT_WARNING,
+					            "Engine not available: '%s' for scene: %s, "
+					            "an addon may need to be installed or enabled",
+					            sce->r.engine, sce->id.name+2);
 				}
 			}
 		}
@@ -659,8 +669,10 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
-	
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera,
+	                                            BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
+	                                            IB_rect, OB_SOLID, err_out);
+
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
 

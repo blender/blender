@@ -74,7 +74,9 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 	
 	wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 	
-	if( ELEM5(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK, WM_GESTURE_CIRCLE, WM_GESTURE_STRAIGHTLINE)) {
+	if (ELEM5(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK,
+	                WM_GESTURE_CIRCLE, WM_GESTURE_STRAIGHTLINE))
+	{
 		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
 		
 		gesture->customdata= rect;

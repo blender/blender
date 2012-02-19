@@ -155,7 +155,8 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 			CTX_wm_window_set(C, NULL);
 	}	
 
-	/* always set drawable and active to NULL, prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
+	/* always set drawable and active to NULL,
+	 * prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
 	wm->windrawable= NULL;
 	wm->winactive= NULL;
 
@@ -751,7 +752,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 							}
 							
 							if(type!=GHOST_kEventWindowSize) {
-								if(G.f & G_DEBUG) printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+								if(G.f & G_DEBUG) {
+									printf("win move event pos %d %d size %d %d\n",
+									       win->posx, win->posy, win->sizex, win->sizey);
+								}
 							}
 							
 						}

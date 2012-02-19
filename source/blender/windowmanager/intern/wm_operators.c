@@ -153,7 +153,9 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 		ot->name= IFACE_("Dummy Name");
 	}
 
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:IFACE_("(undocumented operator)")); // XXX All ops should have a description but for now allow them not to.
+	// XXX All ops should have a description but for now allow them not to.
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:IFACE_("(undocumented operator)"));
+
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
@@ -1136,7 +1138,8 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	
 	if((op->type->flag & OPTYPE_REGISTER)==0) {
-		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1845,7 +1848,10 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->flag |= OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_DIRECTORY|WM_FILESEL_FILENAME| WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(
+	        ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE,
+	        WM_FILESEL_FILEPATH|WM_FILESEL_DIRECTORY|WM_FILESEL_FILENAME|WM_FILESEL_RELPATH|WM_FILESEL_FILES,
+	        FILE_DEFAULTDISPLAY);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
@@ -3205,8 +3211,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 		return 0;
 	
 	/* slightly ugly; allow this property to not resolve
-	   correctly. needed because 3d texture paint shares the same
-	   keymap as 2d image paint */
+	 * correctly. needed because 3d texture paint shares the same
+	 * keymap as 2d image paint */
 	if(!radial_control_get_path(&ctx_ptr, op, "zoom_path",
 								&rc->zoom_ptr, &rc->zoom_prop, 2,
 								RC_PROP_REQUIRE_FLOAT|RC_PROP_ALLOW_MISSING))

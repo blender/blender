@@ -90,9 +90,16 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 					if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
 						int x = 0, y = 0;
 						wm_get_cursor_position(win, &x, &y);
-						pc->draw(C, x - ar_other->winrct.xmin, y - ar_other->winrct.ymin, pc->customdata);
-					} else {
-						pc->draw(C, win->eventstate->x - ar_other->winrct.xmin, win->eventstate->y - ar_other->winrct.ymin, pc->customdata);
+						pc->draw(C,
+						         x - ar_other->winrct.xmin,
+						         y - ar_other->winrct.ymin,
+						         pc->customdata);
+					}
+					else {
+						pc->draw(C,
+						         win->eventstate->x - ar_other->winrct.xmin,
+						         win->eventstate->y - ar_other->winrct.ymin,
+						         pc->customdata);
 					}
 				}
 			}
@@ -458,7 +465,8 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 
 			if(triple->x[x] > maxsize || triple->y[y] > maxsize) {
 				glBindTexture(triple->target, 0);
-				printf("WM: failed to allocate texture for triple buffer drawing (texture too large for graphics card).\n");
+				printf("WM: failed to allocate texture for triple buffer drawing "
+				       "(texture too large for graphics card).\n");
 				return 0;
 			}
 
