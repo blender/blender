@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mesh/editbmesh_bvh.h
+/** \file blender/editors/mesh/editmesh_bvh.h
  *  \ingroup edmesh
  */
 

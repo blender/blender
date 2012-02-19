@@ -310,7 +310,7 @@ int ED_mesh_color_remove_named(struct bContext *C, struct Object *ob, struct Mes
 void EDBM_selectmode_to_scene(struct bContext *C);
 void EDBM_ClearMesh(struct BMEditMesh *em);
 
-#include "../mesh/editbmesh_bvh.h"
+#include "../mesh/editmesh_bvh.h"
 
 
 /* mirrtopo */

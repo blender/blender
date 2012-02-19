@@ -41,8 +41,8 @@ set(SRC
 	meshtools.c
 	loopcut.c
 	mesh_ops.c
-	editbmesh_bvh.c
-	editbmesh_add.c
+	editmesh_bvh.c
+	editmesh_add.c
 	bmeshutils.c
 	bmesh_selecthistory.c
 	bmesh_select.c
@@ -51,7 +51,7 @@ set(SRC
 	knifetool.c
 	editface.c
 
-	editbmesh_bvh.h
+	editmesh_bvh.h
 	mesh_intern.h
 )
 
