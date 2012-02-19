@@ -812,7 +812,7 @@ static void emDM_drawFacesTex_common(
 		glBegin(GL_TRIANGLES);
 		for (i=0; i<em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
-			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
+			MTexPoly *tp= has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
 			MTFace mtf = {{{0}}};
 			/*unsigned char *cp= NULL;*/ /*UNUSED*/
 			int drawSmooth= BM_elem_flag_test(ls[0]->f, BM_ELEM_SMOOTH);
@@ -882,7 +882,7 @@ static void emDM_drawFacesTex_common(
 
 		for (i=0; i<em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
-			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
+			MTexPoly *tp= has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
 			MTFace mtf = {{{0}}};
 			/*unsigned char *cp= NULL;*/ /*UNUSED*/
 			int drawSmooth= BM_elem_flag_test(ls[0]->f, BM_ELEM_SMOOTH);

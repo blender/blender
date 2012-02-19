@@ -48,68 +48,6 @@
 /* prototypes */
 static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMLoop *source_loop, BMLoop *target_loop);
-#if 0
-
-/*
- * BM_CONSTRUCT.C
- *
- * This file contains functions for making and destroying
- * individual elements like verts, edges and faces.
- *
- */
-
-/*
- * BMESH MAKE VERT
- *
- * Creates a new vertex and returns a pointer
- * to it. If a pointer to an example vertex is
- * passed in, it's custom data and properties
- * will be copied to the new vertex.
- *
- */
-
-BMVert *BM_vert_create(BMesh *bm, float co[3], BMVert *example)
-{
-	BMVert *v = NULL;
-	v = bmesh_mv(bm, co);
-	if (example)
-		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->head.data, &v->head.data);
-	return v;
-}
-
-/*
- * BMESH MAKE EDGE
- *
- * Creates a new edge betweeen two vertices and returns a
- * pointer to it. If 'nodouble' equals 1, then a check is
- * is done to make sure that an edge between those two vertices
- * does not already exist. If it does, that edge is returned instead
- * of creating a new one.
- *
- * If a new edge is created, and a pointer to an example edge is
- * provided, it's custom data and properties will be copied to the
- * new edge.
- *
- */
-
-BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nodouble)
-{
-	BMEdge *e = NULL;
-	
-	if (nodouble) /* test if edge already exists. */
-		e = BM_edge_exists(v1, v2);
-
-	if (!e) {
-		e = bmesh_me(bm, v1, v2);
-
-		if (example)
-			CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->head.data, &e->head.data);
-	}
-	
-	return e;
-	
-}
-#endif
 
 /*
  * BMESH MAKE QUADTRIANGLE

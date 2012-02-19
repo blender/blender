@@ -26,8 +26,8 @@
  * BM Inline functions.
  */
 
-#ifndef BM_INLINE_C
-#define BM_INLINE_C
+#ifndef __BMESH_INLINE_C__
+#define __BMESH_INLINE_C__
 
 #include "bmesh.h"
 
@@ -68,4 +68,4 @@ BM_INLINE int BM_elem_index_get(const void *element)
 	return ((BMHeader *)element)->index;
 }
 
-#endif /* BM_INLINE_C */
+#endif /* __BMESH_INLINE_C__ */

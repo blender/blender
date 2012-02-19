@@ -26,8 +26,8 @@
  * BMesh inline iterator functions.
  */
 
-#ifndef BM_ITERATORS_INLINE_C
-#define BM_ITERATORS_INLINE_C
+#ifndef __BMESH_ITERATORS_INLINE_C__
+#define __BMESH_ITERATORS_INLINE_C__
 
 #include "bmesh.h"
 
@@ -157,4 +157,4 @@ BM_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *dat
 }
 
 
-#endif /* BM_ITERATORS_INLINE_C */
+#endif /* __BMESH_ITERATORS_INLINE_C__ */
