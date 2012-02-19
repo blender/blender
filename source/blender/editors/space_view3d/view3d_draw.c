@@ -1584,7 +1584,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				/* calc window coord */
 				initgrabz(rv3d, 0.0, 0.0, 0.0);
 				ED_view3d_win_to_delta(ar, mval_f, vec);
-				fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
+				fac= maxf(fabsf(vec[0]), maxf(fabsf(vec[1]), fabsf(vec[2]))); /* largest abs axis */
 				fac= 1.0f/fac;
 
 				asp= ( (float)ibuf->y)/(float)ibuf->x;

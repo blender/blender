@@ -1302,6 +1302,17 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
 	mul_v3_m4v3(outmat[3], loc_mat, inmat[3]);
 }
 
+/* Convert Bone-Space Matrix to Pose-Space Matrix. */
+void armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[][4], float outmat[][4])
+{
+	float rotscale_mat[4][4], loc_mat[4][4];
+
+	pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
+
+	mult_m4_m4m4(outmat, rotscale_mat, inmat);
+	mul_v3_m4v3(outmat[3], loc_mat, inmat[3]);
+}
+
 /* Convert Pose-Space Location to Bone-Space Location
  * NOTE: this cannot be used to convert to pose-space location of the supplied
  * 		pose-channel into its local space (i.e. 'visual'-keyframing) 
@@ -2405,6 +2416,8 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 
 	/* Construct the posemat based on PoseChannels, that we do before applying constraints. */
 	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
+	armature_mat_bone_to_pose(pchan, pchan->chan_mat, pchan->pose_mat);
+#if 0 /* XXX Old code, will remove this later. */
 	{
 		float rotscale_mat[4][4], loc_mat[4][4];
 		pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
@@ -2413,6 +2426,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 		/* Location. */
 		mul_v3_m4v3(pchan->pose_mat[3], loc_mat, pchan->chan_mat[3]);
 	}
+#endif
 
 	/* Only rootbones get the cyclic offset (unless user doesn't want that). */
 	/* XXX That could be a problem for snapping and other "reverse transform" features... */

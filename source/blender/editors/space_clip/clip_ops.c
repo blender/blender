@@ -879,6 +879,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 			IMB_anim_index_rebuild(clip->anim, tc_flag, size_flag, quality, stop, do_update, progress);
 
 		if(!build_undistort_count) {
+			BKE_movieclip_reload(clip);
 			return;
 		}
 		else {
@@ -905,6 +906,8 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 
 	if(distortion)
 		BKE_tracking_distortion_destroy(distortion);
+
+	BKE_movieclip_reload(clip);
 }
 
 static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))

@@ -4845,7 +4845,8 @@ static int doEdgeSlide(TransInfo *t, float perc)
 			copy_v3_v3(vec, sv->upvec);
 			mul_v3_fl(vec, perc);
 			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
-		} else {
+		}
+		else {
 			copy_v3_v3(vec, sv->downvec);
 			mul_v3_fl(vec, -perc);
 			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
