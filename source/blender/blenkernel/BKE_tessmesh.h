@@ -60,13 +60,10 @@ typedef struct BMEditMesh {
 	/*derivedmesh stuff*/
 	struct DerivedMesh *derivedFinal, *derivedCage;
 	int lastDataMask;
-	
-	/*retopo data pointer*/
-	struct RetopoPaintData *retopo_paint_data;
 
-	/*index tables, to map indices to elements via
-	  EDBM_init_index_arrays and associated functions.  don't
-	  touch this or read it directly.*/
+	/* index tables, to map indices to elements via
+	 * EDBM_init_index_arrays and associated functions.  don't
+	 * touch this or read it directly.*/
 	struct BMVert **vert_index;
 	struct BMEdge **edge_index;
 	struct BMFace **face_index;

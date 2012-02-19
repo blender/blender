@@ -335,64 +335,10 @@ typedef struct EditDerivedBMesh {
 	float (*vertexNos)[3];
 	float (*polyNos)[3];
 
-	/*lookup caches; these are rebuilt on dm->RecalcTesselation()
-	  (or when the derivedmesh is created, of course)*/
-	BMVert **vtable;
-	BMEdge **etable;
-	BMFace **ftable;
-
-	/*private variables, for number of verts/edges/faces
-	  within the above hash/table members*/
+	/* private variables, for number of verts/edges/faces
+	 * within the above hash/table members*/
 	int tv, te, tf;
 } EditDerivedBMesh;
-
-/* BMESH_TODO, since this is not called get functions fail! */
-static void UNUSED_FUNCTION(bmdm_recalc_lookups)(EditDerivedBMesh *bmdm)
-{
-	const char iter_types[3] = {BM_VERTS_OF_MESH,
-	                            BM_EDGES_OF_MESH,
-	                            BM_FACES_OF_MESH};
-
-	BMHeader **iters_table[3] = {(BMHeader **)bmdm->vtable,
-	                             (BMHeader **)bmdm->etable,
-	                             (BMHeader **)bmdm->ftable};
-
-	BMIter iter;
-	int a, i;
-
-	bmdm->tv = bmdm->tc->bm->totvert;
-	bmdm->te = bmdm->tc->bm->totedge;
-	bmdm->tf = bmdm->tc->bm->totface;
-
-	if (bmdm->vtable) MEM_freeN(bmdm->vtable);
-	if (bmdm->etable) MEM_freeN(bmdm->etable);
-	if (bmdm->ftable) MEM_freeN(bmdm->ftable);
-
-	if (bmdm->tc->bm->totvert)
-		bmdm->vtable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totvert, "bmdm->vtable");
-	else bmdm->vtable = NULL;
-
-	if (bmdm->tc->bm->totedge)
-		bmdm->etable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totedge, "bmdm->etable");
-	else bmdm->etable = NULL;
-
-	if (bmdm->tc->bm->totface)
-		bmdm->ftable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totface, "bmdm->ftable");
-	else bmdm->ftable = NULL;
-
-	for (a=0; a<3; a++) {
-		BMHeader **table = iters_table[a];
-		BMHeader *ele;
-
-		ele = BM_iter_new(&iter, bmdm->tc->bm, iter_types[a], NULL);
-		for (i=0; ele; ele=BM_iter_step(&iter), i++) {
-			table[i] = ele;
-			BM_elem_index_set(ele, i);  /* set_ok */
-		}
-	}
-	bmdm->tc->bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
-
-}
 
 static void emDM_calcNormals(DerivedMesh *UNUSED(dm))
 {
@@ -402,9 +348,7 @@ static void emDM_calcNormals(DerivedMesh *UNUSED(dm))
 
 static void emDM_recalcTesselation(DerivedMesh *UNUSED(dm))
 {
-	//EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
-
-	//bmdm_recalc_lookups(bmdm);
+	/* do nothing */
 }
 
 static void emDM_foreachMappedVert(
@@ -463,6 +407,8 @@ static void emDM_drawMappedEdges(
 	BMEdge *eed;
 	BMIter iter;
 	int i;
+
+DM_debug_print(dm);
 
 	if (bmdm->vertexCos) {
 
@@ -1359,29 +1305,33 @@ static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 
 static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 {
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMVert *ev;
 
-	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->tv) {
+	if (index < 0 || index >= bmdm->tv) {
 		printf("error in emDM_getVert.\n");
 		return;
 	}
 
-	ev = ((EditDerivedBMesh *)dm)->vtable[index];
-	bmvert_to_mvert(((EditDerivedBMesh *)dm)->tc->bm, ev, vert_r);
+	// ev = EDBM_get_vert_for_index(bmdm->tc, index);
+	ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
+
+	bmvert_to_mvert(bmdm->tc->bm, ev, vert_r);
 }
 
 static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
-	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	BMesh *bm = bmdm->tc->bm;
 	BMEdge *e;
 
-	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->te) {
+	if (index < 0 || index >= bmdm->te) {
 		printf("error in emDM_getEdge.\n");
 		return;
 	}
 
-	e = bmdm->etable[index];
+	// e = EDBM_get_edge_for_index(bmdm->tc, index);
+	e = BM_edge_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
 		edge_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT)*255.0f);
@@ -1399,16 +1349,16 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 
 static void emDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 {
-	/* EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm; */
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMFace *ef;
 	BMLoop **l;
 
-	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->tf) {
+	if (index < 0 || index >= bmdm->tf) {
 		printf("error in emDM_getTessFace.\n");
 		return;
 	}
 
-	l = ((EditDerivedBMesh *)dm)->tc->looptris[index];
+	l = bmdm->tc->looptris[index];
 
 	ef = l[0]->f;
 
@@ -1473,7 +1423,7 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 static void emDM_copyTessFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
-	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	BMesh *bm = bmdm->tc->bm;
 	BMFace *ef;
 	BMLoop **l;
 	int i;
@@ -1500,8 +1450,8 @@ static void emDM_copyTessFaceArray(DerivedMesh *dm, MFace *face_r)
 
 static void emDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 {
-	/* EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm; */ /* UNUSED */
-	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->tc->bm;
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l;
@@ -1519,8 +1469,8 @@ static void emDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 
 static void emDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 {
-	/* EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm; */ /* UNUSED */
-	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->tc->bm;
 	BMIter iter;
 	BMFace *f;
 	int i;
@@ -1607,10 +1557,6 @@ static void emDM_release(DerivedMesh *dm)
 			MEM_freeN(bmdm->vertexNos);
 			MEM_freeN(bmdm->polyNos);
 		}
-
-		if (bmdm->vtable) MEM_freeN(bmdm->vtable);
-		if (bmdm->etable) MEM_freeN(bmdm->etable);
-		if (bmdm->ftable) MEM_freeN(bmdm->ftable);
 
 		MEM_freeN(bmdm);
 	}
@@ -1763,8 +1709,6 @@ DerivedMesh *getEditDerivedBMesh(
 			}
 		}
 	}
-
-	//bmdm_recalc_lookups(bmdm);
 
 	return (DerivedMesh*) bmdm;
 }
