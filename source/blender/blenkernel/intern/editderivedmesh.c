@@ -488,9 +488,6 @@ static void emDM_drawFacesTex_common(
 						cp= (unsigned char*)mcol;
 					}
 				}
-				else {
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-				}
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
@@ -564,9 +561,6 @@ static void emDM_drawFacesTex_common(
 						cp= (unsigned char*)mcol;
 					}
 				}
-				else {
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-				}
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
@@ -617,6 +611,8 @@ static void emDM_drawFacesTex_common(
 			}
 		}
 	}
+
+	glShadeModel(GL_FLAT);
 }
 
 static void emDM_drawFacesTex(
