@@ -408,8 +408,6 @@ static void emDM_drawMappedEdges(
 	BMIter iter;
 	int i;
 
-DM_debug_print(dm);
-
 	if (bmdm->vertexCos) {
 
 		BM_mesh_elem_index_ensure(bmdm->tc->bm, BM_VERT);
