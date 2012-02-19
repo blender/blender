@@ -746,6 +746,9 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 	
 	const CustomData *data = &me->fdata;
 	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
+
+	if(layer_index == -1) return NULL;
+
 	CustomDataLayer *cdl = &data->layers[layer_index+setindex];
 	
 	/* set uvname to bind_vertex_input semantic */
