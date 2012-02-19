@@ -58,12 +58,6 @@ set(INC_SYS
 )
 
 set(SRC
-	intern/BME_Customdata.c
-	intern/BME_conversions.c
-	intern/BME_eulers.c
-	intern/BME_mesh.c
-	intern/BME_structure.c
-	intern/BME_tools.c
 	intern/CCGSubSurf.c
 	intern/DerivedMesh.c
 	intern/action.c

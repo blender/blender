@@ -94,7 +94,6 @@ set(SRC
 	intern/bmesh_polygon.c
 	intern/bmesh_queries.c
 	intern/bmesh_opdefines.c
-	intern/bmesh_eulers.c
 	intern/bmesh_operators.c
 	intern/bmesh_private.h
 	intern/bmesh_walkers.c
