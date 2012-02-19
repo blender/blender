@@ -97,6 +97,8 @@ public:
 	void exportScene(Scene *sce);
 
 private:
+	// required for writeNodes() for bone-parented objects
+	friend class ArmatureExporter;
 	void exportHierarchy(Scene *sce);
 	void writeNodes(Object *ob, Scene *sce);
 	

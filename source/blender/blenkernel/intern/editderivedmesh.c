@@ -833,11 +833,6 @@ static void emDM_drawFacesTex_common(
 
 			if (flag != 0) { /* flag 0 == the face is hidden or invisible */
 
-				/* we always want smooth here since otherwise vertex colors dont interpolate */
-				if (!has_vcol) {
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-				}
-
 				if (!drawSmooth) {
 					glNormal3fv(bmdm->polyNos[BM_elem_index_get(efa)]);
 
@@ -903,11 +898,6 @@ static void emDM_drawFacesTex_common(
 
 			if (flag != 0) { /* flag 0 == the face is hidden or invisible */
 
-				/* we always want smooth here since otherwise vertex colors dont interpolate */
-				if (!has_vcol) {
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-				}
-
 				glBegin(GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(efa->no);
@@ -966,6 +956,8 @@ static void emDM_drawFacesTex_common(
 			}
 		}
 	}
+
+	glShadeModel(GL_FLAT);
 }
 
 static void emDM_drawFacesTex(
