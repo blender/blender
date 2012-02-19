@@ -296,11 +296,11 @@ public:
     updateDotPInfos();
   }
   inline void updateDotPInfos() {
+    _nPosDotP = 0;
+    _nNullDotP = 0;
     for(vector<real>::iterator d=_DotP.begin(), dend=_DotP.end();
     d!=dend;
     ++d){
-      _nPosDotP = 0;
-      _nNullDotP = 0;
       if((*d) > 0)
         ++_nPosDotP;
       if((*d) == 0)
