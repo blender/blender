@@ -40,7 +40,7 @@ CHECKER_ARGS = [
     "--suppress=*:%s/extern/glew/include/GL/glew.h:241" % project_source_info.SOURCE_DIR,
     # "--max-configs=1",  # speeds up execution
     #  "--check-config", # when includes are missing
-    "--enable=all",  # if you want sixty hundred pedantic suggestions
+    #  "--enable=all",  # if you want sixty hundred pedantic suggestions
     ]
 
 
@@ -49,8 +49,6 @@ def main():
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
-        # if not 'bevel' in c: continue
-        # if 'MOD' in c: continue
         cmd = ([CHECKER_BIN] +
                 CHECKER_ARGS +
                [c] +
@@ -63,7 +61,7 @@ def main():
     process_functions = []
 
     def my_process(i, c, cmd):
-        percent = 100.0 * (i / (len(check_commands)))
+        percent = 100.0 * (i / (len(check_commands) - 1))
         percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
         sys.stdout.flush()
