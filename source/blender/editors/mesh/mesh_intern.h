@@ -200,6 +200,7 @@ void MESH_OT_knife_cut(struct wmOperatorType *ot);
 /* ******************* bmesh_select.c */
 void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_select_all(struct wmOperatorType *ot);
+void MESH_OT_select_interior_faces(struct wmOperatorType *ot);
 void MESH_OT_bmesh_test(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);

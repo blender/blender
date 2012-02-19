@@ -77,8 +77,6 @@ typedef enum ModifierType {
 	eModifierType_Ocean,
 	eModifierType_DynamicPaint,
 	eModifierType_Remesh,
-
-	/* BMESH ONLY - keeps getting bumped by new modifiers in trunk */
 	eModifierType_NgonInterp,
 	NUM_MODIFIER_TYPES
 } ModifierType;

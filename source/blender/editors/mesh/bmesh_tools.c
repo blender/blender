@@ -680,6 +680,37 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+static int mesh_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+
+	if (EDBM_select_interior_faces(em)) {
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+
+}
+
+void MESH_OT_select_interior_faces(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Interior Faces";
+	ot->idname = "MESH_OT_select_interior_faces";
+	ot->description = "Select faces where all edges have more than 2 face users";
+
+	/* api callbacks */
+	ot->exec = mesh_faces_select_interior_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* *************** add-click-mesh (extrude) operator ************** */
 /* in trunk see: 'editmesh_add.c' */
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)

@@ -1694,6 +1694,38 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 //	if (EM_texFaceCheck())
 }
 
+int EDBM_select_interior_faces(struct BMEditMesh *em)
+{
+	BMesh *bm = em->bm;
+	BMIter iter;
+	BMIter eiter;
+	BMFace *efa;
+	BMEdge *eed;
+	int ok;
+	int change = FALSE;
+
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+			continue;
+
+
+		ok = TRUE;
+		BM_ITER(eed, &eiter, bm, BM_EDGES_OF_FACE, efa) {
+			if (BM_edge_face_count(eed) < 3) {
+				ok = FALSE;
+				break;
+			}
+		}
+
+		if (ok) {
+			BM_elem_select_set(bm, efa, TRUE);
+			change = TRUE;
+		}
+	}
+
+	return change;
+}
+
 static void linked_limit_default(bContext *C, wmOperator *op)
 {
 	if (!RNA_struct_property_is_set(op->ptr, "limit")) {

@@ -24,50 +24,6 @@ from bpy.types import Operator
 from bpy.props import EnumProperty
 
 
-class MeshSelectInteriorFaces(Operator):
-    '''Select faces where all edges have more than 2 face users'''
-
-    bl_idname = "mesh.faces_select_interior"
-    bl_label = "Select Interior Faces"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH')
-
-    def execute(self, context):
-        from bpy_extras import mesh_utils
-        ob = context.active_object
-        context.tool_settings.mesh_select_mode = False, False, True
-        is_editmode = (ob.mode == 'EDIT')
-        if is_editmode:
-            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-        mesh = ob.data
-
-        face_list = mesh.faces[:]
-        face_edge_keys = [face.edge_keys for face in face_list]
-
-        edge_face_count = mesh_utils.edge_face_count_dict(mesh)
-
-        def test_interior(index):
-            for key in face_edge_keys[index]:
-                if edge_face_count[key] < 3:
-                    return False
-            return True
-
-        for index, face in enumerate(face_list):
-            if(test_interior(index)):
-                face.select = True
-            else:
-                face.select = False
-
-        if is_editmode:
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-        return {'FINISHED'}
-
-
 class MeshMirrorUV(Operator):
     '''Copy mirror UV coordinates on the X axis based on a mirrored mesh'''
     bl_idname = "mesh.faces_mirror_uv"

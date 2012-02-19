@@ -522,7 +522,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.operator("mesh.select_nth", text="Every N Number of Verts")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
-        layout.operator("mesh.faces_select_interior", text="Interior Faces")
+        layout.operator("mesh.select_interior_faces", text="Interior Faces")
         layout.operator("mesh.select_axis", text="Side of Active")
 
         layout.separator()
@@ -1501,7 +1501,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
-        layout.operator("mesh.dissolve_limited")  # BMESH ONLY
+        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.duplicate_move")
         layout.operator("mesh.delete", text="Delete...")
 
@@ -1537,7 +1537,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         """
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
-        layout.operator("mesh.dissolve_limited")  # BMESH ONLY
+        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.hide", text="Hide")
         layout.operator("mesh.reveal", text="Reveal")
         layout.operator("mesh.select_all").action = 'INVERT'

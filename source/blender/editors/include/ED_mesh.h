@@ -180,6 +180,8 @@ int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short
 
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 
+int EDBM_select_interior_faces(struct BMEditMesh *em);
+
 struct UvElementMap *EDBM_make_uv_element_map(struct BMEditMesh *em, int selected, int doIslands);
 void		EDBM_free_uv_element_map(struct UvElementMap *vmap);
 
