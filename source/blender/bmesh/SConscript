@@ -1,0 +1,40 @@
+#!/usr/bin/python
+Import ('env')
+
+cflags=''
+"""
+sources = ['intern/bmesh_eulers.c']
+sources.append('intern/bmesh_mesh.c')
+sources.append('intern/bmesh_polygon.c')
+sources.append('intern/bmesh_structure.c')
+sources.append('intern/bmesh_marking.c')
+
+sources.append('intern/bmesh_construct.c')
+sources.append('intern/bmesh_interp.c')
+sources.append('intern/bmesh_filters.c')
+sources.append('intern/bmesh_iterators.c')
+sources.append('intern/bmesh_mods.c')
+sources.append('intern/bmesh_queries.c')
+sources.append('intern/bmesh_operators.c')
+"""
+#sources.append('api/BME_walkers.c')
+
+
+sources = env.Glob('intern/*.c')
+sources += env.Glob('operators/*.c')
+
+#sources += env.Glob('tools/*.c')
+
+incs = ['#/intern/guardedalloc'] 
+incs.append('../blenlib') 
+incs.append('../blenloader') 
+incs.append('../makesdna')
+incs.append('../makesrna')
+incs.append('../blenkernel')
+incs.append('./')
+incs.append('./intern')
+incs.append('../editors/mesh')
+incs.append('../editors/include')
+
+defs = []
+env.BlenderLib ( libname = 'bf_bmesh', sources = sources, includes = Split(incs), libtype = 'core', defines=defs, priority=100, compileflags=cflags )
