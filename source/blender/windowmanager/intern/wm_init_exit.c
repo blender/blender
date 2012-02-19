@@ -63,6 +63,7 @@
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "BLI_listbase.h"
+#include "BLI_scanfill.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -386,6 +387,8 @@ void WM_exit_ext(bContext *C, const short do_python)
 	free_posebuf();
 
 	BLF_exit();
+
+	BLI_scanfill_free(); /* the order this is called doesn't matter */
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();

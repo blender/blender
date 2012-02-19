@@ -109,6 +109,8 @@ void BLI_setErrorCallBack(void (*f)(const char*));
  */
 void BLI_setInterruptCallBack(int (*f)(void));
 
+void BLI_scanfill_free(void);
+
 #ifdef __cplusplus
 }
 #endif

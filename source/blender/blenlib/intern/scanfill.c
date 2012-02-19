@@ -143,7 +143,7 @@ struct mem_elements {
    free in the end, with argument '-1'
 */
 #define MEM_ELEM_BLOCKSIZE 16384
-static struct mem_elements *  melem__cur= 0;
+static struct mem_elements *  melem__cur= NULL;
 static int                    melem__offs= 0; /* the current free address */
 static ListBase               melem__lb= {NULL, NULL};
 
@@ -167,13 +167,14 @@ static void *mem_element_new(int size)
 		return melem__cur->data;
 	}
 }
-static void mem_element_reset(void)
+static void mem_element_reset(int keep_first)
 {
 	struct mem_elements *first;
-	/*BMESH_TODO: keep the first block, gives memory leak on exit with 'newmem' */
 
 	if((first= melem__lb.first)) { /* can be false if first fill fails */
-		BLI_remlink(&melem__lb, first);
+		if (keep_first) {
+			BLI_remlink(&melem__lb, first);
+		}
 
 		melem__cur= melem__lb.first;
 		while(melem__cur) {
@@ -183,8 +184,14 @@ static void mem_element_reset(void)
 		BLI_freelistN(&melem__lb);
 
 		/*reset the block we're keeping*/
-		BLI_addtail(&melem__lb, first);
-		memset(first->data, 0, MEM_ELEM_BLOCKSIZE);
+		if (keep_first) {
+			BLI_addtail(&melem__lb, first);
+			memset(first->data, 0, MEM_ELEM_BLOCKSIZE);
+		}
+		else {
+			first = NULL;
+
+		}
 	}
 
 	melem__cur= first;
@@ -193,13 +200,18 @@ static void mem_element_reset(void)
 
 void BLI_end_edgefill(void)
 {
-	mem_element_reset();
+	mem_element_reset(TRUE);
 	
 	fillvertbase.first= fillvertbase.last= 0;
 	filledgebase.first= filledgebase.last= 0;
 	fillfacebase.first= fillfacebase.last= 0;
 	
 	BLI_unlock_thread(LOCK_SCANFILL);	
+}
+
+void BLI_scanfill_free(void)
+{
+	mem_element_reset(FALSE);
 }
 
 /* ****  FILL ROUTINES *************************** */
