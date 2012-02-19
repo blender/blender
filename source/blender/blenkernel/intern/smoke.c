@@ -1008,6 +1008,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 					{
 						ParticleSimulationData sim;
 						ParticleSystem *psys = sfs->psys;
+						int totpart=psys->totpart, totchild;
 						int p = 0;								
 						float *density = smoke_get_density(sds->fluid);								
 						float *bigdensity = smoke_turbulence_get_density(sds->wt);								
@@ -1043,7 +1044,23 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						}
 														
 						// mostly copied from particle code								
-						for(p=0; p<psys->totpart; p++)								
+						if(psys->part->type==PART_HAIR)
+						{
+							/*
+							if(psys->childcache)
+							{
+								totchild = psys->totchildcache;
+							}
+							else
+							*/
+
+							// TODO: PART_HAIR not supported whatsoever
+							totchild=0;
+						}
+						else
+							totchild=psys->totchild*psys->part->disp/100;
+						
+						for(p=0; p<totpart+totchild; p++)								
 						{
 							int cell[3];
 							size_t i = 0;
@@ -1051,17 +1068,27 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							int badcell = 0;
 							ParticleKey state;
 
-							if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
-								continue;
+							if(p < totpart)
+							{
+								if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
+									continue;
+							}
+							else
+							{
+								/* handle child particle */
+								ChildParticle *cpa = &psys->child[p - totpart];
+					
+								if(psys->particles[cpa->parent].flag & (PARS_NO_DISP|PARS_UNEXIST))
+									continue;
+							}
 
 							state.time = smd->time;
-
 							if(psys_get_particle_state(&sim, p, &state, 0) == 0)
 								continue;
-							
+												
 							// copy_v3_v3(pos, pa->state.co);
-							// mul_m4_v3(ob->imat, pos);																		
-							// 1. get corresponding cell	
+							// mul_m4_v3(ob->imat, pos);
+							// 1. get corresponding cell
 							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, state.co, cell, 0);																	
 							// check if cell is valid (in the domain boundary)									
 							for(i = 0; i < 3; i++)									
