@@ -2195,13 +2195,13 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
-	/* int count; */ /* UNUSED */
+	int count;
 
 	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", 
 		BM_ELEM_SELECT, RNA_float_get(op->ptr, "mergedist"));
 	BMO_op_exec(em->bm, &bmop);
 
-	/* count = BMO_slot_map_count(em->bm, &bmop, "targetmapout"); */ /* UNUSED */
+	count = BMO_slot_map_count(em->bm, &bmop, "targetmapout");
 
 	if (!EDBM_CallOpf(em, op, "weldverts targetmap=%s", &bmop, "targetmapout")) {
 		BMO_op_finish(em->bm, &bmop);
@@ -2211,16 +2211,9 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
+	
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count==1)?"ex":"ices");
 
-	/* we need a better way of reporting this, since this doesn't work
-	 * with the last operator panel correctly.
-
-	if (count)
-	{
-		sprintf(msg, "Removed %d vertices", count);
-		BKE_report(op->reports, RPT_INFO, msg);
-	}
-	*/
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
