@@ -101,13 +101,24 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 {
 	MaskModifierData *mmd= (MaskModifierData *)md;
 	DerivedMesh *dm= derivedData, *result= NULL;
-	GHash *vertHash=NULL, *edgeHash, *faceHash;
+	GHash *vertHash=NULL, *edgeHash, *polyHash;
 	GHashIterator *hashIter;
 	MDeformVert *dvert= NULL, *dv;
-	int numFaces=0, numEdges=0, numVerts=0;
-	int maxVerts, maxEdges, maxFaces;
+	int numPolys=0, numLoops=0, numEdges=0, numVerts=0;
+	int maxVerts, maxEdges, maxPolys;
 	int i;
-	
+
+	MPoly *mpoly;
+	MLoop *mloop;
+
+	MPoly *mpoly_new;
+	MLoop *mloop_new;
+	MEdge *medge_new;
+	MVert *mvert_new;
+
+
+	int *loop_mapping;
+
 	/* Overview of Method:
 	 *	1. Get the vertices that are in the vertexgroup of interest 
 	 *	2. Filter out unwanted geometry (i.e. not in vertexgroup), by populating mappings with new vs old indices
@@ -117,7 +128,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* get original number of verts, edges, and faces */
 	maxVerts= dm->getNumVerts(dm);
 	maxEdges= dm->getNumEdges(dm);
-	maxFaces= dm->getNumFaces(dm);
+	maxPolys= dm->getNumPolys(dm);
 	
 	/* check if we can just return the original mesh 
 	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
@@ -138,7 +149,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		char *bone_select_array;
 		int bone_select_tot= 0;
 		const int defbase_tot= BLI_countlist(&ob->defbase);
-		
+
 		/* check that there is armature object with bones to use, otherwise return original mesh */
 		if (ELEM3(NULL, mmd->ob_arm, mmd->ob_arm->pose, ob->defbase.first))
 			return derivedData;
@@ -259,11 +270,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			numVerts++;
 		}
 	}
-	
+
 	/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
 	edgeHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask ed2 gh");
-	faceHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask fa2 gh");
+	polyHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask fa2 gh");
 	
+	mpoly = dm->getPolyArray(dm);
+	mloop = dm->getLoopArray(dm);
+
+	loop_mapping = MEM_callocN(sizeof(int) * maxPolys, "mask loopmap"); /* overalloc, assume all polys are seen */
+
 	/* loop over edges and faces, and do the same thing to 
 	 * ensure that they only reference existing verts 
 	 */
@@ -280,19 +296,27 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			numEdges++;
 		}
 	}
-	for (i = 0; i < maxFaces; i++) 
+	for (i = 0; i < maxPolys; i++)
 	{
-		MFace mf;
-		dm->getFace(dm, i, &mf);
+		MPoly *mp = &mpoly[i];
+		MLoop *ml = mloop + mp->loopstart;
+		int ok = TRUE;
+		int j;
+
+		for (j = 0; j < mp->totloop; j++, ml++) {
+			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml->v))) {
+				ok = FALSE;
+				break;
+			}
+		}
 		
 		/* all verts must be available */
-		if ( BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v1)) &&
-			 BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v2)) &&
-			 BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v3)) &&
-			(mf.v4==0 || BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v4))) )
+		if (ok)
 		{
-			BLI_ghash_insert(faceHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numFaces));
-			numFaces++;
+			BLI_ghash_insert(polyHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numPolys));
+			loop_mapping[numPolys] = numLoops;
+			numPolys++;
+			numLoops += mp->totloop;
 		}
 	}
 	
@@ -300,8 +324,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* now we know the number of verts, edges and faces, 
 	 * we can create the new (reduced) mesh
 	 */
-	result = CDDM_from_template(dm, numVerts, numEdges, numFaces);
+	result = CDDM_from_template(dm, numVerts, numEdges, 0, numLoops, numPolys);
 	
+	mpoly_new = CDDM_get_polys(result);
+	mloop_new = CDDM_get_loops(result);
+	medge_new = CDDM_get_edges(result);
+	mvert_new = CDDM_get_verts(result);
 	
 	/* using ghash-iterators, map data into new mesh */
 		/* vertices */
@@ -315,7 +343,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
 		
 		dm->getVert(dm, oldIndex, &source);
-		dest = CDDM_get_vert(result, newIndex);
+		dest = &mvert_new[newIndex];
 		
 		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
@@ -333,7 +361,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
 		
 		dm->getEdge(dm, oldIndex, &source);
-		dest = CDDM_get_edge(result, newIndex);
+		dest = &medge_new[newIndex];
 		
 		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
 		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
@@ -344,42 +372,43 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	BLI_ghashIterator_free(hashIter);
 	
 		/* faces */
-	for ( hashIter = BLI_ghashIterator_new(faceHash);
+	for ( hashIter = BLI_ghashIterator_new(polyHash);
 		  !BLI_ghashIterator_isDone(hashIter);
 		  BLI_ghashIterator_step(hashIter) ) 
 	{
-		MFace source;
-		MFace *dest;
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
-		int orig_v4;
+		MPoly *source = &mpoly[oldIndex];
+		MPoly *dest = &mpoly_new[newIndex];
+		int oldLoopIndex = source->loopstart;
+		int newLoopIndex = loop_mapping[newIndex];
+		MLoop *source_loop = &mloop[oldLoopIndex];
+		MLoop *dest_loop = &mloop_new[newLoopIndex];
 		
-		dm->getFace(dm, oldIndex, &source);
-		dest = CDDM_get_face(result, newIndex);
-		
-		orig_v4 = source.v4;
-		
-		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
-		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
-		source.v3 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v3)));
-		if (source.v4)
-		   source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
-		
-		DM_copy_face_data(dm, result, oldIndex, newIndex, 1);
-		*dest = source;
-		
-		test_index_face(dest, &result->faceData, newIndex, (orig_v4 ? 4 : 3));
+		DM_copy_poly_data(dm, result, oldIndex, newIndex, 1);
+		DM_copy_loop_data(dm, result, oldLoopIndex, newLoopIndex, source->totloop);
+
+		*dest = *source;
+		dest->loopstart = newLoopIndex;
+		for (i = 0; i < source->totloop; i++) {
+			dest_loop[i].v = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source_loop[i].v)));
+			dest_loop[i].e = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(source_loop[i].e)));
+		}
 	}
+
 	BLI_ghashIterator_free(hashIter);
-	
+
+	MEM_freeN(loop_mapping);
+
+	/* why is this needed? - campbell */
 	/* recalculate normals */
 	CDDM_calc_normals(result);
 	
 	/* free hashes */
 	BLI_ghash_free(vertHash, NULL, NULL);
 	BLI_ghash_free(edgeHash, NULL, NULL);
-	BLI_ghash_free(faceHash, NULL, NULL);
-	
+	BLI_ghash_free(polyHash, NULL, NULL);
+
 	/* return the new mesh */
 	return result;
 }

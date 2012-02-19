@@ -173,14 +173,14 @@ static int FaceIt_Done(CSG_IteratorPtr it)
 {
 	// assume CSG_IteratorPtr is of the correct type.
 	FaceIt * iterator = (FaceIt *)it;
-	return(iterator->pos >= iterator->dm->getNumFaces(iterator->dm));
+	return(iterator->pos >= iterator->dm->getNumTessFaces(iterator->dm));
 }
 
 static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 {
 	// assume CSG_IteratorPtr is of the correct type.
 	FaceIt *face_it = (FaceIt *)it;
-	MFace *mfaces = face_it->dm->getFaceArray(face_it->dm);
+	MFace *mfaces = face_it->dm->getTessFaceArray(face_it->dm);
 	MFace *mface = &mfaces[face_it->pos];
 
 	/* reverse face vertices if necessary */
@@ -254,7 +254,7 @@ static void FaceIt_Construct(
 	output->Fill = FaceIt_Fill;
 	output->Done = FaceIt_Done;
 	output->Reset = FaceIt_Reset;
-	output->num_elements = it->dm->getNumFaces(it->dm);
+	output->num_elements = it->dm->getNumTessFaces(it->dm);
 	output->it = it;
 }
 
@@ -304,8 +304,8 @@ static void InterpCSGFace(
 	MFace *mface, *orig_mface;
 	int j;
 
-	mface = CDDM_get_face(dm, index);
-	orig_mface = orig_dm->getFaceArray(orig_dm) + orig_index;
+	mface = CDDM_get_tessface(dm, index);
+	orig_mface = orig_dm->getTessFaceArray(orig_dm) + orig_index;
 
 	// get the vertex coordinates from the original mesh
 	orig_co[0] = (orig_dm->getVertArray(orig_dm) + orig_mface->v1)->co;
@@ -353,7 +353,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	int i, *origindex_layer;
 
 	// create a new DerivedMesh
-	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements);
+	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements, 0, 0);
 	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
 					  CD_DEFAULT, face_it->num_elements); 
 	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
@@ -379,7 +379,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	if (mat)
 		*totmat = 0;
 
-	origindex_layer = result->getFaceDataArray(result, CD_ORIGINDEX);
+	origindex_layer = result->getTessFaceDataArray(result, CD_ORIGINDEX);
 
 	// step through the face iterators
 	for(i = 0; !face_it->Done(face_it->it); i++) {
@@ -395,16 +395,16 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		face_it->Step(face_it->it);
 
 		// find the original mesh and data
-		orig_ob = (csgface.orig_face < dm1->getNumFaces(dm1))? ob1: ob2;
-		orig_dm = (csgface.orig_face < dm1->getNumFaces(dm1))? dm1: dm2;
+		orig_ob = (csgface.orig_face < dm1->getNumTessFaces(dm1))? ob1: ob2;
+		orig_dm = (csgface.orig_face < dm1->getNumTessFaces(dm1))? dm1: dm2;
 		orig_me = (orig_ob == ob1)? me1: me2;
-		orig_index = (orig_ob == ob1)? csgface.orig_face: csgface.orig_face - dm1->getNumFaces(dm1);
+		orig_index = (orig_ob == ob1)? csgface.orig_face: csgface.orig_face - dm1->getNumTessFaces(dm1);
 
 		// copy all face layers, including mface
 		CustomData_copy_data(&orig_dm->faceData, &result->faceData, orig_index, i, 1);
 
 		// set mface
-		mface = CDDM_get_face(result, i);
+		mface = CDDM_get_tessface(result, i);
 		mface->v1 = csgface.vertex_index[0];
 		mface->v2 = csgface.vertex_index[1];
 		mface->v3 = csgface.vertex_index[2];
@@ -463,8 +463,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	if (material_hash)
 		BLI_ghash_free(material_hash, NULL, NULL);
 
-	CDDM_calc_edges(result);
-	CDDM_calc_normals(result);
+	CDDM_calc_edges_tessface(result);
+
+	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 
 	return result;
 }
@@ -499,7 +500,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 	DerivedMesh *result = NULL;
 
 	if (dm == NULL || dm_select == NULL) return 0;
-	if (!dm->getNumFaces(dm) || !dm_select->getNumFaces(dm_select)) return 0;
+	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) return 0;
 
 	// we map the final object back into ob's local coordinate space. For this
 	// we need to compute the inverse transform from global to ob (inv_mat),
@@ -531,7 +532,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 		}
 		
 		BuildMeshDescriptors(dm_select, ob_select, 0, &fd_1, &vd_1);
-		BuildMeshDescriptors(dm, ob, dm_select->getNumFaces(dm_select) , &fd_2, &vd_2);
+		BuildMeshDescriptors(dm, ob, dm_select->getNumTessFaces(dm_select) , &fd_2, &vd_2);
 
 		bool_op = CSG_NewBooleanFunction();
 
@@ -585,7 +586,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	
 	/* put some checks in for nice user feedback */
 	if (dm == NULL || dm_select == NULL) return 0;
-	if (!dm->getNumFaces(dm) || !dm_select->getNumFaces(dm_select))
+	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select))
 	{
 		MEM_freeN(mat);
 		return -1;
@@ -602,7 +603,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	ob_new= AddNewBlenderMesh(scene, base_select);
 	me_new= ob_new->data;
 
-	DM_to_mesh(result, me_new);
+	DM_to_mesh(result, me_new, ob_new);
 	result->release(result);
 
 	dm->release(dm);

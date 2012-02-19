@@ -553,7 +553,7 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 		}
 
 		if(surface_vel) {
-			MFace *mface = CDDM_get_face(surmd->dm, nearest.index);
+			MFace *mface = CDDM_get_tessface(surmd->dm, nearest.index);
 			
 			copy_v3_v3(surface_vel, surmd->v[mface->v1].co);
 			add_v3_v3(surface_vel, surmd->v[mface->v2].co);

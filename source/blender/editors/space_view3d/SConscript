@@ -7,7 +7,7 @@ defs = [ 'GLEW_STATIC' ]
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include ../../blenloader'
-incs += ' ../../gpu ../../makesrna ../../blenfont'
+incs += ' ../../gpu ../../makesrna ../../blenfont ../../bmesh'
 incs += ' #/intern/smoke/extern'
 incs += ' #source/gameengine/BlenderRoutines'
 

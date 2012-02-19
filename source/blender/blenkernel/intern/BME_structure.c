@@ -1,4 +1,5 @@
-/*
+#if 0
+/**
  * BME_structure.c    jan 2007
  *
  *	Low level routines for manipulating the BMesh structure.
@@ -30,7 +31,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
+#if 0
 /** \file blender/blenkernel/intern/BME_structure.c
  *  \ingroup bke
  */
@@ -90,7 +91,7 @@ BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 	v->EID = bm->nextv;
 	v->co[0] = v->co[1] = v->co[2] = 0.0f;
 	v->no[0] = v->no[1] = v->no[2] = 0.0f;
-	v->edge = NULL;
+	v->e = NULL;
 	v->data = NULL;
 	v->eflag1 = v->eflag2 = v->tflag1 = v->tflag2 = 0;
 	v->flag = v->h = 0;
@@ -118,7 +119,7 @@ BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *ex
 	e->d1.next = e->d1.prev = e->d2.next = e->d2.prev = NULL;
 	e->d1.data = e;
 	e->d2.data = e;
-	e->loop = NULL;
+	e->l = NULL;
 	e->data = NULL;
 	e->eflag1 = e->eflag2 = e->tflag1 = e->tflag2 = 0;
 	e->flag = e->h = 0;
@@ -243,7 +244,7 @@ void BME_free_loop(BME_Mesh *bm, BME_Loop *l){
  *			BME_disk_getpointer
  *
  *	2: The Radial Cycle - A circle of face edges (BME_Loop) around an edge
- *	   Base: edge->loop->radial structure.
+ *	   Base: edge->l->radial structure.
  *
  *		The radial cycle is similar to the radial cycle in the radial edge data structure.*
  *		Unlike the radial edge however, the radial cycle does not require a large amount of memory 
@@ -259,7 +260,7 @@ void BME_free_loop(BME_Mesh *bm, BME_Loop *l){
  *		
  *
  *	3: The Loop Cycle - A circle of face edges around a polygon.
- *     Base: polygon->loopbase.
+ *     Base: polygon->lbase.
  *
  *	   The loop cycle keeps track of a faces vertices and edges. It should be noted that the
  *     direction of a loop cycle is either CW or CCW depending on the face normal, and is 
@@ -447,15 +448,15 @@ int BME_disk_append_edge(BME_Edge *e, BME_Vert *v)
 	if(BME_vert_in_edge(e, v) == 0) return 0; /*check to make sure v is in e*/
 	
 	/*check for loose vert first*/
-	if(v->edge == NULL){
-		v->edge = e;
+	if(v->e == NULL){
+		v->e = e;
 		base = tail = BME_disk_getpointer(e, v);
 		BME_cycle_append(base, tail); /*circular reference is ok!*/
 		return 1;
 	}
 	
-	/*insert e at the end of disk cycle and make it the new v->edge*/
-	base = BME_disk_getpointer(v->edge, v);
+	/*insert e at the end of disk cycle and make it the new v->e*/
+	base = BME_disk_getpointer(v->e, v);
 	tail = BME_disk_getpointer(e, v);
 	BME_cycle_append(base, tail);
 	return 1;
@@ -478,18 +479,18 @@ void BME_disk_remove_edge(BME_Edge *e, BME_Vert *v)
 	BME_Edge *newbase;
 	int len;
 	
-	base = BME_disk_getpointer(v->edge, v);
+	base = BME_disk_getpointer(v->e, v);
 	remnode = BME_disk_getpointer(e, v);
 	
-	/*first deal with v->edge pointer...*/
+	/*first deal with v->e pointer...*/
 	len = BME_cycle_length(base);
 	if(len == 1) newbase = NULL;
-	else if(v->edge == e) newbase = base->next-> data;
-	else newbase = v->edge;
+	else if(v->e == e) newbase = base->next-> data;
+	else newbase = v->e;
 	
 	/*remove and rebase*/
 	BME_cycle_remove(base, remnode);
-	v->edge = newbase;
+	v->e = newbase;
 }
 
 /**
@@ -542,12 +543,12 @@ int BME_disk_count_edgeflag(BME_Vert *v, int eflag, int tflag){
 	BME_Edge *curedge;
 	int i, len=0, count=0;
 	
-	if(v->edge){
+	if(v->e){
 		if(eflag && tflag) return 0; /*tflag and eflag are reserved for different functions!*/
-		diskbase = BME_disk_getpointer(v->edge, v);
+		diskbase = BME_disk_getpointer(v->e, v);
 		len = BME_cycle_length(diskbase);
 		
-		for(i = 0, curedge=v->edge; i<len; i++){
+		for(i = 0, curedge=v->e; i<len; i++){
 			if(tflag){
 				if(curedge->tflag1 == tflag) count++;
 			}
@@ -565,11 +566,11 @@ int BME_disk_hasedge(BME_Vert *v, BME_Edge *e){
 	BME_Edge *curedge;
 	int i, len=0;
 	
-	if(v->edge){
-		diskbase = BME_disk_getpointer(v->edge,v);
+	if(v->e){
+		diskbase = BME_disk_getpointer(v->e,v);
 		len = BME_cycle_length(diskbase);
 		
-		for(i = 0, curedge=v->edge; i<len; i++){
+		for(i = 0, curedge=v->e; i<len; i++){
 			if(curedge == e) return 1;
 			else curedge=BME_disk_nextedge(curedge, v);
 		}
@@ -579,12 +580,12 @@ int BME_disk_hasedge(BME_Vert *v, BME_Edge *e){
 /*end disk cycle routines*/
 
 BME_Loop *BME_radial_nextloop(BME_Loop *l){
-	return (BME_Loop*)(l->radial.next->data);
+	return (BME_Loop*)(l->radial_next);
 }
 
 void BME_radial_append(BME_Edge *e, BME_Loop *l){
-	if(e->loop == NULL) e->loop = l;
-	BME_cycle_append(&(e->loop->radial), &(l->radial));
+	if(e->l == NULL) e->l = l;
+	BME_cycle_append(&(e->l->radial), &(l->radial));
 }
 
 void BME_radial_remove_loop(BME_Loop *l, BME_Edge *e)
@@ -592,15 +593,15 @@ void BME_radial_remove_loop(BME_Loop *l, BME_Edge *e)
 	BME_Loop *newbase;
 	int len;
 	
-	/*deal with edge->loop pointer*/
-	len = BME_cycle_length(&(e->loop->radial));
+	/*deal with edge->l pointer*/
+	len = BME_cycle_length(&(e->l->radial));
 	if(len == 1) newbase = NULL;
-	else if(e->loop == l) newbase = e->loop->radial.next->data;
-	else newbase = e->loop;
+	else if(e->l == l) newbase = e->l->radial_next;
+	else newbase = e->l;
 	
 	/*remove and rebase*/
-	BME_cycle_remove(&(e->loop->radial), &(l->radial));
-	e->loop = newbase;
+	BME_cycle_remove(&(e->l->radial), &(l->radial));
+	e->l = newbase;
 }
 
 int BME_radial_find_face(BME_Edge *e,BME_Poly *f)
@@ -609,8 +610,8 @@ int BME_radial_find_face(BME_Edge *e,BME_Poly *f)
 	BME_Loop *curloop;
 	int i, len;
 	
-	len = BME_cycle_length(&(e->loop->radial));
-	for(i = 0, curloop = e->loop; i < len; i++, curloop = curloop->radial.next->data){
+	len = BME_cycle_length(&(e->l->radial));
+	for(i = 0, curloop = e->l; i < len; i++, curloop = curloop->radial_next){
 		if(curloop->f == f) return 1;
 	}
 	return 0;
@@ -620,9 +621,11 @@ struct BME_Loop *BME_loop_find_loop(struct BME_Poly *f, struct BME_Vert *v) {
 	BME_Loop *l;
 	int i, len;
 	
-	len = BME_cycle_length(f->loopbase);
+	len = BME_cycle_length(f->lbase);
 	for (i = 0, l=f->loopbase; i < len; i++, l=l->next) {
 		if (l->v == v) return l;
 	}
 	return NULL;
 }
+#endif
+#endif

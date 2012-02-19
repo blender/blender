@@ -9,6 +9,7 @@ incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../gpu ../../blenloader'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
+incs += ' ../../bmesh ../uvedit '
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'

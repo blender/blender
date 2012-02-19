@@ -4,6 +4,6 @@ Import ('env')
 sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' #/intern/guardedalloc'
+incs += ' ../../bmesh #/intern/guardedalloc'
 
 env.BlenderLib ( 'bf_editor_datafiles', sources, Split(incs), [], libtype=['core', 'player'], priority=[235, 30] )

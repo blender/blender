@@ -1739,7 +1739,7 @@ void FONT_OT_unlink(wmOperatorType *ot)
 
 /* **************** undo for font object ************** */
 
-static void undoFont_to_editFont(void *strv, void *ecu)
+static void undoFont_to_editFont(void *strv, void *ecu, void *UNUSED(obdata))
 {
 	Curve *cu= (Curve *)ecu;
 	EditFont *ef= cu->editfont;
@@ -1756,7 +1756,7 @@ static void undoFont_to_editFont(void *strv, void *ecu)
 	update_string(cu);
 }
 
-static void *editFont_to_undoFont(void *ecu)
+static void *editFont_to_undoFont(void *ecu, void *UNUSED(obdata))
 {
 	Curve *cu= (Curve *)ecu;
 	EditFont *ef= cu->editfont;

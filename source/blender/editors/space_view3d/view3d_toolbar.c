@@ -268,3 +268,4 @@ void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 	/* flags */
 	ot->flag= 0;
 }
+

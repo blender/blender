@@ -1064,7 +1064,7 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 
 	BLI_kdtree_free(edit->emitter_field);
 
-	totface=dm->getNumFaces(dm);
+	totface=dm->getNumTessFaces(dm);
 	/*totvert=dm->getNumVerts(dm);*/ /*UNSUED*/
 
 	edit->emitter_cosnos=MEM_callocN(totface*6*sizeof(float),"emitter cosnos");
@@ -1075,7 +1075,7 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	nor=vec+3;
 
 	for(i=0; i<totface; i++, vec+=6, nor+=6) {
-		MFace *mface=dm->getFaceData(dm,i,CD_MFACE);
+		MFace *mface=dm->getTessFaceData(dm,i,CD_MFACE);
 		MVert *mvert;
 
 		mvert=dm->getVertData(dm,mface->v1,CD_MVERT);
@@ -2563,7 +2563,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	PTCacheEditPoint *newpoint, *new_points;
 	POINT_P; KEY_K;
 	HairKey *hkey;
-	int *mirrorfaces;
+	int *mirrorfaces = NULL;
 	int rotation, totpart, newtotpart;
 
 	if(psys->flag & PSYS_GLOBAL_HAIR)
@@ -3067,6 +3067,8 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 			return 0;
 	}
 
+	/* BMESH_ONLY, deform dm may not have tessface */
+	DM_ensure_tessface(dm);
 	
 
 	if(pa_minmax==0){
@@ -3079,8 +3081,8 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 		copy_v3_v3(p_max,pa_minmax+3);
 	}
 
-	totface=dm->getNumFaces(dm);
-	mface=dm->getFaceDataArray(dm,CD_MFACE);
+	totface=dm->getNumTessFaces(dm);
+	mface=dm->getTessFaceDataArray(dm,CD_MFACE);
 	mvert=dm->getVertDataArray(dm,CD_MVERT);
 	
 	/* lets intersect the faces */

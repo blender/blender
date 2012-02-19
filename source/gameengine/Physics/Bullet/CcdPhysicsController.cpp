@@ -1434,11 +1434,11 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	}
 
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getFaceArray(dm);
-	numpolys = dm->getNumFaces(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
+	numpolys = dm->getNumTessFaces(dm);
 	numverts = dm->getNumVerts(dm);
-	int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
-	MTFace *tface = (MTFace *)dm->getFaceDataArray(dm, CD_MTFACE);
+	int* index = (int*)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	MTFace *tface = (MTFace *)dm->getTessFaceDataArray(dm, CD_MTFACE);
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
 
@@ -1734,10 +1734,10 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		 * */
 
 		MVert *mvert = dm->getVertArray(dm);
-		MFace *mface = dm->getFaceArray(dm);
-		numpolys = dm->getNumFaces(dm);
+		MFace *mface = dm->getTessFaceArray(dm);
+		numpolys = dm->getNumTessFaces(dm);
 		numverts = dm->getNumVerts(dm);
-		int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
+		int* index = (int*)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 
 		MFace *mf;
 		MVert *mv;
@@ -1746,7 +1746,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 
 		if(CustomData_has_layer(&dm->faceData, CD_MTFACE))
 		{
-			MTFace *tface = (MTFace *)dm->getFaceDataArray(dm, CD_MTFACE);
+			MTFace *tface = (MTFace *)dm->getTessFaceDataArray(dm, CD_MTFACE);
 			MTFace *tf;
 
 			vector<bool> vert_tag_array(numverts, false);

@@ -115,9 +115,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	/* create vertex color attributes */
 	{
-		BL::Mesh::vertex_colors_iterator l;
+		BL::Mesh::tessface_vertex_colors_iterator l;
 
-		for(b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
+		for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l) {
 			if(!mesh_need_attribute(scene, mesh, ustring(l->name().c_str())))
 				continue;
 
@@ -147,9 +147,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	/* create uv map attributes */
 	{
-		BL::Mesh::uv_textures_iterator l;
+		BL::Mesh::tessface_uv_textures_iterator l;
 
-		for(b_mesh.uv_textures.begin(l); l != b_mesh.uv_textures.end(); ++l) {
+		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
 			Attribute::Standard std = (l->active_render())? Attribute::STD_UV: Attribute::STD_NONE;
 			ustring name = ustring(l->name().c_str());
 

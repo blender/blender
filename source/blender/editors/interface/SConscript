@@ -8,7 +8,7 @@ for source in env.Glob('*_api.c'):
 
 incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc ../../gpu'
-incs += ' #/extern/glew/include ../../blenloader'
+incs += ' #/extern/glew/include ../../blenloader ../../bmesh'
 incs += ' ../../python/' # python button eval
 
 defs = []

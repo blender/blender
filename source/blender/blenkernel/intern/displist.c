@@ -432,6 +432,8 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		totvert= 0;
 		nextcol= 0;
 		
+		BLI_begin_edgefill();
+		
 		dl= dispbase->first;
 		while(dl) {
 	
@@ -890,7 +892,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					dm = tdm;
 
 					CDDM_apply_vert_coords(dm, vertCos);
-					CDDM_calc_normals(dm);
+					CDDM_calc_normals_mapping(dm);
 				}
 			} else {
 				if (vertCos) {
@@ -903,7 +905,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 
 				dm= CDDM_from_curve_customDB(ob, dispbase);
 
-				CDDM_calc_normals(dm);
+				CDDM_calc_normals_mapping(dm);
 			}
 
 			if (vertCos) {
@@ -931,7 +933,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 			dm = tdm;
 
 			CDDM_apply_vert_coords(dm, vertCos);
-			CDDM_calc_normals(dm);
+			CDDM_calc_normals_mapping(dm);
 			MEM_freeN(vertCos);
 		} else {
 			displist_apply_allverts(dispbase, vertCos);
@@ -941,6 +943,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	}
 
 	if (derivedFinal) {
+		if (dm) DM_ensure_tessface(dm); /* needed for drawing */
 		(*derivedFinal) = dm;
 	}
 

@@ -1,4 +1,5 @@
-/*
+#if 0
+/**
  * BME_mesh.c    jan 2007
  *
  *	BMesh mesh level functions.
@@ -55,10 +56,10 @@ BME_Mesh *BME_make_mesh(int allocsize[4])
 	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
 	/*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0], FALSE, FALSE);
-	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1], FALSE, FALSE);
-	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3], FALSE, FALSE);
+	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0], TRUE, FALSE);
+	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1], TRUE, FALSE);
+	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2], TRUE, FALSE);
+	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3], TRUE, FALSE);
 	return bm;
 }
 /*	
@@ -82,7 +83,7 @@ void BME_free_mesh(BME_Mesh *bm)
 		do{
 			CustomData_bmesh_free_block(&bm->ldata, &l->data);
 			l = l->next;
-		}while(l!=f->loopbase);
+		}while(l!=f->lbase);
 	}
 
 	/*Free custom data pools, This should probably go in CustomData_free?*/
@@ -196,9 +197,9 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 		if(e->v1 == e->v2) VHALT(halt);
 		/*validate e->d1.data and e->d2.data*/
 		if(e->d1.data != e || e->d2.data != e) VHALT(halt);
-		/*validate e->loop->e*/
-		if(e->loop){
-			if(e->loop->e != e) VHALT(halt);
+		/*validate e->l->e*/
+		if(e->l){
+			if(e->l->e != e) VHALT(halt);
 		}
 	}
 	
@@ -210,17 +211,17 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 	}
 	/*Validate vertices and disk cycle*/
 	for(v=bm->verts.first; v; v=v->next){
-		/*validate v->edge pointer*/
+		/*validate v->e pointer*/
 		if(v->tflag1){
-			if(v->edge){
-				ok = BME_vert_in_edge(v->edge,v);
+			if(v->e){
+				ok = BME_vert_in_edge(v->e,v);
 				if(!ok) VHALT(halt);
 				/*validate length of disk cycle*/
-				diskbase = BME_disk_getpointer(v->edge, v);
+				diskbase = BME_disk_getpointer(v->e, v);
 				ok = BME_cycle_validate(v->tflag1, diskbase);
 				if(!ok) VHALT(halt);
 				/*validate that each edge in disk cycle contains V*/
-				for(i=0, e=v->edge; i < v->tflag1; i++, e = BME_disk_nextedge(e,v)){
+				for(i=0, e=v->e; i < v->tflag1; i++, e = BME_disk_nextedge(e,v)){
 					ok = BME_vert_in_edge(e, v);
 					if(!ok) VHALT(halt);
 				}
@@ -242,7 +243,7 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 	for(e=bm->edges.first; e; e=e->next) e->tflag2 = 0; //store incident faces
 	/*Validate the loop cycle integrity.*/
 	for(f=bm->polys.first; f; f=f->next){
-		ok = BME_cycle_length(f->loopbase);
+		ok = BME_cycle_length(f->lbase);
 		if(ok > 1){
 			f->tflag1 = ok;
 		}
@@ -253,11 +254,11 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 			if(!ok) VHALT(halt);
 			/*verify radial node data pointer*/
 			if(l->radial.data != l) VHALT(halt);
-			/*validate l->e->loop poitner*/
-			if(l->e->loop == NULL) VHALT(halt);
+			/*validate l->e->l poitner*/
+			if(l->e->l == NULL) VHALT(halt);
 			/*validate l->f pointer*/
 			if(l->f != f) VHALT(halt);
-			/*see if l->e->loop is actually in radial cycle*/
+			/*see if l->e->l is actually in radial cycle*/
 			
 			l->e->tflag2++;
 		 }
@@ -265,8 +266,8 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 	
 	/*validate length of radial cycle*/
 	for(e=bm->edges.first; e; e=e->next){
-		if(e->loop){
-			ok = BME_cycle_validate(e->tflag2,&(e->loop->radial));
+		if(e->l){
+			ok = BME_cycle_validate(e->tflag2,&(e->l->radial));
 			if(!ok) VHALT(halt);
 		}
 	}
@@ -283,3 +284,4 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 void BME_error(void){
 	printf("BME modelling error!");
 }
+#endif

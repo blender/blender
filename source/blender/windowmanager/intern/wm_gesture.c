@@ -236,6 +236,7 @@ static void draw_filled_lasso(wmGesture *gt)
 	short *lasso= (short *)gt->customdata;
 	int i;
 	
+	BLI_begin_edgefill();
 	for (i=0; i<gt->points; i++, lasso+=2) {
 		float co[3];
 

@@ -55,6 +55,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_tessmesh.h"
 #include "BKE_sound.h"
 
 #include "WM_api.h"
@@ -314,7 +315,7 @@ int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH)
-		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+		return NULL != ((Mesh *)obedit->data)->edit_btmesh;
 	return 0;
 }
 
@@ -367,18 +368,15 @@ int ED_operator_uvedit(bContext *C)
 int ED_operator_uvmap(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= NULL;
+	BMEditMesh *em= NULL;
 	
 	if(obedit && obedit->type==OB_MESH)
-		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+		em= ((Mesh *)obedit->data)->edit_btmesh;
 	
-	if(em && (em->faces.first)) {
-		BKE_mesh_end_editmesh(obedit->data, em);
+	if(em && (em->bm->totface)) {
 		return 1;
 	}
 	
-	if(obedit)
-		BKE_mesh_end_editmesh(obedit->data, em);
 	return 0;
 }
 

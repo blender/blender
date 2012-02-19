@@ -1,4 +1,5 @@
-/*
+#if 0
+/**
  * BME_customdata.c    jan 2007
  *
  *	Custom Data functions for Bmesh
@@ -83,7 +84,7 @@ void BME_CD_Create(BME_CustomData *data, BME_CustomDataInit *init, int initalloc
 	if(data->totlayer){
 		/*alloc memory*/
 		data->layers = MEM_callocN(sizeof(BME_CustomDataLayer)*data->totlayer, "BMesh Custom Data Layers");
-		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc, FALSE, FALSE);
+		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc, TRUE);
 		/*initialize layer data*/
 		for(i=0; i < BME_CD_NUMTYPES; i++){
 			if(init->layout[i]){
@@ -196,3 +197,4 @@ void BME_CD_set_default(BME_CustomData *data, void **block)
 			typeInfo->set_default((char*)*block + offset, 1);
 	}
 }
+#endif

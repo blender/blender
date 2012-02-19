@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
 
+#include "BKE_tessmesh.h"
 #include "BKE_group.h" /* needed for object_in_group() */
 
 #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
@@ -227,8 +228,8 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		/* exit/enter editmode to get new shape */
 		switch(ob->type) {
 			case OB_MESH:
-				load_editMesh(scene, ob);
-				make_editMesh(scene, ob);
+				EDBM_LoadEditBMesh(scene, ob);
+				EDBM_MakeEditBMesh(scene->toolsettings, scene, ob);
 				break;
 			case OB_CURVE:
 			case OB_SURF:
@@ -608,8 +609,8 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 
-		if(me->edit_mesh)
-			me->edit_mesh->mat_nr= value;
+		if(me->edit_btmesh)
+			me->edit_btmesh->mat_nr= value;
 	}
 }
 

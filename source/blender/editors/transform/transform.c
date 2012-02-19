@@ -84,6 +84,8 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_smallhash.h"
+#include "BLI_array.h"
 
 #include "UI_resources.h"
 
@@ -92,6 +94,8 @@
 //#include "mydevice.h"
 
 #include "transform.h"
+
+#include <stdio.h>
 
 static void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
 static int doEdgeSlide(TransInfo *t, float perc);
@@ -3489,7 +3493,8 @@ static void applyTranslation(TransInfo *t, float vec[3])
 		
 		protectedTransBits(td->protectflag, tvec);
 		
-		add_v3_v3v3(td->loc, td->iloc, tvec);
+		if (td->loc)
+			add_v3_v3v3(td->loc, td->iloc, tvec);
 		
 		constraintTransLim(t, td);
 	}
@@ -4283,506 +4288,467 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 }
 
 /* ********************  Edge Slide   *************** */
+static BMEdge *get_other_edge(BMesh *bm, BMVert *v, BMEdge *e)
+{
+	BMIter iter;
+	BMEdge *e2;
+
+	BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, v) {
+		if (BM_elem_flag_test(e2, BM_ELEM_SELECT) && e2 != e)
+			return e2;
+	}
+
+	return NULL;
+}
+
+static BMLoop *get_next_loop(BMesh *UNUSED(bm), BMVert *v, BMLoop *l, 
+                             BMEdge *olde, BMEdge *nexte, float vec[3])
+{
+	BMLoop *firstl;
+	float a[3] = {0.0f, 0.0f, 0.0f}, n[3] = {0.0f, 0.0f, 0.0f};
+	int i=0;
+
+	firstl = l;
+	do {
+		l = BM_face_other_loop(l->e, l->f, v);
+		if (l->radial_next == l)
+			return NULL;
+		
+		if (l->e == nexte) {
+			if (i) {
+				mul_v3_fl(a, 1.0f / (float)i);
+			} else {
+				float f1[3], f2[3], f3[3];
+
+				sub_v3_v3v3(f1, BM_edge_other_vert(olde, v)->co, v->co);
+				sub_v3_v3v3(f2, BM_edge_other_vert(nexte, v)->co, v->co);
+
+				cross_v3_v3v3(f3, f1, l->f->no);
+				cross_v3_v3v3(a, f2, l->f->no);
+				mul_v3_fl(a, -1.0f);
+
+				add_v3_v3(a, f3);
+				mul_v3_fl(a, 0.5f);
+			}
+			
+			copy_v3_v3(vec, a);
+			return l;
+		} else {
+			sub_v3_v3v3(n, BM_edge_other_vert(l->e, v)->co, v->co);
+			add_v3_v3v3(a, a, n);
+			i += 1;
+		}
+
+		if (BM_face_other_loop(l->e, l->f, v)->e == nexte) {
+			if (i)
+				mul_v3_fl(a, 1.0f / (float)i);
+			
+			copy_v3_v3(vec, a);
+			return BM_face_other_loop(l->e, l->f, v);
+		}
+		
+		l = l->radial_next;
+	} while (l != firstl); 
+
+	if (i)
+		mul_v3_fl(a, 1.0f / (float)i);
+	
+	copy_v3_v3(vec, a);
+	
+	return NULL;
+}
 
 static int createSlideVerts(TransInfo *t)
 {
 	Mesh *me = t->obedit->data;
-	EditMesh *em = me->edit_mesh;
-	EditFace *efa;
-	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
-	EditVert *ev, *nearest = NULL;
-	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
-	GHash *vertgh;
+	BMEditMesh *em = me->edit_btmesh;
+	BMesh *bm = em->bm;
+	BMIter iter, iter2;
+	BMEdge *e, *e1, *ee, *le;
+	BMVert *v, *v2, *first;
+	BMLoop *l, *l1, *l2;
 	TransDataSlideVert *tempsv;
-	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0;
-	/* UV correction vars */
-	GHash **uvarray= NULL;
+	BMBVHTree *btree = BMBVH_NewBVH(em, 0, NULL, NULL);
+	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-	const int  uvlay_tot=  (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) ? CustomData_number_of_layers(&em->fdata, CD_MTFACE) : 0;
-	int uvlay_idx;
-	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
-	RegionView3D *v3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
+	View3D *v3d = t->sa ? t->sa->spacedata.first : NULL;
+	RegionView3D *rv3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
+	ARegion *ar = t->ar;
 	float projectMat[4][4];
-	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
-	float vec[3];
-	float totvec=0.0;
+	float start[3] = {0.0f, 0.0f, 0.0f}, dir[3], end[3] = {0.0f, 0.0f, 0.0f};
+	float vec[3], vec2[3], lastvec[3], size, dis=0.0, z;
+	int numsel, i, j;
 
 	if (!v3d) {
 		/*ok, let's try to survive this*/
 		unit_m4(projectMat);
 	} else {
-		ED_view3d_ob_project_mat_get(v3d, t->obedit, projectMat);
+		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
 	}
 	
-	numsel =0;
+	BLI_smallhash_init(&sld->vhash);
+	BLI_smallhash_init(&sld->origfaces);
+	BLI_smallhash_init(&table);
+	
+	/*ensure valid selection*/
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+			numsel = 0;
+			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+					/*BMESH_TODO: this is probably very evil,
+					  set v->e to a selected edge*/
+					v->e = e;
 
-	// Get number of selected edges and clear some flags
-	for(eed=em->edges.first;eed;eed=eed->next) {
-		eed->f1 = 0;
-		eed->f2 = 0;
-		if(eed->f & SELECT) numsel++;
-	}
+					numsel++;
+				}
+			}
 
-	for(ev=em->verts.first;ev;ev=ev->next) {
-		ev->f1 = 0;
-	}
-
-	//Make sure each edge only has 2 faces
-	// make sure loop doesn't cross face
-	for(efa=em->faces.first;efa;efa=efa->next) {
-		int ct = 0;
-		if(efa->e1->f & SELECT) {
-			ct++;
-			efa->e1->f1++;
-			if(efa->e1->f1 > 2) {
-				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
-				MEM_freeN(sld);
-				return 0;
+			if (numsel == 0 || numsel > 2) {
+				return 0; //invalid edge selection
 			}
-		}
-		if(efa->e2->f & SELECT) {
-			ct++;
-			efa->e2->f1++;
-			if(efa->e2->f1 > 2) {
-				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
-				MEM_freeN(sld);
-				return 0;
-			}
-		}
-		if(efa->e3->f & SELECT) {
-			ct++;
-			efa->e3->f1++;
-			if(efa->e3->f1 > 2) {
-				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
-				MEM_freeN(sld);
-				return 0;
-			}
-		}
-		if(efa->e4 && efa->e4->f & SELECT) {
-			ct++;
-			efa->e4->f1++;
-			if(efa->e4->f1 > 2) {
-				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
-				MEM_freeN(sld);
-				return 0;
-			}
-		}
-		// Make sure loop is not 2 edges of same face
-		if(ct > 1) {
-		   //BKE_report(op->reports, RPT_ERROR, "Loop crosses itself");
-			MEM_freeN(sld);
-			return 0;
 		}
 	}
 
-	// Get # of selected verts
-	for(ev=em->verts.first;ev;ev=ev->next) {
-		if(ev->f & SELECT) vertsel++;
-	}
-
-	// Test for multiple segments
-	if(vertsel > numsel+1) {
-		//BKE_report(op->reports, RPT_ERROR, "Please choose a single edge loop");
-		MEM_freeN(sld);
-		return 0;
-	}
-
-	// Get the edgeloop in order - mark f1 with SELECT once added
-	for(eed=em->edges.first;eed;eed=eed->next) {
-		if((eed->f & SELECT) && !(eed->f1 & SELECT)) {
-			// If this is the first edge added, just put it in
-			if(!edgelist) {
-				BLI_linklist_prepend(&edgelist,eed);
-				numadded++;
-				first = eed;
-				last  = eed;
-				eed->f1 = SELECT;
-			} else {
-				if(editedge_getSharedVert(eed, last)) {
-					BLI_linklist_append(&edgelist,eed);
-					eed->f1 = SELECT;
-					numadded++;
-					last = eed;
-				}  else if(editedge_getSharedVert(eed, first)) {
-					BLI_linklist_prepend(&edgelist,eed);
-					eed->f1 = SELECT;
-					numadded++;
-					first = eed;
-				}
-			}
-		}
-		if(eed->next == NULL && numadded != numsel) {
-			eed=em->edges.first;
-			timesthrough++;
-		}
-
-		// It looks like there was an unexpected case - Hopefully should not happen
-		if(timesthrough >= numsel*2) {
-			BLI_linklist_free(edgelist,NULL);
-			//BKE_report(op->reports, RPT_ERROR, "Could not order loop");
-			MEM_freeN(sld);
-			return 0;
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			if (BM_edge_face_count(e) != 2)
+				return 0; //can only handle exactly 2 faces around each edge
 		}
 	}
 
-	// Put the verts in order in a linklist
-	look = edgelist;
-	while(look) {
-		eed = look->link;
-		if(!vertlist) {
-			if(look->next) {
-				temp = look->next->link;
-
-				//This is the first entry takes care of extra vert
-				if(eed->v1 != temp->v1 && eed->v1 != temp->v2) {
-					BLI_linklist_append(&vertlist,eed->v1);
-					eed->v1->f1 = 1;
-				} else {
-					BLI_linklist_append(&vertlist,eed->v2);
-					eed->v2->f1 = 1;
-				}
-			} else {
-				//This is the case that we only have 1 edge
-				BLI_linklist_append(&vertlist,eed->v1);
-				eed->v1->f1 = 1;
-			}
-		}
-		// for all the entries
-		if(eed->v1->f1 != 1) {
-			BLI_linklist_append(&vertlist,eed->v1);
-			eed->v1->f1 = 1;
-		} else  if(eed->v2->f1 != 1) {
-			BLI_linklist_append(&vertlist,eed->v2);
-			eed->v2->f1 = 1;
-		}
-		look = look->next;
-	}
-
-	// populate the SlideVerts
-
-	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createSlideVerts gh");
-	look = vertlist;
-	while(look) {
-		i=0;
-		j=0;
-		ev = look->link;
-		tempsv = (struct TransDataSlideVert*)MEM_mallocN(sizeof(struct TransDataSlideVert),"SlideVert");
-		tempsv->up = NULL;
-		tempsv->down = NULL;
-		tempsv->origvert.co[0] = ev->co[0];
-		tempsv->origvert.co[1] = ev->co[1];
-		tempsv->origvert.co[2] = ev->co[2];
-		tempsv->origvert.no[0] = ev->no[0];
-		tempsv->origvert.no[1] = ev->no[1];
-		tempsv->origvert.no[2] = ev->no[2];
-		// i is total edges that vert is on
-		// j is total selected edges that vert is on
-
-		for(eed=em->edges.first;eed;eed=eed->next) {
-			if(eed->v1 == ev || eed->v2 == ev) {
-				i++;
-				if(eed->f & SELECT) {
-					 j++;
-				}
-			}
-		}
-		// If the vert is in the middle of an edge loop, it touches 2 selected edges and 2 unselected edges
-		if(i == 4 && j == 2) {
-			for(eed=em->edges.first;eed;eed=eed->next) {
-				if(editedge_containsVert(eed, ev)) {
-					if(!(eed->f & SELECT)) {
-						if(!tempsv->up) {
-							tempsv->up = eed;
-						} else if (!(tempsv->down)) {
-							tempsv->down = eed;
-						}
-					}
-				}
-			}
-		}
-		// If it is on the end of the loop, it touches 1 selected and as least 2 more unselected
-		if(i >= 3 && j == 1) {
-			for(eed=em->edges.first;eed;eed=eed->next) {
-				if(editedge_containsVert(eed, ev) && eed->f & SELECT) {
-					for(efa = em->faces.first;efa;efa=efa->next) {
-						if(editface_containsEdge(efa, eed)) {
-							if(editedge_containsVert(efa->e1, ev) && efa->e1 != eed) {
-								if(!tempsv->up) {
-									tempsv->up = efa->e1;
-								} else if (!(tempsv->down)) {
-									tempsv->down = efa->e1;
-								}
-							}
-							if(editedge_containsVert(efa->e2, ev) && efa->e2 != eed) {
-								if(!tempsv->up) {
-									tempsv->up = efa->e2;
-								} else if (!(tempsv->down)) {
-									tempsv->down = efa->e2;
-								}
-							}
-							if(editedge_containsVert(efa->e3, ev) && efa->e3 != eed) {
-								if(!tempsv->up) {
-									tempsv->up = efa->e3;
-								} else if (!(tempsv->down)) {
-									tempsv->down = efa->e3;
-								}
-							}
-							if(efa->e4) {
-								if(editedge_containsVert(efa->e4, ev) && efa->e4 != eed) {
-									if(!tempsv->up) {
-										tempsv->up = efa->e4;
-									} else if (!(tempsv->down)) {
-										tempsv->down = efa->e4;
-									}
-								}
-							}
-
-						}
-					}
-				}
-			}
-		}
-		if(i > 4 && j == 2) {
-			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-			BLI_linklist_free(vertlist,NULL);
-			BLI_linklist_free(edgelist,NULL);
-			return 0;
-		}
-		BLI_ghash_insert(vertgh,ev,tempsv);
-
-		look = look->next;
-	}
-
-	// make sure the UPs and DOWNs are 'faceloops'
-	// Also find the nearest slidevert to the cursor
-
-	look = vertlist;
-	nearest = NULL;
-	while(look) {
-		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-
-		if(!tempsv->up || !tempsv->down) {
-			//BKE_report(op->reports, RPT_ERROR, "Missing rails");
-			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-			BLI_linklist_free(vertlist,NULL);
-			BLI_linklist_free(edgelist,NULL);
-			return 0;
-		}
-
-		if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
-			if(!(tempsv->up->f & SELECT)) {
-				tempsv->up->f |= SELECT;
-				tempsv->up->f2 |= 16;
-			} else {
-				tempsv->up->f2 |= ~16;
-			}
-			if(!(tempsv->down->f & SELECT)) {
-				tempsv->down->f |= SELECT;
-				tempsv->down->f2 |= 16;
-			} else {
-				tempsv->down->f2 |= ~16;
-			}
-		}
-
-		if(look->next != NULL) {
-			TransDataSlideVert *sv;
-			
-			ev = (EditVert*)look->next->link;
-			sv = BLI_ghash_lookup(vertgh, ev);
-
-			if(sv) {
-				float co[3], co2[3], tvec[3];
-
-				ev = (EditVert*)look->link;
-
-				if(!sharesFace(em, tempsv->up,sv->up)) {
-					EditEdge *swap;
-					swap = sv->up;
-					sv->up = sv->down;
-					sv->down = swap;
-				}
-				
-				if (v3d) {
-					ED_view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
-					ED_view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
-				}
-
-				if (ev == tempsv->up->v1) {
-					sub_v3_v3v3(tvec, co, co2);
-				} else {
-					sub_v3_v3v3(tvec, co2, co);
-				}
-
-				add_v3_v3(start, tvec);
-
-				if (v3d) {
-					ED_view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
-					ED_view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
-				}
-
-				if (ev == tempsv->down->v1) {
-					sub_v3_v3v3(tvec, co2, co);
-				} else {
-					sub_v3_v3v3(tvec, co, co2);
-				}
-
-				add_v3_v3(end, tvec);
-
-				totvec += 1.0f;
-				nearest = (EditVert*)look->link;
-			}
-		}
-
-
-
-		look = look->next;
-	}
-
-	add_v3_v3(start, end);
-	mul_v3_fl(start, 0.5f*(1.0f/totvec));
-	copy_v3_v3(vec, start);
-	start[0] = t->mval[0];
-	start[1] = t->mval[1];
-	add_v3_v3v3(end, start, vec);
-
-
-	/* Ensure minimum screen distance, when looking top down on edge loops */
-#define EDGE_SLIDE_MIN 30
-	if (len_squared_v2v2(start, end) < (EDGE_SLIDE_MIN * EDGE_SLIDE_MIN)) {
-		if(ABS(start[0]-end[0]) + ABS(start[1]-end[1]) < 4.0f) {
-			/* even more exceptional case, points are ontop of each other */
-			end[0]= start[0];
-			end[1]= start[1] + EDGE_SLIDE_MIN;
+	j = 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
+			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
+			j += 1;
 		}
 		else {
-			sub_v2_v2(end, start);
-			normalize_v2(end);
-			mul_v2_fl(end, EDGE_SLIDE_MIN);
-			add_v2_v2(end, start);
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
 		}
 	}
-#undef EDGE_SLIDE_MIN
 
+	if (!j)
+		return 0;
 
-	sld->start[0] = (int) start[0];
-	sld->start[1] = (int) start[1];
-	sld->end[0] = (int) end[0];
-	sld->end[1] = (int) end[1];
-	
-	if (uvlay_tot) {
-		int maxnum = 0;
+	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
 
-		uvarray = MEM_callocN( uvlay_tot * sizeof(GHash *), "SlideUVs Array");
-		sld->totuv = uvlay_tot;
-		suv_last = slideuvs = MEM_callocN( uvlay_tot * (numadded+1) * sizeof(TransDataSlideUv), "SlideUVs"); /* uvLayers * verts */
-		suv = NULL;
+	j = 0;
+	while (1) {
+		v = NULL;
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG))
+				break;
 
-		for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
+		}
 
-			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createSlideVerts2 gh");
+		if (!v)
+			break;
 
-			for(ev=em->verts.first;ev;ev=ev->next) {
-				ev->tmp.l = 0;
+		if (!v->e)
+			continue;
+		
+		first = v;
+
+		/*walk along the edge loop*/
+		e = v->e;
+
+		/*first, rewind*/
+		numsel = 0;
+		do {
+			e = get_other_edge(bm, v, e);
+			if (!e) {
+				e = v->e;
+				break;
 			}
-			look = vertlist;
-			while(look) {
-				float *uv_new;
-				tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
 
-				ev = look->link;
-				suv = NULL;
-				for(efa = em->faces.first;efa;efa=efa->next) {
-					if (ev->tmp.l != -1) { /* test for self, in this case its invalid */
-						int k=-1; /* face corner */
+			numsel += 1;
 
-						/* Is this vert in the faces corner? */
-						if		(efa->v1==ev)				k=0;
-						else if	(efa->v2==ev)				k=1;
-						else if	(efa->v3==ev)				k=2;
-						else if	(efa->v4 && efa->v4==ev)	k=3;
+			if (!BM_elem_flag_test(BM_edge_other_vert(e, v), BM_ELEM_TAG))
+				break;
 
-						if (k != -1) {
-							MTFace *tf = CustomData_em_get_n(&em->fdata, efa->data, CD_MTFACE, uvlay_idx);
-							EditVert *ev_up, *ev_down;
+			v = BM_edge_other_vert(e, v);
+		} while (e != first->e);
 
-							uv_new = tf->uv[k];
+		BM_elem_flag_disable(v, BM_ELEM_TAG);
 
-							if (ev->tmp.l) {
-								if (fabsf(suv->origuv[0]-uv_new[0]) > 0.0001f || fabsf(suv->origuv[1]-uv_new[1]) > 0.0001f) {
-									ev->tmp.l = -1; /* Tag as invalid */
-									BLI_linklist_free(suv->fuv_list,NULL);
-									suv->fuv_list = NULL;
-									BLI_ghash_remove(uvarray[uvlay_idx],ev, NULL, NULL);
-									suv = NULL;
-									break;
-								}
-							} else {
-								ev->tmp.l = 1;
-								suv = suv_last;
+		l1 = l2 = l = NULL;
+		l1 = e->l;
+		l2 = e->l->radial_next;
 
-								suv->fuv_list = NULL;
-								suv->uv_up = suv->uv_down = NULL;
-								suv->origuv[0] = uv_new[0];
-								suv->origuv[1] = uv_new[1];
+		l = BM_face_other_loop(l1->e, l1->f, v);
+		sub_v3_v3v3(vec, BM_edge_other_vert(l->e, v)->co, v->co);
 
-								BLI_linklist_prepend(&suv->fuv_list, uv_new);
-								BLI_ghash_insert(uvarray[uvlay_idx],ev,suv);
+		if (l2 != l1) {
+			l = BM_face_other_loop(l2->e, l2->f, v);
+			sub_v3_v3v3(vec2, BM_edge_other_vert(l->e, v)->co, v->co);
+		} else {
+			l2 = NULL;
+		}
 
-								suv_last++; /* advance to next slide UV */
-								maxnum++;
-							}
+		/*iterate over the loop*/
+		first = v;
+		do {
+			TransDataSlideVert *sv = tempsv + j;
 
-							/* Now get the uvs along the up or down edge if we can */
-							if (suv) {
-								if (!suv->uv_up) {
-									ev_up = editedge_getOtherVert(tempsv->up,ev);
-									if		(efa->v1==ev_up)				suv->uv_up = tf->uv[0];
-									else if	(efa->v2==ev_up)				suv->uv_up = tf->uv[1];
-									else if	(efa->v3==ev_up)				suv->uv_up = tf->uv[2];
-									else if	(efa->v4 && efa->v4==ev_up)		suv->uv_up = tf->uv[3];
-								}
-								if (!suv->uv_down) { /* if the first face was apart of the up edge, it cant be apart of the down edge */
-									ev_down = editedge_getOtherVert(tempsv->down,ev);
-									if		(efa->v1==ev_down)				suv->uv_down = tf->uv[0];
-									else if	(efa->v2==ev_down)				suv->uv_down = tf->uv[1];
-									else if	(efa->v3==ev_down)				suv->uv_down = tf->uv[2];
-									else if	(efa->v4 && efa->v4==ev_down)	suv->uv_down = tf->uv[3];
-								}
+			sv->v = v;
+			sv->origvert = *v;
+			copy_v3_v3(sv->upvec, vec);
+			if (l2)
+				copy_v3_v3(sv->downvec, vec2);
 
-								/* Copy the pointers to the face UV's */
-								BLI_linklist_prepend(&suv->fuv_list, uv_new);
-							}
-						}
+			l = BM_face_other_loop(l1->e, l1->f, v);
+			sv->up = BM_edge_other_vert(l->e, v);
+
+			if (l2) {
+				l = BM_face_other_loop(l2->e, l2->f, v);
+				sv->down = BM_edge_other_vert(l->e, v);
+			}
+
+			v2=v, v = BM_edge_other_vert(e, v);
+
+			e1 = e;
+			e = get_other_edge(bm, v, e);
+			if (!e) {
+				//v2=v, v = BM_edge_other_vert(l1->e, v);
+
+				sv = tempsv + j + 1;
+				sv->v = v;
+				sv->origvert = *v;
+				
+				l = BM_face_other_loop(l1->e, l1->f, v);
+				sv->up = BM_edge_other_vert(l->e, v);
+				sub_v3_v3v3(sv->upvec, BM_edge_other_vert(l->e, v)->co, v->co);
+
+				if (l2) {
+					l = BM_face_other_loop(l2->e, l2->f, v);
+					sv->down = BM_edge_other_vert(l->e, v);
+					sub_v3_v3v3(sv->downvec, BM_edge_other_vert(l->e, v)->co, v->co);
+				}
+
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
+				BM_elem_flag_disable(v2, BM_ELEM_TAG);
+				
+				j += 2;
+				break;
+			}
+
+			l1 = get_next_loop(bm, v, l1, e1, e, vec);
+			l2 = l2 ? get_next_loop(bm, v, l2, e1, e, vec2) : NULL;
+
+			j += 1;
+
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
+			BM_elem_flag_disable(v2, BM_ELEM_TAG);
+		} while (e != first->e && l1);
+	}
+
+	//EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+	sld->sv = tempsv;
+	sld->totsv = j;
+	
+	/*find mouse vector*/
+	dis = z = -1.0f;
+	size = 50.0;
+	zero_v3(lastvec); zero_v3(dir);
+	ee = le = NULL;
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			BMIter iter2;
+			BMEdge *e2;
+			float vec1[3], dis2, mval[2] = {t->mval[0], t->mval[1]}, d;
+						
+			/*search cross edges for visible edge to the mouse cursor,
+              then use the shared vertex to calculate screen vector*/
+			dis2 = -1.0f;
+			for (i=0; i<2; i++) {
+				v = i?e->v1:e->v2;
+				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
+					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
+						continue;
+					
+					if (!BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
+						continue;
+					
+					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
+
+					if (tempsv[j].down) {
+						ED_view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
+					} else {
+						add_v3_v3v3(vec1, v->co, tempsv[j].downvec);
+						ED_view3d_project_float_v3(ar, vec1, vec1, projectMat);
+					}
+					
+					if (tempsv[j].up) {
+						ED_view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
+					} else {
+						add_v3_v3v3(vec1, v->co, tempsv[j].upvec);
+						ED_view3d_project_float_v3(ar, vec2, vec2, projectMat);
+					}
+
+					d = dist_to_line_segment_v2(mval, vec1, vec2);
+					if (dis2 == -1.0f || d < dis2) {
+						dis2 = d;
+						ee = e2;
+						size = len_v3v3(vec1, vec2);
+						sub_v3_v3v3(dir, vec1, vec2);
 					}
 				}
-				look = look->next;
 			}
-		} /* end uv map loop */
-	} /* end uvlay_tot */
+		}
+	}
+	
+	em->bm->ob = t->obedit;
+	bmesh_begin_edit(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
-	sld->uvhash = uvarray;
-	sld->slideuv = slideuvs;
-	sld->vhash = vertgh;
-	sld->nearest = nearest;
-	sld->vertlist = vertlist;
-	sld->edgelist = edgelist;
-	sld->suv_last = suv_last;
-	sld->uvlay_tot = uvlay_tot;
+	/*create copies of faces for customdata projection*/
+	tempsv = sld->sv;
+	for (i=0; i<sld->totsv; i++, tempsv++) {
+		BMIter fiter, liter;
+		BMFace *f;
+		BMLoop *l;
+		
+		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
+			
+			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
+				BMFace *copyf = BM_face_copy(em->bm, f, 1, 1);
+				
+				BM_elem_select_set(em->bm, copyf, FALSE);
+				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
+					BM_elem_select_set(em->bm, l->v, FALSE);
+					BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
+					BM_elem_select_set(em->bm, l->e, FALSE);
+					BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+				}
 
-	// we should have enough info now to slide
+				BLI_smallhash_insert(&sld->origfaces, (uintptr_t)f, copyf);
+			}
+		}
 
+		BLI_smallhash_insert(&sld->vhash, (uintptr_t)tempsv->v, tempsv);
+	}
+	
+	sld->em = em;
+	
+	/*zero out start*/
+	zero_v3(start);
+	
+	/*dir holds a vector along edge loop*/
+	copy_v3_v3(end, dir);
+	mul_v3_fl(end, 0.5);
+	
+	sld->start[0] = t->mval[0] + start[0];
+	sld->start[1] = t->mval[1] + start[1];
+
+	sld->end[0] = t->mval[0] + end[0];
+	sld->end[1] = t->mval[1] + end[1];
+	
+	sld->perc = 0.0f;
+	
 	t->customData = sld;
-
+	
+	BLI_smallhash_release(&table);
+	BMBVH_FreeBVH(btree);
+	
 	return 1;
+}
+
+void projectSVData(TransInfo *t, int final)
+{
+	SlideData *sld = t->customData;
+	TransDataSlideVert *tempsv;
+	BMEditMesh *em = sld->em;
+	SmallHash visit;
+	int i;
+	
+	if (!em)
+		return;
+	
+	/* BMESH_TODO, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)
+	 * currently all vertex data is interpolated which is nice mostly
+	 * except for shape keys where you dont want to modify UVs for eg.
+	 * current BMesh code doesnt make it easy to pick which data we interpolate
+	 * - campbell */
+
+	BLI_smallhash_init(&visit);
+	
+		for (i=0, tempsv=sld->sv; i<sld->totsv; i++, tempsv++) {
+		BMIter fiter;
+		BMFace *f;
+		
+		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
+			BMIter liter2;
+			BMFace *copyf, *copyf2;
+			BMLoop *l2;
+			int sel, hide, do_vdata;
+			
+			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
+				continue;
+			
+			BLI_smallhash_insert(&visit, (uintptr_t)f, NULL);
+			
+			/*the face attributes of the copied face will get
+			  copied over, so its necessary to save the selection
+			  and hidden state*/
+			sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
+			hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+			
+			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
+			
+			/*project onto copied projection face*/
+			BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_FACE, f) {
+				copyf = copyf2;
+				do_vdata = l2->v==tempsv->v;
+				
+				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {
+					BMLoop *l3 = l2;
+					
+					do_vdata = 1;
+					
+					if (!BM_elem_flag_test(l2->e, BM_ELEM_SELECT))
+						l3 = l3->prev;
+					
+					if (sld->perc < 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->down)) {
+						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					} else if (sld->perc > 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->up)) {
+						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					}
+					if (!copyf)
+						continue;  /* shouldn't happen, but protection */
+				}
+				
+				BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, FALSE);
+
+				if (final) {
+					BM_loop_interp_multires(em->bm, l2, copyf);	
+					if (copyf2 != copyf) {
+						BM_loop_interp_multires(em->bm, l2, copyf2);
+					}
+				}
+			}
+			
+			/*make sure face-attributes are correct (e.g. MTexPoly)*/
+			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
+			
+			/*restore selection and hidden flags*/
+			BM_elem_select_set(em->bm, f, sel);
+			BM_elem_hide_set(em->bm, f, hide);
+		}
+	}
+	
+	BLI_smallhash_release(&visit);
 }
 
 void freeSlideVerts(TransInfo *t)
 {
-	TransDataSlideUv *suv;
 	SlideData *sld = t->customData;
-	Mesh *me = t->obedit->data;
-	int uvlay_idx;
-
+	SmallHashIter hiter;
+	BMFace *copyf;
+	
+#if 0 /*BMESH_TODO*/
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		TransDataSlideVert *tempsv;
 		LinkNode *look = sld->vertlist;
@@ -4796,31 +4762,38 @@ void freeSlideVerts(TransInfo *t)
 			look = look->next;
 		}
 	}
-
-	//BLI_ghash_free(edgesgh, freeGHash, NULL);
-	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);
-	BLI_linklist_free(sld->vertlist, NULL);
-	BLI_linklist_free(sld->edgelist, NULL);
-
-	if (sld->uvlay_tot) {
-		for (uvlay_idx=0; uvlay_idx<sld->uvlay_tot; uvlay_idx++) {
-			BLI_ghash_free(sld->uvhash[uvlay_idx], NULL, NULL);
-		}
-
-		suv = sld->suv_last-1;
-		while (suv >= sld->slideuv) {
-			if (suv->fuv_list) {
-				BLI_linklist_free(suv->fuv_list,NULL);
-			}
-			suv--;
-		}
-
-		MEM_freeN(sld->slideuv);
-		MEM_freeN(sld->uvhash);
+#endif
+	
+	if (!sld)
+		return;
+	
+	/*handle multires reprojection, done
+      on transform completion since it's
+      really slow -joeedh*/
+	if (t->state != TRANS_CANCEL) {
+		projectSVData(t, 1);
+	} else {
+		sld->perc = 0.0;
+		projectSVData(t, 0);
 	}
+	
+	copyf = BLI_smallhash_iternew(&sld->origfaces, &hiter, NULL);
+	for (; copyf; copyf=BLI_smallhash_iternext(&hiter, NULL)) {
+		BM_face_verts_kill(sld->em->bm, copyf);
+	}
+	
+	sld->em->bm->ob = t->obedit;
+	bmesh_end_edit(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
+	BLI_smallhash_release(&sld->vhash);
+	BLI_smallhash_release(&sld->origfaces);
+	
+	MEM_freeN(sld->sv);
 	MEM_freeN(sld);
+	
 	t->customData = NULL;
+	
+	recalcData(t);
 }
 
 void initEdgeSlide(TransInfo *t)
@@ -4860,108 +4833,28 @@ void initEdgeSlide(TransInfo *t)
 static int doEdgeSlide(TransInfo *t, float perc)
 {
 	SlideData *sld = t->customData;
-	EditVert *ev, *nearest = sld->nearest;
-	EditVert *centerVert, *upVert, *downVert;
-	LinkNode *vertlist=sld->vertlist, *look;
-	GHash *vertgh = sld->vhash;
-	TransDataSlideVert *tempsv;
-	float len;
-	int prop=1, flip=0;
-	/* UV correction vars */
-	GHash **uvarray= sld->uvhash;
-	const int  uvlay_tot= sld->uvlay_tot;
-	int uvlay_idx;
-	TransDataSlideUv *suv;
-	float uv_tmp[2];
-	LinkNode *fuv_link;
+	TransDataSlideVert *svlist = sld->sv, *sv;
+	float vec[3];
+	int i;
 
-	tempsv = BLI_ghash_lookup(vertgh,nearest);
+	sld->perc = perc;
 
-	centerVert = editedge_getSharedVert(tempsv->up, tempsv->down);
-	upVert = editedge_getOtherVert(tempsv->up, centerVert);
-	downVert = editedge_getOtherVert(tempsv->down, centerVert);
-
-	len = minf(perc, len_v3v3(upVert->co, downVert->co));
-	len = maxf(len, 0.0f);
-
-	//Adjust Edgeloop
-	if(prop) {
-		look = vertlist;
-		while(look) {
-			EditVert *tempev;
-			ev = look->link;
-			tempsv = BLI_ghash_lookup(vertgh,ev);
-
-			tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
-			interp_v3_v3v3(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
-
-			if (uvlay_tot) {
-				for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-					suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
-					if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-						interp_v2_v2v2(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
-						fuv_link = suv->fuv_list;
-						while (fuv_link) {
-							copy_v2_v2(((float *)fuv_link->link), uv_tmp);
-							fuv_link = fuv_link->next;
-						}
-					}
-				}
-			}
-
-			look = look->next;
+	sv = svlist;
+	for (i=0; i<sld->totsv; i++, sv++) {
+		if (perc > 0.0f) {
+			copy_v3_v3(vec, sv->upvec);
+			mul_v3_fl(vec, perc);
+			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
+		}
+		else {
+			copy_v3_v3(vec, sv->downvec);
+			mul_v3_fl(vec, -perc);
+			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
 		}
 	}
-	else {
-		//Non prop code
-		look = vertlist;
-		while(look) {
-			float newlen, edgelen;
-			ev = look->link;
-			tempsv = BLI_ghash_lookup(vertgh,ev);
-			edgelen = len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co);
-			newlen = (edgelen != 0.0f)? (len / edgelen): 0.0f;
-			if(newlen > 1.0f) {newlen = 1.0;}
-			if(newlen < 0.0f) {newlen = 0.0;}
-			if(flip == 0) {
-				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
-				if (uvlay_tot) {
-					/* dont do anything if no UVs */
-					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
-						if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-							interp_v2_v2v2(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
-							fuv_link = suv->fuv_list;
-							while (fuv_link) {
-								copy_v2_v2(((float *)fuv_link->link), uv_tmp);
-								fuv_link = fuv_link->next;
-							}
-						}
-					}
-				}
-			} else{
-				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));
-
-				if (uvlay_tot) {
-					/* dont do anything if no UVs */
-					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
-						if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-							interp_v2_v2v2(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
-							fuv_link = suv->fuv_list;
-							while (fuv_link) {
-								copy_v2_v2(((float *)fuv_link->link), uv_tmp);
-								fuv_link = fuv_link->next;
-							}
-						}
-					}
-				}
-			}
-			look = look->next;
-		}
-
-	}
-
+	
+	projectSVData(t, 0);
+	
 	return 1;
 }
 

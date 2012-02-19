@@ -317,7 +317,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 
 		if(!smd->coll->bvhtree)
 		{
-			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getFaceArray(dm), dm->getNumFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
+			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getTessFaceArray(dm), dm->getNumTessFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
 		}
 		return 1;
 	}
@@ -328,7 +328,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 {
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getFaceArray(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
 	int i = 0, divs = 0;
 	int *tridivs = NULL;
 	float cell_len = 1.0 / 50.0; // for res = 50
@@ -336,16 +336,16 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 	int quads = 0, facecounter = 0;
 
 	// count quads
-	for(i = 0; i < dm->getNumFaces(dm); i++)
+	for(i = 0; i < dm->getNumTessFaces(dm); i++)
 	{
 		if(mface[i].v4)
 			quads++;
 	}
 
-	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumFaces(dm), dm->getNumFaces(dm) + quads, &tridivs, cell_len);
+	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumTessFaces(dm), dm->getNumTessFaces(dm) + quads, &tridivs, cell_len);
 
 	// count triangle divisions
-	for(i = 0; i < dm->getNumFaces(dm) + quads; i++)
+	for(i = 0; i < dm->getNumTessFaces(dm) + quads; i++)
 	{
 		divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
 	}
@@ -362,7 +362,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 		copy_v3_v3(&scs->points[i * 3], tmpvec);
 	}
 	
-	for(i = 0, facecounter = 0; i < dm->getNumFaces(dm); i++)
+	for(i = 0, facecounter = 0; i < dm->getNumTessFaces(dm); i++)
 	{
 		int again = 0;
 		do
@@ -1354,7 +1354,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 
-			smd->coll->dm = CDDM_copy(dm);
+			smd->coll->dm = CDDM_copy_from_tessface(dm);
 #endif
 
 			// rigid movement support

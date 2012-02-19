@@ -73,6 +73,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
 #include "BKE_bmesh.h"
+#include "BKE_tessmesh.h"
 #include "BKE_scene.h"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
@@ -103,13 +104,16 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_array.h"
 #include "BLI_utildefines.h"
+#include "BLI_smallhash.h"
 
 #include "RNA_access.h"
 
 extern ListBase editelems;
 
 #include "transform.h"
+#include "bmesh.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -298,16 +302,17 @@ static void createTransTexspace(TransInfo *t)
 
 static void createTransEdge(TransInfo *t)
 {
-	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
+	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 	TransData *td = NULL;
-	EditEdge *eed;
+	BMEdge *eed;
+	BMIter iter;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0) {
-			if (eed->f & SELECT) countsel++;
+	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) countsel++;
 			if (propmode) count++;
 		}
 	}
@@ -327,14 +332,17 @@ static void createTransEdge(TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0 && (eed->f & SELECT || propmode)) {
+	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) { 
+			float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+			float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+			
 			/* need to set center for center calculations */
 			add_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
 			mul_v3_fl(td->center, 0.5f);
 
 			td->loc= NULL;
-			if (eed->f & SELECT)
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
 				td->flag= TD_SELECTED;
 			else
 				td->flag= 0;
@@ -345,12 +353,12 @@ static void createTransEdge(TransInfo *t)
 
 			td->ext = NULL;
 			if (t->mode == TFM_BWEIGHT) {
-				td->val = &(eed->bweight);
-				td->ival = eed->bweight;
+				td->val = bweight;
+				td->ival = bweight ? *bweight : 1.0f;
 			}
 			else {
-				td->val = &(eed->crease);
-				td->ival = eed->crease;
+				td->val = crease;
+				td->ival = crease ? *crease : 0.0f;
 			}
 
 			td++;
@@ -1858,126 +1866,123 @@ void flushTransParticles(TransInfo *t)
 /* proportional distance based on connectivity  */
 #define THRESHOLDFACTOR (1.0f-0.0001f)
 
-static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
+/*I did this wrong, it should be a breadth-first search
+  but instead it's a depth-first search, fudged
+  to report shortest distances.  I have no idea how fast
+  or slow this is.*/
+static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], float *dists)
 {
-	float edge_vec[3];
-	float edge_len;
-	int done = 0;
-
-	/* note: hidden verts are not being checked for, this assumes
-	 * flushing of hidden faces & edges is working right */
+	BMVert **queue = NULL;
+	float *dqueue = NULL;
+	int *tots = MEM_callocN(sizeof(int)*em->bm->totvert, "tots editmesh_set_connectivity_distance");
+	BLI_array_declare(queue);
+	BLI_array_declare(dqueue);
+	SmallHash svisit, *visit=&svisit;
+	BMVert *v;
+	BMIter viter;
+	int i, start;
 	
-	if (v1->f2 + v2->f2 == 4)
-		return 0;
+	fill_vn_fl(dists, em->bm->totvert, FLT_MAX);
+
+	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+
+	BLI_smallhash_init(visit);
+
+	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT)==0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+			continue;
+			
+		
+		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);
+		BLI_array_append(queue, v);
+		BLI_array_append(dqueue, 0.0f);
+		dists[BM_elem_index_get(v)] = 0.0f;
+	}
 	
-	sub_v3_v3v3(edge_vec, v1->co, v2->co);
-	mul_m3_v3(mtx, edge_vec);
+	start = 0;
+	while (start < BLI_array_count(queue)) {
+		BMIter eiter;
+		BMEdge *e;
+		BMVert *v3, *v2;
+		float d, vec[3];
+		
+		v2 = queue[start];
+		d = dqueue[start];
+		
+		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
+			float d2;
+			v3 = BM_edge_other_vert(e, v2);
+			
+			if (BM_elem_flag_test(v3, BM_ELEM_SELECT) || BM_elem_flag_test(v3, BM_ELEM_HIDDEN))
+				continue;
+			
+			sub_v3_v3v3(vec, v2->co, v3->co);
+			mul_m3_v3(mtx, vec);
+			
+			d2 = d + len_v3(vec);
+			
+			if (dists[BM_elem_index_get(v3)] != FLT_MAX)
+				dists[BM_elem_index_get(v3)] = MIN2(d2, dists[BM_elem_index_get(v3)]);
+			else
+				dists[BM_elem_index_get(v3)] = d2;
+			
+			tots[BM_elem_index_get(v3)] = 1;
 
-	edge_len = len_v3(edge_vec);
-
-	if (v1->f2) {
-		if (v2->f2) {
-			if (v2->tmp.fp + edge_len < THRESHOLDFACTOR * v1->tmp.fp) {
-				v1->tmp.fp = v2->tmp.fp + edge_len;
-				done = 1;
-			} else if (v1->tmp.fp + edge_len < THRESHOLDFACTOR * v2->tmp.fp) {
-				v2->tmp.fp = v1->tmp.fp + edge_len;
-				done = 1;
-			}
+			if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
+				continue;
+			
+			BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
+			
+			BLI_array_append(queue, v3);
+			BLI_array_append(dqueue, d2);
 		}
-		else {
-			v2->f2 = 1;
-			v2->tmp.fp = v1->tmp.fp + edge_len;
-			done = 1;
-		}
-	}
-	else if (v2->f2) {
-		v1->f2 = 1;
-		v1->tmp.fp = v2->tmp.fp + edge_len;
-		done = 1;
-	}
-
-	return done;
-}
-
-static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
-{
-	EditVert *eve;
-	EditEdge *eed;
-	EditFace *efa;
-	int done= 1;
-
-	/* f2 flag is used for 'selection' */
-	/* tmp.l is offset on scratch array   */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0) {
-			eve->tmp.fp = 0;
-
-			if(eve->f & SELECT) {
-				eve->f2= 2;
-			}
-			else {
-				eve->f2 = 0;
-			}
-		}
+		
+		start++;
 	}
 
-
-	/* Floodfill routine */
-	/*
-	At worst this is n*n of complexity where n is number of edges
-	Best case would be n if the list is ordered perfectly.
-	Estimate is n log n in average (so not too bad)
-	*/
-	while(done) {
-		done= 0;
-
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0) {
-				done |= connectivity_edge(mtx, eed->v1, eed->v2);
-			}
-		}
-
-		/* do internal edges for quads */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->v4 && efa->h==0) {
-				done |= connectivity_edge(mtx, efa->v1, efa->v3);
-				done |= connectivity_edge(mtx, efa->v2, efa->v4);
-			}
-		}
+	BLI_smallhash_release(visit);
+	
+	for (i=0; i<em->bm->totvert; i++) {
+		if (tots[i])
+			dists[i] /= (float)tots[i];
 	}
+	
+	BLI_array_free(queue);
+	BLI_array_free(dqueue);
+	MEM_freeN(tots);
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
-static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
-{
-	EditFace *efa;
+ static void get_face_center(float cent_r[3], BMesh *bm, BMVert *eve)
 
-	for(efa= em->faces.first; efa; efa= efa->next)
-		if(efa->f & SELECT)
-			if(efa->v1==eve || efa->v2==eve || efa->v3==eve || efa->v4==eve)
-				break;
-	if(efa) {
-		copy_v3_v3(cent, efa->cent);
+{
+	BMFace *efa;
+	BMIter iter;
+
+	BM_ITER(efa, &iter, bm, BM_FACES_OF_VERT, eve) {
+		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+			BM_face_center_mean_calc(bm, efa, cent_r);
+			break;
+		}
 	}
 }
 
-static void get_edge_center(float *cent, EditMesh *em, EditVert *eve)
+static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
 {
-	EditEdge *eed;
+	BMEdge *eed;
+	BMIter iter;
 
-	for(eed= em->edges.first; eed; eed= eed->next)
-		if(eed->f & SELECT)
-			if(eed->v1==eve || eed->v2==eve)
-				break;
-	if(eed) {
-		mid_v3_v3v3(cent, eed->v1->co, eed->v2->co);
+	BM_ITER(eed, &iter, bm, BM_EDGES_OF_VERT, eve) {
+		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+			mid_v3_v3v3(cent_r, eed->v1->co, eed->v2->co);
+			break;
+		}
 	}
 }
 
 /* way to overwrite what data is edited with transform
  * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
-static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert *eve)
+static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
 	//if(key)
@@ -1986,11 +1991,12 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 	td->loc = eve->co;
 
 	copy_v3_v3(td->center, td->loc);
+
 	if(t->around==V3D_LOCAL) {
 		if(em->selectmode & SCE_SELECT_FACE)
-			get_face_center(td->center, em, eve);
+			get_face_center(td->center, em->bm, eve);
 		else if(em->selectmode & SCE_SELECT_EDGE)
-			get_edge_center(td->center, em, eve);
+			get_edge_center(td->center, em->bm, eve);
 	}
 	copy_v3_v3(td->iloc, td->loc);
 
@@ -2007,8 +2013,8 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 	td->val = NULL;
 	td->extra = NULL;
 	if (t->mode == TFM_BWEIGHT) {
-		td->val = &(eve->bweight);
-		td->ival = eve->bweight;
+		td->val = bweight;
+		td->ival = bweight ? *(bweight) : 1.0f;
 	}
 }
 
@@ -2016,18 +2022,23 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	TransData *tob = NULL;
-	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
-	EditVert *eve;
-	EditVert *eve_act = NULL;
+	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMesh *bm = em->bm;
+	BMVert *eve;
+	BMIter iter;
+	BMVert *eve_act = NULL;
 	float *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
+	float *dists=NULL;
 	int count=0, countsel=0, a, totleft;
 	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) : 0;
 	int mirror = 0;
+	char *selstate = NULL;
 	short selectmode = ts->selectmode;
 
 	if (t->flag & T_MIRROR)
 	{
+		EDBM_CacheMirrorVerts(em, TRUE);
 		mirror = 1;
 	}
 
@@ -2036,55 +2047,89 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		selectmode = SCE_SELECT_EDGE;
 	}
 
+	/* BMESH_TODO, writing into the index values is BAD!, means we cant
+	 * use the values for vertex mirror - campbell */
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(selectmode & SCE_SELECT_VERTEX) {
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->f & SELECT))
-				eve->f1= SELECT;
-			else
-				eve->f1= 0;
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+				BM_elem_flag_enable(eve, BM_ELEM_TAG);
+			}
+			else {
+				BM_elem_flag_disable(eve, BM_ELEM_TAG);
+			}
 		}
 	}
 	else if(selectmode & SCE_SELECT_EDGE) {
-		EditEdge *eed;
-		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0 && (eed->f & SELECT))
-				eed->v1->f1= eed->v2->f1= SELECT;
+		BMEdge *eed;
+
+		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BM_iter_step(&iter)) BM_elem_flag_disable(eve, BM_ELEM_TAG);
+
+		eed = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
+		for( ; eed; eed=BM_iter_step(&iter)) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				BM_elem_flag_enable(eed->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(eed->v2, BM_ELEM_TAG);
+			}
 		}
 	}
 	else {
-		EditFace *efa;
-		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->h==0 && (efa->f & SELECT)) {
-				efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
-				if(efa->v4) efa->v4->f1= SELECT;
+		BMFace *efa;
+		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BM_iter_step(&iter)) BM_elem_flag_disable(eve, BM_ELEM_TAG);
+
+		efa = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
+		for( ; efa; efa=BM_iter_step(&iter)) {
+			if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+				BMIter liter;
+				BMLoop *l;
+
+				l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BM_iter_step(&liter)) {
+					BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+				}
 			}
 		}
 	}
 
-	/* now we can count */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0) {
-			if(eve->f1) countsel++;
+	/* now we can count. we store selection state in selstate, since
+	 * get_crazy_mapped_editverts messes up the index state of the
+	 * verts*/
+	selstate = MEM_callocN(sizeof(*selstate) * bm->totvert, __func__);
+	eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for(a=0; eve; eve=BM_iter_step(&iter), a++) {
+		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eve, BM_ELEM_TAG)) {
+				selstate[a] = 1;
+				countsel++;
+			}
 			if(propmode) count++;
 		}
 	}
 
-	 /* note: in prop mode we need at least 1 selected */
-	if (countsel==0) return;
+	/* note: in prop mode we need at least 1 selected */
+	if (countsel == 0) {
+		goto cleanup;
+	}
 
 	/* check active */
-	if (em->selected.last) {
-		EditSelection *ese = em->selected.last;
-		if ( ese->type == EDITVERT ) {
-			eve_act = (EditVert *)ese->data;
+	if (em->bm->selected.last) {
+		BMEditSelection *ese = em->bm->selected.last;
+		if (ese->htype == BM_VERT) {
+			eve_act = (BMVert *)ese->data;
 		}
 	}
 
 
-	if(propmode) t->total = count;
+	if(propmode) {
+		t->total = count;
+
+		/* allocating scratch arrays */
+		if (propmode & T_PROP_CONNECTED)
+			dists = MEM_mallocN(em->bm->totvert * sizeof(float), "scratch nears");
+	}
 	else t->total = countsel;
 
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
@@ -2093,7 +2138,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	invert_m3_m3(smtx, mtx);
 
 	if(propmode & T_PROP_CONNECTED) {
-		editmesh_set_connectivity_distance(em, mtx);
+		editmesh_set_connectivity_distance(em, mtx, dists);
 	}
 
 	/* detect CrazySpace [tm] */
@@ -2101,7 +2146,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		if(modifiers_isCorrectableDeformed(t->obedit)) {
 			/* check if we can use deform matrices for modifier from the
 			   start up to stack, they are more accurate than quats */
-			totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
+			totleft= editbmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
 			/* if we still have more modifiers, also do crazyspace
 			   correction with quats, relative to the coordinates after
@@ -2109,7 +2154,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			if(totleft > 0) {
 				mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
 				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats);
+				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats); /* BMESH_TODO, abuses vertex index, should use an int array */
 				if(mappedcos)
 					MEM_freeN(mappedcos);
 			}
@@ -2121,8 +2166,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	/* find out which half we do */
 	if(mirror) {
-		for (eve=em->verts.first; eve; eve=eve->next) {
-			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
+		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for(a=0; eve; eve=BM_iter_step(&iter), a++) {
+			if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && selstate[a] && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
 				{
 					t->mirror = -1;
@@ -2133,34 +2179,36 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 
-	for (a=0, eve=em->verts.first; eve; eve=eve->next, a++) {
-		if(eve->h==0) {
-			if(propmode || eve->f1) {
-				VertsToTransData(t, tob, em, eve);
+	eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for(a=0; eve; eve=BM_iter_step(&iter), a++) {
+		if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			if(propmode || selstate[a]) {
+				float *bweight = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_BWEIGHT);
+				
+				VertsToTransData(t, tob, em, eve, bweight);
 
 				/* selected */
-				if(eve->f1) tob->flag |= TD_SELECTED;
+				if(selstate[a]) tob->flag |= TD_SELECTED;
 
 				/* active */
 				if(eve == eve_act) tob->flag |= TD_ACTIVE;
 
 				if(propmode) {
-					if (eve->f2) {
-						tob->dist= eve->tmp.fp;
-					}
-					else {
+					if (propmode & T_PROP_CONNECTED) {
+						tob->dist = dists[a];
+					} else {
 						tob->flag |= TD_NOTCONNECTED;
 						tob->dist = MAXFLOAT;
 					}
 				}
 
 				/* CrazySpace */
-				if(defmats || (quats && eve->tmp.p)) {
-					float mat[3][3], imat[3][3], qmat[3][3];
+				if(defmats || (quats && BM_elem_index_get(eve) != -1)) {
+					float mat[3][3], qmat[3][3], imat[3][3];
 
 					/* use both or either quat and defmat correction */
-					if(quats && eve->tmp.f) {
-						quat_to_mat3( qmat,eve->tmp.p);
+					if(quats && BM_elem_index_get(eve) != -1) {
+						quat_to_mat3(qmat, quats + 4*BM_elem_index_get(eve));
 
 						if(defmats)
 							mul_serie_m3(mat, mtx, qmat, defmats[a],
@@ -2183,8 +2231,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-					EditVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, eve, tob->iloc, a);	/* initializes octree on first call */
-					if(vmir != eve) {
+					BMVert *vmir= EDBM_GetMirrorVert(em, eve); //t->obedit, em, eve, tob->iloc, a);
+					if(vmir && vmir != eve) {
 						tob->extra = vmir;
 					}
 				}
@@ -2204,12 +2252,22 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			}
 		}
 	}
-	
+
+cleanup:
 	/* crazy space free */
 	if(quats)
 		MEM_freeN(quats);
 	if(defmats)
 		MEM_freeN(defmats);
+	if (dists)
+		MEM_freeN(dists);
+	
+	MEM_freeN(selstate);
+
+	if (t->flag & T_MIRROR) {
+		EDBM_EndMirrorCache(em);
+		mirror = 1;
+	}
 }
 
 /* *** NODE EDITOR *** */
@@ -2387,30 +2445,33 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	Scene *scene = t->scene;
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
-	MTFace *tf;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-
-	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
-	EditFace *efa;
 
 	if(!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-		if(uvedit_face_visible(scene, ima, efa, tf)) {
-			efa->tmp.p = tf;
+		if(!uvedit_face_visible(scene, ima, efa, tf)) {
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
+			continue;
+		}
+		
+		BM_elem_flag_enable(efa, BM_ELEM_TAG);
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			if (uvedit_uv_selected(em, scene, l)) 
+				countsel++;
 
-			if (uvedit_uv_selected(scene, efa, tf, 0)) countsel++;
-			if (uvedit_uv_selected(scene, efa, tf, 1)) countsel++;
-			if (uvedit_uv_selected(scene, efa, tf, 2)) countsel++;
-			if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) countsel++;
 			if(propmode)
-				count += (efa->v4)? 4: 3;
-		} else {
-			efa->tmp.p = NULL;
+				count++;
 		}
 	}
 
@@ -2429,20 +2490,17 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		if ((tf=(MTFace *)efa->tmp.p)) {
-			if (propmode) {
-				UVsToTransData(sima, td++, td2d++, tf->uv[0], uvedit_uv_selected(scene, efa, tf, 0));
-				UVsToTransData(sima, td++, td2d++, tf->uv[1], uvedit_uv_selected(scene, efa, tf, 1));
-				UVsToTransData(sima, td++, td2d++, tf->uv[2], uvedit_uv_selected(scene, efa, tf, 2));
-				if(efa->v4)
-					UVsToTransData(sima, td++, td2d++, tf->uv[3], uvedit_uv_selected(scene, efa, tf, 3));
-			} else {
-				if(uvedit_uv_selected(scene, efa, tf, 0))				UVsToTransData(sima, td++, td2d++, tf->uv[0], 1);
-				if(uvedit_uv_selected(scene, efa, tf, 1))				UVsToTransData(sima, td++, td2d++, tf->uv[1], 1);
-				if(uvedit_uv_selected(scene, efa, tf, 2))				UVsToTransData(sima, td++, td2d++, tf->uv[2], 1);
-				if(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3))	UVsToTransData(sima, td++, td2d++, tf->uv[3], 1);
-			}
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
+			continue;
+
+		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			if (!propmode && !uvedit_uv_selected(em, scene, l))
+				continue;
+			
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_selected(em, scene, l));
 		}
 	}
 
@@ -4821,7 +4879,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
-				EM_automerge(t->scene, t->obedit, 1);
+				EDBM_automerge(t->scene, t->obedit, 1);
 			}
 		}
 	}
@@ -5071,7 +5129,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH)
 		{
-			EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
+			BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 			/* table needs to be created for each edit command, since vertices can move etc */
 			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}

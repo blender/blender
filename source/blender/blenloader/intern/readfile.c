@@ -100,6 +100,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_edgehash.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -2703,6 +2704,16 @@ static void lib_link_key(FileData *fd, Main *main)
 
 	key= main->key.first;
 	while(key) {
+		/*check if we need to generate unique ids for the shapekeys*/
+		if (!key->uidgen) {
+			KeyBlock *block;
+
+			key->uidgen = 1;
+			for (block=key->block.first; block; block=block->next) {
+				block->uid = key->uidgen++;
+			}
+		}
+
 		if(key->id.flag & LIB_NEEDLINK) {
 			if(key->adt) lib_link_animdata(fd, &key->id, key->adt);
 			
@@ -3625,6 +3636,26 @@ static void lib_link_customdata_mtface(FileData *fd, Mesh *me, CustomData *fdata
 
 }
 
+static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata, int totface)
+{
+	int i;
+
+	for(i=0; i<pdata->totlayer; i++) {
+		CustomDataLayer *layer = &pdata->layers[i];
+		
+		if(layer->type == CD_MTEXPOLY) {
+			MTexPoly *tf= layer->data;
+			int i;
+
+			for (i=0; i<totface; i++, tf++) {
+				tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
+				if(tf->tpage && tf->tpage->id.us==0)
+					tf->tpage->id.us= 1;
+			}
+		}
+	}
+}
+
 static void lib_link_mesh(FileData *fd, Main *main)
 {
 	Mesh *me;
@@ -3652,9 +3683,27 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			me->texcomesh= newlibadr_us(fd, me->id.lib, me->texcomesh);
 
 			lib_link_customdata_mtface(fd, me, &me->fdata, me->totface);
+			lib_link_customdata_mtpoly(fd, me, &me->pdata, me->totpoly);
 			if(me->mr && me->mr->levels.first)
 				lib_link_customdata_mtface(fd, me, &me->mr->fdata,
 							   ((MultiresLevel*)me->mr->levels.first)->totface);
+
+			/*check if we need to convert mfaces to mpolys*/
+			if (me->totface && !me->totpoly) {
+				convert_mfaces_to_mpolys(me);
+			}
+			
+			/*
+			 * Re-tesselate, even if the polys were just created from tessfaces, this
+			 * is important because it:
+			 *  - fill the CD_POLYINDEX layer
+			 *  - gives consistency of tessface between loading from a file and
+			 *    converting an edited BMesh back into a mesh (i.e. it replaces
+			 *    quad tessfaces in a loaded mesh immediately, instead of lazily
+			 *    waiting until edit mode has been entered/exited, making it easier
+			 *    to recognize problems that would otherwise only show up after edits).
+			 */
+			BKE_mesh_tessface_calc(me);
 
 			me->id.flag -= LIB_NEEDLINK;
 		}
@@ -3674,10 +3723,17 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 	}
 
 	for (i= count; i > 0; i--, mdverts++) {
-		if(mdverts->dw) {
-			mdverts->dw= newdataadr(fd, mdverts->dw);
+		/*convert to vgroup allocation system*/
+		MDeformWeight *dw;
+		if(mdverts->dw && (dw= newdataadr(fd, mdverts->dw))) {
+			const ssize_t dw_len= mdverts->totweight * sizeof(MDeformWeight);
+			void *dw_tmp= MEM_mallocN(dw_len, "direct_link_dverts");
+			memcpy(dw_tmp, dw, dw_len);
+			mdverts->dw= dw_tmp;
+			MEM_freeN(dw);
 		}
-		if (mdverts->dw == NULL) {
+		else {
+			mdverts->dw= NULL;
 			mdverts->totweight= 0;
 		}
 	}
@@ -3690,7 +3746,18 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
-
+			
+			/*put .disps into cellalloc system*/
+			if (mdisps[i].disps) {
+				float *disp2;
+				
+				disp2 = MEM_mallocN(MEM_allocN_len(mdisps[i].disps), "cellalloc .disps copy");
+				memcpy(disp2, mdisps[i].disps, MEM_allocN_len(mdisps[i].disps));
+				
+				MEM_freeN(mdisps[i].disps);
+				mdisps[i].disps = (float (*)[3])disp2;
+			}
+			
 			if( (fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps) ) {
 				/* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
 				/* this does swap for data written at write_mdisps() - readfile.c */
@@ -3740,12 +3807,17 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mvert= newdataadr(fd, mesh->mvert);
 	mesh->medge= newdataadr(fd, mesh->medge);
 	mesh->mface= newdataadr(fd, mesh->mface);
+	mesh->mloop= newdataadr(fd, mesh->mloop);
+	mesh->mpoly= newdataadr(fd, mesh->mpoly);
 	mesh->tface= newdataadr(fd, mesh->tface);
 	mesh->mtface= newdataadr(fd, mesh->mtface);
 	mesh->mcol= newdataadr(fd, mesh->mcol);
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
-	
+	mesh->mloopcol= newdataadr(fd, mesh->mloopcol);
+	mesh->mloopuv= newdataadr(fd, mesh->mloopuv);
+	mesh->mtpoly= newdataadr(fd, mesh->mtpoly);
+
 	/* animdata */
 	mesh->adt= newdataadr(fd, mesh->adt);
 	direct_link_animdata(fd, mesh->adt);
@@ -3757,7 +3829,9 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
 	direct_link_customdata(fd, &mesh->edata, mesh->totedge);
 	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
-
+	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
+	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
+	
 
 #ifdef USE_BMESH_FORWARD_COMPAT
 	/* NEVER ENABLE THIS CODE INTO BMESH!
@@ -3790,7 +3864,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 	mesh->bb= NULL;
 	mesh->mselect = NULL;
-	mesh->edit_mesh= NULL;
+	mesh->edit_btmesh= NULL;
 	
 	/* Multires data */
 	mesh->mr= newdataadr(fd, mesh->mr);
@@ -6606,7 +6680,7 @@ static void customdata_version_242(Mesh *me)
 		}
 	}
 
-	mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me, TRUE);
 }
 
 /*only copy render texface layer from active*/
@@ -12309,7 +12383,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 
 		for(me= main->mesh.first; me; me= me->id.next)
-			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+			mesh_calc_normals_tessface(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	}
 
 	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 2)){

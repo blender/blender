@@ -2123,7 +2123,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	name= (namebuf)? namebuf: "";
 
 	/* hardcoded types */
-	if(itemptr->type == &RNA_MeshTextureFaceLayer || itemptr->type == &RNA_MeshColorLayer) {
+	if(itemptr->type == &RNA_MeshTexturePolyLayer || itemptr->type == &RNA_MeshLoopColorLayer) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "active_render", 0, 0, 0, 0, 0, NULL);

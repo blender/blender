@@ -48,8 +48,10 @@ extern "C" {
 #endif
 
 void free_key(struct Key *sc); 
+void free_key_nolib(struct Key *key);
 struct Key *add_key(struct ID *id);
 struct Key *copy_key(struct Key *key);
+struct Key *copy_key_nolib(struct Key *key);
 void make_local_key(struct Key *key);
 void sort_keys(struct Key *key);
 

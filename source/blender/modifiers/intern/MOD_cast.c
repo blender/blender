@@ -585,7 +585,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, struct EditMesh *editData,
+					   ModifierData *md, Object *ob, struct BMEditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);

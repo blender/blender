@@ -41,6 +41,7 @@
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
+#include "BKE_tessmesh.h"
 #include "BKE_report.h"
 
 #include "BLI_math.h"
@@ -584,56 +585,57 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		if(ob->type==OB_MESH)
 		{
 			Mesh *me= ob->data;
-			EditMesh *em = me->edit_mesh;
-			EditVert *eve;
-			EditSelection ese;
+			BMEditMesh *em = me->edit_btmesh;
+			BMVert *eve;
+			BMEditSelection ese;
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
-			if (activeOnly && EM_get_actSelection(em, &ese))
+			if (activeOnly && EDBM_get_actSelection(em, &ese))
 			{
-				EM_editselection_normal(normal, &ese);
-				EM_editselection_plane(plane, &ese);
+				EDBM_editselection_normal(normal, &ese);
+				EDBM_editselection_plane(em, plane, &ese);
 				
-				switch (ese.type)
+				switch (ese.htype)
 				{
-					case EDITVERT:
+					case BM_VERT:
 						result = ORIENTATION_VERT;
 						break;
-					case EDITEDGE:
+					case BM_EDGE:
 						result = ORIENTATION_EDGE;
 						break;
-					case EDITFACE:
+					case BM_FACE:
 						result = ORIENTATION_FACE;
 						break;
 				}
 			}
 			else
 			{
-				if (em->totfacesel >= 1)
+				if (em->bm->totfacesel >= 1)
 				{
-					EditFace *efa;
-					
-					for(efa= em->faces.first; efa; efa= efa->next)
-					{
-						if(efa->f & SELECT)
-						{
-							add_v3_v3(normal, efa->n);
-							sub_v3_v3v3(vec, efa->v2->co, efa->v1->co);
+					BMFace *efa;
+					BMIter iter;
+
+					BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+						if(BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+							add_v3_v3(normal, efa->no);
+							sub_v3_v3v3(vec,
+							            BM_FACE_FIRST_LOOP(efa)->v->co,
+							            BM_FACE_FIRST_LOOP(efa)->next->v->co);
 							add_v3_v3(plane, vec);
 						}
 					}
 					
 					result = ORIENTATION_FACE;
 				}
-				else if (em->totvertsel == 3)
+				else if (em->bm->totvertsel == 3)
 				{
-					EditVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
+					BMVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
+					BMIter iter;
 					float cotangent[3];
 					
-					for (eve = em->verts.first; eve; eve = eve->next)
-					{
-						if ( eve->f & SELECT ) {
+					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							if (v1 == NULL) {
 								v1 = eve; 
 							}
@@ -652,12 +654,13 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 
 					/* if there's an edge available, use that for the tangent */
-					if (em->totedgesel >= 1)
+					if (em->bm->totedgesel >= 1)
 					{
-						EditEdge *eed = NULL;
-	
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
+						BMEdge *eed = NULL;
+						BMIter iter;
+						
+						BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 								sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 								break;
 							}
@@ -666,12 +669,13 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 					result = ORIENTATION_FACE;
 				}
-				else if (em->totedgesel == 1)
+				else if (em->bm->totedgesel == 1)
 				{
-					EditEdge *eed;
-
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->f & SELECT) {
+					BMEdge *eed = NULL;
+					BMIter iter;
+					
+					BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							/* use average vert normals as plane and edge vector as normal */
 							copy_v3_v3(plane, eed->v1->no);
 							add_v3_v3(plane, eed->v2->no);
@@ -681,13 +685,13 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (em->totvertsel == 2)
+				else if (em->bm->totvertsel == 2)
 				{
-					EditVert *v1 = NULL, *v2 = NULL;
-		
-					for (eve = em->verts.first; eve; eve = eve->next)
-					{
-						if ( eve->f & SELECT ) {
+					BMVert *v1 = NULL, *v2 = NULL;
+					BMIter iter;
+
+					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							if (v1 == NULL) {
 								v1 = eve; 
 							}
@@ -703,24 +707,25 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (em->totvertsel == 1)
+				else if (em->bm->totvertsel == 1)
 				{
-					for (eve = em->verts.first; eve; eve = eve->next)
-					{
-						if ( eve->f & SELECT ) {
+					BMIter iter;
+
+					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							copy_v3_v3(normal, eve->no);
 							break;
 						}
 					}
 					result = ORIENTATION_VERT;
 				}
-				else if (em->totvertsel > 3)
+				else if (em->bm->totvertsel > 3)
 				{
-					normal[0] = normal[1] = normal[2] = 0;
-					
-					for (eve = em->verts.first; eve; eve = eve->next)
-					{
-						if ( eve->f & SELECT ) {
+					BMIter iter;
+					normal[0] = normal[1] = normal[2] = 0.0f;
+
+					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							add_v3_v3(normal, eve->no);
 						}
 					}

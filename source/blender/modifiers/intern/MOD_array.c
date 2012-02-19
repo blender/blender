@@ -39,22 +39,27 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 #include "BLI_ghash.h"
 #include "BLI_edgehash.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_tessmesh.h"
 
 #include "depsgraph_private.h"
 
-#include "MOD_util.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 static void initData(ModifierData *md)
 {
@@ -157,108 +162,60 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	return max_co - min_co;
 }
 
-/* XXX This function fixes bad merging code, in some cases removing vertices creates indices > maxvert */
-
-static int test_index_face_maxvert(MFace *mface, CustomData *fdata, int mfindex, int nr, int maxvert)
-{
-	if(mface->v1 >= maxvert) {
-		// printf("bad index in array\n");
-		mface->v1= maxvert - 1;
-	}
-	if(mface->v2 >= maxvert) {
-		// printf("bad index in array\n");
-		mface->v2= maxvert - 1;
-	}
-	if(mface->v3 >= maxvert) {
-		// printf("bad index in array\n");
-		mface->v3= maxvert - 1;
-	}
-	if(mface->v4 >= maxvert) {
-		// printf("bad index in array\n");
-		mface->v4= maxvert - 1;
-	}
-	
-	return test_index_face(mface, fdata, mfindex, nr);
-}
-
-typedef struct IndexMapEntry {
-	/* the new vert index that this old vert index maps to */
-	int new;
-	/* -1 if this vert isn't merged, otherwise the old vert index it
-	* should be replaced with
-	*/
-	int merge;
-	/* 1 if this vert's first copy is merged with the last copy of its
-	* merge target, otherwise 0
-	*/
-	short merge_final;
-} IndexMapEntry;
-
-/* indexMap - an array of IndexMap entries
- * oldIndex - the old index to map
- * copyNum - the copy number to map to (original = 0, first copy = 1, etc.)
+/* Used for start/end cap.
+ *
+ * this function expects all existing vertices to be tagged,
+ * so we can know new verts are not tagged.
+ *
+ * All verts will be tagged on exit.
  */
-static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
+static void bmesh_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
 {
-	if(indexMap[oldIndex].merge < 0) {
-		/* vert wasn't merged, so use copy of this vert */
-		return indexMap[oldIndex].new + copyNum;
-	} else if(indexMap[oldIndex].merge == oldIndex) {
-		/* vert was merged with itself */
-		return indexMap[oldIndex].new;
-	} else {
-		/* vert was merged with another vert */
-		/* follow the chain of merges to the end, or until we've passed
-		* a number of vertices equal to the copy number
-		*/
-		if(copyNum <= 0)
-			return indexMap[oldIndex].new;
-		else
-			return calc_mapping(indexMap, indexMap[oldIndex].merge,
-						copyNum - 1);
+	BMVert *v;
+	BMIter iter;
+
+	DM_to_bmesh_ex(dm, bm);
+
+	/* transform all verts */
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+			mul_m4_v3(mat, v->co);
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
+		}
 	}
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-					  struct Scene *scene, Object *ob, DerivedMesh *dm,
-	   int initFlags)
+					  Scene *scene, Object *ob, DerivedMesh *dm,
+										  int UNUSED(initFlags))
 {
-	int i, j;
+	DerivedMesh *result;
+	BMEditMesh *em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	BMOperator op, oldop, weldop;
+	int i, j, indexLen;
 	/* offset matrix */
 	float offset[4][4];
 	float final_offset[4][4];
 	float tmp_mat[4][4];
 	float length = amd->length;
-	int count = amd->count;
-	int numVerts, numEdges, numFaces;
-	int maxVerts, maxEdges, maxFaces;
-	int finalVerts, finalEdges, finalFaces;
-	DerivedMesh *result, *start_cap = NULL, *end_cap = NULL;
-	MVert *mvert, *src_mvert;
-	MEdge *medge;
-	MFace *mface;
-
-	IndexMapEntry *indexMap;
-
-	EdgeHash *edges;
+	int count = amd->count, maxVerts;
+	int *indexMap = NULL;
+	DerivedMesh *start_cap = NULL, *end_cap = NULL;
+	MVert *src_mvert;
 
 	/* need to avoid infinite recursion here */
 	if(amd->start_cap && amd->start_cap != ob)
-		start_cap = amd->start_cap->derivedFinal;
+		start_cap = mesh_get_derived_final(scene, amd->start_cap, CD_MASK_MESH);
 	if(amd->end_cap && amd->end_cap != ob)
-		end_cap = amd->end_cap->derivedFinal;
+		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
 
 	unit_m4(offset);
 
-	indexMap = MEM_callocN(sizeof(*indexMap) * dm->getNumVerts(dm),
-				   "indexmap");
-
 	src_mvert = dm->getVertArray(dm);
-
 	maxVerts = dm->getNumVerts(dm);
 
 	if(amd->offset_type & MOD_ARR_OFF_CONST)
-		add_v3_v3(offset[3], amd->offset);
+		add_v3_v3v3(offset[3], offset[3], amd->offset);
 	if(amd->offset_type & MOD_ARR_OFF_RELATIVE) {
 		for(j = 0; j < 3; j++)
 			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert,
@@ -278,6 +235,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		             obinv, amd->offset_ob->obmat,
 		             NULL, NULL, NULL, NULL, NULL);
 		copy_m4_m4(offset, result_mat);
+	}
+
+	/* calculate the offset matrix of the final copy (for merging) */
+	unit_m4(final_offset);
+
+	for(j=0; j < count - 1; j++) {
+		mult_m4_m4m4(tmp_mat, offset, final_offset);
+		copy_m4_m4(final_offset, tmp_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -316,459 +281,137 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(count < 1)
 		count = 1;
 
-	/* allocate memory for count duplicates (including original) plus
-		  * start and end caps
-	*/
-	finalVerts = dm->getNumVerts(dm) * count;
-	finalEdges = dm->getNumEdges(dm) * count;
-	finalFaces = dm->getNumFaces(dm) * count;
-	if(start_cap) {
-		finalVerts += start_cap->getNumVerts(start_cap);
-		finalEdges += start_cap->getNumEdges(start_cap);
-		finalFaces += start_cap->getNumFaces(start_cap);
-	}
-	if(end_cap) {
-		finalVerts += end_cap->getNumVerts(end_cap);
-		finalEdges += end_cap->getNumEdges(end_cap);
-		finalFaces += end_cap->getNumFaces(end_cap);
-	}
-	result = CDDM_from_template(dm, finalVerts, finalEdges, finalFaces);
+	/* BMESH_TODO: bumping up the stack level avoids computing the normals
+	   after every top-level operator execution (and this modifier has the
+	   potential to execute a *lot* of top-level BMOps. There should be a
+	   cleaner way to do this. One possibility: a "mirror" BMOp would
+	   certainly help by compressing it all into one top-level BMOp that
+	   executes a lot of second-level BMOps. */
+	BMO_push(em->bm, NULL);
+	bmesh_begin_edit(em->bm, 0);
 
-	/* calculate the offset matrix of the final copy (for merging) */
-	unit_m4(final_offset);
+	BMO_op_init(em->bm, &weldop, "weldverts");
+	BMO_op_initf(em->bm, &op, "dupe geom=%avef");
+	oldop = op;
+	for (j=0; j < count - 1; j++) {
+		BMVert *v, *v2;
+		BMOpSlot *s1;
+		BMOpSlot *s2;
 
-	for(j=0; j < count - 1; j++) {
-		mult_m4_m4m4(tmp_mat, offset, final_offset);
-		copy_m4_m4(final_offset, tmp_mat);
-	}
+		BMO_op_initf(em->bm, &op, "dupe geom=%s", &oldop, j==0 ? "geom" : "newout");
+		BMO_op_exec(em->bm, &op);
 
-	numVerts = numEdges = numFaces = 0;
-	mvert = CDDM_get_verts(result);
+		s1 = BMO_slot_get(&op, "geom");
+		s2 = BMO_slot_get(&op, "newout");
 
-	for (i = 0; i < maxVerts; i++) {
-		indexMap[i].merge = -1; /* default to no merge */
-		indexMap[i].merge_final = 0; /* default to no merge */
-	}
+		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
 
-	for (i = 0; i < maxVerts; i++) {
-		MVert *inMV;
-		MVert *mv = &mvert[numVerts];
-		MVert *mv2;
-		float co[3];
+		#define _E(s, i) ((BMVert**)(s)->data.buf)[i]
 
-		inMV = &src_mvert[i];
+		/*calculate merge mapping*/
+		if (j == 0) {
+			BMOperator findop;
+			BMOIter oiter;
+			BMVert *v, *v2;
+			BMHeader *h;
 
-		DM_copy_vert_data(dm, result, i, numVerts, 1);
-		*mv = *inMV;
-		numVerts++;
+			BMO_op_initf(em->bm, &findop,
+			             "finddoubles verts=%av dist=%f keepverts=%s",
+			             amd->merge_dist, &op, "geom");
 
-		indexMap[i].new = numVerts - 1;
-
-		copy_v3_v3(co, mv->co);
-		
-		/* Attempts to merge verts from one duplicate with verts from the
-			  * next duplicate which are closer than amd->merge_dist.
-			  * Only the first such vert pair is merged.
-			  * If verts are merged in the first duplicate pair, they are merged
-			  * in all pairs.
-		*/
-		if((count > 1) && (amd->flags & MOD_ARR_MERGE)) {
-			float tmp_co[3];
-			mul_v3_m4v3(tmp_co, offset, mv->co);
-
-			for(j = 0; j < maxVerts; j++) {
-				/* if vertex already merged, don't use it */
-				if( indexMap[j].merge != -1 ) continue;
-
-				inMV = &src_mvert[j];
-				/* if this vert is within merge limit, merge */
-				if(compare_len_v3v3(tmp_co, inMV->co, amd->merge_dist)) {
-					indexMap[i].merge = j;
-
-					/* test for merging with final copy of merge target */
-					if(amd->flags & MOD_ARR_MERGEFINAL) {
-						copy_v3_v3(tmp_co, inMV->co);
-						inMV = &src_mvert[i];
-						mul_m4_v3(final_offset, tmp_co);
-						if(compare_len_v3v3(tmp_co, inMV->co, amd->merge_dist))
-							indexMap[i].merge_final = 1;
-					}
-					break;
-				}
+			i = 0;
+			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
+				BM_elem_index_set(h, i); /* set_dirty */
+				i++;
 			}
+
+			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
+				BM_elem_index_set(h, i); /* set_dirty */
+				i++;
+			}
+			/* above loops over all, so set all to dirty, if this is somehow
+			 * setting valid values, this line can be remvoed - campbell */
+			em->bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+
+
+			BMO_op_exec(em->bm, &findop);
+
+			indexLen = i;
+			indexMap = MEM_callocN(sizeof(int)*indexLen, "indexMap");
+
+			/*element type argument doesn't do anything here*/
+			BMO_ITER(v, &oiter, em->bm, &findop, "targetmapout", 0) {
+				v2 = BMO_iter_map_value_p(&oiter);
+
+				indexMap[BM_elem_index_get(v)] = BM_elem_index_get(v2)+1;
+			}
+
+			BMO_op_finish(em->bm, &findop);
 		}
 
-		/* if no merging, generate copies of this vert */
-		if(indexMap[i].merge < 0) {
-			for(j=0; j < count - 1; j++) {
-				mv2 = &mvert[numVerts];
+		/*generate merge mappping using index map.  we do this by using the
+		  operator slots as lookup arrays.*/
+		#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
 
-				DM_copy_vert_data(result, result, numVerts - 1, numVerts, 1);
-				*mv2 = *mv;
-				numVerts++;
+		for (i=0; i<indexLen; i++) {
+			if (!indexMap[i]) continue;
 
-				mul_m4_v3(offset, co);
-				copy_v3_v3(mv2->co, co);
-			}
-		} else if(indexMap[i].merge != i && indexMap[i].merge_final) {
-			/* if this vert is not merging with itself, and it is merging
-				  * with the final copy of its merge target, remove the first copy
-			*/
-			numVerts--;
-			DM_free_vert_data(result, numVerts, 1);
+			v = E(i);
+			v2 = E(indexMap[i]-1);
+
+			BMO_slot_map_ptr_insert(em->bm, &weldop, "targetmap", v, v2);
 		}
+
+		#undef E
+		#undef _E
+
+		BMO_op_finish(em->bm, &oldop);
+		oldop = op;
 	}
 
-	/* make a hashtable so we can avoid duplicate edges from merging */
-	edges = BLI_edgehash_new();
+	if (j > 0) BMO_op_finish(em->bm, &op);
 
-	maxEdges = dm->getNumEdges(dm);
-	medge = CDDM_get_edges(result);
-	for(i = 0; i < maxEdges; i++) {
-		MEdge inMED;
-		MEdge med;
-		MEdge *med2;
-		int vert1, vert2;
+	/* BMESH_TODO - cap ends are not welded, even though weld is called after */
 
-		dm->getEdge(dm, i, &inMED);
+	/* start capping */
+	if ((start_cap || end_cap) &&
 
-		med = inMED;
-		med.v1 = indexMap[inMED.v1].new;
-		med.v2 = indexMap[inMED.v2].new;
+	    /* BMESH_TODO - theres a bug in DM_to_bmesh_ex() when in editmode!
+		 * this needs investigation, but for now at least dont crash */
+	    ob->mode != OB_MODE_EDIT
 
-		/* if vertices are to be merged with the final copies of their
-			  * merge targets, calculate that final copy
-		*/
-		if(indexMap[inMED.v1].merge_final) {
-			med.v1 = calc_mapping(indexMap, indexMap[inMED.v1].merge,
-			count - 1);
-		}
-		if(indexMap[inMED.v2].merge_final) {
-			med.v2 = calc_mapping(indexMap, indexMap[inMED.v2].merge,
-			count - 1);
+	    )
+	{
+		BM_mesh_elem_flag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG);
+
+		if (start_cap) {
+			float startoffset[4][4];
+			invert_m4_m4(startoffset, offset);
+			bmesh_merge_dm_transform(em->bm, start_cap, startoffset);
 		}
 
-		if(med.v1 == med.v2) continue;
-
-		/* XXX Unfortunately the calc_mapping returns sometimes numVerts... leads to bad crashes */
-		if(med.v1 >= numVerts)
-			med.v1= numVerts-1;
-		if(med.v2 >= numVerts)
-			med.v2= numVerts-1;
-
-		if (initFlags) {
-			med.flag |= ME_EDGEDRAW | ME_EDGERENDER;
-		}
-
-		if(!BLI_edgehash_haskey(edges, med.v1, med.v2)) {
-			DM_copy_edge_data(dm, result, i, numEdges, 1);
-			medge[numEdges] = med;
-			numEdges++;
-
-			BLI_edgehash_insert(edges, med.v1, med.v2, NULL);
-		}
-
-		for(j = 1; j < count; j++)
-		{
-			vert1 = calc_mapping(indexMap, inMED.v1, j);
-			vert2 = calc_mapping(indexMap, inMED.v2, j);
-
-			/* edge could collapse to single point after mapping */
-			if(vert1 == vert2) continue;
-
-			/* XXX Unfortunately the calc_mapping returns sometimes numVerts... leads to bad crashes */
-			if(vert1 >= numVerts)
-				vert1= numVerts-1;
-			if(vert2 >= numVerts)
-				vert2= numVerts-1;
-
-			/* avoid duplicate edges */
-			if(!BLI_edgehash_haskey(edges, vert1, vert2)) {
-				med2 = &medge[numEdges];
-
-				DM_copy_edge_data(dm, result, i, numEdges, 1);
-				*med2 = med;
-				numEdges++;
-
-				med2->v1 = vert1;
-				med2->v2 = vert2;
-
-				BLI_edgehash_insert(edges, med2->v1, med2->v2, NULL);
-			}
+		if (end_cap) {
+			float endoffset[4][4];
+			mult_m4_m4m4(endoffset, offset, final_offset);
+			bmesh_merge_dm_transform(em->bm, end_cap, endoffset);
 		}
 	}
+	/* done capping */
 
-	maxFaces = dm->getNumFaces(dm);
-	mface = CDDM_get_faces(result);
-	for (i=0; i < maxFaces; i++) {
-		MFace inMF;
-		MFace *mf = &mface[numFaces];
+	if (amd->flags & MOD_ARR_MERGE)
+		BMO_op_exec(em->bm, &weldop);
 
-		dm->getFace(dm, i, &inMF);
+	BMO_op_finish(em->bm, &weldop);
 
-		DM_copy_face_data(dm, result, i, numFaces, 1);
-		*mf = inMF;
+	/* Bump the stack level back down to match the adjustment up above */
+	BMO_pop(em->bm);
 
-		mf->v1 = indexMap[inMF.v1].new;
-		mf->v2 = indexMap[inMF.v2].new;
-		mf->v3 = indexMap[inMF.v3].new;
-		if(inMF.v4)
-			mf->v4 = indexMap[inMF.v4].new;
+	BLI_assert(em->looptris == NULL);
+	result = CDDM_from_BMEditMesh(em, NULL, FALSE, FALSE);
 
-		/* if vertices are to be merged with the final copies of their
-			  * merge targets, calculate that final copy
-		*/
-		if(indexMap[inMF.v1].merge_final)
-			mf->v1 = calc_mapping(indexMap, indexMap[inMF.v1].merge, count-1);
-		if(indexMap[inMF.v2].merge_final)
-			mf->v2 = calc_mapping(indexMap, indexMap[inMF.v2].merge, count-1);
-		if(indexMap[inMF.v3].merge_final)
-			mf->v3 = calc_mapping(indexMap, indexMap[inMF.v3].merge, count-1);
-		if(inMF.v4 && indexMap[inMF.v4].merge_final)
-			mf->v4 = calc_mapping(indexMap, indexMap[inMF.v4].merge, count-1);
-
-		if(test_index_face_maxvert(mf, &result->faceData, numFaces, inMF.v4?4:3, numVerts) < 3)
-			continue;
-
-		numFaces++;
-
-		/* if the face has fewer than 3 vertices, don't create it */
-		if(mf->v3 == 0 || (mf->v1 && (mf->v1 == mf->v3 || mf->v1 == mf->v4))) {
-			numFaces--;
-			DM_free_face_data(result, numFaces, 1);
-		}
-
-		for(j = 1; j < count; j++)
-		{
-			MFace *mf2 = &mface[numFaces];
-
-			DM_copy_face_data(dm, result, i, numFaces, 1);
-			*mf2 = *mf;
-
-			mf2->v1 = calc_mapping(indexMap, inMF.v1, j);
-			mf2->v2 = calc_mapping(indexMap, inMF.v2, j);
-			mf2->v3 = calc_mapping(indexMap, inMF.v3, j);
-			if (inMF.v4)
-				mf2->v4 = calc_mapping(indexMap, inMF.v4, j);
-
-			numFaces++;
-
-			/* if the face has fewer than 3 vertices, don't create it */
-			if(test_index_face_maxvert(mf2, &result->faceData, numFaces-1, inMF.v4?4:3, numVerts) < 3) {
-				numFaces--;
-				DM_free_face_data(result, numFaces, 1);
-			}
-		}
-	}
-
-	/* add start and end caps */
-	if(start_cap) {
-		float startoffset[4][4];
-		MVert *cap_mvert;
-		MEdge *cap_medge;
-		MFace *cap_mface;
-		int *origindex;
-		int *vert_map;
-		int capVerts, capEdges, capFaces;
-
-		capVerts = start_cap->getNumVerts(start_cap);
-		capEdges = start_cap->getNumEdges(start_cap);
-		capFaces = start_cap->getNumFaces(start_cap);
-		cap_mvert = start_cap->getVertArray(start_cap);
-		cap_medge = start_cap->getEdgeArray(start_cap);
-		cap_mface = start_cap->getFaceArray(start_cap);
-
-		invert_m4_m4(startoffset, offset);
-
-		vert_map = MEM_callocN(sizeof(*vert_map) * capVerts,
-		"arrayModifier_doArray vert_map");
-
-		origindex = result->getVertDataArray(result, CD_ORIGINDEX);
-		for(i = 0; i < capVerts; i++) {
-			MVert *mv = &cap_mvert[i];
-			short merged = 0;
-
-			if(amd->flags & MOD_ARR_MERGE) {
-				float tmp_co[3];
-				MVert *in_mv;
-				int j;
-
-				copy_v3_v3(tmp_co, mv->co);
-				mul_m4_v3(startoffset, tmp_co);
-
-				for(j = 0; j < maxVerts; j++) {
-					in_mv = &src_mvert[j];
-					/* if this vert is within merge limit, merge */
-					if(compare_len_v3v3(tmp_co, in_mv->co, amd->merge_dist)) {
-						vert_map[i] = calc_mapping(indexMap, j, 0);
-						merged = 1;
-						break;
-					}
-				}
-			}
-
-			if(!merged) {
-				DM_copy_vert_data(start_cap, result, i, numVerts, 1);
-				mvert[numVerts] = *mv;
-				mul_m4_v3(startoffset, mvert[numVerts].co);
-				origindex[numVerts] = ORIGINDEX_NONE;
-
-				vert_map[i] = numVerts;
-
-				numVerts++;
-			}
-		}
-		origindex = result->getEdgeDataArray(result, CD_ORIGINDEX);
-		for(i = 0; i < capEdges; i++) {
-			int v1, v2;
-
-			v1 = vert_map[cap_medge[i].v1];
-			v2 = vert_map[cap_medge[i].v2];
-
-			if(!BLI_edgehash_haskey(edges, v1, v2)) {
-				DM_copy_edge_data(start_cap, result, i, numEdges, 1);
-				medge[numEdges] = cap_medge[i];
-				medge[numEdges].v1 = v1;
-				medge[numEdges].v2 = v2;
-				origindex[numEdges] = ORIGINDEX_NONE;
-
-				numEdges++;
-			}
-		}
-		origindex = result->getFaceDataArray(result, CD_ORIGINDEX);
-		for(i = 0; i < capFaces; i++) {
-			DM_copy_face_data(start_cap, result, i, numFaces, 1);
-			mface[numFaces] = cap_mface[i];
-			mface[numFaces].v1 = vert_map[mface[numFaces].v1];
-			mface[numFaces].v2 = vert_map[mface[numFaces].v2];
-			mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-			if(mface[numFaces].v4) {
-				mface[numFaces].v4 = vert_map[mface[numFaces].v4];
-
-				test_index_face_maxvert(&mface[numFaces], &result->faceData,
-				numFaces, 4, numVerts);
-			}
-			else
-			{
-				test_index_face(&mface[numFaces], &result->faceData,
-				numFaces, 3);
-			}
-
-			origindex[numFaces] = ORIGINDEX_NONE;
-
-			numFaces++;
-		}
-
-		MEM_freeN(vert_map);
-		start_cap->release(start_cap);
-	}
-
-	if(end_cap) {
-		float endoffset[4][4];
-		MVert *cap_mvert;
-		MEdge *cap_medge;
-		MFace *cap_mface;
-		int *origindex;
-		int *vert_map;
-		int capVerts, capEdges, capFaces;
-
-		capVerts = end_cap->getNumVerts(end_cap);
-		capEdges = end_cap->getNumEdges(end_cap);
-		capFaces = end_cap->getNumFaces(end_cap);
-		cap_mvert = end_cap->getVertArray(end_cap);
-		cap_medge = end_cap->getEdgeArray(end_cap);
-		cap_mface = end_cap->getFaceArray(end_cap);
-
-		mult_m4_m4m4(endoffset, offset, final_offset);
-
-		vert_map = MEM_callocN(sizeof(*vert_map) * capVerts,
-		"arrayModifier_doArray vert_map");
-
-		origindex = result->getVertDataArray(result, CD_ORIGINDEX);
-		for(i = 0; i < capVerts; i++) {
-			MVert *mv = &cap_mvert[i];
-			short merged = 0;
-
-			if(amd->flags & MOD_ARR_MERGE) {
-				float tmp_co[3];
-				MVert *in_mv;
-				int j;
-
-				copy_v3_v3(tmp_co, mv->co);
-				mul_m4_v3(offset, tmp_co);
-
-				for(j = 0; j < maxVerts; j++) {
-					in_mv = &src_mvert[j];
-					/* if this vert is within merge limit, merge */
-					if(compare_len_v3v3(tmp_co, in_mv->co, amd->merge_dist)) {
-						vert_map[i] = calc_mapping(indexMap, j, count - 1);
-						merged = 1;
-						break;
-					}
-				}
-			}
-
-			if(!merged) {
-				DM_copy_vert_data(end_cap, result, i, numVerts, 1);
-				mvert[numVerts] = *mv;
-				mul_m4_v3(endoffset, mvert[numVerts].co);
-				origindex[numVerts] = ORIGINDEX_NONE;
-
-				vert_map[i] = numVerts;
-
-				numVerts++;
-			}
-		}
-		origindex = result->getEdgeDataArray(result, CD_ORIGINDEX);
-		for(i = 0; i < capEdges; i++) {
-			int v1, v2;
-
-			v1 = vert_map[cap_medge[i].v1];
-			v2 = vert_map[cap_medge[i].v2];
-
-			if(!BLI_edgehash_haskey(edges, v1, v2)) {
-				DM_copy_edge_data(end_cap, result, i, numEdges, 1);
-				medge[numEdges] = cap_medge[i];
-				medge[numEdges].v1 = v1;
-				medge[numEdges].v2 = v2;
-				origindex[numEdges] = ORIGINDEX_NONE;
-
-				numEdges++;
-			}
-		}
-		origindex = result->getFaceDataArray(result, CD_ORIGINDEX);
-		for(i = 0; i < capFaces; i++) {
-			DM_copy_face_data(end_cap, result, i, numFaces, 1);
-			mface[numFaces] = cap_mface[i];
-			mface[numFaces].v1 = vert_map[mface[numFaces].v1];
-			mface[numFaces].v2 = vert_map[mface[numFaces].v2];
-			mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-			if(mface[numFaces].v4) {
-				mface[numFaces].v4 = vert_map[mface[numFaces].v4];
-
-				test_index_face(&mface[numFaces], &result->faceData,
-				numFaces, 4);
-			}
-			else
-			{
-				test_index_face(&mface[numFaces], &result->faceData,
-				numFaces, 3);
-			}
-			origindex[numFaces] = ORIGINDEX_NONE;
-
-			numFaces++;
-		}
-
-		MEM_freeN(vert_map);
-		end_cap->release(end_cap);
-	}
-
-	BLI_edgehash_free(edges, NULL);
+	BMEdit_Free(em);
+	MEM_freeN(em);
 	MEM_freeN(indexMap);
-
-	CDDM_lower_num_verts(result, numVerts);
-	CDDM_lower_num_edges(result, numEdges);
-	CDDM_lower_num_faces(result, numFaces);
 
 	return result;
 }
@@ -783,14 +426,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
 
-	if(result != dm)
-		CDDM_calc_normals(result);
+	//if(result != dm)
+	//	CDDM_calc_normals_mapping(result);
 
 	return result;
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						struct EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *dm)
 {
 	return applyModifier(md, ob, dm, 0, 1);

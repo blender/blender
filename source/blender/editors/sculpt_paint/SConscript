@@ -8,7 +8,7 @@ defs = []
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include'
-incs += ' ../../gpu ../../makesrna ../../blenloader ../uvedit'
+incs += ' ../../gpu ../../makesrna ../../blenloader ../../bmesh ../uvedit'
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'

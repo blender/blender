@@ -12,6 +12,9 @@ incs += ' ../render/extern/include #/intern/cycles/blender'
 incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 
+incs += ' ../bmesh'
+
+
 defs = []
 
 if env['WITH_BF_OPENEXR']:

@@ -30,6 +30,8 @@
 
 
 #include <float.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -39,7 +41,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -47,9 +48,9 @@
 
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
@@ -59,6 +60,8 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_tessmesh.h"
+#include "BKE_depsgraph.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -94,8 +97,8 @@ typedef struct tringselOpData {
 	ViewContext vc;
 
 	Object *ob;
-	EditMesh *em;
-	EditEdge *eed;
+	BMEditMesh *em;
+	BMEdge *eed;
 	NumInput num;
 
 	int extend;
@@ -130,17 +133,62 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 }
 
+/*given two opposite edges in a face, finds the ordering of their vertices so
+  that cut preview lines won't cross each other*/
+static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
+                                BMVert *lastv1, BMVert *v[2][2])
+{
+	BMIter liter;
+	BMLoop *l, *l2;
+	int rev;
+
+	l = eed->l;
+
+	/*find correct order for v[1]*/
+	if (!(BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))) {
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_LOOP, l) {
+			if (BM_edge_in_face(l->f, eed) && BM_edge_in_face(l->f, lasteed))
+				break;
+		}
+	}
+	
+	/*this should never happen*/
+	if (!l) {
+		v[0][0] = eed->v1;
+		v[0][1] = eed->v2;
+		v[1][0] = lasteed->v1;
+		v[1][1] = lasteed->v2;
+		return;
+	}
+	
+	l2 = BM_face_other_loop(l->e, l->f, eed->v1);
+	rev = (l2 == l->prev);
+	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
+		l2 = rev ? l2->prev : l2->next;
+	}
+
+	if (l2->v == lastv1) {
+		v[0][0] = eed->v1;
+		v[0][1] = eed->v2;
+	} else {
+		v[0][0] = eed->v2;
+		v[0][1] = eed->v1;
+	}
+}
+
 static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 {
-	EditMesh *em = lcd->em;
-	EditEdge *startedge = lcd->eed;
-	EditEdge *eed;
-	EditFace *efa;
-	EditVert *v[2][2];
+	BMEditMesh *em = lcd->em;
+	BMEdge *startedge = lcd->eed;
+	BMEdge *eed, *lasteed;
+	BMVert *v[2][2], *lastv1;
+	BMWalker walker;
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
 	float co[2][3];
-	int looking=1, i, tot=0;
+	int i, tot=0;
+	
+	memset(v, 0, sizeof(v));
 	
 	if (!startedge)
 		return;
@@ -152,110 +200,87 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	}
 
 	if (!lcd->extend) {
-		EM_clear_flag_all(lcd->em, SELECT);
+		EDBM_flag_disable_all(lcd->em, BM_ELEM_SELECT);
 	}
 
-	/* in eed->f1 we put the valence (amount of faces in edge) */
-	/* in eed->f2 we put tagged flag as correct loop */
-	/* in efa->f1 we put tagged flag as correct to select */
+	if (select) {
+		BMW_init(&walker, em->bm, BMW_EDGERING,
+		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_NIL_LAY);
 
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
-		eed->f2= 0;
-	}
-
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		efa->f1= 0;
-		if(efa->h==0) {
-			efa->e1->f1++;
-			efa->e2->f1++;
-			efa->e3->f1++;
-			if(efa->e4) efa->e4->f1++;
+		eed = BMW_begin(&walker, startedge);
+		for (; eed; eed=BMW_step(&walker)) {
+			BM_elem_select_set(em->bm, eed, TRUE);
 		}
+		BMW_end(&walker);
+
+		return;
+	}
+
+	BMW_init(&walker, em->bm, BMW_EDGERING,
+	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_NIL_LAY);
+
+	eed = startedge = BMW_begin(&walker, startedge);
+	lastv1 = NULL;
+	for (lasteed=NULL; eed; eed=BMW_step(&walker)) {
+		if (lasteed) {
+			if (lastv1) {
+				v[1][0] = v[0][0];
+				v[1][1] = v[0][1];
+			} else {
+				v[1][0] = lasteed->v1;
+				v[1][1] = lasteed->v2;
+				lastv1 = lasteed->v1;
+			}
+
+			edgering_find_order(em, lasteed, eed, lastv1, v);
+			lastv1 = v[0][0];
+
+			for(i=1;i<=previewlines;i++){
+				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
+				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
+				co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
+
+				co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
+				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
+				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
+
+				BLI_array_growone(edges);
+				copy_v3_v3(edges[tot][0], co[0]);
+				copy_v3_v3(edges[tot][1], co[1]);
+				tot++;
+			}
+		}
+		lasteed = eed;
 	}
 	
-	// tag startedge OK
-	startedge->f2= 1;
-	
-	while(looking) {
-		looking= 0;
+	if (lasteed != startedge && BM_edge_share_faces(lasteed, startedge)) {
+		v[1][0] = v[0][0];
+		v[1][1] = v[0][1];
+
+		edgering_find_order(em, lasteed, startedge, lastv1, v);
 		
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e4 && efa->f1==0 && efa->h == 0) {	// not done quad
-				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
+		for(i=1;i<=previewlines;i++){
+			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
+				continue;
+			
+			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
+			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
+			co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
 
-					// if edge tagged, select opposing edge and mark face ok
-					if(efa->e1->f2) {
-						efa->e3->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					else if(efa->e2->f2) {
-						efa->e4->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					if(efa->e3->f2) {
-						efa->e1->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					if(efa->e4->f2) {
-						efa->e2->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-				}
-			}
-		}
-	}
-	
-	if(previewlines > 0 && !select){
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				if(efa->v4 == NULL) {  continue; }
-				if(efa->h == 0){
-					if(efa->e1->f2 == 1){
-						if(efa->e1->h == 1 || efa->e3->h == 1 )
-							continue;
-						
-						v[0][0] = efa->v1;
-						v[0][1] = efa->v2;
-						v[1][0] = efa->v4;
-						v[1][1] = efa->v3;
-					} else if(efa->e2->f2 == 1){
-						if(efa->e2->h == 1 || efa->e4->h == 1)
-							continue;
-						v[0][0] = efa->v2;
-						v[0][1] = efa->v3;
-						v[1][0] = efa->v1;
-						v[1][1] = efa->v4;					
-					} else { continue; }
-										  
-					for(i=1;i<=previewlines;i++){
-						co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
-						co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
-						co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
-
-						co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
-						co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
-						co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
-						
-						BLI_array_growone(edges);
-						copy_v3_v3(edges[tot][0], co[0]);
-						copy_v3_v3(edges[tot][1], co[1]);
-						tot++;
-					}
-				}
-			}
-	} else {
-		select = (startedge->f & SELECT) == 0;
-
-		/* select the edges */
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f2) EM_select_edge(eed, select);
+			co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
+			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
+			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
+			
+			BLI_array_growone(edges);
+			copy_v3_v3(edges[tot][0], co[0]);
+			copy_v3_v3(edges[tot][1], co[1]);
+			tot++;
 		}
 	}
 
+	BMW_end(&walker);
 	lcd->edges = edges;
 	lcd->totedge = tot;
 }
@@ -265,7 +290,8 @@ static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
 	} else if(lcd->edges) {
-		MEM_freeN(lcd->edges);
+		if (lcd->edges)
+			MEM_freeN(lcd->edges);
 		lcd->edges = NULL;
 		lcd->totedge = 0;
 	}
@@ -274,17 +300,18 @@ static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 static void ringsel_finish(bContext *C, wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
-	int cuts= (lcd->do_cut)? RNA_int_get(op->ptr,"number_cuts"): 0;
+	int cuts= RNA_int_get(op->ptr, "number_cuts");
 
 	if (lcd->eed) {
-		EditMesh *em = BKE_mesh_get_editmesh(lcd->ob->data);
-		
+		BMEditMesh *em = lcd->em;
+
 		edgering_sel(lcd, cuts, 1);
 		
 		if (lcd->do_cut) {
-
-			esubdivideflag(lcd->ob, em, SELECT, 0.0f, 0.0f, 0, cuts, 0, SUBDIV_SELECT_LOOPCUT);
-
+			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f, 
+			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
+			                  SUBD_PATH, 0, 0, 0);
+			
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
 				if (em->selectmode == SCE_SELECT_FACE)
@@ -292,30 +319,32 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				else
 					em->selectmode &= ~SCE_SELECT_FACE;
 				CTX_data_tool_settings(C)->selectmode= em->selectmode;
-				EM_selectmode_set(em);
+				EDBM_selectmode_set(em);
+
+				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
 
 				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
-			
+
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT|ND_DATA, lcd->ob->data);
 			DAG_id_tag_update(lcd->ob->data, 0);
-			WM_event_add_notifier(C, NC_GEOM|ND_DATA, lcd->ob->data);
 		}
 		else {
 			
 			/* sets as active, useful for other tools */
 			if(em->selectmode & SCE_SELECT_VERTEX)
-				EM_store_selection(em, lcd->eed->v1, EDITVERT);
+				EDBM_store_selection(em, lcd->eed->v1); /* low priority TODO, get vertrex close to mouse */
 			if(em->selectmode & SCE_SELECT_EDGE)
-				EM_store_selection(em, lcd->eed, EDITEDGE);
+				EDBM_store_selection(em, lcd->eed);
 			
-			EM_selectmode_flush(lcd->em);
+			EDBM_selectmode_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, lcd->ob->data);
 		}
 	}
 }
 
 /* called when modal loop selection is done... */
-static void ringsel_exit(wmOperator *op)
+static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
 
@@ -344,7 +373,7 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	lcd->ar= CTX_wm_region(C);
 	lcd->draw_handle= ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
 	lcd->ob = CTX_data_edit_object(C);
-	lcd->em= BKE_mesh_get_editmesh((Mesh *)lcd->ob->data);
+	lcd->em= ((Mesh *)lcd->ob->data)->edit_btmesh;
 	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");
 	lcd->do_cut = do_cut;
 	
@@ -359,12 +388,15 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	return 1;
 }
 
-static int ringcut_cancel (bContext *UNUSED(C), wmOperator *op)
+static int ringcut_cancel (bContext *C, wmOperator *op)
 {
 	/* this is just a wrapper around exit() */
-	ringsel_exit(op);
+	ringsel_exit(C, op);
 	return OPERATOR_CANCELLED;
 }
+
+/* for bmesh this tool is in bmesh_select.c */
+#if 0
 
 static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
@@ -411,11 +443,13 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_FINISHED;
 }
 
+#endif
+
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	tringselOpData *lcd;
-	EditEdge *edge;
+	BMEdge *edge;
 	int dist = 75;
 
 	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
@@ -433,7 +467,7 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	lcd->vc.mval[0] = evt->mval[0];
 	lcd->vc.mval[1] = evt->mval[1];
 	
-	edge = findnearestedge(&lcd->vc, &dist);
+	edge = EDBM_findnearestedge(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
 		ringsel_find_edge(lcd, 1);
@@ -443,22 +477,23 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
+static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
 	tringselOpData *lcd= op->customdata;
 
 	view3d_operator_needs_opengl(C);
 
-
 	switch (event->type) {
+		case RETKEY:
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
 			if (event->val == KM_PRESS) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
 				
 				ringsel_finish(C, op);
-				ringsel_exit(op);
+				ringsel_exit(C, op);
+				
 				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
 				return OPERATOR_FINISHED;
@@ -467,6 +502,11 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			ED_region_tag_redraw(lcd->ar);
 			break;
 		case RIGHTMOUSE: /* abort */ // XXX hardcoded
+			ED_region_tag_redraw(lcd->ar);
+			ringsel_exit(C, op);
+			ED_area_headerprint(CTX_wm_area(C), NULL);
+
+			return OPERATOR_FINISHED;
 		case ESCKEY:
 			if (event->val == KM_RELEASE) {
 				/* cancel */
@@ -478,35 +518,37 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		case WHEELUPMOUSE:  /* change number of cuts */
 		case PADPLUSKEY:
 		case PAGEUPKEY:
-			if (event->val == KM_PRESS) {
-				cuts++;
-				RNA_int_set(op->ptr, "number_cuts",cuts);
-				ringsel_find_edge(lcd, cuts);
-				
-				ED_region_tag_redraw(lcd->ar);
-			}
+		case WHEELUPMOUSE:  /* change number of cuts */
+			if (event->val == KM_RELEASE)
+				break;
+
+			cuts++;
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
 			break;
-		case WHEELDOWNMOUSE:  /* change number of cuts */
 		case PADMINUS:
 		case PAGEDOWNKEY:
-			if (event->val == KM_PRESS) {
-				cuts=MAX2(cuts-1,1);
-				RNA_int_set(op->ptr,"number_cuts",cuts);
-				ringsel_find_edge(lcd, cuts);
-				
-				ED_region_tag_redraw(lcd->ar);
-			}
+		case WHEELDOWNMOUSE:  /* change number of cuts */
+			if (event->val == KM_RELEASE)
+				break;
+
+			cuts=MAX2(cuts-1,1);
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
 			break;
 		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
 			int dist = 75;
-			EditEdge *edge;
+			BMEdge *edge;
 
 			lcd->vc.mval[0] = event->mval[0];
 			lcd->vc.mval[1] = event->mval[1];
-			edge = findnearestedge(&lcd->vc, &dist);
+			edge = EDBM_findnearestedge(&lcd->vc, &dist);
 
 			if (edge != lcd->eed) {
 				lcd->eed = edge;
@@ -539,6 +581,9 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* for bmesh this tool is in bmesh_select.c */
+#if 0
+
 void MESH_OT_edgering_select (wmOperatorType *ot)
 {
 	/* description */
@@ -556,6 +601,8 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
 
+#endif
+
 void MESH_OT_loopcut (wmOperatorType *ot)
 {
 	/* description */
@@ -565,7 +612,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->invoke= ringcut_invoke;
-	ot->modal= ringcut_modal;
+	ot->modal= loopcut_modal;
 	ot->cancel= ringcut_cancel;
 	ot->poll= ED_operator_editmesh_region_view3d;
 	

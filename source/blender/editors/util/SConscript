@@ -5,7 +5,7 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../makesrna'
+incs += ' ../../makesrna ../../bmesh'
 incs += ' ../../blenloader'
 
 env.BlenderLib ( 'bf_editors_util', sources, Split(incs), [], libtype=['core','player'], priority=[330,210] )

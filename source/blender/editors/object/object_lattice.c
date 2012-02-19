@@ -366,7 +366,7 @@ typedef struct UndoLattice {
 	int pntsu, pntsv, pntsw;
 } UndoLattice;
 
-static void undoLatt_to_editLatt(void *data, void *edata)
+static void undoLatt_to_editLatt(void *data, void *edata, void *UNUSED(obdata))
 {
 	UndoLattice *ult= (UndoLattice*)data;
 	EditLatt *editlatt= (EditLatt *)edata;
@@ -375,7 +375,7 @@ static void undoLatt_to_editLatt(void *data, void *edata)
 	memcpy(editlatt->latt->def, ult->def, a*sizeof(BPoint));
 }
 
-static void *editLatt_to_undoLatt(void *edata)
+static void *editLatt_to_undoLatt(void *edata, void *UNUSED(obdata))
 {
 	UndoLattice *ult= MEM_callocN(sizeof(UndoLattice), "UndoLattice");
 	EditLatt *editlatt= (EditLatt *)edata;

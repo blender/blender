@@ -32,17 +32,20 @@
  *  \ingroup modifiers
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 
-#include "BKE_bmesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
-#include "BKE_particle.h"
+#include "BKE_tessmesh.h"
+#include "BKE_mesh.h"
 
-#include "MOD_util.h"
+#include "BKE_bmesh.h" /* only for defines */
+
+#include "DNA_object_types.h"
+
+#include "MEM_guardedalloc.h"
 
 
 static void initData(ModifierData *md)
@@ -85,6 +88,77 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
+#define EDGE_MARK	1
+
+
+/* BMESH_TODO
+ *
+ * this bevel calls the operator which is missing many of the options
+ * which the bevel modifier in trunk has.
+ * - width is interpreted as percent (not distance)
+ * - no vertex bevel
+ * - no weight bevel
+ *
+ * These will need to be added to the bmesh operator.
+ *       - campbell
+ *
+ * note: this code is very close to MOD_edgesplit.c.
+ * note: if 0'd code from trunk included below.
+ */
+static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
+{
+	DerivedMesh *result;
+	BMesh *bm;
+	BMEditMesh *em;
+	BMIter iter;
+	BMEdge *e;
+	BevelModifierData *bmd = (BevelModifierData*) md;
+	float threshold = cos((bmd->bevel_angle + 0.00001) * M_PI / 180.0);
+
+	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	bm = em->bm;
+
+	BM_mesh_normals_update(bm);
+	BMO_push(bm, NULL);
+
+	if (bmd->lim_flags & BME_BEVEL_ANGLE) {
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			/* check for 1 edge having 2 face users */
+			BMLoop *l1, *l2;
+			if ( (l1= e->l) &&
+			     (l2= e->l->radial_next) != l1)
+			{
+				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
+					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+				}
+			}
+		}
+	}
+	else {
+		/* crummy, is there a way just to operator on all? - campbell */
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			BMO_elem_flag_enable(bm, e, EDGE_MARK);
+		}
+	}
+
+	BMO_op_callf(bm, "bevel geom=%fe percent=%f use_even=%i use_dist=%i",
+	             EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN)!=0, (bmd->flags & BME_BEVEL_DIST) != 0);
+	BMO_pop(bm);
+
+	BLI_assert(em->looptris == NULL);
+	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
+	BMEdit_Free(em);
+	MEM_freeN(em);
+
+	return result;
+}
+
+
+#if 0 /* from trunk, see note above */
+
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						DerivedMesh *derivedData,
 						int UNUSED(useRenderParams),
@@ -116,8 +190,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	return result;
 }
 
+#endif
+
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

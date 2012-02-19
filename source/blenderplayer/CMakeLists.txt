@@ -100,6 +100,7 @@ endif()
 		bf_intern_string 
 		bf_intern_ghost
 		bf_rna
+		bf_bmesh
 		bf_blenkernel
 		bf_blenloader 
 		bf_blenpluginapi 
@@ -144,6 +145,7 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		blenkernel_blc
+		bf_bmesh
 		extern_binreloc
 		extern_minilzo
 		bf_intern_ghost # duplicate for linking

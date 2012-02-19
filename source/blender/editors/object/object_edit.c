@@ -79,6 +79,7 @@
 #include "BKE_sca.h"
 #include "BKE_softbody.h"
 #include "BKE_modifier.h"
+#include "BKE_tessmesh.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
@@ -321,18 +322,18 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		
 //		if(EM_texFaceCheck())
 		
-		if(me->edit_mesh->totvert>MESH_MAX_VERTS) {
+		if(me->edit_btmesh->bm->totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;
 		}
-		load_editMesh(scene, obedit);
+		
+		EDBM_LoadEditBMesh(scene, obedit);
 		
 		if(freedata) {
-			free_editMesh(me->edit_mesh);
-			MEM_freeN(me->edit_mesh);
-			me->edit_mesh= NULL;
+			EDBM_FreeEditBMesh(me->edit_btmesh);
+			MEM_freeN(me->edit_btmesh);
+			me->edit_btmesh= NULL;
 		}
-		
 		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT) {
 			mesh_octree_table(NULL, NULL, NULL, 'e');
 			mesh_mirrtopo_table(NULL, 'e');
@@ -442,7 +443,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ok= 1;
 		scene->obedit= ob;	// context sees this
 		
-		make_editMesh(scene, ob);
+		EDBM_MakeEditBMesh(CTX_data_tool_settings(C), scene, ob);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}

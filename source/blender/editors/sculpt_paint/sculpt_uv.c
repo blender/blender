@@ -50,6 +50,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
 #include "BKE_customdata.h"
+#include "BKE_tessmesh.h"
 
 #include "ED_screen.h"
 #include "ED_image.h"
@@ -155,7 +156,7 @@ typedef struct Temp_UvData{
 
 
 
-void HC_relaxation_iteration_uv(EditMesh *em, UvSculptData *sculptdata, float mouse_coord[2], float alpha, float radius, float aspectRatio){
+void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float mouse_coord[2], float alpha, float radius, float aspectRatio){
 	Temp_UVData *tmp_uvdata;
 	float diff[2];
 	int i;
@@ -208,11 +209,15 @@ void HC_relaxation_iteration_uv(EditMesh *em, UvSculptData *sculptdata, float mo
 			sculptdata->uv[i].uv[1] = (1.0-strength)*sculptdata->uv[i].uv[1] + strength*(tmp_uvdata[i].p[1] - 0.5f*(tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1]/tmp_uvdata[i].ncounter));
 
 			for(element = sculptdata->uv[i].element; element; element = element->next){
-				MTFace *mt;
+				MLoopUV *luv;
+				BMLoop *l;
+
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
-				mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-				copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[i].uv);
+
+				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
 		}
 	}
@@ -222,7 +227,7 @@ void HC_relaxation_iteration_uv(EditMesh *em, UvSculptData *sculptdata, float mo
 	return;
 }
 
-static void laplacian_relaxation_iteration_uv(EditMesh *em, UvSculptData *sculptdata, float mouse_coord[2], float alpha, float radius, float aspectRatio)
+static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float mouse_coord[2], float alpha, float radius, float aspectRatio)
 {
 	Temp_UVData *tmp_uvdata;
 	float diff[2];
@@ -268,11 +273,15 @@ static void laplacian_relaxation_iteration_uv(EditMesh *em, UvSculptData *sculpt
 			sculptdata->uv[i].uv[1] = (1.0-strength)*sculptdata->uv[i].uv[1] + strength*tmp_uvdata[i].p[1];
 
 			for(element = sculptdata->uv[i].element; element; element = element->next){
-				MTFace *mt;
+				MLoopUV *luv;
+				BMLoop *l;
+
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
-				mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-				copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[i].uv);
+
+				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
 		}
 	}
@@ -288,7 +297,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	float co[2], radius, radius_root;
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
-	EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
+	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	unsigned int tool;
 	UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 	SpaceImage *sima;
@@ -340,11 +349,15 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 				sculptdata->uv[i].uv[1] -= strength*diff[1]*0.001;
 
 				for(element = sculptdata->uv[i].element; element; element = element->next){
-					MTFace *mt;
+					MLoopUV *luv;
+					BMLoop *l;
+
 					if(element->separate && element != sculptdata->uv[i].element)
 						break;
-					mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-					copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[i].uv);
+
+					l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 				}
 			}
 		}
@@ -378,16 +391,18 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 			sculptdata->uv[uvindex].uv[1] = sculptdata->initial_stroke->initialSelection[i].initial_uv[1] + strength*diff[1];
 
 			for(element = sculptdata->uv[uvindex].element; element; element = element->next){
-				MTFace *mt;
+				MLoopUV *luv;
+				BMLoop *l;
+
 				if(element->separate && element != sculptdata->uv[uvindex].element)
 					break;
-				mt = CustomData_em_get(&em->fdata, element->face->data, CD_MTFACE);
-				copy_v2_v2(mt->uv[element->tfindex], sculptdata->uv[uvindex].uv);
+
+				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
 			}
 		}
 	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
 
@@ -399,7 +414,7 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	}
 	if(data->elementMap)
 	{
-		EM_free_uv_element_map(data->elementMap);
+		EDBM_free_uv_element_map(data->elementMap);
 	}
 	if(data->uv){
 		MEM_freeN(data->uv);
@@ -418,7 +433,7 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int get_uv_element_offset_from_face(UvElementMap *map, EditFace *efa, int index, int island_index, int doIslands){
+static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, int index, int island_index, int doIslands){
 	UvElement *element = ED_get_uv_element(map, efa, index);
 	if(!element || (doIslands && element->island != island_index)){
 		return -1;
@@ -451,7 +466,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = scene->toolsettings;
 	UvSculptData *data = MEM_callocN(sizeof(*data), "UV Smooth Brush Data");
-	EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
+	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMesh *bm = em->bm;
 
 	op->customdata = data;
 
@@ -459,11 +475,15 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		int counter = 0, i;
 		ARegion *ar= CTX_wm_region(C);
 		float co[2];
-		EditFace *efa;
+		BMFace *efa;
+		MLoopUV *luv;
+		BMLoop *l;
+		BMIter iter, liter;
+
 		UvEdge *edges;
 		GHash *edgeHash;
 		GHashIterator* ghi;
-		MTFace *mt;
+
 		int do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
 		int island_index = 0;
 		/* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
@@ -476,15 +496,15 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		if(do_island_optimization){
 			/* We will need island information */
 			if(ts->uv_flag & UV_SYNC_SELECTION){
-				data->elementMap = EM_make_uv_element_map(em, 0, 1);
+				data->elementMap = EDBM_make_uv_element_map(em, 0, 1);
 			}else{
-				data->elementMap = EM_make_uv_element_map(em, 1, 1);
+				data->elementMap = EDBM_make_uv_element_map(em, 1, 1);
 			}
 		}else {
 			if(ts->uv_flag & UV_SYNC_SELECTION){
-				data->elementMap = EM_make_uv_element_map(em, 0, 0);
+				data->elementMap = EDBM_make_uv_element_map(em, 0, 0);
 			}else{
-				data->elementMap = EM_make_uv_element_map(em, 1, 0);
+				data->elementMap = EDBM_make_uv_element_map(em, 1, 0);
 			}
 		}
 
@@ -503,7 +523,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			Image *ima= CTX_data_edit_image(C);
 			uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 
-			element = ED_get_uv_element(data->elementMap, hit.efa, hit.uv);
+			element = ED_get_uv_element(data->elementMap, hit.efa, hit.lindex);
 			island_index = element->island;
 		}
 
@@ -540,7 +560,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		/* So that we can use this as index for the UvElements */
 		counter = -1;
 		/* initialize the unique UVs */
-		for(i = 0; i < em->totvert; i++){
+		for(i = 0; i < bm->totvert; i++){
 			UvElement *element = data->elementMap->vert[i];
 			for(; element; element = element->next){
 				if(element->separate){
@@ -550,23 +570,28 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 							;
 						continue;
 					}
+
 					efa = element->face;
-					mt = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 					counter++;
 					data->uv[counter].element = element;
 					data->uv[counter].flag = 0;
-					data->uv[counter].uv = mt->uv[element->tfindex];
+					data->uv[counter].uv = luv->uv;
 				}
 				/* pointer arithmetic to the rescue, as always :)*/
 				uniqueUv[element - data->elementMap->buf] = counter;
 			}
 		}
 
+
 		/* Now, on to generate our uv connectivity data */
-		for(efa = em->faces.first, counter = 0; efa; efa = efa->next){
-			int nverts = efa->v4 ? 4 : 3;
-			for(i = 0; i < nverts; i++){
+		counter = 0;
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			int nverts = efa->len;
+			i = 0;
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				int offset1, itmp1 = get_uv_element_offset_from_face(data->elementMap, efa, i, island_index, do_island_optimization);
 				int offset2, itmp2 = get_uv_element_offset_from_face(data->elementMap, efa, (i+1)%nverts, island_index, do_island_optimization);
 
@@ -598,8 +623,10 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 					BLI_ghash_insert(edgeHash, &edges[counter], &edges[counter].flag);
 				}
 				counter++;
+				i++;
 			}
 		}
+
 		MEM_freeN(uniqueUv);
 
 		/* Allocate connectivity data, we allocate edges once */
@@ -639,7 +666,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		}
 
 		/* Allocate initial selection for grab tool */
-		if(data->tool){
+		if(data->tool == UV_SCULPT_TOOL_GRAB){
 			float radius, radius_root;
 			UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 			SpaceImage *sima;

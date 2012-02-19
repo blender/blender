@@ -54,6 +54,8 @@
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
+#include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
 
 /* Util macros */
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
@@ -89,11 +91,10 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 DerivedMesh *object_get_derived_final(Object *ob)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
+	BMEditMesh *em = me->edit_btmesh;
 
 	if(em) {
 		DerivedMesh *dm = em->derivedFinal;
-		BKE_mesh_end_editmesh(me, em);
 		return dm;
 	}
 

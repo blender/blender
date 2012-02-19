@@ -24,6 +24,7 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../bmesh
 	../../makesdna
 	../../makesrna
 	../../windowmanager

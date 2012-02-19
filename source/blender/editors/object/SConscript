@@ -5,7 +5,7 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc ../../blenloader'
-incs += ' ../../makesrna ../../python ../../ikplugin'
+incs += ' ../../makesrna ../../python ../../ikplugin ../../bmesh'
 incs += ' ../../render/extern/include ../../gpu' # for object_bake.c
 incs += ' #extern/recastnavigation'
 

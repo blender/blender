@@ -798,6 +798,7 @@ endif()
 		bf_python_ext
 		bf_python_mathutils
 		bf_ikplugin
+		bf_bmesh
 		bf_modifiers
 		bf_blenkernel
 		bf_nodes

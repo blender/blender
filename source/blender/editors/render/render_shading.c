@@ -62,6 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
+#include "BKE_tessmesh.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -164,13 +165,15 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if(ob && ob->actcol>0) {
 		if(ob->type == OB_MESH) {
-			EditMesh *em= ((Mesh*)ob->data)->edit_mesh;
-			EditFace *efa;
+			BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
+			BMFace *efa;
+			BMIter iter;
 
 			if(em) {
-				for(efa= em->faces.first; efa; efa=efa->next)
-					if(efa->f & SELECT)
+				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+					if(BM_elem_flag_test(efa, BM_ELEM_SELECT))
 						efa->mat_nr= ob->actcol-1;
+				}
 			}
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -223,13 +226,10 @@ static int material_slot_de_select(bContext *C, int select)
 		return OPERATOR_CANCELLED;
 
 	if(ob->type == OB_MESH) {
-		EditMesh *em= ((Mesh*)ob->data)->edit_mesh;
+		BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
 
 		if(em) {
-			if(select)
-				EM_select_by_material(em, ob->actcol-1);
-			else
-				EM_deselect_by_material(em, ob->actcol-1);
+			EDBM_deselect_by_material(em, ob->actcol-1, select);
 		}
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {

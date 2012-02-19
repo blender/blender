@@ -98,6 +98,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
+	{eModifierType_NgonInterp, "NGONINTERP", ICON_MOD_LATTICE, "Precision UV Interpolation", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -182,6 +183,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_MultiresModifier;
 		case eModifierType_Surface:
 			return &RNA_SurfaceModifier;
+		case eModifierType_NgonInterp:
+			return &RNA_NgonInterpModifier;
 		case eModifierType_Smoke:
 			return &RNA_SmokeModifier;
 		case eModifierType_Solidify:
@@ -483,7 +486,7 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	Mesh *me= ob->data;
 
-	return CustomData_external_test(&me->fdata, CD_MDISPS);
+	return CustomData_external_test(&me->ldata, CD_MDISPS);
 }
 
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
@@ -2136,6 +2139,19 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 #endif
 	RNA_def_property_ui_text(prop, "Angle", "Angle above which to bevel edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* BMESH_BRANCH ONLY */
+	prop= RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE); /* name matches solidify */
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_EVEN);
+	RNA_def_property_ui_text(prop, "Even", "Use even bevel distance correction");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	/* BMESH_BRANCH ONLY */
+	prop= RNA_def_property(srna, "use_distance_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_DIST);
+	RNA_def_property_ui_text(prop, "Distance", "Use the width as a distance in rather then a factor of the face size");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	/* END BMESH_BRANCH ONLY */
+
 }
 
 static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
@@ -3066,6 +3082,27 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 }
 
 
+
+static void rna_def_modifier_ngoninterp(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "NgonInterpModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Precision UV Modifier", "Precision UV interpolation");
+	RNA_def_struct_sdna(srna, "NgonInterpModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SCREW);
+
+	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_range(prop, 1, 10000);
+	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_ui_text(prop, "Resolution", "Size of interpolation grids");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+}
+
+
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3169,6 +3206,9 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_dynamic_paint(brna);
 	rna_def_modifier_ocean(brna);
 	rna_def_modifier_remesh(brna);
+
+	/* BMESH_ONLY */
+	rna_def_modifier_ngoninterp(brna);
 }
 
 #endif

@@ -79,6 +79,7 @@ set(SRC
 	intern/rand.c
 	intern/rct.c
 	intern/scanfill.c
+	intern/smallhash.c
 	intern/storage.c
 	intern/string.c
 	intern/string_utf8.c
@@ -89,6 +90,8 @@ set(SRC
 	intern/winstuff.c
 
 	BLI_array.h
+	BLI_smallhash.h
+	BLI_sparsemap.h
 	BLI_args.h
 	BLI_blenlib.h
 	BLI_boxpack2d.h

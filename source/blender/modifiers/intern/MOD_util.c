@@ -93,29 +93,31 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_DISP_MAP_UV) {
-		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
-			MFace *mface = dm->getFaceArray(dm);
-			MFace *mf;
+		if(CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
+			MPoly *mpoly = dm->getPolyArray(dm);
+			MPoly *mp;
+			MLoop *mloop = dm->getLoopArray(dm);
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 			                         "get_texture_coords done");
-			int numFaces = dm->getNumFaces(dm);
+			int numPolys = dm->getNumPolys(dm);
 			char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-			MTFace *tf;
+			MLoopUV *mloop_uv;
 
-			CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name, uvname);
-			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
+			CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, dmd->uvlayer_name, uvname);
+			mloop_uv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, uvname);
 
 			/* verts are given the UV from the first face that uses them */
-			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
-				unsigned int fidx= mf->v4 ? 3:2;
+			for(i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
+				unsigned int fidx= mp->totloop - 1;
 
 				do {
-					unsigned int vidx = *(&mf->v1 + fidx);
+					unsigned int lidx= mp->loopstart + fidx;
+					unsigned int vidx= mloop[lidx].v;
 
 					if (done[vidx] == 0) {
 						/* remap UVs from [0, 1] to [-1, 1] */
-						texco[vidx][0] = (tf->uv[fidx][0] * 2.0f) - 1.0f;
-						texco[vidx][1] = (tf->uv[fidx][1] * 2.0f) - 1.0f;
+						texco[vidx][0] = (mloop_uv[lidx].uv[0] * 2.0f) - 1.0f;
+						texco[vidx][1] = (mloop_uv[lidx].uv[1] * 2.0f) - 1.0f;
 						done[vidx] = 1;
 					}
 
@@ -157,7 +159,7 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 }
 
 /* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
-DerivedMesh *get_cddm(Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
+DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	if(dm && dm->type == DM_TYPE_CDDM)
 		return dm;
@@ -177,13 +179,13 @@ DerivedMesh *get_cddm(Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*
 }
 
 /* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
-DerivedMesh *get_dm(Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
+DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
 	if(dm)
 		return dm;
 
 	if(ob->type==OB_MESH) {
-		if(em) dm= CDDM_from_editmesh(em, ob->data);
+		if(em) dm= CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
 		else dm = CDDM_from_mesh((struct Mesh *)(ob->data), ob);
 
 		if(vertexCos) {
@@ -260,5 +262,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(WeightVGProximity);
 	INIT_TYPE(DynamicPaint);
 	INIT_TYPE(Remesh);
+	INIT_TYPE(NgonInterp);
 #undef INIT_TYPE
 }

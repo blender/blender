@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h" // for MEM_freeN MEM_mallocN MEM_callocN
 
 #ifdef WITH_DNA_GHASH
+#  include "BLI_utildefines.h"
 #  include "BLI_ghash.h"
 #endif
 
@@ -389,7 +390,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 		while(nr<sdna->nr_types) {
 			sdna->types[nr]= cp;
 			
-			/* this is a patch, to change struct names without a confict with SDNA */
+			/* this is a patch, to change struct names without a conflict with SDNA */
 			/* be careful to use it, in this case for a system-struct (opengl/X) */
 			
 			if( *cp == 'b') {

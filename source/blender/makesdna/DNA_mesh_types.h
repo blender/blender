@@ -69,7 +69,6 @@ typedef struct Mesh {
 	struct Key *key;
 	struct Material **mat;
 
-/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
 /* BMESH ONLY */
 	/*new face structures*/
 	struct MPoly *mpoly;
@@ -78,36 +77,36 @@ typedef struct Mesh {
 	struct MLoopUV *mloopuv;
 	struct MLoopCol *mloopcol;
 /* END BMESH ONLY */
-/*#endif*/
 
-	struct MFace *mface;	/* array of mesh object mode faces */
-	struct MTFace *mtface;	/* store face UV's and texture here */
+	/*mface stores the tesselation (triangulation) of the mesh,
+	  real faces are now stored in nface.*/
+	struct MFace *mface;	/* array of mesh object mode faces for tesselation */
+	struct MTFace *mtface;	/* store tesselation face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* deformgroup vertices */
-	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
+
+	/* array of colors for the tesselated faces, must be number of tesselated
+	   faces * 4 in length */
+	struct MCol *mcol;		
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
 	
-	struct EditMesh *edit_mesh;	/* not saved in file! */
+	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 
-/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
 /* BMESH ONLY */
 	struct CustomData pdata, ldata;
 /* END BMESH ONLY */
-/*#endif*/
 
 	int totvert, totedge, totface, totselect;
 
-/*#ifdef USE_BMESH_FORWARD_COMPAT*/
 /* BMESH ONLY */
 	int totpoly, totloop;
 /* END BMESH ONLY */
-/*#endif*/ /* XXX - ifdefs dont work here! */
 
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track
@@ -226,9 +225,8 @@ typedef struct TFace {
 /* this is so we can save bmesh files that load in trunk, ignoring NGons
  * will eventually be removed */
 
-#if 0 /* enable in bmesh branch only for now */
 #define USE_BMESH_SAVE_AS_COMPAT
-#endif
+#define USE_BMESH_SAVE_WITHOUT_MFACE
 
 
 #endif

@@ -51,6 +51,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 
@@ -479,7 +480,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			}
 			
 			/* update normals */
-			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+			mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 		}
 		else if (ob->type==OB_ARMATURE) {
 			ED_armature_apply_transform(ob, mat);
@@ -656,37 +657,37 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
-			EditVert *eve;
-
-			if(around==V3D_CENTROID) {
-				int total= 0;
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					total++;
-					add_v3_v3(cent, eve->co);
-				}
-				if(total) {
-					mul_v3_fl(cent, 1.0f/(float)total);
+			BMEditMesh *em = me->edit_btmesh;
+			BMVert *eve;
+			BMIter iter;
+			int total = 0;
+			
+			if(centermode == ORIGIN_TO_CURSOR) {
+				copy_v3_v3(cent, cursor);
+				invert_m4_m4(obedit->imat, obedit->obmat);
+				mul_m4_v3(obedit->imat, cent);
+			} else {
+				BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+					if(around==V3D_CENTROID) {
+						total++;
+						add_v3_v3(cent, eve->co);
+						mul_v3_fl(cent, 1.0f/(float)total);
+					}
+					else {
+						DO_MINMAX(eve->co, min, max);
+						mid_v3_v3v3(cent, min, max);
+					}
 				}
 			}
-			else {
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					DO_MINMAX(eve->co, min, max);
-				}
-				mid_v3_v3v3(cent, min, max);
+			
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				sub_v3_v3(eve->co, cent);
 			}
 
-			if(!is_zero_v3(cent)) {
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					sub_v3_v3(eve->co, cent);
-				}
-
-				recalc_editnormals(em);
-				tot_change++;
-				DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-			}
-			BKE_mesh_end_editmesh(me, em);
-		}
+			EDBM_RecalcNormals(em);
+			tot_change++;
+			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	    }
 	}
 
 	/* reset flags */

@@ -1518,7 +1518,7 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 	if(sd->uvco && ELEM(from,PART_FROM_FACE,PART_FROM_VOLUME)) {
 		for(i=0; i<sd->totuv; i++) {
 			if(num != DMCACHE_NOTFOUND) {
-				MFace *mface = dm->getFaceData(dm, num, CD_MFACE);
+				MFace *mface = dm->getTessFaceData(dm, num, CD_MFACE);
 				MTFace *mtface = (MTFace*)CustomData_get_layer_n(&dm->faceData, CD_MTFACE, i);
 				mtface += num;
 				
@@ -1535,7 +1535,7 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 	if(sd->mcol && ELEM(from,PART_FROM_FACE,PART_FROM_VOLUME)) {
 		for(i=0; i<sd->totcol; i++) {
 			if(num != DMCACHE_NOTFOUND) {
-				MFace *mface = dm->getFaceData(dm, num, CD_MFACE);
+				MFace *mface = dm->getTessFaceData(dm, num, CD_MFACE);
 				MCol *mc = (MCol*)CustomData_get_layer_n(&dm->faceData, CD_MCOL, i);
 				mc += num * 4;
 
@@ -1746,8 +1746,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				if(ma->amb != 0.0f)
 					dosurfacecache= 1;
 
-			totface= psmd->dm->getNumFaces(psmd->dm);
-			origindex= psmd->dm->getFaceDataArray(psmd->dm, CD_ORIGINDEX);
+			totface= psmd->dm->getNumTessFaces(psmd->dm);
+			origindex= psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
 			for(a=0; a<totface; a++)
 				strandbuf->totbound= MAX2(strandbuf->totbound, (origindex)? origindex[a]: a);
 
@@ -1791,7 +1791,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			num= pa->num_dmcache;
 
 			if(num == DMCACHE_NOTFOUND)
-				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
+				if(pa->num < psmd->dm->getNumTessFaces(psmd->dm))
 					num= pa->num;
 
 			get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
@@ -1850,7 +1850,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				num = parent->num_dmcache;
 
 				if(num == DMCACHE_NOTFOUND)
-					if(parent->num < psmd->dm->getNumFaces(psmd->dm))
+					if(parent->num < psmd->dm->getNumTessFaces(psmd->dm))
 						num = parent->num;
 
 				get_particle_uvco_mcol(part->from, psmd->dm, parent->fuv, num, &sd);
@@ -2727,8 +2727,8 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 		for(mat_iter= 0; (mat_iter < ob->totcol || (mat_iter==0 && ob->totcol==0)); mat_iter++) {
 
 			ma= give_render_material(re, ob, mat_iter+1);
-			end= dm->getNumFaces(dm);
-			mface= dm->getFaceArray(dm);
+			end= dm->getNumTessFaces(dm);
+			mface= dm->getTessFaceArray(dm);
 
 			for(a=0; a<end; a++, mface++) {
 				int v1, v2, v3, v4, flag;
@@ -3109,10 +3109,10 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 	unsigned int *mcol=NULL;
 	int a, totedge=0, totface;
 
-	mface= dm->getFaceArray(dm);
-	totface= dm->getNumFaces(dm);
-	tface= dm->getFaceDataArray(dm, CD_MTFACE);
-	mcol= dm->getFaceDataArray(dm, CD_MCOL);
+	mface= dm->getTessFaceArray(dm);
+	totface= dm->getNumTessFaces(dm);
+	tface= dm->getTessFaceDataArray(dm, CD_MTFACE);
+	mcol= dm->getTessFaceDataArray(dm, CD_MCOL);
 
 	if(mcol==NULL && tface==NULL) return NULL;
 
@@ -3333,7 +3333,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	totvert= dm->getNumVerts(dm);
 
 	/* attempt to autsmooth on original mesh, only without subsurf */
-	if(do_autosmooth && me->totvert==totvert && me->totface==dm->getNumFaces(dm))
+	if(do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
 		use_original_normals= 1;
 	
 	ms = (totvert==me->totvert)?me->msticky:NULL;
@@ -3404,8 +3404,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 
 				if(ok) {
-					end= dm->getNumFaces(dm);
-					mface= dm->getFaceArray(dm);
+					end= dm->getNumTessFaces(dm);
+					mface= dm->getTessFaceArray(dm);
 					
 					for(a=0; a<end; a++, mface++) {
 						int v1, v2, v3, v4, flag;

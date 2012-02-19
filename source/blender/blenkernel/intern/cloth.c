@@ -35,6 +35,7 @@
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
@@ -930,8 +931,8 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 {
 	unsigned int numverts = dm->getNumVerts ( dm );
-	unsigned int numfaces = dm->getNumFaces ( dm );
-	MFace *mface = dm->getFaceArray( dm );
+	unsigned int numfaces = dm->getNumTessFaces ( dm );
+	MFace *mface = dm->getTessFaceArray( dm );
 	unsigned int i = 0;
 
 	/* Allocate our vertices. */
@@ -1043,9 +1044,9 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	unsigned int i = 0;
 	unsigned int numverts = (unsigned int)dm->getNumVerts ( dm );
 	unsigned int numedges = (unsigned int)dm->getNumEdges ( dm );
-	unsigned int numfaces = (unsigned int)dm->getNumFaces ( dm );
+	unsigned int numfaces = (unsigned int)dm->getNumTessFaces ( dm );
 	MEdge *medge = dm->getEdgeArray ( dm );
-	MFace *mface = dm->getFaceArray ( dm );
+	MFace *mface = dm->getTessFaceArray ( dm );
 	int index2 = 0; // our second vertex index
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;

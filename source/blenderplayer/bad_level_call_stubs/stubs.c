@@ -109,8 +109,38 @@ struct bPythonConstraint;
 struct bConstraintOb;
 struct Context;
 struct ChannelDriver;
+struct BMEditMesh;
+struct Heap;
+struct HeapNode;
+struct Scene;
+struct SmallHash;
+struct SmallHashIter;
 
 /*new render funcs */
+void EDBM_selectmode_set(struct BMEditMesh *em) {}
+void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob) {}
+void EDBM_MakeEditBMesh(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
+void *g_system;
+
+struct Heap* BLI_heap_new (void){return NULL;}
+void BLI_heap_free (struct Heap *heap, void *ptrfreefp) {}
+struct HeapNode* BLI_heap_insert (struct Heap *heap, float value, void *ptr){return NULL;}
+void BLI_heap_remove (struct Heap *heap, struct HeapNode *node) {}
+int BLI_heap_empty (struct Heap *heap) {return 0;}
+int BLI_heap_size (struct Heap *heap){return 0;}
+struct HeapNode* BLI_heap_top (struct Heap *heap){return NULL;}
+void* BLI_heap_popmin (struct Heap *heap){return NULL;}
+
+void BLI_smallhash_init(struct SmallHash *hash) {}
+void BLI_smallhash_release(struct SmallHash *hash) {}
+void BLI_smallhash_insert(struct SmallHash *hash, uintptr_t key, void *item) {}
+void BLI_smallhash_remove(struct SmallHash *hash, uintptr_t key) {}
+void *BLI_smallhash_lookup(struct SmallHash *hash, uintptr_t key) { return NULL; }
+int BLI_smallhash_haskey(struct SmallHash *hash, uintptr_t key) { return 0; }
+int BLI_smallhash_count(struct SmallHash *hash) { return 0; }
+void *BLI_smallhash_iternext(struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
+void *BLI_smallhash_iternew(struct SmallHash *hash, struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
+
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
@@ -297,6 +327,8 @@ void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count){}
@@ -312,6 +344,8 @@ void ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertn
 void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup){}
 void ED_vgroup_clear(struct Object *ob){}
 void ED_vgroup_object_is_edit_mode(struct Object *ob){}
+long mesh_mirrtopo_table(struct Object *ob, char mode) { return 0; }
+intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode) { return 0; }
 
 void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
@@ -334,7 +368,7 @@ void make_editNurb	(struct Object *obedit){}
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
-struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a; return a;}
+struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a = {}; return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}

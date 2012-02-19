@@ -1,4 +1,5 @@
-/*
+#if 0
+/**
  * BME_mesh.c    jan 2007
  *
  *	BMesh mesh level functions.
@@ -267,7 +268,7 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	CustomData_copy(&em->fdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	/*copy face corner data*/
-	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
+	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata, 0, 0);
 	/*initialize memory pools*/
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
@@ -462,7 +463,7 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 	CustomData_copy(&dm->faceData, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	/*copy face corner data*/
-	CustomData_to_bmeshpoly(&dm->faceData, &bm->pdata, &bm->ldata);
+	CustomData_to_bmeshpoly(&dm->faceData, &bm->pdata, &bm->ldata, 0, 0);
 	/*initialize memory pools*/
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
@@ -474,10 +475,10 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 	mvert = dm->getVertArray(dm);
 	medge = dm->getEdgeArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 
 	vert_array = MEM_mallocN(sizeof(*vert_array)*totvert,"BME_derivedmesh_to_bmesh BME_Vert* array");
 
@@ -574,7 +575,8 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	}
 	
 	/*convert back to mesh*/
-	result = CDDM_from_template(dm,totvert,totedge,totface);
+	/*BMESH_TODO this should add in mloops and mpolys as well*/
+	result = CDDM_from_template(dm,totvert,totedge,totface, 0, 0);
 	CustomData_merge(&bm->vdata, &result->vertData, CD_MASK_BMESH, CD_CALLOC, totvert);
 	CustomData_merge(&bm->edata, &result->edgeData, CD_MASK_BMESH, CD_CALLOC, totedge);
 	CustomData_merge(&bm->pdata, &result->faceData, CD_MASK_BMESH, CD_CALLOC, totface);
@@ -617,7 +619,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 		}
 	}
 	if(totface){
-		mface = CDDM_get_faces(result);
+		mface = CDDM_get_tessfaces(result);
 		origindex = result->getFaceDataArray(result, CD_ORIGINDEX);
 		/*make faces*/
 		for(i=0,f=bm->polys.first;f;f=f->next){
@@ -646,3 +648,4 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	BLI_edgehash_free(edge_hash, NULL);
 	return result;
 }
+#endif

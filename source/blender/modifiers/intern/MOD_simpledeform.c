@@ -336,7 +336,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(ModifierData *md, Object *ob,
-						struct EditMesh *editData,
+						struct BMEditMesh *editData,
 						DerivedMesh *derivedData,
 						float (*vertexCos)[3],
 						int numVerts)

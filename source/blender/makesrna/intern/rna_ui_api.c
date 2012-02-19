@@ -334,7 +334,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "template_preview", "uiTemplatePreview");
-	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc.");
+	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc");
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "show_buttons", 1, "", "Show preview buttons?");

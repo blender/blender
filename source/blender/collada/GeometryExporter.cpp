@@ -322,8 +322,8 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string& geom_id, int lay
 void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 {
 #if 0
-	int totfaces = dm->getNumFaces(dm);
-	MFace *mfaces = dm->getFaceArray(dm);
+	int totfaces = dm->getNumTessFaces(dm);
+	MFace *mfaces = dm->getTessFaceArray(dm);
 #endif
 	int totfaces = me->totface;
 	MFace *mfaces = me->mface;

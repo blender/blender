@@ -42,6 +42,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"

@@ -756,7 +756,6 @@ void ED_view3d_ob_project_mat_get(RegionView3D *rv3d, Object *ob, float pmat[4][
 	mult_m4_m4m4(pmat, rv3d->winmat, vmat);
 }
 
-#if 0
 /* Uses window coordinates (x,y) and depth component z to find a point in
    modelspace */
 void view3d_unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
@@ -769,7 +768,6 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 	out[1] = uy;
 	out[2] = uz;
 }
-#endif
 
 /* use view3d_get_object_project_mat to get projecting mat */
 void ED_view3d_project_float(const ARegion *ar, const float vec[3], float adr[2], float mat[4][4])

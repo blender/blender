@@ -757,12 +757,9 @@ def VectoQuat(vec):
 
 class thickface(object):
     __slost__= "v", "uv", "no", "area", "edge_keys"
-    def __init__(self, face, uvface, mesh_verts):
+    def __init__(self, face, uv_layer, mesh_verts):
         self.v = [mesh_verts[i] for i in face.vertices]
-        if len(self.v)==4:
-            self.uv = uvface.uv1, uvface.uv2, uvface.uv3, uvface.uv4
-        else:
-            self.uv = uvface.uv1, uvface.uv2, uvface.uv3
+        self.uv = [uv_layer[i].uv for i in face.loops]
 
         self.no = face.normal
         self.area = face.area
@@ -892,13 +889,13 @@ def main(context,
         if not me.uv_textures: # Mesh has no UV Coords, don't bother.
             me.uv_textures.new()
 
-        uv_layer = me.uv_textures.active.data
+        uv_layer = me.uv_loop_layers.active.data
         me_verts = list(me.vertices)
 
         if USER_ONLY_SELECTED_FACES:
-            meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.select]
+            meshFaces = [thickface(f, uv_layer, me_verts) for i, f in enumerate(me.polygons) if f.select]
         else:
-        	meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces)]
+            meshFaces = [thickface(f, uv_layer, me_verts) for i, f in enumerate(me.polygons)]
 
         if not meshFaces:
             continue

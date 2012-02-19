@@ -77,6 +77,9 @@ typedef enum ModifierType {
 	eModifierType_Ocean,
 	eModifierType_DynamicPaint,
 	eModifierType_Remesh,
+
+	/* BMESH ONLY - keeps getting bumped by new modifiers in trunk */
+	eModifierType_NgonInterp,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -676,6 +679,7 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
 #define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
 
+
 typedef struct SimpleDeformModifierData {
 	ModifierData modifier;
 
@@ -808,9 +812,14 @@ typedef struct OceanModifierData {
 #define MOD_OCEAN_GENERATE_NORMALS	2
 
 
+/* BMESH_ONLY */
+typedef struct NgonInterpModifierData {
+	ModifierData modifier;
+	int		resolution, pad0;
+} NgonInterpModifierData;
+
 typedef struct WarpModifierData {
 	ModifierData modifier;
-
 	/* keep in sync with MappingInfoModifierData */
 	struct Tex *texture;
 	struct Object *map_object;

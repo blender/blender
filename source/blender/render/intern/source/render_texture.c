@@ -3662,7 +3662,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 
 	/* Get face data	*/
 	mvert = orcoDm->getVertArray(orcoDm);
-	mface = orcoDm->getFaceArray(orcoDm);
+	mface = orcoDm->getTessFaceArray(orcoDm);
 
 	if (!mvert || !mface || !mat) return;
 	v1=mface[face_index].v1, v2=mface[face_index].v2, v3=mface[face_index].v3;

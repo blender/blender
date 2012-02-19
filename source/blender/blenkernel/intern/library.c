@@ -808,7 +808,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_object((Object *)id);
 			break;
 		case ID_ME:
-			free_mesh((Mesh *)id);
+			free_mesh((Mesh *)id, 1);
 			break;
 		case ID_CU:
 			free_curve((Curve *)id);

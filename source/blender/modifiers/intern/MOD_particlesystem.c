@@ -112,7 +112,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	
 	/* particles only need this if they are after a non deform modifier, and
 	* the modifier stack will only create them in that case. */
-	dataMask |= CD_MASK_ORIGSPACE|CD_MASK_ORIGINDEX;
+	dataMask |= CD_MASK_ORIGSPACE_MLOOP|CD_MASK_ORIGINDEX;
 
 	dataMask |= CD_MASK_ORCO;
 	
@@ -179,13 +179,13 @@ static void deformVerts(ModifierData *md, Object *ob,
 	/* report change in mesh structure */
 	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
 		  psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
-		  psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
+		  psmd->dm->getNumTessFaces(psmd->dm)!=psmd->totdmface){
 
 		psys->recalc |= PSYS_RECALC_RESET;
 
 		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
 		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
-		psmd->totdmface= psmd->dm->getNumFaces(psmd->dm);
+		psmd->totdmface= psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
 	if(psys) {

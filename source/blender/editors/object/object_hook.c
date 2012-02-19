@@ -55,6 +55,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_deform.h"
+#include "BKE_tessmesh.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -71,13 +72,14 @@
 
 #include "object_intern.h"
 
-static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
+static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, float *cent)
 {
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	int *index, nr, totvert=0;
 	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) totvert++;
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_elem_flag_test(eve, BM_ELEM_SELECT)) totvert++;
 	}
 	if(totvert==0) return 0;
 	
@@ -86,8 +88,8 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	nr= 0;
 	zero_v3(cent);
 	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			*index= nr; index++;
 			add_v3_v3(cent, eve->co);
 		}
@@ -99,7 +101,7 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	return totvert;
 }
 
-static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, float *cent)
+static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, float *cent)
 {
 	zero_v3(cent);
 
@@ -108,11 +110,12 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 		int totvert=0;
 
 		MDeformVert *dvert;
-		EditVert *eve;
+		BMVert *eve;
+		BMIter iter;
 
 		/* find the vertices */
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
 			if(dvert) {
 				if(defvert_find_weight(dvert, defgrp_index) > 0.0f) {
@@ -132,25 +135,27 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 	return 0;
 }	
 
-static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
+static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me= ob->data;
-	EditMesh *em= BKE_mesh_get_editmesh(me);
-	EditVert *eve;
+	BMEditMesh *em= me->edit_btmesh;
+	BMVert *eve;
+	BMIter iter;
 	int index=0, nr=0;
 	
 	if (hmd->indexar == NULL)
 		return;
 	
-	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if(nr==hmd->indexar[index]) {
-			eve->f |= SELECT;
+			BM_elem_select_set(em->bm, eve, TRUE);
 			if(index < hmd->totindex-1) index++;
 		}
-	}
-	EM_select_flush(em);
 
-	BKE_mesh_end_editmesh(me, em);
+		nr++;
+	}
+
+	EDBM_select_flush(em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
@@ -300,20 +305,19 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			EditMesh *em;
 
-			load_editMesh(scene, obedit);
-			make_editMesh(scene, obedit);
+			BMEditMesh *em;
 
-			em = BKE_mesh_get_editmesh(me);
+			EDBM_LoadEditBMesh(scene, obedit);
+			EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
+
+			em = me->edit_btmesh;
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
-				BKE_mesh_end_editmesh(me, em);
 				return 1;
 			} else {
 				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
-				BKE_mesh_end_editmesh(me, em);
 				return ret;
 			}
 		}
@@ -382,7 +386,7 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
 	if (hmd->indexar == NULL)
 		return;
 	
-	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
+	if(ob->type==OB_MESH) select_editbmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
 	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
@@ -742,6 +746,7 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 
 static int object_hook_assign_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
 	int num= RNA_enum_get(op->ptr, "modifier");
 	Object *ob=NULL;
@@ -765,7 +770,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	
 	/* assign functionality */
 	
-	if(!object_hook_index_array(CTX_data_scene(C), ob, &tot, &indexar, name, cent)) {
+	if(!object_hook_index_array(scene, ob, &tot, &indexar, name, cent)) {
 		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
 		return OPERATOR_CANCELLED;
 	}

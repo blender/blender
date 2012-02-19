@@ -52,6 +52,7 @@
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_tessmesh.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -275,12 +276,11 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
+		struct BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 		int ret;
 		
-		ret = EM_texFaceCheck(em);
+		ret = EDBM_texFaceCheck(em);
 		
-		BKE_mesh_end_editmesh(obedit->data, em);
 		return ret;
 	}
 	
@@ -294,12 +294,11 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 	
 	if(ED_space_image_show_paint(sima))
 		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
+			struct BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 			int ret;
 			
-			ret = EM_texFaceCheck(em);
+			ret = EDBM_texFaceCheck(em);
 			
-			BKE_mesh_end_editmesh(obedit->data, em);
 			return ret;
 		}
 	
@@ -587,12 +586,12 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
-		EditMesh *em= BKE_mesh_get_editmesh(me);
+		struct BMEditMesh *em= me->edit_btmesh;
 		int sloppy= 1; /* partially selected face is ok */
 
 		if(scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
-			EditFace *efa= EM_get_actFace(em, sloppy);
+			BMFace *efa = BM_active_face_get(em->bm, sloppy);
 
 			if(efa) {
 				Image *node_ima;
@@ -604,12 +603,12 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		}
 		else {
 			/* old shading system, we set texface */
-			MTFace *tf;
+			MTexPoly *tf;
 			
-			if(em && EM_texFaceCheck(em)) {
+			if(em && EDBM_texFaceCheck(em)) {
 				sima->image= NULL;
 				
-				tf = EM_get_active_mtface(em, NULL, NULL, sloppy);
+				tf = EDBM_get_active_mtexpoly(em, NULL, TRUE); /* partially selected face is ok */
 				
 				if(tf) {
 					/* don't need to check for pin here, see above */
@@ -620,8 +619,6 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 				}
 			}
 		}
-
-		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 }
 

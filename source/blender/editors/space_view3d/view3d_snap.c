@@ -55,6 +55,8 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_tessmesh.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 
@@ -80,11 +82,14 @@ extern float originmat[3][3];	/* XXX object.c */
 
 typedef struct TransVert {
 	float *loc;
-	float oldloc[3], fac;
+	float oldloc[3], maploc[3], fac;
 	float *val, oldval;
 	int flag;
 	float *nor;
 } TransVert;
+
+              /* SELECT == (1 << 0) */
+#define TX_VERT_USE_MAPLOC (1 << 1)
 
 static TransVert *transvmain=NULL;
 static int tottrans= 0;
@@ -97,7 +102,7 @@ static void special_transvert_update(Object *obedit)
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			recalc_editnormals(me->edit_mesh);	// does face centers too
+			BM_mesh_normals_update(me->edit_btmesh->bm);	// does face centers too
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
@@ -188,6 +193,19 @@ static void special_transvert_update(Object *obedit)
 	}
 }
 
+static void set_mapped_co(void *vuserdata, int index, float *co, float *UNUSED(no), short *UNUSED(no_s))
+{
+	void **	userdata = vuserdata;
+	BMEditMesh *em = userdata[0];
+	TransVert *tv = userdata[1];
+	BMVert *eve = EDBM_get_vert_for_index(em, index);
+	
+	if (BM_elem_index_get(eve) != -1 && !(tv[BM_elem_index_get(eve)].flag & TX_VERT_USE_MAPLOC)) {
+		copy_v3_v3(tv[BM_elem_index_get(eve)].maploc, co);
+		tv[BM_elem_index_get(eve)].flag |= TX_VERT_USE_MAPLOC;
+	}
+}
+
 /* copied from editobject.c, needs to be replaced with new transform code still */
 /* mode flags: */
 #define TM_ALL_JOINTS		1 /* all joints (for bones only) */
@@ -199,7 +217,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	BPoint *bp;
 	TransVert *tv=NULL;
 	MetaElem *ml;
-	EditVert *eve;
+	BMVert *eve;
 	EditBone	*ebo;
 	float total, center[3], centroid[3];
 	int a;
@@ -211,53 +229,91 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em= me->edit_mesh;
+		BMEditMesh *em= me->edit_btmesh;
+		BMesh *bm = em->bm;
+		BMIter iter;
+		void *userdata[2] = {em, NULL};
+		/*int proptrans= 0; */ /*UNUSED*/
 		
+		/* abuses vertex index all over, set, just set dirty here,
+		 * perhaps this could use its own array instead? - campbell */
+
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
 		if(em->selectmode & SCE_SELECT_VERTEX) {
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->h==0 && (eve->f & SELECT)) {
-					eve->f1= SELECT;
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					BM_elem_index_set(eve, 1); /* set_dirty! */
 					tottrans++;
 				}
-				else eve->f1= 0;
+				else BM_elem_index_set(eve, 0); /* set_dirty! */
 			}
 		}
 		else if(em->selectmode & SCE_SELECT_EDGE) {
-			EditEdge *eed;
-			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->h==0 && (eed->f & SELECT)) eed->v1->f1= eed->v2->f1= SELECT;
-			}
-			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
-		}
-		else {
-			EditFace *efa;
-			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				if(efa->h==0 && (efa->f & SELECT)) {
-					efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
-					if(efa->v4) efa->v4->f1= SELECT;
+			BMEdge *eed;
+
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
+				BM_elem_index_set(eve, 0); /* set_dirty! */
+
+			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+					BM_elem_index_set(eed->v1, 1); /* set_dirty! */
+					BM_elem_index_set(eed->v2, 1); /* set_dirty! */
 				}
 			}
-			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
+				if(BM_elem_index_get(eve)) tottrans++;
 		}
+		else {
+			BMFace *efa;
+
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
+				BM_elem_index_set(eve, 0); /* set_dirty! */
+
+			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+				if(!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+					BMIter liter;
+					BMLoop *l;
+					
+					BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+						BM_elem_index_set(l->v, 1); /* set_dirty! */
+					}
+				}
+			}
+
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
+				if(BM_elem_index_get(eve)) tottrans++;
+		}
+		/* for any of the 3 loops above which all dirty the indicies */
+		bm->elem_index_dirty |= BM_VERT;
 		
 		/* and now make transverts */
 		if(tottrans) {
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
-
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->f1) {
+		
+			a = 0;
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				if(BM_elem_index_get(eve)) {
+					BM_elem_index_set(eve, a); /* set_dirty! */
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
-					tv->flag= eve->f1 & SELECT;
+					tv->flag= BM_elem_index_get(eve) & SELECT;
 					tv++;
-				}
+					a++;
+				} else BM_elem_index_set(eve, -1); /* set_dirty! */
 			}
+			/* set dirty already, above */
+
+			userdata[1] = transvmain;
+		}
+		
+		if (transvmain && em->derivedCage) {
+			EDBM_init_index_arrays(em, 1, 0, 0);
+			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata);
+			EDBM_free_index_arrays(em);
 		}
 	}
 	else if (obedit->type==OB_ARMATURE){
@@ -927,10 +983,10 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 		if (obedit->type == OB_MESH) {
 			/* check active */
 			Mesh *me= obedit->data;
-			EditSelection ese;
+			BMEditSelection ese;
 			
-			if (EM_get_actSelection(me->edit_mesh, &ese)) {
-				EM_editselection_center(curs, &ese);
+			if (EDBM_get_actSelection(me->edit_btmesh, &ese)) {
+				EDBM_editselection_center(me->edit_btmesh, curs, &ese);
 			}
 			
 			mul_m4_v3(obedit->obmat, curs);
@@ -1013,7 +1069,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	tv= transvmain;
 	for(a=0; a<tottrans; a++, tv++) {
-		copy_v3_v3(vec, tv->loc);
+		copy_v3_v3(vec, (tv->flag & TX_VERT_USE_MAPLOC) ? tv->maploc : tv->loc);
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);
 		add_v3_v3(centroid, vec);
@@ -1025,4 +1081,3 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	return 1;
 }
-

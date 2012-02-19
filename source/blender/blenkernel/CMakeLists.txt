@@ -34,6 +34,7 @@ set(INC
 	../imbuf
 	../makesdna
 	../makesrna
+	../bmesh
 	../modifiers
 	../nodes
 	../render/extern/include
@@ -114,6 +115,7 @@ set(SRC
 	intern/mesh.c
 	intern/mesh_validate.c
 	intern/modifier.c
+	intern/modifiers_bmesh.c
 	intern/movieclip.c
 	intern/multires.c
 	intern/nla.c
@@ -227,6 +229,7 @@ set(SRC
 	BKE_speaker.h
 	BKE_subsurf.h
 	BKE_suggestions.h
+	BKE_tessmesh.h
 	BKE_text.h
 	BKE_texture.h
 	BKE_tracking.h

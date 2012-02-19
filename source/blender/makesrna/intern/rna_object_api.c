@@ -169,7 +169,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 				dm = mesh_create_derived_view( sce, ob, mask );
 			
 			tmpmesh = add_mesh( "Mesh" );
-			DM_to_mesh( dm, tmpmesh );
+			DM_to_mesh( dm, tmpmesh, ob );
 			dm->release( dm );
 		}
 		

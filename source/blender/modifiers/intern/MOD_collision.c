@@ -166,8 +166,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 				collmd->numverts = numverts;
 				
-				collmd->mfaces = dm->dupFaceArray(dm);
-				collmd->numfaces = dm->getNumFaces(dm);
+				collmd->mfaces = dm->dupTessFaceArray(dm);
+				collmd->numfaces = dm->getNumTessFaces(dm);
 				
 				// create bounding box hierarchy
 				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);

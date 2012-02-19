@@ -38,12 +38,12 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function

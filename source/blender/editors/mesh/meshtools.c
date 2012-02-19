@@ -66,6 +66,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
@@ -79,14 +80,14 @@
 
 /* own include */
 #include "mesh_intern.h"
-
+#include "uvedit_intern.h"
 
 /* * ********************** no editmode!!! *********** */
 
 /*********************** JOIN ***************************/
 
 /* join selected meshes into the active mesh, context sensitive
-return 0 if no join is made (error) and 1 of the join is done */
+return 0 if no join is made (error) and 1 if the join is done */
 
 int join_mesh_exec(bContext *C, wmOperator *op)
 {
@@ -97,16 +98,17 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	Mesh *me;
 	MVert *mvert, *mv;
 	MEdge *medge = NULL;
-	MFace *mface = NULL;
+	MPoly *mpoly = NULL;
+	MLoop *mloop = NULL;
 	Key *key, *nkey=NULL;
 	KeyBlock *kb, *okb, *kbn;
 	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
-	int a, b, totcol, totmat=0, totedge=0, totvert=0, totface=0, ok=0;
-	int vertofs, *matmap=NULL;
-	int	i, j, index, haskey=0, edgeofs, faceofs;
+	int a, b, totcol, totmat=0, totedge=0, totvert=0, ok=0;
+	int totloop=0, totpoly=0, vertofs, *matmap=NULL;
+	int i, j, index, haskey=0, edgeofs, loopofs, polyofs;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert;
-	CustomData vdata, edata, fdata;
+	CustomData vdata, edata, fdata, ldata, pdata;
 
 	if(scene->obedit) {
 		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
@@ -126,7 +128,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			
 			totvert+= me->totvert;
 			totedge+= me->totedge;
-			totface+= me->totface;
+			totloop+= me->totloop;
+			totpoly+= me->totpoly;
 			totmat+= base->object->totcol;
 			
 			if(base->object == ob)
@@ -280,14 +283,18 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	memset(&vdata, 0, sizeof(vdata));
 	memset(&edata, 0, sizeof(edata));
 	memset(&fdata, 0, sizeof(fdata));
+	memset(&ldata, 0, sizeof(ldata));
+	memset(&pdata, 0, sizeof(pdata));
 	
 	mvert= CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
 	medge= CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-	mface= CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+	mloop= CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
+	mpoly= CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpoly);
 
 	vertofs= 0;
 	edgeofs= 0;
-	faceofs= 0;
+	loopofs= 0;
+	polyofs= 0;
 	
 	/* inverse transform for all selected meshes in this object */
 	invert_m4_m4(imat, ob->obmat);
@@ -398,7 +405,30 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				mvert+= me->totvert;
 			}
 			
-			if(me->totface) {
+			if(me->totedge) {
+				CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
+				CustomData_copy_data(&me->edata, &edata, 0, edgeofs, me->totedge);
+				
+				for(a=0; a<me->totedge; a++, medge++) {
+					medge->v1+= vertofs;
+					medge->v2+= vertofs;
+				}
+			}
+
+			if (me->totloop) {
+				if(base->object!=ob)
+					multiresModifier_prepare_join(scene, base->object, ob);
+				
+				CustomData_merge(&me->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
+				CustomData_copy_data(&me->ldata, &ldata, 0, loopofs, me->totloop);
+				
+				for(a=0; a<me->totloop; a++, mloop++) {
+					mloop->v += vertofs;
+					mloop->e += edgeofs;
+				}
+			}
+			
+			if(me->totpoly) {
 				/* make mapping for materials */
 				for(a=1; a<=base->object->totcol; a++) {
 					ma= give_current_material(base->object, a);
@@ -411,43 +441,23 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					}
 				}
 				
-				if(base->object!=ob)
-					multiresModifier_prepare_join(scene, base->object, ob);
+				CustomData_merge(&me->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
+				CustomData_copy_data(&me->pdata, &pdata, 0, polyofs, me->totpoly);
+				
+				for(a=0; a<me->totpoly; a++, mpoly++) {
+					mpoly->loopstart += loopofs;
+					mpoly->mat_nr= matmap ? matmap[(int)mpoly->mat_nr] : 0;
+				}
+				
+				polyofs += me->totpoly;
+			}
 
-				CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
-				CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
-				
-				for(a=0; a<me->totface; a++, mface++) {
-					mface->v1+= vertofs;
-					mface->v2+= vertofs;
-					mface->v3+= vertofs;
-					if(mface->v4) mface->v4+= vertofs;
-					
-					if (matmap)
-						mface->mat_nr= matmap[(int)mface->mat_nr];
-					else 
-						mface->mat_nr= 0;
-				}
-				
-				faceofs += me->totface;
-			}
-			
-			if(me->totedge) {
-				CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
-				CustomData_copy_data(&me->edata, &edata, 0, edgeofs, me->totedge);
-				
-				for(a=0; a<me->totedge; a++, medge++) {
-					medge->v1+= vertofs;
-					medge->v2+= vertofs;
-				}
-				
-				edgeofs += me->totedge;
-			}
-			
-			/* vertofs is used to help newly added verts be reattached to their edge/face 
-			 * (cannot be set earlier, or else reattaching goes wrong)
+			/* these are used for relinking (cannot be set earlier, 
+			 * or else reattaching goes wrong)
 			 */
 			vertofs += me->totvert;
+			edgeofs += me->totedge;
+			loopofs += me->totloop;
 			
 			/* free base, now that data is merged */
 			if(base->object != ob)
@@ -461,17 +471,20 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
-	CustomData_free(&me->fdata, me->totface);
+	CustomData_free(&me->ldata, me->totloop);
+	CustomData_free(&me->pdata, me->totpoly);
 
 	me->totvert= totvert;
 	me->totedge= totedge;
-	me->totface= totface;
+	me->totloop= totloop;
+	me->totpoly= totpoly;
 	
 	me->vdata= vdata;
 	me->edata= edata;
-	me->fdata= fdata;
+	me->ldata= ldata;
+	me->pdata= pdata;
 
-	mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me, TRUE); /* BMESH_TODO, check if this arg can be failse, non urgent - campbell */
 	
 	/* old material array */
 	for(a=1; a<=ob->totcol; a++) {
@@ -527,11 +540,11 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
 #else
 	/* toggle editmode using lower level functions so this can be called from python */
-	make_editMesh(scene, ob);
-	load_editMesh(scene, ob);
-	free_editMesh(me->edit_mesh);
-	MEM_freeN(me->edit_mesh);
-	me->edit_mesh= NULL;
+	EDBM_MakeEditBMesh(scene->toolsettings, scene, ob);
+	EDBM_LoadEditBMesh(scene, ob);
+	EDBM_FreeEditBMesh(me->edit_btmesh);
+	MEM_freeN(me->edit_btmesh);
+	me->edit_btmesh= NULL;
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
 #endif
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
@@ -738,7 +751,7 @@ static intptr_t mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 					return (*bt)->index[a]-1;
 			}
 			else {
-				EditVert *eve= (EditVert *)((*bt)->index[a]);
+				BMVert *eve= (BMVert *)((*bt)->index[a]);
 				if(compare_v3v3(eve->co, co, MOC_THRESH))
 					return (*bt)->index[a];
 			}
@@ -758,7 +771,7 @@ static struct {
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
-intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
+intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 {
 	MocNode **bt;
 	
@@ -784,10 +797,11 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		 * we are using the undeformed coordinates*/
 		INIT_MINMAX(min, max);
 
-		if(em && me->edit_mesh==em) {
-			EditVert *eve;
+		if(em && me->edit_btmesh==em) {
+			BMIter iter;
+			BMVert *eve;
 			
-			for(eve= em->verts.first; eve; eve= eve->next)
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
 				DO_MINMAX(eve->co, min, max)
 		}
 		else {		
@@ -819,10 +833,11 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		
 		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
-		if(em && me->edit_mesh==em) {
-			EditVert *eve;
+		if(em && me->edit_btmesh==em) {
+			BMVert *eve;
+			BMIter iter;
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
@@ -898,9 +913,10 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 	} else {
 		return mesh_get_x_mirror_vert_spacial(ob, index);
 	}
+	return 0;
 }
 
-static EditVert *editmesh_get_x_mirror_vert_spacial(Object *ob, EditMesh *em, float *co)
+static BMVert *editbmesh_get_x_mirror_vert_spacial(Object *ob, BMEditMesh *em, float *co)
 {
 	float vec[3];
 	intptr_t poinval;
@@ -918,20 +934,28 @@ static EditVert *editmesh_get_x_mirror_vert_spacial(Object *ob, EditMesh *em, fl
 	
 	poinval= mesh_octree_table(ob, em, vec, 'u');
 	if(poinval != -1)
-		return (EditVert *)(poinval);
+		return (BMVert *)(poinval);
 	return NULL;
 }
 
-static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em, EditVert *eve, int index)
+static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *em, BMVert *eve, int index)
 {
 	intptr_t poinval;
 	if (mesh_mirrtopo_table(ob, 'u')==-1)
 		return NULL;
 
 	if (index == -1) {
-		index = BLI_findindex(&em->verts, eve);
-
-		if (index == -1) {
+		BMIter iter;
+		BMVert *v;
+		
+		index = 0;
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (v == eve)
+				break;
+			index++;
+		}
+		
+		if (index == em->bm->totvert) {
 			return NULL;
 		}
 	}
@@ -939,22 +963,23 @@ static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em
 	poinval= mesh_topo_store.index_lookup[index];
 
 	if(poinval != -1)
-		return (EditVert *)(poinval);
+		return (BMVert *)(poinval);
 	return NULL;
 }	
 
-EditVert *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, EditVert *eve, float *co, int index)
+BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *eve, float *co, int index)
 {
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
-		return editmesh_get_x_mirror_vert_topo(ob, em, eve, index);
-	} else {
-		return editmesh_get_x_mirror_vert_spacial(ob, em, co);
+		return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
+	}
+	else {
+		return editbmesh_get_x_mirror_vert_spacial(ob, em, co);
 	}
 }
 
-
 #if 0
-float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_cent)
+
+static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
 {
 	float vec[2];
 	float cent_vec[2];
@@ -982,25 +1007,30 @@ float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_
 
 	/* TODO - Optimize */
 	{
-		EditFace *efa;
-		int i, len;
-		for(efa=em->faces.first; efa; efa=efa->next) {
-			MTFace *tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			uv_center(tf->uv, cent, (void *)efa->v4);
-
+		BMIter iter;
+		BMFace *efa;
+		
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			poly_uv_center(em, efa, cent);
+			
 			if ( (fabs(cent[0] - cent_vec[0]) < 0.001) && (fabs(cent[1] - cent_vec[1]) < 0.001) ) {
-				len = efa->v4 ? 4 : 3;
-				for (i=0; i<len; i++) {
-					if ( (fabs(tf->uv[i][0] - vec[0]) < 0.001) && (fabs(tf->uv[i][1] - vec[1]) < 0.001) ) {
-						return tf->uv[i];
-					}
+				BMIter liter;
+				BMLoop *l;
+				
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					if ( (fabs(luv->uv[0] - vec[0]) < 0.001) && (fabs(luv->uv[1] - vec[1]) < 0.001) ) {
+						return luv->uv;
+								
 				}
 			}
 		}
 	}
+	}
 
 	return NULL;
 }
+
 #endif
 
 static unsigned int mirror_facehash(const void *ptr)
@@ -1049,7 +1079,8 @@ static int mirror_facecmp(const void *a, const void *b)
 	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
 }
 
-int *mesh_get_x_mirror_faces(Object *ob, EditMesh *em)
+/* BMESH_TODO, convert to MPoly (functions above also) */
+int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 {
 	Mesh *me= ob->data;
 	MVert *mv, *mvert= me->mvert;

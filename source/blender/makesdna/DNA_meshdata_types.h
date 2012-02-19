@@ -38,6 +38,7 @@
 struct Bone;
 struct Image;
 
+/*tesselation face, see MLoop/MPoly for the real face data*/
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
@@ -67,13 +68,12 @@ typedef struct MVert {
 	char flag, bweight;
 } MVert;
 
-/* at the moment alpha is abused for vertex painting
- * and not used for transperency, note that red and blue are swapped */
+/* tesselation vertex color data.
+ * at the moment alpha is abused for vertex painting
+ * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
-
-#ifdef USE_BMESH_FORWARD_COMPAT
 
 /*new face structure, replaces MFace, which is now
   only used for storing tesselations.*/
@@ -92,19 +92,35 @@ typedef struct MLoop {
 	unsigned int e; /*edge index*/
 } MLoop;
 
-#endif /* USE_BMESH_FORWARD_COMPAT */
-
-/*bmesh custom data stuff*/
 typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
 	short mode,tile,unwrap;
 } MTexPoly;
 
+/* can copy from/to MTexPoly/MTFace */
+#define ME_MTEXFACE_CPY(dst, src)   \
+{                                   \
+	(dst)->tpage  = (src)->tpage;   \
+	(dst)->flag   = (src)->flag;    \
+	(dst)->transp = (src)->transp;  \
+	(dst)->mode   = (src)->mode;    \
+	(dst)->tile   = (src)->tile;    \
+	(dst)->unwrap = (src)->unwrap;  \
+}
+
 typedef struct MLoopUV {
 	float uv[2];
+	int flag;
 } MLoopUV;
 
+/*mloopuv->flag*/
+#define MLOOPUV_EDGESEL	1
+#define MLOOPUV_VERTSEL	2
+#define MLOOPUV_PINNED	4
+
+/* at the moment alpha is abused for vertex painting
+ * and not used for transparency, note that red and blue are swapped */
 typedef struct MLoopCol {
 	char a, r, g, b;
 } MLoopCol;
@@ -118,6 +134,7 @@ typedef struct MSelect {
 	int type; /* EDITVERT/EDITEDGE/EDITFACE */
 } MSelect;
 
+/*tesselation uv face data*/
 typedef struct MTFace {
 	float uv[4][2];
 	struct Image *tpage;
@@ -139,6 +156,10 @@ typedef struct MStringProperty {
 typedef struct OrigSpaceFace {
 	float uv[4][2];
 } OrigSpaceFace;
+
+typedef struct OrigSpaceLoop {
+	float uv[2];
+} OrigSpaceLoop;
 
 typedef struct MDisps {
 	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
@@ -231,7 +252,16 @@ typedef struct MRecast {
 /* flag (mface) */
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
-						/* flag ME_HIDE==16 is used here too */ 
+/* flag ME_HIDE==16 is used here too */ 
+
+#define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
+#define ME_POLY_LOOP_NEXT(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
+
+/* mselect->type */
+#define ME_VSEL	0
+#define ME_ESEL 1
+#define ME_FSEL 2
+
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
 #define TF_ACTIVE	2 /* deprecated! */

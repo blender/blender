@@ -158,7 +158,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		else
 			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
-		if(surmd->dm->getNumFaces(surmd->dm))
+		if(surmd->dm->getNumTessFaces(surmd->dm))
 			bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
 		else
 			bvhtree_from_mesh_edges(surmd->bvhtree, surmd->dm, 0.0, 2, 6);

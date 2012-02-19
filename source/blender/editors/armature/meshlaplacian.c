@@ -41,14 +41,15 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
+#include "BKE_mesh.h"
 
 
 #ifdef RIGID_DEFORM
@@ -651,10 +652,12 @@ static float heat_limit_weight(float weight)
 void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
 {
 	LaplacianSystem *sys;
-	MFace *mface;
+	MPoly *mp;
+	MLoop *ml;
+	MFace *mf;
 	float solution, weight;
 	int *vertsflipped = NULL, *mask= NULL;
-	int a, totface, j, bbone, firstsegment, lastsegment;
+	int a, tottri, j, bbone, firstsegment, lastsegment;
 
 	MVert *mvert = me->mvert;
 	int use_vert_sel= FALSE;
@@ -669,33 +672,34 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		mask= MEM_callocN(sizeof(int)*me->totvert, "heat_bone_weighting mask");
 	}
 
-	for(totface=0, a=0, mface=me->mface; a<me->totface; a++, mface++) {
-		totface++;
-		if(mface->v4) totface++;
-
+	for(a = 0, mp=me->mpoly; a < me->totpoly; mp++, a++) {
 		/*  (added selectedVerts content for vertex mask, they used to just equal 1) */
 		if(use_vert_sel) {
-			mask[mface->v1]= (mvert[mface->v1].flag & SELECT) != 0;
-			mask[mface->v2]= (mvert[mface->v2].flag & SELECT) != 0;
-			mask[mface->v3]= (mvert[mface->v3].flag & SELECT) != 0;
-			if(mface->v4) {
-				mask[mface->v4]= (mvert[mface->v4].flag & SELECT) != 0;
+			for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
+				if (use_vert_sel) {
+					mask[ml->v] = (mvert[ml->v].flag & SELECT) != 0;
+				}
 			}
 		}
 		else if (use_face_sel) {
-			if (mface->flag & ME_FACE_SEL) {
-				mask[mface->v1]= 1;
-				mask[mface->v2]= 1;
-				mask[mface->v3]= 1;
-				if(mface->v4) {
-					mask[mface->v4]= 1;
+			if (mp->flag & ME_FACE_SEL) {
+				for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
+					mask[ml->v] = 1;
 				}
 			}
 		}
 	}
 
+	/* bone heat needs triangulated faces */
+	BKE_mesh_tessface_ensure(me);
+
+	for(tottri = 0, a = 0, mf = me->mface; a < me->totface; mf++, a++) {
+		tottri++;
+		if(mf->v4) tottri++;
+	}
+
 	/* create laplacian */
-	sys = laplacian_system_construct_begin(me->totvert, totface, 1);
+	sys = laplacian_system_construct_begin(me->totvert, tottri, 1);
 
 	sys->heat.mface= me->mface;
 	sys->heat.totface= me->totface;
@@ -715,7 +719,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		for(a=0; a<me->totvert; a++)
 			vertsflipped[a] = mesh_get_x_mirror_vert(ob, a);
 	}
-
+	
 	/* compute weights per bone */
 	for(j=0; j<numsource; j++) {
 		if(!selected[j])
@@ -1188,8 +1192,8 @@ static int meshdeform_intersect(MeshDeformBind *mdb, MeshDeformIsect *isec)
 
 	isec->labda= 1e10;
 
-	mface= mdb->cagedm->getFaceArray(mdb->cagedm);
-	totface= mdb->cagedm->getNumFaces(mdb->cagedm);
+	mface= mdb->cagedm->getTessFaceArray(mdb->cagedm);
+	totface= mdb->cagedm->getNumTessFaces(mdb->cagedm);
 
 	add_v3_v3v3(end, isec->start, isec->vec);
 
@@ -1879,9 +1883,9 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd, MeshDeformBind *mdb)
 {
 	LaplacianSystem *sys;
-	MFace *mface= dm->getFaceArray(dm), *mf;
+	MFace *mface= dm->getTessFaceArray(dm), *mf;
 	int totvert= dm->getNumVerts(dm);
-	int totface= dm->getNumFaces(dm);
+	int totface= dm->getNumTessFaces(dm);
 	float solution, weight;
 	int a, tottri, j, thrownerror = 0;
 

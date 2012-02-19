@@ -55,6 +55,7 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
+#include "BKE_tessmesh.h"
 
 #include "ED_mesh.h"
 #include "ED_util.h"
@@ -336,12 +337,12 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
-	EditMesh *em= NULL;
+	BMEditMesh *em= NULL;
 	int ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	PointerRNA props_ptr;
 	
 	if(obedit && obedit->type==OB_MESH) {
-		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+		em= ((Mesh *)obedit->data)->edit_btmesh;
 	}
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
@@ -362,7 +363,7 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 			if(shift==0 || em->selectmode==0)
 				em->selectmode= SCE_SELECT_VERTEX;
 			ts->selectmode= em->selectmode;
-			EM_selectmode_set(em);
+			EDBM_selectmode_set(em);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Vertex");
 		}
@@ -371,12 +372,12 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		if(em) {
 			if(shift==0 || em->selectmode==0){
 				if( (em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX){
-					if(ctrl) EM_convertsel(em, SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
+					if(ctrl) EDBM_convertsel(em, SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
 				}
 				em->selectmode = SCE_SELECT_EDGE;
 			}
 			ts->selectmode= em->selectmode;
-			EM_selectmode_set(em);
+			EDBM_selectmode_set(em);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Edge");
 		}
@@ -384,14 +385,13 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 	case B_SEL_FACE:
 		if(em) {
 			if( shift==0 || em->selectmode==0){
-				if( ((em->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((em->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
-					if(ctrl)
-						EM_convertsel(em, (em->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
+				if( ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
+					if(ctrl) EDBM_convertsel(em, (ts->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
 				}
 				em->selectmode = SCE_SELECT_FACE;
 			}
 			ts->selectmode= em->selectmode;
-			EM_selectmode_set(em);
+			EDBM_selectmode_set(em);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Face");
 		}
@@ -424,9 +424,6 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 	default:
 		break;
 	}
-
-	if(obedit && obedit->type==OB_MESH)
-		BKE_mesh_end_editmesh(obedit->data, em);
 }
 
 /* Returns the icon associated with an object mode */
@@ -451,7 +448,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 
 	if(obedit && (obedit->type == OB_MESH)) {
-		EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+		BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 		uiLayout *row;
 
 		row= uiLayoutRow(layout, 1);
@@ -459,8 +456,6 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
 		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
 		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
-
-		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 }
 
