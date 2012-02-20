@@ -919,11 +919,11 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 		int use_verts = RNA_boolean_get(op->ptr, "use_verts");
 		//"Dissolve"
 		if (bem->selectmode & SCE_SELECT_FACE) {
-			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf use_verts=%i", BM_ELEM_SELECT, use_verts))
+			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_EDGE) {
-			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he use_verts=%i", BM_ELEM_SELECT, use_verts))
+			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_VERTEX) {
