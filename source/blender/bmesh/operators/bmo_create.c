@@ -728,7 +728,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 	BMVert *startv;
 	BMVert *endv;
 	EPathNode *node;
-	int i, use_restrict = BMO_slot_int_get(op, "use_restrict");
+	int i, use_restrict = BMO_slot_bool_get(op, "use_restrict");
 
 	startv = edata[BM_elem_index_get(edge)].ftag ? edge->v2 : edge->v1;
 	endv = edata[BM_elem_index_get(edge)].ftag ? edge->v1 : edge->v2;
