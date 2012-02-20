@@ -296,6 +296,11 @@ void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
 	BMesh *bm = me->edit_btmesh->bm;
 
 	BMO_op_callf(bm, "object_load_bmesh scene=%p object=%p", scene, ob);
+
+#ifdef USE_TESSFACE_DEFAULT
+	BKE_mesh_tessface_calc(me);
+#endif
+
 }
 
 void EDBM_FreeEditBMesh(BMEditMesh *tm)
@@ -520,7 +525,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 #endif
 
-	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", &um->me, 1);
+	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", &um->me, TRUE);
 	um->selectmode = em->selectmode;
 
 	return um;

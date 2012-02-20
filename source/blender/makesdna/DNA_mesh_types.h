@@ -229,4 +229,7 @@ typedef struct TFace {
 #define USE_BMESH_SAVE_WITHOUT_MFACE
 
 
+/* enable this so meshes get tessfaces calculated by default */
+// #define USE_TESSFACE_DEFAULT
+
 #endif

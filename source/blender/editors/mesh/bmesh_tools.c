@@ -3262,7 +3262,8 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
 
 	BM_mesh_normals_update(bmnew);
-	BMO_op_callf(bmnew, "bmesh_to_mesh mesh=%p object=%p", basenew->object->data, basenew->object);
+	BMO_op_callf(bmnew, "bmesh_to_mesh mesh=%p object=%p notesselation=%i",
+	             basenew->object->data, basenew->object, TRUE);
 		
 	BM_mesh_free(bmnew);
 	((Mesh *)basenew->object->data)->edit_btmesh = NULL;
