@@ -368,7 +368,7 @@ void make_editNurb	(struct Object *obedit){}
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
-struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a = {}; return a;}
+struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a = {0}; return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}
