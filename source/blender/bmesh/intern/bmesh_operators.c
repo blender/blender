@@ -65,7 +65,7 @@ static const char *bmo_error_messages[] = {
 /* operator slot type information - size of one element of the type given. */
 const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
 	0,
-    sizeof(int),
+	sizeof(int),
 	sizeof(int),
 	sizeof(float),
 	sizeof(void *),
@@ -837,7 +837,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  * Flags elements in a slots buffer
  */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                          const short oflag, const char htype)
+                                 const short oflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -860,7 +860,7 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname
  * Removes flags from elements in a slots buffer
  */
 void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                const short oflag, const char htype)
+                                  const short oflag, const char htype)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;

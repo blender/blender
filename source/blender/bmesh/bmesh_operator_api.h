@@ -272,7 +272,7 @@ enum {
 	DEL_ONLYFACES,
 	DEL_EDGESFACES,
 	DEL_FACES,
-	DEL_ALL	,
+	DEL_ALL,
 	DEL_ONLYTAGGED
 };
 
@@ -313,10 +313,10 @@ void BMO_slot_from_flag(struct BMesh *bm, struct BMOperator *op, const char *slo
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_flag_enable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                          const short oflag, const char htype);
+                                 const short oflag, const char htype);
 /* clears tool-flag flag from all elements inside a slot array. */
 void BMO_slot_buffer_flag_disable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
-                                const short oflag, const char htype);
+                                  const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_hflag_enable(struct BMesh *bm, struct BMOperator *op, const char *slotname,
