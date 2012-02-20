@@ -899,6 +899,7 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub1.prop(inputs, "use_mouse_emulate_3_button")
         sub.prop(inputs, "use_mouse_continuous")
         sub.prop(inputs, "drag_threshold")
+        sub.prop(inputs, "tweak_threshold")
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
@@ -935,8 +936,6 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub = col.column()
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
-
-        col.prop(inputs, "tweak_threshold")
 
         row.separator()
 
