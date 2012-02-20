@@ -74,7 +74,6 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Screw, "SCREW", ICON_MOD_SCREW, "Screw", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
-	{eModifierType_NgonInterp, "NGONINTERP", ICON_MOD_LATTICE, "Precision UV Interpolation", ""},
 	{0, "", 0, "Deform", ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -184,8 +183,6 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_MultiresModifier;
 		case eModifierType_Surface:
 			return &RNA_SurfaceModifier;
-		case eModifierType_NgonInterp:
-			return &RNA_NgonInterpModifier;
 		case eModifierType_Smoke:
 			return &RNA_SmokeModifier;
 		case eModifierType_Solidify:
@@ -3082,28 +3079,6 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	// XXX how to update?
 }
 
-
-
-static void rna_def_modifier_ngoninterp(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "NgonInterpModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Precision UV Modifier", "Precision UV interpolation");
-	RNA_def_struct_sdna(srna, "NgonInterpModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_SCREW);
-
-	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_range(prop, 1, 10000);
-	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
-	RNA_def_property_ui_text(prop, "Resolution", "Size of interpolation grids");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-}
-
-
-
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3207,9 +3182,6 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_dynamic_paint(brna);
 	rna_def_modifier_ocean(brna);
 	rna_def_modifier_remesh(brna);
-
-	/* BMESH_ONLY */
-	rna_def_modifier_ngoninterp(brna);
 }
 
 #endif

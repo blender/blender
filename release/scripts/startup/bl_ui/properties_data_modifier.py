@@ -46,11 +46,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     # the mt.type enum is (ab)used for a lookup on function names
     # ...to avoid lengthy if statements
     # so each type must have a function here.
-	
-    def NGONINTERP(self, layout, ob, md):
-        split = layout.split()
-        split.prop(md, "resolution")
-        
+
     def ARMATURE(self, layout, ob, md):
         split = layout.split()
 
