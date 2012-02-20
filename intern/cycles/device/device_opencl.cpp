@@ -165,7 +165,7 @@ public:
 			return;
 		}
 
-		ciErr = clGetPlatformIDs(num_platforms, &cpPlatform, NULL);
+		ciErr = clGetPlatformIDs(1, &cpPlatform, NULL);
 		if(opencl_error(ciErr))
 			return;
 
@@ -709,7 +709,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0)
 		return;
 
-	if(clGetPlatformIDs(num_platforms, &platform_id, NULL) != CL_SUCCESS)
+	if(clGetPlatformIDs(1, &platform_id, NULL) != CL_SUCCESS)
 		return;
 
 	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS)
