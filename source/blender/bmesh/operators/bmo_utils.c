@@ -123,7 +123,7 @@ void bmesh_edgerotate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e, *e2;
-	int ccw = BMO_slot_int_get(op, "ccw");
+	int ccw = BMO_slot_bool_get(op, "ccw");
 
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		if (!(e2 = BM_edge_rotate(bm, e, ccw))) {
@@ -221,15 +221,15 @@ static void bmesh_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces
 
 void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 {
-	int usefaces = BMO_slot_int_get(op, "usefaces");
-	int constrict = BMO_slot_int_get(op, "constrict");
+	int use_faces = BMO_slot_bool_get(op, "use_faces");
+	int constrict = BMO_slot_bool_get(op, "constrict");
 
 	BMO_slot_buffer_flag_enable(bm, op, "geom", SEL_ORIG, BM_ALL);
 
 	if (constrict)
-		bmesh_regionextend_constrict(bm, op, usefaces);
+		bmesh_regionextend_constrict(bm, op, use_faces);
 	else
-		bmesh_regionextend_extend(bm, op, usefaces);
+		bmesh_regionextend_extend(bm, op, use_faces);
 
 	BMO_slot_from_flag(bm, op, "geomout", SEL_FLAG, BM_ALL);
 }
@@ -270,7 +270,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
 	float maxx, cent[3];
-	int i, maxi, flagflip = BMO_slot_int_get(op, "doflip");
+	int i, maxi, flagflip = BMO_slot_bool_get(op, "do_flip");
 
 	startf = NULL;
 	maxx = -1.0e10;
@@ -381,9 +381,9 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 	float *co, *co2, clipdist = BMO_slot_float_get(op, "clipdist");
 	int i, j, clipx, clipy, clipz;
 	
-	clipx = BMO_slot_int_get(op, "mirror_clip_x");
-	clipy = BMO_slot_int_get(op, "mirror_clip_y");
-	clipz = BMO_slot_int_get(op, "mirror_clip_z");
+	clipx = BMO_slot_bool_get(op, "mirror_clip_x");
+	clipy = BMO_slot_bool_get(op, "mirror_clip_y");
+	clipz = BMO_slot_bool_get(op, "mirror_clip_z");
 
 	i = 0;
 	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {

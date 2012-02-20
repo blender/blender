@@ -310,7 +310,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		if (lcd->do_cut) {
 			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
-			                  SUBD_PATH, 0, 0, 0);
+			                  SUBD_PATH, 0, FALSE, 0);
 			
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {

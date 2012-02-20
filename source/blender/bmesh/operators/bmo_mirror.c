@@ -48,8 +48,8 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 	float scale[3] = {1.0f, 1.0f, 1.0f};
 	float dist = BMO_slot_float_get(op, "mergedist");
 	int i, ototvert, ototedge, axis = BMO_slot_int_get(op, "axis");
-	int mirroru = BMO_slot_int_get(op, "mirror_u");
-	int mirrorv = BMO_slot_int_get(op, "mirror_v");
+	int mirroru = BMO_slot_bool_get(op, "mirror_u");
+	int mirrorv = BMO_slot_bool_get(op, "mirror_v");
 
 	ototvert = bm->totvert;
 	ototedge = bm->totedge;

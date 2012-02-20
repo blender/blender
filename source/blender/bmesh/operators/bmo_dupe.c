@@ -468,7 +468,7 @@ void spinop_exec(BMesh *bm, BMOperator *op)
 	float q[4];
 	float rmat[3][3];
 	float phi, si;
-	int steps, dupli, a, usedvec;
+	int steps, do_dupli, a, usedvec;
 
 	BMO_slot_vec_get(op, "cent", cent);
 	BMO_slot_vec_get(op, "axis", axis);
@@ -477,7 +477,7 @@ void spinop_exec(BMesh *bm, BMOperator *op)
 	usedvec = !is_zero_v3(dvec);
 	steps = BMO_slot_int_get(op, "steps");
 	phi = BMO_slot_float_get(op, "ang") * (float)M_PI / (360.0f * steps);
-	dupli = BMO_slot_int_get(op, "dupli");
+	do_dupli = BMO_slot_bool_get(op, "do_dupli");
 
 	si = (float)sin(phi);
 	q[0] = (float)cos(phi);
@@ -488,7 +488,7 @@ void spinop_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_copy(op, op, "geom", "lastout");
 	for (a = 0; a < steps; a++) {
-		if (dupli) {
+		if (do_dupli) {
 			BMO_op_initf(bm, &dupop, "dupe geom=%s", op, "lastout");
 			BMO_op_exec(bm, &dupop);
 			BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s",

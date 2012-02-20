@@ -190,11 +190,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	SmallHash hash;
 	float fac = BMO_slot_float_get(op, "percent");
-	const short do_even = BMO_slot_int_get(op, "use_even");
-	const short do_dist = BMO_slot_int_get(op, "use_dist");
+	const short do_even = BMO_slot_bool_get(op, "use_even");
+	const short do_dist = BMO_slot_bool_get(op, "use_dist");
 	int i, li, has_elens, HasMDisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	
-	has_elens = CustomData_has_layer(&bm->edata, CD_PROP_FLT) && BMO_slot_int_get(op, "use_lengths");
+	has_elens = CustomData_has_layer(&bm->edata, CD_PROP_FLT) && BMO_slot_bool_get(op, "use_lengths");
 	if (has_elens) {
 		li = BMO_slot_int_get(op, "lengthlayer");
 	}

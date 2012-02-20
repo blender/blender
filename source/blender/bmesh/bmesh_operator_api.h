@@ -78,11 +78,12 @@ struct GHashIterator;
 /* slot type arrays are terminated by the last member
  * having a slot type of 0.*/
 #define BMO_OP_SLOT_SENTINEL	0
-#define BMO_OP_SLOT_INT			1
-#define BMO_OP_SLOT_FLT			2
-#define BMO_OP_SLOT_PNT			3
-#define BMO_OP_SLOT_MAT			4
-#define BMO_OP_SLOT_VEC			7
+#define BMO_OP_SLOT_BOOL		1
+#define BMO_OP_SLOT_INT			2
+#define BMO_OP_SLOT_FLT			3
+#define BMO_OP_SLOT_PNT			4
+#define BMO_OP_SLOT_MAT			5
+#define BMO_OP_SLOT_VEC			8
 
 /* after BMO_OP_SLOT_VEC, everything is
 
@@ -91,9 +92,9 @@ struct GHashIterator;
  * for future growth.
  */
 //it's very important this remain a power of two
-#define BMO_OP_SLOT_ELEMENT_BUF		8
-#define BMO_OP_SLOT_MAPPING			9
-/* #define BMO_OP_SLOT_TOTAL_TYPES		10 */ /* not used yet */
+#define BMO_OP_SLOT_ELEMENT_BUF		9
+#define BMO_OP_SLOT_MAPPING			10
+#define BMO_OP_SLOT_TOTAL_TYPES		11
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
@@ -199,7 +200,7 @@ int BMO_mesh_flag_count(struct BMesh *bm, const short oflag, const char htype);
  * this system is used to execute or initialize an operator,
  * using a formatted-string system.
  *
- * for example, BMO_op_callf(bm, "del geom=%hf context=%d", BM_ELEM_SELECT, DEL_FACES);
+ * for example, BMO_op_callf(bm, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES);
  * . . .will execute the delete operator, feeding in selected faces, deleting them.
  *
  * the basic format for the format string is:
@@ -282,6 +283,8 @@ void  BMO_slot_float_set(struct BMOperator *op, const char *slotname, const floa
 float BMO_slot_float_get(BMOperator *op, const char *slotname);
 void  BMO_slot_int_set(struct BMOperator *op, const char *slotname, const int i);
 int   BMO_slot_int_get(BMOperator *op, const char *slotname);
+void  BMO_slot_bool_set(struct BMOperator *op, const char *slotname, const int i);
+int   BMO_slot_bool_get(BMOperator *op, const char *slotname);
 
 /* don't pass in arrays that are supposed to map to elements this way.
  *
@@ -448,7 +451,7 @@ typedef struct BMOElemMapping {
 	int len;
 } BMOElemMapping;
 
-extern const int BMO_OPSLOT_TYPEINFO[];
+extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
 BM_INLINE void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
                                    void *element, void *data, int len)

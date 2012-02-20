@@ -98,9 +98,9 @@
 static BMOpDefine def_vertexsmooth = {
 	"vertexsmooth",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
-	 {BMO_OP_SLOT_INT, "mirror_clip_x"}, //set vertices close to the x axis before the operation to 0
-	 {BMO_OP_SLOT_INT, "mirror_clip_y"}, //set vertices close to the y axis before the operation to 0
-	 {BMO_OP_SLOT_INT, "mirror_clip_z"}, //set vertices close to the z axis before the operation to 0
+	 {BMO_OP_SLOT_BOOL, "mirror_clip_x"}, //set vertices close to the x axis before the operation to 0
+	 {BMO_OP_SLOT_BOOL, "mirror_clip_y"}, //set vertices close to the y axis before the operation to 0
+	 {BMO_OP_SLOT_BOOL, "mirror_clip_z"}, //set vertices close to the z axis before the operation to 0
 	 {BMO_OP_SLOT_FLT, "clipdist"}, //clipping threshod for the above three slots
 	{0} /* null-terminating sentine */,
 	},
@@ -117,7 +117,7 @@ static BMOpDefine def_vertexsmooth = {
 static BMOpDefine def_righthandfaces = {
 	"righthandfaces",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
-	 {BMO_OP_SLOT_INT, "doflip"}, //internal flag, used by bmesh_rationalize_normals
+	 {BMO_OP_SLOT_BOOL, "do_flip"}, //internal flag, used by bmesh_rationalize_normals
 	 {0} /* null-terminating sentine */,
 	},
 	bmesh_righthandfaces_exec,
@@ -138,8 +138,8 @@ static BMOpDefine def_regionextend = {
 	"regionextend",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"}, //output slot, computed boundary geometry.
-	 {BMO_OP_SLOT_INT, "constrict"}, //find boundary inside the regions, not outside.
-	 {BMO_OP_SLOT_INT, "usefaces"}, //extend from faces instead of edges
+	 {BMO_OP_SLOT_BOOL, "constrict"}, //find boundary inside the regions, not outside.
+	 {BMO_OP_SLOT_BOOL, "use_faces"}, //extend from faces instead of edges
 	 {0} /* null-terminating sentine */,
 	},
 	bmesh_regionextend_exec,
@@ -156,7 +156,7 @@ static BMOpDefine def_edgerotate = {
 	"edgerotate",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
-	 {BMO_OP_SLOT_INT, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
+	 {BMO_OP_SLOT_BOOL, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
 	 {0} /* null-terminating sentine */,
 	},
 	bmesh_edgerotate_exec,
@@ -210,8 +210,8 @@ static BMOpDefine def_mirror = {
 	 {BMO_OP_SLOT_FLT, "mergedist"}, //maximum distance for merging.  does no merging if 0.
 	 {BMO_OP_SLOT_ELEMENT_BUF, "newout"}, //output geometry, mirrored
 	 {BMO_OP_SLOT_INT,         "axis"}, //the axis to use, 0, 1, or 2 for x, y, z
-	 {BMO_OP_SLOT_INT,         "mirror_u"}, //mirror UVs across the u axis
-	 {BMO_OP_SLOT_INT,         "mirror_v"}, //mirror UVs across the v axis
+	 {BMO_OP_SLOT_BOOL,        "mirror_u"}, //mirror UVs across the u axis
+	 {BMO_OP_SLOT_BOOL,        "mirror_v"}, //mirror UVs across the v axis
 	 {0, /* null-terminating sentine */}},
 	bmesh_mirror_exec,
 	0,
@@ -375,10 +375,10 @@ static BMOpDefine def_join_triangles = {
 	"join_triangles",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, //input geometry.
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //joined faces
-	 {BMO_OP_SLOT_INT, "compare_sharp"},
-	 {BMO_OP_SLOT_INT, "compare_uvs"},
-	 {BMO_OP_SLOT_INT, "compare_vcols"},
-	 {BMO_OP_SLOT_INT, "compare_materials"},
+	 {BMO_OP_SLOT_BOOL, "cmp_sharp"},
+	 {BMO_OP_SLOT_BOOL, "cmp_uvs"},
+	 {BMO_OP_SLOT_BOOL, "cmp_vcols"},
+	 {BMO_OP_SLOT_BOOL, "cmp_materials"},
 	 {BMO_OP_SLOT_FLT, "limit"},
 	 {0, /* null-terminating sentine */}},
 	bmesh_jointriangles_exec,
@@ -421,7 +421,7 @@ static BMOpDefine def_edgenet_fill = {
 	"edgenet_fill",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edge */
 	 {BMO_OP_SLOT_MAPPING,     "restrict"}, /* restricts edges to groups.  maps edges to integer */
-	 {BMO_OP_SLOT_INT,         "use_restrict"},
+	 {BMO_OP_SLOT_BOOL,        "use_restrict"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "excludefaces"}, /* list of faces to ignore for manifold check */
 	 {BMO_OP_SLOT_MAPPING,     "faceout_groupmap"}, /* maps new faces to the group numbers they came fro */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* new face */
@@ -535,7 +535,7 @@ static BMOpDefine def_bmesh_to_mesh = {
 	"bmesh_to_mesh",
 	{{BMO_OP_SLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
 	 {BMO_OP_SLOT_PNT, "object"}, //pointer to an object structure
-	 {BMO_OP_SLOT_INT, "notesselation"}, //don't calculate mfaces
+	 {BMO_OP_SLOT_BOOL, "notesselation"}, //don't calculate mfaces
 	 {0, /* null-terminating sentine */}},
 	bmesh_to_mesh_exec,
 	0,
@@ -551,7 +551,7 @@ static BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
 	{{BMO_OP_SLOT_PNT, "mesh"}, //pointer to a Mesh structure
 	 {BMO_OP_SLOT_PNT, "object"}, //pointer to an Object structure
-	 {BMO_OP_SLOT_INT, "set_shapekey"}, //load active shapekey coordinates into verts
+	 {BMO_OP_SLOT_BOOL, "set_shapekey"}, //load active shapekey coordinates into verts
 	 {0, /* null-terminating sentine */}},
 	mesh_to_bmesh_exec,
 	0
@@ -615,7 +615,7 @@ static BMOpDefine def_extrudefaceregion = {
 	"extrudefaceregion",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edgefacein"},
 	 {BMO_OP_SLOT_MAPPING, "exclude"},
-	 {BMO_OP_SLOT_INT, "alwayskeeporig"},
+	 {BMO_OP_SLOT_BOOL, "alwayskeeporig"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"},
 	 {0} /* null-terminating sentine */},
 	extrude_edge_context_exec,
@@ -634,7 +634,7 @@ static BMOpDefine def_dissolveedgessop = {
 	"dissolveedges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "regionout"},
-	 {BMO_OP_SLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
+	 {BMO_OP_SLOT_BOOL, "use_verts"}, // dissolve verts left between only 2 edges.
 	 {0} /* null-terminating sentine */},
 	dissolveedges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -653,7 +653,7 @@ static BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "regionout"},
-	 {BMO_OP_SLOT_INT, "use_verts"}, // dissolve verts left between only 2 edges.
+	 {BMO_OP_SLOT_BOOL, "use_verts"}, // dissolve verts left between only 2 edges.
 	 {0} /* null-terminating sentine */},
 	dissolvefaces_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -696,9 +696,9 @@ static BMOpDefine def_subdop = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "outsplit"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"}, /* contains all output geometr */
 
-	 {BMO_OP_SLOT_INT, "quadcornertype"}, //quad corner type, see bmesh_operators.h
-	 {BMO_OP_SLOT_INT, "gridfill"}, //fill in fully-selected faces with a grid
-	 {BMO_OP_SLOT_INT, "singleedge"}, //tesselate the case of one edge selected in a quad or triangle
+	 {BMO_OP_SLOT_INT,  "quadcornertype"}, //quad corner type, see bmesh_operators.h
+	 {BMO_OP_SLOT_BOOL, "gridfill"}, //fill in fully-selected faces with a grid
+	 {BMO_OP_SLOT_BOOL, "singleedge"}, //tesselate the case of one edge selected in a quad or triangle
 
 	 {0} /* null-terminating sentine */,
 	},
@@ -708,7 +708,8 @@ static BMOpDefine def_subdop = {
 
 static BMOpDefine def_delop = {
 	"del",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, {BMO_OP_SLOT_INT, "context"},
+	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
+	 {BMO_OP_SLOT_INT, "context"},
 	 {0} /* null-terminating sentine */},
 	delop_exec,
 	0
@@ -757,7 +758,7 @@ static BMOpDefine def_spinop = {
 	 {BMO_OP_SLOT_VEC, "dvec"}, /* translation delta per step */
 	 {BMO_OP_SLOT_FLT, "ang"}, /* total rotation angle (degrees) */
 	 {BMO_OP_SLOT_INT, "steps"}, /* number of steps */
-	 {BMO_OP_SLOT_INT, "dupli"}, /* duplicate or extrude? */
+	 {BMO_OP_SLOT_BOOL, "do_dupli"}, /* duplicate or extrude? */
 	 {0} /* null-terminating sentine */},
 	spinop_exec,
 	0
@@ -965,8 +966,8 @@ static BMOpDefine def_create_monkey = {
 static BMOpDefine def_create_cone = {
 	"create_cone",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, //output verts
-	 {BMO_OP_SLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
-	 {BMO_OP_SLOT_INT, "cap_tris"}, //fill ends with triangles instead of ngons
+	 {BMO_OP_SLOT_BOOL, "cap_ends"}, //wheter or not to fill in the ends with faces
+	 {BMO_OP_SLOT_BOOL, "cap_tris"}, //fill ends with triangles instead of ngons
 	 {BMO_OP_SLOT_INT, "segments"},
 	 {BMO_OP_SLOT_FLT, "diameter1"}, //diameter of one end
 	 {BMO_OP_SLOT_FLT, "diameter2"}, //diameter of the opposite
@@ -983,8 +984,8 @@ static BMOpDefine def_create_cone = {
 static BMOpDefine def_create_circle = {
 	"create_circle",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, //output verts
-	 {BMO_OP_SLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
-	 {BMO_OP_SLOT_INT, "cap_tris"}, //fill ends with triangles instead of ngons
+	 {BMO_OP_SLOT_BOOL, "cap_ends"}, //wheter or not to fill in the ends with faces
+	 {BMO_OP_SLOT_BOOL, "cap_tris"}, //fill ends with triangles instead of ngons
 	 {BMO_OP_SLOT_INT, "segments"},
 	 {BMO_OP_SLOT_FLT, "diameter"}, //diameter of one end
 	 {BMO_OP_SLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
@@ -1018,9 +1019,9 @@ static BMOpDefine def_bevel = {
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "face_holes"}, /* new geometry */
-	 {BMO_OP_SLOT_INT, "use_lengths"}, /* grab edge lengths from a PROP_FLT customdata laye */
-	 {BMO_OP_SLOT_INT, "use_even"}, /* corner vert placement: use shell/angle calculations  */
-	 {BMO_OP_SLOT_INT, "use_dist"}, /* corner vert placement: evaluate percent as a distance,
+	 {BMO_OP_SLOT_BOOL, "use_lengths"}, /* grab edge lengths from a PROP_FLT customdata laye */
+	 {BMO_OP_SLOT_BOOL, "use_even"}, /* corner vert placement: use shell/angle calculations  */
+	 {BMO_OP_SLOT_BOOL, "use_dist"}, /* corner vert placement: evaluate percent as a distance,
 	                                 * modifier uses this. We could do this as another float setting */
 	 {BMO_OP_SLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to us */
 	 {BMO_OP_SLOT_FLT, "percent"}, /* percentage to expand bevelled edge */

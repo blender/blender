@@ -111,8 +111,7 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *f
 	va_start(list, fmt);
 
 	if (!BMO_op_vinitf(bm, bmop, fmt, list)) {
-		BKE_report(op->reports, RPT_ERROR,
-			   "Parse error in EDBM_CallOpf");
+		BKE_reportf(op->reports, RPT_ERROR, "Parse error in %s", __func__);
 		va_end(list);
 		return 0;
 	}
@@ -173,8 +172,7 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 	va_start(list, fmt);
 
 	if (!BMO_op_vinitf(bm, &bmop, fmt, list)) {
-		BKE_report(op->reports, RPT_ERROR,
-			   "Parse error in EDBM_CallOpf");
+		BKE_reportf(op->reports, RPT_ERROR, "Parse error in %s", __func__);
 		va_end(list);
 		return 0;
 	}
@@ -198,8 +196,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 	va_start(list, fmt);
 
 	if (!BMO_op_vinitf(bm, &bmop, fmt, list)) {
-		BKE_report(op->reports, RPT_ERROR,
-			   "Parse error in EDBM_CallOpf");
+		BKE_reportf(op->reports, RPT_ERROR, "Parse error in %s", __func__);
 		va_end(list);
 		return 0;
 	}
@@ -415,11 +412,11 @@ void EDBM_select_flush(BMEditMesh *em)
 void EDBM_select_more(BMEditMesh *em)
 {
 	BMOperator bmop;
-	int usefaces = em->selectmode > SCE_SELECT_EDGE;
+	int use_faces = em->selectmode > SCE_SELECT_EDGE;
 
 	BMO_op_initf(em->bm, &bmop,
-	             "regionextend geom=%hvef constrict=%d usefaces=%d",
-	             BM_ELEM_SELECT, 0, usefaces);
+	             "regionextend geom=%hvef constrict=%i use_faces=%b",
+	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_op_finish(em->bm, &bmop);
@@ -430,11 +427,11 @@ void EDBM_select_more(BMEditMesh *em)
 void EDBM_select_less(BMEditMesh *em)
 {
 	BMOperator bmop;
-	int usefaces = em->selectmode > SCE_SELECT_EDGE;
+	int use_faces = em->selectmode > SCE_SELECT_EDGE;
 
 	BMO_op_initf(em->bm, &bmop,
-	             "regionextend geom=%hvef constrict=%d usefaces=%d",
-	             BM_ELEM_SELECT, 0, usefaces);
+	             "regionextend geom=%hvef constrict=%i use_faces=%b",
+	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
 	BMO_op_finish(em->bm, &bmop);
@@ -525,7 +522,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 #endif
 
-	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", &um->me, TRUE);
+	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%b", &um->me, TRUE);
 	um->selectmode = em->selectmode;
 
 	return um;
@@ -537,14 +534,15 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 	Object *ob;
 	undomesh *um = umv;
 	BMesh *bm;
-	
+
+	/* BMESH_TODO - its possible the name wont be found right?, should fallback */
 	ob = (Object *)find_id("OB", um->obname);
 	ob->shapenr = em->bm->shapenr;
 
 	BMEdit_Free(em);
 
 	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
-	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", &um->me, ob, 0);
+	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
 
 	em2 = BMEdit_Create(bm, TRUE);
 	*em = *em2;

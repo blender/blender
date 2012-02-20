@@ -107,7 +107,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 	BLI_array_free(edges);
 
-	BMO_op_callf(bm, "del geom=%ff context=%d", EXT_DEL, DEL_ONLYFACES);
+	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
 	BMO_slot_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
 }
 
@@ -201,7 +201,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	
 	/* if one flagged face is bordered by an unflagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */
-	if (!BMO_slot_int_get(op, "alwayskeeporig")) {
+	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BMO_elem_flag_test(bm, e, EXT_INPUT)) continue;
 
@@ -248,7 +248,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (delorig) {
-		BMO_op_initf(bm, &delop, "del geom=%fvef context=%d",
+		BMO_op_initf(bm, &delop, "del geom=%fvef context=%i",
 		             EXT_DEL, DEL_ONLYTAGGED);
 	}
 
@@ -576,7 +576,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &reverseop);
 
 	/* Extrude the region */
-	BMO_op_initf(bm, &extrudeop, "extrudefaceregion alwayskeeporig=%i", TRUE);
+	BMO_op_initf(bm, &extrudeop, "extrudefaceregion alwayskeeporig=%b", TRUE);
 	BMO_slot_copy(op, &extrudeop, "geom", "edgefacein");
 	BMO_op_exec(bm, &extrudeop);
 

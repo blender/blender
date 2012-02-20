@@ -63,8 +63,9 @@ static const char *bmo_error_messages[] = {
 
 
 /* operator slot type information - size of one element of the type given. */
-const int BMO_OPSLOT_TYPEINFO[] = {
+const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
 	0,
+    sizeof(int),
 	sizeof(int),
 	sizeof(float),
 	sizeof(void *),
@@ -324,6 +325,15 @@ void BMO_slot_int_set(BMOperator *op, const char *slotname, const int i)
 	slot->data.i = i;
 }
 
+void BMO_slot_bool_set(BMOperator *op, const char *slotname, const int i)
+{
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
+	if (!(slot->slottype == BMO_OP_SLOT_BOOL))
+		return;
+
+	slot->data.i = i;
+}
+
 /* only supports square mats */
 void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, const float *mat, int size)
 {
@@ -397,6 +407,15 @@ int BMO_slot_int_get(BMOperator *op, const char *slotname)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	if (!(slot->slottype == BMO_OP_SLOT_INT))
+		return 0;
+
+	return slot->data.i;
+}
+
+int BMO_slot_bool_get(BMOperator *op, const char *slotname)
+{
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
+	if (!(slot->slottype == BMO_OP_SLOT_BOOL))
 		return 0;
 
 	return slot->data.i;
@@ -1102,19 +1121,6 @@ int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op)
 	return errorcode;
 }
 
-/* example:
- * BMO_CallOp(bm, "del %d %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
- *
- *  d - int
- *  i - int
- *  f - float
- *  hv - header flagged verts
- *  he - header flagged edges
- *  hf - header flagged faces
- *  fv - flagged verts
- *  fe - flagged edges
- *  ff - flagged faces
- */
 
 #define NEXT_CHAR(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
 
@@ -1154,6 +1160,20 @@ static int bmesh_opname_to_opcode(const char *opname)
 	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
 	return -1;
 }
+
+/* Example:
+ * BMO_op_callf(bm, "del %i %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
+ *
+ *  i - int
+ *  b - boolean (same as int but 1/0 only)
+ *  f - float
+ *  hv - header flagged verts (hflag)
+ *  he - header flagged edges (hflag)
+ *  hf - header flagged faces (hflag)
+ *  fv - flagged verts (oflag)
+ *  fe - flagged edges (oflag)
+ *  ff - flagged faces (oflag)
+ */
 
 int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 {
@@ -1265,8 +1285,11 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					break;
 				}
 				case 'i':
-				case 'd':
 					BMO_slot_int_set(op, slotname, va_arg(vlist, int));
+					state = 1;
+					break;
+				case 'b':
+					BMO_slot_bool_set(op, slotname, va_arg(vlist, int));
 					state = 1;
 					break;
 				case 'p':

@@ -701,7 +701,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	float thresh = CTX_data_tool_settings(C)->select_thresh;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "similarfaces faces=%hf type=%d thresh=%f", BM_ELEM_SELECT, type, thresh);
+	EDBM_InitOpf(em, &bmop, op, "similarfaces faces=%hf type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -742,7 +742,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	float thresh = CTX_data_tool_settings(C)->select_thresh;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "similaredges edges=%he type=%d thresh=%f", BM_ELEM_SELECT, type, thresh);
+	EDBM_InitOpf(em, &bmop, op, "similaredges edges=%he type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -787,7 +787,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	float thresh = CTX_data_tool_settings(C)->select_thresh;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "similarverts verts=%hv type=%d thresh=%f", BM_ELEM_SELECT, type, thresh);
+	EDBM_InitOpf(em, &bmop, op, "similarverts verts=%hv type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);

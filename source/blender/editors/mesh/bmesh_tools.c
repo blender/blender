@@ -99,7 +99,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	                  ts->editbutflag|flag, 
 	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
 	                  RNA_boolean_get(op->ptr, "quadtri"),
-	                  1, RNA_int_get(op->ptr, "seed"));
+	                  TRUE, RNA_int_get(op->ptr, "seed"));
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -1215,8 +1215,9 @@ static int editbmesh_edge_split(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int len = 0;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he numcuts=%d", 
-			BM_ELEM_SELECT, RNA_int_get(op->ptr,"number_cuts"))) {
+	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he numcuts=%i",
+	                  BM_ELEM_SELECT, RNA_int_get(op->ptr,"number_cuts")))
+	{
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &bmop);
@@ -1380,7 +1381,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	if (!eed)
 		return OPERATOR_CANCELLED;
 	
-	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, do_ccw);
+	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%b", eed, do_ccw);
 
 	/* avoid adding to the selection if we start off with only a selected edge,
 	 * we could also just deselect the single edge easily but use the BMO api
@@ -1564,7 +1565,7 @@ static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 	
 	/* doflip has to do with bmesh_rationalize_normals, it's an internal
 	 * thing */
-	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf doflip=%d", BM_ELEM_SELECT, 1))
+	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf do_flip=%d", BM_ELEM_SELECT, TRUE))
 		return OPERATOR_CANCELLED;
 
 	if (RNA_boolean_get(op->ptr, "inside"))
@@ -1600,7 +1601,7 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	ModifierData *md;
-	int mirrx = 0, mirry = 0, mirrz = 0;
+	int mirrx = FALSE, mirry = FALSE, mirrz = FALSE;
 	int i, repeat;
 	float clipdist = 0.0f;
 
@@ -1618,11 +1619,11 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 		
 			if (mmd->flag & MOD_MIR_CLIPPING) {
 				if (mmd->flag & MOD_MIR_AXIS_X)
-					mirrx = 1;
+					mirrx = TRUE;
 				if (mmd->flag & MOD_MIR_AXIS_Y)
-					mirry = 1;
+					mirry = TRUE;
 				if (mmd->flag & MOD_MIR_AXIS_Z)
-					mirrz = 1;
+					mirrz = TRUE;
 
 				clipdist = mmd->tolerance;
 			}
@@ -1635,7 +1636,7 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 	
 	for (i = 0; i < repeat; i++) {
 		if (!EDBM_CallOpf(em, op,
-		                  "vertexsmooth verts=%hv mirror_clip_x=%d mirror_clip_y=%d mirror_clip_z=%d clipdist=%f",
+		                  "vertexsmooth verts=%hv mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b clipdist=%f",
 		                  BM_ELEM_SELECT, mirrx, mirry, mirrz, clipdist))
 		{
 			return OPERATOR_CANCELLED;
@@ -1840,7 +1841,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshrotateuvs faces=%hf dir=%d", BM_ELEM_SELECT, dir);
+	EDBM_InitOpf(em, &bmop, op, "meshrotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1893,7 +1894,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshrotatecolors faces=%hf dir=%d", BM_ELEM_SELECT, dir);
+	EDBM_InitOpf(em, &bmop, op, "meshrotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -2197,8 +2198,7 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int count;
 
-	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", 
-		BM_ELEM_SELECT, RNA_float_get(op->ptr, "mergedist"));
+	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", BM_ELEM_SELECT, RNA_float_get(op->ptr, "mergedist"));
 	BMO_op_exec(em->bm, &bmop);
 
 	count = BMO_slot_map_count(em->bm, &bmop, "targetmapout");
@@ -2276,7 +2276,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%d", sv->data, ev->data, type);
+	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->data, ev->data, type);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -3162,8 +3162,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 
 	BMO_slot_int_set(&bmop, "flag", B_KNIFE);
 	BMO_slot_int_set(&bmop, "quadcornertype", SUBD_STRAIGHT_CUT);
-	BMO_slot_int_set(&bmop, "singleedge", 0);
-	BMO_slot_int_set(&bmop, "gridfill", 0);
+	BMO_slot_bool_set(&bmop, "singleedge", FALSE);
+	BMO_slot_bool_set(&bmop, "gridfill", FALSE);
 
 	BMO_slot_float_set(&bmop, "radius", 0);
 	
@@ -3262,7 +3262,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
 
 	BM_mesh_normals_update(bmnew);
-	BMO_op_callf(bmnew, "bmesh_to_mesh mesh=%p object=%p notesselation=%i",
+	BMO_op_callf(bmnew, "bmesh_to_mesh mesh=%p object=%p notesselation=%b",
 	             basenew->object->data, basenew->object, TRUE);
 		
 	BM_mesh_free(bmnew);
@@ -3408,8 +3408,9 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "triangle_fill edges=%he", BM_ELEM_SELECT))
+	if (!EDBM_InitOpf(em, &bmop, op, "triangle_fill edges=%he", BM_ELEM_SELECT)) {
 		return OPERATOR_CANCELLED;
+	}
 	
 	BMO_op_exec(em->bm, &bmop);
 	
@@ -3511,9 +3512,9 @@ static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	dovcols = RNA_boolean_get(op->ptr, "vcols");
 	domaterials = RNA_boolean_get(op->ptr, "materials");
 
-	if (!EDBM_CallOpf(em, op, 
-		"join_triangles faces=%hf limit=%f compare_sharp=%i compare_uvs=%i compare_vcols=%i compare_materials=%i", 
-		BM_ELEM_SELECT, limit, dosharp, douvs, dovcols, domaterials)) 
+	if (!EDBM_CallOpf(em, op,
+	                  "join_triangles faces=%hf limit=%f cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
+	                  BM_ELEM_SELECT, limit, dosharp, douvs, dovcols, domaterials))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3684,8 +3685,9 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 	mul_m3_v3(imat, axis);
 
 	if (!EDBM_InitOpf(em, &spinop, op,
-			"spin geom=%hvef cent=%v axis=%v dvec=%v steps=%d ang=%f dupli=%d",
-			BM_ELEM_SELECT, cent, axis, d, steps, degr, dupli)) {
+	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i ang=%f do_dupli=%b",
+	                  BM_ELEM_SELECT, cent, axis, d, steps, degr, dupli))
+	{
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &spinop);
@@ -3809,8 +3811,8 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 		negate_v3(dvec);
 
 	if (!EDBM_InitOpf(em, &spinop, op,
-	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%d ang=%f dupli=0",
-	                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, 360.0f * turns))
+	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i ang=%f do_dupli=%b",
+	                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, 360.0f * turns, FALSE))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -4506,8 +4508,8 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 		fac = w[recursion - i - 1] * factor;
 
 		if (!EDBM_InitOpf(em, &bmop, op,
-		                  "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%i use_even=%i use_dist=%i",
-		                  BM_ELEM_SELECT, fac, li, 1, use_even, use_dist))
+		                  "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%b use_even=%b use_dist=%b",
+		                  BM_ELEM_SELECT, fac, li, TRUE, use_even, use_dist))
 		{
 			return OPERATOR_CANCELLED;
 		}
