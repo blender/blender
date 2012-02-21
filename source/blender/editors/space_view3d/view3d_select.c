@@ -39,6 +39,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -48,7 +49,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"

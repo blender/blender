@@ -39,7 +39,6 @@ extern "C" {
 
 struct ARegion;
 struct bScreen;
-struct EditMesh;
 struct ListBase;
 struct Main;
 struct Object;

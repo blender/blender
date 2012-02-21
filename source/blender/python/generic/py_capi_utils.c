@@ -646,3 +646,39 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 		PyGILState_Release(gilstate);
 	}
 }
+
+/* generic function to avoid depending on RNA */
+void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
+{
+	PyObject* as_pointer;
+	PyObject* pointer;
+
+	if (!strcmp(Py_TYPE(value)->tp_name, type_name) &&
+	    (as_pointer = PyObject_GetAttrString(value, "as_pointer")) != NULL &&
+	    PyCallable_Check(as_pointer))
+	{
+		void *result = NULL;
+
+		/* must be a 'type_name' object */
+		pointer = PyObject_CallObject(as_pointer, NULL);
+		Py_DECREF(as_pointer);
+
+		if (!pointer) {
+			PyErr_SetString(PyExc_SystemError, "value.as_pointer() failed");
+			return NULL;
+		}
+		result = PyLong_AsVoidPtr(pointer);
+		Py_DECREF(pointer);
+		if (!result) {
+			PyErr_SetString(PyExc_SystemError, "value.as_pointer() failed");
+		}
+
+		return result;
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+		             "expected '%.200s' type found '%.200s' instead",
+		             type_name, Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+}

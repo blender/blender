@@ -179,7 +179,7 @@ MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[
 
 MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned char srgb[4])
 {
-	float alpha, inv_alpha;
+	float fsrgb[4];
 	int i;
 
 	if(srgb[3] == 255 || srgb[3] == 0) {
@@ -187,13 +187,10 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 		return;
 	}
 
-	alpha = srgb[3] * (1.0f/255.0f);
-	inv_alpha = 1.0f/alpha;
+	for (i=0; i<4; i++)
+		fsrgb[i] = srgb[i] * (1.0f/255.0f);
 
-	for(i=0; i<3; ++i)
-		linear[i] = linearrgb_to_srgb(srgb[i] * inv_alpha) * alpha;
-
-	linear[3] = alpha;
+	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }
 
 #endif /* BLI_MATH_COLOR_INLINE_H */

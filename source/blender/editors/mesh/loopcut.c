@@ -38,6 +38,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -50,7 +51,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
-#include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
@@ -310,7 +310,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		if (lcd->do_cut) {
 			BM_mesh_esubdivideflag(lcd->ob, em->bm, BM_ELEM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
-			                  SUBD_PATH, 0, 0, 0);
+			                  SUBD_PATH, 0, FALSE, 0);
 			
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {

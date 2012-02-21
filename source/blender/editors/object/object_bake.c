@@ -944,21 +944,22 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 			break;
 		}
 
-		if(!me->mtface) {
+		if(!me->mtpoly) {
 			BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
 			ok= 0;
-		} else {
-			/* BMESH_TODO - use MPoly rather then tessface */
-			a= me->totface;
+		}
+		else {
+			a = me->totpoly;
 			while (ok && a--) {
-				Image *ima= me->mtface[a].tpage;
+				Image *ima = me->mtpoly[a].tpage;
 
 				if(!ima) {
 					BKE_report(op->reports, RPT_ERROR, "You should have active texture to use multires baker");
 
 					ok= 0;
-				} else {
+				}
+				else {
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
 					if(!ibuf) {

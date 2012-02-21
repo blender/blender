@@ -693,8 +693,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	fractal = BMO_slot_float_get(op, "fractal");
 	beauty = BMO_slot_int_get(op, "beauty");
 	cornertype = BMO_slot_int_get(op, "quadcornertype");
-	singleedge = BMO_slot_int_get(op, "singleedge");
-	gridfill = BMO_slot_int_get(op, "gridfill");
+	singleedge = BMO_slot_bool_get(op, "singleedge");
+	gridfill = BMO_slot_bool_get(op, "gridfill");
 	
 	BLI_srandom(seed);
 	
@@ -1022,8 +1022,8 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	BMOperator op;
 	
 	BMO_op_initf(bm, &op, "esubd edges=%he smooth=%f fractal=%f "
-	             "beauty=%d numcuts=%d quadcornertype=%d singleedge=%d "
-	             "gridfill=%d seed=%d",
+	             "beauty=%i numcuts=%i quadcornertype=%i singleedge=%b "
+	             "gridfill=%b seed=%i",
 	             flag, smooth, fractal, beauty, numcuts,
 	             cornertype, singleedge, gridfill, seed);
 	

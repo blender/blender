@@ -148,8 +148,6 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "BKE_scene.h"
 #include "BKE_deform.h"
 
-#include "BLI_editVert.h" /* for EditMesh->mat_nr */
-
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_particle.h"

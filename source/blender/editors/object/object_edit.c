@@ -40,7 +40,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
 
@@ -56,6 +55,7 @@
 #include "DNA_object_force.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_mesh_types.h"
 
 #include "IMB_imbuf_types.h"
 

@@ -728,7 +728,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 	BMVert *startv;
 	BMVert *endv;
 	EPathNode *node;
-	int i, use_restrict = BMO_slot_int_get(op, "use_restrict");
+	int i, use_restrict = BMO_slot_bool_get(op, "use_restrict");
 
 	startv = edata[BM_elem_index_get(edge)].ftag ? edge->v2 : edge->v1;
 	endv = edata[BM_elem_index_get(edge)].ftag ? edge->v1 : edge->v2;
@@ -872,7 +872,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge **edges = NULL;
 	PathBase *pathbase = edge_pathbase_new();
 	BLI_array_declare(edges);
-	int use_restrict = BMO_slot_int_get(op, "use_restrict");
+	int use_restrict = BMO_slot_bool_get(op, "use_restrict");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 

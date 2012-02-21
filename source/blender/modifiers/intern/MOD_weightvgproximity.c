@@ -30,7 +30,6 @@
 
 #define DO_PROFILE 0
 
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

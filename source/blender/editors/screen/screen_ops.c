@@ -34,7 +34,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
@@ -44,6 +43,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"

@@ -59,7 +59,7 @@ static char *rna_tracking_path(PointerRNA *UNUSED(ptr))
 	return BLI_sprintfN("tracking");
 }
 
-static void rna_tracking_defaultSettings_levelsUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_tracking_defaultSettings_levelsUpdate(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTracking *tracking= &clip->tracking;
@@ -73,7 +73,7 @@ static void rna_tracking_defaultSettings_levelsUpdate(Main *UNUSED(bmain), Scene
 	}
 }
 
-static void rna_tracking_defaultSettings_patternUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_tracking_defaultSettings_patternUpdate(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTracking *tracking= &clip->tracking;
@@ -83,7 +83,7 @@ static void rna_tracking_defaultSettings_patternUpdate(Main *UNUSED(bmain), Scen
 		settings->default_search_size= settings->default_pattern_size;
 }
 
-static void rna_tracking_defaultSettings_searchUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_tracking_defaultSettings_searchUpdate(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTracking *tracking= &clip->tracking;
@@ -366,7 +366,7 @@ void rna_trackingObject_name_set(PointerRNA *ptr, const char *value)
 	BKE_tracking_object_unique_name(&clip->tracking, object);
 }
 
-static void rna_trackingObject_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_trackingObject_flushUpdate(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 

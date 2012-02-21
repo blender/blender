@@ -143,7 +143,7 @@ typedef struct TFace {
 /* **************** MESH ********************* */
 
 /* texflag */
-#define AUTOSPACE	1
+#define ME_AUTOSPACE	1
 
 /* me->editflag */
 #define ME_EDIT_MIRROR_X (1 << 0)
@@ -231,5 +231,8 @@ typedef struct TFace {
 #define USE_BMESH_SAVE_AS_COMPAT
 #define USE_BMESH_SAVE_WITHOUT_MFACE
 
+
+/* enable this so meshes get tessfaces calculated by default */
+// #define USE_TESSFACE_DEFAULT
 
 #endif

@@ -35,12 +35,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_packedFile_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

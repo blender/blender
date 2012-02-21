@@ -42,9 +42,9 @@
 #include "BLI_ghash.h"
 #include "BLI_pbvh.h"
 #include "BLI_threads.h"
-#include "BLI_editVert.h"
 #include "BLI_rand.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"

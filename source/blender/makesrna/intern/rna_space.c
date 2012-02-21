@@ -323,7 +323,7 @@ static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), Poin
 	DAG_on_visible_update(bmain, FALSE);
 }
 
-static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceView3D_viewport_shade_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	ScrArea *sa= rna_area_from_space(ptr);

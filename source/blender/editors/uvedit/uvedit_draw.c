@@ -43,7 +43,6 @@
 #include "DNA_space_types.h"
 
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"

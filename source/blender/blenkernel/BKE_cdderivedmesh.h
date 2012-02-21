@@ -39,7 +39,6 @@
 
 struct DerivedMesh;
 struct BMEditMesh;
-struct EditMesh;
 struct Mesh;
 struct Object;
 

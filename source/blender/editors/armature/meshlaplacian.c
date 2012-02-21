@@ -53,7 +53,6 @@
 
 
 #ifdef RIGID_DEFORM
-#include "BLI_editVert.h"
 #include "BLI_polardecomp.h"
 #endif
 

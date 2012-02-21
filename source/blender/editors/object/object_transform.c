@@ -34,13 +34,13 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_group_types.h"
 
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 

@@ -38,7 +38,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
 
@@ -191,9 +190,9 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 #endif /* USE_TESSFACE_SPEEDUP */
 
 		else {
-			EditVert *v, *lastv=NULL, *firstv=NULL;
-			EditEdge *e;
-			EditFace *efa;
+			ScanFillVert *v, *lastv=NULL, *firstv=NULL;
+			ScanFillEdge *e;
+			ScanFillFace *efa;
 			int totfilltri;
 
 			BLI_begin_edgefill();

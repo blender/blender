@@ -37,7 +37,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"	/* lasso tessellation */
 #include "BLI_math.h"
 #include "BLI_scanfill.h"	/* lasso tessellation */
 #include "BLI_utildefines.h"
@@ -230,9 +229,9 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 
 static void draw_filled_lasso(wmGesture *gt)
 {
-	EditVert *v=NULL, *lastv=NULL, *firstv=NULL;
+	ScanFillVert *v=NULL, *lastv=NULL, *firstv=NULL;
 	/* EditEdge *e; */ /* UNUSED */
-	EditFace *efa;
+	ScanFillFace *efa;
 	short *lasso= (short *)gt->customdata;
 	int i;
 	

@@ -79,7 +79,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMWalker regwalker;
 	int i;
 
-	int use_verts = BMO_slot_int_get(op, "use_verts");
+	int use_verts = BMO_slot_bool_get(op, "use_verts");
 
 	if (use_verts) {
 		/* tag verts that start out with only 2 edges,
@@ -160,7 +160,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 
 	}
 
-	BMO_op_callf(bm, "del geom=%ff context=%d", FACE_ORIG, DEL_FACES);
+	BMO_op_callf(bm, "del geom=%ff context=%i", FACE_ORIG, DEL_FACES);
 
 
 	if (use_verts) {
@@ -247,7 +247,7 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 	BMIter viter;
 	BMVert *v;
 
-	int use_verts = BMO_slot_int_get(op, "use_verts");
+	int use_verts = BMO_slot_bool_get(op, "use_verts");
 
 	if (use_verts) {
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {

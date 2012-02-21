@@ -262,6 +262,5 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(WeightVGProximity);
 	INIT_TYPE(DynamicPaint);
 	INIT_TYPE(Remesh);
-	INIT_TYPE(NgonInterp);
 #undef INIT_TYPE
 }

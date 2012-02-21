@@ -34,7 +34,6 @@
 struct DMGridAdjacency;
 struct DMGridData;
 struct DerivedMesh;
-struct EditMesh;
 struct IndexNode;
 struct ListBase;
 struct Mesh;

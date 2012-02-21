@@ -38,7 +38,6 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_editVert.h"
 #include "BLI_smallhash.h"
 #include "BKE_tessmesh.h"
 

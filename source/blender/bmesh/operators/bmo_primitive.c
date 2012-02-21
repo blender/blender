@@ -495,8 +495,9 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
 	float dia = BMO_slot_float_get(op, "diameter");
-	int cap_ends = BMO_slot_int_get(op, "cap_ends"), segs = BMO_slot_int_get(op, "segments");
-	int cap_tris = BMO_slot_int_get(op, "cap_tris");
+	int segs = BMO_slot_int_get(op, "segments");
+	int cap_ends = BMO_slot_bool_get(op, "cap_ends");
+	int cap_tris = BMO_slot_bool_get(op, "cap_tris");
 	int a;
 	
 	if (!segs)
@@ -567,8 +568,9 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	float dia1 = BMO_slot_float_get(op, "diameter1");
 	float dia2 = BMO_slot_float_get(op, "diameter2");
 	float depth = BMO_slot_float_get(op, "depth");
-	int cap_ends = BMO_slot_int_get(op, "cap_ends"), segs = BMO_slot_int_get(op, "segments");
-	int cap_tris = BMO_slot_int_get(op, "cap_tris");
+	int segs = BMO_slot_int_get(op, "segments");
+	int cap_ends = BMO_slot_bool_get(op, "cap_ends");
+	int cap_tris = BMO_slot_bool_get(op, "cap_tris");
 	int a;
 	
 	if (!segs)

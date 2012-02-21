@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -43,7 +44,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"

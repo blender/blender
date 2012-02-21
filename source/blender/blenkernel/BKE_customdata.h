@@ -178,13 +178,9 @@ void CustomData_copy_data(const struct CustomData *source,
 						  struct CustomData *dest, int source_index,
 						  int dest_index, int count);
 void CustomData_copy_elements(int type, void *source, void *dest, int count);
-void CustomData_em_copy_data(const struct CustomData *source,
-							struct CustomData *dest, void *src_block,
-							void **dest_block);
 void CustomData_bmesh_copy_data(const struct CustomData *source, 
                                 struct CustomData *dest, void *src_block, 
                                 void **dest_block);
-void CustomData_em_validate_data(struct CustomData *data, void *block, int sub_elements);
 
 /* frees data in a CustomData object
  * return 1 on success, 0 on failure
@@ -208,9 +204,6 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
 void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
 					   int *src_indices, float *weights, float *sub_weights,
 					   int count, int dest_index);
-void CustomData_em_interp(struct CustomData *data,  void **src_blocks,
-						  float *weights, float *sub_weights, int count,
-						  void *dest_block);
 void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks, 
 							 float *weights, float *sub_weights, int count, 
 							 void *dest_block);
@@ -226,8 +219,6 @@ void CustomData_swap(struct CustomData *data, int index, const int *corner_indic
  */
 void *CustomData_get(const struct CustomData *data, int index, int type);
 void *CustomData_get_n(const struct CustomData *data, int type, int index, int n);
-void *CustomData_em_get(const struct CustomData *data, void *block, int type);
-void *CustomData_em_get_n(const struct CustomData *data, void *block, int type, int n);
 void *CustomData_bmesh_get(const struct CustomData *data, void *block, int type);
 void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int type, int n);
 
@@ -263,10 +254,6 @@ int CustomData_get_stencil_layer(const struct CustomData *data, int type);
  */
 void CustomData_set(const struct CustomData *data, int index, int type,
 					void *source);
-void CustomData_em_set(struct CustomData *data, void *block, int type,
-					   void *source);
-void CustomData_em_set_n(struct CustomData *data, void *block, int type, int n,
-						 void *source);
 
 void CustomData_bmesh_set(const struct CustomData *data, void *block, int type, 
 						  void *source);
@@ -299,10 +286,6 @@ void CustomData_set_layer_stencil_index(struct CustomData *data, int type, int n
 
 /* adds flag to the layer flags */
 void CustomData_set_layer_flag(struct CustomData *data, int type, int flag);
-
-/* alloc/free a block of custom data attached to one element in editmode */
-void CustomData_em_set_default(struct CustomData *data, void **block);
-void CustomData_em_free_block(struct CustomData *data, void **block);
 
 void CustomData_bmesh_set_default(struct CustomData *data, void **block);
 void CustomData_bmesh_free_block(struct CustomData *data, void **block);

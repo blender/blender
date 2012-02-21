@@ -56,6 +56,8 @@
 
 #include "bpy_rna.h"
 
+#include "../generic/py_capi_utils.h"
+
 #include "gpu.h"
 
 #define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, #name, name)
@@ -157,8 +159,6 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 {
 	PyObject* pyscene;
 	PyObject* pymat;
-	PyObject* as_pointer;
-	PyObject* pointer;
 	PyObject* result;
 	PyObject* dict;
 	PyObject* val;
@@ -177,47 +177,16 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:export_shader", (char**)(kwlist), &pyscene, &pymat))
 		return NULL;
 
-	if (!strcmp(Py_TYPE(pyscene)->tp_name, "Scene") && 
-		(as_pointer = PyObject_GetAttrString(pyscene, "as_pointer")) != NULL &&
-		PyCallable_Check(as_pointer)) {
-		// must be a scene object
-		pointer = PyObject_CallObject(as_pointer, NULL);
-		if (!pointer) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-		scene = (Scene*)PyLong_AsVoidPtr(pointer);
-		Py_DECREF(pointer);
-		if (!scene) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() first argument should be of Scene type");
+	scene = (Scene *)PyC_RNA_AsPointer(pyscene, "Scene");
+	if (scene == NULL) {
 		return NULL;
 	}
 
-	if (!strcmp(Py_TYPE(pymat)->tp_name, "Material") && 
-		(as_pointer = PyObject_GetAttrString(pymat, "as_pointer")) != NULL &&
-		PyCallable_Check(as_pointer)) {
-		// must be a material object
-		pointer = PyObject_CallObject(as_pointer, NULL);
-		if (!pointer) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-		material = (Material*)PyLong_AsVoidPtr(pointer);
-		Py_DECREF(pointer);
-		if (!material) {
-			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
-			return NULL;
-		}
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() second argument should be of Material type");
+	material = (Material *)PyC_RNA_AsPointer(pymat, "Material");
+	if (material == NULL) {
 		return NULL;
 	}
+
 	// we can call our internal function at last:
 	shader = GPU_shader_export(scene, material);
 	if (!shader) {

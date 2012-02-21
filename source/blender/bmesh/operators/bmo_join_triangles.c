@@ -231,8 +231,10 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BLI_array_declare(jedges);
 	JoinEdge *jedges = NULL;
-	int dosharp = BMO_slot_int_get(op, "compare_sharp"), douvs = BMO_slot_int_get(op, "compare_uvs");
-	int dovcols = BMO_slot_int_get(op, "compare_vcols"), domat = BMO_slot_int_get(op, "compare_materials");
+	int dosharp = BMO_slot_bool_get(op, "cmp_sharp");
+	int douvs =   BMO_slot_bool_get(op, "cmp_uvs");
+	int dovcols = BMO_slot_bool_get(op, "cmp_vcols");
+	int domat =   BMO_slot_bool_get(op, "cmp_materials");
 	float limit = BMO_slot_float_get(op, "limit");
 	int i, totedge;
 

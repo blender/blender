@@ -41,6 +41,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
@@ -103,7 +104,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_array.h"
 #include "BLI_utildefines.h"
 #include "BLI_smallhash.h"
@@ -290,7 +290,7 @@ static void createTransTexspace(TransInfo *t)
 
 	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
 		ob->dtx |= OB_TEXSPACE;
-		*texflag &= ~AUTOSPACE;
+		*texflag &= ~ME_AUTOSPACE;
 	}
 
 	copy_v3_v3(td->iloc, td->loc);

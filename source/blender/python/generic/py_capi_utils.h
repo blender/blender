@@ -54,4 +54,6 @@ void PyC_SetHomePath(const char *py_path_bundle);
 
 #define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
+void *PyC_RNA_AsPointer(PyObject *value, const char *type_name);
+
 #endif // __PY_CAPI_UTILS_H__

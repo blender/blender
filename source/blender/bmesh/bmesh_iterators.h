@@ -102,8 +102,8 @@ typedef struct BMIter {
 	char itype;
 } BMIter;
 
-void *BM_iter_at_index(struct BMesh *bm, const char htype, void *data, int index);
-int   BM_iter_as_array(struct BMesh *bm, const char htype, void *data, void **array, const int len);
+void *BM_iter_at_index(struct BMesh *bm, const char itype, void *data, int index);
+int   BM_iter_as_array(struct BMesh *bm, const char itype, void *data, void **array, const int len);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);

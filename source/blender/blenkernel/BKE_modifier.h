@@ -35,7 +35,6 @@
 #include "BKE_customdata.h"
 
 struct ID;
-struct EditMesh;
 struct DerivedMesh;
 struct DagForest;
 struct DagNode;

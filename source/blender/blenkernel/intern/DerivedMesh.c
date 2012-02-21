@@ -37,13 +37,13 @@
 
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h" // N_T
 
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_array.h"
@@ -761,7 +761,7 @@ static float *get_editbmesh_orco_verts(BMEditMesh *em)
 
 	totvert= em->bm->totvert;
 	
-	orco = MEM_mallocN(sizeof(float)*3*totvert, "EditMesh Orco");
+	orco = MEM_mallocN(sizeof(float)*3*totvert, "BMEditMesh Orco");
 
 	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 	for (a=0; eve; eve=BM_iter_step(&iter), a+=3) {
