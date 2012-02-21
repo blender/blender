@@ -451,11 +451,11 @@ int BKE_mesh_validate(Mesh *me, int do_verbose)
 int BKE_mesh_validate_dm(DerivedMesh *dm)
 {
 	return BKE_mesh_validate_arrays(NULL,
-	                                dm->getVertArray(dm), dm->getNumVerts(dm),
-	                                dm->getEdgeArray(dm), dm->getNumEdges(dm),
-	                                dm->getFaceArray(dm), dm->getNumFaces(dm),
-	                                dm->getVertDataArray(dm, CD_MDEFORMVERT),
-	                                TRUE, FALSE);
+                                    dm->getVertArray(dm), dm->getNumVerts(dm),
+                                    dm->getEdgeArray(dm), dm->getNumEdges(dm),
+                                    dm->getTessFaceArray(dm), dm->getNumTessFaces(dm),
+                                    dm->getVertDataArray(dm, CD_MDEFORMVERT),
+                                    TRUE, FALSE);
 }
 
 void BKE_mesh_calc_edges(Mesh *mesh, int update)
@@ -466,6 +466,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	MEdge *med, *med_orig;
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, totedge, totface = mesh->totface;
+	int med_index;
 
 	if(mesh->totedge==0)
 		update= 0;
@@ -478,20 +479,37 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 			BLI_edgehash_insert(eh, med->v1, med->v2, med);
 	}
 
-	for (i = 0; i < totface; i++, mf++) {
-		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
-			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
-		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
-			BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
+	if(mesh->totpoly) {
+		/* mesh loops (bmesh only) */
+		MPoly *mp= mesh->mpoly;
+		for(i=0; i < mesh->totpoly; i++, mp++) {
+			MLoop *l= &mesh->mloop[mp->loopstart];
+			int j, l_prev= (l + (mp->totloop-1))->v;
+			for (j=0; j < mp->totloop; j++, l++) {
+				if (!BLI_edgehash_haskey(eh, l_prev, l->v)) {
+					BLI_edgehash_insert(eh, l_prev, l->v, NULL);
+				}
+				l_prev= l->v;
+			}
+		}
+	}
+	else {
+		/* regular faces (note, we could remove this for bmesh - campbell) */
+		for (i = 0; i < totface; i++, mf++) {
+			if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
+				BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
+			if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
+				BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
 
-		if (mf->v4) {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
-				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
-			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
-				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
-		} else {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
-				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+			if (mf->v4) {
+				if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
+					BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
+				if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
+					BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
+			} else {
+				if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
+					BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+			}
 		}
 	}
 
@@ -512,8 +530,28 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 			BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 			med->flag = ME_EDGEDRAW|ME_EDGERENDER|SELECT; /* select for newly created meshes which are selected [#25595] */
 		}
+
+		/* store the new edge index in the hash value */
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(i));
 	}
 	BLI_edgehashIterator_free(ehi);
+
+	if (mesh->totpoly) {
+		/* second pass, iterate through all loops again and assign
+		   the newly created edges to them. */
+		MPoly *mp= mesh->mpoly;
+		for(i=0; i < mesh->totpoly; i++, mp++) {
+			MLoop *l= &mesh->mloop[mp->loopstart];
+			MLoop *l_prev= (l + (mp->totloop-1));
+			int j;
+			for (j=0; j < mp->totloop; j++, l++) {
+				/* lookup hashed edge index */
+				med_index = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+				l_prev->e = med_index;
+				l_prev= l;
+			}
+		}
+	}
 
 	/* free old CustomData and assign new one */
 	CustomData_free(&mesh->edata, mesh->totedge);

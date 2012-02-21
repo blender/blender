@@ -317,7 +317,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 
 		if(!smd->coll->bvhtree)
 		{
-			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getFaceArray(dm), dm->getNumFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
+			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getTessFaceArray(dm), dm->getNumTessFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
 		}
 		return 1;
 	}
@@ -328,7 +328,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 {
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getFaceArray(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
 	int i = 0, divs = 0;
 	int *tridivs = NULL;
 	float cell_len = 1.0 / 50.0; // for res = 50
@@ -336,16 +336,16 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 	int quads = 0, facecounter = 0;
 
 	// count quads
-	for(i = 0; i < dm->getNumFaces(dm); i++)
+	for(i = 0; i < dm->getNumTessFaces(dm); i++)
 	{
 		if(mface[i].v4)
 			quads++;
 	}
 
-	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumFaces(dm), dm->getNumFaces(dm) + quads, &tridivs, cell_len);
+	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumTessFaces(dm), dm->getNumTessFaces(dm) + quads, &tridivs, cell_len);
 
 	// count triangle divisions
-	for(i = 0; i < dm->getNumFaces(dm) + quads; i++)
+	for(i = 0; i < dm->getNumTessFaces(dm) + quads; i++)
 	{
 		divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
 	}
@@ -362,7 +362,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 		copy_v3_v3(&scs->points[i * 3], tmpvec);
 	}
 	
-	for(i = 0, facecounter = 0; i < dm->getNumFaces(dm); i++)
+	for(i = 0, facecounter = 0; i < dm->getNumTessFaces(dm); i++)
 	{
 		int again = 0;
 		do
@@ -1008,6 +1008,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 					{
 						ParticleSimulationData sim;
 						ParticleSystem *psys = sfs->psys;
+						int totpart=psys->totpart, totchild;
 						int p = 0;								
 						float *density = smoke_get_density(sds->fluid);								
 						float *bigdensity = smoke_turbulence_get_density(sds->wt);								
@@ -1043,7 +1044,23 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						}
 														
 						// mostly copied from particle code								
-						for(p=0; p<psys->totpart; p++)								
+						if(psys->part->type==PART_HAIR)
+						{
+							/*
+							if(psys->childcache)
+							{
+								totchild = psys->totchildcache;
+							}
+							else
+							*/
+
+							// TODO: PART_HAIR not supported whatsoever
+							totchild=0;
+						}
+						else
+							totchild=psys->totchild*psys->part->disp/100;
+						
+						for(p=0; p<totpart+totchild; p++)								
 						{
 							int cell[3];
 							size_t i = 0;
@@ -1051,17 +1068,27 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							int badcell = 0;
 							ParticleKey state;
 
-							if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
-								continue;
+							if(p < totpart)
+							{
+								if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
+									continue;
+							}
+							else
+							{
+								/* handle child particle */
+								ChildParticle *cpa = &psys->child[p - totpart];
+					
+								if(psys->particles[cpa->parent].flag & (PARS_NO_DISP|PARS_UNEXIST))
+									continue;
+							}
 
 							state.time = smd->time;
-
 							if(psys_get_particle_state(&sim, p, &state, 0) == 0)
 								continue;
-							
+												
 							// copy_v3_v3(pos, pa->state.co);
-							// mul_m4_v3(ob->imat, pos);																		
-							// 1. get corresponding cell	
+							// mul_m4_v3(ob->imat, pos);
+							// 1. get corresponding cell
 							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, state.co, cell, 0);																	
 							// check if cell is valid (in the domain boundary)									
 							for(i = 0; i < 3; i++)									
@@ -1354,7 +1381,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 
-			smd->coll->dm = CDDM_copy(dm);
+			smd->coll->dm = CDDM_copy_from_tessface(dm);
 #endif
 
 			// rigid movement support

@@ -46,6 +46,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
@@ -90,11 +91,11 @@ static void createVertsTrisData(bContext *C, LinkNode* obs, int *nverts_r, float
 		BLI_linklist_append(&dms, (void*)dm);
 
 		nverts+= dm->getNumVerts(dm);
-		nfaces= dm->getNumFaces(dm);
+		nfaces= dm->getNumTessFaces(dm);
 		ntris+= nfaces;
 
 		/* resolve quad faces */
-		mface= dm->getFaceArray(dm);
+		mface= dm->getTessFaceArray(dm);
 		for(i= 0; i<nfaces; i++) {
 			MFace* mf= &mface[i];
 			if(mf->v4)
@@ -129,8 +130,8 @@ static void createVertsTrisData(bContext *C, LinkNode* obs, int *nverts_r, float
 		}
 
 		/* create tris */
-		curnfaces= dm->getNumFaces(dm);
-		mface= dm->getFaceArray(dm);
+		curnfaces= dm->getNumTessFaces(dm);
+		mface= dm->getTessFaceArray(dm);
 
 		for(i= 0; i<curnfaces; i++) {
 			MFace* mf= &mface[i];
@@ -292,7 +293,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, struct recast_polyMeshDetail *dmesh, Base* base)
 {
 	float co[3], rot[3];
-	EditMesh *em;
+	BMEditMesh *em;
 	int i,j, k;
 	unsigned short* v;
 	int face[3];
@@ -320,14 +321,11 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	}
 
 	ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER);
-	em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	em= (((Mesh *)obedit->data))->edit_btmesh;
 
 	if(!createob) {
 		/* clear */
-		if(em->verts.first) free_vertlist(em, &em->verts);
-		if(em->edges.first) free_edgelist(em, &em->edges);
-		if(em->faces.first) free_facelist(em, &em->faces);
-		if(em->selected.first) BLI_freelistN(&(em->selected));
+		EDBM_ClearMesh(em);
 	}
 
 	/* create verts for polygon mesh */
@@ -341,12 +339,12 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		co[1]= bmin[1] + v[1]*ch;
 		co[2]= bmin[2] + v[2]*cs;
 		SWAP(float, co[1], co[2]);
-		addvertlist(em, co, NULL);
+		BM_vert_create(em->bm, co, NULL);
 	}
 
 	/* create custom data layer to save polygon idx */
-	CustomData_add_layer_named(&em->fdata, CD_RECAST, CD_CALLOC, NULL, 0, "createRepresentation recastData");
-
+	CustomData_add_layer_named(&em->bm->pdata, CD_RECAST, CD_CALLOC, NULL, 0, "createRepresentation recastData");
+	
 	/* create verts and faces for detailed mesh */
 	meshes= recast_polyMeshDetailGetMeshes(dmesh, &nmeshes);
 	polys= recast_polyMeshGetPolys(pmesh, NULL, &nvp);
@@ -354,7 +352,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	tris= recast_polyMeshDetailGetTris(dmesh, NULL);
 
 	for(i= 0; i<nmeshes; i++) {
-		int uniquevbase= em->totvert;
+		int uniquevbase= em->bm->totvert;
 		unsigned int vbase= meshes[4*i+0];
 		unsigned short ndv= meshes[4*i+1];
 		unsigned short tribase= meshes[4*i+2];
@@ -371,39 +369,40 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		for(j= nv; j<ndv; j++) {
 			copy_v3_v3(co, &dverts[3*(vbase + j)]);
 			SWAP(float, co[1], co[2]);
-			addvertlist(em, co, NULL);
+			BM_vert_create(em->bm, co, NULL);
 		}
 
-		EM_init_index_arrays(em, 1, 0, 0);
+		EDBM_init_index_arrays(em, 1, 0, 0);
 
 		/* create faces */
 		for(j= 0; j<trinum; j++) {
 			unsigned char* tri= &tris[4*(tribase+j)];
-			EditFace* newFace;
+			BMFace* newFace;
 			int* polygonIdx;
 
 			for(k= 0; k<3; k++) {
 				if(tri[k]<nv)
-					face[k]= p[tri[k]]; /* shared vertex */
+					face[k] = p[tri[k]]; /* shared vertex */
 				else
-					face[k]= uniquevbase+tri[k]-nv; /* unique vertex */
+					face[k] = uniquevbase+tri[k]-nv; /* unique vertex */
 			}
-			newFace= addfacelist(em, EM_get_vert_for_index(face[0]), EM_get_vert_for_index(face[2]),
-									EM_get_vert_for_index(face[1]), NULL, NULL, NULL);
+			newFace= BM_face_create_quad_tri(em->bm,
+			                              EDBM_get_vert_for_index(em, face[0]),
+			                              EDBM_get_vert_for_index(em, face[2]),
+			                              EDBM_get_vert_for_index(em, face[1]), NULL,
+			                              NULL, FALSE);
 
 			/* set navigation polygon idx to the custom layer */
-			polygonIdx= (int*)CustomData_em_get(&em->fdata, newFace->data, CD_RECAST);
+			polygonIdx= (int*)CustomData_bmesh_get(&em->bm->pdata, newFace->head.data, CD_RECAST);
 			*polygonIdx= i+1; /* add 1 to avoid zero idx */
 		}
 		
-		EM_free_index_arrays();
+		EDBM_free_index_arrays(em);
 	}
 
 	recast_destroyPolyMesh(pmesh);
 	recast_destroyPolyMeshDetail(dmesh);
 
-	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
-	
 	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
@@ -485,22 +484,23 @@ void MESH_OT_navmesh_make(wmOperatorType *ot)
 static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
 	/* do work here */
-	EditFace *efa_act= EM_get_actFace(em, 0);
+	BMFace *efa_act= BM_active_face_get(em->bm, FALSE);
 
 	if(efa_act) {
-		if(CustomData_has_layer(&em->fdata, CD_RECAST)) {
-			EditFace *efa;
-			int targetPolyIdx= *(int*)CustomData_em_get(&em->fdata, efa_act->data, CD_RECAST);
+		if(CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
+			BMFace *efa;
+			BMIter iter;
+			int targetPolyIdx= *(int*)CustomData_bmesh_get(&em->bm->pdata, efa_act->head.data, CD_RECAST);
 			targetPolyIdx= targetPolyIdx>=0? targetPolyIdx : -targetPolyIdx;
 
 			if(targetPolyIdx > 0) {
 				/* set target poly idx to other selected faces */
-				for (efa= (EditFace *)em->faces.first; efa; efa= efa->next) {
-					if((efa->f & SELECT) && efa != efa_act)  {
-						int* recastDataBlock= (int*)CustomData_em_get(&em->fdata, efa->data, CD_RECAST);
+				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+					if(BM_elem_flag_test(efa, BM_ELEM_SELECT) && efa != efa_act)  {
+						int* recastDataBlock= (int*)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_RECAST);
 						*recastDataBlock= targetPolyIdx;
 					}
 				}
@@ -513,8 +513,6 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
 
 	return OPERATOR_FINISHED;
 }
@@ -539,19 +537,20 @@ static int compare(const void * a, const void * b)
 	return ( *(int*)a - *(int*)b );
 }
 
-static int findFreeNavPolyIndex(EditMesh* em)
+static int findFreeNavPolyIndex(BMEditMesh* em)
 {
 	/* construct vector of indices */
-	int numfaces= em->totface;
+	int numfaces= em->bm->totface;
 	int* indices= MEM_callocN(sizeof(int)*numfaces, "findFreeNavPolyIndex(indices)");
-	EditFace* ef= (EditFace*)em->faces.last;
-	int i, idx= 0, freeIdx= 1;
+	BMFace* ef;
+	BMIter iter;
+	int i, idx= em->bm->totface-1, freeIdx= 1;
 
-	while(ef) {
-		int polyIdx= *(int*)CustomData_em_get(&em->fdata, ef->data, CD_RECAST);
+	/*XXX this originally went last to first, but that isn't possible anymore*/
+	BM_ITER(ef, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		int polyIdx= *(int*)CustomData_bmesh_get(&em->bm->pdata, ef->head.data, CD_RECAST);
 		indices[idx]= polyIdx;
-		idx++;
-		ef= ef->prev;
+		idx--;
 	}
 
 	qsort(indices, numfaces, sizeof(int), compare);
@@ -573,21 +572,22 @@ static int findFreeNavPolyIndex(EditMesh* em)
 static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	EditFace *ef;
-
-	if(CustomData_has_layer(&em->fdata, CD_RECAST)) {
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMFace *ef;
+	BMIter iter;
+	
+	if(CustomData_has_layer(&em->bm->pdata, CD_RECAST)) {
 		int targetPolyIdx= findFreeNavPolyIndex(em);
 
 		if(targetPolyIdx>0) {
 			/* set target poly idx to selected faces */
-			ef= (EditFace*)em->faces.last;
-			while(ef) {
-				if(ef->f & SELECT) {
-					int *recastDataBlock= (int*)CustomData_em_get(&em->fdata, ef->data, CD_RECAST);
+			/*XXX this originally went last to first, but that isn't possible anymore*/
+			
+			BM_ITER(ef, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+				if(BM_elem_flag_test(ef, BM_ELEM_SELECT)) {
+					int *recastDataBlock= (int*)CustomData_bmesh_get(&em->bm->pdata, ef->head.data, CD_RECAST);
 					*recastDataBlock= targetPolyIdx;
 				}
-				ef= ef->prev;
 			}
 		}
 	}
@@ -595,7 +595,6 @@ static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
-	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -619,7 +618,7 @@ static int navmesh_obmode_data_poll(bContext *C)
 	Object *ob = ED_object_active_context(C);
 	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
 		Mesh *me= ob->data;
-		return CustomData_has_layer(&me->fdata, CD_RECAST);
+		return CustomData_has_layer(&me->pdata, CD_RECAST);
 	}
 	return FALSE;
 }
@@ -638,7 +637,7 @@ static int navmesh_reset_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	CustomData_free_layers(&me->fdata, CD_RECAST, me->totface);
+	CustomData_free_layers(&me->pdata, CD_RECAST, me->totpoly);
 
 	BKE_mesh_ensure_navmesh(me);
 
@@ -668,7 +667,7 @@ static int navmesh_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	CustomData_free_layers(&me->fdata, CD_RECAST, me->totface);
+	CustomData_free_layers(&me->pdata, CD_RECAST, me->totpoly);
 
 	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, &me->id);

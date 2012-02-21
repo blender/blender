@@ -1585,7 +1585,7 @@ void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 		}
 
 		/* coordinates are new -- normals should also be updated */
-		mesh_calc_normals(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+		mesh_calc_normals_tessface(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
 
 		for (a= 0; a < pbvh->totnode; ++a)
 			BLI_pbvh_node_mark_update(&pbvh->nodes[a]);

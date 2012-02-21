@@ -44,6 +44,7 @@
 #include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
 //XXX #include "transform.h"
+#include "bmesh.h"
 
 /*forward declerations*/
 struct BME_Vert;
@@ -51,6 +52,7 @@ struct BME_Edge;
 struct BME_Poly;
 struct BME_Loop;
 
+/*NOTE: this is the bmesh 1.0 code.  it's completely outdated.*/
 
 /*Notes on further structure Cleanup:
 	-Remove the tflags, they belong in custom data layers
@@ -208,9 +210,13 @@ int BME_loop_reverse(struct BME_Mesh *bm, struct BME_Poly *f);
 #define BME_BEVEL_RUNNING		(1<<9)
 #define BME_BEVEL_RES			(1<<10)
 
+#define BME_BEVEL_EVEN			(1<<11) /* this is a new setting not related to old (trunk bmesh bevel code) but adding
+                                         * here because they are mixed - campbell */
+#define BME_BEVEL_DIST			(1<<12) /* same as above */
+
 typedef struct BME_TransData {
-	BME_Mesh *bm; /* the bmesh the vert belongs to */
-	BME_Vert *v;  /* pointer to the vert this tdata applies to */
+	BMesh *bm; /* the bmesh the vert belongs to */
+	BMVert *v;  /* pointer to the vert this tdata applies to */
 	float co[3];  /* the original coordinate */
 	float org[3]; /* the origin */
 	float vec[3]; /* a directional vector; always, always normalize! */
@@ -231,7 +237,7 @@ typedef struct BME_TransData_Head {
 } BME_TransData_Head;
 
 typedef struct BME_Glob { /* stored in Global G for Transform() purposes */
-	BME_Mesh *bm;
+	BMesh *bm;
 	BME_TransData_Head *td;
 	struct TransInfo *Trans; /* a pointer to the global Trans struct */
 	int imval[2]; /* for restoring original mouse co when initTransform() is called multiple times */
@@ -239,10 +245,10 @@ typedef struct BME_Glob { /* stored in Global G for Transform() purposes */
 	int res;
 } BME_Glob;
 
-struct BME_TransData *BME_get_transdata(struct BME_TransData_Head *td, struct BME_Vert *v);
+struct BME_TransData *BME_get_transdata(struct BME_TransData_Head *td, struct BMVert *v);
 void BME_free_transdata(struct BME_TransData_Head *td);
 float *BME_bevel_calc_polynormal(struct BME_Poly *f, struct BME_TransData_Head *td);
-struct BME_Mesh *BME_bevel(struct BME_Mesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd);
+struct BMesh *BME_bevel(struct BMEditMesh *em, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd);
 
 /*CONVERSION FUNCTIONS*/
 struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em);

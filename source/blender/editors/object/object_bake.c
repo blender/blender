@@ -367,16 +367,16 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image* ima, MPassKnownData
 	DerivedMesh *dm= bkr->lores_dm;
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	const int lvl= bkr->lvl;
-	const int tot_face= dm->getNumFaces(dm);
+	const int tot_face= dm->getNumTessFaces(dm);
 	MVert *mvert= dm->getVertArray(dm);
-	MFace *mface= dm->getFaceArray(dm);
-	MTFace *mtface= dm->getFaceDataArray(dm, CD_MTFACE);
+	MFace *mface= dm->getTessFaceArray(dm);
+	MTFace *mtface= dm->getTessFaceDataArray(dm, CD_MTFACE);
 	float *pvtangent= NULL;
 
 	if(CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
 		DM_add_tangent_layer(dm);
 
-	pvtangent= DM_get_face_data_layer(dm, CD_TANGENT);
+	pvtangent= DM_get_tessface_data_layer(dm, CD_TANGENT);
 
 	if(tot_face > 0) {  /* sanity check */
 		int f= 0;
@@ -387,7 +387,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image* ima, MPassKnownData
 		data.mvert= mvert;
 		data.mtface= mtface;
 		data.pvtangent= pvtangent;
-		data.precomputed_normals= dm->getFaceDataArray(dm, CD_NORMAL);	/* don't strictly need this */
+		data.precomputed_normals= dm->getTessFaceDataArray(dm, CD_NORMAL);	/* don't strictly need this */
 		data.w= ibuf->x;
 		data.h= ibuf->y;
 		data.lores_dm= dm;
@@ -514,7 +514,7 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *orig
 	int grid_size, S, face_side;
 	int *grid_offset, g_index;
 
-	lodm->getFace(lodm, face_index, &mface);
+	lodm->getTessFace(lodm, face_index, &mface);
 
 	grid_size= hidm->getGridSize(hidm);
 	grid_data= hidm->getGridData(hidm);
@@ -619,7 +619,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 		height_data->ssdm= subsurf_make_derived_from_derived(bkr->lores_dm, &smd, 0, NULL, 0, 0, 0);
 	}
 
-	height_data->origindex= lodm->getFaceDataArray(lodm, CD_ORIGINDEX);
+	height_data->origindex= lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
 
 	return (void*)height_data;
 }
@@ -631,7 +631,7 @@ static void *init_normal_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
 
 	normal_data= MEM_callocN(sizeof(MNormalBakeData), "MultiresBake normalData");
 
-	normal_data->origindex= lodm->getFaceDataArray(lodm, CD_ORIGINDEX);
+	normal_data->origindex= lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
 
 	return (void*)normal_data;
 }
@@ -709,7 +709,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	int pixel= ibuf->x*y + x;
 	float vec[3], p0[3], p1[3], n[3], len;
 
-	lores_dm->getFace(lores_dm, face_index, &mface);
+	lores_dm->getTessFace(lores_dm, face_index, &mface);
 
 	st0= mtface[face_index].uv[0];
 	st1= mtface[face_index].uv[1];
@@ -729,7 +729,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	if(height_data->ssdm) {
 		get_ccgdm_data(lores_dm, height_data->ssdm, height_data->origindex, 0, face_index, uv[0], uv[1], p0, n);
 	} else {
-		lores_dm->getFace(lores_dm, face_index, &mface);
+		lores_dm->getTessFace(lores_dm, face_index, &mface);
 
 		if(mface.v4) {
 			interp_bilinear_mface(lores_dm, &mface, uv[0], uv[1], 1, p0);
@@ -776,7 +776,7 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	int pixel= ibuf->x*y + x;
 	float n[3], vec[3], tmp[3]= {0.5, 0.5, 0.5};
 
-	lores_dm->getFace(lores_dm, face_index, &mface);
+	lores_dm->getTessFace(lores_dm, face_index, &mface);
 
 	st0= mtface[face_index].uv[0];
 	st1= mtface[face_index].uv[1];
@@ -822,7 +822,7 @@ static void count_images(MultiresBakeRender *bkr)
 	bkr->image.first= bkr->image.last= NULL;
 	bkr->tot_image= 0;
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 
 	for(a= 0; a<totface; a++)
 		mtface[a].tpage->id.flag&= ~LIB_DOIT;
@@ -949,6 +949,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 
 			ok= 0;
 		} else {
+			/* BMESH_TODO - use MPoly rather then tessface */
 			a= me->totface;
 			while (ok && a--) {
 				Image *ima= me->mtface[a].tpage;
@@ -995,7 +996,9 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	*lvl= mmd->lvl;
 
 	if(*lvl==0) {
-		return NULL;
+		DerivedMesh *tmp_dm= CDDM_from_mesh(me, ob);
+		dm= CDDM_copy(tmp_dm);
+		tmp_dm->release(tmp_dm);
 	} else {
 		MultiresModifierData tmp_mmd= *mmd;
 		DerivedMesh *cddm= CDDM_from_mesh(me, ob);
@@ -1157,7 +1160,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 			DerivedMesh *dm= data->lores_dm;
 			MTFace *mtface= CustomData_get_layer(&dm->faceData, CD_MTFACE);
 
-			clear_images(mtface, dm->getNumFaces(dm));
+			clear_images(mtface, dm->getNumTessFaces(dm));
 		}
 	}
 

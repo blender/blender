@@ -32,7 +32,7 @@
  *  \ingroup modifiers
  */
 
-
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -45,6 +45,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
+#include "BKE_tessmesh.h"
 
 #include "depsgraph_private.h"
 
@@ -185,7 +186,7 @@ static void meshdeformModifier_do(
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 	struct Mesh *me= (mmd->object)? mmd->object->data: NULL;
-	struct EditMesh *em = (me)? BKE_mesh_get_editmesh(me): NULL;
+	BMEditMesh *em = me ? me->edit_btmesh : NULL;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDefInfluence *influences;
@@ -200,10 +201,9 @@ static void meshdeformModifier_do(
 	
 	/* get cage derivedmesh */
 	if(em) {
-		tmpdm= editmesh_get_derived_cage_and_final(md->scene, ob, em, &cagedm, 0);
+		tmpdm= editbmesh_get_derived_cage_and_final(md->scene, ob, em, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else
 		cagedm= mmd->object->derivedFinal;
@@ -353,7 +353,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(ModifierData *md, Object *ob,
-						struct EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *derivedData,
 						float (*vertexCos)[3],
 						int numVerts)

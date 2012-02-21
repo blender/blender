@@ -746,6 +746,9 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 	
 	const CustomData *data = &me->fdata;
 	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
+
+	if(layer_index == -1) return NULL;
+
 	CustomDataLayer *cdl = &data->layers[layer_index+setindex];
 	
 	/* set uvname to bind_vertex_input semantic */
@@ -958,8 +961,8 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	read_faces(mesh, me, new_tris);
 
 	make_edges(me, 0);
-	
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+
+	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 
 	return true;
 }

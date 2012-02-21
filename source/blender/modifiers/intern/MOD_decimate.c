@@ -81,10 +81,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	int totvert, totface;
 	int a, numTris;
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 
 	numTris = 0;
 	for (a=0; a<totface; a++) {
@@ -96,7 +98,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	if(numTris<3) {
 		modifier_setError(md,
 			"Modifier requires more than 3 input faces (triangles).");
-		goto exit;
+		dm = CDDM_copy(dm);
+		return dm;
 	}
 
 	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
@@ -140,11 +143,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			}
 
 			if(lod.vertex_num>2) {
-				result = CDDM_new(lod.vertex_num, 0, lod.face_num);
+				result = CDDM_new(lod.vertex_num, 0, lod.face_num, 0, 0);
 				dmd->faceCount = lod.face_num;
 			}
 			else
-				result = CDDM_new(lod.vertex_num, 0, 0);
+				result = CDDM_new(lod.vertex_num, 0, 0, 0, 0);
 
 			mvert = CDDM_get_verts(result);
 			for(a=0; a<lod.vertex_num; a++) {
@@ -155,7 +158,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			}
 
 			if(lod.vertex_num>2) {
-				mface = CDDM_get_faces(result);
+				mface = CDDM_get_tessfaces(result);
 				for(a=0; a<lod.face_num; a++) {
 					MFace *mf = &mface[a];
 					int *tri = &lod.triangle_index_buffer[a*3];
@@ -166,8 +169,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 				}
 			}
 
-			CDDM_calc_edges(result);
-			CDDM_calc_normals(result);
+			CDDM_calc_edges_tessface(result);
 		}
 		else
 			modifier_setError(md, "Out of memory.");
@@ -181,8 +183,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
 
-exit:
+	if (result) {
+		CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
+
 		return result;
+	}
+	else {
+		return dm;
+	}
 }
 #else // WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),

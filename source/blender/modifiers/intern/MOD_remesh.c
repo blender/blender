@@ -82,9 +82,9 @@ static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 	mesh->co_stride = sizeof(MVert);
 	mesh->totco = dm->getNumVerts(dm);
 
-	mesh->faces = (void*)dm->getFaceArray(dm);
+	mesh->faces = (void*)dm->getTessFaceArray(dm);
 	mesh->face_stride = sizeof(MFace);
-	mesh->totface = dm->getNumFaces(dm);
+	mesh->totface = dm->getNumTessFaces(dm);
 
 	dm->getMinMax(dm, mesh->min, mesh->max);
 }
@@ -105,7 +105,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 							  "DualConOutput")))
 		return NULL;
 	
-	output->dm = CDDM_new(totvert, 0, totquad);
+	output->dm = CDDM_new(totvert, 0, 0, 4*totquad, totquad);
 	return output;
 }
 
@@ -124,18 +124,21 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 {
 	DualConOutput *output = output_v;
 	DerivedMesh *dm = output->dm;
-	MFace *mface;
+	MLoop *mloop;
+	MPoly *cur_poly;
+	int i;
 	
-	assert(output->curface < dm->getNumFaces(dm));
+	assert(output->curface < dm->getNumPolys(dm));
 
-	mface = &CDDM_get_faces(dm)[output->curface];
-	mface->v1 = vert_indices[0];
-	mface->v2 = vert_indices[1];
-	mface->v3 = vert_indices[2];
-	mface->v4 = vert_indices[3];
+	mloop = CDDM_get_loops(dm);
+	cur_poly = CDDM_get_poly(dm, output->curface);
 	
-	if(test_index_face(mface, NULL, 0, 4))
-		output->curface++;
+	cur_poly->loopstart = output->curface * 4;
+	cur_poly->totloop = 4;
+	for(i = 0; i < 4; i++)
+		mloop[output->curface * 4 + i].v = vert_indices[i];
+	
+	output->curface++;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,
@@ -150,6 +153,8 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	DerivedMesh *result;
 	DualConFlags flags = 0;
 	DualConMode mode = 0;
+
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
 	rmd = (RemeshModifierData*)md;
 
@@ -181,12 +186,10 @@ static DerivedMesh *applyModifier(ModifierData *md,
 					 rmd->scale,
 					 rmd->depth);
 	result = output->dm;
-	CDDM_lower_num_faces(result, output->curface);
 	MEM_freeN(output);
 
 	CDDM_calc_edges(result);
 	CDDM_calc_normals(result);
-
 	return result;
 }
 

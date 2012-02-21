@@ -53,6 +53,8 @@ typedef struct KeyBlock {
 
 	float slidermin;
 	float slidermax;
+
+	int uid, pad3;
 } KeyBlock;
 
 
@@ -72,6 +74,9 @@ typedef struct Key {
 
 	short type, totkey;
 	short slurph, flag;
+
+	/*can never be 0, this is used for detecting old data*/
+	int uidgen, pad; /*current free uid for keyblocks*/
 } Key;
 
 /* **************** KEY ********************* */
@@ -92,5 +97,5 @@ typedef struct Key {
 #define KEYBLOCK_MUTE			(1<<0)
 #define KEYBLOCK_SEL			(1<<1)
 #define KEYBLOCK_LOCKED			(1<<2)
-
+#define KEYBLOCK_MISSING		(1<<3) /*temporary flag*/
 #endif

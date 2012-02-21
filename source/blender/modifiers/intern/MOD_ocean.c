@@ -269,7 +269,8 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	DerivedMesh *result;
 
 	MVert *mverts;
-	MFace *mfaces;
+	MPoly *mpolys;
+	MLoop *mloops;
 	int *origindex;
 
 	int cdlayer;
@@ -280,7 +281,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	const int res_y = ry * omd->repeat_y;
 
 	const int num_verts = (res_x + 1) * (res_y + 1);
-	const int num_edges = (res_x * res_y * 2) + res_x + res_y;
+	/* const int num_edges = (res_x * res_y * 2) + res_x + res_y; */ /* UNUSED BMESH */
 	const int num_faces = res_x * res_y;
 
 	float sx = omd->size * omd->spatial_size;
@@ -295,11 +296,17 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	sx /= rx;
 	sy /= ry;
 
-	result = CDDM_new(num_verts, num_edges, num_faces);
+	result = CDDM_new(num_verts, 0, 0, num_faces * 4, num_faces);
 
 	mverts = CDDM_get_verts(result);
-	mfaces = CDDM_get_faces(result);
+	mpolys = CDDM_get_polys(result);
+	mloops = CDDM_get_loops(result);
+
+#if 0 // trunk
 	origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
+#else // bmesh
+	origindex= CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
+#endif
 
 	/* create vertices */
 	#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
@@ -319,13 +326,22 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 		for (x=0; x < res_x; x++) {
 			const int fi = y*res_x + x;
 			const int vi = y*(res_x+1) + x;
-			MFace *mf= &mfaces[fi];
-			mf->v1 = vi;
-			mf->v2 = vi + 1;
-			mf->v3 = vi + 1 + res_x+1;
-			mf->v4 = vi + res_x+1;
+			MPoly *mp= &mpolys[fi];
+			MLoop *ml= &mloops[fi * 4];
 
-			mf->flag |= ME_SMOOTH;
+			ml->v = vi;
+			ml++;
+			ml->v = vi + 1;
+			ml++;
+			ml->v = vi + 1 + res_x + 1;
+			ml++;
+			ml->v = vi + res_x + 1;
+			ml++;
+
+			mp->loopstart= fi * 4;
+			mp->totloop= 4;
+
+			mp->flag |= ME_SMOOTH;
 
 			/* generated geometry does not map to original faces */
 			origindex[fi] = ORIGINDEX_NONE;
@@ -335,28 +351,35 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	CDDM_calc_edges(result);
 
 	/* add uvs */
-	cdlayer= CustomData_number_of_layers(&result->faceData, CD_MTFACE);
+	cdlayer= CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
 	if(cdlayer < MAX_MTFACE) {
-		MTFace *tfaces= CustomData_add_layer(&result->faceData, CD_MTFACE, CD_CALLOC, NULL, num_faces);
+		MLoopUV *mloopuvs= CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_faces * 4);
 
-		if (tfaces) { /* unlikely to fail */
+		if (mloopuvs) { /* unlikely to fail */
 			ix = 1.0 / rx;
 			iy = 1.0 / ry;
 			#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
 			for (y=0; y < res_y; y++) {
 				for (x=0; x < res_x; x++) {
 					const int i = y*res_x + x;
-					tfaces[i].uv[0][0] = x * ix;
-					tfaces[i].uv[0][1] = y * iy;
+					MLoopUV *luv= &mloopuvs[i * 4];
 
-					tfaces[i].uv[1][0] = (x+1) * ix;
-					tfaces[i].uv[1][1] = y * iy;
+					luv->uv[0] = x * ix;
+					luv->uv[1] = y * iy;
+					luv++;
 
-					tfaces[i].uv[2][0] = (x+1) * ix;
-					tfaces[i].uv[2][1] = (y+1) * iy;
+					luv->uv[0] = (x+1) * ix;
+					luv->uv[1] = y * iy;
+					luv++;
 
-					tfaces[i].uv[3][0] = x * ix;
-					tfaces[i].uv[3][1] = (y+1) * iy;
+					luv->uv[0] = (x+1) * ix;
+					luv->uv[1] = (y+1) * iy;
+					luv++;
+
+					luv->uv[0] = x * ix;
+					luv->uv[1] = (y+1) * iy;
+					luv++;
+
 				}
 			}
 		}
@@ -375,6 +398,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	OceanResult ocr;
 
 	MVert *mverts, *mv;
+	MLoop *mloops;
 
 	int i, j;
 
@@ -421,29 +445,34 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	cfra -= omd->bakestart;	// shift to 0 based
 
 	num_verts = dm->getNumVerts(dm);
-	num_faces = dm->getNumFaces(dm);
+	num_faces = dm->getNumPolys(dm);
 
 	mverts = dm->getVertArray(dm);
+	mloops = dm->getLoopArray(dm);
 
 	/* add vcols before displacement - allows lookup based on position */
 
 	if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-		int cdlayer= CustomData_number_of_layers(&dm->faceData, CD_MCOL);
+		int cdlayer= CustomData_number_of_layers(&dm->loopData, CD_MLOOPCOL);
 
 		if(cdlayer < MAX_MCOL) {
-			MCol *mcols= CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
+			MLoopCol *mloopcols= CustomData_add_layer_named(&dm->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, num_faces * 4, omd->foamlayername);
 
-			if (mcols) { /* unlikely to fail */
-				MCol *mc;
-				MFace *mfaces= dm->getFaceArray(dm);
-				MFace *mf;
+			if (mloopcols) { /* unlikely to fail */
+				MLoopCol *mlcol;
+				MPoly *mpolys= dm->getPolyArray(dm);
+				MPoly *mp;
 
 				float foam;
 
-				for (i = 0, mf= mfaces; i < num_faces; i++, mf++) {
-					j= mf->v4 ? 3 : 2;
+				for (i = 0, mp= mpolys; i < num_faces; i++, mp++) {
+					j= mp->totloop - 1;
+
+					/* highly unlikely */
+					if (j <= 0) continue;
+
 					do {
-						const float *co= mverts[*(&mf->v1 + j)].co;
+						const float *co= mverts[mloops[mp->loopstart + j].v].co;
 						const float u = OCEAN_CO(size_co_inv, co[0]);
 						const float v = OCEAN_CO(size_co_inv, co[1]);
 
@@ -457,8 +486,8 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 							foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
 						}
 
-						mc= &mcols[i*4 + j];
-						mc->r = mc->g = mc->b = (char)(foam * 255);
+						mlcol= &mloopcols[mp->loopstart + j];
+						mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
 						/* mc->a = 255; */ /* no need to set */
 					} while (j--);
 				}
@@ -518,7 +547,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-									struct EditMesh *UNUSED(editData),
+									struct BMEditMesh *UNUSED(editData),
 									DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

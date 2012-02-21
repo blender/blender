@@ -522,16 +522,15 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.operator("mesh.select_nth", text="Every N Number of Verts")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
-        layout.operator("mesh.faces_select_interior", text="Interior Faces")
+        layout.operator("mesh.select_interior_faces", text="Interior Faces")
         layout.operator("mesh.select_axis", text="Side of Active")
 
         layout.separator()
 
-        layout.operator("mesh.select_by_number_vertices", text="Triangles").type = 'TRIANGLES'
-        layout.operator("mesh.select_by_number_vertices", text="Quads").type = 'QUADS'
+        layout.operator("mesh.select_by_number_vertices", text = "By Number of Verts")
         if context.scene.tool_settings.mesh_select_mode[2] == False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_by_number_vertices", text="Loose Verts/Edges").type = 'OTHER'
+        layout.operator("mesh.select_loose_verts", text = "Loose Verts/Edges")
         layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()
@@ -1502,6 +1501,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
+        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.duplicate_move")
         layout.operator("mesh.delete", text="Delete...")
 
@@ -1532,15 +1532,18 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.subdivide", text="Subdivide").smoothness = 0.0
+        """
         layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
+        """
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
+        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.hide", text="Hide")
         layout.operator("mesh.reveal", text="Reveal")
         layout.operator("mesh.select_all").action = 'INVERT'
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.vertices_smooth", text="Smooth")
-        # layout.operator("mesh.bevel", text="Bevel")
+        layout.operator("mesh.bevel", text="Bevel")
         layout.operator("mesh.faces_shade_smooth")
         layout.operator("mesh.faces_shade_flat")
         layout.operator("mesh.blend_from_shape")
@@ -1614,6 +1617,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.rip_move")
         layout.operator("mesh.split")
         layout.operator("mesh.separate")
+        layout.operator("mesh.vert_connect")
 
         layout.separator()
 
@@ -1657,13 +1661,17 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.mark_freestyle_edge")
+        layout.operator("mesh.mark_freestyle_edge").clear = False
         layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
 
         layout.separator()
 
         layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
         layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").direction = 'CCW'
+
+        layout.separator()
+
+        layout.operator("mesh.bridge_edge_loops", text="Bridge Two Edge Loops")
 
         layout.separator()
 
@@ -1699,12 +1707,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.fgon_make")
-        layout.operator("mesh.fgon_clear")
-
-        layout.separator()
-
-        layout.operator("mesh.mark_freestyle_face")
+        layout.operator("mesh.mark_freestyle_face").clear = False
         layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
         layout.separator()
@@ -1728,9 +1731,9 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.separator()
 
         layout.operator_menu_enum("mesh.uvs_rotate", "direction")
-        layout.operator_menu_enum("mesh.uvs_mirror", "axis")
+        layout.operator("mesh.uvs_reverse")
         layout.operator_menu_enum("mesh.colors_rotate", "direction")
-        layout.operator_menu_enum("mesh.colors_mirror", "axis")
+        layout.operator("mesh.colors_reverse")
 
 
 class VIEW3D_MT_edit_mesh_normals(Menu):

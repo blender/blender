@@ -800,6 +800,7 @@ endif()
 		bf_python_mathutils
 		bf_freestyle
 		bf_ikplugin
+		bf_bmesh
 		bf_modifiers
 		bf_blenkernel
 		bf_nodes

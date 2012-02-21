@@ -67,13 +67,14 @@ typedef struct SculptSession {
 	/* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
 	struct MultiresModifierData *multires; /* Special handling for multires meshes */
 	struct MVert *mvert;
-	struct MFace *mface;
-	int totvert, totface;
+	struct MPoly *mpoly;
+	struct MLoop *mloop;
+	int totvert, totpoly;
 	float *face_normals;
 	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
-	struct ListBase *fmap;
+	struct ListBase *pmap;
 
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;

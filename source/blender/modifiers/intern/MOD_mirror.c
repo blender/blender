@@ -37,18 +37,17 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
+#include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
-
+#include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
-
-#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -69,10 +68,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->mirror_ob = mmd->mirror_ob;
 }
 
-static void foreachObjectLink(
-						 ModifierData *md, Object *ob,
-	  void (*walk)(void *userData, Object *ob, Object **obpoin),
-		 void *userData)
+static void foreachObjectLink(ModifierData *md, Object *ob,
+                              void (*walk)(void *userData, Object *ob, Object **obpoin),
+                              void *userData)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
@@ -80,9 +78,9 @@ static void foreachObjectLink(
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-						struct Scene *UNUSED(scene),
-						Object *UNUSED(ob),
-						DagNode *obNode)
+                           struct Scene *UNUSED(scene),
+                           Object *UNUSED(ob),
+                           DagNode *obNode)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
@@ -99,194 +97,201 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
                                    DerivedMesh *dm,
                                    int axis)
 {
-	int i;
-	float tolerance = mmd->tolerance;
+	const float tolerance_sq = mmd->tolerance * mmd->tolerance;
+	const int do_vtargetmap = !(mmd->flag & MOD_MIR_NO_MERGE);
+	int is_vtargetmap = FALSE; /* true when it should be used */
+
 	DerivedMesh *result;
-	int numVerts, numEdges, numFaces;
-	int maxVerts = dm->getNumVerts(dm);
-	int maxEdges = dm->getNumEdges(dm);
-	int maxFaces = dm->getNumFaces(dm);
-	int *flip_map= NULL, flip_map_len= 0;
-	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
-	unsigned int (*indexMap)[2];
-	float mtx[4][4], imtx[4][4];
+	const int maxVerts = dm->getNumVerts(dm);
+	const int maxEdges = dm->getNumEdges(dm);
+	const int maxLoops = dm->getNumLoops(dm);
+	const int maxPolys = dm->getNumPolys(dm);
+	MVert *mv, *mv_prev;
+	MEdge *me;
+	MLoop *ml;
+	MPoly *mp;
+	float mtx[4][4];
+	int i, j;
+	int a, totshape;
+	int *vtargetmap, *vtmap_a = NULL, *vtmap_b = NULL;
 
-	numVerts = numEdges = numFaces = 0;
-
-	indexMap = MEM_mallocN(sizeof(*indexMap) * maxVerts, "indexmap");
-
-	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
-
-
-	if (do_vgroup_mirr) {
-		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
-		if(flip_map == NULL)
-			do_vgroup_mirr= 0;
-	}
+	/* mtx is the mirror transformation */
+	unit_m4(mtx);
+	mtx[axis][axis] = -1.0f;
 
 	if (mmd->mirror_ob) {
-		float obinv[4][4];
-		
-		invert_m4_m4(obinv, mmd->mirror_ob->obmat);
-		mult_m4_m4m4(mtx, obinv, ob->obmat);
-		invert_m4_m4(imtx, mtx);
+		float tmp[4][4];
+		float itmp[4][4];
+
+		/* tmp is a transform from coords relative to the object's own origin,
+		 * to coords relative to the mirror object origin */
+		invert_m4_m4(tmp, mmd->mirror_ob->obmat);
+		mult_m4_m4m4(tmp, tmp, ob->obmat);
+
+		/* itmp is the reverse transform back to origin-relative coordiantes */
+		invert_m4_m4(itmp, tmp);
+
+		/* combine matrices to get a single matrix that translates coordinates into
+		 * mirror-object-relative space, does the mirror, and translates back to
+		 * origin-relative space */
+		mult_m4_m4m4(mtx, mtx, tmp);
+		mult_m4_m4m4(mtx, itmp, mtx);
 	}
 
-	for(i = 0; i < maxVerts; i++) {
-		MVert inMV;
-		MVert *mv = CDDM_get_vert(result, numVerts);
-		int isShared;
-		float co[3];
-		
-		dm->getVert(dm, i, &inMV);
-		
-		copy_v3_v3(co, inMV.co);
-		
-		if (mmd->mirror_ob) {
-			mul_m4_v3(mtx, co);
-		}
-		
-		if(mmd->flag & MOD_MIR_NO_MERGE)
-			isShared = 0;
-		else
-			isShared = ABS(co[axis])<=tolerance;
-		
-		/* Because the topology result (# of vertices) must be the same if
-		 * the mesh data is overridden by vertex cos, have to calc sharedness
-		 * based on original coordinates. This is why we test before copy.
-		 */
-		DM_copy_vert_data(dm, result, i, numVerts, 1);
-		*mv = inMV;
+	result = CDDM_from_template(dm, maxVerts*2, maxEdges*2, 0, maxLoops*2, maxPolys*2);
 
-		indexMap[i][0] = numVerts;
-		indexMap[i][1] = !isShared;
+	/*copy customdata to original geometry*/
+	DM_copy_vert_data(dm, result, 0, 0, maxVerts);
+	DM_copy_edge_data(dm, result, 0, 0, maxEdges);
+	DM_copy_loop_data(dm, result, 0, 0, maxLoops);
+	DM_copy_poly_data(dm, result, 0, 0, maxPolys);
 
-		numVerts++;
 
-		if(isShared ) {
-			co[axis] = 0.0f;
-			if (mmd->mirror_ob) {
-				mul_m4_v3(imtx, co);
-			}
-			copy_v3_v3(mv->co, co);
-			
-			mv->flag |= ME_VERT_MERGED;
-		}
-		else {
-			MVert *mv2 = CDDM_get_vert(result, numVerts);
-			
-			DM_copy_vert_data(dm, result, i, numVerts, 1);
-			*mv2 = *mv;
-			
-			co[axis] = -co[axis];
-			if (mmd->mirror_ob) {
-				mul_m4_v3(imtx, co);
-			}
-			copy_v3_v3(mv2->co, co);
-			
-			if (do_vgroup_mirr) {
-				MDeformVert *dvert= DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
-				if(dvert) {
-					defvert_flip(dvert, flip_map, flip_map_len);
-				}
-			}
+	/* subsurf for eg wont have mesh data in the */
+	/* now add mvert/medge/mface layers */
 
-			numVerts++;
-		}
+	if (!CustomData_has_layer(&dm->vertData, CD_MVERT)) {
+		dm->copyVertArray(dm, CDDM_get_verts(result));
+	}
+	if (!CustomData_has_layer(&dm->edgeData, CD_MEDGE)) {
+		dm->copyEdgeArray(dm, CDDM_get_edges(result));
+	}
+	if (!CustomData_has_layer(&dm->polyData, CD_MPOLY)) {
+		dm->copyLoopArray(dm, CDDM_get_loops(result));
+		dm->copyPolyArray(dm, CDDM_get_polys(result));
 	}
 
-	for(i = 0; i < maxEdges; i++) {
-		MEdge inMED;
-		MEdge *med = CDDM_get_edge(result, numEdges);
-		
-		dm->getEdge(dm, i, &inMED);
-		
-		DM_copy_edge_data(dm, result, i, numEdges, 1);
-		*med = inMED;
-		numEdges++;
-		
-		med->v1 = indexMap[inMED.v1][0];
-		med->v2 = indexMap[inMED.v2][0];
-		
-		if(indexMap[inMED.v1][1] || indexMap[inMED.v2][1]) {
-			MEdge *med2 = CDDM_get_edge(result, numEdges);
-			
-			DM_copy_edge_data(dm, result, i, numEdges, 1);
-			*med2 = *med;
-			numEdges++;
-			
-			med2->v1 += indexMap[inMED.v1][1];
-			med2->v2 += indexMap[inMED.v2][1];
-		}
+	/* copy customdata to new geometry,
+	 * copy from its self becayse this data may have been created in the checks above */
+	DM_copy_vert_data(result, result, 0, maxVerts, maxVerts);
+	DM_copy_edge_data(result, result, 0, maxEdges, maxEdges);
+	/* loops are copied later */
+	DM_copy_poly_data(result, result, 0, maxPolys, maxPolys);
+
+	if (do_vtargetmap) {
+		/* second half is filled with -1 */
+		vtargetmap = MEM_mallocN(sizeof(int) * maxVerts * 2, "MOD_mirror tarmap");
+
+		vtmap_a = vtargetmap;
+		vtmap_b = vtargetmap + maxVerts;
 	}
 
-	for(i = 0; i < maxFaces; i++) {
-		MFace inMF;
-		MFace *mf = CDDM_get_face(result, numFaces);
-		
-		dm->getFace(dm, i, &inMF);
-		
-		DM_copy_face_data(dm, result, i, numFaces, 1);
-		*mf = inMF;
-		numFaces++;
-		
-		mf->v1 = indexMap[inMF.v1][0];
-		mf->v2 = indexMap[inMF.v2][0];
-		mf->v3 = indexMap[inMF.v3][0];
-		mf->v4 = indexMap[inMF.v4][0];
-		
-		if ( indexMap[inMF.v1][1] ||
-		     indexMap[inMF.v2][1] ||
-		     indexMap[inMF.v3][1] ||
-		     (mf->v4 && indexMap[inMF.v4][1]))
-		{
-			MFace *mf2 = CDDM_get_face(result, numFaces);
-			static int corner_indices[4] = {2, 1, 0, 3};
-			
-			DM_copy_face_data(dm, result, i, numFaces, 1);
-			*mf2 = *mf;
-			
-			mf2->v1 += indexMap[inMF.v1][1];
-			mf2->v2 += indexMap[inMF.v2][1];
-			mf2->v3 += indexMap[inMF.v3][1];
-			if(inMF.v4) mf2->v4 += indexMap[inMF.v4][1];
-			
-			/* mirror UVs if enabled */
-			if(mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
-				MTFace *tf = result->getFaceData(result, numFaces, CD_MTFACE);
-				if(tf) {
-					int j;
-					for(j = 0; j < 4; ++j) {
-						if(mmd->flag & MOD_MIR_MIRROR_U)
-							tf->uv[j][0] = 1.0f - tf->uv[j][0];
-						if(mmd->flag & MOD_MIR_MIRROR_V)
-							tf->uv[j][1] = 1.0f - tf->uv[j][1];
-					}
-				}
+	/* mirror vertex coordinates */
+	mv_prev = CDDM_get_verts(result);
+	mv = mv_prev + maxVerts;
+	for (i = 0; i < maxVerts; i++, mv++, mv_prev++) {
+		mul_m4_v3(mtx, mv->co);
+
+		if (do_vtargetmap) {
+			/* compare location of the original and mirrored vertex, to see if they
+			 * should be mapped for merging */
+			if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
+				*vtmap_a = maxVerts + i;
+				is_vtargetmap = TRUE;
 			}
-			
-			/* Flip face normal */
-			SWAP(unsigned int, mf2->v1, mf2->v3);
-			DM_swap_face_data(result, numFaces, corner_indices);
-			
-			test_index_face(mf2, &result->faceData, numFaces, inMF.v4?4:3);
-			numFaces++;
+			else {
+				*vtmap_a = -1;
+			}
+
+			*vtmap_b = -1; /* fill here to avoid 2x loops */
+
+			vtmap_a++;
+			vtmap_b++;
+		}
+	}
+	
+	/* handle shape keys */
+	totshape = CustomData_number_of_layers(&result->vertData, CD_SHAPEKEY);
+	for (a = 0; a < totshape; a++) {
+		float (*cos)[3] = CustomData_get_layer_n(&result->vertData, CD_SHAPEKEY, a);
+		for (i = maxVerts; i < result->numVertData; i++) {
+			mul_m4_v3(mtx, cos[i]);
+		}
+	}
+	
+	/* adjust mirrored edge vertex indices */
+	me = CDDM_get_edges(result) + maxEdges;
+	for (i = 0; i < maxEdges; i++, me++) {
+		me->v1 += maxVerts;
+		me->v2 += maxVerts;
+	}
+	
+	/* adjust mirrored poly loopstart indices, and reverse loop order (normals) */
+	mp = CDDM_get_polys(result) + maxPolys;
+	ml = CDDM_get_loops(result);
+	for (i = 0; i < maxPolys; i++, mp++) {
+		MLoop *ml2;
+		int e;
+
+		/* reverse the loop */
+		for (j = 0; j < mp->totloop; j++) {
+			DM_copy_loop_data(result, result, mp->loopstart + j, mp->loopstart + maxLoops + mp->totloop - j - 1, 1);
+		}
+
+		ml2 = ml + mp->loopstart + maxLoops;
+		e = ml2[0].e;
+		for (j = 0; j < mp->totloop-1; j++) {
+			ml2[j].e = ml2[j+1].e;
+		}
+		ml2[mp->totloop-1].e = e;
+		
+		mp->loopstart += maxLoops;
+	}
+
+	/* adjust mirrored loop vertex and edge indices */
+	ml = CDDM_get_loops(result) + maxLoops;
+	for (i = 0; i < maxLoops; i++, ml++) {
+		ml->v += maxVerts;
+		ml->e += maxEdges;
+	}
+
+	/* handle uvs,
+	 * let tessface recalc handle updating the MTFace data */
+	if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
+		const int do_mirr_u= (mmd->flag & MOD_MIR_MIRROR_U) != 0;
+		const int do_mirr_v= (mmd->flag & MOD_MIR_MIRROR_V) != 0;
+
+		const int totuv = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
+
+		for (a = 0; a < totuv; a++) {
+			MLoopUV *dmloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, a);
+			int j = maxLoops;
+			dmloopuv += j; /* second set of loops only */
+			for ( ; i-- > 0; dmloopuv++) {
+				if (do_mirr_u) dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0];
+				if (do_mirr_v) dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1];
+			}
 		}
 	}
 
-	if (flip_map) MEM_freeN(flip_map);
+	/* handle vgroup stuff */
+	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vertData, CD_MDEFORMVERT)) {
+		MDeformVert *dvert = CustomData_get_layer(&result->vertData, CD_MDEFORMVERT);
+		int *flip_map= NULL, flip_map_len= 0;
 
-	MEM_freeN(indexMap);
+		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
+		
+		for (i = maxVerts; i-- > 0; dvert++) {
+			defvert_flip(dvert, flip_map, flip_map_len);
+		}
 
-	CDDM_lower_num_verts(result, numVerts);
-	CDDM_lower_num_edges(result, numEdges);
-	CDDM_lower_num_faces(result, numFaces);
+		MEM_freeN(flip_map);
+	}
+
+	if (do_vtargetmap) {
+		/* slow - so only call if one or more merge verts are found,
+		 * users may leave this on and not realize there is nothing to merge - campbell */
+		if (is_vtargetmap) {
+			result = CDDM_merge_verts(result, vtargetmap);
+		}
+		MEM_freeN(vtargetmap);
+	}
 
 	return result;
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-						Object *ob, DerivedMesh *dm)
+                                             Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result = dm;
 
@@ -309,9 +314,9 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                                  DerivedMesh *derivedData,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -325,8 +330,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						struct EditMesh *UNUSED(editData),
-						DerivedMesh *derivedData)
+                                    struct BMEditMesh *UNUSED(editData),
+                                    DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }

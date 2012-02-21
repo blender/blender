@@ -52,6 +52,11 @@ GPC_Canvas::GPC_Canvas(
 	m_height(height),
 	m_bannersEnabled(false)
 {
+	// initialize area so that it's available for game logic on frame 1 (ImageViewport)
+	m_displayarea.m_x1 = 0;
+	m_displayarea.m_y1 = 0;
+	m_displayarea.m_x2 = width;
+	m_displayarea.m_y2 = height;
 }
 
 

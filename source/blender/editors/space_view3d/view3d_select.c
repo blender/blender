@@ -61,6 +61,7 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_armature.h"
+#include "BKE_tessmesh.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_tracking.h"
@@ -164,43 +165,49 @@ void view3d_get_transformation(const ARegion *ar, RegionView3D *rv3d, Object *ob
 
 /* local prototypes */
 
-static void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
+static void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 {
-	EditVert *eve;
-	int index= em_wireoffs;
+	BMVert *eve;
+	BMIter iter;
+	int index= bm_wireoffs;
 
-	for(eve= em->verts.first; eve; eve= eve->next, index++) {
-		if(eve->h==0) {
-			if(EM_check_backbuf(index)) {
-				eve->f = select?(eve->f|1):(eve->f&~1);
+	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	for ( ; eve; eve=BM_iter_step(&iter), index++) {
+		if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			if(EDBM_check_backbuf(index)) {
+				BM_vert_select_set(em->bm, eve, select);
 			}
 		}
 	}
 }
 
-static void EM_backbuf_checkAndSelectEdges(EditMesh *em, int select)
+static void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 {
-	EditEdge *eed;
-	int index= em_solidoffs;
+	BMEdge *eed;
+	BMIter iter;
+	int index= bm_solidoffs;
 
-	for(eed= em->edges.first; eed; eed= eed->next, index++) {
-		if(eed->h==0) {
-			if(EM_check_backbuf(index)) {
-				EM_select_edge(eed, select);
+	eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+	for ( ; eed; eed=BM_iter_step(&iter), index++) {
+		if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+			if(EDBM_check_backbuf(index)) {
+				BM_edge_select_set(em->bm, eed, select);
 			}
 		}
 	}
 }
 
-static void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
+static void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 {
-	EditFace *efa;
+	BMFace *efa;
+	BMIter iter;
 	int index= 1;
 
-	for(efa= em->faces.first; efa; efa= efa->next, index++) {
-		if(efa->h==0) {
-			if(EM_check_backbuf(index)) {
-				EM_select_face_fgon(em, efa, select);
+	efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+	for ( ; efa; efa=BM_iter_step(&iter), index++) {
+		if(!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+			if(EDBM_check_backbuf(index)) {
+				BM_face_select_set(em->bm, efa, select);
 			}
 		}
 	}
@@ -208,14 +215,14 @@ static void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 
 
 /* object mode, EM_ prefix is confusing here, rename? */
-static void EM_backbuf_checkAndSelectVerts_obmode(Mesh *me, int select)
+static void EDBM_backbuf_checkAndSelectVerts_obmode(Mesh *me, int select)
 {
 	MVert *mv = me->mvert;
 	int a;
 
 	if (mv) {
 		for(a=1; a<=me->totvert; a++, mv++) {
-			if(EM_check_backbuf(a)) {
+			if(EDBM_check_backbuf(a)) {
 				if(!(mv->flag & ME_HIDE)) {
 					mv->flag = select?(mv->flag|SELECT):(mv->flag&~SELECT);
 				}
@@ -224,15 +231,16 @@ static void EM_backbuf_checkAndSelectVerts_obmode(Mesh *me, int select)
 	}
 }
 /* object mode, EM_ prefix is confusing here, rename? */
-static void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
+
+static void EDBM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
-	MFace *mface = me->mface;
+	MPoly *mpoly = me->mpoly;
 	int a;
 
-	if (mface) {
-		for(a=1; a<=me->totface; a++, mface++) {
-			if(EM_check_backbuf(a)) {
-				mface->flag = select?(mface->flag|ME_FACE_SEL):(mface->flag&~ME_FACE_SEL);
+	if (mpoly) {
+		for(a=1; a<=me->totpoly; a++, mpoly++) {
+			if(EDBM_check_backbuf(a)) {
+				mpoly->flag = select?(mpoly->flag|ME_FACE_SEL):(mpoly->flag&~ME_FACE_SEL);
 			}
 		}
 	}
@@ -460,39 +468,39 @@ static void lasso_select_boundbox(rcti *rect, int mcords[][2], short moves)
 	}
 }
 
-static void do_lasso_select_mesh__doSelectVert(void *userData, EditVert *eve, int x, int y, int UNUSED(index))
+static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
 {
 	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		eve->f = data->select?(eve->f|1):(eve->f&~1);
+		BM_elem_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
-static void do_lasso_select_mesh__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
 	LassoSelectUserData *data = userData;
 
-	if (EM_check_backbuf(em_solidoffs+index)) {
+	if (EDBM_check_backbuf(bm_solidoffs+index)) {
 		if (data->pass==0) {
 			if (	edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
 					lasso_inside(data->mcords, data->moves, x0, y0) &&
 					lasso_inside(data->mcords, data->moves, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		} else {
 			if (lasso_inside_edge(data->mcords, data->moves, x0, y0, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
 }
-static void do_lasso_select_mesh__doSelectFace(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
+static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
 {
 	LassoSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		EM_select_face_fgon(data->vc->em, efa, data->select);
+		BM_elem_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 
@@ -506,7 +514,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	lasso_select_boundbox(&rect, mcords, moves);
 	
 	/* set editmesh */
-	vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
+	vc->em= ((Mesh *)vc->obedit->data)->edit_btmesh;
 
 	data.vc= vc;
 	data.rect = &rect;
@@ -517,17 +525,17 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	data.pass = 0;
 
 	if (extend == 0 && select)
-		EM_deselect_all(vc->em);
+		EDBM_flag_disable_all(vc->em, BM_ELEM_SELECT);
 
 	 /* for non zbuf projections, dont change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
-	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	bbsel= EDBM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
-			EM_backbuf_checkAndSelectVerts(vc->em, select);
+			EDBM_backbuf_checkAndSelectVerts(vc->em, select);
 		}
 		else {
 			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
@@ -546,15 +554,15 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	
 	if(ts->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
-			EM_backbuf_checkAndSelectFaces(vc->em, select);
+			EDBM_backbuf_checkAndSelectFaces(vc->em, select);
 		}
 		else {
 			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data);
 		}
 	}
 	
-	EM_free_backbuf();
-	EM_selectmode_flush(vc->em);	
+	EDBM_free_backbuf();
+	EDBM_selectmode_flush(vc->em);
 }
 
 #if 0
@@ -832,14 +840,14 @@ static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short mo
 
 	if(extend==0 && select)
 		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
-	em_vertoffs= me->totvert+1;	/* max index array */
+	bm_vertoffs= me->totvert+1;	/* max index array */
 
 	lasso_select_boundbox(&rect, mcords, moves);
-	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	EDBM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
-	EM_backbuf_checkAndSelectVerts_obmode(me, select);
+	EDBM_backbuf_checkAndSelectVerts_obmode(me, select);
 
-	EM_free_backbuf();
+	EDBM_free_backbuf();
 
 	paintvert_flush_flags(ob);
 }
@@ -849,20 +857,20 @@ static void do_lasso_select_paintface(ViewContext *vc, int mcords[][2], short mo
 	Mesh *me= ob?ob->data:NULL;
 	rcti rect;
 
-	if(me==NULL || me->totface==0)
+	if(me==NULL || me->totpoly==0)
 		return;
 
 	if(extend==0 && select)
 		paintface_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
 
-	em_vertoffs= me->totface+1;	/* max index array */
+	bm_vertoffs= me->totpoly+1;	/* max index array */
 
 	lasso_select_boundbox(&rect, mcords, moves);
-	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	EDBM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
-	EM_backbuf_checkAndSelectTFaces(me, select);
+	EDBM_backbuf_checkAndSelectTFaces(me, select);
 
-	EM_free_backbuf();
+	EDBM_free_backbuf();
 
 	paintface_flush_flags(ob);
 }
@@ -1728,37 +1736,37 @@ static int do_lattice_box_select(ViewContext *vc, rcti *rect, int select, int ex
 	return OPERATOR_FINISHED;
 }
 
-static void do_mesh_box_select__doSelectVert(void *userData, EditVert *eve, int x, int y, int UNUSED(index))
+static void do_mesh_box_select__doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
 {
 	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		eve->f = data->select?(eve->f|1):(eve->f&~1);
+		BM_elem_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
-static void do_mesh_box_select__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
 	BoxSelectUserData *data = userData;
 
-	if(EM_check_backbuf(em_solidoffs+index)) {
+	if(EDBM_check_backbuf(bm_solidoffs+index)) {
 		if (data->pass==0) {
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 				data->done = 1;
 			}
 		} else {
 			if (edge_inside_rect(data->rect, x0, y0, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				BM_elem_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
 }
-static void do_mesh_box_select__doSelectFace(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
+static void do_mesh_box_select__doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
 {
 	BoxSelectUserData *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		EM_select_face_fgon(data->vc->em, efa, data->select);
+		BM_elem_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int extend)
@@ -1774,17 +1782,17 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	data.done = 0;
 
 	if (extend == 0 && select)
-		EM_deselect_all(vc->em);
+		EDBM_flag_disable_all(vc->em, BM_ELEM_SELECT);
 
 	/* for non zbuf projections, dont change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
-	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	bbsel= EDBM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
-			EM_backbuf_checkAndSelectVerts(vc->em, select);
+			EDBM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
 			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
 		}
@@ -1803,15 +1811,15 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	
 	if(ts->selectmode & SCE_SELECT_FACE) {
 		if(bbsel) {
-			EM_backbuf_checkAndSelectFaces(vc->em, select);
+			EDBM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
 			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data);
 		}
 	}
 	
-	EM_free_backbuf();
+	EDBM_free_backbuf();
 		
-	EM_selectmode_flush(vc->em);
+	EDBM_selectmode_flush(vc->em);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2045,7 +2053,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	if(vc.obedit) {
 		switch(vc.obedit->type) {
 		case OB_MESH:
-			vc.em= ((Mesh *)vc.obedit->data)->edit_mesh;
+			vc.em= ((Mesh *)vc.obedit->data)->edit_btmesh;
 			ret= do_mesh_box_select(&vc, &rect, select, extend);
 //			if (EM_texFaceCheck())
 			if(ret & OPERATOR_FINISHED) {
@@ -2269,32 +2277,32 @@ typedef struct CircleSelectUserData {
 	float radius;
 } CircleSelectUserData;
 
-static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y, int UNUSED(index))
+static void mesh_circle_doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
 {
 	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 
 	if (r<=data->radius) {
-		eve->f = data->select?(eve->f|1):(eve->f&~1);
+		BM_elem_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
-static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
+static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
 	CircleSelectUserData *data = userData;
 
 	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
-		EM_select_edge(eed, data->select);
+		BM_elem_select_set(data->vc->em->bm, eed, data->select);
 	}
 }
-static void mesh_circle_doSelectFace(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
+static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
 {
 	CircleSelectUserData *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 	
 	if (r<=data->radius) {
-		EM_select_face_fgon(data->vc->em, efa, data->select);
+		BM_elem_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
 
@@ -2304,10 +2312,10 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 	int bbsel;
 	CircleSelectUserData data;
 	
-	bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
+	bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
-	vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
+	vc->em= ((Mesh *)vc->obedit->data)->edit_btmesh;
 
 	data.vc = vc;
 	data.select = select;
@@ -2317,7 +2325,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if(bbsel) {
-			EM_backbuf_checkAndSelectVerts(vc->em, select==LEFTMOUSE);
+			EDBM_backbuf_checkAndSelectVerts(vc->em, select==LEFTMOUSE);
 		} else {
 			mesh_foreachScreenVert(vc, mesh_circle_doSelectVert, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
 		}
@@ -2325,7 +2333,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 
 	if(ts->selectmode & SCE_SELECT_EDGE) {
 		if (bbsel) {
-			EM_backbuf_checkAndSelectEdges(vc->em, select==LEFTMOUSE);
+			EDBM_backbuf_checkAndSelectEdges(vc->em, select==LEFTMOUSE);
 		} else {
 			mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, V3D_CLIP_TEST_OFF);
 		}
@@ -2333,14 +2341,14 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 	
 	if(ts->selectmode & SCE_SELECT_FACE) {
 		if(bbsel) {
-			EM_backbuf_checkAndSelectFaces(vc->em, select==LEFTMOUSE);
+			EDBM_backbuf_checkAndSelectFaces(vc->em, select==LEFTMOUSE);
 		} else {
 			mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data);
 		}
 	}
 
-	EM_free_backbuf();
-	EM_selectmode_flush(vc->em);
+	EDBM_free_backbuf();
+	EDBM_selectmode_flush(vc->em);
 }
 
 static void paint_facesel_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
@@ -2350,11 +2358,11 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 	/* int bbsel; */ /* UNUSED */
 
 	if (me) {
-		em_vertoffs= me->totface+1;	/* max index array */
+		bm_vertoffs= me->totpoly+1;	/* max index array */
 
-		/* bbsel= */ /* UNUSED */ EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
-		EM_backbuf_checkAndSelectTFaces(me, select==LEFTMOUSE);
-		EM_free_backbuf();
+		/* bbsel= */ /* UNUSED */ EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+		EDBM_backbuf_checkAndSelectTFaces(me, select==LEFTMOUSE);
+		EDBM_free_backbuf();
 	}
 }
 
@@ -2366,11 +2374,11 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 	/* int bbsel; */ /* UNUSED */
 	/* CircleSelectUserData data = {NULL}; */ /* UNUSED */
 	if (me) {
-		em_vertoffs= me->totvert+1;	/* max index array */
+		bm_vertoffs= me->totvert+1;	/* max index array */
 
-		/* bbsel= */ /* UNUSED */ EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
-		EM_backbuf_checkAndSelectVerts_obmode(me, select==LEFTMOUSE);
-		EM_free_backbuf();
+		/* bbsel= */ /* UNUSED */ EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
+		EDBM_backbuf_checkAndSelectVerts_obmode(me, select==LEFTMOUSE);
+		EDBM_free_backbuf();
 
 		paintvert_flush_flags(ob);
 	}

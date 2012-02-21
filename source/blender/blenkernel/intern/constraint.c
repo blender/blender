@@ -77,8 +77,12 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_idprop.h"
+#include "BKE_mesh.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
+#include "BKE_tracking.h"
+#include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
 
@@ -421,7 +425,7 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 {
 	DerivedMesh *dm = NULL;
 	Mesh *me= ob->data;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
+	BMEditMesh *em = me->edit_btmesh;
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -437,7 +441,7 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 	/* get DerivedMesh */
 	if (em) {
 		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_editmesh(em, ob->data);
+		dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
 		freeDM= 1;
 	}
 	else {
@@ -511,8 +515,6 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 	/* free temporary DerivedMesh created (in EditMode case) */
 	if (dm && freeDM)
 		dm->release(dm);
-	if (em)
-		BKE_mesh_end_editmesh(me, em);
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */

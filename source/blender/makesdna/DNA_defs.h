@@ -45,7 +45,8 @@
 /* hrmf, we need a better include then this */
 #include "../blenloader/BLO_sys_types.h" /* needed for int64_t only! */
 
-#define USE_BMESH_FORWARD_COMPAT
+/* Must not be defined for BMesh, as this guards code for pre-BMesh code to load BMesh .blend files */
+/* #define USE_BMESH_FORWARD_COMPAT */
 
 /* non-id name variables should use this length */
 #define MAX_NAME 64

@@ -68,6 +68,8 @@
 #include "BKE_object.h"
 #include "BKE_anim.h" /* for duplis */
 #include "BKE_context.h"
+#include "BKE_tessmesh.h"
+#include "BKE_mesh.h"
 
 #include "ED_armature.h"
 #include "ED_image.h"
@@ -1352,13 +1354,13 @@ static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm
 	return retval;
 }
 
-static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, EditMesh *em, float obmat[][4],
+static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[][4],
                            const float ray_start[3], const float ray_normal[3], const float mval[2],
                            float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumFaces(dm);
+	int totface = dm->getNumTessFaces(dm);
 
 	if (totvert > 0) {
 		float imat[4][4];
@@ -1426,19 +1428,19 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 
 #else
 					MVert *verts = dm->getVertArray(dm);
-					MFace *faces = dm->getFaceArray(dm);
+					MFace *faces = dm->getTessFaceArray(dm);
 					int *index_array = NULL;
 					int index = 0;
 					int i;
 					
 					if (em != NULL)
 					{
-						index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
-						EM_init_index_arrays(em, 0, 0, 1);
+						index_array = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+						EDBM_init_index_arrays(em, 0, 0, 1);
 					}
 					
 					for( i = 0; i < totface; i++) {
-						EditFace *efa = NULL;
+						BMFace *efa = NULL;
 						MFace *f = faces + i;
 						
 						test = 1; /* reset for every face */
@@ -1460,11 +1462,22 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 							}
 							else
 							{
-								efa = EM_get_face_for_index(index);
+								efa = EDBM_get_face_for_index(em, index);
 								
-								if (efa && (efa->h || (efa->v1->f & SELECT) || (efa->v2->f & SELECT) || (efa->v3->f & SELECT) || (efa->v4 && efa->v4->f & SELECT)))
+								if (efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 								{
 									test = 0;
+								} else if (efa) {
+									BMIter iter;
+									BMLoop *l;
+									
+									l = BM_iter_new(&iter, em->bm, BM_LOOPS_OF_FACE, efa);
+									for ( ; l; l=BM_iter_step(&iter)) {
+										if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
+											test = 0;
+											break;
+										}
+									}
 								}
 							}
 						}
@@ -1492,7 +1505,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL)
 					{
-						EM_free_index_arrays();
+						EDBM_free_index_arrays(em);
 					}
 #endif
 					break;
@@ -1507,11 +1520,11 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					if (em != NULL)
 					{
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EM_init_index_arrays(em, 1, 0, 0);
+						EDBM_init_index_arrays(em, 1, 0, 0);
 					}
 					
 					for( i = 0; i < totvert; i++) {
-						EditVert *eve = NULL;
+						BMVert *eve = NULL;
 						MVert *v = verts + i;
 						
 						test = 1; /* reset for every vert */
@@ -1533,9 +1546,9 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 							}
 							else
 							{
-								eve = EM_get_vert_for_index(index);
+								eve = EDBM_get_vert_for_index(em, index);
 								
-								if (eve && (eve->h || (eve->f & SELECT)))
+								if (eve && (BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(eve, BM_ELEM_SELECT)))
 								{
 									test = 0;
 								}
@@ -1551,7 +1564,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 
 					if (em != NULL)
 					{
-						EM_free_index_arrays();
+						EDBM_free_index_arrays(em);
 					}
 					break;
 				}
@@ -1567,11 +1580,11 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					if (em != NULL)
 					{
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EM_init_index_arrays(em, 0, 1, 0);
+						EDBM_init_index_arrays(em, 0, 1, 0);
 					}
 					
 					for( i = 0; i < totedge; i++) {
-						EditEdge *eed = NULL;
+						BMEdge *eed = NULL;
 						MEdge *e = edges + i;
 						
 						test = 1; /* reset for every vert */
@@ -1593,9 +1606,11 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 							}
 							else
 							{
-								eed = EM_get_edge_for_index(index);
+								eed = EDBM_get_edge_for_index(em, index);
 								
-								if (eed && (eed->h || (eed->v1->f & SELECT) || (eed->v2->f & SELECT)))
+								if (eed && (BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
+									BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) || 
+									BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
 								{
 									test = 0;
 								}
@@ -1611,7 +1626,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 
 					if (em != NULL)
 					{
-						EM_free_index_arrays();
+						EDBM_free_index_arrays(em);
 					}
 					break;
 				}
@@ -1630,14 +1645,14 @@ static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, flo
 	int retval = 0;
 	
 	if (ob->type == OB_MESH) {
-		EditMesh *em;
+		BMEditMesh *em;
 		DerivedMesh *dm;
 		
 		if (editobject)
 		{
-			em = ((Mesh *)ob->data)->edit_mesh;
-			/* dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
-			dm = editmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
+			em = ((Mesh *)ob->data)->edit_btmesh;
+			/* dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
+			dm = editbmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
 		}
 		else
 		{
@@ -1793,7 +1808,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumFaces(dm);
+	int totface = dm->getNumTessFaces(dm);
 	
 	if (totvert > 0) {
 		float imat[4][4];
@@ -1823,7 +1838,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 		
 		if (test == 1) {
 			MVert *verts = dm->getVertArray(dm);
-			MFace *faces = dm->getFaceArray(dm);
+			MFace *faces = dm->getTessFaceArray(dm);
 			int i;
 			
 			for( i = 0; i < totface; i++) {
@@ -1919,6 +1934,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 					Object *dob = dupli_ob->ob;
 					
 					if (dob->type == OB_MESH) {
+#if 0 //BMESH_TODO
 						EditMesh *em;
 						DerivedMesh *dm = NULL;
 						int val;
@@ -1940,6 +1956,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 						retval = retval || val;
 						
 						dm->release(dm);
+#endif
 					}
 				}
 				
@@ -1947,7 +1964,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 			}
 			
 			if (ob->type == OB_MESH) {
-				EditMesh *em;
+				BMEditMesh *em;
 				DerivedMesh *dm = NULL;
 				int val;
 
@@ -1959,8 +1976,8 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 				}
 				else
 				{
-					em = ((Mesh *)ob->data)->edit_mesh;
-					dm = editmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
+					em = ((Mesh *)ob->data)->edit_btmesh;
+					dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 					
 					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
 				}

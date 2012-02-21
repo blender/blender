@@ -47,6 +47,7 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
+#include "BKE_tessmesh.h"
 
 #include "ED_info.h"
 #include "ED_armature.h"
@@ -78,7 +79,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		if(dm) {
 			totvert = dm->getNumVerts(dm);
 			totedge = dm->getNumEdges(dm);
-			totface = dm->getNumFaces(dm);
+			totface = dm->getNumPolys(dm);
 
 			stats->totvert += totvert*totob;
 			stats->totedge += totedge*totob;
@@ -139,26 +140,16 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 static void stats_object_edit(Object *obedit, SceneStats *stats)
 {
 	if(obedit->type==OB_MESH) {
-		/* Mesh Edit */
-		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
-		EditVert *eve;
-		EditEdge *eed;
-		EditFace *efa;
+		BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+
+		stats->totvert = em->bm->totvert;
+		stats->totvertsel = em->bm->totvertsel;
 		
-		for(eve= em->verts.first; eve; eve=eve->next) {
-			stats->totvert++;
-			if(eve->f & SELECT) stats->totvertsel++;
-		}
-		for(eed= em->edges.first; eed; eed=eed->next) {
-			stats->totedge++;
-			if(eed->f & SELECT) stats->totedgesel++;
-		}
-		for(efa= em->faces.first; efa; efa=efa->next) {
-			stats->totface++;
-			if(efa->f & SELECT) stats->totfacesel++;
-		}
+		stats->totedge = em->bm->totedge;
+		stats->totedgesel = em->bm->totedgesel;
 		
-		EM_validate_selections(em);
+		stats->totface = em->bm->totface;
+		stats->totfacesel = em->bm->totfacesel;
 	}
 	else if(obedit->type==OB_ARMATURE){
 		/* Armature Edit */

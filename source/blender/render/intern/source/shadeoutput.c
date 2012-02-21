@@ -1204,7 +1204,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 							copy_v3_v3(lvrot, lv);
 							mul_m3_v3(lar->imat, lvrot);
 							
-							x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
+							x = maxf(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 							
 							inpr= 1.0f/(sqrt(1.0f+x*x));

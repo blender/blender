@@ -132,6 +132,23 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tltmd->iter= sltmd->iter;
 }
 
+#if 0
+static int findEd(MEdge *medge_new, int toted, int v1, int v2)
+{
+	int i;
+
+	for (i = 0; i < toted; i++) {
+		if ( (medge_new[i].v1 == v1 && medge_new[i].v2 == v2) ||
+		     (medge_new[i].v1 == v2 && medge_new[i].v2 == v1) )
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+#endif
+
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						DerivedMesh *derivedData,
 						int useRenderParams,
@@ -142,13 +159,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
 	
 	int *origindex;
-	int mface_index=0;
+	int mpoly_index=0;
 	int step;
 	int i, j;
 	unsigned int i1, i2;
 	int step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 	const int do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
-	int maxVerts=0, maxEdges=0, maxFaces=0;
+	int maxVerts=0, maxEdges=0, maxPolys=0;
 	const unsigned int totvert= dm->getNumVerts(dm);
 	const unsigned int totedge= dm->getNumEdges(dm);
 
@@ -165,8 +182,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int vc_tot_linked= 0;
 	short other_axis_1, other_axis_2;
 	float *tmpf1, *tmpf2;
+
+	int edge_offset;
 	
-	MFace *mface_new, *mf_new;
+	MPoly *mpoly_new, *mp_new;
+	MLoop *mloop_new, *ml_new;
 	MEdge *medge_orig, *med_orig, *med_new, *med_new_firstloop, *medge_new;
 	MVert *mvert_new, *mvert_orig, *mv_orig, *mv_new, *mv_new_base;
 
@@ -174,7 +194,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* dont do anything? */
 	if (!totvert)
-		return CDDM_from_template(dm, 0, 0, 0);
+		return CDDM_from_template(dm, 0, 0, 0, 0, 0);
 
 	switch(ltmd->axis) {
 	case 0:
@@ -278,7 +298,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		maxVerts =	totvert  * step_tot; /* -1 because we're joining back up */
 		maxEdges =	(totvert * step_tot) + /* these are the edges between new verts */
 					(totedge * step_tot); /* -1 because vert edges join */
-		maxFaces =	totedge * step_tot;
+		maxPolys =	totedge * step_tot;
 
 		screw_ofs= 0.0f;
 	}
@@ -289,20 +309,29 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		maxVerts =	totvert  * step_tot; /* -1 because we're joining back up */
 		maxEdges =	(totvert * (step_tot-1)) + /* these are the edges between new verts */
 					(totedge * step_tot); /* -1 because vert edges join */
-		maxFaces =	totedge * (step_tot-1);
+		maxPolys =	totedge * (step_tot-1);
 	}
 	
-	result= CDDM_from_template(dm, maxVerts, maxEdges, maxFaces);
+	result= CDDM_from_template(dm, maxVerts, maxEdges, 0, maxPolys * 4, maxPolys);
 	
 	/* copy verts from mesh */
 	mvert_orig =	dm->getVertArray(dm);
 	medge_orig =	dm->getEdgeArray(dm);
 	
 	mvert_new =		result->getVertArray(result);
-	mface_new =		result->getFaceArray(result);
+	mpoly_new =		result->getPolyArray(result);
+	mloop_new =		result->getLoopArray(result);
 	medge_new =		result->getEdgeArray(result);
-	
-	origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
+
+	if (!CustomData_has_layer(&result->polyData, CD_ORIGINDEX)) {
+		CustomData_add_layer(&result->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, maxPolys);
+	}
+
+#if 0 // trunk
+	origindex = result->getPolyDataArray(result, CD_ORIGINDEX);
+#else // bmesh
+	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
+#endif
 
 	DM_copy_vert_data(dm, result, 0, 0, totvert); /* copy first otherwise this overwrites our own vertex normals */
 	
@@ -746,9 +775,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 	
-	mf_new= mface_new;
+	mp_new= mpoly_new;
+	ml_new= mloop_new;
 	med_new_firstloop= medge_new;
 	
+	/* more of an offset in this case */
+	edge_offset = totedge + (totvert * (step_tot - (close ? 0 : 1)));
+
 	for (i=0; i < totedge; i++, med_new_firstloop++) {
 		/* for each edge, make a cylinder of quads */
 		i1= med_new_firstloop->v1;
@@ -758,26 +791,36 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			
 			/* new face */
 			if(do_flip) {
-				mf_new->v4= i1;
-				mf_new->v3= i2;
-				mf_new->v2= i2 + totvert;
-				mf_new->v1= i1 + totvert;
+				ml_new[3].v = i1;
+				ml_new[2].v = i2;
+				ml_new[1].v = i2 + totvert;
+				ml_new[0].v = i1 + totvert;
+
+				ml_new[2].e = step == 0 ? i : (edge_offset + step + (i * (step_tot - 1))) - 1;
+				ml_new[1].e = totedge + i2;
+				ml_new[0].e = edge_offset + step + (i * (step_tot - 1));
+				ml_new[3].e = totedge + i1;
 			}
 			else {
-				mf_new->v1= i1;
-				mf_new->v2= i2;
-				mf_new->v3= i2 + totvert;
-				mf_new->v4= i1 + totvert;
+				ml_new[0].v = i1;
+				ml_new[1].v = i2;
+				ml_new[2].v = i2 + totvert;
+				ml_new[3].v = i1 + totvert;
+
+				ml_new[0].e = step == 0 ? i : (edge_offset + step + (i * (step_tot - 1))) - 1;
+				ml_new[1].e = totedge + i2;
+				ml_new[2].e = edge_offset + step + (i * (step_tot - 1));
+				ml_new[3].e = totedge + i1;
 			}
-			
-			if( !mf_new->v3 || !mf_new->v4 ) {
-				SWAP(unsigned int, mf_new->v1, mf_new->v3);
-				SWAP(unsigned int, mf_new->v2, mf_new->v4);
-			}
-			mf_new->flag= ME_SMOOTH;
-			origindex[mface_index]= ORIGINDEX_NONE;
-			mf_new++;
-			mface_index++;
+
+
+			mp_new->loopstart = mpoly_index * 4;
+			mp_new->totloop = 4;
+			mp_new->flag= ME_SMOOTH;
+			origindex[mpoly_index]= ORIGINDEX_NONE;
+			mp_new++;
+			ml_new += 4;
+			mpoly_index++;
 			
 			/* new vertical edge */
 			if (step) { /* The first set is already dome */
@@ -794,26 +837,35 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* close the loop*/
 		if (close) { 
 			if(do_flip) {
-				mf_new->v4= i1;
-				mf_new->v3= i2;
-				mf_new->v2= med_new_firstloop->v2;
-				mf_new->v1= med_new_firstloop->v1;
+				ml_new[3].v = i1;
+				ml_new[2].v = i2;
+				ml_new[1].v = med_new_firstloop->v2;
+				ml_new[0].v = med_new_firstloop->v1;
+
+				ml_new[2].e = (edge_offset + step + (i * (step_tot - 1))) - 1;
+				ml_new[1].e = totedge + i2;
+				ml_new[0].e = i;
+				ml_new[3].e = totedge + i1;
 			}
 			else {
-				mf_new->v1= i1;
-				mf_new->v2= i2;
-				mf_new->v3= med_new_firstloop->v2;
-				mf_new->v4= med_new_firstloop->v1;
+				ml_new[0].v = i1;
+				ml_new[1].v = i2;
+				ml_new[2].v = med_new_firstloop->v2;
+				ml_new[3].v = med_new_firstloop->v1;
+
+				ml_new[0].e = (edge_offset + step + (i * (step_tot - 1))) - 1;
+				ml_new[1].e = totedge + i2;
+				ml_new[2].e = i;
+				ml_new[3].e = totedge + i1;
 			}
 
-			if( !mf_new->v3 || !mf_new->v4 ) {
-				SWAP(unsigned int, mf_new->v1, mf_new->v3);
-				SWAP(unsigned int, mf_new->v2, mf_new->v4);
-			}
-			mf_new->flag= ME_SMOOTH;
-			origindex[mface_index]= ORIGINDEX_NONE;
-			mf_new++;
-			mface_index++;
+			mp_new->loopstart = mpoly_index * 4;
+			mp_new->totloop = 4;
+			mp_new->flag= ME_SMOOTH;
+			origindex[mpoly_index]= ORIGINDEX_NONE;
+			mp_new++;
+			ml_new += 4;
+			mpoly_index++;
 		}
 		
 		/* new vertical edge */
@@ -823,8 +875,37 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		med_new->crease= med_new_firstloop->crease;
 		med_new++;
 	}
-	
+
+	/* validate loop edges */
+#if 0
+	{
+		i = 0;
+		printf("\n");
+		for ( ; i < maxPolys * 4; i += 4) {
+			int ii;
+			ml_new = mloop_new + i;
+			ii = findEd(medge_new, maxEdges, ml_new[0].v, ml_new[1].v);
+			printf("%d %d -- ", ii, ml_new[0].e);
+			ml_new[0].e = ii;
+
+			ii = findEd(medge_new, maxEdges, ml_new[1].v, ml_new[2].v);
+			printf("%d %d -- ", ii, ml_new[1].e);
+			ml_new[1].e = ii;
+
+			ii = findEd(medge_new, maxEdges, ml_new[2].v, ml_new[3].v);
+			printf("%d %d -- ", ii, ml_new[2].e);
+			ml_new[2].e = ii;
+
+			ii = findEd(medge_new, maxEdges, ml_new[3].v, ml_new[0].v);
+			printf("%d %d\n", ii, ml_new[3].e);
+			ml_new[3].e = ii;
+
+		}
+	}
+#endif
+
 	if((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
+		/* BMESH_TODO, we only need to get vertex normals here, this is way overkill */
 		CDDM_calc_normals(result);
 	}
 
@@ -862,7 +943,7 @@ static void foreachObjectLink(
 static DerivedMesh *applyModifierEM(
 						ModifierData *md,
 						Object *ob,
-						struct EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

@@ -166,20 +166,21 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 
 #ifdef WITH_MOD_FLUID
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
-static DerivedMesh *fluidsim_read_obj(const char *filename, const MFace *mf_example)
+static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
 {
 	int wri = 0,i;
 	int gotBytes;
 	gzFile gzf;
 	int numverts = 0, numfaces = 0;
 	DerivedMesh *dm = NULL;
-	MFace *mf;
+	MPoly *mp;
+	MLoop *ml;
 	MVert *mv;
 	short *normals, *no_s;
 	float no[3];
 
-	const short mf_mat_nr = mf_example->mat_nr;
-	const char  mf_flag =   mf_example->flag;
+	const short mp_mat_nr = mp_example->mat_nr;
+	const char  mp_flag =   mp_example->flag;
 
 	// ------------------------------------------------
 	// get numverts + numfaces first
@@ -222,7 +223,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MFace *mf_exam
 		return NULL;
 	}
 
-	dm = CDDM_new(numverts, 0, numfaces);
+	dm = CDDM_new(numverts, 0, 0, numfaces * 3, numfaces);
 
 	if(!dm)
 	{
@@ -278,33 +279,25 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MFace *mf_exam
 	}
 
 	// read triangles from file
-	mf = CDDM_get_faces(dm);
-	for(i=numfaces; i>0; i--, mf++)
+	mp = CDDM_get_polys(dm);
+	ml = CDDM_get_loops(dm);
+	for(i=0; i < numfaces; i++, mp++, ml += 3)
 	{
 		int face[3];
 
 		gotBytes = gzread(gzf, face, sizeof(int) * 3);
 
 		/* initialize from existing face */
-		mf->mat_nr = mf_mat_nr;
-		mf->flag =   mf_flag;
+		mp->mat_nr = mp_mat_nr;
+		mp->flag =   mp_flag;
 
-		// check if 3rd vertex has index 0 (not allowed in blender)
-		if(face[2])
-		{
-			mf->v1 = face[0];
-			mf->v2 = face[1];
-			mf->v3 = face[2];
-		}
-		else
-		{
-			mf->v1 = face[1];
-			mf->v2 = face[2];
-			mf->v3 = face[0];
-		}
-		mf->v4 = 0;
+		mp->loopstart = i * 3;
+		mp->totloop = 3;
 
-		test_index_face(mf, NULL, 0, 3);
+		ml[0].v = face[0];
+		ml[1].v = face[1];
+		ml[2].v = face[2];
+
 	}
 
 	gzclose( gzf );
@@ -315,7 +308,6 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MFace *mf_exam
 	MEM_freeN(normals);
 
 	// CDDM_calc_normals(result);
-
 	return dm;
 }
 
@@ -453,9 +445,8 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	char targetFile[FILE_MAX];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
-	MFace *mface;
-	MFace mf_example = {0};
-
+	MPoly *mpoly;
+	MPoly mp_example = {0};
 
 	if(!useRenderParams) {
 		displaymode = fss->guiDisplayMode;
@@ -485,13 +476,13 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 
 	// assign material + flags to new dm
 	// if there's no faces in original dm, keep materials and flags unchanged
-	mface = orgdm->getFaceArray(orgdm);
-	if (mface) {
-		mf_example = *mface;
+	mpoly = orgdm->getPolyArray(orgdm);
+	if (mpoly) {
+		mp_example = *mpoly;
 	}
 	/* else leave NULL'd */
 
-	dm = fluidsim_read_obj(targetFile, &mf_example);
+	dm = fluidsim_read_obj(targetFile, &mp_example);
 
 	if(!dm)
 	{

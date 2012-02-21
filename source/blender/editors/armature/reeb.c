@@ -52,6 +52,7 @@
 //#include "BIF_toolbox.h"
 //#include "BIF_graphics.h"
 
+#include "BKE_mesh.h"
 
 //#include "blendef.h"
 
@@ -3377,9 +3378,12 @@ static int iteratorStopped(void *arg)
 
 ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 {
+	(void)C;
+	return NULL;
+#if 0
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	EditMesh *em =( (Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em =BKE_mesh_get_editmesh(((Mesh*)obedit->data));
 	EdgeIndex indexed_edges;
 	VertexData *data;
 	ReebGraph *rg = NULL;
@@ -3475,7 +3479,14 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 	
 	MEM_freeN(data);
 
+	/*no need to load the editmesh back into the object, just
+	  free it (avoids ngon conversion issues too going back the
+	           other way)*/
+	free_editMesh(em);
+	MEM_freeN(em);
+	
 	return rg;
+#endif
 }
 
 #if 0

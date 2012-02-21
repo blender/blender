@@ -45,6 +45,7 @@ struct ListBase;
 struct LinkNode;
 struct bArmature;
 struct ModifierData;
+struct BMEditMesh;
 
 typedef enum {
 	/* Should not be used, only for None modifier type */
@@ -154,13 +155,13 @@ typedef struct ModifierTypeInfo {
 	 */
 	void (*deformVertsEM)(
 				struct ModifierData *md, struct Object *ob,
-				struct EditMesh *editData, struct DerivedMesh *derivedData,
+				struct BMEditMesh *editData, struct DerivedMesh *derivedData,
 				float (*vertexCos)[3], int numVerts);
 
 	/* Set deform matrix per vertex for crazyspace correction */
 	void (*deformMatricesEM)(
 				struct ModifierData *md, struct Object *ob,
-				struct EditMesh *editData, struct DerivedMesh *derivedData,
+				struct BMEditMesh *editData, struct DerivedMesh *derivedData,
 				float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/********************* Non-deform modifier functions *********************/
@@ -198,7 +199,7 @@ typedef struct ModifierTypeInfo {
 	 */
 	struct DerivedMesh *(*applyModifierEM)(
 								struct ModifierData *md, struct Object *ob,
-								struct EditMesh *editData,
+								struct BMEditMesh *editData,
 								struct DerivedMesh *derivedData);
 
 

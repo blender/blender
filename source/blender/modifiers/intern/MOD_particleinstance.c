@@ -122,6 +122,8 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
 	float *size=NULL;
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	trackneg=((ob->trackflag>2)?1:0);
 
 	if(pimd->ob==ob){
@@ -174,7 +176,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	pars=psys->particles;
 
 	totvert=dm->getNumVerts(dm);
-	totface=dm->getNumFaces(dm);
+	totface=dm->getNumTessFaces(dm);
 
 	maxvert=totvert*totpart;
 	maxface=totface*totpart;
@@ -190,7 +192,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		max_co=max_r[track];
 	}
 
-	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface);
+	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface, 0, 0);
 
 	mvert=result->getVertArray(result);
 	orig_mvert=dm->getVertArray(dm);
@@ -260,8 +262,8 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		add_v3_v3(mv->co, state.co);
 	}
 
-	mface=result->getFaceArray(result);
-	orig_mface=dm->getFaceArray(dm);
+	mface=result->getTessFaceArray(result);
+	orig_mface=dm->getTessFaceArray(dm);
 
 	for(i=0; i<maxface; i++){
 		MFace *inMF;
@@ -291,7 +293,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		}
 
 		inMF = orig_mface + i%totface;
-		DM_copy_face_data(dm, result, i%totface, i, 1);
+		DM_copy_poly_data(dm, result, i%totface, i, 1);
 		*mf = *inMF;
 
 		mf->v1+=(i/totface)*totvert;
@@ -301,8 +303,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			mf->v4+=(i/totface)*totvert;
 	}
 
-	CDDM_calc_edges(result);
-	CDDM_calc_normals(result);
+	CDDM_calc_edges_tessface(result);
 
 	if(psys->lattice){
 		end_latt_deform(psys->lattice);
@@ -312,10 +313,13 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	if(size)
 		MEM_freeN(size);
 
+	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
+	CDDM_calc_normals(result);
+
 	return result;
 }
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						struct EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

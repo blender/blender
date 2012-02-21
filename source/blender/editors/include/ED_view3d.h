@@ -38,8 +38,11 @@ struct BezTriple;
 struct bglMats;
 struct BoundBox;
 struct BPoint;
-struct EditEdge;
-struct EditFace;
+struct Nurb;
+struct BezTriple;
+struct BMVert;
+struct BMEdge;
+struct BMFace;
 struct EditVert;
 struct ImBuf;
 struct Main;
@@ -63,7 +66,7 @@ typedef struct ViewContext {
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct RegionView3D *rv3d;
-	struct EditMesh *em;
+	struct BMEditMesh *em;
 	int mval[2];
 } ViewContext;
 
@@ -190,9 +193,9 @@ void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float
  */
 void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
-#if 0 /* UNUSED */
+//#if 0 /* UNUSED */
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
-#endif
+//#endif
 
 /* Depth buffer */
 void ED_view3d_depth_update(struct ARegion *ar);
@@ -219,12 +222,13 @@ int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int w
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_project_float(const struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
+void ED_view3d_project_float_v3(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
 /* drawobject.c iterators */
-void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
+void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 

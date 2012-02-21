@@ -3,6 +3,7 @@ Import ('env')
 import sys
 
 SConscript(['avi/SConscript',
+            'bmesh/SConscript',
             'blenkernel/SConscript',
             'blenlib/SConscript',
             'blenloader/SConscript',

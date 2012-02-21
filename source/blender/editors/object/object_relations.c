@@ -79,6 +79,7 @@
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
+#include "BKE_tessmesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -94,9 +95,9 @@
 #include "ED_curve.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_mesh.h"
 
 #include "object_intern.h"
 
@@ -112,7 +113,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	Curve *cu;
 	Nurb *nu;
 	BezTriple *bezt;
@@ -124,20 +126,19 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em;
+		BMEditMesh *em;
 
-		load_editMesh(scene, obedit);
-		make_editMesh(scene, obedit);
+		EDBM_LoadEditBMesh(scene, obedit);
+		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
 
-		em= BKE_mesh_get_editmesh(me);
+		em= me->edit_btmesh;
 
 		/* derivedMesh might be needed for solving parenting,
 		   so re-create it here */
-		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH);
+		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
 
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->f & 1) {
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				if(v1==0) v1= nr;
 				else if(v2==0) v2= nr;
 				else if(v3==0) v3= nr;
@@ -145,10 +146,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 				else break;
 			}
 			nr++;
-			eve= eve->next;
 		}
-
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		ListBase *editnurb= object_editcurve_get(obedit);

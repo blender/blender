@@ -84,6 +84,8 @@
 #include "BKE_global.h"
 #include "BKE_deform.h"
 
+#include "BKE_tessmesh.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -2977,11 +2979,11 @@ static void project_paint_begin(ProjPaintState *ps)
 	}
 	
 	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
-	ps->dm_mface = ps->dm->getFaceArray(ps->dm);
-	ps->dm_mtface= ps->dm->getFaceDataArray(ps->dm, CD_MTFACE);
+	ps->dm_mface = ps->dm->getTessFaceArray(ps->dm);
+	ps->dm_mtface= ps->dm->getTessFaceDataArray(ps->dm, CD_MTFACE);
 	
 	ps->dm_totvert = ps->dm->getNumVerts(ps->dm);
-	ps->dm_totface = ps->dm->getNumFaces(ps->dm);
+	ps->dm_totface = ps->dm->getNumTessFaces(ps->dm);
 	
 	/* use clone mtface? */
 	
@@ -4647,7 +4649,7 @@ static int image_paint_poll(bContext *C)
 
 static int uv_sculpt_brush_poll(bContext *C)
 {
-	EditMesh *em;
+	BMEditMesh *em;
 	int ret;
 	Object *obedit = CTX_data_edit_object(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -4657,9 +4659,8 @@ static int uv_sculpt_brush_poll(bContext *C)
 	if(!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
 		return 0;
 
-	em = BKE_mesh_get_editmesh(obedit->data);
-	ret = EM_texFaceCheck(em);
-	BKE_mesh_end_editmesh(obedit->data, em);
+	em = ((Mesh *)obedit->data)->edit_btmesh;
+	ret = EDBM_texFaceCheck(em);
 
 	if(ret && sima) {
 		ARegion *ar= CTX_wm_region(C);

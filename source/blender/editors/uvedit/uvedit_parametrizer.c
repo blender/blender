@@ -743,8 +743,10 @@ static PEdge *p_edge_lookup(PHandle *handle, PHashKey *vkeys)
 	return NULL;
 }
 
-static PBool p_face_exists(PHandle *handle, PHashKey *vkeys, int i1, int i2, int i3)
+int p_face_exists(ParamHandle *phandle, ParamKey *pvkeys, int i1, int i2, int i3)
 {
+	PHandle *handle = (PHandle*)phandle;
+	PHashKey *vkeys = (PHashKey*)pvkeys;
 	PHashKey key = PHASH_edge(vkeys[i1], vkeys[i2]);
 	PEdge *e = (PEdge*)phash_lookup(handle->hash_edges, key);
 

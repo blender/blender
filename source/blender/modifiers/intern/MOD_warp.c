@@ -330,7 +330,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	}
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editData,
+static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editData,
                           DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
@@ -338,7 +338,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editDat
 
 	if(use_dm) {
 		if(!derivedData)
-			dm = CDDM_from_editmesh(editData, ob->data);
+			dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 	}
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);

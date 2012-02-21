@@ -108,10 +108,10 @@ void ED_editors_exit(bContext *C)
 			if(ob) {
 				if(ob->type==OB_MESH) {
 					Mesh *me= ob->data;
-					if(me->edit_mesh) {
-						free_editMesh(me->edit_mesh);
-						MEM_freeN(me->edit_mesh);
-						me->edit_mesh= NULL;
+					if(me->edit_btmesh) {
+						EDBM_FreeEditBMesh(me->edit_btmesh);
+						MEM_freeN(me->edit_btmesh);
+						me->edit_btmesh= NULL;
 					}
 				}
 				else if(ob->type==OB_ARMATURE) {

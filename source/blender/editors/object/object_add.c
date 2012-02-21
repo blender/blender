@@ -250,7 +250,7 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 }
 
 int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
-	float *rot, int *enter_editmode, unsigned int *layer)
+	float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	int a, layer_values[20];
@@ -298,7 +298,9 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 	else
 		RNA_float_get_array(op->ptr, "rotation", rot);
 	
-
+	if (is_view_aligned)
+		*is_view_aligned = view_align;
+	
 	RNA_float_get_array(op->ptr, "location", loc);
 
 	if(*layer == 0) {
@@ -352,7 +354,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode, layer);
@@ -409,7 +411,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	
 	object_add_generic_invoke_options(C, op);
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return NULL;
 
 	if(type==PFIELD_GUIDE) {
@@ -489,7 +491,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	
 	object_add_generic_invoke_options(C, op);
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE, layer);
@@ -543,7 +545,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
@@ -612,7 +614,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
 	if(obedit && obedit->type==OB_FONT)
@@ -653,7 +655,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
@@ -721,7 +723,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
@@ -777,7 +779,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	if(group) {
@@ -809,7 +811,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 
 	object_add_generic_invoke_options(C, op);
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_SPEAKER, loc, rot, FALSE, layer);
@@ -1368,7 +1370,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 			dm= mesh_get_derived_final(scene, newob, CD_MASK_MESH);
 			/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
 
-			DM_to_mesh(dm, newob->data);
+			DM_to_mesh(dm, newob->data, newob);
+
+			/* re-tesselation is called by DM_to_mesh */
 
 			dm->release(dm);
 			object_free_modifiers(newob);	/* after derivedmesh calls! */

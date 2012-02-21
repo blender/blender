@@ -95,14 +95,14 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 {
 	DerivedMesh *result = NULL;
 
-	if(derivedData->getNumFaces(derivedData) == 0 || dm->getNumFaces(dm) == 0) {
+	if(derivedData->getNumPolys(derivedData) == 0 || dm->getNumPolys(dm) == 0) {
 		switch(operation) {
 			case eBooleanModifierOp_Intersect:
-				result = CDDM_new(0, 0, 0);
+				result = CDDM_new(0, 0, 0, 0, 0);
 				break;
 
 			case eBooleanModifierOp_Union:
-				if(derivedData->getNumFaces(derivedData)) result = derivedData;
+				if(derivedData->getNumPolys(derivedData)) result = derivedData;
 				else result = CDDM_copy(dm);
 
 				break;
@@ -138,6 +138,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		result = get_quick_derivedMesh(derivedData, dm, bmd->operation);
 
 		if(result == NULL) {
+
+			DM_ensure_tessface(dm);          /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+			DM_ensure_tessface(derivedData); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 			// TIMEIT_START(NewBooleanDerivedMesh)
 
 			result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,

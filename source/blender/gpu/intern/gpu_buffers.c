@@ -395,8 +395,8 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	int points_per_mat[MAX_MATERIALS];
 	int i, curmat, curpoint, totface;
 
-	mface = dm->getFaceArray(dm);
-	totface= dm->getNumFaces(dm);
+	mface = dm->getTessFaceArray(dm);
+	totface= dm->getNumTessFaces(dm);
 
 	/* get the number of points used by each material, treating
 	   each quad as two triangles */
@@ -573,9 +573,9 @@ static void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, i
 	int i, j, start, totface;
 
 	mvert = dm->getVertArray(dm);
-	f = dm->getFaceArray(dm);
+	f = dm->getTessFaceArray(dm);
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 	for(i = 0; i < totface; i++, f++) {
 		start = index[mat_orig_to_new[f->mat_nr]];
 
@@ -610,11 +610,11 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 	int start;
 	float f_no[3];
 
-	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
+	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *f = dm->getFaceArray(dm);
+	MFace *f = dm->getTessFaceArray(dm);
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 	for(i = 0; i < totface; i++, f++) {
 		const int smoothnormal = (f->flag & ME_SMOOTH);
 
@@ -673,11 +673,11 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 	MTFace *mtface;
 	MFace *f;
 
-	if(!(mtface = DM_get_face_data_layer(dm, CD_MTFACE)))
+	if(!(mtface = DM_get_tessface_data_layer(dm, CD_MTFACE)))
 		return;
-	f = dm->getFaceArray(dm);
+	f = dm->getTessFaceArray(dm);
 		
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 	for(i = 0; i < totface; i++, f++) {
 		start = index[mat_orig_to_new[f->mat_nr]];
 
@@ -703,9 +703,9 @@ static void GPU_buffer_copy_color3(DerivedMesh *dm, float *varray_, int *index, 
 	int i, totface;
 	char *varray = (char *)varray_;
 	char *mcol = (char *)user;
-	MFace *f = dm->getFaceArray(dm);
+	MFace *f = dm->getTessFaceArray(dm);
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 	for(i=0; i < totface; i++, f++) {
 		int start = index[mat_orig_to_new[f->mat_nr]];
 
@@ -738,9 +738,9 @@ static void GPU_buffer_copy_mcol(DerivedMesh *dm, float *varray_, int *index, in
 	int i, totface;
 	unsigned char *varray = (unsigned char *)varray_;
 	unsigned char *mcol = (unsigned char *)user;
-	MFace *f = dm->getFaceArray(dm);
+	MFace *f = dm->getTessFaceArray(dm);
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 	for(i=0; i < totface; i++, f++) {
 		int start = index[mat_orig_to_new[f->mat_nr]];
 
@@ -777,15 +777,15 @@ static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(in
 
 static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))
 {
-	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
+	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	int i, j=0;
 
 	if(!tf)
 		return;
 
-	for(i = 0; i < dm->numFaceData; i++, tf++) {
+	for(i = 0; i < dm->numTessFaceData; i++, tf++) {
 		MFace mf;
-		dm->getFace(dm,i,&mf);
+		dm->getTessFace(dm,i,&mf);
 
 		copy_v2_v2(&varray[j],tf->uv[0]);
 		copy_v2_v2(&varray[j+2],tf->uv[1]);
@@ -816,13 +816,13 @@ static MCol *gpu_buffer_color_type(DerivedMesh *dm)
 	int type;
 
 	type = CD_ID_MCOL;
-	c = DM_get_face_data_layer(dm, type);
+	c = DM_get_tessface_data_layer(dm, type);
 	if(!c) {
 		type = CD_WEIGHT_MCOL;
-		c = DM_get_face_data_layer(dm, type);
+		c = DM_get_tessface_data_layer(dm, type);
 		if(!c) {
 			type = CD_MCOL;
-			c = DM_get_face_data_layer(dm, type);
+			c = DM_get_tessface_data_layer(dm, type);
 		}
 	}
 
@@ -916,7 +916,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 			return NULL;
 	}
 	else if(type == GPU_BUFFER_UV) {
-		if(!DM_get_face_data_layer(dm, CD_MTFACE))
+		if(!DM_get_tessface_data_layer(dm, CD_MTFACE))
 			return NULL;
 	}
 

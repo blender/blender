@@ -34,6 +34,7 @@
 
 struct EditFace;
 struct EditMesh;
+struct MTexPoly;
 struct Image;
 struct MTFace;
 struct Object;
@@ -41,10 +42,18 @@ struct Scene;
 struct SpaceImage;
 struct UvElementMap;
 struct wmOperatorType;
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
+struct BMEdge;
+struct BMVert;
 
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
+
+/* visibility and selection */
+int uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
 
 /* geometric utilities */
 
@@ -52,48 +61,46 @@ void uv_center(float uv[][2], float cent[2], int quad);
 float uv_area(float uv[][2], int quad);
 void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy);
 
+float poly_uv_area(float uv[][2], int len);
+void poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
+void poly_uv_center(struct BMEditMesh *em, struct BMFace *f, float cent[2]);
+
 /* find nearest */
 
 typedef struct NearestHit {
-	struct EditFace *efa;
-	struct MTFace *tf;
-
-	int vert, uv;
-	int edge, vert2;
+	struct BMFace *efa;
+	struct MTexPoly *tf;
+	struct BMLoop *l, *nextl;
+	struct MLoopUV *luv, *nextluv;
+	int lindex; //index of loop within face
+	int vert1, vert2; //index in mesh of edge vertices
 } NearestHit;
 
-void uv_find_nearest_vert(struct Scene *scene, struct Image *ima, struct EditMesh *em, float co[2], float penalty[2], struct NearestHit *hit);
-void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct EditMesh *em, float co[2], struct NearestHit *hit);
+void uv_find_nearest_vert(struct Scene *scene, struct Image *ima, struct BMEditMesh *em, float co[2], float penalty[2], struct NearestHit *hit);
+void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditMesh *em, float co[2], struct NearestHit *hit);
 
 /* utility tool functions */
 
-struct UvElement *ED_get_uv_element(struct UvElementMap *map, struct EditFace *efa, int index);
+struct UvElement *ED_get_uv_element(struct UvElementMap *map, struct BMFace *efa, int index);
 void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit);
 
 /* smart stitch */
 
 /* object that stores display data for previewing before accepting stitching */
 typedef struct StitchPreviewer {
-	/* OpenGL requires different calls for Triangles and Quads.
-	 * here we'll store the quads of the mesh */
-	float *preview_quads;
-	/* ...and here we'll store the triangles*/
+	/* here we'll store the preview triangles of the mesh */
 	float *preview_tris;
 	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
 	float *preview_stitchable;
 	float *preview_unstitchable;
 	/* here we'll store the number of triangles and quads to be drawn */
 	unsigned int num_tris;
-	unsigned int num_quads;
 	unsigned int num_stitchable;
 	unsigned int num_unstitchable;
 
-	/* store static island Quads */
-	float *static_quads;
 	/* ...and here we'll store the triangles*/
 	float *static_tris;
 	unsigned int num_static_tris;
-	unsigned int num_static_quads;
 } StitchPreviewer;
 
 StitchPreviewer *uv_get_stitch_previewer(void);

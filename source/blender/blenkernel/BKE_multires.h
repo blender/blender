@@ -71,6 +71,14 @@ int multiresModifier_reshapeFromDeformMod(struct Scene *scene, struct MultiresMo
 
 void multires_stitch_grids(struct Object *);
 
+/*switch mdisp data in dm between tangent and object space*/
+enum {
+	MULTIRES_SPACE_TANGENT,
+	MULTIRES_SPACE_OBJECT,
+	MULTIRES_SPACE_ABSOLUTE,
+};
+void multires_set_space(struct DerivedMesh *dm, struct Object *ob, int from, int to);
+
 /* Related to the old multires */
 void multires_free(struct Multires *mr);
 void multires_load_old(struct Object *ob, struct Mesh *me);

@@ -46,7 +46,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     # the mt.type enum is (ab)used for a lookup on function names
     # ...to avoid lengthy if statements
     # so each type must have a function here.
-
+	
+    def NGONINTERP(self, layout, ob, md):
+        split = layout.split()
+        split.prop(md, "resolution")
+        
     def ARMATURE(self, layout, ob, md):
         split = layout.split()
 
@@ -121,6 +125,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         split.prop(md, "width")
         split.prop(md, "use_only_vertices")
+
+        # -- new modifier only, this may be reverted in favor of 2.62 mod.
+        split = layout.split()
+        split.prop(md, "use_even_offset")
+        split.prop(md, "use_distance_offset")
+        # -- end 
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)

@@ -25,6 +25,7 @@ set(INC
 	../../blenlib
 	../../blenloader
 	../../imbuf
+	../../bmesh
 	../../makesdna
 	../../makesrna
 	../../windowmanager

@@ -459,12 +459,13 @@ static int round_up(int x, int mod)
 static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 	struct anim * anim,
 	AVStream * st, int proxy_size, int width, int height,
-	int UNUSED(quality))
+	int quality)
 {
 	struct proxy_output_ctx * rv = MEM_callocN(
 		sizeof(struct proxy_output_ctx), "alloc_proxy_output");
 	
 	char fname[FILE_MAX];
+	int ffmpeg_quality;
 
 	// JPEG requires this
 	width = round_up(width, 8);
@@ -513,6 +514,12 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 	rv->c->time_base.den = 25;
 	rv->c->time_base.num = 1;
 	rv->st->time_base = rv->c->time_base;
+
+	/* there's no  way to set JPEG quality in the same way as in AVI JPEG and image sequence,
+	 * but this seems to be giving expected quality result */
+	ffmpeg_quality = (int)(1.0f + 30.0f * (1.0f - (float)quality / 100.0f) + 0.5f);
+	av_set_int(rv->c, "qmin", ffmpeg_quality);
+	av_set_int(rv->c, "qmax", ffmpeg_quality);
 
 	if (rv->of->flags & AVFMT_GLOBALHEADER) {
 		rv->c->flags |= CODEC_FLAG_GLOBAL_HEADER;

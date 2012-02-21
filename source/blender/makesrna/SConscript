@@ -13,6 +13,9 @@ incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 incs += ' ../freestyle'
 
+incs += ' ../bmesh'
+
+
 defs = []
 
 if env['WITH_BF_OPENEXR']:

@@ -40,7 +40,15 @@
 #include "ED_mesh.h"
 
 #ifdef RNA_RUNTIME
-
+const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
+{
+	const char *ret = mesh_cmp(mesh, mesh2, FLT_EPSILON*60);
+	
+	if (!ret)
+		ret = "Same";
+	
+	return ret;
+}
 
 #else
 
@@ -60,6 +68,13 @@ void RNA_api_mesh(StructRNA *srna)
 	func= RNA_def_function(srna, "update", "ED_mesh_update");
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "unit_test_compare", "rna_Mesh_unit_test_compare");
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to compare to");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	/* return value */
+	parm= RNA_def_string(func, "result", "nothing", 64, "Return value", "String description of result of comparison");
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "validate", "BKE_mesh_validate");
 	RNA_def_function_ui_description(func, "validate geometry, return True when the mesh has had "

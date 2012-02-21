@@ -33,6 +33,8 @@ ParamHandle *param_construct_begin(void);
 
 void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
 
+int p_face_exists(ParamHandle *handle, ParamKey *vkeys, int i1, int i2, int i3);
+
 void param_face_add(ParamHandle *handle,
 					ParamKey key,
 					int nverts,	

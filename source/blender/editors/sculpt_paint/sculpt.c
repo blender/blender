@@ -107,7 +107,7 @@ struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 	Mesh *me= (Mesh*)ob->data;
 	ModifierData *md;
 
-	if(!CustomData_get_layer(&me->fdata, CD_MDISPS)) {
+	if(!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
 		/* multires can't work without displacement layer */
 		return NULL;
 	}
@@ -904,10 +904,11 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
    polygon.) */
 static void neighbor_average(SculptSession *ss, float avg[3], const unsigned vert)
 {
-	int i, skip= -1, total=0;
-	IndexNode *node= ss->fmap[vert].first;
-	char ncount= BLI_countlist(&ss->fmap[vert]);
-	MFace *f;
+	int i, j, ok, total=0;
+	IndexNode *node= ss->pmap[vert].first;
+	char ncount= BLI_countlist(&ss->pmap[vert]);
+	MPoly *f;
+	MLoop *ml;
 
 	avg[0] = avg[1] = avg[2] = 0;
 		
@@ -920,21 +921,34 @@ static void neighbor_average(SculptSession *ss, float avg[3], const unsigned ver
 	}
 
 	while(node){
-		f= &ss->mface[node->index];
-		
-		if(f->v4) {
-			skip= (f->v1==vert?2:
-				   f->v2==vert?3:
-				   f->v3==vert?0:
-				   f->v4==vert?1:-1);
+		f= &ss->mpoly[node->index];
+
+		/* find the loop in the poly whic references this vertex */
+		ok = FALSE;
+		ml = ss->mloop + f->loopstart;
+		for (j = 0; j < f->totloop; j++, ml++) {
+			if (ml->v == vert) {
+				ok = TRUE;
+				break;
+			}
 		}
 
-		for(i=0; i<(f->v4?4:3); ++i) {
-			if(i != skip && (ncount!=2 || BLI_countlist(&ss->fmap[(&f->v1)[i]]) <= 2)) {
-				if(ss->deform_cos) add_v3_v3(avg, ss->deform_cos[(&f->v1)[i]]);
-				else add_v3_v3(avg, ss->mvert[(&f->v1)[i]].co);
-				++total;
+		if (ok) {
+			/* vertex was found */
+			unsigned int f_adj_v[3] = {
+			    ME_POLY_LOOP_PREV(ss->mloop, f, j)->v,
+			    ml->v,
+			    ME_POLY_LOOP_NEXT(ss->mloop, f, j)->v};
+
+
+			for (i=0; i<3; ++i) {
+				if (ncount!=2 || BLI_countlist(&ss->pmap[f_adj_v[i]]) <= 2) {
+					if(ss->deform_cos) add_v3_v3(avg, ss->deform_cos[f_adj_v[i]]);
+					else add_v3_v3(avg, ss->mvert[f_adj_v[i]].co);
+					++total;
+				}
 			}
+
 		}
 
 		node= node->next;
@@ -1108,7 +1122,7 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float 
 			if(ss->multires) {
 				do_multires_smooth_brush(sd, ss, nodes[n], iteration != count ? 1.0f : last);
 			}
-			else if(ss->fmap)
+			else if(ss->pmap)
 				do_mesh_smooth_brush(sd, ss, nodes[n], iteration != count ? 1.0f : last);
 		}
 
@@ -2301,7 +2315,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		for (a= 0; a < me->totvert; a++, mvert++)
 			copy_v3_v3(mvert->co, vertCos[a]);
 
-		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+		mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 	}
 
 	/* apply new coords on active key block */
@@ -2534,7 +2548,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		/* Modifiers could depend on mesh normals, so we should update them/
 		   Note, then if sculpting happens on locked key, normals should be re-calculated
 		   after applying coords from keyblock on base mesh */
-		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 	} else if (ss->kb)
 		sculpt_update_keyblock(ob);
 }
@@ -2678,7 +2692,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 	}
 }
 
-void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_fmap)
+void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_pmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
@@ -2692,23 +2706,28 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 	if(mmd) {
 		ss->multires = mmd;
 		ss->totvert = dm->getNumVerts(dm);
-		ss->totface = dm->getNumFaces(dm);
+		ss->totpoly = dm->getNumPolys(dm);
 		ss->mvert= NULL;
-		ss->mface= NULL;
+		ss->mpoly= NULL;
+		ss->mloop= NULL;
 		ss->face_normals= NULL;
 	}
 	else {
 		Mesh *me = get_mesh(ob);
 		ss->totvert = me->totvert;
-		ss->totface = me->totface;
+		ss->totpoly = me->totpoly;
 		ss->mvert = me->mvert;
-		ss->mface = me->mface;
+		ss->mpoly = me->mpoly;
+		ss->mloop = me->mloop;
 		ss->face_normals = NULL;
 		ss->multires = NULL;
 	}
 
+	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
+	BKE_mesh_tessface_ensure(ob->data);
+
 	ss->pbvh = dm->getPBVH(ob, dm);
-	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(ob, dm): NULL;
+	ss->pmap = (need_pmap && dm->getPolyMap)? dm->getPolyMap(ob, dm): NULL;
 
 	if(ss->modifiers_active) {
 		if(!ss->orig_cos) {
@@ -2920,8 +2939,8 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	if(brush->flag & BRUSH_ANCHORED) {
 		if(ss->face_normals) {
 			float *fn = ss->face_normals;
-			cache->face_norms= MEM_mallocN(sizeof(float) * 3 * ss->totface, "Sculpt face norms");
-			for(i = 0; i < ss->totface; ++i, fn += 3)
+			cache->face_norms= MEM_mallocN(sizeof(float) * 3 * ss->totpoly, "Sculpt face norms");
+			for(i = 0; i < ss->totpoly; ++i, fn += 3)
 				copy_v3_v3(cache->face_norms[i], fn);
 		}
 
@@ -3331,7 +3350,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 		if(ss->face_normals) {
 			float *fn = ss->face_normals;
-			for(i = 0; i < ss->totface; ++i, fn += 3)
+			for(i = 0; i < ss->totpoly; ++i, fn += 3)
 				copy_v3_v3(fn, cache->face_norms[i]);
 		}
 

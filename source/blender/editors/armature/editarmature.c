@@ -2126,7 +2126,7 @@ typedef struct UndoArmature {
 	ListBase lb;
 } UndoArmature;
 
-static void undoBones_to_editBones(void *uarmv, void *armv)
+static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
 {
 	UndoArmature *uarm= uarmv;
 	bArmature *arm= armv;
@@ -2159,7 +2159,7 @@ static void undoBones_to_editBones(void *uarmv, void *armv)
 	}
 }
 
-static void *editBones_to_undoBones(void *armv)
+static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
 {
 	bArmature *arm= armv;
 	UndoArmature *uarm;

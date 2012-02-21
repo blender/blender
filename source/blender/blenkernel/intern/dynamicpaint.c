@@ -1227,6 +1227,7 @@ static int surface_usesAdjData(DynamicPaintSurface *surface)
 static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int force_init)
 {
 	PaintSurfaceData *sData = surface->data;
+	DerivedMesh *dm = surface->canvas->dm;
 	PaintAdjData *ad;
 	int *temp_data;
 	int neigh_points = 0;
@@ -1235,7 +1236,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		/* For vertex format, neighbours are connected by edges */
-		neigh_points = 2*surface->canvas->dm->getNumEdges(surface->canvas->dm);
+		neigh_points = 2*dm->getNumEdges(dm);
 	}
 	else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
 		neigh_points = sData->total_points*8;
@@ -1265,10 +1266,11 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 		int n_pos;
 
 		/* For vertex format, count every vertex that is connected by an edge */
-		int numOfEdges = surface->canvas->dm->getNumEdges(surface->canvas->dm);
-		int numOfFaces = surface->canvas->dm->getNumFaces(surface->canvas->dm);
-		struct MEdge *edge =  surface->canvas->dm->getEdgeArray(surface->canvas->dm);
-		struct MFace *face =  surface->canvas->dm->getFaceArray(surface->canvas->dm);
+		int numOfEdges = dm->getNumEdges(dm);
+		int numOfPolys = dm->getNumPolys(dm);
+		struct MEdge *edge =  dm->getEdgeArray(dm);
+		struct MPoly *mpoly = dm->getPolyArray(dm);
+		struct MLoop *mloop = dm->getLoopArray(dm);
 
 		/* count number of edges per vertex */
 		for (i=0; i<numOfEdges; i++) {
@@ -1281,12 +1283,11 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 
 		/* also add number of vertices to temp_data
 		*  to locate points on "mesh edge" */
-		for (i=0; i<numOfFaces; i++) {
-			temp_data[face[i].v1]++;
-			temp_data[face[i].v2]++;
-			temp_data[face[i].v3]++;
-			if (face[i].v4)
-				temp_data[face[i].v4]++;
+		for (i=0; i<numOfPolys; i++) {
+			int j=0;
+			for (; j<mpoly[i].totloop; j++) {
+				temp_data[mloop[mpoly[i].loopstart + j].v]++;
+			}
 		}
 
 		/* now check if total number of edges+faces for
@@ -1355,8 +1356,8 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 	else if (surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
 		Tex *tex = surface->init_texture;
 		MTFace *tface;
-		MFace *mface = dm->getFaceArray(dm);
-		int numOfFaces = dm->getNumFaces(dm);
+		MFace *mface = dm->getTessFaceArray(dm);
+		int numOfFaces = dm->getNumTessFaces(dm);
 		char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 
 		if (!tex) return;
@@ -1425,31 +1426,27 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 	}
 	/* vertex color layer */
 	else if (surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
-		MCol *col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->init_layername);
-		if (!col) return;
 
 		/* for vertex surface, just copy colors from mcol */
 		if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-			MFace *mface = dm->getFaceArray(dm);
-			int numOfFaces = dm->getNumFaces(dm);
+			MLoop *mloop = dm->getLoopArray(dm);
+			int numOfLoops = dm->getNumLoops(dm);
+			MCol *col = CustomData_get_layer_named(&dm->loopData, CD_MLOOPCOL, surface->init_layername);
+			if (!col) return;
 
 			#pragma omp parallel for schedule(static)
-			for (i=0; i<numOfFaces; i++) {
-				int numOfVert = (mface[i].v4) ? 4 : 3;
-				int j;
-				for (j=0; j<numOfVert; j++) {
-					unsigned int *vert = ((&mface[i].v1)+j);
-
-					pPoint[*vert].color[0] = 1.0f/255.f*(float)col[i*4+j].b;
-					pPoint[*vert].color[1] = 1.0f/255.f*(float)col[i*4+j].g;
-					pPoint[*vert].color[2] = 1.0f/255.f*(float)col[i*4+j].r;
-					pPoint[*vert].alpha = 1.0f/255.f*(float)col[i*4+j].a;
-				}
+			for (i=0; i<numOfLoops; i++) {
+				pPoint[mloop[i].v].color[0] = 1.0f/255.f*(float)col[i].b;
+				pPoint[mloop[i].v].color[1] = 1.0f/255.f*(float)col[i].g;
+				pPoint[mloop[i].v].color[2] = 1.0f/255.f*(float)col[i].r;
+				pPoint[mloop[i].v].alpha = 1.0f/255.f*(float)col[i].a;
 			}
 		}
 		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
 			ImgSeqFormatData *f_data = (ImgSeqFormatData*)sData->format_data;
 			int samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
+			MCol *col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->init_layername);
+			if (!col) return;
 
 			#pragma omp parallel for schedule(static)
 			for (i=0; i<sData->total_points; i++) {
@@ -1595,11 +1592,11 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 					/* vertex color paint */
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 
-						MFace *mface = result->getFaceArray(result);
-						int numOfFaces = result->getNumFaces(result);
 						int i;
 						PaintPoint* pPoint = (PaintPoint*)sData->type_data;
-						MCol *col;
+						MLoopCol *col = NULL;
+						MLoop *mloop = CDDM_get_loops(result);
+						int totloop = result->numLoopData;
 
 						/* paint is stored on dry and wet layers, so mix final color first */
 						float *fcolor = MEM_callocN(sizeof(float)*sData->total_points*4, "Temp paint color");
@@ -1612,26 +1609,37 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 						/* viewport preview */
 						if (surface->flags & MOD_DPAINT_PREVIEW) {
-							/* Save preview results to weight layer, to be
+							MPoly *mp = CDDM_get_polys(result);
+							int totpoly = result->numPolyData;
+
+							/* XXX We have to create a CD_WEIGHT_MCOL, else it might sigsev
+							 *     (after a SubSurf mod, eg)... */
+							if(!result->getTessFaceDataArray(result, CD_WEIGHT_MCOL)) {
+								int numFaces = result->getNumTessFaces(result);
+								CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+							}
+
+							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
-							col = result->getFaceDataArray(result, CD_WEIGHT_MCOL);
-							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
+							col = CustomData_get_layer(&result->loopData, CD_WEIGHT_MLOOPCOL);
+							if (!col) col = CustomData_add_layer(&result->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
 
 							if (col) {
 								#pragma omp parallel for schedule(static)
-								for (i=0; i<numOfFaces; i++) {
-									int j = (mface[i].v4) ? 4 : 3;
-									Material *material = give_current_material(ob, mface[i].mat_nr+1);
+								for (i=0; i<totpoly; i++) {
+									int j=0;
+									Material *material = give_current_material(ob, mp[i].mat_nr+1);
 
-									while (j--) {
-										int index = *((&mface[i].v1)+j);
+									for (; j<mp[i].totloop; j++) {
+										int l_index = mp[i].loopstart + j;
+										int v_index = mloop[l_index].v;
 
 										if (surface->preview_id == MOD_DPAINT_SURFACE_PREV_PAINT) {
 											float c[3];
-											index *= 4;
+											v_index *= 4;
 
 											/* Apply material color as base vertex color for preview */
-											col[i*4+j].a = 255;
+											col[l_index].a = 255;
 											if (material) {
 												c[0] = material->r;
 												c[1] = material->g;
@@ -1643,17 +1651,17 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 												c[2] = 0.65f;
 											}
 											/* mix surface color */
-											interp_v3_v3v3(c, c, &fcolor[index], fcolor[index+3]);
+											interp_v3_v3v3(c, c, &fcolor[v_index], fcolor[v_index+3]);
 
-											col[i*4+j].r = FTOCHAR(c[2]);
-											col[i*4+j].g = FTOCHAR(c[1]);
-											col[i*4+j].b = FTOCHAR(c[0]);
+											col[l_index].r = FTOCHAR(c[2]);
+											col[l_index].g = FTOCHAR(c[1]);
+											col[l_index].b = FTOCHAR(c[0]);
 										}
 										else {
-											col[i*4+j].a = 255;
-											col[i*4+j].r =
-											col[i*4+j].g =
-											col[i*4+j].b = FTOCHAR(pPoint[index].wetness);
+											col[l_index].a = 255;
+											col[l_index].r =
+											col[l_index].g =
+											col[l_index].b = FTOCHAR(pPoint[v_index].wetness);
 										}
 									}
 								}
@@ -1664,46 +1672,38 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						/* save layer data to output layer */
 
 						/* paint layer */
-						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name);
+						col = CustomData_get_layer_named(&result->loopData, CD_MLOOPCOL, surface->output_name);
 						/* if output layer is lost from a constructive modifier, re-add it */
 						if (!col && dynamicPaint_outputLayerExists(surface, ob, 0))
-							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name);
+							col = CustomData_add_layer_named(&result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name);
 						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
-							for (i=0; i<numOfFaces; i++) {
-								int j = (mface[i].v4) ? 4 : 3;
-								while (j--) {
-									int index = *((&mface[i].v1)+j);
-									index *= 4;
-
-									col[i*4+j].a = FTOCHAR(fcolor[index+3]);
-									col[i*4+j].r = FTOCHAR(fcolor[index+2]);
-									col[i*4+j].g = FTOCHAR(fcolor[index+1]);
-									col[i*4+j].b = FTOCHAR(fcolor[index]);
-								}
+							for (i=0; i<totloop; i++) {
+								int index = mloop[i].v*4;
+								col[i].a = FTOCHAR(fcolor[index+3]);
+								col[i].r = FTOCHAR(fcolor[index+2]);
+								col[i].g = FTOCHAR(fcolor[index+1]);
+								col[i].b = FTOCHAR(fcolor[index]);
 							}
 						}
 						
 						MEM_freeN(fcolor);
 
 						/* wet layer */
-						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name2);
+						col = CustomData_get_layer_named(&result->loopData, CD_MLOOPCOL, surface->output_name2);
 						/* if output layer is lost from a constructive modifier, re-add it */
 						if (!col && dynamicPaint_outputLayerExists(surface, ob, 1))
-							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name2);
+							col = CustomData_add_layer_named(&result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name2);
 						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
-							for (i=0; i<numOfFaces; i++) {
-								int j = (mface[i].v4) ? 4 : 3;
-								while (j--) {
-									int index = *((&mface[i].v1)+j);
-									col[i*4+j].a = 255;
-									col[i*4+j].r =
-									col[i*4+j].g =
-									col[i*4+j].b = FTOCHAR(pPoint[index].wetness);
-								}
+							for (i=0; i<totloop; i++) {
+								int index = mloop[i].v;
+								col[i].a = 255;
+								col[i].r =
+								col[i].g =
+								col[i].b = FTOCHAR(pPoint[index].wetness);
 							}
 						}
 					}
@@ -1712,9 +1712,10 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						int defgrp_index = defgroup_name_index(ob, surface->output_name);
 						MDeformVert *dvert = result->getVertDataArray(result, CD_MDEFORMVERT);
 						float *weight = (float*)sData->type_data;
+
 						/* viewport preview */
 						if (surface->flags & MOD_DPAINT_PREVIEW) {
-							/* Save preview results to weight layer, to be
+							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
 							DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);
 						}
@@ -1873,6 +1874,10 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 /* Modifier call. Processes dynamic paint modifier step. */
 struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
+	/* For now generate tessfaces in every case
+	*  XXX - move/remove when most of dpaint functions are converted to use bmesh types */
+	DM_ensure_tessface(dm);
+
 	/* Update canvas data for a new frame */
 	dynamicPaint_frameUpdate(pmd, scene, ob, dm);
 
@@ -1945,8 +1950,8 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 	*	TODO: Implement something more accurate / optimized?
 	*/
 	{
-		int numOfFaces = dm->getNumFaces(dm);
-		MFace *mface = dm->getFaceArray(dm);
+		int numOfFaces = dm->getNumTessFaces(dm);
+		MFace *mface = dm->getTessFaceArray(dm);
 		MTFace *tface =  CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 
 		/* Get closest edge to that subpixel on UV map	*/
@@ -2112,8 +2117,8 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	if (!dm) return setError(canvas, "Canvas mesh not updated.");
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) return setError(canvas, "Can't bake non-\"image sequence\" formats.");
 
-	numOfFaces = dm->getNumFaces(dm);
-	mface = dm->getFaceArray(dm);
+	numOfFaces = dm->getNumTessFaces(dm);
+	mface = dm->getTessFaceArray(dm);
 
 	/* get uv map */
 	CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, surface->uvlayer_name, uvname);
@@ -2708,7 +2713,7 @@ static void dynamicPaint_freeBrushMaterials(BrushMaterials *bMats)
 void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb, const float volume_co[3], const float surface_co[3], int faceIndex, short isQuad, DerivedMesh *orcoDm)
 {
 	Material *mat = bMats->mat;
-	MFace *mface = orcoDm->getFaceArray(orcoDm);
+	MFace *mface = orcoDm->getTessFaceArray(orcoDm);
 
 	/* If no material defined, use the one assigned to the mesh face */
 	if (mat == NULL) {
@@ -3147,7 +3152,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 		dm = CDDM_copy(brush->dm);
 		mvert = dm->getVertArray(dm);
-		mface = dm->getFaceArray(dm);
+		mface = dm->getTessFaceArray(dm);
 		numOfVerts = dm->getNumVerts(dm);
 
 		/*	Transform collider vertices to global space

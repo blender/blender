@@ -58,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
+#include "BKE_tessmesh.h"
 #include "BKE_deform.h"
 #include "BKE_object.h"
 
@@ -153,32 +154,36 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
-		EditVert *eve, *evedef=NULL;
-		EditEdge *eed;
+		BMEditMesh *em = me->edit_btmesh;
+		BMesh *bm = em->bm;
+		BMVert *eve, *evedef=NULL;
+		BMEdge *eed;
+		BMIter iter;
 		
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->f & SELECT) {
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			if(BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				evedef= eve;
 				tot++;
 				add_v3_v3(median, eve->co);
 			}
-			eve= eve->next;
 		}
-		eed= em->edges.first;
-		while(eed) {
-			if((eed->f & SELECT)) {
+
+		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				float *f;
+
 				totedge++;
-				median[3]+= eed->crease;
-				median[6]+= eed->bweight;
+				f = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
+				median[3]+= f ? *f : 0.0f;
+
+				f = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
+				median[6]+= f ? *f : 0.0f;
 			}
-			eed= eed->next;
 		}
 
 		/* check for defgroups */
 		if(evedef)
-			dvert= CustomData_em_get(&em->vdata, evedef->data, CD_MDEFORMVERT);
+			dvert= CustomData_bmesh_get(&bm->vdata, evedef->head.data, CD_MDEFORMVERT);
 		if(tot==1 && dvert && dvert->totweight) {
 			bDeformGroup *dg;
 			int i, max=1, init=1;
@@ -202,8 +207,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				tfp->defweightp= &dvert->dw[0].weight;
 			}
 		}
-
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 		Curve *cu= ob->data;
@@ -409,31 +412,35 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
+			BMEditMesh *em = me->edit_btmesh;
+			BMesh *bm = em->bm;
+			BMVert *eve;
+			BMIter iter;
 
-			/* allow for some rounding error becasue of matrix transform */
 			if(len_v3(median) > 0.000001f) {
-				EditVert *eve;
 
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					if(eve->f & SELECT) {
+				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					if(BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 						add_v3_v3(eve->co, median);
 					}
 				}
-
-				recalc_editnormals(em);
+				
+				EDBM_RecalcNormals(em);
 			}
-
+			
 			if(median[3] != 0.0f) {
-				EditEdge *eed;
+				BMEdge *eed;
 				const float fixed_crease= (ve_median[3] <= 0.0f ? 0.0f : (ve_median[3] >= 1.0f ? 1.0f : FLT_MAX));
-
+				
 				if(fixed_crease != FLT_MAX) {
 					/* simple case */
 
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->f & SELECT) {
-							eed->crease= fixed_crease;
+					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
+							if (!crease) break;
+							
+							*crease= fixed_crease;
 						}
 					}
 				}
@@ -450,10 +457,14 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						/* scale down */
 						const float sca= median_new / median_orig;
 						
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
-								eed->crease *= sca;
-								CLAMP(eed->crease, 0.0f, 1.0f);
+						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+								float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
+								
+								if (!crease) break;
+								
+								*crease *= sca;
+								CLAMP(*crease, 0.0f, 1.0f);
 							}
 						}
 					}
@@ -461,33 +472,39 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						/* scale up */
 						const float sca= (1.0f - median_new) / (1.0f - median_orig);
 
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
-								eed->crease = 1.0f - ((1.0f - eed->crease) * sca);
-								CLAMP(eed->crease, 0.0f, 1.0f);
+						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+								float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
+								if (!crease) break;
+
+								*crease = 1.0f - ((1.0f - *crease) * sca);
+								CLAMP(*crease, 0.0f, 1.0f);
 							}
 						}
 					}
 				}
 			}
 
-			if (median[6] != 0.0f) {
-				EditEdge *eed;
-				const float fixed_bweight= (ve_median[6] <= 0.0f ? 0.0f : (ve_median[6] >= 1.0f ? 1.0f : FLT_MAX));
+			if(median[6] != 0.0f) {
+				BMEdge *eed;
+				const float fixed_bweight = (ve_median[6] <= 0.0f ? 0.0f : (ve_median[6] >= 1.0f ? 1.0f : FLT_MAX));
 
 				if(fixed_bweight != FLT_MAX) {
 					/* simple case */
 
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->f & SELECT) {
-							eed->bweight= fixed_bweight;
+					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						if(BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
+							if(!bweight) break;
+							
+							*bweight = fixed_bweight;
 						}
 					}
 				}
 				else {
 					/* scale crease to target median */
-					float median_new= ve_median[6];
-					float median_orig= ve_median[6] - median[6]; /* previous median value */
+					float median_new = ve_median[6];
+					float median_orig = ve_median[6] - median[6]; /* previous median value */
 
 					/* incase of floating point error */
 					CLAMP(median_orig, 0.0f, 1.0f);
@@ -495,29 +512,35 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 					if(median_new < median_orig) {
 						/* scale down */
-						const float sca= median_new / median_orig;
-
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
-								eed->bweight *= sca;
-								CLAMP(eed->bweight, 0.0f, 1.0f);
+						const float sca = median_new / median_orig;
+						
+						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+								float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
+								if(!bweight) break;
+								
+								*bweight *= sca;
+								CLAMP(*bweight, 0.0f, 1.0f);
 							}
 						}
 					}
 					else {
 						/* scale up */
-						const float sca= (1.0f - median_new) / (1.0f - median_orig);
+						const float sca = (1.0f - median_new) / (1.0f - median_orig);
 
-						for(eed= em->edges.first; eed; eed= eed->next) {
-							if(eed->f & SELECT) {
-								eed->bweight = 1.0f - ((1.0f - eed->bweight) * sca);
-								CLAMP(eed->bweight, 0.0f, 1.0f);
+						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+							if(BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+								float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
+								if(!bweight) break;
+
+								*bweight = 1.0f - ((1.0f - *bweight) * sca);
+								CLAMP(*bweight, 0.0f, 1.0f);
 							}
 						}
 					}
 				}
 			}
-			BKE_mesh_end_editmesh(me, em);
+			EDBM_RecalcNormals(em);
 		}
 		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 			Curve *cu= ob->data;
@@ -594,37 +617,35 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 #define B_VGRP_PNL_EDIT_SINGLE 8 /* or greater */
 #define B_VGRP_PNL_COPY_SINGLE 16384 /* or greater */
 
-static void act_vert_def(Object *ob, EditVert **eve, MDeformVert **dvert)
+static void act_vert_def(Object *ob, BMVert **eve, MDeformVert **dvert)
 {
 	if(ob && ob->mode & OB_MODE_EDIT && ob->type==OB_MESH && ob->defbase.first) {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
-		EditSelection *ese = ((EditSelection*)em->selected.last);
+		BMEditMesh *em = me->edit_btmesh;
+		BMEditSelection *ese= (BMEditSelection*)em->bm->selected.last;
 
-		if(ese && ese->type == EDITVERT) {
-			*eve= (EditVert*)ese->data;
-			*dvert= CustomData_em_get(&em->vdata, (*eve)->data, CD_MDEFORMVERT);
+		if(ese && ese->htype == BM_VERT) {
+			*eve= (BMVert*)ese->data;
+			*dvert= CustomData_bmesh_get(&em->bm->vdata, (*eve)->head.data, CD_MDEFORMVERT);
 			return;
 		}
-
-		BKE_mesh_end_editmesh(me, em);
 	}
 
 	*eve= NULL;
 	*dvert= NULL;
 }
 
-static void editvert_mirror_update(Object *ob, EditVert *eve, int def_nr, int index)
+static void editvert_mirror_update(Object *ob, BMVert *eve, int def_nr, int index)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
-	EditVert *eve_mirr;
+	BMEditMesh *em = me->edit_btmesh;
+	BMVert *eve_mirr;
 
-	eve_mirr= editmesh_get_x_mirror_vert(ob, em, eve, eve->co, index);
+	eve_mirr= editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, index);
 
 	if(eve_mirr && eve_mirr != eve) {
-		MDeformVert *dvert_src= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
-		MDeformVert *dvert_dst= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
+		MDeformVert *dvert_src= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+		MDeformVert *dvert_dst= CustomData_bmesh_get(&em->bm->vdata, eve_mirr->head.data, CD_MDEFORMVERT);
 		if(dvert_dst) {
 			if(def_nr == -1) {
 				/* all vgroups, add groups where neded  */
@@ -646,7 +667,7 @@ static void editvert_mirror_update(Object *ob, EditVert *eve, int def_nr, int in
 
 static void vgroup_adjust_active(Object *ob, int def_nr)
 {
-	EditVert *eve_act;
+	BMVert *eve_act;
 	MDeformVert *dvert_act;
 
 	act_vert_def(ob, &eve_act, &dvert_act);
@@ -659,7 +680,7 @@ static void vgroup_adjust_active(Object *ob, int def_nr)
 
 static void vgroup_copy_active_to_sel(Object *ob)
 {
-	EditVert *eve_act;
+	BMVert *eve_act;
 	MDeformVert *dvert_act;
 
 	act_vert_def(ob, &eve_act, &dvert_act);
@@ -669,14 +690,15 @@ static void vgroup_copy_active_to_sel(Object *ob)
 	}
 	else {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
-		EditVert *eve;
+		BMEditMesh *em = me->edit_btmesh;
+		BMIter iter;
+		BMVert *eve;
 		MDeformVert *dvert;
 		int index= 0;
 
-		for(eve= em->verts.first; eve; eve= eve->next, index++) {
-			if(eve->f & SELECT && eve != eve_act) {
-				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if(BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve != eve_act) {
+				dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 				if(dvert) {
 					defvert_copy(dvert, dvert_act);
 
@@ -685,13 +707,15 @@ static void vgroup_copy_active_to_sel(Object *ob)
 
 				}
 			}
+
+			index++;
 		}
 	}
 }
 
 static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 {
-	EditVert *eve_act;
+	BMVert *eve_act;
 	MDeformVert *dv_act;
 
 	act_vert_def(ob, &eve_act, &dv_act);
@@ -701,8 +725,9 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 	}
 	else {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
-		EditVert *eve;
+		BMEditMesh *em = me->edit_btmesh;
+		BMIter iter;
+		BMVert *eve;
 		MDeformVert *dv;
 		MDeformWeight *dw;
 		float weight_act;
@@ -712,26 +737,25 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
 		if(dw == NULL)
 			return;
-
+		
 		weight_act= dw->weight;
 
-		for (eve= em->verts.first; eve; eve= eve->next, index++) {
-			if (eve->f & SELECT && eve != eve_act) {
-				dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
-				if(dv) {
-					dw= defvert_find_index(dv, def_nr);
-					if (dw) {
-						dw->weight= weight_act;
+		eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+		for (index=0; eve; eve=BM_iter_step(&iter), index++) {
+			if(BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve != eve_act) {
+				dv= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+				dw= defvert_find_index(dv, def_nr);
+				if (dw) {
+					dw->weight= weight_act;
 
-						if (me->editflag & ME_EDIT_MIRROR_X) {
-							editvert_mirror_update(ob, eve, -1, index);
-						}
+					if (me->editflag & ME_EDIT_MIRROR_X) {
+						editvert_mirror_update(ob, eve, -1, index);
 					}
 				}
 			}
 		}
 
-		if (me->editflag & ME_EDIT_MIRROR_X) {
+		if(me->editflag & ME_EDIT_MIRROR_X) {
 			editvert_mirror_update(ob, eve_act, -1, -1);
 		}
 	}
@@ -739,7 +763,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
 static void vgroup_normalize_active(Object *ob)
 {
-	EditVert *eve_act;
+	BMVert *eve_act;
 	MDeformVert *dvert_act;
 
 	act_vert_def(ob, &eve_act, &dvert_act);
@@ -787,7 +811,7 @@ static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
-	EditVert *eve_act;
+	BMVert *eve_act;
 	MDeformVert *dvert_act;
 
 	act_vert_def(ob, &eve_act, &dvert_act);
@@ -802,7 +826,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
 
-	EditVert *eve;
+	BMVert *eve;
 	MDeformVert *dv;
 
 	act_vert_def(ob, &eve, &dv);

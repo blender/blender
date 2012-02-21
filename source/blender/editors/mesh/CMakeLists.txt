@@ -20,9 +20,11 @@
 
 set(INC
 	../include
+	../uvedit
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../bmesh
 	../../imbuf
 	../../makesdna
 	../../makesrna
@@ -36,18 +38,20 @@ set(INC_SYS
 )
 
 set(SRC
+	bmesh_select.c
+	bmesh_selecthistory.c
+	bmesh_tools.c
+	bmesh_utils.c
 	editface.c
-	editmesh.c
 	editmesh_add.c
-	editmesh_lib.c
-	editmesh_loop.c
-	editmesh_mods.c
-	editmesh_tools.c
+	editmesh_bvh.c
+	knifetool.c
 	loopcut.c
 	mesh_data.c
 	mesh_ops.c
 	meshtools.c
 
+	editmesh_bvh.h
 	mesh_intern.h
 )
 

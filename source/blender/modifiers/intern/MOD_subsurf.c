@@ -110,7 +110,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
-						struct EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;

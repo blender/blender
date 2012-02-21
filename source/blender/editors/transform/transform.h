@@ -39,6 +39,8 @@
 #include "DNA_listBase.h"
 
 #include "BLI_editVert.h"
+#include "BLI_smallhash.h"
+#include "BKE_tessmesh.h"
 
 /* ************************** Types ***************************** */
 
@@ -64,6 +66,7 @@ struct wmEvent;
 struct wmTimer;
 struct ARegion;
 struct ReportList;
+struct SmallHash;
 
 typedef struct TransSnapPoint {
 	struct TransSnapPoint *next,*prev;
@@ -182,25 +185,34 @@ struct LinkNode;
 struct EditEdge;
 struct EditVert;
 struct GHash;
-typedef struct TransDataSlideUv {
-	float origuv[2];
-	float *uv_up, *uv_down;
-	//float *fuv[4];
-	struct LinkNode *fuv_list;
-} TransDataSlideUv;
 
 typedef struct TransDataSlideVert {
-	struct EditEdge *up, *down;
-	struct EditVert origvert;
+	struct BMVert vup, vdown;
+	struct BMVert origvert;
+
+	struct BMVert *up, *down;
+	struct BMVert *v;
+
+	float upvec[3], downvec[3];
 } TransDataSlideVert;
 
 typedef struct SlideData {
+	TransDataSlideVert *sv;
+	int totsv;
+	
+	struct SmallHash vhash;
+	struct SmallHash origfaces;
+	
+	/*
 	TransDataSlideUv *slideuv, *suv_last;
 	int totuv, uvlay_tot;
 	struct GHash *vhash, **uvhash;
 	struct EditVert *nearest;
 	struct LinkNode *edgelist, *vertlist;
+	*/
 	int start[2], end[2];
+	struct BMEditMesh *em;
+	float perc;
 } SlideData;
 
 typedef struct TransData {

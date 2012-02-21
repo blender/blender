@@ -32,6 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -46,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
@@ -53,6 +55,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_property.h"
+#include "BKE_tessmesh.h"
 #include "BKE_scene.h"
 
 #include "BIF_gl.h"
@@ -77,7 +80,7 @@ typedef struct drawMeshFaceSelect_userData {
 } drawMeshFaceSelect_userData;
 
 typedef struct drawEMTFMapped_userData {
-	EditMesh *em;
+	BMEditMesh *em;
 	short has_mcol;
 	short has_mtface;
 	MFace *mf;
@@ -112,25 +115,23 @@ static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flag
 static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 {
 	EdgeHash *eh = BLI_edgehash_new();
-	MFace *mf;
-	int i;
+	MPoly *mp;
+	MLoop *ml;
+	MLoop *ml_next;
+	int i, j;
 	
-	for(i=0; i<me->totface; i++) {
-		mf = &me->mface[i];
+	for(i=0; i<me->totpoly; i++) {
+		mp = &me->mpoly[i];
 
-		if(!(mf->flag & ME_HIDE)) {
+		if (!(mp->flag & ME_HIDE)) {
 			unsigned int flags = eEdge_Visible;
-			if(mf->flag & ME_FACE_SEL) flags |= eEdge_Select;
+			if (mp->flag & ME_FACE_SEL) flags |= eEdge_Select;
 
-			get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
-			get_marked_edge_info__orFlags(eh, mf->v2, mf->v3, flags);
-
-			if(mf->v4) {
-				get_marked_edge_info__orFlags(eh, mf->v3, mf->v4, flags);
-				get_marked_edge_info__orFlags(eh, mf->v4, mf->v1, flags);
+			ml = me->mloop + mp->loopstart;
+			for (j=0; j<mp->totloop; j++, ml++) {
+				ml_next = ME_POLY_LOOP_NEXT(me->mloop, mp, j);
+				get_marked_edge_info__orFlags(eh, ml->v, ml_next->v, flags);
 			}
-			else
-				get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
 		}
 	}
 
@@ -169,7 +170,7 @@ static int draw_mesh_face_select__drawFaceOptsInv(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
-	MFace *mface = &me->mface[index];
+	MPoly *mface = &me->mpoly[index];
 	if(!(mface->flag&ME_HIDE) && !(mface->flag&ME_FACE_SEL))
 		return 2; /* Don't set color */
 	else
@@ -443,16 +444,16 @@ static int draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 }
 static void add_tface_color_layer(DerivedMesh *dm)
 {
-	MTFace *tface = DM_get_face_data_layer(dm, CD_MTFACE);
-	MFace *mface = DM_get_face_data_layer(dm, CD_MFACE);
+	MTFace *tface = DM_get_poly_data_layer(dm, CD_MTFACE);
+	MFace *mface = dm->getTessFaceArray(dm);
 	MCol *finalCol;
 	int i,j;
-	MCol *mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
+	MCol *mcol = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
 	if(!mcol)
-		mcol = dm->getFaceDataArray(dm, CD_MCOL);
+		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
 
-	finalCol = MEM_mallocN(sizeof(MCol)*4*dm->getNumFaces(dm),"add_tface_color_layer");
-	for(i=0;i<dm->getNumFaces(dm);i++) {
+	finalCol = MEM_mallocN(sizeof(MCol)*4*dm->getNumTessFaces(dm),"add_tface_color_layer");
+	for(i=0;i<dm->getNumTessFaces(dm);i++) {
 		Material *ma= give_current_material(Gtexdraw.ob, mface[i].mat_nr+1);
 
 		if (ma && (ma->game.flag&GEMAT_INVISIBLE)) {
@@ -514,42 +515,62 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		}
 	}
-	CustomData_add_layer( &dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numFaceData );
+	CustomData_add_layer( &dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData );
 }
 
 static int draw_tface_mapped__set_draw(void *userData, int index)
 {
-	Mesh *me = (Mesh*)userData;
-	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
-	MFace *mface = &me->mface[index];
-	const int matnr = mface->mat_nr;
-	if (mface->flag & ME_HIDE) return 0;
-	return draw_tface__set_draw(tface, (me->mcol != NULL), matnr);
+	Mesh *me = (Mesh *)userData;
+
+	/* array checked for NULL before calling */
+	MPoly *mpoly = &me->mpoly[index];
+
+	BLI_assert(index >= 0 && index < me->totpoly);
+
+	if (mpoly->flag & ME_HIDE) {
+		return 0;
+	}
+	else {
+		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[index] : NULL;
+		MTFace mtf= {{{0}}};
+		int matnr = mpoly->mat_nr;
+
+		if (tpoly) {
+			ME_MTEXFACE_CPY(&mtf, tpoly);
+		}
+
+		return draw_tface__set_draw(&mtf, (me->mloopcol != NULL), matnr);
+	}
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
 	drawEMTFMapped_userData *data = userData;
-	EditMesh *em = data->em;
-	EditFace *efa= EM_get_face_for_index(index);
-	MTFace *tface;
-	int matnr;
+	BMEditMesh *em = data->em;
+	BMFace *efa= EDBM_get_face_for_index(em, index);
 
-	if (efa->h)
+	if (efa==NULL || BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return 0;
+	}
+	else {
+		MTFace mtf= {{{0}}};
+		int matnr = efa->mat_nr;
 
-	tface = data->has_mtface ? CustomData_em_get(&em->fdata, efa->data, CD_MTFACE) : NULL;
-	matnr = efa->mat_nr;
+		if (data->has_mtface) {
+			MTexPoly *tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			ME_MTEXFACE_CPY(&mtf, tpoly);
+		}
 
-	return draw_tface__set_draw_legacy(tface, data->has_mcol, matnr);
+		return draw_tface__set_draw_legacy(&mtf, data->has_mcol, matnr);
+	}
 }
 
 static int wpaint__setSolidDrawOptions_material(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (me->mat && me->mface) {
-		Material *ma= me->mat[me->mface[index].mat_nr];
+	if (me->mat && me->mpoly) {
+		Material *ma= me->mat[me->mpoly[index].mat_nr];
 		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
 			return 0;
 		}
@@ -563,8 +584,8 @@ static int wpaint__setSolidDrawOptions_material(void *userData, int index, int *
 static int wpaint__setSolidDrawOptions_facemask(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
-	MFace *mface = &me->mface[index];
-	if (mface->flag & ME_HIDE) return 0;
+	MPoly *mp = &me->mpoly[index];
+	if (mp->flag & ME_HIDE) return 0;
 	*drawSmooth_r = 1;
 	return 1;
 }
@@ -573,15 +594,24 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *ddm;
-	MFace *mf, *mface= me->mface;
-	MTFace *tface= me->mtface;
-	MCol *mcol= me->mcol;	/* why does mcol exist? */
+	MPoly *mp, *mface  = me->mpoly;
+	MTexPoly *mtpoly   = me->mtpoly;
+	MLoopUV *mloopuv   = me->mloopuv;
+	MLoopUV *luv;
+	MLoopCol *mloopcol = me->mloopcol;	/* why does mcol exist? */
+	MLoopCol *lcol;
+
 	bProperty *prop = get_ob_property(ob, "Text");
 	GPUVertexAttribs gattribs;
-	int a, totface= me->totface;
+	int a, totpoly = me->totpoly;
+
+	/* fake values to pass to GPU_render_text() */
+	MCol  tmp_mcol[4]  = {{0}};
+	MCol *tmp_mcol_pt  = mloopcol ? tmp_mcol : NULL;
+	MTFace tmp_tf      = {{{0}}};
 
 	/* don't draw without tfaces */
-	if(!tface)
+	if(!mtpoly || !mloopuv)
 		return;
 
 	/* don't draw when editing */
@@ -593,16 +623,22 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
-	for(a=0, mf=mface; a<totface; a++, tface++, mf++) {
-		short matnr= mf->mat_nr;
-		int mf_smooth= mf->flag & ME_SMOOTH;
+	for(a=0, mp=mface; a<totpoly ; a++, mtpoly++, mp++) {
+		short matnr= mp->mat_nr;
+		int mf_smooth= mp->flag & ME_SMOOTH;
 		Material *mat = me->mat[matnr];
 		int mode= mat->game.flag;
 
-		if (!(mode&GEMAT_INVISIBLE) && (mode&GEMAT_TEXT)) {
+		if (!(mode&GEMAT_INVISIBLE) && (mode&GEMAT_TEXT) && mp->totloop >= 3) {
+			/* get the polygon as a tri/quad */
+			int mp_vi[4];
 			float v1[3], v2[3], v3[3], v4[3];
 			char string[MAX_PROPSTRING];
 			int characters, i, glattrib= -1, badtex= 0;
+
+
+			/* TEXFACE */
+			ME_MTEXFACE_CPY(&tmp_tf, mtpoly);
 
 			if(glsl) {
 				GPU_enable_material(matnr+1, &gattribs);
@@ -615,17 +651,49 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				}
 			}
 			else {
-				badtex = set_draw_settings_cached(0, tface, mat, Gtexdraw);
+				badtex = set_draw_settings_cached(0, &tmp_tf, mat, Gtexdraw);
 				if (badtex) {
-					if (mcol) mcol+=4;
 					continue;
 				}
 			}
 
-			ddm->getVertCo(ddm, mf->v1, v1);
-			ddm->getVertCo(ddm, mf->v2, v2);
-			ddm->getVertCo(ddm, mf->v3, v3);
-			if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
+			mp_vi[0] = me->mloop[mp->loopstart + 0].v;
+		    mp_vi[1] = me->mloop[mp->loopstart + 1].v;
+		    mp_vi[2] = me->mloop[mp->loopstart + 2].v;
+		    mp_vi[3] = (mp->totloop >= 4) ? me->mloop[mp->loopstart + 3].v : 0;
+
+			/* UV */
+			luv = &mloopuv[mp->loopstart];
+			copy_v2_v2(tmp_tf.uv[0], luv->uv); luv++;
+			copy_v2_v2(tmp_tf.uv[1], luv->uv); luv++;
+			copy_v2_v2(tmp_tf.uv[2], luv->uv); luv++;
+			if (mp->totloop >= 4) {
+				copy_v2_v2(tmp_tf.uv[3], luv->uv);
+			}
+
+			/* COLOR */
+			if (mloopcol) {
+				unsigned int totloop_clamp = MIN2(4, mp->totloop);
+				unsigned int j;
+				lcol = &mloopcol[mp->loopstart];
+
+				for (j = 0; j <= totloop_clamp; j++, lcol++) {
+					tmp_mcol[j].a = lcol->a;
+					tmp_mcol[j].r = lcol->r;
+					tmp_mcol[j].g = lcol->g;
+					tmp_mcol[j].b = lcol->b;
+				}
+			}
+
+			/* LOCATION */
+			ddm->getVertCo(ddm, mp_vi[0], v1);
+			ddm->getVertCo(ddm, mp_vi[1], v2);
+			ddm->getVertCo(ddm, mp_vi[2], v3);;
+			if (mp->totloop >= 4) {
+				ddm->getVertCo(ddm, mp_vi[3], v4);
+			}
+
+
 
 			// The BM_FONT handling is in the gpu module, shared with the
 			// game engine, was duplicated previously
@@ -633,7 +701,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			set_property_valstr(prop, string);
 			characters = strlen(string);
 			
-			if(!BKE_image_get_ibuf(tface->tpage, NULL))
+			if(!BKE_image_get_ibuf(mtpoly->tpage, NULL))
 				characters = 0;
 
 			if (!mf_smooth) {
@@ -644,11 +712,8 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				glNormal3fv(nor);
 			}
 
-			GPU_render_text(tface, mode, string, characters,
-				(unsigned int*)mcol, v1, v2, v3, (mf->v4? v4: NULL), glattrib);
-		}
-		if (mcol) {
-			mcol+=4;
+			GPU_render_text(&tmp_tf, mode, string, characters,
+				(unsigned int*)tmp_mcol_pt, v1, v2, v3, (mp->totloop >= 4 ? v4: NULL), glattrib);
 		}
 	}
 
@@ -697,11 +762,11 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	if(ob->mode & OB_MODE_EDIT) {
 		drawEMTFMapped_userData data;
 
-		data.em= me->edit_mesh;
-		data.has_mcol= CustomData_has_layer(&me->edit_mesh->fdata, CD_MCOL);
-		data.has_mtface= CustomData_has_layer(&me->edit_mesh->fdata, CD_MTFACE);
-		data.mf= DM_get_face_data_layer(dm, CD_MFACE);
-		data.tf= DM_get_face_data_layer(dm, CD_MTFACE);
+		data.em= me->edit_btmesh;
+		data.has_mcol= CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_MLOOPCOL);
+		data.has_mtface= CustomData_has_layer(&me->edit_btmesh->bm->pdata, CD_MTEXPOLY);
+		data.mf= DM_get_tessface_data_layer(dm, CD_MFACE);
+		data.tf= DM_get_tessface_data_layer(dm, CD_MTFACE);
 
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, compareDrawOptionsEm, &data);
 	}
@@ -709,7 +774,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_facemask, GPU_enable_material, NULL, me, 1);
 		else
-			dm->drawMappedFacesTex(dm, me->mface ? draw_tface_mapped__set_draw : NULL, NULL, me);
+			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, NULL, me);
 	}
 	else {
 		if(GPU_buffer_legacy(dm)) {
@@ -724,8 +789,8 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
 				add_tface_color_layer(dm);
 
-			userData.mf = DM_get_face_data_layer(dm, CD_MFACE);
-			userData.tf = DM_get_face_data_layer(dm, CD_MTFACE);
+			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
+			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 
 			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData);
 		}
@@ -834,17 +899,19 @@ static int tex_mat_set_face_mesh_cb(void *userData, int index)
 	/* faceselect mode face hiding */
 	TexMatCallback *data= (TexMatCallback*)userData;
 	Mesh *me = (Mesh*)data->me;
-	MFace *mface = &me->mface[index];
+	MPoly *mp = &me->mpoly[index];
 
-	return !(mface->flag & ME_HIDE);
+	return !(mp->flag & ME_HIDE);
 }
 
-static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
+static int tex_mat_set_face_editmesh_cb(void *userData, int index)
 {
 	/* editmode face hiding */
-	EditFace *efa= EM_get_face_for_index(index);
+	TexMatCallback *data= (TexMatCallback*)userData;
+	Mesh *me = (Mesh*)data->me;
+	BMFace *efa= EDBM_get_face_for_index(me->edit_btmesh, index);
 
-	return !(efa->h);
+	return !BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
 }
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)

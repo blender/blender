@@ -51,6 +51,12 @@ extern "C" {
 /* scanfill.c: used in displist only... */
 struct EditVert *BLI_addfillvert(float *vec);
 struct EditEdge *BLI_addfilledge(struct EditVert *v1, struct EditVert *v2);
+
+/* Optionally set EditEdge f to this to mark original boundary edges.
+  Only needed if there are internal diagonal edges pased to BLI_edgefill. */
+#define FILLBOUNDARY 1
+
+int BLI_begin_edgefill(void);
 int BLI_edgefill(short mat_nr);
 void BLI_end_edgefill(void);
 

@@ -649,6 +649,10 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	else
 		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
+	/* BMESH_ONLY, deform dm may not have tessface */
+	DM_ensure_tessface(dm);
+
+
 	numverts = dm->getNumVerts (dm);
 
 	/* convert to global coordinates */
@@ -671,7 +675,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 			continue;
 		}
 
-		mface = CDDM_get_face(dm,nearest.index);
+		mface = CDDM_get_tessface(dm,nearest.index);
 
 		copy_v3_v3(v[0], CDDM_get_vert(dm,mface->v1)->co);
 		copy_v3_v3(v[1], CDDM_get_vert(dm,mface->v2)->co);

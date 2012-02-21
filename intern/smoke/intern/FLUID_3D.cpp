@@ -1106,7 +1106,7 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 				float dz  = (out == index || in == index) ? 1.0f / _dx : gridSize;
 				int right = _obstacles[index + 1] ? index : index + 1;
 				int left  = _obstacles[index - 1] ? index : index - 1;
-				float dx  = (right == index || right == index) ? 1.0f / _dx : gridSize;
+				float dx  = (right == index || left == index) ? 1.0f / _dx : gridSize;
 
 				_xVorticity[vIndex] = (_zVelocity[up] - _zVelocity[down]) * dy + (-_yVelocity[out] + _yVelocity[in]) * dz;
 				_yVorticity[vIndex] = (_xVelocity[out] - _xVelocity[in]) * dz + (-_zVelocity[right] + _zVelocity[left]) * dx;
@@ -1152,7 +1152,7 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 					float dz  = (out == vIndex || in == vIndex) ? 1.0f / _dx : gridSize;
 					int right = _obstacles[index + 1] ? vIndex : vIndex + 1;
 					int left  = _obstacles[index - 1] ? vIndex : vIndex - 1;
-					float dx  = (right == vIndex || right == vIndex) ? 1.0f / _dx : gridSize;
+					float dx  = (right == vIndex || left == vIndex) ? 1.0f / _dx : gridSize;
 					N[0] = (_vorticity[right] - _vorticity[left]) * dx;
 					N[1] = (_vorticity[up] - _vorticity[down]) * dy;
 					N[2] = (_vorticity[out] - _vorticity[in]) * dz;

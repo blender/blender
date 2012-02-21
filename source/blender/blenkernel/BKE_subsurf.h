@@ -46,6 +46,10 @@ struct _CCGEdge;
 struct _CCGFace;
 struct _CCGSubsurf;
 struct _CCGVert;
+struct EdgeHash;
+struct PBVH;
+struct DMGridData;
+struct DMGridAdjacency;
 
 /**************************** External *****************************/
 
@@ -74,9 +78,14 @@ typedef struct CCGDerivedMesh {
 	short *edgeFlags;
 	char *faceFlags;
 
+	int *reverseFaceMap;
+
 	struct PBVH *pbvh;
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
+
+	struct ListBase *pmap;
+	struct IndexNode *pmap_mem;
 
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;
@@ -95,6 +104,8 @@ typedef struct CCGDerivedMesh {
 
 		void (*update)(DerivedMesh*);
 	} multires;
+
+	struct EdgeHash *ehash;
 } CCGDerivedMesh;
 
 #endif

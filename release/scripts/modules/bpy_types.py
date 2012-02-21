@@ -373,7 +373,8 @@ class Mesh(bpy_types.ID):
         """
         self.vertices.add(len(vertices))
         self.edges.add(len(edges))
-        self.faces.add(len(faces))
+        self.loops.add(sum((len(f) for f in faces)))
+        self.polygons.add(len(faces))
 
         vertices_flat = [f for v in vertices for f in v]
         self.vertices.foreach_set("co", vertices_flat)
@@ -383,19 +384,15 @@ class Mesh(bpy_types.ID):
         self.edges.foreach_set("vertices", edges_flat)
         del edges_flat
 
-        def treat_face(f):
-            if len(f) == 3:
-                if f[2] == 0:
-                    return f[2], f[0], f[1], 0
-                else:
-                    return f[0], f[1], f[2], 0
-            elif f[2] == 0 or f[3] == 0:
-                return f[2], f[3], f[0], f[1]
-            return f
-
-        faces_flat = [v for f in faces for v in treat_face(f)]
-        self.faces.foreach_set("vertices_raw", faces_flat)
-        del faces_flat
+        # this is different in bmesh
+        loop_index = 0
+        for i, p in enumerate(self.polygons):
+            f = faces[i]
+            loop_len = len(f)
+            p.loop_start = loop_index
+            p.loop_total = loop_len
+            p.vertices = f
+            loop_index += loop_len
 
     @property
     def edge_keys(self):
@@ -445,6 +442,20 @@ class MeshFace(StructRNA):
                     ord_ind(verts[3], verts[0]),
                     )
 
+class MeshPolygon(StructRNA):
+    __slots__ = ()
+
+    @property
+    def edge_keys(self):
+        verts = self.vertices[:]
+        vlen = len(self.vertices)
+        return [ord_ind(verts[i], verts[(i+1) % vlen]) for i in range(vlen)]
+
+    @property
+    def loops(self):
+        start = self.loop_start
+        end = start + self.loop_total
+        return range(start, end)
 
 class Text(bpy_types.ID):
     __slots__ = ()

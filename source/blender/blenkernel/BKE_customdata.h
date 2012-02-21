@@ -40,10 +40,14 @@ extern "C" {
 
 #include "../blenloader/BLO_sys_types.h" /* XXX, should have a more generic include for this */
 
+struct BMesh;
 struct ID;
 struct CustomData;
 struct CustomDataLayer;
 typedef uint64_t CustomDataMask;
+
+/*a data type large enough to hold 1 element from any customdata layer type*/
+typedef struct {unsigned char data[64];} CDBlockBytes;
 
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;
@@ -69,6 +73,25 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
+/* Checks if the layer at physical offset layern (in data->layers) support math
+ * the below operations.
+ */
+int CustomData_layer_has_math(struct CustomData *data, int layern);
+
+/*copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
+  another, while not overwriting anything else (e.g. flags).  probably only
+  implemented for mloopuv/mloopcol, for now.*/
+void CustomData_data_copy_value(int type, void *source, void *dest);
+
+/* compares if data1 is equal to data2.  type is a valid CustomData type
+ * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
+ * the data, if it exists, otherwise memcmp is used.*/
+int CustomData_data_equals(int type, void *data1, void *data2);
+void CustomData_data_initminmax(int type, void *min, void *max);
+void CustomData_data_dominmax(int type, void *data, void *min, void *max);
+void CustomData_data_multiply(int type, void *data, float fac);
+void CustomData_data_add(int type, void *data1, void *data2);
+
 /* initialises a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
  * if a layer should be copied or not. alloctype must be one of the above. */
@@ -82,6 +105,12 @@ void CustomData_update_typemap(struct CustomData *data);
  * add the layers that were not there yet */
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 					  CustomDataMask mask, int alloctype, int totelem);
+
+/*bmesh version of CustomData_merge; merges the layouts of source and dest,
+  then goes through the mesh and makes sure all the customdata blocks are
+  consistent with the new layout.*/
+void CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest, 
+                            int mask, int alloctype, struct BMesh *bm, int type);
 
 /* frees data associated with a CustomData object (doesn't free the object
  * itself, though)
@@ -308,8 +337,9 @@ int CustomData_verify_versions(struct CustomData *data, int index);
 
 /*BMesh specific customdata stuff*/
 void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata,
-                             struct CustomData *ldata);
+                             struct CustomData *ldata, int totloop, int totpoly);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
+void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
 void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
 
 /* External file storage */

@@ -6461,12 +6461,12 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	ListBase *editnurb;
 	Nurb *nu;
 	int newob= 0;
-	int enter_editmode;
+	int enter_editmode, is_aligned;
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_aligned))
 		return OPERATOR_CANCELLED;
 
 	if (!isSurf) { /* adding curve */
@@ -6861,10 +6861,9 @@ static void *undo_check_lastsel(void *lastsel, Nurb *nu, Nurb *newnu)
 	return NULL;
 }
 
-static void undoCurve_to_editCurve(void *ucu, void *obe)
+static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 {
-	Object *obedit= obe;
-	Curve *cu= (Curve*)obedit->data;
+	Curve *cu= cu_v;
 	UndoCurve *undoCurve= ucu;
 	ListBase *undobase= &undoCurve->nubase;
 	ListBase *editbase= curve_editnurbs(cu);
@@ -6907,14 +6906,15 @@ static void undoCurve_to_editCurve(void *ucu, void *obe)
 
 	cu->lastsel= lastsel;
 	cu->actnu= undoCurve->actnu;
-
+	/* BMESH_TODO */
+#if 0
 	ED_curve_updateAnimPaths(obedit);
+#endif
 }
 
-static void *editCurve_to_undoCurve(void *obe)
+static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
 {
-	Object *obedit= obe;
-	Curve *cu= (Curve*)obedit->data;
+	Curve *cu= cu_v;
 	ListBase *nubase= curve_editnurbs(cu);
 	UndoCurve *undoCurve;
 	EditNurb *editnurb= cu->editnurb, tmpEditnurb;

@@ -5,7 +5,7 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../makesrna ../../render/extern/include ../../blenloader'
+incs += ' ../../bmesh ../../makesrna ../../render/extern/include ../../blenloader'
 
 defs = []
 

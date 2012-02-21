@@ -82,7 +82,8 @@
 #  include "RNA_enum_types.h"
 #endif
 
-static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only);
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports,
+                                     short context, short poll_only);
 
 /* ************ event management ************** */
 
@@ -223,7 +224,9 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 
-			if(note->window==win || (note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C)))) {
+			if (note->window == win ||
+				(note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C))))
+			{
 				if(note->category==NC_SCENE) {
 					if(note->data==ND_FRAME)
 						do_anim= 1;
@@ -637,7 +640,8 @@ int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
 {
-	wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
+	/* XXX operatortype names are static still. for debug */
+	wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);
 	
 	/* XXX adding new operator could be function, only happens here now */
 	op->type= ot;
@@ -818,8 +822,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
 		}
-		else
-			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
+		else {
+			/* debug, important to leave a while, should never happen */
+			printf("invalid operator call '%s'\n", ot->idname);
+		}
 		
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
@@ -842,9 +848,12 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				int wrap;
 
 				if (op->opm) {
-					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
-				} else {
-					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) &&
+					       ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+				}
+				else {
+					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) &&
+					       ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
 				}
 
 				/* exception, cont. grab in header is annoying */
@@ -860,7 +869,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 					ARegion *ar= CTX_wm_region(C);
 					ScrArea *sa= CTX_wm_area(C);
 
-					if(ar && ar->regiontype == RGN_TYPE_WINDOW && event && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+					if (ar && ar->regiontype == RGN_TYPE_WINDOW && event &&
+					    BLI_in_rcti(&ar->winrct, event->x, event->y))
+					{
 						winrect= &ar->winrct;
 					}
 					else if(sa) {
@@ -895,7 +906,8 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
  * this is for python to access since its done the operator lookup
  * 
  * invokes operator in context */
-static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only)
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports,
+                                     short context, short poll_only)
 {
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
@@ -1297,7 +1309,8 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 }
 
 /* Warning: this function removes a modal handler, when finished */
-static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, PointerRNA *properties)
+static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler,
+                                    wmEvent *event, PointerRNA *properties)
 {
 	int retval= OPERATOR_PASS_THROUGH;
 	
@@ -1615,9 +1628,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				if(!keymap->poll || keymap->poll(C)) {
 					for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 						if(wm_eventmatch(event, kmi)) {
-							
-							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
-							
+
+							/* weak, but allows interactive callback to not use rawkey */
+							event->keymap_idname = kmi->idname;
+
 							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
 							if(action & WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
 								break;
@@ -1716,7 +1730,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			) {
 				event->val = KM_DBL_CLICK;
 				/* removed this because in cases where we're this is used as a single click
-				 * event, this will give old coords, since the distance is checked above, using new coords should be ok. */
+				 * event, this will give old coords,
+				 * since the distance is checked above, using new coords should be ok. */
 				//   event->x = win->eventstate->prevclickx;
 				//   event->y = win->eventstate->prevclicky;
 				action |= wm_handlers_do(C, event, handlers);
@@ -2233,7 +2248,8 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 	}
 }
 
-wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
+wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers,
+                                        wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
 {
 	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event ui handler");
 	handler->ui_handle= func;
@@ -2249,7 +2265,8 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers, w
 }
 
 /* set "postpone" for win->modalhandlers, this is in a running for() loop in wm_handlers_do() */
-void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, int postpone)
+void WM_event_remove_ui_handler(ListBase *handlers,
+                                wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, int postpone)
 {
 	wmEventHandler *handler;
 	
@@ -2629,7 +2646,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventButtonDown:
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd= customdata;
-			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE; /* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
+
+			/* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
+			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE;
 			
 			if (bd->button == GHOST_kButtonMaskLeft)
 				event.type= LEFTMOUSE;
@@ -2700,7 +2719,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 			if (event.utf8_buf[0]) {
 				if (BLI_str_utf8_size(event.utf8_buf) == -1) {
-					printf("%s: ghost detected an invalid unicode character '%d'!\n", __func__, (int)(unsigned char)event.utf8_buf[0]);
+					printf("%s: ghost detected an invalid unicode character '%d'!\n",
+					       __func__, (int)(unsigned char)event.utf8_buf[0]);
 					event.utf8_buf[0]= '\0';
 				}
 			}
@@ -2709,19 +2729,27 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* assigning both first and second is strange - campbell */
 			switch(event.type) {
 			case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
-				event.shift= evt->shift= (event.val==KM_PRESS) ? ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				event.shift = evt->shift = (event.val == KM_PRESS) ?
+						((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						FALSE;
 				break;
 			case LEFTCTRLKEY: case RIGHTCTRLKEY:
-				event.ctrl= evt->ctrl= (event.val==KM_PRESS) ? ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
+						((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						FALSE;
 				break;
 			case LEFTALTKEY: case RIGHTALTKEY:
-				event.alt= evt->alt= (event.val==KM_PRESS) ? ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				event.alt = evt->alt = (event.val == KM_PRESS) ?
+						((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						FALSE;
 				break;
 			case OSKEY:
-				event.oskey= evt->oskey= (event.val==KM_PRESS) ? ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				event.oskey = evt->oskey = (event.val == KM_PRESS) ?
+						((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						FALSE;
 				break;
 			default:
-				if(event.val==KM_PRESS && event.keymodifier==0)
+				if(event.val == KM_PRESS && event.keymodifier==0)
 					evt->keymodifier= event.type; /* only set in eventstate, for next event */
 				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
 					event.keymodifier= evt->keymodifier= 0;

@@ -85,9 +85,9 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	//dm = mesh_create_derived_no_deform(ob,NULL);
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 
 	*numVertices = totvert;
 	verts = MEM_callocN( totvert*3*sizeof(float), "elbeemmesh_vertices");

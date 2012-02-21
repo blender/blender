@@ -774,6 +774,8 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 	psys->renderdata= NULL;
 }
 
+/* BMESH_TODO, for orig face data, we need to use MPoly */
+
 int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 {
 	DerivedMesh *dm= ctx->dm;
@@ -801,10 +803,10 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 		return tot;
 
 	mvert= dm->getVertArray(dm);
-	mface= dm->getFaceArray(dm);
-	origindex= dm->getFaceDataArray(dm, CD_ORIGINDEX);
-	totface= dm->getNumFaces(dm);
-	totorigface= me->totface;
+	mface= dm->getTessFaceArray(dm);
+	origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	totface= dm->getNumTessFaces(dm);
+	totorigface= me->totpoly;
 
 	if(totface == 0 || totorigface == 0)
 		return tot;
@@ -1574,7 +1576,7 @@ static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int 
 		case PART_FROM_FACE:
 		case PART_FROM_VOLUME:
 		{
-			MFace *mf=dm->getFaceData(dm,index,CD_MFACE);
+			MFace *mf=dm->getTessFaceData(dm,index,CD_MFACE);
 			return interpolate_particle_value(values[mf->v1],values[mf->v2],values[mf->v3],values[mf->v4],fw,mf->v4);
 		}
 			
@@ -1616,17 +1618,17 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4
 int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const float fw[4], struct LinkNode *node)
 {
 	Mesh *me= (Mesh*)ob->data;
-	MFace *mface;
+	MPoly *mface;
 	OrigSpaceFace *osface;
 	int *origindex;
 	int quad, findex, totface;
 	float uv[2], (*faceuv)[2];
 
-	mface = dm->getFaceDataArray(dm, CD_MFACE);
-	origindex = dm->getFaceDataArray(dm, CD_ORIGINDEX);
-	osface = dm->getFaceDataArray(dm, CD_ORIGSPACE);
+	mface = dm->getPolyArray(dm);
+	origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	osface = dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
 
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 	
 	if(osface==NULL || origindex==NULL) {
 		/* Assume we dont need osface data */
@@ -1638,7 +1640,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 			return DMCACHE_NOTFOUND;
 		}
 	}
-	else if(index >= me->totface)
+	else if(index >= me->totpoly)
 		return DMCACHE_NOTFOUND; /* index not in the original mesh */
 
 	psys_w_to_origspace(fw, uv);
@@ -1647,7 +1649,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 		for(;node; node=node->next) {
 			findex= GET_INT_FROM_POINTER(node->link);
 			faceuv= osface[findex].uv;
-			quad= mface[findex].v4;
+			quad = (mface[findex].totloop == 4);
 
 			/* check that this intersects - Its possible this misses :/ -
 			 * could also check its not between */
@@ -1663,7 +1665,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 		for(findex=0; findex<totface; findex++) {
 			if(origindex[findex] == index) {
 				faceuv= osface[findex].uv;
-				quad= mface[findex].v4;
+				quad = (mface[findex].totloop == 4);
 
 				/* check that this intersects - Its possible this misses :/ -
 				 * could also check its not between */
@@ -1695,7 +1697,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 			*mapindex = index;
 		}
 		else  { /* FROM_FACE/FROM_VOLUME */
-			if(index >= dm->getNumFaces(dm))
+			if(index >= dm->getNumTessFaces(dm))
 				return 0;
 
 			*mapindex = index;
@@ -1719,15 +1721,15 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 
 			i = index_dmcache;
 
-			if(i== DMCACHE_NOTFOUND || i >= dm->getNumFaces(dm))
+			if(i== DMCACHE_NOTFOUND || i >= dm->getNumTessFaces(dm))
 				return 0;
 
 			*mapindex = i;
 
 			/* modify the original weights to become
 			 * weights for the derived mesh face */
-			osface= dm->getFaceDataArray(dm, CD_ORIGSPACE);
-			mface= dm->getFaceData(dm, i, CD_MFACE);
+			osface= dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
+			mface= dm->getTessFaceData(dm, i, CD_MFACE);
 
 			if(osface == NULL)
 				mapfw[0]= mapfw[1]= mapfw[2]= mapfw[3]= 0.0f;
@@ -1785,7 +1787,7 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 		MTFace *mtface;
 		MVert *mvert;
 
-		mface=dm->getFaceData(dm,mapindex,CD_MFACE);
+		mface=dm->getTessFaceData(dm,mapindex,CD_MFACE);
 		mvert=dm->getVertDataArray(dm,CD_MVERT);
 		mtface=CustomData_get_layer(&dm->faceData,CD_MTFACE);
 
@@ -2935,6 +2937,11 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			vg_length = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_LENGTH);
 	}
 
+	/* ensure we have tessfaces to be used for mapping */
+	if (part->from != PART_FROM_VERT) {
+		DM_ensure_tessface(psmd->dm);
+	}
+
 	/*---first main loop: create all actual particles' paths---*/
 	LOOP_SHOWN_PARTICLES {
 		if(!psys->totchild) {
@@ -3358,10 +3365,10 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 
 	int i = pa->num_dmcache==DMCACHE_NOTFOUND ? pa->num : pa->num_dmcache;
 	
-	if (i==-1 || i >= dm->getNumFaces(dm)) { unit_m4(mat); return; }
+	if (i==-1 || i >= dm->getNumTessFaces(dm)) { unit_m4(mat); return; }
 
-	mface=dm->getFaceData(dm,i,CD_MFACE);
-	osface=dm->getFaceData(dm,i,CD_ORIGSPACE);
+	mface=dm->getTessFaceData(dm,i,CD_MFACE);
+	osface=dm->getTessFaceData(dm,i,CD_ORIGSPACE);
 	
 	if(orco && (orcodata=dm->getVertDataArray(dm, CD_ORCO))) {
 		copy_v3_v3(v[0], orcodata[mface->v1]);
@@ -3676,7 +3683,6 @@ void make_local_particlesettings(ParticleSettings *part)
 	}
 	else if(is_local && is_lib) {
 		ParticleSettings *part_new= psys_copy_settings(part);
-
 		part_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -3716,7 +3722,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 
 	if(pa) {
 		i= (pa->num_dmcache==DMCACHE_NOTFOUND)? pa->num: pa->num_dmcache;
-		if(i >= dm->getNumFaces(dm))
+		if(i >= dm->getNumTessFaces(dm))
 			i = -1;
 	}
 	else
@@ -3728,7 +3734,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 		texco[2]= 0.0f;
 	}
 	else {
-		mf= dm->getFaceData(dm, i, CD_MFACE);
+		mf= dm->getTessFaceData(dm, i, CD_MFACE);
 
 		psys_interpolate_uvs(&tf[i], mf->v4, fuv, texco);
 
@@ -4396,7 +4402,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part, Partic
 		if(part->childtype == PART_CHILD_FACES) {
 			mtface= CustomData_get_layer(&psmd->dm->faceData, CD_MTFACE);
 			if(mtface) {
-				mface= psmd->dm->getFaceData(psmd->dm, cpa->num, CD_MFACE);
+				mface= psmd->dm->getTessFaceData(psmd->dm, cpa->num, CD_MFACE);
 				mtface += cpa->num;
 				psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
 			}
@@ -4416,14 +4422,14 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part, Partic
 		if(num == DMCACHE_NOTFOUND)
 			num= pa->num;
 
-		if (num >= psmd->dm->getNumFaces(psmd->dm)) {
+		if (num >= psmd->dm->getNumTessFaces(psmd->dm)) {
 			/* happens when simplify is enabled
 				* gives invalid coords but would crash otherwise */
 			num= DMCACHE_NOTFOUND;
 		}
 
 		if(mtface && num != DMCACHE_NOTFOUND) {
-			mface= psmd->dm->getFaceData(psmd->dm, num, CD_MFACE);
+			mface= psmd->dm->getTessFaceData(psmd->dm, num, CD_MFACE);
 			mtface += num;
 			psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
 		}

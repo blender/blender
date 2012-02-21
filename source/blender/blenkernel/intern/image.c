@@ -382,6 +382,25 @@ void make_local_image(struct Image *ima)
 				}
 			}
 		}
+
+		if(me->mtpoly) {
+			MTexPoly *mtpoly;
+			int a, i;
+
+			for(i=0; i<me->pdata.totlayer; i++) {
+				if(me->pdata.layers[i].type == CD_MTEXPOLY) {
+					mtpoly= (MTexPoly*)me->pdata.layers[i].data;
+
+					for(a=0; a<me->totpoly; a++, mtpoly++) {
+						if(mtpoly->tpage == ima) {
+							if(me->id.lib) is_lib= TRUE;
+							else is_local= TRUE;
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 	if(is_local && is_lib == FALSE) {
@@ -443,6 +462,28 @@ void make_local_image(struct Image *ima)
 					}
 				}
 			}
+
+			if(me->mtpoly) {
+				MTexPoly *mtpoly;
+				int a, i;
+
+				for(i=0; i<me->pdata.totlayer; i++) {
+					if(me->pdata.layers[i].type == CD_MTEXPOLY) {
+						mtpoly= (MTexPoly*)me->pdata.layers[i].data;
+
+						for(a=0; a<me->totpoly; a++, mtpoly++) {
+							if(mtpoly->tpage == ima) {
+								mtpoly->tpage = ima_new;
+								if(ima_new->id.us == 0) {
+									mtpoly->tpage->id.us= 1;
+								}
+								id_lib_extern((ID*)ima_new);
+							}
+						}
+					}
+				}
+			}
+
 			me= me->id.next;
 		}
 	}

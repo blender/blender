@@ -33,6 +33,7 @@ set(INC
 	../blenloader
 	../makesdna
 	../makesrna
+	../bmesh
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
@@ -66,6 +67,7 @@ set(SRC
 	intern/MOD_meshdeform.c
 	intern/MOD_mirror.c
 	intern/MOD_multires.c
+	intern/MOD_ngoninterp.c
 	intern/MOD_none.c
 	intern/MOD_ocean.c
 	intern/MOD_particleinstance.c

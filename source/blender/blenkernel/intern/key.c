@@ -56,6 +56,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_tessmesh.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_deform.h"
@@ -92,6 +93,20 @@ void free_key(Key *key)
 	
 }
 
+void free_key_nolib(Key *key)
+{
+	KeyBlock *kb;
+	
+	while( (kb= key->block.first) ) {
+		
+		if(kb->data) MEM_freeN(kb->data);
+		
+		BLI_remlink(&key->block, kb);
+		MEM_freeN(kb);
+	}
+	
+}
+
 /* GS reads the memory pointed at in a specific ordering. There are,
  * however two definitions for it. I have jotted them down here, both,
  * but I think the first one is actually used. The thing is that
@@ -114,6 +129,8 @@ Key *add_key(ID *id)	/* common function */
 	
 	key->type= KEY_NORMAL;
 	key->from= id;
+
+	key->uidgen = 1;
 	
 	// XXX the code here uses some defines which will soon be depreceated...
 	if( GS(id->name)==ID_ME) {
@@ -156,6 +173,34 @@ Key *copy_key(Key *key)
 	
 	keyn= copy_libblock(&key->id);
 	
+	BLI_duplicatelist(&keyn->block, &key->block);
+	
+	kb= key->block.first;
+	kbn= keyn->block.first;
+	while(kbn) {
+		
+		if(kbn->data) kbn->data= MEM_dupallocN(kbn->data);
+		if(kb==key->refkey) keyn->refkey= kbn;
+		
+		kbn= kbn->next;
+		kb= kb->next;
+	}
+	
+	return keyn;
+}
+
+
+Key *copy_key_nolib(Key *key)
+{
+	Key *keyn;
+	KeyBlock *kbn, *kb;
+	
+	if(key==0) return 0;
+	
+	keyn= MEM_dupallocN(key);
+
+	keyn->adt = NULL;
+
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
 	kb= key->block.first;
@@ -495,18 +540,21 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 		   edit mode with shape keys blending applied */
 		if(GS(key->from->name) == ID_ME) {
 			Mesh *me;
-			EditVert *eve;
+			BMVert *eve;
+			BMIter iter;
 			float (*co)[3];
 			int a;
 
 			me= (Mesh*)key->from;
 
-			if(me->edit_mesh && me->edit_mesh->totvert == kb->totelem) {
+			if(me->edit_btmesh && me->edit_btmesh->bm->totvert == kb->totelem) {
 				a= 0;
-				co= MEM_callocN(sizeof(float)*3*me->edit_mesh->totvert, "key_block_get_data");
+				co= MEM_callocN(sizeof(float)*3*me->edit_btmesh->bm->totvert, "key_block_get_data");
 
-				for(eve=me->edit_mesh->verts.first; eve; eve=eve->next, a++)
+				BM_ITER(eve, &iter, me->edit_btmesh->bm, BM_VERTS_OF_MESH, NULL) {
 					copy_v3_v3(co[a], eve->co);
+					a++;
+				}
 
 				*freedata= (char*)co;
 				return (char*)co;
@@ -1000,8 +1048,9 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 static float *get_weights_array(Object *ob, char *vgroup)
 {
 	MDeformVert *dvert= NULL;
-	EditMesh *em= NULL;
-	EditVert *eve;
+	BMEditMesh *em= NULL;
+	BMIter iter;
+	BMVert *eve;
 	int totvert= 0, defgrp_index= 0;
 	
 	/* no vgroup string set? */
@@ -1013,8 +1062,8 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		dvert= me->dvert;
 		totvert= me->totvert;
 
-		if(me->edit_mesh && me->edit_mesh->totvert == totvert)
-			em= me->edit_mesh;
+		if(me->edit_btmesh && me->edit_btmesh->bm->totvert == totvert)
+			em= me->edit_btmesh;
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= ob->data;
@@ -1033,8 +1082,9 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		weights= MEM_callocN(totvert*sizeof(float), "weights");
 
 		if(em) {
-			for(i=0, eve=em->verts.first; eve; eve=eve->next, i++) {
-				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+			eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+			for (i=0; eve; eve=BM_iter_step(&iter), i++) {
+				dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
 				if(dvert) {
 					weights[i]= defvert_find_weight(dvert, defgrp_index);
@@ -1451,7 +1501,8 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 
 	// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
 	kb->adrcode= tot-1;
-	
+	kb->uid = key->uidgen++;
+
 	key->totkey++;
 	if(key->totkey==1) key->refkey= kb;
 	
