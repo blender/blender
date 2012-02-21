@@ -140,7 +140,6 @@ typedef struct StitchState {
 	/* island that stays in place */
 	int static_island;
 	/* store number of primitives per face so that we can allocate the active island buffer later */
-	unsigned int *quads_per_island;
 	unsigned int *tris_per_island;
 } StitchState;
 
@@ -164,6 +163,7 @@ static StitchPreviewer * stitch_preview_init(void)
 {
 	_stitch_preview = MEM_mallocN(sizeof(StitchPreviewer), "stitch_previewer");
 	_stitch_preview->preview_tris = NULL;
+	_stitch_preview->preview_coords = NULL;
 	_stitch_preview->preview_stitchable = NULL;
 	_stitch_preview->preview_unstitchable = NULL;
 
@@ -199,6 +199,11 @@ static void stitch_preview_delete(void)
 			MEM_freeN(_stitch_preview->static_tris);
 			_stitch_preview->static_tris = NULL;
 		}
+		if(_stitch_preview->preview_coords){
+			MEM_freeN(_stitch_preview->preview_coords);
+			_stitch_preview->preview_coords = NULL;
+		}
+
 		MEM_freeN(_stitch_preview);
 		_stitch_preview = NULL;
 	}
@@ -296,7 +301,6 @@ static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *elem
 /* calculate snapping for islands */
 static void stitch_calculate_island_snapping(StitchState *state, StitchPreviewer *preview, IslandStitchData *island_stitch_data, int final){
 	int i;
-	BMFace *efa;
 	UvElement *element;
 
 	for(i = 0; i <  state->element_map->totalIslands; i++){
@@ -322,8 +326,6 @@ static void stitch_calculate_island_snapping(StitchState *state, StitchPreviewer
 					l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
 					luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-					efa = element->face;
-
 					if(final){
 
 						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, luv->uv);
@@ -331,24 +333,16 @@ static void stitch_calculate_island_snapping(StitchState *state, StitchPreviewer
 						luv->uv[0] += island_stitch_data[i].translation[0];
 						luv->uv[1] += island_stitch_data[i].translation[1];
 					}
-					/* BMESH_TODO preview
-					else if(efa->tmp.l != STITCH_NO_PREVIEW){
-						if(efa->v4){
 
-							stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, &preview->preview_quads[efa->tmp.l + 2*element->tfindex]);
+					else {//if(preview_position[BM_elem_index_get(efa)] != STITCH_NO_PREVIEW){
+						/* BMESH_TODO preview
+						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, &preview->preview_tris[efa->tmp.l + 2*element->tfindex]);
 
-							preview->preview_quads[efa->tmp.l + 2*element->tfindex] += island_stitch_data[i].translation[0];
-							preview->preview_quads[efa->tmp.l + 2*element->tfindex + 1] += island_stitch_data[i].translation[1];
-						}
-						else {
-
-							stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, &preview->preview_tris[efa->tmp.l + 2*element->tfindex]);
-
-							preview->preview_tris[efa->tmp.l + 2*element->tfindex]  += island_stitch_data[i].translation[0];
-							preview->preview_tris[efa->tmp.l + 2*element->tfindex + 1] += island_stitch_data[i].translation[1];
-						}
-					}*/
-					(void)preview;
+						preview->preview_tris[efa->tmp.l + 2*element->tfindex]  += island_stitch_data[i].translation[0];
+						preview->preview_tris[efa->tmp.l + 2*element->tfindex + 1] += island_stitch_data[i].translation[1];
+						*/
+						(void)preview;
+					}
 				}
 				/* cleanup */
 				element->flag &= STITCH_SELECTED;
@@ -455,9 +449,6 @@ static void stitch_state_delete(StitchState *stitch_state)
 		if(stitch_state->selection_stack){
 			MEM_freeN(stitch_state->selection_stack);
 		}
-		if(stitch_state->quads_per_island){
-			MEM_freeN(stitch_state->quads_per_island);
-		}
 		if(stitch_state->tris_per_island){
 			MEM_freeN(stitch_state->tris_per_island);
 		}
@@ -509,10 +500,11 @@ static void stitch_set_face_preview_buffer_position(BMFace *efa, StitchPreviewer
 
 	if(preview_position[index] == STITCH_NO_PREVIEW)
 	{
-		preview_position[index] = preview->num_tris*6;
+		//int num_of_tris = (efa->len > 2)? efa->len-2 : 0;
+		//preview->num_tris*3;
 
 		/* BMESH_TODO, count per face triangles */
-		//preview->num_tris += 4;
+		//preview->num_tris += num_of_tris;
 	}
 }
 
@@ -660,12 +652,14 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 	 * Setup the preview buffers and fill them with the appropriate data *
 	 *********************************************************************/
 	if(!final){
+		BMIter liter;
 		BMLoop *l;
 		MLoopUV *luv;
-		unsigned int tricount = 0;
+		unsigned int buffer_index = 0;
 		int stitchBufferIndex = 0, unstitchBufferIndex = 0;
 		/* initialize the preview buffers */
-		preview->preview_tris = (float *)MEM_mallocN(preview->num_tris*sizeof(float)*6, "tri_uv_stitch_prev");
+		preview->preview_tris = (unsigned int *)MEM_mallocN(preview->num_tris*sizeof(unsigned int)*3, "tri_uv_stitch_prev");
+		preview->preview_coords = (float *)MEM_mallocN(state->total_separate_uvs*sizeof(float)*2, "co_uv_stitch_prev");
 
 		preview->preview_stitchable = (float *)MEM_mallocN(preview->num_stitchable*sizeof(float)*2, "stitch_preview_stichable_data");
 		preview->preview_unstitchable = (float *)MEM_mallocN(preview->num_unstitchable*sizeof(float)*2, "stitch_preview_unstichable_data");
@@ -674,7 +668,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 
 		preview->num_static_tris = state->tris_per_island[state->static_island];
 		/* will cause cancel and freeing of all data structures so OK */
-		if(!preview->preview_tris || !preview->preview_stitchable || !preview->preview_unstitchable){
+		if(!preview->preview_tris || !preview->preview_stitchable || !preview->preview_unstitchable || !preview->preview_coords){
 			return 0;
 		}
 
@@ -692,10 +686,23 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				}
 
 				if(element->island == state->static_island){
-					/* BMESH_TODO preview */
-					//memcpy(preview->static_tris + tricount*6, &mt->uv[0][0], 6*sizeof(float));
-					//tricount++;
-					(void)tricount;
+					int numoftris = efa->len - 2;
+					BMLoop *fl = BM_FACE_FIRST_LOOP(efa);
+					MLoopUV *fuv = CustomData_bmesh_get(&state->em->bm->ldata, fl->head.data, CD_MLOOPUV);
+					i = 0;
+					BM_ITER(l, &liter, state->em->bm, BM_LOOPS_OF_FACE, efa) {
+						if(i++ < numoftris){
+							/* using next since the first uv is already accounted for */
+							BMLoop *lnext = l->next;
+							MLoopUV *luvnext = CustomData_bmesh_get(&state->em->bm->ldata, lnext->next->head.data, CD_MLOOPUV);;
+							luv = CustomData_bmesh_get(&state->em->bm->ldata, lnext->head.data, CD_MLOOPUV);
+
+							memcpy(preview->static_tris + buffer_index, fuv->uv, 2*sizeof(float));
+							memcpy(preview->static_tris + buffer_index + 2, luv->uv, 2*sizeof(float));
+							memcpy(preview->static_tris + buffer_index + 4, luvnext->uv, 2*sizeof(float));
+							buffer_index += 6;
+						}else break;
+					}
 				}
 			}
 		}
@@ -1176,12 +1183,9 @@ static int stitch_init(bContext *C, wmOperator *op)
 
 	/***** initialise static island preview data *****/
 
-	state->quads_per_island = MEM_mallocN(sizeof(*state->quads_per_island)*state->element_map->totalIslands,
-			"stitch island quads");
 	state->tris_per_island = MEM_mallocN(sizeof(*state->tris_per_island)*state->element_map->totalIslands,
 			"stitch island tris");
 	for(i = 0; i < state->element_map->totalIslands; i++){
-		state->quads_per_island[i] = 0;
 		state->tris_per_island[i] = 0;
 	}
 
@@ -1189,8 +1193,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		UvElement *element = ED_get_uv_element(state->element_map, efa, 0);
 
 		if(element){
-			/* BMESH_TODO preview active island */
-			//state->tris_per_island[element->island]++;
+			state->tris_per_island[element->island] += (efa->len > 2)? efa->len-2 : 0;
 		}
 	}
 
