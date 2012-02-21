@@ -2628,7 +2628,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].array = tfdata->layers[layer].data;
 				attribs->tface[a].emOffset = tfdata->layers[layer].offset;
 				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-				/* attribs->tface[a].glTexco = gattribs->layer[b].gltexco; */ /* BMESH_TODO, trunk has this but not bmesh, need to investigate whats going on here - campbell */
+				attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
 			}
 			/* BMESH ONLY, may need to get this working?, otherwise remove */
 			/* else {
