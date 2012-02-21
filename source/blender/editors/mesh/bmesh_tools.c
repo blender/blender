@@ -4660,11 +4660,6 @@ static int mark_freestyle_face_exec(bContext *C, wmOperator *op)
 				BM_elem_flag_enable(efa, BM_ELEM_FREESTYLE);
 		}
 	}
-	printf("%s\n", clear ? "clear" : "set");
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		printf("face %s\n", (BM_elem_flag_test(efa, BM_ELEM_FREESTYLE)) ? "enabled" : "disabled");
-	}
-	printf("\n");
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
