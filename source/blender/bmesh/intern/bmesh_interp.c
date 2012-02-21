@@ -505,10 +505,20 @@ static int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3
 	return 1;
 }
 
+static void mdisp_axis_from_quad(double v1[3], double v2[3], double UNUSED(v3[3]), double v4[3],
+                                float axis_x[3], float axis_y[3])
+{
+	VECSUB(axis_x, v4, v1);
+	VECSUB(axis_y, v2, v1);
+
+	normalize_v3(axis_x);
+	normalize_v3(axis_y);
+}
 
 /* tl is loop to project onto, l is loop whose internal displacement, co, is being
  * projected.  x and y are location in loop's mdisps grid of point co. */
-static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y, int res)
+static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y,
+                              int res, float axis_x[3], float axis_y[3])
 {
 	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	double eps = FLT_EPSILON * 4000;
@@ -536,7 +546,31 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 	*x *= res - 1;
 	*y *= res - 1;
 
+	mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
+
 	return 1;
+}
+
+static void bmesh_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
+                                 float target_axis_x[3], float target_axis_y[3], float disp[3])
+{
+	float vx[3], vy[3], coord[3];
+
+	mul_v3_v3fl(vx, source_axis_x, disp[0]);
+	mul_v3_v3fl(vy, source_axis_y, disp[1]);
+	add_v3_v3v3(coord, vx, vy);
+
+	project_v3_v3v3(vx, coord, target_axis_x);
+	project_v3_v3v3(vy, coord, target_axis_y);
+
+	disp[0] = len_v3(vx);
+	disp[1] = len_v3(vy);
+
+	if(dot_v3v3(vx, target_axis_x) < 0)
+		disp[0] = -disp[0];
+
+	if(dot_v3v3(vy, target_axis_y) < 0)
+		disp[1] = -disp[1];
 }
 
 static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
@@ -546,6 +580,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	BMLoop *l_first;
 	double x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
 	int ix, iy, res;
+	float axis_x[3], axis_y[3];
 	
 	/* ignore 2-edged faces */
 	if (target->f->len < 3)
@@ -571,6 +606,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 		}
 	}
 	
+	mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
+
 	res = (int)sqrt(mdisps->totdisp);
 	d = 1.0 / (double)(res - 1);
 	for (x = 0.0f, ix = 0; ix < res; x += d, ix++) {
@@ -601,15 +638,19 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			do {
 				double x2, y2;
 				MDisps *md1, *md2;
+				float src_axis_x[3], src_axis_y[3];
 
 				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
 				md2 = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
 				
-				if (mdisp_in_mdispquad(bm, target, l_iter, co, &x2, &y2, res)) {
+				if (mdisp_in_mdispquad(bm, target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
 					/* int ix2 = (int)x2; */ /* UNUSED */
 					/* int iy2 = (int)y2; */ /* UNUSED */
 					
 					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
+					bmesh_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md1->disps[iy * res + ix]);
+
+					break;
 				}
 			} while ((l_iter = l_iter->next) != l_first);
 		}
@@ -718,8 +759,33 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	}
 }
 
+#if 0
+static void print_loop(BMLoop *loop)
+{
+	BMLoop *cur = loop;
+	do {
+		print_v3("\t\tco", cur->v->co);
+	} while ((cur = cur->next) != loop);
+}
+#endif
+
 void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 {
+#if 0
+	{
+		static int count = 0;
+		count++;
+		printf("%s: counter=%d\n", __func__, count);
+		printf("\ttarget=%p:\n", target);
+		print_loop(target);
+		printf("\tsource=%p:\n", source);
+		print_loop(source->l_first);
+		/*if(count!=5) {
+			return;
+		}*/
+	}
+#endif
+
 	bmesh_loop_interp_mdisps(bm, target, source);
 }
 

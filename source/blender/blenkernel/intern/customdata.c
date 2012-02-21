@@ -449,6 +449,7 @@ static void layerSwap_mdisps(void *data, const int *ci)
 static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 				float *UNUSED(sub_weights), int UNUSED(count), void *dest)
 {
+#if 0
 	MDisps *d = dest;
 
 	/* happens when flipping normals of newly created mesh */
@@ -458,6 +459,10 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 
 	if (!d->disps && d->totdisp)
 		d->disps = MEM_callocN(sizeof(float)*3*d->totdisp, "blank mdisps in layerInterp_mdisps");
+#else
+	(void) sources;
+	(void) dest;
+#endif
 }
 
 #else // BMESH_TODO
