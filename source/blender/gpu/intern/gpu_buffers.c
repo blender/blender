@@ -1333,10 +1333,9 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 	buffers->mvert = mvert;
 }
 
-GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
-			int *face_indices, int totface,
-			int *vert_indices, int tot_uniq_verts,
-			int totvert)
+GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MFace *mface,
+									int *face_indices, int totface,
+									int tot_uniq_verts)
 {
 	GPU_Buffers *buffers;
 	unsigned short *tri_data;
@@ -1402,7 +1401,6 @@ GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 
 	if(buffers->index_buf)
 		glGenBuffersARB(1, &buffers->vert_buf);
-	GPU_update_mesh_buffers(buffers, mvert, vert_indices, totvert);
 
 	buffers->tot_tri = tottri;
 

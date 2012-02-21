@@ -159,10 +159,9 @@ int GPU_buffer_legacy( struct DerivedMesh *dm );
 
 /* Buffers for non-DerivedMesh drawing */
 typedef struct GPU_Buffers GPU_Buffers;
-GPU_Buffers *GPU_build_mesh_buffers(struct GHash *map, struct MVert *mvert,
+GPU_Buffers *GPU_build_mesh_buffers(struct GHash *map,
 			struct MFace *mface, int *face_indices,
-			int totface, int *vert_indices, int uniq_verts,
-			int totvert);
+			int totface, int uniq_verts);
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
 			int *vert_indices, int totvert);
 GPU_Buffers *GPU_build_grid_buffers(struct DMGridData **grids,
