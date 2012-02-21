@@ -629,33 +629,8 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	}
 }
 
-#if 0
-static void print_loop(BMLoop *loop)
-{
-	BMLoop *cur = loop;
-	do {
-		print_v3("\t\tco", cur->v->co);
-	} while ((cur = cur->next) != loop);
-}
-#endif
-
 void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 {
-#if 0
-	{
-		static int count = 0;
-		count++;
-		printf("%s: counter=%d\n", __func__, count);
-		printf("\ttarget=%p:\n", target);
-		print_loop(target);
-		printf("\tsource=%p:\n", source);
-		print_loop(source->l_first);
-		/*if(count!=5) {
-			return;
-		}*/
-	}
-#endif
-
 	bmesh_loop_interp_mdisps(bm, target, source);
 }
 
