@@ -1100,13 +1100,13 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 	w= (max[0]-min[0])*ibuf->x;
 	h= (max[1]-min[1])*ibuf->y;
 
+	/* dimensions should be odd */
 	w= w|1;
 	h= h|1;
 
-	x1= x-(int)(w/2.0f);
-	y1= y-(int)(h/2.0f);
+	x1= x-(int)(w * (-min[0] / (max[0] - min[0])));
+	y1= y-(int)(h * (-min[1] / (max[1] - min[1])));
 
-	/* dimensions should be odd */
 	tmpibuf= IMB_allocImBuf(w+margin*2, h+margin*2, 32, IB_rect);
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1-margin, y1-margin, w+margin*2, h+margin*2);
 

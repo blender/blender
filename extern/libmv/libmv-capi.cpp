@@ -296,7 +296,7 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *im
 		double sx2 = *x2, sy2 = *y2;
 		int result = region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
 
-		if (!result) {
+		if (!result {
 			saveImage("old_patch", old_patch, x1, y1);
 			saveImage("new_patch", new_patch, sx2, sy2);
 		}
