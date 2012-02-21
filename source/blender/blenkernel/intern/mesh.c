@@ -2850,13 +2850,14 @@ float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	}
 	else {
 		int i;
+		MLoop *l_iter = loopstart;
 		float area, polynorm_local[3], (*vertexcos)[3];
 		float *no= polynormal ? polynormal : polynorm_local;
 		BLI_array_fixedstack_declare(vertexcos, BM_NGON_STACK_SIZE, mpoly->totloop, __func__);
 
 		/* pack vertex cos into an array for area_poly_v3 */
-		for (i = 0; i < mpoly->totloop; i++) {
-			copy_v3_v3(vertexcos[i], mvarray[(loopstart++)->v].co);
+		for (i = 0; i < mpoly->totloop; i++, l_iter++) {
+			copy_v3_v3(vertexcos[i], mvarray[l_iter->v].co);
 		}
 
 		/* need normal for area_poly_v3 as well */
