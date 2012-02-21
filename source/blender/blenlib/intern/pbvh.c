@@ -1087,7 +1087,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, i
 						   bvh->verts,
 						   node->vert_indices,
 						   node->uniq_verts +
-						   node->face_verts);
+						   node->face_verts,
+		                   smooth);
 			}
 
 			node->flag &= ~PBVH_UpdateDrawBuffers;

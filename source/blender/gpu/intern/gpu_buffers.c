@@ -1298,7 +1298,7 @@ struct GPU_Buffers {
 };
 
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
-			int *vert_indices, int totvert)
+			int *vert_indices, int totvert, int smooth)
 {
 	VertexBufferFormat *vert_data;
 	int i;
@@ -1331,6 +1331,7 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 	}
 
 	buffers->mvert = mvert;
+	buffers->smooth = smooth;
 }
 
 GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MFace *mface,
@@ -1558,22 +1559,38 @@ GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid
 
 static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 {
-	int i;
+	const MVert *mvert = buffers->mvert;
+	int i, j;
 
 	for(i = 0; i < buffers->totface; ++i) {
 		MFace *f = buffers->mface + buffers->face_indices[i];
+		int S = f->v4 ? 4 : 3;
+		unsigned int *fv = &f->v1;
 
 		glBegin((f->v4)? GL_QUADS: GL_TRIANGLES);
-		glNormal3sv(buffers->mvert[f->v1].no);
-		glVertex3fv(buffers->mvert[f->v1].co);
-		glNormal3sv(buffers->mvert[f->v2].no);
-		glVertex3fv(buffers->mvert[f->v2].co);
-		glNormal3sv(buffers->mvert[f->v3].no);
-		glVertex3fv(buffers->mvert[f->v3].co);
-		if(f->v4) {
-			glNormal3sv(buffers->mvert[f->v4].no);
-			glVertex3fv(buffers->mvert[f->v4].co);
+
+		if(buffers->smooth) {
+			for(j = 0; j < S; j++) {
+				glNormal3sv(mvert[fv[j]].no);
+				glVertex3fv(mvert[fv[j]].co);
+			}
 		}
+		else {
+			float fno[3];
+
+			/* calculate face normal */
+			if(f->v4) {
+				normal_quad_v3(fno, mvert[fv[0]].co, mvert[fv[1]].co,
+							   mvert[fv[2]].co, mvert[fv[3]].co);
+			}
+			else
+				normal_tri_v3(fno, mvert[fv[0]].co, mvert[fv[1]].co, mvert[fv[2]].co);
+			glNormal3fv(fno);
+			
+			for(j = 0; j < S; j++)
+				glVertex3fv(mvert[fv[j]].co);
+		}
+		
 		glEnd();
 	}
 }
