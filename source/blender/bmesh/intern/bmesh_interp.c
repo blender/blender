@@ -551,26 +551,45 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 	return 1;
 }
 
+static float bmesh_loop_flip_equotion(float mat[2][2], float b[2], float target_axis_x[3], float target_axis_y[3],
+                                      float coord[3], int i, int j)
+{
+	mat[0][0] = target_axis_x[i];
+	mat[0][1] = target_axis_y[i];
+	mat[1][0] = target_axis_x[j];
+	mat[1][1] = target_axis_y[j];
+	b[0] = coord[i];
+	b[1] = coord[j];
+
+	return mat[0][0]*mat[1][1] - mat[0][1]*mat[1][0];
+}
+
 static void bmesh_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
                                  float target_axis_x[3], float target_axis_y[3], float disp[3])
 {
 	float vx[3], vy[3], coord[3];
+	float n[3], vec[3];
+	float b[2], mat[2][2], d;
 
 	mul_v3_v3fl(vx, source_axis_x, disp[0]);
 	mul_v3_v3fl(vy, source_axis_y, disp[1]);
 	add_v3_v3v3(coord, vx, vy);
 
-	project_v3_v3v3(vx, coord, target_axis_x);
-	project_v3_v3v3(vy, coord, target_axis_y);
+	/* project displacement from source grid plane onto target grid plane */
+	cross_v3_v3v3(n, target_axis_x, target_axis_y);
+	project_v3_v3v3(vec, coord, n);
+	sub_v3_v3v3(coord, coord, vec);
 
-	disp[0] = len_v3(vx);
-	disp[1] = len_v3(vy);
+	d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 1);
 
-	if(dot_v3v3(vx, target_axis_x) < 0)
-		disp[0] = -disp[0];
+	if (fabsf(d) < 1e-4) {
+		d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 2);
+		if (fabsf(d) < 1e-4)
+			d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 1, 2);
+	}
 
-	if(dot_v3v3(vy, target_axis_y) < 0)
-		disp[1] = -disp[1];
+	disp[0] = (b[0]*mat[1][1] - mat[0][1]*b[1]) / d;
+	disp[1] = (mat[0][0]*b[1] - b[0]*mat[1][0]) / d;
 }
 
 static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)

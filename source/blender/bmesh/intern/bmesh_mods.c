@@ -377,8 +377,11 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 
 			BM_face_kill(bm, of);
 
+#if 0
+			/* BM_face_multires_bounds_smooth doesn't flip displacement correct */
 			BM_face_multires_bounds_smooth(bm, f);
 			BM_face_multires_bounds_smooth(bm, nf);
+#endif
 		}
 	}
 
