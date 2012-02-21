@@ -274,9 +274,9 @@ static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_it
 		BMLoop *l_orig, *l_iter;
 
 
-		l_orig = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+		l_orig = element->l;
 		luv_orig = CustomData_bmesh_get(&state->em->bm->ldata, l_orig->head.data, CD_MLOOPUV);
-		l_iter = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element_iter->tfindex);
+		l_iter = element_iter->l;
 		luv_iter = CustomData_bmesh_get(&state->em->bm->ldata, l_iter->head.data, CD_MLOOPUV);
 
 		if(fabs(luv_orig->uv[0] - luv_iter->uv[0]) < limit
@@ -323,7 +323,7 @@ static void stitch_calculate_island_snapping(StitchState *state, StitchPreviewer
 					MLoopUV *luv;
 					BMLoop *l;
 
-					l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					l = element->l;
 					luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 					if(final){
@@ -366,9 +366,9 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	element1 = state->uvs[edge->uv1];
 	element2 = state->uvs[edge->uv2];
 
-	l1 = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element1->face, element1->tfindex);
+	l1 = element1->l;
 	luv1 = CustomData_bmesh_get(&state->em->bm->ldata, l1->head.data, CD_MLOOPUV);
-	l2 = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element2->face, element2->tfindex);
+	l2 = element2->l;
 	luv2 = CustomData_bmesh_get(&state->em->bm->ldata, l2->head.data, CD_MLOOPUV);
 
 	index1 = uvfinal_map[element1 - state->element_map->buf];
@@ -406,7 +406,7 @@ static void stitch_island_calculate_vert_rotation(UvElement *element, StitchStat
 	if(element->island == state->static_island && !state->midpoints)
 		return;
 
-	l = BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+	l = element->l;
 
 	index = BM_elem_index_get(l->v);
 
@@ -473,7 +473,7 @@ static void determine_uv_stitchability(UvElement *element, StitchState *state, I
 	UvElement *element_iter;
 	BMLoop *l;
 
-	l = BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+	l = element->l;
 
 	vert_index = BM_elem_index_get(l->v);
 	element_iter = state->element_map->vert[vert_index];
@@ -537,7 +537,7 @@ static void stitch_validate_stichability (UvElement *element, StitchState *state
 	int vert_index;
 	BMLoop *l;
 
-	l = BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+	l = element->l;
 
 	vert_index = BM_elem_index_get(l->v);
 
@@ -675,7 +675,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		/* copy data from MTFaces to the preview display buffers */
 		BM_ITER(efa, &iter, state->em->bm, BM_FACES_OF_MESH, NULL) {
 			/* just to test if face was added for processing. uvs of inselected vertices will return NULL */
-			UvElement *element = ED_get_uv_element(state->element_map, efa, 0);
+			UvElement *element = ED_get_uv_element(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 			if(element){
 				int index = BM_elem_index_get(efa);
@@ -711,7 +711,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		for(i = 0; i < state->total_separate_uvs; i++){
 			UvElement *element = (UvElement *)state->uvs[i];
 			if(element->flag & STITCH_STITCHABLE){
-				l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = element->l;
 				luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 				copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex*2], luv->uv);
@@ -719,7 +719,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				stitchBufferIndex++;
 			}
 			else if(element->flag & STITCH_SELECTED){
-				l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = element->l;
 				luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 				copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex*2], luv->uv);
@@ -743,7 +743,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 			MLoopUV *luv;
 			UvElement *element_iter;
 
-			l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+			l = element->l;
 			luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 
@@ -760,7 +760,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 			for(;element_iter; element_iter = element_iter->next){
 				if(element_iter->separate){
 					if(stitch_check_uvs_state_stitchable(element, element_iter, state)){
-						l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element_iter->face, element_iter->tfindex);
+						l = element_iter->l;
 						luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 						if(stitch_midpoints){
 							add_v2_v2(final_position[i].uv, luv->uv);
@@ -789,7 +789,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				BMLoop *l;
 				MLoopUV *luv;
 
-				l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = element->l;
 				luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 				/* accumulate each islands' translation from stitchable elements. it is important to do here
@@ -832,7 +832,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				BMLoop *l;
 				MLoopUV *luv;
 
-				l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element_iter->face, element_iter->tfindex);
+				l = element_iter->l;
 				luv = CustomData_bmesh_get(&state->em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 				element_iter->flag |= STITCH_PROCESSED;
@@ -897,7 +897,7 @@ static void stitch_select_uv(UvElement *element, StitchState *state, int always_
 	UvElement *element_iter;
 	UvElement **selection_stack = state->selection_stack;
 
-	l = BM_iter_at_index(state->em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+	l = element->l;
 
 	element_iter = state->element_map->vert[BM_elem_index_get(l->v)];
 	/* first deselect all common uvs */
@@ -1049,18 +1049,13 @@ static int stitch_init(bContext *C, wmOperator *op)
 	counter = 0;
 	/* Now, on to generate our uv connectivity data */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		int nverts;
-
 		if (!(ts->uv_flag & UV_SYNC_SELECTION) && ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || !BM_elem_flag_test(efa, BM_ELEM_SELECT)))
 			continue;
 
-		nverts = efa->len;
-		i = 0;
-
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			UvElement *element = ED_get_uv_element(state->element_map, efa, i);
+			UvElement *element = ED_get_uv_element(state->element_map, efa, l);
 			int offset1, itmp1 = element - state->element_map->buf;
-			int offset2, itmp2 = ED_get_uv_element(state->element_map, efa, (i+1)%nverts) - state->element_map->buf;
+			int offset2, itmp2 = ED_get_uv_element(state->element_map, efa, l->next) - state->element_map->buf;
 
 			offset1 = map[itmp1];
 			offset2 = map[itmp2];
@@ -1087,7 +1082,6 @@ static int stitch_init(bContext *C, wmOperator *op)
 				all_edges[counter].flag = STITCH_BOUNDARY;
 			}
 			counter++;
-			i++;
 		}
 	}
 
@@ -1159,7 +1153,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 			faceIndex = RNA_int_get(&itemptr, "face_index");
 			elementIndex = RNA_int_get(&itemptr, "element_index");
 			efa = EDBM_get_face_for_index(em, faceIndex);
-			element = ED_get_uv_element(state->element_map, efa, elementIndex);
+			element = ED_get_uv_element(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
 			stitch_select_uv(element, state, 1);
 		}
 		RNA_END;
@@ -1173,7 +1167,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				if(uvedit_uv_selected(em, scene, l)){
-					UvElement *element = ED_get_uv_element(state->element_map, efa, i);
+					UvElement *element = ED_get_uv_element(state->element_map, efa, l);
 					stitch_select_uv(element, state, 1);
 				}
 				i++;
@@ -1190,7 +1184,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	}
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		UvElement *element = ED_get_uv_element(state->element_map, efa, 0);
+		UvElement *element = ED_get_uv_element(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 		if(element){
 			state->tris_per_island[element->island] += (efa->len > 2)? efa->len-2 : 0;
@@ -1243,12 +1237,21 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 		/* Store selection for re-execution of stitch */
 		for(i = 0; i < stitch_state->selection_size; i++){
 			PointerRNA itemptr;
+			int j = 0;
+			BMIter liter;
+			BMLoop *l;
 			UvElement *element = stitch_state->selection_stack[i];
 
 			RNA_collection_add(op->ptr, "selection", &itemptr);
 
 			RNA_int_set(&itemptr, "face_index", BM_elem_index_get(element->face));
-			RNA_int_set(&itemptr, "element_index", element->tfindex);
+
+			/* iterate to get the loop index. Better have this once here than everywhere else */
+			BM_ITER(l, &liter, stitch_state->em->bm, BM_LOOPS_OF_FACE, element->face) {
+				if(element->l == l)
+					RNA_int_set(&itemptr, "element_index", j);
+				j++;
+			}
 		}
 
 
@@ -1306,7 +1309,7 @@ static void stitch_select(bContext *C, Scene *scene, wmEvent *event, StitchState
 		 * you can do stuff like deselect the opposite stitchable vertex and the initial still gets deselected */
 
 		/* This works due to setting of tmp in find nearest uv vert */
-		UvElement *element = ED_get_uv_element(stitch_state->element_map, hit.efa, hit.lindex);
+		UvElement *element = ED_get_uv_element(stitch_state->element_map, hit.efa, hit.l);
 		stitch_select_uv(element, stitch_state, 0);
 
 	}

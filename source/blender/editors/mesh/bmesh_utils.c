@@ -771,7 +771,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
 			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				buf->tfindex = i;
+				buf->l = l;
 				buf->face = efa;
 				buf->separate = 0;
 				buf->island = INVALID_ISLAND;
@@ -798,10 +798,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 			v->next = newvlist;
 			newvlist = v;
 
-			efa = v->face;
-			/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
-
-			l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa, v->tfindex);
+			l = v->l;
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			uv = luv->uv;
 
@@ -810,10 +807,8 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 
 			while (iterv) {
 				next = iterv->next;
-				efa = iterv->face;
-				/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 
-				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa, iterv->tfindex);
+				l = iterv->l;
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				uv2 = luv->uv;
 
@@ -867,7 +862,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 								/* found the uv corresponding to our face and vertex. Now fill it to the buffer */
 								element->island = nislands;
 								map[element - element_map->buf] = islandbufsize;
-								islandbuf[islandbufsize].tfindex = element->tfindex;
+								islandbuf[islandbufsize].l = element->l;
 								islandbuf[islandbufsize].face = element->face;
 								islandbuf[islandbufsize].separate = element->separate;
 								islandbuf[islandbufsize].island =  nislands;

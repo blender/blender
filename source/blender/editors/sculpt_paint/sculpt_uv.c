@@ -215,7 +215,7 @@ void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float 
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
 
-				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = element->l;
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
@@ -279,7 +279,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 				if(element->separate && element != sculptdata->uv[i].element)
 					break;
 
-				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = element->l;
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 			}
@@ -355,7 +355,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 					if(element->separate && element != sculptdata->uv[i].element)
 						break;
 
-					l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					l = element->l;
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
 				}
@@ -397,7 +397,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 				if(element->separate && element != sculptdata->uv[uvindex].element)
 					break;
 
-				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+				l = element->l;
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
 			}
@@ -433,8 +433,8 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, int index, int island_index, int doIslands){
-	UvElement *element = ED_get_uv_element(map, efa, index);
+static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, int doIslands){
+	UvElement *element = ED_get_uv_element(map, efa, l);
 	if(!element || (doIslands && element->island != island_index)){
 		return -1;
 	}
@@ -523,7 +523,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			Image *ima= CTX_data_edit_image(C);
 			uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
 
-			element = ED_get_uv_element(data->elementMap, hit.efa, hit.lindex);
+			element = ED_get_uv_element(data->elementMap, hit.efa, hit.l);
 			island_index = element->island;
 		}
 
@@ -571,8 +571,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 						continue;
 					}
 
-					efa = element->face;
-					l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, element->face, element->tfindex);
+					l = element->l;
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 					counter++;
@@ -589,11 +588,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 		/* Now, on to generate our uv connectivity data */
 		counter = 0;
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			int nverts = efa->len;
-			i = 0;
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				int offset1, itmp1 = get_uv_element_offset_from_face(data->elementMap, efa, i, island_index, do_island_optimization);
-				int offset2, itmp2 = get_uv_element_offset_from_face(data->elementMap, efa, (i+1)%nverts, island_index, do_island_optimization);
+				int offset1, itmp1 = get_uv_element_offset_from_face(data->elementMap, efa, l, island_index, do_island_optimization);
+				int offset2, itmp2 = get_uv_element_offset_from_face(data->elementMap, efa, l->next, island_index, do_island_optimization);
 
 				/* Skip edge if not found(unlikely) or not on valid island */
 				if(itmp1 == -1 || itmp2 == -1)
@@ -623,7 +620,6 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 					BLI_ghash_insert(edgeHash, &edges[counter], &edges[counter].flag);
 				}
 				counter++;
-				i++;
 			}
 		}
 
