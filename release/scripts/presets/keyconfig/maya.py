@@ -377,5 +377,17 @@ kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'CONNECTED'
 kmi = km.keymap_items.new('mesh.select_all', 'SELECTMOUSE', 'CLICK')
 kmi.properties.action = 'DESELECT'
+kmi = km.keymap_items.new('object.subdivision_set', 'ZERO', 'PRESS', ctrl=True)
+kmi.properties.level = 0
+kmi = km.keymap_items.new('object.subdivision_set', 'ONE', 'PRESS', ctrl=True)
+kmi.properties.level = 1
+kmi = km.keymap_items.new('object.subdivision_set', 'TWO', 'PRESS', ctrl=True)
+kmi.properties.level = 2
+kmi = km.keymap_items.new('object.subdivision_set', 'THREE', 'PRESS', ctrl=True)
+kmi.properties.level = 3
+kmi = km.keymap_items.new('object.subdivision_set', 'FOUR', 'PRESS', ctrl=True)
+kmi.properties.level = 4
+kmi = km.keymap_items.new('object.subdivision_set', 'FIVE', 'PRESS', ctrl=True)
+kmi.properties.level = 5
 
 wm.keyconfigs.active = kc
