@@ -1696,7 +1696,6 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	vi->no= 0;
 	vi->fno= 0;
 	vi->mvert= 0;
-	vi->skip= 0;
 	
 	BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL);
 	BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);

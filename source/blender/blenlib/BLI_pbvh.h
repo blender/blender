@@ -142,7 +142,6 @@ typedef struct PBVHVertexIter {
 	int g;
 	int width;
 	int height;
-	int skip;
 	int gx;
 	int gy;
 	int i;
@@ -182,13 +181,6 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 			vi.width= vi.gridsize; \
 			vi.height= vi.gridsize; \
 			vi.grid= vi.grids[vi.grid_indices[vi.g]]; \
-			vi.skip= 0; \
-			 \
-			/*if(mode == PVBH_ITER_UNIQUE) { \
-				vi.grid += subm->grid.offset; \
-				vi.skip= subm->grid.skip; \
-				vi.grid -= skip; \
-			}*/ \
 		} \
 		else { \
 			vi.width= vi.totvert; \
@@ -196,8 +188,6 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 		} \
 		 \
 		for(vi.gy=0; vi.gy<vi.height; vi.gy++) { \
-			if(vi.grid) vi.grid += vi.skip; \
-			\
 			for(vi.gx=0; vi.gx<vi.width; vi.gx++, vi.i++) { \
 				if(vi.grid) { \
 					vi.co= vi.grid->co; \
