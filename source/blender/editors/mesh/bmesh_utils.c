@@ -769,18 +769,17 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		island_number[j++] = INVALID_ISLAND;
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
-			i = 0;
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			BM_ITER_INDEX(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa, i) {
 				buf->l = l;
 				buf->face = efa;
 				buf->separate = 0;
 				buf->island = INVALID_ISLAND;
+				buf->tfindex = i;
 
 				buf->next = element_map->vert[BM_elem_index_get(l->v)];
 				element_map->vert[BM_elem_index_get(l->v)] = buf;
 
 				buf++;
-				i++;
 			}
 		}
 	}
@@ -865,6 +864,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 								islandbuf[islandbufsize].l = element->l;
 								islandbuf[islandbufsize].face = element->face;
 								islandbuf[islandbufsize].separate = element->separate;
+								islandbuf[islandbufsize].tfindex = element->tfindex;
 								islandbuf[islandbufsize].island =  nislands;
 								islandbufsize++;
 

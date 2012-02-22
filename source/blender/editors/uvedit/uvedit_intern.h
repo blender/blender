@@ -89,17 +89,18 @@ void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, str
 /* object that stores display data for previewing before accepting stitching */
 typedef struct StitchPreviewer {
 	/* here we'll store the preview triangle indices of the mesh */
-	unsigned int *preview_tris;
-	/* here we store the actual uv vertices to display */
-	float *preview_coords;
+	float *preview_polys;
+	/* uvs per polygon. */
+	unsigned int *uvs_per_polygon;
+	/*number of preview polygons */
+	unsigned int num_polys;
 	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
 	float *preview_stitchable;
 	float *preview_unstitchable;
-	/* here we'll store the number of triangles and quads to be drawn */
-	unsigned int num_tris;
+	/* here we'll store the number of elements to be drawn */
 	unsigned int num_stitchable;
 	unsigned int num_unstitchable;
-
+	unsigned int preview_uvs;
 	/* ...and here we'll store the triangles*/
 	float *static_tris;
 	unsigned int num_static_tris;

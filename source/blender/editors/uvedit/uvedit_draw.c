@@ -877,6 +877,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 	/* finally draw stitch preview */
 	if(stitch_preview) {
+		int i, index = 0;
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -887,13 +888,17 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
 		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris*3);
 
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_tris);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);
+		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_polys);
+		for(i = 0; i < stitch_preview->num_polys; i++){
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
+			glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
+			glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
+
+			index += stitch_preview->uvs_per_polygon[i];
+		}
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		/*UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
 		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);*/
