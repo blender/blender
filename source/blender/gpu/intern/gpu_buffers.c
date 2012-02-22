@@ -1334,9 +1334,12 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 	buffers->smooth = smooth;
 }
 
-GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MFace *mface,
+/*GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MFace *mface,
 									int *face_indices, int totface,
-									int tot_uniq_verts)
+									int tot_uniq_verts)*/
+GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
+									MFace *mface, int *face_indices,
+									int totface)
 {
 	GPU_Buffers *buffers;
 	unsigned short *tri_data;
@@ -1365,29 +1368,18 @@ GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MFace *mface,
 				MFace *f = mface + face_indices[i];
 				int v[3];
 
-				v[0]= f->v1;
-				v[1]= f->v2;
-				v[2]= f->v3;
+				v[0]= 0;
+				v[1]= 1;
+				v[2]= 2;
 
 				for(j = 0; j < (f->v4 ? 2 : 1); ++j) {
 					for(k = 0; k < 3; ++k) {
-						void *value, *key = SET_INT_IN_POINTER(v[k]);
-						int vbo_index;
-
-						value = BLI_ghash_lookup(map, key);
-						vbo_index = GET_INT_FROM_POINTER(value);
-
-						if(vbo_index < 0) {
-							vbo_index = -vbo_index +
-								tot_uniq_verts - 1;
-						}
-
-						*tri_data = vbo_index;
+						*tri_data = face_vert_indices[i][v[k]];
 						++tri_data;
 					}
-					v[0] = f->v4;
-					v[1] = f->v1;
-					v[2] = f->v3;
+					v[0] = 3;
+					v[1] = 0;
+					v[2] = 2;
 				}
 			}
 			glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);

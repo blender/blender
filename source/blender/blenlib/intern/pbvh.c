@@ -420,10 +420,10 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	if(!G.background) {
 		node->draw_buffers =
-			GPU_build_mesh_buffers(map, bvh->faces,
+			GPU_build_mesh_buffers(node->face_vert_indices,
+					bvh->faces,
 					node->prim_indices,
-					node->totprim,
-					node->uniq_verts);
+					node->totprim);
 	}
 
 	node->flag |= PBVH_UpdateDrawBuffers;
