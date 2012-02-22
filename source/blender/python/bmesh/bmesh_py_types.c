@@ -290,6 +290,11 @@ static PyGetSetDef bpy_bmvert_getseters[] = {
 
     {(char *)"co",     (getter)bpy_bmvert_co_get,     (setter)bpy_bmvert_co_set,     (char *)bpy_bmvert_co_doc, NULL},
     {(char *)"normal", (getter)bpy_bmvert_normal_get, (setter)bpy_bmvert_normal_set, (char *)bpy_bmvert_normal_doc, NULL},
+
+    {(char *)"link_edges", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_EDGES_OF_VERT},
+    {(char *)"link_faces", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_FACES_OF_VERT},
+    {(char *)"link_loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_VERT},
+
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -305,6 +310,9 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
 
     {(char *)"verts", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_VERTS_OF_EDGE},
 
+    {(char *)"link_faces", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_FACES_OF_EDGE},
+    {(char *)"link_loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_EDGE},
+
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -319,7 +327,9 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 
     {(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
 
-    {(char *)"verts", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_VERTS_OF_EDGE},
+    {(char *)"verts", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_VERTS_OF_FACE},
+    {(char *)"edges", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_EDGES_OF_FACE},
+    {(char *)"loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_FACE},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -330,6 +340,9 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
     {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
+
+    {(char *)"link_loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_LOOP},
+
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -982,7 +995,7 @@ static PyObject *bpy_bm_seq_subscript(BPy_BMElemSeq *self, PyObject *key)
 	}
 	/* TODO, slice */
 	else {
-		PyErr_SetString(PyExc_AttributeError, "bm.verts[key]: invalid key, key must be an int");
+		PyErr_SetString(PyExc_AttributeError, "BMElemSeq[key]: invalid key, key must be an int");
 		return NULL;
 	}
 }
