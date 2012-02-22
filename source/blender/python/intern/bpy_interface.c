@@ -193,7 +193,7 @@ static struct _inittab bpy_internal_modules[] = {
 //	{(char *)"mathutils.noise", PyInit_mathutils_noise},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
-	{(char *)"bme", BPyInit_bmesh},
+	{(char *)"bmesh", BPyInit_bmesh},
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif

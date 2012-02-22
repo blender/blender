@@ -75,7 +75,7 @@ PyDoc_STRVAR(BPy_BM_doc,
 );
 static struct PyModuleDef BPy_BM_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"bme",  /* m_name */
+	"bmesh",  /* m_name */
 	BPy_BM_doc,  /* m_doc */
 	0,  /* m_size */
 	BPy_BM_methods,  /* m_methods */
