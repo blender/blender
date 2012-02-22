@@ -1731,9 +1731,8 @@ static void node_composit_buts_multi_file_output_details(uiLayout *layout, bCont
 	uiTemplateList(layout, C, ptr, "inputs", ptr, "active_input_index", NULL, 0, 0, 0);
 	
 	if (active_input_ptr.data) {
+		PointerRNA imfptr = RNA_pointer_get(&active_input_ptr, "format");
 		uiLayout *row, *col;
-		
-		uiItemS(layout);
 		
 		col = uiLayoutColumn(layout, 1);
 		uiItemL(col, "File Path:", 0);
@@ -1742,12 +1741,14 @@ static void node_composit_buts_multi_file_output_details(uiLayout *layout, bCont
 		uiItemFullO(row, "NODE_OT_output_multi_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
 		
 		uiItemS(layout);
-		uiItemL(layout, "Format:", 0);
-		uiItemR(layout, &active_input_ptr, "use_render_format", 0, NULL, 0);
-		if (!RNA_boolean_get(&active_input_ptr, "use_render_format")) {
-			PointerRNA imfptr = RNA_pointer_get(&active_input_ptr, "format");
-			uiTemplateImageSettings(layout, &imfptr);
-		}
+		
+		col = uiLayoutColumn(layout, 1);
+		uiItemL(col, "Format:", 0);
+		uiItemR(col, &active_input_ptr, "use_render_format", 0, NULL, 0);
+		
+		col= uiLayoutColumn(layout, 0);
+		uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_render_format")==0);
+		uiTemplateImageSettings(col, &imfptr);
 	}
 }
 
