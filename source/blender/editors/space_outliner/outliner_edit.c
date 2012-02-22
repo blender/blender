@@ -1433,15 +1433,24 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 
 static int parent_drop_exec(bContext *C, wmOperator *op)
 {
-	Object *par = NULL;
+	Object *par = NULL, *ob = NULL;
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	int partype = -1;
-	char parname[32];
+	char parname[MAX_ID_NAME], childname[MAX_ID_NAME];
 
 	partype= RNA_enum_get(op->ptr, "type");
 	RNA_string_get(op->ptr, "parent", parname);
 	par= (Object *)find_id("OB", parname);
+	RNA_string_get(op->ptr, "child", childname);
+	ob= (Object *)find_id("OB", childname);
 
-	ED_object_parent_set(C, op, par, partype);
+	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype);
+
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1482,6 +1491,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Object *ob= NULL;
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	TreeElement *te= NULL;
 	TreeElement *te_found= NULL;
@@ -1519,7 +1529,12 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
 		
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
-			ED_object_parent_set(C, op, par, partype);
+			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
+				DAG_scene_sort(bmain, scene);
+				DAG_ids_flush_update(bmain, 0);
+				WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+				WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
+			}
 		}
 		else {
 			/* Menu creation */

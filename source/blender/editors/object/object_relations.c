@@ -519,10 +519,8 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-int ED_object_parent_set(bContext *C, wmOperator *op, Object *par, int partype)
+int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par, int partype)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
 	bPoseChannel *pchan= NULL;
 	int pararm= ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
@@ -561,136 +559,144 @@ int ED_object_parent_set(bContext *C, wmOperator *op, Object *par, int partype)
 		pchan= get_active_posechannel(par);
 		
 		if(pchan==NULL) {
-			BKE_report(op->reports, RPT_ERROR, "No active Bone");
+			BKE_report(reports, RPT_ERROR, "No active Bone");
 			return 0;
 		}
 	}
 	
-	/* context iterator */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
-	{
-		if (ob!=par) {
-			if (BKE_object_parent_loop_check(par, ob)) {
-				BKE_report(op->reports, RPT_ERROR, "Loop in parents");
+	if (ob!=par) {
+		if (BKE_object_parent_loop_check(par, ob)) {
+			BKE_report(reports, RPT_ERROR, "Loop in parents");
+			return 0;
+		}
+		else {
+			Object workob;
+			
+			/* apply transformation of previous parenting */
+			/* object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
+			
+			/* set the parent (except for follow-path constraint option) */
+			if (partype != PAR_PATH_CONST) {
+				ob->parent= par;
+			}
+			
+			/* handle types */
+			if (pchan)
+				BLI_strncpy(ob->parsubstr, pchan->name, sizeof(ob->parsubstr));
+			else
+				ob->parsubstr[0]= 0;
+				
+			if (partype == PAR_PATH_CONST) {
+				/* don't do anything here, since this is not technically "parenting" */
+			}
+			else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm))
+			{
+				/* partype is now set to PAROBJECT so that invisible 'virtual' modifiers don't need to be created
+				 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
+				 */
+				ob->partype= PAROBJECT;	/* note, dna define, not operator property */
+				//ob->partype= PARSKEL; /* note, dna define, not operator property */
+				
+				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
+				// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
+				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
+				{
+					ModifierData *md;
+					
+					switch (partype) {
+					case PAR_CURVE: /* curve deform */
+						md= ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
+						((CurveModifierData *)md)->object= par;
+						break;
+					case PAR_LATTICE: /* lattice deform */
+						md= ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
+						((LatticeModifierData *)md)->object= par;
+						break;
+					default: /* armature deform */
+						md= ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
+						((ArmatureModifierData *)md)->object= par;
+						break;
+					}
+				}
+			}
+			else if (partype == PAR_BONE)
+				ob->partype= PARBONE; /* note, dna define, not operator property */
+			else
+				ob->partype= PAROBJECT;	/* note, dna define, not operator property */
+			
+			/* constraint */
+			if(partype == PAR_PATH_CONST) {
+				bConstraint *con;
+				bFollowPathConstraint *data;
+				float cmat[4][4], vec[3];
+				
+				con = add_ob_constraint(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
+				
+				data = con->data;
+				data->tar = par;
+				
+				get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
+				sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
+				
+				ob->loc[0] = vec[0];
+				ob->loc[1] = vec[1];
+				ob->loc[2] = vec[2];
+			}
+			else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+				if(partype == PAR_ARMATURE_NAME)
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, 0);
+				else if(partype == PAR_ARMATURE_ENVELOPE)
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
+				else if(partype == PAR_ARMATURE_AUTO) {
+					WM_cursor_wait(1);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, 0);
+					WM_cursor_wait(0);
+				}
+				/* get corrected inverse */
+				ob->partype= PAROBJECT;
+				what_does_parent(scene, ob, &workob);
+				
+				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
 			else {
-				Object workob;
-				
-				/* apply transformation of previous parenting */
-				/* object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
-				
-				/* set the parent (except for follow-path constraint option) */
-				if (partype != PAR_PATH_CONST) {
-					ob->parent= par;
-				}
-				
-				/* handle types */
-				if (pchan)
-					BLI_strncpy(ob->parsubstr, pchan->name, sizeof(ob->parsubstr));
-				else
-					ob->parsubstr[0]= 0;
-					
-				if (partype == PAR_PATH_CONST) {
-					/* don't do anything here, since this is not technically "parenting" */
-				}
-				else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm))
-				{
-					/* partype is now set to PAROBJECT so that invisible 'virtual' modifiers don't need to be created
-					 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
-					 */
-					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
-					//ob->partype= PARSKEL; /* note, dna define, not operator property */
-					
-					/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
-					// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
-					if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
-					{
-						ModifierData *md;
-						
-						switch (partype) {
-						case PAR_CURVE: /* curve deform */
-							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Curve);
-							((CurveModifierData *)md)->object= par;
-							break;
-						case PAR_LATTICE: /* lattice deform */
-							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Lattice);
-							((LatticeModifierData *)md)->object= par;
-							break;
-						default: /* armature deform */
-							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Armature);
-							((ArmatureModifierData *)md)->object= par;
-							break;
-						}
-					}
-				}
-				else if (partype == PAR_BONE)
-					ob->partype= PARBONE; /* note, dna define, not operator property */
-				else
-					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
-				
-				/* constraint */
-				if(partype == PAR_PATH_CONST) {
-					bConstraint *con;
-					bFollowPathConstraint *data;
-					float cmat[4][4], vec[3];
-					
-					con = add_ob_constraint(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
-					
-					data = con->data;
-					data->tar = par;
-					
-					get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
-					sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
-					
-					ob->loc[0] = vec[0];
-					ob->loc[1] = vec[1];
-					ob->loc[2] = vec[2];
-				}
-				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
-					if(partype == PAR_ARMATURE_NAME)
-						create_vgroups_from_armature(op->reports, scene, ob, par, ARM_GROUPS_NAME, 0);
-					else if(partype == PAR_ARMATURE_ENVELOPE)
-						create_vgroups_from_armature(op->reports, scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
-					else if(partype == PAR_ARMATURE_AUTO) {
-						WM_cursor_wait(1);
-						create_vgroups_from_armature(op->reports, scene, ob, par, ARM_GROUPS_AUTO, 0);
-						WM_cursor_wait(0);
-					}
-					/* get corrected inverse */
-					ob->partype= PAROBJECT;
-					what_does_parent(scene, ob, &workob);
-					
-					invert_m4_m4(ob->parentinv, workob.obmat);
-				}
-				else {
-					/* calculate inverse parent matrix */
-					what_does_parent(scene, ob, &workob);
-					invert_m4_m4(ob->parentinv, workob.obmat);
-				}
-				
-				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+				/* calculate inverse parent matrix */
+				what_does_parent(scene, ob, &workob);
+				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
+			
+			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 		}
 	}
-	CTX_DATA_END;
-
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
 
 	return 1;
 }
 
 static int parent_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	Object *par= ED_object_active_context(C);
 	int partype= RNA_enum_get(op->ptr, "type");
+	int ok = 1;
 
-	if(ED_object_parent_set(C, op, par, partype))
-		return OPERATOR_FINISHED;
-	else
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
+	{
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
+			ok = 0;
+			break;
+		}
+	}
+	CTX_DATA_END;
+
+	if (!ok)
 		return OPERATOR_CANCELLED;
+
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
+
+	return OPERATOR_FINISHED;
 }
 
 
