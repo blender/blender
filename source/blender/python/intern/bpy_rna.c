@@ -733,7 +733,7 @@ int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int
 {
 	if (RNA_enum_value_from_id(item, identifier, value) == 0) {
 		const char *enum_str = BPy_enum_as_string(item);
-		PyErr_Format(PyExc_TypeError,
+		PyErr_Format(PyExc_ValueError,
 		             "%s: '%.200s' not found in (%s)",
 		             error_prefix, identifier, enum_str);
 		MEM_freeN((void *)enum_str);
