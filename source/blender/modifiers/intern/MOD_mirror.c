@@ -271,11 +271,13 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 		
-		for (i = maxVerts; i-- > 0; dvert++) {
-			defvert_flip(dvert, flip_map, flip_map_len);
-		}
+		if (flip_map) {
+			for (i = maxVerts; i-- > 0; dvert++) {
+				defvert_flip(dvert, flip_map, flip_map_len);
+			}
 
-		MEM_freeN(flip_map);
+			MEM_freeN(flip_map);
+		}
 	}
 
 	if (do_vtargetmap) {
