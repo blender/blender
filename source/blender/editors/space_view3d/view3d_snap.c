@@ -97,10 +97,10 @@ static int tottrans= 0;
 /* copied from editobject.c, now uses (almost) proper depgraph */
 static void special_transvert_update(Object *obedit)
 {
-	if(obedit) {
+	if (obedit) {
 		DAG_id_tag_update(obedit->data, 0);
 		
-		if(obedit->type==OB_MESH) {
+		if (obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
 			BM_mesh_normals_update(me->edit_btmesh->bm);	// does face centers too
 		}
@@ -109,25 +109,25 @@ static void special_transvert_update(Object *obedit)
 			ListBase *nurbs= curve_editnurbs(cu);
 			Nurb *nu= nurbs->first;
 
-			while(nu) {
+			while (nu) {
 				/* keep handles' vectors unchanged */
-				if(nu->bezt) {
+				if (nu->bezt) {
 					int a= nu->pntsu;
 					TransVert *tv= transvmain;
 					BezTriple *bezt= nu->bezt;
 
-					while(a--) {
-						if(bezt->f1 & SELECT) tv++;
+					while (a--) {
+						if (bezt->f1 & SELECT) tv++;
 
-						if(bezt->f2 & SELECT) {
+						if (bezt->f2 & SELECT) {
 							float v[3];
 
-							if(bezt->f1 & SELECT) {
+							if (bezt->f1 & SELECT) {
 								sub_v3_v3v3(v, (tv-1)->oldloc, tv->oldloc);
 								add_v3_v3v3(bezt->vec[0], bezt->vec[1], v);
 							}
 
-							if(bezt->f3 & SELECT) {
+							if (bezt->f3 & SELECT) {
 								sub_v3_v3v3(v, (tv+1)->oldloc, tv->oldloc);
 								add_v3_v3v3(bezt->vec[2], bezt->vec[1], v);
 							}
@@ -135,7 +135,7 @@ static void special_transvert_update(Object *obedit)
 							tv++;
 						}
 
-						if(bezt->f3 & SELECT) tv++;
+						if (bezt->f3 & SELECT) tv++;
 
 						bezt++;
 					}
@@ -146,7 +146,7 @@ static void special_transvert_update(Object *obedit)
 				nu= nu->next;
 			}
 		}
-		else if(obedit->type==OB_ARMATURE){
+		else if (obedit->type==OB_ARMATURE) {
 			bArmature *arm= obedit->data;
 			EditBone *ebo;
 			TransVert *tv= transvmain;
@@ -170,9 +170,9 @@ static void special_transvert_update(Object *obedit)
 			
 			/* Ensure all bones are correctly adjusted */
 			for (ebo= arm->edbo->first; ebo; ebo=ebo->next) {
-				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+				if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
 					/* If this bone has a parent tip that has been moved */
-					if (ebo->parent->flag & BONE_TIPSEL){
+					if (ebo->parent->flag & BONE_TIPSEL) {
 						copy_v3_v3(ebo->head, ebo->parent->tail);
 					}
 					/* If this bone has a parent tip that has NOT been moved */
@@ -181,13 +181,13 @@ static void special_transvert_update(Object *obedit)
 					}
 				}
 			}
-			if(arm->flag & ARM_MIRROR_EDIT)
+			if (arm->flag & ARM_MIRROR_EDIT)
 				transform_armature_mirror_update(obedit);
 		}
-		else if(obedit->type==OB_LATTICE) {
+		else if (obedit->type==OB_LATTICE) {
 			Lattice *lt= obedit->data;
 			
-			if(lt->editlatt->latt->flag & LT_OUTSIDE)
+			if (lt->editlatt->latt->flag & LT_OUTSIDE)
 				outside_lattice(lt->editlatt->latt);
 		}
 	}
@@ -227,7 +227,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	INIT_MINMAX(min, max);
 	centroid[0]=centroid[1]=centroid[2]= 0.0;
 	
-	if(obedit->type==OB_MESH) {
+	if (obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
 		BMEditMesh *em= me->edit_btmesh;
 		BMesh *bm = em->bm;
@@ -240,30 +240,30 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
-		if(em->selectmode & SCE_SELECT_VERTEX) {
+		if (em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 					BM_elem_index_set(eve, 1); /* set_dirty! */
 					tottrans++;
 				}
 				else BM_elem_index_set(eve, 0); /* set_dirty! */
 			}
 		}
-		else if(em->selectmode & SCE_SELECT_EDGE) {
+		else if (em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				BM_elem_index_set(eve, 0); /* set_dirty! */
 
 			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-				if(!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 					BM_elem_index_set(eed->v1, 1); /* set_dirty! */
 					BM_elem_index_set(eed->v2, 1); /* set_dirty! */
 				}
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				if(BM_elem_index_get(eve)) tottrans++;
+				if (BM_elem_index_get(eve)) tottrans++;
 		}
 		else {
 			BMFace *efa;
@@ -272,7 +272,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				BM_elem_index_set(eve, 0); /* set_dirty! */
 
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-				if(!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BMIter liter;
 					BMLoop *l;
 					
@@ -283,27 +283,30 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				if(BM_elem_index_get(eve)) tottrans++;
+				if (BM_elem_index_get(eve)) tottrans++;
 		}
 		/* for any of the 3 loops above which all dirty the indicies */
 		bm->elem_index_dirty |= BM_VERT;
 		
 		/* and now make transverts */
-		if(tottrans) {
+		if (tottrans) {
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
 		
 			a = 0;
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(BM_elem_index_get(eve)) {
+				if (BM_elem_index_get(eve)) {
 					BM_elem_index_set(eve, a); /* set_dirty! */
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc= eve->co;
-					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
+					if (eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
 					tv->flag= BM_elem_index_get(eve) & SELECT;
 					tv++;
 					a++;
-				} else BM_elem_index_set(eve, -1); /* set_dirty! */
+				}
+				else {
+					BM_elem_index_set(eve, -1); /* set_dirty! */
+				}
 			}
 			/* set dirty already, above */
 
@@ -316,7 +319,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			EDBM_free_index_arrays(em);
 		}
 	}
-	else if (obedit->type==OB_ARMATURE){
+	else if (obedit->type==OB_ARMATURE) {
 		bArmature *arm= obedit->data;
 		int totmalloc= BLI_countlist(arm->edbo);
 
@@ -324,8 +327,8 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts armature");
 		
-		for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
-			if(ebo->layer & arm->layer) {
+		for (ebo= arm->edbo->first; ebo; ebo=ebo->next) {
+			if (ebo->layer & arm->layer) {
 				short tipsel= (ebo->flag & BONE_TIPSEL);
 				short rootsel= (ebo->flag & BONE_ROOTSEL);
 				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL));
@@ -369,8 +372,8 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		int totmalloc= 0;
 		ListBase *nurbs= curve_editnurbs(cu);
 
-		for(nu= nurbs->first; nu; nu= nu->next) {
-			if(nu->type == CU_BEZIER)
+		for (nu= nurbs->first; nu; nu= nu->next) {
+			if (nu->type == CU_BEZIER)
 				totmalloc += 3*nu->pntsu;
 			else
 				totmalloc += nu->pntsu*nu->pntsv;
@@ -378,24 +381,24 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts curve");
 
 		nu= nurbs->first;
-		while(nu) {
-			if(nu->type == CU_BEZIER) {
+		while (nu) {
+			if (nu->type == CU_BEZIER) {
 				a= nu->pntsu;
 				bezt= nu->bezt;
-				while(a--) {
-					if(bezt->hide==0) {
+				while (a--) {
+					if (bezt->hide==0) {
 						int skip_handle= 0;
-						if(bezt->f2 & SELECT)
+						if (bezt->f2 & SELECT)
 							skip_handle= mode & TM_SKIP_HANDLES;
 
-						if((bezt->f1 & SELECT) && !skip_handle) {
+						if ((bezt->f1 & SELECT) && !skip_handle) {
 							copy_v3_v3(tv->oldloc, bezt->vec[0]);
 							tv->loc= bezt->vec[0];
 							tv->flag= bezt->f1 & SELECT;
 							tv++;
 							tottrans++;
 						}
-						if(bezt->f2 & SELECT) {
+						if (bezt->f2 & SELECT) {
 							copy_v3_v3(tv->oldloc, bezt->vec[1]);
 							tv->loc= bezt->vec[1];
 							tv->val= &(bezt->alfa);
@@ -404,7 +407,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 							tv++;
 							tottrans++;
 						}
-						if((bezt->f3 & SELECT) && !skip_handle) {
+						if ((bezt->f3 & SELECT) && !skip_handle) {
 							copy_v3_v3(tv->oldloc, bezt->vec[2]);
 							tv->loc= bezt->vec[2];
 							tv->flag= bezt->f3 & SELECT;
@@ -418,9 +421,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			else {
 				a= nu->pntsu*nu->pntsv;
 				bp= nu->bp;
-				while(a--) {
-					if(bp->hide==0) {
-						if(bp->f1 & SELECT) {
+				while (a--) {
+					if (bp->hide==0) {
+						if (bp->f1 & SELECT) {
 							copy_v3_v3(tv->oldloc, bp->vec);
 							tv->loc= bp->vec;
 							tv->val= &(bp->alfa);
@@ -436,15 +439,15 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			nu= nu->next;
 		}
 	}
-	else if(obedit->type==OB_MBALL) {
+	else if (obedit->type==OB_MBALL) {
 		MetaBall *mb= obedit->data;
 		int totmalloc= BLI_countlist(mb->editelems);
 		
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts mball");
 		
 		ml= mb->editelems->first;
-		while(ml) {
-			if(ml->flag & SELECT) {
+		while (ml) {
+			if (ml->flag & SELECT) {
 				tv->loc= &ml->x;
 				copy_v3_v3(tv->oldloc, tv->loc);
 				tv->val= &(ml->rad);
@@ -456,7 +459,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			ml= ml->next;
 		}
 	}
-	else if(obedit->type==OB_LATTICE) {
+	else if (obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
 		bp= lt->editlatt->latt->def;
@@ -465,9 +468,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		
 		tv=transvmain= MEM_callocN(a*sizeof(TransVert), "maketransverts latt");
 		
-		while(a--) {
-			if(bp->f1 & SELECT) {
-				if(bp->hide==0) {
+		while (a--) {
+			if (bp->f1 & SELECT) {
+				if (bp->hide==0) {
 					copy_v3_v3(tv->oldloc, bp->vec);
 					tv->loc= bp->vec;
 					tv->flag= bp->f1 & SELECT;
@@ -479,7 +482,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		}
 	}
 	
-	if(!tottrans && transvmain) {
+	if (!tottrans && transvmain) {
 		/* prevent memory leak. happens for curves/latticies due to */
 		/* difficult condition of adding points to trans data */
 		MEM_freeN(transvmain);
@@ -489,14 +492,14 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	/* cent etc */
 	tv= transvmain;
 	total= 0.0;
-	for(a=0; a<tottrans; a++, tv++) {
-		if(tv->flag & SELECT) {
+	for (a=0; a<tottrans; a++, tv++) {
+		if (tv->flag & SELECT) {
 			add_v3_v3(centroid, tv->oldloc);
 			total += 1.0f;
 			DO_MINMAX(tv->oldloc, min, max);
 		}
 	}
-	if(total != 0.0f) {
+	if (total != 0.0f) {
 		mul_v3_fl(centroid, 1.0f/total);
 	}
 
@@ -517,18 +520,18 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 
 	gridf= rv3d->gridview;
 
-	if(obedit) {
+	if (obedit) {
 		tottrans= 0;
 		
 		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
-		if(tottrans==0) return OPERATOR_CANCELLED;
+		if (tottrans==0) return OPERATOR_CANCELLED;
 		
 		copy_m3_m4(bmat, obedit->obmat);
 		invert_m3_m3(imat, bmat);
 		
 		tv= transvmain;
-		for(a=0; a<tottrans; a++, tv++) {
+		for (a=0; a<tottrans; a++, tv++) {
 			copy_v3_v3(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
 			add_v3_v3(vec, obedit->obmat[3]);
@@ -550,16 +553,16 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-			if(ob->mode & OB_MODE_POSE) {
+			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				
 				invert_m4_m4(ob->imat, ob->obmat);
 				
 				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-					if(pchan->bone->flag & BONE_SELECTED) {
-						if(pchan->bone->layer & arm->layer) {
-							if((pchan->bone->flag & BONE_CONNECTED)==0) {
+					if (pchan->bone->flag & BONE_SELECTED) {
+						if (pchan->bone->layer & arm->layer) {
+							if ((pchan->bone->flag & BONE_CONNECTED)==0) {
 								float nLoc[3];
 								
 								/* get nearest grid point to snap to */
@@ -603,7 +606,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				vec[1]= -ob->obmat[3][1]+gridf*floorf(0.5f+ ob->obmat[3][1]/gridf);
 				vec[2]= -ob->obmat[3][2]+gridf*floorf(0.5f+ ob->obmat[3][2]/gridf);
 				
-				if(ob->parent) {
+				if (ob->parent) {
 					where_is_object(scene, ob);
 					
 					invert_m3_m3(imat, originmat);
@@ -658,18 +661,18 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 
 	curs= give_cursor(scene, v3d);
 
-	if(obedit) {
+	if (obedit) {
 		tottrans= 0;
 		
 		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
-		if(tottrans==0) return OPERATOR_CANCELLED;
+		if (tottrans==0) return OPERATOR_CANCELLED;
 		
 		copy_m3_m4(bmat, obedit->obmat);
 		invert_m3_m3(imat, bmat);
 		
 		tv= transvmain;
-		for(a=0; a<tottrans; a++, tv++) {
+		for (a=0; a<tottrans; a++, tv++) {
 			sub_v3_v3v3(vec, curs, obedit->obmat[3]);
 			mul_m3_v3(imat, vec);
 			copy_v3_v3(tv->loc, vec);
@@ -684,7 +687,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-			if(ob->mode & OB_MODE_POSE) {
+			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				
@@ -693,9 +696,9 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				mul_m4_v3(ob->imat, vec);
 				
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-					if(pchan->bone->flag & BONE_SELECTED) {
-						if(pchan->bone->layer & arm->layer) {
-							if((pchan->bone->flag & BONE_CONNECTED)==0) {
+					if (pchan->bone->flag & BONE_SELECTED) {
+						if (pchan->bone->layer & arm->layer) {
+							if ((pchan->bone->flag & BONE_CONNECTED)==0) {
 								/* Get position in pchan (pose) space. */
 								armature_loc_pose_to_bone(pchan, vec, vec);
 
@@ -727,7 +730,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				vec[1]= -ob->obmat[3][1] + curs[1];
 				vec[2]= -ob->obmat[3][2] + curs[2];
 				
-				if(ob->parent) {
+				if (ob->parent) {
 					where_is_object(scene, ob);
 					
 					invert_m3_m3(imat, originmat);
@@ -814,7 +817,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 	int ok= 0;
 	float min[3], max[3], mat[4][4], pos[3], cammat[4][4] = MAT4_UNITY;
 
-	if(!clip)
+	if (!clip)
 		return;
 
 	tracking= &clip->tracking;
@@ -830,7 +833,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 		MovieTrackingTrack *track= tracksbase->first;
 		float obmat[4][4];
 
-		if(object->flag & TRACKING_OBJECT_CAMERA) {
+		if (object->flag & TRACKING_OBJECT_CAMERA) {
 			copy_m4_m4(obmat, mat);
 		}
 		else {
@@ -842,8 +845,8 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 			mult_m4_m4m4(obmat, cammat, imat);
 		}
 
-		while(track) {
-			if((track->flag&TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
+		while (track) {
+			if ((track->flag&TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
 				ok= 1;
 				mul_v3_m4v3(pos, obmat, track->bundle_pos);
 				DO_MINMAX(pos, min, max);
@@ -853,7 +856,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 		}
 	}
 
-	if(ok) {
+	if (ok) {
 		mid_v3_v3v3(vec, min, max);
 	}
 }
@@ -873,17 +876,17 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 	INIT_MINMAX(min, max);
 	centroid[0]= centroid[1]= centroid[2]= 0.0;
 
-	if(obedit) {
+	if (obedit) {
 		tottrans=0;
 		
 		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
 			make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS|TM_SKIP_HANDLES);
-		if(tottrans==0) return OPERATOR_CANCELLED;
+		if (tottrans==0) return OPERATOR_CANCELLED;
 		
 		copy_m3_m4(bmat, obedit->obmat);
 		
 		tv= transvmain;
-		for(a=0; a<tottrans; a++, tv++) {
+		for (a=0; a<tottrans; a++, tv++) {
 			copy_v3_v3(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
 			add_v3_v3(vec, obedit->obmat[3]);
@@ -891,7 +894,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			DO_MINMAX(vec, min, max);
 		}
 		
-		if(v3d->around==V3D_CENTROID) {
+		if (v3d->around==V3D_CENTROID) {
 			mul_v3_fl(centroid, 1.0f/(float)tottrans);
 			copy_v3_v3(curs, centroid);
 		}
@@ -904,12 +907,12 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 	else {
 		Object *obact= CTX_data_active_object(C);
 		
-		if(obact && (obact->mode & OB_MODE_POSE)) {
+		if (obact && (obact->mode & OB_MODE_POSE)) {
 			bArmature *arm= obact->data;
 			bPoseChannel *pchan;
 			for (pchan = obact->pose->chanbase.first; pchan; pchan=pchan->next) {
-				if(arm->layer & pchan->bone->layer) {
-					if(pchan->bone->flag & BONE_SELECTED) {
+				if (arm->layer & pchan->bone->layer) {
+					if (pchan->bone->flag & BONE_SELECTED) {
 						copy_v3_v3(vec, pchan->pose_head);
 						mul_m4_v3(obact->obmat, vec);
 						add_v3_v3(centroid, vec);
@@ -924,9 +927,9 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 				copy_v3_v3(vec, ob->obmat[3]);
 
 				/* special case for camera -- snap to bundles */
-				if(ob->type==OB_CAMERA) {
+				if (ob->type==OB_CAMERA) {
 					/* snap to bundles should happen only when bundles are visible */
-					if(v3d->flag2&V3D_SHOW_RECONSTRUCTION) {
+					if (v3d->flag2&V3D_SHOW_RECONSTRUCTION) {
 						bundle_midpoint(scene, ob, vec);
 					}
 				}
@@ -937,8 +940,8 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			}
 			CTX_DATA_END;
 		}
-		if(count) {
-			if(v3d->around==V3D_CENTROID) {
+		if (count) {
+			if (v3d->around==V3D_CENTROID) {
 				mul_v3_fl(centroid, 1.0f/(float)count);
 				copy_v3_v3(curs, centroid);
 			}
@@ -1063,12 +1066,12 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	if ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE)
 		make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS);
 	
-	if(tottrans==0) return 0;
+	if (tottrans==0) return 0;
 
 	copy_m3_m4(bmat, obedit->obmat);
 	
 	tv= transvmain;
-	for(a=0; a<tottrans; a++, tv++) {
+	for (a=0; a<tottrans; a++, tv++) {
 		copy_v3_v3(vec, (tv->flag & TX_VERT_USE_MAPLOC) ? tv->maploc : tv->loc);
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);

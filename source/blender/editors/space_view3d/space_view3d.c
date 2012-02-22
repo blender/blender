@@ -71,13 +71,13 @@ ARegion *view3d_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
-	if(ar) return ar;
+	if (ar) return ar;
 	
 	/* add subdiv level; after header */
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "buttons for view3d");
 	
@@ -94,24 +94,24 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 {
 	ARegion *ar, *artool=NULL, *arprops=NULL, *arhead;
 	
-	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_TOOLS)
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
+		if (ar->regiontype==RGN_TYPE_TOOLS)
 			artool= ar;
-		if(ar->regiontype==RGN_TYPE_TOOL_PROPS)
+		if (ar->regiontype==RGN_TYPE_TOOL_PROPS)
 			arprops= ar;
 	}
 	
 	/* tool region hide/unhide also hides props */
-	if(arprops && artool) return artool;
+	if (arprops && artool) return artool;
 	
-	if(artool==NULL) {
+	if (artool==NULL) {
 		/* add subdiv level; after header */
-		for(arhead= sa->regionbase.first; arhead; arhead= arhead->next)
-			if(arhead->regiontype==RGN_TYPE_HEADER)
+		for (arhead= sa->regionbase.first; arhead; arhead= arhead->next)
+			if (arhead->regiontype==RGN_TYPE_HEADER)
 				break;
 		
 		/* is error! */
-		if(arhead==NULL) return NULL;
+		if (arhead==NULL) return NULL;
 		
 		artool= MEM_callocN(sizeof(ARegion), "tools for view3d");
 		
@@ -121,7 +121,7 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
 
-	if(arprops==NULL) {
+	if (arprops==NULL) {
 		/* add extra subdivided region for tool properties */
 		arprops= MEM_callocN(sizeof(ARegion), "tool props for view3d");
 		
@@ -140,12 +140,12 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	
-	if(rv3d==NULL) {
-		ScrArea *sa =CTX_wm_area(C);
-		if(sa && sa->spacetype==SPACE_VIEW3D) {
+	if (rv3d==NULL) {
+		ScrArea *sa = CTX_wm_area(C);
+		if (sa && sa->spacetype == SPACE_VIEW3D) {
 			ARegion *ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-			if(ar) {
-				rv3d= ar->regiondata;
+			if (ar) {
+				rv3d = ar->regiondata;
 			}
 		}
 	}
@@ -161,13 +161,13 @@ int ED_view3d_context_user_region(bContext *C, View3D **v3d_r, ARegion **ar_r)
 	*v3d_r = NULL;
 	*ar_r = NULL;
 
-	if(sa && sa->spacetype==SPACE_VIEW3D) {
+	if (sa && sa->spacetype==SPACE_VIEW3D) {
 		ARegion *ar= CTX_wm_region(C);
 		View3D *v3d = (View3D *)sa->spacedata.first;
 
-		if(ar) {
+		if (ar) {
 			RegionView3D *rv3d= ar->regiondata;
-			if(rv3d && rv3d->viewlock == 0) {
+			if (rv3d && rv3d->viewlock == 0) {
 				*v3d_r = v3d;
 				*ar_r = ar;
 				return 1;
@@ -175,13 +175,13 @@ int ED_view3d_context_user_region(bContext *C, View3D **v3d_r, ARegion **ar_r)
 			else {
 				ARegion *ar_unlock_user= NULL;
 				ARegion *ar_unlock= NULL;
-				for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				for (ar= sa->regionbase.first; ar; ar= ar->next) {
 					/* find the first unlocked rv3d */
-					if(ar->regiondata && ar->regiontype == RGN_TYPE_WINDOW) {
+					if (ar->regiondata && ar->regiontype == RGN_TYPE_WINDOW) {
 						rv3d= ar->regiondata;
-						if(rv3d->viewlock == 0) {
+						if (rv3d->viewlock == 0) {
 							ar_unlock= ar;
-							if(rv3d->persp==RV3D_PERSP || rv3d->persp==RV3D_CAMOB) {
+							if (rv3d->persp==RV3D_PERSP || rv3d->persp==RV3D_CAMOB) {
 								ar_unlock_user= ar;
 								break;
 							}
@@ -190,13 +190,13 @@ int ED_view3d_context_user_region(bContext *C, View3D **v3d_r, ARegion **ar_r)
 				}
 
 				/* camera/perspective view get priority when the active region is locked */
-				if(ar_unlock_user) {
+				if (ar_unlock_user) {
 					*v3d_r = v3d;
 					*ar_r = ar_unlock_user;
 					return 1;
 				}
 
-				if(ar_unlock) {
+				if (ar_unlock) {
 					*v3d_r = v3d;
 					*ar_r = ar_unlock;
 					return 1;
@@ -252,7 +252,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->spacetype= SPACE_VIEW3D;
 	v3d->blockscale= 0.7f;
 	v3d->lay= v3d->layact= 1;
-	if(scene) {
+	if (scene) {
 		v3d->lay= v3d->layact= scene->lay;
 		v3d->camera= scene->camera;
 	}
@@ -334,14 +334,14 @@ static void view3d_free(SpaceLink *sl)
 	View3D *vd= (View3D *) sl;
 
 	BGpic *bgpic;
-	for(bgpic= vd->bgpicbase.first; bgpic; bgpic= bgpic->next) {
-		if(bgpic->ima) bgpic->ima->id.us--;
+	for (bgpic= vd->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+		if (bgpic->ima) bgpic->ima->id.us--;
 	}
 	BLI_freelistN(&vd->bgpicbase);
 
-	if(vd->localvd) MEM_freeN(vd->localvd);
+	if (vd->localvd) MEM_freeN(vd->localvd);
 	
-	if(vd->properties_storage) MEM_freeN(vd->properties_storage);
+	if (vd->properties_storage) MEM_freeN(vd->properties_storage);
 }
 
 
@@ -361,21 +361,21 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	
 // XXX	BIF_view3d_previewrender_free(v3do);
 	
-	if(v3do->localvd) {
+	if (v3do->localvd) {
 		v3do->localvd= NULL;
 		v3do->properties_storage= NULL;
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
 
-	if(v3dn->drawtype == OB_RENDER)
+	if (v3dn->drawtype == OB_RENDER)
 		v3dn->drawtype = OB_SOLID;
 	
 	/* copy or clear inside new stuff */
 
 	BLI_duplicatelist(&v3dn->bgpicbase, &v3do->bgpicbase);
-	for(bgpic= v3dn->bgpicbase.first; bgpic; bgpic= bgpic->next)
-		if(bgpic->ima)
+	for (bgpic= v3dn->bgpicbase.first; bgpic; bgpic= bgpic->next)
+		if (bgpic->ima)
 			bgpic->ima->id.us++;
 
 	v3dn->properties_storage= NULL;
@@ -469,9 +469,9 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_ID) {
+	if (drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
-		if( GS(id->name)==ID_OB )
+		if ( GS(id->name)==ID_OB )
 			return 1;
 	}
 	return 0;
@@ -479,9 +479,9 @@ static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSE
 
 static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_ID) {
+	if (drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
-		if( GS(id->name)==ID_MA )
+		if ( GS(id->name)==ID_MA )
 			return 1;
 	}
 	return 0;
@@ -489,13 +489,13 @@ static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUS
 
 static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
-	if(drag->type==WM_DRAG_ID) {
+	if (drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
-		if( GS(id->name)==ID_IM )
+		if ( GS(id->name)==ID_IM )
 			return 1;
 	}
-	else if(drag->type==WM_DRAG_PATH){
-		if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
+	else if (drag->type==WM_DRAG_PATH) {
+		if (ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
 			return 1;
 	}
 	return 0;
@@ -504,7 +504,7 @@ static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUS
 
 static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
-	if( ED_view3d_give_base_under_cursor(C, event->mval) ) {
+	if ( ED_view3d_give_base_under_cursor(C, event->mval) ) {
 		return 0;
 	}
 	return view3d_ima_drop_poll(C, drag, event);
@@ -512,7 +512,7 @@ static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 
 static int view3d_ima_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
-	if( ED_view3d_give_base_under_cursor(C, event->mval) ) {
+	if ( ED_view3d_give_base_under_cursor(C, event->mval) ) {
 		return view3d_ima_drop_poll(C, drag, event);
 	}
 	return 0;
@@ -525,7 +525,7 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 
 	/* need to put name in sub-operator in macro */
 	ptr= RNA_pointer_get(drop->ptr, "OBJECT_OT_add_named");
-	if(ptr.data)
+	if (ptr.data)
 		RNA_string_set(&ptr, "name", id->name+2);
 	else
 		RNA_string_set(drop->ptr, "name", id->name+2);
@@ -542,9 +542,9 @@ static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id= (ID *)drag->poin;
 	
-	if(id)
+	if (id)
 		RNA_string_set(drop->ptr, "name", id->name+2);
-	if(drag->path[0]) 
+	if (drag->path[0])
 		RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
@@ -567,19 +567,19 @@ static void view3d_main_area_free(ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
-	if(rv3d) {
-		if(rv3d->localvd) MEM_freeN(rv3d->localvd);
-		if(rv3d->clipbb) MEM_freeN(rv3d->clipbb);
+	if (rv3d) {
+		if (rv3d->localvd) MEM_freeN(rv3d->localvd);
+		if (rv3d->clipbb) MEM_freeN(rv3d->clipbb);
 
-		if(rv3d->ri) { 
+		if (rv3d->ri) {
 			// XXX		BIF_view3d_previewrender_free(rv3d);
 		}
 
-		if(rv3d->render_engine)
+		if (rv3d->render_engine)
 			RE_engine_free(rv3d->render_engine);
 		
-		if(rv3d->depths) {
-			if(rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
+		if (rv3d->depths) {
+			if (rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
 			MEM_freeN(rv3d->depths);
 		}
 		MEM_freeN(rv3d);
@@ -590,13 +590,13 @@ static void view3d_main_area_free(ARegion *ar)
 /* copy regiondata */
 static void *view3d_main_area_duplicate(void *poin)
 {
-	if(poin) {
+	if (poin) {
 		RegionView3D *rv3d= poin, *new;
 	
 		new= MEM_dupallocN(rv3d);
-		if(rv3d->localvd) 
+		if (rv3d->localvd)
 			new->localvd= MEM_dupallocN(rv3d->localvd);
-		if(rv3d->clipbb) 
+		if (rv3d->clipbb)
 			new->clipbb= MEM_dupallocN(rv3d->clipbb);
 		
 		new->depths= NULL;
@@ -621,7 +621,7 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	if (!win) return;
 
 	base= scene->base.first;
-	while(base) {
+	while (base) {
 		lay_used |= base->lay & ((1<<20)-1); /* ignore localview */
 
 		if (lay_used == (1<<20)-1)
@@ -630,9 +630,9 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 		base= base->next;
 	}
 
-	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype == SPACE_VIEW3D) {
-			if(BLI_findindex(&sa->regionbase, ar) != -1) {
+	for (sa= win->screen->areabase.first; sa; sa= sa->next) {
+		if (sa->spacetype == SPACE_VIEW3D) {
+			if (BLI_findindex(&sa->regionbase, ar) != -1) {
 				View3D *v3d= sa->spacedata.first;
 				v3d->lay_used= lay_used;
 				break;
@@ -725,7 +725,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
-			if(wmn->action == NA_EDITED)
+			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw_overlay(ar);
 			break;			
 		case NC_MATERIAL:
@@ -743,7 +743,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_WORLD_STARS:
 				{
 					RegionView3D *rv3d= ar->regiondata;
-					if(rv3d->persp == RV3D_CAMOB) {
+					if (rv3d->persp == RV3D_CAMOB) {
 						ED_region_tag_redraw(ar);
 					}
 				}
@@ -766,11 +766,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_MOVIECLIP:
-			if(wmn->data==ND_DISPLAY)
+			if (wmn->data==ND_DISPLAY)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D) {
+			if (wmn->data == ND_SPACE_VIEW3D) {
 				if (wmn->subtype == NS_VIEW3D_GPU) {
 					RegionView3D *rv3d= ar->regiondata;
 					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
@@ -779,7 +779,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCREEN:
@@ -809,7 +809,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion 
 {
 	Scene *scene= win->screen->scene;
 
-	if(scene->obedit) {
+	if (scene->obedit) {
 		WM_cursor_set(win, CURSOR_EDIT);
 	}
 	else {
@@ -851,7 +851,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D)
+			if (wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -938,19 +938,19 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
-			if(wmn->action==NA_EDITED)
+			if (wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D)
+			if (wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->action == NA_RENAME)
+			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCREEN: 
-			if(wmn->data == ND_GPENCIL)
+			if (wmn->data == ND_GPENCIL)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -977,15 +977,15 @@ static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_WM:
-			if(wmn->data == ND_HISTORY)
+			if (wmn->data == ND_HISTORY)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
-			if(wmn->data == ND_MODE)
+			if (wmn->data == ND_MODE)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D)
+			if (wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -1001,7 +1001,7 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_WORLD:
-					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+					if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}
@@ -1009,7 +1009,7 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 		case NC_WORLD:
 			switch(wmn->data) {
 				case ND_WORLD_DRAW:
-					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+					if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}
@@ -1017,7 +1017,7 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 		case NC_MATERIAL:
 			switch(wmn->data) {
 				case ND_NODES:
-					if(v3d->drawtype == OB_TEXTURE)
+					if (v3d->drawtype == OB_TEXTURE)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}
@@ -1053,16 +1053,16 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	/* fallback to the scene layer, allows duplicate and other object operators to run outside the 3d view */
 	unsigned int lay = v3d ? v3d->lay:scene->lay;
 
-	if(CTX_data_dir(member)) {
+	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, view3d_context_dir);
 	}
-	else if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
+	else if (CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
 		int selected_objects= CTX_data_equals(member, "selected_objects");
 
-		for(base=scene->base.first; base; base=base->next) {
-			if((base->flag & SELECT) && (base->lay & lay)) {
-				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(selected_objects)
+		for (base=scene->base.first; base; base=base->next) {
+			if ((base->flag & SELECT) && (base->lay & lay)) {
+				if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if (selected_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
 						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
@@ -1072,14 +1072,14 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
+	else if (CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
 		int selected_editable_objects= CTX_data_equals(member, "selected_editable_objects");
 
-		for(base=scene->base.first; base; base=base->next) {
-			if((base->flag & SELECT) && (base->lay & lay)) {
-				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(0==object_is_libdata(base->object)) {
-						if(selected_editable_objects)
+		for (base=scene->base.first; base; base=base->next) {
+			if ((base->flag & SELECT) && (base->lay & lay)) {
+				if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if (0==object_is_libdata(base->object)) {
+						if (selected_editable_objects)
 							CTX_data_id_list_add(result, &base->object->id);
 						else
 							CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
@@ -1090,13 +1090,13 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
+	else if (CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
 		int visible_objects= CTX_data_equals(member, "visible_objects");
 
-		for(base=scene->base.first; base; base=base->next) {
-			if(base->lay & lay) {
-				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(visible_objects)
+		for (base=scene->base.first; base; base=base->next) {
+			if (base->lay & lay) {
+				if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if (visible_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
 						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
@@ -1106,13 +1106,13 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
+	else if (CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
 		int selectable_objects= CTX_data_equals(member, "selectable_objects");
 
-		for(base=scene->base.first; base; base=base->next) {
-			if(base->lay & lay) {
-				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
-					if(selectable_objects)
+		for (base=scene->base.first; base; base=base->next) {
+			if (base->lay & lay) {
+				if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
+					if (selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
 						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
@@ -1122,16 +1122,16 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
-	else if(CTX_data_equals(member, "active_base")) {
-		if(scene->basact && (scene->basact->lay & lay))
-			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
+	else if (CTX_data_equals(member, "active_base")) {
+		if (scene->basact && (scene->basact->lay & lay))
+			if ((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, scene->basact);
 		
 		return 1;
 	}
-	else if(CTX_data_equals(member, "active_object")) {
-		if(scene->basact && (scene->basact->lay & lay))
-			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
+	else if (CTX_data_equals(member, "active_object")) {
+		if (scene->basact && (scene->basact->lay & lay))
+			if ((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_id_pointer_set(result, &scene->basact->object->id);
 		
 		return 1;

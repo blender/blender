@@ -152,7 +152,7 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 {
 	BoundBox *bb= rv3d->clipbb;
 
-	if(bb) {
+	if (bb) {
 		static unsigned int clipping_index[6][4]= {{0, 1, 2, 3},
 		                                           {0, 4, 5, 1},
 		                                           {4, 7, 6, 5},
@@ -175,9 +175,9 @@ void view3d_set_clipping(RegionView3D *rv3d)
 	double plane[4];
 	int a, tot=4;
 	
-	if(rv3d->viewlock) tot= 6;
+	if (rv3d->viewlock) tot= 6;
 	
-	for(a=0; a<tot; a++) {
+	for (a=0; a<tot; a++) {
 		QUATCOPY(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0+a, plane);
 		glEnable(GL_CLIP_PLANE0+a);
@@ -188,7 +188,7 @@ void view3d_clr_clipping(void)
 {
 	int a;
 	
-	for(a=0; a<6; a++) {
+	for (a=0; a<6; a++) {
 		glDisable(GL_CLIP_PLANE0+a);
 	}
 }
@@ -198,10 +198,10 @@ static int test_clipping(const float vec[3], float clip[][4])
 	float view[3];
 	copy_v3_v3(view, vec);
 
-	if(0.0f < clip[0][3] + dot_v3v3(view, clip[0]))
-		if(0.0f < clip[1][3] + dot_v3v3(view, clip[1]))
-			if(0.0f < clip[2][3] + dot_v3v3(view, clip[2]))
-				if(0.0f < clip[3][3] + dot_v3v3(view, clip[3]))
+	if (0.0f < clip[0][3] + dot_v3v3(view, clip[0]))
+		if (0.0f < clip[1][3] + dot_v3v3(view, clip[1]))
+			if (0.0f < clip[2][3] + dot_v3v3(view, clip[2]))
+				if (0.0f < clip[3][3] + dot_v3v3(view, clip[3]))
 					return 0;
 
 	return 1;
@@ -233,7 +233,7 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, verts);
 
-	while(verts[0][0] < ar->winx) {
+	while (verts[0][0] < ar->winx) {
 		glDrawArrays(GL_LINES, 0, 2);
 		verts[0][0] = verts[1][0] = verts[0][0] + dx;
 	}
@@ -244,7 +244,7 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 	/* iter over 'Y' */
 	verts[0][1]= verts[1][1]= y-dx*floorf(y/dx);
-	while(verts[0][1] < ar->winy) {
+	while (verts[0][1] < ar->winy) {
 		glDrawArrays(GL_LINES, 0, 2);
 		verts[0][1] = verts[1][1] = verts[0][1] + dx;
 	}
@@ -285,14 +285,14 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	fw= vec4[3];
 
 	dx= fabs(x-(wx)*fx/fw);
-	if(dx==0) dx= fabs(y-(wy)*fy/fw);
+	if (dx==0) dx= fabs(y-(wy)*fy/fw);
 	
 	glDepthMask(0);		// disable write in zbuffer
 
 	/* check zoom out */
 	UI_ThemeColor(TH_GRID);
 	
-	if(unit->system) {
+	if (unit->system) {
 		/* Use GRID_MIN_PX*2 for units because very very small grid
 		 * items are less useful when dealing with units */
 		void *usys;
@@ -302,9 +302,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 		bUnit_GetSystem(&usys, &len, unit->system, B_UNIT_LENGTH);
 
-		if(usys) {
+		if (usys) {
 			i= len;
-			while(i--) {
+			while (i--) {
 				float scalar= bUnit_GetScaler(usys, i);
 
 				dx_scalar = dx * scalar / unit->scale_length;
@@ -312,7 +312,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					continue;
 
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
-				if(*grid_unit==NULL) {
+				if (*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNameDisplay(usys, i);
 					rv3d->gridview= (scalar * v3d->grid) / unit->scale_length;
 				}
@@ -332,18 +332,18 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	else {
 		short sublines = v3d->gridsubdiv;
 
-		if(dx<GRID_MIN_PX) {
+		if (dx<GRID_MIN_PX) {
 			rv3d->gridview*= sublines;
 			dx*= sublines;
 			
-			if(dx<GRID_MIN_PX) {
+			if (dx<GRID_MIN_PX) {
 				rv3d->gridview*= sublines;
 				dx*= sublines;
 
-				if(dx<GRID_MIN_PX) {
+				if (dx<GRID_MIN_PX) {
 					rv3d->gridview*= sublines;
 					dx*=sublines;
-					if(dx<GRID_MIN_PX);
+					if (dx<GRID_MIN_PX);
 					else {
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx);
@@ -366,13 +366,13 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 			}
 		}
 		else {
-			if(dx>(GRID_MIN_PX*10)) {		// start blending in
+			if (dx>(GRID_MIN_PX*10)) {		// start blending in
 				rv3d->gridview/= sublines;
 				dx/= sublines;
-				if(dx>(GRID_MIN_PX*10)) {		// start blending in
+				if (dx>(GRID_MIN_PX*10)) {		// start blending in
 					rv3d->gridview/= sublines;
 					dx/= sublines;
-					if(dx>(GRID_MIN_PX*10)) {
+					if (dx>(GRID_MIN_PX*10)) {
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
@@ -408,7 +408,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	
 	/* center cross */
 	/* horizontal line */
-	if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
+	if ( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 		UI_make_axis_color(col, col2, 'Y');
 	else UI_make_axis_color(col, col2, 'X');
 	glColor3ubv(col2);
@@ -416,7 +416,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
 	/* vertical line */
-	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
+	if ( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
 		UI_make_axis_color(col, col2, 'Y');
 	else UI_make_axis_color(col, col2, 'Z');
 	glColor3ubv(col2);
@@ -433,19 +433,19 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	unsigned char col_grid[3];
 	const int gridlines= v3d->gridlines/2;
 
-	if(v3d->gridlines<3) return;
+	if (v3d->gridlines<3) return;
 	
 	grid_scale= v3d->grid;
 	/* use 'grid_scale' instead of 'v3d->grid' from now on */
 
 	/* apply units */
-	if(scene->unit.system) {
+	if (scene->unit.system) {
 		void *usys;
 		int len;
 
 		bUnit_GetSystem(&usys, &len, scene->unit.system, B_UNIT_LENGTH);
 
-		if(usys) {
+		if (usys) {
 			int i= bUnit_GetBaseUnit(usys);
 			*grid_unit= bUnit_GetNameDisplay(usys, i);
 			grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
@@ -454,12 +454,12 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 	grid= gridlines * grid_scale;
 
-	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
+	if (v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
 
 	UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
 	/* draw the Y axis and/or grid lines */
-	if(v3d->gridflag & V3D_SHOW_FLOOR) {
+	if (v3d->gridflag & V3D_SHOW_FLOOR) {
 		float vert[4][3]= {{0.0f}};
 		unsigned char col_bg[3];
 		unsigned char col_grid_emphasise[3], col_grid_light[3];
@@ -481,11 +481,11 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, vert);
 
-		for(a= -gridlines;a<=gridlines;a++) {
+		for (a= -gridlines;a<=gridlines;a++) {
 			const float line= a * grid_scale;
 			const int is_emphasise= (a % 10) == 0;
 
-			if(is_emphasise != prev_emphasise) {
+			if (is_emphasise != prev_emphasise) {
 				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
 				prev_emphasise= is_emphasise;
 			}
@@ -506,7 +506,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	/* check for the 'show Z axis' preference */
 	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
 		int axis;
-		for(axis= 0; axis < 3; axis++)
+		for (axis= 0; axis < 3; axis++)
 		if (v3d->gridflag & (V3D_SHOW_X << axis)) {
 			float vert[3];
 			unsigned char tcol[3];
@@ -527,7 +527,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 
 
-	if(v3d->zbuf && scene->obedit) glDepthMask(1);	
+	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 	
 }
 
@@ -545,7 +545,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	mx = co[0];
 	my = co[1];
 	
-	if(mx!=IS_CLIPPED) {
+	if (mx!=IS_CLIPPED) {
 		setlinestyle(0); 
 		cpack(0xFF);
 		circ((float)mx, (float)my, 10.0);
@@ -749,11 +749,11 @@ static void draw_view_icon(RegionView3D *rv3d)
 {
 	BIFIconID icon;
 	
-	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
+	if ( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
 		icon= ICON_AXIS_TOP;
-	else if( ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) 
+	else if ( ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))
 		icon= ICON_AXIS_FRONT;
-	else if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
+	else if ( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 		icon= ICON_AXIS_SIDE;
 	else return ;
 	
@@ -801,10 +801,12 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 					Camera *cam;
 					cam = v3d->camera->data;
 					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";
-				} else {
+				}
+				else {
 					name = "Object as Camera";
 				}
-			} else { 
+			}
+			else {
 				name = (rv3d->persp == RV3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 			break;
@@ -842,35 +844,35 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	markern= scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
-	if(ob) {
+	if (ob) {
 		/* name(s) to display depends on type of object */
-		if(ob->type==OB_ARMATURE) {
+		if (ob->type==OB_ARMATURE) {
 			bArmature *arm= ob->data;
 			char *name= NULL;
 			
 			/* show name of active bone too (if possible) */
-			if(arm->edbo) {
+			if (arm->edbo) {
 
-				if(arm->act_edbone)
+				if (arm->act_edbone)
 					name= ((EditBone *)arm->act_edbone)->name;
 
 			}
-			else if(ob->mode & OB_MODE_POSE) {
-				if(arm->act_bone) {
+			else if (ob->mode & OB_MODE_POSE) {
+				if (arm->act_bone) {
 
-					if(arm->act_bone->layer & arm->layer)
+					if (arm->act_bone->layer & arm->layer)
 						name= arm->act_bone->name;
 
 				}
 			}
-			if(name && markern)
+			if (name && markern)
 				BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name+2, name, markern);
-			else if(name)
+			else if (name)
 				BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name+2, name);
 			else
 				BLI_snprintf(info, sizeof(info), "(%d) %s", CFRA, ob->id.name+2);
 		}
-		else if(ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
+		else if (ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			Key *key= NULL;
 			KeyBlock *kb = NULL;
 			char shapes[MAX_NAME + 10];
@@ -878,17 +880,17 @@ static void draw_selected_name(Scene *scene, Object *ob)
 			/* try to display active shapekey too */
 			shapes[0] = '\0';
 			key = ob_get_key(ob);
-			if(key){
+			if (key) {
 				kb = BLI_findlink(&key->block, ob->shapenr-1);
-				if(kb){
+				if (kb) {
 					BLI_snprintf(shapes, sizeof(shapes), ": %s ", kb->name);
-					if(ob->shapeflag == OB_SHAPE_LOCK){
+					if (ob->shapeflag == OB_SHAPE_LOCK) {
 						strcat(shapes, " (Pinned)");
 					}
 				}
 			}
 			
-			if(markern)
+			if (markern)
 				BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name+2, shapes, markern);
 			else
 				BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name+2, shapes);
@@ -933,7 +935,7 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	/* get viewport viewplane */
 	camera_params_init(&params);
 	camera_params_from_view3d(&params, v3d, rv3d);
-	if(no_zoom)
+	if (no_zoom)
 		params.zoom= 1.0f;
 	camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
 	rect_view= params.viewplane;
@@ -941,7 +943,7 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	/* get camera viewplane */
 	camera_params_init(&params);
 	camera_params_from_object(&params, v3d->camera);
-	if(no_shift) {
+	if (no_shift) {
 		params.shiftx= 0.0f;
 		params.shifty= 0.0f;
 	}
@@ -1002,14 +1004,14 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 	float h= y2 - y1;
 
 	glBegin(GL_LINES);
-	if(w > h) {
-		if(golden) {
+	if (w > h) {
+		if (golden) {
 			ofs = w * (1.0f-(1.0f/1.61803399f));
 		}
 		else {
 			ofs = h * (h / w);
 		}
-		if(dir == 'B') SWAP(float, y1, y2);
+		if (dir == 'B') SWAP(float, y1, y2);
 
 		glVertex2f(x1, y1);
 		glVertex2f(x2, y2);
@@ -1021,13 +1023,13 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 		glVertex2f(x1 + ofs, y1);
 	}
 	else {
-		if(golden) {
+		if (golden) {
 			ofs = h * (1.0f-(1.0f/1.61803399f));
 		}
 		else {
 			ofs = w * (w / h);
 		}
-		if(dir == 'B') SWAP(float, x1, x2);
+		if (dir == 'B') SWAP(float, x1, x2);
 
 		glVertex2f(x1, y1);
 		glVertex2f(x2, y2);
@@ -1051,9 +1053,9 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	Camera *ca= NULL;
 	RegionView3D *rv3d= (RegionView3D *)ar->regiondata;
 	
-	if(v3d->camera==NULL)
+	if (v3d->camera==NULL)
 		return;
-	if(v3d->camera->type==OB_CAMERA)
+	if (v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
 	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
@@ -1079,7 +1081,8 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
 		if (ca->passepartalpha == 1.0f) {
 			glColor3f(0, 0, 0);
-		} else {
+		}
+		else {
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			glColor4f(0, 0, 0, ca->passepartalpha);
@@ -1106,7 +1109,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	glRectf(x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
-	if(view3d_camera_border_hack_test == TRUE) {
+	if (view3d_camera_border_hack_test == TRUE) {
 		glColor4fv(view3d_camera_border_hack_col);
 		glRectf(x1i+1, y1i+1, x2i-1, y2i-1);
 		view3d_camera_border_hack_test= FALSE;
@@ -1125,7 +1128,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	glRectf(x1i, y1i, x2i, y2i);
 
 	/* border */
-	if(scene->r.mode & R_BORDER) {
+	if (scene->r.mode & R_BORDER) {
 		
 		cpack(0);
 		x3= x1+ scene->r.border.xmin*(x2-x1);
@@ -1138,7 +1141,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	/* safety border */
-	if(ca) {
+	if (ca) {
 		if (ca->dtx & CAM_DTX_CENTER) {
 			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
 
@@ -1224,7 +1227,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			/* determine sensor plane */
 			rctf rect;
 
-			if(sensor_fit == CAMERA_SENSOR_FIT_HOR) {
+			if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {
 				float sensor_scale = (x2i-x1i) / sensor_x;
 				float sensor_height = sensor_scale * sensor_y;
 
@@ -1271,22 +1274,22 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
-	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
+	if (base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
 	            paint_facesel_test(base->object)))
 	{
 		/* do nothing */
 	}
-	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
+	else if ((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
 	        scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE))
 	{
 		/* do nothing */
 	}
-	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) &&
+	else if ((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) &&
 	        v3d->drawtype > OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT))
 	{
 		/* do nothing */
 	}
-	else if(scene->obedit && v3d->drawtype>OB_WIRE &&
+	else if (scene->obedit && v3d->drawtype>OB_WIRE &&
 	        (v3d->flag & V3D_ZBUF_SELECT)) {
 		/* do nothing */
 	}
@@ -1295,29 +1298,29 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		return;
 	}
 
-	if( !(v3d->flag & V3D_INVALID_BACKBUF) ) return;
+	if ( !(v3d->flag & V3D_INVALID_BACKBUF) ) return;
 
-//	if(test) {
-//		if(qtest()) {
+//	if (test) {
+//		if (qtest()) {
 //			addafterqueue(ar->win, BACKBUFDRAW, 1);
 //			return;
 //		}
 //	}
 
-	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
+	if (v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
 	/* dithering and AA break color coding, so disable */
 	glDisable(GL_DITHER);
 
 	multisample_enabled= glIsEnabled(GL_MULTISAMPLE_ARB);
-	if(multisample_enabled)
+	if (multisample_enabled)
 		glDisable(GL_MULTISAMPLE_ARB);
 
 	region_scissor_winrct(ar, &winrct);
 	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
-	if(v3d->zbuf) {
+	if (v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
@@ -1326,12 +1329,12 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		glDisable(GL_DEPTH_TEST);
 	}
 	
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_set_clipping(rv3d);
 	
 	G.f |= G_BACKBUFSEL;
 	
-	if(base && (base->lay & v3d->lay))
+	if (base && (base->lay & v3d->lay))
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
@@ -1341,10 +1344,10 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= FALSE; 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
-	if(multisample_enabled)
+	if (multisample_enabled)
 		glEnable(GL_MULTISAMPLE_ARB);
 
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 
 	/* it is important to end a view in a transform compatible with buttons */
@@ -1354,7 +1357,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 void view3d_validate_backbuf(ViewContext *vc)
 {
-	if(vc->v3d->flag & V3D_INVALID_BACKBUF)
+	if (vc->v3d->flag & V3D_INVALID_BACKBUF)
 		backdrawview3d(vc->scene, vc->ar, vc->v3d);
 }
 
@@ -1363,7 +1366,7 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 {
 	unsigned int col;
 	
-	if(x >= vc->ar->winx || y >= vc->ar->winy) return 0;
+	if (x >= vc->ar->winx || y >= vc->ar->winy) return 0;
 	x+= vc->ar->winrct.xmin;
 	y+= vc->ar->winrct.ymin;
 	
@@ -1372,7 +1375,7 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
 	glReadBuffer(GL_BACK);	
 	
-	if(ENDIAN_ORDER==B_ENDIAN) SWITCH_INT(col);
+	if (ENDIAN_ORDER==B_ENDIAN) SWITCH_INT(col);
 	
 	return WM_framebuffer_to_index(col);
 }
@@ -1386,13 +1389,13 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	short xminc, yminc, xmaxc, ymaxc, xs, ys;
 	
 	/* clip */
-	if(xmin<0) xminc= 0; else xminc= xmin;
-	if(xmax >= vc->ar->winx) xmaxc= vc->ar->winx-1; else xmaxc= xmax;
-	if(xminc > xmaxc) return NULL;
+	if (xmin<0) xminc= 0; else xminc= xmin;
+	if (xmax >= vc->ar->winx) xmaxc= vc->ar->winx-1; else xmaxc= xmax;
+	if (xminc > xmaxc) return NULL;
 
-	if(ymin<0) yminc= 0; else yminc= ymin;
-	if(ymax >= vc->ar->winy) ymaxc= vc->ar->winy-1; else ymaxc= ymax;
-	if(yminc > ymaxc) return NULL;
+	if (ymin<0) yminc= 0; else yminc= ymin;
+	if (ymax >= vc->ar->winy) ymaxc= vc->ar->winy-1; else ymaxc= ymax;
+	if (yminc > ymaxc) return NULL;
 	
 	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect);
 
@@ -1406,26 +1409,26 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 
 	glReadBuffer(GL_BACK);	
 
-	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+	if (ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a= (xmaxc-xminc+1)*(ymaxc-yminc+1);
 	dr= ibuf->rect;
-	while(a--) {
-		if(*dr) *dr= WM_framebuffer_to_index(*dr);
+	while (a--) {
+		if (*dr) *dr= WM_framebuffer_to_index(*dr);
 		dr++;
 	}
 	
 	/* put clipped result back, if needed */
-	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
+	if (xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax)
 		return ibuf;
 	
 	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect);
 	rd= ibuf->rect;
 	dr= ibuf1->rect;
 		
-	for(ys= ymin; ys<=ymax; ys++) {
-		for(xs= xmin; xs<=xmax; xs++, dr++) {
-			if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
+	for (ys= ymin; ys<=ymax; ys++) {
+		for (xs= xmin; xs<=xmax; xs++, dr++) {
+			if ( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
 				*dr= *rd;
 				rd++;
 			}
@@ -1467,14 +1470,14 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 	bufmax = buf->rect + size*size;
 	tbuf+= amount*size+ amount;
 	
-	for(nr=1; nr<=size; nr++) {
+	for (nr=1; nr<=size; nr++) {
 		
-		for(a=0; a<2; a++) {
-			for(b=0; b<nr; b++, distance++) {
+		for (a=0; a<2; a++) {
+			for (b=0; b<nr; b++, distance++) {
 				if (*tbuf && *tbuf>=min && *tbuf<max) { //we got a hit
-					if(strict){
+					if (strict) {
 						indexok =  indextest(handle, *tbuf - min+1);
-						if(indexok){
+						if (indexok) {
 							*dist= (short) sqrt( (float)distance   );
 							index = *tbuf - min+1;
 							goto exit; 
@@ -1489,7 +1492,7 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 				
 				tbuf+= (dirvec[rc][0]+dirvec[rc][1]);
 				
-				if(tbuf<bufmin || tbuf>=bufmax) {
+				if (tbuf<bufmin || tbuf>=bufmax) {
 					goto exit;
 				}
 			}
@@ -1519,30 +1522,32 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next ) {
 
-		if(	(bgpic->view == 0) || /* zero for any */
+		if (	(bgpic->view == 0) || /* zero for any */
 			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
 			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
 		) {
 			/* disable individual images */
-			if((bgpic->flag&V3D_BGPIC_DISABLED))
+			if ((bgpic->flag&V3D_BGPIC_DISABLED))
 				continue;
 
 			freeibuf= NULL;
-			if(bgpic->source==V3D_BGPIC_IMAGE) {
+			if (bgpic->source==V3D_BGPIC_IMAGE) {
 				ima= bgpic->ima;
-				if(ima==NULL)
+				if (ima==NULL)
 					continue;
 				BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
 				ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
-			} else {
+			}
+			else {
 				clip= NULL;
 
-				if(bgpic->flag&V3D_BGPIC_CAMERACLIP) {
-					if(scene->camera)
+				if (bgpic->flag&V3D_BGPIC_CAMERACLIP) {
+					if (scene->camera)
 						clip= object_get_movieclip(scene, scene->camera, 1);
-				} else clip= bgpic->clip;
+				}
+				else clip= bgpic->clip;
 
-				if(clip==NULL)
+				if (clip==NULL)
 					continue;
 
 				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
@@ -1554,20 +1559,20 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				freeibuf= ibuf;
 			}
 
-			if(ibuf==NULL)
+			if (ibuf==NULL)
 				continue;
 
-			if((ibuf->rect==NULL && ibuf->rect_float==NULL) || ibuf->channels!=4) { /* invalid image format */
-				if(freeibuf)
+			if ((ibuf->rect==NULL && ibuf->rect_float==NULL) || ibuf->channels!=4) { /* invalid image format */
+				if (freeibuf)
 					IMB_freeImBuf(freeibuf);
 
 				continue;
 			}
 
-			if(ibuf->rect==NULL)
+			if (ibuf->rect==NULL)
 				IMB_rect_from_float(ibuf);
 
-			if(rv3d->persp==RV3D_CAMOB) {
+			if (rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
 				ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
@@ -1602,8 +1607,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 			/* complete clip? */
 
-			if(x2 < 0 || y2 < 0 || x1 > ar->winx || y1 > ar->winy) {
-				if(freeibuf)
+			if (x2 < 0 || y2 < 0 || x1 > ar->winx || y1 > ar->winy) {
+				if (freeibuf)
 					IMB_freeImBuf(freeibuf);
 
 				continue;
@@ -1613,28 +1618,28 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			zoomy= (y2-y1)/ibuf->y;
 
 			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
-			if(zoomx < 1.0f || zoomy < 1.0f) {
+			if (zoomx < 1.0f || zoomy < 1.0f) {
 				float tzoom= MIN2(zoomx, zoomy);
 				int mip= 0;
 
-				if((ibuf->userflags&IB_MIPMAP_INVALID) != 0) {
+				if ((ibuf->userflags&IB_MIPMAP_INVALID) != 0) {
 					IMB_remakemipmap(ibuf, 0);
 					ibuf->userflags&= ~IB_MIPMAP_INVALID;
 				}
-				else if(ibuf->mipmap[0]==NULL)
+				else if (ibuf->mipmap[0]==NULL)
 					IMB_makemipmap(ibuf, 0);
 
-				while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
+				while (tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
 					tzoom*= 2.0f;
 					zoomx*= 2.0f;
 					zoomy*= 2.0f;
 					mip++;
 				}
-				if(mip>0)
+				if (mip>0)
 					ibuf= ibuf->mipmap[mip-1];
 			}
 
-			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			glDepthMask(0);
 
 			glEnable(GL_BLEND);
@@ -1661,9 +1666,9 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			glDisable(GL_BLEND);
 
 			glDepthMask(1);
-			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
-			if(freeibuf)
+			if (freeibuf)
 				IMB_freeImBuf(freeibuf);
 		}
 	}
@@ -1694,7 +1699,7 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 	glDepthMask(0);
 	v3d->transp= TRUE;
 	
-	for(v3da= v3d->afterdraw_transp.first; v3da; v3da= next) {
+	for (v3da= v3d->afterdraw_transp.first; v3da; v3da= next) {
 		next= v3da->next;
 		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
 		BLI_remlink(&v3d->afterdraw_transp, v3da);
@@ -1711,11 +1716,11 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, int clear)
 {
 	View3DAfter *v3da, *next;
 
-	if(clear && v3d->zbuf)
+	if (clear && v3d->zbuf)
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 	v3d->xray= TRUE;
-	for(v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
+	for (v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
 		next= v3da->next;
 		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
 		BLI_remlink(&v3d->afterdraw_xray, v3da);
@@ -1730,13 +1735,13 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, int c
 {
 	View3DAfter *v3da, *next;
 
-	if(clear && v3d->zbuf)
+	if (clear && v3d->zbuf)
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 	v3d->xray= TRUE;
 	v3d->transp= TRUE;
 	
-	for(v3da= v3d->afterdraw_xraytransp.first; v3da; v3da= next) {
+	for (v3da= v3d->afterdraw_xraytransp.first; v3da; v3da= next) {
 		next= v3da->next;
 		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
 		BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
@@ -1771,7 +1776,7 @@ int dupli_ob_sort(void *arg1, void *arg2)
 
 static DupliObject *dupli_step(DupliObject *dob)
 {
-	while(dob && dob->no_draw)
+	while (dob && dob->no_draw)
 		dob= dob->next;
 	return dob;
 }
@@ -1794,9 +1799,9 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	// BLI_sortlist(lb, dupli_ob_sort); // might be nice to have if we have a dupli list with mixed objects.
 
 	dob=dupli_step(lb->first);
-	if(dob) dob_next= dupli_step(dob->next);
+	if (dob) dob_next= dupli_step(dob->next);
 
-	for( ; dob ; dob_prev= dob, dob= dob_next, dob_next= dob_next ? dupli_step(dob_next->next) : NULL) {
+	for ( ; dob ; dob_prev= dob, dob= dob_next, dob_next= dob_next ? dupli_step(dob_next->next) : NULL) {
 		tbase.object= dob->ob;
 
 		/* extra service: draw the duplicator in drawtype of parent */
@@ -1806,21 +1811,21 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 		/* negative scale flag has to propagate */
 		transflag= tbase.object->transflag;
-		if(base->object->transflag & OB_NEG_SCALE)
+		if (base->object->transflag & OB_NEG_SCALE)
 			tbase.object->transflag ^= OB_NEG_SCALE;
 
 		UI_ThemeColorBlend(color, TH_BACK, 0.5);
 
 		/* generate displist, test for new object */
-		if(dob_prev && dob_prev->ob != dob->ob) {
-			if(use_displist==1)
+		if (dob_prev && dob_prev->ob != dob->ob) {
+			if (use_displist==1)
 				glDeleteLists(displist, 1);
 
 			use_displist= -1;
 		}
 
 		/* generate displist */
-		if(use_displist == -1) {
+		if (use_displist == -1) {
 
 			/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
 			 * however this is very slow, it was probably needed for the NLA
@@ -1855,9 +1860,9 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
 			}
 		}
-		if(use_displist) {
+		if (use_displist) {
 			glMultMatrixf(dob->mat);
-			if(ED_view3d_boundbox_clip(rv3d, dob->mat, &bb))
+			if (ED_view3d_boundbox_clip(rv3d, dob->mat, &bb))
 				glCallList(displist);
 			glLoadMatrixf(rv3d->viewmat);
 		}
@@ -1875,7 +1880,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	
 	free_object_duplilist(lb);	/* does restore */
 	
-	if(use_displist)
+	if (use_displist)
 		glDeleteLists(displist, 1);
 }
 
@@ -1886,7 +1891,7 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 	
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
 	/* debug */
-	if(base->object->dup_group && base->object->dup_group->id.us<1)
+	if (base->object->dup_group && base->object->dup_group->id.us<1)
 		color= TH_REDALERT;
 	
 	draw_dupli_objects_color(scene, ar, v3d, base, color);
@@ -1913,14 +1918,14 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 	w= rect->xmax - rect->xmin;
 	h= rect->ymax - rect->ymin;
 
-	if(w <= 0 || h <= 0) {
-		if(d->depths)
+	if (w <= 0 || h <= 0) {
+		if (d->depths)
 			MEM_freeN(d->depths);
 		d->depths= NULL;
 
 		d->damaged= FALSE;
 	}
-	else if(	d->w != w ||
+	else if (	d->w != w ||
 		d->h != h ||
 		d->x != x ||
 		d->y != y ||
@@ -1931,7 +1936,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 		d->w= w;
 		d->h= h;
 
-		if(d->depths)
+		if (d->depths)
 			MEM_freeN(d->depths);
 
 		d->depths= MEM_mallocN(sizeof(float)*d->w*d->h,"View depths Subset");
@@ -1939,7 +1944,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 		d->damaged= TRUE;
 	}
 
-	if(d->damaged) {
+	if (d->damaged) {
 		glReadPixels(ar->winrct.xmin+d->x,ar->winrct.ymin+d->y, d->w,d->h, GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
 		glGetDoublev(GL_DEPTH_RANGE,d->depth_range);
 		d->damaged= FALSE;
@@ -1952,21 +1957,21 @@ void ED_view3d_depth_update(ARegion *ar)
 	RegionView3D *rv3d= ar->regiondata;
 	
 	/* Create storage for, and, if necessary, copy depth buffer */
-	if(!rv3d->depths) rv3d->depths= MEM_callocN(sizeof(ViewDepths),"ViewDepths");
-	if(rv3d->depths) {
+	if (!rv3d->depths) rv3d->depths= MEM_callocN(sizeof(ViewDepths),"ViewDepths");
+	if (rv3d->depths) {
 		ViewDepths *d= rv3d->depths;
-		if(d->w != ar->winx ||
+		if (d->w != ar->winx ||
 		   d->h != ar->winy ||
 		   !d->depths) {
 			d->w= ar->winx;
 			d->h= ar->winy;
-			if(d->depths)
+			if (d->depths)
 				MEM_freeN(d->depths);
 			d->depths= MEM_mallocN(sizeof(float)*d->w*d->h,"View depths");
 			d->damaged= 1;
 		}
 		
-		if(d->damaged) {
+		if (d->damaged) {
 			glReadPixels(ar->winrct.xmin,ar->winrct.ymin,d->w,d->h,
 						 GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
 			
@@ -1991,9 +1996,9 @@ float view3d_depth_near(ViewDepths *d)
 
 	/* far is both the starting 'far' value
 	 * and the closest value found. */	
-	while(i--) {
+	while (i--) {
 		depth= *depths++;
-		if((depth < far) && (depth > near)) {
+		if ((depth < far) && (depth > near)) {
 			far= depth;
 		}
 	}
@@ -2053,7 +2058,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	glLoadMatrixf(rv3d->viewmat);
 //	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 	
-	if(rv3d->rflag & RV3D_CLIPPING) {
+	if (rv3d->rflag & RV3D_CLIPPING) {
 		view3d_set_clipping(rv3d);
 	}
 	
@@ -2061,13 +2066,13 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	glEnable(GL_DEPTH_TEST);
 	
 	/* draw set first */
-	if(scene->set) {
+	if (scene->set) {
 		Scene *sce_iter;
-		for(SETLOOPER(scene->set, sce_iter, base)) {
-			if(v3d->lay & base->lay) {
+		for (SETLOOPER(scene->set, sce_iter, base)) {
+			if (v3d->lay & base->lay) {
 				if (func == NULL || func(base)) {
 					draw_object(scene, ar, v3d, base, 0);
-					if(base->object->transflag & OB_DUPLI) {
+					if (base->object->transflag & OB_DUPLI) {
 						draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
 					}
 				}
@@ -2075,11 +2080,11 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		}
 	}
 	
-	for(base= scene->base.first; base; base= base->next) {
-		if(v3d->lay & base->lay) {
+	for (base= scene->base.first; base; base= base->next) {
+		if (v3d->lay & base->lay) {
 			if (func == NULL || func(base)) {
 				/* dupli drawing */
-				if(base->object->transflag & OB_DUPLI) {
+				if (base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects(scene, ar, v3d, base);
 				}
 				draw_object(scene, ar, v3d, base, 0);
@@ -2101,9 +2106,9 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
 
 
-		if(v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first) {
+		if (v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first) {
 			glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
-			for(v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
+			for (v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
 				next= v3da->next;
 				draw_object(scene, ar, v3d, v3da->base, 0);
 			}
@@ -2113,7 +2118,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		/* draw 3 passes, transp/xray/xraytransp */
 		v3d->xray= FALSE;
 		v3d->transp= TRUE;
-		for(v3da= v3d->afterdraw_transp.first; v3da; v3da= next) {
+		for (v3da= v3d->afterdraw_transp.first; v3da; v3da= next) {
 			next= v3da->next;
 			draw_object(scene, ar, v3d, v3da->base, 0);
 			BLI_remlink(&v3d->afterdraw_transp, v3da);
@@ -2122,7 +2127,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 
 		v3d->xray= TRUE;
 		v3d->transp= FALSE;  
-		for(v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
+		for (v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
 			next= v3da->next;
 			draw_object(scene, ar, v3d, v3da->base, 0);
 			BLI_remlink(&v3d->afterdraw_xray, v3da);
@@ -2131,7 +2136,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 
 		v3d->xray= TRUE;
 		v3d->transp= TRUE;
-		for(v3da= v3d->afterdraw_xraytransp.first; v3da; v3da= next) {
+		for (v3da= v3d->afterdraw_xraytransp.first; v3da; v3da= next) {
 			next= v3da->next;
 			draw_object(scene, ar, v3d, v3da->base, 0);
 			BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
@@ -2145,11 +2150,11 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		glDepthMask(mask_orig);
 	}
 	
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
 	v3d->zbuf = zbuf;
-	if(!v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	if (!v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
@@ -2170,11 +2175,11 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object
 	
 	lamp = GPU_lamp_from_blender(scene, ob, par);
 	
-	if(lamp) {
+	if (lamp) {
 		GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), obmat);
 		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
-		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
+		if ((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
 			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;
 			BLI_addtail(shadows, shadow);
@@ -2193,18 +2198,18 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	shadows.first= shadows.last= NULL;
 	
 	/* update lamp transform and gather shadow lamps */
-	for(SETLOOPER(scene, sce_iter, base)) {
+	for (SETLOOPER(scene, sce_iter, base)) {
 		ob= base->object;
 		
-		if(ob->type == OB_LAMP)
+		if (ob->type == OB_LAMP)
 			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, &shadows);
 		
 		if (ob->transflag & OB_DUPLI) {
 			DupliObject *dob;
 			ListBase *lb = object_duplilist(scene, ob);
 			
-			for(dob=lb->first; dob; dob=dob->next)
-				if(dob->ob->type==OB_LAMP)
+			for (dob=lb->first; dob; dob=dob->next)
+				if (dob->ob->type==OB_LAMP)
 					gpu_render_lamp_update(scene, v3d, dob->ob, ob, dob->mat, &shadows);
 			
 			free_object_duplilist(lb);
@@ -2213,7 +2218,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	
 	/* render shadows after updating all lamps, nested object_duplilist
 		* don't work correct since it's replacing object matrices */
-	for(shadow=shadows.first; shadow; shadow=shadow->next) {
+	for (shadow=shadows.first; shadow; shadow=shadow->next) {
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];
 		int drawtype, lay, winsize, flag2=v3d->flag2;
@@ -2261,12 +2266,12 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 	{
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-		if(scene_use_new_shading_nodes(scene)) {
-			if(v3d->drawtype == OB_MATERIAL)
+		if (scene_use_new_shading_nodes(scene)) {
+			if (v3d->drawtype == OB_MATERIAL)
 				mask |= CD_MASK_ORCO;
 		}
 		else {
-			if(scene->gm.matmode == GAME_MAT_GLSL)
+			if (scene->gm.matmode == GAME_MAT_GLSL)
 				mask |= CD_MASK_ORCO;
 		}
 	}
@@ -2306,8 +2311,8 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 	ScrArea *sa;
 	
 	/* check if we need tfaces & mcols due to view mode */
-	for(sa = screen->areabase.first; sa; sa = sa->next) {
-		if(sa->spacetype == SPACE_VIEW3D) {
+	for (sa = screen->areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_VIEW3D) {
 			mask |= ED_view3d_datamask(scene, (View3D *)sa->spacedata.first);
 		}
 	}
@@ -2322,13 +2327,13 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	RegionView3D *rv3d= ar->regiondata;
 
 	/* setup window matrices */
-	if(winmat)
+	if (winmat)
 		copy_m4_m4(rv3d->winmat, winmat);
 	else
 		setwinmatrixview3d(ar, v3d, NULL); /* NULL= no pickrect */
 	
 	/* setup view matrix */
-	if(viewmat)
+	if (viewmat)
 		copy_m4_m4(rv3d->viewmat, viewmat);
 	else
 		setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
@@ -2398,12 +2403,12 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	GPU_free_images_anim();
 	
 	/* shadow buffers, before we setup matrices */
-	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
 
 	/* set background color, fallback on the view background color */
-	if(scene->world) {
-		if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+	if (scene->world) {
+		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
 		else
 			copy_v3_v3(backcol, &scene->world->horr);
@@ -2418,39 +2423,39 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
 
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);
 
 	/* set zbuffer */
-	if(v3d->drawtype > OB_WIRE) {
+	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
 	else
 		v3d->zbuf= FALSE;
 
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_set_clipping(rv3d);
 
 	/* draw set first */
-	if(scene->set) {
+	if (scene->set) {
 		Scene *sce_iter;
-		for(SETLOOPER(scene->set, sce_iter, base)) {
-			if(v3d->lay & base->lay) {
+		for (SETLOOPER(scene->set, sce_iter, base)) {
+			if (v3d->lay & base->lay) {
 				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 				draw_object(scene, ar, v3d, base, DRAW_CONSTCOLOR|DRAW_SCENESET);
 				
-				if(base->object->transflag & OB_DUPLI)
+				if (base->object->transflag & OB_DUPLI)
 					draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
 			}
 		}
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
-	for(base= scene->base.first; base; base= base->next) {
-		if(v3d->lay & base->lay) {
+	for (base= scene->base.first; base; base= base->next) {
+		if (v3d->lay & base->lay) {
 			/* dupli drawing */
-			if(base->object->transflag & OB_DUPLI)
+			if (base->object->transflag & OB_DUPLI)
 				draw_dupli_objects(scene, ar, v3d, base);
 
 			draw_object(scene, ar, v3d, base, 0);
@@ -2458,20 +2463,20 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	}
 
 	/* must be before xray draw which clears the depth buffer */
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	draw_gpencil_view3d(scene, v3d, ar, 1);
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	/* transp and X-ray afterdraw stuff */
-	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
-	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
-	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
+	if (v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
+	if (v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	if (v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 
 	/* cleanup */
-	if(v3d->zbuf) {
+	if (v3d->zbuf) {
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
@@ -2511,13 +2516,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 
 	/* bind */
 	ofs= GPU_offscreen_create(sizex, sizey, err_out);
-	if(ofs == NULL)
+	if (ofs == NULL)
 		return NULL;
 
 	GPU_offscreen_bind(ofs);
 
 	/* render 3d view */
-	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
+	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		CameraParams params;
 
 		camera_params_init(&params);
@@ -2534,12 +2539,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 	/* read in pixels & stamp */
 	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag);
 
-	if(ibuf->rect_float)
+	if (ibuf->rect_float)
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
-	else if(ibuf->rect)
+	else if (ibuf->rect)
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
 	
-	//if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
+	//if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
 	//	BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
 	/* unbind */
@@ -2548,7 +2553,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 
 	glPopAttrib();
 	
-	if(ibuf->rect_float && ibuf->rect)
+	if (ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
 	
 	return ibuf;
@@ -2659,10 +2664,10 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	RenderEngineType *type;
 
-	if(!rv3d->render_engine) {
+	if (!rv3d->render_engine) {
 		type= RE_engines_find(scene->r.engine);
 
-		if(!(type->view_update && type->view_draw))
+		if (!(type->view_update && type->view_draw))
 			return 0;
 
 		rv3d->render_engine= RE_engine_create(type);
@@ -2684,7 +2689,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 
 static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
 {
-	if(!rv3d->render_engine || !rv3d->render_engine->text)
+	if (!rv3d->render_engine || !rv3d->render_engine->text)
 		return;
 
 	ED_region_info_draw(ar, rv3d->render_engine->text, 1, 0.25);
@@ -2701,7 +2706,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	unsigned int lay_used;
 
 	/* shadow buffers, before we setup matrices */
-	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
 	
 	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
@@ -2711,8 +2716,8 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	}
 
 	/* clear background */
-	if((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
-		if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
+		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
 		else
 			copy_v3_v3(backcol, &scene->world->horr);
@@ -2728,11 +2733,11 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);
 	
 	/* set zbuffer after we draw clipping region */
-	if(v3d->drawtype > OB_WIRE) {
+	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -2746,19 +2751,19 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
 
-	if((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
+	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 			drawfloor(scene, v3d, grid_unit);
 		}
-		if(rv3d->persp==RV3D_CAMOB) {
-			if(scene->world) {
-				if(scene->world->mode & WO_STARS) {
+		if (rv3d->persp==RV3D_CAMOB) {
+			if (scene->world) {
+				if (scene->world->mode & WO_STARS) {
 					RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
 								  star_stuff_term_func);
 				}
 			}
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-				if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
+				if (v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 			}
 		}
 	}
@@ -2772,26 +2777,26 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(rv3d->viewmat);
 
-			if(v3d->flag & V3D_DISPBGPICS) {
+			if (v3d->flag & V3D_DISPBGPICS) {
 				draw_bgpic(scene, ar, v3d);
 			}
 		}
 	}
 	
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_set_clipping(rv3d);
 
 	/* draw set first */
-	if(scene->set) {
+	if (scene->set) {
 		Scene *sce_iter;
-		for(SETLOOPER(scene->set, sce_iter, base)) {
+		for (SETLOOPER(scene->set, sce_iter, base)) {
 			
-			if(v3d->lay & base->lay) {
+			if (v3d->lay & base->lay) {
 				
 				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 				draw_object(scene, ar, v3d, base, DRAW_CONSTCOLOR|DRAW_SCENESET);
 				
-				if(base->object->transflag & OB_DUPLI) {
+				if (base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
 				}
 			}
@@ -2803,23 +2808,23 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	lay_used= 0;
 
 	/* then draw not selected and the duplis, but skip editmode object */
-	for(base= scene->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		lay_used |= base->lay & ((1<<20)-1);
 
-		if(v3d->lay & base->lay) {
+		if (v3d->lay & base->lay) {
 			
 			/* dupli drawing */
-			if(base->object->transflag & OB_DUPLI) {
+			if (base->object->transflag & OB_DUPLI) {
 				draw_dupli_objects(scene, ar, v3d, base);
 			}
-			if((base->flag & SELECT)==0) {
-				if(base->object!=scene->obedit) 
+			if ((base->flag & SELECT)==0) {
+				if (base->object!=scene->obedit)
 					draw_object(scene, ar, v3d, base, 0);
 			}
 		}
 	}
 
-	if(v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
+	if (v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
 		/* find header and force tag redraw */
 		ScrArea *sa= CTX_wm_area(C);
 		ARegion *ar_header= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
@@ -2828,8 +2833,8 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	}
 
 	/* draw selected and editmode */
-	for(base= scene->base.first; base; base= base->next) {
-		if(v3d->lay & base->lay) {
+	for (base= scene->base.first; base; base= base->next) {
+		if (v3d->lay & base->lay) {
 			if (base->object==scene->obedit || ( base->flag & SELECT) ) 
 				draw_object(scene, ar, v3d, base, 0);
 		}
@@ -2839,19 +2844,19 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* must be before xray draw which clears the depth buffer */
-		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		draw_gpencil_view3d(scene, v3d, ar, 1);
-		if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
 	/* Transp and X-ray afterdraw stuff */
-	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
-	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
-	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
+	if (v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
+	if (v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	if (v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
-	if(rv3d->rflag & RV3D_CLIPPING)
+	if (rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
 	BIF_draw_manipulator(C);
@@ -2860,7 +2865,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	/*if (!(U.gameflags & USER_DISABLE_AA))
 		glDisable(GL_MULTISAMPLE_ARB);*/
 
-	if(v3d->zbuf) {
+	if (v3d->zbuf) {
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
@@ -2884,7 +2889,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 	Object *ob;
 
-	if(rv3d->persp==RV3D_CAMOB)
+	if (rv3d->persp==RV3D_CAMOB)
 		drawviewborder(scene, ar, v3d);
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
@@ -2895,24 +2900,24 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		drawcursor(scene, ar, v3d);
 	}
 	
-	if(U.uiflag & USER_SHOW_ROTVIEWICON)
+	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis(rv3d);
 	else	
 		draw_view_icon(rv3d);
 	
 	ob= OBACT;
-	if(U.uiflag & USER_DRAWVIEWINFO) 
+	if (U.uiflag & USER_DRAWVIEWINFO)
 		draw_selected_name(scene, ob);
 
-	if(rv3d->render_engine) {
+	if (rv3d->render_engine) {
 		view3d_main_area_draw_engine_info(rv3d, ar);
 		return;
 	}
 
-	if((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
+	if ((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
 		draw_viewport_fps(scene, ar);
 	}
-	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
+	else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
 
@@ -2920,7 +2925,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		char numstr[32]= "";
 
 		UI_ThemeColor(TH_TEXT_HI);
-		if(v3d->grid != 1.0f) {
+		if (v3d->grid != 1.0f) {
 			BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 		}
 
@@ -2935,7 +2940,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	const char *grid_unit= NULL;
 
 	/* draw viewport using external renderer? */
-	if(!(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar))) {
+	if (!(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar))) {
 		/* draw viewport using opengl */
 		view3d_main_area_draw_objects(C, ar, &grid_unit);
 		ED_region_pixelspace(ar);

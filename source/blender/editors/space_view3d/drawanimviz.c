@@ -116,7 +116,7 @@ void draw_motion_path_instance(Scene *scene,
 		mpv_start= mpath->points;
 	}
 
-	if(len <= 0) {
+	if (len <= 0) {
 		return;
 	}
 
