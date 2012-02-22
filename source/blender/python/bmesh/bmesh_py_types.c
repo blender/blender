@@ -743,6 +743,99 @@ static PyObject *bpy_bm_seq_new(BPy_BMElemSeq *self, PyObject *args)
 	}
 }
 
+static PyObject *bpy_bmvert_seq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if(!BPy_BMVert_Check(value)) {
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+
+		BPY_BM_CHECK_OBJ(value);
+
+		if (value->bm != bm) {
+			PyErr_SetString(PyExc_TypeError,
+			                "faces.remove(vert): vertex is from another mesh");
+		}
+
+		BM_vert_kill(bm, value->v);
+		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
+
+		Py_RETURN_NONE;;
+	}
+}
+
+static PyObject *bpy_bmedge_seq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if(!BPy_BMEdge_Check(value)) {
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+
+		BPY_BM_CHECK_OBJ(value);
+
+		if (value->bm != bm) {
+			PyErr_SetString(PyExc_TypeError,
+			                "faces.remove(vert): vertex is from another mesh");
+		}
+
+		BM_edge_kill(bm, value->e);
+		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
+
+		Py_RETURN_NONE;;
+	}
+}
+
+static PyObject *bpy_bmface_seq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if(!BPy_BMFace_Check(value)) {
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+
+		BPY_BM_CHECK_OBJ(value);
+
+		if (value->bm != bm) {
+			PyErr_SetString(PyExc_TypeError,
+			                "faces.remove(vert): vertex is from another mesh");
+		}
+
+		BM_face_kill(bm, value->f);
+		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
+
+		Py_RETURN_NONE;;
+	}
+}
+
+
+PyDoc_STRVAR(bpy_bm_seq_remove_doc,
+             ".. method:: remove()\n"
+             "\n"
+             "   Remove a vert/edge/face.\n"
+             );
+static PyObject *bpy_bm_seq_remove(BPy_BMElemSeq *self, PyObject *value)
+{
+	switch ((BMIterType)self->itype) {
+		case BM_VERTS_OF_MESH:
+			return bpy_bmvert_seq_remove(self, (BPy_BMVert *)value);
+		case BM_EDGES_OF_MESH:
+			return bpy_bmedge_seq_remove(self, (BPy_BMEdge *)value);
+		case BM_FACES_OF_MESH:
+			return bpy_bmface_seq_remove(self, (BPy_BMFace *)value);
+		default:
+			PyErr_SetString(PyExc_TypeError,
+			                ".remove(item): function is not valid for this sequence");
+			return NULL;
+	}
+}
 
 static struct PyMethodDef bpy_bmesh_methods[] = {
     {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
@@ -777,6 +870,7 @@ static struct PyMethodDef bpy_bmloop_methods[] = {
 
 static struct PyMethodDef bpy_bm_seq_methods[] = {
     {"new", (PyCFunction)bpy_bm_seq_new, METH_VARARGS, bpy_bm_seq_new_doc},
+    {"remove", (PyCFunction)bpy_bm_seq_remove, METH_O, bpy_bm_seq_remove_doc},
     {NULL, NULL, 0, NULL}
 };
 
