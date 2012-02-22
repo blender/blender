@@ -27,4 +27,4 @@ if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:
        env.Append(CFLAGS=['-DPARALLEL=1'])
 
-env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [363,230], compileflags =cflags )
+env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [370,230], compileflags =cflags )
