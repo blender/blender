@@ -1334,9 +1334,6 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 	buffers->smooth = smooth;
 }
 
-/*GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MFace *mface,
-									int *face_indices, int totface,
-									int tot_uniq_verts)*/
 GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 									MFace *mface, int *face_indices,
 									int totface)
@@ -1459,11 +1456,47 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 	//printf("node updated %p\n", buffers);
 }
 
-GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indices),
-				int totgrid, int gridsize)
+/* Build the element array buffer of grid indices using either
+   unsigned shorts or unsigned ints. */
+#define FILL_QUAD_BUFFER(type_)                                         \
+	{                                                                   \
+		type_ *quad_data;                                               \
+		int offset = 0;                                                 \
+        int i, j, k;                                                    \
+                                                                        \
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,                    \
+						sizeof(type_) * totquad * 4, NULL,              \
+						GL_STATIC_DRAW_ARB);                            \
+                                                                        \
+		/* Fill the quad buffer */                                      \
+		quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,         \
+								   GL_WRITE_ONLY_ARB);                  \
+		if(quad_data) {                                                 \
+			for(i = 0; i < totgrid; ++i) {                              \
+				for(j = 0; j < gridsize-1; ++j) {                       \
+					for(k = 0; k < gridsize-1; ++k) {                   \
+						*(quad_data++)= offset + j*gridsize + k+1;      \
+						*(quad_data++)= offset + j*gridsize + k;        \
+						*(quad_data++)= offset + (j+1)*gridsize + k;    \
+						*(quad_data++)= offset + (j+1)*gridsize + k+1;  \
+					}                                                   \
+				}                                                       \
+																		\
+				offset += gridsize*gridsize;                            \
+			}                                                           \
+			glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);              \
+		}                                                               \
+		else {                                                          \
+			glDeleteBuffersARB(1, &buffers->index_buf);                 \
+			buffers->index_buf = 0;                                     \
+		}                                                               \
+	}
+/* end FILL_QUAD_BUFFER */
+
+GPU_Buffers *GPU_build_grid_buffers(int totgrid, int gridsize)
 {
 	GPU_Buffers *buffers;
-	int i, j, k, totquad, offset= 0;
+	int totquad;
 
 	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
 
@@ -1478,63 +1511,12 @@ GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 
 		if(totquad < USHRT_MAX) {
-			unsigned short *quad_data;
-
 			buffers->index_type = GL_UNSIGNED_SHORT;
-			glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
-					 sizeof(unsigned short) * totquad * 4, NULL, GL_STATIC_DRAW_ARB);
-
-			/* Fill the quad buffer */
-			quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-			if(quad_data) {
-				for(i = 0; i < totgrid; ++i) {
-					for(j = 0; j < gridsize-1; ++j) {
-						for(k = 0; k < gridsize-1; ++k) {
-							*(quad_data++)= offset + j*gridsize + k+1;
-							*(quad_data++)= offset + j*gridsize + k;
-							*(quad_data++)= offset + (j+1)*gridsize + k;
-							*(quad_data++)= offset + (j+1)*gridsize + k+1;
-						}
-					}
-
-					offset += gridsize*gridsize;
-				}
-				glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
-			}
-			else {
-				glDeleteBuffersARB(1, &buffers->index_buf);
-				buffers->index_buf = 0;
-			}
+			FILL_QUAD_BUFFER(unsigned short);
 		}
 		else {
-			unsigned int *quad_data;
-
 			buffers->index_type = GL_UNSIGNED_INT;
-			glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
-					 sizeof(unsigned int) * totquad * 4, NULL, GL_STATIC_DRAW_ARB);
-
-			/* Fill the quad buffer */
-			quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-
-			if(quad_data) {
-				for(i = 0; i < totgrid; ++i) {
-					for(j = 0; j < gridsize-1; ++j) {
-						for(k = 0; k < gridsize-1; ++k) {
-							*(quad_data++)= offset + j*gridsize + k+1;
-							*(quad_data++)= offset + j*gridsize + k;
-							*(quad_data++)= offset + (j+1)*gridsize + k;
-							*(quad_data++)= offset + (j+1)*gridsize + k+1;
-						}
-					}
-
-					offset += gridsize*gridsize;
-				}
-				glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
-			}
-			else {
-				glDeleteBuffersARB(1, &buffers->index_buf);
-				buffers->index_buf = 0;
-			}
+			FILL_QUAD_BUFFER(unsigned int);
 		}
 
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
@@ -1548,6 +1530,8 @@ GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid
 
 	return buffers;
 }
+
+#undef FILL_QUAD_BUFFER
 
 static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 {

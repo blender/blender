@@ -435,8 +435,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 {
 	if(!G.background) {
 		node->draw_buffers =
-			GPU_build_grid_buffers(bvh->grids, node->prim_indices,
-				node->totprim, bvh->gridsize);
+			GPU_build_grid_buffers(node->totprim, bvh->gridsize);
 	}
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
