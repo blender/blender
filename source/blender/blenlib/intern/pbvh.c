@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -42,31 +43,6 @@
 #define LEAF_LIMIT 10000
 
 //#define PERFCNTRS
-
-/* Bitmap */
-typedef char* BLI_bitmap;
-
-static BLI_bitmap BLI_bitmap_new(int tot)
-{
-	return MEM_callocN((tot >> 3) + 1, "BLI bitmap");
-}
-
-static int BLI_bitmap_get(BLI_bitmap b, int index)
-{
-	return b[index >> 3] & (1 << (index & 7));
-}
-
-static void BLI_bitmap_set(BLI_bitmap b, int index)
-{
-	b[index >> 3] |= (1 << (index & 7));
-}
-
-#if 0 /* UNUSED */
-static void BLI_bitmap_clear(BLI_bitmap b, int index)
-{
-	b[index >> 3] &= ~(1 << (index & 7));
-}
-#endif
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -343,12 +319,12 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 	void *value, *key = SET_INT_IN_POINTER(vertex);
 
 	if(!BLI_ghash_haskey(map, key)) {
-		if(BLI_bitmap_get(bvh->vert_bitmap, vertex)) {
+		if(BLI_BITMAP_GET(bvh->vert_bitmap, vertex)) {
 			value = SET_INT_IN_POINTER(~(*face_verts));
 			++(*face_verts);
 		}
 		else {
-			BLI_bitmap_set(bvh->vert_bitmap, vertex);
+			BLI_BITMAP_SET(bvh->vert_bitmap, vertex);
 			value = SET_INT_IN_POINTER(*uniq_verts);
 			++(*uniq_verts);
 		}
@@ -553,7 +529,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 
 	bvh->faces = faces;
 	bvh->verts = verts;
-	bvh->vert_bitmap = BLI_bitmap_new(totvert);
+	bvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
 	bvh->totvert = totvert;
 	bvh->leaf_limit = LEAF_LIMIT;
 

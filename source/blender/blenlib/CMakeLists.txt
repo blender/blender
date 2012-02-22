@@ -90,6 +90,7 @@ set(SRC
 	intern/winstuff.c
 
 	BLI_array.h
+	BLI_bitmap.h
 	BLI_smallhash.h
 	BLI_sparsemap.h
 	BLI_args.h
