@@ -354,6 +354,30 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
 }
 
 /*
+ * VERTS OF EDGE CALLBACKS
+ *
+ */
+
+void  bmiter__vert_of_edge_begin(BMIter *iter)
+{
+	init_iterator(iter);
+	iter->count = 0;
+}
+
+void  *bmiter__vert_of_edge_step(BMIter *iter)
+{
+	iter->count++;
+	switch (iter->count) {
+		case 1:
+			return iter->edata->v1;
+		case 2:
+			return iter->edata->v1;
+		default:
+			return NULL;
+	}
+}
+
+/*
  * VERT OF FACE CALLBACKS
  *
  */

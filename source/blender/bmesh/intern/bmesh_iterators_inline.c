@@ -62,7 +62,7 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
 	iter->bm = bm;
 
 	/* inlining optimizes out this switch when called with the defined type */
-	switch (itype) {
+	switch ((BMIterType)itype) {
 		case BM_VERTS_OF_MESH:
 			iter->begin = bmiter__vert_of_mesh_begin;
 			iter->step =  bmiter__vert_of_mesh_step;
@@ -98,6 +98,14 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
 			iter->begin = bmiter__loop_of_vert_begin;
 			iter->step =  bmiter__loop_of_vert_step;
 			iter->vdata = data;
+			break;
+		case BM_VERTS_OF_EDGE:
+			if (!data)
+				return FALSE;
+
+			iter->begin = bmiter__vert_of_edge_begin;
+			iter->step =  bmiter__vert_of_edge_step;
+			iter->edata = data;
 			break;
 		case BM_FACES_OF_EDGE:
 			if (!data)
