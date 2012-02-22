@@ -72,6 +72,7 @@
 /* inittab initialization functions */
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
+#include "../bmesh/bmesh_py_api.h"
 #include "../mathutils/mathutils.h"
 
 /* for internal use, when starting and ending python scripts */
@@ -192,6 +193,7 @@ static struct _inittab bpy_internal_modules[] = {
 //	{(char *)"mathutils.noise", PyInit_mathutils_noise},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
+	{(char *)"bme", BPyInit_bmesh},
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif
@@ -698,7 +700,6 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 	return done;
 }
-
 
 #ifdef WITH_PYTHON_MODULE
 #include "BLI_fileops.h"

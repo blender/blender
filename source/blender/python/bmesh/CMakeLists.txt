@@ -14,9 +14,30 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
+# Contributor(s): Campbell Barton
+#
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(intern)
-add_subdirectory(generic)
-add_subdirectory(mathutils)
-add_subdirectory(bmesh)
+set(INC 
+	.
+	../../bmesh
+	../../blenkernel
+	../../blenlib
+	../../blenloader
+	../../makesdna
+	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
+	${PYTHON_INCLUDE_DIRS}
+)
+
+set(SRC
+	bmesh_py_api.c
+	bmesh_py_types.c
+
+	bmesh_py_api.h
+	bmesh_py_types.h
+)
+
+blender_add_lib(bf_python_bmesh "${SRC}" "${INC}" "${INC_SYS}")
