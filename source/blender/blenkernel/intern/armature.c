@@ -1129,6 +1129,24 @@ void armature_loc_world_to_pose(Object *ob, float *inloc, float *outloc)
 	copy_v3_v3(outloc, nLocMat[3]);
 }
 
+/* Simple helper, computes the offset bone matrix.
+ *     offs_bone = yoffs(b-1) + root(b) + bonemat(b).
+ * Not exported, as it is only used in this file currently... */
+static void get_offset_bone_mat(Bone *bone, float offs_bone[][4])
+{
+	if (!bone->parent)
+		return;
+
+	/* Bone transform itself. */
+	copy_m4_m3(offs_bone, bone->bone_mat);
+
+	/* The bone's root offset (is in the parent's coordinate system). */
+	copy_v3_v3(offs_bone[3], bone->head);
+
+	/* Get the length translation of parent (length along y axis). */
+	offs_bone[3][1] += bone->parent->length;
+}
+
 /* Construct the matrices (rot/scale and loc) to apply the PoseChannels into the armature (object) space.
  * I.e. (roughly) the "pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b)" in the
  *     pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b)
@@ -1157,16 +1175,9 @@ void pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[][4], float loc_m
 	parchan = pchan->parent;
 
 	if (parchan) {
-		float offs_bone[4][4]; /* yoffs(b-1) + root(b) + bonemat(b). */
-
-		/* Bone transform itself. */
-		copy_m4_m3(offs_bone, bone->bone_mat);
-
-		/* The bone's root offset (is in the parent's coordinate system). */
-		copy_v3_v3(offs_bone[3], bone->head);
-
-		/* Get the length translation of parent (length along y axis). */
-		offs_bone[3][1] += parbone->length;
+		float offs_bone[4][4];
+		/* yoffs(b-1) + root(b) + bonemat(b). */
+		get_offset_bone_mat(bone, offs_bone);
 
 		/* Compose the rotscale matrix for this bone. */
 		if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_NO_SCALE)) {
@@ -1297,25 +1308,31 @@ void pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[][4], float loc_m
  *       pose-channel into its local space (i.e. 'visual'-keyframing) */
 void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outmat[][4])
 {
-	float rotscale_mat[4][4], loc_mat[4][4];
+	float rotscale_mat[4][4], loc_mat[4][4], inmat_[4][4];
+
+	/* Security, this allows to call with inmat == outmat! */
+	copy_m4_m4(inmat_, inmat);
 
 	pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 	invert_m4(rotscale_mat);
 	invert_m4(loc_mat);
 
-	mult_m4_m4m4(outmat, rotscale_mat, inmat);
-	mul_v3_m4v3(outmat[3], loc_mat, inmat[3]);
+	mult_m4_m4m4(outmat, rotscale_mat, inmat_);
+	mul_v3_m4v3(outmat[3], loc_mat, inmat_[3]);
 }
 
 /* Convert Bone-Space Matrix to Pose-Space Matrix. */
 void armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[][4], float outmat[][4])
 {
-	float rotscale_mat[4][4], loc_mat[4][4];
+	float rotscale_mat[4][4], loc_mat[4][4], inmat_[4][4];
+
+	/* Security, this allows to call with inmat == outmat! */
+	copy_m4_m4(inmat_, inmat);
 
 	pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 
-	mult_m4_m4m4(outmat, rotscale_mat, inmat);
-	mul_v3_m4v3(outmat[3], loc_mat, inmat[3]);
+	mult_m4_m4m4(outmat, rotscale_mat, inmat_);
+	mul_v3_m4v3(outmat[3], loc_mat, inmat_[3]);
 }
 
 /* Convert Pose-Space Location to Bone-Space Location
@@ -1546,16 +1563,9 @@ void where_is_armature_bone(Bone *bone, Bone *prevbone)
 	}
 
 	if (prevbone) {
-		float offs_bone[4][4];  /* yoffs(b-1) + root(b) + bonemat(b) */
-
-		/* bone transform itself */
-		copy_m4_m3(offs_bone, bone->bone_mat);
-
-		/* The bone's root offset (is in the parent's coordinate system) */
-		copy_v3_v3(offs_bone[3], bone->head);
-
-		/* Get the length translation of parent (length along y axis) */
-		offs_bone[3][1] += prevbone->length;
+		float offs_bone[4][4];
+		/* yoffs(b-1) + root(b) + bonemat(b) */
+		get_offset_bone_mat(bone, offs_bone);
 
 		/* Compose the matrix for this bone  */
 		mult_m4_m4m4(bone->arm_mat, prevbone->arm_mat, offs_bone);
