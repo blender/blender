@@ -1683,3 +1683,34 @@ void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** r_array,  int* r_tot)
 	*r_array= array;
 	*r_tot= tot;
 }
+
+void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
+						   PBVHVertexIter *vi, int mode)
+{
+	struct DMGridData **grids;
+	struct MVert *verts;
+	int *grid_indices, *vert_indices;
+	int totgrid, gridsize, uniq_verts, totvert;
+	
+	vi->grid= 0;
+	vi->no= 0;
+	vi->fno= 0;
+	vi->mvert= 0;
+	vi->skip= 0;
+	
+	BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL);
+	BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
+	BLI_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
+	
+	vi->grids= grids;
+	vi->grid_indices= grid_indices;
+	vi->totgrid= (grids)? totgrid: 1;
+	vi->gridsize= gridsize;
+	
+	if(mode == PBVH_ITER_ALL)
+		vi->totvert = totvert;
+	else
+		vi->totvert= uniq_verts;
+	vi->vert_indices= vert_indices;
+	vi->mverts= verts;
+}
