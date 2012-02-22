@@ -346,9 +346,10 @@ kmi = km.keymap_items.new('mesh.split', 'Y', 'PRESS')
 kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'CLICK', ctrl=True)
 kmi = km.keymap_items.new('mesh.delete', 'X', 'PRESS')
 kmi = km.keymap_items.new('mesh.delete', 'DEL', 'PRESS')
-kmi = km.keymap_items.new('mesh.knife_cut', 'LEFTMOUSE', 'PRESS', key_modifier='K')
-kmi = km.keymap_items.new('mesh.knife_cut', 'LEFTMOUSE', 'PRESS', shift=True, key_modifier='K')
-kmi.properties.type = 'MIDPOINTS'
+kmi = km.keymap_items.new('mesh.knifetool', 'LEFTMOUSE', 'PRESS', key_modifier='K')
+# BMESH_TODO: midpoints for knife were moved to modal keymap
+#kmi = km.keymap_items.new('mesh.knifetool', 'LEFTMOUSE', 'PRESS', shift=True, key_modifier='K')
+#kmi.properties.type = 'MIDPOINTS'
 kmi = km.keymap_items.new('object.vertex_parent_set', 'P', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_edit_mesh_specials'
