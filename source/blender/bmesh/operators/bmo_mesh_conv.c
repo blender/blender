@@ -759,6 +759,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 					currkey->data = fp = MEM_mallocN(sizeof(float) * 3 * bm->totvert, "shape key data");
 					currkey->totelem = bm->totvert;
 
+					mvert = me->mvert;
 					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 						co = (currkey == actkey) ?
 						            eve->co :
@@ -769,6 +770,15 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 						/* propagate edited basis offsets to other shapes */
 						if (apply_offset) {
 							add_v3_v3(fp, *ofs_pt++);
+						}
+
+						if (currkey == actkey && oldverts) {
+							keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+
+							if (*keyi >= 0 && *keyi < currkey->totelem) // valid old vertex
+								copy_v3_v3(mvert->co, oldverts[*keyi].co);
+
+							mvert++;
 						}
 
 						fp += 3;
