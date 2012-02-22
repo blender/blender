@@ -1804,6 +1804,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_viewer(ttype);
 	register_node_type_cmp_splitviewer(ttype);
 	register_node_type_cmp_output_file(ttype);
+	register_node_type_cmp_output_multi_file(ttype);
 	register_node_type_cmp_view_levels(ttype);
 	
 	register_node_type_cmp_curve_rgb(ttype);

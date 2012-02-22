@@ -35,6 +35,8 @@
 #include "rna_internal.h"
 #include "rna_internal_types.h"
 
+#include "BLI_listbase.h"
+
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
@@ -243,24 +245,32 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 				return &RNA_NodeSocket##stypename##idname; \
 		}
 		
-		switch (sock->type) {
-		case SOCK_FLOAT:
-			NODE_DEFINE_SUBTYPES_FLOAT
-			break;
-		case SOCK_INT:
-			NODE_DEFINE_SUBTYPES_INT
-			break;
-		case SOCK_BOOLEAN:
-			return &RNA_NodeSocketBoolean;
-			break;
-		case SOCK_VECTOR:
-			NODE_DEFINE_SUBTYPES_VECTOR
-			break;
-		case SOCK_RGBA:
-			return &RNA_NodeSocketRGBA;
-			break;
-		case SOCK_SHADER:
-			return &RNA_NodeSocketShader;
+		if (sock->struct_type == SOCK_STRUCT_NONE) {
+			switch (sock->type) {
+			case SOCK_FLOAT:
+				NODE_DEFINE_SUBTYPES_FLOAT
+						break;
+			case SOCK_INT:
+				NODE_DEFINE_SUBTYPES_INT
+						break;
+			case SOCK_BOOLEAN:
+				return &RNA_NodeSocketBoolean;
+				break;
+			case SOCK_VECTOR:
+				NODE_DEFINE_SUBTYPES_VECTOR
+						break;
+			case SOCK_RGBA:
+				return &RNA_NodeSocketRGBA;
+				break;
+			case SOCK_SHADER:
+				return &RNA_NodeSocketShader;
+			}
+		}
+		else {
+			switch (sock->struct_type) {
+			case SOCK_STRUCT_OUTPUT_MULTI_FILE:
+				return &RNA_NodeImageMultiFileSocket;
+			}
 		}
 		
 		#undef SUBTYPE
@@ -822,6 +832,16 @@ static void rna_Mapping_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	bNode *node = ptr->data;
 	init_tex_mapping(node->storage);
 	rna_Node_update(bmain, scene, ptr);
+}
+
+static PointerRNA rna_CompositNodeOutputMultiFile_active_input_get(PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	NodeImageMultiFile *nimf = node->storage;
+	bNodeSocket *sock = BLI_findlink(&node->inputs, nimf->active_input);
+	PointerRNA sock_ptr;
+	RNA_pointer_create((ID*)ptr->id.data, &RNA_NodeSocket, sock, &sock_ptr);
+	return sock_ptr;
 }
 
 #else
@@ -1779,6 +1799,51 @@ static void def_cmp_output_file(StructRNA *srna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Image_end_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "End Frame", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void rna_def_cmp_output_multi_file_socket(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "NodeImageMultiFileSocket", "NodeSocketRGBA");
+	RNA_def_struct_sdna(srna, "bNodeSocket");
+	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
+	RNA_def_struct_ui_text(srna, "Node Image Multi File Socket", "Socket data of multi file output node");
+	RNA_def_struct_ui_icon(srna, ICON_PLUG);
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
+	
+	RNA_def_struct_sdna_from(srna, "NodeImageMultiFileSocket", "storage");
+	
+	prop = RNA_def_property(srna, "use_render_format", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_render_format", 1);
+	RNA_def_property_ui_text(prop, "Use Render Format", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
+	
+	prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ImageFormatSettings");
+}
+static void def_cmp_output_multi_file(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeImageMultiFile", "storage");
+	
+	prop = RNA_def_property(srna, "base_path", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "base_path");
+	RNA_def_property_ui_text(prop, "Base Path", "Base output path for the image");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "active_input", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_funcs(prop, "rna_CompositNodeOutputMultiFile_active_input_get", NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "NodeSocket");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Input", "Active input in details view list");
+	
+	prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_input");
+	RNA_def_property_ui_text(prop, "Active Input Index", "Active input index in details view list");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -3144,6 +3209,9 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 		RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
 		break;
 	}
+	
+	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
+	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 }
 
 static void rna_def_node(BlenderRNA *brna)
@@ -3407,6 +3475,9 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, NODE_FORLOOP, def_forloop);
 	define_specific_node(brna, NODE_WHILELOOP, def_whileloop);
 	define_specific_node(brna, NODE_FRAME, def_frame);
+	
+	/* special socket types */
+	rna_def_cmp_output_multi_file_socket(brna);
 }
 
 /* clean up macro definition */

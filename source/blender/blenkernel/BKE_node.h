@@ -112,8 +112,9 @@ typedef struct bNodeSocketType {
 typedef struct bNodeTemplate {
 	int type;
 	
-	/* group tree */
-	struct bNodeTree *ngroup;
+	struct Main *main;
+	struct Scene *scene;
+	struct bNodeTree *ngroup;	/* group tree */
 } bNodeTemplate;
 
 /** Defines a node type.
@@ -653,6 +654,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_TRANSFORM	264
 #define CMP_NODE_MOVIEDISTORTION	265
 #define CMP_NODE_DOUBLEEDGEMASK    266
+#define CMP_NODE_OUTPUT_MULTI_FILE	267
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302
@@ -692,6 +694,8 @@ void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
+void ntreeCompositOutputMultiFileAddSocket(struct bNodeTree *ntree, struct bNode *node, struct ImageFormatData *im_format);
+int ntreeCompositOutputMultiFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
 
 /* ************** TEXTURE NODES *************** */
 

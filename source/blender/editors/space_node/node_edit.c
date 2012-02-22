@@ -3587,3 +3587,77 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", nodetree_type_items, NTREE_COMPOSIT, "Tree Type", "");
 	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME-2, "Name", "");
 }
+
+/* ****************** Multi File Output Add Socket  ******************* */
+
+static int node_output_multi_file_add_socket_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node = nodeGetActive(ntree);
+	
+	if (!node)
+		return OPERATOR_CANCELLED;
+	
+	ntreeCompositOutputMultiFileAddSocket(ntree, node, &scene->r.im_format);
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int node_output_multi_file_add_socket_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return node_output_multi_file_add_socket_exec(C, op);
+}
+
+void NODE_OT_output_multi_file_add_socket(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Multi File Node Socket";
+	ot->description= "Add a new input to a multi file output node";
+	ot->idname= "NODE_OT_output_multi_file_add_socket";
+	
+	/* callbacks */
+	ot->exec= node_output_multi_file_add_socket_exec;
+	ot->invoke= node_output_multi_file_add_socket_invoke;
+	ot->poll= composite_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Multi File Output Remove Socket  ******************* */
+
+static int node_output_multi_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node = nodeGetActive(ntree);
+	
+	if (!node)
+		return OPERATOR_CANCELLED;
+	
+	if (!ntreeCompositOutputMultiFileRemoveActiveSocket(ntree, node))
+		return OPERATOR_CANCELLED;
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_output_multi_file_remove_active_socket(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Multi File Node Socket";
+	ot->description= "Remove active input from a multi file output node";
+	ot->idname= "NODE_OT_output_multi_file_remove_active_socket";
+	
+	/* callbacks */
+	ot->exec= node_output_multi_file_remove_active_socket_exec;
+	ot->poll= composite_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
