@@ -824,6 +824,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				q1[1] = cross[0] * si;
 				q1[2] = cross[1] * si;
 				q1[3] = cross[2] * si;
+				normalize_qt(q1);
 				quat_to_mat3(mat, q1);
 			}
 		}
@@ -4519,7 +4520,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 	
-	BM_data_layer_free_n(em->bm, &em->bm->edata, CD_MASK_PROP_FLT, li);
+	BM_data_layer_free_n(em->bm, &em->bm->edata, CD_PROP_FLT, li);
 	
 	MEM_freeN(w);
 
