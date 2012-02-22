@@ -159,6 +159,33 @@ static void layerFree_mdeformvert(void *data, int count, int size)
 	}
 }
 
+/* copy just zeros in this case */
+static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
+                                        int count)
+{
+	int i, size = sizeof(void *);
+
+	for(i = 0; i < count; ++i) {
+		void **ptr = (void  **)((char *)dest + i * size);
+		*ptr = NULL;
+	}
+}
+
+static void layerFree_bmesh_elem_py_ptr(void *data, int count, int size)
+{
+	extern void bpy_bm_generic_invalidate(void *self);
+
+	int i;
+
+	for(i = 0; i < count; ++i) {
+		void **ptr = (void *)((char *)data + i * size);
+		if (*ptr) {
+			bpy_bm_generic_invalidate(*ptr);
+		}
+	}
+}
+
+
 static void linklist_free_simple(void *link)
 {
 	MEM_freeN(link);
@@ -1003,6 +1030,10 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MLoopCol), "MLoopCol", 1, "WeightLoopCol", NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
+	/* 33: CD_BM_ELEM_PYPTR */
+	{sizeof(void *), "", 1, NULL, layerCopy_bmesh_elem_py_ptr,
+	 layerFree_bmesh_elem_py_ptr, NULL, NULL, NULL},
+
 /* END BMESH ONLY */
 
 

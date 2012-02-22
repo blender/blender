@@ -31,6 +31,8 @@
 
 #include "BLI_math.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 
 #include "../mathutils/mathutils.h"
@@ -1129,7 +1131,7 @@ static PyObject *bpy_bm_seq_subscript(BPy_BMElemSeq *self, PyObject *key)
 			return NULL;
 		}
 		else if (step != 1) {
-			PyErr_SetString(PyExc_TypeError, "bpy_prop_collection[slice]: slice steps not supported");
+			PyErr_SetString(PyExc_TypeError, "BMElemSeq[slice]: slice steps not supported");
 			return NULL;
 		}
 		else if (key_slice->start == Py_None && key_slice->stop == Py_None) {
@@ -1231,6 +1233,60 @@ static PyObject *bpy_bm_iter_next(BPy_BMIter *self)
 /* Dealloc Functions
  * ================= */
 
+static void bpy_bmesh_dealloc(BPy_BMesh *self)
+{
+	BMesh *bm = self->bm;
+
+	BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
+	BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
+	BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
+	BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+
+	bm->py_handle = NULL;
+
+	PyObject_DEL(self);
+}
+
+static void bpy_bmvert_dealloc(BPy_BMElem *self)
+{
+	BMesh *bm = self->bm;
+	if (bm) {
+		void **ptr = CustomData_bmesh_get(&bm->vdata, self->ele->data, CD_BM_ELEM_PYPTR);
+		*ptr = NULL;
+	}
+	PyObject_DEL(self);
+}
+
+static void bpy_bmedge_dealloc(BPy_BMElem *self)
+{
+	BMesh *bm = self->bm;
+	if (bm) {
+		void **ptr = CustomData_bmesh_get(&bm->edata, self->ele->data, CD_BM_ELEM_PYPTR);
+		*ptr = NULL;
+	}
+	PyObject_DEL(self);
+}
+
+static void bpy_bmface_dealloc(BPy_BMElem *self)
+{
+	BMesh *bm = self->bm;
+	if (bm) {
+		void **ptr = CustomData_bmesh_get(&bm->pdata, self->ele->data, CD_BM_ELEM_PYPTR);
+		*ptr = NULL;
+	}
+	PyObject_DEL(self);
+}
+
+static void bpy_bmloop_dealloc(BPy_BMElem *self)
+{
+	BMesh *bm = self->bm;
+	if (bm) {
+		void **ptr = CustomData_bmesh_get(&bm->ldata, self->ele->data, CD_BM_ELEM_PYPTR);
+		*ptr = NULL;
+	}
+	PyObject_DEL(self);
+}
+
 static void bpy_bm_seq_dealloc(BPy_BMElemSeq *self)
 {
 	Py_XDECREF(self->py_ele);
@@ -1309,11 +1365,11 @@ void BPy_BM_init_types(void)
 	/* only 1 iteratir so far */
 	BPy_BMIter_Type.tp_iternext = (iternextfunc)bpy_bm_iter_next;
 
-	BPy_BMesh_Type.tp_dealloc     = NULL;
-	BPy_BMVert_Type.tp_dealloc    = NULL;
-	BPy_BMEdge_Type.tp_dealloc    = NULL;
-	BPy_BMFace_Type.tp_dealloc    = NULL;
-	BPy_BMLoop_Type.tp_dealloc    = NULL;
+	BPy_BMesh_Type.tp_dealloc     = (destructor)bpy_bmesh_dealloc;
+	BPy_BMVert_Type.tp_dealloc    = (destructor)bpy_bmvert_dealloc;
+	BPy_BMEdge_Type.tp_dealloc    = (destructor)bpy_bmedge_dealloc;
+	BPy_BMFace_Type.tp_dealloc    = (destructor)bpy_bmface_dealloc;
+	BPy_BMLoop_Type.tp_dealloc    = (destructor)bpy_bmloop_dealloc;
 	BPy_BMElemSeq_Type.tp_dealloc = (destructor)bpy_bm_seq_dealloc;
 	BPy_BMIter_Type.tp_dealloc    = NULL;
 
@@ -1351,44 +1407,104 @@ void BPy_BM_init_types(void)
 
 PyObject *BPy_BMesh_CreatePyObject(BMesh *bm)
 {
-	BPy_BMesh *self = PyObject_New(BPy_BMesh, &BPy_BMesh_Type);
-	self->bm = bm;
+	BPy_BMesh *self;
+
+	if (bm->py_handle) {
+		self = bm->py_handle;
+		Py_INCREF(self);
+	}
+	else {
+		self = PyObject_New(BPy_BMesh, &BPy_BMesh_Type);
+		self->bm = bm;
+
+		BM_data_layer_add(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
+		BM_data_layer_add(bm, &bm->edata, CD_BM_ELEM_PYPTR);
+		BM_data_layer_add(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
+		BM_data_layer_add(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+	}
+
 	return (PyObject *)self;
 }
 
+
+
 PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v)
 {
-	BPy_BMVert *self = PyObject_New(BPy_BMVert, &BPy_BMVert_Type);
-	BLI_assert(v != NULL);
-	self->bm = bm;
-	self->v  = v;
+	BPy_BMVert *self;
+
+	void **ptr = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BM_ELEM_PYPTR);
+
+	if (*ptr != NULL) {
+		self = *ptr;
+		Py_INCREF(self);
+	}
+	else {
+		self = PyObject_New(BPy_BMVert, &BPy_BMVert_Type);
+		BLI_assert(v != NULL);
+		self->bm = bm;
+		self->v  = v;
+		*ptr = self;
+	}
 	return (PyObject *)self;
 }
 
 PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e)
 {
-	BPy_BMEdge *self = PyObject_New(BPy_BMEdge, &BPy_BMEdge_Type);
-	BLI_assert(e != NULL);
-	self->bm = bm;
-	self->e  = e;
+	BPy_BMEdge *self;
+
+	void **ptr = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BM_ELEM_PYPTR);
+
+	if (*ptr != NULL) {
+		self = *ptr;
+		Py_INCREF(self);
+	}
+	else {
+		self = PyObject_New(BPy_BMEdge, &BPy_BMEdge_Type);
+		BLI_assert(e != NULL);
+		self->bm = bm;
+		self->e  = e;
+		*ptr = self;
+	}
 	return (PyObject *)self;
 }
 
 PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f)
 {
-	BPy_BMFace *self = PyObject_New(BPy_BMFace, &BPy_BMFace_Type);
-	BLI_assert(f != NULL);
-	self->bm = bm;
-	self->f  = f;
+	BPy_BMFace *self;
+
+	void **ptr = CustomData_bmesh_get(&bm->pdata, f->head.data, CD_BM_ELEM_PYPTR);
+
+	if (*ptr != NULL) {
+		self = *ptr;
+		Py_INCREF(self);
+	}
+	else {
+		self = PyObject_New(BPy_BMFace, &BPy_BMFace_Type);
+		BLI_assert(f != NULL);
+		self->bm = bm;
+		self->f  = f;
+		*ptr = self;
+	}
 	return (PyObject *)self;
 }
 
 PyObject *BPy_BMLoop_CreatePyObject(BMesh *bm, BMLoop *l)
 {
-	BPy_BMLoop *self = PyObject_New(BPy_BMLoop, &BPy_BMLoop_Type);
-	BLI_assert(l != NULL);
-	self->bm = bm;
-	self->l  = l;
+	BPy_BMLoop *self;
+
+	void **ptr = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_BM_ELEM_PYPTR);
+
+	if (*ptr != NULL) {
+		self = *ptr;
+		Py_INCREF(self);
+	}
+	else {
+		self = PyObject_New(BPy_BMLoop, &BPy_BMLoop_Type);
+		BLI_assert(l != NULL);
+		self->bm = bm;
+		self->l  = l;
+		*ptr = self;
+	}
 	return (PyObject *)self;
 }
 
