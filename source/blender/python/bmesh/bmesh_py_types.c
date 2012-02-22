@@ -175,6 +175,15 @@ static PyObject *bpy_bmesh_seq_elem_get(BPy_BMElem *self, void *itype)
 	return BPy_BMElemSeq_CreatePyObject(self->bm, self, GET_INT_FROM_POINTER(itype));
 }
 
+PyDoc_STRVAR(bpy_bm_is_valid_doc,
+             "True when this element is valid (hasn't been removed)"
+             );
+static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self)
+{
+	return PyBool_FromLong(self->bm != NULL);
+}
+
+
 PyDoc_STRVAR(bpy_bmesh_select_mode_doc,
              "The selection mode for this mesh"
              );
@@ -249,6 +258,54 @@ static int bpy_bmvert_normal_set(BPy_BMVert *self, PyObject *value)
 	}
 }
 
+PyDoc_STRVAR(bpy_bmvert_is_manifold_doc,
+             "True when this vertex is manifold (readonly)"
+             );
+static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_vert_is_manifold(self->bm, self->v));
+}
+
+PyDoc_STRVAR(bpy_bmvert_is_wire_doc,
+             "True when this vertex is not connected to any faces (readonly)"
+             );
+static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_vert_is_wire(self->bm, self->v));
+}
+
+/* Edge
+ * ^^^^ */
+
+PyDoc_STRVAR(bpy_bmedge_is_manifold_doc,
+             "True when this edge is manifold (readonly)"
+             );
+static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_edge_is_manifold(self->bm, self->e));
+}
+
+PyDoc_STRVAR(bpy_bmedge_is_wire_doc,
+             "True when this edge is not connected to any faces (readonly)"
+             );
+static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_edge_is_wire(self->bm, self->e));
+}
+
+PyDoc_STRVAR(bpy_bmedge_is_boundry_doc,
+             "True when this edge is at the boundry of a face (readonly)"
+             );
+static PyObject *bpy_bmedge_is_boundry_get(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_edge_is_boundry(self->e));
+}
+
 /* Face
  * ^^^^ */
 
@@ -278,6 +335,10 @@ static PyGetSetDef bpy_bmesh_getseters[] = {
     {(char *)"edges", (getter)bpy_bmesh_seq_get, (setter)NULL, NULL, (void *)BM_EDGES_OF_MESH},
     {(char *)"faces", (getter)bpy_bmesh_seq_get, (setter)NULL, NULL, (void *)BM_FACES_OF_MESH},
     {(char *)"select_mode", (getter)bpy_bmesh_select_mode_get, (setter)bpy_bmesh_select_mode_set, (char *)bpy_bmesh_select_mode_doc, NULL},
+
+    /* readonly checks */
+    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -291,9 +352,15 @@ static PyGetSetDef bpy_bmvert_getseters[] = {
     {(char *)"co",     (getter)bpy_bmvert_co_get,     (setter)bpy_bmvert_co_set,     (char *)bpy_bmvert_co_doc, NULL},
     {(char *)"normal", (getter)bpy_bmvert_normal_get, (setter)bpy_bmvert_normal_set, (char *)bpy_bmvert_normal_doc, NULL},
 
+    /* connectivity data */
     {(char *)"link_edges", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_EDGES_OF_VERT},
     {(char *)"link_faces", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_FACES_OF_VERT},
     {(char *)"link_loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_VERT},
+
+    /* readonly checks */
+    {(char *)"is_manifold",  (getter)bpy_bmvert_is_manifold_get,  (setter)NULL, (char *)bpy_bmvert_is_manifold_doc, NULL},
+    {(char *)"is_wire",      (getter)bpy_bmvert_is_wire_get,      (setter)NULL, (char *)bpy_bmvert_is_wire_doc, NULL},
+    {(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -308,10 +375,17 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
     {(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
     {(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SEAM},
 
+    /* connectivity data */
     {(char *)"verts", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_VERTS_OF_EDGE},
 
     {(char *)"link_faces", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_FACES_OF_EDGE},
     {(char *)"link_loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_EDGE},
+
+    /* readonly checks */
+    {(char *)"is_manifold",  (getter)bpy_bmedge_is_manifold_get,  (setter)NULL, (char *)bpy_bmedge_is_manifold_doc, NULL},
+    {(char *)"is_wire",      (getter)bpy_bmedge_is_wire_get,      (setter)NULL, (char *)bpy_bmedge_is_wire_doc, NULL},
+    {(char *)"is_boundry",   (getter)bpy_bmedge_is_boundry_get,   (setter)NULL, (char *)bpy_bmedge_is_boundry_doc, NULL},
+    {(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -327,9 +401,13 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 
     {(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
 
+    /* connectivity data */
     {(char *)"verts", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_VERTS_OF_FACE},
     {(char *)"edges", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_EDGES_OF_FACE},
     {(char *)"loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_FACE},
+
+    /* readonly checks */
+    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -341,7 +419,11 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
+    /* connectivity data */
     {(char *)"link_loops", (getter)bpy_bmesh_seq_elem_get, (setter)NULL, NULL, (void *)BM_LOOPS_OF_LOOP},
+
+    /* readonly checks */
+    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

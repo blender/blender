@@ -948,7 +948,7 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 	}
 	else if (event == 5) {
 		//"Erase Only Faces";
-		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%d",
+		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i",
 		                  BM_ELEM_SELECT, DEL_ONLYFACES))
 			return OPERATOR_CANCELLED;
 	}
