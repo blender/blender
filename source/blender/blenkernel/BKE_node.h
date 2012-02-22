@@ -50,6 +50,7 @@ struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
 struct ID;
+struct ImageFormatData;
 struct ListBase;
 struct Main;
 struct uiBlock;
