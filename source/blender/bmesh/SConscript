@@ -37,4 +37,4 @@ incs.append('../editors/mesh')
 incs.append('../editors/include')
 
 defs = []
-env.BlenderLib ( libname = 'bf_bmesh', sources = sources, includes = Split(incs), libtype = 'core', defines=defs, priority=100, compileflags=cflags )
+env.BlenderLib ( libname = 'bf_bmesh', sources = sources, includes = Split(incs), libtype = ['core','player'], defines=defs, priority=[100, 100], compileflags=cflags )
