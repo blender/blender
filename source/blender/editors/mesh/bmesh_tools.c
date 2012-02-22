@@ -1565,7 +1565,7 @@ static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 	
 	/* doflip has to do with bmesh_rationalize_normals, it's an internal
 	 * thing */
-	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf do_flip=%d", BM_ELEM_SELECT, TRUE))
+	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf do_flip=%b", BM_ELEM_SELECT, TRUE))
 		return OPERATOR_CANCELLED;
 
 	if (RNA_boolean_get(op->ptr, "inside"))

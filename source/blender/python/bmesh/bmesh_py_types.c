@@ -1066,6 +1066,52 @@ static PyObject *bpy_bm_seq_subscript_int(BPy_BMElemSeq *self, int keynum)
 	return NULL;
 }
 
+static PyObject *bpy_bm_seq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t start, Py_ssize_t stop)
+{
+	BMIter iter;
+	int count = 0;
+	int ok;
+
+	PyObject *list;
+	PyObject *item;
+	BMHeader *ele;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	list = PyList_New(0);
+
+	ok = BM_iter_init(&iter, self->bm, self->itype, self->py_ele ? self->py_ele->ele : NULL);
+
+	BLI_assert(ok == TRUE);
+
+	if (UNLIKELY(ok == FALSE)) {
+		return list;
+	}
+
+	/* first loop up-until the start */
+	for (ok = TRUE; ok; ok = (BM_iter_step(&iter) != NULL)) {
+		/* PointerRNA itemptr = rna_macro_iter.ptr; */
+		if (count == start) {
+			break;
+		}
+		count++;
+	}
+
+	/* add items until stop */
+	while ((ele = BM_iter_step(&iter))) {
+		item = BPy_BMElem_CreatePyObject(self->bm, ele);
+		PyList_Append(list, item);
+		Py_DECREF(item);
+
+		count++;
+		if (count == stop) {
+			break;
+		}
+	}
+
+	return list;
+}
+
 static PyObject *bpy_bm_seq_subscript(BPy_BMElemSeq *self, PyObject *key)
 {
 	/* dont need error check here */
@@ -1075,7 +1121,42 @@ static PyObject *bpy_bm_seq_subscript(BPy_BMElemSeq *self, PyObject *key)
 			return NULL;
 		return bpy_bm_seq_subscript_int(self, i);
 	}
-	/* TODO, slice */
+	else if (PySlice_Check(key)) {
+		PySliceObject *key_slice = (PySliceObject *)key;
+		Py_ssize_t step = 1;
+
+		if (key_slice->step != Py_None && !_PyEval_SliceIndex(key, &step)) {
+			return NULL;
+		}
+		else if (step != 1) {
+			PyErr_SetString(PyExc_TypeError, "bpy_prop_collection[slice]: slice steps not supported");
+			return NULL;
+		}
+		else if (key_slice->start == Py_None && key_slice->stop == Py_None) {
+			return bpy_bm_seq_subscript_slice(self, 0, PY_SSIZE_T_MAX);
+		}
+		else {
+			Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
+
+			/* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
+			if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) return NULL;
+			if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop))    return NULL;
+
+			if (start < 0 || stop < 0) {
+				/* only get the length for negative values */
+				Py_ssize_t len = bpy_bm_seq_length(self);
+				if (start < 0) start += len;
+				if (stop < 0) start += len;
+			}
+
+			if (stop - start <= 0) {
+				return PyList_New(0);
+			}
+			else {
+				return bpy_bm_seq_subscript_slice(self, start, stop);
+			}
+		}
+	}
 	else {
 		PyErr_SetString(PyExc_AttributeError, "BMElemSeq[key]: invalid key, key must be an int");
 		return NULL;
