@@ -23,7 +23,6 @@ set(INC
 	../../bmesh
 	../../blenkernel
 	../../blenlib
-	../../blenloader
 	../../makesdna
 	../../../../intern/guardedalloc
 )
@@ -35,9 +34,11 @@ set(INC_SYS
 set(SRC
 	bmesh_py_api.c
 	bmesh_py_types.c
+	bmesh_py_utils.c
 
 	bmesh_py_api.h
 	bmesh_py_types.h
+	bmesh_py_utils.h
 )
 
 blender_add_lib(bf_python_bmesh "${SRC}" "${INC}" "${INC_SYS}")

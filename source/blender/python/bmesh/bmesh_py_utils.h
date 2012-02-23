@@ -23,13 +23,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_api.h
+/** \file blender/python/bmesh/bmesh_py_utils.h
  *  \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_API_H__
-#define __BMESH_PY_API_H__
+#ifndef __BMESH_PY_UTILS_H__
+#define __BMESH_PY_UTILS_H__
 
-PyObject *BPyInit_bmesh(void);
+PyObject *BPyInit_bmesh_utils(void);
 
-#endif /* __BMESH_PY_API_H__ */
+#endif /* __BMESH_PY_UTILS_H__ */

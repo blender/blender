@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Campbell Barton
@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bme_types.c
+/** \file blender/python/bmesh/bmesh_py_types.c
  *  \ingroup pybmesh
  */
 
@@ -797,7 +797,7 @@ static PyObject *bpy_bmvert_seq_new(BPy_BMElemSeq *self, PyObject *args)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if(!PyArg_ParseTuple(args, "|O:verts.new", py_co)) {
+	if (!PyArg_ParseTuple(args, "|O:verts.new", py_co)) {
 		return NULL;
 	}
 	else {
@@ -831,7 +831,7 @@ static PyObject *bpy_bmedge_seq_new(BPy_BMElemSeq *self, PyObject *args)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if(!PyArg_ParseTuple(args, "O!O!:edges.new",
+	if (!PyArg_ParseTuple(args, "O!O!:edges.new",
 	                     &BPy_BMVert_Type, &v1,
 	                     &BPy_BMVert_Type, &v2))
 	{
@@ -877,7 +877,7 @@ static PyObject *bpy_bmface_seq_new(BPy_BMElemSeq *self, PyObject *args)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if(!PyArg_ParseTuple(args, "O:faces.new", &vert_seq)) {
+	if (!PyArg_ParseTuple(args, "O:faces.new", &vert_seq)) {
 		return NULL;
 	}
 	else {
@@ -1001,7 +1001,7 @@ static PyObject *bpy_bmvert_seq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	if(!BPy_BMVert_Check(value)) {
+	if (!BPy_BMVert_Check(value)) {
 		return NULL;
 	}
 	else {
@@ -1025,7 +1025,7 @@ static PyObject *bpy_bmedge_seq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	if(!BPy_BMEdge_Check(value)) {
+	if (!BPy_BMEdge_Check(value)) {
 		return NULL;
 	}
 	else {
@@ -1049,7 +1049,7 @@ static PyObject *bpy_bmface_seq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	if(!BPy_BMFace_Check(value)) {
+	if (!BPy_BMFace_Check(value)) {
 		return NULL;
 	}
 	else {
@@ -1572,6 +1572,42 @@ void BPy_BM_init_types(void)
 	PyType_Ready(&BPy_BMIter_Type);
 }
 
+/* bmesh.types submodule
+ * ********************* */
+
+static struct PyModuleDef BPy_BM_types_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"bmesh.types",  /* m_name */
+	NULL,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};
+
+PyObject *BPyInit_bmesh_types(void)
+{
+	PyObject *submodule;
+
+	submodule = PyModule_Create(&BPy_BM_types_module_def);
+
+#define mod_type_add(s, t) \
+	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
+
+	mod_type_add(submodule, BPy_BMesh_Type);
+	mod_type_add(submodule, BPy_BMVert_Type);
+	mod_type_add(submodule, BPy_BMEdge_Type);
+	mod_type_add(submodule, BPy_BMFace_Type);
+	mod_type_add(submodule, BPy_BMLoop_Type);
+	mod_type_add(submodule, BPy_BMElemSeq_Type);
+	mod_type_add(submodule, BPy_BMIter_Type);
+
+#undef mod_type_add
+
+	return submodule;
+}
 
 /* Utility Functions
  * ***************** */

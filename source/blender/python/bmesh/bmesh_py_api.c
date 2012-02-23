@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Campbell Barton
@@ -23,10 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/blf_py_api.c
- *  \ingroup pygen
+/** \file blender/python/bmesh/bmesh_py_api.c
+ *  \ingroup pybmesh
  *
- * This file defines the 'bme' bmesh main module.
+ * This file defines the 'bmesh' module.
  */
 
 #include <Python.h>
@@ -34,6 +34,7 @@
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
+#include "bmesh_py_utils.h"
 
 #include "BLI_utildefines.h"
 
@@ -92,6 +93,10 @@ PyObject *BPyInit_bmesh(void)
 	BPy_BM_init_types();
 
 	submodule = PyModule_Create(&BPy_BM_module_def);
+
+	/* bmesh.types */
+	PyModule_AddObject(submodule, "types", BPyInit_bmesh_types());
+	PyModule_AddObject(submodule, "utils", BPyInit_bmesh_utils());
 
 	return submodule;
 }

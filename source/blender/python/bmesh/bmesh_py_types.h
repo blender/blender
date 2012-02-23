@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Campbell Barton
@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bme_types.h
+/** \file blender/python/bmesh/bmesh_py_types.h
  *  \ingroup pybmesh
  */
 
@@ -116,6 +116,8 @@ typedef struct BPy_BMIter {
 } BPy_BMIter;
 
 void BPy_BM_init_types(void);
+
+PyObject *BPyInit_bmesh_types(void);
 
 PyObject *BPy_BMesh_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v);
