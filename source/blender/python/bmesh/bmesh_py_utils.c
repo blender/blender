@@ -378,6 +378,42 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 	}
 }
 
+PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
+".. method:: face_join(faces)\n"
+"\n"
+"   Joins a sequence of faces.\n"
+"\n"
+"   :arg faces: Sequence of faces .\n"
+"   :type faces: :class:`bmesh.tupes.BMFace`\n"
+"   :return: The newly created face or None on failier.\n"
+"   :rtype: :class:`bmesh.tupes.BMFace`\n"
+);
+static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
+{
+	BMesh *bm = NULL;
+	BMFace **face_array;
+	Py_ssize_t face_seq_len = 0;
+	BMFace *f_new;
+
+	face_array = bpy_bm_generic_py_seq_as_array(&bm, value, 2, PY_SSIZE_T_MAX,
+												&face_seq_len, &BPy_BMFace_Type,
+												TRUE, TRUE, "face_join(...)");
+
+	if (face_array == NULL) {
+		return NULL; /* error will be set */
+	}
+
+	/* Go ahead and join the face!
+	 * --------------------------- */
+	f_new = BM_faces_join(bm, face_array, (int)face_seq_len);
+
+	if (f_new) {
+		return BPy_BMFace_CreatePyObject(bm, f_new);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
 
 static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_collapse_edge",  (PyCFunction)bpy_bm_utils_vert_collapse_edge,  METH_VARARGS, bpy_bm_utils_vert_collapse_edge_doc},
@@ -386,6 +422,7 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"edge_split",          (PyCFunction)bpy_bm_utils_edge_split,          METH_VARARGS, bpy_bm_utils_edge_split_doc},
     {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
     {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
+    {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_O,       bpy_bm_utils_face_join_doc},
     {NULL, NULL, 0, NULL}
 };
 

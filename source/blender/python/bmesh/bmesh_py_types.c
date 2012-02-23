@@ -913,68 +913,23 @@ static PyObject *bpy_bmface_seq_new(BPy_BMElemSeq *self, PyObject *args)
 	}
 	else {
 		BMesh *bm = self->bm;
-		PyObject *vert_seq_fast;
 		Py_ssize_t vert_seq_len;
 		Py_ssize_t i, i_prev;
 
-		void *alloc;
-		BMVert **vert_array;
-		BMEdge **edge_array;
+		BMVert **vert_array = NULL;
+		BMEdge **edge_array = NULL;
 
-		BPy_BMVert *item;
 		PyObject *ret = NULL;
-		int ok;
 
-		BMFace *f;
+		BMFace *f_new;
 
 		if (py_face_example) {
 			BPY_BM_CHECK_OBJ(py_face_example);
 		}
 
-		if (!(vert_seq_fast=PySequence_Fast(vert_seq, "faces.new(...)"))) {
-			return NULL;
-		}
-
-		vert_seq_len = PySequence_Fast_GET_SIZE(vert_seq_fast);
-
-		alloc = PyMem_MALLOC(vert_seq_len * sizeof(BMVert **) + vert_seq_len * sizeof(BMEdge **));
-
-		vert_array = (BMVert **) alloc;
-		edge_array = (BMEdge **) &(((BMVert **)alloc)[vert_seq_len]);
-
-		/* --- */
-		for (i = 0; i < vert_seq_len; i++) {
-			item = (BPy_BMVert *)PySequence_Fast_GET_ITEM(vert_seq_fast, i);
-
-			if (!BPy_BMVert_Check(item)) {
-				PyErr_Format(PyExc_TypeError,
-				             "faces.new(verts): expected BMVert sequence, not '%.200s'",
-				             Py_TYPE(item)->tp_name);
-			}
-			else if (item->bm != bm) {
-				PyErr_Format(PyExc_TypeError,
-				             "faces.new(verts): %d vertex is from another mesh", i);
-			}
-
-			vert_array[i] = item->v;
-
-			BM_elem_flag_enable(item->v, BM_ELEM_TAG);
-		}
-
-		/* check for double verts! */
-		ok = TRUE;
-		for (i = 0; i < vert_seq_len; i++) {
-			if (UNLIKELY(BM_elem_flag_test(vert_array[i], BM_ELEM_TAG) == FALSE)) {
-				ok = FALSE;
-			}
-			BM_elem_flag_disable(item->v, BM_ELEM_TAG);
-		}
-
-		if (ok == FALSE) {
-			PyErr_SetString(PyExc_ValueError,
-			                "faces.new(verts): found the same vertex used multiple times");
-			goto cleanup;
-		}
+		vert_array = bpy_bm_generic_py_seq_as_array(&bm, vert_seq, 3, PY_SSIZE_T_MAX,
+		                                            &vert_seq_len, &BPy_BMVert_Type,
+		                                            TRUE, TRUE, "faces.new(...)");
 
 		/* check if the face exists */
 		if (BM_face_exists(bm, vert_array, vert_seq_len, NULL)) {
@@ -983,34 +938,34 @@ static PyObject *bpy_bmface_seq_new(BPy_BMElemSeq *self, PyObject *args)
 			goto cleanup;
 		}
 
-
 		/* Go ahead and make the face!
 		 * --------------------------- */
 
+		edge_array = (BMEdge **)PyMem_MALLOC(vert_seq_len * sizeof(BMEdge **));
+
 		/* ensure edges */
-		ok = TRUE;
 		for (i = 0, i_prev = vert_seq_len - 1; i < vert_seq_len; (i_prev=i++)) {
 			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_prev], NULL, TRUE);
 		}
 
-		f = BM_face_create(bm, vert_array, edge_array, vert_seq_len, FALSE);
+		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, FALSE);
 
-		if (f == NULL) {
+		if (f_new == NULL) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): couldn't create the new face, internal error");
 			goto cleanup;
 		}
 
 		if (py_face_example) {
-			BM_elem_attrs_copy(py_face_example->bm, bm, py_face_example->f, f);
+			BM_elem_attrs_copy(py_face_example->bm, bm, py_face_example->f, f_new);
 		}
 
-		ret = BPy_BMFace_CreatePyObject(bm, f);
+		ret = BPy_BMFace_CreatePyObject(bm, f_new);
 
 		/* pass through */
 cleanup:
-		Py_DECREF(vert_seq_fast);
-		PyMem_FREE(alloc);
+		if (vert_array) PyMem_FREE(vert_array);
+		if (edge_array) PyMem_FREE(edge_array);
 		return ret;
 	}
 }
@@ -1804,4 +1759,108 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self)
 {
 	self->bm = NULL;
+}
+
+/* generic python seq as BMVert/Edge/Face array,
+ * return value must be freed with PyMem_FREE(...);
+ *
+ * The 'bm_r' value is assigned when empty, and used when set.
+ */
+void *bpy_bm_generic_py_seq_as_array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
+                                     PyTypeObject *type,
+                                     const char do_unique_check, const char do_bm_check,
+                                     const char *error_prefix)
+{
+	BMesh *bm = (r_bm && *r_bm) ? *r_bm : NULL;
+	PyObject *seq_fast;
+	*r_size = 0;
+
+	if (!(seq_fast=PySequence_Fast(seq, error_prefix))) {
+		return NULL;
+	}
+	else {
+		Py_ssize_t seq_len;
+		Py_ssize_t i;
+
+		BPy_BMElem *item;
+		BMHeader **alloc;
+
+		seq_len = PySequence_Fast_GET_SIZE(seq_fast);
+
+		if (seq_len < min || seq_len > max) {
+			PyErr_Format(PyExc_TypeError,
+			             "%s: sequence incorrect size, expected [%d - %d], given %d",
+			             error_prefix, min, max, seq_len);
+			return NULL;
+		}
+
+
+		/* from now on, use goto */
+		alloc = PyMem_MALLOC(seq_len * sizeof(BPy_BMElem **));
+
+		for (i = 0; i < seq_len; i++) {
+			item = (BPy_BMElem *)PySequence_Fast_GET_ITEM(seq_fast, i);
+
+			if (Py_TYPE(item) != type) {
+				PyErr_Format(PyExc_TypeError,
+				             "%s: expected '%.200', not '%.200s'",
+				             error_prefix, type->tp_name, Py_TYPE(item)->tp_name);
+				goto err_cleanup;
+			}
+			else if (item->bm == NULL) {
+				PyErr_Format(PyExc_TypeError,
+				             "%s: %d %s has been removed",
+				             error_prefix, i, type->tp_name);
+				goto err_cleanup;
+			}
+			/* trick so we can ensure all items have the same mesh,
+			 * and allows us to pass the 'bm' as NULL. */
+			else if (do_bm_check && (bm  && bm != item->bm)) {
+				PyErr_Format(PyExc_TypeError,
+				             "%s: %d %s is from another mesh",
+				             error_prefix, i, type->tp_name);
+				goto err_cleanup;
+			}
+
+			if (bm == NULL) {
+				bm = item->bm;
+			}
+
+			alloc[i] = item->ele;
+
+			if (do_unique_check) {
+				BM_elem_flag_enable(item->ele, BM_ELEM_TAG);
+			}
+		}
+
+		if (do_unique_check) {
+			/* check for double verts! */
+			int ok = TRUE;
+			for (i = 0; i < seq_len; i++) {
+				if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_TAG) == FALSE)) {
+					ok = FALSE;
+				}
+
+				/* ensure we dont leave this enabled */
+				BM_elem_flag_disable(alloc[i], BM_ELEM_TAG);
+			}
+
+			if (ok == FALSE) {
+				PyErr_Format(PyExc_ValueError,
+				             "%s: found the same %s used multiple times",
+				             error_prefix, type->tp_name);
+				goto err_cleanup;
+			}
+		}
+
+		Py_DECREF(seq_fast);
+		*r_size = seq_len;
+		if (r_bm) *r_bm = bm;
+		return alloc;
+
+err_cleanup:
+		Py_DECREF(seq_fast);
+		PyMem_FREE(alloc);
+		return NULL;
+	}
 }
