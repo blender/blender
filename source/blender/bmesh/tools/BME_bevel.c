@@ -289,7 +289,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 			e1 = e2;
 		}
 		ov = BM_edge_other_vert(e1, v);
-		sv = BM_edge_split(bm, v, e1, &ne, 0);
+		sv = BM_edge_split(bm, e1, v, &ne, 0);
 		//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /* this is technically wrong.. */
 		//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
 		//BME_data_interp_from_faceverts(bm, ov, v, sv, 0.25);
@@ -331,7 +331,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 		else {
 			is_split_vert = 0;
 			ov = BM_edge_other_vert(l->e, v);
-			sv = BM_edge_split(bm, v, l->e, &ne, 0);
+			sv = BM_edge_split(bm, l->e, v, &ne, 0);
 			//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /* this is technically wrong.. */
 			//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
 			//BME_data_interp_from_faceverts(bm, ov, v, sv, 0.25);

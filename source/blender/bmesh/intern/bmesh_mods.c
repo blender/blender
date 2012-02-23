@@ -540,7 +540,7 @@ BMEdge *BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv)
  *	the new vert
  */
 
-BMVert *BM_edge_split(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent)
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percent)
 {
 	BMVert *nv, *v2;
 	BMFace **oldfaces = NULL;
@@ -658,7 +658,7 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 	
 	for (i = 0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
-		nv = BM_edge_split(bm, e->v2, e, NULL, percent);
+		nv = BM_edge_split(bm, e, e->v2, NULL, percent);
 	}
 	return nv;
 }

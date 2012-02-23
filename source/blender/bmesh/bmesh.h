@@ -220,7 +220,7 @@ BMEdge* BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv);
 
 
 /* splits an edge.  ne is set to the new edge created. */
-BMVert *BM_edge_split(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent);
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percent);
 
 /* split an edge multiple times evenly */
 BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);

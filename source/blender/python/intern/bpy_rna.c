@@ -2836,7 +2836,7 @@ static int pyrna_prop_collection_contains(BPy_PropertyRNA *self, PyObject *key)
 
 		if (keyname == NULL) {
 			PyErr_SetString(PyExc_TypeError,
-			                "bpy_prop_collection.__contains__: expected a string or a typle of strings");
+			                "bpy_prop_collection.__contains__: expected a string or a tuple of strings");
 			return -1;
 		}
 
