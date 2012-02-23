@@ -543,7 +543,7 @@ void brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texfall,
 
 	if (flt) {
 		copy_v3_v3(brush_rgb, brush->rgb);
-		if(use_color_correction){
+		if (use_color_correction) {
 			srgb_to_linearrgb_v3_v3(brush_rgb, brush_rgb);
 		}
 
@@ -1048,9 +1048,9 @@ void brush_jitter_pos(const Scene *scene, Brush *brush, float pos[2], float jitt
 
 	/* jitter-ed brush gives weird and unpredictable result for this
 	   kinds of stroke, so manyally disable jitter usage (sergey) */
-	use_jitter&= (brush->flag & (BRUSH_RESTORE_MESH|BRUSH_ANCHORED)) == 0;
+	use_jitter &= (brush->flag & (BRUSH_RESTORE_MESH|BRUSH_ANCHORED)) == 0;
 
-	if(use_jitter){
+	if (use_jitter) {
 		float rand_pos[2];
 		const int radius= brush_size(scene, brush);
 		const int diameter= 2*radius;

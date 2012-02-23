@@ -869,22 +869,22 @@ void weight_to_rgb(float r_rgb[3], const float weight)
 {
 	const float blend= ((weight/2.0f)+0.5f);
 
-	if (weight<=0.25f){	// blue->cyan
+	if (weight<=0.25f) {	// blue->cyan
 		r_rgb[0]= 0.0f;
 		r_rgb[1]= blend*weight*4.0f;
 		r_rgb[2]= blend;
 	}
-	else if (weight<=0.50f){	// cyan->green
+	else if (weight<=0.50f) {	// cyan->green
 		r_rgb[0]= 0.0f;
 		r_rgb[1]= blend;
 		r_rgb[2]= blend*(1.0f-((weight-0.25f)*4.0f));
 	}
-	else if (weight <= 0.75f){	// green->yellow
+	else if (weight <= 0.75f) {	// green->yellow
 		r_rgb[0]= blend * ((weight-0.50f)*4.0f);
 		r_rgb[1]= blend;
 		r_rgb[2]= 0.0f;
 	}
-	else if (weight <= 1.0f){ // yellow->red
+	else if (weight <= 1.0f) { // yellow->red
 		r_rgb[0]= blend;
 		r_rgb[1]= blend * (1.0f-((weight-0.75f)*4.0f));
 		r_rgb[2]= 0.0f;

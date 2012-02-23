@@ -644,16 +644,17 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 	col.a = col.r = col.g = col.b = 0;
 
 	sub_weight = sub_weights;
-	for(i = 0; i < count; ++i){
+	for (i = 0; i < count; ++i) {
 		float weight = weights ? weights[i] : 1;
 		MLoopCol *src = sources[i];
-		if(sub_weights){
+		if (sub_weights) {
 			col.a += src->a * (*sub_weight) * weight;
 			col.r += src->r * (*sub_weight) * weight;
 			col.g += src->g * (*sub_weight) * weight;
 			col.b += src->b * (*sub_weight) * weight;
 			sub_weight++;
-		} else {
+		}
+		else {
 			col.a += src->a * weight;
 			col.r += src->r * weight;
 			col.g += src->g * weight;

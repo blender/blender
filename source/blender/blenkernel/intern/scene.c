@@ -86,12 +86,12 @@
 void free_avicodecdata(AviCodecData *acd)
 {
 	if (acd) {
-		if (acd->lpFormat){
+		if (acd->lpFormat) {
 			MEM_freeN(acd->lpFormat);
 			acd->lpFormat = NULL;
 			acd->cbFormat = 0;
 		}
-		if (acd->lpParms){
+		if (acd->lpParms) {
 			MEM_freeN(acd->lpParms);
 			acd->lpParms = NULL;
 			acd->cbParms = 0;
@@ -102,7 +102,7 @@ void free_avicodecdata(AviCodecData *acd)
 void free_qtcodecdata(QuicktimeCodecData *qcd)
 {
 	if (qcd) {
-		if (qcd->cdParms){
+		if (qcd->cdParms) {
 			MEM_freeN(qcd->cdParms);
 			qcd->cdParms = NULL;
 			qcd->cdSize = 0;
@@ -116,7 +116,7 @@ Scene *copy_scene(Scene *sce, int type)
 	ToolSettings *ts;
 	Base *base, *obase;
 	
-	if(type == SCE_COPY_EMPTY) {
+	if (type == SCE_COPY_EMPTY) {
 		ListBase lb;
 		scen= add_scene(sce->id.name+2);
 		
@@ -142,22 +142,22 @@ Scene *copy_scene(Scene *sce, int type)
 		scen->fps_info= NULL;
 
 		ts= scen->toolsettings;
-		if(ts) {
-			if(ts->vpaint) {
+		if (ts) {
+			if (ts->vpaint) {
 				ts->vpaint= MEM_dupallocN(ts->vpaint);
 				ts->vpaint->paintcursor= NULL;
 				ts->vpaint->vpaint_prev= NULL;
 				ts->vpaint->wpaint_prev= NULL;
 				copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
 			}
-			if(ts->wpaint) {
+			if (ts->wpaint) {
 				ts->wpaint= MEM_dupallocN(ts->wpaint);
 				ts->wpaint->paintcursor= NULL;
 				ts->wpaint->vpaint_prev= NULL;
 				ts->wpaint->wpaint_prev= NULL;
 				copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
 			}
-			if(ts->sculpt) {
+			if (ts->sculpt) {
 				ts->sculpt= MEM_dupallocN(ts->sculpt);
 				copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
 			}
@@ -173,16 +173,16 @@ Scene *copy_scene(Scene *sce, int type)
 		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
-		if(sce->nodetree) {
+		if (sce->nodetree) {
 			scen->nodetree= ntreeCopyTree(sce->nodetree); /* copies actions */
 			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
 		}
 
 		obase= sce->base.first;
 		base= scen->base.first;
-		while(base) {
+		while (base) {
 			id_us_plus(&base->object->id);
-			if(obase==sce->basact) scen->basact= base;
+			if (obase==sce->basact) scen->basact= base;
 	
 			obase= obase->next;
 			base= base->next;
@@ -190,19 +190,19 @@ Scene *copy_scene(Scene *sce, int type)
 	}
 	
 	/* make a private copy of the avicodecdata */
-	if(sce->r.avicodecdata) {
+	if (sce->r.avicodecdata) {
 		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
 		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
 		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
 	}
 	
 	/* make a private copy of the qtcodecdata */
-	if(sce->r.qtcodecdata) {
+	if (sce->r.qtcodecdata) {
 		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
 		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
 	}
 	
-	if(sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
+	if (sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
 		scen->r.ffcodecdata.properties= IDP_CopyProperty(sce->r.ffcodecdata.properties);
 	}
 
@@ -210,7 +210,7 @@ Scene *copy_scene(Scene *sce, int type)
 	 * are done outside of blenkernel with ED_objects_single_users! */
 
 	/*  camera */
-	if(type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
+	if (type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
 		ID_NEW(scen->camera);
 	}
 	
@@ -218,15 +218,15 @@ Scene *copy_scene(Scene *sce, int type)
 	sound_create_scene(scen);
 
 	/* world */
-	if(type == SCE_COPY_FULL) {
+	if (type == SCE_COPY_FULL) {
 		BKE_copy_animdata_id_action((ID *)scen);
-		if(scen->world) {
+		if (scen->world) {
 			id_us_plus((ID *)scen->world);
 			scen->world= copy_world(scen->world);
 			BKE_copy_animdata_id_action((ID *)scen->world);
 		}
 
-		if(sce->ed) {
+		if (sce->ed) {
 			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
 			scen->ed->seqbasep= &scen->ed->seqbase;
 			seqbase_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
@@ -242,13 +242,13 @@ void free_scene(Scene *sce)
 	Base *base;
 
 	base= sce->base.first;
-	while(base) {
+	while (base) {
 		base->object->id.us--;
 		base= base->next;
 	}
 	/* do not free objects! */
 	
-	if(sce->gpd) {
+	if (sce->gpd) {
 #if 0   // removed since this can be invalid memory when freeing everything
 		// since the grease pencil data is free'd before the scene.
 		// since grease pencil data is not (yet?), shared between objects
@@ -284,20 +284,20 @@ void free_scene(Scene *sce)
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
-	if(sce->toolsettings) {
-		if(sce->toolsettings->vpaint) {
+	if (sce->toolsettings) {
+		if (sce->toolsettings->vpaint) {
 			free_paint(&sce->toolsettings->vpaint->paint);
 			MEM_freeN(sce->toolsettings->vpaint);
 		}
-		if(sce->toolsettings->wpaint) {
+		if (sce->toolsettings->wpaint) {
 			free_paint(&sce->toolsettings->wpaint->paint);
 			MEM_freeN(sce->toolsettings->wpaint);
 		}
-		if(sce->toolsettings->sculpt) {
+		if (sce->toolsettings->sculpt) {
 			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
 		}
-		if(sce->toolsettings->uvsculpt) {
+		if (sce->toolsettings->uvsculpt) {
 			free_paint(&sce->toolsettings->uvsculpt->paint);
 			MEM_freeN(sce->toolsettings->uvsculpt);
 		}
@@ -312,14 +312,14 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->theDag);
 	}
 	
-	if(sce->nodetree) {
+	if (sce->nodetree) {
 		ntreeFreeTree(sce->nodetree);
 		MEM_freeN(sce->nodetree);
 	}
 
-	if(sce->stats)
+	if (sce->stats)
 		MEM_freeN(sce->stats);
-	if(sce->fps_info)
+	if (sce->fps_info)
 		MEM_freeN(sce->fps_info);
 
 	sound_destroy_scene(sce);
@@ -458,7 +458,7 @@ Scene *add_scene(const char *name)
 	pset->draw_step= 2;
 	pset->fade_frames= 2;
 	pset->selectmode= SCE_SELECT_PATH;
-	for(a=0; a<PE_TOT_BRUSH; a++) {
+	for (a=0; a<PE_TOT_BRUSH; a++) {
 		pset->brush[a].strength= 0.5;
 		pset->brush[a].size= 50;
 		pset->brush[a].step= 10;
@@ -543,8 +543,8 @@ Base *object_in_scene(Object *ob, Scene *sce)
 	Base *base;
 	
 	base= sce->base.first;
-	while(base) {
-		if(base->object == ob) return base;
+	while (base) {
+		if (base->object == ob) return base;
 		base= base->next;
 	}
 	return NULL;
@@ -563,18 +563,18 @@ void set_scene_bg(Main *bmain, Scene *scene)
 	scene_check_setscene(bmain, scene);
 	
 	/* can happen when switching modes in other scenes */
-	if(scene->obedit && !(scene->obedit->mode & OB_MODE_EDIT))
+	if (scene->obedit && !(scene->obedit->mode & OB_MODE_EDIT))
 		scene->obedit= NULL;
 
 	/* deselect objects (for dataselect) */
-	for(ob= bmain->object.first; ob; ob= ob->id.next)
+	for (ob= bmain->object.first; ob; ob= ob->id.next)
 		ob->flag &= ~(SELECT|OB_FROMGROUP);
 
 	/* group flags again */
-	for(group= bmain->group.first; group; group= group->id.next) {
+	for (group= bmain->group.first; group; group= group->id.next) {
 		go= group->gobject.first;
-		while(go) {
-			if(go->ob) go->ob->flag |= OB_FROMGROUP;
+		while (go) {
+			if (go->ob) go->ob->flag |= OB_FROMGROUP;
 			go= go->next;
 		}
 	}
@@ -583,12 +583,12 @@ void set_scene_bg(Main *bmain, Scene *scene)
 	DAG_scene_sort(bmain, scene);
 	
 	/* ensure dags are built for sets */
-	for(sce= scene->set; sce; sce= sce->set)
-		if(sce->theDag==NULL)
+	for (sce= scene->set; sce; sce= sce->set)
+		if (sce->theDag==NULL)
 			DAG_scene_sort(bmain, sce);
 
 	/* copy layers and flags from bases to objects */
-	for(base= scene->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		ob= base->object;
 		ob->lay= base->lay;
 		
@@ -598,7 +598,7 @@ void set_scene_bg(Main *bmain, Scene *scene)
 		base->flag |= flag;
 		
 		/* not too nice... for recovering objects with lost data */
-		//if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
+		//if (ob->pose==NULL) base->flag &= ~OB_POSEMODE;
 		ob->flag= base->flag;
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
@@ -610,7 +610,7 @@ void set_scene_bg(Main *bmain, Scene *scene)
 Scene *set_scene_name(Main *bmain, const char *name)
 {
 	Scene *sce= (Scene *)find_id("SC", name);
-	if(sce) {
+	if (sce) {
 		set_scene_bg(bmain, sce);
 		printf("Scene switch: '%s' in file: '%s'\n", name, G.main->name);
 		return sce;
@@ -626,8 +626,8 @@ void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 	bScreen *sc;
 
 	/* check all sets */
-	for(sce1= bmain->scene.first; sce1; sce1= sce1->id.next)
-		if(sce1->set == sce)
+	for (sce1= bmain->scene.first; sce1; sce1= sce1->id.next)
+		if (sce1->set == sce)
 			sce1->set= NULL;
 	
 	/* check all sequences */
@@ -637,8 +637,8 @@ void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 	clear_scene_in_nodes(bmain, sce);
 	
 	/* al screens */
-	for(sc= bmain->screen.first; sc; sc= sc->id.next)
-		if(sc->scene == sce)
+	for (sc= bmain->screen.first; sc; sc= sc->id.next)
+		if (sc->scene == sce)
 			sc->scene= newsce;
 
 	free_libblock(&bmain->scene, sce);
@@ -655,13 +655,13 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 	int run_again=1;
 	
 	/* init */
-	if(val==0) {
+	if (val==0) {
 		fase= F_START;
 		dupob= NULL;
 		
 		/* XXX particle systems with metas+dupligroups call this recursively */
 		/* see bug #18725 */
-		if(in_next_object) {
+		if (in_next_object) {
 			printf("ERROR: MetaBall generation called recursively, not supported\n");
 			
 			return F_ERROR;
@@ -671,21 +671,21 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 		in_next_object= 1;
 		
 		/* run_again is set when a duplilist has been ended */
-		while(run_again) {
+		while (run_again) {
 			run_again= 0;
 
 			/* the first base */
-			if(fase==F_START) {
+			if (fase==F_START) {
 				*base= (*scene)->base.first;
-				if(*base) {
+				if (*base) {
 					*ob= (*base)->object;
 					fase= F_SCENE;
 				}
 				else {
 					/* exception: empty scene */
-					while((*scene)->set) {
+					while ((*scene)->set) {
 						(*scene)= (*scene)->set;
-						if((*scene)->base.first) {
+						if ((*scene)->base.first) {
 							*base= (*scene)->base.first;
 							*ob= (*base)->object;
 							fase= F_SCENE;
@@ -695,15 +695,15 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 				}
 			}
 			else {
-				if(*base && fase!=F_DUPLI) {
+				if (*base && fase!=F_DUPLI) {
 					*base= (*base)->next;
-					if(*base) *ob= (*base)->object;
+					if (*base) *ob= (*base)->object;
 					else {
-						if(fase==F_SCENE) {
+						if (fase==F_SCENE) {
 							/* (*scene) is finished, now do the set */
-							while((*scene)->set) {
+							while ((*scene)->set) {
 								(*scene)= (*scene)->set;
-								if((*scene)->base.first) {
+								if ((*scene)->base.first) {
 									*base= (*scene)->base.first;
 									*ob= (*base)->object;
 									break;
@@ -714,25 +714,25 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 				}
 			}
 			
-			if(*base == NULL) fase= F_START;
+			if (*base == NULL) fase= F_START;
 			else {
-				if(fase!=F_DUPLI) {
-					if( (*base)->object->transflag & OB_DUPLI) {
+				if (fase!=F_DUPLI) {
+					if ( (*base)->object->transflag & OB_DUPLI) {
 						/* groups cannot be duplicated for mballs yet, 
 						this enters eternal loop because of 
 						makeDispListMBall getting called inside of group_duplilist */
-						if((*base)->object->dup_group == NULL) {
+						if ((*base)->object->dup_group == NULL) {
 							duplilist= object_duplilist((*scene), (*base)->object);
 							
 							dupob= duplilist->first;
 
-							if(!dupob)
+							if (!dupob)
 								free_object_duplilist(duplilist);
 						}
 					}
 				}
 				/* handle dupli's */
-				if(dupob) {
+				if (dupob) {
 					
 					copy_m4_m4(dupob->ob->obmat, dupob->mat);
 					
@@ -742,11 +742,11 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 					
 					dupob= dupob->next;
 				}
-				else if(fase==F_DUPLI) {
+				else if (fase==F_DUPLI) {
 					fase= F_SCENE;
 					(*base)->flag &= ~OB_FROMDUPLI;
 					
-					for(dupob= duplilist->first; dupob; dupob= dupob->next) {
+					for (dupob= duplilist->first; dupob; dupob= dupob->next) {
 						copy_m4_m4(dupob->ob->obmat, dupob->omat);
 					}
 					
@@ -758,7 +758,7 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 		}
 	}
 	
-	/* if(ob && *ob) {
+	/* if (ob && *ob) {
 		printf("Scene: '%s', '%s'\n", (*scene)->id.name+2, (*ob)->id.name+2);
 	} */
 
@@ -788,11 +788,11 @@ Object *scene_camera_switch_find(Scene *scene)
 	Object *camera= NULL;
 
 	for (m= scene->markers.first; m; m= m->next) {
-		if(m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER)==0 && (m->frame <= cfra) && (m->frame > frame)) {
+		if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER)==0 && (m->frame <= cfra) && (m->frame > frame)) {
 			camera= m->camera;
 			frame= m->frame;
 
-			if(frame == cfra)
+			if (frame == cfra)
 				break;
 
 		}
@@ -805,7 +805,7 @@ int scene_camera_switch_update(Scene *scene)
 {
 #ifdef DURIAN_CAMERA_SWITCH
 	Object *camera= scene_camera_switch_find(scene);
-	if(camera) {
+	if (camera) {
 		scene->camera= camera;
 		return 1;
 	}
@@ -894,15 +894,15 @@ int scene_check_setscene(Main *bmain, Scene *sce)
 	Scene *scene;
 	int a, totscene;
 	
-	if(sce->set==NULL) return 1;
+	if (sce->set==NULL) return 1;
 	
 	totscene= 0;
-	for(scene= bmain->scene.first; scene; scene= scene->id.next)
+	for (scene= bmain->scene.first; scene; scene= scene->id.next)
 		totscene++;
 	
-	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
+	for (a=0, scene=sce; scene->set; scene=scene->set, a++) {
 		/* more iterations than scenes means we have a cycle */
-		if(a > totscene) {
+		if (a > totscene) {
 			/* the tested scene gets zero'ed, that's typically current scene */
 			sce->set= NULL;
 			return 0;
@@ -983,7 +983,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 		
 		object_handle_update(scene_parent, ob);
 		
-		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+		if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
 			
 		/* always update layer, so that animating layers works */
@@ -1051,8 +1051,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	/* clear animation overrides */
 	// XXX TODO...
 
-	for(sce_iter= sce; sce_iter; sce_iter= sce_iter->set) {
-		if(sce_iter->theDag==NULL)
+	for (sce_iter= sce; sce_iter; sce_iter= sce_iter->set) {
+		if (sce_iter->theDag==NULL)
 			DAG_scene_sort(bmain, sce_iter);
 	}
 
@@ -1092,7 +1092,7 @@ SceneRenderLayer *scene_add_render_layer(Scene *sce, const char *name)
 {
 	SceneRenderLayer *srl;
 
-	if(!name)
+	if (!name)
 		name= "RenderLayer";
 
 	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
@@ -1128,14 +1128,14 @@ int scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
 
 	scene->r.actlay= 0;
 
-	for(sce = bmain->scene.first; sce; sce = sce->id.next) {
-		if(sce->nodetree) {
+	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		if (sce->nodetree) {
 			bNode *node;
-			for(node = sce->nodetree->nodes.first; node; node = node->next) {
-				if(node->type==CMP_NODE_R_LAYERS && (Scene*)node->id==scene) {
-					if(node->custom1==act)
+			for (node = sce->nodetree->nodes.first; node; node = node->next) {
+				if (node->type==CMP_NODE_R_LAYERS && (Scene*)node->id==scene) {
+					if (node->custom1==act)
 						node->custom1= 0;
-					else if(node->custom1>act)
+					else if (node->custom1>act)
 						node->custom1--;
 				}
 			}
@@ -1149,7 +1149,7 @@ int scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
 
 int get_render_subsurf_level(RenderData *r, int lvl)
 {
-	if(r->mode & R_SIMPLIFY)
+	if (r->mode & R_SIMPLIFY)
 		return MIN2(r->simplify_subsurf, lvl);
 	else
 		return lvl;
@@ -1157,7 +1157,7 @@ int get_render_subsurf_level(RenderData *r, int lvl)
 
 int get_render_child_particle_number(RenderData *r, int num)
 {
-	if(r->mode & R_SIMPLIFY)
+	if (r->mode & R_SIMPLIFY)
 		return (int)(r->simplify_particles*num);
 	else
 		return num;
@@ -1165,7 +1165,7 @@ int get_render_child_particle_number(RenderData *r, int num)
 
 int get_render_shadow_samples(RenderData *r, int samples)
 {
-	if((r->mode & R_SIMPLIFY) && samples > 0)
+	if ((r->mode & R_SIMPLIFY) && samples > 0)
 		return MIN2(r->simplify_shadowsamples, samples);
 	else
 		return samples;
@@ -1173,7 +1173,7 @@ int get_render_shadow_samples(RenderData *r, int samples)
 
 float get_render_aosss_error(RenderData *r, float error)
 {
-	if(r->mode & R_SIMPLIFY)
+	if (r->mode & R_SIMPLIFY)
 		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
 	else
 		return error;
@@ -1182,19 +1182,19 @@ float get_render_aosss_error(RenderData *r, float error)
 /* helper function for the SETLOOPER macro */
 Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 {
-	if(base && base->next) {
+	if (base && base->next) {
 		/* common case, step to the next */
 		return base->next;
 	}
-	else if(base==NULL && (*sce_iter)->base.first) {
+	else if (base==NULL && (*sce_iter)->base.first) {
 		/* first time looping, return the scenes first base */
 		return (Base *)(*sce_iter)->base.first;
 	}
 	else {
 		/* reached the end, get the next base in the set */
-		while((*sce_iter= (*sce_iter)->set)) {
+		while ((*sce_iter= (*sce_iter)->set)) {
 			base= (Base *)(*sce_iter)->base.first;
-			if(base) {
+			if (base) {
 				return base;
 			}
 		}

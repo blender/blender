@@ -2317,7 +2317,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* Vector object -> target */
 		sub_v3_v3v3(vec, ct->matrix[3], cob->matrix[3]);
-		switch (data->lockflag){
+		switch (data->lockflag) {
 		case LOCK_X: /* LOCK X */
 		{
 			switch (data->trackflag) {

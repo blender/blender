@@ -1846,7 +1846,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	MLoopUV *mloopuv;
 	int i, j, hasWCol = CustomData_has_layer(&bm->ldata, CD_WEIGHT_MLOOPCOL);
 
-	for(i=0; i < numTex; i++){
+	for (i=0; i < numTex; i++) {
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
@@ -1859,7 +1859,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		}
 	}
 
-	for(i=0; i < numCol; i++){
+	for (i=0; i < numCol; i++) {
 		mcol = CustomData_get_n(facedata, CD_MCOL, cdindex, i);
 		
 		for (j=0; j<3; j++) {

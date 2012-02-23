@@ -291,7 +291,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 			}
 		}
 	}
-	if(ptn){ MEM_freeN(ptn); ptn=NULL; }
+	if (ptn) { MEM_freeN(ptn); ptn=NULL; }
 
 	/* check boids in other systems */
 	for(pt=bbd->sim->psys->targets.first; pt; pt=pt->next) {
@@ -337,7 +337,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 				}
 			}
 
-			if(ptn){ MEM_freeN(ptn); ptn=NULL; }
+			if (ptn) { MEM_freeN(ptn); ptn=NULL; }
 		}
 	}
 
@@ -364,7 +364,7 @@ static int rule_separate(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues 
 		len = ptn[1].dist;
 		ret = 1;
 	}
-	if(ptn){ MEM_freeN(ptn); ptn=NULL; }
+	if (ptn) { MEM_freeN(ptn); ptn=NULL; }
 
 	/* check other boid systems */
 	for(pt=bbd->sim->psys->targets.first; pt; pt=pt->next) {
@@ -382,7 +382,7 @@ static int rule_separate(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues 
 				ret = 1;
 			}
 
-			if(ptn){ MEM_freeN(ptn); ptn=NULL; }
+			if (ptn) { MEM_freeN(ptn); ptn=NULL; }
 		}
 	}
 	return ret;
@@ -487,7 +487,7 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		float vec2[3], t, t_min = 3.0f;
 
 		/* first check we're not blocking any leaders */
-		for(i = 0; i< bbd->sim->psys->totpart; i+=n){
+		for(i = 0; i< bbd->sim->psys->totpart; i+=n) {
 			copy_v3_v3(vec, bbd->sim->psys->particles[i].prev_state.vel);
 
 			sub_v3_v3v3(loc, pa->prev_state.co, bbd->sim->psys->particles[i].prev_state.co);
@@ -626,7 +626,7 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 
 	f_strength += bbd->part->boids->strength * health;
 
-	if(ptn){ MEM_freeN(ptn); ptn=NULL; }
+	if (ptn) { MEM_freeN(ptn); ptn=NULL; }
 
 	/* add other friendlies and calculate enemy strength and find closest enemy */
 	for(pt=bbd->sim->psys->targets.first; pt; pt=pt->next) {
@@ -653,7 +653,7 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 			else if(pt->mode==PTARGET_MODE_FRIEND)
 				f_strength += epsys->part->boids->strength * health;
 
-			if(ptn){ MEM_freeN(ptn); ptn=NULL; }
+			if (ptn) { MEM_freeN(ptn); ptn=NULL; }
 		}
 	}
 	/* decide action if enemy presence found */
@@ -779,7 +779,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float grou
 		hit.dist = col.original_ray_length = len_v3(ray_dir);
 		col.pce.inside = 0;
 
-		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
+		for(coll = bbd->sim->colliders->first; coll; coll = coll->next) {
 			col.current = coll->ob;
 			col.md = coll->collmd;
 			col.fac1 = col.fac2 = 0.f;
@@ -804,7 +804,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float grou
 		hit.index = -1;
 		hit.dist = col.original_ray_length = len_v3(ray_dir);
 
-		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
+		for(coll = bbd->sim->colliders->first; coll; coll = coll->next) {
 			col.current = coll->ob;
 			col.md = coll->collmd;
 
@@ -1325,7 +1325,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 					boid_climb(boids, pa, ground_co, ground_nor);
 				}
 				/* land boid when really near ground */
-				else if(pa->state.co[2] <= ground_co[2] + 1.01f * pa->size * boids->height){
+				else if(pa->state.co[2] <= ground_co[2] + 1.01f * pa->size * boids->height) {
 					pa->state.co[2] = ground_co[2] + pa->size * boids->height;
 					pa->state.vel[2] = 0.0f;
 					bpa->data.mode = eBoidMode_OnLand;

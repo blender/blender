@@ -2061,7 +2061,7 @@ void txt_do_undo(Text *text)
 			linep= txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
 
 			buf= MEM_mallocN(linep+1, "dblock buffer");
-			for (i=0; i < linep; i++){
+			for (i=0; i < linep; i++) {
 				buf[(linep-1)-i]= text->undo_buf[text->undo_pos]; 
 				text->undo_pos--;
 			}
@@ -2097,7 +2097,7 @@ void txt_do_undo(Text *text)
 
 			/* txt_backspace_char removes utf8-characters, not bytes */
 			buf= MEM_mallocN(linep+1, "iblock buffer");
-			for (i=0; i < linep; i++){
+			for (i=0; i < linep; i++) {
 				buf[(linep-1)-i]= text->undo_buf[text->undo_pos]; 
 				text->undo_pos--;
 			}
@@ -2766,7 +2766,7 @@ void txt_indent(Text *text)
 	if (!text->sell) return;
 
 	/* insert spaces rather than tabs */
-	if (text->flags & TXT_TABSTOSPACES){
+	if (text->flags & TXT_TABSTOSPACES) {
 		add = tab_to_spaces;
 		indentlen = spaceslen;
 	}
@@ -2827,7 +2827,7 @@ void txt_unindent(Text *text)
 	if (!text->sell) return;
 
 	/* insert spaces rather than tabs */
-	if (text->flags & TXT_TABSTOSPACES){
+	if (text->flags & TXT_TABSTOSPACES) {
 		remove = tab_to_spaces;
 		indent = spaceslen;
 	}
