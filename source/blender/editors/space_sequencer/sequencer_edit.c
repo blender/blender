@@ -180,9 +180,14 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	}
 }
 
-static void proxy_endjob(void *UNUSED(customdata))
+static void proxy_endjob(void *pjv)
 {
+	ProxyJob *pj = pjv;
+	Editing *ed = seq_give_editing(pj->scene, FALSE);
 
+	free_imbuf_seq(pj->scene, &ed->seqbase, FALSE, FALSE);
+
+	WM_main_add_notifier(NC_SCENE|ND_SEQUENCER, pj->scene);
 }
 
 static void seq_proxy_build_job(const bContext *C, Sequence * seq)
