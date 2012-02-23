@@ -794,16 +794,23 @@ static PyObject *bpy_bmloop_calc_face_angle(BPy_BMLoop *self)
 static PyObject *bpy_bmvert_seq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *py_co = NULL;
+	BPy_BMVert *py_vert_example = NULL; /* optional */
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "|O:verts.new", py_co)) {
+	if (!PyArg_ParseTuple(args, "|OO!:verts.new",
+	                      py_co,
+	                      &BPy_BMVert_Type, &py_vert_example)) {
 		return NULL;
 	}
 	else {
 		BMesh *bm = self->bm;
 		BMVert *v;
 		float co[3] = {0.0f, 0.0f, 0.0f};
+
+		if (py_vert_example) {
+			BPY_BM_CHECK_OBJ(py_vert_example);
+		}
 
 		if (py_co && mathutils_array_parse(co, 3, 3, py_co, "verts.new(co)") != -1) {
 			return NULL;
@@ -817,6 +824,10 @@ static PyObject *bpy_bmvert_seq_new(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
+		if (py_vert_example) {
+			BM_elem_attrs_copy(py_vert_example->bm, bm, py_vert_example->v, v);
+		}
+
 		return BPy_BMVert_CreatePyObject(bm, v);
 	}
 }
@@ -828,18 +839,24 @@ static PyObject *bpy_bmedge_seq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	BPy_BMVert *v1;
 	BPy_BMVert *v2;
+	BPy_BMEdge *py_edge_example = NULL; /* optional */
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O!O!:edges.new",
-	                     &BPy_BMVert_Type, &v1,
-	                     &BPy_BMVert_Type, &v2))
+	if (!PyArg_ParseTuple(args, "O!O!|O!:edges.new",
+	                      &BPy_BMVert_Type, &v1,
+	                      &BPy_BMVert_Type, &v2,
+	                      &BPy_BMEdge_Type, &py_edge_example))
 	{
 		return NULL;
 	}
 	else {
 		BMesh *bm = self->bm;
 		BMEdge *e;
+
+		if (py_edge_example) {
+			BPY_BM_CHECK_OBJ(py_edge_example);
+		}
 
 		if (v1->v == v2->v) {
 			PyErr_SetString(PyExc_ValueError,
@@ -864,6 +881,10 @@ static PyObject *bpy_bmedge_seq_new(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
+		if (py_edge_example) {
+			BM_elem_attrs_copy(py_edge_example->bm, bm, py_edge_example->e, e);
+		}
+
 		return BPy_BMEdge_CreatePyObject(bm, e);
 	}
 }
@@ -874,10 +895,13 @@ static PyObject *bpy_bmedge_seq_new(BPy_BMElemSeq *self, PyObject *args)
 static PyObject *bpy_bmface_seq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *vert_seq;
+	BPy_BMFace *py_face_example = NULL; /* optional */
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O:faces.new", &vert_seq)) {
+	if (!PyArg_ParseTuple(args, "O|O!:faces.new",
+	                      &vert_seq,
+	                      &BPy_BMFace_Type, &py_face_example)) {
 		return NULL;
 	}
 	else {
@@ -895,6 +919,10 @@ static PyObject *bpy_bmface_seq_new(BPy_BMElemSeq *self, PyObject *args)
 		int ok;
 
 		BMFace *f;
+
+		if (py_face_example) {
+			BPY_BM_CHECK_OBJ(py_face_example);
+		}
 
 		if (!(vert_seq_fast=PySequence_Fast(vert_seq, "faces.new(...)"))) {
 			return NULL;
@@ -964,6 +992,10 @@ static PyObject *bpy_bmface_seq_new(BPy_BMElemSeq *self, PyObject *args)
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): couldn't create the new face, internal error");
 			goto cleanup;
+		}
+
+		if (py_face_example) {
+			BM_elem_attrs_copy(py_face_example->bm, bm, py_face_example->f, f);
 		}
 
 		ret = BPy_BMFace_CreatePyObject(bm, f);
@@ -1193,7 +1225,7 @@ static Py_ssize_t bpy_bm_seq_length(BPy_BMElemSeq *self)
 		case BM_FACES_OF_MESH:
 			return self->bm->totface;
 
-		/* sub-types */
+			/* sub-types */
 		case BM_VERTS_OF_FACE:
 		case BM_EDGES_OF_FACE:
 		case BM_LOOPS_OF_FACE:
@@ -1576,15 +1608,15 @@ void BPy_BM_init_types(void)
  * ********************* */
 
 static struct PyModuleDef BPy_BM_types_module_def = {
-	PyModuleDef_HEAD_INIT,
-	"bmesh.types",  /* m_name */
-	NULL,  /* m_doc */
-	0,  /* m_size */
-	NULL,  /* m_methods */
-	NULL,  /* m_reload */
-	NULL,  /* m_traverse */
-	NULL,  /* m_clear */
-	NULL,  /* m_free */
+    PyModuleDef_HEAD_INIT,
+    "bmesh.types",  /* m_name */
+    NULL,  /* m_doc */
+    0,  /* m_size */
+    NULL,  /* m_methods */
+    NULL,  /* m_reload */
+    NULL,  /* m_traverse */
+    NULL,  /* m_clear */
+    NULL,  /* m_free */
 };
 
 PyObject *BPyInit_bmesh_types(void)

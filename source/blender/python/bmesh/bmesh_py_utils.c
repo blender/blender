@@ -257,35 +257,35 @@ static PyObject *bpy_bm_utils_edge_split(PyObject *UNUSED(self), PyObject *args)
 }
 
 PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
-".. method:: face_split(vert, vert_a, vert_b, )\n"
+".. method:: face_split(face, vert, vert_a, vert_b, edge_example)\n"
 "\n"
 "   Split an edge, return the newly created data.\n"
 "\n"
-"   :arg edge: The edge to split.\n"
-"   :type edge: :class:`bmesh.tupes.BMEdge`\n"
-"   :arg vert: One of the verts on the edge, defines the split direction.\n"
-"   :type vert: :class:`bmesh.tupes.BMVert`\n"
-"   :arg fac: The point on the edge where the new vert will be created [0 - 1].\n"
-"   :type fac: float\n"
-"   :return: The newly created (edge, vert) pair.\n"
-"   :rtype: tuple\n"
+"   :arg face: The face to cut.\n"
+"   :type face: :class:`bmesh.tupes.BMFace`\n"
+"   :arg vert_a: First vertex to cut in the face (face must contain the vert).\n"
+"   :type vert_a: :class:`bmesh.tupes.BMVert`\n"
+"   :arg vert_b: Second vertex to cut in the face (face must contain the vert).\n"
+"   :type vert_b: :class:`bmesh.tupes.BMVert`\n"
+"   :arg edge_example: Optional edge argument, newly created edge will copy settings from this one.\n"
+"   :type edge_example: :class:`bmesh.tupes.BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 {
 	BPy_BMFace *py_face;
 	BPy_BMVert *py_vert_a;
 	BPy_BMVert *py_vert_b;
-	float fac;
+	BPy_BMEdge *py_edge_example = NULL; /* optional */
 
 	BMesh *bm;
 	BMFace *f_new = NULL;
 	BMLoop *l_new = NULL;
 
-	if (!PyArg_ParseTuple(args, "O!O!:face_split",
+	if (!PyArg_ParseTuple(args, "O!O!|O!:face_split",
 	                      &BPy_BMFace_Type, &py_face,
 	                      &BPy_BMVert_Type, &py_vert_a,
 	                      &BPy_BMVert_Type, &py_vert_b,
-	                      &fac))
+	                      &BPy_BMEdge_Type, &py_edge_example))
 	{
 		return NULL;
 	}
@@ -293,6 +293,10 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 	BPY_BM_CHECK_OBJ(py_face);
 	BPY_BM_CHECK_OBJ(py_vert_a);
 	BPY_BM_CHECK_OBJ(py_vert_b);
+
+	if (py_edge_example) {
+		BPY_BM_CHECK_OBJ(py_edge_example);
+	}
 
 	/* this doubles for checking that the verts are in the same mesh */
 	if (BM_vert_in_face(py_face->f, py_vert_a->v) == FALSE ||
@@ -311,7 +315,9 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 
 	bm = py_face->bm;
 
-	f_new = BM_face_split(bm, py_face->f, py_vert_a->v, py_vert_a->v, &l_new, NULL);
+	f_new = BM_face_split(bm, py_face->f,
+	                      py_vert_a->v, py_vert_a->v,
+	                      &l_new, py_edge_example ? py_edge_example->e : NULL);
 
 	if (f_new && l_new) {
 		PyObject *ret = PyTuple_New(2);
@@ -337,18 +343,18 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
 };
 
 PyDoc_STRVAR(BPy_BM_doc,
-"This module provides access to blenders bmesh data structures."
-);
+             "This module provides access to blenders bmesh data structures."
+             );
 static struct PyModuleDef BPy_BM_types_module_def = {
-	PyModuleDef_HEAD_INIT,
-	"bmesh.utils",  /* m_name */
-	BPy_BM_doc,  /* m_doc */
-	0,  /* m_size */
-	BPy_BM_utils_methods,  /* m_methods */
-	NULL,  /* m_reload */
-	NULL,  /* m_traverse */
-	NULL,  /* m_clear */
-	NULL,  /* m_free */
+    PyModuleDef_HEAD_INIT,
+    "bmesh.utils",  /* m_name */
+    BPy_BM_doc,  /* m_doc */
+    0,  /* m_size */
+    BPy_BM_utils_methods,  /* m_methods */
+    NULL,  /* m_reload */
+    NULL,  /* m_traverse */
+    NULL,  /* m_clear */
+    NULL,  /* m_free */
 };
 
 PyObject *BPyInit_bmesh_utils(void)

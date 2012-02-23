@@ -75,7 +75,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
 	if (example) {
-		BM_elem_attrs_copy(bm, bm, (BMVert *)example, (BMVert *)v);
+		BM_elem_attrs_copy(bm, bm, (BMVert *)example, v);
 	}
 
 	BM_CHECK_ELEMENT(bm, v);
