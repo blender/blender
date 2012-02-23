@@ -1807,7 +1807,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				for (act = obn->actuators.first; act; act = act->next) {
 					if(act->type == ACT_ACTION) {
 						bActionActuator* actact = (bActionActuator*) act->data;
-						if(actact->act == ob->adt->action) {
+						if(ob->adt && actact->act == ob->adt->action) {
 							actact->act = obn->adt->action;
 						}
 					}
