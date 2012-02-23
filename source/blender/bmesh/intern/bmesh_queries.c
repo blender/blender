@@ -101,26 +101,7 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 
 int BM_vert_in_face(BMFace *f, BMVert *v)
 {
-	BMLoop *l_iter, *l_first;
-
-#ifdef USE_BMESH_HOLES
-	BMLoopList *lst;
-	for (lst = f->loops.first; lst; lst = lst->next)
-#endif
-	{
-#ifdef USE_BMESH_HOLES
-		l_iter = l_first = lst->first;
-#else
-		l_iter = l_first = f->l_first;
-#endif
-		do {
-			if (l_iter->v == v) {
-				return TRUE;
-			}
-		} while ((l_iter = l_iter->next) != l_first);
-	}
-
-	return FALSE;
+	return bmesh_radial_find_first_faceloop(BM_FACE_FIRST_LOOP(f), v) != NULL;
 }
 
 /*

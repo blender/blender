@@ -200,7 +200,7 @@ void  bmiter__face_of_vert_begin(BMIter *iter)
 	if (iter->count) {
 		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->e, iter->vdata);
 		iter->nextedge = iter->firstedge;
-		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->l, iter->vdata);
+		iter->firstloop = bmesh_radial_find_first_faceloop(iter->firstedge->l, iter->vdata);
 		iter->nextloop = iter->firstloop;
 	}
 }
@@ -210,10 +210,10 @@ void  *bmiter__face_of_vert_step(BMIter *iter)
 
 	if (iter->count && iter->nextloop) {
 		iter->count--;
-		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
+		iter->nextloop = bmesh_radial_find_next_faceloop(iter->nextloop, iter->vdata);
 		if (iter->nextloop == iter->firstloop) {
 			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
-			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->l, iter->vdata);
+			iter->firstloop = bmesh_radial_find_first_faceloop(iter->nextedge->l, iter->vdata);
 			iter->nextloop = iter->firstloop;
 		}
 	}
@@ -238,7 +238,7 @@ void  bmiter__loop_of_vert_begin(BMIter *iter)
 	if (iter->count) {
 		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->e, iter->vdata);
 		iter->nextedge = iter->firstedge;
-		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->l, iter->vdata);
+		iter->firstloop = bmesh_radial_find_first_faceloop(iter->firstedge->l, iter->vdata);
 		iter->nextloop = iter->firstloop;
 	}
 }
@@ -248,10 +248,10 @@ void  *bmiter__loop_of_vert_step(BMIter *iter)
 
 	if (iter->count) {
 		iter->count--;
-		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
+		iter->nextloop = bmesh_radial_find_next_faceloop(iter->nextloop, iter->vdata);
 		if (iter->nextloop == iter->firstloop) {
 			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
-			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->l, iter->vdata);
+			iter->firstloop = bmesh_radial_find_first_faceloop(iter->nextedge->l, iter->vdata);
 			iter->nextloop = iter->firstloop;
 		}
 	}

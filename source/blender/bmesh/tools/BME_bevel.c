@@ -475,7 +475,7 @@ static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int UN
 
 		//void BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm) {
 		//hrm, why is there a fac here? it just removes a vert
-		BM_vert_collapse_edges(bm, v->e, v);
+		BM_vert_collapse_edge(bm, v->e, v);
 	}
 
 	return v1;
@@ -527,14 +527,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->prev->radial_next->f, kl->f, kl->prev->e);
-			BM_vert_collapse_edges(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv);
 		}
 		else {
 			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->next->radial_next->f, kl->f, kl->next->e);
-			BM_vert_collapse_edges(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv);
 		}
 		/* find saved loop pointer */
 		l = se->l;
@@ -573,14 +573,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->prev->radial_next->f, kl->f, kl->prev->e);
-			BM_vert_collapse_edges(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv);
 		}
 		else {
 			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->next->radial_next->f, kl->f, kl->next->e);
-			BM_vert_collapse_edges(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv);
 		}
 		/* find saved loop pointer */
 		l = se->l;

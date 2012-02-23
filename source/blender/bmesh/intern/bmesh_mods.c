@@ -307,7 +307,7 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
 	BMLoop *nl;
 	BMFace *face;
 
-	/* be warned: this can do weird things in some ngon situation, see BM_LegalSplit */
+	/* be warned: this can do weird things in some ngon situation, see BM_face_legal_splits */
 	for (face = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); face; face = BM_iter_step(&iter)) {
 		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, face); v; v = BM_iter_step(&iter2)) {
 			if (v == v2) {
@@ -344,7 +344,9 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 {
 	const int has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMFace *nf, *of;
-	
+
+	BLI_assert(v1 != v2);
+
 	/* do we have a multires layer */
 	if (has_mdisp) {
 		of = BM_face_copy(bm, f, FALSE, FALSE);
@@ -397,7 +399,7 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *
  *  Note that this is not a general edge collapse function.
  *
- * Note this function is very close to 'BM_vert_collapse_edges', both collapse
+ * Note this function is very close to 'BM_vert_collapse_edge', both collapse
  * a vertex and return a new edge. Except this takes a factor and merges
  * custom data.
  *
@@ -476,7 +478,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 	}
 
 	/* single face or no faces */
-	/* same as BM_vert_collapse_edges() however we already
+	/* same as BM_vert_collapse_edge() however we already
 	 * have vars to perform this operation so dont call. */
 	bmesh_jekv(bm, ke, kv);
 	ne = BM_edge_exists(tv, tv2);
@@ -486,7 +488,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 
 
 /**
- *			BM_vert_collapse_edges
+ *			BM_vert_collapse_edge
  *
  * Collapses a vertex onto another vertex it shares an edge with.
  *
@@ -494,7 +496,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
  * The New Edge
  */
 
-BMEdge *BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv)
+BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv)
 {
 	/* nice example implimentation but we want loops to have their customdata
 	 * accounted for */

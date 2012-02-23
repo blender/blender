@@ -216,7 +216,7 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f,
 
 /* these 2 functions are very similar */
 BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces);
-BMEdge* BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv);
+BMEdge* BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv);
 
 
 /* splits an edge.  ne is set to the new edge created. */
