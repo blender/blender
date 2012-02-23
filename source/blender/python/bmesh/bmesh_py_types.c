@@ -723,7 +723,7 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	f_cpy = BM_face_copy(bm, self->f, do_edges, do_verts);
+	f_cpy = BM_face_copy(bm, self->f, do_verts, do_edges);
 
 	if (f_cpy) {
 		return BPy_BMFace_CreatePyObject(bm, f_cpy);

@@ -4613,7 +4613,7 @@ static int createSlideVerts(TransInfo *t)
 		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
-				BMFace *copyf = BM_face_copy(em->bm, f, 1, 1);
+				BMFace *copyf = BM_face_copy(em->bm, f, TRUE, TRUE);
 				
 				BM_elem_select_set(em->bm, copyf, FALSE);
 				BM_elem_flag_enable(copyf, BM_ELEM_HIDDEN);

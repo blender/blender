@@ -189,7 +189,7 @@ BM_INLINE void BM_elem_index_set(void *element, const int index);
 BM_INLINE int  BM_elem_index_get(const void *element);
 
 /* todo */
-BMFace *BM_face_copy(BMesh *bm, BMFace *f, int copyedges, int copyverts);
+BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges);
 
 /* copies loop data from adjacent faces */
 void BM_face_copy_shared(BMesh *bm, BMFace *f);
