@@ -1635,6 +1635,12 @@ PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v)
 
 	void **ptr = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BM_ELEM_PYPTR);
 
+	/* bmesh may free layers, ensure we have one to store ourself */
+	if (UNLIKELY(ptr == NULL)) {
+		BM_data_layer_add(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
+		ptr = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BM_ELEM_PYPTR);
+	}
+
 	if (*ptr != NULL) {
 		self = *ptr;
 		Py_INCREF(self);
@@ -1654,6 +1660,12 @@ PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e)
 	BPy_BMEdge *self;
 
 	void **ptr = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BM_ELEM_PYPTR);
+
+	/* bmesh may free layers, ensure we have one to store ourself */
+	if (UNLIKELY(ptr == NULL)) {
+		BM_data_layer_add(bm, &bm->edata, CD_BM_ELEM_PYPTR);
+		ptr = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BM_ELEM_PYPTR);
+	}
 
 	if (*ptr != NULL) {
 		self = *ptr;
@@ -1675,6 +1687,12 @@ PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f)
 
 	void **ptr = CustomData_bmesh_get(&bm->pdata, f->head.data, CD_BM_ELEM_PYPTR);
 
+	/* bmesh may free layers, ensure we have one to store ourself */
+	if (UNLIKELY(ptr == NULL)) {
+		BM_data_layer_add(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
+		ptr = CustomData_bmesh_get(&bm->pdata, f->head.data, CD_BM_ELEM_PYPTR);
+	}
+
 	if (*ptr != NULL) {
 		self = *ptr;
 		Py_INCREF(self);
@@ -1694,6 +1712,12 @@ PyObject *BPy_BMLoop_CreatePyObject(BMesh *bm, BMLoop *l)
 	BPy_BMLoop *self;
 
 	void **ptr = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_BM_ELEM_PYPTR);
+
+	/* bmesh may free layers, ensure we have one to store ourself */
+	if (UNLIKELY(ptr == NULL)) {
+		BM_data_layer_add(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+		ptr = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_BM_ELEM_PYPTR);
+	}
 
 	if (*ptr != NULL) {
 		self = *ptr;
