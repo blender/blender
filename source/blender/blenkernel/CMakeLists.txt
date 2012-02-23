@@ -235,7 +235,6 @@ set(SRC
 	BKE_writeframeserver.h
 	depsgraph_private.h
 	intern/CCGSubSurf.h
-	intern/bmesh_private.h
 	nla_private.h
 )
 

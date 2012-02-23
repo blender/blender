@@ -41,12 +41,7 @@
 
 struct ListBase;
 
-void remove_loop_radial_link(BMLoop *l);
-
 /* DOUBLE CIRCULAR LINKED LIST FUNCTIONS */
-void bmesh_cycle_append(void *h, void *nt);
-int bmesh_cycle_remove(void *h, void *remn);
-int bmesh_cycle_validate(int len, void *h);
 int bmesh_cycle_length(void *h);
 
 /* LOOP CYCLE MANAGEMENT */
@@ -76,10 +71,8 @@ int bmesh_vert_in_edge(struct BMEdge *e, struct BMVert *v);
 int bmesh_verts_in_edge(struct BMVert *v1, struct BMVert *v2, struct BMEdge *e);
 int bmesh_edge_swapverts(struct BMEdge *e, struct BMVert *orig, struct BMVert *newv); /*relink edge*/
 struct BMVert *bmesh_edge_getothervert(struct BMEdge *e, struct BMVert *v);
-int bmesh_disk_hasedge(struct BMVert *v, struct BMEdge *e);
 struct BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2);
 struct BMEdge *bmesh_disk_next_edgeflag(struct BMEdge *e, struct BMVert *v, int eflag, int tflag);
-int bmesh_disk_count_edgeflag(struct BMVert *v, int eflag, int tflag);
 int bmesh_disk_validate(int len, struct BMEdge *e, struct BMVert *v);
 
 /*EULER API - For modifying structure*/
