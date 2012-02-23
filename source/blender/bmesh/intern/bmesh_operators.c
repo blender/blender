@@ -765,7 +765,7 @@ void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype)
+                                  const char hflag, const char htype, char do_flush_select)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -773,11 +773,15 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
 
 	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
 
+	if (!(hflag & BM_ELEM_SELECT)) {
+		do_flush_select = FALSE;
+	}
+
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
 			continue;
 
-		if (hflag & BM_ELEM_SELECT) {
+		if (do_flush_select) {
 			BM_elem_select_set(bm, data[i], TRUE);
 		}
 		BM_elem_flag_enable(data[i], hflag);
@@ -792,19 +796,23 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype)
+                                   const char hflag, const char htype, char do_flush_select)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 
 	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
-	
+
+	if (!(hflag & BM_ELEM_SELECT)) {
+		do_flush_select = FALSE;
+	}
+
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
 			continue;
 
-		if (hflag & BM_ELEM_SELECT) {
+		if (do_flush_select) {
 			BM_elem_select_set(bm, data[i], FALSE);
 		}
 

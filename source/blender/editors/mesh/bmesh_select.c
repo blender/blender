@@ -710,7 +710,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ELEM_SELECT, BM_ALL, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
@@ -751,7 +751,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_ALL, TRUE);
 	EDBM_selectmode_flush(em);
 
 	/* finish the operator */
@@ -796,7 +796,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_ALL, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
