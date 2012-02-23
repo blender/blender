@@ -16,31 +16,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/*
- *	An implementation of Oren-Nayar reflectance model, public domain
- *		http://www1.cs.columbia.edu/CAVE/publications/pdfs/Oren_SIGGRAPH94.pdf
- *
- *	NOTE:
- *		BSDF = A + B * cos() * sin() * tan()
- *
- *		The parameter sigma means different from original.
- *		A and B are calculated by the following formula:
- *			0 <= sigma <= 1
- *			A =     1 / ((1 + sigma / 2) * pi);
- *			B = sigma / ((1 + sigma / 2) * pi);
- *
- *		This formula is derived as following:
- *
- *		0. Normalize A-term and B-term of BSDF *individually*.
- *		   B-term is normalized at maximum point: dot(L, N) = 0.
- *			A = (1/pi) * A'
- *			B = (2/pi) * B'
- *
- *		1. Solve the following equation:
- *			A' + B' = 1
- *			B / A = sigma
- */
-
 #ifndef __BSDF_OREN_NAYAR_H__
 #define __BSDF_OREN_NAYAR_H__
 
