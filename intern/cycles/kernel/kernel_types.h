@@ -181,7 +181,7 @@ typedef enum PassType {
 
 typedef float3 PathThroughput;
 
-struct PathRadiance {
+typedef struct PathRadiance {
 	int use_light_pass;
 
 	float3 emission;
@@ -202,16 +202,16 @@ struct PathRadiance {
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
-};
+} PathRadiance;
 
-struct BsdfEval {
+typedef struct BsdfEval {
 	int use_light_pass;
 
 	float3 diffuse;
 	float3 glossy;
 	float3 transmission;
 	float3 transparent;
-};
+} BsdfEval;
 
 #else
 
