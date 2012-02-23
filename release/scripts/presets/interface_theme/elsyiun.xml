@@ -1,7 +1,7 @@
 <bpy>
   <Theme>
     <view_3d>
-      <ThemeView3D object_active="#ff7c00"
+      <ThemeView3D object_active="#ffc280"
                    editmesh_active="#ffffff80"
                    act_spline="#db2512"
                    handle_align="#803060"
@@ -23,7 +23,7 @@
                    extra_face_angle="#000080"
                    extra_face_area="#002000"
                    face_dot="#be6925"
-                   facedot_size="2"
+                   facedot_size="3"
                    normal="#22dddd"
                    face_select="#a47c5b73"
                    handle_free="#000000"
@@ -37,16 +37,16 @@
                    nurb_sel_vline="#f090a0"
                    object_grouped="#083008"
                    object_grouped_active="#55bb55"
-                   object_selected="#ffffff"
+                   object_selected="#ff8500"
                    outline_width="1"
                    panel="#a5a5a57f"
                    speaker="#000000"
                    transform="#ffffff"
                    handle_vect="#409030"
                    handle_sel_vect="#40c030"
-                   vertex="#93b2c2"
+                   vertex="#657780"
                    vertex_normal="#2361dd"
-                   vertex_select="#be6925"
+                   vertex_select="#ff7c00"
                    vertex_size="3"
                    wire="#000000">
         <space>
