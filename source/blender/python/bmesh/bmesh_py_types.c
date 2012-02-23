@@ -631,6 +631,91 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 	Py_RETURN_NONE;
 }
 
+
+/* Vert
+ * ---- */
+
+PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
+             ".. method:: calc_edge_angle()\n"
+             "\n"
+             "   Return the angle between 2 connected edges.\n"
+             );
+static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_vert_edge_angle(self->bm, self->v));
+}
+
+/* Edge
+ * ---- */
+
+PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
+             ".. method:: calc_face_angle()\n"
+             "\n"
+             "   Return the angle between 2 connected faces.\n"
+             );
+static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_edge_face_angle(self->bm, self->e));
+}
+
+/* Face
+ * ---- */
+
+PyDoc_STRVAR(bpy_bmface_calc_area_doc,
+             ".. method:: calc_area()\n"
+             "\n"
+             "   Return the area of the face.\n"
+             );
+static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_face_area_calc(self->bm, self->f));
+}
+
+PyDoc_STRVAR(bpy_bmface_calc_center_mean_doc,
+             ".. method:: calc_center_median()\n"
+             "\n"
+             "   Return median center of the face.\n"
+             );
+static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
+{
+	float cent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_center_mean_calc(self->bm, self->f, cent);
+	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
+}
+
+PyDoc_STRVAR(bpy_bmface_calc_center_bounds_doc,
+             ".. method:: calc_center_bounds()\n"
+             "\n"
+             "   Return bounds center of the face.\n"
+             );
+static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
+{
+	float cent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_center_bounds_calc(self->bm, self->f, cent);
+	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
+}
+
+/* Loop
+ * ---- */
+
+PyDoc_STRVAR(bpy_bmloop_calc_face_angle_doc,
+             ".. method:: calc_face_angle()\n"
+             "\n"
+             "   Return angle at this loops corner of the face.\n"
+             );
+static PyObject *bpy_bmloop_calc_face_angle(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(BM_loop_face_angle(self->bm, self->l));
+}
+
 /* Vert Seq
  * -------- */
 
@@ -945,23 +1030,33 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 static struct PyMethodDef bpy_bmvert_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+
+    {"calc_vert_angle", (PyCFunction)bpy_bmvert_calc_edge_angle, METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
     {NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmedge_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+
+    {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS, bpy_bmedge_calc_face_angle_doc},
     {NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmface_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+
+    {"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
+    {"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
+    {"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
     {NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmloop_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+
+    {"calc_angle", (PyCFunction)bpy_bmloop_calc_face_angle, METH_NOARGS, bpy_bmloop_calc_face_angle_doc},
     {NULL, NULL, 0, NULL}
 };
 

@@ -83,6 +83,8 @@ int BM_edge_is_manifold(struct BMesh *bm, struct BMEdge *e);
 /* returns true if e is a boundary edge, e.g. has only 1 face bordering it. */
 int BM_edge_is_boundry(struct BMEdge *e);
 
+/* returns the face corner angle */
+float BM_loop_face_angle(struct BMesh *bm, struct BMLoop *l);
 
 /* returns angle of two faces surrounding an edge.  note there must be
  * exactly two faces sharing the edge.*/

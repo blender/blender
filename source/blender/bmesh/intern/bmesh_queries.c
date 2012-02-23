@@ -537,6 +537,23 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 }
 
 /*
+ *			BMESH LOOP ANGLE
+ *
+ *  Calculates the angle between the previous and next loops
+ *  (angle at this loops face corner).
+ *
+ *  Returns -
+ *	Float.
+ */
+
+float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
+{
+	return angle_v3v3v3(l->prev->v->co,
+	                    l->v->co,
+	                    l->next->v->co);
+}
+
+/*
  *			BMESH FACE ANGLE
  *
  *  Calculates the angle between two faces.
