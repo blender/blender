@@ -40,6 +40,7 @@
 
 #include "bmesh_py_utils.h" /* own include */
 
+
 PyDoc_STRVAR(bpy_bm_utils_vert_collapse_edge_doc,
 ".. method:: vert_collapse_edge(vert, edge)\n"
 "\n"
@@ -165,6 +166,7 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
 	}
 }
 
+
 PyDoc_STRVAR(bpy_bm_utils_vert_dissolve_doc,
 ".. method:: vert_dissolve(vert)\n"
 "\n"
@@ -256,6 +258,50 @@ static PyObject *bpy_bm_utils_edge_split(PyObject *UNUSED(self), PyObject *args)
 	}
 }
 
+
+PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
+".. method:: edge_rotate(edge, ccw=False)\n"
+"\n"
+"   Rotate the edge and return the newly created edge.\n"
+"   If rotating the edge fails, None will be returned.\n"
+"\n"
+"   :arg edge: The edge to rotate.\n"
+"   :type edge: :class:`bmesh.tupes.BMEdge`\n"
+"   :arg ccw: When True the edge will be rotated counter clockwise.\n"
+"   :type ccw: bool\n"
+"   :return: The newly rotated edge.\n"
+"   :rtype: :class:`bmesh.tupes.BMEdge`\n"
+);
+static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args)
+{
+	BPy_BMEdge *py_edge;
+	int do_ccw = FALSE;
+
+	BMesh *bm;
+	BMEdge *e_new = NULL;
+
+	if (!PyArg_ParseTuple(args, "O!|i:edge_rotate",
+	                      &BPy_BMEdge_Type, &py_edge,
+	                      &do_ccw))
+	{
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(py_edge);
+
+	bm = py_edge->bm;
+
+	e_new = BM_edge_rotate(bm, py_edge->e, do_ccw);
+
+	if (e_new) {
+		return BPy_BMEdge_CreatePyObject(bm, e_new);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+
 PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
 ".. method:: face_split(face, vert, vert_a, vert_b, edge_example)\n"
 "\n"
@@ -338,9 +384,11 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_collapse_faces", (PyCFunction)bpy_bm_utils_vert_collapse_faces, METH_VARARGS, bpy_bm_utils_vert_collapse_faces_doc},
     {"vert_dissolve",       (PyCFunction)bpy_bm_utils_vert_dissolve,       METH_VARARGS, bpy_bm_utils_vert_dissolve_doc},
     {"edge_split",          (PyCFunction)bpy_bm_utils_edge_split,          METH_VARARGS, bpy_bm_utils_edge_split_doc},
+    {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
     {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
     {NULL, NULL, 0, NULL}
 };
+
 
 PyDoc_STRVAR(BPy_BM_doc,
              "This module provides access to blenders bmesh data structures."

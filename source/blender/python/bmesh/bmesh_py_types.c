@@ -178,8 +178,8 @@ static PyObject *bpy_bmesh_seq_elem_get(BPy_BMElem *self, void *itype)
 }
 
 PyDoc_STRVAR(bpy_bm_is_valid_doc,
-             "True when this element is valid (hasn't been removed)"
-             );
+"True when this element is valid (hasn't been removed)"
+);
 static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self)
 {
 	return PyBool_FromLong(self->bm != NULL);
@@ -187,8 +187,8 @@ static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self)
 
 
 PyDoc_STRVAR(bpy_bmesh_select_mode_doc,
-             "The selection mode for this mesh"
-             );
+"The selection mode for this mesh"
+);
 static PyObject *bpy_bmesh_select_mode_get(BPy_BMesh *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -219,8 +219,8 @@ static int bpy_bmesh_select_mode_set(BPy_BMesh *self, PyObject *value)
  * ^^^^ */
 
 PyDoc_STRVAR(bpy_bmvert_co_doc,
-             "The coordinates for this vertex"
-             );
+"The coordinates for this vertex"
+);
 static PyObject *bpy_bmvert_co_get(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -240,8 +240,8 @@ static int bpy_bmvert_co_set(BPy_BMVert *self, PyObject *value)
 }
 
 PyDoc_STRVAR(bpy_bmvert_normal_doc,
-             "The normal for this vertex"
-             );
+"The normal for this vertex"
+);
 static PyObject *bpy_bmvert_normal_get(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -261,8 +261,8 @@ static int bpy_bmvert_normal_set(BPy_BMVert *self, PyObject *value)
 }
 
 PyDoc_STRVAR(bpy_bmvert_is_manifold_doc,
-             "True when this vertex is manifold (readonly)"
-             );
+"True when this vertex is manifold (readonly)"
+);
 static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -270,8 +270,8 @@ static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self)
 }
 
 PyDoc_STRVAR(bpy_bmvert_is_wire_doc,
-             "True when this vertex is not connected to any faces (readonly)"
-             );
+"True when this vertex is not connected to any faces (readonly)"
+);
 static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -282,8 +282,8 @@ static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
  * ^^^^ */
 
 PyDoc_STRVAR(bpy_bmedge_is_manifold_doc,
-             "True when this edge is manifold (readonly)"
-             );
+"True when this edge is manifold (readonly)"
+);
 static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -291,8 +291,8 @@ static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
 }
 
 PyDoc_STRVAR(bpy_bmedge_is_wire_doc,
-             "True when this edge is not connected to any faces (readonly)"
-             );
+"True when this edge is not connected to any faces (readonly)"
+);
 static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -300,8 +300,8 @@ static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self)
 }
 
 PyDoc_STRVAR(bpy_bmedge_is_boundry_doc,
-             "True when this edge is at the boundry of a face (readonly)"
-             );
+"True when this edge is at the boundry of a face (readonly)"
+);
 static PyObject *bpy_bmedge_is_boundry_get(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -312,8 +312,8 @@ static PyObject *bpy_bmedge_is_boundry_get(BPy_BMEdge *self)
  * ^^^^ */
 
 PyDoc_STRVAR(bpy_bmface_normal_doc,
-             "The normal for this face"
-             );
+"The normal for this face"
+);
 static PyObject *bpy_bmface_normal_get(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -438,10 +438,10 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
  * ---- */
 
 PyDoc_STRVAR(bpy_bmesh_select_flush_mode_doc,
-             ".. method:: select_flush_mode()\n"
-             "\n"
-             "   todo.\n"
-             );
+".. method:: select_flush_mode()\n"
+"\n"
+"   flush selection based on the current mode current *select_mode*.\n"
+);
 static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -452,10 +452,13 @@ static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self)
 }
 
 PyDoc_STRVAR(bpy_bmesh_select_flush_doc,
-             ".. method:: select_flush(select)\n"
-             "\n"
-             "   todo.\n"
-             );
+".. method:: select_flush(select)\n"
+"\n"
+"   Flush selection, independant of the current selection mode.\n"
+"\n"
+"   :arg select: flush selection or de-selected elements.\n"
+"   :type select: bool\n"
+);
 static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 {
 	int param;
@@ -475,10 +478,10 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 }
 
 PyDoc_STRVAR(bpy_bmesh_update_doc,
-             ".. method:: update(index=False, normals=False)\n"
-             "\n"
-             "   Update mesh data.\n"
-             );
+".. method:: update(index=False, normals=False)\n"
+"\n"
+"   Update mesh data.\n"
+);
 static PyObject *bpy_bmesh_update(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
 	static const char *kwlist[] = {"normals", "index", NULL};
@@ -519,15 +522,15 @@ static PyObject *bpy_bmesh_update(BPy_BMElem *self, PyObject *args, PyObject *kw
 
 
 PyDoc_STRVAR(bpy_bmesh_transform_doc,
-             ".. method:: transform(matrix, filter=None)\n"
-             "\n"
-             "   Transform the mesh (optionally filtering flagged data only).\n"
-             "\n"
-             "   :arg matrix: transform matrix.\n"
-             "   :type matrix: 4x4 :class:`mathutils.Matrix`"
-             "   :arg filter: set of values in ('SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG').\n"
-             "   :type filter: set\n"
-             );
+".. method:: transform(matrix, filter=None)\n"
+"\n"
+"   Transform the mesh (optionally filtering flagged data only).\n"
+"\n"
+"   :arg matrix: transform matrix.\n"
+"   :type matrix: 4x4 :class:`mathutils.Matrix`"
+"   :arg filter: set of values in ('SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG').\n"
+"   :type filter: set\n"
+);
 static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
 	static const char *kwlist[] = {"matrix", "filter", NULL};
@@ -589,10 +592,14 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
  * ---- */
 
 PyDoc_STRVAR(bpy_bm_elem_select_set_doc,
-             ".. method:: select_set(select)\n"
-             "\n"
-             "   Set the selection and update assosiated geometry.\n"
-             );
+".. method:: select_set(select)\n"
+"\n"
+"   Set the selection.\n"
+"   This is different from the *select* attribute because it updates the selection state of assosiated geometry..\n"
+"\n"
+"   :arg select: Select or de-select.\n"
+"   :type select: bool\n"
+);
 static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 {
 	int param;
@@ -611,10 +618,10 @@ static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 }
 
 PyDoc_STRVAR(bpy_bm_elem_copy_from_doc,
-             ".. method:: copy_from(select)\n"
-             "\n"
-             "   Copy values from another element.\n"
-             );
+".. method:: copy_from(select)\n"
+"\n"
+"   Copy values from another element.\n"
+);
 static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -636,10 +643,10 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
  * ---- */
 
 PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
-             ".. method:: calc_edge_angle()\n"
-             "\n"
-             "   Return the angle between 2 connected edges.\n"
-             );
+".. method:: calc_edge_angle()\n"
+"\n"
+"   Return the angle between 2 connected edges.\n"
+);
 static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -650,10 +657,10 @@ static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
  * ---- */
 
 PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
-             ".. method:: calc_face_angle()\n"
-             "\n"
-             "   Return the angle between 2 connected faces.\n"
-             );
+".. method:: calc_face_angle()\n"
+"\n"
+"   Return the angle between 2 connected faces.\n"
+);
 static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -661,10 +668,10 @@ static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 }
 
 PyDoc_STRVAR(bpy_bmedge_other_vert_doc,
-             ".. method:: other_vert(vert)\n"
-             "\n"
-             "   Return the other vertex on this edge or None if the vertex is not used by this edge.\n"
-             );
+".. method:: other_vert(vert)\n"
+"\n"
+"   Return the other vertex on this edge or None if the vertex is not used by this edge.\n"
+);
 static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 {
 	BMVert *other;
@@ -700,10 +707,10 @@ static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
  * ---- */
 
 PyDoc_STRVAR(bpy_bmface_copy_doc,
-             ".. method:: copy(verts=True, edges=True)\n"
-             "\n"
-             "   Return the area of the face.\n"
-             );
+".. method:: copy(verts=True, edges=True)\n"
+"\n"
+"   Return the area of the face.\n"
+);
 static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 {
 	static const char *kwlist[] = {"verts", "edges", NULL};
@@ -736,10 +743,10 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 }
 
 PyDoc_STRVAR(bpy_bmface_calc_area_doc,
-             ".. method:: calc_area()\n"
-             "\n"
-             "   Return the area of the face.\n"
-             );
+".. method:: calc_area()\n"
+"\n"
+"   Return the area of the face.\n"
+);
 static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -747,10 +754,10 @@ static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 }
 
 PyDoc_STRVAR(bpy_bmface_calc_center_mean_doc,
-             ".. method:: calc_center_median()\n"
-             "\n"
-             "   Return median center of the face.\n"
-             );
+".. method:: calc_center_median()\n"
+"\n"
+"   Return median center of the face.\n"
+);
 static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 {
 	float cent[3];
@@ -761,10 +768,10 @@ static PyObject *bpy_bmface_calc_center_mean(BPy_BMFace *self)
 }
 
 PyDoc_STRVAR(bpy_bmface_calc_center_bounds_doc,
-             ".. method:: calc_center_bounds()\n"
-             "\n"
-             "   Return bounds center of the face.\n"
-             );
+".. method:: calc_center_bounds()\n"
+"\n"
+"   Return bounds center of the face.\n"
+);
 static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
 {
 	float cent[3];
@@ -778,10 +785,10 @@ static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
  * ---- */
 
 PyDoc_STRVAR(bpy_bmloop_calc_face_angle_doc,
-             ".. method:: calc_face_angle()\n"
-             "\n"
-             "   Return angle at this loops corner of the face.\n"
-             );
+".. method:: calc_face_angle()\n"
+"\n"
+"   Return angle at this loops corner of the face.\n"
+);
 static PyObject *bpy_bmloop_calc_face_angle(BPy_BMLoop *self)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -1009,10 +1016,10 @@ cleanup:
 }
 
 PyDoc_STRVAR(bpy_bm_seq_new_doc,
-             ".. method:: new()\n"
-             "\n"
-             "   Create a new vert/edge/face.\n"
-             );
+".. method:: new()\n"
+"\n"
+"   Create a new vert/edge/face.\n"
+);
 static PyObject *bpy_bm_seq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	switch ((BMIterType)self->itype) {
@@ -1103,10 +1110,10 @@ static PyObject *bpy_bmface_seq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 
 
 PyDoc_STRVAR(bpy_bm_seq_remove_doc,
-             ".. method:: remove()\n"
-             "\n"
-             "   Remove a vert/edge/face.\n"
-             );
+".. method:: remove()\n"
+"\n"
+"   Remove a vert/edge/face.\n"
+);
 static PyObject *bpy_bm_seq_remove(BPy_BMElemSeq *self, PyObject *value)
 {
 	switch ((BMIterType)self->itype) {
