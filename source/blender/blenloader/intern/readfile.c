@@ -13130,23 +13130,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 4))
-	{
-		{
-			/* set fluidsim rate */
-			Object *ob;
-			for (ob = main->object.first; ob; ob = ob->id.next) {
-				ModifierData *md;
-				for (md = ob->modifiers.first; md; md = md->next) {
-					if (md->type == eModifierType_Fluidsim) {
-						FluidsimSettings *fss = (FluidsimSettings *)md;
-						fss->animRate = 1.0f;
-					}
-				}
-			}
-		}
-	}
-
 	if (main->versionfile < 262)
 	{
 		Object *ob;
@@ -13162,6 +13145,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
+	if (main->versionfile < 263)
+	{
+		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
+		   try to correct it, if rate is 0.0 that's likely not intentional */
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fmd = (FluidsimModifierData *)md;
+					if(fmd->fss->animRate == 0.0f)
+						fmd->fss->animRate = 1.0f;
+				}
+			}
+		}
+	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
