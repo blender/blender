@@ -32,8 +32,8 @@
  *  Please look here for revision history.
  */
 
-#ifndef __KX_SCA_REPLACEMESHACTUATOR
-#define __KX_SCA_REPLACEMESHACTUATOR
+#ifndef __KX_SCA_REPLACEMESHACTUATOR_H__
+#define __KX_SCA_REPLACEMESHACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "SCA_PropertyActuator.h"

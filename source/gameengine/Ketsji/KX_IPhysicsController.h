@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_IPHYSICSCONTROLLER_H
-#define __KX_IPHYSICSCONTROLLER_H
+#ifndef __KX_IPHYSICSCONTROLLER_H__
+#define __KX_IPHYSICSCONTROLLER_H__
 
 #include "SG_Controller.h"
 #include "MT_Vector3.h"
@@ -138,5 +138,5 @@ public:
 #endif
 };
 
-#endif //__KX_IPHYSICSCONTROLLER_H
+#endif //__KX_IPHYSICSCONTROLLER_H__
 

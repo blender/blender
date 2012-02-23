@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_ARMATUREACTUATOR
-#define BL_ARMATUREACTUATOR
+#ifndef __BL_ARMATUREACTUATOR_H__
+#define __BL_ARMATUREACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "BL_ArmatureConstraint.h"
@@ -91,6 +91,6 @@ private:
 	int				m_type;
 };
 
-#endif //BL_ARMATUREACTUATOR
+#endif //__BL_ARMATUREACTUATOR_H__
 
 

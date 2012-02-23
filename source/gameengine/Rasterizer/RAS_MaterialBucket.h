@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_MATERIALBUCKET
-#define __RAS_MATERIALBUCKET
+#ifndef __RAS_MATERIALBUCKET_H__
+#define __RAS_MATERIALBUCKET_H__
 
 #include "RAS_TexVert.h"
 #include "CTR_Map.h"

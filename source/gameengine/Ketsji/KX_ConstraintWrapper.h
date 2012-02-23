@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_CONSTRAINT_WRAPPER
-#define KX_CONSTRAINT_WRAPPER
+#ifndef __KX_CONSTRAINTWRAPPER_H__
+#define __KX_CONSTRAINTWRAPPER_H__
 
 #include "Value.h"
 #include "PHY_DynamicTypes.h"
@@ -57,5 +57,5 @@ private:
 	PHY_IPhysicsEnvironment* m_physenv;
 };
 
-#endif //KX_CONSTRAINT_WRAPPER
+#endif //__KX_CONSTRAINTWRAPPER_H__
 

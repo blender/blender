@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef _GPG_CANVAS_H_
-#define _GPG_CANVAS_H_
+#ifndef __GPG_CANVAS_H__
+#define __GPG_CANVAS_H__
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -66,5 +66,5 @@ public:
 	void EndDraw() {};
 };
 
-#endif // _GPG_CANVAS_H_
+#endif // __GPG_CANVAS_H__
 

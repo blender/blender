@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_IACTUATOR
-#define __KX_IACTUATOR
+#ifndef __SCA_IACTUATOR_H__
+#define __SCA_IACTUATOR_H__
 
 #include "SCA_IController.h"
 #include <vector>
@@ -166,5 +166,5 @@ public:
 #endif
 };
 
-#endif //__KX_IACTUATOR
+#endif //__SCA_IACTUATOR_H__
 

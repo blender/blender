@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_MESHDEFORMER
-#define BL_MESHDEFORMER
+#ifndef __BL_MESHDEFORMER_H__
+#define __BL_MESHDEFORMER_H__
 
 #include "RAS_Deformer.h"
 #include "DNA_object_types.h"

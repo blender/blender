@@ -30,8 +30,8 @@
  *  \brief Sense if other objects are near
  */
 
-#ifndef KX_NEARSENSOR_H
-#define KX_NEARSENSOR_H
+#ifndef __KX_NEARSENSOR_H__
+#define __KX_NEARSENSOR_H__
 
 #include "KX_TouchSensor.h"
 #include "KX_ClientObjectInfo.h"
@@ -104,5 +104,5 @@ public:
 
 };
 
-#endif //KX_NEARSENSOR_H
+#endif //__KX_NEARSENSOR_H__
 

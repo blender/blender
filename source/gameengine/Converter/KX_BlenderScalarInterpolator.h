@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_SCALARINTERPOLATOR_H
-#define __KX_SCALARINTERPOLATOR_H
+#ifndef __KX_BLENDERSCALARINTERPOLATOR_H__
+#define __KX_BLENDERSCALARINTERPOLATOR_H__
 
 #include <vector>
 
@@ -77,5 +77,5 @@ public:
 #endif
 };
 
-#endif //__KX_SCALARINTERPOLATOR_H
+#endif //__KX_BLENDERSCALARINTERPOLATOR_H__
 

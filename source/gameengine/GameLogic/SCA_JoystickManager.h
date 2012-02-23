@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __JOYSTICKMANAGER_H_
-#define __JOYSTICKMANAGER_H_
+#ifndef __SCA_JOYSTICKMANAGER_H__
+#define __SCA_JOYSTICKMANAGER_H__
 
 #include "SCA_EventManager.h"
 #include "Joystick/SCA_Joystick.h"

@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef _GPC_CANVAS_H_
-#define _GPC_CANVAS_H_
+#ifndef __GPC_CANVAS_H__
+#define __GPC_CANVAS_H__
 
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
@@ -270,5 +270,5 @@ protected:
 	static TBannerId s_bannerId;
 };
 
-#endif // _GPC_CANVAS_H_
+#endif // __GPC_CANVAS_H__
 

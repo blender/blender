@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_GRAYSCALE2DFILTER
-#define __RAS_GRAYSCALE2DFILTER
+#ifndef __RAS_GRAYSCALE2DFILTER_H__
+#define __RAS_GRAYSCALE2DFILTER_H__
 
 const char * GrayScaleFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;

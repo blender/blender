@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_ISCENECONVERTER_H
-#define __KX_ISCENECONVERTER_H
+#ifndef __KX_ISCENECONVERTER_H__
+#define __KX_ISCENECONVERTER_H__
 
 #include "STR_String.h"
 #include "KX_Python.h"
@@ -95,5 +95,5 @@ public:
 #endif
 };
 
-#endif //__KX_ISCENECONVERTER_H
+#endif //__KX_ISCENECONVERTER_H__
 

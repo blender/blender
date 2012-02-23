@@ -29,8 +29,8 @@
  *  \ingroup expressions
  */
 
-#ifndef _PY_OBJECT_PLUS_H
-#define _PY_OBJECT_PLUS_H
+#ifndef __PYOBJECTPLUS_H__
+#define __PYOBJECTPLUS_H__
 
 /* for now keep weakrefs optional */
 #define USE_WEAKREFS
@@ -652,4 +652,4 @@ PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);
 PyObject *PyUnicode_From_STR_String(const STR_String& str);
 #endif
 
-#endif //  _PY_OBJECT_PLUS_H
+#endif //  __PYOBJECTPLUS_H__

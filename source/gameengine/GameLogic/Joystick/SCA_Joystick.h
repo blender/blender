@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef _SCA_JOYSTICK_H_
-#define _SCA_JOYSTICK_H_
+#ifndef __SCA_JOYSTICK_H__
+#define __SCA_JOYSTICK_H__
 
 #include "SCA_JoystickDefines.h"
 #ifdef WITH_SDL

@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef __GPC_MOUSE_DEVICE_H
-#define __GPC_MOUSE_DEVICE_H
+#ifndef __GPC_MOUSEDEVICE_H__
+#define __GPC_MOUSEDEVICE_H__
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -102,5 +102,5 @@ protected:
 	virtual bool ConvertEvent(KX_EnumInputs kxevent, int eventval);
 };
 
-#endif  // __GPC_MOUSE_DEVICE_H
+#endif  // __GPC_MOUSEDEVICE_H__
 

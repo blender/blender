@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_EROSION2DFILTER
-#define __RAS_EROSION2DFILTER
+#ifndef __RAS_EROSION2DFILTER_H__
+#define __RAS_EROSION2DFILTER_H__
 
 const char * ErosionFragmentShader=STRINGIFY(
             uniform sampler2D bgl_RenderedTexture;

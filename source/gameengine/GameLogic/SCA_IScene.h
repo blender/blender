@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_ISCENE_H
-#define __KX_ISCENE_H
+#ifndef __SCA_ISCENE_H__
+#define __SCA_ISCENE_H__
 
 #include <vector>
 
@@ -80,5 +80,5 @@ public:
 #endif
 };
 
-#endif //__KX_ISCENE_H
+#endif //__SCA_ISCENE_H__
 

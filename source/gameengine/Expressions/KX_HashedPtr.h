@@ -29,8 +29,8 @@
  *  \ingroup expressions
  */
 
-#ifndef __KX_HASHEDPTR
-#define __KX_HASHEDPTR
+#ifndef __KX_HASHEDPTR_H__
+#define __KX_HASHEDPTR_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -60,5 +60,5 @@ public:
 #endif
 };
 
-#endif //__KX_HASHEDPTR
+#endif //__KX_HASHEDPTR_H__
 

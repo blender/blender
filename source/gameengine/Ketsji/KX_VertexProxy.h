@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_VERTEXPROXY
-#define __KX_VERTEXPROXY
+#ifndef __KX_VERTEXPROXY_H__
+#define __KX_VERTEXPROXY_H__
 
 #ifdef WITH_PYTHON
 
@@ -107,5 +107,5 @@ public:
 
 #endif // WITH_PYTHON
 
-#endif //__KX_VERTEXPROXY
+#endif //__KX_VERTEXPROXY_H__
 

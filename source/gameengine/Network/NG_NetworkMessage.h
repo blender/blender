@@ -29,8 +29,8 @@
  *  \ingroup bgenet
  *  \brief generic Network Message class
  */
-#ifndef NG_NETWORKMESSAGE_H
-#define NG_NETWORKMESSAGE_H
+#ifndef __NG_NETWORKMESSAGE_H__
+#define __NG_NETWORKMESSAGE_H__
 
 #include "STR_HashedString.h"
 
@@ -137,5 +137,5 @@ public:
 #endif
 };
 
-#endif //NG_NETWORKMESSAGE_H
+#endif //__NG_NETWORKMESSAGE_H__
 

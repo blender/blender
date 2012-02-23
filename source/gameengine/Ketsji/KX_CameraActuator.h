@@ -32,8 +32,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_CAMERAACTUATOR
-#define __KX_CAMERAACTUATOR
+#ifndef __KX_CAMERAACTUATOR_H__
+#define __KX_CAMERAACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "MT_Scalar.h"
@@ -135,5 +135,5 @@ private :
 
 };
 
-#endif //__KX_CAMERAACTUATOR
+#endif //__KX_CAMERAACTUATOR_H__
 

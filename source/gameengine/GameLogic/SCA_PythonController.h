@@ -30,8 +30,8 @@
  *  \brief Execute Python scripts
  */
 
-#ifndef KX_PYTHONCONTROLLER_H
-#define KX_PYTHONCONTROLLER_H
+#ifndef __SCA_PYTHONCONTROLLER_H__
+#define __SCA_PYTHONCONTROLLER_H__
 
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
@@ -115,5 +115,5 @@ class SCA_PythonController : public SCA_IController
 #endif
 };
 
-#endif //KX_PYTHONCONTROLLER_H
+#endif //__SCA_PYTHONCONTROLLER_H__
 

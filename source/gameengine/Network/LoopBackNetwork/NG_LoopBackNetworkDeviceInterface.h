@@ -29,8 +29,8 @@
  *  \ingroup bgenetlb
  *  \brief LoopbackNetworkDeviceInterface derived from NG_NetworkDeviceInterface
  */
-#ifndef NG_LOOPBACKNETWORKDEVICEINTERFACE_H
-#define NG_LOOPBACKNETWORKDEVICEINTERFACE_H
+#ifndef __NG_LOOPBACKNETWORKDEVICEINTERFACE_H__
+#define __NG_LOOPBACKNETWORKDEVICEINTERFACE_H__
 
 #include <deque>
 #include "NG_NetworkDeviceInterface.h"
@@ -58,5 +58,5 @@ public:
 	virtual std::vector<NG_NetworkMessage*>		RetrieveNetworkMessages();
 };
 
-#endif //NG_LOOPBACKNETWORKDEVICEINTERFACE_H
+#endif //__NG_LOOPBACKNETWORKDEVICEINTERFACE_H__
 

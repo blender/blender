@@ -30,8 +30,8 @@
  *  \brief Blender Player system on GHOST.
  */
 
-#ifndef _GPG_SYSTEM_H_
-#define _GPG_SYSTEM_H_
+#ifndef __GPG_SYSTEM_H__
+#define __GPG_SYSTEM_H__
 
 #ifdef WIN32
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
@@ -51,5 +51,5 @@ public:
 	virtual double GetTimeInSeconds();
 };
 
-#endif // _GPG_SYSTEM_H_
+#endif // __GPG_SYSTEM_H__
 

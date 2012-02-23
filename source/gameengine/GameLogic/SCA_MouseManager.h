@@ -32,8 +32,8 @@
  */
 
 
-#ifndef __KX_MOUSEMANAGER
-#define __KX_MOUSEMANAGER
+#ifndef __SCA_MOUSEMANAGER_H__
+#define __SCA_MOUSEMANAGER_H__
 
 
 #include "SCA_EventManager.h"
@@ -74,5 +74,5 @@ public:
 #endif
 };
 
-#endif //__KX_MOUSEMANAGER
+#endif //__SCA_MOUSEMANAGER_H__
 

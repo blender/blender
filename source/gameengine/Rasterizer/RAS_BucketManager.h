@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_BUCKETMANAGER
-#define __RAS_BUCKETMANAGER
+#ifndef __RAS_BUCKETMANAGER_H__
+#define __RAS_BUCKETMANAGER_H__
 
 #include "MT_Transform.h"
 #include "RAS_MaterialBucket.h"
@@ -91,5 +91,5 @@ public:
 #endif
 };
 
-#endif //__RAS_BUCKETMANAGER
+#endif //__RAS_BUCKETMANAGER_H__
 

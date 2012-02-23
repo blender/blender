@@ -29,8 +29,8 @@
  *  \ingroup bgerastogl
  */
 
-#ifndef __KX_VERTEXARRAYOPENGLRASTERIZER
-#define __KX_VERTEXARRAYOPENGLRASTERIZER
+#ifndef __RAS_VAOPENGLRASTERIZER_H__
+#define __RAS_VAOPENGLRASTERIZER_H__
 
 #include "RAS_OpenGLRasterizer.h"
 
@@ -69,5 +69,5 @@ public:
 #endif
 };
 
-#endif //__KX_VERTEXARRAYOPENGLRASTERIZER
+#endif //__RAS_VAOPENGLRASTERIZER_H__
 

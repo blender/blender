@@ -29,8 +29,8 @@
  *  \ingroup blroutines
  */
 
-#ifndef __KX_BLENDERINPUTDEVICE
-#define __KX_BLENDERINPUTDEVICE
+#ifndef __KX_BLENDERINPUTDEVICE_H__
+#define __KX_BLENDERINPUTDEVICE_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning(disable : 4786)  // shut off 255 char limit debug template warning
@@ -77,5 +77,5 @@ public:
 	void operator delete(void *mem) { MEM_freeN(mem); }
 #endif
 };
-#endif //__KX_BLENDERINPUTDEVICE
+#endif //__KX_BLENDERINPUTDEVICE_H__
 

@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_IPOLYGONMATERIAL
-#define __RAS_IPOLYGONMATERIAL
+#ifndef __RAS_IPOLYGONMATERIAL_H__
+#define __RAS_IPOLYGONMATERIAL_H__
 
 #include "STR_HashedString.h"
 
@@ -204,5 +204,5 @@ inline  bool operator < ( const RAS_IPolyMaterial & lhs, const RAS_IPolyMaterial
 	return lhs.Less(rhs);
 }
 
-#endif //__RAS_IPOLYGONMATERIAL
+#endif //__RAS_IPOLYGONMATERIAL_H__
 

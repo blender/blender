@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_FONTOBJECT
-#define  __KX_FONTOBJECT
+#ifndef __KX_FONTOBJECT_H__
+#define  __KX_FONTOBJECT_H__
 #include "KX_GameObject.h"
 #include "DNA_vfont_types.h"
 #include "RAS_IRenderTools.h"
@@ -84,4 +84,4 @@ public:
 
 };
 
-#endif //__KX_FONTOBJECT
+#endif //__KX_FONTOBJECT_H__

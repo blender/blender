@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_SCENE_H
-#define __KX_SCENE_H
+#ifndef __KX_SCENE_H__
+#define __KX_SCENE_H__
 
 
 #include "KX_PhysicsEngineEnums.h"
@@ -665,5 +665,5 @@ public:
 
 typedef std::vector<KX_Scene*> KX_SceneList;
 
-#endif //__KX_SCENE_H
+#endif //__KX_SCENE_H__
 

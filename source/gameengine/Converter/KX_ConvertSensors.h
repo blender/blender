@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_CONVERTSENSOR_H
-#define __KX_CONVERTSENSOR_H
+#ifndef __KX_CONVERTSENSORS_H__
+#define __KX_CONVERTSENSORS_H__
 
 void BL_ConvertSensors(struct Object* blenderobject,
 	   class KX_GameObject* gameobj,
@@ -42,5 +42,5 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	   class RAS_ICanvas* canvas, 
 	   class KX_BlenderSceneConverter* converter);
 
-#endif //__KX_CONVERTSENSOR_H
+#endif //__KX_CONVERTSENSORS_H__
 

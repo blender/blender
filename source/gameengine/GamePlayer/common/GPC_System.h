@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef __GPC_SYSTEM_H
-#define __GPC_SYSTEM_H
+#ifndef __GPC_SYSTEM_H__
+#define __GPC_SYSTEM_H__
 
 #if defined(WIN32)
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
@@ -59,5 +59,5 @@ public:
 //	NG_NetworkDeviceInterface* m_ndi;
 };
 
-#endif  // __GPC_SYSTEM_H
+#endif  // __GPC_SYSTEM_H__
 

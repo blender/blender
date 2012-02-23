@@ -30,8 +30,8 @@
  *  \brief Blender System embedding. Needed when gameengine runs embedded within Blender.
  */
 
-#ifndef __KX_BLENDERSYSTEM
-#define __KX_BLENDERSYSTEM
+#ifndef __KX_BLENDERSYSTEM_H__
+#define __KX_BLENDERSYSTEM_H__
 
 #include "KX_ISystem.h"
 
@@ -55,5 +55,5 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERSYSTEM
+#endif //__KX_BLENDERSYSTEM_H__
 

@@ -32,8 +32,8 @@
  * on a per-generator basis.
  */
 
-#ifndef __KX_RANDOMNUMBERGENERATOR
-#define __KX_RANDOMNUMBERGENERATOR
+#ifndef __SCA_RANDOMNUMBERGENERATOR_H__
+#define __SCA_RANDOMNUMBERGENERATOR_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -83,5 +83,5 @@ public:
 #endif
 };
 
-#endif /* __KX_RANDOMNUMBERGENERATOR */
+#endif /* __SCA_RANDOMNUMBERGENERATOR_H__ */
 

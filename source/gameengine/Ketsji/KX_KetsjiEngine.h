@@ -30,8 +30,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_KETSJI_ENGINE
-#define __KX_KETSJI_ENGINE
+#ifndef __KX_KETSJIENGINE_H__
+#define __KX_KETSJIENGINE_H__
 
 #include "MT_CmMatrix4x4.h"
 #include "MT_Matrix4x4.h"
@@ -450,6 +450,6 @@ public:
 #endif
 };
 
-#endif //__KX_KETSJI_ENGINE
+#endif //__KX_KETSJIENGINE_H__
 
 

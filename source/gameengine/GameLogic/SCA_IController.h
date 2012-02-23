@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_ICONTROLLER
-#define __KX_ICONTROLLER
+#ifndef __SCA_ICONTROLLER_H__
+#define __SCA_ICONTROLLER_H__
 
 #include "SCA_ILogicBrick.h"
 #include "PyObjectPlus.h"

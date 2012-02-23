@@ -30,8 +30,8 @@
  *  \brief Do translation/rotation actions
  */
 
-#ifndef __KX_OBJECTACTUATOR
-#define __KX_OBJECTACTUATOR
+#ifndef __KX_OBJECTACTUATOR_H__
+#define __KX_OBJECTACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "MT_Vector3.h"
@@ -222,5 +222,5 @@ public:
 
 };
 
-#endif //__KX_OBJECTACTUATOR
+#endif //__KX_OBJECTACTUATOR_H__
 

@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_DEFORMABLEGAMEOBJECT
-#define BL_DEFORMABLEGAMEOBJECT
+#ifndef __BL_DEFORMABLEGAMEOBJECT_H__
+#define __BL_DEFORMABLEGAMEOBJECT_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning

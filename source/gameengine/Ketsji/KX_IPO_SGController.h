@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __IPO_SGCONTROLLER_H
-#define __IPO_SGCONTROLLER_H
+#ifndef __KX_IPO_SGCONTROLLER_H__
+#define __KX_IPO_SGCONTROLLER_H__
 
 #include "SG_Controller.h"
 #include "SG_Spatial.h"
@@ -127,6 +127,6 @@ public:
 #endif
 };
 
-#endif //__IPO_SGCONTROLLER_H
+#endif //__KX_IPO_SGCONTROLLER_H__
 
 

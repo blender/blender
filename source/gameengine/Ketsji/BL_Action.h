@@ -24,8 +24,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __BL_ACTION
-#define __BL_ACTION
+#ifndef __BL_ACTION_H__
+#define __BL_ACTION_H__
 
 
 #include <vector>

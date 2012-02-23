@@ -28,8 +28,8 @@
  *  \ingroup gamelogic
  *  \brief Regulates the top-level logic behaviour for one scene.
  */
-#ifndef __KX_LOGICMANAGER
-#define __KX_LOGICMANAGER
+#ifndef __SCA_LOGICMANAGER_H__
+#define __SCA_LOGICMANAGER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
@@ -153,5 +153,5 @@ public:
 #endif
 };
 
-#endif //__KX_LOGICMANAGER
+#endif //__SCA_LOGICMANAGER_H__
 

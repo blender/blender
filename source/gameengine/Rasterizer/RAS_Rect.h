@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef _RAS_RECT
-#define _RAS_RECT
+#ifndef __RAS_RECT_H__
+#define __RAS_RECT_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -102,5 +102,5 @@ public:
 #endif
 };
 
-#endif // _RAS_RECT
+#endif // __RAS_RECT_H__
 

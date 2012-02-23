@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_TrackToActuator
-#define __KX_TrackToActuator
+#ifndef __KX_TRACKTOACTUATOR_H__
+#define __KX_TRACKTOACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "SCA_IObject.h"

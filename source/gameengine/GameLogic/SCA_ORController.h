@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_ORCONTROLLER
-#define __KX_ORCONTROLLER
+#ifndef __SCA_ORCONTROLLER_H__
+#define __SCA_ORCONTROLLER_H__
 
 #include "SCA_IController.h"
 
@@ -46,5 +46,5 @@ public:
 	virtual void Trigger(SCA_LogicManager* logicmgr);
 };
 
-#endif //__KX_ORCONTROLLER
+#endif //__SCA_ORCONTROLLER_H__
 

@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __BLENDER_CONVERT
-#define __BLENDER_CONVERT
+#ifndef __BL_BLENDERDATACONVERSION_H__
+#define __BL_BLENDERDATACONVERSION_H__
 
 #include "CTR_HashedPtr.h"
 #include "STR_String.h"
@@ -52,5 +52,5 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 SCA_IInputDevice::KX_EnumInputs ConvertKeyCode(int key_code);
 
-#endif // __BLENDER_CONVERT
+#endif // __BL_BLENDERDATACONVERSION_H__
 

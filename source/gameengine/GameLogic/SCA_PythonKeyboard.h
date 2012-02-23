@@ -24,8 +24,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_PYKEYBOARD
-#define __KX_PYKEYBOARD
+#ifndef __SCA_PYTHONKEYBOARD_H__
+#define __SCA_PYTHONKEYBOARD_H__
 
 #include "PyObjectPlus.h"
 
@@ -47,5 +47,5 @@ public:
 #endif
 };
 
-#endif //__KX_PYKEYBOARD
+#endif //__SCA_PYTHONKEYBOARD_H__
 

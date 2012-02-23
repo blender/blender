@@ -29,8 +29,8 @@
  *  \ingroup phys
  */
 
-#ifndef PHY__MOTIONSTATE_H
-#define PHY__MOTIONSTATE_H
+#ifndef __PHY_IMOTIONSTATE_H__
+#define __PHY_IMOTIONSTATE_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -67,5 +67,5 @@ public:
 #endif
 };
 
-#endif //PHY__MOTIONSTATE_H
+#endif //__PHY_IMOTIONSTATE_H__
 

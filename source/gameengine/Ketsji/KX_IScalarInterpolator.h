@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_ISCALARINTERPOLATOR_H
-#define KX_ISCALARINTERPOLATOR_H
+#ifndef __KX_ISCALARINTERPOLATOR_H__
+#define __KX_ISCALARINTERPOLATOR_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

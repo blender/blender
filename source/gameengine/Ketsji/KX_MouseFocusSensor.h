@@ -30,8 +30,8 @@
  *  \brief KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
-#ifndef __KX_MOUSEFOCUSSENSOR
-#define __KX_MOUSEFOCUSSENSOR
+#ifndef __KX_MOUSEFOCUSSENSOR_H__
+#define __KX_MOUSEFOCUSSENSOR_H__
 
 #include "SCA_MouseSensor.h"
 

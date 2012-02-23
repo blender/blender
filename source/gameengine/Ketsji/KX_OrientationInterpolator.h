@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_ORIENTATIONINTERPOLATOR
-#define KX_ORIENTATIONINTERPOLATOR
+#ifndef __KX_ORIENTATIONINTERPOLATOR_H__
+#define __KX_ORIENTATIONINTERPOLATOR_H__
 
 #include "KX_IInterpolator.h"
 

@@ -29,8 +29,8 @@
  *  \ingroup blroutines
  */
 
-#ifndef __KX_BLENDERCANVAS
-#define __KX_BLENDERCANVAS
+#ifndef __KX_BLENDERCANVAS_H__
+#define __KX_BLENDERCANVAS_H__
 
 #ifdef WIN32
 #include <windows.h>
@@ -200,5 +200,5 @@ public:
 #endif
 };
 
-#endif // __KX_BLENDERCANVAS
+#endif // __KX_BLENDERCANVAS_H__
 

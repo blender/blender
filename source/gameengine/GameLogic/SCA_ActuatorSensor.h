@@ -32,8 +32,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_ACTUATORSENSOR
-#define __KX_ACTUATORSENSOR
+#ifndef __SCA_ACTUATORSENSOR_H__
+#define __SCA_ACTUATORSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"

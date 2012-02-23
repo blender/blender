@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef RAS_DEFORMER
-#define RAS_DEFORMER
+#ifndef __RAS_DEFORMER_H__
+#define __RAS_DEFORMER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning

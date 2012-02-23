@@ -30,8 +30,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_SG_BONEPARENTRELATION_H__
-#define __KX_SG_BONEPARENTRELATION_H__
+#ifndef __KX_SG_BONEPARENTNODERELATIONSHIP_H__
+#define __KX_SG_BONEPARENTNODERELATIONSHIP_H__
  
 #include "SG_Spatial.h"
 #include "SG_ParentRelation.h"

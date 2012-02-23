@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_NANDCONTROLLER
-#define __KX_NANDCONTROLLER
+#ifndef __SCA_NANDCONTROLLER_H__
+#define __SCA_NANDCONTROLLER_H__
 
 #include "SCA_IController.h"
 
@@ -49,5 +49,5 @@ public:
 	/* --------------------------------------------------------------------- */
 };
 
-#endif //__KX_NANDCONTROLLER
+#endif //__SCA_NANDCONTROLLER_H__
 
