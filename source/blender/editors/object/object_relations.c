@@ -321,7 +321,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 
 	if (gob->dup_group != NULL)
 	{
-		go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "type"));
+		go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "object"));
 		ob= go->ob;
 	}
 	else
@@ -411,8 +411,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "object", "", MAX_ID_NAME-2, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for");
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
+	prop= RNA_def_enum(ot->srna, "object", DummyRNA_DEFAULT_items, 0, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
 	ot->prop= prop;
 }
