@@ -379,11 +379,7 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *splitop = op;
 	BMOperator dupeop;
 	BMOperator delop;
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
-	BMIter iter, iter2;
-	int found;
+	const short use_only_faces = BMO_slot_bool_get(op, "use_only_faces");
 
 	/* initialize our sub-operator */
 	BMO_op_init(bm, &dupeop, "dupe");
@@ -394,30 +390,38 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_slot_buffer_flag_enable(bm, splitop, "geom", SPLIT_INPUT, BM_ALL);
 
-	/* make sure to remove edges and verts we don't need */
-	for (e = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e = BM_iter_step(&iter)) {
-		found = 0;
-		f = BM_iter_new(&iter2, bm, BM_FACES_OF_EDGE, e);
-		for ( ; f; f = BM_iter_step(&iter2)) {
-			if (!BMO_elem_flag_test(bm, f, SPLIT_INPUT)) {
-				found = 1;
-				break;
-			}
-		}
-		if (!found) BMO_elem_flag_enable(bm, e, SPLIT_INPUT);
-	}
-	
-	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
-		found = 0;
-		e = BM_iter_new(&iter2, bm, BM_EDGES_OF_VERT, v);
-		for ( ; e; e = BM_iter_step(&iter2)) {
-			if (!BMO_elem_flag_test(bm, e, SPLIT_INPUT)) {
-				found = 1;
-				break;
-			}
-		}
-		if (!found) BMO_elem_flag_enable(bm, v, SPLIT_INPUT);
+	if (use_only_faces) {
+		BMVert *v;
+		BMEdge *e;
+		BMFace *f;
+		BMIter iter, iter2;
+		int found;
 
+		/* make sure to remove edges and verts we don't need */
+		for (e = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e = BM_iter_step(&iter)) {
+			found = 0;
+			f = BM_iter_new(&iter2, bm, BM_FACES_OF_EDGE, e);
+			for ( ; f; f = BM_iter_step(&iter2)) {
+				if (!BMO_elem_flag_test(bm, f, SPLIT_INPUT)) {
+					found = 1;
+					break;
+				}
+			}
+			if (!found) BMO_elem_flag_enable(bm, e, SPLIT_INPUT);
+		}
+
+		for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
+			found = 0;
+			e = BM_iter_new(&iter2, bm, BM_EDGES_OF_VERT, v);
+			for ( ; e; e = BM_iter_step(&iter2)) {
+				if (!BMO_elem_flag_test(bm, e, SPLIT_INPUT)) {
+					found = 1;
+					break;
+				}
+			}
+			if (!found) BMO_elem_flag_enable(bm, v, SPLIT_INPUT);
+
+		}
 	}
 
 	/* connect outputs of dupe to delete, exluding keep geometr */
