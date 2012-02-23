@@ -1428,10 +1428,10 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 					for(j = 0; j < gridsize-1; ++j) {
 						for(k = 0; k < gridsize-1; ++k) {
 							normal_quad_v3(vert_data[(j+1)*gridsize + (k+1)].no,
-								vert_data[(j+1)*gridsize + k].co,
-								vert_data[(j+1)*gridsize + k+1].co,
-								vert_data[j*gridsize + k+1].co,
-								vert_data[j*gridsize + k].co);
+								grid[(j+1)*gridsize + k].co,
+								grid[(j+1)*gridsize + k+1].co,
+								grid[j*gridsize + k+1].co,
+								grid[j*gridsize + k].co);
 						}
 					}
 				}
