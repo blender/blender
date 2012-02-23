@@ -57,6 +57,7 @@ Session::Session(const SessionParams& params_)
 	gpu_draw_ready = false;
 	gpu_need_tonemap = false;
 	pause = false;
+	kernels_loaded = false;
 }
 
 Session::~Session()
@@ -414,16 +415,20 @@ void Session::run_cpu()
 void Session::run()
 {
 	/* load kernels */
-	progress.set_status("Loading render kernels (may take a few minutes the first time)");
+	if(!kernels_loaded) {
+		progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
-	if(!device->load_kernels(params.experimental)) {
-		string message = device->error_message();
-		if(message == "")
-			message = "Failed loading render kernel, see console for errors";
+		if(!device->load_kernels(params.experimental)) {
+			string message = device->error_message();
+			if(message == "")
+				message = "Failed loading render kernel, see console for errors";
 
-		progress.set_status("Error", message);
-		progress.set_update();
-		return;
+			progress.set_status("Error", message);
+			progress.set_update();
+			return;
+		}
+
+		kernels_loaded = true;
 	}
 
 	/* session thread loop */
