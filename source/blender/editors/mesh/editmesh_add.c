@@ -533,7 +533,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout",
 	                           "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
-	                           RNA_int_get(op->ptr, "ring_count"), RNA_int_get(op->ptr, "segments"),
+	                           RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
 	                           RNA_float_get(op->ptr,"size"), mat))
 	{
 		return OPERATOR_CANCELLED;
