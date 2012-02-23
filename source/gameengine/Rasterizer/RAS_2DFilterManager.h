@@ -44,7 +44,7 @@ class RAS_2DFilterManager
 private:
 	unsigned int	CreateShaderProgram(const char* shadersource);
 	unsigned int	CreateShaderProgram(int filtermode);
-	void		AnalyseShader(int passindex, vector<STR_String>& propNames);
+	void		AnalyseShader(int passindex, std::vector<STR_String>& propNames);
 	void			StartShaderProgram(int passindex);
 	void			EndShaderProgram();
 	void			PrintShaderErrors(unsigned int shader, const char *task, const char *code);
@@ -77,7 +77,7 @@ private:
 	short		m_enabled[MAX_RENDER_PASS];
 
 	// stores object properties to send to shaders in each pass
-	vector<STR_String>	m_properties[MAX_RENDER_PASS];
+	std::vector<STR_String>	m_properties[MAX_RENDER_PASS];
 	void* m_gameObjects[MAX_RENDER_PASS];
 public:
 	enum RAS_2DFILTER_MODE {
@@ -105,7 +105,7 @@ public:
 
 	void RenderFilters(RAS_ICanvas* canvas);
 
-	void EnableFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text);
+	void EnableFilter(std::vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text);
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC

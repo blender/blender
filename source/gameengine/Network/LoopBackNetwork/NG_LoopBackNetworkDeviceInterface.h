@@ -32,8 +32,6 @@
 #ifndef NG_LOOPBACKNETWORKDEVICEINTERFACE_H
 #define NG_LOOPBACKNETWORKDEVICEINTERFACE_H
 
-using namespace std;
-
 #include <deque>
 #include "NG_NetworkDeviceInterface.h"
 
@@ -57,7 +55,7 @@ public:
 	bool Disconnect(void) {return true;}
 
 	virtual void SendNetworkMessage(class NG_NetworkMessage* msg);
-	virtual vector<NG_NetworkMessage*>		RetrieveNetworkMessages();
+	virtual std::vector<NG_NetworkMessage*>		RetrieveNetworkMessages();
 };
 
 #endif //NG_LOOPBACKNETWORKDEVICEINTERFACE_H
