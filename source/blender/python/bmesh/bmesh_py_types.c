@@ -1345,7 +1345,7 @@ static int bpy_bm_seq_contains(BPy_BMElemSeq *self, PyObject *value)
 		if (value_bm_ele->bm == self->bm) {
 			BMHeader *ele, *ele_test = value_bm_ele->ele;
 			BMIter iter;
-			BM_ITER(ele, &iter, self->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
 				if (ele == ele_test) {
 					return 1;
 				}
