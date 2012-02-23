@@ -790,7 +790,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 	}
 	/* else do non-mapped events */
 	else if (event->val==KM_PRESS) {
-		switch (event->type){
+		switch (event->type) {
 		case RIGHTMOUSE:
 			t->state = TRANS_CANCEL;
 			break;
@@ -1039,7 +1039,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 	}
 	else if (event->val==KM_RELEASE) {
-		switch (event->type){
+		switch (event->type) {
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
@@ -2671,7 +2671,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 		protectedSizeBits(td->protectflag, fsize);
 		
 		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't resize objects itself
-			if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
+			if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
 				/* scale val and reset size */
 				 *td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
 				
@@ -2955,7 +2955,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
 			mat3_to_quat( quat,fmat);	// Actual transform
 			
-			if(td->ext->quat){
+			if(td->ext->quat) {
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				
 				/* is there a reason not to have this here? -jahka */

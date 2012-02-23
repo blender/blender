@@ -56,7 +56,7 @@
 static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
 {
 	Object *obedit= CTX_data_edit_object(C);
-	View3D *v3d =CTX_wm_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 	
 	unit_m4(primmat);

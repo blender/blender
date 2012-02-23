@@ -473,7 +473,7 @@ static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int UN
 	if (res) {
 		/* bmesh_jekv; */
 
-		//void BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm){
+		//void BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm) {
 		//hrm, why is there a fac here? it just removes a vert
 		BM_vert_collapse_edges(bm, v->e, v);
 	}
@@ -596,7 +596,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		l = l->radial_next;
 	}
 
-	if (l->f != f){
+	if (l->f != f) {
 		//printf("Whoops! You got something out of order in BME_bevel_edge()!\n");
 	}
 
@@ -770,7 +770,7 @@ static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
 		weight = 0.0;
 		if (!BMO_elem_flag_test(bm, v, BME_BEVEL_NONMAN)) {
 			/* modifiers should not use selection */
-			if(options & BME_BEVEL_SELECT){
+			if (options & BME_BEVEL_SELECT) {
 				if(BM_elem_flag_test(v, BM_ELEM_SELECT)) weight = 1.0;
 			}
 			/* bevel weight NYI */
@@ -778,7 +778,7 @@ static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
 				weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
 			else
 				weight = 1.0;
-			if(weight > 0.0){
+			if(weight > 0.0) {
 				BMO_elem_flag_enable(bm, v, BME_BEVEL_BEVEL);
 				BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, weight, -1, NULL);
 			}
@@ -795,7 +795,7 @@ static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		weight = 0.0;
 		if (!BMO_elem_flag_test(bm, e, BME_BEVEL_NONMAN)) {
-			if(options & BME_BEVEL_SELECT){
+			if(options & BME_BEVEL_SELECT) {
 				if(BM_elem_flag_test(e, BM_ELEM_SELECT)) weight = 1.0;
 			}
 			else if(options & BME_BEVEL_WEIGHT) {
@@ -804,7 +804,7 @@ static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
 			else {
 				weight = 1.0;
 			}
-			if(weight > 0.0){
+			if(weight > 0.0) {
 				BMO_elem_flag_enable(bm, e, BME_BEVEL_BEVEL);
 				BMO_elem_flag_enable(bm, e->v1, BME_BEVEL_BEVEL);
 				BMO_elem_flag_enable(bm, e->v2, BME_BEVEL_BEVEL);
@@ -834,7 +834,7 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 	/* tag non-manifold geometr */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMO_elem_flag_enable(bm, v, BME_BEVEL_ORIG);
-		if(v->e){
+		if(v->e) {
 			BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL);
 			if (!BM_vert_is_manifold(bm, v))
 				BMO_elem_flag_enable(bm, v, BME_BEVEL_NONMAN);
@@ -948,7 +948,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 
 	/* Debug print, remov */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if(f->len == 2){
+		if(f->len == 2) {
 			printf("warning");
 		}
 	}

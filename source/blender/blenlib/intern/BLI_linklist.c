@@ -104,10 +104,11 @@ void BLI_linklist_append(LinkNode **listp, void *ptr)
 	nlink->link = ptr;
 	nlink->next = NULL;
 	
-	if(node == NULL){
+	if (node == NULL) {
 		*listp = nlink;
-	} else {
-		while(node->next != NULL){
+	}
+	else {
+		while (node->next != NULL) {
 			node = node->next;   
 		}
 		node->next = nlink;

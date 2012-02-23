@@ -741,11 +741,11 @@ static void recalcData_view3d(TransInfo *t)
 			}
 			
 			/* Ensure all bones are correctly adjusted */
-			for (ebo = edbo->first; ebo; ebo = ebo->next){
+			for (ebo = edbo->first; ebo; ebo = ebo->next) {
 				
-				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+				if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
 					/* If this bone has a parent tip that has been moved */
-					if (ebo->parent->flag & BONE_TIPSEL){
+					if (ebo->parent->flag & BONE_TIPSEL) {
 						copy_v3_v3 (ebo->head, ebo->parent->tail);
 						if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
 					}

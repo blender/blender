@@ -362,10 +362,10 @@ int calc_manipulator_stats(const bContext *C)
 				}
 			}
 		} /* end editmesh */
-		else if (obedit->type==OB_ARMATURE){
+		else if (obedit->type==OB_ARMATURE) {
 			bArmature *arm= obedit->data;
 			EditBone *ebo;
-			for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
+			for (ebo= arm->edbo->first; ebo; ebo=ebo->next) {
 				if(EBONE_VISIBLE(arm, ebo)) {
 					if (ebo->flag & BONE_TIPSEL) {
 						calc_tw_center(scene, ebo->tail);

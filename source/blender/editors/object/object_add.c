@@ -154,7 +154,7 @@ void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *r
 /* returns standard diameter */
 float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, float *rot, float primmat[][4])
 {
-	View3D *v3d =CTX_wm_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 	
 	unit_m4(primmat);

@@ -409,7 +409,7 @@ static short apply_targetless_ik(Object *ob)
 				parchan= pchan;
 
 			/* Find the chain's root & count the segments needed */
-			for (; parchan; parchan=parchan->parent){
+			for (; parchan; parchan=parchan->parent) {
 				chanlist[segcount]= parchan;
 				segcount++;
 
@@ -1343,7 +1343,7 @@ static void createTransMBallVerts(TransInfo *t)
 			td->ext = tx;
 
 			/* Radius of MetaElem (mass of MetaElem influence) */
-			if(ml->flag & MB_SCALE_RAD){
+			if(ml->flag & MB_SCALE_RAD) {
 				td->val = &ml->rad;
 				td->ival = ml->rad;
 			}

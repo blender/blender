@@ -290,7 +290,8 @@ void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *
 						ba->passes[i + j] = pass;
 					}
 					i += retval;
-				} else if (retval == -1){
+				}
+				else if (retval == -1) {
 					if (a) {
 						if (a->key->pass != -1)
 							ba->passes[i] = pass;

@@ -143,10 +143,10 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 			*dest++ = col;
 		}
 		if (do_float) {
-			destf[0]= destf[4] =p1f[0];
-			destf[1]= destf[5] =p1f[1];
-			destf[2]= destf[6] =p1f[2];
-			destf[3]= destf[7] =p1f[3];
+			destf[0]= destf[4] = p1f[0];
+			destf[1]= destf[5] = p1f[1];
+			destf[2]= destf[6] = p1f[2];
+			destf[3]= destf[7] = p1f[3];
 			destf+= 8;
 			p1f+= 4;
 		}

@@ -1304,7 +1304,7 @@ float closest_to_line_v3(float cp[3], const float p[3], const float l1[3], const
 	float h[3],u[3],lambda;
 	sub_v3_v3v3(u, l2, l1);
 	sub_v3_v3v3(h, p, l1);
-	lambda =dot_v3v3(u,h)/dot_v3v3(u,u);
+	lambda = dot_v3v3(u,h)/dot_v3v3(u,u);
 	cp[0] = l1[0] + u[0] * lambda;
 	cp[1] = l1[1] + u[1] * lambda;
 	cp[2] = l1[2] + u[2] * lambda;
@@ -1316,7 +1316,7 @@ float closest_to_line_v2(float cp[2],const float p[2], const float l1[2], const 
 	float h[2],u[2],lambda;
 	sub_v2_v2v2(u, l2, l1);
 	sub_v2_v2v2(h, p, l1);
-	lambda =dot_v2v2(u,h)/dot_v2v2(u,u);
+	lambda = dot_v2v2(u,h)/dot_v2v2(u,u);
 	cp[0] = l1[0] + u[0] * lambda;
 	cp[1] = l1[1] + u[1] * lambda;
 	return lambda;
@@ -2633,8 +2633,8 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 				transpose_m3(qi);
 				add_m3_m3m3(q,q,qi);
 				mul_m3_fl(q,0.5f);
-				odet =ndet;
-				ndet =_det_m3(q);
+				odet = ndet;
+				ndet = _det_m3(q);
 				i++;
 			}
 

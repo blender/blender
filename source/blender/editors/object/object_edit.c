@@ -140,7 +140,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	int changed = 0;
 	
 	/* XXX need a context loop to handle such cases */
-	for(base = FIRSTBASE; base; base=base->next){
+	for(base = FIRSTBASE; base; base=base->next) {
 		if((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_VIEW) {
 			base->flag |= SELECT;
 			base->object->flag = base->flag;
@@ -182,7 +182,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(!unselected) {
-			if (base->flag & SELECT){
+			if (base->flag & SELECT) {
 				base->flag &= ~SELECT;
 				base->object->flag = base->flag;
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
@@ -193,7 +193,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			if (!(base->flag & SELECT)){
+			if (!(base->flag & SELECT)) {
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
 			}
@@ -272,12 +272,12 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(!unselected) {
-			if (base->flag & SELECT){
+			if (base->flag & SELECT) {
 				base->object->restrictflag |= OB_RESTRICT_RENDER;
 			}
 		}
 		else {
-			if (!(base->flag & SELECT)){
+			if (!(base->flag & SELECT)) {
 				base->object->restrictflag |= OB_RESTRICT_RENDER;
 			}
 		}
@@ -447,7 +447,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}
-	else if (ob->type==OB_ARMATURE){
+	else if (ob->type==OB_ARMATURE) {
 		bArmature *arm= base->object->data;
 		if (!arm) return;
 		/*
@@ -906,7 +906,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
-				else if(event==21){
+				else if(event==21) {
 					if (base->object->type==OB_MESH) {
 						ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
 
@@ -1024,7 +1024,7 @@ static void UNUSED_FUNCTION(copy_attr_menu)(Main *bmain, Scene *scene, View3D *v
 			strcat(str, "|Curve Resolution%x25");
 	}
 
-	if(ob->type==OB_MESH){
+	if(ob->type==OB_MESH) {
 		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
 	}
 
@@ -1032,7 +1032,7 @@ static void UNUSED_FUNCTION(copy_attr_menu)(Main *bmain, Scene *scene, View3D *v
 	
 	strcat(str, "|Pass Index%x30");
 	
-	if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
+	if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF) {
 		strcat(str, "|Modifiers ...%x24");
 	}
 
