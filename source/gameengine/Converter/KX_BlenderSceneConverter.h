@@ -39,6 +39,8 @@
 #include "KX_ISceneConverter.h"
 #include "KX_IpoConvert.h"
 
+using namespace std;
+
 class KX_WorldInfo;
 class SCA_IActuator;
 class SCA_IController;

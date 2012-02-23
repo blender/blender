@@ -32,6 +32,8 @@
 #ifndef NG_LOOPBACKNETWORKDEVICEINTERFACE_H
 #define NG_LOOPBACKNETWORKDEVICEINTERFACE_H
 
+using namespace std;
+
 #include <deque>
 #include "NG_NetworkDeviceInterface.h"
 

@@ -36,6 +36,8 @@
 #include "MEM_guardedalloc.h"
 #endif
 
+using namespace std;
+
 class RAS_Rect;
 
 /**

@@ -45,6 +45,8 @@
 	#undef SendMessage
 #endif
 
+using namespace std;
+
 class NG_NetworkDeviceInterface;
 
 class NG_NetworkScene
