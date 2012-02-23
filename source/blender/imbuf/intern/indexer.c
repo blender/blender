@@ -147,6 +147,7 @@ void IMB_index_builder_finish(anim_index_builder * fp, int rollback)
 	if (rollback) {
 		unlink(fp->temp_name);
 	} else {
+		unlink(fp->name);
 		rename(fp->temp_name, fp->name);
 	}
 
@@ -687,6 +688,7 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 	} else {
 		get_proxy_filename(ctx->anim, ctx->proxy_size, 
 		                   fname, FALSE);
+		unlink(fname);
 		rename(fname_tmp, fname);
 	}
 	
@@ -1043,6 +1045,7 @@ static void index_rebuild_fallback(struct anim * anim,
 			if (*stop) {
 				unlink(fname_tmp);
 			} else {
+				unlink(fname);
 				rename(fname_tmp, fname);
 			}
 		}
