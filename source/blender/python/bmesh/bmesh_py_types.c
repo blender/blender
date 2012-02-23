@@ -660,8 +660,80 @@ static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 	return PyFloat_FromDouble(BM_edge_face_angle(self->bm, self->e));
 }
 
+PyDoc_STRVAR(bpy_bmedge_other_vert_doc,
+             ".. method:: other_vert(vert)\n"
+             "\n"
+             "   Return the other vertex on this edge or None if the vertex is not used by this edge.\n"
+             );
+static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
+{
+	BMVert *other;
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!BPy_BMVert_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "BMEdge.other_vert(vert): BMVert expected, not '%.200s'",
+		             Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	if (self->bm != value->bm) {
+		PyErr_SetString(PyExc_TypeError,
+		                "BMEdge.other_vert(vert): vert is from another mesh");
+		return NULL;
+	}
+
+	other = BM_edge_other_vert(self->e, value->v);
+
+	if (other) {
+		return BPy_BMVert_CreatePyObject(self->bm, other);
+	}
+	else {
+		/* could raise an exception here */
+		Py_RETURN_NONE;
+	}
+}
+
 /* Face
  * ---- */
+
+PyDoc_STRVAR(bpy_bmface_copy_doc,
+             ".. method:: copy(verts=True, edges=True)\n"
+             "\n"
+             "   Return the area of the face.\n"
+             );
+static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
+{
+	static const char *kwlist[] = {"verts", "edges", NULL};
+
+	BMesh *bm = self->bm;
+	int do_verts = TRUE;
+	int do_edges = TRUE;
+
+	BMFace *f_cpy;
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw,
+	                                 "|ii:BMFace.copy",
+	                                 (char **)kwlist,
+	                                 &do_verts, &do_edges))
+	{
+		return NULL;
+	}
+
+	f_cpy = BM_face_copy(bm, self->f, do_edges, do_verts);
+
+	if (f_cpy) {
+		return BPy_BMFace_CreatePyObject(bm, f_cpy);
+	}
+	else {
+		PyErr_SetString(PyExc_ValueError,
+		                "BMFace.copy(): couldn't create the new face, internal error");
+		return NULL;
+	}
+}
 
 PyDoc_STRVAR(bpy_bmface_calc_area_doc,
              ".. method:: calc_area()\n"
@@ -1039,6 +1111,8 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
 
+    {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
+
     {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS, bpy_bmedge_calc_face_angle_doc},
     {NULL, NULL, 0, NULL}
 };
@@ -1046,6 +1120,8 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 static struct PyMethodDef bpy_bmface_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+
+    {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS|METH_KEYWORDS, bpy_bmface_copy_doc},
 
     {"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
     {"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
