@@ -298,7 +298,7 @@ void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
 
 void BM_mesh_select_mode_flush(BMesh *bm);
 
-/* mode independant flushing up/down */
+/* mode independent flushing up/down */
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
 

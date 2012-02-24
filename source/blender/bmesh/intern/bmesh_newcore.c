@@ -172,7 +172,7 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, con
 	return l;
 }
 
-static BMLoop *bm_face_boundry_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
+static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
@@ -292,7 +292,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 
 	f->head.htype = BM_FACE;
 
-	startl = lastl = bm_face_boundry_add(bm, (BMFace *)f, verts[0], edges[0]);
+	startl = lastl = bm_face_boundary_add(bm, (BMFace *)f, verts[0], edges[0]);
 	
 	startl->v = (BMVert *)verts[0];
 	startl->e = (BMEdge *)edges[0];

@@ -408,7 +408,7 @@ int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_edge_is_boundry(BMEdge *e)
+int BM_edge_is_boundary(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
 	if (count == 1) {

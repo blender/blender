@@ -179,13 +179,13 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 
 /* doc-strings for all uses of this funcion */
 PyDoc_STRVAR(bpy_bmesh_verts_doc,
-"This meshes vert sequence (readonly).\n\n:type: :class:`BMElemSeq`"
+"This meshes vert sequence (read-only).\n\n:type: :class:`BMElemSeq`"
 );
 PyDoc_STRVAR(bpy_bmesh_edges_doc,
-"This meshes edge sequence (readonly).\n\n:type: :class:`BMElemSeq`"
+"This meshes edge sequence (read-only).\n\n:type: :class:`BMElemSeq`"
 );
 PyDoc_STRVAR(bpy_bmesh_faces_doc,
-"This meshes face sequence (readonly).\n\n:type: :class:`BMElemSeq`"
+"This meshes face sequence (read-only).\n\n:type: :class:`BMElemSeq`"
 );
 
 static PyObject *bpy_bmelemseq_get(BPy_BMesh *self, void *itype)
@@ -196,37 +196,37 @@ static PyObject *bpy_bmelemseq_get(BPy_BMesh *self, void *itype)
 
 /* vert */
 PyDoc_STRVAR(bpy_bmvert_link_edges_doc,
-"Edges connected to this vertex (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMVert`"
+"Edges connected to this vertex (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMVert`"
 );
 PyDoc_STRVAR(bpy_bmvert_link_faces_doc,
-"Faces connected to this vertex (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMFace`"
+"Faces connected to this vertex (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMFace`"
 );
 PyDoc_STRVAR(bpy_bmvert_link_loops_doc,
-"Loops that use this vertex (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
+"Loops that use this vertex (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
 );
 /* edge */
 PyDoc_STRVAR(bpy_bmedge_verts_doc,
-"Verts this edge uses (always 2), (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMVert`"
+"Verts this edge uses (always 2), (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMVert`"
 );
 PyDoc_STRVAR(bpy_bmedge_link_faces_doc,
-"Faces connected to this edge, (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMFace`"
+"Faces connected to this edge, (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMFace`"
 );
 PyDoc_STRVAR(bpy_bmedge_link_loops_doc,
-"Loops connected to this edge, (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
+"Loops connected to this edge, (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
 );
 /* face */
 PyDoc_STRVAR(bpy_bmface_verts_doc,
-"Verts of this face, (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMVert`"
+"Verts of this face, (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMVert`"
 );
 PyDoc_STRVAR(bpy_bmface_edges_doc,
-"Edges of this face, (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMEdge`"
+"Edges of this face, (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMEdge`"
 );
 PyDoc_STRVAR(bpy_bmface_loops_doc,
-"Loops of this face, (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
+"Loops of this face, (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
 );
 /* loop */
 PyDoc_STRVAR(bpy_bmloops_link_loops_doc,
-"Loops connected to this loop, (readonly).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
+"Loops connected to this loop, (read-only).\n\n:type: :class:`BMElemSeq` of :class:`BMLoop`"
 );
 
 static PyObject *bpy_bmelemseq_elem_get(BPy_BMElem *self, void *itype)
@@ -319,7 +319,7 @@ static int bpy_bmvert_normal_set(BPy_BMVert *self, PyObject *value)
 }
 
 PyDoc_STRVAR(bpy_bmvert_is_manifold_doc,
-"True when this vertex is manifold (readonly).\n\n:type: boolean"
+"True when this vertex is manifold (read-only).\n\n:type: boolean"
 );
 static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self)
 {
@@ -328,7 +328,7 @@ static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self)
 }
 
 PyDoc_STRVAR(bpy_bmvert_is_wire_doc,
-"True when this vertex is not connected to any faces (readonly).\n\n:type: boolean"
+"True when this vertex is not connected to any faces (read-only).\n\n:type: boolean"
 );
 static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
 {
@@ -340,7 +340,7 @@ static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
  * ^^^^ */
 
 PyDoc_STRVAR(bpy_bmedge_is_manifold_doc,
-"True when this edge is manifold (readonly).\n\n:type: boolean"
+"True when this edge is manifold (read-only).\n\n:type: boolean"
 );
 static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
 {
@@ -349,7 +349,7 @@ static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
 }
 
 PyDoc_STRVAR(bpy_bmedge_is_wire_doc,
-"True when this edge is not connected to any faces (readonly).\n\n:type: boolean"
+"True when this edge is not connected to any faces (read-only).\n\n:type: boolean"
 );
 static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self)
 {
@@ -357,13 +357,13 @@ static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self)
 	return PyBool_FromLong(BM_edge_is_wire(self->bm, self->e));
 }
 
-PyDoc_STRVAR(bpy_bmedge_is_boundry_doc,
-"True when this edge is at the boundry of a face (readonly).\n\n:type: boolean"
+PyDoc_STRVAR(bpy_bmedge_is_boundary_doc,
+"True when this edge is at the boundary of a face (read-only).\n\n:type: boolean"
 );
-static PyObject *bpy_bmedge_is_boundry_get(BPy_BMEdge *self)
+static PyObject *bpy_bmedge_is_boundary_get(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyBool_FromLong(BM_edge_is_boundry(self->e));
+	return PyBool_FromLong(BM_edge_is_boundary(self->e));
 }
 
 /* Face
@@ -444,7 +444,7 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
     /* readonly checks */
     {(char *)"is_manifold",  (getter)bpy_bmedge_is_manifold_get,  (setter)NULL, (char *)bpy_bmedge_is_manifold_doc, NULL},
     {(char *)"is_wire",      (getter)bpy_bmedge_is_wire_get,      (setter)NULL, (char *)bpy_bmedge_is_wire_doc, NULL},
-    {(char *)"is_boundry",   (getter)bpy_bmedge_is_boundry_get,   (setter)NULL, (char *)bpy_bmedge_is_boundry_doc, NULL},
+    {(char *)"is_boundary",   (getter)bpy_bmedge_is_boundary_get,   (setter)NULL, (char *)bpy_bmedge_is_boundary_doc, NULL},
     {(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
@@ -513,7 +513,7 @@ static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self)
 PyDoc_STRVAR(bpy_bmesh_select_flush_doc,
 ".. method:: select_flush(select)\n"
 "\n"
-"   Flush selection, independant of the current selection mode.\n"
+"   Flush selection, independent of the current selection mode.\n"
 "\n"
 "   :arg select: flush selection or de-selected elements.\n"
 "   :type select: boolean\n"
@@ -543,7 +543,6 @@ PyDoc_STRVAR(bpy_bmesh_normal_update_doc,
 "\n"
 "   :arg skip_hidden: When True hidden elements are ignored.\n"
 "   :type skip_hidden: boolean\n"
-
 );
 static PyObject *bpy_bmesh_normal_update(BPy_BMElem *self, PyObject *args)
 {
@@ -636,7 +635,7 @@ PyDoc_STRVAR(bpy_bm_elem_select_set_doc,
 ".. method:: select_set(select)\n"
 "\n"
 "   Set the selection.\n"
-"   This is different from the *select* attribute because it updates the selection state of assosiated geometry..\n"
+"   This is different from the *select* attribute because it updates the selection state of assosiated geometry.\n"
 "\n"
 "   :arg select: Select or de-select.\n"
 "   :type select: boolean\n"

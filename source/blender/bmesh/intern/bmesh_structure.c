@@ -103,7 +103,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *	   some nice utilities for navigating disk cycles in a way that hides this detail from the
  *	   tool writer.
  *
- *		Note that the disk cycle is completley independant from face data. One advantage of this
+ *		Note that the disk cycle is completley independent from face data. One advantage of this
  *		is that wire edges are fully integrated into the topology database. Another is that the
  *	    the disk cycle has no problems dealing with non-manifold conditions involving faces.
  *

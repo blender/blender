@@ -2146,7 +2146,7 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNU
 }
 
 PyDoc_STRVAR(Matrix_row_doc,
-"Access the matix by rows (default), (readonly).\n\n:type: Matrix Access"
+"Access the matix by rows (default), (read-only).\n\n:type: Matrix Access"
 );
 static PyObject *Matrix_row_get(MatrixObject *self, void *UNUSED(closure))
 {
@@ -2154,7 +2154,7 @@ static PyObject *Matrix_row_get(MatrixObject *self, void *UNUSED(closure))
 }
 
 PyDoc_STRVAR(Matrix_col_doc,
-"Access the matix by colums, 3x3 and 4x4 only, (readonly).\n\n:type: Matrix Access"
+"Access the matix by colums, 3x3 and 4x4 only, (read-only).\n\n:type: Matrix Access"
 );
 static PyObject *Matrix_col_get(MatrixObject *self, void *UNUSED(closure))
 {
@@ -2162,7 +2162,7 @@ static PyObject *Matrix_col_get(MatrixObject *self, void *UNUSED(closure))
 }
 
 PyDoc_STRVAR(Matrix_median_scale_doc,
-"The average scale applied to each axis (readonly).\n\n:type: float"
+"The average scale applied to each axis (read-only).\n\n:type: float"
 );
 static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closure))
 {
@@ -2185,7 +2185,7 @@ static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closur
 }
 
 PyDoc_STRVAR(Matrix_is_negative_doc,
-"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool"
+"True if this matrix results in a negative scale, 3x3 and 4x4 only, (read-only).\n\n:type: bool"
 );
 static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure))
 {
@@ -2206,7 +2206,7 @@ static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure
 }
 
 PyDoc_STRVAR(Matrix_is_orthogonal_doc,
-"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool"
+"True if this matrix is orthogonal, 3x3 and 4x4 only, (read-only).\n\n:type: bool"
 );
 static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closure))
 {

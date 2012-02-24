@@ -385,7 +385,7 @@ PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
 "\n"
 "   :arg faces: Sequence of faces .\n"
 "   :type faces: :class:`bmesh.types.BMFace`\n"
-"   :return: The newly created face or None on failier.\n"
+"   :return: The newly created face or None on failure.\n"
 "   :rtype: :class:`bmesh.types.BMFace`\n"
 );
 static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
