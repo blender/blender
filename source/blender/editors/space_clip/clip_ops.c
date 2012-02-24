@@ -68,7 +68,7 @@
 
 /******************** view navigation utilities *********************/
 
-static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float mpos[2])
+static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float location[2])
 {
 	float oldzoom= sc->zoom;
 	int width, height;
@@ -90,28 +90,28 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float mpos[2]
 			sc->zoom= oldzoom;
 	}
 
-	if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && mpos) {
+	if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
 		ED_space_clip_size(sc, &width, &height);
 
-		sc->xof+= ((mpos[0]-0.5f)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
-		sc->yof+= ((mpos[1]-0.5f)*height-sc->yof)*(sc->zoom-oldzoom)/sc->zoom;
+		sc->xof+= ((location[0]-0.5f)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
+		sc->yof+= ((location[1]-0.5f)*height-sc->yof)*(sc->zoom-oldzoom)/sc->zoom;
 	}
 }
 
-static void sclip_zoom_set_factor(SpaceClip *sc, ARegion *ar, float zoomfac, float mpos[2])
+static void sclip_zoom_set_factor(SpaceClip *sc, ARegion *ar, float zoomfac, float location[2])
 {
-	sclip_zoom_set(sc, ar, sc->zoom*zoomfac, mpos);
+	sclip_zoom_set(sc, ar, sc->zoom*zoomfac, location);
 }
 
 static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	ARegion *ar= CTX_wm_region(C);
-	float co[2], *mpos = NULL;
+	float location[2], *mpos = NULL;
 
 	if (event) {
-		ED_clip_mouse_pos(C, event, co);
-		mpos = co;
+		ED_clip_mouse_pos(C, event, location);
+		mpos = location;
 	}
 
 	sclip_zoom_set_factor(sc, ar, factor, mpos);
@@ -414,7 +414,7 @@ typedef struct ViewZoomData {
 	float x, y;
 	float zoom;
 	int event_type;
-	float co[2];
+	float location[2];
 } ViewZoomData;
 
 static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -430,7 +430,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->zoom= sc->zoom;
 	vpd->event_type= event->type;
 
-	ED_clip_mouse_pos(C, event, vpd->co);
+	ED_clip_mouse_pos(C, event, vpd->location);
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -491,7 +491,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			factor= 1.0f + (vpd->x-event->x+vpd->y-event->y)/300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
-			sclip_zoom_set(sc, ar, vpd->zoom*factor, vpd->co);
+			sclip_zoom_set(sc, ar, vpd->zoom*factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 		default:
