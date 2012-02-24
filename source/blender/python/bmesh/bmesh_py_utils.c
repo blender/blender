@@ -47,11 +47,11 @@ PyDoc_STRVAR(bpy_bm_utils_vert_collapse_edge_doc,
 "   Collapse a vertex into an edge.\n"
 "\n"
 "   :arg vert: The vert that will be collapsed.\n"
-"   :type vert: :class:`bmesh.types.BMVert`\n"
+"   :type vert: :class:`BMVert`\n"
 "   :arg edge: The edge to collapse into.\n"
-"   :type edge: :class:`bmesh.types.BMEdge`\n"
+"   :type edge: :class:`BMEdge`\n"
 "   :return: The resulting edge from the collapse operation.\n"
-"   :rtype: :class:`bmesh.types.BMEdge`\n"
+"   :rtype: :class:`BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObject *args)
 {
@@ -107,13 +107,13 @@ PyDoc_STRVAR(bpy_bm_utils_vert_collapse_faces_doc,
 "   Split an edge, return the newly created data.\n"
 "\n"
 "   :arg vert: The vert that will be collapsed.\n"
-"   :type vert: :class:`bmesh.types.BMVert`\n"
+"   :type vert: :class:`BMVert`\n"
 "   :arg edge: The edge to collapse into.\n"
-"   :type edge: :class:`bmesh.types.BMEdge`\n"
+"   :type edge: :class:`BMEdge`\n"
 "   :arg fac: The factor to use when merging customdata [0 - 1].\n"
 "   :type fac: float\n"
 "   :return: The resulting edge from the collapse operation.\n"
-"   :rtype: :class:`bmesh.types.BMEdge`\n"
+"   :rtype: :class:`BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObject *args)
 {
@@ -173,7 +173,7 @@ PyDoc_STRVAR(bpy_bm_utils_vert_dissolve_doc,
 "   Dissolve this vertex (will be removed).\n"
 "\n"
 "   :arg vert: The vert to be dissolved.\n"
-"   :type vert: :class:`bmesh.types.BMVert`\n"
+"   :type vert: :class:`BMVert`\n"
 "   :return: True when the vertex dissolve is successful.\n"
 "   :rtype: boolean\n"
 );
@@ -203,9 +203,9 @@ PyDoc_STRVAR(bpy_bm_utils_edge_split_doc,
 "   Split an edge, return the newly created data.\n"
 "\n"
 "   :arg edge: The edge to split.\n"
-"   :type edge: :class:`bmesh.types.BMEdge`\n"
+"   :type edge: :class:`BMEdge`\n"
 "   :arg vert: One of the verts on the edge, defines the split direction.\n"
-"   :type vert: :class:`bmesh.types.BMVert`\n"
+"   :type vert: :class:`BMVert`\n"
 "   :arg fac: The point on the edge where the new vert will be created [0 - 1].\n"
 "   :type fac: float\n"
 "   :return: The newly created (edge, vert) pair.\n"
@@ -266,11 +266,11 @@ PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
 "   If rotating the edge fails, None will be returned.\n"
 "\n"
 "   :arg edge: The edge to rotate.\n"
-"   :type edge: :class:`bmesh.types.BMEdge`\n"
+"   :type edge: :class:`BMEdge`\n"
 "   :arg ccw: When True the edge will be rotated counter clockwise.\n"
 "   :type ccw: boolean\n"
 "   :return: The newly rotated edge.\n"
-"   :rtype: :class:`bmesh.types.BMEdge`\n"
+"   :rtype: :class:`BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args)
 {
@@ -308,13 +308,13 @@ PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
 "   Split an edge, return the newly created data.\n"
 "\n"
 "   :arg face: The face to cut.\n"
-"   :type face: :class:`bmesh.types.BMFace`\n"
+"   :type face: :class:`BMFace`\n"
 "   :arg vert_a: First vertex to cut in the face (face must contain the vert).\n"
-"   :type vert_a: :class:`bmesh.types.BMVert`\n"
+"   :type vert_a: :class:`BMVert`\n"
 "   :arg vert_b: Second vertex to cut in the face (face must contain the vert).\n"
-"   :type vert_b: :class:`bmesh.types.BMVert`\n"
+"   :type vert_b: :class:`BMVert`\n"
 "   :arg edge_example: Optional edge argument, newly created edge will copy settings from this one.\n"
-"   :type edge_example: :class:`bmesh.types.BMEdge`\n"
+"   :type edge_example: :class:`BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 {
@@ -378,15 +378,16 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 	}
 }
 
+
 PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
 ".. method:: face_join(faces)\n"
 "\n"
 "   Joins a sequence of faces.\n"
 "\n"
-"   :arg faces: Sequence of faces .\n"
-"   :type faces: :class:`bmesh.types.BMFace`\n"
+"   :arg faces: Sequence of faces.\n"
+"   :type faces: :class:`BMFace`\n"
 "   :return: The newly created face or None on failure.\n"
-"   :rtype: :class:`bmesh.types.BMFace`\n"
+"   :rtype: :class:`BMFace`\n"
 );
 static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 {
@@ -415,6 +416,32 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 	}
 }
 
+
+PyDoc_STRVAR(bpy_bm_utils_face_flip_doc,
+".. method:: face_flip(faces)\n"
+"\n"
+"   Flip the faces direction.\n"
+"\n"
+"   :arg face: Face to flip.\n"
+"   :type face: :class:`BMFace`\n"
+);
+static PyObject *bpy_bm_utils_face_flip(PyObject *UNUSED(self), BPy_BMFace *value)
+{
+	if (!BPy_BMFace_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "face_flip(face): BMFace expected, not '%.200s'",
+		             Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	BM_face_normal_flip(value->bm, value->f);
+
+	Py_RETURN_NONE;
+}
+
+
 static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_collapse_edge",  (PyCFunction)bpy_bm_utils_vert_collapse_edge,  METH_VARARGS, bpy_bm_utils_vert_collapse_edge_doc},
     {"vert_collapse_faces", (PyCFunction)bpy_bm_utils_vert_collapse_faces, METH_VARARGS, bpy_bm_utils_vert_collapse_faces_doc},
@@ -423,13 +450,14 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
     {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
     {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_O,       bpy_bm_utils_face_join_doc},
+    {"face_flip",           (PyCFunction)bpy_bm_utils_face_flip,           METH_O,       bpy_bm_utils_face_flip_doc},
     {NULL, NULL, 0, NULL}
 };
 
 
 PyDoc_STRVAR(BPy_BM_doc,
-             "This module provides access to blenders bmesh data structures."
-             );
+"This module provides access to blenders bmesh data structures."
+);
 static struct PyModuleDef BPy_BM_types_module_def = {
     PyModuleDef_HEAD_INIT,
     "bmesh.utils",  /* m_name */

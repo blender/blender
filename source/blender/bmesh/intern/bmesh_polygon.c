@@ -610,27 +610,6 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
 
 /* detects if two line segments cross each other (intersects).
  * note, there could be more winding cases then there needs to be. */
-static int UNUSED_FUNCTION(linecrosses)(const double v1[2], const double v2[2], const double v3[2], const double v4[2])
-{
-	int w1, w2, w3, w4, w5;
-	
-	/* w1 = winding(v1, v3, v4);
-	w2 = winding(v2, v3, v4);
-	w3 = winding(v3, v1, v2);
-	w4 = winding(v4, v1, v2);
-	
-	return (w1 == w2) && (w3 == w4); */
-
-	w1 = testedgeside(v1, v3, v2);
-	w2 = testedgeside(v2, v4, v1);
-	w3 = !testedgeside(v1, v2, v3);
-	w4 = testedgeside(v3, v2, v4);
-	w5 = !testedgeside(v3, v1, v4);
-	return w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5;
-}
-
-/* detects if two line segments cross each other (intersects).
- * note, there could be more winding cases then there needs to be. */
 static int linecrossesf(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	int w1, w2, w3, w4, w5 /*, re */;
