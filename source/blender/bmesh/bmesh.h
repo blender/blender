@@ -123,7 +123,7 @@ void   BM_mesh_free(BMesh *bm);
 
 /* frees mesh, but not actual BMesh struct */
 void BM_mesh_data_free(BMesh *bm);
-void BM_mesh_normals_update(BMesh *bm);
+void BM_mesh_normals_update(BMesh *bm, const short skip_hidden);
 
 /* Construction */
 BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example);

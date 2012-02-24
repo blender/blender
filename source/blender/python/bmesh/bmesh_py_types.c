@@ -159,7 +159,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 		return -1;
 	}
 	else {
-		BM_elem_index_set(self->ele, param);
+		BM_elem_index_set(self->ele, param); /* set_dirty! */
 
 		/* when setting the index assume its set invalid */
 		if (self->ele->htype & (BM_VERT | BM_EDGE | BM_FACE)) {
@@ -474,8 +474,9 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 
 static PyGetSetDef bpy_bmloop_getseters[] = {
     /* generic */
-    {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
+    // flags are available but not used for loops.
+    // {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
+    // {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
@@ -535,49 +536,27 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bmesh_update_doc,
-".. method:: update(index=False, normals=False)\n"
+PyDoc_STRVAR(bpy_bmesh_normal_update_doc,
+".. method:: normal_update(skip_hidden=False)\n"
 "\n"
-"   Update mesh data.\n"
+"   Update mesh normals.\n"
 "\n"
-"   :arg normals: When True will re-calculate normals for verts and faces.\n"
-"   :type normals: boolean\n"
+"   :arg skip_hidden: When True hidden elements are ignored.\n"
+"   :type skip_hidden: boolean\n"
 
 );
-static PyObject *bpy_bmesh_update(BPy_BMElem *self, PyObject *args, PyObject *kw)
+static PyObject *bpy_bmesh_normal_update(BPy_BMElem *self, PyObject *args)
 {
-	static const char *kwlist[] = {"normals", "index", NULL};
 
-	int do_normals = FALSE;
-
-	PyObject *index_flags = NULL;
-	int do_index_hflag = 0;
+	int skip_hidden = FALSE;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw,
-	                                 "|iO:update",
-	                                 (char **)kwlist,
-	                                 &do_normals, &index_flags))
-	{
+	if (!PyArg_ParseTuple(args, "|i:normal_update", &skip_hidden)) {
 		return NULL;
 	}
 
-	if (index_flags) {
-		if (PyC_FlagSet_ToBitfield(bpy_bm_htype_vert_edge_face_flags, index_flags,
-		                           &do_index_hflag, "bm.update(index=...)") == -1)
-		{
-			return NULL;
-		}
-	}
-
-	if (do_normals) {
-		BM_mesh_normals_update(self->bm);
-	}
-
-	if (do_index_hflag) {
-		BM_mesh_elem_index_ensure(self->bm, (char)do_index_hflag);
-	}
+	BM_mesh_normals_update(self->bm, skip_hidden);
 
 	Py_RETURN_NONE;
 }
@@ -589,7 +568,7 @@ PyDoc_STRVAR(bpy_bmesh_transform_doc,
 "   Transform the mesh (optionally filtering flagged data only).\n"
 "\n"
 "   :arg matrix: transform matrix.\n"
-"   :type matrix: 4x4 :class:`mathutils.Matrix`"
+"   :type matrix: 4x4 :class:`mathutils.Matrix`\n"
 "   :arg filter: set of values in ('SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG').\n"
 "   :type filter: set\n"
 );
@@ -1195,7 +1174,7 @@ static PyObject *bpy_bmface_seq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 
 
 PyDoc_STRVAR(bpy_bmelemseq_remove_doc,
-".. method:: remove()\n"
+".. method:: remove(elem)\n"
 "\n"
 "   Remove a vert/edge/face.\n"
 );
@@ -1215,10 +1194,69 @@ static PyObject *bpy_bmelemseq_remove(BPy_BMElemSeq *self, PyObject *value)
 	}
 }
 
+PyDoc_STRVAR(bpy_bmelemseq_index_update_doc,
+".. method:: index_update()\n"
+"\n"
+"   Initialize the index values of this sequence.\n"
+"\n"
+"   This is the equivalent of looping over all elements and assigning the index values.\n"
+"\n"
+"   .. code-block:: python\n"
+"\n"
+"      for index, ele in enumerate(sequence):\n"
+"          ele.index = index\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      Running this on sequences besides :class:`BMesh.verts`, :class:`BMesh.edges`, :class:`BMesh.faces`\n"
+"      works but wont result in each element having a valid index, insted its order in the sequence will be set.\n"
+);
+static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
+{
+	BMesh *bm = self->bm;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	switch ((BMIterType)self->itype) {
+		case BM_VERTS_OF_MESH:
+			BM_mesh_elem_index_ensure(self->bm, BM_VERT);
+			break;
+		case BM_EDGES_OF_MESH:
+			BM_mesh_elem_index_ensure(self->bm, BM_EDGE);
+			break;
+		case BM_FACES_OF_MESH:
+			BM_mesh_elem_index_ensure(self->bm, BM_FACE);
+			break;
+		default:
+		{
+			BMIter iter;
+			BMHeader *ele;
+			int index = 0;
+			const char htype = bm_iter_itype_htype_map[self->itype];
+
+			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+				BM_elem_index_set(ele, index); /* set_dirty! */
+				index++;
+			}
+
+			if (htype & (BM_VERT | BM_EDGE | BM_FACE)) {
+				/* since this isnt the normal vert/edge/face loops,
+				 * we're setting dirty values here. so tag as dirty. */
+				bm->elem_index_dirty |= htype;
+			}
+
+			break;
+		}
+	}
+
+	Py_RETURN_NONE;
+}
+
+
 static struct PyMethodDef bpy_bmesh_methods[] = {
     {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
     {"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
-    {"update", (PyCFunction)bpy_bmesh_update, METH_VARARGS|METH_KEYWORDS, bpy_bmesh_update_doc},
+    {"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_VARARGS, bpy_bmesh_normal_update_doc},
     {"transform", (PyCFunction)bpy_bmesh_transform, METH_VARARGS|METH_KEYWORDS, bpy_bmesh_transform_doc},
     {NULL, NULL, 0, NULL}
 };
@@ -1263,16 +1301,14 @@ static struct PyMethodDef bpy_bmloop_methods[] = {
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
     {"new", (PyCFunction)bpy_bmelemseq_new, METH_VARARGS, bpy_bmelemseq_new_doc},
     {"remove", (PyCFunction)bpy_bmelemseq_remove, METH_O, bpy_bmelemseq_remove_doc},
+
+    /* odd function, initializes index values */
+    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
     {NULL, NULL, 0, NULL}
 };
 
 /* Sequences
  * ========= */
-
-#define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq) \
-	BM_ITER(ele, iter, (bpy_bmelemseq)->bm, (bpy_bmelemseq)->itype,\
-	(bpy_bmelemseq)->py_ele ? ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : NULL)
-
 
 static PyTypeObject *bpy_bm_itype_as_pytype(const char itype)
 {

@@ -32,6 +32,24 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
+	'\0',
+	BM_VERT, /* BM_VERTS_OF_MESH */
+	BM_EDGE, /* BM_EDGES_OF_MESH */
+	BM_FACE, /* BM_FACES_OF_MESH */
+	BM_EDGE, /* BM_EDGES_OF_VERT */
+	BM_FACE, /* BM_FACES_OF_VERT */
+	BM_LOOP, /* BM_LOOPS_OF_VERT */
+	BM_VERT, /* BM_VERTS_OF_EDGE */
+	BM_FACE, /* BM_FACES_OF_EDGE */
+	BM_VERT, /* BM_VERTS_OF_FACE */
+	BM_EDGE, /* BM_EDGES_OF_FACE */
+	BM_LOOP, /* BM_LOOPS_OF_FACE */
+	BM_LOOP, /* BM_ALL_LOOPS_OF_FACE */
+	BM_LOOP, /* BM_LOOPS_OF_LOOP */
+	BM_LOOP  /* BM_LOOPS_OF_EDGE */
+};
+
 /*
  * note, we have BM_vert_at_index/BM_edge_at_index/BM_face_at_index for arrays
  */

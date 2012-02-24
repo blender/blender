@@ -50,7 +50,7 @@
 
 void EDBM_RecalcNormals(BMEditMesh *em)
 {
-	BM_mesh_normals_update(em->bm);
+	BM_mesh_normals_update(em->bm, TRUE);
 }
 
 void EDBM_ClearMesh(BMEditMesh *em)

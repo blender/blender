@@ -69,7 +69,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_mesh_normals_update(bm);	
+	BM_mesh_normals_update(bm, FALSE);
 	BMO_push(bm, NULL);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {

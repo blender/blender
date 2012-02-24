@@ -49,7 +49,9 @@
  */
 
 /* these iterator over all elements of a specific
- * type in the mesh.*/
+ * type in the mesh.
+ *
+ * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes */
 typedef enum BMIterType {
 	BM_VERTS_OF_MESH = 1,
 	BM_EDGES_OF_MESH = 2,
@@ -73,6 +75,11 @@ typedef enum BMIterType {
 	BM_LOOPS_OF_LOOP = 13,
 	BM_LOOPS_OF_EDGE = 14
 } BMIterType;
+
+#define BM_ITYPE_MAX 15
+
+/* the iterator htype for each iterator */
+extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 
 
 #define BM_ITER(ele, iter, bm, itype, data)                                   \

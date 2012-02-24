@@ -102,7 +102,7 @@ static void special_transvert_update(Object *obedit)
 		
 		if (obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			BM_mesh_normals_update(me->edit_btmesh->bm);	// does face centers too
+			BM_mesh_normals_update(me->edit_btmesh->bm, TRUE);	// does face centers too
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
