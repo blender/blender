@@ -459,30 +459,25 @@ void BM_vert_normal_update(BMesh *bm, BMVert *v)
 {
 	/* TODO, we can normalize each edge only once, then compare with previous edge */
 
-	BMIter eiter, liter;
-	BMEdge *e;
+	BMIter liter;
 	BMLoop *l;
 	float vec1[3], vec2[3], fac;
 	int len = 0;
 
 	zero_v3(v->no);
 
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
-			if (l->v == v) {
-				/* Same calculation used in BM_mesh_normals_update */
-				sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
-				sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
-				normalize_v3(vec1);
-				normalize_v3(vec2);
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		/* Same calculation used in BM_mesh_normals_update */
+		sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
+		sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
+		normalize_v3(vec1);
+		normalize_v3(vec2);
 
-				fac = saacos(-dot_v3v3(vec1, vec2));
-				
-				madd_v3_v3fl(v->no, l->f->no, fac);
+		fac = saacos(-dot_v3v3(vec1, vec2));
 
-				len++;
-			}
-		}
+		madd_v3_v3fl(v->no, l->f->no, fac);
+
+		len++;
 	}
 
 	if (len) {
