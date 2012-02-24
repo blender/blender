@@ -119,16 +119,6 @@ static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void view_zoom_in_do_exec(bContext *C, wmEvent *event)
-{
-	sclip_zoom_set_factor_exec(C, event, 1.25f);
-}
-
-static void view_zoom_out_do_exec(bContext *C, wmEvent *event)
-{
-	sclip_zoom_set_factor_exec(C, event, 0.8f);
-}
-
 /******************** open clip operator ********************/
 
 static void clip_filesel(bContext *C, wmOperator *op, const char *path)
@@ -544,18 +534,29 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 
 /********************** view zoom in/out operator *********************/
 
-static int view_zoom_in_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_zoom_in_exec(bContext *C, wmOperator *op)
 {
-	view_zoom_in_do_exec(C, NULL);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	ARegion *ar= CTX_wm_region(C);
+	float location[2];
+
+	RNA_float_get_array(op->ptr, "location", location);
+
+	sclip_zoom_set_factor(sc, ar, 1.25f, location);
+
+	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_in_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	view_zoom_in_do_exec(C, event);
+	float location[2];
 
-	return OPERATOR_FINISHED;
+	ED_clip_mouse_pos(C, event, location);
+	RNA_float_set_array(op->ptr, "location", location);
+
+	return view_zoom_in_exec(C, op);
 }
 
 void CLIP_OT_view_zoom_in(wmOperatorType *ot)
@@ -568,20 +569,34 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	ot->exec= view_zoom_in_exec;
 	ot->invoke= view_zoom_in_invoke;
 	ot->poll= ED_space_clip_poll;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
 }
 
-static int view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_zoom_out_exec(bContext *C, wmOperator *op)
 {
-	view_zoom_out_do_exec(C, NULL);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	ARegion *ar= CTX_wm_region(C);
+	float location[2];
+
+	RNA_float_get_array(op->ptr, "location", location);
+
+	sclip_zoom_set_factor(sc, ar, 0.8f, location);
+
+	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_out_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	view_zoom_out_do_exec(C, event);
+	float location[2];
 
-	return OPERATOR_FINISHED;
+	ED_clip_mouse_pos(C, event, location);
+	RNA_float_set_array(op->ptr, "location", location);
+
+	return view_zoom_out_exec(C, op);
 }
 
 void CLIP_OT_view_zoom_out(wmOperatorType *ot)
@@ -594,6 +609,9 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	ot->exec= view_zoom_out_exec;
 	ot->invoke= view_zoom_out_invoke;
 	ot->poll= ED_space_clip_poll;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
 }
 
 /********************** view zoom ratio operator *********************/
