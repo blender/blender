@@ -196,33 +196,34 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 		if((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name)))
 		{
 			float backup_parinv[4][4];
+			copy_m4_m4(backup_parinv, (*i)->parentinv);
 
-			// SECOND_LIFE_COMPATIBILITY
 			// crude, temporary change to parentinv
 			// so transform gets exported correctly.
+
+			// Add bone tail- translation... don't know why
+			// bone parenting is against the tail of a bone
+			// and not it's head, seems arbitrary.
+			(*i)->parentinv[3][1] += bone->length;
+
+			// SECOND_LIFE_COMPATIBILITY
 			// TODO: when such objects are animated as
 			// single matrix the tweak must be applied
 			// to the result.
 			if(export_settings->second_life)
 			{
-				copy_m4_m4(backup_parinv, (*i)->parentinv);
-				// tweak objects parentinverse to match
-				// the second life- compatibility
+				// tweak objects parentinverse to match compatibility
 				float temp[4][4];
 
 				copy_m4_m4(temp, bone->arm_mat);
 				temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 
-				mult_m4_m4m4((*i)->parentinv, temp, backup_parinv);
+				mult_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
 			}
 
 			se->writeNodes(*i, sce);
 
-			// restore original parentinv
-			if(export_settings->second_life)
-			{
-				copy_m4_m4((*i)->parentinv, backup_parinv);
-			}
+			copy_m4_m4((*i)->parentinv, backup_parinv);
 			child_objects.erase(i++);
 		}
 		else i++;
