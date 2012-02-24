@@ -512,12 +512,16 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	if (codec_id == CODEC_ID_FFV1) {
+#ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
 		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
 			c->pix_fmt = PIX_FMT_RGB32;
 		}
 		else {
 			c->pix_fmt = PIX_FMT_BGR0;
 		}
+#else
+		c->pix_fmt = PIX_FMT_RGB32;
+#endif
 	}
 
 	if (codec_id == CODEC_ID_QTRLE ) {
@@ -1435,7 +1439,15 @@ int ffmpeg_alpha_channel_supported(RenderData *rd)
 {
 	int codec = rd->ffcodecdata.codec;
 
-	return ELEM(codec, CODEC_ID_QTRLE, CODEC_ID_FFV1);
+	if (codec == CODEC_ID_QTRLE)
+		return TRUE;
+
+#ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
+	if (codec == CODEC_ID_FFV1)
+		return TRUE;
+#endif
+
+	return FALSE;
 }
 
 #endif
