@@ -159,6 +159,32 @@ static int clamp_index(const int x, const int len)
 		BLI_array_free(arr_tmp);                                              \
 	}
 
+/* get the 2 loops matching 2 verts.
+ * first attempt to get the face corners that use the edge defined by v1 & v2,
+ * if that fails just get any loop thats on the vert (the first one) */
+static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BMLoop **l2)
+{
+	BMIter liter;
+	BMLoop *l;
+
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v1) {
+		if (l->prev->v == v2) {
+			*l1 = l;
+			*l2 = l->prev;
+			return;
+		}
+		else if (l->next->v == v2) {
+			*l1 = l;
+			*l2 = l->next;
+			return;
+		}
+	}
+
+	/* fallback to _any_ loop */
+	*l1 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v1, 0);
+	*l2 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v2, 0);
+}
+
 void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 {
 	BMEdge **ee1 = NULL, **ee2 = NULL;
@@ -378,6 +404,14 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		/* Generate the bridge quads */
 		for (i = 0; i < BLI_array_count(ee1) && i < BLI_array_count(ee2); i++) {
 			BMFace *f;
+
+			BMLoop *l_1 = NULL;
+			BMLoop *l_2 = NULL;
+			BMLoop *l_1_next = NULL;
+			BMLoop *l_2_next = NULL;
+			BMLoop *l_iter;
+			BMFace *f_example;
+
 			int i1, i1next, i2, i2next;
 
 			i1 = clamp_index(i * dir1 + starti, lenv1);
@@ -394,14 +428,32 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				SWAP(int, i2, i2next);
 			}
 
+			/* get loop data - before making the face */
+			bm_vert_loop_pair(bm, vv1[i1], vv2[i2], &l_1, &l_2);
+			bm_vert_loop_pair(bm, vv1[i1next], vv2[i2next], &l_1_next, &l_2_next);
+			/* copy if loop data if its is missing on one ring */
+			if (l_1 && l_1_next == NULL) l_1_next = l_1;
+			if (l_1_next && l_1 == NULL) l_1 = l_1_next;
+			if (l_2 && l_2_next == NULL) l_2_next = l_2;
+			if (l_2_next && l_2 == NULL) l_2 = l_2_next;
+			f_example = l_1 ? l_1->f : (l_2 ? l_2->f : NULL);
+
 			f = BM_face_create_quad_tri(bm,
 			                            vv1[i1],
 			                            vv2[i2],
 			                            vv2[i2next],
 			                            vv1[i1next],
-			                            NULL, TRUE);
+			                            f_example, TRUE);
 			if (!f || f->len != 4) {
 				fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
+			}
+			else {
+				l_iter = BM_FACE_FIRST_LOOP(f);
+
+				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
+				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
+				if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
+				if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
 			}
 		}
 	}
