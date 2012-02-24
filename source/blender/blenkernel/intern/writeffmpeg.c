@@ -506,12 +506,21 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 	
 	// Keep lossless encodes in the RGB domain.
-	if (codec_id == CODEC_ID_HUFFYUV || codec_id == CODEC_ID_FFV1) {
+	if (codec_id == CODEC_ID_HUFFYUV) {
 		/* HUFFYUV was PIX_FMT_YUV422P before */
 		c->pix_fmt = PIX_FMT_RGB32;
 	}
 
-	if ( codec_id == CODEC_ID_QTRLE ) {
+	if (codec_id == CODEC_ID_FFV1) {
+		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
+			c->pix_fmt = PIX_FMT_RGB32;
+		}
+		else {
+			c->pix_fmt = PIX_FMT_BGR0;
+		}
+	}
+
+	if (codec_id == CODEC_ID_QTRLE ) {
 		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
 			c->pix_fmt = PIX_FMT_ARGB;
 		}
@@ -1420,6 +1429,13 @@ void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 void ffmpeg_verify_codec_settings(RenderData *rd)
 {
 	ffmpeg_set_expert_options(rd);
+}
+
+int ffmpeg_alpha_channel_supported(RenderData *rd)
+{
+	int codec = rd->ffcodecdata.codec;
+
+	return ELEM(codec, CODEC_ID_QTRLE, CODEC_ID_FFV1);
 }
 
 #endif

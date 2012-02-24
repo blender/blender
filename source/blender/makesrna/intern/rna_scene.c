@@ -722,7 +722,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 		Scene *scene = ptr->id.data;
 		RenderData *rd = &scene->r;
 
-		if (rd->ffcodecdata.codec == CODEC_ID_QTRLE)
+		if (ffmpeg_alpha_channel_supported(rd))
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 	}
 #endif
