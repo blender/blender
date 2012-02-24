@@ -66,12 +66,12 @@ if 1:
     FILTER_BPY_OPS = None
 
 else:
-    EXCLUDE_INFO_DOCS = False
+    EXCLUDE_INFO_DOCS = True
     # for testing so doc-builds dont take so long.
     EXCLUDE_MODULES = (
         "bpy.context",
-        #"bpy.app",
-        #"bpy.app.handlers",
+        "bpy.app",
+        "bpy.app.handlers",
         "bpy.path",
         "bpy.data",
         "bpy.props",
@@ -88,6 +88,9 @@ else:
         "mathutils",
         "mathutils.geometry",
         "mathutils.noise",
+        #"bmesh",
+        #"bmesh.types",
+        #"bmesh.utils",
     )
 
     FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
@@ -1189,12 +1192,14 @@ def rna2sphinx(BASEPATH):
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
 
+    # mathutils
     if "mathutils" not in EXCLUDE_MODULES:
         fw("   mathutils.rst\n\n")
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         fw("   mathutils.geometry.rst\n\n")
     if "mathutils.noise" not in EXCLUDE_MODULES:
         fw("   mathutils.noise.rst\n\n")
+    # misc
     if "bgl" not in EXCLUDE_MODULES:
         fw("   bgl.rst\n\n")
     if "blf" not in EXCLUDE_MODULES:
@@ -1205,6 +1210,13 @@ def rna2sphinx(BASEPATH):
         fw("   aud.rst\n\n")
     if "bpy_extras" not in EXCLUDE_MODULES:
         fw("   bpy_extras.rst\n\n")
+    # bmesh
+    if "bmesh" not in EXCLUDE_MODULES:
+        fw("   bmesh.rst\n\n")
+    if "bmesh.types" not in EXCLUDE_MODULES:
+        fw("   bmesh.types.rst\n\n")
+    if "bmesh.utils" not in EXCLUDE_MODULES:
+        fw("   bmesh.utils.rst\n\n")
 
     # game engine
     if "bge" not in EXCLUDE_MODULES:
@@ -1337,6 +1349,18 @@ def rna2sphinx(BASEPATH):
     if "mathutils.noise" not in EXCLUDE_MODULES:
         import mathutils.noise as module
         pymodule2sphinx(BASEPATH, "mathutils.noise", module, "Noise Utilities")
+
+    if "bmesh" not in EXCLUDE_MODULES:
+        import bmesh as module
+        pymodule2sphinx(BASEPATH, "bmesh", module, "BMesh Module")
+
+    if "bmesh.types" not in EXCLUDE_MODULES:
+        import bmesh.types as module
+        pymodule2sphinx(BASEPATH, "bmesh.types", module, "BMesh Types")
+
+    if "bmesh.utils" not in EXCLUDE_MODULES:
+        import bmesh.utils as module
+        pymodule2sphinx(BASEPATH, "bmesh.utils", module, "BMesh Utilities")
 
     if "blf" not in EXCLUDE_MODULES:
         import blf as module

@@ -628,7 +628,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), Repor
 
 static bNode *rna_NodeTree_node_composite_new(bNodeTree *ntree, bContext *C, ReportList *reports, int type, bNodeTree *group)
 {
-	/* raises error on failier */
+	/* raises error on failure */
 	bNode *node= rna_NodeTree_node_new(ntree, C, reports, type, group);
 	
 	if (node) {
@@ -653,7 +653,7 @@ static bNode *rna_NodeTree_node_composite_new(bNodeTree *ntree, bContext *C, Rep
 
 static bNode *rna_NodeTree_node_texture_new(bNodeTree *ntree, bContext *C, ReportList *reports, int type, bNodeTree *group)
 {
-	/* raises error on failier */
+	/* raises error on failure */
 	bNode *node= rna_NodeTree_node_new(ntree, C, reports, type, group);
 
 	if (node) {

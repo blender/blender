@@ -566,7 +566,7 @@ float dtStatNavMesh::findDistanceToWall(dtStatPolyRef centerRef, const float* ce
 			hitPos[2] = vj[2] + (vi[2] - vj[2])*tseg;
 		}
 
-		// Check to see if teh circle expands to one of the neighbours and expand.
+		// Check to see if the circle expands to one of the neighbours and expand.
 		for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
 		{
 			// Skip solid edges.
