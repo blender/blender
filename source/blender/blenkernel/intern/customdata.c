@@ -979,7 +979,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 14: CD_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 15: CD_MTEXPOLY */
-	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
+	/* note, when we expose the UV Map / TexFace split to the user, change this back to face Texture */
+	{sizeof(MTexPoly), "MTexPoly", 1, "UVMap"/* "Face Texture" */, NULL, NULL, NULL, NULL, NULL},
 	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL,
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
