@@ -49,7 +49,10 @@
 PyDoc_STRVAR(bpy_bm_from_mesh_doc,
 ".. method:: from_mesh(mesh)\n"
 "\n"
-"   todo.\n"
+"   Return a BMesh from this mesh, currently the mesh must already be in editmode.\n"
+"\n"
+"   :return: the BMesh assosiated with this mesh.\n"
+"   :rtype: :class:`bmesh.types.BMesh`\n"
 );
 
 static PyObject *bpy_bm_from_mesh(PyObject *UNUSED(self), PyObject *value)
@@ -88,15 +91,22 @@ static struct PyModuleDef BPy_BM_module_def = {
 
 PyObject *BPyInit_bmesh(void)
 {
+	PyObject *mod;
 	PyObject *submodule;
+	PyObject *sys_modules = PySys_GetObject("modules"); /* not pretty */
 
 	BPy_BM_init_types();
 
-	submodule = PyModule_Create(&BPy_BM_module_def);
+	mod = PyModule_Create(&BPy_BM_module_def);
 
 	/* bmesh.types */
-	PyModule_AddObject(submodule, "types", BPyInit_bmesh_types());
-	PyModule_AddObject(submodule, "utils", BPyInit_bmesh_utils());
+	PyModule_AddObject(mod, "types", (submodule=BPyInit_bmesh_types()));
+	PyDict_SetItemString(sys_modules, "bmesh.types", submodule);
+	Py_INCREF(submodule);
 
-	return submodule;
+	PyModule_AddObject(mod, "utils", (submodule=BPyInit_bmesh_utils()));
+	PyDict_SetItemString(sys_modules, "bmesh.utils", submodule);
+	Py_INCREF(submodule);
+
+	return mod;
 }

@@ -132,10 +132,10 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele); /* just checks ty
 int  bpy_bm_generic_valid_check(BPy_BMGeneric *self);
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
 
-void *bpy_bm_generic_py_seq_as_array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
-                                     PyTypeObject *type,
-                                     const char do_unique_check, const char do_bm_check,
-                                     const char *error_prefix);
+void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
+                                PyTypeObject *type,
+                                const char do_unique_check, const char do_bm_check,
+                                const char *error_prefix);
 
 #define BPY_BM_CHECK_OBJ(obj) if (bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1) { return NULL; } (void)NULL
 #define BPY_BM_CHECK_INT(obj) if (bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1) { return -1; }   (void)NULL
