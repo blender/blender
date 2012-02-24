@@ -382,7 +382,7 @@ static PyObject *bpy_bmedge_is_boundary_get(BPy_BMEdge *self)
  * ^^^^ */
 
 PyDoc_STRVAR(bpy_bmface_normal_doc,
-"The normal for this face as a 3D, wrapped vector.\n\n:type: boolean"
+"The normal for this face as a 3D, wrapped vector.\n\n:type: :class:`mathutils.Vector`"
 );
 static PyObject *bpy_bmface_normal_get(BPy_BMFace *self)
 {
@@ -1059,7 +1059,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 	else {
 		BMesh *bm = self->bm;
 		Py_ssize_t vert_seq_len;
-		Py_ssize_t i, i_prev;
+		Py_ssize_t i, i_next;
 
 		BMVert **vert_array = NULL;
 		BMEdge **edge_array = NULL;
@@ -1089,8 +1089,8 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		edge_array = (BMEdge **)PyMem_MALLOC(vert_seq_len * sizeof(BMEdge **));
 
 		/* ensure edges */
-		for (i = 0, i_prev = vert_seq_len - 1; i < vert_seq_len; (i_prev=i++)) {
-			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_prev], NULL, TRUE);
+		for (i_next = 0, i = vert_seq_len - 1; i_next < vert_seq_len; (i=i_next++)) {
+			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_next], NULL, TRUE);
 		}
 
 		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, FALSE);
