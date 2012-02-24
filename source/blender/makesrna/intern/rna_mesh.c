@@ -942,6 +942,13 @@ static int rna_MeshPolygon_index_get(PointerRNA *ptr)
 	return (int)(mpoly - me->mpoly);
 }
 
+static int rna_MeshLoop_index_get(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	MLoop *mloop= (MLoop*)ptr->data;
+	return (int)(mloop - me->mloop);
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -1426,6 +1433,11 @@ static void rna_def_mloop(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "edge_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "e");
 	RNA_def_property_ui_text(prop, "Edge", "Edge index");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshLoop_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the loop");
 }
 
 static void rna_def_mpolygon(BlenderRNA *brna)
