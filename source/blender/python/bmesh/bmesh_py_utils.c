@@ -470,6 +470,7 @@ static struct PyModuleDef BPy_BM_types_module_def = {
     NULL,  /* m_free */
 };
 
+
 PyObject *BPyInit_bmesh_utils(void)
 {
 	PyObject *submodule;
