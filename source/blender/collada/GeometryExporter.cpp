@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 #include "BKE_customdata.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
 
 #include "collada_internal.h"
 
@@ -64,6 +65,8 @@ void GeometryExporter::operator()(Object *ob)
 	DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 #endif
 	Mesh *me = (Mesh*)ob->data;
+	BKE_mesh_tessface_ensure(me);
+
 	std::string geom_id = get_geometry_id(ob);
 	std::string geom_name = id_name(ob->data);
 	std::vector<Normal> nor;
