@@ -560,7 +560,7 @@ PyDoc_STRVAR(bpy_bmesh_normal_update_doc,
 "   :arg skip_hidden: When True hidden elements are ignored.\n"
 "   :type skip_hidden: boolean\n"
 );
-static PyObject *bpy_bmesh_normal_update(BPy_BMElem *self, PyObject *args)
+static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self, PyObject *args)
 {
 
 	int skip_hidden = FALSE;
@@ -716,6 +716,21 @@ static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 }
 
 
+PyDoc_STRVAR(bpy_bmvert_normal_update_doc,
+".. method:: normal_update()\n"
+"\n"
+"   Update vertex normal.\n"
+);
+static PyObject *bpy_bmvert_normal_update(BPy_BMVert *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	BM_vert_normal_update(self->bm, self->v);
+
+	Py_RETURN_NONE;
+}
+
+
 /* Edge
  * ---- */
 
@@ -773,6 +788,21 @@ static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 		/* could raise an exception here */
 		Py_RETURN_NONE;
 	}
+}
+
+
+PyDoc_STRVAR(bpy_bmedge_normal_update_doc,
+".. method:: normal_update()\n"
+"\n"
+"   Update edges vertex normals.\n"
+);
+static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	BM_edge_normals_update(self->bm, self->e);
+
+	Py_RETURN_NONE;
 }
 
 
@@ -871,6 +901,21 @@ static PyObject *bpy_bmface_calc_center_bounds(BPy_BMFace *self)
 	BPY_BM_CHECK_OBJ(self);
 	BM_face_center_bounds_calc(self->bm, self->f, cent);
 	return Vector_CreatePyObject(cent, 3, Py_NEW, NULL);
+}
+
+
+PyDoc_STRVAR(bpy_bmface_normal_update_doc,
+".. method:: normal_update()\n"
+"\n"
+"   Update faces normal.\n"
+);
+static PyObject *bpy_bmface_normal_update(BPy_BMFace *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	BM_face_normal_update(self->bm, self->f);
+
+	Py_RETURN_NONE;
 }
 
 
@@ -1092,7 +1137,7 @@ PyDoc_STRVAR(bpy_bmelemseq_new_doc,
 "   *Edge Sequence*\n"
 "\n"
 "   :arg verts: Vertex pair.\n"
-"   :type verts: pair of :class:`BMVerts`\n"
+"   :type verts: pair of :class:`BMVert`\n"
 "   :arg example: Existing edge to initialize settings (optional argument).\n"
 "   :type example: :class:`BMEdge`\n"
 "   :return: The newly created edge.\n"
@@ -1297,6 +1342,9 @@ static struct PyMethodDef bpy_bmvert_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
 
     {"calc_vert_angle", (PyCFunction)bpy_bmvert_calc_edge_angle, METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+
+    {"normal_update",  (PyCFunction)bpy_bmvert_normal_update,  METH_NOARGS,  bpy_bmvert_normal_update_doc},
+
     {NULL, NULL, 0, NULL}
 };
 
@@ -1307,6 +1355,9 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
     {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
 
     {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS, bpy_bmedge_calc_face_angle_doc},
+
+    {"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
+
     {NULL, NULL, 0, NULL}
 };
 
@@ -1319,6 +1370,9 @@ static struct PyMethodDef bpy_bmface_methods[] = {
     {"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
     {"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
     {"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
+
+    {"normal_update",  (PyCFunction)bpy_bmface_normal_update,  METH_NOARGS,  bpy_bmface_normal_update_doc},
+
     {NULL, NULL, 0, NULL}
 };
 
