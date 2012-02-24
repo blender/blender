@@ -156,7 +156,8 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 	param = PyLong_AsLong(value);
 
 	if (param == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "expected an int type");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected an int type");
 		return -1;
 	}
 	else {
@@ -266,7 +267,8 @@ static int bpy_bmesh_select_mode_set(BPy_BMesh *self, PyObject *value)
 		return -1;
 	}
 	else if (flag == 0) {
-		PyErr_SetString(PyExc_TypeError, "bm.select_mode: cant assignt an empty value");
+		PyErr_SetString(PyExc_TypeError,
+		                "bm.select_mode: cant assignt an empty value");
 		return -1;
 	}
 	else {
@@ -538,7 +540,8 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 
 	param = PyLong_AsLong(value);
 	if (param != FALSE && param != TRUE) {
-		PyErr_SetString(PyExc_TypeError, "expected a boolean type 0/1");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a boolean type 0/1");
 		return NULL;
 	}
 
@@ -611,7 +614,8 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 			return NULL;
 		}
 		else if (mat->num_col != 4 || mat->num_row != 4) {
-			PyErr_SetString(PyExc_ValueError, "expected a 4x4 matrix");
+			PyErr_SetString(PyExc_ValueError,
+			                "expected a 4x4 matrix");
 			return NULL;
 		}
 
@@ -662,7 +666,8 @@ static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 
 	param = PyLong_AsLong(value);
 	if (param != FALSE && param != TRUE) {
-		PyErr_SetString(PyExc_TypeError, "expected a boolean type 0/1");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a boolean type 0/1");
 		return NULL;
 	}
 
@@ -673,9 +678,9 @@ static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 
 
 PyDoc_STRVAR(bpy_bm_elem_copy_from_doc,
-".. method:: copy_from(select)\n"
+".. method:: copy_from(other)\n"
 "\n"
-"   Copy values from another element.\n"
+"   Copy values from another element of matching type.\n"
 );
 static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 {
@@ -688,7 +693,9 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 		return NULL;
 	}
 
-	BM_elem_attrs_copy(value->bm, self->bm, value->ele, self->ele);
+	if (value->ele != self->ele) {
+		BM_elem_attrs_copy(value->bm, self->bm, value->ele, self->ele);
+	}
 
 	Py_RETURN_NONE;
 }
@@ -936,15 +943,13 @@ static PyObject *bpy_bmvert_seq_new(BPy_BMElemSeq *self, PyObject *args)
 
 static PyObject *bpy_bmedge_seq_new(BPy_BMElemSeq *self, PyObject *args)
 {
-	BPy_BMVert *v1;
-	BPy_BMVert *v2;
+	PyObject *vert_seq;
 	BPy_BMEdge *py_edge_example = NULL; /* optional */
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O!O!|O!:edges.new",
-	                      &BPy_BMVert_Type, &v1,
-	                      &BPy_BMVert_Type, &v2,
+	if (!PyArg_ParseTuple(args, "O|O!:edges.new",
+	                      &vert_seq,
 	                      &BPy_BMEdge_Type, &py_edge_example))
 	{
 		return NULL;
@@ -952,39 +957,41 @@ static PyObject *bpy_bmedge_seq_new(BPy_BMElemSeq *self, PyObject *args)
 	else {
 		BMesh *bm = self->bm;
 		BMEdge *e;
+		BMVert **vert_array = NULL;
+		Py_ssize_t vert_seq_len; /* always 2 */
+		PyObject *ret = NULL;
 
 		if (py_edge_example) {
 			BPY_BM_CHECK_OBJ(py_edge_example);
 		}
 
-		if (v1->v == v2->v) {
-			PyErr_SetString(PyExc_ValueError,
-			                "edges.new(): both verts are the same");
-		}
+		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
+		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       TRUE, TRUE, "edges.new(...)");
 
-		if (!(bm == v1->bm && bm == v2->bm)) {
-			PyErr_SetString(PyExc_ValueError,
-			                "edges.new(): both verts must be from this mesh");
-		}
-
-		if (BM_edge_exists(v1->v, v2->v)) {
+		if (BM_edge_exists(vert_array[0], vert_array[1])) {
 			PyErr_SetString(PyExc_ValueError,
 			                "edges.new(): this edge exists");
+			goto cleanup;
 		}
 
-		e = BM_edge_create(bm, v1->v, v2->v, NULL, FALSE);
+		e = BM_edge_create(bm, vert_array[0], vert_array[1], NULL, FALSE);
 
 		if (e == NULL) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): couldn't create the new face, internal error");
-			return NULL;
+			goto cleanup;
 		}
 
 		if (py_edge_example) {
 			BM_elem_attrs_copy(py_edge_example->bm, bm, py_edge_example->e, e);
 		}
 
-		return BPy_BMEdge_CreatePyObject(bm, e);
+		ret = BPy_BMEdge_CreatePyObject(bm, e);
+
+cleanup:
+		if (vert_array) PyMem_FREE(vert_array);
+		return ret;
 	}
 }
 
@@ -1080,14 +1087,12 @@ PyDoc_STRVAR(bpy_bmelemseq_new_doc,
 "   :rtype: :class:`BMVert`\n"
 "\n"
 "\n"
-".. method:: new(v_a, v_b, example=None)\n"
+".. method:: new(verts, example=None)\n"
 "\n"
 "   *Edge Sequence*\n"
 "\n"
-"   :arg v_a: Edge vertex.\n"
-"   :type v_a: :class:`BMEdge`\n"
-"   :arg v_b: Edge vertex.\n"
-"   :type v_b: :class:`BMEdge`\n"
+"   :arg verts: Vertex pair.\n"
+"   :type verts: pair of :class:`BMVerts`\n"
 "   :arg example: Existing edge to initialize settings (optional argument).\n"
 "   :type example: :class:`BMEdge`\n"
 "   :return: The newly created edge.\n"
@@ -1137,6 +1142,7 @@ static PyObject *bpy_bmvert_seq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 		if (value->bm != bm) {
 			PyErr_SetString(PyExc_TypeError,
 			                "faces.remove(vert): vertex is from another mesh");
+			return NULL;
 		}
 
 		BM_vert_kill(bm, value->v);
@@ -1161,6 +1167,7 @@ static PyObject *bpy_bmedge_seq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 		if (value->bm != bm) {
 			PyErr_SetString(PyExc_TypeError,
 			                "faces.remove(vert): vertex is from another mesh");
+			return NULL;
 		}
 
 		BM_edge_kill(bm, value->e);
@@ -1185,6 +1192,7 @@ static PyObject *bpy_bmface_seq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 		if (value->bm != bm) {
 			PyErr_SetString(PyExc_TypeError,
 			                "faces.remove(vert): vertex is from another mesh");
+			return NULL;
 		}
 
 		BM_face_kill(bm, value->f);
@@ -1486,7 +1494,8 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 			return NULL;
 		}
 		else if (step != 1) {
-			PyErr_SetString(PyExc_TypeError, "BMElemSeq[slice]: slice steps not supported");
+			PyErr_SetString(PyExc_TypeError,
+			                "BMElemSeq[slice]: slice steps not supported");
 			return NULL;
 		}
 		else if (key_slice->start == Py_None && key_slice->stop == Py_None) {
@@ -1515,7 +1524,8 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 		}
 	}
 	else {
-		PyErr_SetString(PyExc_AttributeError, "BMElemSeq[key]: invalid key, key must be an int");
+		PyErr_SetString(PyExc_AttributeError,
+		                "BMElemSeq[key]: invalid key, key must be an int");
 		return NULL;
 	}
 }
@@ -1576,7 +1586,8 @@ static PyObject *bpy_bmiter_next(BPy_BMIter *self)
 {
 	BMHeader *ele = BM_iter_step(&self->iter);
 	if (ele == NULL) {
-		PyErr_SetString(PyExc_StopIteration, "bpy_bmiter_next stop");
+		PyErr_SetString(PyExc_StopIteration,
+		                "bpy_bmiter_next stop");
 		return NULL;
 	}
 	else {
