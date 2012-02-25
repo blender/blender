@@ -144,12 +144,12 @@ BMFace *BM_face_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, B
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble);
 
 /* stuff for dealing with header flags */
-#define BM_elem_flag_test(ele, hflag)      _bm_elem_flag_test    (&(ele)->head, hflag)
-#define BM_elem_flag_enable(ele, hflag)    _bm_elem_flag_enable  (&(ele)->head, hflag)
-#define BM_elem_flag_disable(ele, hflag)   _bm_elem_flag_disable (&(ele)->head, hflag)
-#define BM_elem_flag_set(ele, hflag, val)  _bm_elem_flag_set     (&(ele)->head, hflag, val)
-#define BM_elem_flag_toggle(ele, hflag)    _bm_elem_flag_toggle  (&(ele)->head, hflag)
-#define BM_elem_flag_merge(ele_a, ele_b)   _bm_elem_flag_merge   (&(ele_a)->head, &(ele_b)->head)
+#define BM_elem_flag_test(   ele, hflag)      _bm_elem_flag_test    (&(ele)->head, hflag)
+#define BM_elem_flag_enable( ele, hflag)      _bm_elem_flag_enable  (&(ele)->head, hflag)
+#define BM_elem_flag_disable(ele, hflag)      _bm_elem_flag_disable (&(ele)->head, hflag)
+#define BM_elem_flag_set(    ele, hflag, val) _bm_elem_flag_set     (&(ele)->head, hflag, val)
+#define BM_elem_flag_toggle( ele, hflag)      _bm_elem_flag_toggle  (&(ele)->head, hflag)
+#define BM_elem_flag_merge(  ele_a, ele_b)    _bm_elem_flag_merge   (&(ele_a)->head, &(ele_b)->head)
 
 BM_INLINE char _bm_elem_flag_test(const BMHeader *element, const char hflag);
 BM_INLINE void _bm_elem_flag_enable(BMHeader *element, const char hflag);

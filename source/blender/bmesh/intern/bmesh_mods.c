@@ -59,28 +59,17 @@
 #if 1
 int BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
-	BMIter iter;
-	BMEdge *e;
-	int len = 0;
-
-	if (!v) {
-		return FALSE;
-	}
-	
-	e = BM_iter_new(&iter, bm, BM_EDGES_OF_VERT, v);
-	for ( ; e; e = BM_iter_step(&iter)) {
-		len++;
-	}
+	const int len = BM_vert_edge_count(v);
 	
 	if (len == 1) {
-		if (v->e)
-			BM_edge_kill(bm, v->e);
-		BM_vert_kill(bm, v);
+		BM_vert_kill(bm, v); /* will kill edges too */
 		return TRUE;
 	}
-
-	if (!BM_vert_is_manifold(bm, v)) {
-		if (!v->e) BM_vert_kill(bm, v);
+	else if (!BM_vert_is_manifold(bm, v)) {
+		if (!v->e) {
+			BM_vert_kill(bm, v);
+			return TRUE;
+		}
 		else if (!v->e->l) {
 			if (len == 2) {
 				BM_vert_collapse_edge(bm, v->e, v);
@@ -88,18 +77,18 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 			else {
 				/* this may be too harsh, we could do nothing here instead.
 				 * To test, connect 3 edges to a vert and dissolve the vert. It will be removed */
-				BM_edge_kill(bm, v->e);
-				BM_vert_kill(bm, v);
+
+				BM_vert_kill(bm, v); /* will kill edges too */
 			}
+			return TRUE;
 		}
 		else {
 			return FALSE;
 		}
-
-		return TRUE;
 	}
-
-	return BM_disk_dissolve(bm, v);
+	else {
+		return BM_disk_dissolve(bm, v);
+	}
 }
 
 int BM_disk_dissolve(BMesh *bm, BMVert *v)

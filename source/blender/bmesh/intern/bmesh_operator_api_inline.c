@@ -41,7 +41,7 @@
  * ghash or a mapping slot to do it. */
 
 /* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
-BM_INLINE int _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BM_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
     return oflags[bm->stackdepth-1].f & oflag;
 }
@@ -66,12 +66,6 @@ BM_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short
 {
 	oflags[bm->stackdepth-1].f ^= oflag;
 }
-
-#define BMO_elem_flag_test(   bm, ele, oflag)      _bmo_elem_flag_test    (bm, (ele)->oflags, oflag)
-#define BMO_elem_flag_enable( bm, ele, oflag)      _bmo_elem_flag_enable  (bm, (ele)->oflags, oflag)
-#define BMO_elem_flag_disable(bm, ele, oflag)      _bmo_elem_flag_disable (bm, (ele)->oflags, oflag)
-#define BMO_elem_flag_set(    bm, ele, oflag, val) _bmo_elem_flag_set     (bm, (ele)->oflags, oflag, val)
-#define BMO_elem_flag_toggle( bm, ele, oflag)      _bmo_elem_flag_toggle  (bm, (ele)->oflags, oflag)
 
 BM_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,
                                        void *element, int val)
