@@ -82,8 +82,15 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 	if (!BM_vert_is_manifold(bm, v)) {
 		if (!v->e) BM_vert_kill(bm, v);
 		else if (!v->e->l) {
-			BM_edge_kill(bm, v->e);
-			BM_vert_kill(bm, v);
+			if (len == 2) {
+				BM_vert_collapse_edge(bm, v->e, v);
+			}
+			else {
+				/* this may be too harsh, we could do nothing here instead.
+				 * To test, connect 3 edges to a vert and dissolve the vert. It will be removed */
+				BM_edge_kill(bm, v->e);
+				BM_vert_kill(bm, v);
+			}
 		}
 		else {
 			return FALSE;
