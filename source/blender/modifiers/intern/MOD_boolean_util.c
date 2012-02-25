@@ -466,6 +466,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	CDDM_calc_edges_tessface(result);
 
 	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
+	CDDM_calc_normals(result);
 
 	return result;
 }

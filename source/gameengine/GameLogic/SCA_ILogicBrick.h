@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_ILOGICBRICK
-#define __KX_ILOGICBRICK
+#ifndef __SCA_ILOGICBRICK_H__
+#define __SCA_ILOGICBRICK_H__
 
 #include "Value.h"
 #include "SCA_IObject.h"

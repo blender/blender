@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -42,31 +43,6 @@
 #define LEAF_LIMIT 10000
 
 //#define PERFCNTRS
-
-/* Bitmap */
-typedef char* BLI_bitmap;
-
-static BLI_bitmap BLI_bitmap_new(int tot)
-{
-	return MEM_callocN((tot >> 3) + 1, "BLI bitmap");
-}
-
-static int BLI_bitmap_get(BLI_bitmap b, int index)
-{
-	return b[index >> 3] & (1 << (index & 7));
-}
-
-static void BLI_bitmap_set(BLI_bitmap b, int index)
-{
-	b[index >> 3] |= (1 << (index & 7));
-}
-
-#if 0 /* UNUSED */
-static void BLI_bitmap_clear(BLI_bitmap b, int index)
-{
-	b[index >> 3] &= ~(1 << (index & 7));
-}
-#endif
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -343,12 +319,12 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 	void *value, *key = SET_INT_IN_POINTER(vertex);
 
 	if(!BLI_ghash_haskey(map, key)) {
-		if(BLI_bitmap_get(bvh->vert_bitmap, vertex)) {
+		if(BLI_BITMAP_GET(bvh->vert_bitmap, vertex)) {
 			value = SET_INT_IN_POINTER(~(*face_verts));
 			++(*face_verts);
 		}
 		else {
-			BLI_bitmap_set(bvh->vert_bitmap, vertex);
+			BLI_BITMAP_SET(bvh->vert_bitmap, vertex);
 			value = SET_INT_IN_POINTER(*uniq_verts);
 			++(*uniq_verts);
 		}
@@ -420,11 +396,10 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	if(!G.background) {
 		node->draw_buffers =
-			GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
+			GPU_build_mesh_buffers(node->face_vert_indices,
+					bvh->faces,
 					node->prim_indices,
-					node->totprim, node->vert_indices,
-					node->uniq_verts,
-					node->uniq_verts + node->face_verts);
+					node->totprim);
 	}
 
 	node->flag |= PBVH_UpdateDrawBuffers;
@@ -436,8 +411,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 {
 	if(!G.background) {
 		node->draw_buffers =
-			GPU_build_grid_buffers(bvh->grids, node->prim_indices,
-				node->totprim, bvh->gridsize);
+			GPU_build_grid_buffers(node->totprim, bvh->gridsize);
 	}
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
@@ -555,7 +529,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 
 	bvh->faces = faces;
 	bvh->verts = verts;
-	bvh->vert_bitmap = BLI_bitmap_new(totvert);
+	bvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
 	bvh->totvert = totvert;
 	bvh->leaf_limit = LEAF_LIMIT;
 
@@ -1088,7 +1062,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, i
 						   bvh->verts,
 						   node->vert_indices,
 						   node->uniq_verts +
-						   node->face_verts);
+						   node->face_verts,
+		                   smooth);
 			}
 
 			node->flag &= ~PBVH_UpdateDrawBuffers;
@@ -1682,4 +1657,34 @@ void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** r_array,  int* r_tot)
 
 	*r_array= array;
 	*r_tot= tot;
+}
+
+void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
+						   PBVHVertexIter *vi, int mode)
+{
+	struct DMGridData **grids;
+	struct MVert *verts;
+	int *grid_indices, *vert_indices;
+	int totgrid, gridsize, uniq_verts, totvert;
+	
+	vi->grid= 0;
+	vi->no= 0;
+	vi->fno= 0;
+	vi->mvert= 0;
+	
+	BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL);
+	BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
+	BLI_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
+	
+	vi->grids= grids;
+	vi->grid_indices= grid_indices;
+	vi->totgrid= (grids)? totgrid: 1;
+	vi->gridsize= gridsize;
+	
+	if(mode == PBVH_ITER_ALL)
+		vi->totvert = totvert;
+	else
+		vi->totvert= uniq_verts;
+	vi->vert_indices= vert_indices;
+	vi->mverts= verts;
 }

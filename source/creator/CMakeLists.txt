@@ -798,6 +798,7 @@ endif()
 		bf_python
 		bf_python_ext
 		bf_python_mathutils
+		bf_python_bmesh
 		bf_freestyle
 		bf_ikplugin
 		bf_bmesh

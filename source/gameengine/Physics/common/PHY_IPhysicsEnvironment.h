@@ -29,8 +29,8 @@
  *  \ingroup phys
  */
 
-#ifndef _IPHYSICSENVIRONMENT
-#define _IPHYSICSENVIRONMENT
+#ifndef __PHY_IPHYSICSENVIRONMENT_H__
+#define __PHY_IPHYSICSENVIRONMENT_H__
 
 #include <vector>
 #include "PHY_DynamicTypes.h"
@@ -187,5 +187,5 @@ public:
 #endif
 };
 
-#endif //_IPHYSICSENVIRONMENT
+#endif //__PHY_IPHYSICSENVIRONMENT_H__
 

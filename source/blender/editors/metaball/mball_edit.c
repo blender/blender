@@ -345,7 +345,7 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 	ml= mb->editelems->first;
 
 	if(ml) {
-		while(ml){
+		while(ml) {
 			if((ml->flag & SELECT) != invert)
 				ml->flag |= MB_HIDE;
 			ml= ml->next;
@@ -449,11 +449,11 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 		while(ml) {
 			for(a=0; a<hits; a++) {
 				/* index converted for gl stuff */
-				if(ml->selcol1==buffer[ 4 * a + 3 ]){
+				if(ml->selcol1==buffer[ 4 * a + 3 ]) {
 					ml->flag |= MB_SCALE_RAD;
 					act= ml;
 				}
-				if(ml->selcol2==buffer[ 4 * a + 3 ]){
+				if(ml->selcol2==buffer[ 4 * a + 3 ]) {
 					ml->flag &= ~MB_SCALE_RAD;
 					act= ml;
 				}
@@ -505,7 +505,7 @@ static void freeMetaElemlist(ListBase *lb)
 	if(lb==NULL) return;
 
 	ml= lb->first;
-	while(ml){
+	while(ml) {
 		next= ml->next;
 		BLI_remlink(lb, ml);
 		MEM_freeN(ml);
@@ -526,7 +526,7 @@ static void undoMball_to_editMball(void *lbu, void *lbe, void *UNUSED(obe))
 
 	/* copy 'undo' MetaElems to 'edit' MetaElems */
 	ml= lb->first;
-	while(ml){
+	while(ml) {
 		newml= MEM_dupallocN(ml);
 		BLI_addtail(editelems, newml);
 		ml= ml->next;
@@ -546,7 +546,7 @@ static void *editMball_to_undoMball(void *lbe, void *UNUSED(obe))
 	
 	/* copy contents of current ListBase to the undo ListBase */
 	ml= editelems->first;
-	while(ml){
+	while(ml) {
 		newml= MEM_dupallocN(ml);
 		BLI_addtail(lb, newml);
 		ml= ml->next;

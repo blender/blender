@@ -84,7 +84,7 @@ typedef enum eParentType {
 extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
 
-int ED_object_parent_set(struct bContext *C, struct wmOperator *op, struct Object *par, int partype);
+int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct Object *par, int partype);
 void ED_object_parent_clear(struct bContext *C, int type);
 
 

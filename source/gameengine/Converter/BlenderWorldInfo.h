@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __BLENDERWORLDINFO_H
-#define __BLENDERWORLDINFO_H
+#ifndef __BLENDERWORLDINFO_H__
+#define __BLENDERWORLDINFO_H__
 #include "MT_CmMatrix4x4.h"
 #include "KX_WorldInfo.h"
 #include "KX_BlenderGL.h"
@@ -106,5 +106,5 @@ public:
 #endif
 };
 
-#endif //__BLENDERWORLDINFO_H
+#endif //__BLENDERWORLDINFO_H__
 

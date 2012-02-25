@@ -718,14 +718,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
 		
-		if (sock->link || (sock->flag & SOCK_HIDE_VALUE)) {
-			uiDefBut(node->block, LABEL, 0, sock->name, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY, NODE_DY,
-					 NULL, 0, 0, 0, 0, "");
-		}
-		else {
-			if (stype->buttonfunc)
-				stype->buttonfunc(C, node->block, ntree, node, sock, sock->name, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
-		}
+		if (stype->buttonfunc)
+			stype->buttonfunc(C, node->block, ntree, node, sock, sock->name, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
 	}
 	
 	/* socket outputs */

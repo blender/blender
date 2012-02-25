@@ -30,6 +30,11 @@
  */
 
 
+#include <string.h>
+#include "BLI_path_util.h"
+
+#include "BKE_utildefines.h"
+
 #include "node_composite_util.h"
 
 /* **************** OUTPUT FILE ******************** */
@@ -59,7 +64,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			Main *bmain= G.main; /* TODO, have this passed along */
 			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
-			char string[256];
+			char string[FILE_MAX];
 			
 			ibuf->rect_float= cbuf->rect;
 			ibuf->dither= rd->dither_intensity;
@@ -92,21 +97,26 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 	}
 }
 
-static void node_composit_init_output_file(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_mute_output_file(void *UNUSED(data), int UNUSED(thread),
+										   struct bNode *UNUSED(node), void *UNUSED(nodedata),
+										   struct bNodeStack **UNUSED(in), struct bNodeStack **UNUSED(out))
 {
-	Scene *scene= (Scene *)node->id;
+	/* nothing to do here */
+}
+
+static void node_composit_init_output_file(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *ntemp)
+{
+	RenderData *rd = &ntemp->scene->r;
 	NodeImageFile *nif= MEM_callocN(sizeof(NodeImageFile), "node image file");
 	node->storage= nif;
 
-	if(scene) {
-		BLI_strncpy(nif->name, scene->r.pic, sizeof(nif->name));
-		nif->im_format= scene->r.im_format;
-		if (BKE_imtype_is_movie(nif->im_format.imtype)) {
-			nif->im_format.imtype= R_IMF_IMTYPE_OPENEXR;
-		}
-		nif->sfra= scene->r.sfra;
-		nif->efra= scene->r.efra;
+	BLI_strncpy(nif->name, rd->pic, sizeof(nif->name));
+	nif->im_format= rd->im_format;
+	if (BKE_imtype_is_movie(nif->im_format.imtype)) {
+		nif->im_format.imtype= R_IMF_IMTYPE_OPENEXR;
 	}
+	nif->sfra= rd->sfra;
+	nif->efra= rd->efra;
 }
 
 void register_node_type_cmp_output_file(bNodeTreeType *ttype)
@@ -119,6 +129,156 @@ void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 	node_type_init(&ntype, node_composit_init_output_file);
 	node_type_storage(&ntype, "NodeImageFile", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_output_file);
+	node_type_mute(&ntype, node_composit_mute_output_file, NULL);
+
+	nodeRegisterType(ttype, &ntype);
+}
+
+
+/* =============================================================================== */
+
+
+void ntreeCompositOutputMultiFileAddSocket(bNodeTree *ntree, bNode *node, ImageFormatData *im_format)
+{
+	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, "", SOCK_RGBA);
+	
+	/* create format data for the input socket */
+	NodeImageMultiFileSocket *sockdata = MEM_callocN(sizeof(NodeImageMultiFileSocket), "socket image format");
+	sock->storage = sockdata;
+	sock->struct_type = SOCK_STRUCT_OUTPUT_MULTI_FILE;
+	
+	if(im_format) {
+		sockdata->format= *im_format;
+		if (BKE_imtype_is_movie(sockdata->format.imtype)) {
+			sockdata->format.imtype= R_IMF_IMTYPE_OPENEXR;
+		}
+	}
+	/* use render data format by default */
+	sockdata->use_render_format = 1;
+}
+
+int ntreeCompositOutputMultiFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
+{
+	NodeImageMultiFile *nimf = node->storage;
+	bNodeSocket *sock = BLI_findlink(&node->inputs, nimf->active_input);
+	
+	if (!sock)
+		return 0;
+	
+	/* free format data */
+	MEM_freeN(sock->storage);
+	
+	nodeRemoveSocket(ntree, node, sock);
+	return 1;
+}
+
+static void init_output_multi_file(bNodeTree *ntree, bNode* node, bNodeTemplate *ntemp)
+{
+	RenderData *rd = &ntemp->scene->r;
+	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
+	node->storage= nimf;
+
+	BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
+	
+	/* add one socket by default */
+	ntreeCompositOutputMultiFileAddSocket(ntree, node, &rd->im_format);
+}
+
+void free_output_multi_file(bNode *node)
+{
+	bNodeSocket *sock;
+	
+	/* free storage data in sockets */
+	for (sock=node->inputs.first; sock; sock=sock->next) {
+		MEM_freeN(sock->storage);
+	}
+	
+	MEM_freeN(node->storage);
+}
+
+void copy_output_multi_file(struct bNode *node, struct bNode *target)
+{
+	bNodeSocket *sock, *newsock;
+	
+	target->storage = MEM_dupallocN(node->storage);
+	
+	/* duplicate storage data in sockets */
+	for (sock=node->inputs.first, newsock=target->inputs.first; sock && newsock; sock=sock->next, newsock=newsock->next) {
+		newsock->storage = MEM_dupallocN(sock->storage);
+	}
+}
+
+static void exec_output_multi_file(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+{
+	RenderData *rd= data;
+	NodeImageMultiFile *nimf= node->storage;
+	bNodeSocket *sock;
+	int i;
+	
+	for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i) {
+		if (!in[i]->data)
+			continue;
+		
+		if (!G.rendering) {
+			/* only output files when rendering a sequence -
+			 * otherwise, it overwrites the output files just 
+			 * scrubbing through the timeline when the compositor updates */
+			return;
+		} else {
+			Main *bmain= G.main; /* TODO, have this passed along */
+			NodeImageMultiFileSocket *sockdata = sock->storage;
+			CompBuf *cbuf= typecheck_compbuf(in[i]->data, CB_RGBA);
+			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
+			ImageFormatData *format = (sockdata->use_render_format ? &rd->im_format : &sockdata->format);
+			char path[FILE_MAX];
+			char string[FILE_MAX];
+			
+			ibuf->rect_float= cbuf->rect;
+			ibuf->dither= rd->dither_intensity;
+			
+			if (rd->color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			
+			/* get full path */
+			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sock->name);
+			
+			BKE_makepicstring(string, path, bmain->name, rd->cfra, format->imtype, (rd->scemode & R_EXTENSION), TRUE);
+			
+			if(0 == BKE_write_ibuf(ibuf, string, format))
+				printf("Cannot save Node File Output to %s\n", string);
+			else
+				printf("Saved: %s\n", string);
+			
+			IMB_freeImBuf(ibuf);	
+			
+			#if 0	/* XXX not used yet */
+			generate_preview(data, node, cbuf);
+			#endif
+			
+			if(in[i]->data != cbuf) 
+				free_compbuf(cbuf);
+		}
+	}
+}
+
+static void mute_output_multi_file(void *UNUSED(data), int UNUSED(thread),
+										   struct bNode *UNUSED(node), void *UNUSED(nodedata),
+										   struct bNodeStack **UNUSED(in), struct bNodeStack **UNUSED(out))
+{
+	/* nothing to do here */
+}
+
+void register_node_type_cmp_output_multi_file(bNodeTreeType *ttype)
+{
+	static bNodeType ntype;
+
+	node_type_base(ttype, &ntype, CMP_NODE_OUTPUT_MULTI_FILE, "Multi File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS);
+	node_type_socket_templates(&ntype, NULL, NULL);
+	node_type_size(&ntype, 140, 80, 300);
+	node_type_init(&ntype, init_output_multi_file);
+	node_type_storage(&ntype, "NodeImageMultiFile", free_output_multi_file, copy_output_multi_file);
+	node_type_exec(&ntype, exec_output_multi_file);
+	node_type_mute(&ntype, mute_output_multi_file, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

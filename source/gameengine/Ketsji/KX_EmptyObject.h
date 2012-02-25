@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_EMPTYOBJECT
-#define  __KX_EMPTYOBJECT
+#ifndef __KX_EMPTYOBJECT_H__
+#define  __KX_EMPTYOBJECT_H__
 #include "KX_GameObject.h"
 
 class KX_EmptyObject : public KX_GameObject
@@ -49,5 +49,5 @@ public:
 #endif
 };
 
-#endif //__KX_EMPTYOBJECT
+#endif //__KX_EMPTYOBJECT_H__
 

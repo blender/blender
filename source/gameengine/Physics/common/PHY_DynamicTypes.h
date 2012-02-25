@@ -17,8 +17,8 @@ subject to the following restrictions:
  *  \ingroup phys
  */
 
-#ifndef __PHY_DYNAMIC_TYPES
-#define __PHY_DYNAMIC_TYPES
+#ifndef __PHY_DYNAMICTYPES_H__
+#define __PHY_DYNAMICTYPES_H__
 
 
 
@@ -151,4 +151,4 @@ typedef enum PHY_ShapeType {
 
 typedef float	PHY_Vector3[3];
 
-#endif //__PHY_DYNAMIC_TYPES
+#endif //__PHY_DYNAMICTYPES_H__

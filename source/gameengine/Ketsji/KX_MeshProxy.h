@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_MESHPROXY
-#define __KX_MESHPROXY
+#ifndef __KX_MESHPROXY_H__
+#define __KX_MESHPROXY_H__
 
 #ifdef WITH_PYTHON
 
@@ -79,5 +79,5 @@ public:
 
 #endif // WITH_PYTHON
 
-#endif //__KX_MESHPROXY
+#endif //__KX_MESHPROXY_H__
 

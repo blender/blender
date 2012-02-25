@@ -208,7 +208,7 @@ void BM_mesh_free(BMesh *bm)
  *
  */
 
-void BM_mesh_normals_update(BMesh *bm)
+void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 {
 	BMVert *v;
 	BMFace *f;
@@ -225,7 +225,7 @@ void BM_mesh_normals_update(BMesh *bm)
 
 	/* first, find out the largest face in mesh */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
+		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
 		if (f->len > maxlength) maxlength = f->len;
@@ -239,7 +239,7 @@ void BM_mesh_normals_update(BMesh *bm)
 	
 	/* calculate all face normals */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
+		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 #if 0	/* UNUSED */
 		if (f->head.flag & BM_NONORMCALC)
@@ -251,7 +251,7 @@ void BM_mesh_normals_update(BMesh *bm)
 	
 	/* Zero out vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
 		zero_v3(v->no);
@@ -280,7 +280,7 @@ void BM_mesh_normals_update(BMesh *bm)
 	/* add weighted face normals to vertices */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 
-		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
+		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
 		BM_ITER(l, &loops, bm, BM_LOOPS_OF_FACE, f) {
@@ -310,7 +310,7 @@ void BM_mesh_normals_update(BMesh *bm)
 	
 	/* normalize the accumulated vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
 		if (normalize_v3(v->no) == 0.0f) {
@@ -473,7 +473,7 @@ void bmesh_end_edit(BMesh *bm, int flag)
 	bm->opflag = 0;
 
 	/* compute normals, clear temp flags and flush selections */
-	BM_mesh_normals_update(bm);
+	BM_mesh_normals_update(bm, TRUE);
 	BM_mesh_select_mode_flush(bm);
 }
 

@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_ICANVAS
-#define __RAS_ICANVAS
+#ifndef __RAS_ICANVAS_H__
+#define __RAS_ICANVAS_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -225,5 +225,5 @@ public:
 #endif
 };
 
-#endif //__RAS_ICANVAS
+#endif //__RAS_ICANVAS_H__
 

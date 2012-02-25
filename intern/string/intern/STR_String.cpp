@@ -699,23 +699,19 @@ rcSTR_String STR_String::Concat(const char *data, int len)
 }
 
 
-
-
-
-vector<STR_String>	STR_String::Explode(char c) const
+std::vector<STR_String>	STR_String::Explode(char c) const
 {
-	STR_String				lcv	= *this;
-	vector<STR_String>		uc;
+	STR_String              lcv = *this;
+	std::vector<STR_String> uc;
 
 	while (lcv.Length())
 	{
 		int pos = lcv.Find(c);
-		if (pos < 0)
-		{
+		if (pos < 0) {
 			uc.push_back(lcv);
 			lcv.Clear();
-		} else
-		{
+		}
+		else {
 			uc.push_back(lcv.Left(pos));
 			lcv = lcv.Mid(pos+1);
 		}

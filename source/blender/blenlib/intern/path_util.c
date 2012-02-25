@@ -118,7 +118,7 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 
 	for (i = len - 1; i >= lenlslash; i--) {
 		if (isdigit(string[i])) {
-			if (found){
+			if (found) {
 				nums = i;
 			}
 			else{
@@ -238,7 +238,7 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
 			else {
 				char *tempname_buf;
 				tempname[0]= '\0';
-				tempname_buf =BLI_strncat_utf8(tempname, left, name_len - numlen);
+				tempname_buf = BLI_strncat_utf8(tempname, left, name_len - numlen);
 				memcpy(tempname_buf, numstr, numlen + 1);
 			}
 		} while(unique_check(arg, tempname));
@@ -361,12 +361,12 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 		}
 	}
 
-	while ( (start = strstr(dir,"\\.\\")) ){
+	while ( (start = strstr(dir,"\\.\\")) ) {
 		eind = start + strlen("\\.\\") - 1;
 		memmove( start, eind, strlen(eind)+1 );
 	}
 
-	while ( (start = strstr(dir,"\\\\" )) ){
+	while ( (start = strstr(dir,"\\\\" )) ) {
 		eind = start + strlen("\\\\") - 1;
 		memmove( start, eind, strlen(eind)+1 );
 	}
@@ -398,12 +398,12 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 		}
 	}
 
-	while ( (start = strstr(dir,"/./")) ){
+	while ( (start = strstr(dir,"/./")) ) {
 		eind = start + (3 - 1) /* strlen("/./") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
 
-	while ( (start = strstr(dir,"//" )) ){
+	while ( (start = strstr(dir,"//" )) ) {
 		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
@@ -1236,9 +1236,9 @@ void BLI_make_exist(char *dir)
 
 	a = strlen(dir);
 
-	while(BLI_is_dir(dir) == 0){
+	while (BLI_is_dir(dir) == 0) {
 		a --;
-		while(dir[a] != SEP){
+		while (dir[a] != SEP) {
 			a--;
 			if (a <= 0) break;
 		}

@@ -101,26 +101,7 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 
 int BM_vert_in_face(BMFace *f, BMVert *v)
 {
-	BMLoop *l_iter, *l_first;
-
-#ifdef USE_BMESH_HOLES
-	BMLoopList *lst;
-	for (lst = f->loops.first; lst; lst = lst->next)
-#endif
-	{
-#ifdef USE_BMESH_HOLES
-		l_iter = l_first = lst->first;
-#else
-		l_iter = l_first = f->l_first;
-#endif
-		do {
-			if (l_iter->v == v) {
-				return TRUE;
-			}
-		} while ((l_iter = l_iter->next) != l_first);
-	}
-
-	return FALSE;
+	return bmesh_radial_find_first_faceloop(BM_FACE_FIRST_LOOP(f), v) != NULL;
 }
 
 /*
@@ -236,14 +217,13 @@ int BM_vert_edge_count(BMVert *v)
 int BM_edge_face_count(BMEdge *e)
 {
 	int count = 0;
-	BMLoop *curloop = NULL;
+	BMLoop *l_iter = NULL;
 
 	if (e->l) {
-		curloop = e->l;
+		l_iter = e->l;
 		do {
 			count++;
-			curloop = bmesh_radial_nextloop(curloop);
-		} while (curloop != e->l);
+		} while ((l_iter = bmesh_radial_nextloop(l_iter)) != e->l);
 	}
 
 	return count;
@@ -428,7 +408,7 @@ int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_edge_is_boundry(BMEdge *e)
+int BM_edge_is_boundary(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
 	if (count == 1) {
@@ -534,6 +514,23 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 		*r_v1 = edge->v2;
 		*r_v2 = edge->v1;
 	}
+}
+
+/*
+ *			BMESH LOOP ANGLE
+ *
+ *  Calculates the angle between the previous and next loops
+ *  (angle at this loops face corner).
+ *
+ *  Returns -
+ *	Float.
+ */
+
+float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
+{
+	return angle_v3v3v3(l->prev->v->co,
+	                    l->v->co,
+	                    l->next->v->co);
 }
 
 /*

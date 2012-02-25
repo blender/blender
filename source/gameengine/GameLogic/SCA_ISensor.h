@@ -31,8 +31,8 @@
  *   pulsemode and pulsefrequency, and event suppression.
  */
 
-#ifndef __SCA_ISENSOR
-#define __SCA_ISENSOR
+#ifndef __SCA_ISENSOR_H__
+#define __SCA_ISENSOR_H__
 
 #include "SCA_IController.h"
 
@@ -215,5 +215,5 @@ public:
 #endif // WITH_PYTHON
 };
 
-#endif //__SCA_ISENSOR
+#endif //__SCA_ISENSOR_H__
 

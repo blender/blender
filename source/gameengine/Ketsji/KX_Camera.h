@@ -30,8 +30,8 @@
  *  \brief Camera in the gameengine. Cameras are also used for views.
  */
 
-#ifndef __KX_CAMERA
-#define __KX_CAMERA
+#ifndef __KX_CAMERA_H__
+#define __KX_CAMERA_H__
 
 
 #include "MT_Transform.h"
@@ -320,5 +320,5 @@ public:
 #endif
 };
 
-#endif //__KX_CAMERA
+#endif //__KX_CAMERA_H__
 

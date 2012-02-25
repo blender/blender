@@ -307,7 +307,7 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
 	BMLoop *nl;
 	BMFace *face;
 
-	/* be warned: this can do weird things in some ngon situation, see BM_LegalSplit */
+	/* be warned: this can do weird things in some ngon situation, see BM_face_legal_splits */
 	for (face = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); face; face = BM_iter_step(&iter)) {
 		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, face); v; v = BM_iter_step(&iter2)) {
 			if (v == v2) {
@@ -340,20 +340,22 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
  *
  */
 
-BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *UNUSED(example))
+BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *example)
 {
 	const int has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMFace *nf, *of;
-	
+
+	BLI_assert(v1 != v2);
+
 	/* do we have a multires layer */
 	if (has_mdisp) {
-		of = BM_face_copy(bm, f, 0, 0);
+		of = BM_face_copy(bm, f, FALSE, FALSE);
 	}
 	
 #ifdef USE_BMESH_HOLES
-	nf = bmesh_sfme(bm, f, v1, v2, nl, NULL);
+	nf = bmesh_sfme(bm, f, v1, v2, nl, NULL, example);
 #else
-	nf = bmesh_sfme(bm, f, v1, v2, nl);
+	nf = bmesh_sfme(bm, f, v1, v2, nl, example);
 #endif
 	
 	if (nf) {
@@ -377,8 +379,11 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 
 			BM_face_kill(bm, of);
 
+#if 0
+			/* BM_face_multires_bounds_smooth doesn't flip displacement correct */
 			BM_face_multires_bounds_smooth(bm, f);
 			BM_face_multires_bounds_smooth(bm, nf);
+#endif
 		}
 	}
 
@@ -394,7 +399,7 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *
  *  Note that this is not a general edge collapse function.
  *
- * Note this function is very close to 'BM_vert_collapse_edges', both collapse
+ * Note this function is very close to 'BM_vert_collapse_edge', both collapse
  * a vertex and return a new edge. Except this takes a factor and merges
  * custom data.
  *
@@ -473,7 +478,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 	}
 
 	/* single face or no faces */
-	/* same as BM_vert_collapse_edges() however we already
+	/* same as BM_vert_collapse_edge() however we already
 	 * have vars to perform this operation so dont call. */
 	bmesh_jekv(bm, ke, kv);
 	ne = BM_edge_exists(tv, tv2);
@@ -483,7 +488,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 
 
 /**
- *			BM_vert_collapse_edges
+ *			BM_vert_collapse_edge
  *
  * Collapses a vertex onto another vertex it shares an edge with.
  *
@@ -491,7 +496,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
  * The New Edge
  */
 
-BMEdge *BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv)
+BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv)
 {
 	/* nice example implimentation but we want loops to have their customdata
 	 * accounted for */
@@ -537,7 +542,7 @@ BMEdge *BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv)
  *	the new vert
  */
 
-BMVert *BM_edge_split(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent)
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percent)
 {
 	BMVert *nv, *v2;
 	BMFace **oldfaces = NULL;
@@ -564,7 +569,7 @@ BMVert *BM_edge_split(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 		BLI_smallhash_init(&hash);
 		
 		for (i = 0; i < BLI_array_count(oldfaces); i++) {
-			oldfaces[i] = BM_face_copy(bm, oldfaces[i], 1, 1);
+			oldfaces[i] = BM_face_copy(bm, oldfaces[i], TRUE, TRUE);
 			BLI_smallhash_insert(&hash, (intptr_t)oldfaces[i], NULL);
 		}
 	}
@@ -655,7 +660,7 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 	
 	for (i = 0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
-		nv = BM_edge_split(bm, e->v2, e, NULL, percent);
+		nv = BM_edge_split(bm, e, e->v2, NULL, percent);
 	}
 	return nv;
 }

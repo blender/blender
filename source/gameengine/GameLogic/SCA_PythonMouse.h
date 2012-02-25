@@ -24,8 +24,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_PYMOUSE
-#define __KX_PYMOUSE
+#ifndef __SCA_PYTHONMOUSE_H__
+#define __SCA_PYTHONMOUSE_H__
 
 #include "PyObjectPlus.h"
 
@@ -56,5 +56,5 @@ public:
 #endif
 };
 
-#endif //__KX_PYMOUSE
+#endif //__SCA_PYTHONMOUSE_H__
 

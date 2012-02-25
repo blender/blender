@@ -18,8 +18,8 @@ subject to the following restrictions:
  */
 
 
-#ifndef BULLET2_PHYSICSCONTROLLER_H
-#define BULLET2_PHYSICSCONTROLLER_H
+#ifndef __CCDPHYSICSCONTROLLER_H__
+#define __CCDPHYSICSCONTROLLER_H__
 
 #include <vector>
 #include <map>
@@ -656,4 +656,4 @@ public:
 };
 
 
-#endif //BULLET2_PHYSICSCONTROLLER_H
+#endif //__CCDPHYSICSCONTROLLER_H__

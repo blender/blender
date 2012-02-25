@@ -82,33 +82,45 @@
 
 /******************** view navigation utilities *********************/
 
-static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom)
+static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, float location[2])
 {
 	float oldzoom= sima->zoom;
 	int width, height;
 
 	sima->zoom= zoom;
 
-	if (sima->zoom > 0.1f && sima->zoom < 4.0f)
-		return;
+	if (sima->zoom < 0.1f || sima->zoom > 4.0f) {
+		/* check zoom limits */
+		ED_space_image_size(sima, &width, &height);
 
-	/* check zoom limits */
-	ED_space_image_size(sima, &width, &height);
+		width *= sima->zoom;
+		height *= sima->zoom;
 
-	width *= sima->zoom;
-	height *= sima->zoom;
+		if((width < 4) && (height < 4))
+			sima->zoom= oldzoom;
+		else if((ar->winrct.xmax - ar->winrct.xmin) <= sima->zoom)
+			sima->zoom= oldzoom;
+		else if((ar->winrct.ymax - ar->winrct.ymin) <= sima->zoom)
+			sima->zoom= oldzoom;
+	}
 
-	if((width < 4) && (height < 4))
-		sima->zoom= oldzoom;
-	else if((ar->winrct.xmax - ar->winrct.xmin) <= sima->zoom)
-		sima->zoom= oldzoom;
-	else if((ar->winrct.ymax - ar->winrct.ymin) <= sima->zoom)
-		sima->zoom= oldzoom;
+	if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
+		float aspx, aspy, w, h;
+
+		ED_space_image_size(sima, &width, &height);
+		ED_space_image_aspect(sima, &aspx, &aspy);
+
+		w= width*aspx;
+		h= height*aspy;
+
+		sima->xof+= ((location[0]-0.5f)*w-sima->xof)*(sima->zoom-oldzoom)/sima->zoom;
+		sima->yof+= ((location[1]-0.5f)*h-sima->yof)*(sima->zoom-oldzoom)/sima->zoom;
+	}
 }
 
-static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
+static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac, float location[2])
 {
-	sima_zoom_set(sima, ar, sima->zoom*zoomfac);
+	sima_zoom_set(sima, ar, sima->zoom*zoomfac, location);
 }
 
 #if 0 // currently unused
@@ -343,11 +355,13 @@ typedef struct ViewZoomData {
 	float x, y;
 	float zoom;
 	int event_type;
+	float location[2];
 } ViewZoomData;
 
 static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
+	ARegion *ar= CTX_wm_region(C);
 	ViewZoomData *vpd;
 
 	op->customdata= vpd= MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData");
@@ -357,7 +371,9 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y= event->y;
 	vpd->zoom= sima->zoom;
 	vpd->event_type= event->type;
-	
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &vpd->location[0], &vpd->location[1]);
+
 	WM_event_add_modal_handler(C, op);
 }
 
@@ -380,7 +396,7 @@ static int image_view_zoom_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 
-	sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"));
+	sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"), NULL);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -401,11 +417,13 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == MOUSEZOOM) {
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ARegion *ar= CTX_wm_region(C);
-		float factor;
-		
+		float factor, location[2];
+
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+
 		factor= 1.0f + (event->x-event->prevx+event->y-event->prevy)/300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
-		sima_zoom_set(sima, ar, sima->zoom*factor);
+		sima_zoom_set(sima, ar, sima->zoom*factor, location);
 		ED_region_tag_redraw(CTX_wm_region(C));
 		
 		return OPERATOR_FINISHED;
@@ -427,7 +445,7 @@ static int image_view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			factor= 1.0f + (vpd->x-event->x+vpd->y-event->y)/300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
-			sima_zoom_set(sima, ar, vpd->zoom*factor);
+			sima_zoom_set(sima, ar, vpd->zoom*factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 		default:
@@ -505,7 +523,7 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 		if (U.ndof_flag & NDOF_ZOOM_INVERT)
 			zoom_factor = -zoom_factor;
 
-		sima_zoom_set_factor(sima, ar, zoom_factor);
+		sima_zoom_set_factor(sima, ar, zoom_factor, NULL);
 		sima->xof += pan_x;
 		sima->yof += pan_y;
 
@@ -556,10 +574,10 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 		/* find the zoom value that will fit the image in the image space */
 		zoomx= width/w;
 		zoomy= height/h;
-		sima_zoom_set(sima, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)));
+		sima_zoom_set(sima, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)), NULL);
 	}
 	else
-		sima_zoom_set(sima, ar, 1.0f);
+		sima_zoom_set(sima, ar, 1.0f, NULL);
 
 	sima->xof= sima->yof= 0.0f;
 
@@ -617,7 +635,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	size= 0.5f*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
 	
 	if(size<=0.01f) size= 0.01f;
-	sima_zoom_set(sima, ar, 0.7f/size);
+	sima_zoom_set(sima, ar, 0.7f/size, NULL);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
@@ -642,16 +660,30 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 
 /********************** view zoom in/out operator *********************/
 
-static int image_view_zoom_in_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_zoom_in_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
+	float location[2];
 
-	sima_zoom_set_factor(sima, ar, 1.25f);
+	RNA_float_get_array(op->ptr, "location", location);
+
+	sima_zoom_set_factor(sima, ar, 1.25f, location);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
+}
+
+static int image_view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	float location[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+	RNA_float_set_array(op->ptr, "location", location);
+
+	return image_view_zoom_in_exec(C, op);
 }
 
 void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
@@ -661,20 +693,38 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_zoom_in";
 	
 	/* api callbacks */
+	ot->invoke= image_view_zoom_in_invoke;
 	ot->exec= image_view_zoom_in_exec;
 	ot->poll= space_image_main_area_poll;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
 }
 
-static int image_view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_zoom_out_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
+	float location[2];
 
-	sima_zoom_set_factor(sima, ar, 0.8f);
+	RNA_float_get_array(op->ptr, "location", location);
+
+	sima_zoom_set_factor(sima, ar, 0.8f, location);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
+}
+
+static int image_view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	float location[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+	RNA_float_set_array(op->ptr, "location", location);
+
+	return image_view_zoom_out_exec(C, op);
 }
 
 void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
@@ -684,8 +734,12 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_zoom_out";
 	
 	/* api callbacks */
+	ot->invoke= image_view_zoom_out_invoke;
 	ot->exec= image_view_zoom_out_exec;
 	ot->poll= space_image_main_area_poll;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
 }
 
 /********************** view zoom ratio operator *********************/
@@ -695,7 +749,7 @@ static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 
-	sima_zoom_set(sima, ar, RNA_float_get(op->ptr, "ratio"));
+	sima_zoom_set(sima, ar, RNA_float_get(op->ptr, "ratio"), NULL);
 	
 	/* ensure pixel exact locations for draw */
 	sima->xof= (int)sima->xof;

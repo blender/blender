@@ -30,8 +30,8 @@
  *  \brief Ketsji Logic Extenstion: Network Message Actuator class
  */
 
-#ifndef __KX_NETWORKMESSAGEACTUATOR_H
-#define __KX_NETWORKMESSAGEACTUATOR_H
+#ifndef __KX_NETWORKMESSAGEACTUATOR_H__
+#define __KX_NETWORKMESSAGEACTUATOR_H__
 
 #include "STR_String.h"
 #include "SCA_IActuator.h"
@@ -69,5 +69,5 @@ public:
 
 };
 
-#endif //__KX_NETWORKMESSAGEACTUATOR_H
+#endif //__KX_NETWORKMESSAGEACTUATOR_H__
 

@@ -30,7 +30,7 @@
 #include "BKE_tessmesh.h"
 
 
-/* these wrap equivilent bmesh functions.  I'm in two minds of it we should
+/* these wrap equivalent bmesh functions.  I'm in two minds of it we should
  * just use the bm functions directly; on the one hand, there's no real
  * need (at the moment) to wrap them, but on the other hand having these
  * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */

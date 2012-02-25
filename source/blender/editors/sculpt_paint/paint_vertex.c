@@ -86,7 +86,7 @@
 
 #include "paint_intern.h"
 
-/* check if we can do partial updayes and have them draw realtime
+/* check if we can do partial updates and have them draw realtime
  * (without rebuilding the 'derivedFinal') */
 static int vertex_paint_use_fast_update_check(Object *ob)
 {

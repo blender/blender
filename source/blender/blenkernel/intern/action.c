@@ -1199,7 +1199,7 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 {
 	float dstweight;
 	
-	switch (mode){
+	switch (mode) {
 		case ACTSTRIPMODE_BLEND:
 			dstweight = 1.0F - srcweight;
 			break;
@@ -1489,7 +1489,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	}
 	
 	/* and now go over all strips */
-	for (strip=ob->nlastrips.first; strip; strip=strip->next){
+	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		doit=dostride= 0;
 		
 		if (strip->act && !(strip->flag & ACTSTRIP_MUTE)) {	/* so theres an action */
@@ -1500,7 +1500,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 			striptime = (scene_cfra-(strip->start)) / length;
 			stripframe = (scene_cfra-(strip->start)) ;
 
-			if (striptime>=0.0){
+			if (striptime>=0.0) {
 				
 				if(blocktype==ID_AR) 
 					rest_pose(tpose);
@@ -1509,14 +1509,14 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 				if (striptime < 1.0f + 0.1f/length) {
 					
 					/* Handle path */
-					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
+					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0) {
 						Object *parent= get_parent_path(ob);
 						
 						if (parent) {
 							Curve *cu = parent->data;
 							float ctime, pdist;
 							
-							if (cu->flag & CU_PATH){
+							if (cu->flag & CU_PATH) {
 								/* Ensure we have a valid path */
 								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(scene, parent, 0);
 								if(cu->path) {
@@ -1590,7 +1590,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 				}
 				/* Handle extend */
 				else {
-					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
+					if (strip->flag & ACTSTRIP_HOLDLASTFRAME) {
 						/* we want the strip to hold on the exact fraction of the repeat value */
 						
 						frametime = actlength * (strip->repeat-(int)strip->repeat);
@@ -1616,13 +1616,13 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 				}
 				
 				/* Handle blendin & blendout */
-				if (doit){
+				if (doit) {
 					/* Handle blendin */
 					
-					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start){
+					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start) {
 						blendfac = stripframe/strip->blendin;
 					}
-					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end){
+					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end) {
 						blendfac = (length-stripframe)/(strip->blendout);
 					}
 					else

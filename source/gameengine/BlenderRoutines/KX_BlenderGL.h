@@ -29,8 +29,8 @@
  *  \ingroup blroutines
  */
 
-#ifndef __BLENDERGL
-#define __BLENDERGL
+#ifndef __KX_BLENDERGL_H__
+#define __KX_BLENDERGL_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,5 +60,5 @@ void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int widt
 }
 #endif //__cplusplus
 
-#endif //__BLENDERGL
+#endif //__KX_BLENDERGL_H__
 

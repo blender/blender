@@ -2718,6 +2718,8 @@ void DAG_id_tag_update(ID *id, short flag)
 					if(&psys->part->id == id) {
 						ob->recalc |= (flag & OB_RECALC_ALL);
 						psys->recalc |= (flag & PSYS_RECALC);
+						lib_id_recalc_tag(bmain, &ob->id);
+						lib_id_recalc_data_tag(bmain, &ob->id);
 					}
 				}
 			}

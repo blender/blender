@@ -24,8 +24,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __BL_ACTIONMANAGER
-#define __BL_ACTIONMANAGER
+#ifndef __BL_ACTIONMANAGER_H__
+#define __BL_ACTIONMANAGER_H__
 
 #include "BL_Action.h"
 

@@ -124,7 +124,7 @@ static void handle_view3d_lock(bContext *C)
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if (v3d != NULL && sa != NULL) {
-		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
+		if (v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			/* copy to scene */
 			scene->lay= v3d->lay;
 			scene->layact= v3d->layact;
@@ -149,10 +149,10 @@ static void view3d_layers_editmode_ensure(Scene *scene, View3D *v3d)
 {
 	/* sanity check - when in editmode disallow switching the editmode layer off since its confusing
 	 * an alternative would be to always draw the editmode object. */
-	if(scene->obedit && (scene->obedit->lay & v3d->lay)==0) {
+	if (scene->obedit && (scene->obedit->lay & v3d->lay)==0) {
 		int bit;
-		for(bit=0; bit<32; bit++) {
-			if(scene->obedit->lay & (1<<bit)) {
+		for (bit=0; bit<32; bit++) {
+			if (scene->obedit->lay & (1<<bit)) {
 				v3d->lay |= 1<<bit;
 				break;
 			}
@@ -168,12 +168,12 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	int nr= RNA_int_get(op->ptr, "nr");
 	int toggle= RNA_boolean_get(op->ptr, "toggle");
 	
-	if(nr < 0)
+	if (nr < 0)
 		return OPERATOR_CANCELLED;
 
-	if(nr == 0) {
+	if (nr == 0) {
 		/* all layers */
-		if(!v3d->layact)
+		if (!v3d->layact)
 			v3d->layact= 1;
 
 		if (toggle && v3d->lay == ((1<<20)-1)) {
@@ -190,23 +190,24 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 		int bit;
 		nr--;
 
-		if(RNA_boolean_get(op->ptr, "extend")) {
-			if(toggle && v3d->lay & (1<<nr) && (v3d->lay & ~(1<<nr)))
+		if (RNA_boolean_get(op->ptr, "extend")) {
+			if (toggle && v3d->lay & (1<<nr) && (v3d->lay & ~(1<<nr)))
 				v3d->lay &= ~(1<<nr);
 			else
 				v3d->lay |= (1<<nr);
-		} else {
+		}
+		else {
 			v3d->lay = (1<<nr);
 		}
 
 		view3d_layers_editmode_ensure(scene, v3d);
 
 		/* set active layer, ensure to always have one */
-		if(v3d->lay & (1<<nr))
+		if (v3d->lay & (1<<nr))
 		   v3d->layact= 1<<nr;
-		else if((v3d->lay & v3d->layact)==0) {
-			for(bit=0; bit<32; bit++) {
-				if(v3d->lay & (1<<bit)) {
+		else if ((v3d->lay & v3d->layact)==0) {
+			for (bit=0; bit<32; bit++) {
+				if (v3d->lay & (1<<bit)) {
 					v3d->layact= 1<<bit;
 					break;
 				}
@@ -214,7 +215,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if(v3d->scenelock) handle_view3d_lock(C);
+	if (v3d->scenelock) handle_view3d_lock(C);
 	
 	DAG_on_visible_update(CTX_data_main(C), FALSE);
 
@@ -227,15 +228,15 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 /* the local per-keymap-entry keymap will solve it */
 static int view3d_layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(event->ctrl || event->oskey)
+	if (event->ctrl || event->oskey)
 		return OPERATOR_PASS_THROUGH;
 	
-	if(event->shift)
+	if (event->shift)
 		RNA_boolean_set(op->ptr, "extend", TRUE);
 	else
 		RNA_boolean_set(op->ptr, "extend", FALSE);
 	
-	if(event->alt) {
+	if (event->alt) {
 		int nr= RNA_int_get(op->ptr, "nr") + 10;
 		RNA_int_set(op->ptr, "nr", nr);
 	}
@@ -287,10 +288,10 @@ static char *view3d_modeselect_pup(Scene *scene)
 
 	str += modeselect_addmode(str, N_("Object Mode"), OB_MODE_OBJECT, ICON_OBJECT_DATA);
 
-	if(ob==NULL || ob->data==NULL) return string;
-	if(ob->id.lib) return string;
+	if (ob==NULL || ob->data==NULL) return string;
+	if (ob->id.lib) return string;
 
-	if(!((ID *)ob->data)->lib) {
+	if (!((ID *)ob->data)->lib) {
 		/* if active object is editable */
 		if ( ((ob->type == OB_MESH)
 			|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
@@ -341,7 +342,7 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 	int ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	PointerRNA props_ptr;
 	
-	if(obedit && obedit->type==OB_MESH) {
+	if (obedit && obedit->type==OB_MESH) {
 		em= ((Mesh *)obedit->data)->edit_btmesh;
 	}
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
@@ -359,8 +360,8 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		break;		
 		
 	case B_SEL_VERT:
-		if(em) {
-			if(shift==0 || em->selectmode==0)
+		if (em) {
+			if (shift==0 || em->selectmode==0)
 				em->selectmode= SCE_SELECT_VERTEX;
 			ts->selectmode= em->selectmode;
 			EDBM_selectmode_set(em);
@@ -369,10 +370,10 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		}
 		break;
 	case B_SEL_EDGE:
-		if(em) {
-			if(shift==0 || em->selectmode==0){
-				if( (em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX){
-					if(ctrl) EDBM_convertsel(em, SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
+		if (em) {
+			if (shift==0 || em->selectmode==0) {
+				if ( (em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX) {
+					if (ctrl) EDBM_convertsel(em, SCE_SELECT_VERTEX,SCE_SELECT_EDGE);
 				}
 				em->selectmode = SCE_SELECT_EDGE;
 			}
@@ -383,10 +384,10 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		}
 		break;
 	case B_SEL_FACE:
-		if(em) {
-			if( shift==0 || em->selectmode==0){
-				if( ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
-					if(ctrl) EDBM_convertsel(em, (ts->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
+		if (em) {
+			if ( shift==0 || em->selectmode==0) {
+				if ( ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)) {
+					if (ctrl) EDBM_convertsel(em, (ts->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
 				}
 				em->selectmode = SCE_SELECT_FACE;
 			}
@@ -398,19 +399,19 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		break;	
 
 	case B_MAN_TRANS:
-		if( shift==0 || v3d->twtype==0) {
+		if ( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_TRANSLATE;
 		}
 		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_ROT:
-		if( shift==0 || v3d->twtype==0) {
+		if ( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_ROTATE;
 		}
 		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_SCALE:
-		if( shift==0 || v3d->twtype==0) {
+		if ( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_SCALE;
 		}
 		ED_area_tag_redraw(sa);
@@ -431,8 +432,8 @@ static int object_mode_icon(int mode)
 {
 	EnumPropertyItem *item = object_mode_items;
 	
-	while(item->name != NULL) {
-		if(item->value == mode)
+	while (item->name != NULL) {
+		if (item->value == mode)
 			return item->icon;
 		++item;
 	}
@@ -447,7 +448,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 
-	if(obedit && (obedit->type == OB_MESH)) {
+	if (obedit && (obedit->type == OB_MESH)) {
 		BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 		uiLayout *row;
 
@@ -486,7 +487,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* mode */
-	if(ob) {
+	if (ob) {
 		v3d->modeselect = ob->mode;
 		is_paint = ELEM4(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT,OB_MODE_TEXTURE_PAINT);
 	}
@@ -508,7 +509,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			PointerRNA meshptr;
 
 			RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
-			if(ob->mode & (OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT)) {
+			if (ob->mode & (OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT)) {
 				uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			}
 			else {
@@ -517,7 +518,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			}
 		}
-	} else {
+	}
+	else {
 		const char *str_menu;
 
 		row= uiLayoutRow(layout, 1);
@@ -534,7 +536,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		block= uiLayoutGetBlock(row);
 		
-		if(v3d->twflag & V3D_USE_MANIPULATOR) {
+		if (v3d->twflag & V3D_USE_MANIPULATOR) {
 			but= uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator mode"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 			but= uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator mode"));
@@ -553,7 +555,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		MEM_freeN((void *)str_menu);
 	}
 
-	if(obedit==NULL && v3d->localvd==NULL) {
+	if (obedit==NULL && v3d->localvd==NULL) {
 		unsigned int ob_lay = ob ? ob->lay : 0;
 
 		/* Layers */

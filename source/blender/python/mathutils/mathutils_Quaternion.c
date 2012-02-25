@@ -938,7 +938,7 @@ static int Quaternion_axis_set(QuaternionObject *self, PyObject *value, void *ty
 }
 
 PyDoc_STRVAR(Quaternion_magnitude_doc,
-"Size of the quaternion (readonly).\n\n:type: float"
+"Size of the quaternion (read-only).\n\n:type: float"
 );
 static PyObject *Quaternion_magnitude_get(QuaternionObject *self, void *UNUSED(closure))
 {

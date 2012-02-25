@@ -733,7 +733,7 @@ int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int
 {
 	if (RNA_enum_value_from_id(item, identifier, value) == 0) {
 		const char *enum_str = BPy_enum_as_string(item);
-		PyErr_Format(PyExc_TypeError,
+		PyErr_Format(PyExc_ValueError,
 		             "%s: '%.200s' not found in (%s)",
 		             error_prefix, identifier, enum_str);
 		MEM_freeN((void *)enum_str);
@@ -2836,7 +2836,7 @@ static int pyrna_prop_collection_contains(BPy_PropertyRNA *self, PyObject *key)
 
 		if (keyname == NULL) {
 			PyErr_SetString(PyExc_TypeError,
-			                "bpy_prop_collection.__contains__: expected a string or a typle of strings");
+			                "bpy_prop_collection.__contains__: expected a string or a tuple of strings");
 			return -1;
 		}
 

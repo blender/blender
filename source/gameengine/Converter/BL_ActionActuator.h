@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_ACTIONACTUATOR
-#define BL_ACTIONACTUATOR
+#ifndef __BL_ACTIONACTUATOR_H__
+#define __BL_ACTIONACTUATOR_H__
 
 #include "CTR_HashedPtr.h"
 #include "SCA_IActuator.h"

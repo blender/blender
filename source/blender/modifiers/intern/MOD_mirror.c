@@ -266,16 +266,18 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	/* handle vgroup stuff */
 	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vertData, CD_MDEFORMVERT)) {
-		MDeformVert *dvert = CustomData_get_layer(&result->vertData, CD_MDEFORMVERT);
+		MDeformVert *dvert = (MDeformVert *) CustomData_get_layer(&result->vertData, CD_MDEFORMVERT) + maxVerts;
 		int *flip_map= NULL, flip_map_len= 0;
 
 		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 		
-		for (i = maxVerts; i-- > 0; dvert++) {
-			defvert_flip(dvert, flip_map, flip_map_len);
-		}
+		if (flip_map) {
+			for (i = maxVerts; i-- > 0; dvert++) {
+				defvert_flip(dvert, flip_map, flip_map_len);
+			}
 
-		MEM_freeN(flip_map);
+			MEM_freeN(flip_map);
+		}
 	}
 
 	if (do_vtargetmap) {

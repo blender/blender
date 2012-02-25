@@ -869,12 +869,12 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 	o->_fft_in = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in");
 	o->_htilda = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_htilda");
 
-	if (o->_do_disp_y){
+	if (o->_do_disp_y) {
 		o->_disp_y = (double*) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_y");
 		o->_disp_y_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in, o->_disp_y, FFTW_ESTIMATE);
 	}
 
-	if (o->_do_normals){
+	if (o->_do_normals) {
 		o->_fft_in_nx = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_nx");
 		o->_fft_in_nz = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_nz");
 
@@ -886,7 +886,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		o->_N_z_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_nz, o->_N_z, FFTW_ESTIMATE);
 	}
 
-	if (o->_do_chop){
+	if (o->_do_chop) {
 		o->_fft_in_x = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_x");
 		o->_fft_in_z = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_z");
 
@@ -896,7 +896,7 @@ void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, f
 		o->_disp_x_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_x, o->_disp_x, FFTW_ESTIMATE);
 		o->_disp_z_plan = fftw_plan_dft_c2r_2d(o->_M,o->_N, o->_fft_in_z, o->_disp_z, FFTW_ESTIMATE);
 	}
-	if (o->_do_jacobian){
+	if (o->_do_jacobian) {
 		o->_fft_in_jxx = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_jxx");
 		o->_fft_in_jzz = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_jzz");
 		o->_fft_in_jxz = (fftw_complex*) MEM_mallocN(o->_M * (1+o->_N/2) * sizeof(fftw_complex), "ocean_fft_in_jxz");

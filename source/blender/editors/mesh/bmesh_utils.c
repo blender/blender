@@ -50,7 +50,7 @@
 
 void EDBM_RecalcNormals(BMEditMesh *em)
 {
-	BM_mesh_normals_update(em->bm);
+	BM_mesh_normals_update(em->bm, TRUE);
 }
 
 void EDBM_ClearMesh(BMEditMesh *em)
@@ -209,7 +209,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot
 
 	BM_mesh_elem_flag_disable_all(em->bm, BM_VERT|BM_EDGE|BM_FACE, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, selectslot, BM_ELEM_SELECT, BM_ALL, TRUE);
 
 	va_end(list);
 	return EDBM_FinishOp(em, &bmop, op, TRUE);
@@ -415,13 +415,14 @@ void EDBM_select_more(BMEditMesh *em)
 	int use_faces = em->selectmode > SCE_SELECT_EDGE;
 
 	BMO_op_initf(em->bm, &bmop,
-	             "regionextend geom=%hvef constrict=%i use_faces=%b",
+	             "regionextend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
+	/* dont flush selection in edge/vertex mode  */
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
-	EDBM_selectmode_flush(em);
+	EDBM_select_flush(em);
 }
 
 void EDBM_select_less(BMEditMesh *em)
@@ -430,10 +431,11 @@ void EDBM_select_less(BMEditMesh *em)
 	int use_faces = em->selectmode > SCE_SELECT_EDGE;
 
 	BMO_op_initf(em->bm, &bmop,
-	             "regionextend geom=%hvef constrict=%i use_faces=%b",
-	             BM_ELEM_SELECT, FALSE, use_faces);
+	             "regionextend geom=%hvef constrict=%b use_faces=%b",
+	             BM_ELEM_SELECT, TRUE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL);
+	/* dont flush selection in edge/vertex mode  */
+	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -769,18 +771,17 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		island_number[j++] = INVALID_ISLAND;
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
-			i = 0;
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				buf->tfindex = i;
+			BM_ITER_INDEX(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa, i) {
+				buf->l = l;
 				buf->face = efa;
 				buf->separate = 0;
 				buf->island = INVALID_ISLAND;
+				buf->tfindex = i;
 
 				buf->next = element_map->vert[BM_elem_index_get(l->v)];
 				element_map->vert[BM_elem_index_get(l->v)] = buf;
 
 				buf++;
-				i++;
 			}
 		}
 	}
@@ -798,10 +799,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 			v->next = newvlist;
 			newvlist = v;
 
-			efa = v->face;
-			/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
-
-			l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa, v->tfindex);
+			l = v->l;
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			uv = luv->uv;
 
@@ -810,10 +808,8 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 
 			while (iterv) {
 				next = iterv->next;
-				efa = iterv->face;
-				/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 
-				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa, iterv->tfindex);
+				l = iterv->l;
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				uv2 = luv->uv;
 
@@ -867,9 +863,10 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 								/* found the uv corresponding to our face and vertex. Now fill it to the buffer */
 								element->island = nislands;
 								map[element - element_map->buf] = islandbufsize;
-								islandbuf[islandbufsize].tfindex = element->tfindex;
+								islandbuf[islandbufsize].l = element->l;
 								islandbuf[islandbufsize].face = element->face;
 								islandbuf[islandbufsize].separate = element->separate;
+								islandbuf[islandbufsize].tfindex = element->tfindex;
 								islandbuf[islandbufsize].island =  nislands;
 								islandbufsize++;
 

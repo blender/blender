@@ -29,8 +29,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_NODE_H
-#define __SG_NODE_H
+#ifndef __SG_NODE_H__
+#define __SG_NODE_H__
 
 #include "SG_Spatial.h"
 #include <vector>
@@ -277,5 +277,5 @@ public:
 #endif
 };
 
-#endif //__SG_NODE_H
+#endif //__SG_NODE_H__
 

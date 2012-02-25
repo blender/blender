@@ -738,6 +738,7 @@ static BMOpDefine def_splitop = {
 	 {BMO_OP_SLOT_MAPPING, "boundarymap"},
 	 {BMO_OP_SLOT_MAPPING, "isovertmap"},
 	 {BMO_OP_SLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
+	 {BMO_OP_SLOT_BOOL, "use_only_faces"}, /* when enabled. dont duplicate loose verts/edges */
 	 {0} /* null-terminating sentine */},
 	splitop_exec,
 	0

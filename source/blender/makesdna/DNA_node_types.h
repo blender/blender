@@ -77,7 +77,7 @@ typedef struct bNodeSocket {
 	
 	short type, flag;
 	short limit;				/* max. number of links */
-	short pad1;
+	short struct_type;			/* optional identifier for RNA struct subtype */
 	
 	float locx, locy;
 	
@@ -111,6 +111,10 @@ typedef struct bNodeSocket {
 #define SOCK_MESH			5
 #define SOCK_INT			6
 #define NUM_SOCKET_TYPES	7	/* must be last! */
+
+/* sock->struct_type */
+#define SOCK_STRUCT_NONE				0	/* default, type is defined by sock->type only */
+#define SOCK_STRUCT_OUTPUT_MULTI_FILE	1	/* multi file output node socket */
 
 /* socket side (input/output) */
 #define SOCK_IN		1
@@ -353,6 +357,18 @@ typedef struct NodeImageFile {
 	struct ImageFormatData im_format;
 	int sfra, efra;
 } NodeImageFile;
+
+typedef struct NodeImageMultiFile {
+	char base_path[1024];	/* 1024 = FILE_MAX */
+	int active_input;		/* selected input in details view list */
+	int pad;
+} NodeImageMultiFile;
+typedef struct NodeImageMultiFileSocket {
+	short use_render_format;	/* use global render settings instead of own format */
+	short pad1;
+	int pad2;
+	ImageFormatData format;
+} NodeImageMultiFileSocket;
 
 typedef struct NodeChroma {
 	float t1,t2,t3;

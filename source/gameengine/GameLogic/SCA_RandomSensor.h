@@ -30,8 +30,8 @@
  *  \brief Generate random pulses
  */
 
-#ifndef __KX_RANDOMSENSOR
-#define __KX_RANDOMSENSOR
+#ifndef __SCA_RANDOMSENSOR_H__
+#define __SCA_RANDOMSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "BoolValue.h"
@@ -68,5 +68,5 @@ public:
 #endif
 };
 
-#endif //__KX_RANDOMSENSOR
+#endif //__SCA_RANDOMSENSOR_H__
 

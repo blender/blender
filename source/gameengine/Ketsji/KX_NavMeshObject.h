@@ -24,8 +24,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef __KX_NAVMESHOBJECT
-#define __KX_NAVMESHOBJECT
+#ifndef __KX_NAVMESHOBJECT_H__
+#define __KX_NAVMESHOBJECT_H__
 #include "DetourStatNavMesh.h"
 #include "KX_GameObject.h"
 #include "PyObjectPlus.h"
@@ -77,5 +77,5 @@ public:
 #endif
 };
 
-#endif //__KX_NAVMESHOBJECT
+#endif //__KX_NAVMESHOBJECT_H__
 

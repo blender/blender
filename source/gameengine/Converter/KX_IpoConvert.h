@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_IPOCONVERT_H
-#define __KX_IPOCONVERT_H
+#ifndef __KX_IPOCONVERT_H__
+#define __KX_IPOCONVERT_H__
 
 struct Object;
 
@@ -66,5 +66,5 @@ void BL_ConvertMaterialIpos(struct Object* blenderobject,
 	class KX_BlenderSceneConverter *converter);
 
 
-#endif //__KX_IPOCONVERT_H
+#endif //__KX_IPOCONVERT_H__
 

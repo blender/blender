@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_DILATION2DFILTER
-#define __RAS_DILATION2DFILTER
+#ifndef __RAS_DILATION2DFILTER_H__
+#define __RAS_DILATION2DFILTER_H__
 
 const char * DilationFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;

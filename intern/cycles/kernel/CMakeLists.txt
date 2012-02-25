@@ -104,7 +104,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		set(CUDA_BITS 32)
 	endif()
 
-	set(cuda_sources kernel.cu ${headers} ${svm_headers})
+	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_UTIL_HEADERS})
 	set(cuda_cubins)
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})

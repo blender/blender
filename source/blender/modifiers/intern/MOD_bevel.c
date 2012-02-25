@@ -121,7 +121,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_mesh_normals_update(bm);
+	BM_mesh_normals_update(bm, FALSE);
 	BMO_push(bm, NULL);
 
 	if (bmd->lim_flags & BME_BEVEL_ANGLE) {

@@ -2701,14 +2701,17 @@ ImBuf *give_ibuf_seq_threaded(SeqRenderData context, float cfra, int chanshown)
 		if (!e) {
 			PrefetchThread *tslot;
 
-			for(tslot = running_threads.first; 
-				tslot; tslot= tslot->next) {
+			for (tslot = running_threads.first;
+			     tslot;
+			     tslot= tslot->next)
+			{
 				if (tslot->current &&
-					cfra == tslot->current->cfra &&
-					chanshown == tslot->current->chanshown &&
-					context.rectx == tslot->current->rectx && 
-					context.recty == tslot->current->recty &&
-					context.preview_render_size== tslot->current->preview_render_size){
+				    cfra == tslot->current->cfra &&
+				    chanshown == tslot->current->chanshown &&
+				    context.rectx == tslot->current->rectx &&
+				    context.recty == tslot->current->recty &&
+				    context.preview_render_size== tslot->current->preview_render_size)
+				{
 					found_something = TRUE;
 					break;
 				}

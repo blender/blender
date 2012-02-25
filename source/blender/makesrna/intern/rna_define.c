@@ -2666,7 +2666,7 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_FLOAT:
 				return sizeof(float);
 			case PROP_STRING:
-				/* return  valyes dont store a pointer to the original */
+				/* return values don't store a pointer to the original */
 				if(parm->flag & PROP_THICK_WRAP) {
 					StringPropertyRNA *sparm= (StringPropertyRNA*)parm;
 					return sizeof(char) * sparm->maxlength;

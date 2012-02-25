@@ -120,11 +120,6 @@ typedef struct LayerTypeInfo {
 
 	/* a function to determine file size */
 	size_t (*filesize)(CDataFile *cdf, void *data, int count);
-
-	/* a function to validate layer contents depending on
-	 * sub-elements count
-	 */
-	void (*validate)(void *source, int sub_elements);
 } LayerTypeInfo;
 
 static void layerCopy_mdeformvert(const void *source, void *dest,
@@ -163,6 +158,33 @@ static void layerFree_mdeformvert(void *data, int count, int size)
 		}
 	}
 }
+
+/* copy just zeros in this case */
+static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
+                                        int count)
+{
+	int i, size = sizeof(void *);
+
+	for(i = 0; i < count; ++i) {
+		void **ptr = (void  **)((char *)dest + i * size);
+		*ptr = NULL;
+	}
+}
+
+static void layerFree_bmesh_elem_py_ptr(void *data, int count, int size)
+{
+	extern void bpy_bm_generic_invalidate(void *self);
+
+	int i;
+
+	for(i = 0; i < count; ++i) {
+		void **ptr = (void *)((char *)data + i * size);
+		if (*ptr) {
+			bpy_bm_generic_invalidate(*ptr);
+		}
+	}
+}
+
 
 static void linklist_free_simple(void *link)
 {
@@ -445,137 +467,6 @@ static void layerSwap_mdisps(void *data, const int *ci)
 	}
 }
 
-#if 1 /* BMESH_TODO: place holder function, dont actually interp */
-static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
-				float *UNUSED(sub_weights), int UNUSED(count), void *dest)
-{
-	MDisps *d = dest;
-
-	/* happens when flipping normals of newly created mesh */
-	if(!d->totdisp) {
-		d->totdisp = ((MDisps*)sources[0])->totdisp;
-	}
-
-	if (!d->disps && d->totdisp)
-		d->disps = MEM_callocN(sizeof(float)*3*d->totdisp, "blank mdisps in layerInterp_mdisps");
-}
-
-#else // BMESH_TODO
-
-static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
-				float *sub_weights, int count, void *dest)
-{
-	MDisps *d = dest;
-	MDisps *s = NULL;
-	int st, stl;
-	int i, x, y;
-	int side, S, dst_corners, src_corners;
-	float crn_weight[4][2];
-	float (*sw)[4] = (void*)sub_weights;
-	float (*disps)[3], (*out)[3];
-
-	/* happens when flipping normals of newly created mesh */
-	if(!d->totdisp)
-		return;
-
-	s = sources[0];
-	dst_corners = multires_mdisp_corners(d);
-	src_corners = multires_mdisp_corners(s);
-
-	if(sub_weights && count == 2 && src_corners == 3) {
-		src_corners = multires_mdisp_corners(sources[1]);
-
-		/* special case -- converting two triangles to quad */
-		if(src_corners == 3 && dst_corners == 4) {
-			MDisps tris[2];
-			int vindex[4] = {0};
-
-			for(i = 0; i < 2; i++)
-				for(y = 0; y < 4; y++)
-					for(x = 0; x < 4; x++)
-						if(sw[x+i*4][y])
-							vindex[x] = y;
-
-			for(i = 0; i < 2; i++) {
-				float sw_m4[4][4] = {{0}};
-				int a = 7 & ~(1 << vindex[i*2] | 1 << vindex[i*2+1]);
-
-				sw_m4[0][vindex[i*2+1]] = 1;
-				sw_m4[1][vindex[i*2]] = 1;
-
-				for(x = 0; x < 3; x++)
-					if(a & (1 << x))
-						sw_m4[2][x] = 1;
-
-				tris[i] = *((MDisps*)sources[i]);
-				tris[i].disps = MEM_dupallocN(tris[i].disps);
-				layerInterp_mdisps(&sources[i], NULL, (float*)sw_m4, 1, &tris[i]);
-			}
-
-			mdisp_join_tris(d, &tris[0], &tris[1]);
-
-			for(i = 0; i < 2; i++)
-				MEM_freeN(tris[i].disps);
-
-			return;
-		}
-	}
-
-	/* For now, some restrictions on the input */
-	if(count != 1 || !sub_weights) {
-		for(i = 0; i < d->totdisp; ++i)
-			zero_v3(d->disps[i]);
-
-		return;
-	}
-
-	/* Initialize the destination */
-	disps = MEM_callocN(3*d->totdisp*sizeof(float), "iterp disps");
-
-	side = sqrt(d->totdisp / dst_corners);
-	st = (side<<1)-1;
-	stl = st - 1;
-
-	sw= (void*)sub_weights;
-	for(i = 0; i < 4; ++i) {
-		crn_weight[i][0] = 0 * sw[i][0] + stl * sw[i][1] + stl * sw[i][2] + 0 * sw[i][3];
-		crn_weight[i][1] = 0 * sw[i][0] + 0 * sw[i][1] + stl * sw[i][2] + stl * sw[i][3];
-	}
-
-	multires_mdisp_smooth_bounds(s);
-
-	out = disps;
-	for(S = 0; S < dst_corners; S++) {
-		float base[2], axis_x[2], axis_y[2];
-
-		mdisp_apply_weight(S, dst_corners, 0, 0, st, crn_weight, &base[0], &base[1]);
-		mdisp_apply_weight(S, dst_corners, side-1, 0, st, crn_weight, &axis_x[0], &axis_x[1]);
-		mdisp_apply_weight(S, dst_corners, 0, side-1, st, crn_weight, &axis_y[0], &axis_y[1]);
-
-		sub_v2_v2(axis_x, base);
-		sub_v2_v2(axis_y, base);
-		normalize_v2(axis_x);
-		normalize_v2(axis_y);
-
-		for(y = 0; y < side; ++y) {
-			for(x = 0; x < side; ++x, ++out) {
-				int crn;
-				float face_u, face_v, crn_u, crn_v;
-
-				mdisp_apply_weight(S, dst_corners, x, y, st, crn_weight, &face_u, &face_v);
-				crn = mdisp_rot_face_to_quad_crn(src_corners, st, face_u, face_v, &crn_u, &crn_v);
-
-				old_mdisps_bilinear((*out), &s->disps[crn*side*side], side, crn_u, crn_v);
-				mdisp_flip_disp(crn, dst_corners, axis_x, axis_y, *out);
-			}
-		}
-	}
-
-	MEM_freeN(d->disps);
-	d->disps = disps;
-}
-#endif // BMESH_TODO
-
 static void layerCopy_mdisps(const void *source, void *dest, int count)
 {
 	int i;
@@ -593,25 +484,6 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 		}
 		
 	}
-}
-
-static void layerValidate_mdisps(void *data, int sub_elements)
-{
-#if 1 /*BMESH_TODO*/
-	(void)data;
-	(void)sub_elements;
-#else
-	MDisps *disps = data;
-	if(disps->disps) {
-		int corners = multires_mdisp_corners(disps);
-
-		if(corners != sub_elements) {
-			MEM_freeN(disps->disps);
-			disps->totdisp = disps->totdisp / corners * sub_elements;
-			disps->disps = MEM_callocN(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
-		}
-	}
-#endif
 }
 
 static void layerFree_mdisps(void *data, int count, int UNUSED(size))
@@ -772,16 +644,17 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 	col.a = col.r = col.g = col.b = 0;
 
 	sub_weight = sub_weights;
-	for(i = 0; i < count; ++i){
+	for (i = 0; i < count; ++i) {
 		float weight = weights ? weights[i] : 1;
 		MLoopCol *src = sources[i];
-		if(sub_weights){
+		if (sub_weights) {
 			col.a += src->a * (*sub_weight) * weight;
 			col.r += src->r * (*sub_weight) * weight;
 			col.g += src->g * (*sub_weight) * weight;
 			col.b += src->b * (*sub_weight) * weight;
 			sub_weight++;
-		} else {
+		}
+		else {
 			col.a += src->a * weight;
 			col.r += src->r * weight;
 			col.g += src->g * weight;
@@ -1106,7 +979,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 14: CD_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 15: CD_MTEXPOLY */
-	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
+	/* note, when we expose the UV Map / TexFace split to the user, change this back to face Texture */
+	{sizeof(MTexPoly), "MTexPoly", 1, "UVMap"/* "Face Texture" */, NULL, NULL, NULL, NULL, NULL},
 	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL,
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
@@ -1119,9 +993,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float)*4*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 19: CD_MDISPS */
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
-	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL,
+	 layerFree_mdisps, NULL, layerSwap_mdisps, NULL,
 	 NULL, NULL, NULL, NULL, NULL, NULL, 
-	 layerRead_mdisps, layerWrite_mdisps, layerFilesize_mdisps, layerValidate_mdisps},
+	 layerRead_mdisps, layerWrite_mdisps, layerFilesize_mdisps},
 	/* 20: CD_WEIGHT_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
@@ -1158,6 +1032,10 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MLoopCol), "MLoopCol", 1, "WeightLoopCol", NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
+	/* 33: CD_BM_ELEM_PYPTR */
+	{sizeof(void *), "", 1, NULL, layerCopy_bmesh_elem_py_ptr,
+	 layerFree_bmesh_elem_py_ptr, NULL, NULL, NULL},
+
 /* END BMESH ONLY */
 
 

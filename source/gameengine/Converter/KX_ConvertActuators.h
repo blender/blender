@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __KX_CONVERTACTUATORS_H
-#define __KX_CONVERTACTUATORS_H
+#ifndef __KX_CONVERTACTUATORS_H__
+#define __KX_CONVERTACTUATORS_H__
 
 void BL_ConvertActuators(const char* maggiename,
 	 struct Object* blenderobject,
@@ -44,5 +44,5 @@ void BL_ConvertActuators(const char* maggiename,
 	 class KX_BlenderSceneConverter* converter);
 
 
-#endif //__KX_CONVERTACTUATORS_H
+#endif //__KX_CONVERTACTUATORS_H__
 

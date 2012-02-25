@@ -339,7 +339,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	/* check for flying ortho camera - which we cant support well
 	 * we _could_ also check for an ortho camera but this is easier */
-	if(     (fly->rv3d->persp == RV3D_CAMOB) &&
+	if (     (fly->rv3d->persp == RV3D_CAMOB) &&
 	        (fly->v3d->camera != NULL) &&
 	        (fly->rv3d->is_persp == FALSE))
 	{
@@ -350,7 +350,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	if (fly->rv3d->persp==RV3D_CAMOB) {
 		Object *ob_back;
 		if ((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (fly->root_parent=fly->v3d->camera->parent)) {
-			while(fly->root_parent->parent)
+			while (fly->root_parent->parent)
 				fly->root_parent= fly->root_parent->parent;
 			ob_back= fly->root_parent;
 		}
@@ -450,7 +450,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		/*Done with correcting for the dist */
 	}
 
-	if(fly->is_ortho_cam) {
+	if (fly->is_ortho_cam) {
 		((Camera *)fly->v3d->camera->data)->type= CAM_ORTHO;
 	}
 
@@ -674,7 +674,7 @@ static void move_camera(bContext* C, RegionView3D* rv3d, FlyInfo* fly, int orien
 		// where_is_object(scene, fly->root_parent);
 
 		ob_update= v3d->camera->parent;
-		while(ob_update) {
+		while (ob_update) {
 			DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
 			ob_update= ob_update->parent;
 		}
@@ -945,7 +945,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				}
 				else {
 					normalize_v3_v3(dvec_tmp, fly->dvec_prev);
-					if(fly->speed < 0.0f) {
+					if (fly->speed < 0.0f) {
 						negate_v3(dvec_tmp);
 					}
 				}

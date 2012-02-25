@@ -26,6 +26,8 @@
 #include <map>		// array functionality for the propertylist
 #include "STR_String.h"	// STR_String class
 
+using namespace std;
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif

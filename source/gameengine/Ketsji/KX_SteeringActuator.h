@@ -24,8 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __KX_STEERINGACTUATOR
-#define __KX_STEERINGACTUATOR
+#ifndef __KX_STEERINGACTUATOR_H__
+#define __KX_STEERINGACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "SCA_LogicManager.h"

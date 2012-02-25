@@ -18,8 +18,8 @@ subject to the following restrictions:
  *  See also \ref bulletdoc
  */
 
-#ifndef CCDPHYSICSENVIRONMENT
-#define CCDPHYSICSENVIRONMENT
+#ifndef __CCDPHYSICSENVIRONMENT_H__
+#define __CCDPHYSICSENVIRONMENT_H__
 
 #include "PHY_IPhysicsEnvironment.h"
 #include <vector>
@@ -294,4 +294,4 @@ public:
 #endif
 };
 
-#endif //CCDPHYSICSENVIRONMENT
+#endif //__CCDPHYSICSENVIRONMENT_H__

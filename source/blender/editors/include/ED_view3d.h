@@ -157,7 +157,7 @@ void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3],
 
 /**
  * Calculate the view transformation matrix from RegionView3D input.
- * The resulting matrix is equivilent to RegionView3D.viewinv
+ * The resulting matrix is equivalent to RegionView3D.viewinv
  * @param mat The view 4x4 transformation matrix to calculate.
  * @param ofs The view offset, normally from RegionView3D.ofs.
  * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.

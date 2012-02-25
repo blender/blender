@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_LAPLACION2DFILTER
-#define __RAS_LAPLACION2DFILTER
+#ifndef __RAS_LAPLACIAN2DFILTER_H__
+#define __RAS_LAPLACIAN2DFILTER_H__
 
 const char * LaplacionFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;

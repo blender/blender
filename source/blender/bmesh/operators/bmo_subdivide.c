@@ -183,7 +183,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 {
 	BMVert *ev;
 	
-	ev = BM_edge_split(bm, edge->v1, edge, out, percent);
+	ev = BM_edge_split(bm, edge, edge->v1, out, percent);
 
 	BMO_elem_flag_enable(bm, ev, ELE_INNER);
 

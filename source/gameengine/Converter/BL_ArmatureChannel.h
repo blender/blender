@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __BL_ARMATURECHANNEL
-#define __BL_ARMATURECHANNEL
+#ifndef __BL_ARMATURECHANNEL_H__
+#define __BL_ARMATURECHANNEL_H__
 
 #include "DNA_action_types.h"
 #include "CTR_HashedPtr.h"
@@ -94,5 +94,5 @@ public:
 };
 
 
-#endif //__BL_ARMATURECHANNEL
+#endif //__BL_ARMATURECHANNEL_H__
 

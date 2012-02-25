@@ -89,6 +89,8 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	clothModifier_do(clmd, md->scene, ob, dm, vertexCos);
 
 	if(result) {

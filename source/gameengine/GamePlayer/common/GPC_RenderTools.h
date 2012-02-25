@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef __GPC_RENDERTOOLS_H
-#define __GPC_RENDERTOOLS_H
+#ifndef __GPC_RENDERTOOLS_H__
+#define __GPC_RENDERTOOLS_H__
 
 #ifdef WIN32
 // don't show stl-warnings
@@ -106,7 +106,7 @@ public:
 	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
 };
 
-#endif  // __GPC_RENDERTOOLS_H
+#endif  // __GPC_RENDERTOOLS_H__
 
 
 

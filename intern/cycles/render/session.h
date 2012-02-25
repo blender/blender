@@ -156,6 +156,8 @@ protected:
 	thread_condition_variable pause_cond;
 	thread_mutex pause_mutex;
 
+	bool kernels_loaded;
+
 	double start_time;
 	double reset_time;
 	double preview_time;

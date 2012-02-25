@@ -31,8 +31,8 @@
  *   SceneGraph
  */
 
-#ifndef SCA_IOBJECT_H
-#define SCA_IOBJECT_H
+#ifndef __SCA_IOBJECT_H__
+#define __SCA_IOBJECT_H__
 
 #include "Value.h"
 #include <vector>
@@ -225,5 +225,5 @@ public:
 
 };
 
-#endif //SCA_IOBJECT_H
+#endif //__SCA_IOBJECT_H__
 

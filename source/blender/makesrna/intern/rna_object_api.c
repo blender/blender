@@ -116,7 +116,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu->editnurb = NULL;
 
 		nurbs_to_mesh( tmpobj );
-		
+
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
 			free_libblock_us( &(G.main->object), tmpobj );
@@ -239,11 +239,14 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		break;
 	} /* end copy materials */
 
+	/* cycles and exporters rely on this still */
+	BKE_mesh_tessface_ensure(tmpmesh);
+
 	/* we don't assign it to anything */
 	tmpmesh->id.us--;
 	
 	/* make sure materials get updated in objects */
-	test_object_materials( ( ID * ) tmpmesh );
+	test_object_materials(&tmpmesh->id);
 
 	return tmpmesh;
 }

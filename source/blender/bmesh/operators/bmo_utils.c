@@ -198,6 +198,7 @@ static void bmesh_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 					BMO_elem_flag_enable(bm, e, SEL_FLAG);
 				}
+
 			}
 		}
 	}

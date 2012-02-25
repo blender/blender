@@ -682,3 +682,99 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
 		return NULL;
 	}
 }
+
+
+/* PyC_FlagSet_* functions - so flags/sets can be interchanged in a generic way */
+#include "BLI_dynstr.h"
+#include "MEM_guardedalloc.h"
+
+char *PyC_FlagSet_AsString(PyC_FlagSet *item)
+{
+	DynStr *dynstr = BLI_dynstr_new();
+	PyC_FlagSet *e;
+	char *cstring;
+
+	for (e = item; item->identifier; item++) {
+		BLI_dynstr_appendf(dynstr, (e == item) ? "'%s'" : ", '%s'", item->identifier);
+	}
+
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
+}
+
+int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *value)
+{
+	for( ; item->identifier; item++) {
+		if(strcmp(item->identifier, identifier) == 0) {
+			*value = item->value;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int *value, const char *error_prefix)
+{
+	if (PyC_FlagSet_ValueFromID_int(item, identifier, value) == 0) {
+		const char *enum_str = PyC_FlagSet_AsString(item);
+		PyErr_Format(PyExc_ValueError,
+		             "%s: '%.200s' not found in (%s)",
+		             error_prefix, identifier, enum_str);
+		MEM_freeN((void *)enum_str);
+		return -1;
+	}
+
+	return 0;
+}
+
+/* 'value' _must_ be a set type, error check before calling */
+int PyC_FlagSet_ToBitfield(PyC_FlagSet *items, PyObject *value, int *r_value, const char *error_prefix)
+{
+	/* set of enum items, concatenate all values with OR */
+	int ret, flag = 0;
+
+	/* set looping */
+	Py_ssize_t pos = 0;
+	Py_ssize_t hash = 0;
+	PyObject *key;
+
+	*r_value = 0;
+
+	while (_PySet_NextEntry(value, &pos, &key, &hash)) {
+		const char *param = _PyUnicode_AsString(key);
+
+		if (param == NULL) {
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected a string, not %.200s",
+			             error_prefix, Py_TYPE(key)->tp_name);
+			return -1;
+		}
+
+		if (PyC_FlagSet_ValueFromID(items, param, &ret, error_prefix) < 0) {
+			return -1;
+		}
+
+		flag |= ret;
+	}
+
+	*r_value = flag;
+	return 0;
+}
+
+PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
+{
+	PyObject *ret = PySet_New(NULL);
+	PyObject *pystr;
+
+	for ( ; items->identifier; items++) {
+		if (items->value & flag) {
+			pystr = PyUnicode_FromString(items->identifier);
+			PySet_Add(ret, pystr);
+			Py_DECREF(pystr);
+		}
+	}
+
+	return ret;
+}

@@ -49,8 +49,8 @@
  *
  */
  
-#ifndef __SG_ParentRelation_h
-#define __SG_ParentRelation_h
+#ifndef __SG_PARENTRELATION_H__
+#define __SG_PARENTRELATION_H__
 
 class SG_Spatial;
 

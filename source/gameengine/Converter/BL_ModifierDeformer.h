@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef BL_MODIFIERDEFORMER
-#define BL_MODIFIERDEFORMER
+#ifndef __BL_MODIFIERDEFORMER_H__
+#define __BL_MODIFIERDEFORMER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning

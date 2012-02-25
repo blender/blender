@@ -29,8 +29,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_DLIST
-#define __SG_DLIST
+#ifndef __SG_DLIST_H__
+#define __SG_DLIST_H__
 
 #include <stdlib.h>
 
@@ -250,5 +250,5 @@ public:
 
 };
 
-#endif //__SG_DLIST
+#endif //__SG_DLIST_H__
 

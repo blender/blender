@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_LIGHTOBJECT_H
-#define __RAS_LIGHTOBJECT_H
+#ifndef __RAS_LIGHTOBJECT_H__
+#define __RAS_LIGHTOBJECT_H__
 
 #include "MT_CmMatrix4x4.h"
 
@@ -64,5 +64,5 @@ struct RAS_LightObject
 	bool	m_nospecular;
 };
 
-#endif //__RAS_LIGHTOBJECT_H
+#endif //__RAS_LIGHTOBJECT_H__
 

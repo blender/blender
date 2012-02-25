@@ -208,7 +208,7 @@ int BKE_mesh_validate_arrays( Mesh *me,
 			remove= do_fixes;
 		}
 
-		if(remove == FALSE){
+		if(remove == FALSE) {
 			BLI_edgehash_insert(edge_hash, med->v1, med->v2, SET_INT_IN_POINTER(i));
 		}
 		else {

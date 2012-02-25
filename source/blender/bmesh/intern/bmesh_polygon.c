@@ -459,30 +459,25 @@ void BM_vert_normal_update(BMesh *bm, BMVert *v)
 {
 	/* TODO, we can normalize each edge only once, then compare with previous edge */
 
-	BMIter eiter, liter;
-	BMEdge *e;
+	BMIter liter;
 	BMLoop *l;
 	float vec1[3], vec2[3], fac;
 	int len = 0;
 
 	zero_v3(v->no);
 
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
-			if (l->v == v) {
-				/* Same calculation used in BM_mesh_normals_update */
-				sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
-				sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
-				normalize_v3(vec1);
-				normalize_v3(vec2);
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		/* Same calculation used in BM_mesh_normals_update */
+		sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
+		sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
+		normalize_v3(vec1);
+		normalize_v3(vec2);
 
-				fac = saacos(-dot_v3v3(vec1, vec2));
-				
-				madd_v3_v3fl(v->no, l->f->no, fac);
+		fac = saacos(-dot_v3v3(vec1, vec2));
 
-				len++;
-			}
-		}
+		madd_v3_v3fl(v->no, l->f->no, fac);
+
+		len++;
 	}
 
 	if (len) {
@@ -611,27 +606,6 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
 {
 	bmesh_loop_reverse(bm, f);
 	negate_v3(f->no);
-}
-
-/* detects if two line segments cross each other (intersects).
- * note, there could be more winding cases then there needs to be. */
-static int UNUSED_FUNCTION(linecrosses)(const double v1[2], const double v2[2], const double v3[2], const double v4[2])
-{
-	int w1, w2, w3, w4, w5;
-	
-	/* w1 = winding(v1, v3, v4);
-	w2 = winding(v2, v3, v4);
-	w3 = winding(v3, v1, v2);
-	w4 = winding(v4, v1, v2);
-	
-	return (w1 == w2) && (w3 == w4); */
-
-	w1 = testedgeside(v1, v3, v2);
-	w2 = testedgeside(v2, v4, v1);
-	w3 = !testedgeside(v1, v2, v3);
-	w4 = testedgeside(v3, v2, v4);
-	w5 = !testedgeside(v3, v1, v4);
-	return w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5;
 }
 
 /* detects if two line segments cross each other (intersects).

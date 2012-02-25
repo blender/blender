@@ -30,8 +30,8 @@
  *  \brief Senses touch and collision events
  */
 
-#ifndef __KX_TOUCHSENSOR
-#define __KX_TOUCHSENSOR
+#ifndef __KX_TOUCHSENSOR_H__
+#define __KX_TOUCHSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "ListValue.h"
@@ -132,5 +132,5 @@ public:
 	
 };
 
-#endif //__KX_TOUCHSENSOR
+#endif //__KX_TOUCHSENSOR_H__
 

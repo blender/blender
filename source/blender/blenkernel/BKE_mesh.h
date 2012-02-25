@@ -193,7 +193,9 @@ typedef struct UvElement {
 	/* Face the element belongs to */
 	struct BMFace *face;
 	/* Index in the editFace of the uv */
-	unsigned char tfindex;
+	struct BMLoop *l;
+	/* index in loop. */
+	unsigned short tfindex;
 	/* Whether this element is the first of coincident elements */
 	unsigned char separate;
 	/* general use flag */

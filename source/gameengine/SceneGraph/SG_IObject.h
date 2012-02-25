@@ -29,8 +29,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_IOBJECT
-#define __SG_IOBJECT
+#ifndef __SG_IOBJECT_H__
+#define __SG_IOBJECT_H__
 
 #include "SG_QList.h"
 #include <vector>
@@ -373,5 +373,5 @@ public:
 #endif
 };
 
-#endif //__SG_IOBJECT
+#endif //__SG_IOBJECT_H__
 

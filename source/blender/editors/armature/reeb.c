@@ -3383,7 +3383,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 #if 0
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	EditMesh *em =BKE_mesh_get_editmesh(((Mesh*)obedit->data));
+	EditMesh *em = BKE_mesh_get_editmesh(((Mesh*)obedit->data));
 	EdgeIndex indexed_edges;
 	VertexData *data;
 	ReebGraph *rg = NULL;

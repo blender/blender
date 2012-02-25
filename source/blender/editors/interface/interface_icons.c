@@ -186,7 +186,7 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type= ICON_TYPE_VECTOR;
-	di->data.vector.func =drawFunc;
+	di->data.vector.func = drawFunc;
 
 	new_icon->drawinfo_free = NULL;
 	new_icon->drawinfo = di;
@@ -662,7 +662,7 @@ static void init_iconfile_list(struct ListBase *list)
 	/* free temporary direntry structure that's been created by BLI_dir_contents() */
 	i= totfile-1;
 	
-	for(; i>=0; i--){
+	for (; i>=0; i--) {
 		MEM_freeN(dir[i].relname);
 		MEM_freeN(dir[i].path);
 		if (dir[i].string) {

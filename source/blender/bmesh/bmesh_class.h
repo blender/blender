@@ -179,6 +179,8 @@ typedef struct BMesh {
 	ListBase errorstack;
 	struct Object *ob; /* owner object */
 	
+	void *py_handle;
+
 	int opflag; /* current operator flag */
 } BMesh;
 

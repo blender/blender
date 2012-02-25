@@ -29,8 +29,8 @@
  *  \ingroup gamelogic
  */
 
-#ifndef __KX_PROPERTYACTUATOR
-#define __KX_PROPERTYACTUATOR
+#ifndef __SCA_PROPERTYACTUATOR_H__
+#define __SCA_PROPERTYACTUATOR_H__
 
 #include "SCA_IActuator.h"
 

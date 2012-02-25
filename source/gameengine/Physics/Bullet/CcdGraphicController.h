@@ -18,8 +18,8 @@ subject to the following restrictions:
  */
 
 
-#ifndef BULLET2_GRAPHICCONTROLLER_H
-#define BULLET2_GRAPHICCONTROLLER_H
+#ifndef __CCDGRAPHICCONTROLLER_H__
+#define __CCDGRAPHICCONTROLLER_H__
 
 #include "PHY_IGraphicController.h"
 

@@ -907,6 +907,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		return meshobj;
 	// Get DerivedMesh data
 	DerivedMesh *dm = CDDM_from_mesh(mesh, blenderobj);
+	DM_ensure_tessface(dm);
 
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);

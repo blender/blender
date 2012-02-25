@@ -244,7 +244,6 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 					/* no break! */
 
 				case ND_FRAME_RANGE:
-					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -611,6 +610,16 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 				ar_main->alignment= RGN_ALIGN_NONE;
 				view_changed= 1;
 			}
+			if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
+				/* store graph region align */
+				if (ar_preview->alignment == RGN_ALIGN_TOP)
+					sc->runtime_flag &= ~SC_GRAPH_BOTTOM;
+				else
+					sc->runtime_flag |= SC_GRAPH_BOTTOM;
+
+				ar_preview->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
 			break;
 		case SC_VIEW_GRAPH:
 			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
@@ -624,7 +633,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 				view_changed= 1;
 			}
 			if (ar_preview && !ELEM(ar_preview->alignment, RGN_ALIGN_TOP,  RGN_ALIGN_BOTTOM)) {
-				ar_preview->alignment= RGN_ALIGN_TOP;
+				if (sc->runtime_flag & SC_GRAPH_BOTTOM)
+					ar_preview->alignment= RGN_ALIGN_BOTTOM;
+				else
+					ar_preview->alignment= RGN_ALIGN_TOP;
+
 				view_changed= 1;
 			}
 			break;

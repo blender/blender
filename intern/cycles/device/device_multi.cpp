@@ -293,7 +293,7 @@ Device *device_multi_create(DeviceInfo& info, bool background)
 	return new MultiDevice(info, background);
 }
 
-static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool with_display, const char *id_fmt, int num)
+static bool device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool with_display, bool with_advanced_shading, const char *id_fmt, int num)
 {
 	DeviceInfo info;
 
@@ -302,10 +302,12 @@ static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 	map<string, int>::iterator dt;
 	int num_added = 0, num_display = 0;
 
-	info.advanced_shading = true;
+	info.advanced_shading = with_advanced_shading;
 
 	foreach(DeviceInfo& subinfo, devices) {
 		if(subinfo.type == type) {
+			if(subinfo.advanced_shading != info.advanced_shading)
+				continue;
 			if(subinfo.display_device) {
 				if(with_display)
 					num_display++;
@@ -323,14 +325,12 @@ static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 			info.multi_devices.push_back(subinfo);
 			if(subinfo.display_device)
 				info.display_device = true;
-			if(!subinfo.advanced_shading)
-				info.advanced_shading = false;
 			num_added++;
 		}
 	}
 
 	if(num_added <= 1 || (with_display && num_display == 0))
-		return;
+		return false;
 
 	/* generate string */
 	stringstream desc;
@@ -384,17 +384,24 @@ static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 		devices.push_back(info);
 	else
 		devices.insert(devices.begin(), info);
+	
+	return true;
 }
 
 void device_multi_info(vector<DeviceInfo>& devices)
 {
 	int num = 0;
-	device_multi_add(devices, DEVICE_CUDA, false, "CUDA_MULTI_%d", num++);
-	device_multi_add(devices, DEVICE_CUDA, true, "CUDA_MULTI_%d", num++);
+
+	if(!device_multi_add(devices, DEVICE_CUDA, false, true, "CUDA_MULTI_%d", num++))
+		device_multi_add(devices, DEVICE_CUDA, false, false, "CUDA_MULTI_%d", num++);
+	if(!device_multi_add(devices, DEVICE_CUDA, true, true, "CUDA_MULTI_%d", num++))
+		device_multi_add(devices, DEVICE_CUDA, true, false, "CUDA_MULTI_%d", num++);
 
 	num = 0;
-	device_multi_add(devices, DEVICE_OPENCL, false, "OPENCL_MULTI_%d", num++);
-	device_multi_add(devices, DEVICE_OPENCL, true, "OPENCL_MULTI_%d", num++);
+	if(!device_multi_add(devices, DEVICE_OPENCL, false, true, "OPENCL_MULTI_%d", num++))
+		device_multi_add(devices, DEVICE_OPENCL, false, false, "OPENCL_MULTI_%d", num++);
+	if(!device_multi_add(devices, DEVICE_OPENCL, true, true, "OPENCL_MULTI_%d", num++))
+		device_multi_add(devices, DEVICE_OPENCL, true, false, "OPENCL_MULTI_%d", num++);
 }
 
 CCL_NAMESPACE_END

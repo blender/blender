@@ -29,8 +29,8 @@
  *  \ingroup physdummy
  */
 
-#ifndef _DUMMYPHYSICSENVIRONMENT
-#define _DUMMYPHYSICSENVIRONMENT
+#ifndef __DUMMYPHYSICSENVIRONMENT_H__
+#define __DUMMYPHYSICSENVIRONMENT_H__
 
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -104,5 +104,5 @@ public:
 #endif
 };
 
-#endif //_DUMMYPHYSICSENVIRONMENT
+#endif //__DUMMYPHYSICSENVIRONMENT_H__
 

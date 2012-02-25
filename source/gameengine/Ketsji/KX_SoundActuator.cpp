@@ -325,18 +325,15 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, startSound,
 "startSound()\n"
 "\tStarts the sound.\n")
 {
-	if(!m_handle.isNull())
+	switch(m_handle.isNull() ? AUD_STATUS_INVALID : m_handle->getStatus())
 	{
-		switch(m_handle->getStatus())
-		{
-		case AUD_STATUS_PLAYING:
-			break;
-		case AUD_STATUS_PAUSED:
-			m_handle->resume();
-			break;
-		default:
-			play();
-		}
+	case AUD_STATUS_PLAYING:
+		break;
+	case AUD_STATUS_PAUSED:
+		m_handle->resume();
+		break;
+	default:
+		play();
 	}
 	Py_RETURN_NONE;
 }

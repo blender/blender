@@ -75,7 +75,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
 	if (example) {
-		BM_elem_attrs_copy(bm, bm, (BMVert *)example, (BMVert *)v);
+		BM_elem_attrs_copy(bm, bm, (BMVert *)example, v);
 	}
 
 	BM_CHECK_ELEMENT(bm, v);
@@ -134,6 +134,7 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	e->v1 = (BMVert *) v1;
 	e->v2 = (BMVert *) v2;
 	
+	BM_elem_flag_enable(e, BM_ELEM_SMOOTH);
 	
 	CustomData_bmesh_set_default(&bm->edata, &e->head.data);
 	
@@ -171,7 +172,7 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, con
 	return l;
 }
 
-static BMLoop *bm_face_boundry_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
+static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
@@ -192,7 +193,7 @@ static BMLoop *bm_face_boundry_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge 
 	return l;
 }
 
-BMFace *BM_face_copy(BMesh *bm, BMFace *f, int copyedges, int copyverts)
+BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges)
 {
 	BMEdge **edges = NULL;
 	BMVert **verts = NULL;
@@ -291,7 +292,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 
 	f->head.htype = BM_FACE;
 
-	startl = lastl = bm_face_boundry_add(bm, (BMFace *)f, verts[0], edges[0]);
+	startl = lastl = bm_face_boundary_add(bm, (BMFace *)f, verts[0], edges[0]);
 	
 	startl->v = (BMVert *)verts[0];
 	startl->e = (BMEdge *)edges[0];
@@ -1123,10 +1124,11 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
  *  A BMFace pointer
  */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
-                   BMLoop **rl
+                   BMLoop **rl,
 #ifdef USE_BMESH_HOLES
-                   , ListBase *holes
+                   ListBase *holes,
 #endif
+                   BMEdge *example
                    )
 {
 #ifdef USE_BMESH_HOLES
@@ -1151,7 +1153,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_edge_create(bm, v1, v2, NULL, FALSE);
+	e = BM_edge_create(bm, v1, v2, example, FALSE);
 
 	f2 = bmesh_addpolylist(bm, f);
 	f1loop = bmesh_create_loop(bm, v2, e, f, v2loop);

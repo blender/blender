@@ -29,8 +29,8 @@
  *  \ingroup bgenet
  *  \brief NetworkSceneManagement generic class
  */
-#ifndef __NG_NETWORKSCENE_H
-#define __NG_NETWORKSCENE_H
+#ifndef __NG_NETWORKSCENE_H__
+#define __NG_NETWORKSCENE_H__
 
 #include "CTR_Map.h"
 #include "STR_HashedString.h"
@@ -44,6 +44,8 @@
 #ifdef SendMessage
 	#undef SendMessage
 #endif
+
+using namespace std;
 
 class NG_NetworkDeviceInterface;
 
@@ -115,5 +117,5 @@ public:
 #endif
 };
 
-#endif //__NG_NETWORKSCENE_H
+#endif //__NG_NETWORKSCENE_H__
 

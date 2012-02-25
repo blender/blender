@@ -254,7 +254,6 @@ if(APPLE)
 		"Choose the minimum OSX version required: 10.4 or 10.5"
 		FORCE)
 	endif()
-	MESSAGE(STATUS ${CMAKE_GENERATOR})
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4)
 			# Xcode 4 defaults to the Apple LLVM Compiler.

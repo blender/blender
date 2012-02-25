@@ -88,19 +88,13 @@ void multiresModifier_scale_disp(struct Scene *scene, struct Object *ob);
 void multiresModifier_prepare_join(struct Scene *scene, struct Object *ob, struct Object *to_ob);
 
 int multires_mdisp_corners(struct MDisps *s);
-void multires_mdisp_smooth_bounds(struct MDisps *disps);
 
 /* update multires data after topology changing */
 void multires_topology_changed(struct Scene *scene, struct Object *ob);
 
 /**** interpolation stuff ****/
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);
-void mdisp_rot_crn_to_face(const int S, const int corners, const int face_side, const float x, const float y, float *u, float *v);
 int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y);
-int mdisp_rot_face_to_quad_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y);
-void mdisp_apply_weight(const int S, const int corners, int x, int y, const int face_side, float crn_weight[4][2], float *u_r, float *v_r);
-void mdisp_flip_disp(const int S, const int corners, const float axis_x[2], const float axis_y[2], float disp[3]);
-void mdisp_join_tris(struct MDisps *dst, struct MDisps *tri1, struct MDisps *tri2);
 
 #endif // __BKE_MULTIRES_H__
 

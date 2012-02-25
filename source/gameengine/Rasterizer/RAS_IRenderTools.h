@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef __RAS_IRENDERTOOLS
-#define __RAS_IRENDERTOOLS
+#ifndef __RAS_IRENDERTOOLS_H__
+#define __RAS_IRENDERTOOLS_H__
 
 #include "MT_Transform.h"
 #include "RAS_IRasterizer.h"
@@ -210,7 +210,7 @@ public:
 #endif
 };
 
-#endif //__RAS_IRENDERTOOLS
+#endif //__RAS_IRENDERTOOLS_H__
 
 
 

@@ -32,8 +32,8 @@
  * Please look here for revision history.
  */
 
-#ifndef __KX_SCA_ENDOBJECTACTUATOR
-#define __KX_SCA_ENDOBJECTACTUATOR
+#ifndef __KX_SCA_ENDOBJECTACTUATOR_H__
+#define __KX_SCA_ENDOBJECTACTUATOR_H__
 
 #include "SCA_IActuator.h"
 

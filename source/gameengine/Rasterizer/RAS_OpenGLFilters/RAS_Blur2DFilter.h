@@ -29,8 +29,8 @@
  *  \ingroup bgerastoglfilters
  */
 
-#ifndef __RAS_BLUR2DFILTER
-#define __RAS_BLUR2DFILTER
+#ifndef __RAS_BLUR2DFILTER_H__
+#define __RAS_BLUR2DFILTER_H__
 
 const char * BlurFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;

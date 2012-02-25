@@ -110,14 +110,22 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 
 static void do_node_add_static(bContext *C, void *UNUSED(arg), int event)
 {
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	bNodeTemplate ntemp;
+	
 	ntemp.type = event;
+	ntemp.main = bmain;
+	ntemp.scene = scene;
+	
 	do_node_add(C, &ntemp);
 }
 
 static void do_node_add_group(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	bNodeTemplate ntemp;
 	
 	if (event>=0) {
@@ -143,14 +151,24 @@ static void do_node_add_group(bContext *C, void *UNUSED(arg), int event)
 	if (!ntemp.ngroup)
 		return;
 	
+	ntemp.main = bmain;
+	ntemp.scene = scene;
+	
 	do_node_add(C, &ntemp);
 }
 
 #if 0 /* disabled */
 static void do_node_add_dynamic(bContext *C, void *UNUSED(arg), int event)
 {
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	bNodeTemplate ntemp;
+	
 	ntemp.type = NODE_DYNAMIC;
+	
+	ntemp.main = bmain;
+	ntemp.scene = scene;
+	
 	do_node_add(C, &ntemp);
 }
 #endif

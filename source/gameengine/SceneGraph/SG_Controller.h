@@ -32,8 +32,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_CONTROLLER_H
-#define __SG_CONTROLLER_H
+#ifndef __SG_CONTROLLER_H__
+#define __SG_CONTROLLER_H__
 
 #include "SG_IObject.h"
 
@@ -124,5 +124,5 @@ protected:
 
 };
 
-#endif //__SG_CONTROLLER_H
+#endif //__SG_CONTROLLER_H__
 

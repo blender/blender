@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_TIME_LOGGER_H
-#define __KX_TIME_LOGGER_H
+#ifndef __KX_TIMELOGGER_H__
+#define __KX_TIMELOGGER_H__
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
@@ -113,5 +113,5 @@ public:
 #endif
 };
 
-#endif // __KX_TIME_LOGGER_H
+#endif // __KX_TIMELOGGER_H__
 

@@ -166,6 +166,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 				collmd->numverts = numverts;
 				
+				DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 				collmd->mfaces = dm->dupTessFaceArray(dm);
 				collmd->numfaces = dm->getNumTessFaces(dm);
 				

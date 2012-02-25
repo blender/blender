@@ -29,8 +29,8 @@
  *  \ingroup bgeconv
  */
 
-#ifndef __BL_ARMATURECONSTRAINT
-#define __BL_ARMATURECONSTRAINT
+#ifndef __BL_ARMATURECONSTRAINT_H__
+#define __BL_ARMATURECONSTRAINT_H__
 
 #include "DNA_constraint_types.h"
 #include "CTR_HashedPtr.h"
@@ -117,5 +117,5 @@ public:
 #endif // WITH_PYTHON
 };
 
-#endif //__BL_ARMATURECONSTRAINT
+#endif //__BL_ARMATURECONSTRAINT_H__
 

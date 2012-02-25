@@ -125,7 +125,7 @@ void   BM_mesh_free(BMesh *bm);
 
 /* frees mesh, but not actual BMesh struct */
 void BM_mesh_data_free(BMesh *bm);
-void BM_mesh_normals_update(BMesh *bm);
+void BM_mesh_normals_update(BMesh *bm, const short skip_hidden);
 
 /* Construction */
 BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example);
@@ -191,7 +191,7 @@ BM_INLINE void BM_elem_index_set(void *element, const int index);
 BM_INLINE int  BM_elem_index_get(const void *element);
 
 /* todo */
-BMFace *BM_face_copy(BMesh *bm, BMFace *f, int copyedges, int copyverts);
+BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges);
 
 /* copies loop data from adjacent faces */
 void BM_face_copy_shared(BMesh *bm, BMFace *f);
@@ -218,11 +218,11 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f,
 
 /* these 2 functions are very similar */
 BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces);
-BMEdge* BM_vert_collapse_edges(BMesh *bm, BMEdge *ke, BMVert *kv);
+BMEdge* BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv);
 
 
 /* splits an edge.  ne is set to the new edge created. */
-BMVert *BM_edge_split(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent);
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percent);
 
 /* split an edge multiple times evenly */
 BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
@@ -300,7 +300,7 @@ void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
 
 void BM_mesh_select_mode_flush(BMesh *bm);
 
-/* mode independant flushing up/down */
+/* mode independent flushing up/down */
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
 

@@ -30,8 +30,8 @@
  *  \brief Set or remove an objects parent
  */
 
-#ifndef __KX_PARENTACTUATOR
-#define __KX_PARENTACTUATOR
+#ifndef __KX_PARENTACTUATOR_H__
+#define __KX_PARENTACTUATOR_H__
 
 #include "SCA_IActuator.h"
 #include "SCA_LogicManager.h"

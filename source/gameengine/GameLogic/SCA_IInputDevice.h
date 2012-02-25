@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef KX_INPUTDEVICE_H
-#define KX_INPUTDEVICE_H
+#ifndef __SCA_IINPUTDEVICE_H__
+#define __SCA_IINPUTDEVICE_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -322,5 +322,5 @@ public:
 #endif
 };
 
-#endif	//KX_INPUTDEVICE_H
+#endif	//__SCA_IINPUTDEVICE_H__
 

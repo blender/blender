@@ -30,8 +30,8 @@
  *  \brief Property sensor
  */
 
-#ifndef __KX_PROPERTYSENSOR
-#define __KX_PROPERTYSENSOR
+#ifndef __SCA_PROPERTYSENSOR_H__
+#define __SCA_PROPERTYSENSOR_H__
 
 #include "SCA_ISensor.h"
 

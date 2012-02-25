@@ -270,7 +270,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			CD_MLOOPUV, uvname, numLoops);
 
 	/* can be NULL */
-	mtexpoly = CustomData_duplicate_referenced_layer_named(&dm->polyData,
+	mt = mtexpoly = CustomData_duplicate_referenced_layer_named(&dm->polyData,
 			CD_MTEXPOLY, uvname, numPolys);
 
 	numVerts = dm->getNumVerts(dm);

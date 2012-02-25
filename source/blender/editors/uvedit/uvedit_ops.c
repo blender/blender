@@ -938,14 +938,9 @@ static UvMapVert *uv_vertex_map_get(UvVertMap *vmap, BMFace *efa, int a)
 	return NULL;
 }
 
-/* BMESH_TODO - in some cases we already know the loop so looking up the index isnt needed */
-
-UvElement *ED_get_uv_element(UvElementMap *map, BMFace *efa, int index)
+UvElement *ED_get_uv_element(UvElementMap *map, BMFace *efa, BMLoop *l)
 {
-	BMLoop *l;
 	UvElement *element;
-
-	l = BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, index);
 
 	element = map->vert[BM_elem_index_get(l->v)];
 

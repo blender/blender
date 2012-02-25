@@ -29,8 +29,8 @@
  *  \ingroup blroutines
  */
 
-#ifndef __KX_BLENDERMOUSEDEVICE
-#define __KX_BLENDERMOUSEDEVICE
+#ifndef __KX_BLENDERMOUSEDEVICE_H__
+#define __KX_BLENDERMOUSEDEVICE_H__
 
 #include "KX_BlenderInputDevice.h"
 
@@ -57,5 +57,5 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERMOUSEDEVICE
+#endif //__KX_BLENDERMOUSEDEVICE_H__
 

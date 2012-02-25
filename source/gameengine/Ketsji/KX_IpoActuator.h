@@ -30,8 +30,8 @@
  *  \brief Do an object ipo
  */
 
-#ifndef __KX_IPOACTUATOR
-#define __KX_IPOACTUATOR
+#ifndef __KX_IPOACTUATOR_H__
+#define __KX_IPOACTUATOR_H__
 
 #include "SCA_IActuator.h"
 
@@ -150,5 +150,5 @@ public:
 	
 };
 
-#endif //__KX_IPOACTUATOR
+#endif //__KX_IPOACTUATOR_H__
 

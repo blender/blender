@@ -424,9 +424,9 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image* ima, MPassKnownData
 
 			nr_tris= mface[f].v4!=0 ? 2 : 1;
 			for(t= 0; t<nr_tris; t++) {
-				data.i0= verts[0][t];
-				data.i1= verts[1][t];
-				data.i2 =verts[2][t];
+				data.i0 = verts[0][t];
+				data.i1 = verts[1][t];
+				data.i2 = verts[2][t];
 
 				bake_rasterize(&bake_rast, mtfate->uv[data.i0], mtfate->uv[data.i1], mtfate->uv[data.i2]);
 			}

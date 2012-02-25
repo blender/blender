@@ -261,7 +261,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 
 void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 {
-	ModifierData *md =ob->modifiers.first;
+	ModifierData *md = ob->modifiers.first;
 	int sort_depsgraph = 0;
 
 	if(!md)

@@ -29,8 +29,8 @@
  *  \ingroup bgesg
  */
  
-#ifndef __SG_SPATIAL_H
-#define __SG_SPATIAL_H
+#ifndef __SG_SPATIAL_H__
+#define __SG_SPATIAL_H__
 
 #include <MT_Vector3.h>
 #include <MT_Point3.h>
@@ -293,5 +293,5 @@ public:
 #endif
 };
 
-#endif //__SG_SPATIAL_H
+#endif //__SG_SPATIAL_H__
 

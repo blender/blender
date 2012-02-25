@@ -32,6 +32,24 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
+	'\0',
+	BM_VERT, /* BM_VERTS_OF_MESH */
+	BM_EDGE, /* BM_EDGES_OF_MESH */
+	BM_FACE, /* BM_FACES_OF_MESH */
+	BM_EDGE, /* BM_EDGES_OF_VERT */
+	BM_FACE, /* BM_FACES_OF_VERT */
+	BM_LOOP, /* BM_LOOPS_OF_VERT */
+	BM_VERT, /* BM_VERTS_OF_EDGE */
+	BM_FACE, /* BM_FACES_OF_EDGE */
+	BM_VERT, /* BM_VERTS_OF_FACE */
+	BM_EDGE, /* BM_EDGES_OF_FACE */
+	BM_LOOP, /* BM_LOOPS_OF_FACE */
+	BM_LOOP, /* BM_ALL_LOOPS_OF_FACE */
+	BM_LOOP, /* BM_LOOPS_OF_LOOP */
+	BM_LOOP  /* BM_LOOPS_OF_EDGE */
+};
+
 /*
  * note, we have BM_vert_at_index/BM_edge_at_index/BM_face_at_index for arrays
  */
@@ -200,7 +218,7 @@ void  bmiter__face_of_vert_begin(BMIter *iter)
 	if (iter->count) {
 		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->e, iter->vdata);
 		iter->nextedge = iter->firstedge;
-		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->l, iter->vdata);
+		iter->firstloop = bmesh_radial_find_first_faceloop(iter->firstedge->l, iter->vdata);
 		iter->nextloop = iter->firstloop;
 	}
 }
@@ -210,10 +228,10 @@ void  *bmiter__face_of_vert_step(BMIter *iter)
 
 	if (iter->count && iter->nextloop) {
 		iter->count--;
-		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
+		iter->nextloop = bmesh_radial_find_next_faceloop(iter->nextloop, iter->vdata);
 		if (iter->nextloop == iter->firstloop) {
 			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
-			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->l, iter->vdata);
+			iter->firstloop = bmesh_radial_find_first_faceloop(iter->nextedge->l, iter->vdata);
 			iter->nextloop = iter->firstloop;
 		}
 	}
@@ -238,7 +256,7 @@ void  bmiter__loop_of_vert_begin(BMIter *iter)
 	if (iter->count) {
 		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->e, iter->vdata);
 		iter->nextedge = iter->firstedge;
-		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->l, iter->vdata);
+		iter->firstloop = bmesh_radial_find_first_faceloop(iter->firstedge->l, iter->vdata);
 		iter->nextloop = iter->firstloop;
 	}
 }
@@ -248,10 +266,10 @@ void  *bmiter__loop_of_vert_step(BMIter *iter)
 
 	if (iter->count) {
 		iter->count--;
-		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
+		iter->nextloop = bmesh_radial_find_next_faceloop(iter->nextloop, iter->vdata);
 		if (iter->nextloop == iter->firstloop) {
 			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
-			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->l, iter->vdata);
+			iter->firstloop = bmesh_radial_find_first_faceloop(iter->nextedge->l, iter->vdata);
 			iter->nextloop = iter->firstloop;
 		}
 	}
@@ -351,6 +369,30 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
 	if (iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
 	return current ? current->f : NULL;
+}
+
+/*
+ * VERTS OF EDGE CALLBACKS
+ *
+ */
+
+void  bmiter__vert_of_edge_begin(BMIter *iter)
+{
+	init_iterator(iter);
+	iter->count = 0;
+}
+
+void  *bmiter__vert_of_edge_step(BMIter *iter)
+{
+	iter->count++;
+	switch (iter->count) {
+		case 1:
+			return iter->edata->v1;
+		case 2:
+			return iter->edata->v1;
+		default:
+			return NULL;
+	}
 }
 
 /*

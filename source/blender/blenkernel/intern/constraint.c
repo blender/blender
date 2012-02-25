@@ -223,6 +223,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 
 /* -------------- Space-Conversion API -------------- */
 
+#if 0 /* XXX Old code, does the same as one in armature.c, will remove it later. */
 static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
 {
 	if (pchan->parent) {
@@ -265,7 +266,7 @@ static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
 		copy_m4_m4(diff_mat, pchan->bone->arm_mat);
 	}
 }
-
+#endif
 
 /* This function is responsible for the correct transformations/conversions 
  * of a matrix from one space to another for constraint evaluation.
@@ -273,7 +274,6 @@ static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
  */
 void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
 {
-	float tempmat[4][4];
 	float diff_mat[4][4];
 	float imat[4][4];
 	
@@ -290,8 +290,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			{
 				/* world to pose */
 				invert_m4_m4(imat, ob->obmat);
-				copy_m4_m4(tempmat, mat);
-				mult_m4_m4m4(mat, imat, tempmat);
+				mult_m4_m4m4(mat, imat, mat);
 				
 				/* use pose-space as stepping stone for other spaces... */
 				if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
@@ -304,32 +303,31 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			{
 				/* pose to world */
 				if (to == CONSTRAINT_SPACE_WORLD) {
-					copy_m4_m4(tempmat, mat);
-					mult_m4_m4m4(mat, ob->obmat, tempmat);
+					mult_m4_m4m4(mat, ob->obmat, mat);
 				}
 				/* pose to local */
 				else if (to == CONSTRAINT_SPACE_LOCAL) {
 					if (pchan->bone) {
+						armature_mat_pose_to_bone(pchan, mat, mat);
+#if 0  /* XXX Old code, will remove it later. */
 						constraint_pchan_diff_mat(pchan, diff_mat);
 
 						invert_m4_m4(imat, diff_mat);
-
-						copy_m4_m4(tempmat, mat);
-						mult_m4_m4m4(mat, imat, tempmat);
+						mult_m4_m4m4(mat, imat, mat);
 
 						/* override with local location */
 						if ((pchan->parent) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
 							armature_mat_pose_to_bone_ex(ob, pchan, pchan->pose_mat, tempmat);
 							copy_v3_v3(mat[3], tempmat[3]);
 						}
+#endif
 					}
 				}
 				/* pose to local with parent */
 				else if (to == CONSTRAINT_SPACE_PARLOCAL) {
 					if (pchan->bone) {
 						invert_m4_m4(imat, pchan->bone->arm_mat);
-						copy_m4_m4(tempmat, mat);
-						mult_m4_m4m4(mat, imat, tempmat);
+						mult_m4_m4m4(mat, imat, mat);
 					}
 				}
 			}
@@ -339,10 +337,12 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* local to pose - do inverse procedure that was done for pose to local */
 				if (pchan->bone) {
 					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+					armature_mat_bone_to_pose(pchan, mat, mat);
+#if 0
 					constraint_pchan_diff_mat(pchan, diff_mat);
 
-					copy_m4_m4(tempmat, mat);
-					mult_m4_m4m4(mat, diff_mat, tempmat);
+					mult_m4_m4m4(mat, diff_mat, mat);
+#endif
 				}
 				
 				/* use pose-space as stepping stone for other spaces */
@@ -357,8 +357,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* local + parent to pose */
 				if (pchan->bone) {					
 					copy_m4_m4(diff_mat, pchan->bone->arm_mat);
-					copy_m4_m4(tempmat, mat);
-					mult_m4_m4m4(mat, tempmat, diff_mat);
+					mult_m4_m4m4(mat, mat, diff_mat);
 				}
 				
 				/* use pose-space as stepping stone for other spaces */
@@ -378,8 +377,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* 'subtract' parent's effects from owner */
 				mult_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
 				invert_m4_m4(imat, diff_mat);
-				copy_m4_m4(tempmat, mat);
-				mult_m4_m4m4(mat, imat, tempmat);
+				mult_m4_m4m4(mat, imat, mat);
 			}
 			else {
 				/* Local space in this case will have to be defined as local to the owner's 
@@ -390,17 +388,15 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				zero_v3(diff_mat[3]);
 				
 				invert_m4_m4(imat, diff_mat);
-				copy_m4_m4(tempmat, mat);
-				mult_m4_m4m4(mat, imat, tempmat);
+				mult_m4_m4m4(mat, imat, mat);
 			}
 		}
 		else if (from==CONSTRAINT_SPACE_LOCAL && to==CONSTRAINT_SPACE_WORLD) {
 			/* check that object has a parent - otherwise this won't work */
 			if (ob->parent) {
 				/* 'add' parent's effect back to owner */
-				copy_m4_m4(tempmat, mat);
 				mult_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
-				mult_m4_m4m4(mat, diff_mat, tempmat);
+				mult_m4_m4m4(mat, diff_mat, mat);
 			}
 			else {
 				/* Local space in this case will have to be defined as local to the owner's 
@@ -410,8 +406,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				normalize_m4(diff_mat);
 				zero_v3(diff_mat[3]);
 				
-				copy_m4_m4(tempmat, mat);
-				mult_m4_m4m4(mat, diff_mat, tempmat);
+				mult_m4_m4m4(mat, diff_mat, mat);
 			}
 		}
 	}
@@ -2322,7 +2317,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* Vector object -> target */
 		sub_v3_v3v3(vec, ct->matrix[3], cob->matrix[3]);
-		switch (data->lockflag){
+		switch (data->lockflag) {
 		case LOCK_X: /* LOCK X */
 		{
 			switch (data->trackflag) {

@@ -29,8 +29,8 @@
  *  \ingroup bgenet
  *  \brief generic Network Object class
  */
-#ifndef NG_NETWORKOBJECT_H
-#define NG_NETWORKOBJECT_H
+#ifndef __NG_NETWORKOBJECT_H__
+#define __NG_NETWORKOBJECT_H__
 
 #include "STR_String.h"
 
@@ -54,5 +54,5 @@ public:
 #endif
 };
 
-#endif //NG_NETWORKOBJECT_H
+#endif //__NG_NETWORKOBJECT_H__
 

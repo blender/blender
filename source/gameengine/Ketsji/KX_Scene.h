@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_SCENE_H
-#define __KX_SCENE_H
+#ifndef __KX_SCENE_H__
+#define __KX_SCENE_H__
 
 
 #include "KX_PhysicsEngineEnums.h"
@@ -140,12 +140,12 @@ protected:
 	/**
 	 * The set of cameras for this scene
 	 */
-	list<class KX_Camera*>       m_cameras;
+	std::list<class KX_Camera*>       m_cameras;
 
 	/**
 	 * The set of fonts for this scene
 	 */
-	list<class KX_FontObject*>       m_fonts;
+	std::list<class KX_FontObject*>   m_fonts;
 
 
 	/**
@@ -383,7 +383,7 @@ public:
 
 	/** Font Routines */
 		
-		list<class KX_FontObject*>*
+		std::list<class KX_FontObject*>*
 	GetFonts(
 	);
 
@@ -402,7 +402,7 @@ public:
 
 	/** Camera Routines */
 
-		list<class KX_Camera*>*
+		std::list<class KX_Camera*>*
 	GetCameras(
 	);
  
@@ -584,7 +584,7 @@ public:
 	/**
 	* 2D Filters
 	*/
-	void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
+	void Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 
 	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
@@ -665,5 +665,5 @@ public:
 
 typedef std::vector<KX_Scene*> KX_SceneList;
 
-#endif //__KX_SCENE_H
+#endif //__KX_SCENE_H__
 

@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef KX_CONVERTPHYSICSOBJECTS
-#define KX_CONVERTPHYSICSOBJECTS
+#ifndef __KX_CONVERTPHYSICSOBJECT_H__
+#define __KX_CONVERTPHYSICSOBJECT_H__
 
 class RAS_MeshObject;
 class KX_Scene;
@@ -158,4 +158,4 @@ void	KX_ClearBulletSharedShapes();
 bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj);
 
 #endif
-#endif //KX_CONVERTPHYSICSOBJECTS
+#endif //__KX_CONVERTPHYSICSOBJECT_H__

@@ -3,8 +3,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_BLENDER_MATERIAL_H__
-#define __KX_BLENDER_MATERIAL_H__
+#ifndef __KX_BLENDERMATERIAL_H__
+#define __KX_BLENDERMATERIAL_H__
 
 #include <vector>
 

@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_LIGHT
-#define __KX_LIGHT
+#ifndef __KX_LIGHT_H__
+#define __KX_LIGHT_H__
 
 #include "RAS_LightObject.h"
 #include "KX_GameObject.h"
@@ -82,5 +82,5 @@ public:
 #endif
 };
 
-#endif //__KX_LIGHT
+#endif //__KX_LIGHT_H__
 

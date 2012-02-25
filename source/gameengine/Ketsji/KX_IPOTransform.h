@@ -30,8 +30,8 @@
  *  \brief An abstract object you can move around in a 3d world, and has some logic
  */
 
-#ifndef KX_IPOTRANSFORM_H
-#define KX_IPOTRANSFORM_H
+#ifndef __KX_IPOTRANSFORM_H__
+#define __KX_IPOTRANSFORM_H__
 
 #include "MT_Transform.h"
 

@@ -30,8 +30,8 @@
  *  \brief Ketsji Logic Extenstion: Network Event Manager class
  */
 
-#ifndef KX_NETWORK_EVENTMANAGER_H
-#define KX_NETWORK_EVENTMANAGER_H
+#ifndef __KX_NETWORKEVENTMANAGER_H__
+#define __KX_NETWORKEVENTMANAGER_H__
 
 #include "SCA_EventManager.h"
 
@@ -52,5 +52,5 @@ public:
 		return m_ndi; }
 };
 
-#endif //KX_NETWORK_EVENTMANAGER_H
+#endif //__KX_NETWORKEVENTMANAGER_H__
 

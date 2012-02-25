@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_RADAR_SENSOR_H
-#define __KX_RADAR_SENSOR_H
+#ifndef __KX_RADARSENSOR_H__
+#define __KX_RADARSENSOR_H__
 
 #include "KX_NearSensor.h"
 #include "MT_Point3.h"
@@ -95,5 +95,5 @@ public:
 
 };
 
-#endif //__KX_RADAR_SENSOR_H
+#endif //__KX_RADARSENSOR_H__
 

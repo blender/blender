@@ -29,8 +29,8 @@
  *  \ingroup bgerast
  */
 
-#ifndef RAS_FRAMINGMANAGER_H
-#define RAS_FRAMINGMANAGER_H
+#ifndef __RAS_FRAMINGMANAGER_H__
+#define __RAS_FRAMINGMANAGER_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

@@ -294,9 +294,9 @@ static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *un
 	bUnitDef *unit;
 	double value_abs= value>0.0?value:-value;
 
-	for(unit= unit_start ? unit_start:usys->units; unit->name; unit++) {
+	for (unit= unit_start ? unit_start:usys->units; unit->name; unit++) {
 
-		if(suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
+		if (suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
 			continue;
 
 		/* scale down scalar so 1cm doesnt convert to 10mm because of float error */
@@ -329,10 +329,10 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	double value_conv;
 	int len, i;
 	
-	if(unit) {
+	if (unit) {
 		/* use unit without finding the best one */
 	}
-	else if(value == 0.0) {
+	else if (value == 0.0) {
 		/* use the default units since there is no way to convert */
 		unit= unit_default(usys);
 	}
@@ -346,7 +346,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	{
 		len= BLI_snprintf(str, len_max, "%.*f", prec, value_conv);
 
-		if(len >= len_max)
+		if (len >= len_max)
 			len= len_max;
 	}
 	
@@ -361,19 +361,19 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 		str[i--]= pad;
 	}
 
-	if(i>0 && str[i]=='.') { /* 10. -> 10 */
+	if (i>0 && str[i]=='.') { /* 10. -> 10 */
 		str[i--]= pad;
 	}
 	
 	/* Now add the suffix */
-	if(i<len_max) {
+	if (i<len_max) {
 		int j=0;
 		i++;
 		while(unit->name_short[j] && (i < len_max)) {
 			str[i++]= unit->name_short[j++];
 		}
 
-		if(pad) {
+		if (pad) {
 			/* this loop only runs if so many zeros were removed that
 			 * the unit name only used padded chars,
 			 * In that case add padding for the name. */
@@ -385,7 +385,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	}
 
 	/* terminate no matter whats done with padding above */
-	if(i >= len_max)
+	if (i >= len_max)
 		i= len_max-1;
 
 	str[i] = '\0';
@@ -398,22 +398,22 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
-	if(usys==NULL || usys->units[0].name==NULL)
+	if (usys==NULL || usys->units[0].name==NULL)
 		usys= &buDummyCollecton;
    
 	/* split output makes sense only for length, mass and time */
-	if(split && (type==B_UNIT_LENGTH || type==B_UNIT_MASS || type==B_UNIT_TIME)) {
+	if (split && (type==B_UNIT_LENGTH || type==B_UNIT_MASS || type==B_UNIT_TIME)) {
 		bUnitDef *unit_a, *unit_b;
 		double value_a, value_b;
 
 		unit_dual_convert(value, usys,		&unit_a, &unit_b, &value_a, &value_b);
 
 		/* check the 2 is a smaller unit */
-		if(unit_b > unit_a) {
+		if (unit_b > unit_a) {
 			int i= unit_as_string(str, len_max, value_a, prec, usys,  unit_a, '\0');
 
 			/* is there enough space for at least 1 char of the next unit? */
-			if(i+2 < len_max) {
+			if (i+2 < len_max) {
 				str[i++]= ' ';
 
 				/* use low precision since this is a smaller unit */
@@ -431,9 +431,9 @@ static const char *unit_find_str(const char *str, const char *substr)
 {
 	const char *str_found;
 
-	if(substr && substr[0] != '\0') {
+	if (substr && substr[0] != '\0') {
 		str_found= strstr(str, substr);
-		if(str_found) {
+		if (str_found) {
 			/* previous char cannot be a letter */
 			if (str_found == str || isalpha(*(str_found-1))==0) {
 				/* next char cannot be alphanum */
@@ -487,7 +487,7 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp,
 {
 	char *str_found;
 
-	if((len_max>0) && (str_found= (char *)unit_find_str(str, replace_str))) {
+	if ((len_max>0) && (str_found= (char *)unit_find_str(str, replace_str))) {
 		/* XXX - investigate, does not respect len_max properly  */
 
 		int len, len_num, len_name, len_move, found_ofs;
@@ -500,25 +500,25 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp,
 		len_move= (len - (found_ofs+len_name)) + 1; /* 1+ to copy the string terminator */
 		len_num= BLI_snprintf(str_tmp, TEMP_STR_SIZE, "*%g"SEP_STR, unit->scalar/scale_pref); /* # removed later */
 
-		if(len_num > len_max)
+		if (len_num > len_max)
 			len_num= len_max;
 
-		if(found_ofs+len_num+len_move > len_max) {
+		if (found_ofs+len_num+len_move > len_max) {
 			/* can't move the whole string, move just as much as will fit */
 			len_move -= (found_ofs+len_num+len_move) - len_max;
 		}
 
-		if(len_move>0) {
+		if (len_move>0) {
 			/* resize the last part of the string */
 			memmove(str_found+len_num, str_found+len_name, len_move); /* may grow or shrink the string */
 		}
 
-		if(found_ofs+len_num > len_max) {
+		if (found_ofs+len_num > len_max) {
 			/* not even the number will fit into the string, only copy part of it */
 			len_num -= (found_ofs+len_num) - len_max;
 		}
 
-		if(len_num > 0) {
+		if (len_num > 0) {
 			/* its possible none of the number could be copied in */
 			memcpy(str_found, str_tmp, len_num); /* without the string terminator */
 		}
@@ -574,7 +574,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	char str_tmp[TEMP_STR_SIZE];
 	int change= 0;
 
-	if(usys==NULL || usys->units[0].name==NULL) {
+	if (usys==NULL || usys->units[0].name==NULL) {
 		return 0;
 	}
 	
@@ -583,13 +583,13 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 		int i;
 		char *ch= str;
 
-		for(i=0; (i>=len_max || *ch=='\0'); i++, ch++)
-			if((*ch>='A') && (*ch<='Z'))
+		for (i=0; (i>=len_max || *ch=='\0'); i++, ch++)
+			if ((*ch>='A') && (*ch<='Z'))
 				*ch += ('a'-'A');
 	}
 
 
-	for(unit= usys->units; unit->name; unit++) {
+	for (unit= usys->units; unit->name; unit++) {
 		/* incase there are multiple instances */
 		while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
 			change= 1;
@@ -601,11 +601,11 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 		bUnitCollection *usys_iter;
 		int system_iter;
 
-		for(system_iter= 0; system_iter<UNIT_SYSTEM_TOT; system_iter++) {
+		for (system_iter= 0; system_iter<UNIT_SYSTEM_TOT; system_iter++) {
 			if (system_iter != system) {
 				usys_iter= unit_get_system(system_iter, type);
 				if (usys_iter) {
-					for(unit= usys_iter->units; unit->name; unit++) {
+					for (unit= usys_iter->units; unit->name; unit++) {
 						int ofs = 0;
 						/* incase there are multiple instances */
 						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
@@ -617,22 +617,22 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	}
 	unit= NULL;
 	
-	if(change==0) {
+	if (change==0) {
 		/* no units given so infer a unit from the previous string or default */
-		if(str_prev) {
+		if (str_prev) {
 			/* see which units the original value had */
-			for(unit= usys->units; unit->name; unit++) {
+			for (unit= usys->units; unit->name; unit++) {
 				if (unit_find(str_prev, unit))
 					break;
 			}
 		}
 
-		if(unit==NULL || unit->name == NULL)
+		if (unit==NULL || unit->name == NULL)
 			unit= unit_default(usys);
 
 
 		/* add the unit prefix and re-run, use brackets incase there was an expression given */
-		if(BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
+		if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
 			strncpy(str, str_tmp, len_max);
 			return bUnit_ReplaceString(str, len_max, NULL, scale_pref, system, type);
 		}
@@ -657,9 +657,9 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 
 			int op_found= 0;
 			/* any operators after this?*/
-			for(ch= str_found+1; *ch!='\0'; ch++) {
+			for (ch= str_found+1; *ch!='\0'; ch++) {
 
-				if(*ch==' ' || *ch=='\t') {
+				if (*ch==' ' || *ch=='\t') {
 					/* do nothing */
 				}
 				else if (ch_is_op(*ch) || *ch==',') { /* found an op, no need to insert a ,*/
@@ -688,11 +688,11 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 	bUnitDef *unit_def= unit_default(usys);
 
 	/* find and substitute all units */
-	for(unit= usys->units; unit->name; unit++) {
-		if(len_max > 0 && (unit->name_alt || unit == unit_def))
+	for (unit= usys->units; unit->name; unit++) {
+		if (len_max > 0 && (unit->name_alt || unit == unit_def))
 		{
 			const char *found= unit_find_str(orig_str, unit->name_short);
-			if(found) {
+			if (found) {
 				int offset= (int)(found - orig_str);
 				int len_name= 0;
 
@@ -705,7 +705,7 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 				len_max-= offset;
 
 				/* print the alt_name */
-				if(unit->name_alt)
+				if (unit->name_alt)
 					len_name= BLI_snprintf(str, len_max, "%s", unit->name_alt);
 				else
 					len_name= 0;
@@ -726,11 +726,11 @@ double bUnit_ClosestScalar(double value, int system, int type)
 	bUnitCollection *usys = unit_get_system(system, type);
 	bUnitDef *unit;
 
-	if(usys==NULL)
+	if (usys==NULL)
 		return -1;
 
 	unit= unit_best_fit(value, usys, NULL, 1);
-	if(unit==NULL)
+	if (unit==NULL)
 		return -1;
 
 	return unit->scalar;
@@ -754,7 +754,7 @@ void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 	bUnitCollection *usys = unit_get_system(system, type);
 	*usys_pt= usys;
 
-	if(usys==NULL) {
+	if (usys==NULL) {
 		*len= 0;
 		return;
 	}

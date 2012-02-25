@@ -142,7 +142,6 @@ typedef struct PBVHVertexIter {
 	int g;
 	int width;
 	int height;
-	int skip;
 	int gx;
 	int gy;
 	int i;
@@ -171,47 +170,17 @@ typedef struct PBVHVertexIter {
 #pragma warning (disable:4127) // conditional expression is constant
 #endif
 
+void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
+						   PBVHVertexIter *vi, int mode);
+
 #define BLI_pbvh_vertex_iter_begin(bvh, node, vi, mode) \
-	{ \
-		struct DMGridData **grids; \
-		struct MVert *verts; \
-		int *grid_indices, totgrid, gridsize, *vert_indices, uniq_verts, totvert; \
-		\
-		vi.grid= 0; \
-		vi.no= 0; \
-		vi.fno= 0; \
-		vi.mvert= 0; \
-		vi.skip= 0; \
-		\
-		BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL); \
-		BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert); \
-		BLI_pbvh_node_get_verts(bvh, node, &vert_indices, &verts); \
-		\
-		vi.grids= grids; \
-		vi.grid_indices= grid_indices; \
-		vi.totgrid= (grids)? totgrid: 1; \
-		vi.gridsize= gridsize; \
-		\
-		if(mode == PBVH_ITER_ALL) \
-			vi.totvert = totvert; \
-		else \
-			vi.totvert= uniq_verts; \
-		vi.vert_indices= vert_indices; \
-		vi.mverts= verts; \
-	}\
+	pbvh_vertex_iter_init(bvh, node, &vi, mode); \
 	\
 	for(vi.i=0, vi.g=0; vi.g<vi.totgrid; vi.g++) { \
 		if(vi.grids) { \
 			vi.width= vi.gridsize; \
 			vi.height= vi.gridsize; \
 			vi.grid= vi.grids[vi.grid_indices[vi.g]]; \
-			vi.skip= 0; \
-			 \
-			/*if(mode == PVBH_ITER_UNIQUE) { \
-				vi.grid += subm->grid.offset; \
-				vi.skip= subm->grid.skip; \
-				vi.grid -= skip; \
-			}*/ \
 		} \
 		else { \
 			vi.width= vi.totvert; \
@@ -219,8 +188,6 @@ typedef struct PBVHVertexIter {
 		} \
 		 \
 		for(vi.gy=0; vi.gy<vi.height; vi.gy++) { \
-			if(vi.grid) vi.grid += vi.skip; \
-			\
 			for(vi.gx=0; vi.gx<vi.width; vi.gx++, vi.i++) { \
 				if(vi.grid) { \
 					vi.co= vi.grid->co; \

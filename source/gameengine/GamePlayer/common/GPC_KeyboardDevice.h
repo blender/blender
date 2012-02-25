@@ -29,8 +29,8 @@
  *  \ingroup player
  */
 
-#ifndef __GPC_KEYBOARDDEVICE_H
-#define __GPC_KEYBOARDDEVICE_H
+#ifndef __GPC_KEYBOARDDEVICE_H__
+#define __GPC_KEYBOARDDEVICE_H__
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
