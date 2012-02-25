@@ -3013,7 +3013,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		else {
 			/* 3 floats for position,
 			 * 3 for normal and times two because the faces may actually be quads instead of triangles */
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
@@ -3021,7 +3021,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 		}
 			
 		// Setup for drawing wire over, disable zbuffer
@@ -3338,7 +3338,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
 
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
@@ -3366,7 +3366,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
 
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
 			if (base->flag & SELECT) {
 				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
