@@ -31,8 +31,8 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
-#ifndef BLI_MATH_COLOR_INLINE_H
-#define BLI_MATH_COLOR_INLINE_H
+#ifndef __MATH_COLOR_INLINE_C__
+#define __MATH_COLOR_INLINE_C__
 
 /******************************** Color Space ********************************/
 
@@ -193,5 +193,4 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }
 
-#endif /* BLI_MATH_COLOR_INLINE_H */
-
+#endif /* __MATH_COLOR_INLINE_C__ */

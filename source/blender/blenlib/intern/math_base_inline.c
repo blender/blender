@@ -35,8 +35,8 @@
 
 #include "BLI_math.h"
 
-#ifndef BLI_MATH_BASE_INLINE_H
-#define BLI_MATH_BASE_INLINE_H
+#ifndef __MATH_BASE_INLINE_C__
+#define __MATH_BASE_INLINE_C__
 
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER	1.e-8f
@@ -156,5 +156,4 @@ MINLINE float signf(float f)
 }
 
 
-#endif /* BLI_MATH_BASE_INLINE_H */
-
+#endif /* __MATH_BASE_INLINE_C__ */

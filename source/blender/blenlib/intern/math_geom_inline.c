@@ -30,8 +30,8 @@
 
 #include "BLI_math.h"
 
-#ifndef BLI_MATH_GEOM_INLINE_H
-#define BLI_MATH_GEOM_INLINE_H
+#ifndef __MATH_GEOM_INLINE_C__
+#define __MATH_GEOM_INLINE_C__
 
 /****************************** Spherical Harmonics **************************/
 
@@ -75,7 +75,7 @@ MINLINE float dot_shsh(float a[9], float b[9])
 MINLINE float diffuse_shv3(float sh[9], const float v[3])
 {
 	/* See formula (13) in:
-	   "An Efficient Representation for Irradiance Environment Maps" */
+	 * "An Efficient Representation for Irradiance Environment Maps" */
 	static const float c1 = 0.429043f, c2 = 0.511664f, c3 = 0.743125f;
 	static const float c4 = 0.886227f, c5 = 0.247708f;
 	float x, y, z, sum;
@@ -97,7 +97,7 @@ MINLINE float diffuse_shv3(float sh[9], const float v[3])
 MINLINE void vec_fac_to_sh(float r[9], const float v[3], const float f)
 {
 	/* See formula (3) in:
-	   "An Efficient Representation for Irradiance Environment Maps" */
+	 * "An Efficient Representation for Irradiance Environment Maps" */
 	float sh[9], x, y, z;
 
 	x= v[0];
@@ -128,7 +128,7 @@ MINLINE float eval_shv3(float sh[9], const float v[3])
 	return dot_shsh(tmp, sh);
 }
 
-MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f)
+MINLINE void madd_sh_shfl(float r[9], const float sh[9], const float f)
 {
 	float tmp[9];
 
@@ -137,5 +137,4 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f)
 	add_sh_shsh(r, r, tmp);
 }
 
-#endif /* BLI_MATH_GEOM_INLINE_H */
-
+#endif /* __MATH_GEOM_INLINE_C__ */
