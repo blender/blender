@@ -4131,8 +4131,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 {
 	Object *ob=base->object;
 	ParticleEditSettings *pset = PE_settings(scene);
-	ParticleSettings *part;
-	ParticleData *pars, *pa;
+	ParticleSettings *part = psys->part;
+	ParticleData *pars = psys->particles;
+	ParticleData *pa;
 	ParticleKey state, *states=NULL;
 	ParticleBillboardData bb;
 	ParticleSimulationData sim= {NULL};
@@ -4150,12 +4151,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	unsigned char tcol[4]= {0, 0, 0, 255};
 
 /* 1. */
-	if (psys==NULL)
-		return;
-
-	part=psys->part;
-	pars=psys->particles;
-
 	if (part==NULL || !psys_check_enabled(ob, psys))
 		return;
 
