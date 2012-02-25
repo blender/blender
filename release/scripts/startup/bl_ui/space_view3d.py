@@ -791,11 +791,17 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.lens"
                 props.input_scale = 0.1
+                if obj.data.lens_unit == 'MILLIMETERS':
+                    props.header_text = "Camera Lens Angle: %.1fmm"
+                else:
+                    props.header_text = "Camera Lens Angle: %.1f\u00B0"
+
             else:
                 props = layout.operator("wm.context_modal_mouse", text="Camera Lens Scale")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.ortho_scale"
                 props.input_scale = 0.01
+                props.header_text = "Camera Lens Scale: %.3f"
 
             if not obj.data.dof_object:
                 #layout.label(text="Test Has DOF obj");
@@ -803,6 +809,7 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.dof_distance"
                 props.input_scale = 0.02
+                props.header_text = "DOF Distance: %.3f"
 
         if obj.type in {'CURVE', 'FONT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -811,11 +818,13 @@ class VIEW3D_MT_object_specials(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.extrude"
             props.input_scale = 0.01
+            props.header_text = "Extrude Size: %.3f"
 
             props = layout.operator("wm.context_modal_mouse", text="Width Size")
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.offset"
             props.input_scale = 0.01
+            props.header_text = "Width Size: %.3f"
 
         if obj.type == 'EMPTY':
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -824,6 +833,7 @@ class VIEW3D_MT_object_specials(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "empty_draw_size"
             props.input_scale = 0.01
+            props.header_text = "Empty Draw Size: %.3f"
 
         if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -831,12 +841,14 @@ class VIEW3D_MT_object_specials(Menu):
             props = layout.operator("wm.context_modal_mouse", text="Energy")
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.energy"
+            props.header_text = "Lamp Energy: %.3f"
 
             if obj.data.type in {'SPOT', 'AREA', 'POINT'}:
                 props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.distance"
                 props.input_scale = 0.1
+                props.header_text = "Lamp Falloff Distance: %.1f"
 
             if obj.data.type == 'SPOT':
                 layout.separator()
@@ -844,21 +856,25 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.spot_size"
                 props.input_scale = 0.01
+                props.header_text = "Spot Size: %.2f"
 
                 props = layout.operator("wm.context_modal_mouse", text="Spot Blend")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.spot_blend"
                 props.input_scale = -0.01
+                props.header_text = "Spot Blend: %.2f"
 
                 props = layout.operator("wm.context_modal_mouse", text="Clip Start")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.shadow_buffer_clip_start"
                 props.input_scale = 0.05
+                props.header_text = "Clip Start: %.2f"
 
                 props = layout.operator("wm.context_modal_mouse", text="Clip End")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.shadow_buffer_clip_end"
                 props.input_scale = 0.05
+                props.header_text = "Clip End: %.2f"
 
         layout.separator()
 
