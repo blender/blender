@@ -708,6 +708,9 @@ PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
 ".. method:: calc_edge_angle()\n"
 "\n"
 "   Return the angle between 2 connected edges.\n"
+"\n"
+"   :return: The angle between both edges in radians.\n"
+"   :rtype: float\n"
 );
 static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 {
