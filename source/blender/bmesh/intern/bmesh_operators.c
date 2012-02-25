@@ -534,6 +534,34 @@ int BMO_slot_map_count(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
 	return slot->data.ghash ? BLI_ghash_size(slot->data.ghash) : 0;
 }
 
+/* inserts a key/value mapping into a mapping slot.  note that it copies the
+ * value, it doesn't store a reference to it. */
+
+void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
+                         void *element, void *data, int len)
+{
+	BMOElemMapping *mapping;
+	BMOpSlot *slot = BMO_slot_get(op, slotname);
+
+	/*sanity check*/
+	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
+		return;
+	}
+
+	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
+
+	mapping->element = (BMHeader *) element;
+	mapping->len = len;
+	memcpy(mapping + 1, data, len);
+
+	if (!slot->data.ghash) {
+		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
+		                                 BLI_ghashutil_ptrcmp, "bmesh op");
+	}
+
+	BLI_ghash_insert(slot->data.ghash, element, mapping);
+}
+
 #if 0
 void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 {

@@ -31,33 +31,47 @@
 
 #include "bmesh.h"
 
-/* inserts a key/value mapping into a mapping slot.  note that it copies the
- * value, it doesn't store a reference to it. */
 
-BM_INLINE void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
-                                   void *element, void *data, int len)
+/* tool flag API. never, ever ever should tool code put junk in
+ * header flags (element->head.flag), nor should they use
+ * element->head.eflag1/eflag2.  instead, use this api to set
+ * flags.
+ *
+ * if you need to store a value per element, use a
+ * ghash or a mapping slot to do it. */
+
+/* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
+BM_INLINE int _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	BMOElemMapping *mapping;
-	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
-		return;
-	}
-
-	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
-
-	mapping->element = (BMHeader*) element;
-	mapping->len = len;
-	memcpy(mapping + 1, data, len);
-
-	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                                 BLI_ghashutil_ptrcmp, "bmesh op");
-	}
-
-	BLI_ghash_insert(slot->data.ghash, element, mapping);
+    return oflags[bm->stackdepth-1].f & oflag;
 }
+
+BM_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	oflags[bm->stackdepth-1].f |= oflag;
+}
+
+BM_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	oflags[bm->stackdepth-1].f &= ~oflag;
+}
+
+BM_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
+{
+	if (val) oflags[bm->stackdepth-1].f |= oflag;
+	else     oflags[bm->stackdepth-1].f &= ~oflag;
+}
+
+BM_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	oflags[bm->stackdepth-1].f ^= oflag;
+}
+
+#define BMO_elem_flag_test(   bm, ele, oflag)      _bmo_elem_flag_test    (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_enable( bm, ele, oflag)      _bmo_elem_flag_enable  (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_disable(bm, ele, oflag)      _bmo_elem_flag_disable (bm, (ele)->oflags, oflag)
+#define BMO_elem_flag_set(    bm, ele, oflag, val) _bmo_elem_flag_set     (bm, (ele)->oflags, oflag, val)
+#define BMO_elem_flag_toggle( bm, ele, oflag)      _bmo_elem_flag_toggle  (bm, (ele)->oflags, oflag)
 
 BM_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,
                                        void *element, int val)

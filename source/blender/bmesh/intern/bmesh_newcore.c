@@ -67,20 +67,22 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 	v->head.htype = BM_VERT;
 
 	/* 'v->no' is handled by BM_elem_attrs_copy */
-	if (co) copy_v3_v3(v->co, co);
-	
+	if (co) {
+		copy_v3_v3(v->co, co);
+	}
+
 	/* allocate flag */
 	v->oflags = BLI_mempool_calloc(bm->toolflagpool);
 
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
 	if (example) {
-		BM_elem_attrs_copy(bm, bm, (BMVert *)example, v);
+		BM_elem_attrs_copy(bm, bm, example, v);
 	}
 
 	BM_CHECK_ELEMENT(bm, v);
 
-	return (BMVert *) v;
+	return v;
 }
 
 /**
@@ -112,7 +114,7 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	BMEdge *e;
 	
 	if (nodouble && (e = BM_edge_exists(v1, v2)))
-		return (BMEdge *)e;
+		return e;
 	
 	e = BLI_mempool_calloc(bm->epool);
 
@@ -131,8 +133,8 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	/* allocate flag */
 	e->oflags = BLI_mempool_calloc(bm->toolflagpool);
 
-	e->v1 = (BMVert *) v1;
-	e->v2 = (BMVert *) v2;
+	e->v1 = v1;
+	e->v2 = v2;
 	
 	BM_elem_flag_enable(e, BM_ELEM_SMOOTH);
 	
@@ -142,11 +144,11 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	bmesh_disk_append_edge(e, e->v2);
 	
 	if (example)
-		BM_elem_attrs_copy(bm, bm, (BMEdge *)example, (BMEdge *)e);
+		BM_elem_attrs_copy(bm, bm, example, e);
 	
 	BM_CHECK_ELEMENT(bm, e);
 
-	return (BMEdge *) e;
+	return e;
 }
 
 static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const BMLoop *example)
@@ -292,14 +294,14 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 
 	f->head.htype = BM_FACE;
 
-	startl = lastl = bm_face_boundary_add(bm, (BMFace *)f, verts[0], edges[0]);
+	startl = lastl = bm_face_boundary_add(bm, f, verts[0], edges[0]);
 	
-	startl->v = (BMVert *)verts[0];
-	startl->e = (BMEdge *)edges[0];
+	startl->v = verts[0];
+	startl->e = edges[0];
 	for (i = 1; i < len; i++) {
-		l = bmesh_create_loop(bm, verts[i], edges[i], (BMFace *)f, edges[i]->l);
+		l = bmesh_create_loop(bm, verts[i], edges[i], f, edges[i]->l);
 		
-		l->f = (BMFace *) f;
+		l->f = f;
 		bmesh_radial_append(edges[i], l);
 
 		l->prev = lastl;
@@ -323,7 +325,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	
 	BM_CHECK_ELEMENT(bm, f);
 
-	return (BMFace *) f;
+	return f;
 }
 
 int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
@@ -1083,7 +1085,7 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 	f->totbounds = 1;
 #endif
 
-	return (BMFace *) f;
+	return f;
 }
 
 /**

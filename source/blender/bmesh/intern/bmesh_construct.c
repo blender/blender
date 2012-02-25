@@ -559,25 +559,37 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 {
 	const BMHeader *sheader = source;
 	BMHeader *theader = target;
-	
+
+	BLI_assert(sheader->htype == theader->htype);
+
 	if (sheader->htype != theader->htype)
 		return;
 
 	/* First we copy select */
-	if (BM_elem_flag_test(source, BM_ELEM_SELECT)) BM_elem_select_set(target_mesh, target, TRUE);
+	if (BM_elem_flag_test(source, BM_ELEM_SELECT)) {
+		BM_elem_select_set(target_mesh, target, TRUE);
+	}
 	
 	/* Now we copy flags */
 	theader->hflag = sheader->hflag;
 	
 	/* Copy specific attributes */
-	if (theader->htype == BM_VERT)
-		bm_vert_attrs_copy(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
-	else if (theader->htype == BM_EDGE)
-		bm_edge_attrs_copy(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
-	else if (theader->htype == BM_LOOP)
-		bm_loop_attrs_copy(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
-	else if (theader->htype == BM_FACE)
-		bm_face_attrs_copy(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
+	switch (theader->htype) {
+		case BM_VERT:
+			bm_vert_attrs_copy(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
+			break;
+		case BM_EDGE:
+			bm_edge_attrs_copy(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
+			break;
+		case BM_LOOP:
+			bm_loop_attrs_copy(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
+			break;
+		case BM_FACE:
+			bm_face_attrs_copy(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
+			break;
+		default:
+			BLI_assert(0);
+	}
 }
 
 BMesh *BM_mesh_copy(BMesh *bmold)

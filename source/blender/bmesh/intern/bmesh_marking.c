@@ -479,9 +479,20 @@ void BM_elem_select_set(struct BMesh *bm, void *element, int select)
 {
 	BMHeader *head = element;
 
-	if      (head->htype == BM_VERT) BM_vert_select_set(bm, (BMVert *)element, select);
-	else if (head->htype == BM_EDGE) BM_edge_select_set(bm, (BMEdge *)element, select);
-	else if (head->htype == BM_FACE) BM_face_select_set(bm, (BMFace *)element, select);
+	switch (head->htype) {
+		case BM_VERT:
+			BM_vert_select_set(bm, (BMVert *)element, select);
+			break;
+		case BM_EDGE:
+			BM_edge_select_set(bm, (BMEdge *)element, select);
+			break;
+		case BM_FACE:
+			BM_face_select_set(bm, (BMFace *)element, select);
+			break;
+		default:
+			BLI_assert(0);
+			break;
+	}
 }
 
 /* this replaces the active flag used in uv/face mode */

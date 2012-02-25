@@ -306,7 +306,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
 
-		#define _E(s, i) ((BMVert**)(s)->data.buf)[i]
+		#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
 
 		/*calculate merge mapping*/
 		if (j == 0) {

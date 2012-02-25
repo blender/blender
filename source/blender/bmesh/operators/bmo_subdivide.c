@@ -459,7 +459,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	int numcuts = params->numcuts;
 	int i, j, a, b, s = numcuts + 2 /* , totv = numcuts * 4 + 4 */;
 
-	lines = MEM_callocN(sizeof(BMVert *)*(numcuts + 2)*(numcuts + 2), "q_4edge_split");
+	lines = MEM_callocN(sizeof(BMVert *) * (numcuts + 2) * (numcuts + 2), "q_4edge_split");
 	/* build a 2-dimensional array of verts,
 	 * containing every vert (and all new ones)
 	 * in the face */
@@ -564,7 +564,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	int i, j, a, b, numcuts = params->numcuts;
 	
 	/* number of verts in each lin */
-	lines = MEM_callocN(sizeof(void *)*(numcuts + 2), "triangle vert table");
+	lines = MEM_callocN(sizeof(void *) * (numcuts + 2), "triangle vert table");
 	
 	lines[0] = (BMVert **) stackarr;
 	lines[0][0] = verts[numcuts * 2 + 1];
@@ -577,7 +577,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	lines[numcuts + 1][numcuts + 1] = verts[numcuts];
 
 	for (i = 0; i < numcuts; i++) {
-		lines[i + 1] = MEM_callocN(sizeof(void *)*(2 + i), "triangle vert table row");
+		lines[i + 1] = MEM_callocN(sizeof(void *) * (2 + i), "triangle vert table row");
 		a = numcuts * 2 + 2 + i;
 		b = numcuts + numcuts - i;
 		e = connect_smallest_face(bm, verts[a], verts[b], &nf);

@@ -422,7 +422,7 @@ static float bmesh_loop_flip_equotion(float mat[2][2], float b[2], float target_
 	b[0] = coord[i];
 	b[1] = coord[j];
 
-	return mat[0][0]*mat[1][1] - mat[0][1]*mat[1][0];
+	return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
 }
 
 static void bmesh_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
@@ -449,8 +449,8 @@ static void bmesh_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
 			d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 1, 2);
 	}
 
-	disp[0] = (b[0]*mat[1][1] - mat[0][1]*b[1]) / d;
-	disp[1] = (mat[0][0]*b[1] - b[0]*mat[1][0]) / d;
+	disp[0] = (b[0] * mat[1][1] - mat[0][1] * b[1]) / d;
+	disp[1] = (mat[0][0] * b[1] - b[0] * mat[1][0]) / d;
 }
 
 static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)

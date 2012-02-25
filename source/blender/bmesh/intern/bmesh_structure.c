@@ -191,7 +191,7 @@ void bmesh_disk_remove_edge(struct BMEdge *e, struct BMVert *v)
 	}
 
 	if (v->e == e)
-		v->e = (e != (BMEdge *)dl1->next) ? (BMEdge *)dl1->next : NULL;
+		v->e = (e != dl1->next) ? dl1->next : NULL;
 
 	dl1->next = dl1->prev = NULL;
 }

@@ -170,23 +170,6 @@ void BMO_op_exec(struct BMesh *bm, struct BMOperator *op);
  * after it finishes executing in BMO_op_exec).*/
 void BMO_op_finish(struct BMesh *bm, struct BMOperator *op);
 
-
-/* tool flag API. never, ever ever should tool code put junk in
- * header flags (element->head.flag), nor should they use
- * element->head.eflag1/eflag2.  instead, use this api to set
- * flags.
- *
- * if you need to store a value per element, use a
- * ghash or a mapping slot to do it. */
-
-/* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
-#define BMO_elem_flag_test(bm, element, oflag)    ((element)->oflags[bm->stackdepth-1].f &   (oflag))
-#define BMO_elem_flag_enable(bm, element, oflag)  ((element)->oflags[bm->stackdepth-1].f |=  (oflag))
-#define BMO_elem_flag_disable(bm, element, oflag) ((element)->oflags[bm->stackdepth-1].f &= ~(oflag))
-#define BMO_elem_flag_set(bm, element, oflag, val)((val) ? BMO_elem_flag_enable(bm, element, oflag) : \
-                                                           BMO_elem_flag_disable(bm, element, oflag))
-#define BMO_elem_flag_toggle(bm, element, oflag)  ((element)->oflags[bm->stackdepth-1].f ^=  (oflag))
-
 /* count the number of elements with a specific flag.
  * type can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE. */
 int BMO_mesh_flag_count(struct BMesh *bm, const short oflag, const char htype);
@@ -330,6 +313,9 @@ void BMO_slot_from_hflag(struct BMesh *bm, struct BMOperator *op, const char *sl
 /* counts number of elements inside a slot array. */
 int BMO_slot_buf_count(struct BMesh *bm, struct BMOperator *op, const char *slotname);
 int BMO_slot_map_count(struct BMesh *bm, struct BMOperator *op, const char *slotname);
+
+void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
+                         void *element, void *data, int len);
 
 /* Counts the number of edges with tool flag toolflag around
  */

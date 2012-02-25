@@ -43,15 +43,15 @@ struct BMLoop;
 int bmesh_check_element(BMesh *bm, void *element, const char htype);
 
 #define BM_CHECK_ELEMENT(bm, el)                                              \
-    if (bmesh_check_element(bm, el, ((BMHeader*)el)->htype)) {                \
+    if (bmesh_check_element(bm, el, ((BMHeader *)el)->htype)) {               \
         printf("check_element failure, with code %i on line %i in file\n"     \
         "    \"%s\"\n\n",                                                     \
-        bmesh_check_element(bm, el, ((BMHeader*)el)->htype),                  \
+        bmesh_check_element(bm, el, ((BMHeader *)el)->htype),                 \
         __LINE__, __FILE__);                                                  \
     }
 
 #define BM_EDGE_DISK_LINK_GET(e, v)  (                                        \
-	((v) == ((BMEdge*)(e))->v1) ?                                             \
+	((v) == ((BMEdge *)(e))->v1) ?                                            \
 		&((e)->v1_disk_link) :                                                \
 		&((e)->v2_disk_link)                                                  \
     )

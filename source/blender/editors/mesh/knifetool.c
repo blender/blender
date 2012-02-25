@@ -1045,7 +1045,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	for (i = 0; i < tot; i++, result++) {
 		float p[3];
 		
-		ls = (BMLoop**)kcd->em->looptris[result->indexA];
+		ls = (BMLoop **)kcd->em->looptris[result->indexA];
 		
 		for (j = 0; j < 3; j++) {
 			BMLoop *l1 = ls[j];

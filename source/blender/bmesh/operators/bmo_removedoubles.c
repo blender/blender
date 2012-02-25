@@ -518,7 +518,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 			/* Compare sort values of the verts using 3x tolerance (allowing for the tolerance
 			 * on each of the three axes). This avoids the more expensive length comparison
 			 * for most vertex pairs. */
-			if ((v2->co[0]+v2->co[1]+v2->co[2])-(v->co[0]+v->co[1]+v->co[2]) > dist3)
+			if ((v2->co[0] + v2->co[1] + v2->co[2]) - (v->co[0] + v->co[1] + v->co[2]) > dist3)
 				break;
 
 			if (keepvert) {

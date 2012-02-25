@@ -135,12 +135,12 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 
 		so thats?:
 		(a[1] - b[1]) * (a[2] + b[2]);
-		a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
+		a[1] * b[2] - b[1] * a[2] - b[1] * b[2] + a[1] * a[2]
 
 		odd.  half of that is the cross product. . .what's the
 		other half?
 
-		also could be like a[1]*(b[2] + a[2]) - b[1]*(a[2] - b[2])
+		also could be like a[1] * (b[2] + a[2]) - b[1] * (a[2] - b[2])
 		*/
 
 		n[0] += (u[1] - v[1]) * (u[2] + v[2]);

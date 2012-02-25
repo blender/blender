@@ -271,7 +271,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BMFace *f, *startf, **fstack = NULL;
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
-	float maxx, cent[3];
+	float maxx, maxx_test, cent[3];
 	int i, maxi, flagflip = BMO_slot_bool_get(op, "do_flip");
 
 	startf = NULL;
@@ -292,9 +292,8 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 		BM_face_center_bounds_calc(bm, f, cent);
 
-		cent[0] = cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
-		if (cent[0] > maxx) {
-			maxx = cent[0];
+		if ((maxx_test = dot_v3v3(cent, cent)) > maxx) {
+			maxx = maxx_test;
 			startf = f;
 		}
 	}

@@ -67,8 +67,7 @@ static void shellWalker_begin(BMWalker *walker, void *data)
 	BMEdge *e;
 	BMVert *v;
 
-	if (h == NULL)
-	{
+	if (UNLIKELY(h == NULL)) {
 		return;
 	}
 
