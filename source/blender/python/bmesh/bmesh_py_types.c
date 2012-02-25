@@ -812,6 +812,43 @@ static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
 /* Face
  * ---- */
 
+PyDoc_STRVAR(bpy_bmface_copy_from_face_interp_doc,
+".. method:: copy_from_face_interp(face)\n"
+"\n"
+"   Interpolate the customdata from another face onto this one (faces should overlap).\n"
+"\n"
+"   :arg face: The face to interpolate data from.\n"
+"   :type face: :class:`BMFace`\n"
+);
+static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *args)
+{
+	BPy_BMFace *py_face = NULL;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O!:BMFace.copy_from_face_interp",
+	                      &BPy_BMFace_Type, &py_face))
+	{
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+
+		BPY_BM_CHECK_OBJ(py_face);
+
+		if (py_face->bm != bm) {
+			PyErr_SetString(PyExc_ValueError,
+			                "BMFace.copy_from_face_interp(face): face is from another mesh");
+			return NULL;
+		}
+
+		BM_face_interp_from_face(bm, self->f, py_face->f);
+
+		Py_RETURN_NONE;
+	}
+}
+
+
 PyDoc_STRVAR(bpy_bmface_copy_doc,
 ".. method:: copy(verts=True, edges=True)\n"
 "\n"
@@ -925,6 +962,50 @@ static PyObject *bpy_bmface_normal_update(BPy_BMFace *self)
 /* Loop
  * ---- */
 
+PyDoc_STRVAR(bpy_bmloop_copy_from_face_interp_doc,
+".. method:: copy_from_face_interp(face, vert=True, multires=True)\n"
+"\n"
+"   Interpolate the customdata from a face onto this loop (the loops vert should overlap the face).\n"
+"\n"
+"   :arg face: The face to interpolate data from.\n"
+"   :type face: :class:`BMFace`\n"
+"   :arg vert: When enabled, interpolate the loops vertex data.\n"
+"   :type vert: boolean\n"
+"   :arg multires: When enabled, interpolate the loops multires data.\n"
+"   :type multires: boolean\n"
+);
+static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
+{
+	BPy_BMFace *py_face = NULL;
+	int do_vertex   = TRUE;
+	int do_multires = TRUE;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O!|ii:BMLoop.copy_from_face_interp",
+	                      &BPy_BMFace_Type, &py_face,
+	                      &do_vertex, &do_multires))
+	{
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+
+		BPY_BM_CHECK_OBJ(py_face);
+
+		if (py_face->bm != bm) {
+			PyErr_SetString(PyExc_ValueError,
+			                "BMLoop.copy_from_face_interp(face): face is from another mesh");
+			return NULL;
+		}
+
+		BM_loop_interp_from_face(bm, self->l, py_face->f, do_vertex, do_multires);
+
+		Py_RETURN_NONE;
+	}
+}
+
+
 PyDoc_STRVAR(bpy_bmloop_calc_face_angle_doc,
 ".. method:: calc_face_angle()\n"
 "\n"
@@ -953,7 +1034,8 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "|OO!:verts.new",
 	                      py_co,
-	                      &BPy_BMVert_Type, &py_vert_example)) {
+	                      &BPy_BMVert_Type, &py_vert_example))
+	{
 		return NULL;
 	}
 	else {
@@ -1056,7 +1138,8 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "O|O!:faces.new",
 	                      &vert_seq,
-	                      &BPy_BMFace_Type, &py_face_example)) {
+	                      &BPy_BMFace_Type, &py_face_example))
+	{
 		return NULL;
 	}
 	else {
@@ -1188,7 +1271,7 @@ static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 		BPY_BM_CHECK_OBJ(value);
 
 		if (value->bm != bm) {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "faces.remove(vert): vertex is from another mesh");
 			return NULL;
 		}
@@ -1196,7 +1279,7 @@ static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 		BM_vert_kill(bm, value->v);
 		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
 
-		Py_RETURN_NONE;;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -1213,7 +1296,7 @@ static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 		BPY_BM_CHECK_OBJ(value);
 
 		if (value->bm != bm) {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "faces.remove(vert): vertex is from another mesh");
 			return NULL;
 		}
@@ -1221,7 +1304,7 @@ static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 		BM_edge_kill(bm, value->e);
 		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
 
-		Py_RETURN_NONE;;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -1238,7 +1321,7 @@ static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 		BPY_BM_CHECK_OBJ(value);
 
 		if (value->bm != bm) {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "faces.remove(vert): vertex is from another mesh");
 			return NULL;
 		}
@@ -1246,7 +1329,7 @@ static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 		BM_face_kill(bm, value->f);
 		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
 
-		Py_RETURN_NONE;;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -1474,7 +1557,9 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 
 static struct PyMethodDef bpy_bmface_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+    {"copy_from_face_interp", (PyCFunction)bpy_bmface_copy_from_face_interp, METH_O, bpy_bmface_copy_from_face_interp_doc},
 
     {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS|METH_KEYWORDS, bpy_bmface_copy_doc},
 
@@ -1489,6 +1574,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
 
 static struct PyMethodDef bpy_bmloop_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+    {"copy_from_face_interp", (PyCFunction)bpy_bmloop_copy_from_face_interp, METH_O, bpy_bmloop_copy_from_face_interp_doc},
 
     {"calc_angle", (PyCFunction)bpy_bmloop_calc_face_angle, METH_NOARGS, bpy_bmloop_calc_face_angle_doc},
     {NULL, NULL, 0, NULL}
