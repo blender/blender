@@ -215,7 +215,9 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 
-			if (!found && (rlen > 1)) BMO_elem_flag_enable(bm, e, EXT_DEL);
+			if (!found && (rlen > 1)) {
+				BMO_elem_flag_enable(bm, e, EXT_DEL);
+			}
 		}
 	}
 
@@ -243,8 +245,9 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BMO_elem_flag_test(bm, f, EXT_INPUT))
+		if (BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 			BMO_elem_flag_enable(bm, f, EXT_DEL);
+		}
 	}
 
 	if (delorig) {

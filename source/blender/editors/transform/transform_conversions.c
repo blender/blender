@@ -2053,12 +2053,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				BM_elem_flag_enable(eve, BM_ELEM_TAG);
-			}
-			else {
-				BM_elem_flag_disable(eve, BM_ELEM_TAG);
-			}
+			BM_elem_flag_set(eve, BM_ELEM_TAG, BM_elem_flag_test(eve, BM_ELEM_SELECT));
 		}
 	}
 	else if(selectmode & SCE_SELECT_EDGE) {

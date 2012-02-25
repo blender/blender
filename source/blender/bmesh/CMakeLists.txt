@@ -90,6 +90,7 @@ set(SRC
 	intern/bmesh_mods.c
 	intern/bmesh_newcore.c
 	intern/bmesh_opdefines.c
+	intern/bmesh_operator_api_inline.c
 	intern/bmesh_operators.c
 	intern/bmesh_operators_private.h
 	intern/bmesh_polygon.c

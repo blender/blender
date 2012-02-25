@@ -46,6 +46,12 @@ BM_INLINE void BM_elem_flag_disable(void *element, const char hflag)
 	((BMHeader *)element)->hflag &= ~hflag;
 }
 
+BM_INLINE void BM_elem_flag_set(void *element, const char hflag, const int val)
+{
+	if (val)  BM_elem_flag_enable(element,  hflag);
+	else      BM_elem_flag_disable(element, hflag);
+}
+
 BM_INLINE void BM_elem_flag_toggle(void *element, const char hflag)
 {
 	((BMHeader *)element)->hflag ^= hflag;

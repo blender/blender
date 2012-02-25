@@ -1437,12 +1437,8 @@ static void weld_align_uv(bContext *C, int tool)
 
 		/* flush vertex tags to edges */
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) && BM_elem_flag_test(eed->v2, BM_ELEM_TAG)) {
-				BM_elem_flag_enable(eed, BM_ELEM_TAG);
-			}
-			else {
-				BM_elem_flag_disable(eed, BM_ELEM_TAG);
-			}
+			BM_elem_flag_set(eed, BM_ELEM_TAG, (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) &&
+			                                    BM_elem_flag_test(eed->v2, BM_ELEM_TAG)));
 		}
 
 		/* find a vertex with only one tagged edge */

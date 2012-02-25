@@ -731,7 +731,10 @@ static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, 
 {
 	BME_TransData *vtd;
 
-	if (BMO_elem_flag_test(bm, v, BME_BEVEL_NONMAN)) return;
+	if (BMO_elem_flag_test(bm, v, BME_BEVEL_NONMAN)) {
+		return;
+	}
+
 	BMO_elem_flag_enable(bm, v, BME_BEVEL_BEVEL);
 	if ((vtd = BME_get_transdata(td, v))) {
 		if (options & BME_BEVEL_EMIN) {
@@ -767,18 +770,23 @@ static void bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
 	BMIter iter;
 	float weight;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		weight = 0.0;
+		weight = 0.0f;
 		if (!BMO_elem_flag_test(bm, v, BME_BEVEL_NONMAN)) {
 			/* modifiers should not use selection */
 			if (options & BME_BEVEL_SELECT) {
-				if(BM_elem_flag_test(v, BM_ELEM_SELECT)) weight = 1.0;
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+					weight = 1.0f;
+				}
 			}
 			/* bevel weight NYI */
-			else if(options & BME_BEVEL_WEIGHT)
+			else if (options & BME_BEVEL_WEIGHT) {
 				weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
-			else
-				weight = 1.0;
-			if(weight > 0.0) {
+			}
+			else {
+				weight = 1.0f;
+			}
+
+			if (weight > 0.0f) {
 				BMO_elem_flag_enable(bm, v, BME_BEVEL_BEVEL);
 				BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, weight, -1, NULL);
 			}
@@ -804,6 +812,7 @@ static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
 			else {
 				weight = 1.0;
 			}
+
 			if(weight > 0.0) {
 				BMO_elem_flag_enable(bm, e, BME_BEVEL_BEVEL);
 				BMO_elem_flag_enable(bm, e->v1, BME_BEVEL_BEVEL);
@@ -836,15 +845,18 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 		BMO_elem_flag_enable(bm, v, BME_BEVEL_ORIG);
 		if(v->e) {
 			BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL);
-			if (!BM_vert_is_manifold(bm, v))
+			if (!BM_vert_is_manifold(bm, v)) {
 				BMO_elem_flag_enable(bm, v, BME_BEVEL_NONMAN);
+			}
+
 			/* test wire ver */
 			len = BM_vert_edge_count(v);
 			if (len == 2 && BM_vert_is_wire(bm, v))
 				BMO_elem_flag_disable(bm, v, BME_BEVEL_NONMAN);
 		}
-		else
+		else {
 			BMO_elem_flag_enable(bm, v, BME_BEVEL_NONMAN);
+		}
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -854,13 +866,22 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 			BMO_elem_flag_enable(bm, e->v2, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e, BME_BEVEL_NONMAN);
 		}
-		if(BMO_elem_flag_test(bm, e->v1, BME_BEVEL_NONMAN) || BMO_elem_flag_test(bm, e->v2, BME_BEVEL_NONMAN)) BMO_elem_flag_enable(bm, e, BME_BEVEL_NONMAN);
+		if(BMO_elem_flag_test(bm, e->v1, BME_BEVEL_NONMAN) || BMO_elem_flag_test(bm, e->v2, BME_BEVEL_NONMAN)) {
+			BMO_elem_flag_enable(bm, e, BME_BEVEL_NONMAN);
+		}
 	}
 
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL)
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BMO_elem_flag_enable(bm, f, BME_BEVEL_ORIG);
-	if(options & BME_BEVEL_VERT) bevel_init_verts(bm, options, td);
-	else bevel_init_edges(bm, options, td);
+	}
+
+	if(options & BME_BEVEL_VERT) {
+		bevel_init_verts(bm, options, td);
+	}
+	else {
+		bevel_init_edges(bm, options, td);
+	}
+
 	return bm;
 
 }

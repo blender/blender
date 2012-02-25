@@ -1500,15 +1500,11 @@ void EDBM_reveal_mesh(BMEditMesh *em)
     BMHeader *ele;
 	int i;
 
-	/* Use index field to remember what was hidden before all is revealed. */
+	/* Use tag flag to remember what was hidden before all is revealed.
+	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
 	for (i = 0; i < 3; i++) {
 		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
-			if (BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
-				BM_elem_flag_enable(ele, BM_ELEM_TAG);
-			}
-			else {
-				BM_elem_flag_disable(ele, BM_ELEM_TAG);
-			}
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
 		}
 	}
 
@@ -1759,10 +1755,7 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			if (smooth)
-				BM_elem_flag_enable(efa, BM_ELEM_SMOOTH);
-			else
-				BM_elem_flag_disable(efa, BM_ELEM_SMOOTH);
+			BM_elem_flag_set(efa, BM_ELEM_SMOOTH, smooth);
 		}
 	}
 }
@@ -2365,13 +2358,9 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
+	/* BM_ELEM_SELECT --> BM_ELEM_TAG */
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			BM_elem_flag_enable(e, BM_ELEM_TAG);
-		}
-		else {
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-		}
+		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 	}
 
 	/* handle case of one vert selected.  identify
@@ -2507,12 +2496,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMO_slot_buffer_hflag_enable(bm, &bmop, side?"edgeout2":"edgeout1", BM_ELEM_SELECT, BM_EDGE, TRUE);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			BM_elem_flag_enable(e, BM_ELEM_TAG);
-		}
-		else {
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-		}
+		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 	}
 
 	/* constrict edge selection again */

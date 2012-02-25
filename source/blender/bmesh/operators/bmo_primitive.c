@@ -248,7 +248,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 		eve = BM_vert_create(bm, vec, NULL);
 		BMO_elem_flag_enable(bm, eve, VERT_MARK);
 
-		if (a) {
+		if (a != 0) {
 			e = BM_edge_create(bm, preveve, eve, NULL, TRUE);
 			BMO_elem_flag_enable(bm, e, EDGE_ORIG);
 		}

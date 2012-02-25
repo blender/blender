@@ -73,6 +73,7 @@ extern "C" {
  *   semantically similar to the iterator api in bmesh_iterators.h).
  */
 
+struct BMesh;
 struct GHashIterator;
 
 /* slot type arrays are terminated by the last member
@@ -182,14 +183,9 @@ void BMO_op_finish(struct BMesh *bm, struct BMOperator *op);
 #define BMO_elem_flag_test(bm, element, oflag)    ((element)->oflags[bm->stackdepth-1].f &   (oflag))
 #define BMO_elem_flag_enable(bm, element, oflag)  ((element)->oflags[bm->stackdepth-1].f |=  (oflag))
 #define BMO_elem_flag_disable(bm, element, oflag) ((element)->oflags[bm->stackdepth-1].f &= ~(oflag))
+#define BMO_elem_flag_set(bm, element, oflag, val)((val) ? BMO_elem_flag_enable(bm, element, oflag) : \
+                                                           BMO_elem_flag_disable(bm, element, oflag))
 #define BMO_elem_flag_toggle(bm, element, oflag)  ((element)->oflags[bm->stackdepth-1].f ^=  (oflag))
-
-/* profiling showed a significant amount of time spent in BMO_elem_flag_test */
-#if 0
-void BMO_elem_flag_enable(struct BMesh *bm, void *element, const short oflag);
-void BMO_elem_flag_disable(struct BMesh *bm, void *element, const short oflag);
-int BMO_elem_flag_test(struct BMesh *bm, void *element, const short oflag);
-#endif
 
 /* count the number of elements with a specific flag.
  * type can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE. */
@@ -339,43 +335,10 @@ int BMO_slot_map_count(struct BMesh *bm, struct BMOperator *op, const char *slot
  */
 int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag);
 
-/* inserts a key/value mapping into a mapping slot.  note that it copies the
- * value, it doesn't store a reference to it. */
-
-#if 0
-
-BM_INLINE void BMO_slot_map_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                   void *element, void *data, int len);
-
-/* inserts a key/float mapping pair into a mapping slot. */
-BM_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                         void *element, float val);
-
-/* returns 1 if the specified pointer is in the map. */
-BM_INLINE int BMO_slot_map_contains(BMesh *bm, BMOperator *op, const char *slotname, void *element);
-
-/* returns a point to the value of a specific key. */
-BM_INLINE void *BMO_slot_map_data_get(BMesh *bm, BMOperator *op, const char *slotname, void *element);
-
-/* returns the float part of a key/float pair. */
-BM_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *slotname, void *element);
-
-#endif
-
 /* flags all elements in a mapping.  note that the mapping must only have
  * bmesh elements in it.*/
 void BMO_slot_map_to_flag(struct BMesh *bm, struct BMOperator *op,
                           const char *slotname, const short oflag);
-
-/* pointer versoins of BMO_slot_map_float_get and BMO_slot_map_float_insert.
- *
- * do NOT use these for non-operator-api-allocated memory! instead
- * use BMO_slot_map_data_get and BMO_slot_map_insert, which copies the data. */
-
-#if 0
-BM_INLINE void BMO_slot_map_ptr_insert(BMesh *bm, BMOperator *op, const char *slotname, void *key, void *val);
-BM_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slotname, void *key);
-#endif
 
 /* this part of the API is used to iterate over element buffer or
  * mapping slots.
@@ -452,104 +415,6 @@ typedef struct BMOElemMapping {
 } BMOElemMapping;
 
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
-
-BM_INLINE void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
-                                   void *element, void *data, int len)
-{
-	BMOElemMapping *mapping;
-	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
-		return;
-	}
-
-	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
-
-	mapping->element = (BMHeader*) element;
-	mapping->len = len;
-	memcpy(mapping + 1, data, len);
-
-	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                                 BLI_ghashutil_ptrcmp, "bmesh op");
-	}
-
-	BLI_ghash_insert(slot->data.ghash, element, mapping);
-}
-
-BM_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                       void *element, int val)
-{
-	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(int));
-}
-
-BM_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                         void *element, float val)
-{
-	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(float));
-}
-
-BM_INLINE void BMO_slot_map_ptr_insert(BMesh *bm, BMOperator *op, const char *slotname,
-                                       void *element, void *val)
-{
-	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(void*));
-}
-
-BM_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, void *element)
-{
-	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) return 0;
-	if (!slot->data.ghash) return 0;
-
-	return BLI_ghash_haskey(slot->data.ghash, element);
-}
-
-BM_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
-                                      void *element)
-{
-	BMOElemMapping *mapping;
-	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) return NULL;
-	if (!slot->data.ghash) return NULL;
-
-	mapping = (BMOElemMapping *)BLI_ghash_lookup(slot->data.ghash, element);
-
-	if (!mapping) return NULL;
-
-	return mapping + 1;
-}
-
-BM_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *slotname,
-                                       void *element)
-{
-	float *val = (float*) BMO_slot_map_data_get(bm, op, slotname, element);
-	if (val) return *val;
-
-	return 0.0f;
-}
-
-BM_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotname,
-                                   void *element)
-{
-	int *val = (int*) BMO_slot_map_data_get(bm, op, slotname, element);
-	if (val) return *val;
-
-	return 0;
-}
-
-BM_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slotname,
-                                     void *element)
-{
-	void **val = (void**) BMO_slot_map_data_get(bm, op, slotname, element);
-	if (val) return *val;
-
-	return NULL;
-}
 
 #ifdef __cplusplus
 }

@@ -372,6 +372,7 @@ void bmesh_end_edit(BMesh *bm, int flag);
 #include "bmesh_iterators.h"
 #include "bmesh_walkers.h"
 #include "intern/bmesh_inline.c"
+#include "intern/bmesh_operator_api_inline.c"
 
 #ifdef __cplusplus
 }

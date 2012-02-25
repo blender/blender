@@ -140,7 +140,9 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 
 	int i, count = 0;
 	
-	for (i = 0; i < len; i++) BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) {
+		BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
+	}
 
 #ifdef USE_BMESH_HOLES
 	for (lst = f->loops.first; lst; lst = lst->next)

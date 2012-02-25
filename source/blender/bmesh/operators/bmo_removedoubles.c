@@ -124,10 +124,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			if (!v) v = e->v1;
 			if (!v2) v2 = e->v2;
 
-			if (v == v2)
+			if (v == v2) {
 				BMO_elem_flag_enable(bm, e, EDGE_COL);
-			else if (!BM_edge_exists(v, v2))
+			}
+			else if (!BM_edge_exists(v, v2)) {
 				BM_edge_create(bm, v, v2, e, TRUE);
+			}
 
 			BMO_elem_flag_enable(bm, e, ELE_DEL);
 		}
