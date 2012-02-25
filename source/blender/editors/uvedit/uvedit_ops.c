@@ -293,7 +293,8 @@ int uvedit_face_visible_nolocal(Scene *scene, BMFace *efa)
 		return (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)==0 && BM_elem_flag_test(efa, BM_ELEM_SELECT));
 }
 
-int uvedit_face_visible(Scene *scene, Image *ima, BMFace *efa, MTexPoly *tf) {
+int uvedit_face_visible(Scene *scene, Image *ima, BMFace *efa, MTexPoly *tf)
+{
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SHOW_SAME_IMAGE)

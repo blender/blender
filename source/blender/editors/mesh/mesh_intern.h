@@ -148,15 +148,6 @@ void MESH_OT_select_next_loop(struct wmOperatorType *ot);
 
 extern struct EnumPropertyItem *corner_type_items;
 
-#if 0 /* REMOVE AFTER BMESH MERGE */
-
-void join_triangles(EditMesh *em);
-int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int corner_pattern, int seltype);
-int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
-
-#endif
-
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);

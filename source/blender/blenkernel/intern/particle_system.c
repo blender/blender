@@ -2386,10 +2386,12 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	pfr->density += q*q;
 	pfr->near_density += q*q*q;
 }
+
 /*
  * Find the Courant number for an SPH particle (used for adaptive time step).
  */
-static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr) {
+static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
+{
 	ParticleData *pa, *npa;
 	int i;
 	float flow[3], offset[3], dist;
@@ -2533,7 +2535,8 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	sphdata->pass++;
 }
 
-static void sph_solver_init(ParticleSimulationData *sim, SPHData *sphdata) {
+static void sph_solver_init(ParticleSimulationData *sim, SPHData *sphdata)
+{
 	ParticleTarget *pt;
 	int i;
 
@@ -2556,13 +2559,17 @@ static void sph_solver_init(ParticleSimulationData *sim, SPHData *sphdata) {
 	sphdata->force_cb = sph_force_cb;
 	sphdata->density_cb = sph_density_accum_cb;
 }
-static void sph_solver_finalise(SPHData *sphdata) {
+
+static void sph_solver_finalise(SPHData *sphdata)
+{
 	if (sphdata->eh) {
 		BLI_edgehash_free(sphdata->eh, NULL);
 		sphdata->eh = NULL;
 	}
 }
-static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, SPHData *sphdata){
+
+static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, SPHData *sphdata)
+{
 	ParticleSettings *part = sim->psys->part;
 	// float timestep = psys_get_timestep(sim); // UNUSED
 	float pa_mass = part->mass * (part->flag & PART_SIZEMASS ? pa->size : 1.f);

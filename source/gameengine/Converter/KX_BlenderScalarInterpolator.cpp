@@ -41,12 +41,14 @@ extern "C" {
 #include "BKE_fcurve.h"
 }
 
-float BL_ScalarInterpolator::GetValue(float currentTime) const {
+float BL_ScalarInterpolator::GetValue(float currentTime) const
+{
 	// XXX 2.4x IPO_GetFloatValue(m_blender_adt, m_channel, currentTime);
 	return evaluate_fcurve(m_fcu, currentTime);
 }
 
-BL_InterpolatorList::BL_InterpolatorList(bAction *action) {
+BL_InterpolatorList::BL_InterpolatorList(bAction *action)
+{
 	if(action==NULL)
 		return;
 	
@@ -59,7 +61,8 @@ BL_InterpolatorList::BL_InterpolatorList(bAction *action) {
 	}
 }
 
-BL_InterpolatorList::~BL_InterpolatorList() {
+BL_InterpolatorList::~BL_InterpolatorList()
+{
 	BL_InterpolatorList::iterator i;
 	for (i = begin(); !(i == end()); ++i) {
 		delete *i;

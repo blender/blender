@@ -4406,8 +4406,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		
 		td->ext->irotAngle= ob->rotAngle;
 		copy_v3_v3(td->ext->irotAxis, ob->rotAxis);
-		// td->ext->drotAngle= ob->drotAngle;			// XXX, not implimented
-		// copy_v3_v3(td->ext->drotAxis, ob->drotAxis);	// XXX, not implimented
+		// td->ext->drotAngle= ob->drotAngle;			// XXX, not implemented
+		// copy_v3_v3(td->ext->drotAxis, ob->drotAxis);	// XXX, not implemented
 	}
 	else {
 		td->ext->rot= NULL;

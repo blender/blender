@@ -103,7 +103,8 @@ bool COperator1Expr::NeedsRecalculated()
 	return m_lhs->NeedsRecalculated();
 }
 
-CExpression* COperator1Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks) {
+CExpression* COperator1Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks)
+{
 
 	CExpression* newlhs = m_lhs->CheckLink(brokenlinks);
 

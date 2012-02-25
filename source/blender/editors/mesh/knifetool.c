@@ -180,7 +180,8 @@ static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco
 	ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
 }
 
-static ListBase *knife_empty_list(knifetool_opdata *kcd) {
+static ListBase *knife_empty_list(knifetool_opdata *kcd)
+{
 	ListBase *lst;
 
 	lst = BLI_memarena_alloc(kcd->arena, sizeof(ListBase));
@@ -188,7 +189,8 @@ static ListBase *knife_empty_list(knifetool_opdata *kcd) {
 	return lst;
 }
 
-static void knife_append_list(knifetool_opdata *kcd, ListBase *lst, void *elem) {
+static void knife_append_list(knifetool_opdata *kcd, ListBase *lst, void *elem)
+{
 	Ref *ref;
 
 	ref = BLI_mempool_calloc(kcd->refs);

@@ -44,13 +44,15 @@
 #define DEFAULT_WHITE_POINT 685
 
 void
-logImageSetVerbose(int verbosity) {
+logImageSetVerbose(int verbosity)
+{
 	cineonSetVerbose(verbosity);
 	dpxSetVerbose(verbosity);
 }
 
 LogImageFile*
-logImageOpen(const char* filename, int cineon) {
+logImageOpen(const char* filename, int cineon)
+{
 	if (cineon) {
 		return cineonOpen(filename);
 	} else {
@@ -60,7 +62,8 @@ logImageOpen(const char* filename, int cineon) {
 }
 
 LogImageFile*
-logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon) {
+logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon)
+{
 	if (cineon) {
 		return cineonOpenFromMem(buffer, size);
 	} else {
@@ -70,7 +73,8 @@ logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon) {
 }
 
 LogImageFile*
-logImageCreate(const char* filename, int cineon, int width, int height, int depth) {
+logImageCreate(const char* filename, int cineon, int width, int height, int depth)
+{
 	if (cineon) {
 		return cineonCreate(filename, width, height, depth);
 	} else {
@@ -80,7 +84,8 @@ logImageCreate(const char* filename, int cineon, int width, int height, int dept
 }
 
 int
-logImageGetSize(const LogImageFile* logImage, int* width, int* height, int* depth) {
+logImageGetSize(const LogImageFile* logImage, int* width, int* height, int* depth)
+{
 	*width = logImage->width;
 	*height = logImage->height;
 	*depth = logImage->depth;
@@ -88,7 +93,8 @@ logImageGetSize(const LogImageFile* logImage, int* width, int* height, int* dept
 }
 
 int
-logImageGetByteConversionDefaults(LogImageByteConversionParameters* params) {
+logImageGetByteConversionDefaults(LogImageByteConversionParameters* params)
+{
 	params->gamma = DEFAULT_GAMMA;
 	params->blackPoint = DEFAULT_BLACK_POINT;
 	params->whitePoint = DEFAULT_WHITE_POINT;
@@ -97,7 +103,8 @@ logImageGetByteConversionDefaults(LogImageByteConversionParameters* params) {
 }
 
 int
-logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionParameters* params) {
+logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionParameters* params)
+{
 	params->gamma = logImage->params.gamma;
 	params->blackPoint = logImage->params.blackPoint;
 	params->whitePoint = logImage->params.whitePoint;
@@ -106,7 +113,8 @@ logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionPa
 }
 
 int
-logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionParameters* params) {
+logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionParameters* params)
+{
 	if ((params->gamma >= MIN_GAMMA) &&
 			(params->gamma <= MAX_GAMMA) &&
 			(params->blackPoint >= 0) &&
@@ -123,22 +131,26 @@ logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionPa
 }
 
 int
-logImageGetRowBytes(LogImageFile* logImage, unsigned short* row, int y) {
+logImageGetRowBytes(LogImageFile* logImage, unsigned short* row, int y)
+{
 	return logImage->getRow(logImage, row, y);
 }
 
 int
-logImageSetRowBytes(LogImageFile* logImage, const unsigned short* row, int y) {
+logImageSetRowBytes(LogImageFile* logImage, const unsigned short* row, int y)
+{
 	return logImage->setRow(logImage, row, y);
 }
 
 void
-logImageClose(LogImageFile* logImage) {
+logImageClose(LogImageFile* logImage)
+{
 	logImage->close(logImage);
 }
 
 void
-logImageDump(const char* filename) {
+logImageDump(const char* filename)
+{
 
 	U32 magic;
 

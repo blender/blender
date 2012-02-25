@@ -241,7 +241,8 @@ static void stitch_update_header(StitchState *stitch_state, bContext *C)
 	}
 }
 
-static int getNumOfIslandUvs(UvElementMap *elementMap, int island){
+static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
+{
 	if(island == elementMap->totalIslands-1){
 		return elementMap->totalUVs - elementMap->islandIndices[island];
 	}else{
@@ -249,7 +250,8 @@ static int getNumOfIslandUvs(UvElementMap *elementMap, int island){
 	}
 }
 
-static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2]){
+static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2])
+{
 	float uv_rotation_result[2];
 
 	uv[0] -= medianPoint[0];
@@ -262,7 +264,8 @@ static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2]){
 	uv[1] = uv_rotation_result[1] + medianPoint[1];
 }
 
-static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_iter, StitchState *state){
+static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_iter, StitchState *state)
+{
 	float limit;
 	int do_limit;
 
@@ -293,7 +296,8 @@ static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_it
 }
 
 
-static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *element_iter, StitchState *state){
+static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *element_iter, StitchState *state)
+{
 	if((state->snap_islands && element->island == element_iter->island) ||
 			(!state->midpoints && element->island == element_iter->island))
 		return 0;
@@ -303,7 +307,8 @@ static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *elem
 
 
 /* calculate snapping for islands */
-static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition *preview_position, StitchPreviewer *preview, IslandStitchData *island_stitch_data, int final){
+static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition *preview_position, StitchPreviewer *preview, IslandStitchData *island_stitch_data, int final)
+{
 	int i;
 	UvElement *element;
 
@@ -471,7 +476,8 @@ static void stitch_state_delete(StitchState *stitch_state)
 
 
 /* checks for remote uvs that may be stitched with a certain uv, flags them if stitchable. */
-static void determine_uv_stitchability(UvElement *element, StitchState *state, IslandStitchData *island_stitch_data){
+static void determine_uv_stitchability(UvElement *element, StitchState *state, IslandStitchData *island_stitch_data)
+{
 	int vert_index;
 	UvElement *element_iter;
 	BMLoop *l;
@@ -876,14 +882,16 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 }
 
 /* Stitch hash initialisation functions */
-static unsigned int	uv_edge_hash(const void *key){
+static unsigned int	uv_edge_hash(const void *key)
+{
 	UvEdge *edge = (UvEdge *)key;
 	return
 		BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv2)) +
 		BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv1));
 }
 
-static int uv_edge_compare(const void *a, const void *b){
+static int uv_edge_compare(const void *a, const void *b)
+{
 	UvEdge *edge1 = (UvEdge *)a;
 	UvEdge *edge2 = (UvEdge *)b;
 
@@ -1275,7 +1283,8 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static void stitch_select(bContext *C, Scene *scene, wmEvent *event, StitchState *stitch_state){
+static void stitch_select(bContext *C, Scene *scene, wmEvent *event, StitchState *stitch_state)
+{
 	/* add uv under mouse to processed uv's */
 	float co[2];
 	NearestHit hit;

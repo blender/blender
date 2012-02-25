@@ -156,7 +156,9 @@ typedef struct Temp_UvData{
 
 
 
-void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float mouse_coord[2], float alpha, float radius, float aspectRatio) {
+void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float mouse_coord[2],
+                                float alpha, float radius, float aspectRatio)
+{
 	Temp_UVData *tmp_uvdata;
 	float diff[2];
 	int i;
@@ -433,7 +435,8 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, int doIslands) {
+static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, int doIslands)
+{
 	UvElement *element = ED_get_uv_element(map, efa, l);
 	if (!element || (doIslands && element->island != island_index)) {
 		return -1;
@@ -442,14 +445,16 @@ static int get_uv_element_offset_from_face(UvElementMap *map, BMFace *efa, BMLoo
 }
 
 
-static unsigned int	uv_edge_hash(const void *key) {
+static unsigned int	uv_edge_hash(const void *key)
+{
 	UvEdge *edge = (UvEdge *)key;
 	return 
 		BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv2)) +
 		BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv1));
 }
 
-static int uv_edge_compare(const void *a, const void *b) {
+static int uv_edge_compare(const void *a, const void *b)
+{
 	UvEdge *edge1 = (UvEdge *)a;
 	UvEdge *edge2 = (UvEdge *)b;
 

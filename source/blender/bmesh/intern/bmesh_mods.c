@@ -498,7 +498,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 
 BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv)
 {
-	/* nice example implimentation but we want loops to have their customdata
+	/* nice example implementation but we want loops to have their customdata
 	 * accounted for */
 #if 0
 	BMEdge *ne = NULL;

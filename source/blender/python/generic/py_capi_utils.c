@@ -228,7 +228,7 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 
 /* similar to PyErr_Format(),
  *
- * implimentation - we cant actually preprend the existing exception,
+ * implementation - we cant actually preprend the existing exception,
  * because it could have _any_ argiments given to it, so instead we get its
  * __str__ output and raise our own exception including it.
  */

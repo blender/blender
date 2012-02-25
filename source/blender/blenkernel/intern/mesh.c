@@ -875,27 +875,6 @@ static int vergedgesort(const void *v1, const void *v2)
 }
 
 
-/* TODO: remove after bmesh merge */
-#if 0
-
-static void mfaces_strip_loose(MFace *mface, int *totface)
-{
-	int a,b;
-
-	for (a=b=0; a<*totface; a++) {
-		if (mface[a].v3) {
-			if (a!=b) {
-				memcpy(&mface[b],&mface[a],sizeof(mface[b]));
-			}
-			b++;
-		}
-	}
-
-	*totface= b;
-}
-
-#endif
-
 /* Create edges based on known verts and faces */
 static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
 	MPoly *allpoly, int UNUSED(totvert), int totface, int UNUSED(totloop), int totpoly,

@@ -144,7 +144,8 @@ void NG_NetworkScene::RemoveAllObjects()
 /**
  * get a single network object given its name
  */
-NG_NetworkObject* NG_NetworkScene::FindNetworkObject(const STR_String& objname) {
+NG_NetworkObject* NG_NetworkScene::FindNetworkObject(const STR_String& objname)
+{
 	NG_NetworkObject *nwobj = NULL;
 	if (! m_networkdevice->IsOnline()) return nwobj;
 

@@ -71,7 +71,8 @@ const STR_String & CListValue::GetText()
 
 
 
-CValue* CListValue::GetReplica() {
+CValue* CListValue::GetReplica()
+{
 	CListValue* replica = new CListValue(*this);
 
 	replica->ProcessReplica();
@@ -214,7 +215,7 @@ CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val)
 	//assert(false); // todo: implement me!
 	static int error_printed =  0;
 	if (error_printed==0) {
-		fprintf(stderr, "CValueList::Calc not yet implimented\n");
+		fprintf(stderr, "CValueList::Calc not yet implemented\n");
 		error_printed = 1;
 	}
 	return NULL;
@@ -227,7 +228,7 @@ CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
 	//assert(false); // todo: implement me!
 	static int error_printed =  0;
 	if (error_printed==0) {
-		fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
+		fprintf(stderr, "CValueList::CalcFinal not yet implemented\n");
 		error_printed = 1;
 	}
 	return NULL;

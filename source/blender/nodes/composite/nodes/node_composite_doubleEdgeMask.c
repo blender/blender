@@ -42,7 +42,8 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[]= {
     { -1, 0, "" }                      // output socket array terminator
 };
 
-static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize){
+static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
     int x;
     unsigned int isz=0; // inner edge size
     unsigned int osz=0; // outer edge size
@@ -189,7 +190,8 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
     rsize[2]=gsz;
 }
 
-static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize){
+static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
     int x;
     unsigned int isz=0; // inner edge size
     unsigned int osz=0; // outer edge size
@@ -375,7 +377,8 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
     rsize[2]=gsz;
 }
 
-static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize){
+static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
     int x;
     unsigned int isz=0; // inner edge size
     unsigned int osz=0; // outer edge size
@@ -514,7 +517,8 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
     rsize[2]=gsz;
 }
 
-static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize){
+static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
     int x;
     unsigned int isz=0; // inner edge size
     unsigned int osz=0; // outer edge size
@@ -692,7 +696,8 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
     rsize[2]=gsz;
 }
 
-static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz){
+static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz)
+{
     int x;                             // x = pixel loop counter
     int a;                             // a = pixel loop counter
     int dx;                            // dx = delta x
@@ -750,7 +755,8 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
     rsize[2]=in_gsz;
 }
 
-static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz){
+static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz)
+{
     int x;                             // x = pixel loop counter
     int a;                             // a = pixel loop counter
     int dx;                            // dx = delta x
@@ -812,7 +818,8 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
     rsize[2]=in_gsz;
 }
 
-static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigned int *lres, float *res, unsigned short *gbuf, unsigned int *innerEdgeOffset, unsigned int *outerEdgeOffset, unsigned int isz, unsigned int gsz){
+static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigned int *lres, float *res, unsigned short *gbuf, unsigned int *innerEdgeOffset, unsigned int *outerEdgeOffset, unsigned int isz, unsigned int gsz)
+{
     int x;                             // x = pixel loop counter
     int a;                             // a = temporary pixel index buffer loop counter
     unsigned int ud;                   // ud = unscaled edge distance
@@ -920,7 +927,8 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 
 }
 
-static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *gbuf, unsigned int isz, unsigned int osz, unsigned int gsz, unsigned int innerEdgeOffset, unsigned int outerEdgeOffset){
+static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *gbuf, unsigned int isz, unsigned int osz, unsigned int gsz, unsigned int innerEdgeOffset, unsigned int outerEdgeOffset)
+{
     int x;                             // x = pixel loop counter
     int a;                             // a = temporary pixel index buffer loop counter
     int fsz;                           // size of the frame
@@ -1048,7 +1056,8 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 }
 
 
-static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out) {
+static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+{
 
     float *imask;                      // imask = pointer to inner mask pixel buffer
     float *omask;                      // omask = pointer to outer mask pixel buffer
@@ -1172,7 +1181,8 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
     }
 }
 
-void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype) {
+void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
+{
     static bNodeType ntype;      // allocate a node type data structure
 
     node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);

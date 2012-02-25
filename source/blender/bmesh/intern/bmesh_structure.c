@@ -51,7 +51,8 @@ int bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 	return FALSE;
 }
 
-BMVert *bmesh_edge_getothervert(BMEdge *e, BMVert *v) {
+BMVert *bmesh_edge_getothervert(BMEdge *e, BMVert *v)
+{
 	if (e->v1 == v) {
 		return e->v2;
 	}

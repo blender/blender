@@ -1024,7 +1024,7 @@ typedef struct UnitSettings {
 	/* Display/Editing unit options for each scene */
 	float scale_length; /* maybe have other unit conversions? */
 	char system; /* imperial, metric etc */
-	char system_rotation; /* not implimented as a propper unit system yet */
+	char system_rotation; /* not implemented as a propper unit system yet */
 	short flag;
 } UnitSettings;
 
