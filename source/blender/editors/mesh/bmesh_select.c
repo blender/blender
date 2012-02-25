@@ -1166,8 +1166,8 @@ static void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *e, int val
 		else			{BM_elem_flag_disable(e, BM_ELEM_SEAM);}
 		break;
 	case EDGE_MODE_TAG_SHARP:
-		if (val)		{BM_elem_flag_enable(e, BM_ELEM_SEAM);}
-		else			{BM_elem_flag_disable(e, BM_ELEM_SEAM);}
+		if (val)		{BM_elem_flag_disable(e, BM_ELEM_SMOOTH);}
+		else			{BM_elem_flag_enable(e, BM_ELEM_SMOOTH);}
 		break;
 	case EDGE_MODE_TAG_CREASE:
 	 {
