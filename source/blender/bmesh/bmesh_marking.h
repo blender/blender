@@ -30,7 +30,7 @@
 typedef struct BMEditSelection
 {
 	struct BMEditSelection *next, *prev;
-	void *data;
+	BMElem *ele;
 	char htype;
 } BMEditSelection;
 
@@ -66,9 +66,9 @@ void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese)
 void BM_editselection_normal(float r_normal[3], BMEditSelection *ese);
 void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese);
 
-int  BM_select_history_check(BMesh *bm, void *data);
-void BM_select_history_remove(BMesh *bm, void *data);
-void BM_select_history_store(BMesh *bm, void *data);
+int  BM_select_history_check(BMesh *bm, const BMElem *ele);
+void BM_select_history_remove(BMesh *bm, BMElem *ele);
+void BM_select_history_store(BMesh *bm, BMElem *ele);
 void BM_select_history_validate(BMesh *bm);
 void BM_select_history_clear(BMesh *em);
 

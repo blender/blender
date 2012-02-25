@@ -164,8 +164,8 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 		BM_elem_index_set(self->ele, param); /* set_dirty! */
 
 		/* when setting the index assume its set invalid */
-		if (self->ele->htype & (BM_VERT | BM_EDGE | BM_FACE)) {
-			self->bm->elem_index_dirty |= self->ele->htype;
+		if (self->ele->head.htype & (BM_VERT | BM_EDGE | BM_FACE)) {
+			self->bm->elem_index_dirty |= self->ele->head.htype;
 		}
 
 		return 0;
@@ -1500,7 +1500,7 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 		default:
 		{
 			BMIter iter;
-			BMHeader *ele;
+			BMElem *ele;
 			int index = 0;
 			const char htype = bm_iter_itype_htype_map[self->itype];
 
@@ -1790,7 +1790,7 @@ static int bpy_bmelemseq_contains(BPy_BMElemSeq *self, PyObject *value)
 	if (Py_TYPE(value) == bpy_bm_itype_as_pytype(self->itype)) {
 		BPy_BMElem *value_bm_ele = (BPy_BMElem *)value;
 		if (value_bm_ele->bm == self->bm) {
-			BMHeader *ele, *ele_test = value_bm_ele->ele;
+			BMElem *ele, *ele_test = value_bm_ele->ele;
 			BMIter iter;
 			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
 				if (ele == ele_test) {
@@ -1870,7 +1870,7 @@ static void bpy_bmvert_dealloc(BPy_BMElem *self)
 {
 	BMesh *bm = self->bm;
 	if (bm) {
-		void **ptr = CustomData_bmesh_get(&bm->vdata, self->ele->data, CD_BM_ELEM_PYPTR);
+		void **ptr = CustomData_bmesh_get(&bm->vdata, self->ele->head.data, CD_BM_ELEM_PYPTR);
 		*ptr = NULL;
 	}
 	PyObject_DEL(self);
@@ -1880,7 +1880,7 @@ static void bpy_bmedge_dealloc(BPy_BMElem *self)
 {
 	BMesh *bm = self->bm;
 	if (bm) {
-		void **ptr = CustomData_bmesh_get(&bm->edata, self->ele->data, CD_BM_ELEM_PYPTR);
+		void **ptr = CustomData_bmesh_get(&bm->edata, self->ele->head.data, CD_BM_ELEM_PYPTR);
 		*ptr = NULL;
 	}
 	PyObject_DEL(self);
@@ -1890,7 +1890,7 @@ static void bpy_bmface_dealloc(BPy_BMElem *self)
 {
 	BMesh *bm = self->bm;
 	if (bm) {
-		void **ptr = CustomData_bmesh_get(&bm->pdata, self->ele->data, CD_BM_ELEM_PYPTR);
+		void **ptr = CustomData_bmesh_get(&bm->pdata, self->ele->head.data, CD_BM_ELEM_PYPTR);
 		*ptr = NULL;
 	}
 	PyObject_DEL(self);
@@ -1900,7 +1900,7 @@ static void bpy_bmloop_dealloc(BPy_BMElem *self)
 {
 	BMesh *bm = self->bm;
 	if (bm) {
-		void **ptr = CustomData_bmesh_get(&bm->ldata, self->ele->data, CD_BM_ELEM_PYPTR);
+		void **ptr = CustomData_bmesh_get(&bm->ldata, self->ele->head.data, CD_BM_ELEM_PYPTR);
 		*ptr = NULL;
 	}
 	PyObject_DEL(self);
@@ -2304,7 +2304,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 		Py_ssize_t i;
 
 		BPy_BMElem *item;
-		BMHeader **alloc;
+		BMElem **alloc;
 
 		seq_len = PySequence_Fast_GET_SIZE(seq_fast);
 

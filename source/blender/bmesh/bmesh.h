@@ -144,17 +144,19 @@ BMFace *BM_face_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, B
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble);
 
 /* stuff for dealing with header flags */
-BM_INLINE char BM_elem_flag_test(const void *element, const char hflag);
+#define BM_elem_flag_test(ele, hflag)      _bm_elem_flag_test    (&(ele)->head, hflag)
+#define BM_elem_flag_enable(ele, hflag)    _bm_elem_flag_enable  (&(ele)->head, hflag)
+#define BM_elem_flag_disable(ele, hflag)   _bm_elem_flag_disable (&(ele)->head, hflag)
+#define BM_elem_flag_set(ele, hflag, val)  _bm_elem_flag_set     (&(ele)->head, hflag, val)
+#define BM_elem_flag_toggle(ele, hflag)    _bm_elem_flag_toggle  (&(ele)->head, hflag)
+#define BM_elem_flag_merge(ele_a, ele_b)   _bm_elem_flag_merge   (&(ele_a)->head, &(ele_b)->head)
 
-/* stuff for dealing with header flags */
-BM_INLINE void BM_elem_flag_enable(void *element, const char hflag);
-
-/* stuff for dealing with header flags */
-BM_INLINE void BM_elem_flag_disable(void *element, const char hflag);
-
-/* stuff for dealing BM_elem_flag_toggle header flags */
-BM_INLINE void BM_elem_flag_toggle(void *element, const char hflag);
-BM_INLINE void BM_elem_flag_merge(void *element_a, void *element_b);
+BM_INLINE char _bm_elem_flag_test(const BMHeader *element, const char hflag);
+BM_INLINE void _bm_elem_flag_enable(BMHeader *element, const char hflag);
+BM_INLINE void _bm_elem_flag_disable(BMHeader *element, const char hflag);
+BM_INLINE void _bm_elem_flag_set(BMHeader *ele, const char hflag, const int val);
+BM_INLINE void _bm_elem_flag_toggle(BMHeader *ele, const char hflag);
+BM_INLINE void _bm_elem_flag_merge(BMHeader *ele_a, BMHeader *ele_b);
 
 /* notes on BM_elem_index_set(...) usage,
  * Set index is sometimes abused as temp storage, other times we cant be
@@ -185,8 +187,10 @@ BM_INLINE void BM_elem_flag_merge(void *element_a, void *element_b);
  *                    assume each case they are dirty.
  * - campbell */
 
-BM_INLINE void BM_elem_index_set(void *element, const int index);
-BM_INLINE int  BM_elem_index_get(const void *element);
+#define BM_elem_index_get(ele)           _bm_elem_index_get(&(ele)->head)
+#define BM_elem_index_set(ele, index)    _bm_elem_index_set(&(ele)->head, index)
+BM_INLINE int  _bm_elem_index_get(const BMHeader *ele);
+BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index);
 
 /* todo */
 BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges);

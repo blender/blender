@@ -2113,7 +2113,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if (em->bm->selected.last) {
 		BMEditSelection *ese = em->bm->selected.last;
 		if (ese->htype == BM_VERT) {
-			eve_act = (BMVert *)ese->data;
+			eve_act = (BMVert *)ese->ele;
 		}
 	}
 

@@ -2986,10 +2986,10 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			efa_act = (BMFace *)ese->data;
 		}
 		else */ if ( ese->htype == BM_EDGE ) {
-			eed_act = (BMEdge *)ese->data;
+			eed_act = (BMEdge *)ese->ele;
 		}
 		else if ( ese->htype == BM_VERT ) {
-			eve_act = (BMVert *)ese->data;
+			eve_act = (BMVert *)ese->ele;
 		}
 	}
 	

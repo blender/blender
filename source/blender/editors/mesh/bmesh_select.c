@@ -889,18 +889,18 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 static void walker_select(BMEditMesh *em, int walkercode, void *start, int select)
 {
 	BMesh *bm = em->bm;
-	BMHeader *h;
+	BMElem *ele;
 	BMWalker walker;
 
 	BMW_init(&walker, bm, walkercode,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_NIL_LAY);
-	h = BMW_begin(&walker, start);
-	for ( ; h; h = BMW_step(&walker)) {
+	ele = BMW_begin(&walker, start);
+	for ( ; ele; ele = BMW_step(&walker)) {
 		if (!select) {
-			BM_select_history_remove(bm, h);
+			BM_select_history_remove(bm, ele);
 		}
-		BM_elem_select_set(bm, h, select);
+		BM_elem_select_set(bm, ele, select);
 	}
 	BMW_end(&walker);
 }
@@ -1369,7 +1369,7 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 			
 			if (ese && ese->htype == BM_EDGE) {
 				BMEdge *e_act;
-				e_act = (BMEdge *)ese->data;
+				e_act = (BMEdge *)ese->ele;
 				if (e_act != e) {
 					if (edgetag_shortest_path(vc.scene, em, e_act, e)) {
 						EDBM_remove_selection(em, e_act);
@@ -1999,7 +1999,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
    are reached is not a multiple of "nth". */
 static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h_act)
 {
-	BMHeader *h;
+	BMElem *ele;
 	BMesh *bm = em->bm;
 	BMWalker walker;
 	BMIter iter;
@@ -2037,10 +2037,10 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	/* Walker restrictions uses BMO flags, not header flags,
 	 * so transfer BM_ELEM_SELECT from HFlags onto a BMO flag layer. */
 	BMO_push(bm, NULL);
-	BM_ITER(h, &iter, bm, itertype, NULL) {
-		if (BM_elem_flag_test(h, BM_ELEM_SELECT)) {
+	BM_ITER(ele, &iter, bm, itertype, NULL) {
+		if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
 			/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
-			BMO_elem_flag_enable(bm, (BMElemF *)h, BM_ELEM_SELECT);
+			BMO_elem_flag_enable(bm, (BMElemF *)ele, BM_ELEM_SELECT);
 		}
 	}
 
@@ -2050,10 +2050,10 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	         BMW_NIL_LAY);
 
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);
-	for (h = BMW_begin(&walker, h_act); h != NULL; h = BMW_step(&walker)) {
+	for (ele = BMW_begin(&walker, h_act); ele != NULL; ele = BMW_step(&walker)) {
 		/* Deselect elements that aren't at "nth" depth from active */
 		if ((offset + BMW_current_depth(&walker)) % nth) {
-			BM_elem_select_set(bm, h, FALSE);
+			BM_elem_select_set(bm, ele, FALSE);
 		}
 	}
 	BMW_end(&walker);
@@ -2082,13 +2082,13 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFa
 	if (ese) {
 		switch(ese->htype) {
 		case BM_VERT:
-			*v_p = (BMVert *)ese->data;
+			*v_p = (BMVert *)ese->ele;
 			return;
 		case BM_EDGE:
-			*e_p = (BMEdge *)ese->data;
+			*e_p = (BMEdge *)ese->ele;
 			return;
 		case BM_FACE:
-			*f_p = (BMFace *)ese->data;
+			*f_p = (BMFace *)ese->ele;
 			return;
 		}
 	}
@@ -2356,13 +2356,13 @@ static int select_non_manifold_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(em->bm, BM_ELEM_HIDDEN) && !BM_vert_is_manifold(em->bm, v)) {
+		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN) && !BM_vert_is_manifold(em->bm, v)) {
 			BM_elem_select_set(em->bm, v, TRUE);
 		}
 	}
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BM_elem_flag_test(em->bm, BM_ELEM_HIDDEN) && BM_edge_face_count(e) != 2) {
+		if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && BM_edge_face_count(e) != 2) {
 			BM_elem_select_set(em->bm, e, TRUE);
 		}
 	}

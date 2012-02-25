@@ -566,7 +566,7 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 		return;
 
 	/* First we copy select */
-	if (BM_elem_flag_test(source, BM_ELEM_SELECT)) {
+	if (BM_elem_flag_test((BMElem *)sheader, BM_ELEM_SELECT)) {
 		BM_elem_select_set(target_mesh, target, TRUE);
 	}
 	
@@ -706,11 +706,11 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 		void *ele = NULL;
 
 		if (ese->htype == BM_VERT)
-			ele = vtable[BM_elem_index_get(ese->data)];
+			ele = vtable[BM_elem_index_get(ese->ele)];
 		else if (ese->htype == BM_EDGE)
-			ele = etable[BM_elem_index_get(ese->data)];
+			ele = etable[BM_elem_index_get(ese->ele)];
 		else if (ese->htype == BM_FACE) {
-			ele = ftable[BM_elem_index_get(ese->data)];
+			ele = ftable[BM_elem_index_get(ese->ele)];
 		}
 		else {
 			BLI_assert(0);

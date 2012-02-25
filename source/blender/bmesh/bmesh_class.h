@@ -111,6 +111,11 @@ typedef struct BMElemF {
 	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
 } BMElemF;
 
+/* can cast anything to this, including BMLoop */
+typedef struct BMElem {
+	BMHeader head;
+} BMElem;
+
 #ifdef USE_BMESH_HOLES
 /* eventually, this structure will be used for supporting holes in faces */
 typedef struct BMLoopList {

@@ -1424,7 +1424,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 void EDBM_hide_mesh(BMEditMesh *em, int swap)
 {
 	BMIter iter;
-	BMHeader *h;
+	BMElem *ele;
 	int itermode;
 
 	if (em == NULL) return;
@@ -1436,9 +1436,9 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 	else
 		itermode = BM_FACES_OF_MESH;
 
-	BM_ITER(h, &iter, em->bm, itermode, NULL) {
-		if (BM_elem_flag_test(h, BM_ELEM_SELECT) ^ swap)
-			BM_elem_hide_set(em->bm, h, TRUE);
+	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
+		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
+			BM_elem_hide_set(em->bm, ele, TRUE);
 	}
 
 	EDBM_selectmode_flush(em);
@@ -1497,7 +1497,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	              };
 
 	BMIter iter;
-    BMHeader *ele;
+    BMElem *ele;
 	int i;
 
 	/* Use tag flag to remember what was hidden before all is revealed.
@@ -2011,11 +2011,11 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 	/* do sanity check in mergemenu in edit.c ?*/
 	if (first == 0) {
 		ese = em->bm->selected.last;
-		mergevert = (BMVert *)ese->data;
+		mergevert = (BMVert *)ese->ele;
 	}
 	else{
 		ese = em->bm->selected.first;
-		mergevert = (BMVert *)ese->data;
+		mergevert = (BMVert *)ese->ele;
 	}
 
 	if (!BM_elem_flag_test(mergevert, BM_ELEM_SELECT))
@@ -2270,7 +2270,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->data, ev->data, type);
+	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->ele, ev->ele, type);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -2739,7 +2739,7 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		BMVert *ev, *act_vert = (BMVert *)ese->data;
+		BMVert *ev, *act_vert = (BMVert *)ese->ele;
 		BMIter iter;
 		float value = act_vert->co[axis];
 		float limit =  CTX_data_tool_settings(C)->doublimit; // XXX

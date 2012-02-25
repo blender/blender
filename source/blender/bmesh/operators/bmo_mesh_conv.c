@@ -331,13 +331,13 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		if (me->mselect) {
 			for (i = 0; i < me->totselect; i++) {
 				if (me->mselect[i].type == ME_VSEL) {
-					BM_select_history_store(bm, vertex_array[me->mselect[i].index]);
+					BM_select_history_store(bm, (BMElem *)vertex_array[me->mselect[i].index]);
 				}
 				else if (me->mselect[i].type == ME_ESEL) {
-					BM_select_history_store(bm, edge_array[me->mselect[i].index]);
+					BM_select_history_store(bm, (BMElem *)edge_array[me->mselect[i].index]);
 				}
 				else if (me->mselect[i].type == ME_FSEL) {
-					BM_select_history_store(bm, face_array[me->mselect[i].index]);
+					BM_select_history_store(bm, (BMElem *)face_array[me->mselect[i].index]);
 				}
 			}
 		}
@@ -674,7 +674,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				me->mselect[i].type = ME_FSEL;
 			}
 
-			me->mselect[i].index = BM_elem_index_get(selected->data);
+			me->mselect[i].index = BM_elem_index_get(selected->ele);
 		}
 	}
 

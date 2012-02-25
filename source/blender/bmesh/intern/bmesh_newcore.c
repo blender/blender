@@ -463,7 +463,7 @@ static void bmesh_kill_only_vert(BMesh *bm, BMVert *v)
 	bm->totvert--;
 	bm->elem_index_dirty |= BM_VERT;
 
-	BM_select_history_remove(bm, v);
+	BM_select_history_remove(bm, (BMElem *)v);
 	if (v->head.data)
 		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 
@@ -476,7 +476,7 @@ static void bmesh_kill_only_edge(BMesh *bm, BMEdge *e)
 	bm->totedge--;
 	bm->elem_index_dirty |= BM_EDGE;
 
-	BM_select_history_remove(bm, e);
+	BM_select_history_remove(bm, (BMElem *)e);
 
 	if (e->head.data)
 		CustomData_bmesh_free_block(&bm->edata, &e->head.data);
@@ -493,7 +493,7 @@ static void bmesh_kill_only_face(BMesh *bm, BMFace *f)
 	bm->totface--;
 	bm->elem_index_dirty |= BM_FACE;
 
-	BM_select_history_remove(bm, f);
+	BM_select_history_remove(bm, (BMElem *)f);
 
 	if (f->head.data)
 		CustomData_bmesh_free_block(&bm->pdata, &f->head.data);

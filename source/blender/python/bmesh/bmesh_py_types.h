@@ -56,7 +56,7 @@ typedef struct BPy_BMGeneric {
 typedef struct BPy_BMElem {
 	PyObject_VAR_HEAD
 	struct BMesh *bm; /* keep first */
-	struct BMHeader *ele;
+	struct BMElem *ele;
 } BPy_BMElem;
 
 typedef struct BPy_BMesh {

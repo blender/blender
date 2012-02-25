@@ -478,7 +478,7 @@ void bmesh_end_edit(BMesh *bm, int flag)
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 {
 	BMIter iter;
-	BMHeader *ele;
+	BMElem *ele;
 
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
@@ -552,7 +552,7 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 	const char *type_names[3] = {"vert", "edge", "face"};
 
 	BMIter iter;
-	BMHeader *ele;
+	BMElem *ele;
 	int i;
 	int is_any_error = 0;
 

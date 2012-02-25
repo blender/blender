@@ -31,47 +31,46 @@
 
 #include "bmesh.h"
 
-BM_INLINE char BM_elem_flag_test(const void *element, const char hflag)
+BM_INLINE char _bm_elem_flag_test(const BMHeader *ele, const char hflag)
 {
-	return ((const BMHeader *)element)->hflag & hflag;
+	return ele->hflag & hflag;
 }
 
-BM_INLINE void BM_elem_flag_enable(void *element, const char hflag)
+BM_INLINE void _bm_elem_flag_enable(BMHeader *ele, const char hflag)
 {
-	((BMHeader *)element)->hflag |= hflag;
+	ele->hflag |= hflag;
 }
 
-BM_INLINE void BM_elem_flag_disable(void *element, const char hflag)
+BM_INLINE void _bm_elem_flag_disable(BMHeader *ele, const char hflag)
 {
-	((BMHeader *)element)->hflag &= ~hflag;
+	ele->hflag &= ~hflag;
 }
 
-BM_INLINE void BM_elem_flag_set(void *element, const char hflag, const int val)
+BM_INLINE void _bm_elem_flag_set(BMHeader *ele, const char hflag, const int val)
 {
-	if (val)  BM_elem_flag_enable(element,  hflag);
-	else      BM_elem_flag_disable(element, hflag);
+	if (val)  _bm_elem_flag_enable(ele,  hflag);
+	else      _bm_elem_flag_disable(ele, hflag);
 }
 
-BM_INLINE void BM_elem_flag_toggle(void *element, const char hflag)
+BM_INLINE void _bm_elem_flag_toggle(BMHeader *ele, const char hflag)
 {
-	((BMHeader *)element)->hflag ^= hflag;
+	ele->hflag ^= hflag;
 }
 
-BM_INLINE void BM_elem_flag_merge(void *element_a, void *element_b)
+BM_INLINE void _bm_elem_flag_merge(BMHeader *ele_a, BMHeader *ele_b)
 {
-	((BMHeader *)element_a)->hflag =
-	((BMHeader *)element_b)->hflag = (((BMHeader *)element_a)->hflag |
-	                                  ((BMHeader *)element_b)->hflag);
+	ele_a->hflag = ele_b->hflag = ele_a->hflag | ele_b->hflag;
 }
 
-BM_INLINE void BM_elem_index_set(void *element, const int index)
+
+BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index)
 {
-	((BMHeader *)element)->index = index;
+	ele->index = index;
 }
 
-BM_INLINE int BM_elem_index_get(const void *element)
+BM_INLINE int _bm_elem_index_get(const BMHeader *ele)
 {
-	return ((BMHeader *)element)->index;
+	return ele->index;
 }
 
 #endif /* __BMESH_INLINE_C__ */

@@ -625,8 +625,8 @@ static void act_vert_def(Object *ob, BMVert **eve, MDeformVert **dvert)
 		BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
 
 		if (ese && ese->htype == BM_VERT) {
-			*eve= (BMVert *)ese->data;
-			*dvert= CustomData_bmesh_get(&em->bm->vdata, (*eve)->head.data, CD_MDEFORMVERT);
+			*eve = (BMVert *)ese->ele;
+			*dvert = CustomData_bmesh_get(&em->bm->vdata, (*eve)->head.data, CD_MDEFORMVERT);
 			return;
 		}
 	}

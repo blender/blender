@@ -83,7 +83,7 @@ void EDBM_stats_update(BMEditMesh *em)
 	                            BM_FACES_OF_MESH};
 
 	BMIter iter;
-	BMHeader *ele;
+	BMElem *ele;
 	int *tots[3];
 	int i;
 
@@ -451,24 +451,24 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 	if (ese_last) {
 		if (ese_last->htype == BM_FACE) { /* if there is an active face, use it over the last selected face */
 			if (efa) {
-				ese->data = (void *)efa;
+				ese->ele = (BMElem *)efa;
 			}
 			else {
-				ese->data = ese_last->data;
+				ese->ele = ese_last->ele;
 			}
 			ese->htype = BM_FACE;
 		}
 		else {
-			ese->data = ese_last->data;
+			ese->ele =   ese_last->ele;
 			ese->htype = ese_last->htype;
 		}
 	}
 	else if (efa) { /* no */
-		ese->data = (void *)efa;
+		ese->ele   = (BMElem *)efa;
 		ese->htype = BM_FACE;
 	}
 	else {
-		ese->data = NULL;
+		ese->ele = NULL;
 		return 0;
 	}
 	return 1;

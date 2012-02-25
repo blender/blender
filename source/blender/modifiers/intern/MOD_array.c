@@ -313,20 +313,20 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			BMOperator findop;
 			BMOIter oiter;
 			BMVert *v, *v2;
-			BMHeader *h;
+			BMElem *ele;
 
 			BMO_op_initf(em->bm, &findop,
 			             "finddoubles verts=%av dist=%f keepverts=%s",
 			             amd->merge_dist, &op, "geom");
 
 			i = 0;
-			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
-				BM_elem_index_set(h, i); /* set_dirty */
+			BMO_ITER(ele, &oiter, em->bm, &op, "geom", BM_ALL) {
+				BM_elem_index_set(ele, i); /* set_dirty */
 				i++;
 			}
 
-			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
-				BM_elem_index_set(h, i); /* set_dirty */
+			BMO_ITER(ele, &oiter, em->bm, &op, "newout", BM_ALL) {
+				BM_elem_index_set(ele, i); /* set_dirty */
 				i++;
 			}
 			/* above loops over all, so set all to dirty, if this is somehow
