@@ -402,6 +402,28 @@ static int bpy_bmface_normal_set(BPy_BMFace *self, PyObject *value)
 	}
 }
 
+/* Loop
+ * ^^^^ */
+
+PyDoc_STRVAR(bpy_bmloop_link_loop_next_get_doc,
+"The next face corner (read-only).\n\n:type: :class:`BMLoop`"
+);
+static PyObject *bpy_bmloop_link_loop_next_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMLoop_CreatePyObject(self->bm, self->l->next);
+}
+
+PyDoc_STRVAR(bpy_bmloop_link_loop_prev_get_doc,
+"The previous face corner (read-only).\n\n:type: :class:`BMLoop`"
+);
+static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMLoop_CreatePyObject(self->bm, self->l->prev);
+}
+
+
 static PyGetSetDef bpy_bmesh_getseters[] = {
     {(char *)"verts", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_verts_doc, (void *)BM_VERTS_OF_MESH},
     {(char *)"edges", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_edges_doc, (void *)BM_EDGES_OF_MESH},
@@ -494,6 +516,8 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 
     /* connectivity data */
     {(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmloops_link_loops_doc, (void *)BM_LOOPS_OF_LOOP},
+    {(char *)"link_loop_next", (getter)bpy_bmloop_link_loop_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_next_get_doc, NULL},
+    {(char *)"link_loop_prev", (getter)bpy_bmloop_link_loop_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_prev_get_doc, NULL},
 
     /* readonly checks */
     {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
@@ -703,6 +727,44 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 
 /* Vert
  * ---- */
+
+
+PyDoc_STRVAR(bpy_bmvert_copy_from_face_interp_doc,
+".. method:: copy_from_face_interp(face)\n"
+"\n"
+"   Interpolate the customdata from a face onto this loop (the loops vert should overlap the face).\n"
+"\n"
+"   :arg face: The face to interpolate data from.\n"
+"   :type face: :class:`BMFace`\n"
+);
+static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *args)
+{
+	BPy_BMFace *py_face = NULL;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O!:BMVert.copy_from_face_interp",
+	                      &BPy_BMFace_Type, &py_face))
+	{
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+
+		BPY_BM_CHECK_OBJ(py_face);
+
+		if (py_face->bm != bm) {
+			PyErr_SetString(PyExc_ValueError,
+			                "BMVert.copy_from_face_interp(face): face is from another mesh");
+			return NULL;
+		}
+
+		BM_vert_interp_from_face(bm, self->v, py_face->f);
+
+		Py_RETURN_NONE;
+	}
+}
+
 
 PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
 ".. method:: calc_edge_angle()\n"
@@ -969,9 +1031,9 @@ PyDoc_STRVAR(bpy_bmloop_copy_from_face_interp_doc,
 "\n"
 "   :arg face: The face to interpolate data from.\n"
 "   :type face: :class:`BMFace`\n"
-"   :arg vert: When enabled, interpolate the loops vertex data.\n"
+"   :arg vert: When enabled, interpolate the loops vertex data (optional).\n"
 "   :type vert: boolean\n"
-"   :arg multires: When enabled, interpolate the loops multires data.\n"
+"   :arg multires: When enabled, interpolate the loops multires data (optional).\n"
 "   :type multires: boolean\n"
 );
 static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
@@ -1534,6 +1596,7 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 static struct PyMethodDef bpy_bmvert_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+    {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_O, bpy_bmvert_copy_from_face_interp_doc},
 
     {"calc_vert_angle", (PyCFunction)bpy_bmvert_calc_edge_angle, METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
 
