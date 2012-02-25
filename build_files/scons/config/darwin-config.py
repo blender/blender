@@ -34,7 +34,7 @@ elif cmd_res[:2]=='11':
     MAC_CUR_VER='10.7'
 cmd = 'xcodebuild -version'
 cmd_xcode=commands.getoutput(cmd)
-XCODE_CUR_VER=cmd_xcode
+XCODE_CUR_VER=cmd_xcode[6:][:3] # truncate output to major.minor version
 cmd = 'xcodebuild -showsdks'
 cmd_sdk=commands.getoutput(cmd)
 MACOSX_SDK_CHECK=cmd_sdk
