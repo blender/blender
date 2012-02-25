@@ -121,8 +121,8 @@ typedef struct TransCon {
 
 typedef struct TransDataExtension {
 	float drot[3];		 /* Initial object drot */
-	// float drotAngle;	 /* Initial object drotAngle,    TODO: not yet implimented */
-	// float drotAxis[3];	 /* Initial object drotAxis, TODO: not yet implimented */
+	// float drotAngle;	 /* Initial object drotAngle,    TODO: not yet implemented */
+	// float drotAxis[3];	 /* Initial object drotAxis, TODO: not yet implemented */
 	float dquat[4];		 /* Initial object dquat */
 	float dscale[3];     /* Initial object dscale */
 	float *rot;          /* Rotation of the data to transform (Faculative)                                 */

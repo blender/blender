@@ -6857,7 +6857,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 #if 1
 			/* Skip the code below and call init directly on the allocated 'py_srna'
 			 * otherwise __init__() always needs to take a second self argument, see pyrna_struct_new().
-			 * Although this is annoying to have to impliment a part of pythons typeobject.c:type_call().
+			 * Although this is annoying to have to implement a part of pythons typeobject.c:type_call().
 			 */
 			if (py_class->tp_init) {
 #ifdef USE_PEDANTIC_WRITE

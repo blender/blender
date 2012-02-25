@@ -293,7 +293,8 @@ int uvedit_face_visible_nolocal(Scene *scene, BMFace *efa)
 		return (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)==0 && BM_elem_flag_test(efa, BM_ELEM_SELECT));
 }
 
-int uvedit_face_visible(Scene *scene, Image *ima, BMFace *efa, MTexPoly *tf) {
+int uvedit_face_visible(Scene *scene, Image *ima, BMFace *efa, MTexPoly *tf)
+{
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SHOW_SAME_IMAGE)
@@ -1436,12 +1437,8 @@ static void weld_align_uv(bContext *C, int tool)
 
 		/* flush vertex tags to edges */
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) && BM_elem_flag_test(eed->v2, BM_ELEM_TAG)) {
-				BM_elem_flag_enable(eed, BM_ELEM_TAG);
-			}
-			else {
-				BM_elem_flag_disable(eed, BM_ELEM_TAG);
-			}
+			BM_elem_flag_set(eed, BM_ELEM_TAG, (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) &&
+			                                    BM_elem_flag_test(eed->v2, BM_ELEM_TAG)));
 		}
 
 		/* find a vertex with only one tagged edge */
@@ -2017,7 +2014,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 
 #endif
 
- 	DAG_id_tag_update(obedit->data, 0);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BLI_array_free(hitv);

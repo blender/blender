@@ -101,7 +101,26 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 
 int BM_vert_in_face(BMFace *f, BMVert *v)
 {
-	return bmesh_radial_find_first_faceloop(BM_FACE_FIRST_LOOP(f), v) != NULL;
+	BMLoop *l_iter, *l_first;
+
+#ifdef USE_BMESH_HOLES
+	BMLoopList *lst;
+	for (lst = f->loops.first; lst; lst = lst->next)
+#endif
+	{
+#ifdef USE_BMESH_HOLES
+		l_iter = l_first = lst->first;
+#else
+		l_iter = l_first = f->l_first;
+#endif
+		do {
+			if (l_iter->v == v) {
+				return TRUE;
+			}
+		} while ((l_iter = l_iter->next) != l_first);
+	}
+
+	return FALSE;
 }
 
 /*
@@ -121,7 +140,9 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 
 	int i, count = 0;
 	
-	for (i = 0; i < len; i++) BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) {
+		BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
+	}
 
 #ifdef USE_BMESH_HOLES
 	for (lst = f->loops.first; lst; lst = lst->next)
@@ -551,7 +572,7 @@ float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
 		return angle_normalized_v3v3(l1->f->no, l2->f->no);
 	}
 	else {
-		return (float)M_PI / 2.0f; /* acos(0.0) */
+		return DEG2RADF(90.0f);
 	}
 }
 
@@ -581,7 +602,7 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
 		return M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
 	}
 	else {
-		return (float)M_PI / 2.0f; /* acos(0.0) */
+		return DEG2RADF(90.0f);
 	}
 }
 

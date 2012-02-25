@@ -167,16 +167,20 @@ static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BM
 	BMIter liter;
 	BMLoop *l;
 
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v1) {
-		if (l->prev->v == v2) {
-			*l1 = l;
-			*l2 = l->prev;
-			return;
-		}
-		else if (l->next->v == v2) {
-			*l1 = l;
-			*l2 = l->next;
-			return;
+	if ((v1->e && v1->e->l) &&
+	    (v2->e && v2->e->l))
+	{
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v1) {
+			if (l->prev->v == v2) {
+				*l1 = l;
+				*l2 = l->prev;
+				return;
+			}
+			else if (l->next->v == v2) {
+				*l1 = l;
+				*l2 = l->next;
+				return;
+			}
 		}
 	}
 

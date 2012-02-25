@@ -100,7 +100,7 @@ public:
 	BOP_Index replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex);
 #ifdef HASH
 	void rehashVertex(BOP_Index oldIndex, BOP_Index newIndex,
-		   	BOP_Index otherIndex);
+			BOP_Index otherIndex);
 #endif
 	bool isClosedMesh();
 

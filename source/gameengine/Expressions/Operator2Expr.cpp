@@ -197,7 +197,8 @@ bool COperator2Expr::NeedsRecalculated()
 
 
 
-CExpression* COperator2Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks) {
+CExpression* COperator2Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks)
+{
 // if both children are 'dead', return NULL
 // if only one child is alive, return that child
 // if both childresn are alive, return this

@@ -796,7 +796,7 @@ static PyObject *M_Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 
 	cellNoiseV(vec[0], vec[1], vec[2], r_vec);
-	return Vector_CreatePyObject(NULL, 3, Py_NEW, NULL);;
+	return Vector_CreatePyObject(NULL, 3, Py_NEW, NULL);
 }
 
 static PyMethodDef M_Noise_methods[] = {

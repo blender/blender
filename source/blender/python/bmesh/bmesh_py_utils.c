@@ -327,7 +327,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 	BMFace *f_new = NULL;
 	BMLoop *l_new = NULL;
 
-	if (!PyArg_ParseTuple(args, "O!O!|O!:face_split",
+	if (!PyArg_ParseTuple(args, "O!O!O!|O!:face_split",
 	                      &BPy_BMFace_Type, &py_face,
 	                      &BPy_BMVert_Type, &py_vert_a,
 	                      &BPy_BMVert_Type, &py_vert_b,
@@ -362,7 +362,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 	bm = py_face->bm;
 
 	f_new = BM_face_split(bm, py_face->f,
-	                      py_vert_a->v, py_vert_a->v,
+	                      py_vert_a->v, py_vert_b->v,
 	                      &l_new, py_edge_example ? py_edge_example->e : NULL);
 
 	if (f_new && l_new) {

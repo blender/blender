@@ -72,7 +72,8 @@ KX_NetworkMessageSensor::~KX_NetworkMessageSensor()
 {
 }
 
-CValue* KX_NetworkMessageSensor::GetReplica() {
+CValue* KX_NetworkMessageSensor::GetReplica()
+{
 	// This is the standard sensor implementation of GetReplica
 	// There may be more network message sensor specific stuff to do here.
 	CValue* replica = new KX_NetworkMessageSensor(*this);

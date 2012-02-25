@@ -644,6 +644,10 @@ class WM_OT_context_modal_mouse(Operator):
 
     data_path_iter = data_path_iter
     data_path_item = data_path_item
+    header_text = StringProperty(
+            name="Header Text",
+            description="Text to display in header during scale",
+            )
 
     input_scale = FloatProperty(
             description="Scale the mouse movement by this value before applying the delta",
@@ -703,14 +707,19 @@ class WM_OT_context_modal_mouse(Operator):
         if event_type == 'MOUSEMOVE':
             delta = event.mouse_x - self.initial_x
             self._values_delta(delta)
+            if self.header_text:
+                for item, value_orig in self._values.items():
+                    context.area.header_text_set(self.header_text % eval("item.%s" % self.data_path_item))
 
         elif 'LEFTMOUSE' == event_type:
             item = next(iter(self._values.keys()))
             self._values_clear()
+            context.area.header_text_set()
             return operator_value_undo_return(item)
 
         elif event_type in {'RIGHTMOUSE', 'ESC'}:
             self._values_restore()
+            context.area.header_text_set()
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}

@@ -407,7 +407,9 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 					break;
 				}
 			}
-			if (!found) BMO_elem_flag_enable(bm, e, SPLIT_INPUT);
+			if (!found) {
+				BMO_elem_flag_enable(bm, e, SPLIT_INPUT);
+			}
 		}
 
 		for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
@@ -419,8 +421,9 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 					break;
 				}
 			}
-			if (!found) BMO_elem_flag_enable(bm, v, SPLIT_INPUT);
-
+			if (!found) {
+				BMO_elem_flag_enable(bm, v, SPLIT_INPUT);
+			}
 		}
 	}
 

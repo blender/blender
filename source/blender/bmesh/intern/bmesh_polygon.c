@@ -861,13 +861,13 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			f = BM_face_split(bm, l_iter->f, l_iter->prev->v,
 			                  l_iter->next->v,
 			                  &newl, NULL);
-			copy_v3_v3(f->no, l_iter->f->no);
 
-			if (!f) {
+			if (UNLIKELY(!f)) {
 				fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
 				break;
 			}
 
+			copy_v3_v3(f->no, l_iter->f->no);
 			BMO_elem_flag_enable(bm, newl->e, newedge_oflag);
 			BMO_elem_flag_enable(bm, f, newface_oflag);
 			

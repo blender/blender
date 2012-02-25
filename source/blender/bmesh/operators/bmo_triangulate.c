@@ -89,8 +89,9 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
 	
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
-		if (f->len == 3)
+		if (f->len == 3) {
 			BMO_elem_flag_enable(bm, f, FACE_MARK);
+		}
 	}
 
 	while (!stop) {

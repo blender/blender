@@ -698,7 +698,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			/* LOCATION */
 			ddm->getVertCo(ddm, mp_vi[0], v1);
 			ddm->getVertCo(ddm, mp_vi[1], v2);
-			ddm->getVertCo(ddm, mp_vi[2], v3);;
+			ddm->getVertCo(ddm, mp_vi[2], v3);
 			if (mp->totloop >= 4) {
 				ddm->getVertCo(ddm, mp_vi[3], v4);
 			}

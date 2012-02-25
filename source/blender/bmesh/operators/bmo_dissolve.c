@@ -88,12 +88,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		BMVert *v;
 
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_vert_edge_count(v) == 2) {
-				BMO_elem_flag_disable(bm, v, VERT_MARK);
-			}
-			else {
-				BMO_elem_flag_enable(bm, v, VERT_MARK);
-			}
+			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
 		}
 	}
 
@@ -251,12 +246,7 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 
 	if (use_verts) {
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_vert_edge_count(v) == 2) {
-				BMO_elem_flag_disable(bm, v, VERT_MARK);
-			}
-			else {
-				BMO_elem_flag_enable(bm, v, VERT_MARK);
-			}
+			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
 		}
 	}
 

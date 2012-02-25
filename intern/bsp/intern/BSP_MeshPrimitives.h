@@ -189,7 +189,7 @@ public :
 		BSP_FaceInd new_f
 	);
 
-    	BSP_VertexInd
+		BSP_VertexInd
 	OpVertex(
 		BSP_VertexInd vi
 	) const;

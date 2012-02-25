@@ -91,7 +91,8 @@ BMFace *f;
 
 BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
 f = BMW_begin(&walker, some_start_face);
-for (; f; f=BMW_step(&walker)) {
+for (; f; f=BMW_step(&walker))
+{
 	//do something with f
 }
 BMW_end(&walker);

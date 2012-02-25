@@ -54,14 +54,16 @@
 #define TEMPERING_SHIFT_T(y)  (y << 15)
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
 
-SCA_RandomNumberGenerator::SCA_RandomNumberGenerator(long seed) {
+SCA_RandomNumberGenerator::SCA_RandomNumberGenerator(long seed)
+{
 	// int mti = N + 1; /*unused*/
 	m_seed = seed;
 	m_refcount = 1;
 	SetStartVector();
 }
 
-SCA_RandomNumberGenerator::~SCA_RandomNumberGenerator() {
+SCA_RandomNumberGenerator::~SCA_RandomNumberGenerator()
+{
 	/* intentionally empty */
 }
 

@@ -153,7 +153,8 @@ int quicktime_get_num_videocodecs()
 	return qtVideoCodecCount;
 }
 
-QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue) {
+QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue)
+{
 	if ((indexValue>=0) && (indexValue < qtVideoCodecCount))
 		return &qtVideoCodecList[indexValue];
 	else

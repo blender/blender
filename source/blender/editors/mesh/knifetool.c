@@ -180,7 +180,8 @@ static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco
 	ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
 }
 
-static ListBase *knife_empty_list(knifetool_opdata *kcd) {
+static ListBase *knife_empty_list(knifetool_opdata *kcd)
+{
 	ListBase *lst;
 
 	lst = BLI_memarena_alloc(kcd->arena, sizeof(ListBase));
@@ -188,7 +189,8 @@ static ListBase *knife_empty_list(knifetool_opdata *kcd) {
 	return lst;
 }
 
-static void knife_append_list(knifetool_opdata *kcd, ListBase *lst, void *elem) {
+static void knife_append_list(knifetool_opdata *kcd, ListBase *lst, void *elem)
+{
 	Ref *ref;
 
 	ref = BLI_mempool_calloc(kcd->refs);
@@ -580,29 +582,29 @@ static void knife_cut_through(knifetool_opdata *kcd)
 	if (firstv) {
 		/* For each face incident to firstv,
 		 * find the first following linehit (if any) sharing that face and connect */
-		 for (r = firstfaces.first; r; r = r->next ) {
-		 	f = r->ref;
-		 	found = 0;
-		 	for (j = 0, lh2 = kcd->linehits; j < kcd->totlinehit; j++, lh2++) {
-		 		kfe2 = lh2->kfe;
-		 		for (r2 = kfe2->faces.first; r2; r2 = r2->next) {
-		 			if (r2->ref == f) {
-		 				v2 = splitkfe[j] ? kfe2->v1 : knife_split_edge(kcd, kfe2, lh2->hit, &splitkfe[j]);
-		 				knife_add_single_cut_through(kcd, firstv, v2, f);
-		 				found = 1;
-		 				break;
-		 			}
-		 		}
-		 	}
-		 	if (!found && lastv) {
+		for (r = firstfaces.first; r; r = r->next ) {
+			f = r->ref;
+			found = 0;
+			for (j = 0, lh2 = kcd->linehits; j < kcd->totlinehit; j++, lh2++) {
+				kfe2 = lh2->kfe;
+				for (r2 = kfe2->faces.first; r2; r2 = r2->next) {
+					if (r2->ref == f) {
+						v2 = splitkfe[j] ? kfe2->v1 : knife_split_edge(kcd, kfe2, lh2->hit, &splitkfe[j]);
+						knife_add_single_cut_through(kcd, firstv, v2, f);
+						found = 1;
+						break;
+					}
+				}
+			}
+			if (!found && lastv) {
 				for (r2 = lastfaces.first; r2; r2 = r2->next) {
 					if (r2->ref == f) {
 						knife_add_single_cut_through(kcd, firstv, lastv, f);
 						break;
 					}
 				}
-		 	}
-		 }
+			}
+		}
 	}
 
 	for (i = 0, lh = kcd->linehits; i < kcd->totlinehit; i++, lh++) {

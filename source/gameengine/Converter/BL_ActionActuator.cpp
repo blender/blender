@@ -175,7 +175,8 @@ void BL_ActionActuator::ResetStartTime(float curtime)
 	//SetLocalTime(curtime);
 }
 
-CValue* BL_ActionActuator::GetReplica() {
+CValue* BL_ActionActuator::GetReplica()
+{
 	BL_ActionActuator* replica = new BL_ActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
 	return replica;

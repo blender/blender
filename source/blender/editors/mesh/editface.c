@@ -113,7 +113,7 @@ void paintface_flush_flags(Object *ob)
 
 	if ((index_array = CustomData_get_layer(&dm->faceData, CD_POLYINDEX))) {
 		polys = dm->getPolyArray(dm);
-		faces = dm->getTessFaceArray(dm);;
+		faces = dm->getTessFaceArray(dm);
 		totface = dm->getNumTessFaces(dm);
 
 		/* loop over tessfaces */

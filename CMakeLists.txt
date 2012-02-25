@@ -1498,7 +1498,7 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	if(WITH_IK_ITASC)
-		message(WARNING "Using Clang as CXX compiler: disabling WITH_IK_ITASC and WITH_MOD_FLUID, these features will be missing.")
+		message(WARNING "Using Clang as CXX compiler: disabling WITH_IK_ITASC, this feature will be missing.")
 		set(WITH_IK_ITASC OFF)
 	endif()
 endif()

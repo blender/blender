@@ -3033,6 +3033,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 		}
 			
 		// Setup for drawing wire over, disable zbuffer
@@ -3390,6 +3391,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
+
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 
 			if (base->flag & SELECT) {
 				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
@@ -3830,7 +3833,6 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
 		if (!glsl) {
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 			glEnable(GL_LIGHTING);
 			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 			glDisable(GL_LIGHTING);
@@ -3892,7 +3894,6 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				}
 				else {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
-					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob, 0);
 					GPU_end_object_materials();
 				}
@@ -3930,7 +3931,6 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			}
 			else {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
-				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 				drawDispListsolid(lb, ob, 0);
 				GPU_end_object_materials();
 			}
@@ -3955,7 +3955,6 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				}
 				else {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
-					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob, 0);
 					GPU_end_object_materials();
 				}
@@ -4157,8 +4156,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 {
 	Object *ob=base->object;
 	ParticleEditSettings *pset = PE_settings(scene);
-	ParticleSettings *part;
-	ParticleData *pars, *pa;
+	ParticleSettings *part = psys->part;
+	ParticleData *pars = psys->particles;
+	ParticleData *pa;
 	ParticleKey state, *states=NULL;
 	ParticleBillboardData bb;
 	ParticleSimulationData sim= {NULL};
@@ -4176,12 +4176,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	unsigned char tcol[4]= {0, 0, 0, 255};
 
 /* 1. */
-	if (psys==NULL)
-		return;
-
-	part=psys->part;
-	pars=psys->particles;
-
 	if (part==NULL || !psys_check_enabled(ob, psys))
 		return;
 
@@ -7360,7 +7354,6 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 			glDisable(GL_COLOR_MATERIAL);
 		}
 		
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 		glEnable(GL_LIGHTING);
 		

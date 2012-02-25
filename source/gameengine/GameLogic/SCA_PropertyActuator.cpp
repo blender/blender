@@ -183,7 +183,8 @@ isValid(
 
 SCA_PropertyActuator::
 
-GetReplica() {
+GetReplica()
+{
 
 	SCA_PropertyActuator* replica = new SCA_PropertyActuator(*this);
 

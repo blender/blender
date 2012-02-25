@@ -34,7 +34,8 @@
 #include "MT_Matrix3x3.h"
 #include "KX_IScalarInterpolator.h"
 
-void KX_OrientationInterpolator::Execute(float currentTime) const {
+void KX_OrientationInterpolator::Execute(float currentTime) const
+{
 	MT_Vector3 eul(m_ipos[0]->GetValue(currentTime),
 				   m_ipos[1]->GetValue(currentTime),
 				   m_ipos[2]->GetValue(currentTime));

@@ -1407,6 +1407,8 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 			printf("cannot find nice quad from concave set of vertices\n");
 		}
 
-		if (f) BMO_elem_flag_enable(bm, f, ELE_OUT);
+		if (f) {
+			BMO_elem_flag_enable(bm, f, ELE_OUT);
+		}
 	}
 }

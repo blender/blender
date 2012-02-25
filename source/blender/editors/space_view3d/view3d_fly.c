@@ -580,7 +580,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				fly->pan_view= FALSE;
 				break;
 
-				/* impliment WASD keys */
+				/* implement WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather than stopping, game like motion */
 				else if (fly->axis==2) fly->speed += fly->grid; /* increse like mousewheel if were already

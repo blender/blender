@@ -687,7 +687,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		float (*ofs)[3] = NULL;
 
 		/* go through and find any shapekey customdata layers
-		 * that might not have corrusponding KeyBlocks, and add them if
+		 * that might not have corresponding KeyBlocks, and add them if
 		 * necassary */
 		j = 0;
 		for (i = 0; i < bm->vdata.totlayer; i++) {

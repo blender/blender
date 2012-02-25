@@ -33,6 +33,7 @@
 #include "KX_ScalarInterpolator.h"
 #include "KX_IScalarInterpolator.h"
 
-void KX_ScalarInterpolator::Execute(float currentTime) const {
+void KX_ScalarInterpolator::Execute(float currentTime) const
+{
 	*m_target = m_ipo->GetValue(currentTime);
 }

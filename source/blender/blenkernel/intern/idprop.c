@@ -146,7 +146,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 		return;
 	}
 
-	/* - Note: This code comes from python, here's the corrusponding comment. - */
+	/* - Note: This code comes from python, here's the corresponding comment. - */
 	/* This over-allocates proportional to the list size, making room
 	 * for additional growth.  The over-allocation is mild, but is
 	 * enough to give linear-time amortized behavior over a long
@@ -220,7 +220,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 		return;
 	}
 
-	/* - Note: This code comes from python, here's the corrusponding comment. - */
+	/* - Note: This code comes from python, here's the corresponding comment. - */
 	/* This over-allocates proportional to the list size, making room
 	 * for additional growth.  The over-allocation is mild, but is
 	 * enough to give linear-time amortized behavior over a long

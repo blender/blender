@@ -2140,7 +2140,8 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
 
 }
 
-KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
+KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
+{
 
 	for (int j=0;j<sumolist->GetCount();j++)
 	{
