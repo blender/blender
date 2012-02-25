@@ -3102,7 +3102,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	if (bm->totvertsel < 2) {
 		//error("No edges are selected to operate on");
-		return OPERATOR_CANCELLED;;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* get the cut curve */

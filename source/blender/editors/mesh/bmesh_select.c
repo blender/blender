@@ -248,7 +248,7 @@ int EDBM_mask_init_backbuf_border(ViewContext *vc, int mcords[][2], short tot, s
 	
 	/* yah, opengl doesn't do concave... tsk! */
 	ED_region_pixelspace(vc->ar);
- 	draw_triangulated(mcords, tot);
+	draw_triangulated(mcords, tot);
 	
 	glBegin(GL_LINE_LOOP);  /* for zero sized masks, lines */
 	for (a = 0; a < tot; a++) {
@@ -2720,7 +2720,7 @@ static int loop_to_region(bContext *C, wmOperator *op)
 	int a, b;
 
 	/* find the set of regions with smallest number of total faces */
- 	a = loop_find_regions(em, selbigger);
+	a = loop_find_regions(em, selbigger);
 	b = loop_find_regions(em, !selbigger);
 	
 	if ((a <= b) ^ selbigger) {

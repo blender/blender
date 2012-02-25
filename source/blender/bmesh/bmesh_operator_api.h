@@ -225,7 +225,7 @@ int BMO_mesh_flag_count(struct BMesh *bm, const short oflag, const char htype);
  *    %e        - pass in a single element.
  *    %v - pointer to a float vector of length 3.
  *    %m[3/4] - matrix, 3/4 refers to the matrix size, 3 or 4.  the
- *              corrusponding argument must be a pointer to
+ *              corresponding argument must be a pointer to
  *          a float matrix.
  *    %s - copy a slot from another op, instead of mapping to one
  *         argument, it maps to two, a pointer to an operator and

@@ -190,7 +190,7 @@ float noise_wave(string wave, float a)
 	float result = 0.0;
 
 	if(wave == "Sine") {
-    	result = 0.5 + 0.5*sin(a);
+		result = 0.5 + 0.5*sin(a);
 	}
 	else if(wave == "Saw") {
 		float b = 2*M_PI;

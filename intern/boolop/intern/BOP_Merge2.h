@@ -78,7 +78,7 @@ class BOP_Merge2 {
 				BOP_Index X, BOP_Index I, BOP_Index P, BOP_Index N );
 		BOP_Face *find4Neighbor(BOP_Face *faceI, BOP_Face *faceJ,
 				BOP_Index X, BOP_Index I, BOP_Index P, BOP_Index N,
-    			BOP_Face **faceL, BOP_Index &O);
+				BOP_Face **faceL, BOP_Index &O);
 		BOP_Face3 *collapse(BOP_Face4 *faceC, BOP_Index X);
 		void mergeFaces(BOP_Face *A, BOP_Face *B, BOP_Index X,
 			BOP_Index I, BOP_Index N, BOP_Index P, BOP_Faces &newFaces );

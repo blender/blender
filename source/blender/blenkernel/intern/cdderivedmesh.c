@@ -2081,7 +2081,7 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	
 	if (!faces_from_tessfaces)
 		DM_DupPolys(source, dm);
- 	else
+	else
 		CDDM_tessfaces_to_faces(dm);
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);

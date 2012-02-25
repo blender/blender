@@ -1748,7 +1748,7 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			ob_iter->gameflag = ob->gameflag;
 			ob_iter->gameflag2 = ob->gameflag2;
 			ob_iter->inertia = ob->inertia;
-			ob_iter->formfactor = ob->formfactor;;
+			ob_iter->formfactor = ob->formfactor;
 			ob_iter->damping = ob->damping;
 			ob_iter->rdamping = ob->rdamping;
 			ob_iter->min_vel = ob->min_vel;

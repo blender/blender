@@ -125,7 +125,7 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	l1 = e->l;
 	l3 = e->l->radial_next;
 	
-	/* match up loops on each side of an edge corrusponding to each ver */
+	/* match up loops on each side of an edge corresponding to each ver */
 	if (l1->v == l3->v) {
 		l2 = l1->next;
 		l4 = l2->next;

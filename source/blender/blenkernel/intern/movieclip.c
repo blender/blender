@@ -957,7 +957,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 					if(user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
 						int width, height;
-						float aspy= 1.0f/clip->tracking.camera.pixel_aspect;;
+						float aspy= 1.0f/clip->tracking.camera.pixel_aspect;
 
 						BKE_movieclip_get_size(clip, user, &width, &height);
 

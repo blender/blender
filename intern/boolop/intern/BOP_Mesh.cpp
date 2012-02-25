@@ -252,8 +252,8 @@ BOP_Index BOP_Mesh::addFace(BOP_Face3 *face)
 	BOP_Index index2 = face->getVertex(1);
 	BOP_Index index3 = face->getVertex(2);
 
-	m_faces.push_back((BOP_Face *)face);  
-		
+	m_faces.push_back((BOP_Face *)face);
+
 	BOP_Index edge;
 
 	if (!getIndexEdge(index1,index2,edge)) {
@@ -261,7 +261,7 @@ BOP_Index BOP_Mesh::addFace(BOP_Face3 *face)
 		getVertex(index1)->addEdge(edge);
 		getVertex(index2)->addEdge(edge);
 	}
-    		
+
 	getEdge(edge)->addFace(indexface);
 	
 	if (!getIndexEdge(index2,index3,edge)) {
@@ -269,7 +269,7 @@ BOP_Index BOP_Mesh::addFace(BOP_Face3 *face)
 		getVertex(index2)->addEdge(edge);
 		getVertex(index3)->addEdge(edge);
 	}
-    
+
 	getEdge(edge)->addFace(indexface);
 
 	if (!getIndexEdge(index3,index1,edge)) {
@@ -277,13 +277,13 @@ BOP_Index BOP_Mesh::addFace(BOP_Face3 *face)
 		getVertex(index3)->addEdge(edge);
 		getVertex(index1)->addEdge(edge);
 	}
-    
+
 	getEdge(edge)->addFace(indexface);
 	
 	if ((index1 == index2) || (index1 == index3) || (index2 == index3))
 		face->setTAG(BROKEN);
 
-	return indexface;  
+	return indexface;
 }
 
 /**
@@ -452,7 +452,7 @@ bool BOP_Mesh::getIndexEdge(BOP_Index v1, BOP_Index v2, BOP_Index &e)
 #ifdef HASH_PRINTF_DEBUG
 			printf ("found edge (%d %d)\n",v1,v2);
 #endif
-		  	e = edge->index;
+			e = edge->index;
 #ifdef BOP_NEW_MERGE
 			if( m_edges[e]->getUsed() == false ) {
 				m_edges[e]->setUsed(true);

@@ -1706,8 +1706,9 @@ void mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 		for (i=0; i<numFaces; i++, mf++, origIndexFace++) {
 			if (*origIndexFace < numPolys) {
 				copy_v3_v3(fnors[i], pnors[*origIndexFace]);
-			} else {
-				/*eek, we're not corrusponding to polys*/
+			}
+			else {
+				/* eek, we're not corresponding to polys */
 				printf("error in mesh_calc_normals; tesselation face indices are incorrect.  normals may look bad.\n");
 			}
 		}

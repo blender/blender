@@ -2017,7 +2017,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 
 #endif
 
- 	DAG_id_tag_update(obedit->data, 0);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	BLI_array_free(hitv);

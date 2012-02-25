@@ -84,9 +84,9 @@ public :
 			f.m_verts[1] = verts[i-1];
 			f.m_verts[2] = verts[i];
 
- 			m_faces.push_back(f);
+			m_faces.push_back(f);
 
-			BuildNormal(m_faces.back());		
+			BuildNormal(m_faces.back());
 		}
 	}
 

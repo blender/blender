@@ -697,7 +697,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 						if(i < numoftris){
 							/* using next since the first uv is already accounted for */
 							BMLoop *lnext = l->next;
-							MLoopUV *luvnext = CustomData_bmesh_get(&state->em->bm->ldata, lnext->next->head.data, CD_MLOOPUV);;
+							MLoopUV *luvnext = CustomData_bmesh_get(&state->em->bm->ldata, lnext->next->head.data, CD_MLOOPUV);
 							luv = CustomData_bmesh_get(&state->em->bm->ldata, lnext->head.data, CD_MLOOPUV);
 
 							memcpy(preview->static_tris + buffer_index, fuv->uv, 2*sizeof(float));

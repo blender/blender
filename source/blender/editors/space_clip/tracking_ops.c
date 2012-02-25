@@ -1143,8 +1143,8 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 
 		if(ok) {
 			track->flag|= SELECT;
-			if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag|= SELECT;;
-			if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag|= SELECT;;
+			if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag|= SELECT;
+			if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag|= SELECT;
 		}
 
 		track= track->next;

@@ -371,10 +371,10 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 	CustomDataLayer *cdlp, *cdlu;
 	int index;
 
- 	index= CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
+	index= CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
 	cdlp= (index == -1)? NULL: &pdata->layers[index];
 
- 	index= CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+	index= CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 	cdlu= (index == -1)? NULL: &ldata->layers[index];
 	
 	if (!cdlp || !cdlu)
