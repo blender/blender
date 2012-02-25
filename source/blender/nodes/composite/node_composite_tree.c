@@ -566,10 +566,12 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	ListBase threads;
 	ThreadData thdata;
 	int totnode, curnode, rendering= 1, n;
-	bNodeTreeExec *exec= ntree->execdata;
-	
+	bNodeTreeExec *exec;
+
 	if(ntree==NULL) return;
-	
+
+	exec = ntree->execdata;
+
 	if(do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	

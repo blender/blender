@@ -808,8 +808,10 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 				if(linedata2[i]>1)
 					linedata[i]= (linedata3[i]-linedata[i])/(linedata2[i]-1);
 			for (i=0; i<=slen; i++) {
-				for (j=i; (mem[j]) && (mem[j]!='\n') && 
-						  (mem[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
+				for (j=i; (!ELEM3(mem[j], '\0', '\n', '\r')) && (chartransdata[j].dobreak == 0) && (j < slen); j++) {
+					/* do nothing */
+				}
+
 //				if ((mem[j]!='\r') && (mem[j]!='\n') && (mem[j])) {
 					ct->xof+= ct->charnr*linedata[ct->linenr];
 //				}
