@@ -455,7 +455,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		for (i=0, mp=mpoly; i<numFaces; i++, mp++) {
-			mesh_calc_poly_normal(mp, &mloop[mp->loopstart], mvert, face_nors[i]);
+			if (face_nors_calc)
+				mesh_calc_poly_normal(mp, &mloop[mp->loopstart], mvert, face_nors[i]);
 			
 			/* just added, calc the normal */
 			BLI_array_empty(face_angles);
@@ -701,7 +702,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		MEM_freeN(old_vert_arr);
 	
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
-	if(dvert) {
+	/* Also needed in case of HQ normals [#30351] (don't really undestand why, though... --mont29). */
+	if (dvert || smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
 		CDDM_calc_normals(result);
 	}
 
