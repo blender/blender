@@ -1033,8 +1033,8 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			set(BOOST_POSTFIX "mgw45-mt-s-1_47")
-			set(BOOST_DEBUG_POSTFIX "mgw45-mt-sd-1_47")
+			set(BOOST_POSTFIX "mgw46-mt-s-1_47")
+			set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
 				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
