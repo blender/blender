@@ -163,7 +163,7 @@ BF_OIIO_LIBPATH = BF_OIIO + '/lib'
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = BF_BOOST + '/include'
-BF_BOOST_LIB = 'boost_date_time-mgw45-mt-s-1_47 boost_filesystem-mgw45-mt-s-1_47 boost_regex-mgw45-mt-s-1_47 boost_system-mgw45-mt-s-1_47 boost_thread-mgw45-mt-s-1_47'
+BF_BOOST_LIB = 'boost_date_time-mgw46-mt-s-1_47 boost_filesystem-mgw46-mt-s-1_47 boost_regex-mgw46-mt-s-1_47 boost_system-mgw46-mt-s-1_47 boost_thread-mgw46-mt-s-1_47'
 BF_BOOST_LIBPATH = BF_BOOST + '/lib/gcc'
 
 #Ray trace optimization
