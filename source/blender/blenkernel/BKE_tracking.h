@@ -163,11 +163,18 @@ struct MovieTrackingObject *BKE_tracking_named_object(struct MovieTracking *trac
 void BKE_tracking_select_track(struct ListBase *tracksbase, struct MovieTrackingTrack *track, int area, int extend);
 void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 
-#define TRACK_SELECTED(track)				((((track)->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))
-#define TRACK_AREA_SELECTED(track, area)	((((track)->flag&TRACK_HIDDEN)==0) && ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT)))
-#define TRACK_VIEW_SELECTED(sc, track)		((TRACK_AREA_SELECTED(track, TRACK_AREA_POINT) || (((sc)->flag&SC_SHOW_MARKER_PATTERN && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))) || (((sc)->flag&SC_SHOW_MARKER_SEARCH && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)))))
+#define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 
-#define MARKER_VISIBLE(sc, marker)			(((marker)->flag&MARKER_DISABLED)==0 || ((sc)->flag&SC_HIDE_DISABLED)==0)
+#define TRACK_AREA_SELECTED(track, area)	((area)==TRACK_AREA_POINT ? (track)->flag&SELECT : \
+                                                                        ((area)==TRACK_AREA_PAT ? (track)->pat_flag&SELECT : \
+                                                                                                  (track)->search_flag&SELECT))
+
+#define TRACK_VIEW_SELECTED(sc, track)		((((track)->flag & TRACK_HIDDEN)==0) && \
+                                             (  TRACK_AREA_SELECTED(track, TRACK_AREA_POINT) || \
+                                                (((sc)->flag & SC_SHOW_MARKER_PATTERN) && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) || \
+                                                (((sc)->flag & SC_SHOW_MARKER_SEARCH) && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))))
+
+#define MARKER_VISIBLE(sc, marker)			(((marker)->flag & MARKER_DISABLED)==0 || ((sc)->flag & SC_HIDE_DISABLED)==0)
 
 #define TRACK_CLEAR_UPTO		0
 #define TRACK_CLEAR_REMAINED	1

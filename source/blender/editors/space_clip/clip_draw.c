@@ -586,7 +586,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	/* pyramid */
-	if(sel && TRACK_SELECTED(track) && (track->tracker==TRACKER_KLT) && (marker->flag&MARKER_DISABLED)==0) {
+	if(sel && TRACK_VIEW_SELECTED(sc, track) && (track->tracker==TRACKER_KLT) && (marker->flag&MARKER_DISABLED)==0) {
 		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);

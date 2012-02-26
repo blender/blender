@@ -1521,7 +1521,8 @@ static void draw_bundle_sphere(void)
 }
 
 static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D *v3d,
-			MovieClip *clip, MovieTrackingObject *tracking_object, int flag, int *global_track_index)
+			MovieClip *clip, MovieTrackingObject *tracking_object, int flag,
+			int *global_track_index, int draw_selected)
 {
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
@@ -1557,6 +1558,9 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 	for (track= tracksbase->first; track; track= track->next) {
 		int selected= TRACK_SELECTED(track);
+
+		if ((draw_selected && !selected) || (draw_selected && !selected))
+			continue;
 
 		if ((track->flag&TRACK_HAS_BUNDLE)==0)
 			continue;
@@ -1671,7 +1675,8 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	*global_track_index= tracknr;
 }
 
-static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip, int flag)
+static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip,
+			int flag, int draw_selected)
 {
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingObject *tracking_object;
@@ -1694,7 +1699,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	tracking_object= tracking->objects.first;
 	while (tracking_object) {
 		draw_viewport_object_reconstruction(scene, base, v3d, clip, tracking_object,
-					flag, &global_track_index);
+					flag, &global_track_index, draw_selected);
 
 		tracking_object= tracking_object->next;
 	}
@@ -1724,8 +1729,10 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	MovieClip *clip= object_get_movieclip(scene, base->object, 0);
 
 	/* draw data for movie clip set as active for scene */
-	if (clip)
-		draw_viewport_reconstruction(scene, base, v3d, clip, flag);
+	if (clip) {
+		draw_viewport_reconstruction(scene, base, v3d, clip, flag, FALSE);
+		draw_viewport_reconstruction(scene, base, v3d, clip, flag, TRUE);
+	}
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if (is_view && !(G.f & G_PICKSEL)) {

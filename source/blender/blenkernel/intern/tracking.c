@@ -626,7 +626,7 @@ void BKE_tracking_clipboard_copy_tracks(MovieTracking *tracking, MovieTrackingOb
 	MovieTrackingTrack *track = tracksbase->first;
 
 	while (track) {
-		if (TRACK_SELECTED(track)) {
+		if (TRACK_SELECTED(track) && (track->flag & TRACK_HIDDEN) == 0) {
 			MovieTrackingTrack *new_track = duplicate_track(track);
 
 			BLI_addtail(&tracking_clipboard.tracks, new_track);
@@ -896,7 +896,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	/* count */
 	track= tracksbase->first;
 	while(track) {
-		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
+		if(TRACK_SELECTED(track) && (track->flag & (TRACK_LOCKED | TRACK_HIDDEN))==0) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 			if((marker->flag&MARKER_DISABLED)==0)
@@ -917,7 +917,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 		/* create tracking data */
 		track= tracksbase->first;
 		while(track) {
-			if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
+			if(TRACK_SELECTED(track) && (track->flag & (TRACK_HIDDEN | TRACK_LOCKED))==0) {
 				MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 				if((marker->flag&MARKER_DISABLED)==0) {
@@ -2883,12 +2883,14 @@ void BKE_tracking_select_track(ListBase *tracksbase, MovieTrackingTrack *track, 
 		MovieTrackingTrack *cur= tracksbase->first;
 
 		while(cur) {
-			if(cur==track) {
-				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
-				BKE_tracking_track_flag(cur, area, SELECT, 0);
-			}
-			else {
-				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+			if ((cur->flag & TRACK_HIDDEN) == 0) {
+				if(cur==track) {
+					BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+					BKE_tracking_track_flag(cur, area, SELECT, 0);
+				}
+				else {
+					BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+				}
 			}
 
 			cur= cur->next;
