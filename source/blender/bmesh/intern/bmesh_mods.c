@@ -267,15 +267,15 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 		} while ((l1 = l1->next) != l_first);
 	}
 
-	if (!jed) {
-		BMESH_ERROR;
+	if (UNLIKELY(!jed)) {
+		BMESH_ASSERT(0);
 		return NULL;
 	}
 	
 	l1 = jed->l;
 	
-	if (!l1) {
-		BMESH_ERROR;
+	if (UNLIKELY(!l1)) {
+		BMESH_ASSERT(0);
 		return NULL;
 	}
 	
@@ -615,8 +615,9 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percen
 				BMLoop *l, *l2;
 				
 				l = e1->l;
-				if (!l) {
-					BMESH_ERROR;
+
+				if (UNLIKELY(!l)) {
+					BMESH_ASSERT(0);
 					break;
 				}
 				
@@ -646,8 +647,8 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percen
 			BMLoop *l, *l2;
 			
 			l = e1->l;
-			if (!l) {
-				BMESH_ERROR;
+			if (UNLIKELY(!l)) {
+				BMESH_ASSERT(0);
 				break;
 			}
 			

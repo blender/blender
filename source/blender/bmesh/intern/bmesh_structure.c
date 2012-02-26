@@ -34,6 +34,8 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+#include <stdlib.h>
+
 /**
  *	MISC utility functions.
  *
@@ -365,8 +367,8 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 		return FALSE;
 
 	do {
-		if (!l_iter) {
-			BMESH_ERROR;
+		if (UNLIKELY(!l_iter)) {
+			BMESH_ASSERT(0);
 			return FALSE;
 		}
 		
@@ -375,8 +377,8 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 		if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2)
 			return FALSE;
 		
-		if (i > BM_LOOP_RADIAL_MAX) {
-			BMESH_ERROR;
+		if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
+			BMESH_ASSERT(0);
 			return FALSE;
 		}
 		
@@ -397,8 +399,8 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 {
 	/* if e is non-NULL, l must be in the radial cycle of e */
-	if (e && e != l->e) {
-		BMESH_ERROR;
+	if (UNLIKELY(e && e != l->e)) {
+		BMESH_ASSERT(0);
 	}
 
 	if (l->radial_next != l) {
@@ -414,7 +416,7 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 				e->l = NULL;
 			}
 			else {
-				BMESH_ERROR;
+				BMESH_ASSERT(0);
 			}
 		}
 	}
@@ -470,15 +472,15 @@ int bmesh_radial_length(BMLoop *l)
 		return 0;
 
 	do {
-		if (!l_iter) {
+		if (UNLIKELY(!l_iter)) {
 			/* radial cycle is broken (not a circulat loop) */
-			BMESH_ERROR;
+			BMESH_ASSERT(0);
 			return 0;
 		}
 		
 		i++;
-		if (i >= BM_LOOP_RADIAL_MAX) {
-			BMESH_ERROR;
+		if (UNLIKELY(i >= BM_LOOP_RADIAL_MAX)) {
+			BMESH_ASSERT(0);
 			return -1;
 		}
 	} while ((l_iter = l_iter->radial_next) != l);
@@ -502,9 +504,9 @@ void bmesh_radial_append(BMEdge *e, BMLoop *l)
 		e->l = l;
 	}
 
-	if (l->e && l->e != e) {
+	if (UNLIKELY(l->e && l->e != e)) {
 		/* l is already in a radial cycle for a different edge */
-		BMESH_ERROR;
+		BMESH_ASSERT(0);
 	}
 	
 	l->e = e;

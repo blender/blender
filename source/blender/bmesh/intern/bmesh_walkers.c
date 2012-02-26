@@ -88,12 +88,12 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
 	
-	if (type >= BMW_MAXWALKERS || type < 0) {
-		BMESH_ERROR;
+	if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
 		fprintf(stderr,
 		        "Invalid walker type in BMW_init; type: %d, "
 		        "searchmask: (v:%d, e:%d, l:%d, f:%d), flag: %d\n",
 		        type, mask_vert, mask_edge, mask_loop, mask_face, layer);
+		BMESH_ASSERT(0);
 	}
 	
 	if (type != BMW_CUSTOM) {
