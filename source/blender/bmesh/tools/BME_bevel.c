@@ -172,7 +172,7 @@ static int BME_bevel_is_split_vert(BMesh *bm, BMLoop *l)
 	 * beveling other polys; this can be determined by testing the
 	 * vert and the edges around it for originality
 	 */
-	if ( !BMO_elem_flag_test(bm, l->v, BME_BEVEL_ORIG) &&
+	if (!BMO_elem_flag_test(bm, l->v, BME_BEVEL_ORIG) &&
 	     BMO_elem_flag_test(bm, l->e, BME_BEVEL_ORIG) &&
 	     BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_ORIG))
 	{
@@ -496,16 +496,16 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 	e = l->e;
 
 	/* sanity check */
-	if ( !BMO_elem_flag_test(bm, l->e, BME_BEVEL_BEVEL) &&
-	     (BMO_elem_flag_test(bm, l->v, BME_BEVEL_BEVEL) || BMO_elem_flag_test(bm, l->next->v, BME_BEVEL_BEVEL)))
+	if (!BMO_elem_flag_test(bm, l->e, BME_BEVEL_BEVEL) &&
+	    (BMO_elem_flag_test(bm, l->v, BME_BEVEL_BEVEL) || BMO_elem_flag_test(bm, l->next->v, BME_BEVEL_BEVEL)))
 	{
 		return l;
 	}
 
 	/* checks and operations for prev edge */
 	/* first, check to see if this edge was inset previously */
-	if ( !BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_ORIG) &&
-	     !BMO_elem_flag_test(bm, l->v, BME_BEVEL_NONMAN))
+	if (!BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_ORIG) &&
+	    !BMO_elem_flag_test(bm, l->v, BME_BEVEL_NONMAN))
 	{
 		kl = l->prev->radial_next;
 		kl = (kl->v == l->v) ? kl->prev : kl->next;
@@ -550,8 +550,8 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 
 	/* checks and operations for the next edge */
 	/* first, check to see if this edge was inset previously  */
-	if ( !BMO_elem_flag_test(bm, l->next->e, BME_BEVEL_ORIG) &&
-	     !BMO_elem_flag_test(bm, l->next->v, BME_BEVEL_NONMAN))
+	if (!BMO_elem_flag_test(bm, l->next->e, BME_BEVEL_ORIG) &&
+	    !BMO_elem_flag_test(bm, l->next->v, BME_BEVEL_NONMAN))
 	{
 		kl = l->next->radial_next;
 		kl = (kl->v == l->next->v) ? kl->prev : kl->next;
@@ -666,9 +666,9 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 			max = 1.0f;
 			l = BME_bevel_edge(bm, l, value, options, up_vec, td);
 		}
-		else if ( BMO_elem_flag_test(bm, l->v, BME_BEVEL_BEVEL) &&
-		          BMO_elem_flag_test(bm, l->v, BME_BEVEL_ORIG) &&
-		          !BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_BEVEL))
+		else if (BMO_elem_flag_test(bm, l->v, BME_BEVEL_BEVEL) &&
+		         BMO_elem_flag_test(bm, l->v, BME_BEVEL_ORIG) &&
+		        !BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_BEVEL))
 		{
 			max = 1.0f;
 			l = BME_bevel_vert(bm, l, value, options, up_vec, td);
@@ -1019,7 +1019,7 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 
 	/* otherwise apply transforms */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if ( (vtd = BME_get_transdata(td, v)) ) {
+		if ((vtd = BME_get_transdata(td, v))) {
 			if (vtd->max && (*vtd->max > 0 && value > *vtd->max)) {
 				d = *vtd->max;
 			}

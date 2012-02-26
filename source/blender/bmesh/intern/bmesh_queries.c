@@ -547,10 +547,10 @@ BMVert *BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2)
 
 void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 {
-	if ( (edge->l == NULL) ||
-	     ( ((edge->l->prev->v == edge->v1) && (edge->l->v == edge->v2)) ||
-	       ((edge->l->v == edge->v1) && (edge->l->next->v == edge->v2)) )
-	     )
+	if ((edge->l == NULL) ||
+	    (((edge->l->prev->v == edge->v1) && (edge->l->v == edge->v2)) ||
+	     ((edge->l->v == edge->v1) && (edge->l->next->v == edge->v2)))
+	    )
 	{
 		*r_v1 = edge->v1;
 		*r_v2 = edge->v2;
@@ -801,7 +801,7 @@ int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len)
 
 	/* first check if verts have edges, if not we can bail out early */
 	ok = TRUE;
-	for (i = len - 1, i_next = 0; i_next < len; (i=i_next++)) {
+	for (i = len - 1, i_next = 0; i_next < len; (i = i_next++)) {
 		if (!(varr[i] = BM_edge_share_vert(earr[i], earr[i_next]))) {
 			ok = FALSE;
 			break;

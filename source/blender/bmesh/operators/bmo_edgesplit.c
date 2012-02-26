@@ -230,7 +230,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	etags = MEM_callocN(sizeof(EdgeTag)*bm->totedge, "EdgeTag");
+	etags = MEM_callocN(sizeof(EdgeTag) * bm->totedge, "EdgeTag");
 
 	BM_mesh_elem_index_ensure(bm, BM_EDGE);
 

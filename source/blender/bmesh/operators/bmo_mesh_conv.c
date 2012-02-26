@@ -134,7 +134,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	else if (actkey) {
-		printf("shapekey<->mesh mismatch!\n");
+		printf("shapekey <-> mesh mismatch!\n");
 	}
 	
 	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default[0]);
@@ -897,9 +897,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 					add_v3_v3(fp, ofs[i]);
 				}
 
-				fp+= 3;
-				++i;
-				++mvert;
+				fp += 3;
+				i++;
+				mvert++;
 				eve = BM_iter_step(&iter);
 			}
 			currkey->totelem = bm->totvert;

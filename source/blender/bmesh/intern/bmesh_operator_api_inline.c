@@ -40,31 +40,31 @@
  * if you need to store a value per element, use a
  * ghash or a mapping slot to do it. */
 
-/* flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use */
+/* flags 15 and 16 (1 << 14 and 1 << 15) are reserved for bmesh api use */
 BM_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-    return oflags[bm->stackdepth-1].f & oflag;
+    return oflags[bm->stackdepth - 1].f & oflag;
 }
 
 BM_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth-1].f |= oflag;
+	oflags[bm->stackdepth - 1].f |= oflag;
 }
 
 BM_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth-1].f &= ~oflag;
+	oflags[bm->stackdepth - 1].f &= ~oflag;
 }
 
 BM_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
 {
-	if (val) oflags[bm->stackdepth-1].f |= oflag;
-	else     oflags[bm->stackdepth-1].f &= ~oflag;
+	if (val) oflags[bm->stackdepth - 1].f |= oflag;
+	else     oflags[bm->stackdepth - 1].f &= ~oflag;
 }
 
 BM_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth-1].f ^= oflag;
+	oflags[bm->stackdepth - 1].f ^= oflag;
 }
 
 BM_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,

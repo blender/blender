@@ -283,22 +283,22 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X) {
-							if ( (fabs(co1[0]) < mmd->tolerance) &&
-								 (fabs(co2[0]) < mmd->tolerance) )
+							if ((fabsf(co1[0]) < mmd->tolerance) &&
+								(fabsf(co2[0]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
-							if ( (fabs(co1[1]) < mmd->tolerance) &&
-								 (fabs(co2[1]) < mmd->tolerance) )
+							if ((fabsf(co1[1]) < mmd->tolerance) &&
+								(fabsf(co2[1]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
-							if ( (fabs(co1[2]) < mmd->tolerance) &&
-								 (fabs(co2[2]) < mmd->tolerance) )
+							if ((fabsf(co1[2]) < mmd->tolerance) &&
+								(fabsf(co2[2]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
@@ -2136,9 +2136,9 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), 
 		BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 
 		if (em->selectmode & SCE_SELECT_VERTEX) {
-			if ( em->bm->selected.first && em->bm->selected.last &&
-			     ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT &&
-			     ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT)
+			if (em->bm->selected.first && em->bm->selected.last &&
+			    ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT &&
+			    ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT)
 			{
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
@@ -2955,13 +2955,13 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 			x12 = c[i].x;
 			y12 = c[i].y;
 			
-			/* test e->v1*/
+			/* test e->v1 */
 			if ((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)) {
 				perc = 0;
 				*isected = 1;
 				return perc;
 			}
-			/* test e->v2*/
+			/* test e->v2 */
 			else if ((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)) {
 				perc = 0;
 				*isected = 2;
@@ -3105,7 +3105,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	/* the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer */
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife cut exec");
 	for (bv = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); bv; bv = BM_iter_step(&iter)) {
-		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
+		scr = MEM_mallocN(sizeof(float) * 2, "Vertex Screen Coordinates");
 		copy_v3_v3(co, bv->co);
 		co[3] = 1.0f;
 		mul_m4_v4(obedit->obmat, co);
@@ -4002,7 +4002,7 @@ static int vergxco(const void *v1, const void *v2)
 {
 	const xvertsort *x1 = v1, *x2 = v2;
 
-	if (x1->x > x2->x )      return  1;
+	if (x1->x > x2->x)       return  1;
 	else if (x1->x < x2->x)  return -1;
 	return 0;
 }
@@ -4050,7 +4050,7 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 	em = vc.em;
 
 	amount = em->bm->totvert;
-	sortblock = MEM_callocN(sizeof(xvertsort)*amount,"xsort");
+	sortblock = MEM_callocN(sizeof(xvertsort) * amount,"xsort");
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
 			sortblock[i].v1 = eve;
@@ -4459,7 +4459,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	int li;
 	
 	BM_data_layer_add(em->bm, &em->bm->edata, CD_PROP_FLT);
-	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT)-1;
+	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT) - 1;
 	
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		float d = len_v3v3(eed->v1->co, eed->v2->co);

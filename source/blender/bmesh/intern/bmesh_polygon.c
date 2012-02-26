@@ -740,8 +740,8 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
 
-		if ( point_in_triangle(v1, v2, v3, pv1) ||
-		     point_in_triangle(v3, v2, v1, pv1))
+		if (point_in_triangle(v1, v2, v3, pv1) ||
+		    point_in_triangle(v3, v2, v1, pv1))
 		{
 			return FALSE;
 		}
@@ -784,8 +784,9 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 
 		if (isear) {
 #if 0
+			/* if this code comes back, it needs to be converted to radians */
 			angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if (!bestear || ABS(angle-45.0f) < bestangle) {
+			if (!bestear || ABS(angle - 45.0f) < bestangle) {
 				bestear = l;
 				bestangle = ABS(45.0f - angle);
 			}

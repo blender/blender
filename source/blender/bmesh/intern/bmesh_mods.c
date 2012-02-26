@@ -782,7 +782,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw)
 	return nl->e;
 }
 
-BMVert *BM_vert_rip ( BMesh *bm, BMFace *sf, BMVert *sv)
+BMVert *BM_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
 {
 	return bmesh_urmv(bm, sf, sv);
 }

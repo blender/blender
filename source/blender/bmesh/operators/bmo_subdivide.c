@@ -117,7 +117,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 		copy_v3_v3(nor2, vend->no);
 
 		/* cosine angle */
-		fac=  dot_v3v3(nor, nor1);
+		fac = dot_v3v3(nor, nor1);
 		mul_v3_v3fl(tvec, nor1, fac);
 
 		/* cosine angle */

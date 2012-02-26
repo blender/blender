@@ -317,7 +317,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_enable(bm, e, EDGE_ORIG);
 		}
 
-		phi+= phid;
+		phi += phid;
 		preveve = eve;
 	}
 
@@ -351,15 +351,15 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	{
 		float len, len2, vec2[3];
 
-		len= 2*dia*sinf(phid / 2.0f);
+		len = 2 * dia * sinf(phid / 2.0f);
 
 		/* length of one segment in shortest parallen */
-		vec[0]= dia*sinf(phid);
-		vec[1]= 0.0;
-		vec[2]= dia*cosf(phid);
+		vec[0] = dia * sinf(phid);
+		vec[1] = 0.0f;
+		vec[2] = dia * cosf(phid);
 
 		mul_v3_m3v3(vec2, cmat, vec);
-		len2= len_v3v3(vec, vec2);
+		len2 = len_v3v3(vec, vec2);
 
 		/* use shortest segment length divided by 3 as merge threshold */
 		BMO_op_callf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);

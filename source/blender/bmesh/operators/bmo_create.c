@@ -880,8 +880,8 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	if (!bm->totvert || !bm->totedge)
 		return;
 
-	edata = MEM_callocN(sizeof(EdgeData)*bm->totedge, "EdgeData");
-	vdata = MEM_callocN(sizeof(VertData)*bm->totvert, "VertData");
+	edata = MEM_callocN(sizeof(EdgeData) * bm->totedge, "EdgeData");
+	vdata = MEM_callocN(sizeof(VertData) * bm->totvert, "VertData");
 	
 	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
 	BMO_slot_buffer_flag_enable(bm, op, "excludefaces", FACE_IGNORE, BM_FACE);
@@ -1050,9 +1050,9 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 
 	for (i = 0; i < 2; i++) {
 		BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
-			if ( (BMO_elem_flag_test(bm, e2, EDGE_MARK)) &&
-			     (!BMO_elem_flag_test(bm, e2, EDGE_VIS)) &&
-			     (e2 != e))
+			if ((BMO_elem_flag_test(bm, e2, EDGE_MARK)) &&
+			    (!BMO_elem_flag_test(bm, e2, EDGE_VIS)) &&
+			    (e2 != e))
 			{
 				return e2;
 			}
@@ -1101,8 +1101,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	while (1) {
 		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 			if (!BMO_elem_flag_test(bm, e, EDGE_VIS)) {
-				if ( BMO_vert_edge_flags_count(bm, e->v1, EDGE_MARK) == 1 ||
-				     BMO_vert_edge_flags_count(bm, e->v2, EDGE_MARK) == 1)
+				if (BMO_vert_edge_flags_count(bm, e->v1, EDGE_MARK) == 1 ||
+				    BMO_vert_edge_flags_count(bm, e->v2, EDGE_MARK) == 1)
 				{
 					break;
 				}

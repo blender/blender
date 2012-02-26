@@ -445,7 +445,7 @@ float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 	if (len == 0.0f)
 		return 0.0f;
 	
-	return (rc[0] * (v1[0] - v2[0]) + rc[1] * (v1[1] - v2[1]) ) / len;
+	return (rc[0] * (v1[0] - v2[0]) + rc[1] * (v1[1] - v2[1])) / len;
 }
 
 /* note; uses v3d, so needs active 3d window */
@@ -1119,7 +1119,7 @@ static float edgetag_cut_cost(BMEditMesh *UNUSED(em), BMEdge *e1, BMEdge *e2, BM
 	cost = len_v3(d1);
 	cost += len_v3(d2);
 
-	/*.but is biased to give higher values to sharp turns, so that it will take
+	/* but is biased to give higher values to sharp turns, so that it will take
 	 * paths with fewer "turns" when selecting between equal-weighted paths between
 	 * the two edges */
 	cost = cost + 0.5f * cost * (2.0f - sqrt(fabs(dot_v3v3(d1, d2))));

@@ -943,7 +943,7 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 	bm->totflags++;
 
 	/* allocate new flag poo */
-	bm->toolflagpool = newpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, FALSE, FALSE);
+	bm->toolflagpool = newpool = BLI_mempool_create(sizeof(BMFlagLayer) * bm->totflags, 512, 512, FALSE, FALSE);
 	
 	/* now go through and memcpy all the flags. Loops don't get a flag layer at this time.. */
 	for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BM_iter_step(&iter), i++) {

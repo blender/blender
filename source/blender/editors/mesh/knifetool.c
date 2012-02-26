@@ -1699,7 +1699,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	KnifeVert *kfv;
 	KnifeEdge *kfe;
 	facenet_entry *entry;
-	ListBase *face_nets = MEM_callocN(sizeof(ListBase)*bm->totface, "face_nets");
+	ListBase *face_nets = MEM_callocN(sizeof(ListBase) * bm->totface, "face_nets");
 	BMFace **faces = MEM_callocN(sizeof(BMFace *) * bm->totface, "faces knife");
 	MemArena *arena = BLI_memarena_new(1 << 16, "knifenet_fill_faces");
 	SmallHash shash;

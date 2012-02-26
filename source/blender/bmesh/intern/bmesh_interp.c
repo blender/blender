@@ -288,14 +288,14 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 	y = aa[a1] * dd[a2] + bb[a1] * cc[a2] - cc[a1] * bb[a2] - dd[a1] * aa[a2];
 	z = bb[a1] * dd[a2] - dd[a1] * bb[a2];
 	
-	if (fabs(2 * (x - y + z)) > FLT_EPSILON * 10.0f) {
+	if (fabsf(2.0f * (x - y + z)) > FLT_EPSILON * 10.0f) {
 		float f2;
 
 		f1 = (sqrt(y * y - 4.0 * x * z) - y + 2.0 * z) / (2.0 * (x - y + z));
 		f2 = (-sqrt(y * y - 4.0 * x * z) - y + 2.0 * z) / (2.0 * (x - y + z));
 
-		f1 = fabs(f1);
-		f2 = fabs(f2);
+		f1 = fabsf(f1);
+		f2 = fabsf(f2);
 		f1 = MIN2(f1, f2);
 		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
 	}
@@ -308,9 +308,9 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 			
 			for (i = 0; i < 2; i++) {
 				if (fabsf(aa[i]) < FLT_EPSILON * 100.0f)
-					return aa[(i + 1) % 2] / fabs(bb[(i + 1) % 2] - aa[(i + 1) % 2]);
+					return aa[(i + 1) % 2] / fabsf(bb[(i + 1) % 2] - aa[(i + 1) % 2]);
 				if (fabsf(cc[i]) < FLT_EPSILON * 100.0f)
-					return cc[(i + 1) % 2] / fabs(dd[(i + 1) % 2] - cc[(i + 1) % 2]);
+					return cc[(i + 1) % 2] / fabsf(dd[(i + 1) % 2] - cc[(i + 1) % 2]);
 			}
 		}
 	}

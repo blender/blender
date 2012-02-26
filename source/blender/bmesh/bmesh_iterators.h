@@ -84,11 +84,11 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 
 #define BM_ITER(ele, iter, bm, itype, data)                                   \
 	ele = BM_iter_new(iter, bm, itype, data);                                 \
-	for ( ; ele; ele=BM_iter_step(iter))
+	for ( ; ele; ele = BM_iter_step(iter))
 
 #define BM_ITER_INDEX(ele, iter, bm, itype, data, indexvar)                   \
 	ele = BM_iter_new(iter, bm, itype, data);                                 \
-	for (indexvar=0; ele; indexvar++, ele=BM_iter_step(iter))
+	for (indexvar = 0; ele; indexvar++, ele = BM_iter_step(iter))
 
 /*Iterator Structure*/
 typedef struct BMIter {
