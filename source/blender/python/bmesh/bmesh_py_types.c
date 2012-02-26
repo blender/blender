@@ -729,6 +729,43 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
  * ---- */
 
 
+PyDoc_STRVAR(bpy_bmvert_copy_from_vert_interp_doc,
+".. method:: copy_from_vert_interp(vert_pair, fac)\n"
+"\n"
+"   Interpolate the customdata from a vert between 2 other verts.\n"
+"\n"
+"   :arg vert_pair: The vert to interpolate data from.\n"
+"   :type vert_pair: :class:`BMVert`\n"
+);
+static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *args)
+{
+	PyObject *vert_seq;
+	float fac;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "Of:BMVert.copy_from_vert_interp",
+	                      &vert_seq, &fac))
+	{
+		return NULL;
+	}
+	else {
+		BMesh *bm = self->bm;
+		BMVert **vert_array = NULL;
+		Py_ssize_t vert_seq_len; /* always 2 */
+
+		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
+		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       TRUE, TRUE, "BMVert.copy_from_vert_interp(...)");
+
+		BM_data_interp_from_verts(bm, vert_array[0], vert_array[1], self->v, CLAMPIS(fac, 0.0f, 1.0f));
+
+		PyMem_FREE(vert_array);
+		Py_RETURN_NONE;
+	}
+}
+
+
 PyDoc_STRVAR(bpy_bmvert_copy_from_face_interp_doc,
 ".. method:: copy_from_face_interp(face)\n"
 "\n"
@@ -1596,7 +1633,8 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 static struct PyMethodDef bpy_bmvert_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
-    {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_O, bpy_bmvert_copy_from_face_interp_doc},
+    {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
+    {"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
 
     {"calc_vert_angle", (PyCFunction)bpy_bmvert_calc_edge_angle, METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
 
