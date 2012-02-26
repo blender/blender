@@ -1140,10 +1140,10 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	}
 
 	if (edges1 && BLI_array_count(edges1) > 2 &&
-	    BM_edge_share_vert(edges1[0], edges1[BLI_array_count(edges1) - 1]))
+	    BM_edge_share_vert_count(edges1[0], edges1[BLI_array_count(edges1) - 1]))
 	{
 		if (edges2 && BLI_array_count(edges2) > 2 &&
-		    BM_edge_share_vert(edges2[0], edges2[BLI_array_count(edges2) - 1]))
+		    BM_edge_share_vert_count(edges2[0], edges2[BLI_array_count(edges2) - 1]))
 		{
 			BLI_array_free(edges1);
 			BLI_array_free(edges2);
@@ -1156,7 +1156,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	}
 
 	if (edges2 && BLI_array_count(edges2) > 2 &&
-	    BM_edge_share_vert(edges2[0], edges2[BLI_array_count(edges2) - 1]))
+	    BM_edge_share_vert_count(edges2[0], edges2[BLI_array_count(edges2) - 1]))
 	{
 		edges2 = NULL;
 	}

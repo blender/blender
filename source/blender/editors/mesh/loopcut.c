@@ -255,7 +255,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		lasteed = eed;
 	}
 	
-	if (lasteed != startedge && BM_edge_share_faces(lasteed, startedge)) {
+	if (lasteed != startedge && BM_edge_share_face_count(lasteed, startedge)) {
 		v[1][0] = v[0][0];
 		v[1][1] = v[0][1];
 

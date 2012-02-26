@@ -792,7 +792,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 
 		/* make sure the two edges have a valid angle to each othe */
-		if (totesel == 2 && BM_edge_share_vert(e1, e2)) {
+		if (totesel == 2 && BM_edge_share_vert_count(e1, e2)) {
 			float angle;
 
 			sub_v3_v3v3(vec1, e1->v2->co, e1->v1->co);

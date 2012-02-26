@@ -1650,7 +1650,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	}
 
 	/* validate only one shared edg */
-	shared = BM_face_share_edges(f1, f2);
+	shared = BM_face_share_edge_count(f1, f2);
 	if (shared > 1) {
 		return NULL;
 	}

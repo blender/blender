@@ -102,13 +102,13 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **existface);
 
 
 /* returns number of edges f1 and f2 share. */
-int BM_face_share_edges(struct BMFace *f1, struct BMFace *f2);
+int BM_face_share_edge_count(struct BMFace *f1, struct BMFace *f2);
 
 /* returns number of faces e1 and e2 share. */
-int BM_edge_share_faces(struct BMEdge *e1, struct BMEdge *e2);
+int BM_edge_share_face_count(struct BMEdge *e1, struct BMEdge *e2);
 
 /* returns bool 1/0 if the edges share a vertex */
-int BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2);
+int BM_edge_share_vert_count(struct BMEdge *e1, struct BMEdge *e2);
 
 /* edge verts in winding order from face */
 void BM_edge_ordered_verts(struct BMEdge *edge, struct BMVert **r_v1, struct BMVert **r_v2);

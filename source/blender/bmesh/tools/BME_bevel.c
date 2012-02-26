@@ -829,7 +829,7 @@ static void bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
 	/* clean up edges with 2 faces that share more than one edg */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if(BMO_elem_flag_test(bm, e, BME_BEVEL_BEVEL)) {
-			count = BM_face_share_edges(e->l->f, e->l->radial_next->f);
+			count = BM_face_share_edge_count(e->l->f, e->l->radial_next->f);
 			if(count > 1) BMO_elem_flag_disable(bm, e, BME_BEVEL_BEVEL);
 		}
 	}

@@ -450,7 +450,7 @@ int BM_edge_is_boundary(BMEdge *e)
  *	Integer
  */
 
-int BM_face_share_edges(BMFace *f1, BMFace *f2)
+int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -474,7 +474,7 @@ int BM_face_share_edges(BMFace *f1, BMFace *f2)
  *
  */
 
-int BM_edge_share_faces(BMEdge *e1, BMEdge *e2)
+int BM_edge_share_face_count(BMEdge *e1, BMEdge *e2)
 {
 	BMLoop *l;
 	BMFace *f;
@@ -500,7 +500,7 @@ int BM_edge_share_faces(BMEdge *e1, BMEdge *e2)
  *
  */
 
-int BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2)
+int BM_edge_share_vert_count(struct BMEdge *e1, struct BMEdge *e2)
 {
 	return (e1->v1 == e2->v1 ||
 	        e1->v1 == e2->v2 ||
