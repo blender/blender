@@ -334,7 +334,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			if (BM_vert_edge_count(v) == 2) {
 
 				/* collapse the ver */
-				BM_vert_collapse_faces(bm, v->e, v, 1.0f, TRUE);
+				BM_vert_collapse_faces(bm, v->e, v, 1.0f, FALSE);
 				continue;
 			}
 

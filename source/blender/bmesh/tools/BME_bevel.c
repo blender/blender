@@ -153,6 +153,9 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 
 		e = v->e;
 		elast = bmesh_disk_nextedge(e, v);
+
+		/* BMESH_TODO, figure out if its possible we had a double edge here and need to splice it,
+		 * last bool arg */
 		bmesh_jekv(bm, e, v, FALSE);
 
 		l1 = elast->l;
