@@ -366,7 +366,7 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 
 	do {
 		if (!l_iter) {
-			bmesh_error();
+			BMESH_ERROR;
 			return FALSE;
 		}
 		
@@ -376,7 +376,7 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 			return FALSE;
 		
 		if (i > BM_LOOP_RADIAL_MAX) {
-			bmesh_error();
+			BMESH_ERROR;
 			return FALSE;
 		}
 		
@@ -398,7 +398,7 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 {
 	/* if e is non-NULL, l must be in the radial cycle of e */
 	if (e && e != l->e) {
-		bmesh_error();
+		BMESH_ERROR;
 	}
 
 	if (l->radial_next != l) {
@@ -414,7 +414,7 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 				e->l = NULL;
 			}
 			else {
-				bmesh_error();
+				BMESH_ERROR;
 			}
 		}
 	}
@@ -472,13 +472,13 @@ int bmesh_radial_length(BMLoop *l)
 	do {
 		if (!l_iter) {
 			/* radial cycle is broken (not a circulat loop) */
-			bmesh_error();
+			BMESH_ERROR;
 			return 0;
 		}
 		
 		i++;
 		if (i >= BM_LOOP_RADIAL_MAX) {
-			bmesh_error();
+			BMESH_ERROR;
 			return -1;
 		}
 	} while ((l_iter = l_iter->radial_next) != l);
@@ -504,7 +504,7 @@ void bmesh_radial_append(BMEdge *e, BMLoop *l)
 
 	if (l->e && l->e != e) {
 		/* l is already in a radial cycle for a different edge */
-		bmesh_error();
+		BMESH_ERROR;
 	}
 	
 	l->e = e;

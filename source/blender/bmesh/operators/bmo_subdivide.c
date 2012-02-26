@@ -494,8 +494,9 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		for (a = 0; a < numcuts; a++) {
 			v = subdivideedgenum(bm, e, &temp, a, numcuts, params, &ne,
 			                     v1, v2);
-			if (!v)
-				bmesh_error();
+			if (!v) {
+				BMESH_ERROR;
+			}
 
 			BMO_elem_flag_enable(bm, ne, ELE_INNER);
 			lines[(i + 1) * s + a + 1] = v;

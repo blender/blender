@@ -2328,7 +2328,6 @@ int BKE_metaball_center_bounds(MetaBall *mb, float cent[3])
 void BKE_metaball_translate(MetaBall *mb, float offset[3])
 {
 	MetaElem *ml;
-	int i;
 
 	for (ml = mb->elems.first; ml; ml = ml->next) {
 		add_v3_v3(&ml->x, offset);

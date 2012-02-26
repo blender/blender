@@ -111,7 +111,7 @@ struct EditMesh;
 /* #define BM_ELEM_NONORMCALC (1<<7) */ /* UNUSED */
 
 /* stub */
-void bmesh_error(void);
+void _bmesh_error(const char *at, const char *func);
 
 /* Mesh Level Ops */
 extern int bm_mesh_allocsize_default[4];

@@ -452,7 +452,7 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 	}
 
 	if (err) {
-		bmesh_error();
+		BMESH_ERROR;
 	}
 
 	return err;
@@ -792,14 +792,14 @@ static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 
 	do {
 		if (!l2) {
-			bmesh_error();
+			BMESH_ERROR;
 			goto error;
 		}
 		
 		i += BM_ELEM_API_FLAG_TEST(l2->f, flag) ? 1 : 0;
 		l2 = bmesh_radial_nextloop(l2);
 		if (c >= BM_LOOP_RADIAL_MAX) {
-			bmesh_error();
+			BMESH_ERROR;
 			goto error;
 		}
 		c++;
@@ -891,7 +891,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 	int i, tote = 0;
 
 	if (!totface) {
-		bmesh_error();
+		BMESH_ERROR;
 		return NULL;
 	}
 
@@ -1288,11 +1288,11 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 
 	/* verify disk cycle */
 	edok = bmesh_disk_validate(valence1, ov->e, ov);
-	if (!edok) bmesh_error();
+	if (!edok) BMESH_ERROR;
 	edok = bmesh_disk_validate(valence2, tv->e, tv);
-	if (!edok) bmesh_error();
+	if (!edok) BMESH_ERROR;
 	edok = bmesh_disk_validate(2, nv->e, nv);
-	if (!edok) bmesh_error();
+	if (!edok) BMESH_ERROR;
 
 	/* Split the radial cycle if presen */
 	nextl = e->l;
@@ -1358,21 +1358,21 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 
 		/* verify length of radial cycl */
 		edok = bmesh_radial_validate(radlen, e->l);
-		if (!edok) bmesh_error();
+		if (!edok) BMESH_ERROR;
 		edok = bmesh_radial_validate(radlen, ne->l);
-		if (!edok) bmesh_error();
+		if (!edok) BMESH_ERROR;
 
 		/* verify loop->v and loop->next->v pointers for  */
 		for (i = 0, l = e->l; i < radlen; i++, l = l->radial_next) {
-			if (!(l->e == e)) bmesh_error();
-			//if (!(l->radial_next == l)) bmesh_error();
+			if (!(l->e == e)) BMESH_ERROR;
+			//if (!(l->radial_next == l)) BMESH_ERROR;
 			if (l->prev->e != ne && l->next->e != ne) {
-				bmesh_error();
+				BMESH_ERROR;
 			}
 			edok = bmesh_verts_in_edge(l->v, l->next->v, e);
-			if (!edok)               bmesh_error();
-			if (l->v == l->next->v)  bmesh_error();
-			if (l->e == l->next->e)  bmesh_error();
+			if (!edok)               BMESH_ERROR;
+			if (l->v == l->next->v)  BMESH_ERROR;
+			if (l->e == l->next->e)  BMESH_ERROR;
 
 			/* verify loop cycle for kloop-> */
 			BM_CHECK_ELEMENT(bm, l);
@@ -1382,13 +1382,13 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 		}
 		/* verify loop->v and loop->next->v pointers for n */
 		for (i = 0, l = ne->l; i < radlen; i++, l = l->radial_next) {
-			if (!(l->e == ne)) bmesh_error();
-			//if (!(l->radial_next == l)) bmesh_error();
-			if (l->prev->e != e && l->next->e != e) bmesh_error();
+			if (!(l->e == ne)) BMESH_ERROR;
+			//if (!(l->radial_next == l)) BMESH_ERROR;
+			if (l->prev->e != e && l->next->e != e) BMESH_ERROR;
 			edok = bmesh_verts_in_edge(l->v, l->next->v, ne);
-			if (!edok)                bmesh_error();
-			if (l->v == l->next->v)  bmesh_error();
-			if (l->e == l->next->e)  bmesh_error();
+			if (!edok)                BMESH_ERROR;
+			if (l->v == l->next->v)  BMESH_ERROR;
+			if (l->e == l->next->e)  BMESH_ERROR;
 
 			BM_CHECK_ELEMENT(bm, l);
 			BM_CHECK_ELEMENT(bm, l->v);
@@ -1525,7 +1525,7 @@ struct BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_e
 				/* Validate radial cycle of o */
 				edok = bmesh_radial_validate(radlen, oe->l);
 				if (!edok) {
-					bmesh_error();
+					BMESH_ERROR;
 				}
 			}
 
@@ -1537,17 +1537,17 @@ struct BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_e
 
 			/* Validate disk cycle lengths of ov, tv are unchange */
 			edok = bmesh_disk_validate(valence1, ov->e, ov);
-			if (!edok) bmesh_error();
+			if (!edok) BMESH_ERROR;
 			edok = bmesh_disk_validate(valence2, tv->e, tv);
-			if (!edok) bmesh_error();
+			if (!edok) BMESH_ERROR;
 
 			/* Validate loop cycle of all faces attached to o */
 			for (i = 0, l = oe->l; i < radlen; i++, l = bmesh_radial_nextloop(l)) {
-				if (l->e != oe) bmesh_error();
+				if (l->e != oe) BMESH_ERROR;
 				edok = bmesh_verts_in_edge(l->v, l->next->v, oe);
-				if (!edok) bmesh_error();
+				if (!edok) BMESH_ERROR;
 				edok = bmesh_loop_validate(l->f);
-				if (!edok) bmesh_error();
+				if (!edok) BMESH_ERROR;
 
 				BM_CHECK_ELEMENT(bm, l);
 				BM_CHECK_ELEMENT(bm, l->v);
@@ -1723,7 +1723,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate the new loop cycle */
 	edok = bmesh_loop_validate(f1);
-	if (!edok) bmesh_error();
+	if (!edok) BMESH_ERROR;
 	
 	return f1;
 }

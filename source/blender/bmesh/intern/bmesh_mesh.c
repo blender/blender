@@ -51,14 +51,16 @@
 int bm_mesh_allocsize_default[4] = {512, 512, 2048, 512};
 
 /* bmesh_error stub */
-void bmesh_error(void)
+void _bmesh_error(const char *at, const char *func)
 {
-	printf("BM modelling error!\n");
+	fprintf(stderr, "BM modelling error '%s', func '%s'!\n", at, func);
 
+#ifdef WITH_ASSERT_ABORT
 	/* This placeholder assert makes modelling errors easier to catch
 	 * in the debugger, until bmesh_error is replaced with something
 	 * better. */
-	BLI_assert(0);
+	abort();
+#endif
 }
 
 static void bmesh_mempool_init(BMesh *bm, const int allocsize[4])

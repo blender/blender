@@ -69,4 +69,8 @@ int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg
 #define BMERR_INVALID_SELECTION			9
 #define BMERR_MESH_ERROR				10
 
+
+/* BMESH_ERROR */
+#define BMESH_ERROR _bmesh_error(AT, __func__)
+
 #endif /* __BMESH_ERROR_H__ */
