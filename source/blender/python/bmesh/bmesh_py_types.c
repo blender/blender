@@ -244,7 +244,7 @@ PyDoc_STRVAR(bpy_bm_is_valid_doc,
 );
 static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self)
 {
-	return PyBool_FromLong(self->bm != NULL);
+	return PyBool_FromLong(BPY_BM_IS_VALID(self));
 }
 
 
@@ -2453,13 +2453,15 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
 
 int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 {
-	if (self->bm) {
+	if (LIKELY(self->bm)) {
 		return 0;
 	}
-	PyErr_Format(PyExc_ReferenceError,
-	             "BMesh data of type %.200s has been removed",
-	             Py_TYPE(self)->tp_name);
-	return -1;
+	else {
+		PyErr_Format(PyExc_ReferenceError,
+					 "BMesh data of type %.200s has been removed",
+					 Py_TYPE(self)->tp_name);
+		return -1;
+	}
 }
 
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self)
@@ -2513,7 +2515,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 				             error_prefix, type->tp_name, Py_TYPE(item)->tp_name);
 				goto err_cleanup;
 			}
-			else if (item->bm == NULL) {
+			else if (!BPY_BM_IS_VALID(item)) {
 				PyErr_Format(PyExc_TypeError,
 				             "%s: %d %s has been removed",
 				             error_prefix, i, type->tp_name);

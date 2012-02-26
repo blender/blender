@@ -137,8 +137,10 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
                                 const char do_unique_check, const char do_bm_check,
                                 const char *error_prefix);
 
-#define BPY_BM_CHECK_OBJ(obj) if (bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1) { return NULL; } (void)NULL
-#define BPY_BM_CHECK_INT(obj) if (bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1) { return -1; }   (void)NULL
+#define BPY_BM_CHECK_OBJ(obj) if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return NULL; } (void)0
+#define BPY_BM_CHECK_INT(obj) if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return -1; }   (void)0
+
+#define BPY_BM_IS_VALID(obj) (LIKELY((obj)->bm != NULL))
 
 #define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq)                \
 	BM_ITER(ele, iter, (bpy_bmelemseq)->bm, (bpy_bmelemseq)->itype, \
