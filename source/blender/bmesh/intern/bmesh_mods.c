@@ -72,19 +72,21 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 		}
 		else if (!v->e->l) {
 			if (len == 2) {
-				BM_vert_collapse_edge(bm, v->e, v);
+				return (BM_vert_collapse_edge(bm, v->e, v) != NULL);
 			}
 			else {
-				/* this may be too harsh, we could do nothing here instead.
-				 * To test, connect 3 edges to a vert and dissolve the vert. It will be removed */
-
-				BM_vert_kill(bm, v); /* will kill edges too */
+				/* used to kill the vertex here, but it may be connected to faces.
+				 * so better do nothing */
+				return FALSE;
 			}
-			return TRUE;
 		}
 		else {
 			return FALSE;
 		}
+	}
+	else if (len == 2 && BM_vert_face_count(v) == 1) {
+		/* boundry vertex on a face */
+		return (BM_vert_collapse_edge(bm, v->e, v) != NULL);
 	}
 	else {
 		return BM_disk_dissolve(bm, v);
