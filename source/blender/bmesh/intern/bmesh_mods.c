@@ -478,8 +478,8 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 	/* single face or no faces */
 	/* same as BM_vert_collapse_edge() however we already
 	 * have vars to perform this operation so dont call. */
-	bmesh_jekv(bm, ke, kv);
-	ne = BM_edge_exists(tv, tv2);
+	ne = bmesh_jekv(bm, ke, kv, TRUE);
+	/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
 
 	return ne;
 }
@@ -512,9 +512,9 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv)
 			BMVert *tv2 = BM_edge_other_vert(e2, kv);
 			if (tv2) {
 				/* only action, other calls here only get the edge to return */
-				bmesh_jekv(bm, ke, kv);
+				ne = bmesh_jekv(bm, ke, kv);
 
-				ne = BM_edge_exists(tv, tv2);
+				/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
 			}
 		}
 	}

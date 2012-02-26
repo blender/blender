@@ -153,7 +153,7 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 
 		e = v->e;
 		elast = bmesh_disk_nextedge(e, v);
-		bmesh_jekv(bm, e, v);
+		bmesh_jekv(bm, e, v, FALSE);
 
 		l1 = elast->l;
 		l2 = l1->radial_next;

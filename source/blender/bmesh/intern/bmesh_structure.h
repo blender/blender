@@ -90,7 +90,8 @@ struct BMFace *bmesh_sfme(struct BMesh *bm, struct BMFace *f, struct BMVert *v1,
 #endif
                           BMEdge *example
                           );
-int bmesh_jekv(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv);
+
+struct BMEdge *bmesh_jekv(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, const short check_edge_splice);
 int bmesh_loop_reverse(struct BMesh *bm, struct BMFace *f);
 struct BMFace *bmesh_jfke(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2, struct BMEdge *e);
 

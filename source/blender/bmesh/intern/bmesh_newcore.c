@@ -41,6 +41,8 @@
  * TESTING ONLY! */
 // #define USE_DEBUG_INDEX_MEMCHECK
 
+static int bmesh_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
+
 #ifdef USE_DEBUG_INDEX_MEMCHECK
 #define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)               \
 	{                                                      \
@@ -1434,9 +1436,9 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
  *  these faces.
  *
  *  Returns -
- *	1 for success, 0 for failure.
+ *	The resulting edge, NULL for failure.
  */
-int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
+struct BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_double)
 {
 	BMEdge *oe;
 	BMVert *ov, *tv;
@@ -1444,7 +1446,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 	int len, radlen = 0, halt = 0, i, valence1, valence2, edok;
 
 	if (bmesh_vert_in_edge(ke, kv) == 0) {
-		return FALSE;
+		return NULL;
 	}
 
 	len = bmesh_disk_count(kv);
@@ -1456,13 +1458,19 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 		halt = bmesh_verts_in_edge(kv, tv, oe); /* check for double edge */
 		
 		if (halt) {
-			return FALSE;
+			return NULL;
 		}
 		else {
+			BMEdge *e_splice;
+
 			/* For verification later, count valence of ov and t */
 			valence1 = bmesh_disk_count(ov);
 			valence2 = bmesh_disk_count(tv);
-			
+
+			if (check_edge_double) {
+				e_splice = BM_edge_exists(tv, ov);
+			}
+
 			/* remove oe from kv's disk cycl */
 			bmesh_disk_remove_edge(oe, kv);
 			/* relink oe->kv to be oe->t */
@@ -1547,14 +1555,21 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 				BM_CHECK_ELEMENT(bm, l->f);
 			}
 
+			if (check_edge_double) {
+				if (e_splice) {
+					/* removes e_splice */
+					bmesh_edge_splice(bm, e_splice, oe);
+				}
+			}
+
 			BM_CHECK_ELEMENT(bm, ov);
 			BM_CHECK_ELEMENT(bm, tv);
 			BM_CHECK_ELEMENT(bm, oe);
 
-			return TRUE;
+			return oe;
 		}
 	}
-	return FALSE;
+	return NULL;
 }
 
 /**
@@ -1718,7 +1733,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  *
  * merges two verts into one (v into vtarget).
  */
-static int bmesh_splicevert(BMesh *bm, BMVert *v, BMVert *vtarget)
+static int bmesh_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
 	BMEdge *e;
 	BMLoop *l;
@@ -1861,7 +1876,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
  *
  * edges must already have the same vertices
  */
-static int UNUSED_FUNCTION(bmesh_spliceedge)(BMesh *bm, BMEdge *e, BMEdge *etarget)
+static int bmesh_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
 {
 	BMLoop *l;
 
@@ -1883,6 +1898,7 @@ static int UNUSED_FUNCTION(bmesh_spliceedge)(BMesh *bm, BMEdge *e, BMEdge *etarg
 	BM_CHECK_ELEMENT(bm, e);
 	BM_CHECK_ELEMENT(bm, etarget);
 
+	/* removes from disks too */
 	BM_edge_kill(bm, e);
 
 	return TRUE;
@@ -1992,7 +2008,7 @@ static BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 
 			/* And then glue the rest back together */
 			for (i = 1; i < len - 1; i++) {
-				bmesh_splicevert(bm, vtar[i], vtar[0]);
+				bmesh_vert_splice(bm, vtar[i], vtar[0]);
 			}
 		}
 	}
