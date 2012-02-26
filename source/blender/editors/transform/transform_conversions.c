@@ -3878,8 +3878,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			else if (t->frame_side=='L' && left >= cfra)	*recursive= 0;
 			else											*recursive= 1;
 
-			*count= 0;
-			*flag= 0;
+			*count= 1;
+			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 		}
 		else {
 
