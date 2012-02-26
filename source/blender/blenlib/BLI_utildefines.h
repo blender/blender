@@ -277,9 +277,9 @@
  */
 #if !defined NDEBUG
 #  ifdef WITH_ASSERT_ABORT
-#    define _dummy_abort abort
+#    define _BLI_DUMMY_ABORT abort
 #  else
-#    define _dummy_abort() (void)0
+#    define _BLI_DUMMY_ABORT() (void)0
 #  endif
 #  if defined(__GNUC__) || defined(_MSC_VER) /* check __func__ is available */
 #    define BLI_assert(a)                                                     \
@@ -288,7 +288,7 @@
 		fprintf(stderr,                                                       \
 			"BLI_assert failed: %s, %s(), %d at \'%s\'\n",                    \
 			__FILE__, __func__, __LINE__, STRINGIFY(a)),                      \
-		_dummy_abort(),                                                       \
+		_BLI_DUMMY_ABORT(),                                                   \
 		NULL)) : NULL)
 #  else
 #    define BLI_assert(a)                                                     \
@@ -297,7 +297,7 @@
 		fprintf(stderr,                                                       \
 			"BLI_assert failed: %s, %d at \'%s\'\n",                          \
 			__FILE__, __LINE__, STRINGIFY(a)),                                \
-		_dummy_abort(),                                                       \
+		_BLI_DUMMY_ABORT(),                                                   \
 		NULL)) : NULL)
 #  endif
 #else

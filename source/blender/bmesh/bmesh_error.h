@@ -69,13 +69,11 @@ int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg
 #define BMERR_INVALID_SELECTION			9
 #define BMERR_MESH_ERROR				10
 
-
-/* BMESH_ERROR */
-
-
-/* _dummy_abort's defuned */
-#ifndef _dummy_abort
-#  error "BLI_utildefines.h not included, '_dummy_abort' missing !"
+/* BMESH_ASSERT */
+#ifdef WITH_ASSERT_ABORT
+#  define _BMESH_DUMMY_ABORT abort
+#else
+#  define _BMESH_DUMMY_ABORT() (void)0
 #endif
 
 /* this is meant to be higher level then BLI_assert(),
@@ -86,7 +84,7 @@ int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg
 		fprintf(stderr,                                                       \
 			"BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n",                  \
 			__FILE__, __func__, __LINE__, STRINGIFY(a)),                      \
-		_dummy_abort(),                                                       \
+		_BMESH_DUMMY_ABORT(),                                                 \
 		NULL)) : NULL)
 
 #endif /* __BMESH_ERROR_H__ */
