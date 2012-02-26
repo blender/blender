@@ -2282,3 +2282,55 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	freepolygonize(&mbproc);
 }
 
+/* basic vertex data functions */
+int BKE_metaball_minmax(MetaBall *mb, float min[3], float max[3])
+{
+	MetaElem *ml;
+
+	INIT_MINMAX(min, max);
+
+	for (ml = mb->elems.first; ml; ml = ml->next) {
+		DO_MINMAX(&ml->x, min, max);
+	}
+
+	return (mb->elems.first != NULL);
+}
+
+int BKE_metaball_center_median(MetaBall *mb, float cent[3])
+{
+	MetaElem *ml;
+	int total= 0;
+
+	zero_v3(cent);
+
+	for (ml = mb->elems.first; ml; ml = ml->next) {
+		add_v3_v3(cent, &ml->x);
+	}
+
+	if (total)
+		mul_v3_fl(cent, 1.0f/(float)total);
+
+	return (total != 0);
+}
+
+int BKE_metaball_center_bounds(MetaBall *mb, float cent[3])
+{
+	float min[3], max[3];
+
+	if (BKE_metaball_minmax(mb, min, max)) {
+		mid_v3_v3v3(cent, min, max);
+		return 1;
+	}
+
+	return 0;
+}
+
+void BKE_metaball_translate(MetaBall *mb, float offset[3])
+{
+	MetaElem *ml;
+	int i;
+
+	for (ml = mb->elems.first; ml; ml = ml->next) {
+		add_v3_v3(&ml->x, offset);
+	}
+}

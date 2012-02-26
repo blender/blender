@@ -174,5 +174,10 @@ void *new_pgn_element(int size);
 int nextcwedge (int edge, int face);
 void BKE_freecubetable(void);
 
+int BKE_metaball_minmax(struct MetaBall *mb, float min[3], float max[3]);
+int BKE_metaball_center_median(struct MetaBall *mb, float cent[3]);
+int BKE_metaball_center_bounds(struct MetaBall *mb, float cent[3]);
+void BKE_metaball_translate(struct MetaBall *mb, float offset[3]);
+
 #endif
 
