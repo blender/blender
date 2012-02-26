@@ -31,6 +31,9 @@
  * of inspecting the mesh structure directly.
  */
 
+#include "MEM_guardedalloc.h"
+
+#include "BLI_array.h"
 #include "BLI_math.h"
 
 #include "bmesh.h"
@@ -510,6 +513,27 @@ int BM_edge_share_vert_count(struct BMEdge *e1, struct BMEdge *e2)
 
 /**
  *
+ *           BMESH EDGE SHARE A VERTEX
+ *
+ *	Return the shared vertex between the two edges or NULL
+ *
+ */
+
+BMVert *BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2)
+{
+	if (BM_vert_in_edge(e2, e1->v1)) {
+		return e1->v1;
+	}
+	else if (BM_vert_in_edge(e2, e1->v2)) {
+		return e1->v2;
+	}
+	else {
+		return NULL;
+	}
+}
+
+/**
+ *
  *           BMESH EDGE ORDERED VERTS
  *
  *	Returns the verts of an edge as used in a face
@@ -640,6 +664,163 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **overlapfa
 	}
 	return FALSE;
 }
+
+/*
+ * BMESH EXIST FACE MULTI
+ *
+ * Given a set of vertices and edges (varr, earr), find out if
+ * all those vertices are filled in by existing faces that _only_ use those vertices.
+ *
+ * This is for use in cases where creating a face is possible but would result in
+ * many overlapping faces.
+ *
+ * An example of how this is used: when 2 tri's are selected that share an edge,
+ * pressing Fkey would make a new overlapping quad (without a check like this)
+ *
+ * 'earr' and 'varr' can be in any order, however they _must_ form a closed loop.
+ *
+ * Returns:
+ * 0 for no overlap
+ * 1 for overlap
+ *
+ */
+
+int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
+{
+	BMFace *f;
+	BMEdge *e;
+	BMVert *v;
+	int ok;
+	int tot_tag;
+
+	BMIter fiter;
+	BMIter viter;
+
+	int i;
+
+	for (i = 0; i < len; i++) {
+		/* save some time by looping over edge faces rather then vert faces
+		 * will still loop over some faces twice but not as many */
+		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
+			BM_elem_flag_disable(f, BM_ELEM_INTERNAL_TAG);
+			BM_ITER(v, &viter, bm, BM_VERTS_OF_FACE, f) {
+				BM_elem_flag_disable(v, BM_ELEM_INTERNAL_TAG);
+			}
+		}
+
+		/* clear all edge tags */
+		BM_ITER(e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
+			BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
+		}
+	}
+
+	/* now tag all verts and edges in the boundry array as true so
+	 * we can know if a face-vert is from our array */
+	for (i = 0; i < len; i++) {
+		BM_elem_flag_enable(varr[i], BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_enable(earr[i], BM_ELEM_INTERNAL_TAG);
+	}
+
+
+	/* so! boundry is tagged, everything else cleared */
+
+
+	/* 1) tag all faces connected to edges - if all their verts are boundry */
+	tot_tag = 0;
+	for (i = 0; i < len; i++) {
+		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, earr[i]) {
+			if (!BM_elem_flag_test(f, BM_ELEM_INTERNAL_TAG)) {
+				ok = TRUE;
+				BM_ITER(v, &viter, bm, BM_VERTS_OF_FACE, f) {
+					if (!BM_elem_flag_test(v, BM_ELEM_INTERNAL_TAG)) {
+						ok = FALSE;
+						break;
+					}
+				}
+
+				if (ok) {
+					/* we only use boundry verts */
+					BM_elem_flag_enable(f, BM_ELEM_INTERNAL_TAG);
+					tot_tag++;
+				}
+			}
+			else {
+				/* we already found! */
+			}
+		}
+	}
+
+	if (tot_tag == 0) {
+		/* no faces use only boundry verts, quit early */
+		return FALSE;
+	}
+
+	/* 2) loop over non-boundry edges that use boundry verts,
+	 *    check each have 2 tagges faces connected (faces that only use 'varr' verts) */
+	ok = TRUE;
+	for (i = 0; i < len; i++) {
+		BM_ITER(e, &fiter, bm, BM_EDGES_OF_VERT, varr[i]) {
+
+			if (/* non-boundry edge */
+			    BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) == FALSE &&
+			    /* ...using boundry verts */
+			    BM_elem_flag_test(e->v1, BM_ELEM_INTERNAL_TAG) == TRUE &&
+			    BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG) == TRUE)
+			{
+				int tot_face_tag = 0;
+				BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+					if (BM_elem_flag_test(f, BM_ELEM_INTERNAL_TAG)) {
+						tot_face_tag++;
+					}
+				}
+
+				if (tot_face_tag != 2) {
+					ok = FALSE;
+					break;
+				}
+
+			}
+		}
+
+		if (ok == FALSE) {
+			break;
+		}
+	}
+
+	return ok;
+}
+
+/* same as 'BM_face_exists_multi' but built vert array from edges */
+int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len)
+{
+	BMVert **varr;
+	BLI_array_fixedstack_declare(varr, BM_NGON_STACK_SIZE, len, __func__);
+
+	int ok;
+	int i, i_next;
+
+	/* first check if verts have edges, if not we can bail out early */
+	ok = TRUE;
+	for (i = len - 1, i_next = 0; i_next < len; (i=i_next++)) {
+		if (!(varr[i] = BM_edge_share_vert(earr[i], earr[i_next]))) {
+			ok = FALSE;
+			break;
+		}
+	}
+
+	if (ok == FALSE) {
+		BMESH_ASSERT(0);
+		BLI_array_fixedstack_free(varr);
+		return FALSE;
+	}
+
+	ok = BM_face_exists_multi(bm, varr, earr, len);
+
+	BLI_array_fixedstack_free(varr);
+
+	return ok;
+}
+
 
 /*
  * BMESH FACE EXISTS

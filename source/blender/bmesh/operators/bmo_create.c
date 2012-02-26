@@ -872,7 +872,8 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge **edges = NULL;
 	PathBase *pathbase = edge_pathbase_new();
 	BLI_array_declare(edges);
-	int use_restrict = BMO_slot_bool_get(op, "use_restrict");
+	int use_restrict   = BMO_slot_bool_get(op, "use_restrict");
+	int use_fill_check = BMO_slot_bool_get(op, "use_fill_check");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 
@@ -1014,13 +1015,19 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				v2 = verts[0];
 			}
 
-			f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
-			if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
-				BMO_elem_flag_enable(bm, f, FACE_NEW);
-			}
+			if ((use_fill_check == FALSE) ||
+			    /* fairly expensive check - see if there are already faces filling this area */
+			    (BM_face_exists_multi_edge(bm, edges, i) == FALSE))
+			{
+				f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
+				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
+					BMO_elem_flag_enable(bm, f, FACE_NEW);
+				}
 
-			if (use_restrict)
-				BMO_slot_map_int_insert(bm, op, "faceout_groupmap", f, path->group);
+				if (use_restrict) {
+					BMO_slot_map_int_insert(bm, op, "faceout_groupmap", f, path->group);
+				}
+			}
 		}
 		
 		edge_free_path(pathbase, path);
@@ -1336,7 +1343,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
 	BMO_op_finish(bm, &op2);
 
-	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
+	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b", ELE_NEW, TRUE);
 	BMO_op_exec(bm, &op2);
 
 	/* return if edge net create did somethin */

@@ -97,6 +97,10 @@ float BM_vert_edge_angle(struct BMesh *bm, struct BMVert *v);
 /* checks overlapping of existing faces with the verts in varr. */
 int BM_face_exists_overlap(struct BMesh *bm, struct BMVert **varr, int len, struct BMFace **existface);
 
+/* checks if many existing faces overlap the faces defined by varr */
+int BM_face_exists_multi(BMesh *bm, struct BMVert **varr, struct BMEdge **earr, int len);
+int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len);
+
 /* checks if a face defined by varr already exists. */
 int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **existface);
 
@@ -109,6 +113,8 @@ int BM_edge_share_face_count(struct BMEdge *e1, struct BMEdge *e2);
 
 /* returns bool 1/0 if the edges share a vertex */
 int BM_edge_share_vert_count(struct BMEdge *e1, struct BMEdge *e2);
+
+BMVert *BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2);
 
 /* edge verts in winding order from face */
 void BM_edge_ordered_verts(struct BMEdge *edge, struct BMVert **r_v1, struct BMVert **r_v2);

@@ -1274,7 +1274,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		edge_array = (BMEdge **)PyMem_MALLOC(vert_seq_len * sizeof(BMEdge **));
 
 		/* ensure edges */
-		for (i_next = 0, i = vert_seq_len - 1; i_next < vert_seq_len; (i=i_next++)) {
+		for (i = vert_seq_len - 1, i_next = 0; i_next < vert_seq_len; (i=i_next++)) {
 			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_next], NULL, TRUE);
 		}
 
@@ -2535,7 +2535,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 			alloc[i] = item->ele;
 
 			if (do_unique_check) {
-				BM_elem_flag_enable(item->ele, BM_ELEM_TAG);
+				BM_elem_flag_enable(item->ele, BM_ELEM_INTERNAL_TAG);
 			}
 		}
 
@@ -2543,12 +2543,12 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 			/* check for double verts! */
 			int ok = TRUE;
 			for (i = 0; i < seq_len; i++) {
-				if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_TAG) == FALSE)) {
+				if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_INTERNAL_TAG) == FALSE)) {
 					ok = FALSE;
 				}
 
 				/* ensure we dont leave this enabled */
-				BM_elem_flag_disable(alloc[i], BM_ELEM_TAG);
+				BM_elem_flag_disable(alloc[i], BM_ELEM_INTERNAL_TAG);
 			}
 
 			if (ok == FALSE) {

@@ -108,7 +108,10 @@ struct EditMesh;
  * only add new flags with care! - campbell */
 /* #define BM_ELEM_SPARE	 (1<<5) */
 /* #define BM_ELEM_SPARE	 (1<<6) */
-/* #define BM_ELEM_NONORMCALC (1<<7) */ /* UNUSED */
+
+#define BM_ELEM_INTERNAL_TAG (1<<7) /* for low level internal API tagging,
+                                     * since tools may want to tag verts and
+                                     * not have functions clobber them */
 
 /* Mesh Level Ops */
 extern int bm_mesh_allocsize_default[4];
