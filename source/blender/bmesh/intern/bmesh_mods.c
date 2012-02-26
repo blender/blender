@@ -72,7 +72,7 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 		}
 		else if (!v->e->l) {
 			if (len == 2) {
-				return (BM_vert_collapse_edge(bm, v->e, v) != NULL);
+				return (BM_vert_collapse_edge(bm, v->e, v, TRUE) != NULL);
 			}
 			else {
 				/* used to kill the vertex here, but it may be connected to faces.
@@ -86,7 +86,7 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 	}
 	else if (len == 2 && BM_vert_face_count(v) == 1) {
 		/* boundry vertex on a face */
-		return (BM_vert_collapse_edge(bm, v->e, v) != NULL);
+		return (BM_vert_collapse_edge(bm, v->e, v, TRUE) != NULL);
 	}
 	else {
 		return BM_disk_dissolve(bm, v);
@@ -134,7 +134,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 	}
 	else if (keepedge == NULL && len == 2) {
 		/* collapse the verte */
-		e = BM_vert_collapse_faces(bm, v->e, v, 1.0, TRUE);
+		e = BM_vert_collapse_faces(bm, v->e, v, 1.0, TRUE, TRUE);
 
 		if (!e) {
 			return FALSE;
@@ -179,7 +179,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		}
 
 		/* collapse the verte */
-		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, TRUE);
+		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, TRUE, TRUE);
 
 		if (!e) {
 			return FALSE;
@@ -410,7 +410,8 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *  @returns The New Edge
  */
 
-BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, const int join_faces)
+BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
+                               const short join_faces, const short kill_degenerate_faces)
 {
 	BMEdge *ne = NULL;
 	BMVert *tv = bmesh_edge_getothervert(ke, kv);
@@ -471,15 +472,28 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
 		}
 
 		BLI_array_free(faces);
-
-		return ne;
 	}
+	else {
+		/* single face or no faces */
+		/* same as BM_vert_collapse_edge() however we already
+		 * have vars to perform this operation so dont call. */
+		ne = bmesh_jekv(bm, ke, kv, TRUE);
+		/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
 
-	/* single face or no faces */
-	/* same as BM_vert_collapse_edge() however we already
-	 * have vars to perform this operation so dont call. */
-	ne = bmesh_jekv(bm, ke, kv, TRUE);
-	/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
+		if (kill_degenerate_faces) {
+			BMIter fiter;
+			BMFace *f;
+			BMVert *verts[2] = {ne->v1, ne->v2};
+			int i;
+			for (i = 0; i < 2; i++) {
+				BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, verts[i]) {
+					if (f->len < 3) {
+						BM_face_kill(bm, f);
+					}
+				}
+			}
+		}
+	}
 
 	return ne;
 }
@@ -494,7 +508,8 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, con
  * The New Edge
  */
 
-BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv)
+BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
+                              const short kill_degenerate_faces)
 {
 	/* nice example implementation but we want loops to have their customdata
 	 * accounted for */
@@ -523,7 +538,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv)
 #else
 	/* with these args faces are never joined, same as above
 	 * but account for loop customdata */
-	return BM_vert_collapse_faces(bm, ke, kv, 1.0f, FALSE);
+	return BM_vert_collapse_faces(bm, ke, kv, 1.0f, FALSE, kill_degenerate_faces);
 #endif
 }
 

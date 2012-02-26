@@ -530,14 +530,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->prev->radial_next->f, kl->f, kl->prev->e);
-			BM_vert_collapse_edge(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv, FALSE);
 		}
 		else {
 			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->next->radial_next->f, kl->f, kl->next->e);
-			BM_vert_collapse_edge(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv, FALSE);
 		}
 		/* find saved loop pointer */
 		l = se->l;
@@ -576,14 +576,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->prev->radial_next->f, kl->f, kl->prev->e);
-			BM_vert_collapse_edge(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv, FALSE);
 		}
 		else {
 			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->next->radial_next->f, kl->f, kl->next->e);
-			BM_vert_collapse_edge(bm, ke, kv);
+			BM_vert_collapse_edge(bm, ke, kv, FALSE);
 		}
 		/* find saved loop pointer */
 		l = se->l;

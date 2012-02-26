@@ -165,7 +165,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
-					BM_vert_collapse_edge(bm, v->e, v);
+					BM_vert_collapse_edge(bm, v->e, v, TRUE);
 				}
 			}
 		}
@@ -216,7 +216,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	/* clean up extreneous 2-valence vertice */
 	for (i = 0; i < BLI_array_count(verts); i++) {
 		if (verts[i]->e) {
-			BM_vert_collapse_edge(bm, verts[i]->e, verts[i]);
+			BM_vert_collapse_edge(bm, verts[i]->e, verts[i], TRUE);
 		}
 	}
 	
@@ -265,7 +265,7 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
-					BM_vert_collapse_edge(bm, v->e, v);
+					BM_vert_collapse_edge(bm, v->e, v, TRUE);
 				}
 			}
 		}
@@ -334,7 +334,14 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			if (BM_vert_edge_count(v) == 2) {
 
 				/* collapse the ver */
-				BM_vert_collapse_faces(bm, v->e, v, 1.0f, FALSE);
+				/* previously the faces were joined, but collapsing between 2 edges
+				 * gives some advantage/difference in using vertex-dissolve over edge-dissolve */
+#if 0
+				BM_vert_collapse_faces(bm, v->e, v, 1.0f, TRUE, TRUE);
+#else
+				BM_vert_collapse_edge(bm, v->e, v, TRUE);
+#endif
+
 				continue;
 			}
 
@@ -540,7 +547,7 @@ void dissolvelimit_exec(BMesh *bm, BMOperator *op)
 			BMVert *v = (BMVert *)weight_elems[i].ele;
 			/* check twice because cumulative effect could disolve over angle limit */
 			if (BM_vert_edge_angle(bm, v) < angle_limit) {
-				BM_vert_collapse_edge(bm, v->e, v); /* join edges */
+				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 			}
 		}
 	}
