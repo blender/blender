@@ -66,8 +66,15 @@ static const int multires_max_levels = 13;
 static const int multires_grid_tot[] = {0, 4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
 static const int multires_side_tot[] = {0, 2, 3, 5,  9,  17,  33,   65,   129,   257,   513,    1025,    2049,    4097};
 
+/* See multiresModifier_disp_run for description of each operation */
+typedef enum {
+	APPLY_DISPLACEMENTS,
+	CALC_DISPLACEMENTS,
+	ADD_DISPLACEMENTS,
+} DispOp;
+
 static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert);
-static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, int invert, int add, DMGridData **oldGridData, int totlvl);
+static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, DMGridData **oldGridData, int totlvl);
 
 DerivedMesh *get_multires_dm(Scene *scene, MultiresModifierData *mmd, Object *ob)
 {
@@ -597,7 +604,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 	cddm->release(cddm);
 
 	/* calc disps */
-	multiresModifier_disp_run(dispdm, me, NULL, 1, 0, origdm->getGridData(origdm), totlvl);
+	multiresModifier_disp_run(dispdm, me, NULL, CALC_DISPLACEMENTS, origdm->getGridData(origdm), totlvl);
 
 	origdm->release(origdm);
 	dispdm->release(dispdm);
@@ -664,7 +671,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 		multires_reallocate_mdisps(me->totloop, mdisps, totlvl); 
 
 		/* compute displacements */
-		multiresModifier_disp_run(highdm, me, NULL, 1, 0, subGridData, totlvl);
+		multiresModifier_disp_run(highdm, me, NULL, CALC_DISPLACEMENTS, subGridData, totlvl);
 
 		/* free */
 		highdm->release(highdm);
@@ -709,7 +716,7 @@ void grid_tangent(int gridSize, int index, int x, int y, int axis, DMGridData **
 	}
 }
 
-static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, int invert, int add, DMGridData **oldGridData, int totlvl)
+static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, DMGridData **oldGridData, int totlvl)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)dm;
 	DMGridData **gridData, **subGridData;
@@ -732,7 +739,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	}
 	
 	if (!mdisps) {
-		if (invert)
+		if (op == CALC_DISPLACEMENTS)
 			mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS, CD_DEFAULT, NULL, me->totloop);
 		else
 			return;
@@ -791,29 +798,34 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 					column_vectors_to_mat3(mat, tx, ty, no);
 
-					if (!invert) {
-						/* convert to object space and add */
+					switch(op) {
+					case APPLY_DISPLACEMENTS:
+						/* Convert displacement to object space
+						   and add to grid points */
 						mul_v3_m3v3(disp, mat, data);
 						add_v3_v3v3(co, sco, disp);
-					}
-					else if (!add) {
-						/* convert difference to tangent space */
+						break;
+					case CALC_DISPLACEMENTS:
+						/* Calculate displacement between new and old
+						   grid points and convert to tangent space */
 						sub_v3_v3v3(disp, co, sco);
 						invert_m3(mat);
 						mul_v3_m3v3(data, mat, disp);
-					}
-					else {
-						/* convert difference to tangent space */
+						break;
+					case ADD_DISPLACEMENTS:
+						/* Convert subdivided displacements to tangent
+						   space and add to the original displacements */
 						invert_m3(mat);
 						mul_v3_m3v3(d, mat, co);
 						add_v3_v3(data, d);
+						break;
 					}
 				}
 			}
 		}
 	}
 
-	if (!invert) {
+	if (op == APPLY_DISPLACEMENTS) {
 		ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
 		ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
 	}
@@ -889,7 +901,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			ccgSubSurf_updateLevels(ss, lvl, NULL, 0);
 
 			/* add to displacements */
-			multiresModifier_disp_run(highdm, me, NULL, 1, 1, subGridData, mmd->totlvl);
+			multiresModifier_disp_run(highdm, me, NULL, ADD_DISPLACEMENTS, subGridData, mmd->totlvl);
 
 			/* free */
 			highdm->release(highdm);
@@ -907,7 +919,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			subdm = subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv);
 			cddm->release(cddm);
 
-			multiresModifier_disp_run(dm, me, NULL, 1, 0, subdm->getGridData(subdm), mmd->totlvl);
+			multiresModifier_disp_run(dm, me, NULL, CALC_DISPLACEMENTS, subdm->getGridData(subdm), mmd->totlvl);
 
 			subdm->release(subdm);
 		}
@@ -1104,7 +1116,7 @@ DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int loca
 	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 
 	/*run displacement*/
-	multiresModifier_disp_run(result, ob->data, dm, 0, 0, subGridData, mmd->totlvl);
+	multiresModifier_disp_run(result, ob->data, dm, APPLY_DISPLACEMENTS, subGridData, mmd->totlvl);
 
 	for (i = 0; i < numGrids; i++)
 		MEM_freeN(subGridData[i]);
