@@ -235,6 +235,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	float (*vert_nors)[3]= NULL;
 
+	float (*face_nors_result)[3] = NULL;
+
 	const float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 	const float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 	const float offset_fac_vg= smd->offset_fac_vg;
@@ -354,7 +356,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	DM_copy_poly_data(dm, result, 0, 0, numFaces);
 	DM_copy_poly_data(dm, result, 0, numFaces, numFaces);
-	
+
+	/* if the original has it, get the result so we can update it */
+	face_nors_result = CustomData_get_layer(&result->polyData, CD_NORMAL);
+
 	/*flip normals*/
 	mp = mpoly + numFaces;
 	for (i=0; i<dm->numPolyData; i++, mp++) {
@@ -383,6 +388,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (j=0; j<mp->totloop; j++) {
 			ml2[j].e += numEdges;
 			ml2[j].v += numVerts;
+		}
+
+		if (face_nors_result) {
+			negate_v3_v3(face_nors_result[numFaces + i], face_nors_result[i]);
 		}
 	}
 
@@ -667,6 +676,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			add_v3_v3(edge_vert_nos[ed->v1], nor);
 			add_v3_v3(edge_vert_nos[ed->v2], nor);
+
+			if (face_nors_result) {
+				copy_v3_v3(face_nors_result[(numFaces * 2) + i], nor);
+			}
 #endif
 		}
 		
@@ -702,8 +715,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		MEM_freeN(old_vert_arr);
 	
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
-	/* Also needed in case of HQ normals [#30351] (don't really undestand why, though... --mont29). */
-	if (dvert || smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
+	if (dvert) {
 		CDDM_calc_normals(result);
 	}
 

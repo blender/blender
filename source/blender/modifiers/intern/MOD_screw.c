@@ -132,23 +132,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tltmd->iter= sltmd->iter;
 }
 
-#if 0
-static int findEd(MEdge *medge_new, int toted, int v1, int v2)
-{
-	int i;
-
-	for (i = 0; i < toted; i++) {
-		if ( (medge_new[i].v1 == v1 && medge_new[i].v2 == v2) ||
-		     (medge_new[i].v1 == v2 && medge_new[i].v2 == v1) )
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-#endif
-
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						DerivedMesh *derivedData,
 						int useRenderParams,
