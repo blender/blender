@@ -389,7 +389,7 @@ void  *bmiter__vert_of_edge_step(BMIter *iter)
 		case 1:
 			return iter->edata->v1;
 		case 2:
-			return iter->edata->v1;
+			return iter->edata->v2;
 		default:
 			return NULL;
 	}

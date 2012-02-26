@@ -2015,11 +2015,15 @@ static void bpy_bmelemseq_dealloc(BPy_BMElemSeq *self)
 }
 
 /* not sure where this should go */
-static long bpy_bm_elem_hash(PyObject *self)
+static Py_hash_t bpy_bm_elem_hash(PyObject *self)
 {
 	return _Py_HashPointer(((BPy_BMElem *)self)->ele);
 }
 
+static Py_hash_t bpy_bm_hash(PyObject *self)
+{
+	return _Py_HashPointer(((BPy_BMesh *)self)->bm);
+}
 
 /* Type Docstrings
  * =============== */
@@ -2050,6 +2054,77 @@ PyDoc_STRVAR(bpy_bmiter_doc,
 "Internal BMesh type for looping over verts/faces/edges,\n"
 "used for iterating over :class:`BMElemSeq` types.\n"
 );
+
+static PyObject *bpy_bmesh_repr(BPy_BMesh *self)
+{
+	BMesh *bm = self->bm;
+
+	if (bm) {
+		return PyUnicode_FromFormat("<BMesh(%p), totvert=%d, totedge=%d, totface=%d, totloop=%d>",
+		                            bm, bm->totvert, bm->totedge, bm->totface, bm->totloop);
+	}
+	else {
+		return PyUnicode_FromFormat("<BMesh dead at %p>", self);
+	}
+}
+
+static PyObject *bpy_bmvert_repr(BPy_BMVert *self)
+{
+	BMesh *bm = self->bm;
+
+	if (bm) {
+		return PyUnicode_FromFormat("<BMVert(%p), index=%d>",
+		                            self->v, BM_elem_index_get(self->v));
+	}
+	else {
+		return PyUnicode_FromFormat("<BMVert dead at %p>", self);
+	}
+}
+
+static PyObject *bpy_bmedge_repr(BPy_BMEdge *self)
+{
+	BMesh *bm = self->bm;
+
+	if (bm) {
+		return PyUnicode_FromFormat("<BMEdge(%p), index=%d, verts=(%p/%d, %p/%d)>",
+		                            self->e, BM_elem_index_get(self->e),
+		                            self->e->v1, BM_elem_index_get(self->e->v1),
+		                            self->e->v2, BM_elem_index_get(self->e->v2));
+	}
+	else {
+		return PyUnicode_FromFormat("<BMEdge dead at %p>", self);
+	}
+}
+
+static PyObject *bpy_bmface_repr(BPy_BMFace *self)
+{
+	BMesh *bm = self->bm;
+
+	if (bm) {
+		return PyUnicode_FromFormat("<BMFace(%p), index=%d, totverts=%d>",
+		                            self->f, BM_elem_index_get(self->f),
+		                            self->f->len);
+	}
+	else {
+		return PyUnicode_FromFormat("<BMFace dead at %p>", self);
+	}
+}
+
+static PyObject *bpy_bmloop_repr(BPy_BMLoop *self)
+{
+	BMesh *bm = self->bm;
+
+	if (bm) {
+		return PyUnicode_FromFormat("<BMLoop(%p), index=%d, vert=%p/%d, edge=%p/%d, face=%p/%d>",
+		                            self->l, BM_elem_index_get(self->l),
+		                            self->l->v, BM_elem_index_get(self->l->v),
+		                            self->l->e, BM_elem_index_get(self->l->e),
+		                            self->l->f, BM_elem_index_get(self->l->f));
+	}
+	else {
+		return PyUnicode_FromFormat("<BMLoop dead at %p>", self);
+	}
+}
 
 /* Types
  * ===== */
@@ -2093,6 +2168,15 @@ void BPy_BM_init_types(void)
 	BPy_BMIter_Type.tp_doc    = bpy_bmiter_doc;
 
 
+	BPy_BMesh_Type.tp_repr     = (reprfunc)bpy_bmesh_repr;
+	BPy_BMVert_Type.tp_repr    = (reprfunc)bpy_bmvert_repr;
+	BPy_BMEdge_Type.tp_repr    = (reprfunc)bpy_bmedge_repr;
+	BPy_BMFace_Type.tp_repr    = (reprfunc)bpy_bmface_repr;
+	BPy_BMLoop_Type.tp_repr    = (reprfunc)bpy_bmloop_repr;
+	BPy_BMElemSeq_Type.tp_repr = NULL;
+	BPy_BMIter_Type.tp_repr    = NULL;
+
+
 	BPy_BMesh_Type.tp_getset     = bpy_bmesh_getseters;
 	BPy_BMVert_Type.tp_getset    = bpy_bmvert_getseters;
 	BPy_BMEdge_Type.tp_getset    = bpy_bmedge_getseters;
@@ -2111,7 +2195,7 @@ void BPy_BM_init_types(void)
 	BPy_BMIter_Type.tp_methods    = NULL;
 
 
-	BPy_BMesh_Type.tp_hash     = NULL;
+	BPy_BMesh_Type.tp_hash     = bpy_bm_hash;
 	BPy_BMVert_Type.tp_hash    = bpy_bm_elem_hash;
 	BPy_BMEdge_Type.tp_hash    = bpy_bm_elem_hash;
 	BPy_BMFace_Type.tp_hash    = bpy_bm_elem_hash;

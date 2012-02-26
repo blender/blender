@@ -999,7 +999,7 @@ static PyObject *pyrna_func_repr(BPy_FunctionRNA *self)
 }
 
 
-static long pyrna_struct_hash(BPy_StructRNA *self)
+static Py_hash_t pyrna_struct_hash(BPy_StructRNA *self)
 {
 	return _Py_HashPointer(self->ptr.data);
 }
