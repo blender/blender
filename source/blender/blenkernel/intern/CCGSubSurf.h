@@ -8,28 +8,27 @@ typedef void* CCGVertHDL;
 typedef void* CCGEdgeHDL;
 typedef void* CCGFaceHDL;
 
-typedef struct _CCGVert CCGVert;
-typedef struct _CCGEdge CCGEdge;
-typedef struct _CCGFace CCGFace;
+typedef struct CCGSubSurf CCGSubSurf;
+typedef struct CCGVert CCGVert;
+typedef struct CCGEdge CCGEdge;
+typedef struct CCGFace CCGFace;
 
-typedef struct _CCGMeshIFC CCGMeshIFC;
-struct _CCGMeshIFC {
+typedef struct CCGMeshIFC {
 	int			vertUserSize, edgeUserSize, faceUserSize;
 
 	int			vertDataSize;
-};
+} CCGMeshIFC;
 
 /***/
 
 typedef void* CCGAllocatorHDL;
 
-typedef struct _CCGAllocatorIFC CCGAllocatorIFC;
-struct _CCGAllocatorIFC {
+typedef struct CCGAllocatorIFC {
 	void*		(*alloc)			(CCGAllocatorHDL a, int numBytes);
 	void*		(*realloc)			(CCGAllocatorHDL a, void *ptr, int newSize, int oldSize);
 	void		(*free)				(CCGAllocatorHDL a, void *ptr);
 	void		(*release)			(CCGAllocatorHDL a);
-};
+} CCGAllocatorIFC;
 
 /***/
 
@@ -45,8 +44,6 @@ typedef enum {
 #define CCG_OMP_LIMIT	1000000
 
 /***/
-
-typedef struct _CCGSubSurf CCGSubSurf;
 
 CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);
 void		ccgSubSurf_free	(CCGSubSurf *ss);
@@ -141,9 +138,9 @@ int			ccgSubSurf_getNumFinalFaces		(const CCGSubSurf *ss);
 
 /***/
 
-typedef struct _CCGVertIterator CCGVertIterator;
-typedef struct _CCGEdgeIterator CCGEdgeIterator;
-typedef struct _CCGFaceIterator CCGFaceIterator;
+typedef struct CCGVertIterator CCGVertIterator;
+typedef struct CCGEdgeIterator CCGEdgeIterator;
+typedef struct CCGFaceIterator CCGFaceIterator;
 
 CCGVertIterator*	ccgSubSurf_getVertIterator	(CCGSubSurf *ss);
 CCGEdgeIterator*	ccgSubSurf_getEdgeIterator	(CCGSubSurf *ss);

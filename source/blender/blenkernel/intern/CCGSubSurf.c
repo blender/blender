@@ -306,7 +306,7 @@ enum {
 	Face_eEffected =    (1 << 0)
 } /*FaceFlags*/;
 
-struct _CCGVert {
+struct CCGVert {
 	CCGVert		*next;	/* EHData.next */
 	CCGVertHDL	vHDL;	/* EHData.key */
 
@@ -319,7 +319,7 @@ struct _CCGVert {
 };
 #define VERT_getLevelData(v)		((byte *) &(v)[1])
 
-struct _CCGEdge {
+struct CCGEdge {
 	CCGEdge		*next;	/* EHData.next */
 	CCGEdgeHDL	eHDL;	/* EHData.key */
 
@@ -334,7 +334,7 @@ struct _CCGEdge {
 };
 #define EDGE_getLevelData(e)		((byte *) &(e)[1])
 
-struct _CCGFace {
+struct CCGFace {
 	CCGFace		*next;	/* EHData.next */
 	CCGFaceHDL	fHDL;	/* EHData.key */
 
@@ -358,7 +358,7 @@ typedef enum {
 	eSyncState_Partial
 } SyncState;
 
-struct _CCGSubSurf {
+struct CCGSubSurf {
 	EHash *vMap;	/* map of CCGVertHDL -> Vert */
 	EHash *eMap;	/* map of CCGEdgeHDL -> Edge */
 	EHash *fMap;	/* map of CCGFaceHDL -> Face */
