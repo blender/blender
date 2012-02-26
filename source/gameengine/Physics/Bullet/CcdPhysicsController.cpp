@@ -1431,6 +1431,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	if (!dm) {
 		free_dm = true;
 		dm = CDDM_from_mesh(meshobj->GetMesh(), NULL);
+		DM_ensure_tessface(dm);
 	}
 
 	MVert *mvert = dm->getVertArray(dm);
