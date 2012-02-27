@@ -30,7 +30,7 @@
 /* bmesh data structures */
 
 /* dissable holes for now, these are ifdef'd because they use more memory and cant be saved in DNA currently */
-// define USE_BMESH_HOLES
+#define USE_BMESH_HOLES
 
 struct BMesh;
 struct BMVert;
@@ -95,7 +95,7 @@ typedef struct BMLoop {
 	/* notice no flags layer */
 
 	struct BMVert *v;
-	struct BMEdge *e;
+	struct BMEdge *e; /* edge, using verts (v, next->v) */
 	struct BMFace *f;
 
 	struct BMLoop *radial_next, *radial_prev;

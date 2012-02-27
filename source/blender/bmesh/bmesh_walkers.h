@@ -40,9 +40,9 @@ typedef enum {
 
 /*Walkers*/
 typedef struct BMWalker {
-	void (*begin) (struct BMWalker *walker, void *start);
-	void *(*step) (struct BMWalker *walker);
-	void *(*yield)(struct BMWalker *walker);
+	void  (*begin) (struct BMWalker *walker, void *start);
+	void *(*step)  (struct BMWalker *walker);
+	void *(*yield) (struct BMWalker *walker);
 	int structsize;
 	BMWOrder order;
 	int valid_mask;
@@ -54,6 +54,7 @@ typedef struct BMWalker {
 	BLI_mempool *worklist;
 	ListBase states;
 
+	/* these masks are to be tested against elements BMO_elem_flag_test() */
 	short mask_vert;
 	short mask_edge;
 	short mask_loop;

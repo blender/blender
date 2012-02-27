@@ -90,24 +90,26 @@ BM_INLINE void  _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const shor
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0.*/
-#define BMO_OP_SLOT_SENTINEL	0
-#define BMO_OP_SLOT_BOOL		1
-#define BMO_OP_SLOT_INT			2
-#define BMO_OP_SLOT_FLT			3
-#define BMO_OP_SLOT_PNT			4
-#define BMO_OP_SLOT_MAT			5
-#define BMO_OP_SLOT_VEC			8
+enum {
+	BMO_OP_SLOT_SENTINEL = 0,
+	BMO_OP_SLOT_BOOL = 1,
+	BMO_OP_SLOT_INT = 2,
+	BMO_OP_SLOT_FLT = 3,
 
-/* after BMO_OP_SLOT_VEC, everything is
+	/* normally store pointers to object, scene,
+	 * _never_ store arrays corresponding to mesh elements with this */
+	BMO_OP_SLOT_PNT = 4,
+	BMO_OP_SLOT_MAT = 5,
+	BMO_OP_SLOT_VEC = 8,
 
- * dynamically allocated arrays.  we
- * leave a space in the identifiers
- * for future growth.
- */
-//it's very important this remain a power of two
-#define BMO_OP_SLOT_ELEMENT_BUF		9
-#define BMO_OP_SLOT_MAPPING			10
-#define BMO_OP_SLOT_TOTAL_TYPES		11
+	/* after BMO_OP_SLOT_VEC, everything is dynamically allocated arrays.
+	 * We leave a space in the identifiers for future growth.
+	 *
+	 * it's very important this remain a power of two */
+	BMO_OP_SLOT_ELEMENT_BUF = 9, /* list of verts/edges/faces */
+	BMO_OP_SLOT_MAPPING = 10 /* simple hash map */
+};
+#define BMO_OP_SLOT_TOTAL_TYPES 11
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
