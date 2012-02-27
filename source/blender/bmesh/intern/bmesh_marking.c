@@ -475,19 +475,17 @@ int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int
 }
 
 /* note: by design, this will not touch the editselection history stuff */
-void BM_elem_select_set(struct BMesh *bm, void *element, int select)
+void _bm_elem_select_set(struct BMesh *bm, BMHeader *head, int select)
 {
-	BMHeader *head = element;
-
 	switch (head->htype) {
 		case BM_VERT:
-			BM_vert_select_set(bm, (BMVert *)element, select);
+			BM_vert_select_set(bm, (BMVert *)head, select);
 			break;
 		case BM_EDGE:
-			BM_edge_select_set(bm, (BMEdge *)element, select);
+			BM_edge_select_set(bm, (BMEdge *)head, select);
 			break;
 		case BM_FACE:
-			BM_face_select_set(bm, (BMFace *)element, select);
+			BM_face_select_set(bm, (BMFace *)head, select);
 			break;
 		default:
 			BLI_assert(0);
@@ -881,25 +879,25 @@ void BM_face_hide_set(BMesh *bm, BMFace *f, int hide)
 	}
 }
 
-void BM_elem_hide_set(BMesh *bm, void *element, int hide)
+void _bm_elem_hide_set(BMesh *bm, BMHeader *head, int hide)
 {
-	BMHeader *h = element;
-
 	/* Follow convention of always deselecting before
 	 * hiding an element */
-	if (hide) {
-		BM_elem_select_set(bm, element, FALSE);
-	}
-
-	switch (h->htype) {
+	switch (head->htype) {
 		case BM_VERT:
-			BM_vert_hide_set(bm, element, hide);
+			if (hide) BM_vert_select_set(bm, (BMVert *)head, FALSE);
+			BM_vert_hide_set(bm, (BMVert *)head, hide);
 			break;
 		case BM_EDGE:
-			BM_edge_hide_set(bm, element, hide);
+			if (hide) BM_edge_select_set(bm, (BMEdge *)head, FALSE);
+			BM_edge_hide_set(bm, (BMEdge *)head, hide);
 			break;
 		case BM_FACE:
-			BM_face_hide_set(bm, element, hide);
+			if (hide) BM_face_select_set(bm, (BMFace *)head, FALSE);
+			BM_face_hide_set(bm, (BMFace *)head, hide);
+			break;
+		default:
+			BMESH_ASSERT(0);
 			break;
 	}
 }

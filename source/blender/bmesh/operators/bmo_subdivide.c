@@ -1031,7 +1031,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	
 	if (seltype == SUBDIV_SELECT_INNER) {
 		BMOIter iter;
-		BMHeader *ele;
+		BMElem *ele;
 		// int i;
 		
 		ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
@@ -1041,7 +1041,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	}
 	else if (seltype == SUBDIV_SELECT_LOOPCUT) {
 		BMOIter iter;
-		BMHeader *ele;
+		BMElem *ele;
 		// int i;
 		
 		/* deselect input */
@@ -1051,7 +1051,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 		for ( ; ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
 
-			if (ele->htype == BM_VERT) {
+			if (ele->head.htype == BM_VERT) {
 				BMEdge *e;
 				BMIter eiter;
 

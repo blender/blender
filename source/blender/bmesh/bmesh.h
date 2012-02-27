@@ -144,12 +144,12 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 #define BM_elem_flag_toggle( ele, hflag)      _bm_elem_flag_toggle  (&(ele)->head, hflag)
 #define BM_elem_flag_merge(  ele_a, ele_b)    _bm_elem_flag_merge   (&(ele_a)->head, &(ele_b)->head)
 
-BM_INLINE char _bm_elem_flag_test(const BMHeader *element, const char hflag);
-BM_INLINE void _bm_elem_flag_enable(BMHeader *element, const char hflag);
-BM_INLINE void _bm_elem_flag_disable(BMHeader *element, const char hflag);
-BM_INLINE void _bm_elem_flag_set(BMHeader *ele, const char hflag, const int val);
-BM_INLINE void _bm_elem_flag_toggle(BMHeader *ele, const char hflag);
-BM_INLINE void _bm_elem_flag_merge(BMHeader *ele_a, BMHeader *ele_b);
+BM_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag);
+BM_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag);
+BM_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag);
+BM_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val);
+BM_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag);
+BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
 
 /* notes on BM_elem_index_set(...) usage,
  * Set index is sometimes abused as temp storage, other times we cant be

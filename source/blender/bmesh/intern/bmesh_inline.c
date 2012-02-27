@@ -31,46 +31,46 @@
 
 #include "bmesh.h"
 
-BM_INLINE char _bm_elem_flag_test(const BMHeader *ele, const char hflag)
+BM_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag)
 {
-	return ele->hflag & hflag;
+	return head->hflag & hflag;
 }
 
-BM_INLINE void _bm_elem_flag_enable(BMHeader *ele, const char hflag)
+BM_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag)
 {
-	ele->hflag |= hflag;
+	head->hflag |= hflag;
 }
 
-BM_INLINE void _bm_elem_flag_disable(BMHeader *ele, const char hflag)
+BM_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag)
 {
-	ele->hflag &= ~hflag;
+	head->hflag &= ~hflag;
 }
 
-BM_INLINE void _bm_elem_flag_set(BMHeader *ele, const char hflag, const int val)
+BM_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val)
 {
-	if (val)  _bm_elem_flag_enable(ele,  hflag);
-	else      _bm_elem_flag_disable(ele, hflag);
+	if (val)  _bm_elem_flag_enable(head,  hflag);
+	else      _bm_elem_flag_disable(head, hflag);
 }
 
-BM_INLINE void _bm_elem_flag_toggle(BMHeader *ele, const char hflag)
+BM_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag)
 {
-	ele->hflag ^= hflag;
+	head->hflag ^= hflag;
 }
 
-BM_INLINE void _bm_elem_flag_merge(BMHeader *ele_a, BMHeader *ele_b)
+BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
 {
-	ele_a->hflag = ele_b->hflag = ele_a->hflag | ele_b->hflag;
+	head_a->hflag = head_b->hflag = head_a->hflag | head_b->hflag;
 }
 
 
-BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index)
+BM_INLINE void _bm_elem_index_set(BMHeader *head, const int index)
 {
-	ele->index = index;
+	head->index = index;
 }
 
-BM_INLINE int _bm_elem_index_get(const BMHeader *ele)
+BM_INLINE int _bm_elem_index_get(const BMHeader *head)
 {
-	return ele->index;
+	return head->index;
 }
 
 #endif /* __BMESH_INLINE_C__ */

@@ -567,7 +567,7 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 
 	/* First we copy select */
 	if (BM_elem_flag_test((BMElem *)sheader, BM_ELEM_SELECT)) {
-		BM_elem_select_set(target_mesh, target, TRUE);
+		BM_elem_select_set(target_mesh, (BMElem *)target, TRUE);
 	}
 	
 	/* Now we copy flags */

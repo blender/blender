@@ -245,7 +245,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	BMEdge *edge;
 	BMFace *f;
 	ModifierData *md;
-	BMHeader *el;
+	BMElem *ele;
 	
 	BMO_op_init(bm, &extop, "extrudefaceregion");
 	BMO_slot_from_hflag(bm, &extop, "edgefacein",
@@ -315,11 +315,11 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 	nor[0] = nor[1] = nor[2] = 0.0f;
 	
-	BMO_ITER(el, &siter, bm, &extop, "geomout", BM_ALL) {
-		BM_elem_select_set(bm, el, TRUE);
+	BMO_ITER(ele, &siter, bm, &extop, "geomout", BM_ALL) {
+		BM_elem_select_set(bm, ele, TRUE);
 
-		if (el->htype == BM_FACE) {
-			f = (BMFace *)el;
+		if (ele->head.htype == BM_FACE) {
+			f = (BMFace *)ele;
 			add_normal_aligned(nor, f->no);
 		};
 	}

@@ -330,7 +330,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	return f;
 }
 
-int bmesh_element_check(BMesh *UNUSED(bm), void *element, const char htype)
+int bmesh_elem_check(BMesh *UNUSED(bm), void *element, const char htype)
 {
 	BMHeader *head = element;
 	int err = 0;
