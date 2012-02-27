@@ -948,6 +948,13 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 
 			WM_keymap_add_item(keymap, OP_RESIZE, SKEY, KM_PRESS, 0, 0);
+
+			/* detach and translate */
+			WM_keymap_add_item(keymap, "NODE_OT_move_detach_links", DKEY, KM_PRESS, KM_ALT, 0);
+
+			/* XXX release_confirm is set in the macro operator definition */
+			WM_keymap_add_item(keymap, "NODE_OT_move_detach_links", EVT_TWEAK_A, KM_ANY, KM_ALT, 0);
+			WM_keymap_add_item(keymap, "NODE_OT_move_detach_links", EVT_TWEAK_S, KM_ANY, KM_ALT, 0);
 			break;
 		case SPACE_SEQ:
 			WM_keymap_add_item(keymap, OP_SEQ_SLIDE, GKEY, KM_PRESS, 0, 0);

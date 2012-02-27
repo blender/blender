@@ -2635,6 +2635,42 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
+/* ********************** Detach links operator ***************** */
+
+static int detach_links_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree= snode->edittree;
+	bNode *node;
+	
+	ED_preview_kill_jobs(C);
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			nodeInternalRelink(ntree, node);
+		}
+	}
+	
+	ntreeUpdateTree(ntree);
+	
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_links_detach(wmOperatorType *ot)
+{
+	ot->name= "Detach Links";
+	ot->idname= "NODE_OT_links_detach";
+	
+	ot->exec= detach_links_exec;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* *********************  automatic node insert on dragging ******************* */
 
 /* assumes sockets in list */
@@ -3175,11 +3211,9 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		/* Only allow muting of nodes having a mute func! */
-		if((node->flag & SELECT) && node->typeinfo->mutefunc) {
-			/* Be able to mute in-/output nodes as well.  - DingTo
-			if(node->inputs.first && node->outputs.first) { */
-				node->flag ^= NODE_MUTED;
-				snode_update(snode, node);
+		if ((node->flag & SELECT) && node->typeinfo->internal_connect) {
+			node->flag ^= NODE_MUTED;
+			snode_update(snode, node);
 		}
 	}
 	
@@ -3247,118 +3281,6 @@ void NODE_OT_delete(wmOperatorType *ot)
 }
 
 /* ****************** Delete with reconnect ******************* */
-static int is_connected_to_input_socket(bNode* node, bNodeLink* link)
-{
-	bNodeSocket *sock;
-	if (link->tonode == node) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if (link->tosock == sock) {
-				return sock->type;
-			}
-		}		
-	}
-	return -1;
-}
-
-static void node_delete_reconnect(bNodeTree* tree, bNode* node) 
-{
-	bNodeLink *link, *next, *first = NULL;
-	bNodeSocket *valsocket= NULL, *colsocket= NULL, *vecsocket= NULL;
-	bNodeSocket *deliveringvalsocket= NULL, *deliveringcolsocket= NULL, *deliveringvecsocket= NULL;
-	bNode *deliveringvalnode= NULL, *deliveringcolnode= NULL, *deliveringvecnode= NULL;
-	bNodeSocket *sock;
-	int type;
-	int numberOfConnectedOutputSockets = 0;
-	int numberOfReconnections = 0;
-	int numberOfConnectedInputSockets = 0;
-
-	/* 
-		test the inputs, not really correct when a node has multiple input sockets of the same type
-		the first link evaluated will be used to determine the possible connection.
-	*/
-	for(link= tree->links.first; link; link=link->next) {
-		if (link->tonode == node) { numberOfConnectedInputSockets++; }
-		type = is_connected_to_input_socket(node, link);
-		switch (type) {
-		case SOCK_RGBA:
-			if (colsocket == NULL) {
-				colsocket = link->tosock;
-				deliveringcolnode = link->fromnode;
-				deliveringcolsocket = link->fromsock;
-			}
-			break;
-		case SOCK_VECTOR:
-			if (vecsocket == NULL) {
-				vecsocket = link->tosock;
-				deliveringvecnode = link->fromnode;
-				deliveringvecsocket = link->fromsock;
-			}
-			break;
-		case SOCK_FLOAT:
-			if (valsocket == NULL) {
-				valsocket = link->tosock;
-				deliveringvalnode = link->fromnode;
-				deliveringvalsocket = link->fromsock;
-			}
-			break;
-		default:
-			break;
-		}
-	}
-	
-	// we now have the sockets+nodes that fill the inputsockets be aware for group nodes these can be NULL
-	// now make the links for all outputlinks of the node to be reconnected
-	for(link= tree->links.first; link; link=next) {
-		next= link->next;
-		if (link->fromnode == node) {
-			sock = link->fromsock;
-			numberOfConnectedOutputSockets ++;
-			if (!first) first = link;
-			switch(sock->type) {
-			case SOCK_FLOAT:
-				if (deliveringvalsocket) {
-					link->fromnode = deliveringvalnode;
-					link->fromsock = deliveringvalsocket;
-					numberOfReconnections++;
-				}
-				break;
-			case SOCK_VECTOR:
-				if (deliveringvecsocket) {
-					link->fromnode = deliveringvecnode;
-					link->fromsock = deliveringvecsocket;
-					numberOfReconnections++;
-				}
-				break;
-			case SOCK_RGBA:
-				if (deliveringcolsocket) {
-					link->fromnode = deliveringcolnode;
-					link->fromsock = deliveringcolsocket;
-					numberOfReconnections++;
-				}
-				break;
-			}
-		}
-	}
-
-	/* when no connections have been made, and if only one delivering input socket type and one output socket we will connect those two */
-	if (numberOfConnectedOutputSockets == 1 && numberOfReconnections == 0 && numberOfConnectedInputSockets == 1) {
-		if (deliveringcolsocket) {
-			first->fromnode = deliveringcolnode;
-			first->fromsock = deliveringcolsocket;
-		} else if (deliveringvecsocket) {
-			first->fromnode = deliveringvecnode;
-			first->fromsock = deliveringvecsocket;
-		} else if (deliveringvalsocket) {
-			first->fromnode = deliveringvalnode;
-			first->fromsock = deliveringvalsocket;
-		}
-	}
-
-	if(node->id)
-		node->id->us--;
-	nodeFreeNode(tree, node);
-}
-
 static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
@@ -3369,7 +3291,12 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 	for(node= snode->edittree->nodes.first; node; node= next) {
 		next= node->next;
 		if(node->flag & SELECT) {
-			node_delete_reconnect(snode->edittree, node);
+			nodeInternalRelink(snode->edittree, node);
+			
+			/* check id user here, nodeFreeNode is called for free dbase too */
+			if(node->id)
+				node->id->us--;
+			nodeFreeNode(snode->edittree, node);
 		}
 	}
 

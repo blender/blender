@@ -95,6 +95,21 @@ static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback f
 	func(calldata, NODE_CLASS_LAYOUT, IFACE_("Layout"));
 }
 
+static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
+{
+	bNode *node, *node_next;
+	
+	/* replace muted nodes by internal links */
+	for (node= localtree->nodes.first; node; node= node_next) {
+		node_next = node->next;
+		
+		if (node->flag & NODE_MUTED) {
+			nodeInternalRelink(localtree, node);
+			nodeFreeNode(localtree, node);
+		}
+	}
+}
+
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
 	bNode *lnode;
@@ -130,15 +145,13 @@ bNodeTreeType ntreeType_Shader = {
 	/* free_node_cache */	NULL,
 	/* foreach_nodetree */	foreach_nodetree,
 	/* foreach_nodeclass */	foreach_nodeclass,
-	/* localize */			NULL,
+	/* localize */			localize,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
 	/* update */			update,
 	/* update_node */		NULL,
 	/* validate_link */		NULL,
-	/* mute node */			node_shader_pass_on,
-	/* mute links node */	node_mute_get_links,
-	/* gpu mute node */		gpu_shader_pass_on
+	/* internal_connect */	node_internal_connect_default
 };
 
 /* GPU material from shader nodes */

@@ -1254,31 +1254,6 @@ int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNode
 	return 1;
 }
 
-int GPU_stack_link_mute(GPUMaterial *mat, const char *name, LinkInOutsMuteNode *mlnk)
-{
-	GPUNode *node;
-	GPUFunction *function;
-	int i;
-
-	function = GPU_lookup_function(name);
-	if(!function) {
-		fprintf(stderr, "GPU failed to find function %s\n", name);
-		return 0;
-	}
-
-	for(i = 0; i < mlnk->num_outs; i++) {
-		node = GPU_node_begin(name);
-		gpu_node_input_socket(node, (GPUNodeStack*)mlnk->in);
-		GPU_node_output(node, ((GPUNodeStack*)mlnk->outs+i)->type, ((GPUNodeStack*)mlnk->outs+i)->name,
-		                &((GPUNodeStack*)mlnk->outs+i)->link);
-		GPU_node_end(node);
-
-		gpu_material_add_node(mat, node);
-	}
-
-	return 1;
-}
-
 int GPU_link_changed(GPUNodeLink *link)
 {
 	GPUNode *node;

@@ -128,7 +128,4 @@ void node_shader_gpu_tex_mapping(struct GPUMaterial *mat, struct bNode *node, st
 
 void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct GPUMaterial *mat, int do_outputs);
 
-void node_shader_pass_on(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out);
-int gpu_shader_pass_on(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out);
-
 #endif

@@ -130,32 +130,6 @@ void compbuf_set_node(CompBuf *cbuf, bNode *node)
 	if (cbuf) cbuf->node = node;
 }
 
-/* used for disabling node  (similar code in node_draw.c for disable line and node_edit for untangling nodes) */
-void node_compo_pass_on(void *UNUSED(data), int UNUSED(thread), struct bNode *node, void *UNUSED(nodedata),
-                        struct bNodeStack **in, struct bNodeStack **out)
-{
-	ListBase links;
-	LinkInOutsMuteNode *lnk;
-	int i;
-
-	if(node->typeinfo->mutelinksfunc == NULL)
-		return;
-
-	/* Get default muting links (as bNodeStack pointers). */
-	links = node->typeinfo->mutelinksfunc(NULL, node, in, out, NULL, NULL);
-
-	for(lnk = links.first; lnk; lnk = lnk->next) {
-		for(i = 0; i < lnk->num_outs; i++) {
-			if(((bNodeStack*)(lnk->in))->data)
-				(((bNodeStack*)(lnk->outs))+i)->data = pass_on_compbuf((CompBuf*)((bNodeStack*)(lnk->in))->data);
-		}
-		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
-		if(i > 1)
-			MEM_freeN(lnk->outs);
-	}
-	BLI_freelistN(&links);
-}
-
 
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type)
 {

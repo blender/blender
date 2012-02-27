@@ -98,60 +98,42 @@ const char *node_filter_label(bNode *node)
 	return name;
 }
 
-/* Returns a list of mapping of some input bNodeStack, GPUNodeStack or bNodeSocket
- * to one or more outputs of the same type.
- * *ntree or (**nsin, **nsout) or (*gnsin, *gnsout) must not be NULL. */
-ListBase node_mute_get_links(bNodeTree *ntree, bNode *node, bNodeStack **nsin, bNodeStack **nsout,
-                             GPUNodeStack *gnsin, GPUNodeStack *gnsout)
+ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 {
 	static int types[] = { SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA };
-	bNodeLink link = {NULL};
+	bNodeLink *link;
+	bNodeSocket *fromsock, *tosock;
 	ListBase ret;
-	LinkInOutsMuteNode *lnk;
 	int in, out, i;
 
 	ret.first = ret.last = NULL;
 
 	/* Security check! */
-	if(!(ntree || (nsin && nsout) || (gnsin && gnsout)))
+	if(!ntree)
 		return ret;
 
 	/* Connect the first input of each type with first output of the same type. */
 
-	link.fromnode = link.tonode = node;
 	for (i=0; i < 3; ++i) {
 		/* find input socket */
-		for (in=0, link.fromsock=node->inputs.first; link.fromsock; in++, link.fromsock=link.fromsock->next) {
-			if (link.fromsock->type==types[i] && (ntree ? nodeCountSocketLinks(ntree, link.fromsock) : nsin ? nsin[in]->hasinput : gnsin[in].hasinput))
+		for (in=0, fromsock=node->inputs.first; fromsock; in++, fromsock=fromsock->next) {
+			if (fromsock->type==types[i] && nodeCountSocketLinks(ntree, fromsock) > 0)
 				break;
 		}
-		if (link.fromsock) {
-			for (out=0, link.tosock=node->outputs.first; link.tosock; out++, link.tosock=link.tosock->next) {
-				if (link.tosock->type==types[i] && (ntree ? nodeCountSocketLinks(ntree, link.tosock) : nsout ? nsout[out]->hasoutput : gnsout[out].hasoutput))
+		if (fromsock) {
+			for (out=0, tosock=node->outputs.first; tosock; out++, tosock=tosock->next) {
+				if (tosock->type==types[i] && (nodeCountSocketLinks(ntree, tosock) > 0))
 					break;
 			}
-			if (link.tosock) {
-				if(nsin && nsout) {
-					lnk = MEM_mallocN(sizeof(LinkInOutsMuteNode), "Muting node: new in to outs link.");
-					lnk->in = nsin[in];
-					lnk->outs = nsout[out];
-					lnk->num_outs = 1;
-					BLI_addtail(&ret, lnk);
-				}
-				else if(gnsin && gnsout) {
-					lnk = MEM_mallocN(sizeof(LinkInOutsMuteNode), "Muting node: new in to outs link.");
-					lnk->in = &gnsin[in];
-					lnk->outs = &gnsout[out];
-					lnk->num_outs = 1;
-					BLI_addtail(&ret, lnk);
-				}
-				else {
-					lnk = MEM_mallocN(sizeof(LinkInOutsMuteNode), "Muting node: new in to outs link.");
-					lnk->in = link.fromsock;
-					lnk->outs = link.tosock;
-					lnk->num_outs = 1;
-					BLI_addtail(&ret, lnk);
-				}
+			if (tosock) {
+				link = MEM_callocN(sizeof(bNodeLink), "internal node link");
+				link->fromnode = node;
+				link->fromsock = fromsock;
+				link->tonode = node;
+				link->tosock = tosock;
+				/* internal link is always valid */
+				link->flag |= NODE_LINK_VALID;
+				BLI_addtail(&ret, link);
 			}
 		}
 	}

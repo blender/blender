@@ -130,6 +130,7 @@ void NODE_OT_resize(struct wmOperatorType *ot);
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
+void NODE_OT_links_detach(struct wmOperatorType *ot);
 
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);

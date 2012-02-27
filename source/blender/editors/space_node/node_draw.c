@@ -432,30 +432,19 @@ static int node_get_colorid(bNode *node)
 static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	ListBase links;
-	LinkInOutsMuteNode *lnk;
-	bNodeLink link= {NULL};
-	int i;
+	bNodeLink *link;
 
-	if(node->typeinfo->mutelinksfunc == NULL)
+	if(node->typeinfo->internal_connect == NULL)
 		return;
 
-	/* Get default muting links (as bNodeSocket pointers). */
-	links = node->typeinfo->mutelinksfunc(snode->edittree, node, NULL, NULL, NULL, NULL);
+	/* Get default muting links. */
+	links = node->typeinfo->internal_connect(snode->edittree, node);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-	link.fromnode = link.tonode = node;
-	for(lnk = links.first; lnk; lnk = lnk->next) {
-		for(i = 0; i < lnk->num_outs; i++) {
-			link.fromsock = (bNodeSocket*)(lnk->in);
-			link.tosock   = (bNodeSocket*)(lnk->outs)+i;
-			node_draw_link_bezier(v2d, snode, &link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
-		}
-		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
-		if(i > 1)
-			MEM_freeN(lnk->outs);
-	}
+	for(link = links.first; link; link = link->next)
+		node_draw_link_bezier(v2d, snode, link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
