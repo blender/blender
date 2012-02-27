@@ -2637,7 +2637,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 
 /* ********************** Detach links operator ***************** */
 
-static int detach_links_exec(bContext *C, wmOperator *op)
+static int detach_links_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= snode->edittree;
