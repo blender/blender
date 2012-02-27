@@ -668,7 +668,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select/Deselect All";
 	ot->idname = "MESH_OT_select_all";
-	ot->description = "(de)select all vertices, edges or faces";
+	ot->description = "(De)select all vertices, edges or faces";
 	
 	/* api callbacks */
 	ot->exec = mesh_select_all_exec;
@@ -1017,7 +1017,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 
 	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
 	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
-	                "When dissolving faaces/edges, also dissolve remaining vertices");
+	                "When dissolving faces/edges, also dissolve remaining vertices");
 }
 
 
@@ -1318,7 +1318,7 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Normals";
-	ot->description = "Flip the direction of selected face's vertex and face normals";
+	ot->description = "Flip the direction of selected faces' normals (and of their vertices)";
 	ot->idname = "MESH_OT_flip_normals";
 	
 	/* api callbacks */
@@ -1417,7 +1417,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
 }
 
 /* swap is 0 or 1, if 1 it hides not selected */
@@ -2722,7 +2722,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	prop = RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending");
 	RNA_def_enum_funcs(prop, shape_itemf);
 	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes");
+	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather than blend between shapes");
 }
 
 /* BMESH_TODO - some way to select on an arbitrary axis */
@@ -3526,7 +3526,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
+	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
 
 	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
@@ -3914,7 +3914,7 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Loose Vertices/Edges";
-	ot->description = "Select vertices with edges or faces and edges with no faces";
+	ot->description = "Select vertices with no edges nor faces, and edges with no faces";
 	ot->idname = "MESH_OT_select_loose_verts";
 
 	/* api callbacks */

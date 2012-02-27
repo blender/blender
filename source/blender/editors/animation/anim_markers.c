@@ -1116,7 +1116,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 #ifdef DURIAN_CAMERA_SWITCH
 	RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
 #endif

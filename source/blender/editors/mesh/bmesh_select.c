@@ -1837,7 +1837,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = select_linked_pick_invoke;
 	ot->poll = ED_operator_editmesh;
-	ot->description = "select/deselect all vertices linked to the edge under the mouse cursor";
+	ot->description = "(De)select all vertices linked to the edge under the mouse cursor";
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;

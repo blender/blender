@@ -1386,7 +1386,7 @@ static void rna_def_operator_filelist_element(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_FILENAME);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_ui_text(prop, "Name", "the name of a file or directory within a file list");
+	RNA_def_property_ui_text(prop, "Name", "Name of a file or directory within a file list");
 }
 	
 static void rna_def_event(BlenderRNA *brna)

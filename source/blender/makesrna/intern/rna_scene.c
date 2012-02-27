@@ -2495,7 +2495,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "activity_culling_box_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "activityBoxRadius");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "box radius",
+	RNA_def_property_ui_text(prop, "Box Radius",
 	                         "Radius of the activity bubble, in Manhattan length "
 	                         "(objects outside the box are activity-culled)");
 

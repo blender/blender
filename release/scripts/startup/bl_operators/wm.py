@@ -146,12 +146,12 @@ class BRUSH_OT_active_index_set(Operator):
     bl_label = "Set Brush Number"
 
     mode = StringProperty(
-            name="mode",
+            name="Mode",
             description="Paint mode to set brush for",
             maxlen=1024,
             )
     index = IntProperty(
-            name="number",
+            name="Number",
             description="Brush number",
             )
 
