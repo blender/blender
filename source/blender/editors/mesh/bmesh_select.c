@@ -1080,7 +1080,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	ot->description = "Select a loop of connected edges";
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "Extend the selection");
@@ -1099,7 +1099,7 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh_region_view3d;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 	RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
