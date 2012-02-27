@@ -4873,6 +4873,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
+				/* we need to delete the temporary faces before automerging */
+				if(t->mode == TFM_EDGE_SLIDE){
+					SlideData *sld = t->customData;
+					freeSlideTempFaces(sld);
+				}
 				EDBM_automerge(t->scene, t->obedit, 1);
 			}
 		}

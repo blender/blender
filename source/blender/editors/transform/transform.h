@@ -203,6 +203,8 @@ typedef struct SlideData {
 	int start[2], end[2];
 	struct BMEditMesh *em;
 	float perc;
+	/* flag that is set when origfaces is initialized */
+	int origfaces_init;
 } SlideData;
 
 typedef struct TransData {
@@ -692,6 +694,7 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 
+void freeSlideTempFaces(SlideData *sld);
 void freeSlideVerts(TransInfo *t);
 
 #endif

@@ -4631,6 +4631,7 @@ static int createSlideVerts(TransInfo *t)
 		BLI_smallhash_insert(&sld->vhash, (uintptr_t)tempsv->v, tempsv);
 	}
 	
+	sld->origfaces_init = TRUE;
 	sld->em = em;
 	
 	/*zero out start*/
@@ -4742,11 +4743,26 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
+void freeSlideTempFaces(SlideData *sld){
+	if(sld->origfaces_init){
+		SmallHashIter hiter;
+		BMFace *copyf;
+
+		copyf = BLI_smallhash_iternew(&sld->origfaces, &hiter, NULL);
+		for (; copyf; copyf=BLI_smallhash_iternext(&hiter, NULL)) {
+			BM_face_verts_kill(sld->em->bm, copyf);
+		}
+
+		BLI_smallhash_release(&sld->origfaces);
+
+		sld->origfaces_init = FALSE;
+	}
+}
+
+
 void freeSlideVerts(TransInfo *t)
 {
 	SlideData *sld = t->customData;
-	SmallHashIter hiter;
-	BMFace *copyf;
 	
 #if 0 /*BMESH_TODO*/
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
@@ -4776,17 +4792,13 @@ void freeSlideVerts(TransInfo *t)
 		sld->perc = 0.0;
 		projectSVData(t, 0);
 	}
-	
-	copyf = BLI_smallhash_iternew(&sld->origfaces, &hiter, NULL);
-	for (; copyf; copyf=BLI_smallhash_iternext(&hiter, NULL)) {
-		BM_face_verts_kill(sld->em->bm, copyf);
-	}
-	
+
+	freeSlideTempFaces(sld);
+
 	sld->em->bm->ob = t->obedit;
 	bmesh_edit_end(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	BLI_smallhash_release(&sld->vhash);
-	BLI_smallhash_release(&sld->origfaces);
 	
 	MEM_freeN(sld->sv);
 	MEM_freeN(sld);
