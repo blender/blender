@@ -36,6 +36,7 @@
 
 #include "BLI_array.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_bmesh.h"
 #include "BKE_tessmesh.h"
 

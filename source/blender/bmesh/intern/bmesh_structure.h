@@ -70,10 +70,10 @@ BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2);
 int            bmesh_disk_validate(int len, BMEdge *e, BMVert *v);
 
-/*EULER API - For modifying structure*/
-BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re);
+/* EULER API - For modifying structure */
+BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e);
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1,
-                          BMVert *v2, BMLoop **rl,
+                          BMVert *v2, BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
                           ListBase *holes,
 #endif
@@ -81,7 +81,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1,
                           );
 
 BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_splice);
-int            bmesh_loop_reverse(BMesh *bm, BMFace *f);
+int     bmesh_loop_reverse(BMesh *bm, BMFace *f);
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 
 BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv);

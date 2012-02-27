@@ -154,7 +154,6 @@ set(SRC
 	BKE_armature.h
 	BKE_blender.h
 	BKE_bmesh.h
-	BKE_bmeshCustomData.h
 	BKE_bmfont.h
 	BKE_bmfont_types.h
 	BKE_boids.h

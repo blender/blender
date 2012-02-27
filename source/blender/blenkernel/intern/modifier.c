@@ -55,7 +55,6 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 
-#include "BKE_bmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_key.h"
 #include "BKE_multires.h"

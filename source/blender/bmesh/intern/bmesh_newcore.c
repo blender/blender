@@ -1126,7 +1126,7 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
  *  A BMFace pointer
  */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
-                   BMLoop **rl,
+                   BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
                    ListBase *holes,
 #endif
@@ -1207,7 +1207,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 
 	f->len = f1len;
 
-	if (rl) *rl = f2loop;
+	if (r_l) *r_l = f2loop;
 
 #ifdef USE_BMESH_HOLES
 	if (holes) {
@@ -1245,7 +1245,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  *
  */
 
-BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
+BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 {
 	BMLoop *nextl;
 	BMEdge *ne;
@@ -1400,7 +1400,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 	BM_CHECK_ELEMENT(bm, e);
 	BM_CHECK_ELEMENT(bm, tv);
 
-	if (re) *re = ne;
+	if (r_e) *r_e = ne;
 	return nv;
 }
 
