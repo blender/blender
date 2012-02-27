@@ -726,7 +726,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	int i, k, /*numGrids,*/ gridSize, dGridSize, dSkip;
 	int totloop, totpoly;
 	
-	/*this happens in the dm made by bmesh_set_mdisps_space*/
+	/* this happens in the dm made by bmesh_mdisps_space_set */
 	if (dm2 && CustomData_has_layer(&dm2->loopData, CD_MDISPS)) {
 		mpoly = CustomData_get_layer(&dm2->polyData, CD_MPOLY);
 		mdisps = CustomData_get_layer(&dm2->loopData, CD_MDISPS);

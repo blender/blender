@@ -40,13 +40,13 @@ struct Link;
 struct BMLoop;
 
 /* returns positive nonzero on error */
-int bmesh_check_element(BMesh *bm, void *element, const char htype);
+int bmesh_element_check(BMesh *bm, void *element, const char htype);
 
 #define BM_CHECK_ELEMENT(bm, el)                                              \
-    if (bmesh_check_element(bm, el, ((BMHeader *)el)->htype)) {               \
+    if (bmesh_element_check(bm, el, ((BMHeader *)el)->htype)) {               \
         printf("check_element failure, with code %i on line %i in file\n"     \
         "    \"%s\"\n\n",                                                     \
-        bmesh_check_element(bm, el, ((BMHeader *)el)->htype),                 \
+        bmesh_element_check(bm, el, ((BMHeader *)el)->htype),                 \
         __LINE__, __FILE__);                                                  \
     }
 
@@ -79,9 +79,9 @@ int bmesh_get_filter_argtype(int type);
 /* newedgeflag sets a flag layer flag, obviously not the header flag. */
 void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
-void bmesh_update_face_normal(struct BMesh *bm, struct BMFace *f, float no[3],
+void bmesh_face_normal_update(struct BMesh *bm, struct BMFace *f, float no[3],
                               float (*projectverts)[3]);
-void bmesh_update_face_normal_vertex_cos(struct BMesh *bm, struct BMFace *f, float no[3],
+void bmesh_face_normal_update_vertex_cos(struct BMesh *bm, struct BMFace *f, float no[3],
                                          float (*projectverts)[3], float (*vertexCos)[3]);
 
 void compute_poly_plane(float (*verts)[3], int nverts);

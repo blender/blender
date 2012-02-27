@@ -1002,9 +1002,9 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 		BMO_push(bm, NULL);
 		BME_bevel_initialize(bm, options, defgrp_index, angle, td);
 		//if (i != 0) BME_bevel_reinitialize(bm);
-		bmesh_begin_edit(bm, 0);
+		bmesh_edit_begin(bm, 0);
 		BME_bevel_mesh(bm, (float)d, res, options, defgrp_index, td);
-		bmesh_end_edit(bm, 0);
+		bmesh_edit_end(bm, 0);
 		d /= (i == 0) ? 3.0 : 2.0;
 		BMO_pop(bm);
 	}

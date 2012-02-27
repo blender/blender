@@ -1706,7 +1706,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	int i, j, k = 0, totface = bm->totface;
 	
 	BMO_push(bm, NULL);
-	bmesh_begin_edit(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
@@ -1939,7 +1939,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	BMO_error_clear(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
 
-	bmesh_end_edit(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_end(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 	BMO_pop(bm);
 }
 

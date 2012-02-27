@@ -342,8 +342,8 @@ BMEdge *BM_edge_at_index(BMesh *bm, const int index);
 BMFace *BM_face_at_index(BMesh *bm, const int index);
 
 /*start/stop edit*/
-void bmesh_begin_edit(BMesh *bm, int flag);
-void bmesh_end_edit(BMesh *bm, int flag);
+void bmesh_edit_begin(BMesh *bm, int flag);
+void bmesh_edit_end(BMesh *bm, int flag);
 
 
 #ifdef USE_BMESH_HOLES

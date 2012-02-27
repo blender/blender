@@ -176,11 +176,11 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
 	BMO_push(bm, op);
 
 	if (bm->stackdepth == 2)
-		bmesh_begin_edit(bm, op->flag);
+		bmesh_edit_begin(bm, op->flag);
 	op->exec(bm, op);
 	
 	if (bm->stackdepth == 2)
-		bmesh_end_edit(bm, op->flag);
+		bmesh_edit_end(bm, op->flag);
 	
 	BMO_pop(bm);
 }

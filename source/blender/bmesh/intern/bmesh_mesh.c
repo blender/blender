@@ -235,7 +235,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 			continue;
 #endif
 
-		bmesh_update_face_normal(bm, f, f->no, projectverts);
+		bmesh_face_normal_update(bm, f, f->no, projectverts);
 	}
 	
 	/* Zero out vertex normals */
@@ -351,7 +351,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	BMO_op_finish(bm, &bmop);
 }
 
-static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
+static void bmesh_mdisps_space_set(BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -410,7 +410,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
  *  the editing operations are done. These are called by the tools/operator
  *  API for each time a tool is executed.
  */
-void bmesh_begin_edit(BMesh *bm, int flag)
+void bmesh_edit_begin(BMesh *bm, int flag)
 {
 	bm->opflag = flag;
 	
@@ -422,7 +422,7 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 #if BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data out of tangent space */
 	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
+		bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
 
 		/* ensure correct normals, if possible */
 		bmesh_rationalize_normals(bm, 0);
@@ -438,15 +438,15 @@ void bmesh_begin_edit(BMesh *bm, int flag)
 #endif
 }
 
-void bmesh_end_edit(BMesh *bm, int flag)
+void bmesh_edit_end(BMesh *bm, int flag)
 {
-	/* BMO_OP_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_begin_edit. */
+	/* BMO_OP_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data into tangent space */
 	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		/* set normals to their previous winding */
 		bmesh_rationalize_normals(bm, 1);
-		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
+		bmesh_mdisps_space_set(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
 	}
 	else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 1);

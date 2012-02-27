@@ -95,11 +95,11 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
-	                  smooth, fractal,
-	                  ts->editbutflag|flag, 
-	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
-	                  RNA_boolean_get(op->ptr, "quadtri"),
-	                  TRUE, RNA_int_get(op->ptr, "seed"));
+	                       smooth, fractal,
+	                       ts->editbutflag|flag,
+	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
+	                       RNA_boolean_get(op->ptr, "quadtri"),
+	                       TRUE, RNA_int_get(op->ptr, "seed"));
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);

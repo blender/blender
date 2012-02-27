@@ -422,7 +422,7 @@ void BM_face_normal_update(BMesh *bm, BMFace *f)
 
 		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
 
-		bmesh_update_face_normal(bm, f, f->no, proj);
+		bmesh_face_normal_update(bm, f, f->no, proj);
 
 		BLI_array_fixedstack_free(proj);
 	}
@@ -435,7 +435,7 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*verte
 
 		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
 
-		bmesh_update_face_normal_vertex_cos(bm, f, no, proj, vertexCos);
+		bmesh_face_normal_update_vertex_cos(bm, f, no, proj, vertexCos);
 
 		BLI_array_fixedstack_free(proj);
 	}
@@ -499,7 +499,7 @@ void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
 	BM_vert_normal_update(bm, v);
 }
 
-void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
+void bmesh_face_normal_update(BMesh *bm, BMFace *f, float no[3],
                               float (*projectverts)[3])
 {
 	BMLoop *l;
@@ -541,8 +541,8 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
 		}
 	}
 }
-/* exact same as 'bmesh_update_face_normal' but accepts vertex coords */
-void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
+/* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
+void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
                                          float (*projectverts)[3], float (*vertexCos)[3])
 {
 	BMLoop *l;
@@ -840,7 +840,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
-	///bmesh_update_face_normal(bm, f, f->no, projectverts);
+	///bmesh_face_normal_update(bm, f, f->no, projectverts);
 
 	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);

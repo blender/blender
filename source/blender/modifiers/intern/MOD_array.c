@@ -288,7 +288,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	   certainly help by compressing it all into one top-level BMOp that
 	   executes a lot of second-level BMOps. */
 	BMO_push(em->bm, NULL);
-	bmesh_begin_edit(em->bm, 0);
+	bmesh_edit_begin(em->bm, 0);
 
 	BMO_op_init(em->bm, &weldop, "weldverts");
 	BMO_op_initf(em->bm, &op, "dupe geom=%avef");
