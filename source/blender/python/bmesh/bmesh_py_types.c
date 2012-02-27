@@ -405,7 +405,36 @@ static int bpy_bmface_normal_set(BPy_BMFace *self, PyObject *value)
 /* Loop
  * ^^^^ */
 
-PyDoc_STRVAR(bpy_bmloop_link_loop_next_get_doc,
+PyDoc_STRVAR(bpy_bmloop_vert_doc,
+"The loops vertex (read-only).\n\n:type: :class:`BMVert`"
+);
+static PyObject *bpy_bmloop_vert_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMVert_CreatePyObject(self->bm, self->l->v);
+}
+
+
+PyDoc_STRVAR(bpy_bmloop_edge_doc,
+"The loops edge (between this loop and the next), (read-only).\n\n:type: :class:`BMEdge`"
+);
+static PyObject *bpy_bmloop_edge_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMEdge_CreatePyObject(self->bm, self->l->e);
+}
+
+
+PyDoc_STRVAR(bpy_bmloop_face_doc,
+"The face this loop makes (read-only).\n\n:type: :class:`BMFace`"
+);
+static PyObject *bpy_bmloop_face_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMFace_CreatePyObject(self->bm, self->l->f);
+}
+
+PyDoc_STRVAR(bpy_bmloop_link_loop_next_doc,
 "The next face corner (read-only).\n\n:type: :class:`BMLoop`"
 );
 static PyObject *bpy_bmloop_link_loop_next_get(BPy_BMLoop *self)
@@ -414,7 +443,7 @@ static PyObject *bpy_bmloop_link_loop_next_get(BPy_BMLoop *self)
 	return BPy_BMLoop_CreatePyObject(self->bm, self->l->next);
 }
 
-PyDoc_STRVAR(bpy_bmloop_link_loop_prev_get_doc,
+PyDoc_STRVAR(bpy_bmloop_link_loop_prev_doc,
 "The previous face corner (read-only).\n\n:type: :class:`BMLoop`"
 );
 static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self)
@@ -514,10 +543,14 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
+    {(char *)"vert", (getter)bpy_bmloop_vert_get, (setter)NULL, (char *)bpy_bmloop_vert_doc, NULL},
+    {(char *)"edge", (getter)bpy_bmloop_edge_get, (setter)NULL, (char *)bpy_bmloop_edge_doc, NULL},
+    {(char *)"face", (getter)bpy_bmloop_face_get, (setter)NULL, (char *)bpy_bmloop_face_doc, NULL},
+
     /* connectivity data */
     {(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmloops_link_loops_doc, (void *)BM_LOOPS_OF_LOOP},
-    {(char *)"link_loop_next", (getter)bpy_bmloop_link_loop_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_next_get_doc, NULL},
-    {(char *)"link_loop_prev", (getter)bpy_bmloop_link_loop_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_prev_get_doc, NULL},
+    {(char *)"link_loop_next", (getter)bpy_bmloop_link_loop_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_next_doc, NULL},
+    {(char *)"link_loop_prev", (getter)bpy_bmloop_link_loop_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_prev_doc, NULL},
 
     /* readonly checks */
     {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
