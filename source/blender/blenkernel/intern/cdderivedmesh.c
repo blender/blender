@@ -111,6 +111,14 @@ static int cdDM_getNumEdges(DerivedMesh *dm)
 
 static int cdDM_getNumTessFaces(DerivedMesh *dm)
 {
+	/* uncomment and add a breakpoint on the printf()
+	 * to help debug tessfaces issues since BMESH merge. */
+#if 0
+	if (dm->numTessFaceData == 0 && dm->numPolyData != 0) {
+		printf("%s: has no faces!, call DM_ensure_tessface() if you need them\n");
+	}
+#endif
+
 	return dm->numTessFaceData;
 }
 

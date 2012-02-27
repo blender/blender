@@ -4425,6 +4425,10 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!sim.psmd->dm)
 		return;
 
+	if (part->from != PART_FROM_VERT) {
+		DM_ensure_tessface(sim.psmd->dm);
+	}
+
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
