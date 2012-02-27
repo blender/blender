@@ -381,7 +381,7 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 			if(u>u2) SWAP(float, u, u2);
 
 			if(u>1.0f+eps || u2<-eps) return -1; /* non-ovlerlapping segments */
-			else if(maxf(0.0f, u) == minf(1.0f, u2)){ /* one common point: can return result */
+			else if(maxf(0.0f, u) == minf(1.0f, u2)) { /* one common point: can return result */
 				interp_v2_v2v2(vi, v1, v2, maxf(0, u));
 				return 1;
 			}
@@ -995,7 +995,7 @@ int isect_sweeping_sphere_tri_v3(
 
 		if(z <= 0.0f && (x >= 0.0f && y >= 0.0f))
 		{
-		//(((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y))) & 0x80000000){
+		//(((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y))) & 0x80000000) {
 			*r_lambda=t0;
 			copy_v3_v3(ipoint,point);
 			return 1;
@@ -1154,7 +1154,7 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	if ((v < 0.0f)||(v > 1.0f)) return 0;
 	
 	f= e1[a1];
-	if((f > -0.000001f) && (f < 0.000001f)){
+	if((f > -0.000001f) && (f < 0.000001f)) {
 		f= e1[a2];
 		if((f > -0.000001f) && (f < 0.000001f)) return 0;
 		u= (-p[a2]-v*e2[a2])/f;
@@ -1680,8 +1680,8 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 			x1 += ix;
 			error += delta_y;
 
-			if(callback(x1, y1, userData) == 0) {
-				return ;
+			if (callback(x1, y1, userData) == 0) {
+				return;
 			}
 		}
 	}
@@ -2523,7 +2523,7 @@ pointers may be NULL if not needed
 static float _det_m3(float m2[3][3])
 {
 	float det = 0.f;
-	if (m2){
+	if (m2) {
 	det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
 		-m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
 		+m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
@@ -2548,8 +2548,8 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 	if (pos && rpos && (list_size > 0)) /* paranoya check */
 	{
 		/* do com for both clouds */
-		for(a=0; a<list_size; a++){
-			if (weight){
+		for(a=0; a<list_size; a++) {
+			if (weight) {
 				float v[3];
 				copy_v3_v3(v,pos[a]);
 				mul_v3_fl(v,weight[a]);
@@ -2558,7 +2558,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			}
 			else add_v3_v3(accu_com, pos[a]);
 
-			if (rweight){
+			if (rweight) {
 				float v[3];
 				copy_v3_v3(v,rpos[a]);
 				mul_v3_fl(v,rweight[a]);
@@ -2568,7 +2568,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			else add_v3_v3(accu_rcom, rpos[a]);
 
 		}
-		if (!weight || !rweight){
+		if (!weight || !rweight) {
 			accu_weight = accu_rweight = list_size;
 		}
 
@@ -2576,7 +2576,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 		mul_v3_fl(accu_rcom,1.0f/accu_rweight);
 		if (lloc) copy_v3_v3(lloc,accu_com);
 		if (rloc) copy_v3_v3(rloc,accu_rcom);
-		if (lrot || lscale){ /* caller does not want rot nor scale, strange but legal */
+		if (lrot || lscale) { /* caller does not want rot nor scale, strange but legal */
 			/*so now do some reverse engeneering and see if we can split rotation from scale ->Polardecompose*/
 			/* build 'projection' matrix */
 			float m[3][3],mr[3][3],q[3][3],qi[3][3];
@@ -2587,7 +2587,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			zero_m3(mr);
 
 			/* build 'projection' matrix */
-			for(a=0; a<list_size; a++){
+			for(a=0; a<list_size; a++) {
 				sub_v3_v3v3(va,rpos[a],accu_rcom);
 				/* mul_v3_fl(va,bp->mass);  mass needs renormalzation here ?? */
 				sub_v3_v3v3(vb,pos[a],accu_com);
@@ -2628,7 +2628,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 			/* without the far case ... but seems to work here pretty neat                   */
 			odet = 0.f;
 			ndet = _det_m3(q);
-			while((odet-ndet)*(odet-ndet) > eps && i<imax){
+			while((odet-ndet)*(odet-ndet) > eps && i<imax) {
 				invert_m3_m3(qi,q);
 				transpose_m3(qi);
 				add_m3_m3m3(q,q,qi);
@@ -2638,7 +2638,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 				i++;
 			}
 
-			if (i){
+			if (i) {
 				float scale[3][3];
 				float irot[3][3];
 				if(lrot) copy_m3_m3(lrot,q);
@@ -2883,20 +2883,20 @@ typedef union {
 
 static vFloat vec_splat_float(float val)
 {
-	return (vFloat){val, val, val, val};
+	return (vFloat) {val, val, val, val};
 }
 
 static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float *q2, float *q3)
 {
 	vFloat vcos, rlen, vrx, vry, vrz, vsrx, vsry, vsrz, gx, gy, gz, vangle;
-	vUInt8 rotate = (vUInt8){4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3};
+	vUInt8 rotate = (vUInt8) {4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3};
 	vFloatResult vresult;
 	float result;
 
 	/* compute r* */
-	vrx = (vFloat){q0[0], q1[0], q2[0], q3[0]} - vec_splat_float(p[0]);
-	vry = (vFloat){q0[1], q1[1], q2[1], q3[1]} - vec_splat_float(p[1]);
-	vrz = (vFloat){q0[2], q1[2], q2[2], q3[2]} - vec_splat_float(p[2]);
+	vrx = (vFloat) {q0[0], q1[0], q2[0], q3[0]} - vec_splat_float(p[0]);
+	vry = (vFloat) {q0[1], q1[1], q2[1], q3[1]} - vec_splat_float(p[1]);
+	vrz = (vFloat) {q0[2], q1[2], q2[2], q3[2]} - vec_splat_float(p[2]);
 
 	/* normalize r* */
 	rlen = vec_rsqrte(vrx*vrx + vry*vry + vrz*vrz + vec_splat_float(1e-16f));

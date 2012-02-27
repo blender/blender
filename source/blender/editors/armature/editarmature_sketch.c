@@ -1008,7 +1008,7 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 		mul_v3_fl(ray_normal, distance * progress / length);
 		add_v3_v3(stk->points[i].p, ray_normal);
 
-		progress += delta ;
+		progress += delta;
 	}
 }
 

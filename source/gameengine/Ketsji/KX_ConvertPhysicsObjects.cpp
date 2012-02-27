@@ -353,7 +353,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 //////////
 	//do Fh, do Rot Fh
 	ci.m_do_fh = shapeprops->m_do_fh;
-	ci.m_do_rot_fh = shapeprops->m_do_rot_fh ;
+	ci.m_do_rot_fh = shapeprops->m_do_rot_fh;
 	ci.m_fh_damping = smmaterial->m_fh_damping;
 	ci.m_fh_distance = smmaterial->m_fh_distance;
 	ci.m_fh_normal = smmaterial->m_fh_normal;

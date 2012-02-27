@@ -1935,12 +1935,12 @@ void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 	if (cd == (iconv_t)(-1)) {
 		printf("iconv_open Error");
 		*utf_8='\0';
-		return ;
+		return;
 	}
 	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
 	if (rv == (size_t) -1) {
 		printf("iconv Error\n");
-		return ;
+		return;
 	}
 	*utf_8 = '\0';
 	iconv_close(cd);

@@ -297,7 +297,7 @@ static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 	TimeMarker *marker, *markern;
 	
 	/* validate action */
-	if (act == NULL)  {
+	if (act == NULL) {
 		BKE_report(op->reports, RPT_WARNING, "No Action to validate");
 		return OPERATOR_CANCELLED;
 	}

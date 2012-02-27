@@ -912,7 +912,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 		int len = -1;
 		char *c = type_fmt;
 
-		while ((*c++= tolower(*type_id++))) {} ;
+		while ((*c++= tolower(*type_id++))) {}
 
 		if (type == PROP_COLLECTION) {
 			len = pyrna_prop_collection_length(self);

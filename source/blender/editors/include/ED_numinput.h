@@ -36,7 +36,7 @@ typedef struct NumInput {
 	float  val[3];      /* Direct value of the input                                                      */
 	int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
 	float  increment;
-} NumInput ;
+} NumInput;
 
 /* NUMINPUT FLAGS */
 #define NUM_NULL_ONE		2

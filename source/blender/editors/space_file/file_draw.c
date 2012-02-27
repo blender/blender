@@ -533,7 +533,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			}
 		}
 
-		if (!(file->selflag & EDITING_FILE))  {
+		if (!(file->selflag & EDITING_FILE)) {
 			int tpos = (FILE_IMGDISPLAY == params->display) ? sy - layout->tile_h + layout->textheight : sy;
 			file_draw_string(sx+1, tpos, file->relname, (float)textwidth, textheight, align);
 		}

@@ -755,7 +755,7 @@ static void draw_view_icon(RegionView3D *rv3d)
 		icon= ICON_AXIS_FRONT;
 	else if ( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 		icon= ICON_AXIS_SIDE;
-	else return ;
+	else return;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 

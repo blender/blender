@@ -3599,13 +3599,13 @@ void REEB_draw()
 	
 	if (GLOBAL_RG->link_up && G.scene->toolsettings->skgen_options & SKGEN_DISP_ORIG)
 	{
-		for (rg = GLOBAL_RG; rg->link_up; rg = rg->link_up) ;
+		for (rg = GLOBAL_RG; rg->link_up; rg = rg->link_up);
 	}
 	else
 	{
 		i = G.scene->toolsettings->skgen_multi_level;
 		
-		for (rg = GLOBAL_RG; rg->multi_level != i && rg->link_up; rg = rg->link_up) ;
+		for (rg = GLOBAL_RG; rg->multi_level != i && rg->link_up; rg = rg->link_up);
 	}
 	
 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));

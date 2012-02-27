@@ -245,8 +245,9 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	fprintf(fp, "[Recent]\n");
 	nskip = fsmenu_get_nentries(fsmenu, FS_CATEGORY_RECENT) - FSMENU_RECENT_MAX;
 	// skip first entries if list too long
-	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && (nskip>0); fsme= fsme->next, --nskip)
-		;
+	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && (nskip>0); fsme= fsme->next, --nskip) {
+		/* pass */
+	}
 	for (; fsme; fsme= fsme->next) {
 		if (fsme->path && fsme->save) {
 			fprintf(fp, "%s\n", fsme->path);

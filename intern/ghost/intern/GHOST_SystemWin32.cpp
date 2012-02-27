@@ -716,7 +716,7 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 	GHOST_EventKey* event;
 
 	if (key != GHOST_kKeyUnknown) {
-		char utf8_char[6] = {0} ;
+		char utf8_char[6] = {0};
 		char ascii = 0;
 
 		wchar_t utf16[2]={0};

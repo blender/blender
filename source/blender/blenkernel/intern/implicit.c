@@ -1697,7 +1697,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	while(search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)){}
+		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)) {}
 		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;

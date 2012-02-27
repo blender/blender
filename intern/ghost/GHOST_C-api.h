@@ -494,7 +494,7 @@ extern void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,
  * @param windowhandle The handle to the window
  * @return The validity of the window.
  */
-extern int GHOST_GetValid(GHOST_WindowHandle windowhandle) ;
+extern int GHOST_GetValid(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the type of drawing context used in this window.
@@ -592,7 +592,7 @@ extern void GHOST_ScreenToClient(GHOST_WindowHandle windowhandle,
 								 GHOST_TInt32 inX,
 								 GHOST_TInt32 inY,
 								 GHOST_TInt32* outX,
-								 GHOST_TInt32* outY) ;
+								 GHOST_TInt32* outY);
 
 /**
  * Converts a point in screen coordinates to client rectangle coordinates

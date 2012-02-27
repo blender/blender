@@ -122,7 +122,7 @@ public:
 		for (i=0;i<numWheels;i++)
 		{
 			btWheelInfo& info = m_vehicle->getWheelInfo(i);
-			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo ;
+			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo;
 	//		m_vehicle->updateWheelTransformsWS(info,false);
 			m_vehicle->updateWheelTransform(i,false);
 			btTransform trans = m_vehicle->getWheelInfo(i).m_worldTransform;
@@ -873,7 +873,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 
 	};
 
-	m_solverType = solverType ;
+	m_solverType = solverType;
 }
 
 

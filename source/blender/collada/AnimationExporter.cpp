@@ -55,7 +55,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 void AnimationExporter::operator() (Object *ob) 
 {
 	FCurve *fcu;
-	char * transformName ;
+	char *transformName;
 	/* bool isMatAnim = false; */ /* UNUSED */
 
 	//Export transform animations
@@ -254,7 +254,7 @@ void AnimationExporter::dae_animation(Object* ob, FCurve *fcu, char* transformNa
 	std::string input_id = create_source_from_fcurve(COLLADASW::InputSemantic::INPUT, fcu, anim_id, axis_name);
 
 	// create output source
-	std::string output_id ;
+	std::string output_id;
 
 	//quat rotations are skipped for now, because of complications with determining axis.
 	if(quatRotation) 
@@ -302,7 +302,7 @@ void AnimationExporter::dae_animation(Object* ob, FCurve *fcu, char* transformNa
 
 	addSampler(sampler);
 
-	std::string target ;
+	std::string target;
 
 	if ( !is_param )
 		target = translate_id(ob_name)

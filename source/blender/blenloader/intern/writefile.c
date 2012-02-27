@@ -721,7 +721,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
-				/* pass */ ;
+				/* pass */;
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}

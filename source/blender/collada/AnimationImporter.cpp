@@ -610,9 +610,10 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type)
 {
 	char rna_path[100];
-	if (animlist_map.find(listid) == animlist_map.end()) return ;
-	else 
-	{
+	if (animlist_map.find(listid) == animlist_map.end()) {
+		return;
+	}
+	else {
 		//anim_type has animations
 		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
 		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
@@ -665,7 +666,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 	}
 	// new curves to assign matrix transform animation
 	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
-	unsigned int totcu = 10 ;
+	unsigned int totcu = 10;
 	const char *tm_str = NULL;
 	char rna_path[200];
 	for (int i = 0; i < totcu; i++) {
@@ -824,9 +825,10 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 			const COLLADAFW::UniqueId& listid = transform->getAnimationList();
 
 			//check if transformation has animations
-			if (animlist_map.find(listid) == animlist_map.end()) continue ; 
-			else 
-			{
+			if (animlist_map.find(listid) == animlist_map.end()) {
+				continue;
+			}
+			else {
 				//transformation has animations
 				const COLLADAFW::AnimationList *animlist = animlist_map[listid];
 				const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
@@ -1030,7 +1032,7 @@ void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCur
 
 	// new curves to assign matrix transform animation
 	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
-	unsigned int totcu = 10 ;
+	unsigned int totcu = 10;
 	const char *tm_str = NULL;
 	char rna_path[200];
 	for (int i = 0; i < totcu; i++) {
@@ -1136,9 +1138,10 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 		const COLLADAFW::UniqueId& listid = transform->getAnimationList();
 
 		//check if transformation has animations
-		if (animlist_map.find(listid) == animlist_map.end()) continue ;
-		else 
-		{
+		if (animlist_map.find(listid) == animlist_map.end()) {
+			continue;
+		}
+		else {
 			types->transform = types->transform|NODE_TRANSFORM;
 			break;
 		}
@@ -1868,7 +1871,7 @@ void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
 	//float fps = (float)FPS;
 	BezTriple bez;
 	memset(&bez, 0, sizeof(BezTriple));
-	bez.vec[1][0] = fra ;
+	bez.vec[1][0] = fra;
 	bez.vec[1][1] = value;
 	bez.ipo = BEZT_IPO_LIN ;/* use default interpolation mode here... */
 	bez.f1 = bez.f2 = bez.f3 = SELECT;

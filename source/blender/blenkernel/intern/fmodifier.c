@@ -571,7 +571,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 	 *	2) if before first frame or after last frame, make sure some cycling is in use
 	 */
 	if (evaltime < prevkey[0]) {
-		if (data->before_mode)  {
+		if (data->before_mode) {
 			side= -1;
 			mode= data->before_mode;
 			cycles= data->before_cycles;

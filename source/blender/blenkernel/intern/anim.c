@@ -1649,7 +1649,7 @@ int count_duplilist(Object *ob)
 					for(; psys; psys=psys->next)
 						pdup += psys->totpart;
 
-					if(pdup==0){
+					if(pdup==0) {
 						Mesh *me= ob->data;
 						return me->totvert;
 					}

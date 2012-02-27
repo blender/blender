@@ -477,7 +477,7 @@ static void GetEulerXZY(const KDL::Rotation& R, double& X,double& Z,double& Y)
 	if (fabs(R(0,1)) > 1.0 - KDL::epsilon ) {
         X = -KDL::sign(R(0,1)) * KDL::atan2(R(1,2), R(1,0));
         Z = -KDL::sign(R(0,1)) * KDL::PI / 2;
-        Y = 0.0 ;
+        Y = 0.0;
     } else {
         X = KDL::atan2(R(2,1), R(1,1));
         Z = KDL::atan2(-R(0,1), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,2))));
@@ -490,7 +490,7 @@ static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
 	if (fabs(R(0,2)) > 1.0 - KDL::epsilon ) {
         X = KDL::sign(R(0,2)) * KDL::atan2(-R(1,0), R(1,1));
         Y = KDL::sign(R(0,2)) * KDL::PI / 2;
-        Z = 0.0 ;
+        Z = 0.0;
     } else {
         X = KDL::atan2(-R(1,2), R(2,2));
         Y = KDL::atan2(R(0,2), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,1))));

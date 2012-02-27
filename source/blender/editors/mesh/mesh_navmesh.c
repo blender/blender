@@ -499,7 +499,7 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 			if(targetPolyIdx > 0) {
 				/* set target poly idx to other selected faces */
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BM_elem_flag_test(efa, BM_ELEM_SELECT) && efa != efa_act)  {
+					if(BM_elem_flag_test(efa, BM_ELEM_SELECT) && efa != efa_act) {
 						int* recastDataBlock= (int*)CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_RECAST);
 						*recastDataBlock= targetPolyIdx;
 					}

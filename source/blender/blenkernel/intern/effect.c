@@ -508,7 +508,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 		falloff=0.0f;
 	else if(eff->pd->zdir == PFIELD_Z_NEG && fac > 0.0f)
 		falloff=0.0f;
-	else switch(eff->pd->falloff){
+	else switch(eff->pd->falloff) {
 		case PFIELD_FALL_SPHERE:
 			falloff*= falloff_func_dist(eff->pd, efd->distance);
 			break;
@@ -610,8 +610,9 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		ParticleKey state;
 
 		/* exclude the particle itself for self effecting particles */
-		if(eff->psys == point->psys && *efd->index == point->index)
-			;
+		if(eff->psys == point->psys && *efd->index == point->index) {
+			/* pass */
+		}
 		else {
 			ParticleSimulationData sim= {NULL};
 			sim.scene= eff->scene;
@@ -809,7 +810,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 		}
 	}
 
-	if(eff->pd->flag & PFIELD_TEX_2D){
+	if(eff->pd->flag & PFIELD_TEX_2D) {
 		float fac = -dot_v3v3(force, efd->nor);
 		madd_v3_v3fl(force, efd->nor, fac);
 	}
@@ -836,7 +837,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 
 	copy_v3_v3(force, efd->vec_to_point);
 
-	switch(pd->forcefield){
+	switch(pd->forcefield) {
 		case PFIELD_WIND:
 			copy_v3_v3(force, efd->nor);
 			mul_v3_fl(force, strength * efd->falloff);
@@ -1000,7 +1001,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 					do_physical_effector(eff, &efd, point, force);
 					
 					// for softbody backward compatibility
-					if(point->flag & PE_WIND_AS_SPEED && impulse){
+					if(point->flag & PE_WIND_AS_SPEED && impulse) {
 						sub_v3_v3v3(temp2, force, temp1);
 						sub_v3_v3v3(impulse, impulse, temp2);
 					}

@@ -649,7 +649,7 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 	}
 
 	if (!rollback) {
-		while (add_to_proxy_output_ffmpeg(ctx, NULL)) ;
+		while (add_to_proxy_output_ffmpeg(ctx, NULL)) {}
 	}
 
 	avcodec_flush_buffers(ctx->c);

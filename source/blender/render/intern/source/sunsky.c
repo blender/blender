@@ -315,9 +315,9 @@ void GetSkyXYZRadiancef(struct SunSky* sunsky, const float varg[3], float color_
  * */
 static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 {
-	float fBeta ;
+	float fBeta;
 	float fTauR, fTauA;
-	float m ;
+	float m;
 	float fAlpha;
 
 	int i;

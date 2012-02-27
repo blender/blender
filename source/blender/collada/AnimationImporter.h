@@ -148,7 +148,7 @@ public:
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
 												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
 
-	AnimMix* get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
+	AnimMix* get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map );
 
 	void apply_matrix_curves( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node,
 									COLLADAFW::Transformation * tm );

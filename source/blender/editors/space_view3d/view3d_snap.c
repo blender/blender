@@ -982,7 +982,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 	
 	curs = give_cursor(scene, v3d);
 
-	if (obedit)  {
+	if (obedit) {
 		if (obedit->type == OB_MESH) {
 			/* check active */
 			Mesh *me= obedit->data;

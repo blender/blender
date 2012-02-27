@@ -483,7 +483,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
-			else if(tselem->type==TSE_MODIFIER)  {
+			else if(tselem->type==TSE_MODIFIER) {
 				ModifierData *md= (ModifierData *)te->directdata;
 				ob = (Object *)tselem->id;
 				
@@ -496,7 +496,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X-1, UI_UNIT_Y-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 			}
-			else if(tselem->type==TSE_POSE_CHANNEL)  {
+			else if(tselem->type==TSE_POSE_CHANNEL) {
 				bPoseChannel *pchan= (bPoseChannel *)te->directdata;
 				Bone *bone = pchan->bone;
 				
@@ -509,7 +509,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X-1, UI_UNIT_Y-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 			}
-			else if(tselem->type==TSE_EBONE)  {
+			else if(tselem->type==TSE_EBONE) {
 				EditBone *ebone= (EditBone *)te->directdata;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);

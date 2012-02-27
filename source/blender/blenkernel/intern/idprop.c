@@ -489,7 +489,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
 	IDProperty *loop;
-	if((loop= IDP_GetPropertyFromGroup(group, prop->name)))  {
+	if ((loop= IDP_GetPropertyFromGroup(group, prop->name))) {
 		BLI_insertlink(&group->data.group, loop, prop);
 		
 		BLI_remlink(&group->data.group, loop);
@@ -506,7 +506,7 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
   or 1 if it succeeded in adding to the group.*/
 int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
-	if(IDP_GetPropertyFromGroup(group, prop->name) == NULL)  {
+	if (IDP_GetPropertyFromGroup(group, prop->name) == NULL) {
 		group->len++;
 		BLI_addtail(&group->data.group, prop);
 		return 1;
@@ -517,7 +517,7 @@ int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 
 int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
 {
-	if(IDP_GetPropertyFromGroup(group, pnew->name) == NULL)  {
+	if (IDP_GetPropertyFromGroup(group, pnew->name) == NULL) {
 		group->len++;
 		BLI_insertlink(&group->data.group, previous, pnew);
 		return 1;

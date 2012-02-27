@@ -686,7 +686,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filepath", path);
 	
-	if(scene->r.scemode & R_EXTENSION)  {
+	if(scene->r.scemode & R_EXTENSION) {
 		BKE_add_image_extension(path, imtype);
 	}
 	

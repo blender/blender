@@ -4161,7 +4161,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 	/*
 	*	Spread Effect
 	*/
-	if (surface->effect & MOD_DPAINT_EFFECT_DO_SPREAD)  {
+	if (surface->effect & MOD_DPAINT_EFFECT_DO_SPREAD) {
 		float eff_scale = distance_scale*EFF_MOVEMENT_PER_FRAME*surface->spread_speed*timescale;
 
 		/* Copy current surface to the previous points array to read unmodified values	*/
@@ -4204,7 +4204,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 	/*
 	*	Shrink Effect
 	*/
-	if (surface->effect & MOD_DPAINT_EFFECT_DO_SHRINK)  {
+	if (surface->effect & MOD_DPAINT_EFFECT_DO_SHRINK) {
 		float eff_scale = distance_scale*EFF_MOVEMENT_PER_FRAME*surface->shrink_speed*timescale;
 
 		/* Copy current surface to the previous points array to read unmodified values	*/

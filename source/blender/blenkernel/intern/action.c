@@ -1497,8 +1497,8 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 			/* Determine if the current frame is within the strip's range */
 			length = strip->end-strip->start;
 			actlength = strip->actend-strip->actstart;
-			striptime = (scene_cfra-(strip->start)) / length;
-			stripframe = (scene_cfra-(strip->start)) ;
+			striptime = (scene_cfra - strip->start) / length;
+			stripframe = (scene_cfra - strip->start);
 
 			if (striptime>=0.0) {
 				

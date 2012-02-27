@@ -776,7 +776,7 @@ static void pose_copy_menu(Scene *scene)
 	if (nr <= 0) 
 		return;
 	
-	if (nr != 5)  {
+	if (nr != 5) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			if ( (arm->layer & pchan->bone->layer) &&
 				 (pchan->bone->flag & BONE_SELECTED) &&

@@ -3277,7 +3277,7 @@ static void node_delete_reconnect(bNodeTree* tree, bNode* node)
 		the first link evaluated will be used to determine the possible connection.
 	*/
 	for(link= tree->links.first; link; link=link->next) {
-		if (link->tonode == node)  { numberOfConnectedInputSockets++; }
+		if (link->tonode == node) { numberOfConnectedInputSockets++; }
 		type = is_connected_to_input_socket(node, link);
 		switch (type) {
 		case SOCK_RGBA:

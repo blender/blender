@@ -47,7 +47,7 @@ public:
 	virtual ~KX_PolyProxy();
 
 	// stuff for cvalue related things
-	CValue*		Calc(VALUE_OPERATOR op, CValue *val) ;
+	CValue*		Calc(VALUE_OPERATOR op, CValue *val);
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	const STR_String &	GetText();
 	double		GetNumber();

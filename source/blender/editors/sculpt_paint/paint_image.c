@@ -1516,7 +1516,8 @@ static ProjPixel *project_paint_uvpixel_init(
 	projPixel->mask_max = 0;
 	
 	/* which bounding box cell are we in?, needed for undo */
-	projPixel->bb_cell_index = ((int)(((float)x_px/(float)ibuf->x) * PROJ_BOUNDBOX_DIV)) + ((int)(((float)y_px/(float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
+	projPixel->bb_cell_index = ((int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV)) +
+	                           ((int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV;
 	
 	/* done with view3d_project_float inline */
 	if (ps->tool==PAINT_TOOL_CLONE) {

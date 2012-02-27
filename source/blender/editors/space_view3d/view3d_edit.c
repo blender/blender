@@ -2161,7 +2161,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		Base *base;
 		for (base= FIRSTBASE; base; base = base->next) {
-			if (TESTBASE(v3d, base))  {
+			if (TESTBASE(v3d, base)) {
 
 				if (skip_camera && base->object == v3d->camera) {
 					continue;

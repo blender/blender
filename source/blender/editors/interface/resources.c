@@ -1751,7 +1751,7 @@ void init_userdef_do_versions(void)
 		U.dbl_click_time = 350;
 	}
 	if (U.anim_player_preset == 0) {
-		U.anim_player_preset = 1 ;
+		U.anim_player_preset = 1;
 	}
 	if (U.scrcastfps == 0) {
 		U.scrcastfps = 10;

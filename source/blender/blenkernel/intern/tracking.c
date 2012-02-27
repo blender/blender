@@ -173,7 +173,7 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 			}
 		}
 	}
-	else if(event==CLAMP_PYRAMID_LEVELS || (event==CLAMP_SEARCH_DIM && track->tracker == TRACKER_KLT))  {
+	else if(event==CLAMP_PYRAMID_LEVELS || (event==CLAMP_SEARCH_DIM && track->tracker == TRACKER_KLT)) {
 		float dim[2];
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 		{

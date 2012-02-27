@@ -431,7 +431,7 @@ public:
 	 * @return a pointer to the physics controller owned by this class.
 	 */
 
-	KX_IPhysicsController* GetPhysicsController() ;
+	KX_IPhysicsController* GetPhysicsController();
 
 	void	SetPhysicsController(KX_IPhysicsController*	physicscontroller,bool isDynamic) 
 	{ 

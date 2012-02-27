@@ -102,8 +102,8 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 
 		for(int i = 0; i < 16; ++i)
 		{
-			float f = (i%4 == i/4) ? 1.0f : 0.0f ;
-			add_parinv |= (ob->parentinv[i%4][i/4] != f);
+			float f = (i % 4 == i / 4) ? 1.0f : 0.0f;
+			add_parinv |= (ob->parentinv[i % 4][i / 4] != f);
 		}
 
 		if(add_parinv)

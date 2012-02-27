@@ -93,7 +93,7 @@ public:
 
 		CValue* 
 	GetReplica(
-	) ;
+	);
 
 	virtual void 
 	ProcessReplica();
@@ -114,7 +114,7 @@ public:
 
 		SCA_IObject*	
 	GetLastCreatedObject(
-	) const ;
+	) const;
 
 	void	InstantAddObject();
 

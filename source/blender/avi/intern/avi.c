@@ -836,8 +836,10 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 				tmp->f = 2;
 				tmp->g = 1;
 			}
-		} else if (movie->streams[i].sh.Type == FCC("auds")) {
-			;
+		}
+		else if (movie->streams[i].sh.Type == FCC("auds")) {
+			// pass
+		}
 */
 		}
 	}

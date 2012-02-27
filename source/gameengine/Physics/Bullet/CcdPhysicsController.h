@@ -525,7 +525,7 @@ protected:
 			return m_cci.m_collisionFilterMask;
 		}
 
-		virtual void	calcXform() {} ;
+		virtual void calcXform() {}
 		virtual void SetMargin(float margin) 
 		{
 			if (m_collisionShape)

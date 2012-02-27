@@ -1061,9 +1061,9 @@ static void spotvolume(float lvec[3], float vvec[3], const float inp)
 
 	/* translating this comment to english didnt really help me understanding the math! :-) (ton) */
 	
-	q[1] = plane[1] ; 
-	q[2] = -plane[0] ; 
-	q[3] = 0 ;
+	q[1] =  plane[1];
+	q[2] = -plane[0];
+	q[3] =  0;
 	normalize_v3(&q[1]);
 
 	angle = saacos(plane[2])/2.0f;

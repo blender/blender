@@ -1415,13 +1415,13 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 		face[n2+2].v[1]	  = (face[i].v[1] + face[i].v[2]) /2;
 		face[n2+2].v[2]	  = (face[i].v[2] + face[i].v[0]) /2;		
 
-		//face[i].verts[0] = face[i].verts[0] ;
+		//face[i].verts[0] = face[i].verts[0];
 		face[i].verts[1] = (face[i].verts[0] + face[i].verts[1]) /2;
 		face[i].verts[2] = (face[i].verts[0] + face[i].verts[2]) /2;
 		//face[i].u[0]	 =  face[i].u[0];
 		face[i].u[1]	 = (face[i].u[0] + face[i].u[1]) /2;
 		face[i].u[2]	 = (face[i].u[0] + face[i].u[2]) /2;
-		//face[i].v[0]	 = face[i].v[0] ;
+		//face[i].v[0]	 = face[i].v[0];
 		face[i].v[1]	 = (face[i].v[0] + face[i].v[1]) /2;
 		face[i].v[2]	 = (face[i].v[0] + face[i].v[2]) /2;		
 
@@ -1812,13 +1812,13 @@ void KX_Dome::DrawDomeFisheye(void)
 	else if(m_mode == DOME_TRUNCATED_FRONT)
 	{
 		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
+		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
 	}
 	else { //m_mode == DOME_TRUNCATED_REAR
 		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
+		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_width), ortho_height, -20.0, 10.0);
 	}

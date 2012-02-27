@@ -5182,7 +5182,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	          (ob->mode & OB_MODE_PARTICLE_EDIT) &&
 	          PE_get_current(t->scene, ob))
 	{
-		/* do nothing */ ;
+		/* do nothing */
 	}
 	else { /* Objects */
 		int i, recalcObPaths=0;

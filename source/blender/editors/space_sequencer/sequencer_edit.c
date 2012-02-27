@@ -538,7 +538,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 		*selseq1 = *selseq2 = *selseq3 = NULL;
 		return 1; /* succsess */
 	case 1:
-		if(seq2==NULL)  {
+		if(seq2==NULL) {
 			*error_str= "Need at least one selected sequence strip";
 			return 0;
 		}

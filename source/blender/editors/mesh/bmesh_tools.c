@@ -2510,7 +2510,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if (i == 1)  {
+		if (i == 1) {
 			if (singlesel)
 				BM_elem_select_set(bm, v, FALSE);
 			else

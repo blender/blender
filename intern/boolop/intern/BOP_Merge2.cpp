@@ -289,7 +289,7 @@ void BOP_Merge2::cleanup( void )
 		BOP_Indexs faces = (*edge)->getFaces();
 		for (BOP_IT_Indexs face = faces.begin(); face != faces.end(); ++face) {
 			BOP_Face *f = m_mesh->getFace(*face);
-			if(f->getTAG()== UNCLASSIFIED) ;
+			if (f->getTAG()== UNCLASSIFIED);
 			else (*edge)->removeFace(*face);
 		}
 		if( (*edge)->getFaces().size() == 0) (*edge)->setUsed(false);

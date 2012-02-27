@@ -478,7 +478,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	win->sizey= position->ymax - position->ymin;
 	
 	if(win->ghostwin) {
-		wm_window_set_size(win, win->sizex, win->sizey) ;
+		wm_window_set_size(win, win->sizex, win->sizey);
 		wm_window_raise(win);
 	}
 	

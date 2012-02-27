@@ -239,7 +239,7 @@ float GPC_Engine::DetermineProgress(void)
 		progress = 0.f;
 	}
 	progress *= 100.f;
-	return (unsigned int) progress ;
+	return (unsigned int) progress;
 #endif
 	return m_previousProgress + 0.01;  // temporary TODO
 }

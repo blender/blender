@@ -118,7 +118,6 @@ static int cdDM_getNumTessFaces(DerivedMesh *dm)
 		printf("%s: has no faces!, call DM_ensure_tessface() if you need them\n");
 	}
 #endif
-
 	return dm->numTessFaceData;
 }
 
@@ -807,7 +806,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		GPU_normal_setup( dm );
 		GPU_uv_setup( dm );
 		if( col != NULL ) {
-			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL )  {
+			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
 				col = 0;
 			} else if( mcol && dm->drawObject->colType == CD_MCOL ) {
 				col = 0;

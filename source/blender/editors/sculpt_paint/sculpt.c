@@ -1045,8 +1045,8 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 		}
 
 		/* blend with existing coordinates */
-		for(y = 0; y < gridsize; ++y)  {
-			for(x = 0; x < gridsize; ++x)  {
+		for(y = 0; y < gridsize; ++y) {
+			for(x = 0; x < gridsize; ++x) {
 				float *co;
 				float *fno;
 				int index;

@@ -166,7 +166,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 		pool->free = mpchunk->data; /*start of the list*/
 		if (pool->allow_iter)
 			pool->free->freeword = FREEWORD;
-		for(addr = mpchunk->data, j=0; j < pool->pchunk; j++){
+		for(addr = mpchunk->data, j=0; j < pool->pchunk; j++) {
 			curnode = ((BLI_freenode*)addr);
 			addr += pool->esize;
 			curnode->next = (BLI_freenode*)addr;

@@ -349,7 +349,7 @@ static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Objec
 	for(base = scene->base.first; base; base= base->next) {
 		if((base->lay & ob->lay) && base->object->pd) {
 			Object *ob1= base->object;
-			if((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob))  {
+			if((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob)) {
 				node2 = dag_get_node(dag, ob1);					
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Field Collision");
 			}
@@ -380,7 +380,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	node->customdata_mask= 0;
 	
 	if (ob->type == OB_ARMATURE) {
-		if (ob->pose){
+		if (ob->pose) {
 			bPoseChannel *pchan;
 			bConstraint *con;
 			
@@ -1421,7 +1421,8 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 							retval = 1;
 						}
 //						else if (itA->node->color == DAG_BLACK) { // cross or forward
-//							;
+//
+//						}
 					}
 					itA = itA->next;
 				}			
@@ -1770,7 +1771,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 			if (node) {
 				node = pop_queue(nqueue);
 				if (node->ob == sce)	// we are done
-					break ;
+					break;
 				node->color = DAG_BLACK;
 				
 				time++;
@@ -2068,7 +2069,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 		sce->theDag->time++;	// so we know which nodes were accessed
 		lasttime= sce->theDag->time;
 		for(itA = firstnode->child; itA; itA= itA->next) {
-			if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB)  {
+			if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) {
 				ob= (Object*)(itA->node->ob);
 
 				if(ob->recalc & OB_RECALC_ALL) {
@@ -2565,7 +2566,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		}
 
 		if(idtype == ID_MC) {
-			for(obt=bmain->object.first; obt; obt= obt->id.next){
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con=con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -2890,7 +2891,7 @@ void DAG_pose_sort(Object *ob)
 			if (node) {
 				node = pop_queue(nqueue);
 				if (node->ob == NULL)	// we are done
-					break ;
+					break;
 				node->color = DAG_BLACK;
 				
 				/* put node in new list */

@@ -1101,7 +1101,7 @@ static size_t animfilter_action (bAnimContext *ac, ListBase *anim_data, bDopeShe
 	}
 	
 	/* un-grouped F-Curves (only if we're not only considering those channels in the active group) */
-	if (!(filter_mode & ANIMFILTER_ACTGROUPED))  {
+	if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
 		FCurve *firstfcu = (lastchan)? (lastchan->next) : (act->curves.first);
 		items += animfilter_fcurves(anim_data, ads, firstfcu, NULL, filter_mode, owner_id);
 	}
@@ -2043,7 +2043,7 @@ static size_t animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, 
 			}
 			
 			/* check selection and object type filters */
-			if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) )  {
+			if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) ) {
 				/* only selected should be shown */
 				continue;
 			}

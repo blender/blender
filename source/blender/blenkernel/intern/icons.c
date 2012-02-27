@@ -263,7 +263,7 @@ int BKE_icon_getid(struct ID* id)
 
 	id->icon_id = get_next_free_id();
 
-	if (!id->icon_id){
+	if (!id->icon_id) {
 		printf("BKE_icon_getid: Internal error - not enough IDs\n");
 		return 0;
 	}

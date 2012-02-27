@@ -2444,7 +2444,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	MLoopUV *mloopuv;
 	int i, j;
 
-	for(i=0; i < numTex; i++){
+	for(i=0; i < numTex; i++) {
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
 		
@@ -2456,7 +2456,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 		}
 	}
 
-	for(i=0; i < numCol; i++){
+	for(i=0; i < numCol; i++) {
 		mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
 		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 

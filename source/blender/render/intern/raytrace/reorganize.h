@@ -175,8 +175,8 @@ void pushup(Node *parent)
 	Node **prev = &parent->child;
 	for(Node *child = parent->child; RE_rayobject_isAligned(child) && child; )
 	{
-		float c_area = bb_area(child->bb, child->bb+3) ;
-		int nchilds = count_childs(child);
+		const float c_area = bb_area(child->bb, child->bb + 3);
+		const int nchilds = count_childs(child);
 		float original_cost = ((p_area != 0.0f)? (c_area / p_area)*nchilds: 1.0f) + 1;
 		float flatten_cost = nchilds;
 		if(flatten_cost < original_cost && nchilds >= 2)

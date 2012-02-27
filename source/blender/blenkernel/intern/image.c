@@ -1122,11 +1122,11 @@ int BKE_add_image_extension(char *string, const char imtype)
 	}
 #endif
 #ifdef WITH_CINEON
-	else if(imtype==R_IMF_IMTYPE_CINEON){
+	else if(imtype==R_IMF_IMTYPE_CINEON) {
 		if (!BLI_testextensie(string, ".cin"))
 			extension= ".cin";
 	}
-	else if(imtype==R_IMF_IMTYPE_DPX){
+	else if(imtype==R_IMF_IMTYPE_DPX) {
 		if (!BLI_testextensie(string, ".dpx"))
 			extension= ".dpx";
 	}

@@ -343,7 +343,7 @@ struct bNode	*nodeAddNode(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 void			nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeRegisterType(struct bNodeTreeType *ttype, struct bNodeType *ntype) ;
+void			nodeRegisterType(struct bNodeTreeType *ttype, struct bNodeType *ntype);
 void			nodeMakeDynamicType(struct bNode *node);
 int				nodeDynamicUnlinkText(struct ID *txtid);
 

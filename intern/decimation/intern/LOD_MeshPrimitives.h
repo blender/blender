@@ -50,7 +50,7 @@ public :
 	bool m_select_tag;
 
 	LOD_Vertex(
-	) ;
+	);
 
 		bool
 	RemoveEdge(
@@ -109,13 +109,13 @@ public :
 		LOD_FaceInd
 	OpFace(
 		LOD_FaceInd f
-	) const ;
+	) const;
 
 		void
 	SwapFace(
 		LOD_FaceInd old_f,
 		LOD_FaceInd new_f
-	) ;
+	);
 
 
 	// return the half edge face - the half edge is defined
@@ -139,11 +139,11 @@ public :
 	SwapVertex(
 		LOD_VertexInd v_old,
 		LOD_VertexInd v_new
-	) ;			
+	);
 
 		bool
 	SelectTag(
-	) const ;
+	) const;
 
 		void
 	SetSelectTag(
@@ -157,7 +157,7 @@ public :
 		void
 	SetOpenTag(
 		int tag
-	) ;
+	);
 
 		bool
 	Degenerate(

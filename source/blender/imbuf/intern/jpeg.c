@@ -66,7 +66,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 
 /*
  * In principle there are 4 jpeg formats.
- * 
+ *
  * 1. jpeg - standard printing, u & v at quarter of resulution
  * 2. jvid - standaard video, u & v half resolution, frame not interlaced
 
@@ -187,7 +187,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
 	src->pub.init_source		= init_source;
 	src->pub.fill_input_buffer	= fill_input_buffer;
 	src->pub.skip_input_data	= skip_input_data;
-	src->pub.resync_to_restart	= jpeg_resync_to_restart; 
+	src->pub.resync_to_restart	= jpeg_resync_to_restart;
 	src->pub.term_source		= term_source;
 
 	src->pub.bytes_in_buffer	= size;
@@ -329,7 +329,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 							rect[0] = rect[1] = rect[2] = *buffer++;
 							rect += 4;
 						}
-							break;
+						break;
 					case 3:
 						for (x=ibuf->x; x >0; x--) {
 							rect[3] = 255;
@@ -338,7 +338,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 							rect[2] = *buffer++;
 							rect += 4;
 						}
-							break;
+						break;
 					case 4:
 						for (x=ibuf->x; x >0; x--) {
 							r = *buffer++;
@@ -361,7 +361,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 							if (b & 0xffffff00) {
 								if (b < 0) b = 0;
 								else b = 255;
-							}							
+							}
 							
 							rect[3] = 255 - k;
 							rect[2] = b;
@@ -526,26 +526,26 @@ next_stamp_info:
 		buffer = row_pointer[0];
 
 		switch(cinfo->in_color_space){
-		case JCS_RGB:
-			for (x = 0; x < ibuf->x; x++) {
-				*buffer++ = rect[0];
-				*buffer++ = rect[1];
-				*buffer++ = rect[2];
-				rect += 4;
-			}
-			break;
-		case JCS_GRAYSCALE:
-			for (x = 0; x < ibuf->x; x++) {
-				*buffer++ = rect[0];
-				rect += 4;
-			}
-			break;
-		case JCS_UNKNOWN:
-			memcpy(buffer, rect, 4 * ibuf->x);
-			break;
-			/* default was missing... intentional ? */
-		default:
-			; /* do nothing */
+			case JCS_RGB:
+				for (x = 0; x < ibuf->x; x++) {
+					*buffer++ = rect[0];
+					*buffer++ = rect[1];
+					*buffer++ = rect[2];
+					rect += 4;
+				}
+				break;
+			case JCS_GRAYSCALE:
+				for (x = 0; x < ibuf->x; x++) {
+					*buffer++ = rect[0];
+					rect += 4;
+				}
+				break;
+			case JCS_UNKNOWN:
+				memcpy(buffer, rect, 4 * ibuf->x);
+				break;
+				/* default was missing... intentional ? */
+			default:
+				; /* do nothing */
 		}
 
 		jpeg_write_scanlines(cinfo, row_pointer, 1);
@@ -579,18 +579,18 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 	if (ibuf->planes == 32) cinfo->in_color_space = JCS_UNKNOWN;
 #endif
 	switch(cinfo->in_color_space){
-	case JCS_RGB:
-		cinfo->input_components = 3;
-		break;
-	case JCS_GRAYSCALE:
-		cinfo->input_components = 1;
-		break;
-	case JCS_UNKNOWN:
-		cinfo->input_components = 4;
-		break;
-		/* default was missing... intentional ? */
-	default:
-		; /* do nothing */
+		case JCS_RGB:
+			cinfo->input_components = 3;
+			break;
+		case JCS_GRAYSCALE:
+			cinfo->input_components = 1;
+			break;
+		case JCS_UNKNOWN:
+			cinfo->input_components = 4;
+			break;
+			/* default was missing... intentional ? */
+		default:
+			; /* do nothing */
 	}
 	jpeg_set_defaults(cinfo);
 	
@@ -693,8 +693,8 @@ static int save_jstjpeg(const char *name, struct ImBuf *ibuf)
 	IMB_rectcpy(tbuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
 	sprintf(fieldname, "%s.jf0", name);
 
-	returnval = save_vidjpeg(fieldname, tbuf) ;
-		if (returnval == 1) {
+	returnval = save_vidjpeg(fieldname, tbuf);
+	if (returnval == 1) {
 		IMB_rectcpy(tbuf, ibuf, 0, 0, tbuf->x, 0, ibuf->x, ibuf->y);
 		sprintf(fieldname, "%s.jf1", name);
 		returnval = save_vidjpeg(fieldname, tbuf);

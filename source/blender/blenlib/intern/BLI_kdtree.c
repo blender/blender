@@ -179,17 +179,17 @@ int	BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *
 			stack[cur++]=root->right;
 	}
 	
-	while(cur--){
+	while(cur--) {
 		node=stack[cur];
 
 		cur_dist = node->co[node->d] - co[node->d];
 
-		if(cur_dist<0.0f){
+		if(cur_dist<0.0f) {
 			cur_dist= -cur_dist*cur_dist;
 
-			if(-cur_dist<min_dist){
+			if(-cur_dist<min_dist) {
 				cur_dist=squared_distance(node->co,co,node->nor,nor);
-				if(cur_dist<min_dist){
+				if(cur_dist<min_dist) {
 					min_dist=cur_dist;
 					min_node=node;
 				}
@@ -202,9 +202,9 @@ int	BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *
 		else{
 			cur_dist= cur_dist*cur_dist;
 
-			if(cur_dist<min_dist){
+			if(cur_dist<min_dist) {
 				cur_dist=squared_distance(node->co,co,node->nor,nor);
-				if(cur_dist<min_dist){
+				if(cur_dist<min_dist) {
 					min_dist=cur_dist;
 					min_node=node;
 				}
@@ -214,7 +214,7 @@ int	BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *
 			if(node->left)
 				stack[cur++]=node->left;
 		}
-		if(cur+3 > totstack){
+		if(cur+3 > totstack) {
 			KDTreeNode **temp=MEM_callocN((totstack+100)*sizeof(KDTreeNode*), "psys_treestack");
 			memcpy(temp,stack,totstack*sizeof(KDTreeNode*));
 			if(stack != defaultstack)
@@ -286,15 +286,15 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 			stack[cur++]=root->right;
 	}
 
-	while(cur--){
+	while(cur--) {
 		node=stack[cur];
 
 		cur_dist = node->co[node->d] - co[node->d];
 
-		if(cur_dist<0.0f){
+		if(cur_dist<0.0f) {
 			cur_dist= -cur_dist*cur_dist;
 
-			if(found<n || -cur_dist<nearest[found-1].dist){
+			if(found<n || -cur_dist<nearest[found-1].dist) {
 				cur_dist=squared_distance(node->co,co,node->nor,nor);
 
 				if(found<n || cur_dist<nearest[found-1].dist)
@@ -309,7 +309,7 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 		else{
 			cur_dist= cur_dist*cur_dist;
 
-			if(found<n || cur_dist<nearest[found-1].dist){
+			if(found<n || cur_dist<nearest[found-1].dist) {
 				cur_dist=squared_distance(node->co,co,node->nor,nor);
 				if(found<n || cur_dist<nearest[found-1].dist)
 					add_nearest(nearest,&found,n,node->index,cur_dist,node->co);
@@ -320,7 +320,7 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 			if(node->left)
 				stack[cur++]=node->left;
 		}
-		if(cur+3 > totstack){
+		if(cur+3 > totstack) {
 			KDTreeNode **temp=MEM_callocN((totstack+100)*sizeof(KDTreeNode*), "psys_treestack");
 			memcpy(temp,stack,totstack*sizeof(KDTreeNode*));
 			if(stack != defaultstack)
@@ -427,7 +427,7 @@ int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KD
 				stack[cur++]=node->right;
 		}
 
-		if(cur+3 > totstack){
+		if(cur+3 > totstack) {
 			KDTreeNode **temp=MEM_callocN((totstack+100)*sizeof(KDTreeNode*), "psys_treestack");
 			memcpy(temp,stack,totstack*sizeof(KDTreeNode*));
 			if(stack != defaultstack)

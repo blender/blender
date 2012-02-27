@@ -194,7 +194,7 @@ static void copy_bonechildren(Bone* newBone, Bone* oldBone, Bone* actBone, Bone 
 
 	/* For each child in the list, update it's children */
 	newChildBone = newBone->childbase.first;
-	for (curBone = oldBone->childbase.first; curBone; curBone = curBone->next){
+	for (curBone = oldBone->childbase.first; curBone; curBone = curBone->next) {
 		newChildBone->parent = newBone;
 		copy_bonechildren(newChildBone, curBone, actBone, newActBone);
 		newChildBone = newChildBone->next;

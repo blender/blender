@@ -1419,7 +1419,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		}
 		else {
 			for (base= FIRSTBASE; base; base= base->next) {
-				if (TESTBASE(v3d, base))  {
+				if (TESTBASE(v3d, base)) {
 					minmax_object(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay= base->lay;

@@ -81,7 +81,7 @@ void GPC_MouseDevice::NextFrame()
 		}
 		else {
 			if (oldevent.m_status == SCA_InputEvent::KX_JUSTRELEASED) {
-				m_eventStatusTables[m_currentTable][mousemove].m_status = SCA_InputEvent::KX_NO_INPUTSTATUS ;
+				m_eventStatusTables[m_currentTable][mousemove].m_status = SCA_InputEvent::KX_NO_INPUTSTATUS;
 			}
 		}
 	}

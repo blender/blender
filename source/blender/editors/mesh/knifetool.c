@@ -1672,7 +1672,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 			idx = BM_elem_index_get(faces[0]);
 			
 			f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
-			if (f2)  {
+			if (f2) {
 				BMO_elem_flag_enable(bm, f2, FACE_NEW);
 				BM_elem_index_set(f2, idx); /* set_dirty! */ /* BMESH_TODO, check if this is valid or not */
 			}

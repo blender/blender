@@ -12590,7 +12590,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						act->type= act->otype= ACT_ACTION;
 						
 					}
-					else if (act->type == ACT_SHAPEACTION)  {
+					else if (act->type == ACT_SHAPEACTION) {
 						act->type = act->otype = ACT_ACTION;
 					}
 				}

@@ -49,7 +49,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	int bhead[24/sizeof(int)]; /* max size on 64bit */
 	char endian, pointer_size;
 	char endian_switch;
-	int sizeof_bhead ;
+	int sizeof_bhead;
 
 	/* read the blend file header */
 	if(gzread(gzfile, buf, 12) != 12)

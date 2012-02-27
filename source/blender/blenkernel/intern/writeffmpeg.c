@@ -1154,12 +1154,13 @@ IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index,
 
 /* not all versions of ffmpeg include that, so here we go ... */
 
-static const AVOption *my_av_find_opt(void *v, const char *name, 
-					  const char *unit, int mask, int flags){
+static const AVOption *my_av_find_opt(void *v, const char *name,
+                                      const char *unit, int mask, int flags)
+{
 	AVClass *c= *(AVClass**)v; 
 	const AVOption *o= c->option;
 
-	for(;o && o->name; o++){
+	for(;o && o->name; o++) {
 		if(!strcmp(o->name, name) && 
 		   (!unit || (o->unit && !strcmp(o->unit, unit))) && 
 		   (o->flags & mask) == flags )

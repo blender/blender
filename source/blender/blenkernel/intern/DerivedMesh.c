@@ -2541,7 +2541,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 							}
 						}
 					}
-					nr_tris_to_pile = nr_verts-2 ;
+					nr_tris_to_pile = nr_verts - 2;
 					if ( nr_tris_to_pile==1 || nr_tris_to_pile==2 )
 					{
 						const int indices[] = {offs+0, offs+1, offs+2, offs+0, offs+2, (offs+3)&0x3 };

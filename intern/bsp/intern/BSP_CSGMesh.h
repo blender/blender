@@ -108,11 +108,10 @@ public :
 
 		std::vector<BSP_MVertex> &
 	VertexSet(
-	) const ;		
-
+	) const;
 		std::vector<BSP_MFace> &
 	FaceSet(
-	) const ;
+	) const;
 
 		std::vector<BSP_MEdge> &
 	EdgeSet(

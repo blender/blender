@@ -5017,7 +5017,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					 (is_sensor_linked(block, sens))
 				) {
 					/* should we draw the pin? - for now always draw when there is a state */
-					pin = (slogic->scaflag & BUTS_SENS_STATE && (sens->flag & SENS_SHOW || sens->flag & SENS_PIN)) ? 1:0 ;
+					pin = (slogic->scaflag & BUTS_SENS_STATE && (sens->flag & SENS_SHOW || sens->flag & SENS_PIN)) ? 1 : 0;
 					
 					sens->flag |= SENS_VISIBLE;
 					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, UI_UNIT_Y, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
@@ -5097,7 +5097,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					 (act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
 					 (act->flag & ACT_PIN && slogic->scaflag & BUTS_ACT_STATE)) {
 					
-					pin = (slogic->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1:0 ;
+					pin = (slogic->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1 : 0;
 					
 					act->flag |= ACT_VISIBLE;	/* mark the actuator as visible to help implementing the up/down action */
 					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, UI_UNIT_Y, &act->flag, 0, 0, 0, 0, "Delete Actuator");

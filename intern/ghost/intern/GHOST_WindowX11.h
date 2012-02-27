@@ -146,7 +146,7 @@ public:
 	
 		GHOST_TWindowState 
 	getState(
-	) const ;
+	) const;
 
 		GHOST_TSuccess 
 	setState(

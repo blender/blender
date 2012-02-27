@@ -53,7 +53,7 @@ void GPC_KeyboardDevice::NextFrame()
 		{
 			m_eventStatusTables[m_currentTable][keyevent] = oldevent;
 			m_eventStatusTables[m_currentTable][keyevent].m_status = SCA_InputEvent::KX_ACTIVE;
-			//m_eventStatusTables[m_currentTable][keyevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED ;
+			//m_eventStatusTables[m_currentTable][keyevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
 		}
 	}
 }

@@ -507,7 +507,7 @@ void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 {
 	float omega, cosom, sinom, sc1, sc2;
 
-	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
+	cosom = quat1[0] * quat2[0] + quat1[1] * quat2[1] + quat1[2] * quat2[2] + quat1[3] * quat2[3];
 	
 	/* rotate around shortest angle */
 	if ((1.0f + cosom) > 0.0001f) {
@@ -548,8 +548,8 @@ void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4],
 {
 	float quat[4], omega, cosom, sinom, sc1, sc2;
 
-	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
-	
+	cosom = quat1[0] * quat2[0] + quat1[1] * quat2[1] + quat1[2] * quat2[2] + quat1[3] * quat2[3];
+
 	/* rotate around shortest angle */
 	if (cosom < 0.0f) {
 		cosom = -cosom;

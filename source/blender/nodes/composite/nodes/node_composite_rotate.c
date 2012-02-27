@@ -90,7 +90,7 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 					switch(node->custom1) {
 					case 0:
 						neareast_interpolation(ibuf, obuf, u, v, xo, yo);
-						break ;
+						break;
 					case 1:
 						bilinear_interpolation(ibuf, obuf, u, v, xo, yo);
 						break;

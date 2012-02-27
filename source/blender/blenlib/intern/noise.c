@@ -957,29 +957,29 @@ static float noise3_perlin(float vec[3])
 	sz = surve(rz0);
 
 
-	q = g[ b00 + bz0 ] ;
+	q = g[ b00 + bz0 ];
 	u = at(rx0,ry0,rz0);
-	q = g[ b10 + bz0 ] ;
+	q = g[ b10 + bz0 ];
 	v = at(rx1,ry0,rz0);
 	a = lerp(sx, u, v);
 
-	q = g[ b01 + bz0 ] ;
+	q = g[ b01 + bz0 ];
 	u = at(rx0,ry1,rz0);
-	q = g[ b11 + bz0 ] ;
+	q = g[ b11 + bz0 ];
 	v = at(rx1,ry1,rz0);
 	b = lerp(sx, u, v);
 
 	c = lerp(sy, a, b);          /* interpolate in y at lo x */
 
-	q = g[ b00 + bz1 ] ;
+	q = g[ b00 + bz1 ];
 	u = at(rx0,ry0,rz1);
-	q = g[ b10 + bz1 ] ;
+	q = g[ b10 + bz1 ];
 	v = at(rx1,ry0,rz1);
 	a = lerp(sx, u, v);
 
-	q = g[ b01 + bz1 ] ;
+	q = g[ b01 + bz1 ];
 	u = at(rx0,ry1,rz1);
-	q = g[ b11 + bz1 ] ;
+	q = g[ b11 + bz1 ];
 	v = at(rx1,ry1,rz1);
 	b = lerp(sx, u, v);
 

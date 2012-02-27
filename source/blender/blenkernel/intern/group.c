@@ -123,7 +123,7 @@ void unlink_group(Group *group)
 #endif
 		}
 		
-		for(psys=ob->particlesystem.first; psys; psys=psys->next){
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			if(psys->part->dup_group==group)
 				psys->part->dup_group= NULL;
 #if 0		/* not used anymore, only keps for readfile.c, no need to account for this */

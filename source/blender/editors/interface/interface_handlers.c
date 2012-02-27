@@ -2564,7 +2564,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabsf(data->dragstartx-mx)*0.004f);
 		} else {
 			/*no scaling */
-			data->dragf+= ((float)(mx-data->draglastx))/deler ;
+			data->dragf += ((float)(mx - data->draglastx)) / deler;
 		}
 	
 		CLAMP(data->dragf, 0.0f, 1.0f);
