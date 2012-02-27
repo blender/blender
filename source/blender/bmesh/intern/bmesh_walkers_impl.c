@@ -157,7 +157,7 @@ static void *shellWalker_step(BMWalker *walker)
 				newState->curedge = curedge;
 			}
 		}
-		curedge = bmesh_disk_nextedge(curedge, shellWalk.base);
+		curedge = bmesh_disk_edge_next(curedge, shellWalk.base);
 	} while (curedge != shellWalk.curedge);
 	
 	return shellWalk.curedge;
@@ -282,8 +282,8 @@ static void *islandboundWalker_step(BMWalker *walker)
 	
 	while (1) {
 		l = BM_face_other_loop(e, f, v);
-		if (bmesh_radial_nextloop(l) != l) {
-			l = bmesh_radial_nextloop(l);
+		if (bmesh_radial_loop_next(l) != l) {
+			l = bmesh_radial_loop_next(l);
 			f = l->f;
 			e = l->e;
 			if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
@@ -488,7 +488,7 @@ static void *loopWalker_step(BMWalker *walker)
 			if (!l)
 				break;
 
-			l2 = bmesh_radial_nextloop(l);
+			l2 = bmesh_radial_loop_next(l);
 
 			if (l2 == l) {
 				break;

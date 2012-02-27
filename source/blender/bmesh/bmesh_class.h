@@ -30,24 +30,23 @@
 /* bmesh data structures */
 
 /* dissable holes for now, these are ifdef'd because they use more memory and cant be saved in DNA currently */
-#define USE_BMESH_HOLES
+// #define USE_BMESH_HOLES
 
 struct BMesh;
 struct BMVert;
 struct BMEdge;
 struct BMLoop;
 struct BMFace;
-struct BMFlagLayer;
-struct BMLayerType;
-struct BMSubClassLayer;
 
 struct BLI_mempool;
 struct Object;
 
-/*note: it is very important for BMHeader to start with two
-  pointers. this is a requirement of mempool's method of
-  iteration.
-*/
+/* note: it is very important for BMHeader to start with two
+ * pointers. this is a requirement of mempool's method of
+ * iteration.
+ *
+ * hrm. it doesnt but stull works ok, remove the comment above? - campbell.
+ */
 typedef struct BMHeader {
 	void *data; /* customdata layers */
 	int index; /* notes:
@@ -99,10 +98,10 @@ typedef struct BMLoop {
 	struct BMFace *f;
 
 	struct BMLoop *radial_next, *radial_prev;
-	
+
 	/* these were originally commented as private but are used all over the code */
 	/* can't use ListBase API, due to head */
-	struct BMLoop *next, *prev;
+	struct BMLoop *next, *prev; /* next/prev verts around the face */
 } BMLoop;
 
 /* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these dont have a flag layer */

@@ -230,7 +230,6 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 static void draw_filled_lasso(wmGesture *gt)
 {
 	ScanFillVert *v=NULL, *lastv=NULL, *firstv=NULL;
-	/* EditEdge *e; */ /* UNUSED */
 	ScanFillFace *efa;
 	short *lasso= (short *)gt->customdata;
 	int i;

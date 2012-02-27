@@ -35,21 +35,20 @@
 
 /* internal exports only */
 
-struct bScreen;
 struct ARegion;
-struct BoundBox;
-struct Object;
-struct DerivedMesh;
-struct wmOperatorType;
-struct bContext;
-struct wmWindowManager;
-struct EditMesh;
-struct ViewContext;
 struct ARegionType;
-struct bPoseChannel;
+struct BoundBox;
+struct DerivedMesh;
+struct Object;
+struct ViewContext;
 struct bAnimVizSettings;
+struct bContext;
 struct bMotionPath;
+struct bPoseChannel;
+struct bScreen;
 struct wmNDOFMotionData;
+struct wmOperatorType;
+struct wmWindowManager;
 
 #define BL_NEAR_CLIP 0.001
 

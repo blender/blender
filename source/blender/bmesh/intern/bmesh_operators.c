@@ -166,7 +166,7 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
  *
  * Executes a passed in operator. This handles
  * the allocation and freeing of temporary flag
- * layers and starting/stopping the modelling
+ * layers and starting/stopping the modeling
  * loop. Can be called from other operators
  * exec callbacks as well.
  */
@@ -859,7 +859,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 		for (i = 0, curedge = v->e; i < len; i++) {
 			if (BMO_elem_flag_test(bm, curedge, oflag))
 				count++;
-			curedge = bmesh_disk_nextedge(curedge, v);
+			curedge = bmesh_disk_edge_next(curedge, v);
 		}
 	}
 

@@ -32,8 +32,6 @@
 #ifndef __UVEDIT_INTERN_H__
 #define __UVEDIT_INTERN_H__
 
-struct EditFace;
-struct EditMesh;
 struct MTexPoly;
 struct Image;
 struct MTFace;

@@ -31,21 +31,20 @@
 #define __ED_UVEDIT_H__
 
 struct ARegionType;
-struct EditFace;
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
 struct Image;
-struct Main;
 struct ImageUser;
 struct MTFace;
+struct MTexPoly;
+struct Main;
 struct Object;
 struct Scene;
 struct SpaceImage;
 struct bContext;
 struct bNode;
 struct wmKeyConfig;
-struct BMEditMesh;
-struct BMLoop;
-struct BMFace;
-struct MTexPoly;
 
 /* uvedit_ops.c */
 void ED_operatortypes_uvedit(void);

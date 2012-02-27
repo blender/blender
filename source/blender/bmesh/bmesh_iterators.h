@@ -94,11 +94,11 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 typedef struct BMIter {
 	BLI_mempool_iter pooliter;
 
-	struct BMVert *firstvert, *nextvert, *vdata;
-	struct BMEdge *firstedge, *nextedge, *edata;
-	struct BMLoop *firstloop, *nextloop, *ldata, *l;
-	struct BMFace *firstpoly, *nextpoly, *pdata;
-	struct BMesh *bm;
+	BMVert *firstvert, *nextvert, *vdata;
+	BMEdge *firstedge, *nextedge, *edata;
+	BMLoop *firstloop, *nextloop, *ldata, *l;
+	BMFace *firstpoly, *nextpoly, *pdata;
+	BMesh *bm;
 	void (*begin)(struct BMIter *iter);
 	void *(*step)(struct BMIter *iter);
 	union {
@@ -111,8 +111,8 @@ typedef struct BMIter {
 	char itype;
 } BMIter;
 
-void *BM_iter_at_index(struct BMesh *bm, const char itype, void *data, int index);
-int   BM_iter_as_array(struct BMesh *bm, const char itype, void *data, void **array, const int len);
+void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index);
+int   BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);

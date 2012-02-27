@@ -395,56 +395,6 @@ static int ringcut_cancel (bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-/* for bmesh this tool is in bmesh_select.c */
-#if 0
-
-static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
-{
-	tringselOpData *lcd;
-	EditEdge *edge;
-	int dist = 75;
-	
-	view3d_operator_needs_opengl(C);
-
-	if (!ringsel_init(C, op, 0))
-		return OPERATOR_CANCELLED;
-	
-	lcd = op->customdata;
-	
-	if (lcd->em->selectmode == SCE_SELECT_FACE) {
-		PointerRNA props_ptr;
-		int extend = RNA_boolean_get(op->ptr, "extend");
-
-		ringsel_exit(op);
-
-		WM_operator_properties_create(&props_ptr, "MESH_OT_loop_select");
-		RNA_boolean_set(&props_ptr, "extend", extend);
-		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, &props_ptr);
-		WM_operator_properties_free(&props_ptr);
-
-		return OPERATOR_CANCELLED;
-	}
-
-	lcd->vc.mval[0] = evt->mval[0];
-	lcd->vc.mval[1] = evt->mval[1];
-	
-	edge = findnearestedge(&lcd->vc, &dist);
-	if(!edge) {
-		ringsel_exit(op);
-		return OPERATOR_CANCELLED;
-	}
-
-	lcd->eed = edge;
-	ringsel_find_edge(lcd, 1);
-
-	ringsel_finish(C, op);
-	ringsel_exit(op);
-
-	return OPERATOR_FINISHED;
-}
-
-#endif
-
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *obedit= CTX_data_edit_object(C);

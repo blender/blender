@@ -1980,8 +1980,7 @@ static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
 	}
 }
 
-/* way to overwrite what data is edited with transform
- * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
+/* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;

@@ -181,8 +181,6 @@ typedef struct TransDataNla {
 } TransDataNla;
 
 struct LinkNode;
-struct EditEdge;
-struct EditVert;
 struct GHash;
 
 typedef struct TransDataSlideVert {
@@ -201,14 +199,7 @@ typedef struct SlideData {
 	
 	struct SmallHash vhash;
 	struct SmallHash origfaces;
-	
-	/*
-	TransDataSlideUv *slideuv, *suv_last;
-	int totuv, uvlay_tot;
-	struct GHash *vhash, **uvhash;
-	struct EditVert *nearest;
-	struct LinkNode *edgelist, *vertlist;
-	*/
+
 	int start[2], end[2];
 	struct BMEditMesh *em;
 	float perc;
@@ -230,8 +221,8 @@ typedef struct TransData {
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
-	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
-	int  flag;         /* Various flags */
+	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to BMVert) (editbone for roll fixing) (...) */
+	int  flag;           /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 } TransData;
 

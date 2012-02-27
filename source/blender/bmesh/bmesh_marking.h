@@ -41,7 +41,7 @@ void BM_edge_hide_set(BMesh *bm, BMEdge *e, int hide);
 void BM_face_hide_set(BMesh *bm, BMFace *f, int hide);
 
 /* Selection code */
-void BM_elem_select_set(struct BMesh *bm, void *element, int select);
+void BM_elem_select_set(BMesh *bm, void *element, int select);
 
 /* use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection */
 
@@ -50,14 +50,14 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 
 /* individual element select functions, BM_elem_select_set is a shortcut for these
  * that automatically detects which one to use*/
-void BM_vert_select_set(struct BMesh *bm, struct BMVert *v, int select);
-void BM_edge_select_set(struct BMesh *bm, struct BMEdge *e, int select);
-void BM_face_select_set(struct BMesh *bm, struct BMFace *f, int select);
+void BM_vert_select_set(BMesh *bm, BMVert *v, int select);
+void BM_edge_select_set(BMesh *bm, BMEdge *e, int select);
+void BM_face_select_set(BMesh *bm, BMFace *f, int select);
 
-void BM_select_mode_set(struct BMesh *bm, int selectmode);
+void BM_select_mode_set(BMesh *bm, int selectmode);
 
 /* counts number of elements with flag set */
-int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int respecthide);
+int BM_mesh_count_flag(BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /* edit selection stuff */
 void    BM_active_face_set(BMesh *em, BMFace *f);

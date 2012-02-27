@@ -218,7 +218,7 @@ int BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 {
-	return bmesh_edge_getothervert(e, v);
+	return bmesh_edge_other_vert_get(e, v);
 }
 
 /*
@@ -247,7 +247,7 @@ int BM_edge_face_count(BMEdge *e)
 		l_iter = e->l;
 		do {
 			count++;
-		} while ((l_iter = bmesh_radial_nextloop(l_iter)) != e->l);
+		} while ((l_iter = bmesh_radial_loop_next(l_iter)) != e->l);
 	}
 
 	return count;
@@ -277,7 +277,7 @@ int BM_vert_face_count(BMVert *v)
 		curedge = v->e;
 		do {
 			if (curedge->l) count += BM_edge_face_count(curedge);
-			curedge = bmesh_disk_nextedge(curedge, v);
+			curedge = bmesh_disk_edge_next(curedge, v);
 		} while (curedge != v->e);
 	}
 	return count;
@@ -308,7 +308,7 @@ int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
 			return FALSE;
 		}
 
-		curedge = bmesh_disk_nextedge(curedge, v);
+		curedge = bmesh_disk_edge_next(curedge, v);
 	} while (curedge != v->e);
 
 	return TRUE;
@@ -355,7 +355,7 @@ int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
 
 	/* count edges while looking for non-manifold edges */
 	oe = v->e;
-	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_nextedge(e, v)) {
+	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_edge_next(e, v)) {
 		if (e->l == NULL) {
 			/* loose edge */
 			return FALSE;
@@ -461,7 +461,7 @@ int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f1);
 	do {
-		if (bmesh_radial_find_face(l_iter->e, f2)) {
+		if (bmesh_radial_face_find(l_iter->e, f2)) {
 			count++;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
@@ -486,7 +486,7 @@ int BM_edge_share_face_count(BMEdge *e1, BMEdge *e2)
 		l = e1->l;
 		do {
 			f = l->f;
-			if (bmesh_radial_find_face(e2, f)) {
+			if (bmesh_radial_face_find(e2, f)) {
 				return TRUE;
 			}
 			l = l->radial_next;
@@ -616,9 +616,9 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
 	 * get the edges and count them both at once */
 
 	if ((e1 = v->e) &&
-		(e2 =  bmesh_disk_nextedge(e1, v)) &&
+		(e2 =  bmesh_disk_edge_next(e1, v)) &&
 	    /* make sure we come full circle and only have 2 connected edges */
-		(e1 == bmesh_disk_nextedge(e2, v)))
+		(e1 == bmesh_disk_edge_next(e2, v)))
 	{
 		BMVert *v1 = BM_edge_other_vert(e1, v);
 		BMVert *v2 = BM_edge_other_vert(e2, v);

@@ -2874,23 +2874,23 @@ typedef struct CutCurve {
 
 /* ******************************************************************** */
 /* Knife Subdivide Tool.  Subdivides edges intersected by a mouse trail
-	drawn by user.
-	
-	Currently mapped to KKey when in MeshEdit mode.
-	Usage:
-		Hit Shift K, Select Centers or Exact
-		Hold LMB down to draw path, hit RETKEY.
-		ESC cancels as expected.
-   
-	Contributed by Robert Wenzlaff (Det. Thorn).
-
-    2.5 revamp:
-    - non modal (no menu before cutting)
-    - exit on mouse release
-    - polygon/segment drawing can become handled by WM cb later
-
-	bmesh port version
-*/
+ * drawn by user.
+ *
+ * Currently mapped to KKey when in MeshEdit mode.
+ * Usage:
+ * - Hit Shift K, Select Centers or Exact
+ * - Hold LMB down to draw path, hit RETKEY.
+ * - ESC cancels as expected.
+ *
+ * Contributed by Robert Wenzlaff (Det. Thorn).
+ *
+ * 2.5 Revamp:
+ *  - non modal (no menu before cutting)
+ *  - exit on mouse release
+ *  - polygon/segment drawing can become handled by WM cb later
+ *
+ * bmesh port version
+ */
 
 #define KNIFE_EXACT		1
 #define KNIFE_MIDPOINT	2
@@ -2903,7 +2903,7 @@ static EnumPropertyItem knife_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
+/* bm_edge_seg_isect() Determines if and where a mouse trail intersects an BMEdge */
 
 static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
                                struct GHash *gh, int *isected)
@@ -3573,36 +3573,6 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
 	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(15.0f));
-}
-
-static int edge_flip_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
-{
-#if 0
-	Object *obedit = CTX_data_edit_object(C);
-	EditMesh *em = BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	edge_flip(em);
-
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-#endif
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edge_flip(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Edge Flip";
-	ot->idname = "MESH_OT_edge_flip";
-
-	/* api callbacks */
-	ot->exec = edge_flip_exec;
-	ot->poll = ED_operator_editmesh;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int split_mesh_exec(bContext *C, wmOperator *op)

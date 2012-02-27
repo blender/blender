@@ -140,8 +140,7 @@ typedef struct BMOperator {
 	int slottype;
 	int needflag;
 	int flag;
-	struct BMOpSlot slots[BMO_OP_MAX_SLOTS];
-	void (*exec)(struct BMesh *bm, struct BMOperator *op);
+	struct BMOpSlot slots[BMO_OP_MAX_SLOTS]; void (*exec)(BMesh *bm, struct BMOperator *op);
 	MemArena *arena;
 } BMOperator;
 

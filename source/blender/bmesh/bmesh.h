@@ -62,14 +62,7 @@ extern "C" {
  */
 
 /*forward declarations*/
-struct BMesh;
-struct BMVert;
-struct BMEdge;
-struct BMFace;
-struct BMLoop;
-struct BMOperator;
 struct Mesh;
-struct EditMesh;
 
 /*
  * BMHeader
@@ -216,7 +209,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);
  * the nl member to a loop in the newly created edge.*/
 BMFace *BM_face_split(BMesh *bm, BMFace *f,
                       BMVert *v1, BMVert *v2,
-                      struct BMLoop **nl, BMEdge *example);
+                      BMLoop **nl, BMEdge *example);
 
 /* these 2 functions are very similar */
 BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
@@ -287,13 +280,13 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
 void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
 
 void  BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac);
-void  BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, struct BMEdge *e1, const float fac);
+void  BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, BMEdge *e1, const float fac);
 void  BM_data_layer_add(BMesh *em, CustomData *data, int type);
 void  BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
 void  BM_data_layer_free(BMesh *em, CustomData *data, int type);
 void  BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n);
-float BM_elem_float_data_get(struct CustomData *cd, void *element, int type);
-void  BM_elem_float_data_set(struct CustomData *cd, void *element, int type, const float val);
+float BM_elem_float_data_get(CustomData *cd, void *element, int type);
+void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val);
 
 /* get the area of the face */
 float BM_face_area_calc(BMesh *bm, BMFace *f);

@@ -56,7 +56,6 @@
  *
  *
  */
-#if 1
 int BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
 	const int len = BM_vert_edge_count(v);
@@ -107,7 +106,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		/* v->e we keep, what else */
 		e = v->e;
 		do {
-			e = bmesh_disk_nextedge(e, v);
+			e = bmesh_disk_edge_next(e, v);
 			if (!(BM_edge_share_face_count(e, v->e))) {
 				keepedge = e;
 				baseedge = v->e;
@@ -174,7 +173,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 					done = 0;
 					break;
 				}
-				e = bmesh_disk_nextedge(e, v);
+				e = bmesh_disk_edge_next(e, v);
 			} while (e != v->e);
 		}
 
@@ -199,37 +198,6 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 
 	return TRUE;
 }
-#else
-void BM_disk_dissolve(BMesh *bm, BMVert *v)
-{
-	BMFace *f;
-	BMEdge *e;
-	BMIter iter;
-	int done, len;
-	
-	if (v->e) {
-		done = 0;
-		while (!done) {
-			done = 1;
-			
-			/* loop the edges looking for an edge to dissolv */
-			for (e = BM_iter_new(&iter, bm, BM_EDGES_OF_VERT, v); e;
-			     e = BM_iter_step(&iter)) {
-				f = NULL;
-				len = bmesh_cycle_length(&(e->l->radial));
-				if (len == 2) {
-					f = BM_faces_join_pair(bm, e->l->f, ((BMLoop *)(e->l->radial_next))->f, e);
-				}
-				if (f) {
-					done = 0;
-					break;
-				}
-			};
-		}
-		BM_vert_collapse_faces(bm, v->e, v, 1.0, TRUE);
-	}
-}
-#endif
 
 /**
  * BM_faces_join_pair
@@ -414,7 +382,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
                                const short join_faces, const short kill_degenerate_faces)
 {
 	BMEdge *ne = NULL;
-	BMVert *tv = bmesh_edge_getothervert(ke, kv);
+	BMVert *tv = bmesh_edge_other_vert_get(ke, kv);
 
 	BMEdge *e2;
 	BMVert *tv2;
@@ -450,7 +418,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 	/* now interpolate the vertex data */
 	BM_data_interp_from_verts(bm, kv, tv, kv, fac);
 
-	e2 = bmesh_disk_nextedge(ke, kv);
+	e2 = bmesh_disk_edge_next(ke, kv);
 	tv2 = BM_edge_other_vert(e2, kv);
 
 	if (join_faces) {
@@ -520,9 +488,9 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
 
 	/* in this case we want to keep all faces and not join them,
 	 * rather just get rid of the veretex - see bug [#28645] */
-	BMVert *tv  = bmesh_edge_getothervert(ke, kv);
+	BMVert *tv  = bmesh_edge_other_vert_get(ke, kv);
 	if (tv) {
-		BMEdge *e2 = bmesh_disk_nextedge(ke, kv);
+		BMEdge *e2 = bmesh_disk_edge_next(ke, kv);
 		if (e2) {
 			BMVert *tv2 = BM_edge_other_vert(e2, kv);
 			if (tv2) {
@@ -587,7 +555,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percen
 		}
 	}
 
-	v2 = bmesh_edge_getothervert(e, v);
+	v2 = bmesh_edge_other_vert_get(e, v);
 	nv = bmesh_semv(bm, v, e, ne);
 	if (nv == NULL) {
 		return NULL;

@@ -38,10 +38,6 @@ extern "C" {
 struct ID;
 struct View3D;
 struct ARegion;
-struct EditMesh;
-struct EditVert;
-struct EditEdge;
-struct EditFace;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;

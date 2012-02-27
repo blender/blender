@@ -93,10 +93,9 @@ extern int bmesh_total_ops;
  * to get more useful information (such as the mapping from
  * original to new elements) you should run the dupe op manually.*/
 struct Object;
-struct EditMesh;
 
 #if 0
-void BMO_dupe_from_flag(struct BMesh *bm, int etypeflag, const char hflag);
+void BMO_dupe_from_flag(BMesh *bm, int etypeflag, const char hflag);
 #endif
 void BM_mesh_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth,
                             float fractal, int beauty, int numcuts, int seltype,

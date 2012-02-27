@@ -152,7 +152,7 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 		}
 
 		e = v->e;
-		elast = bmesh_disk_nextedge(e, v);
+		elast = bmesh_disk_edge_next(e, v);
 
 		/* BMESH_TODO, figure out if its possible we had a double edge here and need to splice it,
 		 * last bool arg */
@@ -274,7 +274,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 			return NULL;
 		}
 		e1 = v->e; /* we just use the first two edges */
-		e2 = bmesh_disk_nextedge(v->e, v);
+		e2 = bmesh_disk_edge_next(v->e, v);
 		if (e1 == e2) {
 			//printf("You need at least two edges to use BME_bevel_split_edge()\n");
 			return NULL;
@@ -459,7 +459,7 @@ static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int UN
 	BMVert *ov1, *ov2, *v1, *v2;
 
 	ov1 = BM_edge_other_vert(v->e, v);
-	ov2 = BM_edge_other_vert(bmesh_disk_nextedge(v->e, v), v);
+	ov2 = BM_edge_other_vert(bmesh_disk_edge_next(v->e, v), v);
 
 	/* split the edges */
 	v1 = BME_bevel_split_edge(bm, v, ov1, NULL, NULL, value, td);
@@ -542,7 +542,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		/* find saved loop pointer */
 		l = se->l;
 		while (l->f != jf) {
-			l = bmesh_radial_nextloop(l);
+			l = bmesh_radial_loop_next(l);
 			BLI_assert(l != se->l);
 		}
 		l = l->prev;
@@ -588,7 +588,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		/* find saved loop pointer */
 		l = se->l;
 		while (l->f != jf) {
-			l = bmesh_radial_nextloop(l);
+			l = bmesh_radial_loop_next(l);
 			BLI_assert(l != se->l);
 		}
 	}
@@ -964,7 +964,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 					BM_face_split(bm, l->f, l->next->v, l->prev->v, &l, l->e); /* clip this corner off */
 				if(l2->f->len > 3)
 					BM_face_split(bm, l2->f, l2->next->v, l2->prev->v, &l, l2->e); /* clip this corner off */
-				curedge = bmesh_disk_nextedge(curedge, v);
+				curedge = bmesh_disk_edge_next(curedge, v);
 			} while(curedge != v->e);
 			BME_Bevel_Dissolve_Disk(bm, v);
 		}
