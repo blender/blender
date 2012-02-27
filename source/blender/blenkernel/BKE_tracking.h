@@ -27,7 +27,7 @@
 #ifndef __BKE_TRACKING_H__
 #define __BKE_TRACKING_H__
 
-/** \file BKE_trackingp.h
+/** \file BKE_tracking.h
  *  \ingroup bke
  *  \author Sergey Sharybin
  */

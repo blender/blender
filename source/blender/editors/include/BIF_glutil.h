@@ -97,7 +97,7 @@ float glaGetOneFloat		(int param);
 	 * should be coordinates of a point known to be within the current
 	 * view frustum.
 	 * @attention This routine should be used when the distance of @a x 
-	 * and @y away from the known good point is small (ie. for small icons
+	 * and @a y away from the known good point is small (ie. for small icons
 	 * and for bitmap characters), when drawing large+zoomed images it is
 	 * possible for overflow to occur, the glaDrawPixelsSafe routine should
 	 * be used instead.

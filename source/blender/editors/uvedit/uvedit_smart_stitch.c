@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/uvedit/uvedit_stitch.c
+/** \file blender/editors/uvedit/uvedit_smart_stitch.c
  *  \ingroup eduv
  */
 

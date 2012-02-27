@@ -285,7 +285,8 @@ static void mywrite( WriteData *wd, void *adr, int len)
 /**
  * BeGiN initializer for mywrite
  * @param file File descriptor
- * @param write_flags Write parameters
+ * @param compare Previous memory file (can be NULL).
+ * @param current The current memory file (can be NULL).
  * @warning Talks to other functions with global parameters
  */
 static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)

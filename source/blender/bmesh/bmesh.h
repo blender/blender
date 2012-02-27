@@ -25,6 +25,160 @@
 
 /** \file blender/bmesh/bmesh.h
  *  \ingroup bmesh
+ *
+ * \addtogroup bmesh BMesh
+ *
+ * \brief BMesh is a non-manifold boundary representation designed to replace the current, limited EditMesh structure,
+ * solving many of the design limitations and maintenance issues of EditMesh.
+ *
+ *
+ * \section bm_structure The Structure
+ *
+ * BMesh stores topology in four main element structures:
+ *
+ * - Faces - BMFace
+ * - Loops - BMLoop, (stores per-face-vertex data, UV's, vertex-colors, etc)
+ * - Edges - BMEdge
+ * - Verts - BMVert
+ *
+ *
+ * \subsection bm_header_flags Header Flags
+ * Each element (vertex/edge/face/loop) in a mesh has an associated bit-field called "header flags".
+ *
+ * BMHeader flags should <b>never</b> be read or written to by bmesh operators (see Operators below).
+ *
+ * Access to header flags is done with BM_elem_flag_*() functions.
+ *
+ *
+ * \subsection bm_faces Faces
+ *
+ * Faces in BMesh are stored as a circular linked list of loops. Loops store per-face-vertex data
+ * (amongst other things outlined later in this document), and define the face boundary.
+ *
+ *
+ * \subsection bm_loop The Loop
+ *
+ * Loops define the boundary loop of a face. Each loop logically corresponds to an edge,
+ * which is defined by the loop and next loop's vertices.
+ *
+ * Loops store several handy pointers:
+ *
+ * - BMLoop#v - pointer to the vertex associated with this loop.
+ * - BMLoop#e - pointer to the edge associated with this loop.
+ * - BMLoop#f - pointer to the face associated with this loop.
+ *
+ *
+ * \subsection bm_two_side_face 2-Sided Faces
+ *
+ * There are some situations where you need 2-sided faces (e.g. a face of two vertices).
+ * This is supported by BMesh, but note that such faces should only be used as intermediary steps,
+ * and should not end up in the final mesh.
+ *
+ *
+ * \subsection bm_edges_and_verts Edges and Vertices
+ *
+ * Edges and Vertices in BMesh are much like their counterparts in EditMesh,
+ * except for some members private to the BMesh api.
+ *
+ * \note There can be more then one edge between two vertices in bmesh,
+ * though the rest of blender (e.g. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
+ *
+ *
+ * \subsection bm_queries Queries
+ *
+ * The following topological queries are available:
+ *
+ * - Edges/Faces/Loops around a vertex.
+ * - Faces around an edge.
+ * - Loops around an edge.
+ *
+ * These are accessible through the iterator api, which is covered later in this document
+ *
+ * See source/blender/bmesh/bmesh_queries.h for more misc. queries.
+ *
+ *
+ * \section bm_api The BMesh API
+ *
+ * One of the goals of the BMesh API is to make it easy and natural to produce highly maintainable code.
+ * Code duplication, etc are avoided where possible.
+ *
+ *
+ * \subsection bm_iter_api Iterator API
+ *
+ * Most topological queries in BMesh go through an iterator API (see Queries above).
+ * These are defined in bmesh_iterators.h.  If you can, please use the #BM_ITER macro in bmesh_iterators.h
+ *
+ *
+ * \subsection bm_walker_api Walker API
+ *
+ * Topological queries that require a stack (e.g. recursive queries) go through the Walker API,
+ * which is defined in bmesh_walkers.h. Currently the "walkers" are hard-coded into the API,
+ * though a mechanism for plugging in new walkers needs to be added at some point.
+ *
+ * Most topological queries should go through these two APIs;
+ * there are additional functions you can use for topological iteration, but their meant for internal bmesh code.
+ *
+ * Note that the walker API supports delimiter flags, to allow the caller to flag elements not to walk past.
+ *
+ *
+ * \subsection bm_ops Operators
+ *
+ * Operators are an integral part of BMesh. Unlike regular blender operators,
+ * BMesh operators <b>bmo's</b> are designed to be nested (e.g. call other operators).
+ *
+ * Each operator has a number of input/output "slots" which are used to pass settings & data into/out of the operator
+ * (and allows for chaining operators together).
+ *
+ * These slots are identified by name, using strings.
+ *
+ * Access to slots is done with BMO_slot_*() functions.
+ *
+ *
+ * \subsection bm_tool_flags Tool Flags
+ *
+ * The BMesh API provides a set of flags for faces, edges and vertices, which are private to an operator.
+ * These flags may be used by the client operator code as needed
+ * (a common example is flagging elements for use in another operator).
+ * Each call to an operator allocates it's own set of tool flags when it's executed,
+ * avoiding flag conflicts between operators.
+ *
+ * These flags should not be confused with header flags, which are used to store persistent flags
+ * (e.g. selection, hide status, etc).
+ *
+ * Access to tool flags is done with BMO_elem_flag_*() functions.
+ *
+ * \warning Operators are never allowed to read or write to header flags.
+ * They act entirely on the data inside their input slots.
+ * For example an operator should not check the selected state of an element,
+ * there are some exceptions to this - some operators check of a face is smooth.
+ *
+ *
+ * \subsection bm_slot_types Slot Types
+ *
+ * The following slot types are available:
+ *
+ * - integer - #BMO_OP_SLOT_INT
+ * - boolean - #BMO_OP_SLOT_BOOL
+ * - float   - #BMO_OP_SLOT_FLT
+ * - pointer - #BMO_OP_SLOT_PNT
+ * - element buffer - #BMO_OP_SLOT_ELEMENT_BUF - a list of verts/edges/faces
+ * - map     - BMO_OP_SLOT_MAPPING - simple hash map
+ *
+ *
+ * \subsection bm_slot_iter Slot Iterators
+ *
+ * Access to element buffers or maps must go through the slot iterator api, defined in bmesh_operators.h.
+ * Use #BMO_ITER where ever possible.
+ *
+ *
+ * \subsection bm_elem_buf Element Buffers
+ *
+ * The element buffer slot type is used to feed elements (verts/edges/faces) to operators.
+ * Internally they are stored as pointer arrays (which happily has not caused any problems so far).
+ * Many operators take in a buffer of elements, process it,
+ * then spit out a new one; this allows operators to be chained together.
+ *
+ * \note Element buffers may have elements of different types within the same buffer (this is supported by the API.
  */
 
 #ifdef __cplusplus
@@ -37,29 +191,6 @@ extern "C" {
 #include "BLI_utildefines.h"
 
 #include "bmesh_class.h"
-
-/*
- * short introduction:
- *
- * the bmesh structure is a boundary representation, supporting non-manifold
- * locally modifiable topology. the API is designed to allow clean, maintainable
- * code, that never (or almost never) directly inspects the underlying structure.
- *
- * The API includes iterators, including many useful topological iterators;
- * walkers, which walk over a mesh, without the risk of hitting the recursion
- * limit; operators, which are logical, reusable mesh modules; topological
- * modification functions (like split face, join faces, etc), which are used for
- * topological manipulations; and some (not yet finished) geometric utility
- * functions.
- *
- * some definitions:
- *
- * tool flags: private flags for tools.  each operator has it's own private
- *             tool flag "layer", which it can use to flag elements.
- *             tool flags are also used by various other parts of the api.
- * header flags: stores persistent flags, such as selection state, hide state,
- *               etc.  be careful of touching these.
- */
 
 /*forward declarations*/
 struct Mesh;
@@ -79,32 +210,37 @@ struct Mesh;
 */
 
 /* BMHeader->htype (char) */
-#define BM_VERT 	1
-#define BM_EDGE 	2
-#define BM_LOOP 	4
-#define BM_FACE 	8
-#define BM_ALL		(BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
+enum {
+	BM_VERT = 1,
+	BM_EDGE = 2,
+	BM_LOOP = 4,
+	BM_FACE = 8
+};
+
+#define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 
 /* BMHeader->hflag (char) */
-#define BM_ELEM_SELECT	(1 << 0)
-#define BM_ELEM_HIDDEN	(1 << 1)
-#define BM_ELEM_SEAM	(1 << 2)
-#define BM_ELEM_SMOOTH	(1 << 3) /* used for faces and edges, note from the user POV,
+enum {
+	BM_ELEM_SELECT  = (1 << 0),
+	BM_ELEM_HIDDEN  = (1 << 1),
+	BM_ELEM_SEAM    = (1 << 2),
+	BM_ELEM_SMOOTH  = (1 << 3), /* used for faces and edges, note from the user POV,
                                   * this is a sharp edge when disabled */
 
-#define BM_ELEM_TAG     (1 << 4) /* internal flag, used for ensuring correct normals
-                                  * during multires interpolation, and any other time
-                                  * when temp tagging is handy.
-                                  * always assume dirty & clear before use. */
+	BM_ELEM_TAG     = (1 << 4), /* internal flag, used for ensuring correct normals
+                                 * during multires interpolation, and any other time
+                                 * when temp tagging is handy.
+                                 * always assume dirty & clear before use. */
 
-/* we have 3 spare flags which is awesome but since we're limited to 8
- * only add new flags with care! - campbell */
-/* #define BM_ELEM_SPARE	 (1 << 5) */
-/* #define BM_ELEM_SPARE	 (1 << 6) */
+	/* we have 2 spare flags which is awesome but since we're limited to 8
+	 * only add new flags with care! - campbell */
+	/* BM_ELEM_SPARE  = (1 << 5), */
+	/* BM_ELEM_SPARE  = (1 << 6), */
 
-#define BM_ELEM_INTERNAL_TAG (1 << 7) /* for low level internal API tagging,
-                                       * since tools may want to tag verts and
-                                       * not have functions clobber them */
+	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
+                                     * since tools may want to tag verts and
+                                     * not have functions clobber them */
+};
 
 /* Mesh Level Ops */
 extern int bm_mesh_allocsize_default[4];

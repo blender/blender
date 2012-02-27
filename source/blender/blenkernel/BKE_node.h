@@ -165,7 +165,7 @@ typedef struct bNodeType {
 	/// Create a template from an existing node.
 	struct bNodeTemplate (*templatefunc)(struct bNode *);
 	/** If a node can be made from the template in the given node tree.
-	 * \example Node groups can not be created inside their own node tree.
+	 * \note Node groups can not be created inside their own node tree.
 	 */
 	int (*validfunc)(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 	

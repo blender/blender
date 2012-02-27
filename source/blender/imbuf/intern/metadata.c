@@ -84,7 +84,7 @@ int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* field, int 
 	return retval;
 }
 
-int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* field)
+int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* value)
 {
 	ImMetaData *info;
 	ImMetaData *last;
@@ -106,7 +106,7 @@ int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* field
 		last->next = info;
 	}
 	info->key = BLI_strdup(key);
-	info->value = BLI_strdup(field);
+	info->value = BLI_strdup(value);
 	return 1;
 }
 

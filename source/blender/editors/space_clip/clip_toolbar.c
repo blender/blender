@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/clip_header.c
+/** \file blender/editors/space_clip/clip_toolbar.c
  *  \ingroup spclip
  */
 

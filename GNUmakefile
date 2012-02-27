@@ -258,7 +258,7 @@ doc_py:
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
 
 doc_doxy:
-	cd doc/doxygen; doxygen 
+	cd doc/doxygen; doxygen Doxyfile
 	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna:

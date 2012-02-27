@@ -188,9 +188,4 @@ typedef struct BMesh {
 	int opflag; /* current operator flag */
 } BMesh;
 
-#define BM_VERT		1
-#define BM_EDGE		2
-#define BM_LOOP		4
-#define BM_FACE		8
-
 #endif /* __BMESH_CLASS_H__ */

@@ -1855,6 +1855,7 @@ const char *BLI_program_dir(void)
 * Also make sure the temp dir has a trailing slash
 *
 * @param fullname The full path to the temp directory
+* @param maxlen The size of the fullname buffer
 * @param userdir Directory specified in user preferences 
 */
 static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)

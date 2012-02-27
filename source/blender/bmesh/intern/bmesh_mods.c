@@ -375,7 +375,8 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  * @param fac The factor along the edge
  * @param join_faces When true the faces around the vertex will be joined
  * otherwise collapse the vertex by merging the 2 edges this vert touches into one.
- *  @returns The New Edge
+ * @param kill_degenerate_faces Removes faces with less than 3 verts after collapsing.
+ * @returns The New Edge
  */
 
 BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
