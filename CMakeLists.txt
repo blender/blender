@@ -1497,9 +1497,9 @@ if(MSVC10)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	if(WITH_IK_ITASC)
-		message(WARNING "Using Clang as CXX compiler: disabling WITH_IK_ITASC, this feature will be missing.")
-		set(WITH_IK_ITASC OFF)
+	if(WITH_LIBMV)
+		message(WARNING "Using Clang as CXX compiler: disabling WITH_LIBMV, this feature will be missing.")
+		set(WITH_LIBMV OFF)
 	endif()
 endif()
 
