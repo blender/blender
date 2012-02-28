@@ -135,6 +135,7 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
+		L->ao = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
@@ -196,6 +197,27 @@ __device_inline void path_radiance_accum_emission(PathRadiance *L, float3 throug
 		L->emission += throughput*value;
 #else
 	*L += throughput*value;
+#endif
+}
+
+__device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, float3 bsdf, float3 ao, int bounce)
+{
+#ifdef __PASSES__
+	if(L->use_light_pass) {
+		if(bounce == 0) {
+			/* directly visible lighting */
+			L->direct_diffuse += throughput*bsdf*ao;
+			L->ao += throughput*ao;
+		}
+		else {
+			/* indirectly visible lighting after BSDF bounce */
+			L->indirect += throughput*bsdf*ao;
+		}
+	}
+	else
+		L->emission += throughput*bsdf*ao;
+#else
+	*L += throughput*bsdf*ao;
 #endif
 }
 

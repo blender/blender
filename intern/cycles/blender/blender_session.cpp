@@ -158,10 +158,11 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 			return PASS_EMISSION;
 		case BL::RenderPass::type_ENVIRONMENT:
 			return PASS_BACKGROUND;
+		case BL::RenderPass::type_AO:
+			return PASS_AO;
 
 		case BL::RenderPass::type_DIFFUSE:
 		case BL::RenderPass::type_SHADOW:
-		case BL::RenderPass::type_AO:
 		case BL::RenderPass::type_COLOR:
 		case BL::RenderPass::type_REFRACTION:
 		case BL::RenderPass::type_SPECULAR:

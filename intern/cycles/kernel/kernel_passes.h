@@ -123,6 +123,8 @@ __device_inline void kernel_write_light_passes(KernelGlobals *kg, __global float
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_emission, sample, L->emission);
 	if(flag & PASS_BACKGROUND)
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_background, sample, L->background);
+	if(flag & PASS_AO)
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_ao, sample, L->ao);
 
 	if(flag & PASS_DIFFUSE_COLOR)
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_color, sample, L->color_diffuse);

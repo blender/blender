@@ -72,6 +72,7 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __PASSES__
 #define __BACKGROUND_MIS__
+#define __AO__
 #endif
 
 //#define __MULTI_LIGHT__
@@ -172,7 +173,8 @@ typedef enum PassType {
 	PASS_GLOSSY_DIRECT = 16384,
 	PASS_TRANSMISSION_DIRECT = 32768,
 	PASS_EMISSION = 65536,
-	PASS_BACKGROUND = 131072
+	PASS_BACKGROUND = 131072,
+	PASS_AO = 262144
 } PassType;
 
 #define PASS_ALL (~0)
@@ -186,6 +188,7 @@ typedef struct PathRadiance {
 
 	float3 emission;
 	float3 background;
+	float3 ao;
 
 	float3 indirect;
 	float3 direct_throughput;
@@ -237,7 +240,8 @@ typedef enum LightType {
 	LIGHT_POINT,
 	LIGHT_DISTANT,
 	LIGHT_BACKGROUND,
-	LIGHT_AREA
+	LIGHT_AREA,
+	LIGHT_AO
 } LightType;
 
 /* Camera Type */
@@ -458,7 +462,7 @@ typedef struct KernelFilm {
 
 	int pass_emission;
 	int pass_background;
-	int pass_pad1;
+	int pass_ao;
 	int pass_pad2;
 } KernelFilm;
 
@@ -466,7 +470,10 @@ typedef struct KernelBackground {
 	/* only shader index */
 	int shader;
 	int transparent;
-	int pad1, pad2;
+
+	/* ambient occlusion */
+	float ao_factor;
+	float ao_distance;
 } KernelBackground;
 
 typedef struct KernelSunSky {
@@ -482,6 +489,7 @@ typedef struct KernelSunSky {
 typedef struct KernelIntegrator {
 	/* emission */
 	int use_direct_light;
+	int use_ambient_occlusion;
 	int num_distribution;
 	int num_all_lights;
 	float pdf_triangles;
@@ -509,7 +517,7 @@ typedef struct KernelIntegrator {
 
 	/* render layer */
 	int layer_flag;
-	int pad1, pad2, pad3;
+	int pad1, pad2;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

@@ -111,6 +111,10 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.components = 4;
 			pass.exposure = true;
 			break;
+		case PASS_AO:
+			pass.components = 4;
+			pass.exposure = true;
+			break;
 	}
 
 	passes.push_back(pass);
@@ -223,6 +227,9 @@ void Film::device_update(Device *device, DeviceScene *dscene)
 				break;
 			case PASS_BACKGROUND:
 				kfilm->pass_background = kfilm->pass_stride;
+				kfilm->use_light_pass = 1;
+			case PASS_AO:
+				kfilm->pass_ao = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
 			case PASS_NONE:
 				break;

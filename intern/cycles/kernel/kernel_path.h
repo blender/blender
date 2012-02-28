@@ -145,12 +145,15 @@ __device_inline float path_state_terminate_probability(KernelGlobals *kg, PathSt
 	return average(throughput);
 }
 
-__device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, Intersection *isect, BsdfEval *L_light)
+__device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
 {
 	if(ray->t == 0.0f)
 		return false;
 	
-	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, isect);
+	Intersection isect;
+	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect);
+
+	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(result && kernel_data.integrator.transparent_shadows) {
@@ -162,7 +165,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 		   
 		   also note that for this to work correct, multi close sampling must
 		   be used, since we don't pass a random number to shader_eval_surface */
-		if(shader_transparent_shadow(kg, isect)) {
+		if(shader_transparent_shadow(kg, &isect)) {
 			float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 			float3 Pend = ray->P + ray->D*ray->t;
 			int bounce = state->transparent_bounce;
@@ -184,16 +187,16 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 #endif
 				}
 
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, isect)) {
-					bsdf_eval_mul(L_light, throughput);
+				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect)) {
+					*shadow *= throughput;
 					return false;
 				}
 
-				if(!shader_transparent_shadow(kg, isect))
+				if(!shader_transparent_shadow(kg, &isect))
 					return true;
 
 				ShaderData sd;
-				shader_setup_from_ray(kg, &sd, isect, ray);
+				shader_setup_from_ray(kg, &sd, &isect, ray);
 				shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW);
 
 				throughput *= shader_bsdf_transparency(kg, &sd);
@@ -285,6 +288,35 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 		throughput /= probability;
 
+
+#ifdef __AO__
+		/* ambient occlusion */
+		if(kernel_data.integrator.use_ambient_occlusion) {
+			/* todo: solve correlation */
+			float bsdf_u = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_U);
+			float bsdf_v = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_V);
+
+			float3 ao_D;
+			float ao_pdf;
+
+			sample_cos_hemisphere(sd.N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+
+			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+				Ray light_ray;
+				float3 ao_shadow;
+
+				light_ray.P = ray_offset(sd.P, sd.Ng);
+				light_ray.D = ao_D;
+				light_ray.t = kernel_data.background.ao_distance;
+
+				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
+					float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*kernel_data.background.ao_factor;
+					path_radiance_accum_ao(&L, throughput, ao_bsdf, ao_shadow, state.bounce);
+				}
+			}
+		}
+#endif
+
 #ifdef __EMISSION__
 		if(kernel_data.integrator.use_direct_light) {
 			/* sample illumination from lights to find path contribution */
@@ -307,8 +339,13 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #endif
 					if(direct_emission(kg, &sd, i, light_t, light_o, light_u, light_v, &light_ray, &L_light)) {
 						/* trace shadow ray */
-						if(!shadow_blocked(kg, &state, &light_ray, &isect, &L_light))
+						float3 shadow;
+
+						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
+							/* accumulate */
+							bsdf_eval_mul(&L_light, shadow);
 							path_radiance_accum_light(&L, throughput, &L_light, state.bounce);
+						}
 					}
 #ifdef __MULTI_LIGHT__
 				}

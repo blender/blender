@@ -696,6 +696,20 @@ void BlenderSync::sync_world()
 			graph->connect(closure->output("Background"), out->input("Surface"));
 		}
 
+		/* AO */
+		if(b_world) {
+			BL::WorldLighting b_light = b_world.light_settings();
+
+			if(b_light.use_ambient_occlusion()) {
+				background->ao_factor = b_light.ao_factor();
+				background->ao_distance = b_light.distance();
+			}
+			else {
+				background->ao_factor = 0.0f;
+				background->ao_distance = 0.0f;
+			}
+		}
+
 		shader->set_graph(graph);
 		shader->tag_update(scene);
 	}

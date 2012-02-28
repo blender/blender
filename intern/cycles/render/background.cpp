@@ -31,6 +31,9 @@ CCL_NAMESPACE_BEGIN
 
 Background::Background()
 {
+	ao_factor = 0.0f;
+	ao_distance = FLT_MAX;
+
 	transparent = false;
 	need_update = true;
 }
@@ -48,6 +51,10 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
+
+	kbackground->ao_factor = ao_factor;
+	kbackground->ao_distance = ao_distance;
+
 	kbackground->transparent = transparent;
 	kbackground->shader = scene->shader_manager->get_shader_id(scene->default_background);
 
@@ -60,7 +67,9 @@ void Background::device_free(Device *device, DeviceScene *dscene)
 
 bool Background::modified(const Background& background)
 {
-	return !(transparent == background.transparent);
+	return !(transparent == background.transparent &&
+		ao_factor == background.ao_factor &&
+		ao_distance == background.ao_distance);
 }
 
 void Background::tag_update(Scene *scene)
