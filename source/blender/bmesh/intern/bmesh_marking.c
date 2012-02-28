@@ -452,7 +452,7 @@ void BM_select_mode_set(BMesh *bm, int selectmode)
 /**
  * counts number of elements with flag set
  */
-int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int respecthide)
+int BM_mesh_count_flag(BMesh *bm, const char htype, const char hflag, int respecthide)
 {
 	BMElem *ele;
 	BMIter iter;
@@ -484,7 +484,7 @@ int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int
  * \note use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection
  * \note by design, this will not touch the editselection history stuff
  */
-void _bm_elem_select_set(struct BMesh *bm, BMHeader *head, int select)
+void _bm_elem_select_set(BMesh *bm, BMHeader *head, int select)
 {
 	switch (head->htype) {
 		case BM_VERT:

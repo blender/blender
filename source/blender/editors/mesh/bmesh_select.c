@@ -1645,7 +1645,7 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 }
 
 
-void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select)
+void EDBM_deselect_by_material(BMEditMesh *em, const short index, const short select)
 {
 	BMIter iter;
 	BMFace *efa;
@@ -1692,7 +1692,7 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 //	if (EM_texFaceCheck())
 }
 
-int EDBM_select_interior_faces(struct BMEditMesh *em)
+int EDBM_select_interior_faces(BMEditMesh *em)
 {
 	BMesh *bm = em->bm;
 	BMIter iter;

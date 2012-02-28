@@ -52,7 +52,7 @@ static int bm_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
 
 #endif
 
-BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *example)
+BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 
@@ -236,6 +236,40 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 	return f2;
 }
 
+/**
+ * only create the face, since this calloc's the length is initialized to 0,
+ * leave adding loops to the caller.
+ */
+BM_INLINE BMFace *bm_face_create__internal(BMesh *bm)
+{
+	BMFace *f;
+
+	f = BLI_mempool_calloc(bm->fpool);
+
+#ifdef USE_DEBUG_INDEX_MEMCHECK
+	DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
+#else
+	BM_elem_index_set(f, -1); /* set_ok_invalid */
+#endif
+
+	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
+
+	bm->totface++;
+
+	f->head.htype = BM_FACE;
+
+	/* allocate flag */
+	f->oflags = BLI_mempool_calloc(bm->toolflagpool);
+
+	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
+
+#ifdef USE_BMESH_HOLES
+	f->totbounds = 0;
+#endif
+
+	return f;
+}
+
 BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble)
 {
 	BMFace *f = NULL;
@@ -257,20 +291,8 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 			BLI_assert(f == NULL);
 		}
 	}
-	
-	f = BLI_mempool_calloc(bm->fpool);
 
-#ifdef USE_DEBUG_INDEX_MEMCHECK
-	DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
-#else
-	BM_elem_index_set(f, -1); /* set_ok_invalid */
-#endif
-
-	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
-
-	bm->totface++;
-
-	f->head.htype = BM_FACE;
+	f = bm_face_create__internal(bm);
 
 	startl = lastl = bm_face_boundary_add(bm, f, verts[0], edges[0]);
 	
@@ -287,19 +309,10 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 		lastl = l;
 	}
 	
-	/* allocate flag */
-	f->oflags = BLI_mempool_calloc(bm->toolflagpool);
-
-	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
-	
 	startl->prev = lastl;
 	lastl->next = startl;
 	
 	f->len = len;
-
-#ifdef USE_BMESH_HOLES
-	f->totbounds = 0;
-#endif
 	
 	BM_CHECK_ELEMENT(bm, f);
 
@@ -608,7 +621,7 @@ void BM_vert_kill(BMesh *bm, BMVert *v)
 		
 		e = v->e;
 		while (v->e) {
-			nexte = bm_disk_edge_next(e, v);
+			nexte = bmesh_disk_edge_next(e, v);
 			BM_edge_kill(bm, e);
 			e = nexte;
 		}
@@ -804,7 +817,7 @@ static int UNUSED_FUNCTION(count_flagged_disk)(BMVert *v, int flag)
 
 	do {
 		i += BM_ELEM_API_FLAG_TEST(e, flag) ? 1 : 0;
-		e = bm_disk_edge_next(e, v);
+		e = bmesh_disk_edge_next(e, v);
 	} while (e != v->e);
 
 	return i;
@@ -834,7 +847,7 @@ static int disk_is_flagged(BMVert *v, int flag)
 			l = l->radial_next;
 		} while (l != e->l);
 
-		e = bm_disk_edge_next(e, v);
+		e = bmesh_disk_edge_next(e, v);
 	} while (e != v->e);
 
 	return TRUE;
@@ -1034,39 +1047,19 @@ error:
 
 /* BMESH_TODO - this is only used once, investigate sharing code with BM_face_create
  */
-static BMFace *bm_face_create__internal(BMesh *bm, BMFace *UNUSED(example))
+static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 {
 	BMFace *f;
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst;
 #endif
 
-	f = BLI_mempool_calloc(bm->fpool);
+	f = bm_face_create__internal(bm);
+
 #ifdef USE_BMESH_HOLES
 	lst = BLI_mempool_calloc(bm->looplistpool);
-#endif
-
-	f->head.htype = BM_FACE;
-#ifdef USE_BMESH_HOLES
 	BLI_addtail(&f->loops, lst);
 #endif
-
-#ifdef USE_DEBUG_INDEX_MEMCHECK
-	DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
-#else
-	BM_elem_index_set(f, -1); /* set_ok_invalid */
-#endif
-
-	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
-
-	bm->totface++;
-
-	/* allocate flag */
-	f->oflags = BLI_mempool_calloc(bm->toolflagpool);
-
-	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
-
-	f->len = 0;
 
 #ifdef USE_BMESH_HOLES
 	f->totbounds = 1;
@@ -1144,7 +1137,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	/* allocate new edge between v1 and v2 */
 	e = BM_edge_create(bm, v1, v2, example, FALSE);
 
-	f2 = bm_face_create__internal(bm, f);
+	f2 = bm_face_create__sfme(bm, f);
 	f1loop = bm_loop_create(bm, v2, e, f, v2loop);
 	f2loop = bm_loop_create(bm, v1, e, f2, v1loop);
 
@@ -1436,7 +1429,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 	len = bmesh_disk_count(kv);
 	
 	if (len == 2) {
-		oe = bm_disk_edge_next(ke, kv);
+		oe = bmesh_disk_edge_next(ke, kv);
 		tv = bmesh_edge_other_vert_get(ke, kv);
 		ov = bmesh_edge_other_vert_get(oe, kv);
 		halt = bmesh_verts_in_edge(kv, tv, oe); /* check for double edge */
@@ -1953,7 +1946,7 @@ static BMVert *bm_urmv_loop(BMesh *bm, BMLoop *sl)
 	 * will leave the original sv on some *other* fan (not the
 	 * one-face fan that holds the unglue face). */
 	while (sv->e == sl->e || sv->e == sl->prev->e) {
-		sv->e = bm_disk_edge_next(sv->e, sv);
+		sv->e = bmesh_disk_edge_next(sv->e, sv);
 	}
 
 	/* Split all fans connected to the vert, duplicating it for

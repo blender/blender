@@ -113,7 +113,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		/* v->e we keep, what else */
 		e = v->e;
 		do {
-			e = bm_disk_edge_next(e, v);
+			e = bmesh_disk_edge_next(e, v);
 			if (!(BM_edge_share_face_count(e, v->e))) {
 				keepedge = e;
 				baseedge = v->e;
@@ -180,7 +180,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 					done = 0;
 					break;
 				}
-				e = bm_disk_edge_next(e, v);
+				e = bmesh_disk_edge_next(e, v);
 			} while (e != v->e);
 		}
 
@@ -426,7 +426,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 	/* now interpolate the vertex data */
 	BM_data_interp_from_verts(bm, kv, tv, kv, fac);
 
-	e2 = bm_disk_edge_next(ke, kv);
+	e2 = bmesh_disk_edge_next(ke, kv);
 	tv2 = BM_edge_other_vert(e2, kv);
 
 	if (join_faces) {

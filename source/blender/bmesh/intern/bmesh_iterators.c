@@ -53,7 +53,7 @@ const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
 /*
  * note, we have BM_vert_at_index/BM_edge_at_index/BM_face_at_index for arrays
  */
-void *BM_iter_at_index(struct BMesh *bm, const char itype, void *data, int index)
+void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
 {
 	BMIter iter;
 	void *val;
@@ -83,7 +83,7 @@ void *BM_iter_at_index(struct BMesh *bm, const char itype, void *data, int index
  * to avoid multiple calls to BM_iter_at_index.
  */
 
-int BM_iter_as_array(struct BMesh *bm, const char type, void *data, void **array, const int len)
+int BM_iter_as_array(BMesh *bm, const char type, void *data, void **array, const int len)
 {
 	int i = 0;
 
@@ -197,7 +197,7 @@ void  *bmiter__edge_of_vert_step(BMIter *iter)
 	BMEdge *current = iter->nextedge;
 
 	if (iter->nextedge)
-		iter->nextedge = bm_disk_edge_next(iter->nextedge, iter->vdata);
+		iter->nextedge = bmesh_disk_edge_next(iter->nextedge, iter->vdata);
 	
 	if (iter->nextedge == iter->firstedge) iter->nextedge = NULL;
 

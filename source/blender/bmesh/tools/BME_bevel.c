@@ -152,7 +152,7 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 		}
 
 		e = v->e;
-		elast = bm_disk_edge_next(e, v);
+		elast = bmesh_disk_edge_next(e, v);
 
 		/* BMESH_TODO, figure out if its possible we had a double edge here and need to splice it,
 		 * last bool arg */
@@ -274,7 +274,7 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 			return NULL;
 		}
 		e1 = v->e; /* we just use the first two edges */
-		e2 = bm_disk_edge_next(v->e, v);
+		e2 = bmesh_disk_edge_next(v->e, v);
 		if (e1 == e2) {
 			//printf("You need at least two edges to use BME_bevel_split_edge()\n");
 			return NULL;
@@ -964,7 +964,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 					BM_face_split(bm, l->f, l->next->v, l->prev->v, &l, l->e); /* clip this corner off */
 				if(l2->f->len > 3)
 					BM_face_split(bm, l2->f, l2->next->v, l2->prev->v, &l, l2->e); /* clip this corner off */
-				curedge = bm_disk_edge_next(curedge, v);
+				curedge = bmesh_disk_edge_next(curedge, v);
 			} while(curedge != v->e);
 			BME_Bevel_Dissolve_Disk(bm, v);
 		}

@@ -338,7 +338,7 @@ void BMO_slot_bool_set(BMOperator *op, const char *slotname, const int i)
 }
 
 /* only supports square mats */
-void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, const float *mat, int size)
+void BMO_slot_mat_set(BMOperator *op, const char *slotname, const float *mat, int size)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BLI_assert(slot->slottype == BMO_OP_SLOT_MAT);
@@ -361,7 +361,7 @@ void BMO_slot_mat_set(struct BMOperator *op, const char *slotname, const float *
 	}
 }
 
-void BMO_slot_mat4_get(struct BMOperator *op, const char *slotname, float r_mat[4][4])
+void BMO_slot_mat4_get(BMOperator *op, const char *slotname, float r_mat[4][4])
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BLI_assert(slot->slottype == BMO_OP_SLOT_MAT);
@@ -371,7 +371,7 @@ void BMO_slot_mat4_get(struct BMOperator *op, const char *slotname, float r_mat[
 	copy_m4_m4(r_mat, (float (*)[4])slot->data.p);
 }
 
-void BMO_slot_mat3_set(struct BMOperator *op, const char *slotname, float r_mat[3][3])
+void BMO_slot_mat3_set(BMOperator *op, const char *slotname, float r_mat[3][3])
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BLI_assert(slot->slottype == BMO_OP_SLOT_MAT);
@@ -510,7 +510,7 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 	}
 }
 
-int BMO_slot_buf_count(struct BMesh *UNUSED(bm), struct BMOperator *op, const char *slotname)
+int BMO_slot_buf_count(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
@@ -603,7 +603,7 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 }
 #endif
 
-void BMO_slot_map_to_flag(struct BMesh *bm, struct BMOperator *op,
+void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op,
                           const char *slotname, const short oflag)
 {
 	GHashIterator it;
@@ -859,7 +859,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 		for (i = 0, curedge = v->e; i < len; i++) {
 			if (BMO_elem_flag_test(bm, curedge, oflag))
 				count++;
-			curedge = bm_disk_edge_next(curedge, v);
+			curedge = bmesh_disk_edge_next(curedge, v);
 		}
 	}
 
@@ -1096,7 +1096,7 @@ void *BMO_iter_step(BMOIter *iter)
 		return h;
 	}
 	else if (iter->slot->slottype == BMO_OP_SLOT_MAPPING) {
-		struct BMOElemMapping *map;
+		BMOElemMapping *map;
 		void *ret = BLI_ghashIterator_getKey(&iter->giter);
 		map = BLI_ghashIterator_getValue(&iter->giter);
 		

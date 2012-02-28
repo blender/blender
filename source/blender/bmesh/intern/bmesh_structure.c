@@ -150,7 +150,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *  cycle order and all non-manifold conditions are represented trivially.
  *
  */
-int bmesh_disk_edge_append(struct BMEdge *e, struct BMVert *v)
+int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 {
 	if (!v->e) {
 		BMDiskLink *dl1 = BM_DISK_EDGE_LINK_GET(e, v);
@@ -176,7 +176,7 @@ int bmesh_disk_edge_append(struct BMEdge *e, struct BMVert *v)
 	return TRUE;
 }
 
-void bmesh_disk_edge_remove(struct BMEdge *e, struct BMVert *v)
+void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 {
 	BMDiskLink *dl1, *dl2;
 
@@ -206,7 +206,7 @@ void bmesh_disk_edge_remove(struct BMEdge *e, struct BMVert *v)
  *	Pointer to the next edge in the disk cycle for the vertex v.
  */
 
-struct BMEdge *bm_disk_edge_next(struct BMEdge *e, struct BMVert *v)
+BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v)
 {
 	if (v == e->v1)
 		return e->v1_disk_link.next;
@@ -215,7 +215,7 @@ struct BMEdge *bm_disk_edge_next(struct BMEdge *e, struct BMVert *v)
 	return NULL;
 }
 
-static BMEdge *bm_disk_edge_prev(BMEdge *e, BMVert *v)
+BMEdge *bmesh_disk_edge_prev(BMEdge *e, BMVert *v)
 {
 	if (v == e->v1)
 		return e->v1_disk_link.prev;
@@ -235,13 +235,13 @@ BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2)
 			if (bmesh_verts_in_edge(v1, v2, e_iter)) {
 				return e_iter;
 			}
-		} while ((e_iter = bm_disk_edge_next(e_iter, v1)) != e_first);
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v1)) != e_first);
 	}
 	
 	return NULL;
 }
 
-int bmesh_disk_count(struct BMVert *v)
+int bmesh_disk_count(BMVert *v)
 {
 	if (v->e) {
 		BMEdge *e_first, *e_iter;
@@ -259,7 +259,7 @@ int bmesh_disk_count(struct BMVert *v)
 				return 0;
 			}
 			count++;
-		} while ((e_iter = bm_disk_edge_next(e_iter, v)) != e_first);
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 		return count;
 	}
 	else {
@@ -278,10 +278,10 @@ int bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 
 	e_iter = e;
 	do {
-		if (len != 1 && bm_disk_edge_prev(e_iter, v) == e_iter) {
+		if (len != 1 && bmesh_disk_edge_prev(e_iter, v) == e_iter) {
 			return FALSE;
 		}
-	} while ((e_iter = bm_disk_edge_next(e_iter, v)) != e);
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
 
 	return TRUE;
 }
@@ -308,7 +308,7 @@ int bmesh_disk_facevert_count(BMVert *v)
 			if (e_iter->l) {
 				count += bmesh_radial_facevert_count(e_iter->l, v);
 			}
-		} while ((e_iter = bm_disk_edge_next(e_iter, v)) != e_first);
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 		return count;
 	}
 	else {
@@ -325,7 +325,7 @@ int bmesh_disk_facevert_count(BMVert *v)
  * to it.
  */
 
-struct BMEdge *bmesh_disk_faceedge_find_first(struct BMEdge *e, struct BMVert *v)
+BMEdge *bmesh_disk_faceedge_find_first(BMEdge *e, BMVert *v)
 {
 	BMEdge *searchedge = NULL;
 	searchedge = e;
@@ -333,20 +333,20 @@ struct BMEdge *bmesh_disk_faceedge_find_first(struct BMEdge *e, struct BMVert *v
 		if (searchedge->l && bmesh_radial_facevert_count(searchedge->l, v)) {
 			return searchedge;
 		}
-	} while ((searchedge = bm_disk_edge_next(searchedge, v)) != e);
+	} while ((searchedge = bmesh_disk_edge_next(searchedge, v)) != e);
 
 	return NULL;
 }
 
-struct BMEdge *bmesh_disk_faceedge_find_next(struct BMEdge *e, struct BMVert *v)
+BMEdge *bmesh_disk_faceedge_find_next(BMEdge *e, BMVert *v)
 {
 	BMEdge *searchedge = NULL;
-	searchedge = bm_disk_edge_next(e, v);
+	searchedge = bmesh_disk_edge_next(e, v);
 	do {
 		if (searchedge->l && bmesh_radial_facevert_count(searchedge->l, v)) {
 			return searchedge;
 		}
-	} while ((searchedge = bm_disk_edge_next(searchedge, v)) != e);
+	} while ((searchedge = bmesh_disk_edge_next(searchedge, v)) != e);
 	return e;
 }
 
