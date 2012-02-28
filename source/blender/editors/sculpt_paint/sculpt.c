@@ -902,7 +902,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
    a smoothed location for vert. Skips corner vertices (used by only one
    polygon.) */
-static void neighbor_average(SculptSession *ss, float avg[3], const unsigned vert)
+static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 {
 	int i, j, ok, total=0;
 	IndexNode *node= ss->pmap[vert].first;
@@ -923,7 +923,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const unsigned ver
 	while(node){
 		f= &ss->mpoly[node->index];
 
-		/* find the loop in the poly whic references this vertex */
+		/* find the loop in the poly which references this vertex */
 		ok = FALSE;
 		ml = ss->mloop + f->loopstart;
 		for (j = 0; j < f->totloop; j++, ml++) {

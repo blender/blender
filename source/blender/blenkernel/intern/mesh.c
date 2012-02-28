@@ -2363,7 +2363,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	totface = mface_index;
 
 
-	/* note essential but without this we store over-alloc'd memory in the CustomData layers */
+	/* not essential but without this we store over-alloc'd memory in the CustomData layers */
 	if (LIKELY((MEM_allocN_len(mface) / sizeof(*mface)) != totface)) {
 		mface = MEM_reallocN(mface, sizeof(*mface) * totface);
 		mface_to_poly_map = MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * totface);
