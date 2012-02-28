@@ -635,27 +635,27 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
  * Given a set of vertices (varr), find out if
  * all those vertices overlap an existing face.
  *
- * \param do_partial When TRUE the overlapping face
- * can be a different length to the one given
+ * \note Making a face here is valid but in some cases you wont want to
+ * make a face thats part of another.
+ *
  * \returns TRUE for overlap
  *
  */
-int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlapface,
-                           const short do_partial)
+int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlapface)
 {
-	BMIter vertfaces;
+	BMIter viter;
 	BMFace *f;
 	int i, amount;
 
 	for (i = 0; i < len; i++) {
-		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
-		while (f) {
+		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, varr[i]) {
 			amount = BM_verts_in_face(bm, f, varr, len);
-			if ((amount >= len) && (do_partial == TRUE || len == f->len)) {
-				if (r_overlapface) *r_overlapface = f;
+			if (amount >= len) {
+				if (r_overlapface) {
+					*r_overlapface = f;
+				}
 				return TRUE;
 			}
-			f = BM_iter_step(&vertfaces);
 		}
 	}
 
@@ -665,6 +665,43 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlap
 
 	return FALSE;
 }
+
+/*
+ * BMESH FACE EXISTS
+ *
+ * Given a set of vertices (varr), find out if
+ * there is a face with exactly those vertices
+ * (and only those vertices).
+ *
+ * Returns:
+ * 0 for no face found
+ * 1 for face found
+ */
+
+int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
+{
+	BMIter viter;
+	BMFace *f;
+	int i, amount;
+
+	for (i = 0; i < len; i++) {
+		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, varr[i]) {
+			amount = BM_verts_in_face(bm, f, varr, len);
+			if (amount == len && amount == f->len) {
+				if (r_existface) {
+					*r_existface = f;
+				}
+				return TRUE;
+			}
+		}
+	}
+
+	if (r_existface) {
+		*r_existface = NULL;
+	}
+	return FALSE;
+}
+
 
 /*
  * BMESH EXIST FACE MULTI
@@ -820,43 +857,4 @@ int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len)
 	BLI_array_fixedstack_free(varr);
 
 	return ok;
-}
-
-
-/*
- * BMESH FACE EXISTS
- *
- * Given a set of vertices (varr), find out if
- * there is a face with exactly those vertices
- * (and only those vertices).
- *
- * Returns:
- * 0 for no face found
- * 1 for face found
- */
-
-int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
-{
-	BMIter vertfaces;
-	BMFace *f;
-	int i, amount;
-
-	for (i = 0; i < len; i++) {
-		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
-		while (f) {
-			amount = BM_verts_in_face(bm, f, varr, len);
-			if (amount == len && amount == f->len) {
-				if (r_existface) {
-					*r_existface = f;
-				}
-				return TRUE;
-			}
-			f = BM_iter_step(&vertfaces);
-		}
-	}
-
-	if (r_existface) {
-		*r_existface = NULL;
-	}
-	return FALSE;
 }

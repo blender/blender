@@ -95,16 +95,14 @@ float BM_edge_face_angle(BMesh *bm, BMEdge *e);
 float BM_vert_edge_angle(BMesh *bm, BMVert *v);
 
 /* checks overlapping of existing faces with the verts in varr. */
-int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_existface,
-                           const short do_partial);
-
-/* checks if many existing faces overlap the faces defined by varr */
-int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len);
-int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len);
+int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
 
 /* checks if a face defined by varr already exists. */
 int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
 
+/* checks if many existing faces overlap the faces defined by varr */
+int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len);
+int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len);
 
 /* returns number of edges f1 and f2 share. */
 int BM_face_share_edge_count(BMFace *f1, BMFace *f2);

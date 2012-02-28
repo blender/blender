@@ -76,40 +76,25 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
 /* remove the edge array bits from this. Its not really needed? */
 BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
 {
-	BMEdge *edar[4] = {NULL};
 	BMFace *f = NULL;
-	int overlap = 0;
-
-	edar[0] = BM_edge_exists(verts[0], verts[1]);
-	edar[1] = BM_edge_exists(verts[1], verts[2]);
-	if (len == 4) {
-		edar[2] = BM_edge_exists(verts[2], verts[3]);
-		edar[3] = BM_edge_exists(verts[3], verts[0]);
-	}
-	else {
-		edar[2] = BM_edge_exists(verts[2], verts[0]);
-	}
+	int is_overlap = FALSE;
 
 	if (nodouble) {
 		/* check if face exists or overlaps */
-		if (len == 4) {
-			overlap = BM_face_exists_overlap(bm, verts, len, &f, FALSE);
-		}
-		else {
-			overlap = BM_face_exists_overlap(bm, verts, len, &f, FALSE);
-		}
+		is_overlap = BM_face_exists(bm, verts, len, &f);
 	}
 
 	/* make new face */
-	if ((!f) && (!overlap)) {
-		if (!edar[0]) edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, FALSE);
-		if (!edar[1]) edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, FALSE);
+	if ((f == NULL) && (!is_overlap)) {
+		BMEdge *edar[4] = {NULL};
+		edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
+		edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, TRUE);
 		if (len == 4) {
-			if (!edar[2]) edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, FALSE);
-			if (!edar[3]) edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, FALSE);
+			edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, TRUE);
+			edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, TRUE);
 		}
 		else {
-			if (!edar[2]) edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, FALSE);
+			edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, TRUE);
 		}
 
 		f = BM_face_create(bm, verts, edar, len, FALSE);
@@ -127,21 +112,18 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
 	BMIter iter;
-	BMLoop *l, *l2;
+	BMLoop *l, *l_other;
 
-	if (!f) return;
-
-	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l = BM_iter_step(&iter)) {
-		l2 = l->radial_next;
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		l_other = l->radial_next;
 		
-		if (l2 && l2 != l) {
-			if (l2->v == l->v) {
-				bm_loop_attrs_copy(bm, bm, l2, l);
+		if (l_other && l_other != l) {
+			if (l_other->v == l->v) {
+				bm_loop_attrs_copy(bm, bm, l_other, l);
 			}
 			else {
-				l2 = l2->next;
-				bm_loop_attrs_copy(bm, bm, l2, l);
+				l_other = l_other->next;
+				bm_loop_attrs_copy(bm, bm, l_other, l);
 			}
 		}
 	}

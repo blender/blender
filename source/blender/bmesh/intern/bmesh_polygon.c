@@ -489,10 +489,8 @@ void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
 {
 	BMIter iter;
 	BMFace *f;
-	int len = 0;
 
-	f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v);
-	for ( ; f; f = BM_iter_step(&iter), len++) {
+	BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, v) {
 		BM_face_normal_update(bm, f);
 	}
 

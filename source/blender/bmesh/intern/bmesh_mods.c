@@ -269,18 +269,22 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 {
-	BMIter iter, iter2;
-	BMVert *v;
-	BMLoop *nl;
-	BMFace *f;
+	BMIter fiter;
+	BMIter viter;
+	BMVert *v_iter;
+	BMFace *f_iter;
 
 	/* be warned: this can do weird things in some ngon situation, see BM_face_legal_splits */
-	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); f; f = BM_iter_step(&iter)) {
-		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&iter2)) {
-			if (v == v2) {
-				f = BM_face_split(bm, f, v1, v2, &nl, NULL);
+	BM_ITER(f_iter, &fiter, bm, BM_FACES_OF_VERT, v1) {
+		BM_ITER(v_iter, &viter, bm, BM_FACES_OF_VERT, f_iter) {
+			if (v_iter == v2) {
+				BMLoop *nl;
 
-				if (r_f) *r_f = f;
+				f_iter = BM_face_split(bm, f_iter, v1, v2, &nl, NULL);
+
+				if (r_f) {
+					*r_f = f_iter;
+				}
 				return nl->e;
 			}
 		}
