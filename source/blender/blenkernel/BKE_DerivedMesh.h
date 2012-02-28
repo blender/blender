@@ -271,10 +271,6 @@ struct DerivedMesh {
 	 */
 	struct ListBase *(*getPolyMap)(struct Object *ob, DerivedMesh *dm);
 
-	/* Get a map of vertices to faces
-	 */
-	struct ListBase *(*getFaceMap)(struct Object *ob, DerivedMesh *dm);
-
 	/* Get the BVH used for paint modes
 	 */
 	struct PBVH *(*getPBVH)(struct Object *ob, DerivedMesh *dm);

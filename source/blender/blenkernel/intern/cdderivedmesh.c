@@ -230,20 +230,6 @@ static ListBase *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	return cddm->pmap;
 }
 
-static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-
-	if(!cddm->fmap && ob->type == OB_MESH) {
-		Mesh *me= ob->data;
-
-		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, me->mface,
-		                     me->totvert, me->totface);
-	}
-
-	return cddm->fmap;
-}
-
 static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -1696,7 +1682,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
 	dm->getPBVH = cdDM_getPBVH;
 	dm->getPolyMap = cdDM_getPolyMap;
-	dm->getFaceMap = cdDM_getFaceMap;
 
 	dm->drawVerts = cdDM_drawVerts;
 

@@ -2792,20 +2792,6 @@ static ListBase *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	return ccgdm->pmap;
 }
 
-static ListBase *ccgDM_getFaceMap(Object *ob, DerivedMesh *dm)
-{
-	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
-
-	if(!ccgdm->multires.mmd && !ccgdm->fmap && ob->type == OB_MESH) {
-		Mesh *me= ob->data;
-
-		create_vert_face_map(&ccgdm->fmap, &ccgdm->fmap_mem, me->mface,
-				     me->totvert, me->totface);
-	}
-
-	return ccgdm->fmap;
-}
-
 static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm)
 {
 	MultiresModifierData *mmd= ccgdm->multires.mmd;
@@ -2973,7 +2959,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getGridAdjacency = ccgDM_getGridAdjacency;
 	ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
 	ccgdm->dm.getPolyMap = ccgDM_getPolyMap;
-	ccgdm->dm.getFaceMap = ccgDM_getFaceMap;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
 
 	ccgdm->dm.getTessFace = ccgDM_getFinalFace;
