@@ -90,8 +90,6 @@ typedef float Vector3[3];
 typedef float Vector4[4];
 struct IK_Target;
 typedef void (*ErrorCallback)(const iTaSC::ConstraintValues* values, unsigned int nvalues, IK_Target* iktarget);
-// For some reason, gcc doesn't find the declaration of this function in linux
-void KDL::SetToZero(JntArray& array);
 
 // one structure for each target in the scene
 struct IK_Target
@@ -1029,7 +1027,7 @@ static void rest_pose(IK_Scene *ikscene)
 	// assume uniform scaling and take Y scale as general scale for the armature
 	scale = len_v3(ikscene->blArmature->obmat[1]);
 	// rest pose is 0 
-	KDL::SetToZero(ikscene->jointArray);
+	SetToZero(ikscene->jointArray);
 	// except for transY joints
 	rot = &ikscene->jointArray(0);
 	for(joint=a=0, ikchan = ikscene->channels; a<ikscene->numchan && joint<ikscene->numjoint; ++a, ++ikchan) {
