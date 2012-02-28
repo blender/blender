@@ -125,6 +125,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 #define V3D_CACHE_TEXT_WORLDSPACE	(1<<1)
 #define V3D_CACHE_TEXT_ASCII		(1<<2)
 #define V3D_CACHE_TEXT_GLOBALSPACE	(1<<3)
+#define V3D_CACHE_TEXT_LOCALCLIP	(1<<4)
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag, const short is_outline);

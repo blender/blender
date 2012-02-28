@@ -271,7 +271,7 @@ static void UNUSED_FUNCTION(view3d_project_short_noclip)(ARegion *ar, const floa
 }
 
 /* same as view3d_project_short_clip but use persmat instead of persmatob for projection */
-static void view3d_project_short_clip_persmat(ARegion *ar, float *vec, short adr[2], int is_local)
+static void view3d_project_short_clip_persmat(ARegion *ar, const float vec[3], short adr[2], int is_local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -844,10 +844,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		if (mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
 
-		if (vos->flag&V3D_CACHE_TEXT_GLOBALSPACE)
-			view3d_project_short_clip_persmat(ar, vos->vec, vos->sco, FALSE);
+		if (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE)
+			view3d_project_short_clip_persmat(ar, vos->vec, vos->sco, (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0);
 		else
-			view3d_project_short_clip(ar, vos->vec, vos->sco, FALSE);
+			view3d_project_short_clip(ar, vos->vec, vos->sco, (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0);
 
 		if (vos->sco[0]!=IS_CLIPPED)
 			tot++;
@@ -2758,6 +2758,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
+	const short txt_flag = V3D_CACHE_TEXT_ASCII | V3D_CACHE_TEXT_LOCALCLIP;
 	Mesh *me= ob->data;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
 	char numstr[32]; /* Stores the measurement display text here */
@@ -2811,7 +2812,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					sprintf(numstr, conv_float, len_v3v3(v1, v2));
 				}
 
-				view3d_cached_text_draw_add(vmid, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);
 			}
 		}
 	}
@@ -2830,7 +2831,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					3, unit->system, B_UNIT_LENGTH, do_split, FALSE);                \
 			else                                                                     \
 				BLI_snprintf(numstr, sizeof(numstr), conv_float, area);              \
-			view3d_cached_text_draw_add(vmid, numstr, 0, V3D_CACHE_TEXT_ASCII, col); \
+			view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);             \
 		}
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
@@ -2903,7 +2904,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 				{
 					BLI_snprintf(numstr, sizeof(numstr), "%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
 					interp_v3_v3v3(fvec, vmid, v2, 0.8f);
-					view3d_cached_text_draw_add(fvec, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
+					view3d_cached_text_draw_add(fvec, numstr, 0, txt_flag, col);
 				}
 			}
 		}
@@ -2912,6 +2913,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 static void draw_em_indices(BMEditMesh *em)
 {
+	const short txt_flag = V3D_CACHE_TEXT_ASCII | V3D_CACHE_TEXT_LOCALCLIP;
 	BMEdge *e;
 	BMFace *f;
 	BMVert *v;
@@ -2930,7 +2932,7 @@ static void draw_em_indices(BMEditMesh *em)
 		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
-				view3d_cached_text_draw_add(v->co, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(v->co, numstr, 0, txt_flag, col);
 			}
 			i++;
 		}
@@ -2943,7 +2945,7 @@ static void draw_em_indices(BMEditMesh *em)
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 				sprintf(numstr, "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
-				view3d_cached_text_draw_add(pos, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(pos, numstr, 0, txt_flag, col);
 			}
 			i++;
 		}
@@ -2956,7 +2958,7 @@ static void draw_em_indices(BMEditMesh *em)
 			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 				BM_face_center_mean_calc(bm, f, pos);
 				sprintf(numstr, "%d", i);
-				view3d_cached_text_draw_add(pos, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(pos, numstr, 0, txt_flag, col);
 			}
 			i++;
 		}
