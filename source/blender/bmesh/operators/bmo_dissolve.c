@@ -68,7 +68,7 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 	return TRUE;
 }
 
-void dissolvefaces_exec(BMesh *bm, BMOperator *op)
+void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter oiter;
 	BMFace *f, *f2 /* , *nf = NULL */;
@@ -185,7 +185,7 @@ cleanup:
 }
 
 /* almost identical to dissolve edge, except it cleans up vertice */
-void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
+void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 {
 	/* BMOperator fop; */
 	BMOIter oiter;
@@ -222,7 +222,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	
 	BLI_array_free(verts);
 
-	//BMO_op_initf(bm, &fop, "dissolvefaces faces=%ff", FACE_MARK);
+	//BMO_op_initf(bm, &fop, "dissolve_faces faces=%ff", FACE_MARK);
 	//BMO_op_exec(bm, &fop);
 
 	//BMO_slot_copy(op, &fop, "regionout", "regionout");
@@ -231,7 +231,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 }
 
 
-void dissolveedges_exec(BMesh *bm, BMOperator *op)
+void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
 	/* might want to make this an option or mode - campbell */
 
@@ -317,7 +317,7 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 
 	return TRUE;
 }
-void dissolveverts_exec(BMesh *bm, BMOperator *op)
+void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *vinput;
 	BMIter iter, fiter;
@@ -371,7 +371,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_op_callf(bm, "dissolvefaces faces=%ff", FACE_MARK);
+	BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_MARK);
 	if (BMO_error_occurred(bm)) {
 		const char *msg;
 
@@ -477,7 +477,7 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 	return 0;
 }
 
-void dissolvelimit_exec(BMesh *bm, BMOperator *op)
+void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *einput = BMO_slot_get(op, "edges");
 	BMOpSlot *vinput = BMO_slot_get(op, "verts");

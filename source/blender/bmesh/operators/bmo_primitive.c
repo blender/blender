@@ -223,7 +223,7 @@ static signed char monkeyf[250][4] = {
 #define FACE_MARK	1
 #define FACE_NEW	2
 
-void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
+void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator bmop, prevop;
 	BMVert *eve, *preveve;
@@ -286,7 +286,7 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
-void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
+void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator bmop, prevop;
 	BMVert *eve, *preveve;
@@ -375,7 +375,7 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
-void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
+void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *eva[12];
 	BMVert *v;
@@ -442,7 +442,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
-void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
+void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *eve;
 	BMVert **tv = MEM_mallocN(sizeof(*tv)*monkeynv * 2, "tv");
@@ -490,7 +490,7 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 }
 
 
-void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
+void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
@@ -555,13 +555,13 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	if (!cap_tris) {
-		BMO_op_callf(bm, "dissolvefaces faces=%ff", FACE_NEW);
+		BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
 	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
-void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
+void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *v2, *lastv1 = NULL, *lastv2 = NULL, *cent1, *cent2, *firstv1, *firstv2;
 	float vec[3], mat[4][4], phi, phid;
@@ -648,7 +648,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	if (!cap_tris) {
-		BMO_op_callf(bm, "dissolvefaces faces=%ff", FACE_NEW);
+		BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
 	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
@@ -657,7 +657,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
-void bmesh_create_cube_exec(BMesh *bm, BMOperator *op)
+void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *v2, *v3, *v4, *v5, *v6, *v7, *v8;
 	float vec[3], mat[4][4], off = BMO_slot_float_get(op, "size") / 2.0f;

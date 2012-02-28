@@ -247,7 +247,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	ModifierData *md;
 	BMElem *ele;
 	
-	BMO_op_init(bm, &extop, "extrudefaceregion");
+	BMO_op_init(bm, &extop, "extrude_face_region");
 	BMO_slot_from_hflag(bm, &extop, "edgefacein",
 	                       hflag, BM_VERT|BM_EDGE|BM_FACE);
 
@@ -386,7 +386,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 
 	for (a = 0; a < steps; a++) {
 		EDBM_Extrude_edge(obedit, em, BM_ELEM_SELECT, nor);
-		//BMO_op_callf(em->bm, "extrudefaceregion edgefacein=%hef", BM_ELEM_SELECT);
+		//BMO_op_callf(em->bm, "extrude_face_region edgefacein=%hef", BM_ELEM_SELECT);
 		BMO_op_callf(em->bm, "translate vec=%v verts=%hv", (float *)dvec, BM_ELEM_SELECT);
 		//extrudeflag(obedit, em, SELECT, nor);
 		//translateflag(em, SELECT, dvec);
@@ -913,22 +913,22 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 	} 
 	else if (event == 11) {
 		//"Edge Loop"
-		if (!EDBM_CallOpf(bem, op, "dissolveedgeloop edges=%he", BM_ELEM_SELECT))
+		if (!EDBM_CallOpf(bem, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 	else if (event == 7) {
 		int use_verts = RNA_boolean_get(op->ptr, "use_verts");
 		//"Dissolve"
 		if (bem->selectmode & SCE_SELECT_FACE) {
-			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+			if (!EDBM_CallOpf(bem, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_EDGE) {
-			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+			if (!EDBM_CallOpf(bem, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_VERTEX) {
-			if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv", BM_ELEM_SELECT))
+			if (!EDBM_CallOpf(bem, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
 				return OPERATOR_CANCELLED;
 		}
 	}
@@ -1835,7 +1835,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshrotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
+	EDBM_InitOpf(em, &bmop, op, "face_rotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1860,7 +1860,7 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshreverseuvs faces=%hf", BM_ELEM_SELECT);
+	EDBM_InitOpf(em, &bmop, op, "face_reverseuvs faces=%hf", BM_ELEM_SELECT);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1888,7 +1888,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshrotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
+	EDBM_InitOpf(em, &bmop, op, "face_rotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1916,7 +1916,7 @@ static int mesh_reverse_colors(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshreversecolors faces=%hf", BM_ELEM_SELECT);
+	EDBM_InitOpf(em, &bmop, op, "face_reversecolors faces=%hf", BM_ELEM_SELECT);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -3542,7 +3542,7 @@ static int dissolve_limited_exec(bContext *C, wmOperator *op)
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 
 	if (!EDBM_CallOpf(em, op,
-	                  "dissolvelimit edges=%he verts=%hv angle_limit=%f",
+	                  "dissolve_limit edges=%he verts=%hv angle_limit=%f",
 	                  BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
 	{
 		return OPERATOR_CANCELLED;

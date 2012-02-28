@@ -857,7 +857,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e)
 	return i;
 }
 
-void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
+void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter;
 	BMOIter siter;
@@ -1062,7 +1062,7 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 	return NULL;
 }
 
-void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
+void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;
@@ -1242,7 +1242,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 }
 
 /* this is essentially new fke */
-void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
+void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator op2;
 	BMOIter oiter;
@@ -1356,7 +1356,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &op2);
 	
 	/* now call dissolve face */
-	BMO_op_initf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
+	BMO_op_initf(bm, &op2, "dissolve_faces faces=%ff", ELE_NEW);
 	BMO_op_exec(bm, &op2);
 	
 	/* if we dissolved anything, then return */

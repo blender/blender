@@ -39,7 +39,7 @@
 #define FACE_MARK	2
 #define EDGE_MARK	4
 
-void triangulate_exec(BMesh *bm, BMOperator *op)
+void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMFace *face, **newfaces = NULL;
@@ -78,7 +78,7 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(newfaces);
 }
 
-void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
+void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
@@ -154,7 +154,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
 }
 
-void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
+void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;

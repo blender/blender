@@ -665,7 +665,7 @@ typedef struct subd_facedata {
 	BMFace *face;
 } subd_facedata;
 
-void esubdivide_exec(BMesh *bmesh, BMOperator *op)
+void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
 	SubDPattern *pat;
@@ -1078,7 +1078,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	BMO_op_finish(bm, &op);
 }
 
-void esplit_exec(BMesh *bm, BMOperator *op)
+void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;

@@ -39,7 +39,7 @@
 #define VERT_NONMAN 2
 #define EDGE_NONMAN 2
 
-void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
+void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter liter, liter2;
@@ -111,7 +111,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
 }
 
-void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
+void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMOperator dupeop;
@@ -163,7 +163,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
 }
 
-void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
+void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMVert *v, *dupev;
@@ -183,7 +183,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
 }
 
-void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
+void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator dupeop, delop;
 	BMOIter siter;
@@ -564,7 +564,7 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 	MEM_freeN(vert_angles);
 }
 
-void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
+void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator extrudeop;
 	BMOperator reverseop;
@@ -579,7 +579,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &reverseop);
 
 	/* Extrude the region */
-	BMO_op_initf(bm, &extrudeop, "extrudefaceregion alwayskeeporig=%b", TRUE);
+	BMO_op_initf(bm, &extrudeop, "extrude_face_region alwayskeeporig=%b", TRUE);
 	BMO_slot_copy(op, &extrudeop, "geom", "edgefacein");
 	BMO_op_exec(bm, &extrudeop);
 

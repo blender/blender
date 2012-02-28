@@ -52,7 +52,7 @@
  *
  */
 
-void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
+void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
 	Object *ob = BMO_slot_ptr_get(op, "object");
 	Mesh *me = BMO_slot_ptr_get(op, "mesh");
@@ -364,7 +364,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(et);
 }
 
-void object_load_bmesh_exec(BMesh *bm, BMOperator *op)
+void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
 	Object *ob = BMO_slot_ptr_get(op, "object");
 	/* Scene *scene = BMO_slot_ptr_get(op, "scene"); */
@@ -433,7 +433,7 @@ BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 }
 
 
-void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
+void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
 	Mesh *me = BMO_slot_ptr_get(op, "mesh");
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */

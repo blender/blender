@@ -341,7 +341,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	BMO_op_initf(bm, &bmop, "righthandfaces faces=%af do_flip=%b", FALSE);
 	
 	BMO_push(bm, &bmop);
-	bmesh_righthandfaces_exec(bm, &bmop);
+	bmo_righthandfaces_exec(bm, &bmop);
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_elem_flag_set(f, BM_ELEM_TAG, BMO_elem_flag_test(bm, f, FACE_FLIP));

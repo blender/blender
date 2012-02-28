@@ -92,7 +92,7 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 }
 #endif
 
-void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
+void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMVert *v, *v2;
@@ -244,7 +244,7 @@ static int vergaverco(const void *e1, const void *e2)
 
 #define EDGE_MARK	1
 
-void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
+void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
@@ -292,7 +292,7 @@ void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
+void bmo_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
@@ -329,7 +329,7 @@ void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
+void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 	BMOIter siter;
@@ -355,7 +355,7 @@ void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &weldop);
 }
 
-void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
+void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 	BMWalker walker;
@@ -466,7 +466,7 @@ static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	BLI_array_free(blocks);
 }
 
-void bmesh_collapsecon_exec(BMesh *bm, BMOperator *op)
+void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 {
 	int i;
 
@@ -544,7 +544,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 	BLI_array_free(verts);
 }
 
-void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
+void bmo_removedoubles_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 
@@ -555,12 +555,12 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 }
 
 
-void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
+void bmo_finddoubles_exec(BMesh *bm, BMOperator *op)
 {
 	bmesh_finddoubles_common(bm, op, op, "targetmapout");
 }
 
-void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
+void bmo_automerge_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator findop, weldop;
 	BMIter viter;

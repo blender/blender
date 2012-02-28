@@ -195,7 +195,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 	}
 }
 
-void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
+void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 {
 	EdgeTag *etags, *et;
 	BMIter iter, liter;

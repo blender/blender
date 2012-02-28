@@ -172,7 +172,7 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 		(etags[BM_elem_index_get((e))].newv2)                                 \
 	)
 
-void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
+void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
