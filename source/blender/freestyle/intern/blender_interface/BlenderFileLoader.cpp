@@ -485,6 +485,158 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	delete [] VIndices;
 	delete [] NIndices;
 	
+#ifdef DETRI_REMOVAL
+	// Removal of degenerated triangles
+	// A triangle consisting of three vertices A, B and P is considered
+	// a degenerated triangle when the distance between line segment AB
+	// and point P is exactly or nearly equal to zero.
+	typedef struct {
+		unsigned i, j; // 0 <= i, j < viSize
+		unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
+		unsigned niA, niB, niP; // 0 <= niA, niB, niP < niSize
+	} detri_t;
+	vector<Vec3r> iVertices;
+	vector<detri_t> detriList;
+	unsigned vi0, vi1, vi2;
+	unsigned ni0, ni1, ni2;
+	unsigned numExtraFaces = 0;
+	bool *removed = new bool[numFaces];
+	for (i = 0; i < numFaces; i++)
+		removed[i] = false;
+	for (i = 0; i < viSize; i += 3) {
+		detri_t detri;
+		vi0 = cleanVIndices[i];
+		vi1 = cleanVIndices[i+1];
+		vi2 = cleanVIndices[i+2];
+		ni0 = cleanNIndices[i];
+		ni1 = cleanNIndices[i+1];
+		ni2 = cleanNIndices[i+2];
+		Vec3r v0(cleanVertices[vi0], cleanVertices[vi0+1], cleanVertices[vi0+2]);
+		Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
+		Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
+		if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1e-6) {
+			detri.viP = vi0; detri.viA = vi1; detri.viB = vi2;
+			detri.niP = ni0; detri.niA = ni1; detri.niB = ni2;
+		}
+		else if (GeomUtils::distPointSegment<Vec3r>(v1, v0, v2) < 1e-6) {
+			detri.viP = vi1; detri.viA = vi0; detri.viB = vi2;
+			detri.niP = ni1; detri.niA = ni0; detri.niB = ni2;
+		}
+		else if (GeomUtils::distPointSegment<Vec3r>(v2, v0, v1) < 1e-6) {
+			detri.viP = vi2; detri.viA = vi0; detri.viB = vi1;
+			detri.niP = ni2; detri.niA = ni0; detri.niB = ni1;
+		}
+		else {
+			continue;
+		}
+		removed[i/3] = true;
+		detri.i = i; // the i-th face is a degenerated triangle
+		detri.j = i;
+		for (unsigned j = 0; j < viSize; j += 3) {
+			if (i == j)
+				continue;
+			vi0 = cleanVIndices[j];
+			vi1 = cleanVIndices[j+1];
+			vi2 = cleanVIndices[j+2];
+			if (detri.viA == vi0 && (detri.viB == vi1 || detri.viB == vi2) ||
+			    detri.viA == vi1 && (detri.viB == vi0 || detri.viB == vi2) ||
+			    detri.viA == vi2 && (detri.viB == vi0 || detri.viB == vi1)) {
+				if (removed[j/3])
+					cerr << "FIXME: could not handle a degenerate triangle properly." << endl;
+				removed[j/3] = true;
+				detri.j = j; // the j-th face shares the edge AB with the i-th face
+				++numExtraFaces;
+				break;
+			}
+		}
+		detriList.push_back(detri);
+	}
+	//printf("detriList.size() = %d\n", detriList.size());
+
+	numFaces = numFaces - detriList.size() + numExtraFaces;
+	unsigned cviSize = 3 * numFaces;
+	unsigned cniSize = cviSize;
+	unsigned *newCleanVIndices = new unsigned[cviSize];
+	unsigned *newCleanNIndices = new unsigned[cniSize];
+	unsigned k = 0;
+	for (i = 0; i < viSize; i += 3) {
+		if (removed[i/3])
+			continue;
+		newCleanVIndices[k]   = cleanVIndices[i];
+		newCleanVIndices[k+1] = cleanVIndices[i+1];
+		newCleanVIndices[k+2] = cleanVIndices[i+2];
+		newCleanNIndices[k]   = cleanNIndices[i];
+		newCleanNIndices[k+1] = cleanNIndices[i+1];
+		newCleanNIndices[k+2] = cleanNIndices[i+2];
+		k += 3;
+	}
+	vector<detri_t>::iterator v, end = detriList.end();
+	for (v = detriList.begin(); v != end; v++) {
+		detri_t detri = (*v);
+		//printf("i=%d j=%d viA=%d viB=%d viP=%d\n", detri.i, detri.j, detri.viA, detri.viB, detri.viP);
+		if (detri.i == detri.j)
+			continue;
+		vi0 = cleanVIndices[detri.j];
+		vi1 = cleanVIndices[detri.j+1];
+		vi2 = cleanVIndices[detri.j+2];
+		ni0 = cleanNIndices[detri.j];
+		ni1 = cleanNIndices[detri.j+1];
+		ni2 = cleanNIndices[detri.j+2];
+		if (vi0 == detri.viA && vi1 == detri.viB ||
+		    vi0 == detri.viB && vi1 == detri.viA) {
+			newCleanVIndices[k]   = vi0;
+			newCleanVIndices[k+1] = detri.viP;
+			newCleanVIndices[k+2] = vi2;
+			newCleanNIndices[k]   = ni0;
+			newCleanNIndices[k+1] = detri.niP;
+			newCleanNIndices[k+2] = ni2;
+			k += 3;
+			newCleanVIndices[k]   = detri.viP;
+			newCleanVIndices[k+1] = vi1;
+			newCleanVIndices[k+2] = vi2;
+			newCleanNIndices[k]   = detri.niP;;
+			newCleanNIndices[k+1] = ni1;
+			newCleanNIndices[k+2] = ni2;
+			k += 3;
+		} else if (vi1 == detri.viA && vi2 == detri.viB ||
+		           vi1 == detri.viB && vi2 == detri.viA) {
+			newCleanVIndices[k]   = vi0;
+			newCleanVIndices[k+1] = vi1;
+			newCleanVIndices[k+2] = detri.viP;
+			newCleanNIndices[k]   = ni0;
+			newCleanNIndices[k+1] = ni1;
+			newCleanNIndices[k+2] = detri.niP;
+			k += 3;
+			newCleanVIndices[k]   = vi0;
+			newCleanVIndices[k+1] = detri.viP;
+			newCleanVIndices[k+2] = vi2;
+			newCleanNIndices[k]   = ni0;
+			newCleanNIndices[k+1] = detri.niP;
+			newCleanNIndices[k+2] = ni2;
+			k += 3;
+		} else if (vi0 == detri.viA && vi2 == detri.viB ||
+		           vi0 == detri.viB && vi2 == detri.viA) {
+			newCleanVIndices[k]   = vi0;
+			newCleanVIndices[k+1] = vi1;
+			newCleanVIndices[k+2] = detri.viP;
+			newCleanNIndices[k]   = ni0;
+			newCleanNIndices[k+1] = ni1;
+			newCleanNIndices[k+2] = detri.niP;
+			k += 3;
+			newCleanVIndices[k]   = vi1;
+			newCleanVIndices[k+1] = vi2;
+			newCleanVIndices[k+2] = detri.viP;
+			newCleanNIndices[k]   = ni1;
+			newCleanNIndices[k+1] = ni2;
+			newCleanNIndices[k+2] = detri.niP;
+			k += 3;
+		}
+	}
+	delete [] cleanVIndices;
+	delete [] cleanNIndices;
+	delete [] removed;
+#endif
+
 	// Create the IndexedFaceSet with the retrieved attributes
 	IndexedFaceSet *rep;
 	rep = new IndexedFaceSet(cleanVertices, cvSize, 
@@ -493,8 +645,13 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	                         0, 0,
 	                         numFaces, numVertexPerFaces, faceStyle,
 							 faceEdgeMarks,
+#ifdef DETRI_REMOVAL
+	                         newCleanVIndices, cviSize,
+	                         newCleanNIndices, cniSize,
+#else
 	                         cleanVIndices, viSize,
 	                         cleanNIndices, niSize,
+#endif
 	                         MIndices, viSize,
 	                         0,0,
 	                         0);

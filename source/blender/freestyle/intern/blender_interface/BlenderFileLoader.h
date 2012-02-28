@@ -12,6 +12,7 @@
 # include "../geometry/BBox.h"
 # include "../geometry/Geom.h"
 # include "../geometry/GeomCleaner.h"
+# include "../geometry/GeomUtils.h"
 
 #ifdef __cplusplus
 extern "C" {
