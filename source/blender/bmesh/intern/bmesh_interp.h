@@ -27,8 +27,6 @@
  *  \ingroup bmesh
  */
 
-struct Mesh;
-
 void  BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
 void  BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
 
@@ -46,8 +44,5 @@ void  BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
                               int do_vertex, int do_multires);
 
 void  BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
-
-void  BM_loops_to_corners(BMesh *bm, struct Mesh *me, int findex,
-                          BMFace *f, int numTex, int numCol);
 
 #endif /* __BMESH_INTERP_H__ */

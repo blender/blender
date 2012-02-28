@@ -169,7 +169,7 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
  *
  * All verts will be tagged on exit.
  */
-static void bmesh_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
+static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
 {
 	BMVert *v;
 	BMIter iter;
@@ -387,13 +387,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if (start_cap) {
 			float startoffset[4][4];
 			invert_m4_m4(startoffset, offset);
-			bmesh_merge_dm_transform(em->bm, start_cap, startoffset);
+			bm_merge_dm_transform(em->bm, start_cap, startoffset);
 		}
 
 		if (end_cap) {
 			float endoffset[4][4];
 			mult_m4_m4m4(endoffset, offset, final_offset);
-			bmesh_merge_dm_transform(em->bm, end_cap, endoffset);
+			bm_merge_dm_transform(em->bm, end_cap, endoffset);
 		}
 	}
 	/* done capping */

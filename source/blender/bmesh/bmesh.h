@@ -179,6 +179,19 @@
  * then spit out a new one; this allows operators to be chained together.
  *
  * \note Element buffers may have elements of different types within the same buffer (this is supported by the API.
+ *
+ *
+ * \section bm_fname Function Naming Conventions
+ *
+ * These conventions should be used throughout the bmesh module.
+ *
+ * - BM_xxx() -     High level BMesh API function for use anywhere.
+ * - bmesh_xxx() -  Low level API function.
+ * - bm_xxx() -     'static' functions, not apart of the API at all, but use prefix since they operate on BMesh data.
+ * - BMO_xxx() -    High level operator API function for use anywhere.
+ * - bmo_xxx() -    Low level / internal operator API functions.
+ * - _bm_xxx() -    Functions which are called via macros only.
+ *
  */
 
 #ifdef __cplusplus

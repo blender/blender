@@ -374,7 +374,7 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 }
 
 
-static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
+static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 {
 	BMVert **vertMap = NULL;
 	BMVert *eve;
@@ -600,7 +600,7 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 			if (ob->parent == bm->ob && ELEM(ob->partype, PARVERT1, PARVERT3)) {
 
 				if (vertMap == NULL) {
-					vertMap = bmesh_to_mesh_vertex_map(bm, ototvert);
+					vertMap = bm_to_mesh_vertex_map(bm, ototvert);
 				}
 
 				if (ob->par1 < ototvert) {
@@ -623,7 +623,7 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 						HookModifierData *hmd = (HookModifierData *) md;
 
 						if (vertMap == NULL) {
-							vertMap = bmesh_to_mesh_vertex_map(bm, ototvert);
+							vertMap = bm_to_mesh_vertex_map(bm, ototvert);
 						}
 						
 						for (i = j = 0; i < hmd->totindex; i++) {

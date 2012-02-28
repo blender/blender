@@ -145,52 +145,6 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 	} while ((l_iter = l_iter->radial_next) != e1->l);
 }
 
-/* convert MLoop*** in a bmface to mtface and mcol in
- * an MFace */
-void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
-                         BMFace *f, int numTex, int numCol)
-{
-	BMLoop *l;
-	BMIter iter;
-	MTFace *texface;
-	MTexPoly *texpoly;
-	MCol *mcol;
-	MLoopCol *mloopcol;
-	MLoopUV *mloopuv;
-	int i, j;
-
-	for (i = 0; i < numTex; i++) {
-		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
-		
-		ME_MTEXFACE_CPY(texface, texpoly);
-
-		j = 0;
-		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
-			copy_v2_v2(texface->uv[j], mloopuv->uv);
-
-			j++;
-		}
-
-	}
-
-	for (i = 0; i < numCol; i++) {
-		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
-
-		j = 0;
-		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
-
-			j++;
-		}
-	}
-}
-
 /**
  *			BM_data_interp_from_face
  *
@@ -413,8 +367,8 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, float p[3], floa
 	return 1;
 }
 
-static float bmesh_loop_flip_equotion(float mat[2][2], float b[2], float target_axis_x[3], float target_axis_y[3],
-                                      float coord[3], int i, int j)
+static float bm_loop_flip_equotion(float mat[2][2], float b[2], float target_axis_x[3], float target_axis_y[3],
+                                   float coord[3], int i, int j)
 {
 	mat[0][0] = target_axis_x[i];
 	mat[0][1] = target_axis_y[i];
@@ -426,7 +380,7 @@ static float bmesh_loop_flip_equotion(float mat[2][2], float b[2], float target_
 	return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
 }
 
-static void bmesh_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
+static void bm_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
                                  float target_axis_x[3], float target_axis_y[3], float disp[3])
 {
 	float vx[3], vy[3], coord[3];
@@ -442,19 +396,19 @@ static void bmesh_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
 	project_v3_v3v3(vec, coord, n);
 	sub_v3_v3v3(coord, coord, vec);
 
-	d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 1);
+	d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 1);
 
 	if (fabsf(d) < 1e-4) {
-		d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 2);
+		d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 2);
 		if (fabsf(d) < 1e-4)
-			d = bmesh_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 1, 2);
+			d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 1, 2);
 	}
 
 	disp[0] = (b[0] * mat[1][1] - mat[0][1] * b[1]) / d;
 	disp[1] = (mat[0][0] * b[1] - b[0] * mat[1][0]) / d;
 }
 
-static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
+static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	MDisps *mdisps;
 	BMLoop *l_iter;
@@ -519,7 +473,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 				
 				if (mdisp_in_mdispquad(bm, target, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
 					old_mdisps_bilinear(md1->disps[iy * res + ix], md2->disps, res, (float)x2, (float)y2);
-					bmesh_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md1->disps[iy * res + ix]);
+					bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md1->disps[iy * res + ix]);
 
 					break;
 				}
@@ -639,7 +593,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
  */
 void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 {
-	bmesh_loop_interp_mdisps(bm, target, source);
+	bm_loop_interp_mdisps(bm, target, source);
 }
 
 /**
@@ -718,7 +672,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 
 	if (do_multires) {
 		if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-			bmesh_loop_interp_mdisps(bm, target, source);
+			bm_loop_interp_mdisps(bm, target, source);
 		}
 	}
 }

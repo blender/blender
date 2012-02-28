@@ -43,9 +43,9 @@
 static void bmo_flag_layer_alloc(BMesh *bm);
 static void bmo_flag_layer_free(BMesh *bm);
 static void bmo_flag_layer_clear(BMesh *bm);
-static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name);
-static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name);
-static int bmesh_opname_to_opcode(const char *opname);
+static int bmo_name_to_slotcode(BMOpDefine *def, const char *name);
+static int bmo_name_to_slotcode_check(BMOpDefine *def, const char *name);
+static int bmo_opname_to_opcode(const char *opname);
 
 static const char *bmo_error_messages[] = {
 	NULL,
@@ -131,7 +131,7 @@ void BMO_pop(BMesh *bm)
  */
 void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 {
-	int i, opcode = bmesh_opname_to_opcode(opname);
+	int i, opcode = bmo_opname_to_opcode(opname);
 
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", opname);
@@ -221,7 +221,7 @@ void BMO_op_finish(BMesh *bm, BMOperator *op)
  */
 int BMO_slot_exists(BMOperator *op, const char *slotname)
 {
-	int slotcode = bmesh_name_to_slotcode(opdefines[op->type], slotname);
+	int slotcode = bmo_name_to_slotcode(opdefines[op->type], slotname);
 	return (slotcode >= 0);
 }
 
@@ -233,7 +233,7 @@ int BMO_slot_exists(BMOperator *op, const char *slotname)
  */
 BMOpSlot *BMO_slot_get(BMOperator *op, const char *slotname)
 {
-	int slotcode = bmesh_name_to_slotcode_check(opdefines[op->type], slotname);
+	int slotcode = bmo_name_to_slotcode_check(opdefines[op->type], slotname);
 
 	if (slotcode < 0) {
 		return &BMOpEmptySlot;
@@ -859,7 +859,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 		for (i = 0, curedge = v->e; i < len; i++) {
 			if (BMO_elem_flag_test(bm, curedge, oflag))
 				count++;
-			curedge = bmesh_disk_edge_next(curedge, v);
+			curedge = bm_disk_edge_next(curedge, v);
 		}
 	}
 
@@ -1187,7 +1187,7 @@ int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op)
 
 #define NEXT_CHAR(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
 
-static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name)
+static int bmo_name_to_slotcode(BMOpDefine *def, const char *name)
 {
 	int i;
 
@@ -1200,9 +1200,9 @@ static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name)
 	return -1;
 }
 
-static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name)
+static int bmo_name_to_slotcode_check(BMOpDefine *def, const char *name)
 {
-	int i = bmesh_name_to_slotcode(def, name);
+	int i = bmo_name_to_slotcode(def, name);
 	if (i < 0) {
 		fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
 	}
@@ -1210,7 +1210,7 @@ static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name)
 	return i;
 }
 
-static int bmesh_opname_to_opcode(const char *opname)
+static int bmo_opname_to_opcode(const char *opname)
 {
 	int i;
 
@@ -1264,7 +1264,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 	fmt += i + (noslot ? 0 : 1);
 	
-	i = bmesh_opname_to_opcode(opname);
+	i = bmo_opname_to_opcode(opname);
 
 	if (i == -1) {
 		MEM_freeN(ofmt);
@@ -1295,7 +1295,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 			fmt[i] = 0;
 
-			if (bmesh_name_to_slotcode_check(def, fmt) < 0) GOTO_ERROR;
+			if (bmo_name_to_slotcode_check(def, fmt) < 0) GOTO_ERROR;
 			
 			BLI_strncpy(slotname, fmt, sizeof(slotname));
 			

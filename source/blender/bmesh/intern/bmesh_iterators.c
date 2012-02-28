@@ -197,7 +197,7 @@ void  *bmiter__edge_of_vert_step(BMIter *iter)
 	BMEdge *current = iter->nextedge;
 
 	if (iter->nextedge)
-		iter->nextedge = bmesh_disk_edge_next(iter->nextedge, iter->vdata);
+		iter->nextedge = bm_disk_edge_next(iter->nextedge, iter->vdata);
 	
 	if (iter->nextedge == iter->firstedge) iter->nextedge = NULL;
 

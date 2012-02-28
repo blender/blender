@@ -413,7 +413,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 }
 
 /* uv collapse functio */
-static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
+static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 {
 	BMIter iter, liter;
 	BMFace *f;
@@ -472,7 +472,7 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 
 	for (i = 0; i < bm->ldata.totlayer; i++) {
 		if (CustomData_layer_has_math(&bm->ldata, i))
-			bmesh_collapsecon_do_layer(bm, op, i);
+			bmo_collapsecon_do_layer(bm, op, i);
 	}
 }
 

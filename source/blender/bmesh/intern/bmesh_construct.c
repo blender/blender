@@ -185,7 +185,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		BLI_array_append(edges2, e);
 
 		do {
-			e2 = bmesh_disk_edge_next(e2, v);
+			e2 = bm_disk_edge_next(e2, v);
 			if (e2 != e && BM_ELEM_API_FLAG_TEST(e2, _FLAG_MF)) {
 				v = BM_edge_other_vert(e2, v);
 				break;

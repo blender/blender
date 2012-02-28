@@ -46,7 +46,7 @@
 /* used as an extern, defined in bmesh.h */
 int bm_mesh_allocsize_default[4] = {512, 512, 2048, 512};
 
-static void bmesh_mempool_init(BMesh *bm, const int allocsize[4])
+static void bm_mempool_init(BMesh *bm, const int allocsize[4])
 {
 	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize[0], allocsize[0], FALSE, TRUE);
 	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize[1], allocsize[1], FALSE, TRUE);
@@ -79,7 +79,7 @@ BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
 	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
-	bmesh_mempool_init(bm, allocsize);
+	bm_mempool_init(bm, allocsize);
 
 	/* allocate one flag pool that we dont get rid of. */
 	bm->stackdepth = 1;
@@ -172,7 +172,7 @@ void BM_mesh_clear(BMesh *bm)
 	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
-	bmesh_mempool_init(bm, bm_mesh_allocsize_default);
+	bm_mempool_init(bm, bm_mesh_allocsize_default);
 
 	bm->stackdepth = 1;
 	bm->totflags = 1;
@@ -322,7 +322,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
  */
 //keep in sycn with utils.c!
 #define FACE_FLIP	8
-static void bmesh_rationalize_normals(BMesh *bm, int undo)
+static void bm_rationalize_normals(BMesh *bm, int undo)
 {
 	BMOperator bmop;
 	BMFace *f;
@@ -352,7 +352,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo)
 	BMO_op_finish(bm, &bmop);
 }
 
-static void bmesh_mdisps_space_set(BMesh *bm, int from, int to)
+static void bm_mdisps_space_set(BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -434,7 +434,7 @@ void bmesh_edit_begin(BMesh *bm, int flag)
 	}
 #else
 	if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-		bmesh_rationalize_normals(bm, 0);
+		bm_rationalize_normals(bm, 0);
 	}
 #endif
 }
@@ -454,7 +454,7 @@ void bmesh_edit_end(BMesh *bm, int flag)
 	}
 #else
 	if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-		bmesh_rationalize_normals(bm, 1);
+		bm_rationalize_normals(bm, 1);
 	}
 #endif
 

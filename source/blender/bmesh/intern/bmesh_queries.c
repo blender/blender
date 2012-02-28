@@ -262,7 +262,7 @@ int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
 			return FALSE;
 		}
 
-		curedge = bmesh_disk_edge_next(curedge, v);
+		curedge = bm_disk_edge_next(curedge, v);
 	} while (curedge != v->e);
 
 	return TRUE;
@@ -297,7 +297,7 @@ int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
 
 	/* count edges while looking for non-manifold edges */
 	oe = v->e;
-	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bmesh_disk_edge_next(e, v)) {
+	for (len = 0, e = v->e; e != oe || (e == oe && len == 0); len++, e = bm_disk_edge_next(e, v)) {
 		if (e->l == NULL) {
 			/* loose edge */
 			return FALSE;
@@ -507,9 +507,9 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
 	 * get the edges and count them both at once */
 
 	if ((e1 = v->e) &&
-		(e2 =  bmesh_disk_edge_next(e1, v)) &&
+		(e2 =  bm_disk_edge_next(e1, v)) &&
 	    /* make sure we come full circle and only have 2 connected edges */
-		(e1 == bmesh_disk_edge_next(e2, v)))
+		(e1 == bm_disk_edge_next(e2, v)))
 	{
 		BMVert *v1 = BM_edge_other_vert(e1, v);
 		BMVert *v2 = BM_edge_other_vert(e2, v);

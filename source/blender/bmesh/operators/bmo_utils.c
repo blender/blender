@@ -140,7 +140,7 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 #define SEL_FLAG	1
 #define SEL_ORIG	2
 
-static void bmesh_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
+static void bmo_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -179,7 +179,7 @@ static void bmesh_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
 	}
 }
 
-static void bmesh_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
+static void bmo_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -229,9 +229,9 @@ void bmo_regionextend_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, op, "geom", SEL_ORIG, BM_ALL);
 
 	if (constrict)
-		bmesh_regionextend_constrict(bm, op, use_faces);
+		bmo_regionextend_constrict(bm, op, use_faces);
 	else
-		bmesh_regionextend_extend(bm, op, use_faces);
+		bmo_regionextend_extend(bm, op, use_faces);
 
 	BMO_slot_from_flag(bm, op, "geomout", SEL_FLAG, BM_ALL);
 }

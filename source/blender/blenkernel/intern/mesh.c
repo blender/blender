@@ -1801,7 +1801,7 @@ void mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int 
 }
 
 
-static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol)
+static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol)
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1937,7 +1937,7 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 		
 		#undef ML
 
-		bmesh_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
+		bm_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
 	}
 
 	/* note, we dont convert FGons at all, these are not even real ngons,
