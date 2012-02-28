@@ -397,45 +397,12 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v);
  * space, so there might be accuracy issues.*/
 int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3]);
 
-/* Interpolation */
-
-/* projects target onto source for customdata interpolation.  note: only
- * does loop customdata.  multires is handled.  */
-void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
-
-/* projects a single loop, target, onto source for customdata interpolation. multires is handled.
- * if do_vertex is true, target's vert data will also get interpolated.*/
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
-                              int do_vertex, int do_multires);
-
-/* smoothes boundaries between multires grids, including some borders in adjacent faces */
-void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
-
-/* project the multires grid in target onto source's set of multires grids */
-void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
-void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
-
-void  BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac);
-void  BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, BMEdge *e1, const float fac);
-void  BM_data_layer_add(BMesh *em, CustomData *data, int type);
-void  BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
-void  BM_data_layer_free(BMesh *em, CustomData *data, int type);
-void  BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n);
-float BM_elem_float_data_get(CustomData *cd, void *element, int type);
-void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val);
-
 /* get the area of the face */
 float BM_face_area_calc(BMesh *bm, BMFace *f);
 /* computes the centroid of a face, using the center of the bounding box */
 void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float center[3]);
 /* computes the centroid of a face, using the mean average */
 void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
-
-void BM_mesh_select_mode_flush(BMesh *bm);
-
-/* mode independent flushing up/down */
-void BM_mesh_deselect_flush(BMesh *bm);
-void BM_mesh_select_flush(BMesh *bm);
 
 /* flag conversion funcs */
 char BM_face_flag_from_mflag(const char  mflag);
@@ -445,12 +412,6 @@ char BM_vert_flag_from_mflag(const char  mflag);
 char  BM_face_flag_to_mflag(BMFace *f);
 short BM_edge_flag_to_mflag(BMEdge *e);
 char  BM_vert_flag_to_mflag(BMVert *v);
-
-
-/* convert MLoop*** in a bmface to mtface and mcol in
- * an MFace*/
-void BM_loops_to_corners(BMesh *bm, struct Mesh *me, int findex,
-                         BMFace *f, int numTex, int numCol);
 
 void BM_loop_kill(BMesh *bm, BMLoop *l);
 void BM_face_kill(BMesh *bm, BMFace *f);
@@ -504,6 +465,7 @@ void bmesh_edit_end(BMesh *bm, int flag);
 #include "bmesh_operators.h"
 #include "bmesh_error.h"
 #include "bmesh_queries.h"
+#include "bmesh_interp.h"
 #include "bmesh_iterators.h"
 #include "bmesh_walkers.h"
 #include "intern/bmesh_inline.c"

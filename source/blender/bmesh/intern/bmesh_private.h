@@ -40,14 +40,14 @@
 int bmesh_elem_check(BMesh *bm, void *element, const char htype);
 
 #define BM_CHECK_ELEMENT(bm, el)                                              \
-    if (bmesh_elem_check(bm, el, ((BMHeader *)el)->htype)) {               \
+    if (bmesh_elem_check(bm, el, ((BMHeader *)el)->htype)) {                  \
         printf("check_element failure, with code %i on line %i in file\n"     \
         "    \"%s\"\n\n",                                                     \
-        bmesh_elem_check(bm, el, ((BMHeader *)el)->htype),                 \
+        bmesh_elem_check(bm, el, ((BMHeader *)el)->htype),                    \
         __LINE__, __FILE__);                                                  \
     }
 
-#define BM_EDGE_DISK_LINK_GET(e, v)  (                                        \
+#define BM_DISK_EDGE_LINK_GET(e, v)  (                                        \
 	((v) == ((BMEdge *)(e))->v1) ?                                            \
 		&((e)->v1_disk_link) :                                                \
 		&((e)->v2_disk_link)                                                  \
@@ -55,13 +55,6 @@ int bmesh_elem_check(BMesh *bm, void *element, const char htype);
 
 int bmesh_radial_length(BMLoop *l);
 int bmesh_disk_count(BMVert *v);
-
-/* internal selection flushing */
-void bmesh_selectmode_flush(BMesh *bm);
-
-/*internal filter API*/
-void *bmesh_get_filter_callback(int type);
-int bmesh_get_filter_argtype(int type);
 
 /* NOTE: ensure different parts of the API do not conflict
  * on using these internal flags!*/

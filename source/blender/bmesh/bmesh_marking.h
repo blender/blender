@@ -57,6 +57,11 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select);
 void BM_face_select_set(BMesh *bm, BMFace *f, int select);
 
 void BM_select_mode_set(BMesh *bm, int selectmode);
+void BM_mesh_select_mode_flush(BMesh *bm);
+
+/* mode independent flushing up/down */
+void BM_mesh_deselect_flush(BMesh *bm);
+void BM_mesh_select_flush(BMesh *bm);
 
 /* counts number of elements with flag set */
 int BM_mesh_count_flag(BMesh *bm, const char htype, const char hflag, int respecthide);

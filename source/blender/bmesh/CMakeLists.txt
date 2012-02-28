@@ -88,7 +88,7 @@ set(SRC
 	intern/bmesh_marking.c
 	intern/bmesh_mesh.c
 	intern/bmesh_mods.c
-	intern/bmesh_newcore.c
+	intern/bmesh_core.c
 	intern/bmesh_opdefines.c
 	intern/bmesh_operator_api_inline.c
 	intern/bmesh_operators.c
@@ -107,6 +107,7 @@ set(SRC
 	bmesh.h
 	bmesh_class.h
 	bmesh_error.h
+	bmesh_interp.h
 	bmesh_iterators.h
 	bmesh_marking.h
 	bmesh_operator_api.h

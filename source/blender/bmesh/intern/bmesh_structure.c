@@ -153,7 +153,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
 int bmesh_disk_edge_append(struct BMEdge *e, struct BMVert *v)
 {
 	if (!v->e) {
-		BMDiskLink *dl1 = BM_EDGE_DISK_LINK_GET(e, v);
+		BMDiskLink *dl1 = BM_DISK_EDGE_LINK_GET(e, v);
 
 		v->e = e;
 		dl1->next = dl1->prev = e;
@@ -161,9 +161,9 @@ int bmesh_disk_edge_append(struct BMEdge *e, struct BMVert *v)
 	else {
 		BMDiskLink *dl1, *dl2, *dl3;
 
-		dl1 = BM_EDGE_DISK_LINK_GET(e, v);
-		dl2 = BM_EDGE_DISK_LINK_GET(v->e, v);
-		dl3 = dl2->prev ? BM_EDGE_DISK_LINK_GET(dl2->prev, v) : NULL;
+		dl1 = BM_DISK_EDGE_LINK_GET(e, v);
+		dl2 = BM_DISK_EDGE_LINK_GET(v->e, v);
+		dl3 = dl2->prev ? BM_DISK_EDGE_LINK_GET(dl2->prev, v) : NULL;
 
 		dl1->next = v->e;
 		dl1->prev = dl2->prev;
@@ -180,14 +180,14 @@ void bmesh_disk_edge_remove(struct BMEdge *e, struct BMVert *v)
 {
 	BMDiskLink *dl1, *dl2;
 
-	dl1 = BM_EDGE_DISK_LINK_GET(e, v);
+	dl1 = BM_DISK_EDGE_LINK_GET(e, v);
 	if (dl1->prev) {
-		dl2 = BM_EDGE_DISK_LINK_GET(dl1->prev, v);
+		dl2 = BM_DISK_EDGE_LINK_GET(dl1->prev, v);
 		dl2->next = dl1->next;
 	}
 
 	if (dl1->next) {
-		dl2 = BM_EDGE_DISK_LINK_GET(dl1->next, v);
+		dl2 = BM_DISK_EDGE_LINK_GET(dl1->next, v);
 		dl2->prev = dl1->prev;
 	}
 
@@ -215,7 +215,7 @@ struct BMEdge *bmesh_disk_edge_next(struct BMEdge *e, struct BMVert *v)
 	return NULL;
 }
 
-static BMEdge *bmesh_disk_prevedge(BMEdge *e, BMVert *v)
+static BMEdge *bmesh_disk_edge_prev(BMEdge *e, BMVert *v)
 {
 	if (v == e->v1)
 		return e->v1_disk_link.prev;
@@ -278,7 +278,7 @@ int bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 
 	e_iter = e;
 	do {
-		if (len != 1 && bmesh_disk_prevedge(e_iter, v) == e_iter) {
+		if (len != 1 && bmesh_disk_edge_prev(e_iter, v) == e_iter) {
 			return FALSE;
 		}
 	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
