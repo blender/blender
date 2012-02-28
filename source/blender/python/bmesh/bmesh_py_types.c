@@ -734,6 +734,34 @@ static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 }
 
 
+PyDoc_STRVAR(bpy_bm_elem_hide_set_doc,
+".. method:: hide_set(hide)\n"
+"\n"
+"   Set the hide state.\n"
+"   This is different from the *hide* attribute because it updates the selection and hide state of assosiated geometry.\n"
+"\n"
+"   :arg hide: Hidden or visible.\n"
+"   :type hide: boolean\n"
+);
+static PyObject *bpy_bm_elem_hide_set(BPy_BMElem *self, PyObject *value)
+{
+	int param;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	param = PyLong_AsLong(value);
+	if (param != FALSE && param != TRUE) {
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a boolean type 0/1");
+		return NULL;
+	}
+
+	BM_elem_hide_set(self->bm, self->ele, param);
+
+	Py_RETURN_NONE;
+}
+
+
 PyDoc_STRVAR(bpy_bm_elem_copy_from_doc,
 ".. method:: copy_from(other)\n"
 "\n"
@@ -1665,6 +1693,7 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 
 static struct PyMethodDef bpy_bmvert_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+    {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
     {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
     {"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
@@ -1678,6 +1707,7 @@ static struct PyMethodDef bpy_bmvert_methods[] = {
 
 static struct PyMethodDef bpy_bmedge_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+    {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
 
     {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
@@ -1691,6 +1721,7 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 
 static struct PyMethodDef bpy_bmface_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+    {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
 
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
     {"copy_from_face_interp", (PyCFunction)bpy_bmface_copy_from_face_interp, METH_O, bpy_bmface_copy_from_face_interp_doc},
