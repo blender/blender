@@ -3292,9 +3292,13 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 
 	BLF_width_and_height(fstyle->uifont_id, name, &font_dims[0], &font_dims[1]);
 
+	/* text rect */
 	trect.xmin += 0;
 	trect.xmax = trect.xmin + font_dims[0] + 10;
 	trect.ymin += 10;
 	trect.ymax = trect.ymin + font_dims[1];
+	if(trect.xmax > rect->xmax - PREVIEW_PAD)
+		trect.xmax = rect->xmax - PREVIEW_PAD;
+
 	uiStyleFontDraw(fstyle, &trect, name);
 }
