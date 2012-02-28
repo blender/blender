@@ -1173,6 +1173,8 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 	/* two unconnected loops, connect the */
 	if (edges1 && edges2) {
 		BMVert *v1, *v2, *v3, *v4;
+		float dvec1[3];
+		float dvec2[3];
 
 		if (BLI_array_count(edges1) == 1) {
 			v1 = edges1[0]->v1;
@@ -1204,10 +1206,22 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 			else v4 = edges2[i]->v1;
 		}
 
-		/* avoid sqrt for comparison */
-		if (len_squared_v3v3(v1->co, v3->co) + len_squared_v3v3(v2->co, v4->co) >
-		    len_squared_v3v3(v1->co, v4->co) + len_squared_v3v3(v2->co, v3->co))
+		/* if there is ever bowtie quads between two edges the problem is here! [#] */
+#if 0
+		normal_tri_v3(dvec1, v1->co, v2->co, v4->co);
+		normal_tri_v3(dvec2, v1->co, v4->co, v3->co);
+#else
 		{
+			/* save some CPU cycles and skip the sqrt and 1 subtraction */
+			float a1[3], a2[3], a3[3];
+			sub_v3_v3v3(a1, v1->co, v2->co);
+			sub_v3_v3v3(a2, v1->co, v4->co);
+			sub_v3_v3v3(a3, v1->co, v3->co);
+			cross_v3_v3v3(dvec1, a1, a2);
+			cross_v3_v3v3(dvec2, a2, a3);
+		}
+#endif
+		if (dot_v3v3(dvec1, dvec2) < 0.0f) {
 			BMVert *v;
 			v = v3;
 			v3 = v4;
