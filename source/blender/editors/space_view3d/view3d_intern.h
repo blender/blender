@@ -136,8 +136,6 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Ob
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
 void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void *));
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
-void view3d_clr_clipping(void);
-void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(ListBase *lb, Base *base, int flag);
 
 void circf(float x, float y, float rad);

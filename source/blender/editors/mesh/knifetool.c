@@ -1324,7 +1324,7 @@ static int knife_sample_screen_density(knifetool_opdata *kcd, float radius)
 						copy_v3_v3(vec, kfv->cageco);
 						mul_m4_v3(kcd->vc.obedit->obmat, vec);
 			
-						if (ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1) == 0) {
+						if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 							c++;
 						}
 					}
@@ -1398,7 +1398,7 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], flo
 					vec[2] = kfe->v1->cageco[2] + labda*(kfe->v2->cageco[2] - kfe->v1->cageco[2]);
 					mul_m4_v3(kcd->vc.obedit->obmat, vec);
 		
-					if (ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1) == 0) {
+					if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 						cure = kfe;
 						curdis = dis;
 					}
@@ -1483,7 +1483,7 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], flo
 						copy_v3_v3(vec, kfv->cageco);
 						mul_m4_v3(kcd->vc.obedit->obmat, vec);
 			
-						if (ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1) == 0) {
+						if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 							curv = kfv;
 							curdis = dis;
 						}

@@ -231,8 +231,12 @@ void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData,
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
-void ED_view3d_local_clipping(struct RegionView3D *rv3d, float mat[][4]);
-int ED_view3d_test_clipping(struct RegionView3D *rv3d, const float vec[3], const int local);
+void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
+int  ED_view3d_clipping_test(struct RegionView3D *rv3d, const float vec[3], const int is_local);
+void ED_view3d_clipping_set(struct RegionView3D *rv3d);
+void ED_view3d_clipping_enable(void);
+void ED_view3d_clipping_disable(void);
+
 void ED_view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
 float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 

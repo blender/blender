@@ -3143,7 +3143,7 @@ static void calc_local_clipping(float clip_local[][4], BoundBox *clipbb, float m
 	calc_clipping_plane(clip_local, &clipbb_local);
 }
 
-void ED_view3d_local_clipping(RegionView3D *rv3d, float mat[][4])
+void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[][4])
 {
 	if (rv3d->rflag & RV3D_CLIPPING)
 		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);

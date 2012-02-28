@@ -170,30 +170,38 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 	}
 }
 
-void view3d_set_clipping(RegionView3D *rv3d)
+void ED_view3d_clipping_set(RegionView3D *rv3d)
 {
 	double plane[4];
-	int a, tot=4;
-	
-	if (rv3d->viewlock) tot= 6;
-	
-	for (a=0; a<tot; a++) {
+	const unsigned int tot = (rv3d->viewlock) ? 4 : 6;
+	unsigned int a;
+
+	for (a = 0; a < tot; a++) {
 		QUATCOPY(plane, rv3d->clip[a]);
-		glClipPlane(GL_CLIP_PLANE0+a, plane);
-		glEnable(GL_CLIP_PLANE0+a);
+		glClipPlane(GL_CLIP_PLANE0 + a, plane);
+		glEnable(GL_CLIP_PLANE0 + a);
 	}
 }
 
-void view3d_clr_clipping(void)
+/* use these to temp disable/enable clipping when 'rv3d->rflag & RV3D_CLIPPING' is set */
+void ED_view3d_clipping_disable(void)
 {
-	int a;
-	
-	for (a=0; a<6; a++) {
-		glDisable(GL_CLIP_PLANE0+a);
+	unsigned int a;
+
+	for (a = 0; a < 6; a++) {
+		glDisable(GL_CLIP_PLANE0 + a);
+	}
+}
+void ED_view3d_clipping_enable(void)
+{
+	unsigned int a;
+
+	for (a = 0; a < 6; a++) {
+		glEnable(GL_CLIP_PLANE0 + a);
 	}
 }
 
-static int test_clipping(const float vec[3], float clip[][4])
+static int view3d_clipping_test(const float vec[3], float clip[][4])
 {
 	float view[3];
 	copy_v3_v3(view, vec);
@@ -207,11 +215,11 @@ static int test_clipping(const float vec[3], float clip[][4])
 	return 1;
 }
 
-/* for 'local' ED_view3d_local_clipping must run first
+/* for 'local' ED_view3d_clipping_local must run first
  * then all comparisons can be done in localspace */
-int ED_view3d_test_clipping(RegionView3D *rv3d, const float vec[3], const int local)
+int ED_view3d_clipping_test(RegionView3D *rv3d, const float vec[3], const int is_local)
 {
-	return test_clipping(vec, local ? rv3d->clip_local : rv3d->clip);
+	return view3d_clipping_test(vec, is_local ? rv3d->clip_local : rv3d->clip);
 }
 
 /* ********* end custom clipping *********** */
@@ -1330,7 +1338,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 	
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_set_clipping(rv3d);
+		ED_view3d_clipping_set(rv3d);
 	
 	G.f |= G_BACKBUFSEL;
 	
@@ -1348,7 +1356,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		glEnable(GL_MULTISAMPLE_ARB);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_clr_clipping();
+		ED_view3d_clipping_disable();
 
 	/* it is important to end a view in a transform compatible with buttons */
 //	persp(PERSP_WIN);  // set ortho
@@ -2059,7 +2067,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 //	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 	
 	if (rv3d->rflag & RV3D_CLIPPING) {
-		view3d_set_clipping(rv3d);
+		ED_view3d_clipping_set(rv3d);
 	}
 	
 	v3d->zbuf= TRUE;
@@ -2151,7 +2159,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	}
 	
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_clr_clipping();
+		ED_view3d_clipping_disable();
 	
 	v3d->zbuf = zbuf;
 	if (!v3d->zbuf) glDisable(GL_DEPTH_TEST);
@@ -2435,7 +2443,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 		v3d->zbuf= FALSE;
 
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_set_clipping(rv3d);
+		ED_view3d_clipping_set(rv3d);
 
 	/* draw set first */
 	if (scene->set) {
@@ -2473,7 +2481,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	if (v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_clr_clipping();
+		ED_view3d_clipping_disable();
 
 	/* cleanup */
 	if (v3d->zbuf) {
@@ -2784,7 +2792,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	}
 	
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_set_clipping(rv3d);
+		ED_view3d_clipping_set(rv3d);
 
 	/* draw set first */
 	if (scene->set) {
@@ -2857,7 +2865,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
-		view3d_clr_clipping();
+		ED_view3d_clipping_disable();
 	
 	BIF_draw_manipulator(C);
 	

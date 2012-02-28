@@ -226,7 +226,7 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 	mult_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->obmat);
 
 	/* initializes object space clipping, speeds up clip tests */
-	ED_view3d_local_clipping(rv3d, ob->obmat);
+	ED_view3d_clipping_local(rv3d, ob->obmat);
 }
 
 void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d)

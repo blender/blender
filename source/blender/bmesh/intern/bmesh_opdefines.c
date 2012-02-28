@@ -1024,7 +1024,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {BMO_OP_SLOT_BOOL, "use_lengths"}, /* grab edge lengths from a PROP_FLT customdata laye */
 	 {BMO_OP_SLOT_BOOL, "use_even"}, /* corner vert placement: use shell/angle calculations  */
 	 {BMO_OP_SLOT_BOOL, "use_dist"}, /* corner vert placement: evaluate percent as a distance,
-	                                 * modifier uses this. We could do this as another float setting */
+	                                  * modifier uses this. We could do this as another float setting */
 	 {BMO_OP_SLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to us */
 	 {BMO_OP_SLOT_FLT, "percent"}, /* percentage to expand bevelled edge */
 	 {0} /* null-terminating sentine */},
