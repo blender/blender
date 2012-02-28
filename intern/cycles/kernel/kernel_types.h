@@ -240,6 +240,14 @@ typedef enum LightType {
 	LIGHT_AREA
 } LightType;
 
+/* Camera Type */
+
+enum CameraType {
+	CAMERA_PERSPECTIVE,
+	CAMERA_ORTHOGRAPHIC,
+	CAMERA_ENVIRONMENT
+};
+
 /* Differential */
 
 typedef struct differential3 {
@@ -387,7 +395,7 @@ typedef struct ShaderData {
 
 typedef struct KernelCamera {
 	/* type */
-	int ortho;
+	int type;
 	int pad1, pad2, pad3;
 
 	/* matrices */

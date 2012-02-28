@@ -185,7 +185,7 @@ __device float2 regular_polygon_sample(float corners, float rotation, float u, f
 	return make_float2(cr*p.x - sr*p.y, sr*p.x + cr*p.y);
 }
 
-/* Spherical coordinates <-> Cartesion direction  */
+/* Spherical coordinates <-> Cartesian direction  */
 
 __device float2 direction_to_spherical(float3 dir)
 {
@@ -203,11 +203,11 @@ __device float3 spherical_to_direction(float theta, float phi)
 		cosf(theta));
 }
 
-/* Equirectangular */
+/* Equirectangular coordinates <-> Cartesian direction */
 
 __device float2 direction_to_equirectangular(float3 dir)
 {
-	float u = (atan2f(dir.y, dir.x) + M_PI_F)/(2.0f*M_PI_F);
+	float u = -atan2f(dir.y, dir.x)/(2.0f*M_PI_F) + 0.5f;
 	float v = atan2f(dir.z, hypotf(dir.x, dir.y))/M_PI_F + 0.5f;
 
 	return make_float2(u, v);
@@ -215,9 +215,8 @@ __device float2 direction_to_equirectangular(float3 dir)
 
 __device float3 equirectangular_to_direction(float u, float v)
 {
-	/* XXX check correctness? */
-	float theta = M_PI_F*v;
-	float phi = 2.0f*M_PI_F*u;
+	float phi = M_PI_F*(1.0f - 2.0f*u);
+	float theta = M_PI_F*(1.0f - v);
 
 	return make_float3(
 		sin(theta)*cos(phi),

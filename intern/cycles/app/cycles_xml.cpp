@@ -288,9 +288,11 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&cam->shutterclose, node, "shutterclose");
 
 	if(xml_equal_string(node, "type", "orthographic"))
-		cam->ortho = true;
+		cam->type = CAMERA_ORTHOGRAPHIC;
 	else if(xml_equal_string(node, "type", "perspective"))
-		cam->ortho = false;
+		cam->type = CAMERA_PERSPECTIVE;
+	else if(xml_equal_string(node, "type", "environment"))
+		cam->type = CAMERA_ENVIRONMENT;
 
 	cam->matrix = state.tfm;
 

@@ -88,11 +88,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
             col.prop(cam, "ortho_scale")
 
         col = layout.column()
-        if cam.type == 'ORTHO':
-            if cam.use_panorama:
-                col.alert = True
-            else:
-                col.enabled = False
+        col.enabled = cam.type == 'PERSPECTIVE'
 
         col.prop(cam, "use_panorama")
 

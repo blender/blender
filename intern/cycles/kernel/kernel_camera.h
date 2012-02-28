@@ -122,6 +122,44 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 #endif
 }
 
+/* Environment Camera */
+
+__device void camera_sample_environment(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
+{
+	Transform rastertocamera = kernel_data.cam.rastertocamera;
+	float3 Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+
+	/* create ray form raster position */
+	ray->P = make_float3(0.0, 0.0f, 0.0f);
+	ray->D = equirectangular_to_direction(Pcamera.x, Pcamera.y);
+
+	/* transform ray from camera to world */
+	Transform cameratoworld = kernel_data.cam.cameratoworld;
+
+	ray->P = transform(&cameratoworld, ray->P);
+	ray->D = transform_direction(&cameratoworld, ray->D);
+	ray->D = normalize(ray->D);
+
+#ifdef __RAY_DIFFERENTIALS__
+	/* ray differential */
+	ray->dP.dx = make_float3(0.0f, 0.0f, 0.0f);
+	ray->dP.dy = make_float3(0.0f, 0.0f, 0.0f);
+
+	Pcamera = transform(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
+	ray->dD.dx = equirectangular_to_direction(Pcamera.x, Pcamera.y) - ray->D;
+
+	Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
+	ray->dD.dy = equirectangular_to_direction(Pcamera.x, Pcamera.y) - ray->D;
+#endif
+
+#ifdef __CAMERA_CLIPPING__
+	/* clipping */
+	ray->t = kernel_data.cam.cliplength;
+#else
+	ray->t = FLT_MAX;
+#endif
+}
+
 /* Common */
 
 __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v, float lens_u, float lens_v, Ray *ray)
@@ -134,10 +172,12 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 	//ray->time = lerp(time_t, kernel_data.cam.shutter_open, kernel_data.cam.shutter_close);
 
 	/* sample */
-	if(kernel_data.cam.ortho)
+	if(kernel_data.cam.type == CAMERA_PERSPECTIVE)
+		camera_sample_perspective(kg, raster_x, raster_y, lens_u, lens_v, ray);
+	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
 		camera_sample_orthographic(kg, raster_x, raster_y, ray);
 	else
-		camera_sample_perspective(kg, raster_x, raster_y, lens_u, lens_v, ray);
+		camera_sample_environment(kg, raster_x, raster_y, ray);
 }
 
 CCL_NAMESPACE_END
