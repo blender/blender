@@ -904,62 +904,42 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
    polygon.) */
 static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 {
-	int i, j, ok, total=0;
-	IndexNode *node= ss->pmap[vert].first;
-	char ncount= BLI_countlist(&ss->pmap[vert]);
-	MPoly *f;
-	MLoop *ml;
+	const int ncount = BLI_countlist(&ss->pmap[vert]);
+	const MVert *mvert = ss->mvert;
+	float (*deform_co)[3] = ss->deform_cos;
 
-	avg[0] = avg[1] = avg[2] = 0;
+	zero_v3(avg);
 		
 	/* Don't modify corner vertices */
-	if(ncount==1) {
-		if(ss->deform_cos) copy_v3_v3(avg, ss->deform_cos[vert]);
-		else copy_v3_v3(avg, ss->mvert[vert].co);
+	if(ncount != 1) {
+		IndexNode *node;
+		int total = 0;
 
-		return;
-	}
+		for(node = ss->pmap[vert].first; node; node = node->next) {
+			const MPoly *p= &ss->mpoly[node->index];
+			unsigned f_adj_v[3];
 
-	while(node){
-		f= &ss->mpoly[node->index];
+			if(poly_get_adj_loops_from_vert(f_adj_v, p, ss->mloop, vert) != -1) {
+				int i;
+			
+				for (i = 0; i < 3; i++) {
+					if (ncount != 2 || BLI_countlist(&ss->pmap[f_adj_v[i]]) <= 2) {
+						add_v3_v3(avg, deform_co ? deform_co[f_adj_v[i]] :
+												       mvert[f_adj_v[i]].co);
 
-		/* find the loop in the poly which references this vertex */
-		ok = FALSE;
-		ml = ss->mloop + f->loopstart;
-		for (j = 0; j < f->totloop; j++, ml++) {
-			if (ml->v == vert) {
-				ok = TRUE;
-				break;
-			}
-		}
-
-		if (ok) {
-			/* vertex was found */
-			unsigned int f_adj_v[3] = {
-			    ME_POLY_LOOP_PREV(ss->mloop, f, j)->v,
-			    ml->v,
-			    ME_POLY_LOOP_NEXT(ss->mloop, f, j)->v};
-
-
-			for (i=0; i<3; ++i) {
-				if (ncount!=2 || BLI_countlist(&ss->pmap[f_adj_v[i]]) <= 2) {
-					if(ss->deform_cos) add_v3_v3(avg, ss->deform_cos[f_adj_v[i]]);
-					else add_v3_v3(avg, ss->mvert[f_adj_v[i]].co);
-					++total;
+						total++;
+					}
 				}
 			}
-
 		}
 
-		node= node->next;
+		if(total > 0) {
+			mul_v3_fl(avg, 1.0f / total);
+			return;
+		}
 	}
 
-	if(total>0)
-		mul_v3_fl(avg, 1.0f / total);
-	else {
-		if(ss->deform_cos) copy_v3_v3(avg, ss->deform_cos[vert]);
-		else copy_v3_v3(avg, ss->mvert[vert].co);
-	}
+	copy_v3_v3(avg, deform_co ? deform_co[vert] : mvert[vert].co);
 }
 
 static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength)

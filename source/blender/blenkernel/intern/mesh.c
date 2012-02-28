@@ -2833,6 +2833,42 @@ float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
+/* Find the index of the loop in 'poly' which references vertex,
+   returns -1 if not found */
+int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
+							 unsigned vert)
+{
+	int j;
+	for (j = 0; j < poly->totloop; j++, loopstart++) {
+		if (loopstart->v == vert)
+			return j;
+	}
+	
+	return -1;
+}
+
+/* Fill 'adj_r' with the loop indices in 'poly' adjacent to the
+   vertex. Returns the index of the loop matching vertex, or -1 if the
+   vertex is not in 'poly' */
+int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
+								 const MLoop *mloop, unsigned vert)
+{
+	int corner = poly_find_loop_from_vert(poly,
+										  &mloop[poly->loopstart],
+										  vert);
+		
+	if(corner != -1) {
+		const MLoop *ml = &mloop[poly->loopstart + corner];
+
+		/* vertex was found */
+		adj_r[0] = ME_POLY_LOOP_PREV(mloop, poly, corner)->v;
+		adj_r[1] = ml->v;
+		adj_r[2] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;
+	}
+
+	return corner;
+}
+
 /* basic vertex data functions */
 int minmax_mesh(Mesh *me, float min[3], float max[3])
 {
