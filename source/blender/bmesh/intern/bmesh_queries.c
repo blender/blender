@@ -600,13 +600,12 @@ float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
 	}
 }
 
-/*
- *			BMESH FACE ANGLE
+/**
+ *	BMESH FACE ANGLE
  *
  *  Calculates the angle a verts 2 edges.
  *
- *  Returns -
- *	Float.
+ * \returns the angle in radians
  */
 float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
 {
@@ -630,16 +629,15 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
 	}
 }
 
-/*
+/**
  * BMESH EXIST FACE OVERLAPS
  *
  * Given a set of vertices (varr), find out if
  * all those vertices overlap an existing face.
  *
- * Returns:
- * 0 for no overlap
- * 1 for overlap
- *
+ * \param do_partial When TRUE the overlapping face
+ * can be a different length to the one given
+ * \returns TRUE for overlap
  *
  */
 int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlapface,
@@ -654,9 +652,7 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlap
 		while (f) {
 			amount = BM_verts_in_face(bm, f, varr, len);
 			if ((amount >= len) && (do_partial == TRUE || len == f->len)) {
-				if (r_overlapface) {
-					*r_overlapface = f;
-				}
+				if (r_overlapface) *r_overlapface = f;
 				return TRUE;
 			}
 			f = BM_iter_step(&vertfaces);
@@ -839,24 +835,28 @@ int BM_face_exists_multi_edge(BMesh *bm, BMEdge **earr, int len)
  * 1 for face found
  */
 
-int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
+int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
 {
 	BMIter vertfaces;
 	BMFace *f;
 	int i, amount;
-
-	if (existface) *existface = NULL;
 
 	for (i = 0; i < len; i++) {
 		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
 		while (f) {
 			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount == len && amount == f->len) {
-				if (existface) *existface = f;
+				if (r_existface) {
+					*r_existface = f;
+				}
 				return TRUE;
 			}
 			f = BM_iter_step(&vertfaces);
 		}
+	}
+
+	if (r_existface) {
+		*r_existface = NULL;
 	}
 	return FALSE;
 }

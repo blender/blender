@@ -345,7 +345,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);
  * the nl member to a loop in the newly created edge.*/
 BMFace *BM_face_split(BMesh *bm, BMFace *f,
                       BMVert *v1, BMVert *v2,
-                      BMLoop **nl, BMEdge *example);
+                      BMLoop **r_l, BMEdge *example);
 
 /* these 2 functions are very similar */
 BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
@@ -355,14 +355,14 @@ BMEdge* BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
 
 
 /* splits an edge.  ne is set to the new edge created. */
-BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **ne, float percent);
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent);
 
 /* split an edge multiple times evenly */
 BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
 
 /* connect two verts together, through a face they share.  this function may
  * be removed in the future. */
-BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
+BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f);
 
 /* rotates an edge topologically, either clockwise (if ccw=0) or counterclockwise
  * (if ccw is 1). */

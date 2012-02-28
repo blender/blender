@@ -147,8 +147,8 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
 	}
 }
 
-/*
- * BMESH MAKE NGON
+/**
+ * \brief BMESH MAKE NGON
  *
  * Attempts to make a new Ngon from a list of edges.
  * If nodouble equals one, a check for overlaps or existing
@@ -165,11 +165,11 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 {
 	BMEdge **edges2 = NULL;
 	BLI_array_staticdeclare(edges2, BM_NGON_STACK_SIZE);
-	BMVert **verts = NULL, *v;
+	BMVert **verts = NULL;
 	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
-	BMVert *ev1, *ev2;
+	BMVert *v, *ev1, *ev2;
 	int i, /* j, */ v1found, reverse;
 
 	/* this code is hideous, yeek.  I'll have to think about ways of

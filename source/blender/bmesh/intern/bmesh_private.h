@@ -36,9 +36,6 @@
  *  parts of the bmesh internals.
  */
 
-struct Link;
-struct BMLoop;
-
 /* returns positive nonzero on error */
 int bmesh_elem_check(BMesh *bm, void *element, const char htype);
 
@@ -56,11 +53,11 @@ int bmesh_elem_check(BMesh *bm, void *element, const char htype);
 		&((e)->v2_disk_link)                                                  \
     )
 
-int bmesh_radial_length(struct BMLoop *l);
+int bmesh_radial_length(BMLoop *l);
 int bmesh_disk_count(BMVert *v);
 
 /* internal selection flushing */
-void bmesh_selectmode_flush(struct BMesh *bm);
+void bmesh_selectmode_flush(BMesh *bm);
 
 /*internal filter API*/
 void *bmesh_get_filter_callback(int type);
@@ -79,14 +76,14 @@ int bmesh_get_filter_argtype(int type);
 /* newedgeflag sets a flag layer flag, obviously not the header flag. */
 void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
-void bmesh_face_normal_update(struct BMesh *bm, struct BMFace *f, float no[3],
+void bmesh_face_normal_update(BMesh *bm, BMFace *f, float no[3],
                               float (*projectverts)[3]);
-void bmesh_face_normal_update_vertex_cos(struct BMesh *bm, struct BMFace *f, float no[3],
+void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
                                          float (*projectverts)[3], float (*vertexCos)[3]);
 
 void compute_poly_plane(float (*verts)[3], int nverts);
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);
-void bmesh_flip_normal(struct BMesh *bm, struct BMFace *f);
+void bmesh_flip_normal(BMesh *bm, BMFace *f);
 
 BMEdge *bmesh_disk_next(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_prev(BMEdge *e, BMVert *v);

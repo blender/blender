@@ -187,7 +187,7 @@ void		EDBM_free_data_layer(struct BMEditMesh *em, struct CustomData *data, int t
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
 
 int EDBM_texFaceCheck(struct BMEditMesh *em);
-struct MTexPoly *EDBM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, int sloppy);
+struct MTexPoly *EDBM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **r_act_efa, int sloppy);
 
 void EDBM_free_uv_vert_map(struct UvVertMap *vmap);
 struct UvMapVert *EDBM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);

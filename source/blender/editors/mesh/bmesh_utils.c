@@ -49,6 +49,7 @@
 #include "ED_mesh.h"
 #include "ED_util.h"
 
+#include "bmesh.h"
 
 void EDBM_RecalcNormals(BMEditMesh *em)
 {
@@ -960,7 +961,7 @@ void EDBM_free_uv_element_map(UvElementMap *element_map)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
+MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **r_act_efa, int sloppy)
 {
 	BMFace *efa = NULL;
 	
@@ -970,11 +971,11 @@ MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
 	efa = BM_active_face_get(em->bm, sloppy);
 	
 	if (efa) {
-		if (act_efa) *act_efa = efa;
+		if (r_act_efa) *r_act_efa = efa;
 		return CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 	}
 
-	if (act_efa) *act_efa = NULL;
+	if (r_act_efa) *r_act_efa = NULL;
 	return NULL;
 }
 
