@@ -3276,20 +3276,16 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 
 void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
-	rcti trect = *rect;
+	rcti trect = *rect, bg_rect;
 	float font_dims[2] = {0.0f, 0.0f};
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
+	unsigned char bg_col[3];
 	
 	wt->state(wt, state);
 	wt->draw(&wt->wcol, rect, 0, 0);
 	
 	widget_draw_preview(iconid, 1.0f, rect);
 	
-	if (state == UI_ACTIVE)
-		glColor3ubv((unsigned char*)wt->wcol.text);
-	else
-		glColor3ubv((unsigned char*)wt->wcol.text_sel);
-
 	BLF_width_and_height(fstyle->uifont_id, name, &font_dims[0], &font_dims[1]);
 
 	/* text rect */
@@ -3299,6 +3295,24 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	trect.ymax = trect.ymin + font_dims[1];
 	if(trect.xmax > rect->xmax - PREVIEW_PAD)
 		trect.xmax = rect->xmax - PREVIEW_PAD;
+
+	bg_rect = trect;
+	bg_rect.xmin = rect->xmin + PREVIEW_PAD;
+	bg_rect.ymin = rect->ymin + PREVIEW_PAD;
+	bg_rect.xmax += PREVIEW_PAD / 2;
+	bg_rect.ymax += PREVIEW_PAD / 2;
+	
+	if(bg_rect.xmax > rect->xmax - PREVIEW_PAD)
+		bg_rect.xmax = rect->xmax - PREVIEW_PAD;
+
+	UI_GetThemeColor3ubv(TH_BUTBACK, bg_col);
+	glColor3ubv(bg_col);
+	glRecti(bg_rect.xmin, bg_rect.ymin, bg_rect.xmax, bg_rect.ymax);
+	
+	if (state == UI_ACTIVE)
+		glColor3ubv((unsigned char*)wt->wcol.text);
+	else
+		glColor3ubv((unsigned char*)wt->wcol.text_sel);
 
 	uiStyleFontDraw(fstyle, &trect, name);
 }
