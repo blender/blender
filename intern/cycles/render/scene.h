@@ -156,6 +156,7 @@ public:
 	int default_surface;
 	int default_light;
 	int default_background;
+	int default_holdout;
 
 	/* device */
 	Device *device;

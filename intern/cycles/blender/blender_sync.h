@@ -70,14 +70,14 @@ private:
 	void sync_materials();
 	void sync_objects(BL::SpaceView3D b_v3d);
 	void sync_film();
-	void sync_integrator(const char *layer);
+	void sync_integrator();
 	void sync_view();
 	void sync_world();
-	void sync_render_layers(BL::SpaceView3D b_v3d);
+	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_shaders();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
-	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
+	Mesh *sync_mesh(BL::Object b_ob, bool holdout, bool object_updated);
 	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();
@@ -113,11 +113,9 @@ private:
 		string name;
 		uint scene_layer;
 		uint layer;
+		uint holdout_layer;
 		BL::Material material_override;
-	};
-
-	vector<RenderLayerInfo> render_layers;
-	int active_layer;
+	} render_layer;
 };
 
 CCL_NAMESPACE_END

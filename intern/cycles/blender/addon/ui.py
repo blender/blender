@@ -177,11 +177,13 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
+        col.label(text="Material:")
+        col.prop(rl, "material_override", text="")
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
-
-        layout.separator()
+        col.label(text="Mask Layers:")
+        col.prop(rl, "layers_zmask", text="")
 
         split = layout.split()
 
@@ -212,11 +214,6 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
-
-        layout.separator()
-
-        rl = rd.layers[0]
-        layout.prop(rl, "material_override", text="Material")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):

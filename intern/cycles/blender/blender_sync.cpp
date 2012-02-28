@@ -48,8 +48,7 @@ BlenderSync::BlenderSync(BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene
   light_map(&scene_->lights),
   world_map(NULL),
   world_recalc(false),
-  experimental(false),
-  active_layer(0)
+  experimental(false)
 {
 	scene = scene_;
 	preview = preview_;
@@ -124,8 +123,8 @@ bool BlenderSync::sync_recalc()
 
 void BlenderSync::sync_data(BL::SpaceView3D b_v3d, const char *layer)
 {
-	sync_render_layers(b_v3d);
-	sync_integrator(layer);
+	sync_render_layers(b_v3d, layer);
+	sync_integrator();
 	sync_film();
 	sync_shaders();
 	sync_objects(b_v3d);
@@ -133,7 +132,7 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, const char *layer)
 
 /* Integrator */
 
-void BlenderSync::sync_integrator(const char *layer)
+void BlenderSync::sync_integrator()
 {
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
@@ -156,19 +155,7 @@ void BlenderSync::sync_integrator(const char *layer)
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
 	integrator->seed = get_int(cscene, "seed");
 
-	/* render layer */
-	int active_layer = 0;
-
-	if(layer) {
-		for(int i = 0; i < render_layers.size(); i++) {
-			if(render_layers[i].name == layer) {
-				active_layer = i;
-				break;
-			}
-		}
-	}
-
-	integrator->layer_flag = render_layers[active_layer].layer;
+	integrator->layer_flag = render_layer.layer;
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
@@ -200,33 +187,28 @@ void BlenderSync::sync_film()
 
 /* Render Layer */
 
-void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d)
+void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 {
-	render_layers.clear();
-
 	if(b_v3d) {
-		RenderLayerInfo rlay;
-
-		rlay.scene_layer = get_layer(b_v3d.layers());
-		rlay.layer = rlay.scene_layer;
-		rlay.material_override = PointerRNA_NULL;
-
-		render_layers.push_back(rlay);
+		render_layer.scene_layer = get_layer(b_v3d.layers());
+		render_layer.layer = render_layer.scene_layer;
+		render_layer.material_override = PointerRNA_NULL;
 	}
 	else {
 		BL::RenderSettings r = b_scene.render();
 		BL::RenderSettings::layers_iterator b_rlay;
+		bool first_layer = true;
 
 		for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
-			/* single layer for now */
-			RenderLayerInfo rlay;
+			if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
+				render_layer.name = b_rlay->name();
+				render_layer.scene_layer = get_layer(b_scene.layers());
+				render_layer.layer = get_layer(b_rlay->layers());
+				render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
+				render_layer.material_override = b_rlay->material_override();
+			}
 
-			rlay.name = b_rlay->name();
-			rlay.scene_layer = get_layer(b_scene.layers());
-			rlay.layer = get_layer(b_rlay->layers());
-			rlay.material_override = b_rlay->material_override();
-
-			render_layers.push_back(rlay);
+			first_layer = false;
 		}
 	}
 }

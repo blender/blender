@@ -256,6 +256,22 @@ void ShaderManager::add_default(Scene *scene)
 		scene->shaders.push_back(shader);
 		scene->default_background = scene->shaders.size() - 1;
 	}
+
+	/* default holdout */
+	{
+		graph = new ShaderGraph();
+
+		closure = graph->add(new HoldoutNode());
+		out = graph->output();
+
+		graph->connect(closure->output("Holdout"), out->input("Surface"));
+
+		shader = new Shader();
+		shader->name = "default_holdout";
+		shader->graph = graph;
+		scene->shaders.push_back(shader);
+		scene->default_holdout = scene->shaders.size() - 1;
+	}
 }
 
 CCL_NAMESPACE_END
