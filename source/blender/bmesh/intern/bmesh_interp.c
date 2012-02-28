@@ -145,6 +145,8 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 	} while ((l_iter = l_iter->radial_next) != e1->l);
 }
 
+/* convert MLoop*** in a bmface to mtface and mcol in
+ * an MFace */
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
                          BMFace *f, int numTex, int numCol)
 {
@@ -195,8 +197,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
  *  projects target onto source, and pulls interpolated customdata from
  *  source.
  *
- *  Returns -
- *	Nothing
+ * \note only does loop customdata.  multires is handled.
  */
 void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 {
@@ -527,6 +528,10 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	}
 }
 
+/**
+ * smoothes boundaries between multires grids,
+ * including some borders in adjacent faces
+ */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
@@ -629,11 +634,18 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 	}
 }
 
+/**
+ * project the multires grid in target onto source's set of multires grids
+ */
 void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	bmesh_loop_interp_mdisps(bm, target, source);
 }
 
+/**
+ * projects a single loop, target, onto source for customdata interpolation. multires is handled.
+ * if do_vertex is true, target's vert data will also get interpolated.
+ */
 void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
                               int do_vertex, int do_multires)
 {

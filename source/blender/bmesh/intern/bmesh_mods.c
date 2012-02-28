@@ -55,6 +55,9 @@
  *          |=========|             |=========|
  *
  *
+ * \note dissolves vert, in more situations then BM_disk_dissolve
+ * (e.g. if the vert is part of a wire edge, etc).
+ *
  */
 int BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
@@ -91,6 +94,10 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 		return BM_disk_dissolve(bm, v);
 	}
 }
+
+/**
+ * dissolves all faces around a vert, and removes it.
+ */
 
 int BM_disk_dissolve(BMesh *bm, BMVert *v)
 {
@@ -296,7 +303,8 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 
 
 /**
- * Splits a single face into two.
+ * Split a face along two vertices.  returns the newly made face, and sets
+ * the 'r_l' member to a loop in the newly created edge.
  *
  * \param the original face
  * \param v1,v2 vertices which define the split edge, must be different
@@ -636,6 +644,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	return nv;
 }
 
+/* split an edge multiple times evenly */
 BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 {
 	int i;
@@ -649,6 +658,7 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 	return nv;
 }
 
+/* checks if a face is valid in the data structure */
 int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 {
 	BMIter iter;
@@ -752,6 +762,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw)
 	return nl->e;
 }
 
+/* Rip a single face from a vertex fan */
 BMVert *BM_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
 {
 	return bmesh_urmv(bm, sf, sv);

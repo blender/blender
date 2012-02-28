@@ -27,11 +27,8 @@
  *  \ingroup bmesh
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct Mesh;
 
-/* project the multires grid in target onto source's set of multires grids */
 void  BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
 void  BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
 
@@ -44,27 +41,13 @@ void  BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n);
 float BM_elem_float_data_get(CustomData *cd, void *element, int type);
 void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val);
 
-
-/**
- * projects target onto source for customdata interpolation.
- * \note only does loop customdata.  multires is handled.  */
-void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
-
-/* projects a single loop, target, onto source for customdata interpolation. multires is handled.
- * if do_vertex is true, target's vert data will also get interpolated.*/
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
+void  BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
+void  BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
                               int do_vertex, int do_multires);
 
-/* smoothes boundaries between multires grids, including some borders in adjacent faces */
-void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
+void  BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
 
-/* convert MLoop*** in a bmface to mtface and mcol in
- * an MFace*/
-void BM_loops_to_corners(BMesh *bm, struct Mesh *me, int findex,
-                         BMFace *f, int numTex, int numCol);
-
-#ifdef __cplusplus
-}
-#endif
+void  BM_loops_to_corners(BMesh *bm, struct Mesh *me, int findex,
+                          BMFace *f, int numTex, int numCol);
 
 #endif /* __BMESH_INTERP_H__ */

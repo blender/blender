@@ -81,7 +81,9 @@ set(SRC
 	operators/bmo_utils.c
 
 	intern/bmesh_construct.c
+	intern/bmesh_construct.h
 	intern/bmesh_core.c
+	intern/bmesh_core.h
 	intern/bmesh_inline.c
 	intern/bmesh_interp.c
 	intern/bmesh_interp.h
@@ -91,13 +93,16 @@ set(SRC
 	intern/bmesh_marking.c
 	intern/bmesh_marking.h
 	intern/bmesh_mesh.c
+	intern/bmesh_mesh.h
 	intern/bmesh_mods.c
+	intern/bmesh_mods.h
 	intern/bmesh_opdefines.c
 	intern/bmesh_operator_api_inline.c
 	intern/bmesh_operators.c
 	intern/bmesh_operators.h
 	intern/bmesh_operators_private.h
 	intern/bmesh_polygon.c
+	intern/bmesh_polygon.h
 	intern/bmesh_private.h
 	intern/bmesh_queries.c
 	intern/bmesh_queries.h

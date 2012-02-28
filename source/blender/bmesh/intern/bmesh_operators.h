@@ -88,15 +88,8 @@ extern int bmesh_total_ops;
 
 /*------specific operator helper functions-------*/
 
-/* executes the duplicate operation, feeding elements of
- * type flag etypeflag and header flag flag to it.  note,
- * to get more useful information (such as the mapping from
- * original to new elements) you should run the dupe op manually.*/
 struct Object;
 
-#if 0
-void BMO_dupe_from_flag(BMesh *bm, int etypeflag, const char hflag);
-#endif
 void BM_mesh_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth,
                             float fractal, int beauty, int numcuts, int seltype,
                             int cornertype, int singleedge, int gridfill, int seed);

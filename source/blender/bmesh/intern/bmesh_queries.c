@@ -41,13 +41,9 @@
 
 #define BM_OVERLAP (1 << 13)
 
-/*
- * BMESH COUNT ELEMENT
- *
- * Return the amount of element of
- * type 'type' in a given bmesh.
+/**
+ * Return the amount of element of type 'type' in a given bmesh.
  */
-
 int BM_mesh_elem_count(BMesh *bm, const char htype)
 {
 	if (htype == BM_VERT) return bm->totvert;
@@ -57,27 +53,20 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
 	return 0;
 }
 
-
-/*
- * BMESH VERT IN EDGE
- *
+/**
  * Returns whether or not a given vertex is
  * is part of a given edge.
- *
  */
-
 int BM_vert_in_edge(BMEdge *e, BMVert *v)
 {
 	return bmesh_vert_in_edge(e, v);
 }
 
-/*
+/**
  * BMESH OTHER EDGE IN FACE SHARING A VERTEX
  *
- * Returns an opposing loop that shares the same face.
- *
+ * Finds the other loop that shares 'v' with 'e's loop in 'f'.
  */
-
 BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 {
 	BMLoop *l_iter;
@@ -94,12 +83,8 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 	return l_iter->v == v ? l_iter->prev : l_iter->next;
 }
 
-/*
- * BMESH VERT IN FACE
- *
- * Returns whether or not a given vertex is
- * is part of a given face.
- *
+/**
+ * Returns TRUE if the vertex is used in a given face.
  */
 
 int BM_vert_in_face(BMFace *f, BMVert *v)
@@ -126,12 +111,9 @@ int BM_vert_in_face(BMFace *f, BMVert *v)
 	return FALSE;
 }
 
-/*
- * BMESH VERTS IN FACE
- *
+/**
  * Compares the number of vertices in an array
  * that appear in a given face
- *
  */
 int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 {
@@ -171,14 +153,9 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 	return count;
 }
 
-/*
- * BMESH EDGE IN FACE
- *
- * Returns whether or not a given edge is
- * is part of a given face.
- *
+/**
+ * Returns whether or not a given edge is is part of a given face.
  */
-
 int BM_edge_in_face(BMFace *f, BMEdge *e)
 {
 	BMLoop *l_iter;
@@ -195,49 +172,35 @@ int BM_edge_in_face(BMFace *f, BMEdge *e)
 	return FALSE;
 }
 
-/*
- * BMESH VERTS IN EDGE
- *
+/**
  * Returns whether or not two vertices are in
  * a given edge
- *
  */
-
 int BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 {
 	return bmesh_verts_in_edge(v1, v2, e);
 }
 
-/*
- * BMESH GET OTHER EDGEVERT
- *
+/**
  * Given a edge and one of its vertices, returns
  * the other vertex.
- *
  */
-
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 {
 	return bmesh_edge_other_vert_get(e, v);
 }
 
-/*
- *  BMESH VERT EDGECOUNT
- *
+/**
  *	Returns the number of edges around this vertex.
  */
-
 int BM_vert_edge_count(BMVert *v)
 {
 	return bmesh_disk_count(v);
 }
 
-/*
- *  BMESH EDGE FACECOUNT
- *
+/**
  *	Returns the number of faces around this edge
  */
-
 int BM_edge_face_count(BMEdge *e)
 {
 	int count = 0;
@@ -253,12 +216,9 @@ int BM_edge_face_count(BMEdge *e)
 	return count;
 }
 
-/*
- *  BMESH VERT FACECOUNT
- *
+/**
  *	Returns the number of faces around this vert
  */
-
 int BM_vert_face_count(BMVert *v)
 {
 	int count = 0;
@@ -284,16 +244,10 @@ int BM_vert_face_count(BMVert *v)
 #endif
 }
 
-/*
- *			BMESH WIRE VERT
- *
- *	Tests whether or not the vertex is part of a wire edge.
- *  (ie: has no faces attached to it)
- *
- *  Returns -
- *	1 for true, 0 for false.
+/**
+ * Tests whether or not the vertex is part of a wire edge.
+ * (ie: has no faces attached to it)
  */
-
 int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *curedge;
@@ -314,34 +268,22 @@ int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
 	return TRUE;
 }
 
-/*
- *			BMESH WIRE EDGE
- *
- *	Tests whether or not the edge is part of a wire.
- *  (ie: has no faces attached to it)
- *
- *  Returns -
- *	1 for true, 0 for false.
+/**
+ * Tests whether or not the edge is part of a wire.
+ * (ie: has no faces attached to it)
  */
-
 int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
 {
 	return (e->l) ? FALSE : TRUE;
 }
 
-/*
- *			BMESH NONMANIFOLD VERT
- *
- *  A vertex is non-manifold if it meets the following conditions:
- *    1: Loose - (has no edges/faces incident upon it)
- *    2: Joins two distinct regions - (two pyramids joined at the tip)
- *    3: Is part of a non-manifold edge (edge with more than 2 faces)
- *    4: Is part of a wire edge
- *
- *  Returns -
- *	1 for true, 0 for false.
+/**
+ * A vertex is non-manifold if it meets the following conditions:
+ * 1: Loose - (has no edges/faces incident upon it)
+ * 2: Joins two distinct regions - (two pyramids joined at the tip)
+ * 3: Is part of a non-manifold edge (edge with more than 2 faces)
+ * 4: Is part of a wire edge
  */
-
 int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *e, *oe;
@@ -402,17 +344,10 @@ int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
 	return TRUE;
 }
 
-/*
- *			BMESH NONMANIFOLD EDGE
- *
- *	Tests whether or not this edge is manifold.
- *  A manifold edge either has 1 or 2 faces attached
- *	to it.
- *
- *  Returns -
- *	1 for true, 0 for false.
+/**
+ * Tests whether or not this edge is manifold.
+ * A manifold edge either has 1 or 2 faces attached to it.
  */
-
 int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
@@ -422,16 +357,10 @@ int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
 	return TRUE;
 }
 
-/*
- *			BMESH BOUNDARY EDGE
- *
- *	Tests whether or not an edge is on the boundary
- *  of a shell (has one face associated with it)
- *
- *  Returns -
- *	1 for true, 0 for false.
+/**
+ * Tests whether or not an edge is on the boundary
+ * of a shell (has one face associated with it)
  */
-
 int BM_edge_is_boundary(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
@@ -441,18 +370,9 @@ int BM_edge_is_boundary(BMEdge *e)
 	return FALSE;
 }
 
-/*
- *			BMESH FACE SHAREDEDGES
- *
+/**
  *  Counts the number of edges two faces share (if any)
- *
- *  BMESH_TODO:
- *    Move this to structure, and wrap.
- *
- *  Returns -
- *	Integer
  */
-
 int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
 {
 	BMLoop *l_iter;
@@ -469,14 +389,9 @@ int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
 	return count;
 }
 
-/*
- *
- *           BMESH EDGE SHARE FACES
- *
- *	Tests to see if e1 shares any faces with e2
- *
+/**
+ *	Test if e1 shares any faces with e2
  */
-
 int BM_edge_share_face_count(BMEdge *e1, BMEdge *e2)
 {
 	BMLoop *l;
@@ -496,13 +411,8 @@ int BM_edge_share_face_count(BMEdge *e1, BMEdge *e2)
 }
 
 /**
- *
- *           BMESH EDGE SHARE A VERTEX
- *
  *	Tests to see if e1 shares a vertex with e2
- *
  */
-
 int BM_edge_share_vert_count(struct BMEdge *e1, struct BMEdge *e2)
 {
 	return (e1->v1 == e2->v1 ||
@@ -512,13 +422,8 @@ int BM_edge_share_vert_count(struct BMEdge *e1, struct BMEdge *e2)
 }
 
 /**
- *
- *           BMESH EDGE SHARE A VERTEX
- *
  *	Return the shared vertex between the two edges or NULL
- *
  */
-
 BMVert *BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2)
 {
 	if (BM_vert_in_edge(e2, e1->v1)) {
@@ -533,18 +438,13 @@ BMVert *BM_edge_share_vert(struct BMEdge *e1, struct BMEdge *e2)
 }
 
 /**
+ * Returns the verts of an edge as used in a face
+ * if used in a face at all, otherwise just assign as used in the edge.
  *
- *           BMESH EDGE ORDERED VERTS
- *
- *	Returns the verts of an edge as used in a face
- *  if used in a face at all, otherwise just assign as used in the edge.
- *
- *  Useful to get a determanistic winding order when calling
- *  BM_face_create_ngon() on an arbitrary array of verts,
- *  though be sure to pick an edge which has a face.
- *
+ * Useful to get a determanistic winding order when calling
+ * BM_face_create_ngon() on an arbitrary array of verts,
+ * though be sure to pick an edge which has a face.
  */
-
 void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 {
 	if ((edge->l == NULL) ||
@@ -561,16 +461,12 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 	}
 }
 
-/*
- *			BMESH LOOP ANGLE
+/**
+ * Calculates the angle between the previous and next loops
+ * (angle at this loops face corner).
  *
- *  Calculates the angle between the previous and next loops
- *  (angle at this loops face corner).
- *
- *  Returns -
- *	Float.
+ * \return angle in radians
  */
-
 float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
 {
 	return angle_v3v3v3(l->prev->v->co,
@@ -578,16 +474,12 @@ float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
 	                    l->next->v->co);
 }
 
-/*
- *			BMESH FACE ANGLE
- *
+/**
  *  Calculates the angle between two faces.
  *  Assumes the face normals are correct.
  *
- *  Returns -
- *	Float.
+ * \return angle in radians
  */
-
 float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
 {
 	if (BM_edge_face_count(e) == 2) {
@@ -630,8 +522,25 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
 }
 
 /**
- * BMESH EXIST FACE OVERLAPS
+ * Returns the edge existing between v1 and v2, or NULL if there isn't one.
  *
+ * \note multiple edges may exist between any two vertices, and therefore
+ * this function only returns the first one found.
+ */
+BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
+{
+	BMIter iter;
+	BMEdge *e;
+
+	BM_ITER(e, &iter, NULL, BM_EDGES_OF_VERT, v1) {
+		if (e->v1 == v2 || e->v2 == v2)
+			return e;
+	}
+
+	return NULL;
+}
+
+/**
  * Given a set of vertices (varr), find out if
  * all those vertices overlap an existing face.
  *
@@ -666,18 +575,11 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlap
 	return FALSE;
 }
 
-/*
- * BMESH FACE EXISTS
- *
+/**
  * Given a set of vertices (varr), find out if
  * there is a face with exactly those vertices
  * (and only those vertices).
- *
- * Returns:
- * 0 for no face found
- * 1 for face found
  */
-
 int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
 {
 	BMIter viter;
@@ -703,9 +605,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
 }
 
 
-/*
- * BMESH EXIST FACE MULTI
- *
+/**
  * Given a set of vertices and edges (varr, earr), find out if
  * all those vertices are filled in by existing faces that _only_ use those vertices.
  *
@@ -716,13 +616,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
  * pressing Fkey would make a new overlapping quad (without a check like this)
  *
  * 'earr' and 'varr' can be in any order, however they _must_ form a closed loop.
- *
- * Returns:
- * 0 for no overlap
- * 1 for overlap
- *
  */
-
 int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 {
 	BMFace *f;

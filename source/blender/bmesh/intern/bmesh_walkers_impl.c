@@ -32,17 +32,14 @@
 #include "bmesh_private.h"
 #include "bmesh_walkers_private.h"
 
-/*	Shell Walker:
+/**
+ * Shell Walker:
  *
- *	Starts at a vertex on the mesh and walks over the 'shell' it belongs
- *	to via visiting connected edges.
+ * Starts at a vertex on the mesh and walks over the 'shell' it belongs
+ * to via visiting connected edges.
  *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
- *
+ * \todo Add restriction flag/callback for wire edges.
  */
-
 static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 {
 	shellWalker *shellWalk = NULL;
@@ -164,12 +161,11 @@ static void *shellWalker_step(BMWalker *walker)
 }
 #endif
 
-/*	Connected Vertex Walker:
+/**
+ * Connected Vertex Walker:
  *
- *	Similar to shell walker, but visits vertices instead of edges.
- *
+ * Similar to shell walker, but visits vertices instead of edges.
  */
-
 static void connectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 {
 	connectedVertexWalker *vwalk;
@@ -221,17 +217,13 @@ static void *connectedVertexWalker_step(BMWalker *walker)
 	return v;
 }
 
-/*	Island Boundary Walker:
+/**
+ * Island Boundary Walker:
  *
- *	Starts at a edge on the mesh and walks over the boundary of an
- *      island it belongs to.
+ * Starts at a edge on the mesh and walks over the boundary of an island it belongs to.
  *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
- *
+ * \todo Add restriction flag/callback for wire edges.
  */
-
 static void islandboundWalker_begin(BMWalker *walker, void *data)
 {
 	BMLoop *l = data;
@@ -318,16 +310,13 @@ static void *islandboundWalker_step(BMWalker *walker)
 }
 
 
-/*	Island Walker:
+/**
+ * Island Walker:
  *
- *	Starts at a tool flagged-face and walks over the face region
+ * Starts at a tool flagged-face and walks over the face region
  *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
- *
+ * \todo Add restriction flag/callback for wire edges.
  */
-
 static void islandWalker_begin(BMWalker *walker, void *data)
 {
 	islandWalker *iwalk = NULL;
@@ -384,12 +373,11 @@ static void *islandWalker_step(BMWalker *walker)
 }
 
 
-/*	Edge Loop Walker:
+/**
+ * Edge Loop Walker:
  *
- *	Starts at a tool-flagged edge and walks over the edge loop
- *
+ * Starts at a tool-flagged edge and walks over the edge loop
  */
-
 static void loopWalker_begin(BMWalker *walker, void *data)
 {
 	loopWalker *lwalk = NULL, owalk;
@@ -516,12 +504,12 @@ static void *loopWalker_step(BMWalker *walker)
 	return owalk.cur;
 }
 
-/*	Face Loop Walker:
+/**
+ * Face Loop Walker:
  *
- *	Starts at a tool-flagged face and walks over the face loop
+ * Starts at a tool-flagged face and walks over the face loop
  * Conditions for starting and stepping the face loop have been
  * tuned in an attempt to match the face loops built by EditMesh
- *
  */
 
 /* Check whether the face loop should includes the face specified
@@ -648,14 +636,13 @@ static void *faceloopWalker_step(BMWalker *walker)
 	return f;
 }
 
-/*	Edge Ring Walker:
+/**
+ * Edge Ring Walker:
  *
- *	Starts at a tool-flagged edge and walks over the edge ring
+ * Starts at a tool-flagged edge and walks over the edge ring
  * Conditions for starting and stepping the edge ring have been
  * tuned in an attempt to match the edge rings built by EditMesh
- *
  */
-
 static void edgeringWalker_begin(BMWalker *walker, void *data)
 {
 	edgeringWalker *lwalk, owalk;

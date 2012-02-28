@@ -248,14 +248,6 @@ BMOpSlot *BMO_slot_get(BMOperator *op, const char *slotname);
 void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op,
                    const char *src, const char *dst);
 
-/* remove tool flagged elements */
-void BMO_remove_tagged_faces(BMesh *bm, const short oflag);
-void BMO_remove_tagged_edges(BMesh *bm, const short oflag);
-void BMO_remove_tagged_verts(BMesh *bm, const short oflag);
-
-/* take care, uses operator flag DEL_WIREVERT */
-void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type);
-
 /* del "context" slot values, used for operator too */
 enum {
 	DEL_VERTS = 1,

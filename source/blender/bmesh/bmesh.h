@@ -193,7 +193,6 @@ extern "C" {
 #include "bmesh_class.h"
 
 /*forward declarations*/
-struct Mesh;
 
 /*
  * BMHeader
@@ -245,32 +244,9 @@ enum {
 /* Mesh Level Ops */
 extern int bm_mesh_allocsize_default[4];
 
-/* ob is needed by multires */
-BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4]);
-BMesh *BM_mesh_copy(BMesh *bmold);
-void   BM_mesh_free(BMesh *bm);
 
-/* frees mesh, but not actual BMesh struct */
-void BM_mesh_data_free(BMesh *bm);
-void BM_mesh_normals_update(BMesh *bm, const short skip_hidden);
-
-/* Construction */
-BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example);
-BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble);
-BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble);
-
-BMFace *BM_face_create_quad_tri_v(BMesh *bm,
-                                  BMVert **verts, int len,
-                                  const BMFace *example, const int nodouble);
-
-/* easier to use version of BM_face_create_quad_tri_v.
- * creates edges if necassary. */
-BMFace *BM_face_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                const BMFace *example, const int nodouble);
-
-/* makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
- * defining edges[0], and define the winding of the new face. */
-BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble);
+/* ------------------------------------------------------------------------- */
+/* bmesh_inline.c */
 
 /* stuff for dealing with header flags */
 #define BM_elem_flag_test(   ele, hflag)      _bm_elem_flag_test    (&(ele)->head, hflag)
@@ -321,128 +297,6 @@ BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
 BM_INLINE int  _bm_elem_index_get(const BMHeader *ele);
 BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index);
 
-/* todo */
-BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges);
-
-/* copies loop data from adjacent faces */
-void BM_face_copy_shared(BMesh *bm, BMFace *f);
-
-/* copies attributes, e.g. customdata, header flags, etc, from one element
- * to another of the same type.*/
-void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target);
-
-/* Modification */
-/* join two adjacent faces together along an edge.  note that
- * the faces must only be joined by on edge.  e is the edge you
- * wish to dissolve.*/
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
-
-/* generic, flexible join faces function; note that most everything uses
- * this, including BM_faces_join_pair */
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);
-
-/* split a face along two vertices.  returns the newly made face, and sets
- * the nl member to a loop in the newly created edge.*/
-BMFace *BM_face_split(BMesh *bm, BMFace *f,
-                      BMVert *v1, BMVert *v2,
-                      BMLoop **r_l, BMEdge *example);
-
-/* these 2 functions are very similar */
-BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
-                               const short join_faces, const short kill_degenerate_faces);
-BMEdge* BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
-                              const short kill_degenerate_faces);
-
-
-/* splits an edge.  ne is set to the new edge created. */
-BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent);
-
-/* split an edge multiple times evenly */
-BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
-
-/* connect two verts together, through a face they share.  this function may
- * be removed in the future. */
-BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f);
-
-/* rotates an edge topologically, either clockwise (if ccw=0) or counterclockwise
- * (if ccw is 1). */
-BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw);
-
-/* Rip a single face from a vertex fan */
-BMVert *BM_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv);
-
-/*updates a face normal*/
-void BM_face_normal_update(BMesh *bm, BMFace *f);
-void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*vertexCos)[3]);
-
-/*updates face and vertex normals incident on an edge*/
-void BM_edge_normals_update(BMesh *bm, BMEdge *e);
-
-/*update a vert normal (but not the faces incident on it)*/
-void BM_vert_normal_update(BMesh *bm, BMVert *v);
-void BM_vert_normal_update_all(BMesh *bm, BMVert *v);
-
-void BM_face_normal_flip(BMesh *bm, BMFace *f);
-
-/*dissolves all faces around a vert, and removes it.*/
-int BM_disk_dissolve(BMesh *bm, BMVert *v);
-
-/* dissolves vert, in more situations then BM_disk_dissolve
- * (e.g. if the vert is part of a wire edge, etc).*/
-int BM_vert_dissolve(BMesh *bm, BMVert *v);
-
-/* Projects co onto face f, and returns true if it is inside
- * the face bounds.  Note that this uses a best-axis projection
- * test, instead of projecting co directly into f's orientation
- * space, so there might be accuracy issues.*/
-int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3]);
-
-/* get the area of the face */
-float BM_face_area_calc(BMesh *bm, BMFace *f);
-/* computes the centroid of a face, using the center of the bounding box */
-void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float center[3]);
-/* computes the centroid of a face, using the mean average */
-void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float center[3]);
-
-/* flag conversion funcs */
-char BM_face_flag_from_mflag(const char  mflag);
-char BM_edge_flag_from_mflag(const short mflag);
-char BM_vert_flag_from_mflag(const char  mflag);
-/* reverse */
-char  BM_face_flag_to_mflag(BMFace *f);
-short BM_edge_flag_to_mflag(BMEdge *e);
-char  BM_vert_flag_to_mflag(BMVert *v);
-
-void BM_loop_kill(BMesh *bm, BMLoop *l);
-void BM_face_kill(BMesh *bm, BMFace *f);
-void BM_edge_kill(BMesh *bm, BMEdge *e);
-void BM_vert_kill(BMesh *bm, BMVert *v);
-
-/* kills all edges associated with f, along with any other faces containing
- * those edges*/
-void BM_face_edges_kill(BMesh *bm, BMFace *f);
-
-/* kills all verts associated with f, along with any other faces containing
- * those vertices*/
-void BM_face_verts_kill(BMesh *bm, BMFace *f);
-
-/*clear all data in bm*/
-void BM_mesh_clear(BMesh *bm);
-
-void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
-
-void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,
-                                 const char *msg_a, const char *msg_b);
-
-BMVert *BM_vert_at_index(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index(BMesh *bm, const int index);
-BMFace *BM_face_at_index(BMesh *bm, const int index);
-
-/*start/stop edit*/
-void bmesh_edit_begin(BMesh *bm, int flag);
-void bmesh_edit_end(BMesh *bm, int flag);
-
-
 #ifdef USE_BMESH_HOLES
 #  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
 #else
@@ -463,10 +317,15 @@ void bmesh_edit_end(BMesh *bm, int flag);
 #include "bmesh_operator_api.h"
 #include "bmesh_error.h"
 
+#include "intern/bmesh_construct.h"
+#include "intern/bmesh_core.h"
 #include "intern/bmesh_interp.h"
 #include "intern/bmesh_iterators.h"
 #include "intern/bmesh_marking.h"
+#include "intern/bmesh_mesh.h"
+#include "intern/bmesh_mods.h"
 #include "intern/bmesh_operators.h"
+#include "intern/bmesh_polygon.h"
 #include "intern/bmesh_queries.h"
 #include "intern/bmesh_walkers.h"
 #include "intern/bmesh_walkers.h"

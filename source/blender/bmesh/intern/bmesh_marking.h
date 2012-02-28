@@ -45,8 +45,6 @@ void BM_face_hide_set(BMesh *bm, BMFace *f, int hide);
 #define BM_elem_select_set(bm, ele, hide) _bm_elem_select_set(bm, &(ele)->head, hide)
 void _bm_elem_select_set(BMesh *bm, BMHeader *ele, int select);
 
-/* use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection */
-
 void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag);
 void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag);
 
@@ -59,11 +57,9 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select);
 void BM_select_mode_set(BMesh *bm, int selectmode);
 void BM_mesh_select_mode_flush(BMesh *bm);
 
-/* mode independent flushing up/down */
 void BM_mesh_deselect_flush(BMesh *bm);
 void BM_mesh_select_flush(BMesh *bm);
 
-/* counts number of elements with flag set */
 int BM_mesh_count_flag(BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /* edit selection stuff */

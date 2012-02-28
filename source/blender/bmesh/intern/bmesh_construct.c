@@ -73,7 +73,6 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
 	return BM_face_create_quad_tri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
 }
 
-/* remove the edge array bits from this. Its not really needed? */
 BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
 {
 	BMFace *f = NULL;
@@ -107,7 +106,6 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	return f;
 }
 
-
 /* copies face data from shared adjacent faces */
 void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
@@ -132,8 +130,8 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
 /**
  * \brief BMESH MAKE NGON
  *
- * Attempts to make a new Ngon from a list of edges.
- * If nodouble equals one, a check for overlaps or existing
+ * Makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
+ * defining edges[0], and define the winding of the new face.
  *
  * The edges are not required to be ordered, simply to to form
  * a single closed loop as a whole
@@ -371,8 +369,12 @@ static void bmo_remove_tagged_context_edges(BMesh *bm, const short oflag)
 
 #define DEL_WIREVERT	(1 << 10)
 
-/* warning, oflag applies to different types in some contexts,
- * not just the type being removed */
+/**
+ * \warning oflag applies to different types in some contexts,
+ * not just the type being removed.
+ *
+ * \warning take care, uses operator flag DEL_WIREVERT
+ */
 void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 {
 	BMVert *v;
@@ -537,6 +539,10 @@ static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 
 /* BMESH_TODO: Special handling for hide flags? */
 
+/**
+ * Copies attributes, e.g. customdata, header flags, etc, from one element
+ * to another of the same type.
+ */
 void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
 {
 	const BMHeader *sheader = source;

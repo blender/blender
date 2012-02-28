@@ -144,7 +144,9 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 	recount_totsels(bm);
 }
 
-/* BMESH NOTE: matches EM_deselect_flush() behavior from trunk */
+/**
+ * mode independent flushing up/down
+ */
 void BM_mesh_deselect_flush(BMesh *bm)
 {
 	BMEdge *e;
@@ -193,7 +195,9 @@ void BM_mesh_deselect_flush(BMesh *bm)
 }
 
 
-/* BMESH NOTE: matches EM_select_flush() behavior from trunk */
+/**
+ * mode independent flushing up/down
+ */
 void BM_mesh_select_flush(BMesh *bm)
 {
 	BMEdge *e;
@@ -238,7 +242,7 @@ void BM_mesh_select_flush(BMesh *bm)
 	recount_totsels(bm);
 }
 
-/*
+/**
  * BMESH SELECT VERT
  *
  * Changes selection state of a single vertex
@@ -445,7 +449,9 @@ void BM_select_mode_set(BMesh *bm, int selectmode)
 	}
 }
 
-
+/**
+ * counts number of elements with flag set
+ */
 int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int respecthide)
 {
 	BMElem *ele;
@@ -474,7 +480,10 @@ int BM_mesh_count_flag(struct BMesh *bm, const char htype, const char hflag, int
 	return tot;
 }
 
-/* note: by design, this will not touch the editselection history stuff */
+/**
+ * \note use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection
+ * \note by design, this will not touch the editselection history stuff
+ */
 void _bm_elem_select_set(struct BMesh *bm, BMHeader *head, int select)
 {
 	switch (head->htype) {

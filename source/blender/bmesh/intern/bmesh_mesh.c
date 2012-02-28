@@ -30,17 +30,13 @@
 
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_tessmesh.h"
-#include "BKE_customdata.h"
 #include "BKE_multires.h"
 
 #include "ED_mesh.h"
@@ -65,13 +61,14 @@ static void bmesh_mempool_init(BMesh *bm, const int allocsize[4])
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 }
 
-/*
+/**
  *	BMESH MAKE MESH
  *
  *  Allocates a new BMesh structure.
  *  Returns -
  *  Pointer to a BM
  *
+ * \note ob is needed by multires
  */
 
 BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
@@ -91,12 +88,13 @@ BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
 	return bm;
 }
 
-/*
+/**
  *	BMESH FREE MESH
  *
  *	Frees a BMesh structure.
+ *
+ * \note frees mesh, but not actual BMesh struct
  */
-
 void BM_mesh_data_free(BMesh *bm)
 {
 	BMVert *v;
@@ -159,6 +157,9 @@ void BM_mesh_data_free(BMesh *bm)
 	BMO_error_clear(bm);
 }
 
+/**
+ * clear all data in bm
+ */
 void BM_mesh_clear(BMesh *bm)
 {
 	Object *ob = bm->ob;

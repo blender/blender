@@ -221,6 +221,9 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	return FALSE;
 }
 
+/**
+ * get the area of the face
+ */
 float BM_face_area_calc(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
@@ -245,7 +248,7 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 	return area;
 }
 
-/*
+/**
  * computes center of face in 3d.  uses center of bounding box.
  */
 void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float r_cent[3])
@@ -264,6 +267,9 @@ void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float r_cent[3])
 	mid_v3_v3v3(r_cent, min, max);
 }
 
+/**
+ * computes the centroid of a face, using the mean average
+ */
 void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
 {
 	BMIter iter;
@@ -280,7 +286,7 @@ void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
 	if (f->len) mul_v3_fl(r_cent, 1.0f / (float)f->len);
 }
 
-/*
+/**
  * COMPUTE POLY PLANE
  *
  * Projects a set polygon's vertices to
@@ -340,23 +346,6 @@ void compute_poly_plane(float (*verts)[3], int nverts)
  * the list that bridges a concave region of the face or intersects
  * any of the faces's edges.
  */
-#if 0 /* needs BLI math double versions of these functions */
-static void shrink_edged(double *v1, double *v2, double fac)
-{
-	double mid[3];
-
-	mid_v3_v3v3(mid, v1, v2);
-
-	sub_v3_v3v3(v1, v1, mid);
-	sub_v3_v3v3(v2, v2, mid);
-
-	mul_v3_fl(v1, fac);
-	mul_v3_fl(v2, fac);
-
-	add_v3_v3v3(v1, v1, mid);
-	add_v3_v3v3(v2, v2, mid);
-}
-#endif
 
 static void shrink_edgef(float v1[3], float v2[3], const float fac)
 {
@@ -441,6 +430,9 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*verte
 	}
 }
 
+/**
+ * updates face and vertex normals incident on an edge
+ */
 void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
@@ -455,6 +447,9 @@ void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 	BM_vert_normal_update(bm, e->v2);
 }
 
+/**
+ * update a vert normal (but not the faces incident on it)
+ */
 void BM_vert_normal_update(BMesh *bm, BMVert *v)
 {
 	/* TODO, we can normalize each edge only once, then compare with previous edge */
@@ -651,13 +646,15 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	return FALSE;
 }
 
-/*
+/**
  *  BM POINT IN FACE
  *
  * Projects co onto face f, and returns true if it is inside
- * the face bounds.  Note that this uses a best-axis projection
- * test, instead of projecting co directly into f's orientation
- * space, so there might be accuracy issues.
+ * the face bounds.
+ *
+ * \note this uses a best-axis projection test,
+ * instead of projecting co directly into f's orientation space,
+ * so there might be accuracy issues.
  */
 int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 {
@@ -802,21 +799,20 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 	return bestear;
 }
 
-/*
+/**
  * BMESH TRIANGULATE FACE
  *
- * Triangulates a face using a
- * simple 'ear clipping' algorithm
- * that tries to favor non-skinny
- * triangles (angles less than
- * 90 degrees). If the triangulator
- * has bits left over (or cannot
- * triangulate at all) it uses a
- * simple fan triangulation
+ * Triangulates a face using a simple 'ear clipping' algorithm that tries to
+ * favor non-skinny triangles (angles less than 90 degrees).
+ *
+ * If the triangulator has bits left over (or cannot triangulate at all)
+ * it uses a simple fan triangulation,
  *
  * newfaces, if non-null, must be an array of BMFace pointers,
  * with a length equal to f->len.  it will be filled with the new
  * triangles, and will be NULL-terminated.
+ *
+ * \note newedgeflag sets a flag layer flag, obviously not the header flag.
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces)
@@ -909,12 +905,14 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	if (newfaces) newfaces[nf_i] = NULL;
 }
 
-/* each pair of loops defines a new edge, a split.  this function goes
+/**
+ * each pair of loops defines a new edge, a split.  this function goes
  * through and sets pairs that are geometrically invalid to null.  a
  * split is invalid, if it forms a concave angle or it intersects other
  * edges in the face, or it intersects another split.  in the case of
  * intersecting splits, only the first of the set of intersecting
- * splits survives */
+ * splits survives
+ */
 void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;

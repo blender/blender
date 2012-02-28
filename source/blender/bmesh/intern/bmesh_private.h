@@ -65,10 +65,6 @@ int bmesh_disk_count(BMVert *v);
 #define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))
 #define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->oflags[0].pflag &   (f))
 
-/* Polygon Utilities ? FIXME... where do these each go? */
-/* newedgeflag sets a flag layer flag, obviously not the header flag. */
-void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
 void bmesh_face_normal_update(BMesh *bm, BMFace *f, float no[3],
                               float (*projectverts)[3]);
 void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],

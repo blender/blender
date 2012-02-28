@@ -87,30 +87,6 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const struct BMVert *exampl
 	return v;
 }
 
-/**
- *			BMESH EDGE EXIST
- *
- *  Finds out if two vertices already have an edge
- *  connecting them. Note that multiple edges may
- *  exist between any two vertices, and therefore
- *  This function only returns the first one found.
- *
- *  Returns -
- *	BMEdge pointer
- */
-BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
-{
-	BMIter iter;
-	BMEdge *e;
-
-	BM_ITER(e, &iter, NULL, BM_EDGES_OF_VERT, v1) {
-		if (e->v1 == v2 || e->v2 == v2)
-			return e;
-	}
-
-	return NULL;
-}
-
 BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
 {
 	BMEdge *e;
@@ -511,6 +487,10 @@ static void bmesh_kill_only_loop(BMesh *bm, BMLoop *l)
 	BLI_mempool_free(bm->lpool, l);
 }
 
+/**
+ * kills all edges associated with f, along with any other faces containing
+ * those edges
+ */
 void BM_face_edges_kill(BMesh *bm, BMFace *f)
 {
 	BMEdge **edges = NULL;
@@ -531,6 +511,10 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
 	BLI_array_free(edges);
 }
 
+/**
+ * kills all verts associated with f, along with any other faces containing
+ * those vertices
+ */
 void BM_face_verts_kill(BMesh *bm, BMFace *f)
 {
 	BMVert **verts = NULL;
@@ -858,9 +842,7 @@ static int disk_is_flagged(BMVert *v, int flag)
 
 /* Midlevel Topology Manipulation Functions */
 
-/*
- * BM_faces_join
- *
+/**
  * Joins a collected group of faces into one. Only restriction on
  * the input data is that the faces must be connected to each other.
  *
@@ -868,6 +850,9 @@ static int disk_is_flagged(BMVert *v, int flag)
  * faces will be joined at every edge.
  *
  * Returns a pointer to the combined face.
+ *
+ * \note this is a generic, flexible join faces function, almost everything
+ * uses this, including #BM_faces_join_pair
  */
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 {
@@ -1435,7 +1420,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  *  Returns -
  *	The resulting edge, NULL for failure.
  */
-struct BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_double)
+BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_double)
 {
 	BMEdge *oe;
 	BMVert *ov, *tv;
