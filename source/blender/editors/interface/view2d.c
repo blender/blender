@@ -1870,22 +1870,22 @@ void UI_view2d_listview_visible_cells(View2D *v2d, short columnwidth, short rowh
  *	- x,y 			= coordinates to convert
  *	- viewx,viewy		= resultant coordinates
  */
-void UI_view2d_region_to_view(View2D *v2d, int x, int y, float *viewx, float *viewy)
+void UI_view2d_region_to_view(View2D *v2d, int x, int y, float *r_viewx, float *r_viewy)
 {
 	float div, ofs;
 
-	if (viewx) {
+	if (r_viewx) {
 		div= (float)(v2d->mask.xmax - v2d->mask.xmin);
 		ofs= (float)v2d->mask.xmin;
 		
-		*viewx= v2d->cur.xmin + (v2d->cur.xmax-v2d->cur.xmin) * ((float)x - ofs) / div;
+		*r_viewx= v2d->cur.xmin + (v2d->cur.xmax-v2d->cur.xmin) * ((float)x - ofs) / div;
 	}
 
-	if (viewy) {
+	if (r_viewy) {
 		div= (float)(v2d->mask.ymax - v2d->mask.ymin);
 		ofs= (float)v2d->mask.ymin;
 		
-		*viewy= v2d->cur.ymin + (v2d->cur.ymax - v2d->cur.ymin) * ((float)y - ofs) / div;
+		*r_viewy= v2d->cur.ymin + (v2d->cur.ymax - v2d->cur.ymin) * ((float)y - ofs) / div;
 	}
 }
 

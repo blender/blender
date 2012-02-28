@@ -656,15 +656,15 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 	sub_v3_v3v3(vec, point, t->tsnap.snapTarget);
 }
 
-static void ApplySnapRotation(TransInfo *t, float *vec)
+static void ApplySnapRotation(TransInfo *t, float *value)
 {
 	if (t->tsnap.target == SCE_SNAP_TARGET_CLOSEST) {
-		*vec = t->tsnap.dist;
+		*value = t->tsnap.dist;
 	}
 	else {
 		float point[3];
 		getSnapPoint(t, point);
-		*vec = RotationBetween(t, t->tsnap.snapTarget, point);
+		*value = RotationBetween(t, t->tsnap.snapTarget, point);
 	}
 }
 

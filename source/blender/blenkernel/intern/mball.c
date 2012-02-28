@@ -522,7 +522,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 
 /* **************** POLYGONIZATION ************************ */
 
-void calc_mballco(MetaElem *ml, float *vec)
+void calc_mballco(MetaElem *ml, float vec[3])
 {
 	if (ml->mat) {
 		mul_m4_v3((float ( * )[4])ml->mat, vec);

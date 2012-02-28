@@ -642,7 +642,7 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info
 	}
 }
 
-static void b_bone_deform(bPoseChanDeform *pdef_info, Bone *bone, float *co, DualQuat *dq, float defmat[][3])
+static void b_bone_deform(bPoseChanDeform *pdef_info, Bone *bone, float co[3], DualQuat *dq, float defmat[][3])
 {
 	Mat4 *b_bone = pdef_info->b_bone_mats;
 	float (*mat)[4] = b_bone[0].mat;
@@ -666,8 +666,9 @@ static void b_bone_deform(bPoseChanDeform *pdef_info, Bone *bone, float *co, Dua
 	else {
 		mul_m4_v3(b_bone[a+1].mat, co);
 
-		if (defmat)
+		if (defmat) {
 			copy_m3_m4(defmat, b_bone[a+1].mat);
+		}
 	}
 }
 
@@ -736,7 +737,7 @@ static void pchan_deform_mat_add(bPoseChannel *pchan, float weight, float bbonem
 	add_m3_m3m3(mat, mat, wmat);
 }
 
-static float dist_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, float *vec, DualQuat *dq,
+static float dist_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, float vec[3], DualQuat *dq,
                               float mat[][3], float *co)
 {
 	Bone *bone = pchan->bone;
@@ -783,7 +784,7 @@ static float dist_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, f
 	return contrib;
 }
 
-static void pchan_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, float weight, float *vec, DualQuat *dq,
+static void pchan_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, float weight, float vec[3], DualQuat *dq,
                               float mat[][3], float *co, float *contrib)
 {
 	float cop[3], bbonemat[3][3];
@@ -1116,7 +1117,7 @@ void armature_mat_world_to_pose(Object *ob, float inmat[][4], float outmat[][4])
 /* Convert Wolrd-Space Location to Pose-Space Location
  * NOTE: this cannot be used to convert to pose-space location of the supplied
  *       pose-channel into its local space (i.e. 'visual'-keyframing) */
-void armature_loc_world_to_pose(Object *ob, float *inloc, float *outloc)
+void armature_loc_world_to_pose(Object *ob, const float inloc[3], float outloc[3])
 {
 	float xLocMat[4][4] = MAT4_UNITY;
 	float nLocMat[4][4];
@@ -1338,7 +1339,7 @@ void armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[][4], float outm
 /* Convert Pose-Space Location to Bone-Space Location
  * NOTE: this cannot be used to convert to pose-space location of the supplied
  *       pose-channel into its local space (i.e. 'visual'-keyframing) */
-void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc)
+void armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], float outloc[3])
 {
 	float xLocMat[4][4] = MAT4_UNITY;
 	float nLocMat[4][4];
@@ -1478,7 +1479,7 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], floa
  * *************************************************************************** */
 /* Computes vector and roll based on a rotation.
  * "mat" must contain only a rotation, and no scaling. */
-void mat3_to_vec_roll(float mat[][3], float *vec, float *roll)
+void mat3_to_vec_roll(float mat[][3], float vec[3], float *roll)
 {
 	if (vec)
 		copy_v3_v3(vec, mat[1]);
@@ -1496,7 +1497,7 @@ void mat3_to_vec_roll(float mat[][3], float *vec, float *roll)
 
 /* Calculates the rest matrix of a bone based
  * On its vector and a roll around that vector */
-void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
+void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 {
 	float nor[3], axis[3], target[3] = {0, 1, 0};
 	float theta;

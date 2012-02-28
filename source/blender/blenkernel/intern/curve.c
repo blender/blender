@@ -66,9 +66,9 @@
 /* globals */
 
 /* local */
-static int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
+static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], const float v4[3],
                       short cox, short coy,
-                      float *labda, float *mu, float *vec);
+                      float *labda, float *mu, float vec[3]);
 
 void unlink_curve(Curve *cu)
 {
@@ -1500,7 +1500,9 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 	}
 }
 
-static int cu_isectLL(float *v1, float *v2, float *v3, float *v4, short cox, short coy, float *labda, float *mu, float *vec)
+static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], const float v4[3],
+                      short cox, short coy,
+                      float *labda, float *mu, float vec[3])
 {
 	/* return:
 		-1: colliniar

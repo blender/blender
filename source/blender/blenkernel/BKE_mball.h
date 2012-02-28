@@ -166,7 +166,7 @@ struct Object *find_basis_mball(struct Scene *scene, struct Object *ob);
 int is_basis_mball(struct Object *ob);
 int is_mball_basis_for(struct Object *ob1, struct Object *ob2);
 void metaball_polygonize(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
-void calc_mballco(struct MetaElem *ml, float *vec);
+void calc_mballco(struct MetaElem *ml, float vec[3]);
 float densfunc(struct MetaElem *ball, float x, float y, float z);
 float metaball(float x, float y, float z);
 void accum_mballfaces(int i1, int i2, int i3, int i4);

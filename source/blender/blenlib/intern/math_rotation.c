@@ -80,7 +80,7 @@ void mul_qt_qtqt(float *q, const float *q1, const float *q2)
 }
 
 /* Assumes a unit quaternion */
-void mul_qt_v3(const float *q, float *v)
+void mul_qt_v3(const float q[4], float v[3])
 {
 	float t0, t1, t2;
 
@@ -98,7 +98,7 @@ void mul_qt_v3(const float *q, float *v)
 	v[1]=t2;
 }
 
-void conjugate_qt(float *q)
+void conjugate_qt(float q[4])
 {
 	q[1] = -q[1];
 	q[2] = -q[2];

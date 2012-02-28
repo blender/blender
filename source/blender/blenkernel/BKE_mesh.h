@@ -136,7 +136,7 @@ void mesh_calc_normals_tessface(struct MVert *mverts, int numVerts,struct  MFace
 const char *mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *mesh_get_bb(struct Object *ob);
-void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
+void mesh_get_texspace(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
 
 /* if old, it converts mface->edcode to edge drawflags */
 void make_edges(struct Mesh *me, int old);

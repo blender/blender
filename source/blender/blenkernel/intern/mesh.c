@@ -683,15 +683,15 @@ BoundBox *mesh_get_bb(Object *ob)
 	return me->bb;
 }
 
-void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
+void mesh_get_texspace(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
 {
 	if (!me->bb) {
 		tex_space_mesh(me);
 	}
 
-	if (loc_r) copy_v3_v3(loc_r, me->loc);
-	if (rot_r) copy_v3_v3(rot_r, me->rot);
-	if (size_r) copy_v3_v3(size_r, me->size);
+	if (r_loc)  copy_v3_v3(r_loc,  me->loc);
+	if (r_rot)  copy_v3_v3(r_rot,  me->rot);
+	if (r_size) copy_v3_v3(r_size, me->size);
 }
 
 float *get_mesh_orco_verts(Object *ob)

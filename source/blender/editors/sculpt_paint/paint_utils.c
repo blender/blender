@@ -194,28 +194,30 @@ float paint_get_tex_pixel(Brush* br, float u, float v)
 
 /* 3D Paint */
 
-static void imapaint_project(Object *ob, float *model, float *proj, float *co, float *pco)
+static void imapaint_project(Object *ob, float model[][4], float proj[][4], const float co[3], float pco[4])
 {
 	copy_v3_v3(pco, co);
 	pco[3]= 1.0f;
 
 	mul_m4_v3(ob->obmat, pco);
-	mul_m4_v3((float(*)[4])model, pco);
-	mul_m4_v4((float(*)[4])proj, pco);
+	mul_m4_v3(model, pco);
+	mul_m4_v4(proj, pco);
 }
 
-static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, float *co, float *w)
+static void imapaint_tri_weights(Object *ob,
+                                 const float v1[3], const float v2[3], const float v3[3],
+                                 const float co[3], float w[3])
 {
 	float pv1[4], pv2[4], pv3[4], h[3], divw;
-	float model[16], proj[16], wmat[3][3], invwmat[3][3];
+	float model[4][4], proj[4][4], wmat[3][3], invwmat[3][3];
 	GLint view[4];
 
 	/* compute barycentric coordinates */
 
 	/* get the needed opengl matrices */
 	glGetIntegerv(GL_VIEWPORT, view);
-	glGetFloatv(GL_MODELVIEW_MATRIX, model);
-	glGetFloatv(GL_PROJECTION_MATRIX, proj);
+	glGetFloatv(GL_MODELVIEW_MATRIX,  (float *)model);
+	glGetFloatv(GL_PROJECTION_MATRIX, (float *)proj);
 	view[0] = view[1] = 0;
 
 	/* project the verts */
@@ -242,8 +244,9 @@ static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 
 	/* w is still divided by perspdiv, make it sum to one */
 	divw= w[0] + w[1] + w[2];
-	if(divw != 0.0f)
+	if(divw != 0.0f) {
 		mul_v3_fl(w, 1.0f/divw);
+	}
 }
 
 /* compute uv coordinates of mouse in face */

@@ -124,7 +124,7 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
-static void convertViewVec2D(View2D *v2d, float *vec, int dx, int dy)
+static void convertViewVec2D(View2D *v2d, float vec[3], int dx, int dy)
 {
 	float divx, divy;
 	

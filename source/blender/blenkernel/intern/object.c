@@ -1711,7 +1711,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	add_v3_v3(mat[3], vec);
 }
 
-static void give_parvert(Object *par, int nr, float *vec)
+static void give_parvert(Object *par, int nr, float vec[3])
 {
 	BMEditMesh *em;
 	int a, count;
@@ -2171,7 +2171,7 @@ void object_boundbox_flag(Object *ob, int flag, int set)
 	}
 }
 
-void object_get_dimensions(Object *ob, float *value)
+void object_get_dimensions(Object *ob, float vec[3])
 {
 	BoundBox *bb = NULL;
 	
@@ -2181,11 +2181,11 @@ void object_get_dimensions(Object *ob, float *value)
 		
 		mat4_to_size( scale,ob->obmat);
 		
-		value[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
-		value[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
-		value[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
+		vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
+		vec[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
+		vec[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
 	} else {
-		value[0] = value[1] = value[2] = 0.f;
+		vec[0] = vec[1] = vec[2] = 0.f;
 	}
 }
 
@@ -2292,7 +2292,7 @@ void minmax_object(Object *ob, float min[3], float max[3])
 	}
 }
 
-int minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
+int minmax_object_duplis(Scene *scene, Object *ob, float min[3], float max[3])
 {
 	int ok= 0;
 	if ((ob->transflag & OB_DUPLI)==0) {

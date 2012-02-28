@@ -104,11 +104,11 @@ void where_is_object_mat(struct Scene *scene, struct Object *ob, float obmat[4][
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);
-void object_get_dimensions(struct Object *ob, float *value);
+void object_get_dimensions(struct Object *ob, float vec[3]);
 void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float min[3], float max[3]);
-int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
+int minmax_object_duplis(struct Scene *scene, struct Object *ob, float min[3], float max[3]);
 
 /* sometimes min-max isnt enough, we need to loop over each point */
 void BKE_object_foreach_display_point(

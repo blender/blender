@@ -4014,7 +4014,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	return NULL;
 }
 
-static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, float *pos)
+static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastpos[2], const float pos[2])
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
@@ -4359,7 +4359,7 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	return clonebuf;
 }
 
-static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
+static void imapaint_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[2])
 {
 	ipos[0]= (int)floorf((pos[0] - ibufb->x/2) + 1.0f);
 	ipos[1]= (int)floorf((pos[1] - ibufb->y/2) + 1.0f);
@@ -4367,7 +4367,7 @@ static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 
 /* dosnt run for projection painting
  * only the old style painting in the 3d view */
-static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
+static int imapaint_paint_op(void *state, ImBuf *ibufb, const float lastpos[2], const float pos[2])
 {
 	ImagePaintState *s= ((ImagePaintState*)state);
 	ImBuf *clonebuf= NULL, *frombuf;

@@ -1505,7 +1505,7 @@ static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float ro
 	}
 }
 
-static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
+static void translateflagNurb(ListBase *editnurb, short flag, const float vec[3])
 {
 	/* all verts with ('flag' & flag) translate */
 	Nurb *nu;

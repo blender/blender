@@ -214,8 +214,8 @@ void box_minmax_bounds_m4(float min[3], float max[3],
 
 /********************************** Mapping **********************************/
 
-void map_to_tube(float *u, float *v, const float x, const float y, const float z);
-void map_to_sphere(float *u, float *v, const float x, const float y, const float z);
+void map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z);
+void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z);
 
 /********************************** Normals **********************************/
 

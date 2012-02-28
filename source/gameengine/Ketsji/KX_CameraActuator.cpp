@@ -142,7 +142,7 @@ static void Kx_Crossf(float *c, float *a, float *b)
 }
 
 
-static void Kx_VecUpMat3(float *vec, float mat[][3], short axis)
+static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 {
 
 	// Construct a camera matrix s.t. the specified axis

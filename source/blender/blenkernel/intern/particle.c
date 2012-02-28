@@ -3411,7 +3411,7 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 	copy_v3_v3(hairmat[3],orco);
 }
 
-void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float *vec)
+void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float vec[3])
 {
 	float mat[4][4];
 

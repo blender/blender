@@ -97,16 +97,16 @@ void where_is_pose_bone_tail(struct bPoseChannel *pchan);
 
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);
-void vec_roll_to_mat3(float *vec, float roll, float mat[][3]);
+void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3]);
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 
 int get_selected_defgroups(struct Object *ob, char *defbase_sel, int defbase_len);
 
 /* Common Conversions Between Co-ordinate Spaces */
 void armature_mat_world_to_pose(struct Object *ob, float inmat[][4], float outmat[][4]);
-void armature_loc_world_to_pose(struct Object *ob, float *inloc, float *outloc);
+void armature_loc_world_to_pose(struct Object *ob, const float inloc[3], float outloc[3]);
 void armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
-void armature_loc_pose_to_bone(struct bPoseChannel *pchan, float *inloc, float *outloc);
+void armature_loc_pose_to_bone(struct bPoseChannel *pchan, const float inloc[3], float outloc[3]);
 void armature_mat_bone_to_pose(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4]);
 

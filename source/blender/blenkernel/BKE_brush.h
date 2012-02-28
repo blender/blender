@@ -60,7 +60,7 @@ int brush_clone_image_delete(struct Brush *brush);
 
 /* jitter */
 void brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
-					  float *pos, float *jitterpos);
+                      const float pos[2], float jitterpos[2]);
 
 /* brush curve */
 void brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/int preset);
@@ -75,13 +75,13 @@ void brush_imbuf_new(const struct Scene *scene, struct Brush *brush, short flt, 
 /* painting */
 struct BrushPainter;
 typedef struct BrushPainter BrushPainter;
-typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, float *lastpos, float *pos);
+typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, const float lastpos[2], const float pos[2]);
 
 BrushPainter *brush_painter_new(struct Scene *scene, struct Brush *brush);
 void brush_painter_require_imbuf(BrushPainter *painter, short flt,
-	short texonly, int size);
-int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
-	double time, float pressure, void *user, int use_color_correction);
+                                 short texonly, int size);
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2],
+                        double time, float pressure, void *user, int use_color_correction);
 void brush_painter_break_stroke(BrushPainter *painter);
 void brush_painter_free(BrushPainter *painter);
 

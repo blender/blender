@@ -197,9 +197,9 @@ void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
 void bglBegin(int mode);
 void bglEnd(void);
 int bglPointHack(void);
-void bglVertex3fv(float *vec);
+void bglVertex3fv(const float vec[3]);
 void bglVertex3f(float x, float y, float z);
-void bglVertex2fv(float *vec);
+void bglVertex2fv(const float vec[2]);
 /* intel gfx cards frontbuffer problem */
 void bglFlush(void);
 void set_inverted_drawing(int enable);

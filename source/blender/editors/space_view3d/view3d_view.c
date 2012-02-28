@@ -790,7 +790,7 @@ void ED_view3d_project_float(const ARegion *ar, const float vec[3], float adr[2]
 }
 
 /* use view3d_get_object_project_mat to get projecting mat */
-void ED_view3d_project_float_v3(ARegion *ar, float *vec, float *adr, float mat[4][4])
+void ED_view3d_project_float_v3(ARegion *ar, const float vec[3], float *adr, float mat[4][4])
 {
 	float vec4[4];
 	

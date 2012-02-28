@@ -371,7 +371,7 @@ typedef struct ViewOpsData {
 
 #define TRACKBALLSIZE  (1.1)
 
-static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
+static void calctrackballvec(rcti *rect, int mx, int my, float vec[3])
 {
 	float x, y, radius, d, z, t;
 

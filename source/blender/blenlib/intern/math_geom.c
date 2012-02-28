@@ -2311,31 +2311,34 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
 
 /********************************** Mapping **********************************/
 
-void map_to_tube(float *u, float *v, const float x, const float y, const float z)
+void map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z)
 {
 	float len;
 	
-	*v = (z + 1.0f) / 2.0f;
+	*r_v = (z + 1.0f) / 2.0f;
 	
-	len= (float)sqrt(x*x+y*y);
-	if(len > 0.0f)
-		*u = (float)((1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0);
-	else
-		*v = *u = 0.0f; /* to avoid un-initialized variables */
+	len = sqrtf(x * x + y * y);
+	if(len > 0.0f) {
+		*r_u = (float)((1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0);
+	}
+	else {
+		*r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
+	}
 }
 
-void map_to_sphere(float *u, float *v, const float x, const float y, const float z)
+void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z)
 {
 	float len;
 	
-	len= (float)sqrt(x*x+y*y+z*z);
+	len = sqrtf(x * x + y * y + z * z);
 	if(len > 0.0f) {
-		if(x==0.0f && y==0.0f) *u= 0.0f;	/* othwise domain error */
-		else *u = (1.0f - atan2f(x,y) / (float)M_PI) / 2.0f;
+		if(x==0.0f && y==0.0f) *r_u= 0.0f;	/* othwise domain error */
+		else *r_u = (1.0f - atan2f(x,y) / (float)M_PI) / 2.0f;
 
-		*v = 1.0f - (float)saacos(z/len)/(float)M_PI;
-	} else {
-		*v = *u = 0.0f; /* to avoid un-initialized variables */
+		*r_v = 1.0f - (float)saacos(z/len)/(float)M_PI;
+	}
+	else {
+		*r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
 	}
 }
 
