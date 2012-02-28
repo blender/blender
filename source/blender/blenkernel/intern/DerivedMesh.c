@@ -1900,23 +1900,37 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 		CDDM_apply_vert_coords(*final_r, deformedVerts);
 		CDDM_calc_normals(*final_r); /* was CDDM_calc_normals_mapping - campbell */
-	} else if (dm) {
+	}
+	else if (dm) {
 		*final_r = dm;
 		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
-	} else if (!deformedVerts && cage_r && *cage_r) {
+	}
+	else if (!deformedVerts && cage_r && *cage_r) {
+		/* cage should already have up to date normals */
 		*final_r = *cage_r;
 		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
-	} else {
+	}
+	else {
+		/* this is just a copy of the editmesh, no need to calc normals */
 		*final_r = getEditDerivedBMesh(em, ob, deformedVerts);
 		deformedVerts = NULL;
-		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
 	}
 
 	/* --- */
 	/* BMESH_ONLY, ensure tessface's used for drawing,
-	 * but dont recalculate if the last modifier in the stack gives us tessfaces  */
-	DM_ensure_tessface(*final_r);
-	if (cage_r && (*cage_r != *final_r)) DM_ensure_tessface(*cage_r);
+	 * but dont recalculate if the last modifier in the stack gives us tessfaces
+	 * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isnt essential
+	 * but quiets annoying error messages since tessfaces wont be created. */
+	if ((*final_r)->type != DM_TYPE_EDITBMESH) {
+		DM_ensure_tessface(*final_r);
+	}
+	if (cage_r) {
+		if ((*cage_r)->type != DM_TYPE_EDITBMESH) {
+			if (*cage_r != *final_r) {
+				DM_ensure_tessface(*cage_r);
+			}
+		}
+	}
 	/* --- */
 
 	/* add an orco layer if needed */
