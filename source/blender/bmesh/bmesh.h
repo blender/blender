@@ -460,14 +460,17 @@ void bmesh_edit_end(BMesh *bm, int flag);
 #define BM_NGON_MAX 100000
 
 /* include the rest of the API */
-#include "bmesh_marking.h"
 #include "bmesh_operator_api.h"
-#include "bmesh_operators.h"
 #include "bmesh_error.h"
-#include "bmesh_queries.h"
-#include "bmesh_interp.h"
-#include "bmesh_iterators.h"
-#include "bmesh_walkers.h"
+
+#include "intern/bmesh_interp.h"
+#include "intern/bmesh_iterators.h"
+#include "intern/bmesh_marking.h"
+#include "intern/bmesh_operators.h"
+#include "intern/bmesh_queries.h"
+#include "intern/bmesh_walkers.h"
+#include "intern/bmesh_walkers.h"
+
 #include "intern/bmesh_inline.c"
 #include "intern/bmesh_operator_api_inline.c"
 

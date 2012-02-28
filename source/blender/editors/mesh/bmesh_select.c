@@ -943,14 +943,14 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	if (looptype) {
 		for (edindex = 0; edindex < totedgesel; edindex += 1) {
 			eed = edarray[edindex];
-			walker_select(em, BMW_EDGERING, eed, 1);
+			walker_select(em, BMW_EDGERING, eed, TRUE);
 		}
 		EDBM_selectmode_flush(em);
 	}
-	else{
+	else {
 		for (edindex = 0; edindex < totedgesel; edindex += 1) {
 			eed = edarray[edindex];
-			walker_select(em, BMW_LOOP, eed, 1);
+			walker_select(em, BMW_LOOP, eed, TRUE);
 		}
 		EDBM_selectmode_flush(em);
 	}

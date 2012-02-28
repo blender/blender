@@ -23,7 +23,7 @@
 #ifndef __BMESH_OPERATORS_H__
 #define __BMESH_OPERATORS_H__
 
-/** \file blender/bmesh/bmesh_operators.h
+/** \file blender/bmesh/intern/bmesh_operators.h
  *  \ingroup bmesh
  */
 

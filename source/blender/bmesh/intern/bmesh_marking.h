@@ -23,7 +23,7 @@
 #ifndef __BMESH_MARKING_H__
 #define __BMESH_MARKING_H__
 
-/** \file blender/bmesh/bmesh_marking.h
+/** \file blender/bmesh/intern/bmesh_marking.h
  *  \ingroup bmesh
  */
 

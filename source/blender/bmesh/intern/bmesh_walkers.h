@@ -23,7 +23,7 @@
 #ifndef __BMESH_WALKERS_H__
 #define __BMESH_WALKERS_H__
 
-/** \file blender/bmesh/bmesh_walkers.h
+/** \file blender/bmesh/intern/bmesh_walkers.h
  *  \ingroup bmesh
  */
 

@@ -34,13 +34,13 @@ extern int bm_totwalkers;
 
 
 /* Pointer hiding*/
-typedef struct bmesh_walkerGeneric{
+typedef struct bmesh_walkerGeneric {
 	Link link;
 	int depth;
 } bmesh_walkerGeneric;
 
 
-typedef struct shellWalker{
+typedef struct shellWalker {
 	bmesh_walkerGeneric header;
 	BMEdge *curedge;
 } shellWalker;

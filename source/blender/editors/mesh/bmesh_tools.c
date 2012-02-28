@@ -2013,7 +2013,7 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 		ese = em->bm->selected.last;
 		mergevert = (BMVert *)ese->ele;
 	}
-	else{
+	else {
 		ese = em->bm->selected.first;
 		mergevert = (BMVert *)ese->ele;
 	}
@@ -2997,7 +2997,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 				m1 = (y12 - y11) / xdiff1;
 				b1 = ((x12 * y11) - (x11 * y12)) / xdiff1;
 			}
-			else{
+			else {
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}

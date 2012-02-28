@@ -113,7 +113,7 @@ enum {
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
 
-typedef struct BMOpSlot{
+typedef struct BMOpSlot {
 	int slottype;
 	int len;
 	int flag;
