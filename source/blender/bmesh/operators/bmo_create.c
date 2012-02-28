@@ -1181,14 +1181,9 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v2 = edges1[0]->v2;
 		}
 		else {
-			if (BM_vert_in_edge(edges1[1], edges1[0]->v1))
-				v1 = edges1[0]->v2;
-			else v1 = edges1[0]->v1;
-
-			i = BLI_array_count(edges1) - 1;
-			if (BM_vert_in_edge(edges1[i - 1], edges1[i]->v1))
-				v2 = edges1[i]->v2;
-			else v2 = edges1[i]->v1;
+			v1 = BM_vert_in_edge(edges1[1], edges1[0]->v1) ? edges1[0]->v2 : edges1[0]->v1;
+			i  = BLI_array_count(edges1) - 1;
+			v2 = BM_vert_in_edge(edges1[i - 1], edges1[i]->v1) ? edges1[i]->v2 : edges1[i]->v1;
 		}
 
 		if (BLI_array_count(edges2) == 1) {
@@ -1196,17 +1191,12 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = edges2[0]->v2;
 		}
 		else {
-			if (BM_vert_in_edge(edges2[1], edges2[0]->v1))
-				v3 = edges2[0]->v2;
-			else v3 = edges2[0]->v1;
-
-			i = BLI_array_count(edges2) - 1;
-			if (BM_vert_in_edge(edges2[i - 1], edges2[i]->v1))
-				v4 = edges2[i]->v2;
-			else v4 = edges2[i]->v1;
+			v3 = BM_vert_in_edge(edges2[1], edges2[0]->v1) ? edges2[0]->v2 : edges2[0]->v1;
+			i  = BLI_array_count(edges2) - 1;
+			v4 = BM_vert_in_edge(edges2[i - 1], edges2[i]->v1) ? edges2[i]->v2 : edges2[i]->v1;
 		}
 
-		/* if there is ever bowtie quads between two edges the problem is here! [#] */
+		/* if there is ever bowtie quads between two edges the problem is here! [#30367] */
 #if 0
 		normal_tri_v3(dvec1, v1->co, v2->co, v4->co);
 		normal_tri_v3(dvec2, v1->co, v4->co, v3->co);
@@ -1222,10 +1212,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 #endif
 		if (dot_v3v3(dvec1, dvec2) < 0.0f) {
-			BMVert *v;
-			v = v3;
-			v3 = v4;
-			v4 = v;
+			SWAP(BMVert *, v3, v4);
 		}
 
 		e = BM_edge_create(bm, v1, v3, NULL, TRUE);
@@ -1235,18 +1222,12 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 	}
 	else if (edges1) {
 		BMVert *v1, *v2;
-		
+
 		if (BLI_array_count(edges1) > 1) {
-			if (BM_vert_in_edge(edges1[1], edges1[0]->v1))
-				v1 = edges1[0]->v2;
-			else v1 = edges1[0]->v1;
-
-			i = BLI_array_count(edges1) - 1;
-			if (BM_vert_in_edge(edges1[i - 1], edges1[i]->v1))
-				v2 = edges1[i]->v2;
-			else v2 = edges1[i]->v1;
-
-			e = BM_edge_create(bm, v1, v2, NULL, TRUE);
+			v1 = BM_vert_in_edge(edges1[1], edges1[0]->v1) ? edges1[0]->v2 : edges1[0]->v1;
+			i  = BLI_array_count(edges1) - 1;
+			v2 = BM_vert_in_edge(edges1[i - 1], edges1[i]->v1) ? edges1[i]->v2 : edges1[i]->v1;
+			e  = BM_edge_create(bm, v1, v2, NULL, TRUE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
 		}
 	}
