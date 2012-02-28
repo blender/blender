@@ -83,7 +83,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 	)
 
 
-static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
+static int rotsys_append_edge(BMEdge *e, BMVert *v,
                               EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = &edata[BM_elem_index_get(e)];
@@ -115,7 +115,7 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 	return TRUE;
 }
 
-static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert *v,
+static void UNUSED_FUNCTION(rotsys_remove_edge)(BMEdge *e, BMVert *v,
                                                 EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = edata + BM_elem_index_get(e);
@@ -139,8 +139,8 @@ static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert 
 	e1->next = e1->prev = NULL;
 }
 
-static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
-                                      EdgeData *edata, VertData *UNUSED(vdata))
+static BMEdge *rotsys_nextedge(BMEdge *e, BMVert *v,
+                               EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
 		return edata[BM_elem_index_get(e)].v1_disk_link.next;
@@ -159,7 +159,7 @@ static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
 	return NULL;
 }
 
-static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
+static void rotsys_reverse(BMEdge *UNUSED(e), BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge **edges = NULL;
 	BMEdge *e_first;
@@ -186,7 +186,7 @@ static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData 
 	BLI_array_free(edges);
 }
 
-static int UNUSED_FUNCTION(rotsys_count)(struct BMVert *v, EdgeData *edata, VertData *vdata)
+static int UNUSED_FUNCTION(rotsys_count)(BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge *e = vdata[BM_elem_index_get(v)].e;
 	int i = 0;
@@ -870,7 +870,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	EdgeData *edata;
 	VertData *vdata;
 	BMEdge **edges = NULL;
-	PathBase *pathbase = edge_pathbase_new();
+	PathBase *pathbase;
 	BLI_array_declare(edges);
 	int use_restrict   = BMO_slot_bool_get(op, "use_restrict");
 	int use_fill_check = BMO_slot_bool_get(op, "use_fill_check");
@@ -879,6 +879,8 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 	if (!bm->totvert || !bm->totedge)
 		return;
+
+	pathbase = edge_pathbase_new();
 
 	edata = MEM_callocN(sizeof(EdgeData) * bm->totedge, "EdgeData");
 	vdata = MEM_callocN(sizeof(VertData) * bm->totvert, "VertData");
@@ -1331,10 +1333,6 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	/* --- end special case support, continue as normal --- */
-
-
-	/* possible bug?, selecting 2 triangles and pressing F will make a quad rather then joining them,
-	 * perhaps this should be looked into? - campbell */
 
 	/* call edgenet create */
 	/* call edgenet prepare op so additional face creation cases wor */
