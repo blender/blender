@@ -235,6 +235,9 @@ int clLibraryInit()
     __clewEnqueueBarrier                = (PFNCLENQUEUEBARRIER              )CLCC_DYNLIB_IMPORT(module, "clEnqueueBarrier");
     __clewGetExtensionFunctionAddress   = (PFNCLGETEXTENSIONFUNCTIONADDRESS )CLCC_DYNLIB_IMPORT(module, "clGetExtensionFunctionAddress");
 
+	if(__clewGetPlatformIDs == NULL)
+		return 0;
+
     return 1;
 }
 
