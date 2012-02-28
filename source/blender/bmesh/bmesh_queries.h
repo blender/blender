@@ -95,7 +95,8 @@ float BM_edge_face_angle(struct BMesh *bm, struct BMEdge *e);
 float BM_vert_edge_angle(struct BMesh *bm, struct BMVert *v);
 
 /* checks overlapping of existing faces with the verts in varr. */
-int BM_face_exists_overlap(struct BMesh *bm, struct BMVert **varr, int len, struct BMFace **existface);
+int BM_face_exists_overlap(struct BMesh *bm, struct BMVert **varr, int len, struct BMFace **r_existface,
+                           const short do_partial);
 
 /* checks if many existing faces overlap the faces defined by varr */
 int BM_face_exists_multi(BMesh *bm, struct BMVert **varr, struct BMEdge **earr, int len);

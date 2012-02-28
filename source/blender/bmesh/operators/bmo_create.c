@@ -1386,7 +1386,11 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 	else if (amount == 3) {
 		/* create triangl */
-		BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
+		f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
+
+		if (f) {
+			BMO_elem_flag_enable(bm, f, ELE_OUT);
+		}
 	}
 	else if (amount == 4) {
 		f = NULL;

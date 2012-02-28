@@ -642,26 +642,31 @@ float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
  *
  *
  */
-
-int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **overlapface)
+int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlapface,
+                           const short do_partial)
 {
 	BMIter vertfaces;
 	BMFace *f;
 	int i, amount;
 
-	if (overlapface) *overlapface = NULL;
-
 	for (i = 0; i < len; i++) {
 		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
 		while (f) {
 			amount = BM_verts_in_face(bm, f, varr, len);
-			if (amount >= len) {
-				if (overlapface) *overlapface = f;
+			if ((amount >= len) && (do_partial == TRUE || len == f->len)) {
+				if (r_overlapface) {
+					*r_overlapface = f;
+				}
 				return TRUE;
 			}
 			f = BM_iter_step(&vertfaces);
 		}
 	}
+
+	if (r_overlapface) {
+		*r_overlapface = NULL;
+	}
+
 	return FALSE;
 }
 
