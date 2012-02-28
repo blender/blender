@@ -101,9 +101,9 @@ ustring Attribute::standard_name(Attribute::Standard std)
 
 /* Attribute Set */
 
-AttributeSet::AttributeSet(Mesh *mesh_)
+AttributeSet::AttributeSet()
 {
-	mesh = mesh_;
+	mesh = NULL;
 }
 
 AttributeSet::~AttributeSet()
@@ -133,7 +133,8 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, Attribute::Element ele
 	else if(element == Attribute::CORNER)
 		attr->set(name, type, element);
 	
-	attr->reserve(mesh->verts.size(), mesh->triangles.size());
+	if(mesh)
+		attr->reserve(mesh->verts.size(), mesh->triangles.size());
 	
 	return attr;
 }
