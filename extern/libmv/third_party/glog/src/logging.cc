@@ -1231,6 +1231,14 @@ void LogMessage::RecordCrashReason(
 #endif
 }
 
+#if defined(HAVE___ATTRIBUTE__)
+typedef void (*fail_func_t)() __attribute__((noreturn));
+static void logging_fail() __attribute__((noreturn));
+#else
+typedef void (*fail_func_t)();
+static void logging_fail();
+#endif
+
 static void logging_fail() {
 // #if defined(_DEBUG) && defined(_MSC_VER)
 // doesn't work for my laptop (sergey)
@@ -1243,14 +1251,9 @@ static void logging_fail() {
 #endif
 }
 
-#ifdef HAVE___ATTRIBUTE__
-GOOGLE_GLOG_DLL_DECL
-void (*g_logging_fail_func)() __attribute__((noreturn)) = &logging_fail;
-#else
-GOOGLE_GLOG_DLL_DECL void (*g_logging_fail_func)() = &logging_fail;
-#endif
+GOOGLE_GLOG_DLL_DECL fail_func_t g_logging_fail_func = &logging_fail;
 
-void InstallFailureFunction(void (*fail_func)()) {
+void InstallFailureFunction(fail_func_t fail_func) {
   g_logging_fail_func = fail_func;
 }
 

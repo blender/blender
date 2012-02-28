@@ -1,2 +1,3 @@
 v3d_verbosity.patch
 bundle_tweaks.patch
+clang-3.diff
