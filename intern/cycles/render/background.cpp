@@ -18,6 +18,7 @@
 
 #include "background.h"
 #include "device.h"
+#include "integrator.h"
 #include "graph.h"
 #include "nodes.h"
 #include "scene.h"
@@ -74,6 +75,7 @@ bool Background::modified(const Background& background)
 
 void Background::tag_update(Scene *scene)
 {
+	scene->integrator->tag_update(scene);
 	need_update = true;
 }
 

@@ -204,7 +204,8 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 				render_layer.name = b_rlay->name();
 				render_layer.scene_layer = get_layer(b_scene.layers());
 				render_layer.layer = get_layer(b_rlay->layers());
-				render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
+				render_layer.holdout_layer = (b_rlay->use_zmask())? ~get_layer(b_rlay->layers_zmask()): 0;
+				render_layer.layer |= render_layer.holdout_layer;
 				render_layer.material_override = b_rlay->material_override();
 			}
 

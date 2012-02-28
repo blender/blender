@@ -700,14 +700,12 @@ void BlenderSync::sync_world()
 		if(b_world) {
 			BL::WorldLighting b_light = b_world.light_settings();
 
-			if(b_light.use_ambient_occlusion()) {
+			if(b_light.use_ambient_occlusion())
 				background->ao_factor = b_light.ao_factor();
-				background->ao_distance = b_light.distance();
-			}
-			else {
+			else
 				background->ao_factor = 0.0f;
-				background->ao_distance = 0.0f;
-			}
+
+			background->ao_distance = b_light.distance();
 		}
 
 		shader->set_graph(graph);
