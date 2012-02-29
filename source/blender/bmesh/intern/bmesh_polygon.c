@@ -645,11 +645,11 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 {
 	int ax, ay;
-	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f, 0};
+	float co2[2], cent[2] = {0.0f, 0.0f}, out[2] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f};
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	int crosses = 0;
-	float eps = 1.0f + (float)FLT_EPSILON * 150.0f;
+	float onepluseps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
 	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON * 10)
 		BM_face_normal_update(bm, f);
@@ -664,7 +664,6 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 
 	co2[0] = co[ax];
 	co2[1] = co[ay];
-	co2[2] = 0;
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
@@ -676,15 +675,13 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		float v1[3], v2[3];
+		float v1[2], v2[2];
 		
-		v1[0] = (l_iter->prev->v->co[ax] - cent[ax]) * eps + cent[ax];
-		v1[1] = (l_iter->prev->v->co[ay] - cent[ay]) * eps + cent[ay];
-		v1[2] = 0.0f;
+		v1[0] = (l_iter->prev->v->co[ax] - cent[ax]) * onepluseps + cent[ax];
+		v1[1] = (l_iter->prev->v->co[ay] - cent[ay]) * onepluseps + cent[ay];
 		
-		v2[0] = (l_iter->v->co[ax] - cent[ax]) * eps + cent[ax];
-		v2[1] = (l_iter->v->co[ay] - cent[ay]) * eps + cent[ay];
-		v2[2] = 0.0f;
+		v2[0] = (l_iter->v->co[ax] - cent[ax]) * onepluseps + cent[ax];
+		v2[1] = (l_iter->v->co[ay] - cent[ay]) * onepluseps + cent[ay];
 		
 		crosses += linecrossesf(v1, v2, co2, out) != 0;
 	} while ((l_iter = l_iter->next) != l_first);
@@ -700,9 +697,9 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
-	VECCOPY(v1, projectverts[v1i]);
-	VECCOPY(v2, projectverts[v2i]);
-	VECCOPY(v3, projectverts[v3i]);
+	copy_v3_v3(v1, projectverts[v1i]);
+	copy_v3_v3(v2, projectverts[v2i]);
+	copy_v3_v3(v3, projectverts[v3i]);
 	
 	if (testedgeside(v1, v2, v3)) {
 		return FALSE;
@@ -716,8 +713,8 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 			continue;
 		}
 		
-		VECCOPY(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
-		VECCOPY(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
+		copy_v3_v3(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
+		copy_v3_v3(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
 
