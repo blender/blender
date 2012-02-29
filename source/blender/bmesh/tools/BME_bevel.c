@@ -43,6 +43,23 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+/* BMESH_TODO
+ *
+ * Date: 2011-11-24 06:25
+ * Sender: Andrew Wiggin
+ * Status update: I have code changes to actually make basic bevel modifier work. The things that still need to be done:
+ * - clean up the changes
+ * - get bevel by weight and bevel by angles working
+ * - the code uses adaptations of a couple of bmesh APIs,
+ * that work a little differently. for example, a join faces that doesn't just create a new face and then delete the
+ * original two faces and all associated loops, it extends one of the original faces to cover all the original loops
+ * (except for the loop on the join edge which is of course deleted). the bevel code currently requires this because it
+ * expects to be able to continue walking loop lists and doesn't like for loops to be deleted out from under it
+ * while working...
+ * but bmesh APIs don't do it this way because it makes it trickier to manage the interp during these operations,
+ * so I need to decide what to do in these cases.
+ */
+
 /* ------- Bevel code starts here -------- */
 
 BME_TransData_Head *BME_init_transdata(int bufsize)

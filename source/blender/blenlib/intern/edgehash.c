@@ -94,6 +94,9 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 	unsigned int hash;
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
+	/* this helps to track down errors with bad edge data */
+	BLI_assert(v0 != v1);
+
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 
 	hash = EDGE_HASH(v0, v1) % eh->nbuckets;
