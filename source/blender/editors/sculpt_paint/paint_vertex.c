@@ -2798,7 +2798,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 		unsigned int tcol;
 		char *col;
 
-		for (j=0; j<mpoly->totloop; j += 2) {
+		for (j=0; j<mpoly->totloop; j++) {
 			col = (char *)(lcol + j);
 			blend[0] += col[0];
 			blend[1] += col[1];
