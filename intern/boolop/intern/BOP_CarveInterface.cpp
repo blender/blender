@@ -430,6 +430,14 @@ static MeshSet<3> *Carve_addMesh(CSG_FaceIteratorDescriptor &face_it,
 	return poly;
 }
 
+static double triangleArea(carve::geom3d::Vector &v1, carve::geom3d::Vector &v2, carve::geom3d::Vector &v3)
+{
+	carve::geom3d::Vector a = v2 - v1;
+	carve::geom3d::Vector b = v3 - v1;
+
+	return carve::geom::cross(a, b).length();
+}
+
 static bool checkValidQuad(std::vector<MeshSet<3>::vertex_t> &vertex_storage, uint quad[4])
 {
 	carve::geom3d::Vector &v1 = vertex_storage[quad[0]].v;
@@ -465,12 +473,12 @@ static bool checkValidQuad(std::vector<MeshSet<3>::vertex_t> &vertex_storage, ui
 
 		carve::geom3d::Vector current_normal = carve::geom::cross(edges[i], edges[n]);
 
-		if (current_normal.length() > 1e-6) {
+		if (current_normal.length() > DBL_EPSILON) {
 			if (!normal_set) {
 				normal = current_normal;
 				normal_set = true;
 			}
-			else if (carve::geom::dot(normal, current_normal) < -1e-6) {
+			else if (carve::geom::dot(normal, current_normal) < 0) {
 				return false;
 			}
 		}
@@ -480,6 +488,10 @@ static bool checkValidQuad(std::vector<MeshSet<3>::vertex_t> &vertex_storage, ui
 		/* normal wasn't set means face is degraded and better merge it in such way */
 		return false;
 	}
+
+	double area = triangleArea(v1, v2, v3) + triangleArea(v1, v3, v4);
+	if (area <= DBL_EPSILON)
+		return false;
 
 	return true;
 }
@@ -533,6 +545,20 @@ static uint quadMerge(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
 	}
 
 	return 0;
+}
+
+static bool Carve_checkDegeneratedFace(MeshSet<3>::face_t *face)
+{
+	/* only tris and quads for now */
+	if (face->n_edges == 3) {
+		return triangleArea(face->edge->prev->vert->v, face->edge->vert->v, face->edge->next->vert->v) < DBL_EPSILON;
+	}
+	else if (face->n_edges == 4) {
+		return triangleArea(face->edge->vert->v, face->edge->next->vert->v, face->edge->next->next->vert->v) +
+		       triangleArea(face->edge->prev->vert->v, face->edge->vert->v, face->edge->next->next->vert->v) < DBL_EPSILON;
+	}
+
+	return false;
 }
 
 static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::FaceAttr<uint> &oface_num,
@@ -591,13 +617,6 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 
 			MeshSet<3>::face_t *f = *(poly->faceBegin() + findex);
 
-			// add all information except vertices to the output mesh
-			outputMesh->FaceSet().push_back(BSP_MFace());
-			BSP_MFace& outFace = outputMesh->FaceSet().back();
-			outFace.m_verts.clear();
-			outFace.m_plane.setValue(f->plane.N.v);
-			outFace.m_orig_face = orig;
-
 			// for each vertex of this face, check other faces containing
 			// that vertex to see if there is a neighbor also belonging to
 			// the original face
@@ -640,20 +659,36 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 				}
 			}
 
-			// if we merged faces, use the list of common vertices; otherwise
-			// use the faces's vertices
-			if (result) {
-				// make quat using verts stored in result
-				outFace.m_verts.push_back(quadverts[0]);
-				outFace.m_verts.push_back(quadverts[1]);
-				outFace.m_verts.push_back(quadverts[2]);
-				outFace.m_verts.push_back(quadverts[3]);
-			} else {
-				MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
-				for (; edge_iter != f->end(); ++edge_iter) {
-					//int index = ofacevert_num.getAttribute(f, edge_iter.idx());
-					int index = vertexToIndex_map[edge_iter->vert];
-					outFace.m_verts.push_back( index );
+			bool degenerativeFace = false;
+
+			if (!result) {
+				/* merged triangles are already checked for degenerative quad */
+				degenerativeFace = Carve_checkDegeneratedFace(f);
+			}
+
+			if (!degenerativeFace) {
+				// add all information except vertices to the output mesh
+				outputMesh->FaceSet().push_back(BSP_MFace());
+				BSP_MFace& outFace = outputMesh->FaceSet().back();
+				outFace.m_verts.clear();
+				outFace.m_plane.setValue(f->plane.N.v);
+				outFace.m_orig_face = orig;
+
+				// if we merged faces, use the list of common vertices; otherwise
+				// use the faces's vertices
+				if (result) {
+					// make quat using verts stored in result
+					outFace.m_verts.push_back(quadverts[0]);
+					outFace.m_verts.push_back(quadverts[1]);
+					outFace.m_verts.push_back(quadverts[2]);
+					outFace.m_verts.push_back(quadverts[3]);
+				} else {
+					MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
+					for (; edge_iter != f->end(); ++edge_iter) {
+						//int index = ofacevert_num.getAttribute(f, edge_iter.idx());
+						int index = vertexToIndex_map[edge_iter->vert];
+						outFace.m_verts.push_back( index );
+					}
 				}
 			}
 		}
