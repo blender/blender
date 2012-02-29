@@ -848,12 +848,12 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 
 	/* only operates on the edit object - this is all that's needed now */
 
-	switch(around)  {
+	switch (around) {
 		case V3D_CENTER: /* bounding box center */
 			min[0]= min[1]= min[2]= 1e20f;
 			max[0]= max[1]= max[2]= -1e20f; 
 			
-			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL)  {
+			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 				if(BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 						DO_MINMAX(l->v->co, min, max);

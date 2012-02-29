@@ -35,7 +35,7 @@
 #include "DocumentImporter.h"
 #include "AnimationImporter.h"
 
-/** \brief Handler class for <extra> data, through which different
+/** \brief Handler class for \<extra\> data, through which different
  * profiles can be handled
  */
 class ExtraHandler : public COLLADASaxFWL::IExtraDataCallbackHandler

@@ -76,11 +76,11 @@ public:
 
 		std::vector<LOD_Vertex> &
 	VertexSet(
-	) const ;		
+	) const;
 
 		std::vector<LOD_TriFace> &
 	FaceSet(
-	) const ;
+	) const;
 
 		std::vector<LOD_Edge> &
 	EdgeSet(

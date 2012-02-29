@@ -90,8 +90,6 @@ typedef float Vector3[3];
 typedef float Vector4[4];
 struct IK_Target;
 typedef void (*ErrorCallback)(const iTaSC::ConstraintValues* values, unsigned int nvalues, IK_Target* iktarget);
-// For some reason, gcc doesn't find the declaration of this function in linux
-void KDL::SetToZero(JntArray& array);
 
 // one structure for each target in the scene
 struct IK_Target
@@ -477,7 +475,7 @@ static void GetEulerXZY(const KDL::Rotation& R, double& X,double& Z,double& Y)
 	if (fabs(R(0,1)) > 1.0 - KDL::epsilon ) {
         X = -KDL::sign(R(0,1)) * KDL::atan2(R(1,2), R(1,0));
         Z = -KDL::sign(R(0,1)) * KDL::PI / 2;
-        Y = 0.0 ;
+        Y = 0.0;
     } else {
         X = KDL::atan2(R(2,1), R(1,1));
         Z = KDL::atan2(-R(0,1), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,2))));
@@ -490,7 +488,7 @@ static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
 	if (fabs(R(0,2)) > 1.0 - KDL::epsilon ) {
         X = KDL::sign(R(0,2)) * KDL::atan2(-R(1,0), R(1,1));
         Y = KDL::sign(R(0,2)) * KDL::PI / 2;
-        Z = 0.0 ;
+        Z = 0.0;
     } else {
         X = KDL::atan2(-R(1,2), R(2,2));
         Y = KDL::atan2(R(0,2), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,1))));
@@ -1029,7 +1027,7 @@ static void rest_pose(IK_Scene *ikscene)
 	// assume uniform scaling and take Y scale as general scale for the armature
 	scale = len_v3(ikscene->blArmature->obmat[1]);
 	// rest pose is 0 
-	KDL::SetToZero(ikscene->jointArray);
+	SetToZero(ikscene->jointArray);
 	// except for transY joints
 	rot = &ikscene->jointArray(0);
 	for(joint=a=0, ikchan = ikscene->channels; a<ikscene->numchan && joint<ikscene->numjoint; ++a, ++ikchan) {

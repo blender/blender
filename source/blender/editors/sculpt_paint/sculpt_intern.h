@@ -50,14 +50,7 @@ struct Sculpt;
 struct SculptStroke;
 
 /* Interface */
-void sculptmode_selectbrush_menu(void);
-void sculptmode_draw_mesh(int);
-void sculpt_paint_brush(char clear);
-void sculpt_stroke_draw(struct SculptStroke *);
-void sculpt_radialcontrol_start(int mode);
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
-
-struct Brush *sculptmode_brush(void);
 
 void sculpt(Sculpt *sd);
 
@@ -68,11 +61,6 @@ void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct 
 void free_sculptsession_deformMats(struct SculptSession *ss);
 
 /* Stroke */
-struct SculptStroke *sculpt_stroke_new(const int max);
-void sculpt_stroke_free(struct SculptStroke *);
-void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y);
-void sculpt_stroke_apply(struct Sculpt *sd, struct SculptStroke *);
-void sculpt_stroke_apply_all(struct Sculpt *sd, struct SculptStroke *);
 int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2]);
 
 /* Undo */

@@ -286,7 +286,8 @@ static void mywrite( WriteData *wd, void *adr, int len)
 /**
  * BeGiN initializer for mywrite
  * @param file File descriptor
- * @param write_flags Write parameters
+ * @param compare Previous memory file (can be NULL).
+ * @param current The current memory file (can be NULL).
  * @warning Talks to other functions with global parameters
  */
 static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)
@@ -722,7 +723,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
-				/* pass */ ;
+				/* pass */;
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}

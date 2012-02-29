@@ -34,11 +34,12 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_context.h"
-#include "BKE_library.h"
-#include "BKE_key.h"
-#include "BKE_mesh.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_bmesh.h"
+#include "BKE_context.h"
+#include "BKE_key.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
@@ -47,6 +48,8 @@
 
 #include "ED_mesh.h"
 #include "ED_util.h"
+
+#include "bmesh.h"
 
 void EDBM_RecalcNormals(BMEditMesh *em)
 {
@@ -83,7 +86,7 @@ void EDBM_stats_update(BMEditMesh *em)
 	                            BM_FACES_OF_MESH};
 
 	BMIter iter;
-	BMHeader *ele;
+	BMElem *ele;
 	int *tots[3];
 	int i;
 
@@ -451,24 +454,24 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 	if (ese_last) {
 		if (ese_last->htype == BM_FACE) { /* if there is an active face, use it over the last selected face */
 			if (efa) {
-				ese->data = (void *)efa;
+				ese->ele = (BMElem *)efa;
 			}
 			else {
-				ese->data = ese_last->data;
+				ese->ele = ese_last->ele;
 			}
 			ese->htype = BM_FACE;
 		}
 		else {
-			ese->data = ese_last->data;
+			ese->ele =   ese_last->ele;
 			ese->htype = ese_last->htype;
 		}
 	}
 	else if (efa) { /* no */
-		ese->data = (void *)efa;
+		ese->ele   = (BMElem *)efa;
 		ese->htype = BM_FACE;
 	}
 	else {
-		ese->data = NULL;
+		ese->ele = NULL;
 		return 0;
 	}
 	return 1;
@@ -958,7 +961,7 @@ void EDBM_free_uv_element_map(UvElementMap *element_map)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
+MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **r_act_efa, int sloppy)
 {
 	BMFace *efa = NULL;
 	
@@ -968,11 +971,11 @@ MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
 	efa = BM_active_face_get(em->bm, sloppy);
 	
 	if (efa) {
-		if (act_efa) *act_efa = efa;
+		if (r_act_efa) *r_act_efa = efa;
 		return CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 	}
 
-	if (act_efa) *act_efa = NULL;
+	if (r_act_efa) *r_act_efa = NULL;
 	return NULL;
 }
 

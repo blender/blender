@@ -187,7 +187,7 @@ static int gpencil_project_check (tGPsdata *p)
 /* Utilities --------------------------------- */
 
 /* get the reference point for stroke-point conversions */
-static void gp_get_3d_reference (tGPsdata *p, float *vec)
+static void gp_get_3d_reference (tGPsdata *p, float vec[3])
 {
 	View3D *v3d= p->sa->spacedata.first;
 	float *fp= give_cursor(p->scene, v3d);

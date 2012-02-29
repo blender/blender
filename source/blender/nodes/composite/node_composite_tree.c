@@ -121,9 +121,9 @@ static void update_node(bNodeTree *ntree, bNode *node)
 }
 
 /* local tree then owns all compbufs */
-static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
+static void localize(bNodeTree *localtree, bNodeTree *ntree)
 {
-	bNode *node;
+	bNode *node, *node_next;
 	bNodeSocket *sock;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
@@ -148,6 +148,26 @@ static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
 			
 			sock->cache= NULL;
 			sock->new_sock->new_sock= sock;
+		}
+	}
+	
+	/* replace muted nodes by internal links */
+	for (node= localtree->nodes.first; node; node= node_next) {
+		node_next = node->next;
+		
+		if (node->flag & NODE_MUTED) {
+			/* make sure the update tag isn't lost when removing the muted node.
+			 * propagate this to all downstream nodes.
+			 */
+			if (node->need_exec) {
+				bNodeLink *link;
+				for (link=localtree->links.first; link; link=link->next)
+					if (link->fromnode==node && link->tonode)
+						link->tonode->need_exec = 1;
+			}
+			
+			nodeInternalRelink(localtree, node);
+			nodeFreeNode(localtree, node);
 		}
 	}
 }
@@ -230,9 +250,7 @@ bNodeTreeType ntreeType_Composite = {
 	/* update */			update,
 	/* update_node */		update_node,
 	/* validate_link */		NULL,
-	/* mutefunc */			node_compo_pass_on,
-	/* mutelinksfunc */		node_mute_get_links,
-	/* gpumutefunc */		NULL
+	/* internal_connect */	node_internal_connect_default
 };
 
 
@@ -360,9 +378,7 @@ static void *exec_composite_node(void *nodeexec_v)
 	
 	node_get_stack(node, thd->stack, nsin, nsout);
 	
-	if((node->flag & NODE_MUTED) && node->typeinfo->mutefunc)
-		node->typeinfo->mutefunc(thd->rd, 0, node, nodeexec->data, nsin, nsout);
-	else if(node->typeinfo->execfunc)
+	if(node->typeinfo->execfunc)
 		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
 	else if (node->typeinfo->newexecfunc)
 		node->typeinfo->newexecfunc(thd->rd, 0, node, nodeexec->data, nsin, nsout);

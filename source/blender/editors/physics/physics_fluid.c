@@ -804,7 +804,7 @@ int runSimulationCallback(void *data, int status, int frame)
 		//printf("elbeem blender cb s%d, f%d, domainid:%d noOfFrames: %d \n", status,frame, settings->domainId, settings->noOfFrames ); // DEBUG
 	}
 	
-	if (fluidbake_breakjob(fb))  {
+	if (fluidbake_breakjob(fb)) {
 		return FLUIDSIM_CBRET_ABORT;
 	}
 	

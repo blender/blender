@@ -28,6 +28,5 @@
 #define __BPY_APP_HANDLERS_H__
 
 PyObject *BPY_app_handlers_struct(void);
-void BPY_app_handlers_clear(void);
 
 #endif // __BPY_APP_HANDLERS_H__

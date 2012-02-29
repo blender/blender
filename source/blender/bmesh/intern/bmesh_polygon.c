@@ -43,31 +43,12 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
-/*
- * TEST EDGE SIDE and POINT IN TRIANGLE
+/**
+ * \brief TEST EDGE SIDE and POINT IN TRIANGLE
  *
  * Point in triangle tests stolen from scanfill.c.
  * Used for tesselator
- *
  */
-
-static short testedgeside(const double v1[2], const double v2[2], const double v3[2])
-{
-	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
-	double inp;
-
-	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
-	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
-
-	if (inp < 0.0) {
-		return FALSE;
-	}
-	else if (inp == 0) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return FALSE;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return FALSE;
-	}
-	return TRUE;
-}
 
 static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
 {
@@ -87,23 +68,13 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
 	return TRUE;
 }
 
-static int point_in_triangle(const double v1[2], const double v2[2], const double v3[2], const double pt[2])
-{
-	if (testedgeside(v1, v2, pt) && testedgeside(v2, v3, pt) && testedgeside(v3, v1, pt)) {
-		return TRUE;
-	}
-	return FALSE;
-}
-
-/*
- * COMPUTE POLY NORMAL
+/**
+ * \brief COMPUTE POLY NORMAL
  *
  * Computes the normal of a planar
  * polygon See Graphics Gems for
  * computing newell normal.
- *
  */
-
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
@@ -135,12 +106,12 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 
 		so thats?:
 		(a[1] - b[1]) * (a[2] + b[2]);
-		a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
+		a[1] * b[2] - b[1] * a[2] - b[1] * b[2] + a[1] * a[2]
 
 		odd.  half of that is the cross product. . .what's the
 		other half?
 
-		also could be like a[1]*(b[2] + a[2]) - b[1]*(a[2] - b[2])
+		also could be like a[1] * (b[2] + a[2]) - b[1] * (a[2] - b[2])
 		*/
 
 		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
@@ -179,15 +150,13 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 #endif
 }
 
-/*
- * COMPUTE POLY CENTER
+/**
+ * \brief COMPUTE POLY CENTER
  *
  * Computes the centroid and
  * area of a polygon in the X/Y
  * plane.
- *
  */
-
 static int compute_poly_center(float center[3], float *r_area, float (*verts)[3], int nverts)
 {
 	int i, j;
@@ -221,6 +190,9 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	return FALSE;
 }
 
+/**
+ * get the area of the face
+ */
 float BM_face_area_calc(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
@@ -245,7 +217,7 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 	return area;
 }
 
-/*
+/**
  * computes center of face in 3d.  uses center of bounding box.
  */
 void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float r_cent[3])
@@ -264,6 +236,9 @@ void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float r_cent[3])
 	mid_v3_v3v3(r_cent, min, max);
 }
 
+/**
+ * computes the centroid of a face, using the mean average
+ */
 void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
 {
 	BMIter iter;
@@ -280,15 +255,13 @@ void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
 	if (f->len) mul_v3_fl(r_cent, 1.0f / (float)f->len);
 }
 
-/*
+/**
  * COMPUTE POLY PLANE
  *
  * Projects a set polygon's vertices to
  * a plane defined by the average
  * of its edges cross products
- *
  */
-
 void compute_poly_plane(float (*verts)[3], int nverts)
 {
 	
@@ -333,31 +306,13 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	}
 }
 
-/*
- * BM LEGAL EDGES
+/**
+ * \brief BM LEGAL EDGES
  *
  * takes in a face and a list of edges, and sets to NULL any edge in
  * the list that bridges a concave region of the face or intersects
  * any of the faces's edges.
  */
-#if 0 /* needs BLI math double versions of these functions */
-static void shrink_edged(double *v1, double *v2, double fac)
-{
-	double mid[3];
-
-	mid_v3_v3v3(mid, v1, v2);
-
-	sub_v3_v3v3(v1, v1, mid);
-	sub_v3_v3v3(v2, v2, mid);
-
-	mul_v3_fl(v1, fac);
-	mul_v3_fl(v2, fac);
-
-	add_v3_v3v3(v1, v1, mid);
-	add_v3_v3v3(v2, v2, mid);
-}
-#endif
-
 static void shrink_edgef(float v1[3], float v2[3], const float fac)
 {
 	float mid[3];
@@ -375,14 +330,12 @@ static void shrink_edgef(float v1[3], float v2[3], const float fac)
 }
 
 
-/*
- * POLY ROTATE PLANE
+/**
+ * \brief POLY ROTATE PLANE
  *
  * Rotates a polygon so that it's
  * normal is pointing towards the mesh Z axis
- *
  */
-
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts)
 {
 
@@ -404,17 +357,15 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 		mul_m3_v3(mat, verts[i]);
 }
 
-/*
- * BMESH UPDATE FACE NORMAL
+/**
+ * \brief BMESH UPDATE FACE NORMAL
  *
  * Updates the stored normal for the
  * given face. Requires that a buffer
  * of sufficient length to store projected
  * coordinates for all of the face's vertices
  * is passed in as well.
- *
  */
-
 void BM_face_normal_update(BMesh *bm, BMFace *f)
 {
 	if (f->len >= 3) {
@@ -422,7 +373,7 @@ void BM_face_normal_update(BMesh *bm, BMFace *f)
 
 		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
 
-		bmesh_update_face_normal(bm, f, f->no, proj);
+		bmesh_face_normal_update(bm, f, f->no, proj);
 
 		BLI_array_fixedstack_free(proj);
 	}
@@ -435,12 +386,15 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3], float (*verte
 
 		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
 
-		bmesh_update_face_normal_vertex_cos(bm, f, no, proj, vertexCos);
+		bmesh_face_normal_update_vertex_cos(bm, f, no, proj, vertexCos);
 
 		BLI_array_fixedstack_free(proj);
 	}
 }
 
+/**
+ * updates face and vertex normals incident on an edge
+ */
 void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
@@ -455,6 +409,9 @@ void BM_edge_normals_update(BMesh *bm, BMEdge *e)
 	BM_vert_normal_update(bm, e->v2);
 }
 
+/**
+ * update a vert normal (but not the faces incident on it)
+ */
 void BM_vert_normal_update(BMesh *bm, BMVert *v)
 {
 	/* TODO, we can normalize each edge only once, then compare with previous edge */
@@ -489,17 +446,15 @@ void BM_vert_normal_update_all(BMesh *bm, BMVert *v)
 {
 	BMIter iter;
 	BMFace *f;
-	int len = 0;
 
-	f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v);
-	for ( ; f; f = BM_iter_step(&iter), len++) {
+	BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, v) {
 		BM_face_normal_update(bm, f);
 	}
 
 	BM_vert_normal_update(bm, v);
 }
 
-void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
+void bmesh_face_normal_update(BMesh *bm, BMFace *f, float no[3],
                               float (*projectverts)[3])
 {
 	BMLoop *l;
@@ -541,8 +496,8 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float no[3],
 		}
 	}
 }
-/* exact same as 'bmesh_update_face_normal' but accepts vertex coords */
-void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
+/* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
+void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
                                          float (*projectverts)[3], float (*vertexCos)[3])
 {
 	BMLoop *l;
@@ -595,12 +550,11 @@ void bmesh_update_face_normal_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 	}
 }
 
-/*
- * BMESH FLIP NORMAL
+/**
+ * \brief Face Flip Normal
  *
- *  Reverses the winding of a face.
- *  Note that this updates the calculated
- *  normal.
+ * Reverses the winding of a face.
+ * \note This updates the calculated normal.
  */
 void BM_face_normal_flip(BMesh *bm, BMFace *f)
 {
@@ -653,22 +607,24 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	return FALSE;
 }
 
-/*
+/**
  *  BM POINT IN FACE
  *
  * Projects co onto face f, and returns true if it is inside
- * the face bounds.  Note that this uses a best-axis projection
- * test, instead of projecting co directly into f's orientation
- * space, so there might be accuracy issues.
+ * the face bounds.
+ *
+ * \note this uses a best-axis projection test,
+ * instead of projecting co directly into f's orientation space,
+ * so there might be accuracy issues.
  */
 int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 {
 	int ax, ay;
-	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f, 0};
+	float co2[2], cent[2] = {0.0f, 0.0f}, out[2] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f};
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	int crosses = 0;
-	float eps = 1.0f + (float)FLT_EPSILON * 150.0f;
+	float onepluseps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
 	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON * 10)
 		BM_face_normal_update(bm, f);
@@ -683,7 +639,6 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 
 	co2[0] = co[ax];
 	co2[1] = co[ay];
-	co2[2] = 0;
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
@@ -695,15 +650,13 @@ int BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3])
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		float v1[3], v2[3];
+		float v1[2], v2[2];
 		
-		v1[0] = (l_iter->prev->v->co[ax] - cent[ax]) * eps + cent[ax];
-		v1[1] = (l_iter->prev->v->co[ay] - cent[ay]) * eps + cent[ay];
-		v1[2] = 0.0f;
+		v1[0] = (l_iter->prev->v->co[ax] - cent[ax]) * onepluseps + cent[ax];
+		v1[1] = (l_iter->prev->v->co[ay] - cent[ay]) * onepluseps + cent[ay];
 		
-		v2[0] = (l_iter->v->co[ax] - cent[ax]) * eps + cent[ax];
-		v2[1] = (l_iter->v->co[ay] - cent[ay]) * eps + cent[ay];
-		v2[2] = 0.0f;
+		v2[0] = (l_iter->v->co[ax] - cent[ax]) * onepluseps + cent[ax];
+		v2[1] = (l_iter->v->co[ay] - cent[ay]) * onepluseps + cent[ay];
 		
 		crosses += linecrossesf(v1, v2, co2, out) != 0;
 	} while ((l_iter = l_iter->next) != l_first);
@@ -716,14 +669,14 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
+	float v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
-	VECCOPY(v1, projectverts[v1i]);
-	VECCOPY(v2, projectverts[v2i]);
-	VECCOPY(v3, projectverts[v3i]);
+	copy_v3_v3(v1, projectverts[v1i]);
+	copy_v3_v3(v2, projectverts[v2i]);
+	copy_v3_v3(v3, projectverts[v3i]);
 	
-	if (testedgeside(v1, v2, v3)) {
+	if (testedgesidef(v1, v2, v3)) {
 		return FALSE;
 	}
 
@@ -735,28 +688,27 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 			continue;
 		}
 		
-		VECCOPY(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
-		VECCOPY(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
+		copy_v3_v3(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
+		copy_v3_v3(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
 		
-		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
+		//if (linecrossesf(pv1, pv2, v1, v3)) return FALSE;
 
-		if ( point_in_triangle(v1, v2, v3, pv1) ||
-		     point_in_triangle(v3, v2, v1, pv1))
+		if (isect_point_tri_v2(pv1, v1, v2, v3) ||
+		    isect_point_tri_v2(pv1, v3, v2, v1))
 		{
 			return FALSE;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 	return TRUE;
 }
-/*
- * FIND EAR
+
+/**
+ * \brief FIND EAR
  *
  * Used by tesselator to find
  * the next triangle to 'clip off'
  * of a polygon while tesselating.
- *
  */
-
 static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert)
 {
 	BMVert *v1, *v2, *v3;
@@ -784,8 +736,9 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 
 		if (isear) {
 #if 0
+			/* if this code comes back, it needs to be converted to radians */
 			angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if (!bestear || ABS(angle-45.0f) < bestangle) {
+			if (!bestear || ABS(angle - 45.0f) < bestangle) {
 				bestear = l;
 				bestangle = ABS(45.0f - angle);
 			}
@@ -803,21 +756,20 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 	return bestear;
 }
 
-/*
- * BMESH TRIANGULATE FACE
+/**
+ * \brief BMESH TRIANGULATE FACE
  *
- * Triangulates a face using a
- * simple 'ear clipping' algorithm
- * that tries to favor non-skinny
- * triangles (angles less than
- * 90 degrees). If the triangulator
- * has bits left over (or cannot
- * triangulate at all) it uses a
- * simple fan triangulation
+ * Triangulates a face using a simple 'ear clipping' algorithm that tries to
+ * favor non-skinny triangles (angles less than 90 degrees).
+ *
+ * If the triangulator has bits left over (or cannot triangulate at all)
+ * it uses a simple fan triangulation,
  *
  * newfaces, if non-null, must be an array of BMFace pointers,
  * with a length equal to f->len.  it will be filled with the new
  * triangles, and will be NULL-terminated.
+ *
+ * \note newedgeflag sets a flag layer flag, obviously not the header flag.
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces)
@@ -839,7 +791,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
-	///bmesh_update_face_normal(bm, f, f->no, projectverts);
+	///bmesh_face_normal_update(bm, f, f->no, projectverts);
 
 	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
@@ -910,12 +862,14 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	if (newfaces) newfaces[nf_i] = NULL;
 }
 
-/* each pair of loops defines a new edge, a split.  this function goes
+/**
+ * each pair of loops defines a new edge, a split.  this function goes
  * through and sets pairs that are geometrically invalid to null.  a
  * split is invalid, if it forms a concave angle or it intersects other
  * edges in the face, or it intersects another split.  in the case of
  * intersecting splits, only the first of the set of intersecting
- * splits survives */
+ * splits survives
+ */
 void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;

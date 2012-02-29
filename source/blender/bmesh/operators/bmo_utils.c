@@ -42,7 +42,7 @@
  *
  */
 
-void bmesh_makevert_exec(BMesh *bm, BMOperator *op)
+void bmo_makevert_exec(BMesh *bm, BMOperator *op)
 {
 	float vec[3];
 
@@ -52,7 +52,7 @@ void bmesh_makevert_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_from_flag(bm, op, "newvertout", 1, BM_VERT);
 }
 
-void bmesh_transform_exec(BMesh *bm, BMOperator *op)
+void bmo_transform_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter iter;
 	BMVert *v;
@@ -65,7 +65,7 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-void bmesh_translate_exec(BMesh *bm, BMOperator *op)
+void bmo_translate_exec(BMesh *bm, BMOperator *op)
 {
 	float mat[4][4], vec[3];
 	
@@ -77,7 +77,7 @@ void bmesh_translate_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
 }
 
-void bmesh_scale_exec(BMesh *bm, BMOperator *op)
+void bmo_scale_exec(BMesh *bm, BMOperator *op)
 {
 	float mat[3][3], vec[3];
 	
@@ -91,7 +91,7 @@ void bmesh_scale_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, "transform mat=%m3 verts=%s", mat, op, "verts");
 }
 
-void bmesh_rotate_exec(BMesh *bm, BMOperator *op)
+void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 {
 	float vec[3];
 	
@@ -109,7 +109,7 @@ void bmesh_rotate_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
-void bmesh_reversefaces_exec(BMesh *bm, BMOperator *op)
+void bmo_reversefaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMFace *f;
@@ -119,7 +119,7 @@ void bmesh_reversefaces_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-void bmesh_edgerotate_exec(BMesh *bm, BMOperator *op)
+void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e, *e2;
@@ -140,7 +140,7 @@ void bmesh_edgerotate_exec(BMesh *bm, BMOperator *op)
 #define SEL_FLAG	1
 #define SEL_ORIG	2
 
-static void bmesh_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
+static void bmo_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -179,7 +179,7 @@ static void bmesh_regionextend_extend(BMesh *bm, BMOperator *op, int usefaces)
 	}
 }
 
-static void bmesh_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
+static void bmo_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -221,7 +221,7 @@ static void bmesh_regionextend_constrict(BMesh *bm, BMOperator *op, int usefaces
 	}
 }
 
-void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
+void bmo_regionextend_exec(BMesh *bm, BMOperator *op)
 {
 	int use_faces = BMO_slot_bool_get(op, "use_faces");
 	int constrict = BMO_slot_bool_get(op, "constrict");
@@ -229,9 +229,9 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, op, "geom", SEL_ORIG, BM_ALL);
 
 	if (constrict)
-		bmesh_regionextend_constrict(bm, op, use_faces);
+		bmo_regionextend_constrict(bm, op, use_faces);
 	else
-		bmesh_regionextend_extend(bm, op, use_faces);
+		bmo_regionextend_extend(bm, op, use_faces);
 
 	BMO_slot_from_flag(bm, op, "geomout", SEL_FLAG, BM_ALL);
 }
@@ -264,14 +264,14 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 
 /* NOTE: BM_ELEM_TAG is used on faces to tell if they are flipped. */
 
-void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
+void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter liter, liter2;
 	BMOIter siter;
 	BMFace *f, *startf, **fstack = NULL;
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
-	float maxx, cent[3];
+	float maxx, maxx_test, cent[3];
 	int i, maxi, flagflip = BMO_slot_bool_get(op, "do_flip");
 
 	startf = NULL;
@@ -292,9 +292,8 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 		BM_face_center_bounds_calc(bm, f, cent);
 
-		cent[0] = cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
-		if (cent[0] > maxx) {
-			maxx = cent[0];
+		if ((maxx_test = dot_v3v3(cent, cent)) > maxx) {
+			maxx = maxx_test;
 			startf = f;
 		}
 	}
@@ -366,13 +365,13 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	/* check if we have faces yet to do.  if so, recurse */
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		if (!BMO_elem_flag_test(bm, f, FACE_VIS)) {
-			bmesh_righthandfaces_exec(bm, op);
+			bmo_righthandfaces_exec(bm, op);
 			break;
 		}
 	}
 }
 
-void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
+void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
@@ -510,7 +509,7 @@ typedef struct tmp_face_ext {
  * Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
  * We select either similar faces based on material, image, area, perimeter, normal, or the coplanar faces
  */
-void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
+void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter fm_iter;
 	BMFace *fs, *fm;
@@ -710,7 +709,7 @@ typedef struct tmp_edge_ext {
  * select similar edges: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
  * choices are length, direction, face, ...
  */
-void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
+void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter es_iter;	/* selected edges iterator */
 	BMIter	e_iter;		/* mesh edges iterator */
@@ -885,7 +884,7 @@ typedef struct tmp_vert_ext {
  * select similar vertices: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
  * choices are normal, face, vertex group...
  */
-void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
+void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter vs_iter;	/* selected verts iterator */
 	BMIter v_iter;		/* mesh verts iterator */
@@ -988,7 +987,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 ** Cycle UVs for a face
 **************************************************************************** */
 
-void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
+void bmo_face_rotateuvs_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;	/* current face */
@@ -1055,7 +1054,7 @@ void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
 ** Reverse UVs for a face
 **************************************************************************** */
 
-void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
+void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;		/* current face */
@@ -1098,7 +1097,7 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 ** Cycle colors for a face
 **************************************************************************** */
 
-void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
+void bmo_rotatecolors_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;	/* current face */
@@ -1164,7 +1163,7 @@ void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
 ** Reverse colors for a face
 **************************************************************************** */
 
-void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op)
+void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;		/* current face */
@@ -1213,7 +1212,7 @@ typedef struct element_node {
 	HeapNode *hn;	/* heap node */
 } element_node;
 
-void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
+void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter vs_iter /* , vs2_iter */;	/* selected verts iterator */
 	BMIter v_iter;		/* mesh verts iterator */

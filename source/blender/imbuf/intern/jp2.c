@@ -403,7 +403,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *imag
 	case CINEMA2K_24:
 	case CINEMA4K_24:
 		for(i=0 ; i<parameters->tcp_numlayers ; i++){
-			temp_rate = 0 ;
+			temp_rate = 0;
 			if (img_fol->rates[i]== 0){
 				parameters->tcp_rates[0]= ((float) (image->numcomps * image->comps[0].w * image->comps[0].h * image->comps[0].prec))/ 
 					(CINEMA_24_CS * 8 * image->comps[0].dx * image->comps[0].dy);
@@ -423,7 +423,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *imag
 		
 	case CINEMA2K_48:
 		for(i=0 ; i<parameters->tcp_numlayers ; i++){
-			temp_rate = 0 ;
+			temp_rate = 0;
 			if (img_fol->rates[i]== 0){
 				parameters->tcp_rates[0]= ((float) (image->numcomps * image->comps[0].w * image->comps[0].h * image->comps[0].prec))/ 
 					(CINEMA_48_CS * 8 * image->comps[0].dx * image->comps[0].dy);

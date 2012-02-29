@@ -912,7 +912,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 		int len = -1;
 		char *c = type_fmt;
 
-		while ((*c++= tolower(*type_id++))) {} ;
+		while ((*c++= tolower(*type_id++))) {}
 
 		if (type == PROP_COLLECTION) {
 			len = pyrna_prop_collection_length(self);
@@ -999,7 +999,7 @@ static PyObject *pyrna_func_repr(BPy_FunctionRNA *self)
 }
 
 
-static long pyrna_struct_hash(BPy_StructRNA *self)
+static Py_hash_t pyrna_struct_hash(BPy_StructRNA *self)
 {
 	return _Py_HashPointer(self->ptr.data);
 }

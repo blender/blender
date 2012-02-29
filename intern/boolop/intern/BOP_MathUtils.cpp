@@ -233,17 +233,17 @@ bool BOP_intersect(const MT_Vector3& vL1, const MT_Point3& pL1, const MT_Vector3
 	MT_Scalar den = (vL1.y()*vL2.x() - vL1.x() * vL2.y());
 	
 	if (!BOP_fuzzyZero(den)) {
-		t =  (pL2.y()*vL1.x() - vL1.y()*pL2.x() + pL1.x()*vL1.y() - pL1.y()*vL1.x()) / den ;
+		t =  (pL2.y()*vL1.x() - vL1.y()*pL2.x() + pL1.x()*vL1.y() - pL1.y()*vL1.x()) / den;
 	}
 	else {
 		den = (vL1.y()*vL2.z() - vL1.z() * vL2.y());
 		if (!BOP_fuzzyZero(den)) {
-			t =  (pL2.y()*vL1.z() - vL1.y()*pL2.z() + pL1.z()*vL1.y() - pL1.y()*vL1.z()) / den ;
+			t =  (pL2.y()*vL1.z() - vL1.y()*pL2.z() + pL1.z()*vL1.y() - pL1.y()*vL1.z()) / den;
 		}
 		else {
 			den = (vL1.x()*vL2.z() - vL1.z() * vL2.x());
 			if (!BOP_fuzzyZero(den)) {
-				t =  (pL2.x()*vL1.z() - vL1.x()*pL2.z() + pL1.z()*vL1.x() - pL1.x()*vL1.z()) / den ;
+				t =  (pL2.x()*vL1.z() - vL1.x()*pL2.z() + pL1.z()*vL1.x() - pL1.x()*vL1.z()) / den;
 			}
 			else {
 				return false;

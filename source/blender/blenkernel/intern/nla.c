@@ -1073,7 +1073,7 @@ void BKE_nlastrip_set_active (AnimData *adt, NlaStrip *strip)
 	
 	/* loop over tracks, deactivating*/
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
-		for (nls= nlt->strips.first; nls; nls= nls->next)  {
+		for (nls= nlt->strips.first; nls; nls= nls->next) {
 			if (nls != strip)
 				nls->flag &= ~NLASTRIP_FLAG_ACTIVE;
 			else

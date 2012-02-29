@@ -49,20 +49,18 @@
 static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMLoop *source_loop, BMLoop *target_loop);
 
-/*
- * BMESH MAKE QUADTRIANGLE
+/**
+ * \brief Make Quad/Triangle
  *
- * Creates a new quad or triangle from
- * a list of 3 or 4 vertices. If nodouble
- * equals 1, then a check is done to see
- * if a face with these vertices already
- * exists and returns it instead. If a pointer
- * to an example face is provided, it's custom
- * data and properties will be copied to the new
- * face.
+ * Creates a new quad or triangle from a list of 3 or 4 vertices.
+ * If \a nodouble is TRUE, then a check is done to see if a face
+ * with these vertices already exists and returns it instead.
  *
- * Note that the winding of the face is determined
- * by the order of the vertices in the vertex array
+ * If a pointer to an example face is provided, it's custom data
+ * and properties will be copied to the new face.
+ *
+ * \note The winding of the face is determined by the order
+ * of the vertices in the vertex array.
  */
 
 BMFace *BM_face_create_quad_tri(BMesh *bm,
@@ -73,43 +71,27 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
 	return BM_face_create_quad_tri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
 }
 
-/* remove the edge array bits from this. Its not really needed? */
 BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
 {
-	BMEdge *edar[4] = {NULL};
 	BMFace *f = NULL;
-	int overlap = 0;
-
-	edar[0] = BM_edge_exists(verts[0], verts[1]);
-	edar[1] = BM_edge_exists(verts[1], verts[2]);
-	if (len == 4) {
-		edar[2] = BM_edge_exists(verts[2], verts[3]);
-		edar[3] = BM_edge_exists(verts[3], verts[0]);
-	}
-	else {
-		edar[2] = BM_edge_exists(verts[2], verts[0]);
-	}
+	int is_overlap = FALSE;
 
 	if (nodouble) {
 		/* check if face exists or overlaps */
-		if (len == 4) {
-			overlap = BM_face_exists_overlap(bm, verts, len, &f);
-		}
-		else {
-			overlap = BM_face_exists_overlap(bm, verts, len, &f);
-		}
+		is_overlap = BM_face_exists(bm, verts, len, &f);
 	}
 
 	/* make new face */
-	if ((!f) && (!overlap)) {
-		if (!edar[0]) edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, FALSE);
-		if (!edar[1]) edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, FALSE);
+	if ((f == NULL) && (!is_overlap)) {
+		BMEdge *edar[4] = {NULL};
+		edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
+		edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, TRUE);
 		if (len == 4) {
-			if (!edar[2]) edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, FALSE);
-			if (!edar[3]) edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, FALSE);
+			edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, TRUE);
+			edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, TRUE);
 		}
 		else {
-			if (!edar[2]) edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, FALSE);
+			edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, TRUE);
 		}
 
 		f = BM_face_create(bm, verts, edar, len, FALSE);
@@ -122,54 +104,51 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	return f;
 }
 
-
 /* copies face data from shared adjacent faces */
 void BM_face_copy_shared(BMesh *bm, BMFace *f)
 {
 	BMIter iter;
-	BMLoop *l, *l2;
+	BMLoop *l, *l_other;
 
-	if (!f) return;
-
-	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for ( ; l; l = BM_iter_step(&iter)) {
-		l2 = l->radial_next;
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		l_other = l->radial_next;
 		
-		if (l2 && l2 != l) {
-			if (l2->v == l->v) {
-				bm_loop_attrs_copy(bm, bm, l2, l);
+		if (l_other && l_other != l) {
+			if (l_other->v == l->v) {
+				bm_loop_attrs_copy(bm, bm, l_other, l);
 			}
 			else {
-				l2 = l2->next;
-				bm_loop_attrs_copy(bm, bm, l2, l);
+				l_other = l_other->next;
+				bm_loop_attrs_copy(bm, bm, l_other, l);
 			}
 		}
 	}
 }
 
-/*
- * BMESH MAKE NGON
+/**
+ * \brief Make NGon
  *
- * Attempts to make a new Ngon from a list of edges.
- * If nodouble equals one, a check for overlaps or existing
+ * Makes an ngon from an unordered list of edges. \a v1 and \a v2
+ * must be the verts defining edges[0],
+ * and define the winding of the new face.
  *
- * The edges are not required to be ordered, simply to to form
- * a single closed loop as a whole
+ * \a edges are not required to be ordered, simply to to form
+ * a single closed loop as a whole.
  *
- * Note that while this function will work fine when the edges
+ * \note While this function will work fine when the edges
  * are already sorted, if the edges are always going to be sorted,
- * BM_face_create should be considered over this function as it
+ * #BM_face_create should be considered over this function as it
  * avoids some unnecessary work.
  */
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
 {
 	BMEdge **edges2 = NULL;
 	BLI_array_staticdeclare(edges2, BM_NGON_STACK_SIZE);
-	BMVert **verts = NULL, *v;
+	BMVert **verts = NULL;
 	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
-	BMVert *ev1, *ev2;
+	BMVert *v, *ev1, *ev2;
 	int i, /* j, */ v1found, reverse;
 
 	/* this code is hideous, yeek.  I'll have to think about ways of
@@ -205,7 +184,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		BLI_array_append(edges2, e);
 
 		do {
-			e2 = bmesh_disk_nextedge(e2, v);
+			e2 = bmesh_disk_edge_next(e2, v);
 			if (e2 != e && BM_ELEM_API_FLAG_TEST(e2, _FLAG_MF)) {
 				v = BM_edge_other_vert(e2, v);
 				break;
@@ -288,14 +267,10 @@ err:
 /* bmesh_make_face_from_face(BMesh *bm, BMFace *source, BMFace *target) */
 
 
-/*
- * REMOVE TAGGED XXX
- *
+/**
  * Called by operators to remove elements that they have marked for
  * removal.
- *
  */
-
 void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 {
 	BMFace *f;
@@ -389,8 +364,12 @@ static void bmo_remove_tagged_context_edges(BMesh *bm, const short oflag)
 
 #define DEL_WIREVERT	(1 << 10)
 
-/* warning, oflag applies to different types in some contexts,
- * not just the type being removed */
+/**
+ * \warning oflag applies to different types in some contexts,
+ * not just the type being removed.
+ *
+ * \warning take care, uses operator flag DEL_WIREVERT
+ */
 void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 {
 	BMVert *v;
@@ -555,29 +534,45 @@ static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 
 /* BMESH_TODO: Special handling for hide flags? */
 
+/**
+ * Copies attributes, e.g. customdata, header flags, etc, from one element
+ * to another of the same type.
+ */
 void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
 {
 	const BMHeader *sheader = source;
 	BMHeader *theader = target;
-	
+
+	BLI_assert(sheader->htype == theader->htype);
+
 	if (sheader->htype != theader->htype)
 		return;
 
 	/* First we copy select */
-	if (BM_elem_flag_test(source, BM_ELEM_SELECT)) BM_elem_select_set(target_mesh, target, TRUE);
+	if (BM_elem_flag_test((BMElem *)sheader, BM_ELEM_SELECT)) {
+		BM_elem_select_set(target_mesh, (BMElem *)target, TRUE);
+	}
 	
 	/* Now we copy flags */
 	theader->hflag = sheader->hflag;
 	
 	/* Copy specific attributes */
-	if (theader->htype == BM_VERT)
-		bm_vert_attrs_copy(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
-	else if (theader->htype == BM_EDGE)
-		bm_edge_attrs_copy(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
-	else if (theader->htype == BM_LOOP)
-		bm_loop_attrs_copy(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
-	else if (theader->htype == BM_FACE)
-		bm_face_attrs_copy(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
+	switch (theader->htype) {
+		case BM_VERT:
+			bm_vert_attrs_copy(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
+			break;
+		case BM_EDGE:
+			bm_edge_attrs_copy(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
+			break;
+		case BM_LOOP:
+			bm_loop_attrs_copy(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
+			break;
+		case BM_FACE:
+			bm_face_attrs_copy(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
+			break;
+		default:
+			BLI_assert(0);
+	}
 }
 
 BMesh *BM_mesh_copy(BMesh *bmold)
@@ -694,11 +689,11 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 		void *ele = NULL;
 
 		if (ese->htype == BM_VERT)
-			ele = vtable[BM_elem_index_get(ese->data)];
+			ele = vtable[BM_elem_index_get(ese->ele)];
 		else if (ese->htype == BM_EDGE)
-			ele = etable[BM_elem_index_get(ese->data)];
+			ele = etable[BM_elem_index_get(ese->ele)];
 		else if (ese->htype == BM_FACE) {
-			ele = ftable[BM_elem_index_get(ese->data)];
+			ele = ftable[BM_elem_index_get(ese->ele)];
 		}
 		else {
 			BLI_assert(0);

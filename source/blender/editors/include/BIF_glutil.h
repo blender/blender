@@ -97,7 +97,7 @@ float glaGetOneFloat		(int param);
 	 * should be coordinates of a point known to be within the current
 	 * view frustum.
 	 * @attention This routine should be used when the distance of @a x 
-	 * and @y away from the known good point is small (ie. for small icons
+	 * and @a y away from the known good point is small (ie. for small icons
 	 * and for bitmap characters), when drawing large+zoomed images it is
 	 * possible for overflow to occur, the glaDrawPixelsSafe routine should
 	 * be used instead.
@@ -197,9 +197,9 @@ void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
 void bglBegin(int mode);
 void bglEnd(void);
 int bglPointHack(void);
-void bglVertex3fv(float *vec);
+void bglVertex3fv(const float vec[3]);
 void bglVertex3f(float x, float y, float z);
-void bglVertex2fv(float *vec);
+void bglVertex2fv(const float vec[2]);
 /* intel gfx cards frontbuffer problem */
 void bglFlush(void);
 void set_inverted_drawing(int enable);

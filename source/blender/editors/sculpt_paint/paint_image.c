@@ -862,7 +862,7 @@ static int project_paint_occlude_ptv_clip(
 	if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 	else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 	
-	if(!ED_view3d_test_clipping(ps->rv3d, wco, 1)) {
+	if (!ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 		return 1;
 	}
 	
@@ -1516,7 +1516,8 @@ static ProjPixel *project_paint_uvpixel_init(
 	projPixel->mask_max = 0;
 	
 	/* which bounding box cell are we in?, needed for undo */
-	projPixel->bb_cell_index = ((int)(((float)x_px/(float)ibuf->x) * PROJ_BOUNDBOX_DIV)) + ((int)(((float)y_px/(float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
+	projPixel->bb_cell_index = ((int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV)) +
+	                           ((int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV;
 	
 	/* done with view3d_project_float inline */
 	if (ps->tool==PAINT_TOOL_CLONE) {
@@ -2436,7 +2437,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						/* a pitty we need to get the worldspace pixel location here */
 						if(do_clip) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
-							if(ED_view3d_test_clipping(ps->rv3d, wco, 1)) {
+							if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 								continue; /* Watch out that no code below this needs to run */
 							}
 						}
@@ -2659,7 +2660,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 												if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
-												if(ED_view3d_test_clipping(ps->rv3d, wco, 1)) {
+												if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 													continue; /* Watch out that no code below this needs to run */
 												}
 											}
@@ -2949,7 +2950,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	/* ---- end defines ---- */
 	
 	if(ps->source==PROJ_SRC_VIEW)
-		ED_view3d_local_clipping(ps->rv3d, ps->ob->obmat); /* faster clipping lookups */
+		ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat); /* faster clipping lookups */
 
 	/* paint onto the derived mesh */
 	
@@ -4013,7 +4014,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	return NULL;
 }
 
-static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, float *pos)
+static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastpos[2], const float pos[2])
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
@@ -4358,7 +4359,7 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	return clonebuf;
 }
 
-static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
+static void imapaint_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[2])
 {
 	ipos[0]= (int)floorf((pos[0] - ibufb->x/2) + 1.0f);
 	ipos[1]= (int)floorf((pos[1] - ibufb->y/2) + 1.0f);
@@ -4366,7 +4367,7 @@ static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 
 /* dosnt run for projection painting
  * only the old style painting in the 3d view */
-static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
+static int imapaint_paint_op(void *state, ImBuf *ibufb, const float lastpos[2], const float pos[2])
 {
 	ImagePaintState *s= ((ImagePaintState*)state);
 	ImBuf *clonebuf= NULL, *frombuf;

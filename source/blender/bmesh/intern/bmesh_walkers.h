@@ -23,7 +23,7 @@
 #ifndef __BMESH_WALKERS_H__
 #define __BMESH_WALKERS_H__
 
-/** \file blender/bmesh/bmesh_walkers.h
+/** \file blender/bmesh/intern/bmesh_walkers.h
  *  \ingroup bmesh
  */
 
@@ -40,9 +40,9 @@ typedef enum {
 
 /*Walkers*/
 typedef struct BMWalker {
-	void (*begin) (struct BMWalker *walker, void *start);
-	void *(*step) (struct BMWalker *walker);
-	void *(*yield)(struct BMWalker *walker);
+	void  (*begin) (struct BMWalker *walker, void *start);
+	void *(*step)  (struct BMWalker *walker);
+	void *(*yield) (struct BMWalker *walker);
 	int structsize;
 	BMWOrder order;
 	int valid_mask;
@@ -54,6 +54,7 @@ typedef struct BMWalker {
 	BLI_mempool *worklist;
 	ListBase states;
 
+	/* these masks are to be tested against elements BMO_elem_flag_test() */
 	short mask_vert;
 	short mask_edge;
 	short mask_loop;
@@ -91,7 +92,7 @@ BMFace *f;
 
 BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
 f = BMW_begin(&walker, some_start_face);
-for (; f; f=BMW_step(&walker))
+for (; f; f = BMW_step(&walker))
 {
 	//do something with f
 }

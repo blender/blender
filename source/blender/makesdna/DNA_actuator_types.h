@@ -138,7 +138,7 @@ typedef struct bCameraActuator {
 	float damping;
 	short pad1, axis;
 	float pad2;
-} bCameraActuator ;
+} bCameraActuator;
 
 typedef struct bConstraintActuator {
 	short type, mode;

@@ -34,26 +34,23 @@
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
 
-/*
- *	BMESH ITERATOR STEP
+/**
+ * \brief Iterator Step
  *
- *  Calls an iterators step fucntion to return
- *  the next element.
+ * Calls an iterators step fucntion to return the next element.
  */
-
 BM_INLINE void *BM_iter_step(BMIter *iter)
 {
 	return iter->step(iter);
 }
 
 
-/*
- * BMESH ITERATOR INIT
+/**
+ * \brief Iterator Init
  *
  * Takes a bmesh iterator structure and fills
  * it with the appropriate function pointers based
  * upon its type.
- *
  */
 BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
@@ -76,80 +73,90 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
 			iter->step =  bmiter__face_of_mesh_step;
 			break;
 		case BM_EDGES_OF_VERT:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__edge_of_vert_begin;
 			iter->step =  bmiter__edge_of_vert_step;
 			iter->vdata = data;
 			break;
 		case BM_FACES_OF_VERT:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__face_of_vert_begin;
 			iter->step =  bmiter__face_of_vert_step;
 			iter->vdata = data;
 			break;
 		case BM_LOOPS_OF_VERT:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__loop_of_vert_begin;
 			iter->step =  bmiter__loop_of_vert_step;
 			iter->vdata = data;
 			break;
 		case BM_VERTS_OF_EDGE:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__vert_of_edge_begin;
 			iter->step =  bmiter__vert_of_edge_step;
 			iter->edata = data;
 			break;
 		case BM_FACES_OF_EDGE:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__face_of_edge_begin;
 			iter->step =  bmiter__face_of_edge_step;
 			iter->edata = data;
 			break;
 		case BM_VERTS_OF_FACE:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__vert_of_face_begin;
 			iter->step =  bmiter__vert_of_face_step;
 			iter->pdata = data;
 			break;
 		case BM_EDGES_OF_FACE:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__edge_of_face_begin;
 			iter->step =  bmiter__edge_of_face_step;
 			iter->pdata = data;
 			break;
 		case BM_LOOPS_OF_FACE:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__loop_of_face_begin;
 			iter->step =  bmiter__loop_of_face_step;
 			iter->pdata = data;
 			break;
 		case BM_LOOPS_OF_LOOP:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__loops_of_loop_begin;
 			iter->step =  bmiter__loops_of_loop_step;
 			iter->ldata = data;
 			break;
 		case BM_LOOPS_OF_EDGE:
-			if (!data)
+			if (UNLIKELY(!data)) {
 				return FALSE;
+			}
 
 			iter->begin = bmiter__loops_of_edge_begin;
 			iter->step =  bmiter__loops_of_edge_step;
@@ -163,8 +170,8 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
 	return TRUE;
 }
 
-/*
- * BMESH ITERATOR NEW
+/**
+ * \brief Iterator New
  *
  * Takes a bmesh iterator structure and fills
  * it with the appropriate function pointers based
@@ -174,7 +181,7 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
  */
 BM_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
-	if (BM_iter_init(iter, bm, itype, data)) {
+	if (LIKELY(BM_iter_init(iter, bm, itype, data))) {
 		return BM_iter_step(iter);
 	}
 	else {

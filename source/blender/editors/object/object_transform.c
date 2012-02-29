@@ -36,6 +36,7 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_group_types.h"
@@ -48,6 +49,7 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
+#include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -834,6 +836,27 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					if(obedit)
 						break;
+				}
+			}
+			else if (ob->type == OB_MBALL) {
+				MetaBall *mb = ob->data;
+
+				if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if(around==V3D_CENTROID) { BKE_metaball_center_median(mb, cent); }
+				else { BKE_metaball_center_bounds(mb, cent);	}
+
+				negate_v3_v3(cent_neg, cent);
+				BKE_metaball_translate(mb, cent_neg);
+
+				tot_change++;
+				mb->id.flag |= LIB_DOIT;
+				do_inverse_offset= TRUE;
+
+				if(obedit) {
+					if (centermode == GEOMETRY_TO_ORIGIN) {
+						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+					}
+					break;
 				}
 			}
 

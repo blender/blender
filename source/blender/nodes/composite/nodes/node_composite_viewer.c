@@ -141,8 +141,7 @@ void register_node_type_cmp_viewer(bNodeTreeType *ttype)
 	node_type_init(&ntype, node_composit_init_viewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_viewer);
-	/* Do not allow muting this node. */
-	node_type_mute(&ntype, NULL, NULL);
+	node_type_internal_connect(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

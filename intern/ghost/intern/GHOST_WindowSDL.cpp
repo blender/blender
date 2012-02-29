@@ -67,7 +67,7 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
 	m_sdl_glcontext= SDL_GL_CreateContext(m_sdl_win);
 
 	//fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
-	//	theEvent->error_code, theEvent->request_code) ;
+	//	theEvent->error_code, theEvent->request_code);
 
 	setTitle(title);
 }

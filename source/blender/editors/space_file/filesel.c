@@ -341,8 +341,8 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) return -1 ;
-	if (offsety > layout->rows-1) return -1 ;
+	if (offsetx > layout->columns - 1) return -1;
+	if (offsety > layout->rows - 1) return -1;
 	
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;

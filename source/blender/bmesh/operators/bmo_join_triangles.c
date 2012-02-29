@@ -222,7 +222,7 @@ static int fplcmp(const void *v1, const void *v2)
 	return 0;
 }
 
-void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
+void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMOIter siter;

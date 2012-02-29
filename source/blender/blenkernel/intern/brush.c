@@ -833,7 +833,9 @@ void brush_painter_free(BrushPainter *painter)
 	MEM_freeN(painter);
 }
 
-static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, int x, int y, int w, int h, int xt, int yt, float *pos)
+static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
+                                     int x, int y, int w, int h, int xt, int yt,
+                                     const float pos[2])
 {
 	Scene *scene= painter->scene;
 	Brush *brush= painter->brush;
@@ -923,7 +925,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	}
 }
 
-static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float *pos)
+static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, const float pos[2])
 {
 	const Scene *scene= painter->scene;
 	Brush *brush= painter->brush;
@@ -978,7 +980,7 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float 
 		brush_painter_do_partial(painter, NULL, x1, y2, x2, ibuf->y, 0, 0, pos);
 }
 
-static void brush_painter_refresh_cache(BrushPainter *painter, float *pos, int use_color_correction)
+static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2], int use_color_correction)
 {
 	const Scene *scene= painter->scene;
 	Brush *brush= painter->brush;
@@ -1042,7 +1044,7 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 		brush->spacing = MAX2(1.0f, painter->startspacing*(1.5f-pressure));
 }
 
-void brush_jitter_pos(const Scene *scene, Brush *brush, float pos[2], float jitterpos[2])
+void brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
 {
 	int use_jitter= brush->jitter != 0;
 
@@ -1069,7 +1071,8 @@ void brush_jitter_pos(const Scene *scene, Brush *brush, float pos[2], float jitt
 	}
 }
 
-int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user, int use_color_correction)
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2], double time, float pressure,
+                        void *user, int use_color_correction)
 {
 	Scene *scene= painter->scene;
 	Brush *brush= painter->brush;

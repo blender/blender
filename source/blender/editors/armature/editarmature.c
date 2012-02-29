@@ -1079,7 +1079,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 						 *	- the target isn't origArm/newArm itself
 						 *	- the target is one that can be found in newArm/origArm
 						 */
-						if(ct->subtarget[0] != '\0')  {
+						if(ct->subtarget[0] != '\0') {
 							if (ct->tar == origArm) {
 								if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= newArm;
@@ -3089,7 +3089,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 					 (ebo->flag & BONE_SELECTED) )
 				{
 					/* set either end or start (end gets priority, unless it is already set) */
-					if (bend == NULL)  {
+					if (bend == NULL) {
 						bend= ebo;
 						bchild= child;
 					}

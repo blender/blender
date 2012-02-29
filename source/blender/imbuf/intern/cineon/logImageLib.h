@@ -62,10 +62,6 @@ LogImageFile* logImageOpen(const char* filename, int cineon);
 int logImageGetSize(const LogImageFile* logImage, int* xsize, int* ysize, int* channels);
 LogImageFile* logImageCreate(const char* filename, int cineon, int xsize, int ysize, int channels);
 
-/* get / set header block NYI */
-int logImageGetHeader(LogImageFile*, int*, void**);
-int logImageSetHeader(LogImageFile*, int, void*);
-
 /* byte conversion routines for mapping logImage (usually) 10 bit values to 8 bit */
 /* see Kodak docs for details... */
 

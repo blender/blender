@@ -40,6 +40,8 @@ struct Strip;
 struct StripElem;
 struct bSound;
 
+struct SeqIndexBuildContext;
+
 #define BUILD_SEQAR_COUNT_NOTHING  0
 #define BUILD_SEQAR_COUNT_CURRENT  1
 #define BUILD_SEQAR_COUNT_CHILDREN 2
@@ -194,9 +196,10 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 int input_have_to_preprocess(
 	SeqRenderData context, struct Sequence * seq, float cfra);
 
-void seq_proxy_rebuild(struct Main * bmain, 
-                       struct Scene *scene, struct Sequence * seq,
+struct SeqIndexBuildContext *seq_proxy_rebuild_context(struct Main *bmain, struct Scene *scene, struct Sequence *seq);
+void seq_proxy_rebuild(struct SeqIndexBuildContext *context,
                        short *stop, short *do_update, float *progress);
+void seq_proxy_rebuild_finish(struct SeqIndexBuildContext *context, short stop);
 
 
 /* **********************************************************************
@@ -283,7 +286,6 @@ void seq_update_sound_bounds_all(struct Scene *scene);
 void seq_update_sound_bounds(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Editing *ed);
 void seq_update_sound(struct Scene *scene, struct bSound *sound);
-void seqbase_sound_reload(struct Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void seqbase_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
 

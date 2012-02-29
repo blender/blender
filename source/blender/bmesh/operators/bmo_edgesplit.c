@@ -195,7 +195,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 	}
 }
 
-void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
+void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 {
 	EdgeTag *etags, *et;
 	BMIter iter, liter;
@@ -230,7 +230,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	etags = MEM_callocN(sizeof(EdgeTag)*bm->totedge, "EdgeTag");
+	etags = MEM_callocN(sizeof(EdgeTag) * bm->totedge, "EdgeTag");
 
 	BM_mesh_elem_index_ensure(bm, BM_EDGE);
 

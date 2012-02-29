@@ -41,10 +41,10 @@ struct MultiresSubsurf;
 struct Object;
 struct PBVH;
 struct SubsurfModifierData;
-struct _CCGEdge;
-struct _CCGFace;
-struct _CCGSubsurf;
-struct _CCGVert;
+struct CCGEdge;
+struct CCGFace;
+struct CCGSubsurf;
+struct CCGVert;
 struct EdgeHash;
 struct PBVH;
 struct DMGridData;
@@ -65,14 +65,14 @@ void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3])
 typedef struct CCGDerivedMesh {
 	DerivedMesh dm;
 
-	struct _CCGSubSurf *ss;
+	struct CCGSubSurf *ss;
 	int freeSS;
 	int drawInteriorEdges, useSubsurfUv;
 
-	struct {int startVert; struct _CCGVert *vert;} *vertMap;
-	struct {int startVert; int startEdge; struct _CCGEdge *edge;} *edgeMap;
+	struct {int startVert; struct CCGVert *vert;} *vertMap;
+	struct {int startVert; int startEdge; struct CCGEdge *edge;} *edgeMap;
 	struct {int startVert; int startEdge;
-			int startFace; struct _CCGFace *face;} *faceMap;
+			int startFace; struct CCGFace *face;} *faceMap;
 
 	short *edgeFlags;
 	char *faceFlags;
@@ -89,7 +89,7 @@ typedef struct CCGDerivedMesh {
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;
 	int *gridOffset;
-	struct _CCGFace **gridFaces;
+	struct CCGFace **gridFaces;
 
 	struct {
 		struct MultiresModifierData *mmd;

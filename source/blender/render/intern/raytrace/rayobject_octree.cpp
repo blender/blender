@@ -515,15 +515,15 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 		copy_v3_v3(co4, face->v4);
 
 	for(c=0;c<3;c++) {
-		rtf[0][c]= (co1[c]-oc->min[c])*ocfac[c] ;
-		rts[0][c]= (short)rtf[0][c];
-		rtf[1][c]= (co2[c]-oc->min[c])*ocfac[c] ;
-		rts[1][c]= (short)rtf[1][c];
-		rtf[2][c]= (co3[c]-oc->min[c])*ocfac[c] ;
-		rts[2][c]= (short)rtf[2][c];
+		rtf[0][c] = (co1[c] - oc->min[c]) * ocfac[c];
+		rts[0][c] = (short)rtf[0][c];
+		rtf[1][c] = (co2[c] - oc->min[c]) * ocfac[c];
+		rts[1][c] = (short)rtf[1][c];
+		rtf[2][c] = (co3[c] - oc->min[c]) * ocfac[c];
+		rts[2][c] = (short)rtf[2][c];
 		if(RE_rayface_isQuad(face)) {
-			rtf[3][c]= (co4[c]-oc->min[c])*ocfac[c] ;
-			rts[3][c]= (short)rtf[3][c];
+			rtf[3][c] = (co4[c] - oc->min[c]) * ocfac[c];
+			rts[3][c] = (short)rtf[3][c];
 		}
 	}
 	

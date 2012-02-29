@@ -333,7 +333,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->flagu = CU_NURB_CYCLIC;
 
 	bp = (BPoint*)MEM_callocN(4 * sizeof(BPoint),"underline_bp"); 
-	if (bp == NULL){
+	if (bp == NULL) {
 		MEM_freeN(nu2);
 		return;
 	}
@@ -399,7 +399,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	while(nu1)
 	{
 		bezt1 = nu1->bezt;
-		if (bezt1){
+		if (bezt1) {
 			nu2 =(Nurb*) MEM_mallocN(sizeof(Nurb),"duplichar_nurb");
 			if (nu2 == NULL) break;
 			memcpy(nu2, nu1, sizeof(struct Nurb));
@@ -419,7 +419,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 			i = nu2->pntsu;
 
 			bezt2 = (BezTriple*)MEM_mallocN(i * sizeof(BezTriple),"duplichar_bezt2"); 
-			if (bezt2 == NULL){
+			if (bezt2 == NULL) {
 				MEM_freeN(nu2);
 				break;
 			}

@@ -83,6 +83,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	kintegrator->seed = hash_int(seed);
 	kintegrator->layer_flag = layer_flag << PATH_RAY_LAYER_SHIFT;
 
+	kintegrator->use_ambient_occlusion =
+		((dscene->data.film.pass_flag & PASS_AO) || dscene->data.background.ao_factor != 0.0f);
+
 	/* sobol directions table */
 	int dimensions = PRNG_BASE_NUM + (max_bounce + transparent_max_bounce + 2)*PRNG_BOUNCE_NUM;
 	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);

@@ -1133,13 +1133,15 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
 
         row = split.row()
         row.active = (ipaint.use_stencil_layer)
-        row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=mesh.uv_texture_stencil.name)
+        stencil_text = mesh.uv_texture_stencil.name if mesh.uv_texture_stencil else ""
+        row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text)
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
         row = layout.row()
         row.active = (settings.brush.image_tool == 'CLONE')
-        row.prop(ipaint, "use_clone_layer", text="Layer")
-        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=mesh.uv_texture_clone.name)
+        row.prop(ipaint, "use_clone_layer", text="Clone")
+        clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
+        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text)
 
         layout.prop(ipaint, "seam_bleed")
 

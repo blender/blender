@@ -131,9 +131,9 @@ void makeGammaTables(float gamma)
 	/* multiplication factors used in scaling the interpolation.             */
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++ ) {
 		gamfactor_table[i] = inv_color_step
-			* (gamma_range_table[i + 1] - gamma_range_table[i]) ;
+			* (gamma_range_table[i + 1] - gamma_range_table[i]);
 		inv_gamfactor_table[i] = inv_color_step
-			* (inv_gamma_range_table[i + 1] - inv_gamma_range_table[i]) ;
+			* (inv_gamma_range_table[i + 1] - inv_gamma_range_table[i]);
 	}
 
 } /* end of void makeGammaTables(float gamma) */

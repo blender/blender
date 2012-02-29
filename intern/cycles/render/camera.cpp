@@ -35,7 +35,7 @@ Camera::Camera()
 
 	matrix = transform_identity();
 
-	ortho = false;
+	type = CAMERA_PERSPECTIVE;
 	fov = M_PI_F/4.0f;
 
 	nearclip = 1e-5f;
@@ -77,17 +77,21 @@ void Camera::update()
 	Transform ndctoraster = transform_scale(width, height, 1.0f);
 
 	/* raster to screen */
-	Transform screentoraster = ndctoraster *
+	Transform screentoraster = ndctoraster;
+	
+	screentoraster = ndctoraster *
 		transform_scale(1.0f/(right - left), 1.0f/(top - bottom), 1.0f) *
 		transform_translate(-left, -bottom, 0.0f);
 
 	Transform rastertoscreen = transform_inverse(screentoraster);
 
 	/* screen to camera */
-	if(ortho)
+	if(type == CAMERA_PERSPECTIVE)
+		screentocamera = transform_inverse(transform_perspective(fov, nearclip, farclip));
+	else if(type == CAMERA_ORTHOGRAPHIC)
 		screentocamera = transform_inverse(transform_orthographic(nearclip, farclip));
 	else
-		screentocamera = transform_inverse(transform_perspective(fov, nearclip, farclip));
+		screentocamera = transform_identity();
 
 	rastertocamera = screentocamera * rastertoscreen;
 
@@ -98,15 +102,19 @@ void Camera::update()
 	worldtoraster = transform_inverse(rastertoworld);
 
 	/* differentials */
-	if(ortho) {
+	if(type == CAMERA_ORTHOGRAPHIC) {
 		dx = transform_direction(&rastertocamera, make_float3(1, 0, 0));
 		dy = transform_direction(&rastertocamera, make_float3(0, 1, 0));
 	}
-	else {
+	else if(type == CAMERA_PERSPECTIVE) {
 		dx = transform(&rastertocamera, make_float3(1, 0, 0)) -
 		     transform(&rastertocamera, make_float3(0, 0, 0));
 		dy = transform(&rastertocamera, make_float3(0, 1, 0)) -
 		     transform(&rastertocamera, make_float3(0, 0, 0));
+	}
+	else {
+		dx = make_float3(0, 0, 0);
+		dy = make_float3(0, 0, 0);
 	}
 
 	dx = transform_direction(&cameratoworld, dx);
@@ -147,7 +155,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene)
 	kcam->shutterclose = shutterclose;
 
 	/* type */
-	kcam->ortho = ortho;
+	kcam->type = type;
 
 	/* store differentials */
 	kcam->dx = float3_to_float4(dx);
@@ -173,7 +181,7 @@ bool Camera::modified(const Camera& cam)
 		(blades == cam.blades) &&
 		(bladesrotation == cam.bladesrotation) &&
 		(focaldistance == cam.focaldistance) &&
-		(ortho == cam.ortho) &&
+		(type == cam.type) &&
 		(fov == cam.fov) &&
 		(nearclip == cam.nearclip) &&
 		(farclip == cam.farclip) &&

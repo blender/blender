@@ -52,7 +52,7 @@
  *
  */
 
-void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
+void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
 	Object *ob = BMO_slot_ptr_get(op, "object");
 	Mesh *me = BMO_slot_ptr_get(op, "mesh");
@@ -134,7 +134,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	else if (actkey) {
-		printf("shapekey<->mesh mismatch!\n");
+		printf("shapekey <-> mesh mismatch!\n");
 	}
 	
 	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default[0]);
@@ -331,13 +331,13 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		if (me->mselect) {
 			for (i = 0; i < me->totselect; i++) {
 				if (me->mselect[i].type == ME_VSEL) {
-					BM_select_history_store(bm, vertex_array[me->mselect[i].index]);
+					BM_select_history_store(bm, (BMElem *)vertex_array[me->mselect[i].index]);
 				}
 				else if (me->mselect[i].type == ME_ESEL) {
-					BM_select_history_store(bm, edge_array[me->mselect[i].index]);
+					BM_select_history_store(bm, (BMElem *)edge_array[me->mselect[i].index]);
 				}
 				else if (me->mselect[i].type == ME_FSEL) {
-					BM_select_history_store(bm, face_array[me->mselect[i].index]);
+					BM_select_history_store(bm, (BMElem *)face_array[me->mselect[i].index]);
 				}
 			}
 		}
@@ -364,7 +364,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(et);
 }
 
-void object_load_bmesh_exec(BMesh *bm, BMOperator *op)
+void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
 	Object *ob = BMO_slot_ptr_get(op, "object");
 	/* Scene *scene = BMO_slot_ptr_get(op, "scene"); */
@@ -374,7 +374,7 @@ void object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 }
 
 
-static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
+static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 {
 	BMVert **vertMap = NULL;
 	BMVert *eve;
@@ -433,7 +433,7 @@ BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 }
 
 
-void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
+void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
 	Mesh *me = BMO_slot_ptr_get(op, "mesh");
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
@@ -600,7 +600,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 			if (ob->parent == bm->ob && ELEM(ob->partype, PARVERT1, PARVERT3)) {
 
 				if (vertMap == NULL) {
-					vertMap = bmesh_to_mesh_vertex_map(bm, ototvert);
+					vertMap = bm_to_mesh_vertex_map(bm, ototvert);
 				}
 
 				if (ob->par1 < ototvert) {
@@ -623,7 +623,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 						HookModifierData *hmd = (HookModifierData *) md;
 
 						if (vertMap == NULL) {
-							vertMap = bmesh_to_mesh_vertex_map(bm, ototvert);
+							vertMap = bm_to_mesh_vertex_map(bm, ototvert);
 						}
 						
 						for (i = j = 0; i < hmd->totindex; i++) {
@@ -674,7 +674,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				me->mselect[i].type = ME_FSEL;
 			}
 
-			me->mselect[i].index = BM_elem_index_get(selected->data);
+			me->mselect[i].index = BM_elem_index_get(selected->ele);
 		}
 	}
 
@@ -897,9 +897,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 					add_v3_v3(fp, ofs[i]);
 				}
 
-				fp+= 3;
-				++i;
-				++mvert;
+				fp += 3;
+				i++;
+				mvert++;
 				eve = BM_iter_step(&iter);
 			}
 			currkey->totelem = bm->totvert;

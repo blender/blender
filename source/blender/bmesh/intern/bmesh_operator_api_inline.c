@@ -31,32 +31,40 @@
 
 #include "bmesh.h"
 
-/* inserts a key/value mapping into a mapping slot.  note that it copies the
- * value, it doesn't store a reference to it. */
 
-BM_INLINE void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
-                                   void *element, void *data, int len)
+/* tool flag API. never, ever ever should tool code put junk in
+ * header flags (element->head.flag), nor should they use
+ * element->head.eflag1/eflag2.  instead, use this api to set
+ * flags.
+ *
+ * if you need to store a value per element, use a
+ * ghash or a mapping slot to do it. */
+
+/* flags 15 and 16 (1 << 14 and 1 << 15) are reserved for bmesh api use */
+BM_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	BMOElemMapping *mapping;
-	BMOpSlot *slot = BMO_slot_get(op, slotname);
+    return oflags[bm->stackdepth - 1].f & oflag;
+}
 
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
-		return;
-	}
+BM_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	oflags[bm->stackdepth - 1].f |= oflag;
+}
 
-	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
+BM_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	oflags[bm->stackdepth - 1].f &= ~oflag;
+}
 
-	mapping->element = (BMHeader*) element;
-	mapping->len = len;
-	memcpy(mapping + 1, data, len);
+BM_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
+{
+	if (val) oflags[bm->stackdepth - 1].f |= oflag;
+	else     oflags[bm->stackdepth - 1].f &= ~oflag;
+}
 
-	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                                 BLI_ghashutil_ptrcmp, "bmesh op");
-	}
-
-	BLI_ghash_insert(slot->data.ghash, element, mapping);
+BM_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+{
+	oflags[bm->stackdepth - 1].f ^= oflag;
 }
 
 BM_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,

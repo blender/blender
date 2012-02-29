@@ -37,42 +37,42 @@
 class CTR_Link {
 public:
 	CTR_Link(
-	) ;
+	);
 
 	CTR_Link(
 		CTR_Link *next,
 		CTR_Link *prev
-	) ;
+	);
 
 		CTR_Link *
 	getNext(
-	) const ;
+	) const;
 
 		CTR_Link *
 	getPrev(
-	) const ;
+	) const;
 
 		bool 
 	isHead(
-	) const ;
+	) const;
 
 		bool 
 	isTail(
-	) const ;
+	) const;
 
 		void 
 	insertBefore(
 		CTR_Link *link
-	) ;
+	);
 
 		void 
 	insertAfter(
 		CTR_Link *link
-	) ;
+	);
 
 		void 
 	remove(
-	) ;
+	);
 
 private:  
 	CTR_Link  *m_next;
@@ -83,25 +83,25 @@ class CTR_List {
 public:
 
 	CTR_List(
-	) ;
+	);
 
 		CTR_Link *
 	getHead(
-	) const ;
+	) const;
  
 		CTR_Link *
 	getTail(
-	) const ;
+	) const;
 
 		void 
 	addHead(
 		CTR_Link *link
-	) ;
+	);
 
 		void 
 	addTail(
 		CTR_Link *link
-	) ;
+	);
 
 private:
 	CTR_Link m_head;

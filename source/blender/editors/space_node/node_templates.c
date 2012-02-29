@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/interface/interface_node.c
+/** \file blender/editors/space_node/node_templates.c
  *  \ingroup edinterface
  */
 

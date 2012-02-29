@@ -34,7 +34,7 @@
 #define EDGE_MARK	4
 #define EDGE_DONE	8
 
-void connectverts_exec(BMesh *bm, BMOperator *op)
+void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMFace *f, *nf;
@@ -189,7 +189,7 @@ static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BM
 	*l2 = BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v2, 0);
 }
 
-void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
+void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 {
 	BMEdge **ee1 = NULL, **ee2 = NULL;
 	BMVert **vv1 = NULL, **vv2 = NULL;

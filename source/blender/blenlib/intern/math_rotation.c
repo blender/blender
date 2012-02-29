@@ -80,7 +80,7 @@ void mul_qt_qtqt(float *q, const float *q1, const float *q2)
 }
 
 /* Assumes a unit quaternion */
-void mul_qt_v3(const float *q, float *v)
+void mul_qt_v3(const float q[4], float v[3])
 {
 	float t0, t1, t2;
 
@@ -98,7 +98,7 @@ void mul_qt_v3(const float *q, float *v)
 	v[1]=t2;
 }
 
-void conjugate_qt(float *q)
+void conjugate_qt(float q[4])
 {
 	q[1] = -q[1];
 	q[2] = -q[2];
@@ -507,7 +507,7 @@ void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 {
 	float omega, cosom, sinom, sc1, sc2;
 
-	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
+	cosom = quat1[0] * quat2[0] + quat1[1] * quat2[1] + quat1[2] * quat2[2] + quat1[3] * quat2[3];
 	
 	/* rotate around shortest angle */
 	if ((1.0f + cosom) > 0.0001f) {
@@ -548,8 +548,8 @@ void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4],
 {
 	float quat[4], omega, cosom, sinom, sc1, sc2;
 
-	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
-	
+	cosom = quat1[0] * quat2[0] + quat1[1] * quat2[1] + quat1[2] * quat2[2] + quat1[3] * quat2[3];
+
 	/* rotate around shortest angle */
 	if (cosom < 0.0f) {
 		cosom = -cosom;

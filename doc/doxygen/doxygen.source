@@ -8,14 +8,14 @@
 /** \defgroup render Rendering
  *  \ingroup blender
  */
-/** \defgroup meshedit Mesh Editing */
+/** \defgroup bmesh BMesh
+ *  \ingroup blender
+ */
 /** \defgroup texture Texturing */
 /** \defgroup compositor Compositing */
 
-/** \defgroup scripts Scripting */
-
 /** \defgroup python Python
- *  \ingroup blender scripts
+ *  \ingroup blender
  */
 
 /** \defgroup pygen Python Generic
@@ -332,7 +332,7 @@
  *  \ingroup imbuf
  */
 
-/** \defgorup imbdds DDS
+/** \defgroup imbdds DDS
  *  \ingroup imbuf
  */
 

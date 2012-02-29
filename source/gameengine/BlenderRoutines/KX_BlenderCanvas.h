@@ -106,11 +106,11 @@ public:
 
 		int 
 	GetWidth(
-	) const ;
+	) const;
 
 		int 
 	GetHeight(
-	) const ;
+	) const;
 
 		int
 	GetMouseX(int x

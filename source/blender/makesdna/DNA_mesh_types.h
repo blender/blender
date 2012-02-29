@@ -39,25 +39,24 @@
 
 #include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
 
+struct AnimData;
 struct DerivedMesh;
 struct Ipo;
 struct Key;
-struct Material;
-struct MVert;
+struct MCol;
 struct MEdge;
 struct MFace;
-struct MCol;
-struct MSticky;
-struct Mesh;
-struct OcInfo;
-struct MPoly;
-struct MTexPoly;
 struct MLoop;
-struct MLoopUV;
 struct MLoopCol;
+struct MLoopUV;
+struct MPoly;
+struct MSticky;
+struct MTexPoly;
+struct MVert;
+struct Material;
+struct Mesh;
 struct Multires;
-struct EditMesh;
-struct AnimData;
+struct OcInfo;
 
 typedef struct Mesh {
 	ID id;

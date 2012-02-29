@@ -1427,11 +1427,14 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 					   that is what opengl will use */
 					for(j = 0; j < gridsize-1; ++j) {
 						for(k = 0; k < gridsize-1; ++k) {
-							normal_quad_v3(vert_data[(j+1)*gridsize + (k+1)].no,
+							float fno[3];
+							normal_quad_v3(fno,
 								grid[(j+1)*gridsize + k].co,
 								grid[(j+1)*gridsize + k+1].co,
 								grid[j*gridsize + k+1].co,
 								grid[j*gridsize + k].co);
+
+							copy_v3_v3(vert_data[(j+1)*gridsize + (k+1)].no, fno);
 						}
 					}
 				}

@@ -23,12 +23,12 @@
 #ifndef __BMESH_ITERATORS_H__
 #define __BMESH_ITERATORS_H__
 
-/** \file blender/bmesh/bmesh_iterators.h
+/** \file blender/bmesh/intern/bmesh_iterators.h
  *  \ingroup bmesh
  */
 
-/*
- * BMESH ITERATORS
+/**
+ * \brief BMesh Iterators
  *
  * The functions and structures in this file
  * provide a unified method for iterating over
@@ -51,7 +51,8 @@
 /* these iterator over all elements of a specific
  * type in the mesh.
  *
- * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes */
+ * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes
+ */
 typedef enum BMIterType {
 	BM_VERTS_OF_MESH = 1,
 	BM_EDGES_OF_MESH = 2,
@@ -84,21 +85,21 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 
 #define BM_ITER(ele, iter, bm, itype, data)                                   \
 	ele = BM_iter_new(iter, bm, itype, data);                                 \
-	for ( ; ele; ele=BM_iter_step(iter))
+	for ( ; ele; ele = BM_iter_step(iter))
 
 #define BM_ITER_INDEX(ele, iter, bm, itype, data, indexvar)                   \
 	ele = BM_iter_new(iter, bm, itype, data);                                 \
-	for (indexvar=0; ele; indexvar++, ele=BM_iter_step(iter))
+	for (indexvar = 0; ele; indexvar++, ele = BM_iter_step(iter))
 
-/*Iterator Structure*/
+/* Iterator Structure */
 typedef struct BMIter {
 	BLI_mempool_iter pooliter;
 
-	struct BMVert *firstvert, *nextvert, *vdata;
-	struct BMEdge *firstedge, *nextedge, *edata;
-	struct BMLoop *firstloop, *nextloop, *ldata, *l;
-	struct BMFace *firstpoly, *nextpoly, *pdata;
-	struct BMesh *bm;
+	BMVert *firstvert, *nextvert, *vdata;
+	BMEdge *firstedge, *nextedge, *edata;
+	BMLoop *firstloop, *nextloop, *ldata, *l;
+	BMFace *firstpoly, *nextpoly, *pdata;
+	BMesh *bm;
 	void (*begin)(struct BMIter *iter);
 	void *(*step)(struct BMIter *iter);
 	union {
@@ -111,8 +112,8 @@ typedef struct BMIter {
 	char itype;
 } BMIter;
 
-void *BM_iter_at_index(struct BMesh *bm, const char itype, void *data, int index);
-int   BM_iter_as_array(struct BMesh *bm, const char itype, void *data, void **array, const int len);
+void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index);
+int   BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);

@@ -106,19 +106,19 @@ protected:
 			m_numTimeSubSteps = numTimeSubSteps;
 		}
 		virtual void		setDeactivationTime(float dTime);
-		virtual	void		setDeactivationLinearTreshold(float linTresh) ;
-		virtual	void		setDeactivationAngularTreshold(float angTresh) ;
-		virtual void		setContactBreakingTreshold(float contactBreakingTreshold) ;
+		virtual	void		setDeactivationLinearTreshold(float linTresh);
+		virtual	void		setDeactivationAngularTreshold(float angTresh);
+		virtual void		setContactBreakingTreshold(float contactBreakingTreshold);
 		virtual void		setCcdMode(int ccdMode);
 		virtual void		setSolverType(int solverType);
 		virtual void		setSolverSorConstant(float sor);
 		virtual void		setSolverTau(float tau);
 		virtual void		setSolverDamping(float damping);
 		virtual void		setLinearAirDamping(float damping);
-		virtual void		setUseEpa(bool epa) ;
+		virtual void		setUseEpa(bool epa);
 
 		virtual	void		beginFrame();
-		virtual void		endFrame() {};
+		virtual void		endFrame() {}
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep,float interval);
 		

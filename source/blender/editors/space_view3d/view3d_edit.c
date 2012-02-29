@@ -371,7 +371,7 @@ typedef struct ViewOpsData {
 
 #define TRACKBALLSIZE  (1.1)
 
-static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
+static void calctrackballvec(rcti *rect, int mx, int my, float vec[3])
 {
 	float x, y, radius, d, z, t;
 
@@ -2161,7 +2161,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		Base *base;
 		for (base= FIRSTBASE; base; base = base->next) {
-			if (TESTBASE(v3d, base))  {
+			if (TESTBASE(v3d, base)) {
 
 				if (skip_camera && base->object == v3d->camera) {
 					continue;
@@ -3143,7 +3143,7 @@ static void calc_local_clipping(float clip_local[][4], BoundBox *clipbb, float m
 	calc_clipping_plane(clip_local, &clipbb_local);
 }
 
-void ED_view3d_local_clipping(RegionView3D *rv3d, float mat[][4])
+void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[][4])
 {
 	if (rv3d->rflag & RV3D_CLIPPING)
 		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);

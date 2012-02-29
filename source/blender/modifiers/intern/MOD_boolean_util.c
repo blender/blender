@@ -223,7 +223,7 @@ static void FaceIt_Construct(
 	// allocate some memory for blender iterator
 	it = (FaceIt *)(MEM_mallocN(sizeof(FaceIt),"Boolean_FIt"));
 	if (it == 0) {
-		return ;
+		return;
 	}
 	// assign blender specific variables
 	it->dm = dm;

@@ -1855,6 +1855,7 @@ const char *BLI_program_dir(void)
 * Also make sure the temp dir has a trailing slash
 *
 * @param fullname The full path to the temp directory
+* @param maxlen The size of the fullname buffer
 * @param userdir Directory specified in user preferences 
 */
 static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
@@ -1935,12 +1936,12 @@ void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 	if (cd == (iconv_t)(-1)) {
 		printf("iconv_open Error");
 		*utf_8='\0';
-		return ;
+		return;
 	}
 	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
 	if (rv == (size_t) -1) {
 		printf("iconv Error\n");
-		return ;
+		return;
 	}
 	*utf_8 = '\0';
 	iconv_close(cd);

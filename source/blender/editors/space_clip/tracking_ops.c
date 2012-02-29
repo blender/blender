@@ -1240,7 +1240,8 @@ static void clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 		MovieTrackingTrack *track = tracksbase->first;
 
 		while(track) {
-			BKE_tracking_track_flag(track, hidden, SELECT, 1);
+			if ((track->flag & TRACK_HIDDEN) == 0)
+				BKE_tracking_track_flag(track, hidden, SELECT, 1);
 
 			track = track->next;
 		}
@@ -1258,7 +1259,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit
 
 	track= tracksbase->first;
 	while(track) {
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(sc, track)) {
 			if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
 				BKE_tracking_ensure_marker(track, framenr);
 

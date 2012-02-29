@@ -62,12 +62,4 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac);
  */
 void addalphaAddFloat(float *dest, float *source);
 
-/**
- * Blend bron under doel, while doing gamma correction
- */
-void addalphaUnderGammaFloat(float *doel, float *bron);
-
-
-
 #endif /* __PIXELBLENDING_H__ */
-

@@ -729,9 +729,15 @@ static void copy_texture_space(Object *to, Object *ob)
 	
 	memcpy(poin1, poin2, 9*sizeof(float));	/* this was noted in DNA_mesh, curve, mball */
 	
-	if(to->type==OB_MESH) ;
-	else if(to->type==OB_MBALL) tex_space_mball(to);
-	else tex_space_curve(to->data);
+	if(to->type==OB_MESH) {
+		/* pass */
+	}
+	else if (to->type == OB_MBALL) {
+		tex_space_mball(to);
+	}
+	else {
+		tex_space_curve(to->data);
+	}
 	
 }
 

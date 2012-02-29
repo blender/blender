@@ -66,7 +66,7 @@ void register_node_type_tex_viewer(bNodeTreeType *ttype)
 	node_type_exec(&ntype, exec);
 	
 	/* Do not allow muting viewer node. */
-	node_type_mute(&ntype, NULL, NULL);
+	node_type_internal_connect(&ntype, NULL);
 	
 	nodeRegisterType(ttype, &ntype);
 }

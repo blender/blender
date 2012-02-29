@@ -56,30 +56,31 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_bmesh.h"
+#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_movieclip.h"
 #include "BKE_nla.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
-#include "BKE_bmesh.h"
-#include "BKE_tessmesh.h"
-#include "BKE_scene.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_sequencer.h"
+#include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
-#include "BKE_movieclip.h"
-#include "BKE_node.h"
 
 
 #include "ED_anim_api.h"
@@ -1980,8 +1981,7 @@ static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
 	}
 }
 
-/* way to overwrite what data is edited with transform
- * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
+/* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
@@ -2113,7 +2113,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if (em->bm->selected.last) {
 		BMEditSelection *ese = em->bm->selected.last;
 		if (ese->htype == BM_VERT) {
-			eve_act = (BMVert *)ese->data;
+			eve_act = (BMVert *)ese->ele;
 		}
 	}
 
@@ -3878,8 +3878,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			else if (t->frame_side=='L' && left >= cfra)	*recursive= 0;
 			else											*recursive= 1;
 
-			*count= 0;
-			*flag= 0;
+			*count= 1;
+			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 		}
 		else {
 
@@ -4874,6 +4874,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
+				/* we need to delete the temporary faces before automerging */
+				if(t->mode == TFM_EDGE_SLIDE){
+					SlideData *sld = t->customData;
+					freeSlideTempFaces(sld);
+				}
 				EDBM_automerge(t->scene, t->obedit, 1);
 			}
 		}
@@ -5182,7 +5187,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	          (ob->mode & OB_MODE_PARTICLE_EDIT) &&
 	          PE_get_current(t->scene, ob))
 	{
-		/* do nothing */ ;
+		/* do nothing */
 	}
 	else { /* Objects */
 		int i, recalcObPaths=0;

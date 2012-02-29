@@ -335,7 +335,7 @@ path_reference_mode = EnumProperty(
                ('MATCH', "Match", "Match Absolute/Relative "
                                   "setting with input path"),
                ('STRIP', "Strip Path", "Filename only"),
-               ('COPY', "Copy", "copy the file to the destination path "
+               ('COPY', "Copy", "Copy the file to the destination path "
                                 "(or subdirectory)"),
                ),
         default='AUTO'

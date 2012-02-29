@@ -181,8 +181,6 @@ typedef struct TransDataNla {
 } TransDataNla;
 
 struct LinkNode;
-struct EditEdge;
-struct EditVert;
 struct GHash;
 
 typedef struct TransDataSlideVert {
@@ -201,17 +199,12 @@ typedef struct SlideData {
 	
 	struct SmallHash vhash;
 	struct SmallHash origfaces;
-	
-	/*
-	TransDataSlideUv *slideuv, *suv_last;
-	int totuv, uvlay_tot;
-	struct GHash *vhash, **uvhash;
-	struct EditVert *nearest;
-	struct LinkNode *edgelist, *vertlist;
-	*/
+
 	int start[2], end[2];
 	struct BMEditMesh *em;
 	float perc;
+	/* flag that is set when origfaces is initialized */
+	int origfaces_init;
 } SlideData;
 
 typedef struct TransData {
@@ -230,8 +223,8 @@ typedef struct TransData {
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
-	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
-	int  flag;         /* Various flags */
+	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to BMVert) (editbone for roll fixing) (...) */
+	int  flag;           /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 } TransData;
 
@@ -561,7 +554,6 @@ int calc_manipulator_stats(const struct bContext *C);
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
-void add_tdi_poin(float *poin, float *old, float delta);
 void special_aftertrans_update(struct bContext *C, TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
@@ -656,14 +648,11 @@ void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);
 
-TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt);
-
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
-void restoreTransNodes(TransInfo *t);
 void recalcData(TransInfo *t);
 
 void calculateCenter(TransInfo *t);
@@ -690,7 +679,6 @@ int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
 struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
-int addObjectSpace(struct bContext *C, struct Object *ob);
 void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);
 
 #define ORIENTATION_NONE	0
@@ -701,6 +689,7 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 
+void freeSlideTempFaces(SlideData *sld);
 void freeSlideVerts(TransInfo *t);
 
 #endif

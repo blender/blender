@@ -31,47 +31,46 @@
 
 #include "bmesh.h"
 
-BM_INLINE char BM_elem_flag_test(const void *element, const char hflag)
+BM_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag)
 {
-	return ((const BMHeader *)element)->hflag & hflag;
+	return head->hflag & hflag;
 }
 
-BM_INLINE void BM_elem_flag_enable(void *element, const char hflag)
+BM_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag)
 {
-	((BMHeader *)element)->hflag |= hflag;
+	head->hflag |= hflag;
 }
 
-BM_INLINE void BM_elem_flag_disable(void *element, const char hflag)
+BM_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag)
 {
-	((BMHeader *)element)->hflag &= ~hflag;
+	head->hflag &= ~hflag;
 }
 
-BM_INLINE void BM_elem_flag_set(void *element, const char hflag, const int val)
+BM_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val)
 {
-	if (val)  BM_elem_flag_enable(element,  hflag);
-	else      BM_elem_flag_disable(element, hflag);
+	if (val)  _bm_elem_flag_enable(head,  hflag);
+	else      _bm_elem_flag_disable(head, hflag);
 }
 
-BM_INLINE void BM_elem_flag_toggle(void *element, const char hflag)
+BM_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag)
 {
-	((BMHeader *)element)->hflag ^= hflag;
+	head->hflag ^= hflag;
 }
 
-BM_INLINE void BM_elem_flag_merge(void *element_a, void *element_b)
+BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
 {
-	((BMHeader *)element_a)->hflag =
-	((BMHeader *)element_b)->hflag = (((BMHeader *)element_a)->hflag |
-	                                  ((BMHeader *)element_b)->hflag);
+	head_a->hflag = head_b->hflag = head_a->hflag | head_b->hflag;
 }
 
-BM_INLINE void BM_elem_index_set(void *element, const int index)
+
+BM_INLINE void _bm_elem_index_set(BMHeader *head, const int index)
 {
-	((BMHeader *)element)->index = index;
+	head->index = index;
 }
 
-BM_INLINE int BM_elem_index_get(const void *element)
+BM_INLINE int _bm_elem_index_get(const BMHeader *head)
 {
-	return ((BMHeader *)element)->index;
+	return head->index;
 }
 
 #endif /* __BMESH_INLINE_C__ */

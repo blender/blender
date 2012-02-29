@@ -90,7 +90,6 @@ extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(struct bContext *C, int nr);
 extern const char *BKE_undo_get_name(int nr, int *active);
-void BKE_undo_save(char *fname);
 extern void BKE_undo_save_quit(void);
 extern struct Main *BKE_undo_get_main(struct Scene **scene);
 

@@ -194,10 +194,10 @@ gsl_poly_solve_cubic (double a, double b, double c,
 
 	if (R == 0 && Q == 0)
 	{
-		*x0 = - a / 3 ;
-		*x1 = - a / 3 ;
-		*x2 = - a / 3 ;
-		return 3 ;
+		*x0 = - a / 3;
+		*x1 = - a / 3;
+		*x2 = - a / 3;
+		return 3;
 	}
 	else if (CR2 == CQ3) 
 	{
@@ -222,7 +222,7 @@ gsl_poly_solve_cubic (double a, double b, double c,
 			*x1 = - sqrtQ - a / 3;
 			*x2 = 2 * sqrtQ - a / 3;
 		}
-		return 3 ;
+		return 3;
 	}
 	else if (CR2 < CQ3) /* equivalent to R2 < Q3 */
 	{
@@ -237,14 +237,14 @@ gsl_poly_solve_cubic (double a, double b, double c,
 		/* Sort *x0, *x1, *x2 into increasing order */
 
 		if (*x0 > *x1)
-			mySWAP(*x0, *x1) ;
+			mySWAP(*x0, *x1);
 
 		if (*x1 > *x2)
 		{
-			mySWAP(*x1, *x2) ;
+			mySWAP(*x1, *x2);
 
 			if (*x0 > *x1)
-				mySWAP(*x0, *x1) ;
+				mySWAP(*x0, *x1);
 		}
 
 		return 3;
@@ -253,7 +253,7 @@ gsl_poly_solve_cubic (double a, double b, double c,
 	{
 		double sgnR = (R >= 0 ? 1 : -1);
 		double A = -sgnR * pow (fabs (R) + sqrt (R2 - Q3), 1.0/3.0);
-		double B = Q / A ;
+		double B = Q / A;
 		*x0 = A + B - a / 3;
 		return 1;
 	}
@@ -297,27 +297,27 @@ gsl_poly_solve_quadratic (double a, double b, double c,
 		{
 			double sgnb = (b > 0 ? 1 : -1);
 			double temp = -0.5 * (b + sgnb * sqrt (disc));
-			double r1 = temp / a ;
-			double r2 = c / temp ;
+			double r1 = temp / a;
+			double r2 = c / temp;
 
 			if (r1 < r2) 
 			{
-				*x0 = r1 ;
-				*x1 = r2 ;
+				*x0 = r1;
+				*x1 = r2;
 			} 
 			else 
 			{
-				*x0 = r2 ;
-				*x1 = r1 ;
+				*x0 = r2;
+				*x1 = r1;
 			}
 		}
 		return 2;
 	}
 	else if (disc == 0) 
 	{
-		*x0 = -0.5 * b / a ;
-		*x1 = -0.5 * b / a ;
-		return 2 ;
+		*x0 = -0.5 * b / a;
+		*x1 = -0.5 * b / a;
+		return 2;
 	}
 	else
 	{

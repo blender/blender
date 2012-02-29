@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
 	}
 
 	/* now corrupt a few blocks...*/
-	ip = (int*) p[5] - 50 ;
+	ip = (int*) p[5] - 50;
 	for (i = 0; i< 1000; i++,ip++) *ip = i+1;
 	ip = (int*) p[6];
 	*(ip+10005) = 0;

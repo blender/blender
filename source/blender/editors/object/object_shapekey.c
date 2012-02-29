@@ -222,7 +222,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 			float *fp1, *fp2;
 			int u, v, w;
 			/* half but found up odd value */
-			const int pntsu_half = (((lt->pntsu / 2) + (lt->pntsu % 2))) ;
+			const int pntsu_half = (lt->pntsu / 2) + (lt->pntsu % 2);
 
 			/* currently editmode isnt supported by mesh so
 			 * ignore here for now too */

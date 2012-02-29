@@ -859,7 +859,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			ted->name= "Drivers";
 		
 			for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-				if (fcu->driver && fcu->driver->variables.first)  {
+				if (fcu->driver && fcu->driver->variables.first) {
 					ChannelDriver *driver= fcu->driver;
 					DriverVar *dvar;
 					
@@ -1561,7 +1561,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 
 		ten= outliner_add_element(soops, &soops->tree, (void*)&mainptr, NULL, TSE_RNA_STRUCT, -1);
 
-		if(show_opened)  {
+		if(show_opened) {
 			tselem= TREESTORE(ten);
 			tselem->flag &= ~TSE_CLOSED;
 		}
@@ -1573,7 +1573,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 
 		ten= outliner_add_element(soops, &soops->tree, (void*)&userdefptr, NULL, TSE_RNA_STRUCT, -1);
 
-		if(show_opened)  {
+		if(show_opened) {
 			tselem= TREESTORE(ten);
 			tselem->flag &= ~TSE_CLOSED;
 		}

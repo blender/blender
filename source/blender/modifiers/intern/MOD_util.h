@@ -33,7 +33,6 @@
 
 struct CustomData;
 struct DerivedMesh;
-struct EditMesh;
 struct MDeformVert;
 struct ModifierData;
 struct Object;

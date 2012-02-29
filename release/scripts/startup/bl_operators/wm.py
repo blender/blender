@@ -146,12 +146,12 @@ class BRUSH_OT_active_index_set(Operator):
     bl_label = "Set Brush Number"
 
     mode = StringProperty(
-            name="mode",
+            name="Mode",
             description="Paint mode to set brush for",
             maxlen=1024,
             )
     index = IntProperty(
-            name="number",
+            name="Number",
             description="Brush number",
             )
 
@@ -707,9 +707,14 @@ class WM_OT_context_modal_mouse(Operator):
         if event_type == 'MOUSEMOVE':
             delta = event.mouse_x - self.initial_x
             self._values_delta(delta)
-            if self.header_text:
-                for item, value_orig in self._values.items():
-                    context.area.header_text_set(self.header_text % eval("item.%s" % self.data_path_item))
+            header_text = self.header_text
+            if header_text:
+                if len(self._values) == 1:
+                    (item, ) = self._values.keys()
+                    header_text = header_text % eval("item.%s" % self.data_path_item)
+                else:
+                    header_text = (self.header_text % delta) + " (delta)"
+                context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
             item = next(iter(self._values.keys()))

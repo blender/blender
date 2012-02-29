@@ -166,7 +166,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 	                         data->mface[face_num].v3, data->mface[face_num].v4};
 	const int smoothnormal= (data->mface[face_num].flag & ME_SMOOTH);
 
-	if(!smoothnormal)  { /* flat */
+	if(!smoothnormal) { /* flat */
 		if(data->precomputed_normals) {
 			copy_v3_v3(norm, &data->precomputed_normals[3*face_num]);
 		} else {

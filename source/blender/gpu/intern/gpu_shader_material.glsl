@@ -368,26 +368,6 @@ void set_rgba_zero(out vec4 outval)
 	outval = vec4(0.0);
 }
 
-void copy_raw(vec4 val, out vec4 outval)
-{
-	outval = val;
-}
-
-void copy_raw(vec3 val, out vec3 outval)
-{
-	outval = val;
-}
-
-void copy_raw(vec2 val, out vec2 outval)
-{
-	outval = val;
-}
-
-void copy_raw(float val, out float outval)
-{
-	outval = val;
-}
-
 void mix_blend(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
 	fac = clamp(fac, 0.0, 1.0);

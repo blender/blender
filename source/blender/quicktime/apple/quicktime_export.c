@@ -675,7 +675,7 @@ static void check_renderbutton_framerate(RenderData *rd, ReportList *reports)
 	else {
 		if (rd->frs_sec_base > 0)
 			qtdata->gTemporalSettings.frameRate = 
-			((float)(rd->frs_sec << 16) / rd->frs_sec_base) ;
+			((float)(rd->frs_sec << 16) / rd->frs_sec_base);
 	}
 	
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);

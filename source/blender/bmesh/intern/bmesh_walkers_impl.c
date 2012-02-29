@@ -32,17 +32,14 @@
 #include "bmesh_private.h"
 #include "bmesh_walkers_private.h"
 
-/*	Shell Walker:
+/**
+ * Shell Walker:
  *
- *	Starts at a vertex on the mesh and walks over the 'shell' it belongs
- *	to via visiting connected edges.
+ * Starts at a vertex on the mesh and walks over the 'shell' it belongs
+ * to via visiting connected edges.
  *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
- *
+ * \todo Add restriction flag/callback for wire edges.
  */
-
 static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 {
 	shellWalker *shellWalk = NULL;
@@ -67,8 +64,7 @@ static void shellWalker_begin(BMWalker *walker, void *data)
 	BMEdge *e;
 	BMVert *v;
 
-	if (h == NULL)
-	{
+	if (UNLIKELY(h == NULL)) {
 		return;
 	}
 
@@ -158,19 +154,18 @@ static void *shellWalker_step(BMWalker *walker)
 				newState->curedge = curedge;
 			}
 		}
-		curedge = bmesh_disk_nextedge(curedge, shellWalk.base);
+		curedge = bmesh_disk_edge_next(curedge, shellWalk.base);
 	} while (curedge != shellWalk.curedge);
 	
 	return shellWalk.curedge;
 }
 #endif
 
-/*	Connected Vertex Walker:
+/**
+ * Connected Vertex Walker:
  *
- *	Similar to shell walker, but visits vertices instead of edges.
- *
+ * Similar to shell walker, but visits vertices instead of edges.
  */
-
 static void connectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 {
 	connectedVertexWalker *vwalk;
@@ -222,17 +217,13 @@ static void *connectedVertexWalker_step(BMWalker *walker)
 	return v;
 }
 
-/*	Island Boundary Walker:
+/**
+ * Island Boundary Walker:
  *
- *	Starts at a edge on the mesh and walks over the boundary of an
- *      island it belongs to.
+ * Starts at a edge on the mesh and walks over the boundary of an island it belongs to.
  *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
- *
+ * \todo Add restriction flag/callback for wire edges.
  */
-
 static void islandboundWalker_begin(BMWalker *walker, void *data)
 {
 	BMLoop *l = data;
@@ -283,8 +274,8 @@ static void *islandboundWalker_step(BMWalker *walker)
 	
 	while (1) {
 		l = BM_face_other_loop(e, f, v);
-		if (bmesh_radial_nextloop(l) != l) {
-			l = bmesh_radial_nextloop(l);
+		if (bmesh_radial_loop_next(l) != l) {
+			l = bmesh_radial_loop_next(l);
 			f = l->f;
 			e = l->e;
 			if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
@@ -319,16 +310,13 @@ static void *islandboundWalker_step(BMWalker *walker)
 }
 
 
-/*	Island Walker:
+/**
+ * Island Walker:
  *
- *	Starts at a tool flagged-face and walks over the face region
+ * Starts at a tool flagged-face and walks over the face region
  *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
- *
+ * \todo Add restriction flag/callback for wire edges.
  */
-
 static void islandWalker_begin(BMWalker *walker, void *data)
 {
 	islandWalker *iwalk = NULL;
@@ -385,12 +373,11 @@ static void *islandWalker_step(BMWalker *walker)
 }
 
 
-/*	Edge Loop Walker:
+/**
+ * Edge Loop Walker:
  *
- *	Starts at a tool-flagged edge and walks over the edge loop
- *
+ * Starts at a tool-flagged edge and walks over the edge loop
  */
-
 static void loopWalker_begin(BMWalker *walker, void *data)
 {
 	loopWalker *lwalk = NULL, owalk;
@@ -489,7 +476,7 @@ static void *loopWalker_step(BMWalker *walker)
 			if (!l)
 				break;
 
-			l2 = bmesh_radial_nextloop(l);
+			l2 = bmesh_radial_loop_next(l);
 
 			if (l2 == l) {
 				break;
@@ -517,12 +504,12 @@ static void *loopWalker_step(BMWalker *walker)
 	return owalk.cur;
 }
 
-/*	Face Loop Walker:
+/**
+ * Face Loop Walker:
  *
- *	Starts at a tool-flagged face and walks over the face loop
+ * Starts at a tool-flagged face and walks over the face loop
  * Conditions for starting and stepping the face loop have been
  * tuned in an attempt to match the face loops built by EditMesh
- *
  */
 
 /* Check whether the face loop should includes the face specified
@@ -649,14 +636,13 @@ static void *faceloopWalker_step(BMWalker *walker)
 	return f;
 }
 
-/*	Edge Ring Walker:
+/**
+ * Edge Ring Walker:
  *
- *	Starts at a tool-flagged edge and walks over the edge ring
+ * Starts at a tool-flagged edge and walks over the edge ring
  * Conditions for starting and stepping the edge ring have been
  * tuned in an attempt to match the edge rings built by EditMesh
- *
  */
-
 static void edgeringWalker_begin(BMWalker *walker, void *data)
 {
 	edgeringWalker *lwalk, owalk;
@@ -684,7 +670,7 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	lwalk = BMW_state_add(walker);
 	*lwalk = owalk;
 
-	if (lwalk->l->f->len != 4)
+	if (lwalk->l->f->len % 2 != 0)
 		lwalk->l = lwalk->l->radial_next;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
@@ -712,6 +698,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 	BMEdge *e;
 	BMLoop *l = lwalk->l /* , *origl = lwalk->l */;
 	BMesh *bm = walker->bm;
+	int i, len;
 
 	BMW_state_remove(walker);
 
@@ -728,14 +715,25 @@ static void *edgeringWalker_step(BMWalker *walker)
 	}
 
 	l = l->radial_next;
-	l = l->next->next;
-	
-	if ((l->f->len != 4) || !BM_edge_is_manifold(bm, l->e)) {
-		l = lwalk->l->next->next;
+
+	i = len = l->f->len;
+	while (i > 0) {
+		l = l->next;
+		i -= 2;
 	}
 
+	if ((len <= 0) || (len % 2 != 0) || !BM_edge_is_manifold(bm, l->e)) {
+		l = lwalk->l;
+		i = len;
+		while (i > 0) {
+			l = l->next;
+			i -= 2;
+		}
+	}
+
+
 	/* only walk to manifold edge */
-	if ((l->f->len == 4) && BM_edge_is_manifold(bm, l->e) &&
+	if ((l->f->len % 2 == 0) && BM_edge_is_manifold(bm, l->e) &&
 	    !BLI_ghash_haskey(walker->visithash, l->e)) {
 		lwalk = BMW_state_add(walker);
 		lwalk->l = l;

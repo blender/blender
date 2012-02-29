@@ -177,11 +177,14 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
+        col.label(text="Material:")
+        col.prop(rl, "material_override", text="")
+        col.prop(rl, "use_zmask");
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
-
-        layout.separator()
+        col.label(text="Mask Layers:")
+        col.prop(rl, "layers_zmask", text="")
 
         split = layout.split()
 
@@ -194,6 +197,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_material_index")
         col.prop(rl, "use_pass_emit")
         col.prop(rl, "use_pass_environment")
+        col.prop(rl, "use_pass_ambient_occlusion")
 
         col = split.column()
         col.label()
@@ -212,11 +216,6 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
-
-        layout.separator()
-
-        rl = rd.layers[0]
-        layout.prop(rl, "material_override", text="Material")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -486,6 +485,45 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
 
+class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        # world = context.world
+        # world and world.node_tree and CyclesButtonsPanel.poll(context)
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        layout.active = False
+
+        world = context.world
+        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+
+class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
+    bl_label = "Ambient Occlusion"
+    bl_context = "world"
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw_header(self, context):
+        light = context.world.light_settings
+        self.layout.prop(light, "use_ambient_occlusion", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        light = context.world.light_settings
+
+        layout.active = light.use_ambient_occlusion
+
+        split = layout.split()
+        split.prop(light, "ao_factor", text="Factor")
+        split.prop(light, "distance", text="Distance")
 
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
@@ -508,26 +546,6 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = cworld.sample_as_light
         row.prop(cworld, "sample_map_resolution")
-
-
-class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
-    bl_label = "Volume"
-    bl_context = "world"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        # world = context.world
-        # world and world.node_tree and CyclesButtonsPanel.poll(context)
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-        layout.active = False
-
-        world = context.world
-        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
-
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"

@@ -1045,7 +1045,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	for (i = 0; i < tot; i++, result++) {
 		float p[3];
 		
-		ls = (BMLoop**)kcd->em->looptris[result->indexA];
+		ls = (BMLoop **)kcd->em->looptris[result->indexA];
 		
 		for (j = 0; j < 3; j++) {
 			BMLoop *l1 = ls[j];
@@ -1324,7 +1324,7 @@ static int knife_sample_screen_density(knifetool_opdata *kcd, float radius)
 						copy_v3_v3(vec, kfv->cageco);
 						mul_m4_v3(kcd->vc.obedit->obmat, vec);
 			
-						if (ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1) == 0) {
+						if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 							c++;
 						}
 					}
@@ -1398,7 +1398,7 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], flo
 					vec[2] = kfe->v1->cageco[2] + labda*(kfe->v2->cageco[2] - kfe->v1->cageco[2]);
 					mul_m4_v3(kcd->vc.obedit->obmat, vec);
 		
-					if (ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1) == 0) {
+					if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 						cure = kfe;
 						curdis = dis;
 					}
@@ -1483,7 +1483,7 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], flo
 						copy_v3_v3(vec, kfv->cageco);
 						mul_m4_v3(kcd->vc.obedit->obmat, vec);
 			
-						if (ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1) == 0) {
+						if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 							curv = kfv;
 							curdis = dis;
 						}
@@ -1672,7 +1672,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 			idx = BM_elem_index_get(faces[0]);
 			
 			f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
-			if (f2)  {
+			if (f2) {
 				BMO_elem_flag_enable(bm, f2, FACE_NEW);
 				BM_elem_index_set(f2, idx); /* set_dirty! */ /* BMESH_TODO, check if this is valid or not */
 			}
@@ -1699,14 +1699,14 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	KnifeVert *kfv;
 	KnifeEdge *kfe;
 	facenet_entry *entry;
-	ListBase *face_nets = MEM_callocN(sizeof(ListBase)*bm->totface, "face_nets");
+	ListBase *face_nets = MEM_callocN(sizeof(ListBase) * bm->totface, "face_nets");
 	BMFace **faces = MEM_callocN(sizeof(BMFace *) * bm->totface, "faces knife");
 	MemArena *arena = BLI_memarena_new(1 << 16, "knifenet_fill_faces");
 	SmallHash shash;
 	int i, j, k = 0, totface = bm->totface;
 	
 	BMO_push(bm, NULL);
-	bmesh_begin_edit(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
@@ -1939,7 +1939,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	BMO_error_clear(bm); /* remerge_faces sometimes raises errors, so make sure to clear them */
 
-	bmesh_end_edit(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_end(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 	BMO_pop(bm);
 }
 

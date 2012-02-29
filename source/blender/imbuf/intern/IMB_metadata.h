@@ -71,7 +71,7 @@ int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* value, int 
  *  @param value - the data to be written to the field. zero terminated string
  *  @return    - 1 (true) if ImageInfo present, 0 (false) otherwise
  */
-int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* field);
+int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* value);
 
 /** delete the key/field par in the ImMetaData struct.
  * @param img - the ImBuf that contains the image data

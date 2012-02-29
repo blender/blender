@@ -777,7 +777,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		ButsContextTexture *ct= sbuts->texuser;
 
 		if(!ct)
-			return 0; /* old shading system */
+			return -1; /* old shading system (found but not available) */
 
 		if(ct->user && ct->user->ptr.data) {
 			ButsTextureUser *user= ct->user; 

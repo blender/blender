@@ -45,7 +45,7 @@
 	void
 CSG_DestroyMeshDescriptor(
 	CSG_MeshDescriptor *mesh
-){
+) {
 	// Call mesh descriptors destroy function....
 	mesh->m_destroy_func(mesh);
 }
@@ -66,7 +66,7 @@ static
 	void
 CSG_DestroyCSGMeshInternals(
 	CSG_MeshDescriptor *mesh
-){
+) {
 	CSG_FreeVertexDescriptor(&(mesh->m_vertex_iterator));
 	CSG_FreeFaceDescriptor(&(mesh->m_face_iterator));
 }
@@ -102,7 +102,7 @@ MakeCSGMeshFromBlenderBase(
 CSG_LoadBlenderMesh(
 	Object * obj,
 	CSG_MeshDescriptor *output
-){
+) {
 
 	Mesh *me;
 	if (output == NULL || obj == NULL) return 0;
@@ -132,7 +132,7 @@ CSG_LoadBlenderMesh(
 	int
 CSG_AddMeshToBlender(
 	CSG_MeshDescriptor *mesh
-){
+) {
 	Mesh *me_new = NULL;
 	Object *ob_new = NULL;
 	float inv_mat[4][4];
@@ -172,7 +172,7 @@ CSG_PerformOp(
 	CSG_MeshDescriptor *mesh2,
 	int int_op_type,
 	CSG_MeshDescriptor *output
-){
+) {
 
 	CSG_OperationType op_type;
 	CSG_BooleanOperation * bool_op = CSG_NewBooleanFunction();
@@ -241,7 +241,7 @@ NewBooleanMeshTest(
 	struct Base * base,
 	struct Base * base_select,
 	int op_type
-){
+) {
 
 	CSG_MeshDescriptor m1,m2,output;
 	CSG_MeshDescriptor output2,output3;

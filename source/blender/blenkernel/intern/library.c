@@ -1344,7 +1344,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 		// XXX old animation system! --------------------------------------
 		{
 			bActionStrip *strip;
-			for (strip=ob->nlastrips.first; strip; strip=strip->next){
+			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 				LIBTAG(strip->object);
 				LIBTAG(strip->act);
 				LIBTAG(strip->ipo);

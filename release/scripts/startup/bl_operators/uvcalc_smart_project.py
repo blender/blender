@@ -1114,7 +1114,7 @@ class SmartProject(Operator):
 
     angle_limit = FloatProperty(
             name="Angle Limit",
-            description="lower for more projection groups, higher for less distortion",
+            description="Lower for more projection groups, higher for less distortion",
             min=1.0, max=89.0,
             default=66.0,
             )

@@ -366,7 +366,7 @@ class Mesh(bpy_types.ID):
         :type edges: iterable object
         :arg faces:
 
-           iterator of faces, each faces contains three or four indices to
+           iterator of faces, each faces contains three or more indices to
            the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
 
         :type faces: iterable object
@@ -393,6 +393,10 @@ class Mesh(bpy_types.ID):
             p.loop_total = loop_len
             p.vertices = f
             loop_index += loop_len
+
+        # if no edges - calculae them
+        if faces and (not edges):
+            self.update(calc_edges=True)
 
     @property
     def edge_keys(self):

@@ -99,6 +99,18 @@ void mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
 float mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
                           struct MVert *mvarray, float polynormal[3]);
 
+/* Find the index of the loop in 'poly' which references vertex,
+   returns -1 if not found */
+int poly_find_loop_from_vert(const struct MPoly *poly,
+							 const struct MLoop *loopstart,
+							 unsigned vert);
+
+/* Fill 'adj_r' with the loop indices in 'poly' adjacent to the
+   vertex. Returns the index of the loop matching vertex, or -1 if the
+   vertex is not in 'poly' */
+int poly_get_adj_loops_from_vert(unsigned adj_r[3], const struct MPoly *poly,
+								 const struct MLoop *mloop, unsigned vert);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(const char *name);
@@ -136,7 +148,7 @@ void mesh_calc_normals_tessface(struct MVert *mverts, int numVerts,struct  MFace
 const char *mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *mesh_get_bb(struct Object *ob);
-void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
+void mesh_get_texspace(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
 
 /* if old, it converts mface->edcode to edge drawflags */
 void make_edges(struct Mesh *me, int old);
@@ -238,15 +250,8 @@ typedef struct IndexNode {
 void create_vert_poly_map(struct ListBase **map, IndexNode **mem,
                           struct MPoly *mface, struct MLoop *mloop,
                           const int totvert, const int totface, const int totloop);
-void create_vert_face_map(struct ListBase **map, IndexNode **mem, const struct MFace *mface,
-                          const int totvert, const int totface);
 void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,
                           const int totvert, const int totedge);
-
-/* functions for making menu's from customdata layers */
-int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
-void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
-int mesh_layers_menu(struct CustomData *data, int type);
 
 /* vertex level transformations & checks (no derived mesh) */
 

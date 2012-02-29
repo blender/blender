@@ -1110,7 +1110,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 		if(forRender || nu->hide==0) {
 			int resolu= nu->resolu, resolv= nu->resolv;
 
-			if(forRender){
+			if(forRender) {
 				if(cu->resolu_ren) resolu= cu->resolu_ren;
 				if(cu->resolv_ren) resolv= cu->resolv_ren;
 			}

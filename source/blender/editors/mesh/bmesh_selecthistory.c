@@ -53,14 +53,14 @@ void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese
 	BM_editselection_plane(em->bm, plane, ese);
 }
 
-void EDBM_remove_selection(BMEditMesh *em, void *data)
+void EDBM_remove_selection(BMEditMesh *em, BMElem *ele)
 {
-	BM_select_history_remove(em->bm, data);
+	BM_select_history_remove(em->bm, ele);
 }
 
-void EDBM_store_selection(BMEditMesh *em, void *data)
+void EDBM_store_selection(BMEditMesh *em, BMElem *ele)
 {
-	BM_select_history_store(em->bm, data);
+	BM_select_history_store(em->bm, ele);
 }
 
 void EDBM_validate_selections(BMEditMesh *em)

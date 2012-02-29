@@ -169,7 +169,7 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
  *
  * All verts will be tagged on exit.
  */
-static void bmesh_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
+static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
 {
 	BMVert *v;
 	BMIter iter;
@@ -288,7 +288,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	   certainly help by compressing it all into one top-level BMOp that
 	   executes a lot of second-level BMOps. */
 	BMO_push(em->bm, NULL);
-	bmesh_begin_edit(em->bm, 0);
+	bmesh_edit_begin(em->bm, 0);
 
 	BMO_op_init(em->bm, &weldop, "weldverts");
 	BMO_op_initf(em->bm, &op, "dupe geom=%avef");
@@ -306,27 +306,27 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 		BMO_op_callf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
 
-		#define _E(s, i) ((BMVert**)(s)->data.buf)[i]
+		#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
 
 		/*calculate merge mapping*/
 		if (j == 0) {
 			BMOperator findop;
 			BMOIter oiter;
 			BMVert *v, *v2;
-			BMHeader *h;
+			BMElem *ele;
 
 			BMO_op_initf(em->bm, &findop,
 			             "finddoubles verts=%av dist=%f keepverts=%s",
 			             amd->merge_dist, &op, "geom");
 
 			i = 0;
-			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
-				BM_elem_index_set(h, i); /* set_dirty */
+			BMO_ITER(ele, &oiter, em->bm, &op, "geom", BM_ALL) {
+				BM_elem_index_set(ele, i); /* set_dirty */
 				i++;
 			}
 
-			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
-				BM_elem_index_set(h, i); /* set_dirty */
+			BMO_ITER(ele, &oiter, em->bm, &op, "newout", BM_ALL) {
+				BM_elem_index_set(ele, i); /* set_dirty */
 				i++;
 			}
 			/* above loops over all, so set all to dirty, if this is somehow
@@ -387,13 +387,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if (start_cap) {
 			float startoffset[4][4];
 			invert_m4_m4(startoffset, offset);
-			bmesh_merge_dm_transform(em->bm, start_cap, startoffset);
+			bm_merge_dm_transform(em->bm, start_cap, startoffset);
 		}
 
 		if (end_cap) {
 			float endoffset[4][4];
 			mult_m4_m4m4(endoffset, offset, final_offset);
-			bmesh_merge_dm_transform(em->bm, end_cap, endoffset);
+			bm_merge_dm_transform(em->bm, end_cap, endoffset);
 		}
 	}
 	/* done capping */

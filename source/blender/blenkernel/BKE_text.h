@@ -92,8 +92,6 @@ void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, unsigned int add);
 int		txt_add_raw_char	(struct Text *text, unsigned int add);
 int		txt_replace_char	(struct Text *text, unsigned int add);
-void	txt_export_to_object(struct Text *text);
-void	txt_export_to_objects(struct Text *text);
 void	txt_unindent		(struct Text *text);
 void 	txt_comment			(struct Text *text);
 void 	txt_indent			(struct Text *text);
@@ -107,8 +105,6 @@ struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, i
 struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
 struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marker);
 struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
-struct TextMarker	*txt_prev_marker_color	(struct Text *text, struct TextMarker *marker);
-struct TextMarker	*txt_next_marker_color	(struct Text *text, struct TextMarker *marker);
 
 /* utility functions, could be moved somewhere more generic but are python/text related  */
 int text_check_bracket(char ch);

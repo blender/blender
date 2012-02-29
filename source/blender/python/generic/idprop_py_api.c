@@ -127,7 +127,7 @@ static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
 /* -------------------------------------------------------------------------- */
 
 /* use for both array and group */
-static long BPy_IDGroup_hash(BPy_IDProperty *self)
+static Py_hash_t BPy_IDGroup_hash(BPy_IDProperty *self)
 {
 	return _Py_HashPointer(self->prop);
 }

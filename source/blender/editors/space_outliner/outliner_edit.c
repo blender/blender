@@ -248,7 +248,7 @@ void item_rename_cb(bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStor
 {
 	ARegion *ar= CTX_wm_region(C);
 	ReportList *reports= CTX_wm_reports(C); // XXX
-	do_item_rename(ar, te, tselem, reports) ;
+	do_item_rename(ar, te, tselem, reports);
 }
 
 static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, TreeElement *te, const float mval[2])
@@ -261,7 +261,7 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 		/* name and first icon */
 		if(mval[0]>te->xs+UI_UNIT_X && mval[0]<te->xend) {
 			
-			do_item_rename(ar, te, tselem, reports) ;
+			do_item_rename(ar, te, tselem, reports);
 		}
 		return 1;
 	}

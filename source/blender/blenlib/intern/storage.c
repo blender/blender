@@ -104,7 +104,7 @@ static struct ListBase *dirbase = &dirbase_;
 char *BLI_current_working_dir(char *dir, const int maxncpy)
 {
 	const char *pwd= getenv("PWD");
-	if (pwd){
+	if (pwd) {
 		BLI_strncpy(dir, pwd, maxncpy);
 		return dir;
 	}
@@ -117,12 +117,12 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 {
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)){
+	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type)==0) return (-1);
 	} else{
 		if (S_ISDIR(entry2->type)) return (1);
 	}
-	if (S_ISREG(entry1->type)){
+	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type)==0) return (-1);
 	} else{
 		if (S_ISREG(entry2->type)) return (1);
@@ -175,7 +175,7 @@ double BLI_dir_free_space(const char *dir)
 	
 	strcpy(name,dir);
 
-	if(len){
+	if(len) {
 		slash = strrchr(name,'/');
 		if (slash) slash[1] = 0;
 	} else strcpy(name,"/");
@@ -206,20 +206,20 @@ static void bli_builddir(const char *dirname, const char *relname)
 	BLI_strncpy(buf, relname, sizeof(buf));
 	rellen=strlen(relname);
 
-	if (rellen){
+	if (rellen) {
 		buf[rellen]='/';
 		rellen++;
 	}
 
-	if (chdir(dirname) == -1){
+	if (chdir(dirname) == -1) {
 		perror(dirname);
 		return;
 	}
 
-	if ( (dir = (DIR *)opendir(".")) ){
+	if ( (dir = (DIR *)opendir(".")) ) {
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-			if (dlink){
+			if (dlink) {
 				BLI_strncpy(buf + rellen ,fname->d_name, sizeof(buf) - rellen);
 				dlink->name = BLI_strdup(buf);
 				BLI_addhead(dirbase,dlink);
@@ -227,7 +227,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 			}
 		}
 		
-		if (newnum){
+		if (newnum) {
 
 			if(files) {
 				void *tmp= realloc(files, (totnum+newnum) * sizeof(struct direntry));
@@ -243,9 +243,9 @@ static void bli_builddir(const char *dirname, const char *relname)
 			if(files==NULL)
 				files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
 
-			if (files){
+			if (files) {
 				dlink = (struct dirlink *) dirbase->first;
-				while(dlink){
+				while(dlink) {
 					memset(&files[actnum], 0 , sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
 					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
@@ -298,7 +298,7 @@ static void bli_adddirstrings(void)
 	struct tm *tm;
 	time_t zero= 0;
 	
-	for(num=0, file= files; num<actnum; num++, file++){
+	for(num=0, file= files; num<actnum; num++, file++) {
 #ifdef WIN32
 		mode = 0;
 		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
@@ -313,14 +313,14 @@ static void bli_adddirstrings(void)
 		
 		if (((mode & S_ISGID) == S_ISGID) && (file->mode2[2]=='-'))file->mode2[2]='l';
 
-		if (mode & (S_ISUID | S_ISGID)){
+		if (mode & (S_ISUID | S_ISGID)) {
 			if (file->mode1[2]=='x') file->mode1[2]='s';
 			else file->mode1[2]='S';
 
 			if (file->mode2[2]=='x')file->mode2[2]='s';
 		}
 
-		if (mode & S_ISVTX){
+		if (mode & S_ISVTX) {
 			if (file->mode3[2] == 'x') file->mode3[2] = 't';
 			else file->mode3[2] = 'T';
 		}

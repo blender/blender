@@ -117,7 +117,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdpar
 		copy_v3_v3(nor2, vend->no);
 
 		/* cosine angle */
-		fac=  dot_v3v3(nor, nor1);
+		fac = dot_v3v3(nor, nor1);
 		mul_v3_v3fl(tvec, nor1, fac);
 
 		/* cosine angle */
@@ -459,7 +459,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	int numcuts = params->numcuts;
 	int i, j, a, b, s = numcuts + 2 /* , totv = numcuts * 4 + 4 */;
 
-	lines = MEM_callocN(sizeof(BMVert *)*(numcuts + 2)*(numcuts + 2), "q_4edge_split");
+	lines = MEM_callocN(sizeof(BMVert *) * (numcuts + 2) * (numcuts + 2), "q_4edge_split");
 	/* build a 2-dimensional array of verts,
 	 * containing every vert (and all new ones)
 	 * in the face */
@@ -494,8 +494,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		for (a = 0; a < numcuts; a++) {
 			v = subdivideedgenum(bm, e, &temp, a, numcuts, params, &ne,
 			                     v1, v2);
-			if (!v)
-				bmesh_error();
+
+			BMESH_ASSERT(v != NULL);
 
 			BMO_elem_flag_enable(bm, ne, ELE_INNER);
 			lines[(i + 1) * s + a + 1] = v;
@@ -564,7 +564,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	int i, j, a, b, numcuts = params->numcuts;
 	
 	/* number of verts in each lin */
-	lines = MEM_callocN(sizeof(void *)*(numcuts + 2), "triangle vert table");
+	lines = MEM_callocN(sizeof(void *) * (numcuts + 2), "triangle vert table");
 	
 	lines[0] = (BMVert **) stackarr;
 	lines[0][0] = verts[numcuts * 2 + 1];
@@ -577,7 +577,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	lines[numcuts + 1][numcuts + 1] = verts[numcuts];
 
 	for (i = 0; i < numcuts; i++) {
-		lines[i + 1] = MEM_callocN(sizeof(void *)*(2 + i), "triangle vert table row");
+		lines[i + 1] = MEM_callocN(sizeof(void *) * (2 + i), "triangle vert table row");
 		a = numcuts * 2 + 2 + i;
 		b = numcuts + numcuts - i;
 		e = connect_smallest_face(bm, verts[a], verts[b], &nf);
@@ -665,7 +665,7 @@ typedef struct subd_facedata {
 	BMFace *face;
 } subd_facedata;
 
-void esubdivide_exec(BMesh *bmesh, BMOperator *op)
+void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
 	SubDPattern *pat;
@@ -792,7 +792,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 
 		/* make sure the two edges have a valid angle to each othe */
-		if (totesel == 2 && BM_edge_share_vert(e1, e2)) {
+		if (totesel == 2 && BM_edge_share_vert_count(e1, e2)) {
 			float angle;
 
 			sub_v3_v3v3(vec1, e1->v2->co, e1->v1->co);
@@ -1031,7 +1031,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	
 	if (seltype == SUBDIV_SELECT_INNER) {
 		BMOIter iter;
-		BMHeader *ele;
+		BMElem *ele;
 		// int i;
 		
 		ele = BMO_iter_new(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
@@ -1041,7 +1041,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	}
 	else if (seltype == SUBDIV_SELECT_LOOPCUT) {
 		BMOIter iter;
-		BMHeader *ele;
+		BMElem *ele;
 		// int i;
 		
 		/* deselect input */
@@ -1051,7 +1051,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 		for ( ; ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
 
-			if (ele->htype == BM_VERT) {
+			if (ele->head.htype == BM_VERT) {
 				BMEdge *e;
 				BMIter eiter;
 
@@ -1078,7 +1078,7 @@ void BM_mesh_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float s
 	BMO_op_finish(bm, &op);
 }
 
-void esplit_exec(BMesh *bm, BMOperator *op)
+void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;

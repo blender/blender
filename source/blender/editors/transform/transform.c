@@ -124,7 +124,7 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
-static void convertViewVec2D(View2D *v2d, float *vec, int dx, int dy)
+static void convertViewVec2D(View2D *v2d, float vec[3], int dx, int dy)
 {
 	float divx, divy;
 	
@@ -4601,7 +4601,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 	
 	em->bm->ob = t->obedit;
-	bmesh_begin_edit(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_begin(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
 	tempsv = sld->sv;
@@ -4631,6 +4631,7 @@ static int createSlideVerts(TransInfo *t)
 		BLI_smallhash_insert(&sld->vhash, (uintptr_t)tempsv->v, tempsv);
 	}
 	
+	sld->origfaces_init = TRUE;
 	sld->em = em;
 	
 	/*zero out start*/
@@ -4742,11 +4743,26 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
+void freeSlideTempFaces(SlideData *sld){
+	if(sld->origfaces_init){
+		SmallHashIter hiter;
+		BMFace *copyf;
+
+		copyf = BLI_smallhash_iternew(&sld->origfaces, &hiter, NULL);
+		for (; copyf; copyf=BLI_smallhash_iternext(&hiter, NULL)) {
+			BM_face_verts_kill(sld->em->bm, copyf);
+		}
+
+		BLI_smallhash_release(&sld->origfaces);
+
+		sld->origfaces_init = FALSE;
+	}
+}
+
+
 void freeSlideVerts(TransInfo *t)
 {
 	SlideData *sld = t->customData;
-	SmallHashIter hiter;
-	BMFace *copyf;
 	
 #if 0 /*BMESH_TODO*/
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
@@ -4776,17 +4792,13 @@ void freeSlideVerts(TransInfo *t)
 		sld->perc = 0.0;
 		projectSVData(t, 0);
 	}
-	
-	copyf = BLI_smallhash_iternew(&sld->origfaces, &hiter, NULL);
-	for (; copyf; copyf=BLI_smallhash_iternext(&hiter, NULL)) {
-		BM_face_verts_kill(sld->em->bm, copyf);
-	}
-	
+
+	freeSlideTempFaces(sld);
+
 	sld->em->bm->ob = t->obedit;
-	bmesh_end_edit(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
+	bmesh_edit_end(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	BLI_smallhash_release(&sld->vhash);
-	BLI_smallhash_release(&sld->origfaces);
 	
 	MEM_freeN(sld->sv);
 	MEM_freeN(sld);

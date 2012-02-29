@@ -172,7 +172,7 @@ static FileSelect file_select_do(bContext* C, int selected_idx)
 
 		if(S_ISDIR(file->type)) {
 			/* the path is too long and we are not going up! */
-			if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX )  {
+			if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX ) {
 				// XXX error("Path too long, cannot enter this directory");
 			}
 			else {

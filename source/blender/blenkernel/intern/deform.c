@@ -51,7 +51,7 @@ void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 
 	outbase->first= outbase->last= NULL;
 
-	for (defgroup = inbase->first; defgroup; defgroup=defgroup->next){
+	for (defgroup = inbase->first; defgroup; defgroup=defgroup->next) {
 		defgroupn= defgroup_duplicate(defgroup);
 		BLI_addtail(outbase, defgroupn);
 	}

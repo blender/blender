@@ -33,30 +33,29 @@
 
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
-struct bContext;
-struct BezTriple;
-struct bglMats;
-struct BoundBox;
-struct BPoint;
-struct Nurb;
-struct BezTriple;
-struct BMVert;
 struct BMEdge;
 struct BMFace;
-struct EditVert;
+struct BMVert;
+struct BPoint;
+struct BezTriple;
+struct BezTriple;
+struct BoundBox;
 struct ImBuf;
+struct MVert;
 struct Main;
 struct Nurb;
+struct Nurb;
 struct Object;
-struct rcti;
 struct RegionView3D;
 struct Scene;
 struct View3D;
 struct ViewContext;
-struct wmWindow;
-struct MVert;
-struct wmOperatorType;
+struct bContext;
+struct bglMats;
+struct rcti;
 struct wmOperator;
+struct wmOperatorType;
+struct wmWindow;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
@@ -222,7 +221,7 @@ int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int w
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_project_float(const struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
-void ED_view3d_project_float_v3(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
+void ED_view3d_project_float_v3(struct ARegion *a, const float vec[3], float *adr, float mat[4][4]);
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
 /* drawobject.c iterators */
@@ -232,9 +231,12 @@ void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData,
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
-void ED_view3d_local_clipping(struct RegionView3D *rv3d, float mat[][4]);
-int ED_view3d_test_clipping(struct RegionView3D *rv3d, const float vec[3], const int local);
-void ED_view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
+void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
+int  ED_view3d_clipping_test(struct RegionView3D *rv3d, const float vec[3], const int is_local);
+void ED_view3d_clipping_set(struct RegionView3D *rv3d);
+void ED_view3d_clipping_enable(void);
+void ED_view3d_clipping_disable(void);
+
 float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);

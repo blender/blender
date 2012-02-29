@@ -275,7 +275,7 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 	if(cfra > pa->state.time)
 		memcpy(&pa->prev_state, &pa->state, sizeof(ParticleKey));
 
-	if(old_data){
+	if(old_data) {
 		/* old format cache */
 		memcpy(&pa->state, old_data, sizeof(ParticleKey));
 		return;
@@ -3015,7 +3015,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 	PointCache *cache = pid->cache;
 	int last_exact = cache->last_exact;
 
-	if (!G.relbase_valid){
+	if (!G.relbase_valid) {
 		cache->flag &= ~PTCACHE_DISK_CACHE;
 		if (G.f & G_DEBUG) 
 			printf("File must be saved before using disk cache!\n");

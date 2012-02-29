@@ -29,6 +29,9 @@ class Scene;
 
 class Background {
 public:
+	float ao_factor;
+	float ao_distance;
+
 	bool transparent;
 	bool need_update;
 

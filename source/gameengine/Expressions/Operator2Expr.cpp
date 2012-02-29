@@ -127,14 +127,14 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 			
 		bool second;//first ;//,second;
 		
-		//first = m_lhs->IsInside(x,y,z) ;
-		second = m_rhs->IsInside(x,y,z,bBorderInclude) ;
+		//first = m_lhs->IsInside(x,y,z);
+		second = m_rhs->IsInside(x,y,z,bBorderInclude);
 		if (second)
 			return true; //early out
 	
-	//	second = m_rhs->IsInside(x,y,z) ;
+	//	second = m_rhs->IsInside(x,y,z);
 
-		return m_lhs->IsInside(x,y,z,bBorderInclude) ;
+		return m_lhs->IsInside(x,y,z,bBorderInclude);
 			
 		break;
 							 }
@@ -144,7 +144,7 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 		// todo: same as with add_operator: calc smallest leaf first
 
 		bool second;//first ;//,second;
-		//first = m_lhs->IsInside(x,y,z) ;
+		//first = m_lhs->IsInside(x,y,z);
 		second = m_rhs->IsInside(x,y,z,bBorderInclude);
 		if (second)
 			return false;
@@ -170,7 +170,7 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 
 bool COperator2Expr::IsRightInside(float x, float y, float z,bool bBorderInclude)
 {
-	return m_rhs->IsInside(x,y,z,bBorderInclude) ;
+	return m_rhs->IsInside(x,y,z,bBorderInclude);
 }
 
 bool COperator2Expr::IsLeftInside(float x, float y, float z,bool bBorderInclude)

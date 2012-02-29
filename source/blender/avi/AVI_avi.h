@@ -249,7 +249,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...);
 AviError AVI_close_compress (AviMovie *movie);
 
 /**
- * Choose a compression option for <movie>. Possible options are
+ * Choose a compression option for \<movie\>. Possible options are
  * AVI_OPTION_TYPE_MAIN, AVI_OPTION_TYPE_STRH, AVI_OPTION_TYPE_STRF
  */
 AviError AVI_set_compress_option (AviMovie *movie,
@@ -272,7 +272,7 @@ AviError AVI_set_compress_option (AviMovie *movie,
 #define AVI_OPTION_TYPE_STRF 2
 
 /**
- * Direct the streams <avist_type> to <movie>. Redirect <stream_num>
+ * Direct the streams \<avist_type\> to \<movie\>. Redirect \<stream_num\>
  * streams.
  */
 int AVI_get_stream (AviMovie *movie, int avist_type, int stream_num);

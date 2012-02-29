@@ -135,15 +135,9 @@ void bvhtree_update_from_mvert ( BVHTree * bvhtree, struct MFace *faces, int num
 
 /////////////////////////////////////////////////
 
-struct LinkNode *BLI_linklist_append_fast ( struct LinkNode **listp, void *ptr );
-
 // move Collision modifier object inter-frame with step = [0,1]
 // defined in collisions.c
 void collision_move_object ( struct CollisionModifierData *collmd, float step, float prevstep );
-
-// interface for collision functions
-void collisions_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 );
-void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 );
 
 /////////////////////////////////////////////////
 // used in effect.c

@@ -38,7 +38,6 @@ CCL_NAMESPACE_BEGIN
 /* Mesh */
 
 Mesh::Mesh()
-: attributes(this)
 {
 	need_update = true;
 	transform_applied = false;
@@ -49,6 +48,8 @@ Mesh::Mesh()
 
 	tri_offset = 0;
 	vert_offset = 0;
+
+	attributes.mesh = this;
 }
 
 Mesh::~Mesh()

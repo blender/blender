@@ -95,11 +95,11 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivideflag(obedit, em->bm, BM_ELEM_SELECT,
-	                  smooth, fractal,
-	                  ts->editbutflag|flag, 
-	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
-	                  RNA_boolean_get(op->ptr, "quadtri"),
-	                  TRUE, RNA_int_get(op->ptr, "seed"));
+	                       smooth, fractal,
+	                       ts->editbutflag|flag,
+	                       cuts, 0, RNA_enum_get(op->ptr, "quadcorner"),
+	                       RNA_boolean_get(op->ptr, "quadtri"),
+	                       TRUE, RNA_int_get(op->ptr, "seed"));
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -245,9 +245,9 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	BMEdge *edge;
 	BMFace *f;
 	ModifierData *md;
-	BMHeader *el;
+	BMElem *ele;
 	
-	BMO_op_init(bm, &extop, "extrudefaceregion");
+	BMO_op_init(bm, &extop, "extrude_face_region");
 	BMO_slot_from_hflag(bm, &extop, "edgefacein",
 	                       hflag, BM_VERT|BM_EDGE|BM_FACE);
 
@@ -283,22 +283,22 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X) {
-							if ( (fabs(co1[0]) < mmd->tolerance) &&
-								 (fabs(co2[0]) < mmd->tolerance) )
+							if ((fabsf(co1[0]) < mmd->tolerance) &&
+								(fabsf(co2[0]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
-							if ( (fabs(co1[1]) < mmd->tolerance) &&
-								 (fabs(co2[1]) < mmd->tolerance) )
+							if ((fabsf(co1[1]) < mmd->tolerance) &&
+								(fabsf(co2[1]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
-							if ( (fabs(co1[2]) < mmd->tolerance) &&
-								 (fabs(co2[2]) < mmd->tolerance) )
+							if ((fabsf(co1[2]) < mmd->tolerance) &&
+								(fabsf(co2[2]) < mmd->tolerance))
 							{
 								BMO_slot_map_ptr_insert(bm, &extop, "exclude", edge, NULL);
 							}
@@ -315,11 +315,11 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 	nor[0] = nor[1] = nor[2] = 0.0f;
 	
-	BMO_ITER(el, &siter, bm, &extop, "geomout", BM_ALL) {
-		BM_elem_select_set(bm, el, TRUE);
+	BMO_ITER(ele, &siter, bm, &extop, "geomout", BM_ALL) {
+		BM_elem_select_set(bm, ele, TRUE);
 
-		if (el->htype == BM_FACE) {
-			f = (BMFace *)el;
+		if (ele->head.htype == BM_FACE) {
+			f = (BMFace *)ele;
 			add_normal_aligned(nor, f->no);
 		};
 	}
@@ -386,7 +386,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 
 	for (a = 0; a < steps; a++) {
 		EDBM_Extrude_edge(obedit, em, BM_ELEM_SELECT, nor);
-		//BMO_op_callf(em->bm, "extrudefaceregion edgefacein=%hef", BM_ELEM_SELECT);
+		//BMO_op_callf(em->bm, "extrude_face_region edgefacein=%hef", BM_ELEM_SELECT);
 		BMO_op_callf(em->bm, "translate vec=%v verts=%hv", (float *)dvec, BM_ELEM_SELECT);
 		//extrudeflag(obedit, em, SELECT, nor);
 		//translateflag(em, SELECT, dvec);
@@ -668,7 +668,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select/Deselect All";
 	ot->idname = "MESH_OT_select_all";
-	ot->description = "(de)select all vertices, edges or faces";
+	ot->description = "(De)select all vertices, edges or faces";
 	
 	/* api callbacks */
 	ot->exec = mesh_select_all_exec;
@@ -913,22 +913,22 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 	} 
 	else if (event == 11) {
 		//"Edge Loop"
-		if (!EDBM_CallOpf(bem, op, "dissolveedgeloop edges=%he", BM_ELEM_SELECT))
+		if (!EDBM_CallOpf(bem, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 	else if (event == 7) {
 		int use_verts = RNA_boolean_get(op->ptr, "use_verts");
 		//"Dissolve"
 		if (bem->selectmode & SCE_SELECT_FACE) {
-			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+			if (!EDBM_CallOpf(bem, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_EDGE) {
-			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+			if (!EDBM_CallOpf(bem, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
 				return OPERATOR_CANCELLED;
 		}
 		else if (bem->selectmode & SCE_SELECT_VERTEX) {
-			if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv", BM_ELEM_SELECT))
+			if (!EDBM_CallOpf(bem, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
 				return OPERATOR_CANCELLED;
 		}
 	}
@@ -1017,7 +1017,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 
 	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
 	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
-	                "When dissolving faaces/edges, also dissolve remaining vertices");
+	                "When dissolving faces/edges, also dissolve remaining vertices");
 }
 
 
@@ -1318,7 +1318,7 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Normals";
-	ot->description = "Flip the direction of selected face's vertex and face normals";
+	ot->description = "Flip the direction of selected faces' normals (and of their vertices)";
 	ot->idname = "MESH_OT_flip_normals";
 	
 	/* api callbacks */
@@ -1417,14 +1417,14 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
 }
 
 /* swap is 0 or 1, if 1 it hides not selected */
 void EDBM_hide_mesh(BMEditMesh *em, int swap)
 {
 	BMIter iter;
-	BMHeader *h;
+	BMElem *ele;
 	int itermode;
 
 	if (em == NULL) return;
@@ -1436,9 +1436,9 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 	else
 		itermode = BM_FACES_OF_MESH;
 
-	BM_ITER(h, &iter, em->bm, itermode, NULL) {
-		if (BM_elem_flag_test(h, BM_ELEM_SELECT) ^ swap)
-			BM_elem_hide_set(em->bm, h, TRUE);
+	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
+		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
+			BM_elem_hide_set(em->bm, ele, TRUE);
 	}
 
 	EDBM_selectmode_flush(em);
@@ -1497,7 +1497,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	              };
 
 	BMIter iter;
-    BMHeader *ele;
+    BMElem *ele;
 	int i;
 
 	/* Use tag flag to remember what was hidden before all is revealed.
@@ -1835,7 +1835,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshrotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
+	EDBM_InitOpf(em, &bmop, op, "face_rotateuvs faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1860,7 +1860,7 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshreverseuvs faces=%hf", BM_ELEM_SELECT);
+	EDBM_InitOpf(em, &bmop, op, "face_reverseuvs faces=%hf", BM_ELEM_SELECT);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1888,7 +1888,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshrotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
+	EDBM_InitOpf(em, &bmop, op, "face_rotatecolors faces=%hf dir=%i", BM_ELEM_SELECT, dir);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -1916,7 +1916,7 @@ static int mesh_reverse_colors(bContext *C, wmOperator *op)
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "meshreversecolors faces=%hf", BM_ELEM_SELECT);
+	EDBM_InitOpf(em, &bmop, op, "face_reversecolors faces=%hf", BM_ELEM_SELECT);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -2011,11 +2011,11 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 	/* do sanity check in mergemenu in edit.c ?*/
 	if (first == 0) {
 		ese = em->bm->selected.last;
-		mergevert = (BMVert *)ese->data;
+		mergevert = (BMVert *)ese->ele;
 	}
-	else{
+	else {
 		ese = em->bm->selected.first;
-		mergevert = (BMVert *)ese->data;
+		mergevert = (BMVert *)ese->ele;
 	}
 
 	if (!BM_elem_flag_test(mergevert, BM_ELEM_SELECT))
@@ -2136,9 +2136,9 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), 
 		BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 
 		if (em->selectmode & SCE_SELECT_VERTEX) {
-			if ( em->bm->selected.first && em->bm->selected.last &&
-			     ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT &&
-			     ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT)
+			if (em->bm->selected.first && em->bm->selected.last &&
+			    ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT &&
+			    ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT)
 			{
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
@@ -2270,7 +2270,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->data, ev->data, type);
+	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%i", sv->ele, ev->ele, type);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -2510,7 +2510,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if (i == 1)  {
+		if (i == 1) {
 			if (singlesel)
 				BM_elem_select_set(bm, v, FALSE);
 			else
@@ -2722,7 +2722,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	prop = RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending");
 	RNA_def_enum_funcs(prop, shape_itemf);
 	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes");
+	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather than blend between shapes");
 }
 
 /* BMESH_TODO - some way to select on an arbitrary axis */
@@ -2739,7 +2739,7 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		BMVert *ev, *act_vert = (BMVert *)ese->data;
+		BMVert *ev, *act_vert = (BMVert *)ese->ele;
 		BMIter iter;
 		float value = act_vert->co[axis];
 		float limit =  CTX_data_tool_settings(C)->doublimit; // XXX
@@ -2874,23 +2874,23 @@ typedef struct CutCurve {
 
 /* ******************************************************************** */
 /* Knife Subdivide Tool.  Subdivides edges intersected by a mouse trail
-	drawn by user.
-	
-	Currently mapped to KKey when in MeshEdit mode.
-	Usage:
-		Hit Shift K, Select Centers or Exact
-		Hold LMB down to draw path, hit RETKEY.
-		ESC cancels as expected.
-   
-	Contributed by Robert Wenzlaff (Det. Thorn).
-
-    2.5 revamp:
-    - non modal (no menu before cutting)
-    - exit on mouse release
-    - polygon/segment drawing can become handled by WM cb later
-
-	bmesh port version
-*/
+ * drawn by user.
+ *
+ * Currently mapped to KKey when in MeshEdit mode.
+ * Usage:
+ * - Hit Shift K, Select Centers or Exact
+ * - Hold LMB down to draw path, hit RETKEY.
+ * - ESC cancels as expected.
+ *
+ * Contributed by Robert Wenzlaff (Det. Thorn).
+ *
+ * 2.5 Revamp:
+ *  - non modal (no menu before cutting)
+ *  - exit on mouse release
+ *  - polygon/segment drawing can become handled by WM cb later
+ *
+ * bmesh port version
+ */
 
 #define KNIFE_EXACT		1
 #define KNIFE_MIDPOINT	2
@@ -2903,7 +2903,7 @@ static EnumPropertyItem knife_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
+/* bm_edge_seg_isect() Determines if and where a mouse trail intersects an BMEdge */
 
 static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
                                struct GHash *gh, int *isected)
@@ -2955,13 +2955,13 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 			x12 = c[i].x;
 			y12 = c[i].y;
 			
-			/* test e->v1*/
+			/* test e->v1 */
 			if ((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)) {
 				perc = 0;
 				*isected = 1;
 				return perc;
 			}
-			/* test e->v2*/
+			/* test e->v2 */
 			else if ((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)) {
 				perc = 0;
 				*isected = 2;
@@ -2997,7 +2997,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 				m1 = (y12 - y11) / xdiff1;
 				b1 = ((x12 * y11) - (x11 * y12)) / xdiff1;
 			}
-			else{
+			else {
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}
@@ -3105,7 +3105,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	/* the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer */
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife cut exec");
 	for (bv = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); bv; bv = BM_iter_step(&iter)) {
-		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
+		scr = MEM_mallocN(sizeof(float) * 2, "Vertex Screen Coordinates");
 		copy_v3_v3(co, bv->co);
 		co[3] = 1.0f;
 		mul_m4_v4(obedit->obmat, co);
@@ -3526,7 +3526,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
+	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
 
 	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
@@ -3542,7 +3542,7 @@ static int dissolve_limited_exec(bContext *C, wmOperator *op)
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 
 	if (!EDBM_CallOpf(em, op,
-	                  "dissolvelimit edges=%he verts=%hv angle_limit=%f",
+	                  "dissolve_limit edges=%he verts=%hv angle_limit=%f",
 	                  BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
 	{
 		return OPERATOR_CANCELLED;
@@ -3573,36 +3573,6 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
 	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(15.0f));
-}
-
-static int edge_flip_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
-{
-#if 0
-	Object *obedit = CTX_data_edit_object(C);
-	EditMesh *em = BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	edge_flip(em);
-
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-#endif
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edge_flip(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Edge Flip";
-	ot->idname = "MESH_OT_edge_flip";
-
-	/* api callbacks */
-	ot->exec = edge_flip_exec;
-	ot->poll = ED_operator_editmesh;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int split_mesh_exec(bContext *C, wmOperator *op)
@@ -3944,7 +3914,7 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Loose Vertices/Edges";
-	ot->description = "Select vertices with edges or faces and edges with no faces";
+	ot->description = "Select vertices with no edges nor faces, and edges with no faces";
 	ot->idname = "MESH_OT_select_loose_verts";
 
 	/* api callbacks */
@@ -4002,7 +3972,7 @@ static int vergxco(const void *v1, const void *v2)
 {
 	const xvertsort *x1 = v1, *x2 = v2;
 
-	if (x1->x > x2->x )      return  1;
+	if (x1->x > x2->x)       return  1;
 	else if (x1->x < x2->x)  return -1;
 	return 0;
 }
@@ -4050,7 +4020,7 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 	em = vc.em;
 
 	amount = em->bm->totvert;
-	sortblock = MEM_callocN(sizeof(xvertsort)*amount,"xsort");
+	sortblock = MEM_callocN(sizeof(xvertsort) * amount,"xsort");
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
 			sortblock[i].v1 = eve;
@@ -4459,7 +4429,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	int li;
 	
 	BM_data_layer_add(em->bm, &em->bm->edata, CD_PROP_FLT);
-	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT)-1;
+	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT) - 1;
 	
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		float d = len_v3v3(eed->v1->co, eed->v2->co);

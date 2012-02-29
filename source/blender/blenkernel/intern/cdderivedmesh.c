@@ -111,6 +111,13 @@ static int cdDM_getNumEdges(DerivedMesh *dm)
 
 static int cdDM_getNumTessFaces(DerivedMesh *dm)
 {
+	/* uncomment and add a breakpoint on the printf()
+	 * to help debug tessfaces issues since BMESH merge. */
+#if 0
+	if (dm->numTessFaceData == 0 && dm->numPolyData != 0) {
+		printf("%s: has no faces!, call DM_ensure_tessface() if you need them\n");
+	}
+#endif
 	return dm->numTessFaceData;
 }
 
@@ -221,20 +228,6 @@ static ListBase *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	}
 
 	return cddm->pmap;
-}
-
-static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-
-	if(!cddm->fmap && ob->type == OB_MESH) {
-		Mesh *me= ob->data;
-
-		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, me->mface,
-		                     me->totvert, me->totface);
-	}
-
-	return cddm->fmap;
 }
 
 static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
@@ -799,7 +792,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		GPU_normal_setup( dm );
 		GPU_uv_setup( dm );
 		if( col != NULL ) {
-			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL )  {
+			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL ) {
 				col = 0;
 			} else if( mcol && dm->drawObject->colType == CD_MCOL ) {
 				col = 0;
@@ -1689,7 +1682,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
 	dm->getPBVH = cdDM_getPBVH;
 	dm->getPolyMap = cdDM_getPolyMap;
-	dm->getFaceMap = cdDM_getFaceMap;
 
 	dm->drawVerts = cdDM_drawVerts;
 
@@ -2780,4 +2772,24 @@ void CDDM_set_mface(DerivedMesh *dm, MFace *mface)
 		CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, mface, dm->numTessFaceData);
 
 	cddm->mface = mface;
+}
+
+void CDDM_set_mloop(DerivedMesh *dm, MLoop *mloop)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+
+	if (!CustomData_has_layer(&dm->loopData, CD_MLOOP))
+		CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_ASSIGN, mloop, dm->numLoopData);
+
+	cddm->mloop = mloop;
+}
+
+void CDDM_set_mpoly(DerivedMesh *dm, MPoly *mpoly)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+
+	if (!CustomData_has_layer(&dm->polyData, CD_MPOLY))
+		CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_ASSIGN, mpoly, dm->numPolyData);
+
+	cddm->mpoly = mpoly;
 }

@@ -683,15 +683,15 @@ BoundBox *mesh_get_bb(Object *ob)
 	return me->bb;
 }
 
-void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
+void mesh_get_texspace(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
 {
 	if (!me->bb) {
 		tex_space_mesh(me);
 	}
 
-	if (loc_r) copy_v3_v3(loc_r, me->loc);
-	if (rot_r) copy_v3_v3(rot_r, me->rot);
-	if (size_r) copy_v3_v3(size_r, me->size);
+	if (r_loc)  copy_v3_v3(r_loc,  me->loc);
+	if (r_rot)  copy_v3_v3(r_rot,  me->rot);
+	if (r_size) copy_v3_v3(r_size, me->size);
 }
 
 float *get_mesh_orco_verts(Object *ob)
@@ -1801,7 +1801,7 @@ void mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int 
 }
 
 
-static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol)
+static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol)
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1937,7 +1937,7 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 		
 		#undef ML
 
-		bmesh_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
+		bm_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
 	}
 
 	/* note, we dont convert FGons at all, these are not even real ngons,
@@ -2092,27 +2092,6 @@ void create_vert_poly_map(ListBase **map, IndexNode **mem,
 		for (j = 0; j < mp->totloop; ++j, ++node, ++ml) {
 			node->index = i;
 			BLI_addtail(&(*map)[ml->v], node);
-		}
-	}
-}
-
-/* Generates a map where the key is the vertex and the value is a list
-   of faces that use that vertex as a corner. The lists are allocated
-   from one memory pool. */
-void create_vert_face_map(ListBase **map, IndexNode **mem, const MFace *mface, const int totvert, const int totface)
-{
-	int i,j;
-	IndexNode *node = NULL;
-	
-	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert face map");
-	(*mem) = MEM_callocN(sizeof(IndexNode) * totface*4, "vert face map mem");
-	node = *mem;
-	
-	/* Find the users */
-	for (i = 0; i < totface; ++i) {
-		for (j = 0; j < (mface[i].v4?4:3); ++j, ++node) {
-			node->index = i;
-			BLI_addtail(&(*map)[((unsigned int*)(&mface[i]))[j]], node);
 		}
 	}
 }
@@ -2384,7 +2363,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	totface = mface_index;
 
 
-	/* note essential but without this we store over-alloc'd memory in the CustomData layers */
+	/* not essential but without this we store over-alloc'd memory in the CustomData layers */
 	if (LIKELY((MEM_allocN_len(mface) / sizeof(*mface)) != totface)) {
 		mface = MEM_reallocN(mface, sizeof(*mface) * totface);
 		mface_to_poly_map = MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * totface);
@@ -2852,6 +2831,42 @@ float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 
 		return area;
 	}
+}
+
+/* Find the index of the loop in 'poly' which references vertex,
+   returns -1 if not found */
+int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
+							 unsigned vert)
+{
+	int j;
+	for (j = 0; j < poly->totloop; j++, loopstart++) {
+		if (loopstart->v == vert)
+			return j;
+	}
+	
+	return -1;
+}
+
+/* Fill 'adj_r' with the loop indices in 'poly' adjacent to the
+   vertex. Returns the index of the loop matching vertex, or -1 if the
+   vertex is not in 'poly' */
+int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
+								 const MLoop *mloop, unsigned vert)
+{
+	int corner = poly_find_loop_from_vert(poly,
+										  &mloop[poly->loopstart],
+										  vert);
+		
+	if(corner != -1) {
+		const MLoop *ml = &mloop[poly->loopstart + corner];
+
+		/* vertex was found */
+		adj_r[0] = ME_POLY_LOOP_PREV(mloop, poly, corner)->v;
+		adj_r[1] = ml->v;
+		adj_r[2] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;
+	}
+
+	return corner;
 }
 
 /* basic vertex data functions */

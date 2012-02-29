@@ -41,60 +41,34 @@
 
 struct ListBase;
 
-/* DOUBLE CIRCULAR LINKED LIST FUNCTIONS */
-int bmesh_cycle_length(void *h);
-
 /* LOOP CYCLE MANAGEMENT */
 int bmesh_loop_validate(BMFace *f);
 
 /* DISK CYCLE MANAGMENT */
-int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v);
-void bmesh_disk_remove_edge(struct BMEdge *e, struct BMVert *v);
-struct BMEdge *bmesh_disk_nextedge(struct BMEdge *e, struct BMVert *v);
-struct BMNode *bmesh_disk_getpointer(struct BMEdge *e, struct BMVert *v);
-int bmesh_disk_count_facevert(struct BMVert *v);
-struct BMEdge *bmesh_disk_find_first_faceedge(struct BMEdge *e, struct BMVert *v);
-struct BMEdge *bmesh_disk_find_next_faceedge(struct BMEdge *e, struct BMVert *v);
+int     bmesh_disk_edge_append(BMEdge *e, BMVert *v);
+void    bmesh_disk_edge_remove(BMEdge *e, BMVert *v);
+BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v);
+BMEdge *bmesh_disk_edge_prev(BMEdge *e, BMVert *v);
+int     bmesh_disk_facevert_count(BMVert *v);
+BMEdge *bmesh_disk_faceedge_find_first(BMEdge *e, BMVert *v);
+BMEdge *bmesh_disk_faceedge_find_next(BMEdge *e, BMVert *v);
 
 /* RADIAL CYCLE MANAGMENT */
-void bmesh_radial_append(struct BMEdge *e, struct BMLoop *l);
-void bmesh_radial_remove_loop(struct BMLoop *l, struct BMEdge *e);
-int bmesh_radial_find_face(struct BMEdge *e, struct BMFace *f);
-struct BMLoop *bmesh_radial_nextloop(struct BMLoop *l);
-int bmesh_radial_count_facevert(struct BMLoop *l, struct BMVert *v);
-struct BMLoop *bmesh_radial_find_first_faceloop(struct BMLoop *l, struct BMVert *v);
-struct BMLoop *bmesh_radial_find_next_faceloop(struct BMLoop *l, struct BMVert *v);
-int bmesh_radial_validate(int radlen, struct BMLoop *l);
+void    bmesh_radial_append(BMEdge *e, BMLoop *l);
+void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
+BMLoop *bmesh_radial_loop_next(BMLoop *l);
+int     bmesh_radial_face_find(BMEdge *e, BMFace *f);
+int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v);
+int     bmesh_radial_validate(int radlen, BMLoop *l);
 
 /* EDGE UTILITIES */
-int bmesh_vert_in_edge(struct BMEdge *e, struct BMVert *v);
-int bmesh_verts_in_edge(struct BMVert *v1, struct BMVert *v2, struct BMEdge *e);
-int bmesh_edge_swapverts(struct BMEdge *e, struct BMVert *orig, struct BMVert *newv); /*relink edge*/
-struct BMVert *bmesh_edge_getothervert(struct BMEdge *e, struct BMVert *v);
-struct BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2);
-struct BMEdge *bmesh_disk_next_edgeflag(struct BMEdge *e, struct BMVert *v, int eflag, int tflag);
-int bmesh_disk_validate(int len, struct BMEdge *e, struct BMVert *v);
-
-/*EULER API - For modifying structure*/
-struct BMVert *bmesh_mv(struct BMesh *bm, float *vec);
-struct BMEdge *bmesh_me(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2);
-struct BMFace *bmesh_mf(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **elist, int len);
-int bmesh_kv(struct BMesh *bm, struct BMVert *v);
-int bmesh_ke(struct BMesh *bm, struct BMEdge *e);
-int bmesh_kf(struct BMesh *bm, struct BMFace *bply);
-struct BMVert *bmesh_semv(struct BMesh *bm, struct BMVert *tv, struct BMEdge *e, struct BMEdge **re);
-struct BMFace *bmesh_sfme(struct BMesh *bm, struct BMFace *f, struct BMVert *v1,
-                          struct BMVert *v2, struct BMLoop **rl,
-#ifdef USE_BMESH_HOLES
-                          ListBase *holes,
-#endif
-                          BMEdge *example
-                          );
-int bmesh_jekv(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv);
-int bmesh_loop_reverse(struct BMesh *bm, struct BMFace *f);
-struct BMFace *bmesh_jfke(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2, struct BMEdge *e);
-
-struct BMVert *bmesh_urmv(struct BMesh *bm, struct BMFace *sf, struct BMVert *sv);
-//int *bmesh_grkv(struct BMesh *bm, struct BMFace *sf, struct BMVert *kv);
+int     bmesh_vert_in_edge(BMEdge *e, BMVert *v);
+int     bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
+int     bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv); /*relink edge*/
+BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v);
+BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2);
+int     bmesh_disk_validate(int len, BMEdge *e, BMVert *v);
 
 #endif /* __BMESH_STRUCTURE_H__ */

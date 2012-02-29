@@ -845,7 +845,8 @@ typedef struct ProxyBuildJob {
 	Scene *scene;
 	struct Main *main;
 	MovieClip *clip;
-	int clip_flag;
+	int clip_flag, stop;
+	struct IndexBuildContext *index_context;
 } ProxyJob;
 
 static void proxy_freejob(void *pjv)
@@ -896,11 +897,13 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	build_undistort_count= proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);
 
 	if(clip->source == MCLIP_SRC_MOVIE) {
-		if(clip->anim)
-			IMB_anim_index_rebuild(clip->anim, tc_flag, size_flag, quality, stop, do_update, progress);
+		if (pj->index_context)
+			IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
 
 		if(!build_undistort_count) {
-			BKE_movieclip_reload(clip);
+			if (*stop)
+				pj->stop = 1;
+
 			return;
 		}
 		else {
@@ -928,7 +931,23 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	if(distortion)
 		BKE_tracking_distortion_destroy(distortion);
 
-	BKE_movieclip_reload(clip);
+	if (*stop)
+		pj->stop = 1;
+}
+
+static void proxy_endjob(void *pjv)
+{
+	ProxyJob *pj = pjv;
+
+	if (pj->clip->anim)
+		IMB_close_anim_proxies(pj->clip->anim);
+
+	if (pj->index_context)
+		IMB_anim_index_rebuild_finish(pj->index_context, pj->stop);
+
+	BKE_movieclip_reload(pj->clip);
+
+	WM_main_add_notifier(NC_MOVIECLIP|ND_DISPLAY, pj->clip);
 }
 
 static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -951,9 +970,14 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	pj->clip= clip;
 	pj->clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
 
+	if (clip->anim) {
+		pj->index_context = IMB_anim_index_rebuild_context(clip->anim, clip->proxy.build_tc_flag,
+					clip->proxy.build_size_flag, clip->proxy.quality);
+	}
+
 	WM_jobs_customdata(steve, pj, proxy_freejob);
 	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|ND_DISPLAY, 0);
-	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, NULL);
+	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 
 	G.afbreek= 0;
 	WM_jobs_start(CTX_wm_manager(C), steve);

@@ -81,24 +81,35 @@ set(SRC
 	operators/bmo_utils.c
 
 	intern/bmesh_construct.c
+	intern/bmesh_construct.h
+	intern/bmesh_core.c
+	intern/bmesh_core.h
 	intern/bmesh_inline.c
 	intern/bmesh_interp.c
+	intern/bmesh_interp.h
 	intern/bmesh_iterators.c
+	intern/bmesh_iterators.h
 	intern/bmesh_iterators_inline.c
 	intern/bmesh_marking.c
+	intern/bmesh_marking.h
 	intern/bmesh_mesh.c
+	intern/bmesh_mesh.h
 	intern/bmesh_mods.c
-	intern/bmesh_newcore.c
+	intern/bmesh_mods.h
 	intern/bmesh_opdefines.c
 	intern/bmesh_operator_api_inline.c
 	intern/bmesh_operators.c
+	intern/bmesh_operators.h
 	intern/bmesh_operators_private.h
 	intern/bmesh_polygon.c
+	intern/bmesh_polygon.h
 	intern/bmesh_private.h
 	intern/bmesh_queries.c
+	intern/bmesh_queries.h
 	intern/bmesh_structure.c
 	intern/bmesh_structure.h
 	intern/bmesh_walkers.c
+	intern/bmesh_walkers.h
 	intern/bmesh_walkers_impl.c
 	intern/bmesh_walkers_private.h
 
@@ -107,12 +118,7 @@ set(SRC
 	bmesh.h
 	bmesh_class.h
 	bmesh_error.h
-	bmesh_iterators.h
-	bmesh_marking.h
 	bmesh_operator_api.h
-	bmesh_operators.h
-	bmesh_queries.h
-	bmesh_walkers.h
 )
 
 add_definitions(-DGLEW_STATIC)

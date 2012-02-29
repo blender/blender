@@ -161,8 +161,6 @@ void initArcIteratorStart(BArcIterator *iter, struct ReebArc *arc, struct ReebNo
 /* Filtering */
 void filterNullReebGraph(ReebGraph *rg);
 int filterSmartReebGraph(ReebGraph *rg, float threshold);
-int filterExternalReebGraph(ReebGraph *rg, float threshold);
-int filterInternalReebGraph(ReebGraph *rg, float threshold);
 
 /* Post-Build processing */
 void repositionNodes(ReebGraph *rg);

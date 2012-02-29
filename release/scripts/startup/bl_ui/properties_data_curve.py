@@ -113,6 +113,14 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             sub.prop(curve, "fill_mode", text="")
             col.prop(curve, "use_fill_deform")
 
+        if is_curve:
+            col.label(text="Path / Curve-Deform:")
+            sub = col.column()
+            rowsub = sub.row()
+            rowsub.prop(curve, "use_radius")
+            rowsub.prop(curve, "use_stretch")
+            sub.prop(curve, "use_deform_bounds")
+
 
 class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
     bl_label = "Texture Space"
@@ -189,16 +197,11 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         layout.prop(curve, "path_duration", text="Frames")
         layout.prop(curve, "eval_time")
 
-        split = layout.split()
 
-        col = split.column()
-        col.prop(curve, "use_path_follow")
-        col.prop(curve, "use_stretch")
-        col.prop(curve, "use_deform_bounds")
-
-        col = split.column()
-        col.prop(curve, "use_radius")
-        col.prop(curve, "use_time_offset", text="Offset Children")
+        # these are for paths only
+        row = layout.row()
+        row.prop(curve, "use_path_follow")
+        row.prop(curve, "use_time_offset", text="Offset Children")
 
 
 class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):

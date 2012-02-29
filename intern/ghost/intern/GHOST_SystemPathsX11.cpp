@@ -47,7 +47,7 @@
 #endif
 
 #ifdef PREFIX
-static const char *static_path= PREFIX "/share" ;
+static const char *static_path= PREFIX "/share";
 #else
 static const char *static_path= NULL;
 #endif

@@ -185,7 +185,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* MIST */
-	if((shi->passflag & SCE_PASS_MIST) || ((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0))  {
+	if((shi->passflag & SCE_PASS_MIST) || ((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0)) {
 		if(R.r.mode & R_ORTHO)
 			shr->mist= mistfactor(-shi->co[2], shi->co);
 		else
@@ -447,7 +447,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			}
 		}
 
-		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
+		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE))) {
 			MCol *mcol;
 			float *uv;
 			char *name;
@@ -1076,7 +1076,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 				
-		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
+		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE))) {
 			VlakRen *vlr= shi->vlr;
 			MTFace *tface;
 			MCol *mcol;

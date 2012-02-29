@@ -44,17 +44,17 @@ struct BLI_mempool_chunk;
 
 typedef struct BLI_mempool BLI_mempool;
 
-/*allow_iter allows iteration on this mempool.  note: this requires that the
-  first four bytes of the elements never contain the character string
-  'free'.  use with care.*/
+/* allow_iter allows iteration on this mempool.  note: this requires that the
+ * first four bytes of the elements never contain the character string
+ * 'free'.  use with care.*/
 
 BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
                                 short use_sysmalloc, short allow_iter);
 void *BLI_mempool_alloc(BLI_mempool *pool);
 void *BLI_mempool_calloc(BLI_mempool *pool);
-void BLI_mempool_free(BLI_mempool *pool, void *addr);
-void BLI_mempool_destroy(BLI_mempool *pool);
-int BLI_mempool_count(BLI_mempool *pool);
+void  BLI_mempool_free(BLI_mempool *pool, void *addr);
+void  BLI_mempool_destroy(BLI_mempool *pool);
+int   BLI_mempool_count(BLI_mempool *pool);
 void *BLI_mempool_findelem(BLI_mempool *pool, int index);
 
 /** iteration stuff.  note: this may easy to produce bugs with **/
@@ -65,11 +65,7 @@ typedef struct BLI_mempool_iter {
 	int curindex;
 } BLI_mempool_iter;
 
-/*allow iteration on this mempool.  note: this requires that the
-  first four bytes of the elements never contain the character string
-  'free'.  use with care.*/
-void BLI_mempool_allow_iter(BLI_mempool *pool);
-void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter);
+void  BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter);
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter);
 
 #ifdef __cplusplus

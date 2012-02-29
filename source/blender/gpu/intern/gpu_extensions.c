@@ -181,7 +181,7 @@ void GPU_extensions_init(void)
 
 	/* make sure double side isn't used by defautl and only getting enabled in places where it's
 	 * really needed to prevent different unexpected behaviors like with intel gme965 card (sergey) */
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
 	GG.os = GPU_OS_UNIX;
 #ifdef _WIN32

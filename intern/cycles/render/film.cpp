@@ -19,6 +19,7 @@
 #include "camera.h"
 #include "device.h"
 #include "film.h"
+#include "integrator.h"
 #include "scene.h"
 
 #include "util_algorithm.h"
@@ -108,6 +109,10 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.exposure = true;
 			break;
 		case PASS_BACKGROUND:
+			pass.components = 4;
+			pass.exposure = true;
+			break;
+		case PASS_AO:
 			pass.components = 4;
 			pass.exposure = true;
 			break;
@@ -224,6 +229,9 @@ void Film::device_update(Device *device, DeviceScene *dscene)
 			case PASS_BACKGROUND:
 				kfilm->pass_background = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
+			case PASS_AO:
+				kfilm->pass_ao = kfilm->pass_stride;
+				kfilm->use_light_pass = 1;
 			case PASS_NONE:
 				break;
 		}
@@ -248,6 +256,7 @@ bool Film::modified(const Film& film)
 
 void Film::tag_update(Scene *scene)
 {
+	scene->integrator->tag_update(scene);
 	need_update = true;
 }
 

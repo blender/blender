@@ -333,7 +333,7 @@ kmi = km.keymap_items.new('mesh.fill', 'F', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.beautify_fill', 'F', 'PRESS', shift=True, alt=True)
 kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.tris_convert_to_quads', 'J', 'PRESS', alt=True)
-kmi = km.keymap_items.new('mesh.edge_flip', 'F', 'PRESS', shift=True, ctrl=True)
+# kmi = km.keymap_items.new('mesh.edge_flip', 'F', 'PRESS', shift=True, ctrl=True) # removed since bmesh, can be made into something else?
 kmi = km.keymap_items.new('mesh.rip_move', 'V', 'PRESS')
 kmi = km.keymap_items.new('mesh.merge', 'M', 'PRESS', alt=True)
 kmi = km.keymap_items.new('transform.shrink_fatten', 'S', 'PRESS', ctrl=True, alt=True)

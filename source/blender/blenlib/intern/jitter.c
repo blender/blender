@@ -51,10 +51,10 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 		x = jit1[i];
 		y = jit1[i+1];
 		for (j = 2*num-2; j>=0 ; j-=2) {
-			if (i != j){
+			if (i != j) {
 				vecx = jit1[j] - x - 1.0f;
 				vecy = jit1[j+1] - y - 1.0f;
-				for (k = 3; k>0 ; k--){
+				for (k = 3; k>0 ; k--) {
 					if( fabsf(vecx)<rad1 && fabsf(vecy)<rad1) {
 						len=  sqrt(vecx*vecx + vecy*vecy);
 						if(len>0 && len<rad1) {
@@ -91,7 +91,7 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 
 		x -= dvecx/18.0f;
 		y -= dvecy/18.0f;
-		x -= floorf(x) ;
+		x -= floorf(x);
 		y -= floorf(y);
 		jit2[i] = x;
 		jit2[i+1] = y;
@@ -104,12 +104,12 @@ void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 	int i, j;
 	float vecx, vecy, dvecx, dvecy, x, y;
 
-	for (i=2*num -2; i>= 0 ; i-=2){
+	for (i=2*num -2; i>= 0 ; i-=2) {
 		dvecx = dvecy = 0.0;
 		x = jit1[i];
 		y = jit1[i+1];
-		for (j =2*num -2; j>= 0 ; j-=2){
-			if (i != j){
+		for (j =2*num -2; j>= 0 ; j-=2) {
+			if (i != j) {
 				vecx = jit1[j] - x - 1.0f;
 				vecy = jit1[j+1] - y - 1.0f;
 
@@ -130,7 +130,7 @@ void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 
 		x -= dvecx/2.0f;
 		y -= dvecy/2.0f;
-		x -= floorf(x) ;
+		x -= floorf(x);
 		y -= floorf(y);
 		jit2[i] = x;
 		jit2[i+1] = y;

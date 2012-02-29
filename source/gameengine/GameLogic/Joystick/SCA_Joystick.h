@@ -193,9 +193,6 @@ public:
 	 */
 	int Connected(void);
 };
-#ifdef WITH_SDL
-void Joystick_HandleEvents( void );
-#endif
 
 #endif
 

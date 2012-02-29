@@ -183,7 +183,7 @@ static void createFacepa(ExplodeModifierData *emd,
 	BLI_kdtree_free(tree);
 }
 
-static int edgecut_get(EdgeHash *edgehash, int v1, int v2)
+static int edgecut_get(EdgeHash *edgehash, unsigned int v1, unsigned int v2)
 {
 	return GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, v1, v2));
 }

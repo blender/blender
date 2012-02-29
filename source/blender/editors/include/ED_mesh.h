@@ -38,10 +38,6 @@ extern "C" {
 struct ID;
 struct View3D;
 struct ARegion;
-struct EditMesh;
-struct EditVert;
-struct EditEdge;
-struct EditFace;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;
@@ -185,13 +181,10 @@ int EDBM_select_interior_faces(struct BMEditMesh *em);
 struct UvElementMap *EDBM_make_uv_element_map(struct BMEditMesh *em, int selected, int doIslands);
 void		EDBM_free_uv_element_map(struct UvElementMap *vmap);
 
-void		EDBM_add_data_layer(struct BMEditMesh *em, struct CustomData *data, int type, const char *name);
-void		EDBM_free_data_layer(struct BMEditMesh *em, struct CustomData *data, int type);
-
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
 
 int EDBM_texFaceCheck(struct BMEditMesh *em);
-struct MTexPoly *EDBM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, int sloppy);
+struct MTexPoly *EDBM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **r_act_efa, int sloppy);
 
 void EDBM_free_uv_vert_map(struct UvVertMap *vmap);
 struct UvMapVert *EDBM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
@@ -236,7 +229,6 @@ void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Obje
 
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
-struct MTexPoly	*EM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, struct MLoopCol **col, int sloppy);
 int paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend);
 int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);

@@ -193,7 +193,7 @@ typedef struct bNode {
 #define NODE_GROUP_EDIT		128
 	/* free test flag, undefined */
 #define NODE_TEST			256
-	/* composite: don't do node but pass on buffer(s) */
+	/* node is disabled */
 #define NODE_MUTED			512
 #define NODE_CUSTOM_NAME	1024	/* deprecated! */
 	/* group node types: use const outputs by default */

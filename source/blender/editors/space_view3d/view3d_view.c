@@ -790,7 +790,7 @@ void ED_view3d_project_float(const ARegion *ar, const float vec[3], float adr[2]
 }
 
 /* use view3d_get_object_project_mat to get projecting mat */
-void ED_view3d_project_float_v3(ARegion *ar, float *vec, float *adr, float mat[4][4])
+void ED_view3d_project_float_v3(ARegion *ar, const float vec[3], float *adr, float mat[4][4])
 {
 	float vec4[4];
 	
@@ -853,8 +853,9 @@ void project_short(ARegion *ar, const float vec[3], short adr[2])	/* clips */
 	adr[0]= IS_CLIPPED;
 	
 	if (rv3d->rflag & RV3D_CLIPPING) {
-		if (ED_view3d_test_clipping(rv3d, vec, 0))
+		if (ED_view3d_clipping_test(rv3d, vec, FALSE)) {
 			return;
+		}
 	}
 	
 	copy_v3_v3(vec4, vec);
@@ -1230,7 +1231,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	}
 	
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
-		view3d_set_clipping(vc->rv3d);
+		ED_view3d_clipping_set(vc->rv3d);
 	
 	glSelectBuffer( bufsize, (GLuint *)buffer);
 	glRenderMode(GL_SELECT);
@@ -1309,7 +1310,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 // XXX	persp(PERSP_WIN);
 	
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
-		view3d_clr_clipping();
+		ED_view3d_clipping_disable();
 	
 	if (hits<0) printf("Too many objects in select buffer\n");	// XXX make error message
 	
@@ -1419,7 +1420,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		}
 		else {
 			for (base= FIRSTBASE; base; base= base->next) {
-				if (TESTBASE(v3d, base))  {
+				if (TESTBASE(v3d, base)) {
 					minmax_object(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay= base->lay;

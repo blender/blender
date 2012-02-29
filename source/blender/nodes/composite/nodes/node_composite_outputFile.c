@@ -97,13 +97,6 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 	}
 }
 
-static void node_composit_mute_output_file(void *UNUSED(data), int UNUSED(thread),
-										   struct bNode *UNUSED(node), void *UNUSED(nodedata),
-										   struct bNodeStack **UNUSED(in), struct bNodeStack **UNUSED(out))
-{
-	/* nothing to do here */
-}
-
 static void node_composit_init_output_file(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *ntemp)
 {
 	RenderData *rd = &ntemp->scene->r;
@@ -129,7 +122,6 @@ void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 	node_type_init(&ntype, node_composit_init_output_file);
 	node_type_storage(&ntype, "NodeImageFile", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_output_file);
-	node_type_mute(&ntype, node_composit_mute_output_file, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -261,13 +253,6 @@ static void exec_output_multi_file(void *data, bNode *node, bNodeStack **in, bNo
 	}
 }
 
-static void mute_output_multi_file(void *UNUSED(data), int UNUSED(thread),
-										   struct bNode *UNUSED(node), void *UNUSED(nodedata),
-										   struct bNodeStack **UNUSED(in), struct bNodeStack **UNUSED(out))
-{
-	/* nothing to do here */
-}
-
 void register_node_type_cmp_output_multi_file(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -278,7 +263,6 @@ void register_node_type_cmp_output_multi_file(bNodeTreeType *ttype)
 	node_type_init(&ntype, init_output_multi_file);
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_multi_file, copy_output_multi_file);
 	node_type_exec(&ntype, exec_output_multi_file);
-	node_type_mute(&ntype, mute_output_multi_file, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

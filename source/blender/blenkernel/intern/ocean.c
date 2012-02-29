@@ -422,7 +422,7 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 	{
 		if (oc->_do_disp_y)
 		{
-			ocr->disp[1] = INTERP(oc->_disp_y) ;
+			ocr->disp[1] = INTERP(oc->_disp_y);
 		}
 		if (oc->_do_normals)
 		{

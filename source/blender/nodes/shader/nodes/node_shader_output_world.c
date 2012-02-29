@@ -50,8 +50,7 @@ void register_node_type_sh_output_world(bNodeTreeType *ttype)
 	node_type_gpu(&ntype, NULL);
 
 	/* Do not allow muting output node. */
-	node_type_mute(&ntype, NULL, NULL);
-	node_type_gpu_mute(&ntype, NULL);
+	node_type_internal_connect(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

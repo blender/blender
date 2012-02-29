@@ -594,14 +594,14 @@ void transpose_m3(float mat[][3])
 {
 	float t;
 
-	t = mat[0][1] ; 
-	mat[0][1] = mat[1][0] ; 
+	t = mat[0][1];
+	mat[0][1] = mat[1][0];
 	mat[1][0] = t;
-	t = mat[0][2] ; 
-	mat[0][2] = mat[2][0] ; 
+	t = mat[0][2];
+	mat[0][2] = mat[2][0];
 	mat[2][0] = t;
-	t = mat[1][2] ; 
-	mat[1][2] = mat[2][1] ; 
+	t = mat[1][2];
+	mat[1][2] = mat[2][1];
 	mat[2][1] = t;
 }
 
@@ -609,25 +609,25 @@ void transpose_m4(float mat[][4])
 {
 	float t;
 
-	t = mat[0][1] ; 
-	mat[0][1] = mat[1][0] ; 
+	t = mat[0][1];
+	mat[0][1] = mat[1][0];
 	mat[1][0] = t;
-	t = mat[0][2] ; 
-	mat[0][2] = mat[2][0] ; 
+	t = mat[0][2];
+	mat[0][2] = mat[2][0];
 	mat[2][0] = t;
-	t = mat[0][3] ; 
-	mat[0][3] = mat[3][0] ; 
+	t = mat[0][3];
+	mat[0][3] = mat[3][0];
 	mat[3][0] = t;
 
-	t = mat[1][2] ; 
-	mat[1][2] = mat[2][1] ; 
+	t = mat[1][2];
+	mat[1][2] = mat[2][1];
 	mat[2][1] = t;
-	t = mat[1][3] ; 
-	mat[1][3] = mat[3][1] ; 
+	t = mat[1][3];
+	mat[1][3] = mat[3][1];
 	mat[3][1] = t;
 
-	t = mat[2][3] ; 
-	mat[2][3] = mat[3][2] ; 
+	t = mat[2][3];
+	mat[2][3] = mat[3][2];
 	mat[3][2] = t;
 }
 
@@ -1099,7 +1099,7 @@ void rotate_m4(float mat[][4], const char axis, const float angle)
 
 	cosine = (float)cos(angle);
 	sine = (float)sin(angle);
-	switch(axis){
+	switch (axis) {
 	case 'X':    
 		for(col=0 ; col<4 ; col++)
 			temp[col] = cosine*mat[1][col] + sine*mat[2][col];
@@ -1347,7 +1347,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 			s[k] = -s[k];
 		}
 		for (j = k+1; j < n; j++) {
-			if ((k < nct) && (s[k] != 0.0f))  {
+			if ((k < nct) && (s[k] != 0.0f)) {
 
 			// Apply the transformation.
 
@@ -1538,7 +1538,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				}
 				t = (ks != p ? fabsf(e[ks]) : 0.f) + 
 							  (ks != k+1 ? fabsf(e[ks-1]) : 0.0f);
-				if (fabsf(s[ks]) <= eps*t)  {
+				if (fabsf(s[ks]) <= eps*t) {
 					s[ks] = 0.0f;
 					break;
 				}

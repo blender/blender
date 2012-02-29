@@ -264,6 +264,9 @@ class SEQUENCER_MT_strip(Menu):
                 layout.separator()
                 # layout.operator("sequencer.movie_change")
                 layout.operator("sequencer.rendersize")
+            elif stype == 'SOUND':
+                layout.separator()
+                layout.operator("sequencer.crossfade_sounds")
 
         layout.separator()
 

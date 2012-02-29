@@ -542,6 +542,55 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 	ntree->update |= NTREE_UPDATE_LINKS;
 }
 
+void nodeInternalRelink(bNodeTree *ntree, bNode *node)
+{
+	bNodeLink *link, *link_next;
+	ListBase intlinks;
+	
+	if (!node->typeinfo->internal_connect)
+		return;
+	
+	intlinks = node->typeinfo->internal_connect(ntree, node);
+	
+	/* store link pointers in output sockets, for efficient lookup */
+	for (link=intlinks.first; link; link=link->next)
+		link->tosock->link = link;
+	
+	/* redirect downstream links */
+	for (link=ntree->links.first; link; link=link_next) {
+		link_next = link->next;
+		
+		/* do we have internal link? */
+		if (link->fromnode==node) {
+			if (link->fromsock->link) {
+				/* get the upstream input link */
+				bNodeLink *fromlink = link->fromsock->link->fromsock->link;
+				/* skip the node */
+				if (fromlink) {
+					link->fromnode = fromlink->fromnode;
+					link->fromsock = fromlink->fromsock;
+					
+					ntree->update |= NTREE_UPDATE_LINKS;
+				}
+				else
+					nodeRemLink(ntree, link);
+			}
+			else
+				nodeRemLink(ntree, link);
+		}
+	}
+	
+	/* remove remaining upstream links */
+	for (link=ntree->links.first; link; link=link_next) {
+		link_next = link->next;
+		
+		if (link->tonode==node)
+			nodeRemLink(ntree, link);
+	}
+	
+	BLI_freelistN(&intlinks);
+}
+
 /* transforms node location to area coords */
 void nodeSpaceCoords(bNode *node, float *locx, float *locy)
 {
@@ -1633,11 +1682,8 @@ void node_type_base(bNodeTreeType *ttype, bNodeType *ntype, int type, const char
 	ntype->flag = flag;
 
 	/* Default muting stuff. */
-	if(ttype) {
-		ntype->mutefunc      = ttype->mutefunc;
-		ntype->mutelinksfunc = ttype->mutelinksfunc;
-		ntype->gpumutefunc   = ttype->gpumutefunc;
-	}
+	if(ttype)
+		ntype->internal_connect = ttype->internal_connect;
 
 	/* default size values */
 	ntype->width = 140;
@@ -1733,14 +1779,9 @@ void node_type_exec_new(struct bNodeType *ntype,
 	ntype->newexecfunc = newexecfunc;
 }
 
-void node_type_mute(struct bNodeType *ntype,
-                    void (*mutefunc)(void *data, int thread, struct bNode *, void *nodedata,
-                                     struct bNodeStack **, struct bNodeStack **),
-                    ListBase (*mutelinksfunc)(struct bNodeTree *, struct bNode *, struct bNodeStack **, struct bNodeStack **,
-                                              struct GPUNodeStack *, struct GPUNodeStack *))
+void node_type_internal_connect(bNodeType *ntype, ListBase (*internal_connect)(bNodeTree *, bNode *))
 {
-	ntype->mutefunc = mutefunc;
-	ntype->mutelinksfunc = mutelinksfunc;
+	ntype->internal_connect = internal_connect;
 }
 
 void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out))
@@ -1751,12 +1792,6 @@ void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *m
 void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out))
 {
 	ntype->gpuextfunc = gpuextfunc;
-}
-
-void node_type_gpu_mute(struct bNodeType *ntype, int (*gpumutefunc)(struct GPUMaterial *, struct bNode *, void *,
-                                                                    struct GPUNodeStack *, struct GPUNodeStack *))
-{
-	ntype->gpumutefunc = gpumutefunc;
 }
 
 void node_type_compatibility(struct bNodeType *ntype, short compatibility)

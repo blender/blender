@@ -79,7 +79,7 @@ public:
 		class KX_GameObject* gameobj,
 		bool bFindMaterial,
 		bool bTouchPulse,
-		const STR_String& touchedpropname) ;
+		const STR_String& touchedpropname);
 	virtual ~KX_TouchSensor();
 
 	virtual CValue* GetReplica();

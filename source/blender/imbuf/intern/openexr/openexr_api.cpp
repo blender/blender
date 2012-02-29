@@ -98,7 +98,7 @@ class Mem_IStream: public IStream
 public:
 	
 	Mem_IStream (unsigned char *exrbuf, size_t exrsize):
-	    IStream("dummy"), _exrpos (0), _exrsize(exrsize)  { _exrbuf = exrbuf; }
+	    IStream("dummy"), _exrpos (0), _exrsize(exrsize) { _exrbuf = exrbuf; }
 	
 	virtual bool	read (char c[], int n);
 	virtual Int64	tellg ();

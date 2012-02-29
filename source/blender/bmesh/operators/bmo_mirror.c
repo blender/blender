@@ -34,7 +34,7 @@
 
 #define ELE_NEW		1
 
-void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
+void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator dupeop, weldop;
 	BMOIter siter;

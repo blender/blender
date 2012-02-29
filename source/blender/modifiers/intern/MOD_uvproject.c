@@ -244,10 +244,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			if (aspx == aspy) { 
 				offsetmat[3][0] -= cam->shiftx;
 				offsetmat[3][1] -= cam->shifty;
-			} else if (aspx < aspy)  {
+			}
+			else if (aspx < aspy) {
 				offsetmat[3][0] -=(cam->shiftx * aspy/aspx);
 				offsetmat[3][1] -= cam->shifty;
-			} else {
+			}
+			else {
 				offsetmat[3][0] -= cam->shiftx;
 				offsetmat[3][1] -=(cam->shifty * aspx/aspy);
 			}

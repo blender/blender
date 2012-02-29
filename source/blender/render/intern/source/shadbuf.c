@@ -978,8 +978,7 @@ static float readdeepvisibility(DeepSample *dsample, int tot, int z, int bias, f
 	/* tricky stuff here; we use ints which can overflow easily with bias values */
 
 	ds= dsample;
-	for(a=0; a<tot && (z-bias > ds->z); a++, ds++)
-		;
+	for (a=0; a<tot && (z-bias > ds->z); a++, ds++) {}
 
 	if(a == tot) {
 		if(biast)

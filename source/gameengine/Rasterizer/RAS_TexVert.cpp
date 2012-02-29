@@ -129,7 +129,7 @@ bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 		MT_fuzzyEqual(MT_Vector3(m_tangent), MT_Vector3(other->m_tangent)) &&
 		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
 		MT_fuzzyEqual(MT_Vector2(m_uv2), MT_Vector2(other->m_uv2)) /* &&
-		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))*/) ;
+		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))*/);
 	/* dont bother comparing m_localxyz since we know there from the same vert */
 }
 

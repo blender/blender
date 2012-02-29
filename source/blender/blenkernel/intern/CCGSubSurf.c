@@ -20,13 +20,6 @@
 #  define CCG_INLINE inline
 #endif
 
-/* copied from BKE_utildefines.h ugh */
-#ifdef __GNUC__
-#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
-#else
-#  define UNUSED(x) x
-#endif
-
 /* used for normalize_v3 in BLI_math_vector
  * float.h's FLT_EPSILON causes trouble with subsurf normals - campbell */
 #define EPSILON (1.0e-35f)
@@ -306,7 +299,7 @@ enum {
 	Face_eEffected =    (1 << 0)
 } /*FaceFlags*/;
 
-struct _CCGVert {
+struct CCGVert {
 	CCGVert		*next;	/* EHData.next */
 	CCGVertHDL	vHDL;	/* EHData.key */
 
@@ -317,9 +310,13 @@ struct _CCGVert {
 //	byte *levelData;
 //	byte *userData;
 };
-#define VERT_getLevelData(v)		((byte *) &(v)[1])
 
-struct _CCGEdge {
+static CCG_INLINE byte *VERT_getLevelData(CCGVert *v)
+{
+	return (byte*)(&(v)[1]);
+}
+
+struct CCGEdge {
 	CCGEdge		*next;	/* EHData.next */
 	CCGEdgeHDL	eHDL;	/* EHData.key */
 
@@ -332,9 +329,13 @@ struct _CCGEdge {
 //	byte *levelData;
 //	byte *userData;
 };
-#define EDGE_getLevelData(e)		((byte *) &(e)[1])
 
-struct _CCGFace {
+static CCG_INLINE byte *EDGE_getLevelData(CCGEdge *e)
+{
+	return (byte*)(&(e)[1]);
+}
+
+struct CCGFace {
 	CCGFace		*next;	/* EHData.next */
 	CCGFaceHDL	fHDL;	/* EHData.key */
 
@@ -346,9 +347,21 @@ struct _CCGFace {
 //	byte **gridData;
 //	byte *userData;
 };
-#define FACE_getVerts(f)		((CCGVert**) &(f)[1])
-#define FACE_getEdges(f)		((CCGEdge**) &(FACE_getVerts(f)[(f)->numVerts]))
-#define FACE_getCenterData(f)	((byte *) &(FACE_getEdges(f)[(f)->numVerts]))
+
+static CCG_INLINE CCGVert **FACE_getVerts(CCGFace *f)
+{
+	return (CCGVert**)(&f[1]);
+}
+
+static CCG_INLINE CCGEdge **FACE_getEdges(CCGFace *f)
+{
+	return (CCGEdge**)(&(FACE_getVerts(f)[f->numVerts]));
+}
+
+static CCG_INLINE byte *FACE_getCenterData(CCGFace *f)
+{
+	return (byte*)(&(FACE_getEdges(f)[(f)->numVerts]));
+}
 
 typedef enum {
 	eSyncState_None = 0,
@@ -358,7 +371,7 @@ typedef enum {
 	eSyncState_Partial
 } SyncState;
 
-struct _CCGSubSurf {
+struct CCGSubSurf {
 	EHash *vMap;	/* map of CCGVertHDL -> Vert */
 	EHash *eMap;	/* map of CCGEdgeHDL -> Edge */
 	EHash *fMap;	/* map of CCGFaceHDL -> Face */

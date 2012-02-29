@@ -1505,7 +1505,7 @@ static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float ro
 	}
 }
 
-static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
+static void translateflagNurb(ListBase *editnurb, short flag, const float vec[3])
 {
 	/* all verts with ('flag' & flag) translate */
 	Nurb *nu;
@@ -5714,7 +5714,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
 						bezt1= bezt;
 						bezt2= bezt+1;
-						if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) ;
+						if ((bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT)) {
+							/* pass */
+						}
 						else {	/* maybe do not make cyclic */
 							if(a==0 && (nu->flagu & CU_NURB_CYCLIC) ) {
 								bezt2= bezt+(nu->pntsu-1);
@@ -5741,7 +5743,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 					if( bp->f1 & SELECT ) {
 						bp1= bp;
 						bp2= bp+1;
-						if( bp2->f1 & 1 ) ;
+						if (bp2->f1 & 1) {
+							/* pass */
+						}
 						else {	/* maybe do not make cyclic */
 							if(a==0 && (nu->flagu & CU_NURB_CYCLIC) ) {
 								bp2= bp+(nu->pntsu-1);

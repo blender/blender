@@ -50,6 +50,10 @@ MINLINE void copy_v2_v2(float r[2], const float a[2]);
 MINLINE void copy_v3_v3(float r[3], const float a[3]);
 MINLINE void copy_v4_v4(float r[4], const float a[4]);
 
+MINLINE void copy_v2_fl(float r[2], float f);
+MINLINE void copy_v3_fl(float r[3], float f);
+MINLINE void copy_v4_fl(float r[4], float f);
+
 MINLINE void swap_v2_v2(float a[2], float b[2]);
 MINLINE void swap_v3_v3(float a[3], float b[3]);
 MINLINE void swap_v4_v4(float a[4], float b[4]);

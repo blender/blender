@@ -567,6 +567,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	EDBM_selectmode_flush(vc->em);
 }
 
+/* BMESH_TODO */
 #if 0
 /* this is an exception in that its the only lasso that dosnt use the 3d view (uses space image view) */
 static void do_lasso_select_mesh_uv(int mcords[][2], short moves, short select)

@@ -35,6 +35,7 @@
 
 #include "bmesh_py_types.h"
 #include "bmesh_py_utils.h"
+#include "bmesh_py_select.h"
 
 #include "BLI_utildefines.h"
 
@@ -96,6 +97,8 @@ PyObject *BPyInit_bmesh(void)
 	PyObject *sys_modules = PySys_GetObject("modules"); /* not pretty */
 
 	BPy_BM_init_types();
+	BPy_BM_init_select_types();
+
 
 	mod = PyModule_Create(&BPy_BM_module_def);
 

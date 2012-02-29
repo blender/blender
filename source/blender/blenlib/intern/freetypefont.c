@@ -117,8 +117,8 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 		che->width= glyph->advance.x * scale;
 		
 		// Start converting the FT data
-		npoints = (int *)MEM_callocN((ftoutline.n_contours)* sizeof(int),"endpoints") ;
-		onpoints = (int *)MEM_callocN((ftoutline.n_contours)* sizeof(int),"onpoints") ;
+		npoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int),"endpoints");
+		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int),"onpoints");
 
 		// calculate total points of each contour
 		for(j = 0; j < ftoutline.n_contours; j++) {
@@ -145,8 +145,8 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 		//contour loop, bezier & conic styles merged
 		for(j = 0; j < ftoutline.n_contours; j++) {
 			// add new curve
-			nu  =  (Nurb*)MEM_callocN(sizeof(struct Nurb),"objfnt_nurb");
-			bezt = (BezTriple*)MEM_callocN((onpoints[j])* sizeof(BezTriple),"objfnt_bezt") ;
+			nu  =  (Nurb *)MEM_callocN(sizeof(struct Nurb), "objfnt_nurb");
+			bezt = (BezTriple *)MEM_callocN((onpoints[j]) * sizeof(BezTriple), "objfnt_bezt");
 			BLI_addtail(&che->nurbsbase, nu);
 
 			nu->type= CU_BEZIER;

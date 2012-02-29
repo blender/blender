@@ -338,7 +338,7 @@ static bool barDistSqPointToTri(const float* p, const float* a, const float* b, 
 
 	float ud = u<0.f ? -u : (u>1.f ? u-1.f : 0.f);
 	float vd = v<0.f ? -v : (v>1.f ? v-1.f : 0.f);
-	return ud*ud+vd*vd ;
+	return ud * ud + vd * vd;
 }
 
 inline void flipAxes(float* vec)

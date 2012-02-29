@@ -31,7 +31,7 @@ struct BlenderCamera {
 	float nearclip;
 	float farclip;
 
-	bool ortho;
+	CameraType type;
 	float ortho_scale;
 
 	float lens;
@@ -58,6 +58,7 @@ static void blender_camera_init(BlenderCamera *bcam)
 {
 	memset(bcam, 0, sizeof(BlenderCamera));
 
+	bcam->type = CAMERA_PERSPECTIVE;
 	bcam->zoom = 1.0f;
 	bcam->pixelaspect = make_float2(1.0f, 1.0f);
 	bcam->sensor_width = 32.0f;
@@ -91,7 +92,9 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 		bcam->nearclip = b_camera.clip_start();
 		bcam->farclip = b_camera.clip_end();
 
-		bcam->ortho = (b_camera.type() == BL::Camera::type_ORTHO);
+		bcam->type = (b_camera.type() == BL::Camera::type_ORTHO)? CAMERA_ORTHOGRAPHIC: CAMERA_PERSPECTIVE;
+		if(bcam->type == CAMERA_PERSPECTIVE && b_camera.use_panorama())
+			bcam->type = CAMERA_ENVIRONMENT;
 		bcam->ortho_scale = b_camera.ortho_scale();
 
 		bcam->lens = b_camera.lens();
@@ -159,39 +162,48 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	}
 
 	/* modify aspect for orthographic scale */
-	if(bcam->ortho) {
+	if(bcam->type == CAMERA_ORTHOGRAPHIC) {
 		xaspect = xaspect*bcam->ortho_scale/(aspectratio*2.0f);
 		yaspect = yaspect*bcam->ortho_scale/(aspectratio*2.0f);
 		aspectratio = bcam->ortho_scale/2.0f;
 	}
 
-	/* set viewplane */
-	cam->left = -xaspect;
-	cam->right = xaspect;
-	cam->bottom = -yaspect;
-	cam->top = yaspect;
+	if(bcam->type == CAMERA_ENVIRONMENT) {
+		/* set viewplane */
+		cam->left = 0.0f;
+		cam->right = 1.0f;
+		cam->bottom = 0.0f;
+		cam->top = 1.0f;
+	}
+	else {
+		/* set viewplane */
+		cam->left = -xaspect;
+		cam->right = xaspect;
+		cam->bottom = -yaspect;
+		cam->top = yaspect;
 
-	/* zoom for 3d camera view */
-	cam->left *= bcam->zoom;
-	cam->right *= bcam->zoom;
-	cam->bottom *= bcam->zoom;
-	cam->top *= bcam->zoom;
+		/* zoom for 3d camera view */
+		cam->left *= bcam->zoom;
+		cam->right *= bcam->zoom;
+		cam->bottom *= bcam->zoom;
+		cam->top *= bcam->zoom;
 
-	/* modify viewplane with camera shift and 3d camera view offset */
-	float dx = 2.0f*(aspectratio*bcam->shift.x + bcam->offset.x*xaspect*2.0f);
-	float dy = 2.0f*(aspectratio*bcam->shift.y + bcam->offset.y*yaspect*2.0f);
+		/* modify viewplane with camera shift and 3d camera view offset */
+		float dx = 2.0f*(aspectratio*bcam->shift.x + bcam->offset.x*xaspect*2.0f);
+		float dy = 2.0f*(aspectratio*bcam->shift.y + bcam->offset.y*yaspect*2.0f);
 
-	cam->left += dx;
-	cam->right += dx;
-	cam->bottom += dy;
-	cam->top += dy;
+		cam->left += dx;
+		cam->right += dx;
+		cam->bottom += dy;
+		cam->top += dy;
+	}
 
 	/* clipping distances */
 	cam->nearclip = bcam->nearclip;
 	cam->farclip = bcam->farclip;
 
-	/* orthographic */
-	cam->ortho = bcam->ortho;
+	/* type */
+	cam->type = bcam->type;
 
 	/* perspective */
 	cam->fov = 2.0f*atan((0.5f*sensor_size)/bcam->lens/aspectratio);
@@ -200,8 +212,24 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->blades = bcam->apertureblades;
 	cam->bladesrotation = bcam->aperturerotation;
 
-	/* transform, note the blender camera points along the negative z-axis */
-	cam->matrix = bcam->matrix * transform_scale(1.0f, 1.0f, -1.0f);
+	/* transform */
+	cam->matrix = bcam->matrix;
+
+	if(bcam->type == CAMERA_ENVIRONMENT) {
+		/* make it so environment camera needs to be pointed in the direction
+		   of the positive x-axis to match an environment texture, this way
+		   it is looking at the center of the texture */
+		cam->matrix = cam->matrix *
+			make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
+			                0.0f,  0.0f, 1.0f, 0.0f,
+			               -1.0f,  0.0f, 0.0f, 0.0f,
+			                0.0f,  0.0f, 0.0f, 1.0f);
+	}
+	else {
+		/* note the blender camera points along the negative z-axis */
+		cam->matrix = cam->matrix * transform_scale(1.0f, 1.0f, -1.0f);
+	}
+
 	cam->matrix = transform_clear_scale(cam->matrix);
 
 	/* set update flag */
@@ -269,7 +297,7 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 		bcam.farclip *= 0.5;
 		bcam.nearclip = -bcam.farclip;
 
-		bcam.ortho = true;
+		bcam.type = CAMERA_ORTHOGRAPHIC;
 		bcam.ortho_scale = b_rv3d.view_distance();
 	}
 

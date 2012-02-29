@@ -30,28 +30,27 @@
 /* bmesh data structures */
 
 /* dissable holes for now, these are ifdef'd because they use more memory and cant be saved in DNA currently */
-// define USE_BMESH_HOLES
+// #define USE_BMESH_HOLES
 
 struct BMesh;
 struct BMVert;
 struct BMEdge;
 struct BMLoop;
 struct BMFace;
-struct BMFlagLayer;
-struct BMLayerType;
-struct BMSubClassLayer;
 
 struct BLI_mempool;
 struct Object;
 
-/*note: it is very important for BMHeader to start with two
-  pointers. this is a requirement of mempool's method of
-  iteration.
-*/
+/* note: it is very important for BMHeader to start with two
+ * pointers. this is a requirement of mempool's method of
+ * iteration.
+ *
+ * hrm. it doesnt but stull works ok, remove the comment above? - campbell.
+ */
 typedef struct BMHeader {
 	void *data; /* customdata layers */
 	int index; /* notes:
-	            * - Use BM_elem_index_get/SetIndex macros for index
+	            * - Use BM_elem_index_get/set macros for index
 	            * - Unitialized to -1 so we can easily tell its not set.
 	            * - Used for edge/vert/face, check BMesh.elem_index_dirty for valid index values,
 	            *   this is abused by various tools which set it dirty.
@@ -95,14 +94,14 @@ typedef struct BMLoop {
 	/* notice no flags layer */
 
 	struct BMVert *v;
-	struct BMEdge *e;
+	struct BMEdge *e; /* edge, using verts (v, next->v) */
 	struct BMFace *f;
 
 	struct BMLoop *radial_next, *radial_prev;
-	
+
 	/* these were originally commented as private but are used all over the code */
 	/* can't use ListBase API, due to head */
-	struct BMLoop *next, *prev;
+	struct BMLoop *next, *prev; /* next/prev verts around the face */
 } BMLoop;
 
 /* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these dont have a flag layer */
@@ -110,6 +109,11 @@ typedef struct BMElemF {
 	BMHeader head;
 	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
 } BMElemF;
+
+/* can cast anything to this, including BMLoop */
+typedef struct BMElem {
+	BMHeader head;
+} BMElem;
 
 #ifdef USE_BMESH_HOLES
 /* eventually, this structure will be used for supporting holes in faces */
@@ -183,10 +187,5 @@ typedef struct BMesh {
 
 	int opflag; /* current operator flag */
 } BMesh;
-
-#define BM_VERT		1
-#define BM_EDGE		2
-#define BM_LOOP		4
-#define BM_FACE		8
 
 #endif /* __BMESH_CLASS_H__ */
