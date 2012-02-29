@@ -56,6 +56,8 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
+#include "IMB_imbuf.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -131,20 +133,14 @@ typedef struct ProxyBuildJob {
 	Scene *scene; 
 	struct Main * main;
 	ListBase queue;
-	ThreadMutex queue_lock;
+	int stop;
 } ProxyJob;
 
 static void proxy_freejob(void *pjv)
 {
 	ProxyJob *pj= pjv;
-	Sequence * seq;
 
-	for (seq = pj->queue.first; seq; seq = seq->next) {
-		BLI_remlink(&pj->queue, seq);
-		seq_free_sequence_recurse(pj->scene, seq);
-	}
-
-	BLI_mutex_end(&pj->queue_lock);
+	BLI_freelistN(&pj->queue);
 
 	MEM_freeN(pj);
 }
@@ -153,30 +149,17 @@ static void proxy_freejob(void *pjv)
 static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
 {
 	ProxyJob *pj = pjv;
+	LinkData *link;
 
-	while (!*stop) {
-		Sequence * seq;
+	for (link = pj->queue.first; link; link = link->next) {
+		struct SeqIndexBuildContext *context = link->data;
 
-		BLI_mutex_lock(&pj->queue_lock);
-		
-		if (!pj->queue.first) {
-			BLI_mutex_unlock(&pj->queue_lock);
-			break;
-		}
-
-		seq = pj->queue.first;
-
-		BLI_remlink(&pj->queue, seq);
-		BLI_mutex_unlock(&pj->queue_lock);
-
-		seq_proxy_rebuild(pj->main, pj->scene, seq, 
-		                  stop, do_update, progress);
-		seq_free_sequence_recurse(pj->scene, seq);
+		seq_proxy_rebuild(context, stop, do_update, progress);
 	}
 
 	if (*stop) {
-		fprintf(stderr, 
-			"Canceling proxy rebuild on users request...\n");
+		pj->stop = 1;
+		fprintf(stderr,  "Canceling proxy rebuild on users request...\n");
 	}
 }
 
@@ -184,23 +167,29 @@ static void proxy_endjob(void *pjv)
 {
 	ProxyJob *pj = pjv;
 	Editing *ed = seq_give_editing(pj->scene, FALSE);
+	LinkData *link;
+
+	for (link = pj->queue.first; link; link = link->next) {
+		seq_proxy_rebuild_finish(link->data, pj->stop);
+	}
 
 	free_imbuf_seq(pj->scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_main_add_notifier(NC_SCENE|ND_SEQUENCER, pj->scene);
 }
 
-static void seq_proxy_build_job(const bContext *C, Sequence * seq)
+static void seq_proxy_build_job(const bContext *C)
 {
 	wmJob * steve;
 	ProxyJob *pj;
 	Scene *scene= CTX_data_scene(C);
+	Editing *ed = seq_give_editing(scene, FALSE);
 	ScrArea * sa= CTX_wm_area(C);
+	struct SeqIndexBuildContext *context;
+	LinkData *link;
+	Sequence * seq;
 
-	seq = seq_dupli_recursive(scene, scene, seq, 0);
-
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), 
-	                    sa, "Building Proxies", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
 
 	pj = WM_jobs_get_customdata(steve);
 
@@ -210,18 +199,19 @@ static void seq_proxy_build_job(const bContext *C, Sequence * seq)
 		pj->scene= scene;
 		pj->main = CTX_data_main(C);
 
-		BLI_mutex_init(&pj->queue_lock);
-
 		WM_jobs_customdata(steve, pj, proxy_freejob);
-		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_SEQUENCER,
-		              NC_SCENE|ND_SEQUENCER);
-		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL,
-		                  proxy_endjob);
+		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_SEQUENCER, NC_SCENE|ND_SEQUENCER);
+		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 	}
 
-	BLI_mutex_lock(&pj->queue_lock);
-	BLI_addtail(&pj->queue, seq);
-	BLI_mutex_unlock(&pj->queue_lock);
+	SEQP_BEGIN(ed, seq) {
+		if ((seq->flag & SELECT)) {
+			context = seq_proxy_rebuild_context(pj->main, pj->scene, seq);
+			link = BLI_genericNodeN(context);
+			BLI_addtail(&pj->queue, link);
+		}
+	}
+	SEQ_END
 
 	if (!WM_jobs_is_running(steve)) {
 		G.afbreek = 0;
@@ -2822,17 +2812,8 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 /* rebuild_proxy operator */
 static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence * seq;
+	seq_proxy_build_job(C);
 
-	SEQP_BEGIN(ed, seq) {
-		if ((seq->flag & SELECT)) {
-			seq_proxy_build_job(C, seq);
-		}
-	}
-	SEQ_END
-		
 	return OPERATOR_FINISHED;
 }
 

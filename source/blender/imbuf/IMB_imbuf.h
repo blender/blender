@@ -217,12 +217,18 @@ void IMB_anim_set_index_dir(struct anim * anim, const char * dir);
 int IMB_anim_index_get_frame_index(struct anim * anim, IMB_Timecode_Type tc,
                                    int position);
 
+struct IndexBuildContext;
+
+/* prepare context for proxies/imecodes builder */
+struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
+                                                         IMB_Proxy_Size proxy_sizes_in_use, int quality);
+
 /* will rebuild all used indices and proxies at once */
-void IMB_anim_index_rebuild(struct anim * anim, 
-                            IMB_Timecode_Type build_tcs,
-                            IMB_Proxy_Size build_preview_sizes,
-                            int build_quality,
+void IMB_anim_index_rebuild(struct IndexBuildContext *context,
                             short *stop, short *do_update, float *progress);
+
+/* finish rebuilding proxises/timecodes and free temporary contexts used */
+void IMB_anim_index_rebuild_finish(struct IndexBuildContext *context, short stop);
 
 /**
  * Return the length (in frames) of the given @a anim.
@@ -243,6 +249,7 @@ int IMB_anim_get_fps(struct anim * anim,
  */
 struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex);
 void IMB_close_anim(struct anim *anim);
+void IMB_close_anim_proxies(struct anim *anim);
 
 
 /**

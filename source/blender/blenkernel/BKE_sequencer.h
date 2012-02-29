@@ -40,6 +40,8 @@ struct Strip;
 struct StripElem;
 struct bSound;
 
+struct SeqIndexBuildContext;
+
 #define BUILD_SEQAR_COUNT_NOTHING  0
 #define BUILD_SEQAR_COUNT_CURRENT  1
 #define BUILD_SEQAR_COUNT_CHILDREN 2
@@ -194,9 +196,10 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 int input_have_to_preprocess(
 	SeqRenderData context, struct Sequence * seq, float cfra);
 
-void seq_proxy_rebuild(struct Main * bmain, 
-                       struct Scene *scene, struct Sequence * seq,
+struct SeqIndexBuildContext *seq_proxy_rebuild_context(struct Main *bmain, struct Scene *scene, struct Sequence *seq);
+void seq_proxy_rebuild(struct SeqIndexBuildContext *context,
                        short *stop, short *do_update, float *progress);
+void seq_proxy_rebuild_finish(struct SeqIndexBuildContext *context, short stop);
 
 
 /* **********************************************************************

@@ -1140,6 +1140,18 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
    proxy management
    ********************************************************************** */
 
+typedef struct SeqIndexBuildContext {
+	struct IndexBuildContext *index_context;
+
+	int tc_flags;
+	int size_flags;
+	int quality;
+
+	Main *bmain;
+	Scene *scene;
+	Sequence *seq, *orig_seq;
+} SeqIndexBuildContext;
+
 #define PROXY_MAXFILE (2*FILE_MAXDIR+FILE_MAXFILE)
 
 static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
@@ -1345,35 +1357,56 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	IMB_freeImBuf(ibuf);
 }
 
-void seq_proxy_rebuild(struct Main * bmain, Scene *scene, Sequence * seq,
-		       short *stop, short *do_update, float *progress)
+struct SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq)
 {
-	SeqRenderData context;
-	int cfra;
-	int tc_flags;
-	int size_flags;
-	int quality;
+	SeqIndexBuildContext *context;
+	Sequence *nseq;
 
 	if (!seq->strip || !seq->strip->proxy) {
-		return;
+		return NULL;
 	}
 
 	if (!(seq->flag & SEQ_USE_PROXY)) {
-		return;
+		return NULL;
 	}
 
-	tc_flags   = seq->strip->proxy->build_tc_flags;
-	size_flags = seq->strip->proxy->build_size_flags;
-	quality    = seq->strip->proxy->quality;
+	context = MEM_callocN(sizeof(SeqIndexBuildContext), "seq proxy rebuild context");
+
+	nseq = seq_dupli_recursive(scene, scene, seq, 0);
+
+	context->tc_flags   = nseq->strip->proxy->build_tc_flags;
+	context->size_flags = nseq->strip->proxy->build_size_flags;
+	context->quality    = nseq->strip->proxy->quality;
+
+	context->bmain = bmain;
+	context->scene = scene;
+	context->orig_seq = seq;
+	context->seq = nseq;
+
+	if (nseq->type == SEQ_MOVIE) {
+		seq_open_anim_file(nseq);
+
+		if (nseq->anim) {
+			context->index_context = IMB_anim_index_rebuild_context(nseq->anim,
+				context->tc_flags, context->size_flags, context->quality);
+		}
+	}
+
+	return context;
+}
+
+void seq_proxy_rebuild(SeqIndexBuildContext *context, short *stop, short *do_update, float *progress)
+{
+	SeqRenderData render_context;
+	Sequence *seq = context->seq;
+	Scene *scene = context->scene;
+	int cfra;
 
 	if (seq->type == SEQ_MOVIE) {
-		seq_open_anim_file(seq);
-
-		if (seq->anim) {
-			IMB_anim_index_rebuild(
-				seq->anim, tc_flags, size_flags, quality,
-				stop, do_update, progress);
+		if (context->index_context) {
+			IMB_anim_index_rebuild(context->index_context, stop, do_update, progress);
 		}
+
 		return;
 	}
 
@@ -1388,25 +1421,25 @@ void seq_proxy_rebuild(struct Main * bmain, Scene *scene, Sequence * seq,
 
 	/* fail safe code */
 
-	context = seq_new_render_data(
-		bmain, scene, 
+	render_context = seq_new_render_data(
+		context->bmain, context->scene,
 		(scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f, 
 		(scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 
 		100);
 
 	for (cfra = seq->startdisp + seq->startstill; 
 	     cfra < seq->enddisp - seq->endstill; cfra++) {
-		if (size_flags & IMB_PROXY_25) {
-			seq_proxy_build_frame(context, seq, cfra, 25);
+		if (context->size_flags & IMB_PROXY_25) {
+			seq_proxy_build_frame(render_context, seq, cfra, 25);
 		}
-		if (size_flags & IMB_PROXY_50) {
-			seq_proxy_build_frame(context, seq, cfra, 50);
+		if (context->size_flags & IMB_PROXY_50) {
+			seq_proxy_build_frame(render_context, seq, cfra, 50);
 		}
-		if (size_flags & IMB_PROXY_75) {
-			seq_proxy_build_frame(context, seq, cfra, 75);
+		if (context->size_flags & IMB_PROXY_75) {
+			seq_proxy_build_frame(render_context, seq, cfra, 75);
 		}
-		if (size_flags & IMB_PROXY_100) {
-			seq_proxy_build_frame(context, seq, cfra, 100);
+		if (context->size_flags & IMB_PROXY_100) {
+			seq_proxy_build_frame(render_context, seq, cfra, 100);
 		}
 
 		*progress= (float)cfra/(seq->enddisp - seq->endstill 
@@ -1418,6 +1451,18 @@ void seq_proxy_rebuild(struct Main * bmain, Scene *scene, Sequence * seq,
 	}
 }
 
+void seq_proxy_rebuild_finish(SeqIndexBuildContext *context, short stop)
+{
+	if (context->index_context) {
+		IMB_close_anim_proxies(context->seq->anim);
+		IMB_close_anim_proxies(context->orig_seq->anim);
+		IMB_anim_index_rebuild_finish(context->index_context, stop);
+	}
+
+	seq_free_sequence_recurse(context->scene, context->seq);
+
+	MEM_freeN(context);
+}
 
 /* **********************************************************************
    color balance 
