@@ -241,6 +241,7 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 {
 	ObjectRen *obr = obi->obr;
+	char *name = obi->ob->id.name+2;
 
 	// We parse vlak nodes and count the number of faces after the clipping by
 	// the near and far view planes is applied (Note: mesh vertices are in the
@@ -277,7 +278,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			numFaces += countClippedFaces(v1, v3, v4, clip_2);
 	}
 	if (wire_material)
-		cout << "Warning: some faces have wire materials (ignored)" << endl;
+		printf("Warning: Object %s has wire materials (ignored)\n", name);
 //	cout <<"numFaces " <<numFaces<<endl;
 	if (numFaces == 0)
 		return;
@@ -484,27 +485,18 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	delete [] normals;
 	delete [] VIndices;
 	delete [] NIndices;
-	
-#ifdef DETRI_REMOVAL
-	// Removal of degenerated triangles
-	// A triangle consisting of three vertices A, B and P is considered
-	// a degenerated triangle when the distance between line segment AB
-	// and point P is exactly or nearly equal to zero.
-	typedef struct {
-		unsigned i, j; // 0 <= i, j < viSize
-		unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
-		unsigned niA, niB, niP; // 0 <= niA, niB, niP < niSize
-	} detri_t;
-	vector<Vec3r> iVertices;
-	vector<detri_t> detriList;
-	unsigned vi0, vi1, vi2;
-	unsigned ni0, ni1, ni2;
-	unsigned numExtraFaces = 0;
-	bool *removed = new bool[numFaces];
-	for (i = 0; i < numFaces; i++)
-		removed[i] = false;
+
+	// Removal of degenerate triangles
+	// A degenerate triangle is a triangle such that
+	// 1) A and B are in the same position in the 3D space; or
+	// 2) the distance between point P and line segment AB is zero.
+	// Only those degenerate triangles in the second form are addressed here
+	// (by transforming them into the first form).  Those in the first form
+	// are addressed later in WShape::MakeFace().
+	unsigned vi0, vi1, vi2, vi;
+	unsigned ni0, ni1, ni2, ni;
+	unsigned numDetris = 0;
 	for (i = 0; i < viSize; i += 3) {
-		detri_t detri;
 		vi0 = cleanVIndices[i];
 		vi1 = cleanVIndices[i+1];
 		vi2 = cleanVIndices[i+2];
@@ -514,128 +506,62 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		Vec3r v0(cleanVertices[vi0], cleanVertices[vi0+1], cleanVertices[vi0+2]);
 		Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
 		Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
-		if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1e-6) {
-			detri.viP = vi0; detri.viA = vi1; detri.viB = vi2;
-			detri.niP = ni0; detri.niA = ni1; detri.niB = ni2;
+		if (v0 == v1 || v0 == v2 || v1 == v2) {
+			// do nothing for now
+		}
+		else if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1e-6) {
+			if ((v1-v0).squareNorm() < (v2-v0).squareNorm()) {
+				vi = vi1;
+				ni = ni1;
+			} else {
+				vi = vi2;
+				ni = ni2;
+			}
+			cleanVertices[vi0] = cleanVertices[vi];
+			cleanVertices[vi0+1] = cleanVertices[vi+1];
+			cleanVertices[vi0+2] = cleanVertices[vi+2];
+			cleanNormals[ni0] = cleanNormals[ni];
+			cleanNormals[ni0+1] = cleanNormals[ni+1];
+			cleanNormals[ni0+2] = cleanNormals[ni+2];
+			++numDetris;
 		}
 		else if (GeomUtils::distPointSegment<Vec3r>(v1, v0, v2) < 1e-6) {
-			detri.viP = vi1; detri.viA = vi0; detri.viB = vi2;
-			detri.niP = ni1; detri.niA = ni0; detri.niB = ni2;
+			if ((v0-v1).squareNorm() < (v2-v1).squareNorm()) {
+				vi = vi0;
+				ni = ni0;
+			} else {
+				vi = vi2;
+				ni = ni2;
+			}
+			cleanVertices[vi1] = cleanVertices[vi];
+			cleanVertices[vi1+1] = cleanVertices[vi+1];
+			cleanVertices[vi1+2] = cleanVertices[vi+2];
+			cleanNormals[ni1] = cleanNormals[ni];
+			cleanNormals[ni1+1] = cleanNormals[ni+1];
+			cleanNormals[ni1+2] = cleanNormals[ni+2];
+			++numDetris;
 		}
 		else if (GeomUtils::distPointSegment<Vec3r>(v2, v0, v1) < 1e-6) {
-			detri.viP = vi2; detri.viA = vi0; detri.viB = vi1;
-			detri.niP = ni2; detri.niA = ni0; detri.niB = ni1;
-		}
-		else {
-			continue;
-		}
-		removed[i/3] = true;
-		detri.i = i; // the i-th face is a degenerated triangle
-		detri.j = i;
-		for (unsigned j = 0; j < viSize; j += 3) {
-			if (i == j)
-				continue;
-			vi0 = cleanVIndices[j];
-			vi1 = cleanVIndices[j+1];
-			vi2 = cleanVIndices[j+2];
-			if (detri.viA == vi0 && (detri.viB == vi1 || detri.viB == vi2) ||
-			    detri.viA == vi1 && (detri.viB == vi0 || detri.viB == vi2) ||
-			    detri.viA == vi2 && (detri.viB == vi0 || detri.viB == vi1)) {
-				if (removed[j/3])
-					cerr << "FIXME: could not handle a degenerate triangle properly." << endl;
-				removed[j/3] = true;
-				detri.j = j; // the j-th face shares the edge AB with the i-th face
-				++numExtraFaces;
-				break;
+			if ((v0-v2).squareNorm() < (v1-v2).squareNorm()) {
+				vi = vi0;
+				ni = ni0;
+			} else {
+				vi = vi1;
+				ni = ni1;
 			}
-		}
-		detriList.push_back(detri);
-	}
-	//printf("detriList.size() = %d\n", detriList.size());
-
-	numFaces = numFaces - detriList.size() + numExtraFaces;
-	unsigned cviSize = 3 * numFaces;
-	unsigned cniSize = cviSize;
-	unsigned *newCleanVIndices = new unsigned[cviSize];
-	unsigned *newCleanNIndices = new unsigned[cniSize];
-	unsigned k = 0;
-	for (i = 0; i < viSize; i += 3) {
-		if (removed[i/3])
-			continue;
-		newCleanVIndices[k]   = cleanVIndices[i];
-		newCleanVIndices[k+1] = cleanVIndices[i+1];
-		newCleanVIndices[k+2] = cleanVIndices[i+2];
-		newCleanNIndices[k]   = cleanNIndices[i];
-		newCleanNIndices[k+1] = cleanNIndices[i+1];
-		newCleanNIndices[k+2] = cleanNIndices[i+2];
-		k += 3;
-	}
-	vector<detri_t>::iterator v, end = detriList.end();
-	for (v = detriList.begin(); v != end; v++) {
-		detri_t detri = (*v);
-		//printf("i=%d j=%d viA=%d viB=%d viP=%d\n", detri.i, detri.j, detri.viA, detri.viB, detri.viP);
-		if (detri.i == detri.j)
-			continue;
-		vi0 = cleanVIndices[detri.j];
-		vi1 = cleanVIndices[detri.j+1];
-		vi2 = cleanVIndices[detri.j+2];
-		ni0 = cleanNIndices[detri.j];
-		ni1 = cleanNIndices[detri.j+1];
-		ni2 = cleanNIndices[detri.j+2];
-		if (vi0 == detri.viA && vi1 == detri.viB ||
-		    vi0 == detri.viB && vi1 == detri.viA) {
-			newCleanVIndices[k]   = vi0;
-			newCleanVIndices[k+1] = detri.viP;
-			newCleanVIndices[k+2] = vi2;
-			newCleanNIndices[k]   = ni0;
-			newCleanNIndices[k+1] = detri.niP;
-			newCleanNIndices[k+2] = ni2;
-			k += 3;
-			newCleanVIndices[k]   = detri.viP;
-			newCleanVIndices[k+1] = vi1;
-			newCleanVIndices[k+2] = vi2;
-			newCleanNIndices[k]   = detri.niP;;
-			newCleanNIndices[k+1] = ni1;
-			newCleanNIndices[k+2] = ni2;
-			k += 3;
-		} else if (vi1 == detri.viA && vi2 == detri.viB ||
-		           vi1 == detri.viB && vi2 == detri.viA) {
-			newCleanVIndices[k]   = vi0;
-			newCleanVIndices[k+1] = vi1;
-			newCleanVIndices[k+2] = detri.viP;
-			newCleanNIndices[k]   = ni0;
-			newCleanNIndices[k+1] = ni1;
-			newCleanNIndices[k+2] = detri.niP;
-			k += 3;
-			newCleanVIndices[k]   = vi0;
-			newCleanVIndices[k+1] = detri.viP;
-			newCleanVIndices[k+2] = vi2;
-			newCleanNIndices[k]   = ni0;
-			newCleanNIndices[k+1] = detri.niP;
-			newCleanNIndices[k+2] = ni2;
-			k += 3;
-		} else if (vi0 == detri.viA && vi2 == detri.viB ||
-		           vi0 == detri.viB && vi2 == detri.viA) {
-			newCleanVIndices[k]   = vi0;
-			newCleanVIndices[k+1] = vi1;
-			newCleanVIndices[k+2] = detri.viP;
-			newCleanNIndices[k]   = ni0;
-			newCleanNIndices[k+1] = ni1;
-			newCleanNIndices[k+2] = detri.niP;
-			k += 3;
-			newCleanVIndices[k]   = vi1;
-			newCleanVIndices[k+1] = vi2;
-			newCleanVIndices[k+2] = detri.viP;
-			newCleanNIndices[k]   = ni1;
-			newCleanNIndices[k+1] = ni2;
-			newCleanNIndices[k+2] = detri.niP;
-			k += 3;
+			cleanVertices[vi2] = cleanVertices[vi];
+			cleanVertices[vi2+1] = cleanVertices[vi+1];
+			cleanVertices[vi2+2] = cleanVertices[vi+2];
+			cleanNormals[ni2] = cleanNormals[ni];
+			cleanNormals[ni2+1] = cleanNormals[ni+1];
+			cleanNormals[ni2+2] = cleanNormals[ni+2];
+			++numDetris;
 		}
 	}
-	delete [] cleanVIndices;
-	delete [] cleanNIndices;
-	delete [] removed;
-#endif
+	if (numDetris > 0) {
+		printf("Warning: Object %s contains %d degenerate triangle%s (strokes may be incorrect)\n",
+			name, numDetris, (numDetris > 1) ? "s" : "");
+	}
 
 	// Create the IndexedFaceSet with the retrieved attributes
 	IndexedFaceSet *rep;
@@ -645,13 +571,8 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	                         0, 0,
 	                         numFaces, numVertexPerFaces, faceStyle,
 							 faceEdgeMarks,
-#ifdef DETRI_REMOVAL
-	                         newCleanVIndices, cviSize,
-	                         newCleanNIndices, cniSize,
-#else
 	                         cleanVIndices, viSize,
 	                         cleanNIndices, niSize,
-#endif
 	                         MIndices, viSize,
 	                         0,0,
 	                         0);
