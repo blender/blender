@@ -89,12 +89,10 @@ void BMO_op_flag_disable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 	op->flag &= ~op_flag;
 }
 
-/*
- * BMESH OPSTACK PUSH
+/**
+ * \brief BMESH OPSTACK PUSH
  *
- * Pushes the opstack down one level
- * and allocates a new flag layer if
- * appropriate.
+ * Pushes the opstack down one level and allocates a new flag layer if appropriate.
  */
 void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 {
@@ -107,13 +105,12 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 		bmo_flag_layer_clear(bm);
 }
 
-/*
- * BMESH OPSTACK POP
+/**
+ * \brief BMESH OPSTACK POP
  *
- * Pops the opstack one level
- * and frees a flag layer if appropriate
- * BMESH_TODO: investigate NOT freeing flag
- * layers.
+ * Pops the opstack one level and frees a flag layer if appropriate
+ *
+ * BMESH_TODO: investigate NOT freeing flag layers.
  */
 void BMO_pop(BMesh *bm)
 {
@@ -123,11 +120,10 @@ void BMO_pop(BMesh *bm)
 	bm->stackdepth--;
 }
 
-/*
- * BMESH OPSTACK INIT OP
+/**
+ * \brief BMESH OPSTACK INIT OP
  *
- * Initializes an operator structure
- * to a certain type
+ * Initializes an operator structure to a certain type
  */
 void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 {
@@ -161,14 +157,14 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 	BLI_memarena_use_calloc (op->arena);
 }
 
-/*
- * BMESH OPSTACK EXEC OP
+/**
+ * \brief BMESH OPSTACK EXEC OP
  *
- * Executes a passed in operator. This handles
- * the allocation and freeing of temporary flag
- * layers and starting/stopping the modeling
- * loop. Can be called from other operators
- * exec callbacks as well.
+ * Executes a passed in operator.
+ *
+ * This handles the allocation and freeing of temporary flag
+ * layers and starting/stopping the modeling loop.
+ * Can be called from other operators exec callbacks as well.
  */
 void BMO_op_exec(BMesh *bm, BMOperator *op)
 {
@@ -185,11 +181,10 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
 	BMO_pop(bm);
 }
 
-/*
- * BMESH OPSTACK FINISH OP
+/**
+ * \brief BMESH OPSTACK FINISH OP
  *
- * Does housekeeping chores related to finishing
- * up an operator.
+ * Does housekeeping chores related to finishing up an operator.
  */
 void BMO_op_finish(BMesh *bm, BMOperator *op)
 {
@@ -213,11 +208,10 @@ void BMO_op_finish(BMesh *bm, BMOperator *op)
 #endif
 }
 
-/*
- * BMESH OPSTACK HAS SLOT
+/**
+ * \brief BMESH OPSTACK HAS SLOT
  *
- * Returns 1 if the named slot exists on the given operator,
- * otherwise returns 0.
+ * \return Success if the slot if found.
  */
 int BMO_slot_exists(BMOperator *op, const char *slotname)
 {
@@ -225,11 +219,10 @@ int BMO_slot_exists(BMOperator *op, const char *slotname)
 	return (slotcode >= 0);
 }
 
-/*
- * BMESH OPSTACK GET SLOT
+/**
+ * \brief BMESH OPSTACK GET SLOT
  *
- * Returns a pointer to the slot of
- * type 'slotcode'
+ * Returns a pointer to the slot of type 'slotcode'
  */
 BMOpSlot *BMO_slot_get(BMOperator *op, const char *slotname)
 {
@@ -242,10 +235,10 @@ BMOpSlot *BMO_slot_get(BMOperator *op, const char *slotname)
 	return &(op->slots[slotcode]);
 }
 
-/*
- * BMESH OPSTACK COPY SLOT
+/**
+ * \brief BMESH OPSTACK COPY SLOT
  *
- * Copies data from one slot to another
+ * Copies data from one slot to another.
  */
 void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, const char *dst)
 {
@@ -304,7 +297,6 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
  * BMESH OPSTACK SET XXX
  *
  * Sets the value of a slot depending on it's type
- *
  */
 
 void BMO_slot_float_set(BMOperator *op, const char *slotname, const float f)
@@ -638,13 +630,11 @@ static void *bmo_slot_buffer_alloc(BMOperator *op, const char *slotname, int len
 	return slot->data.buf;
 }
 
-/*
- * BMO_ALL_TO_SLOT
+/**
+ * \brief BMO_ALL_TO_SLOT
  *
  * Copies all elements of a certain type into an operator slot.
- *
  */
-
 static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, const char htype)
 {
 	BMIter elements;
@@ -682,13 +672,12 @@ static void BMO_slot_from_all(BMesh *bm, BMOperator *op, const char *slotname, c
 	}
 }
 
-/*
- * BMO_HEADERFLAG_TO_SLOT
+/**
+ * \brief BMO_HEADERFLAG_TO_SLOT
  *
  * Copies elements of a certain type, which have a certain header flag set
  * into a slot for an operator.
  */
-
 void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
                          const char hflag, const char htype)
 {
@@ -734,8 +723,8 @@ void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
 	}
 }
 
-/*
- * BMO_FLAG_TO_SLOT
+/**
+ * \brief BMO_FLAG_TO_SLOT
  *
  * Copies elements of a certain type, which have a certain flag set
  * into an output slot for an operator.
@@ -785,9 +774,8 @@ void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
 	}
 }
 
-/*
- *
- * BMO_FLAG_BUFFER
+/**
+ * \brief BMO_FLAG_BUFFER
  *
  * Header Flags elements in a slots buffer, automatically
  * using the selection API where appropriate.
@@ -816,9 +804,8 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
 	}
 }
 
-/*
- *
- * BMO_FLAG_BUFFER
+/**
+ * \brief BMO_FLAG_BUFFER
  *
  * Removes flags from elements in a slots buffer, automatically
  * using the selection API where appropriate.
@@ -866,9 +853,8 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 	return count;
 }
 
-/*
- *
- * BMO_FLAG_BUFFER
+/**
+ * \brief BMO_FLAG_BUFFER
  *
  * Flags elements in a slots buffer
  */
@@ -889,9 +875,8 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname
 	}
 }
 
-/*
- *
- * BMO_FLAG_BUFFER
+/**
+ * \brief BMO_FLAG_BUFFER
  *
  * Removes flags from elements in a slots buffer
  */
@@ -911,19 +896,18 @@ void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotnam
 }
 
 
-/*
+/**
+ * \brief ALLOC/FREE FLAG LAYER
  *
- *	ALLOC/FREE FLAG LAYER
+ * Used by operator stack to free/allocate
+ * private flag data. This is allocated
+ * using a mempool so the allocation/frees
+ * should be quite fast.
  *
- *  Used by operator stack to free/allocate
- *  private flag data. This is allocated
- *  using a mempool so the allocation/frees
- *  should be quite fast.
- *
- *  BMESH_TODO:
- *	Investigate not freeing flag layers until
- *  all operators have been executed. This would
- *  save a lot of realloc potentially.
+ * BMESH_TODO:
+ * Investigate not freeing flag layers until
+ * all operators have been executed. This would
+ * save a lot of realloc potentially.
  */
 static void bmo_flag_layer_alloc(BMesh *bm)
 {

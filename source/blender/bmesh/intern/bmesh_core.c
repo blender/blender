@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_newcore.c
+/** \file blender/bmesh/intern/bmesh_core.c
  *  \ingroup bmesh
  *
  */
@@ -445,7 +445,8 @@ int bmesh_elem_check(BMesh *UNUSED(bm), void *element, const char htype)
 	return err;
 }
 
-/* low level function, only free's,
+/**
+ * low level function, only free's,
  * does not change adjust surrounding geometry */
 static void bm_kill_only_vert(BMesh *bm, BMVert *v)
 {
@@ -632,21 +633,6 @@ void BM_vert_kill(BMesh *bm, BMVert *v)
 
 /********** private disk and radial cycle functions ********** */
 
-/**
- *			bmesh_loop_reverse
- *
- *	FLIP FACE EULER
- *
- *	Changes the winding order of a face from CW to CCW or vice versa.
- *	This euler is a bit peculiar in compairson to others as it is its
- *	own inverse.
- *
- *	BMESH_TODO: reinsert validation code.
- *
- *  Returns -
- *	1 for success, 0 for failure.
- */
-
 static int bm_loop_length(BMLoop *l)
 {
 	BMLoop *l_first = l;
@@ -659,6 +645,17 @@ static int bm_loop_length(BMLoop *l)
 	return i;
 }
 
+/**
+ * \brief Loop Reverse
+ *
+ * Changes the winding order of a face from CW to CCW or vice versa.
+ * This euler is a bit peculiar in compairson to others as it is its
+ * own inverse.
+ *
+ * BMESH_TODO: reinsert validation code.
+ *
+ * \return Success
+ */
 static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 #ifdef USE_BMESH_HOLES
                                    , BMLoopList *lst
@@ -856,16 +853,18 @@ static int disk_is_flagged(BMVert *v, int flag)
 /* Midlevel Topology Manipulation Functions */
 
 /**
+ * \brief Join Connected Faces
+ *
  * Joins a collected group of faces into one. Only restriction on
  * the input data is that the faces must be connected to each other.
  *
- * If a pair of faces share multiple edges, the pair of
- * faces will be joined at every edge.
+ * \return The newly created combine BMFace.
  *
- * Returns a pointer to the combined face.
+ * \note If a pair of faces share multiple edges,
+ * the pair of faces will be joined at every edge.
  *
- * \note this is a generic, flexible join faces function, almost everything
- * uses this, including #BM_faces_join_pair
+ * \note this is a generic, flexible join faces function,
+ * almost everything uses this, including #BM_faces_join_pair
  */
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 {
@@ -1045,8 +1044,6 @@ error:
 	return NULL;
 }
 
-/* BMESH_TODO - this is only used once, investigate sharing code with BM_face_create
- */
 static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 {
 	BMFace *f;
@@ -1069,41 +1066,38 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 }
 
 /**
- *			bmesh_SFME
+ * \brief Split Face Make Edge (SFME)
  *
- *	SPLIT FACE MAKE EDGE:
+ * Takes as input two vertices in a single face. An edge is created which divides the original face
+ * into two distinct regions. One of the regions is assigned to the original face and it is closed off.
+ * The second region has a new face assigned to it.
  *
- *	Takes as input two vertices in a single face. An edge is created which divides the original face
- *	into two distinct regions. One of the regions is assigned to the original face and it is closed off.
- *	The second region has a new face assigned to it.
- *
- *	Examples:
+ * \par Examples:
  *
  *     Before:               After:
- *	 ----------           ----------
- *	 |        |           |        |
- *	 |        |           |   f1   |
- *	v1   f1   v2          v1======v2
- *	 |        |           |   f2   |
- *	 |        |           |        |
- *	 ----------           ----------
+ *      ----------           ----------
+ *      |        |           |        |
+ *      |        |           |   f1   |
+ *     v1   f1   v2          v1======v2
+ *      |        |           |   f2   |
+ *      |        |           |        |
+ *      ----------           ----------
  *
- *	Note that the input vertices can be part of the same edge. This will
- *  result in a two edged face. This is desirable for advanced construction
- *  tools and particularly essential for edge bevel. Because of this it is
- *  up to the caller to decide what to do with the extra edge.
+ * \note the input vertices can be part of the same edge. This will
+ * result in a two edged face. This is desirable for advanced construction
+ * tools and particularly essential for edge bevel. Because of this it is
+ * up to the caller to decide what to do with the extra edge.
  *
- *  If holes is NULL, then both faces will lose
- *  all holes from the original face.  Also, you cannot split between
- *  a hole vert and a boundary vert; that case is handled by higher-
- *  level wrapping functions (when holes are fully implemented, anyway).
+ * \note If \a holes is NULL, then both faces will lose
+ * all holes from the original face.  Also, you cannot split between
+ * a hole vert and a boundary vert; that case is handled by higher-
+ * level wrapping functions (when holes are fully implemented, anyway).
  *
- *  Note that holes represents which holes goes to the new face, and of
- *  course this requires removing them from the exitsing face first, since
- *  you cannot have linked list links inside multiple lists.
+ * \note that holes represents which holes goes to the new face, and of
+ * course this requires removing them from the exitsing face first, since
+ * you cannot have linked list links inside multiple lists.
  *
- *	Returns -
- *  A BMFace pointer
+ * \return A BMFace pointer
  */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
                    BMLoop **r_l,
@@ -1211,20 +1205,17 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 }
 
 /**
- *			bmesh_SEMV
+ * \brief Split Edge Make Vert (SEMV)
  *
- *	SPLIT EDGE MAKE VERT:
- *	Takes a given edge and splits it into two, creating a new vert.
+ * Takes \a e edge and splits it into two, creating a new vert.
  *
+ * \par Examples:
  *
- *		Before:	OV---------TV
- *		After:	OV----NV---TV
+ *     Before: OV---------TV
+ *     After:  OV----NV---TV
  *
- *  Returns -
- *	BMVert pointer.
- *
+ * \return The newly created BMVert pointer.
  */
-
 BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 {
 	BMLoop *nextl;
@@ -1385,35 +1376,33 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 }
 
 /**
- *			bmesh_JEKV
+ * \brief Join Edge Kill Vert (JEKV)
  *
- *	JOIN EDGE KILL VERT:
- *	Takes a an edge and pointer to one of its vertices and collapses
- *	the edge on that vertex.
+ * Takes an edge \a ke and pointer to one of its vertices \a kv
+ * and collapses the edge on that vertex.
  *
- *	Before:    OE      KE
- *             	 ------- -------
- *               |     ||      |
- *		OV     KV      TV
+ * \par Examples:
  *
- *
- *   After:             OE
- *             	 ---------------
- *               |             |
- *		OV             TV
+ *     Before:         OE      KE
+ *                   ------- -------
+ *                   |     ||      |
+ *                  OV     KV      TV
  *
  *
- *	Restrictions:
- *	KV is a vertex that must have a valance of exactly two. Furthermore
- *  both edges in KV's disk cycle (OE and KE) must be unique (no double
- *  edges).
+ *     After:              OE
+ *                   ---------------
+ *                   |             |
+ *                  OV             TV
  *
- *	It should also be noted that this euler has the possibility of creating
- *	faces with just 2 edges. It is up to the caller to decide what to do with
- *  these faces.
+ * \par Restrictions:
+ * KV is a vertex that must have a valance of exactly two. Furthermore
+ * both edges in KV's disk cycle (OE and KE) must be unique (no double edges).
  *
- *  Returns -
- *	The resulting edge, NULL for failure.
+ * \return The resulting edge, NULL for failure.
+ *
+ * \note This euler has the possibility of creating
+ * faces with just 2 edges. It is up to the caller to decide what to do with
+ * these faces.
  */
 BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_double)
 {
@@ -1548,35 +1537,34 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 }
 
 /**
- *			bmesh_JFKE
+ * \brief Join Face Kill Edge (JFKE)
  *
- *	JOIN FACE KILL EDGE:
+ * Takes two faces joined by a single 2-manifold edge and fuses them togather.
+ * The edge shared by the faces must not be connected to any other edges which have
+ * Both faces in its radial cycle
  *
- *	Takes two faces joined by a single 2-manifold edge and fuses them togather.
- *	The edge shared by the faces must not be connected to any other edges which have
- *	Both faces in its radial cycle
+ * \par Examples:
  *
- *	Examples:
+ *           A                   B
+ *      ----------           ----------
+ *      |        |           |        |
+ *      |   f1   |           |   f1   |
+ *     v1========v2 = Ok!    v1==V2==v3 == Wrong!
+ *      |   f2   |           |   f2   |
+ *      |        |           |        |
+ *      ----------           ----------
  *
- *        A                   B
- *	 ----------           ----------
- *	 |        |           |        |
- *	 |   f1   |           |   f1   |
- *	v1========v2 = Ok!    v1==V2==v3 == Wrong!
- *	 |   f2   |           |   f2   |
- *	 |        |           |        |
- *	 ----------           ----------
+ * In the example A, faces \a f1 and \a f2 are joined by a single edge,
+ * and the euler can safely be used.
+ * In example B however, \a f1 and \a f2 are joined by multiple edges and will produce an error.
+ * The caller in this case should call #bmesh_jekv on the extra edges
+ * before attempting to fuse \a f1 and \a f2.
  *
- *	In the example A, faces f1 and f2 are joined by a single edge, and the euler can safely be used.
- *	In example B however, f1 and f2 are joined by multiple edges and will produce an error. The caller
- *	in this case should call bmesh_JEKV on the extra edges before attempting to fuse f1 and f2.
+ * \note The order of arguments decides whether or not certain per-face attributes are present
+ * in the resultant face. For instance vertex winding, material index, smooth flags, ect are inherited
+ * from \a f1, not \a f2.
  *
- *	Also note that the order of arguments decides whether or not certain per-face attributes are present
- *	in the resultant face. For instance vertex winding, material index, smooth flags, ect are inherited
- *	from f1, not f2.
- *
- *  Returns -
- *	A BMFace pointer
+ * \return A BMFace pointer
  */
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
@@ -1703,10 +1691,12 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	return f1;
 }
 
-/*
- * BMESH SPLICE VERT
+/**
+ * \brief Splice Vert
  *
- * merges two verts into one (v into vtarget).
+ * Merges two verts into one (\a v into \a vtarget).
+ *
+ * \return Success
  */
 static int bm_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
@@ -1740,11 +1730,13 @@ static int bm_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 	return TRUE;
 }
 
-/* BMESH CUT VERT
+/**
+ * \brief Cut Vert
  *
- * cut all disjoint fans that meet at a vertex, making a unique
- * vertex for each region. returns an array of all resulting
- * vertices.
+ * Cut all disjoint fans that meet at a vertex, making a unique
+ * vertex for each region. returns an array of all resulting vertices.
+ *
+ * \return Success
  */
 static int bm_vert_cut(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 {
@@ -1843,11 +1835,14 @@ static int bm_vert_cut(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 	return TRUE;
 }
 
-/* BMESH SPLICE EDGE
+/**
+ * \brief Splice Edge
  *
- * splice two unique edges which share the same two vertices into one edge.
+ * Splice two unique edges which share the same two vertices into one edge.
  *
- * edges must already have the same vertices
+ * \return Success
+ *
+ * \note Edges must already have the same vertices.
  */
 static int bm_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
 {
@@ -1877,13 +1872,15 @@ static int bm_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
 	return TRUE;
 }
 
-/*
- * BMESH CUT EDGE
+/**
+ * \brief Cut Edge
  *
  * Cuts a single edge into two edge: the original edge and
- * a new edge that has only "cutl" in its radial.
+ * a new edge that has only \a cutl in its radial.
  *
- * Does nothing if cutl is already the only loop in the
+ * \return Success
+ *
+ * \note Does nothing if \a cutl is already the only loop in the
  * edge radial.
  */
 static int bm_edge_cut(BMesh *bm, BMEdge *e, BMLoop *cutl)
@@ -1918,10 +1915,12 @@ static int bm_edge_cut(BMesh *bm, BMEdge *e, BMLoop *cutl)
 	return TRUE;
 }
 
-/*
- * BMESH UNGLUE REGION MAKE VERT
+/**
+ * \brief Unglue Region Make Vert (URMV)
  *
- * Disconnects a face from its vertex fan at loop sl.
+ * Disconnects a face from its vertex fan at loop \a sl
+ *
+ * \return The newly created BMVert
  */
 static BMVert *bm_urmv_loop(BMesh *bm, BMLoop *sl)
 {
@@ -1991,10 +1990,12 @@ static BMVert *bm_urmv_loop(BMesh *bm, BMLoop *sl)
 	return nv;
 }
 
-/*
- * BMESH UNGLUE REGION MAKE VERT
+/**
+ * \brief Unglue Region Make Vert (URMV)
  *
- * Disconnects sf from the vertex fan at sv
+ * Disconnects sf from the vertex fan at \a sv
+ *
+ * \return The newly created BMVert
  */
 BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
 {

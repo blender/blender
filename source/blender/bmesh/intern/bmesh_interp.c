@@ -46,9 +46,9 @@
 #include "bmesh_private.h"
 
 /**
- *			bmesh_data_interp_from_verts
+ * \brief Data, Interp From Verts
  *
- *  Interpolates per-vertex data from two sources to a target.
+ * Interpolates per-vertex data from two sources to a target.
  */
 void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
 {
@@ -85,29 +85,23 @@ void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, con
 	}
 }
 
-/*
- *  BM Data Vert Average
+/**
+ * \brief Data Vert Average
  *
  * Sets all the customdata (e.g. vert, loop) associated with a vert
  * to the average of the face regions surrounding it.
  */
-
-
 static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNUSED(f))
 {
 	// BMIter iter;
 }
 
 /**
- *			bmesh_data_facevert_edgeinterp
+ * \brief Data Face-Vert Edge Interp
  *
- *  Walks around the faces of an edge and interpolates the per-face-edge
- *  data between two sources to a target.
- *
- *  Returns -
- *	Nothing
+ * Walks around the faces of an edge and interpolates the per-face-edge
+ * data between two sources to a target.
  */
-
 void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, const float fac)
 {
 	void *src[2];
@@ -146,12 +140,12 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 }
 
 /**
- *			BM_data_interp_from_face
+ * \brief Data Interp From Face
  *
- *  projects target onto source, and pulls interpolated customdata from
- *  source.
+ * projects target onto source, and pulls interpolated customdata from
+ * source.
  *
- * \note only does loop customdata.  multires is handled.
+ * \note Only handles loop customdata. multires is handled.
  */
 void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 {
@@ -188,19 +182,19 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BLI_array_fixedstack_free(blocks);
 }
 
-/***** multires interpolation*****
+/**
+ * \brief Multires Interpolation
  *
  * mdisps is a grid of displacements, ordered thus:
  *
- *  v1/center----v4/next -> x
- *      |           |
- *      |           |
- *   v2/prev------v3/cur
- *      |
- *      V
- *      y
+ *      v1/center----v4/next -> x
+ *          |           |
+ *          |           |
+ *       v2/prev------v3/cur
+ *          |
+ *          V
+ *          y
  */
-
 static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
                               float e1[3], float e2[3])
 {

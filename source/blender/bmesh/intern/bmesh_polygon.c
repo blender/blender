@@ -43,14 +43,12 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
-/*
- * TEST EDGE SIDE and POINT IN TRIANGLE
+/**
+ * \brief TEST EDGE SIDE and POINT IN TRIANGLE
  *
  * Point in triangle tests stolen from scanfill.c.
  * Used for tesselator
- *
  */
-
 static short testedgeside(const double v1[2], const double v2[2], const double v3[2])
 {
 	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
@@ -95,15 +93,13 @@ static int point_in_triangle(const double v1[2], const double v2[2], const doubl
 	return FALSE;
 }
 
-/*
- * COMPUTE POLY NORMAL
+/**
+ * \brief COMPUTE POLY NORMAL
  *
  * Computes the normal of a planar
  * polygon See Graphics Gems for
  * computing newell normal.
- *
  */
-
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
@@ -179,15 +175,13 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 #endif
 }
 
-/*
- * COMPUTE POLY CENTER
+/**
+ * \brief COMPUTE POLY CENTER
  *
  * Computes the centroid and
  * area of a polygon in the X/Y
  * plane.
- *
  */
-
 static int compute_poly_center(float center[3], float *r_area, float (*verts)[3], int nverts)
 {
 	int i, j;
@@ -292,9 +286,7 @@ void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
  * Projects a set polygon's vertices to
  * a plane defined by the average
  * of its edges cross products
- *
  */
-
 void compute_poly_plane(float (*verts)[3], int nverts)
 {
 	
@@ -339,14 +331,13 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	}
 }
 
-/*
- * BM LEGAL EDGES
+/**
+ * \brief BM LEGAL EDGES
  *
  * takes in a face and a list of edges, and sets to NULL any edge in
  * the list that bridges a concave region of the face or intersects
  * any of the faces's edges.
  */
-
 static void shrink_edgef(float v1[3], float v2[3], const float fac)
 {
 	float mid[3];
@@ -364,14 +355,12 @@ static void shrink_edgef(float v1[3], float v2[3], const float fac)
 }
 
 
-/*
- * POLY ROTATE PLANE
+/**
+ * \brief POLY ROTATE PLANE
  *
  * Rotates a polygon so that it's
  * normal is pointing towards the mesh Z axis
- *
  */
-
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts)
 {
 
@@ -393,17 +382,15 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 		mul_m3_v3(mat, verts[i]);
 }
 
-/*
- * BMESH UPDATE FACE NORMAL
+/**
+ * \brief BMESH UPDATE FACE NORMAL
  *
  * Updates the stored normal for the
  * given face. Requires that a buffer
  * of sufficient length to store projected
  * coordinates for all of the face's vertices
  * is passed in as well.
- *
  */
-
 void BM_face_normal_update(BMesh *bm, BMFace *f)
 {
 	if (f->len >= 3) {
@@ -588,12 +575,11 @@ void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 	}
 }
 
-/*
- * BMESH FLIP NORMAL
+/**
+ * \brief Face Flip Normal
  *
- *  Reverses the winding of a face.
- *  Note that this updates the calculated
- *  normal.
+ * Reverses the winding of a face.
+ * \note This updates the calculated normal.
  */
 void BM_face_normal_flip(BMesh *bm, BMFace *f)
 {
@@ -743,15 +729,14 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	} while ((l_iter = l_iter->next) != l_first);
 	return TRUE;
 }
-/*
- * FIND EAR
+
+/**
+ * \brief FIND EAR
  *
  * Used by tesselator to find
  * the next triangle to 'clip off'
  * of a polygon while tesselating.
- *
  */
-
 static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert)
 {
 	BMVert *v1, *v2, *v3;
@@ -800,7 +785,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
 }
 
 /**
- * BMESH TRIANGULATE FACE
+ * \brief BMESH TRIANGULATE FACE
  *
  * Triangulates a face using a simple 'ear clipping' algorithm that tries to
  * favor non-skinny triangles (angles less than 90 degrees).

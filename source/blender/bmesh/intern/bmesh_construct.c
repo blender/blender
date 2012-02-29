@@ -49,20 +49,18 @@
 static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMLoop *source_loop, BMLoop *target_loop);
 
-/*
- * BMESH MAKE QUADTRIANGLE
+/**
+ * \brief Make Quad/Triangle
  *
- * Creates a new quad or triangle from
- * a list of 3 or 4 vertices. If nodouble
- * equals 1, then a check is done to see
- * if a face with these vertices already
- * exists and returns it instead. If a pointer
- * to an example face is provided, it's custom
- * data and properties will be copied to the new
- * face.
+ * Creates a new quad or triangle from a list of 3 or 4 vertices.
+ * If \a nodouble is TRUE, then a check is done to see if a face
+ * with these vertices already exists and returns it instead.
  *
- * Note that the winding of the face is determined
- * by the order of the vertices in the vertex array
+ * If a pointer to an example face is provided, it's custom data
+ * and properties will be copied to the new face.
+ *
+ * \note The winding of the face is determined by the order
+ * of the vertices in the vertex array.
  */
 
 BMFace *BM_face_create_quad_tri(BMesh *bm,
@@ -128,17 +126,18 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
 }
 
 /**
- * \brief BMESH MAKE NGON
+ * \brief Make NGon
  *
- * Makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
- * defining edges[0], and define the winding of the new face.
+ * Makes an ngon from an unordered list of edges. \a v1 and \a v2
+ * must be the verts defining edges[0],
+ * and define the winding of the new face.
  *
- * The edges are not required to be ordered, simply to to form
- * a single closed loop as a whole
+ * \a edges are not required to be ordered, simply to to form
+ * a single closed loop as a whole.
  *
- * Note that while this function will work fine when the edges
+ * \note While this function will work fine when the edges
  * are already sorted, if the edges are always going to be sorted,
- * BM_face_create should be considered over this function as it
+ * #BM_face_create should be considered over this function as it
  * avoids some unnecessary work.
  */
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
@@ -268,14 +267,10 @@ err:
 /* bmesh_make_face_from_face(BMesh *bm, BMFace *source, BMFace *target) */
 
 
-/*
- * REMOVE TAGGED XXX
- *
+/**
  * Called by operators to remove elements that they have marked for
  * removal.
- *
  */
-
 void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 {
 	BMFace *f;

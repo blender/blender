@@ -80,75 +80,80 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
 }
 
 /**
- *	BMESH CYCLES
+ * \section bm_cycles BMesh Cycles
  * (this is somewhat outdate, though bits of its API are still used) - joeedh
  *
- *	Cycles are circular doubly linked lists that form the basis of adjacency
- *	information in the BME modeller. Full adjacency relations can be derived
- *	from examining these cycles very quickly. Although each cycle is a double
- *  circular linked list, each one is considered to have a 'base' or 'head',
- *	and care must be taken by Euler code when modifying the contents of a cycle.
+ * Cycles are circular doubly linked lists that form the basis of adjacency
+ * information in the BME modeller. Full adjacency relations can be derived
+ * from examining these cycles very quickly. Although each cycle is a double
+ * circular linked list, each one is considered to have a 'base' or 'head',
+ * and care must be taken by Euler code when modifying the contents of a cycle.
  *
- *	The contents of this file are split into two parts. First there are the
- *	bmesh_cycle family of functions which are generic circular double linked list
- *	procedures. The second part contains higher level procedures for supporting
- *	modification of specific cycle types.
+ * The contents of this file are split into two parts. First there are the
+ * bmesh_cycle family of functions which are generic circular double linked list
+ * procedures. The second part contains higher level procedures for supporting
+ * modification of specific cycle types.
  *
- *	The three cycles explicitly stored in the BM data structure are as follows:
- *
- *	1: The Disk Cycle - A circle of edges around a vertex
- *     Base: vertex->edge pointer.
- *
- *     This cycle is the most complicated in terms of its structure. Each bmesh_Edge contains
- *	   two bmesh_CycleNode structures to keep track of that edge's membership in the disk cycle
- *	   of each of its vertices. However for any given vertex it may be the first in some edges
- *	   in its disk cycle and the second for others. The bmesh_disk_XXX family of functions contain
- *	   some nice utilities for navigating disk cycles in a way that hides this detail from the
- *	   tool writer.
- *
- *		Note that the disk cycle is completley independent from face data. One advantage of this
- *		is that wire edges are fully integrated into the topology database. Another is that the
- *	    the disk cycle has no problems dealing with non-manifold conditions involving faces.
- *
- *		Functions relating to this cycle:
- *
- *			bmesh_disk_edge_append
- *			bmesh_disk_edge_remove
- *			bmesh_disk_edge_next
- *
- *	2: The Radial Cycle - A circle of face edges (bmesh_Loop) around an edge
- *	   Base: edge->l->radial structure.
- *
- *		The radial cycle is similar to the radial cycle in the radial edge data structure.*
- *		Unlike the radial edge however, the radial cycle does not require a large amount of memory
- *		to store non-manifold conditions since BM does not keep track of region/shell
- *		information.
- *
- *		Functions relating to this cycle:
- *
- *			bmesh_radial_append
- *			bmesh_radial_loop_remove
- *			bmesh_radial_loop_next
- *			bmesh_radial_face_find
+ * The three cycles explicitly stored in the BM data structure are as follows:
  *
  *
- *	3: The Loop Cycle - A circle of face edges around a polygon.
- *     Base: polygon->lbase.
+ * 1: The Disk Cycle - A circle of edges around a vertex
+ * Base: vertex->edge pointer.
  *
- *	   The loop cycle keeps track of a faces vertices and edges. It should be noted that the
- *     direction of a loop cycle is either CW or CCW depending on the face normal, and is
- *     not oriented to the faces editedges.
+ * This cycle is the most complicated in terms of its structure. Each bmesh_Edge contains
+ * two bmesh_CycleNode structures to keep track of that edge's membership in the disk cycle
+ * of each of its vertices. However for any given vertex it may be the first in some edges
+ * in its disk cycle and the second for others. The bmesh_disk_XXX family of functions contain
+ * some nice utilities for navigating disk cycles in a way that hides this detail from the
+ * tool writer.
  *
- *		Functions relating to this cycle:
+ * Note that the disk cycle is completley independent from face data. One advantage of this
+ * is that wire edges are fully integrated into the topology database. Another is that the
+ * the disk cycle has no problems dealing with non-manifold conditions involving faces.
  *
- *			bmesh_cycle_XXX family of functions.
+ * Functions relating to this cycle:
+ * - #bmesh_disk_edge_append
+ * - #bmesh_disk_edge_remove
+ * - #bmesh_disk_edge_next
+ * - #bmesh_disk_edge_prev
+ * - #bmesh_disk_facevert_count
+ * - #bmesh_disk_faceedge_find_first
+ * - #bmesh_disk_faceedge_find_next
  *
  *
- *	Note that the order of elements in all cycles except the loop cycle is undefined. This
- *  leads to slightly increased seek time for deriving some adjacency relations, however the
- *  advantage is that no intrinsic properties of the data structures are dependant upon the
- *  cycle order and all non-manifold conditions are represented trivially.
+ * 2: The Radial Cycle - A circle of face edges (bmesh_Loop) around an edge
+ * Base: edge->l->radial structure.
  *
+ * The radial cycle is similar to the radial cycle in the radial edge data structure.*
+ * Unlike the radial edge however, the radial cycle does not require a large amount of memory
+ * to store non-manifold conditions since BM does not keep track of region/shell information.
+ *
+ * Functions relating to this cycle:
+ * - #bmesh_radial_append
+ * - #bmesh_radial_loop_remove
+ * - #bmesh_radial_loop_next
+ * - #bmesh_radial_face_find
+ * - #bmesh_radial_facevert_count
+ * - #bmesh_radial_faceloop_find_first
+ * - #bmesh_radial_faceloop_find_next
+ * - #bmesh_radial_validate
+ *
+ *
+ * 3: The Loop Cycle - A circle of face edges around a polygon.
+ * Base: polygon->lbase.
+ *
+ * The loop cycle keeps track of a faces vertices and edges. It should be noted that the
+ * direction of a loop cycle is either CW or CCW depending on the face normal, and is
+ * not oriented to the faces editedges.
+ *
+ * Functions relating to this cycle:
+ * - bmesh_cycle_XXX family of functions.
+ *
+ *
+ * \note the order of elements in all cycles except the loop cycle is undefined. This
+ * leads to slightly increased seek time for deriving some adjacency relations, however the
+ * advantage is that no intrinsic properties of the data structures are dependant upon the
+ * cycle order and all non-manifold conditions are represented trivially.
  */
 int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 {
@@ -286,15 +291,14 @@ int bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 	return TRUE;
 }
 
-/*
- * BME DISK COUNT FACE VERT
+/**
+ * \brief DISK COUNT FACE VERT
  *
  * Counts the number of loop users
  * for this vertex. Note that this is
  * equivalent to counting the number of
  * faces incident upon this vertex
  */
-
 int bmesh_disk_facevert_count(BMVert *v)
 {
 	/* is there an edge on this vert at all */
@@ -316,15 +320,14 @@ int bmesh_disk_facevert_count(BMVert *v)
 	}
 }
 
-/*
- * BME FIND FIRST FACE EDGE
+/**
+ * \brief FIND FIRST FACE EDGE
  *
  * Finds the first edge in a vertices
  * Disk cycle that has one of this
  * vert's loops attached
  * to it.
  */
-
 BMEdge *bmesh_disk_faceedge_find_first(BMEdge *e, BMVert *v)
 {
 	BMEdge *searchedge = NULL;
@@ -381,8 +384,8 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 	return TRUE;
 }
 
-/*
- * BMESH RADIAL REMOVE LOOP
+/**
+ * \brief BMESH RADIAL REMOVE LOOP
  *
  * Removes a loop from an radial cycle. If edge e is non-NULL
  * it should contain the radial cycle, and it will also get
@@ -421,8 +424,8 @@ void bmesh_radial_loop_remove(BMLoop *l, BMEdge *e)
 }
 
 
-/*
- * BME RADIAL FIND FIRST FACE VERT
+/**
+ * \brief BME RADIAL FIND FIRST FACE VERT
  *
  * Finds the first loop of v around radial
  * cycle
@@ -518,14 +521,12 @@ int bmesh_radial_face_find(BMEdge *e, BMFace *f)
 	return FALSE;
 }
 
-/*
- * BME RADIAL COUNT FACE VERT
+/**
+ * \brief RADIAL COUNT FACE VERT
  *
  * Returns the number of times a vertex appears
  * in a radial cycle
- *
  */
-
 int bmesh_radial_facevert_count(BMLoop *l, BMVert *v)
 {
 	BMLoop *l_iter;

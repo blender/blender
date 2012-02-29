@@ -63,7 +63,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
 }
 
 /**
- * BMESH OTHER EDGE IN FACE SHARING A VERTEX
+ * \brief BMESH OTHER EDGE IN FACE SHARING A VERTEX
  *
  * Finds the other loop that shares 'v' with 'e's loop in 'f'.
  */
@@ -475,6 +475,8 @@ float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
 }
 
 /**
+ * \brief BMESH EDGE/FACE ANGLE
+ *
  *  Calculates the angle between two faces.
  *  Assumes the face normals are correct.
  *
@@ -493,9 +495,9 @@ float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
 }
 
 /**
- *	BMESH FACE ANGLE
+ * \brief BMESH VERT/EDGE ANGLE
  *
- *  Calculates the angle a verts 2 edges.
+ * Calculates the angle a verts 2 edges.
  *
  * \returns the angle in radians
  */
@@ -541,7 +543,7 @@ BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
 }
 
 /**
- * Given a set of vertices (varr), find out if
+ * Given a set of vertices \a varr, find out if
  * all those vertices overlap an existing face.
  *
  * \note Making a face here is valid but in some cases you wont want to
@@ -606,7 +608,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
 
 
 /**
- * Given a set of vertices and edges (varr, earr), find out if
+ * Given a set of vertices and edges (\a varr, \a earr), find out if
  * all those vertices are filled in by existing faces that _only_ use those vertices.
  *
  * This is for use in cases where creating a face is possible but would result in
@@ -615,7 +617,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
  * An example of how this is used: when 2 tri's are selected that share an edge,
  * pressing Fkey would make a new overlapping quad (without a check like this)
  *
- * 'earr' and 'varr' can be in any order, however they _must_ form a closed loop.
+ * \a earr and \a varr can be in any order, however they _must_ form a closed loop.
  */
 int BM_face_exists_multi(BMesh *bm, BMVert **varr, BMEdge **earr, int len)
 {

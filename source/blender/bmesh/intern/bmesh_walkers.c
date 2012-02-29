@@ -36,7 +36,8 @@
 
 #include "bmesh_walkers_private.h"
 
-/* - joeedh -
+/**
+ * - joeedh -
  * design notes:
  *
  * original desing: walkers directly emulation recursive functions.
@@ -49,8 +50,8 @@
  * using the first non-visited one.  this choise is the flagged as visited using
  * the ghash.  each step may push multiple new states onto the worklist at once.
  *
- * - walkers use tool flags, not header flags
- * - walkers now use ghash for storing visited elements,
+ * - Walkers use tool flags, not header flags.
+ * - Walkers now use ghash for storing visited elements,
  *   rather then stealing flags.  ghash can be rewritten
  *   to be faster if necassary, in the far future :) .
  * - tools should ALWAYS have necassary error handling
@@ -64,14 +65,13 @@ void *BMW_begin(BMWalker *walker, void *start)
 	return BMW_current_state(walker) ? walker->step(walker) : NULL;
 }
 
-/*
- * BMW_CREATE
+/**
+ * \brief Init Walker
  *
  * Allocates and returns a new mesh walker of
  * a given type. The elements visited are filtered
  * by the bitmask 'searchmask'.
  */
-
 void BMW_init(BMWalker *walker, BMesh *bm, int type,
               short mask_vert, short mask_edge, short mask_loop, short mask_face,
               int layer)
@@ -117,12 +117,11 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 	walker->states.first = walker->states.last = NULL;
 }
 
-/*
- * BMW_end
+/**
+ * \brief End Walker
  *
  * Frees a walker's worklist.
  */
-
 void BMW_end(BMWalker *walker)
 {
 	BLI_mempool_destroy(walker->worklist);
@@ -130,10 +129,9 @@ void BMW_end(BMWalker *walker)
 }
 
 
-/*
- * BMW_step
+/**
+ * \brief Step Walker
  */
-
 void *BMW_step(BMWalker *walker)
 {
 	BMHeader *head;
@@ -143,8 +141,8 @@ void *BMW_step(BMWalker *walker)
 	return head;
 }
 
-/*
- * BMW_current_depth
+/**
+ * \brief Walker Current Depth
  *
  * Returns the current depth of the walker.
  */
@@ -154,15 +152,11 @@ int BMW_current_depth(BMWalker *walker)
 	return walker->depth;
 }
 
-/*
- * BMW_WALK
+/**
+ * \brief Main Walking Function
  *
  * Steps a mesh walker forward by one element
- *
- * BMESH_TODO:
- *  -add searchmask filtering
  */
-
 void *BMW_walk(BMWalker *walker)
 {
 	void *current = NULL;
@@ -176,14 +170,13 @@ void *BMW_walk(BMWalker *walker)
 	return NULL;
 }
 
-/*
- * BMW_current_state
+/**
+ * \brief Current Walker State
  *
  * Returns the first state from the walker state
  * worklist. This state is the the next in the
  * worklist for processing.
  */
-
 void *BMW_current_state(BMWalker *walker)
 {
 	bmesh_walkerGeneric *currentstate = walker->states.first;
@@ -203,13 +196,12 @@ void *BMW_current_state(BMWalker *walker)
 	return currentstate;
 }
 
-/*
- * BMW_state_remove
+/**
+ * \brief Remove Current Walker State
  *
  * Remove and free an item from the end of the walker state
  * worklist.
  */
-
 void BMW_state_remove(BMWalker *walker)
 {
 	void *oldstate;
@@ -218,8 +210,8 @@ void BMW_state_remove(BMWalker *walker)
 	BLI_mempool_free(walker->worklist, oldstate);
 }
 
-/*
- * BMW_newstate
+/**
+ * \brief Add a new Walker State
  *
  * Allocate a new empty state and put it on the worklist.
  * A pointer to the new state is returned so that the caller
@@ -227,7 +219,6 @@ void BMW_state_remove(BMWalker *walker)
  * at the front for depth-first walks, and at the end for
  * breadth-first walks.
  */
-
 void *BMW_state_add(BMWalker *walker)
 {
 	bmesh_walkerGeneric *newstate;
@@ -248,13 +239,12 @@ void *BMW_state_add(BMWalker *walker)
 	return newstate;
 }
 
-/*
- * BMW_reset
+/**
+ * \brief Reset Walker
  *
  * Frees all states from the worklist, resetting the walker
  * for reuse in a new walk.
  */
-
 void BMW_reset(BMWalker *walker)
 {
 	while (BMW_current_state(walker)) {

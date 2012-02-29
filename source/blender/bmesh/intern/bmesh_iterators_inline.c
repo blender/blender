@@ -34,26 +34,23 @@
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
 
-/*
- *	BMESH ITERATOR STEP
+/**
+ * \brief Iterator Step
  *
- *  Calls an iterators step fucntion to return
- *  the next element.
+ * Calls an iterators step fucntion to return the next element.
  */
-
 BM_INLINE void *BM_iter_step(BMIter *iter)
 {
 	return iter->step(iter);
 }
 
 
-/*
- * BMESH ITERATOR INIT
+/**
+ * \brief Iterator Init
  *
  * Takes a bmesh iterator structure and fills
  * it with the appropriate function pointers based
  * upon its type.
- *
  */
 BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
@@ -173,8 +170,8 @@ BM_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data
 	return TRUE;
 }
 
-/*
- * BMESH ITERATOR NEW
+/**
+ * \brief Iterator New
  *
  * Takes a bmesh iterator structure and fills
  * it with the appropriate function pointers based

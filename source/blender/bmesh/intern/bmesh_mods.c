@@ -40,24 +40,22 @@
 #include "bmesh_private.h"
 
 /**
- *			bmesh_dissolve_disk
+ * \brief Dissolve Vert
  *
- *  Turns the face region surrounding a manifold vertex into
- *  A single polygon.
+ * Turns the face region surrounding a manifold vertex into a single polygon.
  *
  *
- * Example:
+ * \par Example:
  *
- *          |=========|             |=========|
- *          |  \   /  |             |         |
- * Before:  |    V    |      After: |         |
- *          |  /   \  |             |         |
- *          |=========|             |=========|
+ *              |=========|             |=========|
+ *              |  \   /  |             |         |
+ *     Before:  |    V    |      After: |         |
+ *              |  /   \  |             |         |
+ *              |=========|             |=========|
  *
  *
  * \note dissolves vert, in more situations then BM_disk_dissolve
  * (e.g. if the vert is part of a wire edge, etc).
- *
  */
 int BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
@@ -98,7 +96,6 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 /**
  * dissolves all faces around a vert, and removes it.
  */
-
 int BM_disk_dissolve(BMesh *bm, BMVert *v)
 {
 	BMFace *f, *f2;
@@ -207,20 +204,19 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 }
 
 /**
- * BM_faces_join_pair
+ * \brief Faces Join Pair
  *
- *  Joins two adjacenct faces togather.
+ * Joins two adjacenct faces togather.
  *
- *  Because this method calls to BM_faces_join to do its work, ff a pair
- *  of faces share multiple edges, the pair of faces will be joined at
- *  every edge (not just edge e). This part of the functionality might need
- *  to be reconsidered.
+ * Because this method calls to #BM_faces_join to do its work, if a pair
+ * of faces share multiple edges, the pair of faces will be joined at
+ * every edge (not just edge \a e). This part of the functionality might need
+ * to be reconsidered.
  *
- *  If the windings do not match the winding of the new face will follow
- *  f1's winding (i.e. f2 will be reversed before the join).
+ * If the windings do not match the winding of the new face will follow
+ * \a f1's winding (i.e. \a f2 will be reversed before the join).
  *
- * Returns:
- *	 pointer to the combined face
+ * \return pointer to the combined face
  */
 
 BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
@@ -265,13 +261,17 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 }
 
 /**
+ * \brief Connect Verts, Split Face
+ *
  * connects two verts together, automatically (if very naively) finding the
- * face they both share (if there is one) and splittling it.  use this at your
+ * face they both share (if there is one) and splittling it.  Use this at your
  * own risk, as it doesn't handle the many complex cases it should (like zero-area faces,
  * multiple faces, etc).
  *
  * this is really only meant for cases where you don't know before hand the face
  * the two verts belong to for splitting (e.g. the subdivision operator).
+ *
+ * \return The newly created edge.
  */
 
 BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
@@ -297,19 +297,23 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 		}
 	}
 
-	if (r_f) *r_f = NULL;
+	if (r_f) {
+		*r_f = NULL;
+	}
 	return NULL;
 }
 
-
 /**
- * Split a face along two vertices.  returns the newly made face, and sets
- * the 'r_l' member to a loop in the newly created edge.
+ * \brief Face Split
  *
- * \param the original face
- * \param v1,v2 vertices which define the split edge, must be different
+ * Split a face along two vertices. returns the newly made face, and sets
+ * the \a r_l member to a loop in the newly created edge.
+ *
+ * \param bm The bmesh
+ * \param f the original face
+ * \param v1, v2 vertices which define the split edge, must be different
  * \param r_l pointer which will receive the BMLoop for the split edge in the new face
- *
+ * \param example Face used to initialize settings
  *
  * \return Pointer to the newly created face representing one side of the split
  * if the split is successful (and the original original face will be the
@@ -366,26 +370,31 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 }
 
 /**
- * Collapses a vertex that has only two manifold edges
- * onto a vertex it shares an edge with. Fac defines
- * the amount of interpolation for Custom Data.
+ * \brief Vert Collapse Faces
+ *
+ * Collapses vertex \a kv that has only two manifold edges
+ * onto a vertex it shares an edge with.
+ * \a fac defines the amount of interpolation for Custom Data.
  *
  * \note that this is not a general edge collapse function.
  *
- * \note this function is very close to #BM_vert_collapse_edge, both collapse
- * a vertex and return a new edge. Except this takes a factor and merges
- * custom data.
+ * \note this function is very close to #BM_vert_collapse_edge,
+ * both collapse a vertex and return a new edge.
+ * Except this takes a factor and merges custom data.
  *
  *  BMESH_TODO:
  *    Insert error checking for KV valance.
  *
+ * \param bm The bmesh
+ * \param ke The edge to collapse
+ * \param kv The vertex  to collapse into the edge
  * \param fac The factor along the edge
  * \param join_faces When true the faces around the vertex will be joined
  * otherwise collapse the vertex by merging the 2 edges this vert touches into one.
  * \param kill_degenerate_faces Removes faces with less than 3 verts after collapsing.
+ *
  * \returns The New Edge
  */
-
 BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
                                const short join_faces, const short kill_degenerate_faces)
 {
@@ -477,12 +486,11 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 
 
 /**
- *			BM_vert_collapse_edge
+ * \brief Vert Collapse Faces
  *
  * Collapses a vertex onto another vertex it shares an edge with.
  *
- * Returns -
- * The New Edge
+ * \return The New Edge
  */
 
 BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
@@ -522,16 +530,13 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
 #undef DO_V_INTERP
 
 /**
- *			BM_split_edge
+ * \brief Edge Split
  *
- *	Splits an edge. v should be one of the vertices in e and
- *  defines the direction of the splitting operation for interpolation
- *  purposes.
+ * Splits an edge. \a v should be one of the vertices in \a e and defines
+ * the direction of the splitting operation for interpolation purposes.
  *
- *  Returns -
- *	the new vert
+ * \return The new vert
  */
-
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent)
 {
 	BMVert *nv, *v2;
@@ -703,19 +708,17 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 	return ret;
 }
 
-/*
- *         BM Rotate Edge
+/**
+ * \brief Rotate Edge
  *
- * Spins an edge topologically, either counter-clockwise or clockwise.
- * If ccw is true, the edge is spun counter-clockwise, otherwise it is
- * spun clockwise.
+ * Spins an edge topologically,
+ * either counter-clockwise or clockwise depending on \a ccw.
  *
- * Returns the spun edge.  Note that this works by dissolving the edge
- * then re-creating it, so the returned edge won't have the same pointer
- * address as the original one.
+ * \return The spun edge, NULL on error
+ * (e.g., if the edge isn't surrounded by exactly two faces).
  *
- * Returns NULL on error (e.g., if the edge isn't surrounded by exactly
- * two faces).
+ * \note This works by dissolving the edge then re-creating it,
+ * so the returned edge won't have the same pointer address as the original one.
  */
 BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw)
 {

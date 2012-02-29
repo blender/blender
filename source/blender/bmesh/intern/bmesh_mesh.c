@@ -62,15 +62,14 @@ static void bm_mempool_init(BMesh *bm, const int allocsize[4])
 }
 
 /**
- *	BMESH MAKE MESH
+ * \brief BMesh Make Mesh
  *
- *  Allocates a new BMesh structure.
- *  Returns -
- *  Pointer to a BM
+ * Allocates a new BMesh structure.
+ *
+ * \return The New bmesh
  *
  * \note ob is needed by multires
  */
-
 BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
 {
 	/* allocate the structure */
@@ -89,7 +88,7 @@ BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
 }
 
 /**
- *	BMESH FREE MESH
+ * \brief BMesh Free Mesh Data
  *
  *	Frees a BMesh structure.
  *
@@ -158,7 +157,9 @@ void BM_mesh_data_free(BMesh *bm)
 }
 
 /**
- * clear all data in bm
+ * \brief BMesh Clear Mesh
+ *
+ * Clear all data in bm
  */
 void BM_mesh_clear(BMesh *bm)
 {
@@ -178,26 +179,22 @@ void BM_mesh_clear(BMesh *bm)
 	bm->totflags = 1;
 }
 
-/*
- *	BMESH FREE MESH
+/**
+ * \brief BMesh Free Mesh
  *
- *	Frees a BMesh structure.
+ *	Frees a BMesh data and its structure.
  */
-
 void BM_mesh_free(BMesh *bm)
 {
 	BM_mesh_data_free(bm);
 	MEM_freeN(bm);
 }
 
-/*
- *  BMESH COMPUTE NORMALS
+/**
+ * \brief BMesh Compute Normals
  *
- *  Updates the normals of a mesh.
- *  Note that this can only be called
- *
+ * Updates the normals of a mesh.
  */
-
 void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 {
 	BMVert *v;
@@ -313,13 +310,14 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 }
 
 /*
- This function ensures correct normals for the mesh, but
- sets the flag BM_ELEM_TAG in flipped faces, to allow restoration
- of original normals.
- 
- if undo is 0: calculate right normals
- if undo is 1: restore original normals
+ * This function ensures correct normals for the mesh, but
+ * sets the flag BM_ELEM_TAG in flipped faces, to allow restoration
+ * of original normals.
+ *
+ * if undo is 0: calculate right normals
+ * if undo is 1: restore original normals
  */
+
 //keep in sycn with utils.c!
 #define FACE_FLIP	8
 static void bm_rationalize_normals(BMesh *bm, int undo)
@@ -404,12 +402,12 @@ static void bm_mdisps_space_set(BMesh *bm, int from, int to)
 	}
 }
 
-/*
- *	BMESH BEGIN/END EDIT
+/**
+ * \brief BMesh Begin Edit
  *
- *	Functions for setting up a mesh for editing and cleaning up after
- *  the editing operations are done. These are called by the tools/operator
- *  API for each time a tool is executed.
+ * Functions for setting up a mesh for editing and cleaning up after
+ * the editing operations are done. These are called by the tools/operator
+ * API for each time a tool is executed.
  */
 void bmesh_edit_begin(BMesh *bm, int flag)
 {
@@ -439,6 +437,9 @@ void bmesh_edit_begin(BMesh *bm, int flag)
 #endif
 }
 
+/**
+ * \brief BMesh End Edit
+ */
 void bmesh_edit_end(BMesh *bm, int flag)
 {
 	/* BMO_OP_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
@@ -521,14 +522,15 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 }
 
 
-/* array checking/setting macros */
-/* currently vert/edge/loop/face index data is being abused, but we should
- * eventually be able to rely on it being valid. To this end, there are macros
- * that validate them (so blender doesnt crash), but also print errors so we can
- * fix the offending parts of the code, this way after some months we can
- * confine this code for debug mode.
+/**
+ * Array checking/setting macros
  *
+ * Currently vert/edge/loop/face index data is being abused, in a few areas of the code.
  *
+ * To avoid correcting them afterwards, set 'bm->elem_index_dirty' however its possible
+ * this flag is set incorrectly which could crash blender.
+ *
+ * These functions ensure its correct and are called more often in debug mode.
  */
 
 void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,

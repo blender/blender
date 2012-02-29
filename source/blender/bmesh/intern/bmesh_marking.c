@@ -40,18 +40,6 @@
 
 #include "bmesh.h"
 
-
-/*
- * BMESH SELECTMODE FLUSH
- *
- * Makes sure to flush selections
- * 'upwards' (ie: all verts of an edge
- * selects the edge and so on). This
- * should only be called by system and not
- * tool authors.
- *
- */
-
 static void recount_totsels(BMesh *bm)
 {
 	BMIter iter;
@@ -76,6 +64,13 @@ static void recount_totsels(BMesh *bm)
 	}
 }
 
+/**
+ * \brief Select Mode Flush
+ *
+ * Makes sure to flush selections 'upwards'
+ * (ie: all verts of an edge selects the edge and so on).
+ * This should only be called by system and not tool authors.
+ */
 void BM_mesh_select_mode_flush(BMesh *bm)
 {
 	BMEdge *e;
@@ -243,13 +238,11 @@ void BM_mesh_select_flush(BMesh *bm)
 }
 
 /**
- * BMESH SELECT VERT
+ * \brief Select Vert
  *
  * Changes selection state of a single vertex
  * in a mesh
- *
  */
-
 void BM_vert_select_set(BMesh *bm, BMVert *v, int select)
 {
 	/* BMIter iter; */
@@ -273,14 +266,11 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, int select)
 	}
 }
 
-/*
- * BMESH SELECT EDGE
+/**
+ * \brief Select Edge
  *
- * Changes selection state of a single edge
- * in a mesh.
- *
+ * Changes selection state of a single edge in a mesh.
  */
-
 void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 {
 	if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
@@ -333,15 +323,12 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 	}
 }
 
-/*
- *
- * BMESH SELECT FACE
+/**
+ * \brief Select Face
  *
  * Changes selection state of a single
  * face in a mesh.
- *
  */
-
 void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 {
 	BMLoop *l_iter;
@@ -401,13 +388,12 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 	}
 }
 
-/*
- * BMESH SELECTMODE SET
+/**
+ * Select Mode Set
  *
- * Sets the selection mode for the bmesh
- *
+ * Sets the selection mode for the bmesh,
+ * updating the selection state.
  */
-
 void BM_select_mode_set(BMesh *bm, int selectmode)
 {
 	BMVert *v;
@@ -545,13 +531,14 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy)
 	return NULL;
 }
 
-/* Generic way to get data from an EditSelection type
+/**
+ * Generic way to get data from an EditSelection type
  * These functions were written to be used by the Modifier widget
  * when in Rotate about active mode, but can be used anywhere.
  *
- * - EM_editselection_center
- * - EM_editselection_normal
- * - EM_editselection_plane
+ * - #EM_editselection_center
+ * - #EM_editselection_normal
+ * - #EM_editselection_plane
  */
 void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese)
 {

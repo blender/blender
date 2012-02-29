@@ -27,8 +27,8 @@
  *  \ingroup bmesh
  */
 
-/*
- * BMESH ITERATORS
+/**
+ * \brief BMesh Iterators
  *
  * The functions and structures in this file
  * provide a unified method for iterating over
@@ -51,7 +51,8 @@
 /* these iterator over all elements of a specific
  * type in the mesh.
  *
- * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes */
+ * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes
+ */
 typedef enum BMIterType {
 	BM_VERTS_OF_MESH = 1,
 	BM_EDGES_OF_MESH = 2,
@@ -90,7 +91,7 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 	ele = BM_iter_new(iter, bm, itype, data);                                 \
 	for (indexvar = 0; ele; indexvar++, ele = BM_iter_step(iter))
 
-/*Iterator Structure*/
+/* Iterator Structure */
 typedef struct BMIter {
 	BLI_mempool_iter pooliter;
 

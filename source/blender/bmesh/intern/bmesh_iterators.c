@@ -50,8 +50,8 @@ const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
 	BM_LOOP  /* BM_LOOPS_OF_EDGE */
 };
 
-/*
- * note, we have BM_vert_at_index/BM_edge_at_index/BM_face_at_index for arrays
+/**
+ * \note Use #BM_vert_at_index / #BM_edge_at_index / #BM_face_at_index for mesh arrays.
  */
 void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
 {
@@ -76,13 +76,12 @@ void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
 }
 
 
-/*
- * ITERATOR AS ARRAY
+/**
+ * \brief Iterator as Array
  *
  * Sometimes its convenient to get the iterator as an array
- * to avoid multiple calls to BM_iter_at_index.
+ * to avoid multiple calls to #BM_iter_at_index.
  */
-
 int BM_iter_as_array(BMesh *bm, const char type, void *data, void **array, const int len)
 {
 	int i = 0;
@@ -106,14 +105,11 @@ int BM_iter_as_array(BMesh *bm, const char type, void *data, void **array, const
 }
 
 
-/*
- * INIT ITERATOR
+/**
+ * \brief Init Iterator
  *
- * Clears the internal state of an iterator
- * For begin() callbacks.
- *
+ * Clears the internal state of an iterator for begin() callbacks.
  */
-
 static void init_iterator(BMIter *iter)
 {
 	iter->firstvert = iter->nextvert = NULL;
@@ -123,17 +119,14 @@ static void init_iterator(BMIter *iter)
 	iter->ldata = NULL;
 }
 
-/*
+/**
  * Notes on iterator implementation:
  *
- * Iterators keep track of the next element
- * in a sequence. When a step() callback is
- * invoked the current value of 'next' is stored
- * to be returned later and the next variable is
- * incremented.
+ * Iterators keep track of the next element in a sequence.
+ * When a step() callback is invoked the current value of 'next'
+ * is stored to be returned later and the next variable is incremented.
  *
- * When the end of a sequence is
- * reached, next should always equal NULL
+ * When the end of a sequence is reached, next should always equal NULL
  *
  * The 'bmiter__' prefix is used because these are used in
  * bmesh_iterators_inine.c but should otherwise be seen as
@@ -142,7 +135,6 @@ static void init_iterator(BMIter *iter)
 
 /*
  * VERT OF MESH CALLBACKS
- *
  */
 
 void bmiter__vert_of_mesh_begin(BMIter *iter)
@@ -180,7 +172,6 @@ void  *bmiter__face_of_mesh_step(BMIter *iter)
 
 /*
  * EDGE OF VERT CALLBACKS
- *
  */
 
 void  bmiter__edge_of_vert_begin(BMIter *iter)
@@ -206,7 +197,6 @@ void  *bmiter__edge_of_vert_step(BMIter *iter)
 
 /*
  * FACE OF VERT CALLBACKS
- *
  */
 
 void  bmiter__face_of_vert_begin(BMIter *iter)
@@ -347,7 +337,6 @@ void  *bmiter__loops_of_loop_step(BMIter *iter)
 
 /*
  * FACE OF EDGE CALLBACKS
- *
  */
 
 void  bmiter__face_of_edge_begin(BMIter *iter)
@@ -373,7 +362,6 @@ void  *bmiter__face_of_edge_step(BMIter *iter)
 
 /*
  * VERTS OF EDGE CALLBACKS
- *
  */
 
 void  bmiter__vert_of_edge_begin(BMIter *iter)
@@ -397,7 +385,6 @@ void  *bmiter__vert_of_edge_step(BMIter *iter)
 
 /*
  * VERT OF FACE CALLBACKS
- *
  */
 
 void  bmiter__vert_of_face_begin(BMIter *iter)
@@ -418,7 +405,6 @@ void  *bmiter__vert_of_face_step(BMIter *iter)
 
 /*
  * EDGE OF FACE CALLBACKS
- *
  */
 
 void  bmiter__edge_of_face_begin(BMIter *iter)
@@ -439,7 +425,6 @@ void  *bmiter__edge_of_face_step(BMIter *iter)
 
 /*
  * LOOP OF FACE CALLBACKS
- *
  */
 
 void  bmiter__loop_of_face_begin(BMIter *iter)
