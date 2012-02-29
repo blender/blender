@@ -124,8 +124,8 @@ EnumPropertyItem event_ndof_type_items[]= {
 	{NDOF_BUTTON_FRONT, "NDOF_BUTTON_FRONT", 0, "Front", ""},
 	{NDOF_BUTTON_BACK, "NDOF_BUTTON_BACK", 0, "Back", ""},
 	/* more views */
-	{NDOF_BUTTON_ISO1, "NDOF_BUTTON_ISO1", 0, "ISO 1", ""},
-	{NDOF_BUTTON_ISO2, "NDOF_BUTTON_ISO2", 0, "ISO 2", ""},
+	{NDOF_BUTTON_ISO1, "NDOF_BUTTON_ISO1", 0, "Isometric 1", ""},
+	{NDOF_BUTTON_ISO2, "NDOF_BUTTON_ISO2", 0, "Isometric 2", ""},
 	/* 90 degree rotations */
 	{NDOF_BUTTON_ROLL_CW, "NDOF_BUTTON_ROLL_CW", 0, "Roll CW", ""},
 	{NDOF_BUTTON_ROLL_CCW, "NDOF_BUTTON_ROLL_CCW", 0, "Roll CCW", ""},
@@ -139,6 +139,11 @@ EnumPropertyItem event_ndof_type_items[]= {
 	{NDOF_BUTTON_DOMINANT, "NDOF_BUTTON_DOMINANT", 0, "Dominant", ""},
 	{NDOF_BUTTON_PLUS, "NDOF_BUTTON_PLUS", 0, "Plus", ""},
 	{NDOF_BUTTON_MINUS, "NDOF_BUTTON_MINUS", 0, "Minus", ""},
+	/* keyboard emulation */
+	{NDOF_BUTTON_ESC, "NDOF_BUTTON_ESC", 0, "Esc"},
+	{NDOF_BUTTON_ALT, "NDOF_BUTTON_ALT", 0, "Alt"},
+	{NDOF_BUTTON_SHIFT, "NDOF_BUTTON_SHIFT", 0, "Shift"},
+	{NDOF_BUTTON_CTRL, "NDOF_BUTTON_CTRL", 0, "Ctrl"},
 	/* general-purpose buttons */
 	{NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "Button 1", ""},
 	{NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "Button 2", ""},
@@ -150,6 +155,9 @@ EnumPropertyItem event_ndof_type_items[]= {
 	{NDOF_BUTTON_8, "NDOF_BUTTON_8", 0, "Button 8", ""},
 	{NDOF_BUTTON_9, "NDOF_BUTTON_9", 0, "Button 9", ""},
 	{NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, "Button 10", ""},
+	{NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, "Button A", ""},
+	{NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "Button B", ""},
+	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "Button C", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* not returned: CAPSLOCKKEY, UNKNOWNKEY */
@@ -315,8 +323,8 @@ EnumPropertyItem event_type_items[] = {
 	{NDOF_BUTTON_FRONT, "NDOF_BUTTON_FRONT", 0, "NDOF Front", ""},
 	{NDOF_BUTTON_BACK, "NDOF_BUTTON_BACK", 0, "NDOF Back", ""},
 	/* more views */
-	{NDOF_BUTTON_ISO1, "NDOF_BUTTON_ISO1", 0, "NDOF ISO 1", ""},
-	{NDOF_BUTTON_ISO2, "NDOF_BUTTON_ISO2", 0, "NDOF ISO 2", ""},
+	{NDOF_BUTTON_ISO1, "NDOF_BUTTON_ISO1", 0, "NDOF Isometric 1", ""},
+	{NDOF_BUTTON_ISO2, "NDOF_BUTTON_ISO2", 0, "NDOF Isometric 2", ""},
 	/* 90 degree rotations */
 	{NDOF_BUTTON_ROLL_CW, "NDOF_BUTTON_ROLL_CW", 0, "NDOF Roll CW", ""},
 	{NDOF_BUTTON_ROLL_CCW, "NDOF_BUTTON_ROLL_CCW", 0, "NDOF Roll CCW", ""},
@@ -330,6 +338,11 @@ EnumPropertyItem event_type_items[] = {
 	{NDOF_BUTTON_DOMINANT, "NDOF_BUTTON_DOMINANT", 0, "NDOF Dominant", ""},
 	{NDOF_BUTTON_PLUS, "NDOF_BUTTON_PLUS", 0, "NDOF Plus", ""},
 	{NDOF_BUTTON_MINUS, "NDOF_BUTTON_MINUS", 0, "NDOF Minus", ""},
+	/* keyboard emulation */
+	{NDOF_BUTTON_ESC, "NDOF_BUTTON_ESC", 0, "NDOF Esc"},
+	{NDOF_BUTTON_ALT, "NDOF_BUTTON_ALT", 0, "NDOF Alt"},
+	{NDOF_BUTTON_SHIFT, "NDOF_BUTTON_SHIFT", 0, "NDOF Shift"},
+	{NDOF_BUTTON_CTRL, "NDOF_BUTTON_CTRL", 0, "NDOF Ctrl"},
 	/* general-purpose buttons */
 	{NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "NDOF Button 1", ""},
 	{NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "NDOF Button 2", ""},
@@ -341,6 +354,9 @@ EnumPropertyItem event_type_items[] = {
 	{NDOF_BUTTON_8, "NDOF_BUTTON_8", 0, "NDOF Button 8", ""},
 	{NDOF_BUTTON_9, "NDOF_BUTTON_9", 0, "NDOF Button 9", ""},
 	{NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, "NDOF Button 10", ""},
+	{NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, "NDOF Button A", ""},
+	{NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "NDOF Button B", ""},
+	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "NDOF Button C", ""},
 	{0, NULL, 0, NULL, NULL}};	
 
 EnumPropertyItem keymap_propvalue_items[] = {
@@ -584,7 +600,7 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 			break;
 		case KMI_TYPE_NDOF:
 			kmi->type = NDOF_BUTTON_MENU;
-			kmi->val = KM_NOTHING;
+			kmi->val = KM_PRESS;
 			break;
 		}
 	}

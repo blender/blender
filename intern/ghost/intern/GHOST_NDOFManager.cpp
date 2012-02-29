@@ -135,10 +135,10 @@ static const NDOF_ButtonT SpaceExplorer_HID_map[] = {
 	NDOF_BUTTON_LEFT,
 	NDOF_BUTTON_RIGHT,
 	NDOF_BUTTON_FRONT,
-	NDOF_BUTTON_ESC, // esc key
-	NDOF_BUTTON_ALT, // alt key
-	NDOF_BUTTON_SHIFT, // shift key
-	NDOF_BUTTON_CTRL, // ctrl key
+	NDOF_BUTTON_ESC,
+	NDOF_BUTTON_ALT,
+	NDOF_BUTTON_SHIFT,
+	NDOF_BUTTON_CTRL,
 	NDOF_BUTTON_FIT,
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_PLUS,
@@ -159,10 +159,10 @@ static const NDOF_ButtonT SpacePilot_HID_map[] = {
 	NDOF_BUTTON_LEFT,
 	NDOF_BUTTON_RIGHT,
 	NDOF_BUTTON_FRONT,
-	NDOF_BUTTON_ESC, // esc key
-	NDOF_BUTTON_ALT, // alt key
-	NDOF_BUTTON_SHIFT, // shift key
-	NDOF_BUTTON_CTRL, // ctrl key
+	NDOF_BUTTON_ESC,
+	NDOF_BUTTON_ALT,
+	NDOF_BUTTON_SHIFT,
+	NDOF_BUTTON_CTRL,
 	NDOF_BUTTON_FIT,
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_PLUS,
@@ -187,10 +187,12 @@ static const NDOF_ButtonT Generic_HID_map[] = {
 	NDOF_BUTTON_C
 };
 
+static const int genericButtonCount = sizeof(Generic_HID_map) / sizeof(NDOF_ButtonT);
+
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
 	, m_deviceType(NDOF_UnknownDevice) // each platform has its own device detection code
-	, m_buttonCount(0)
+	, m_buttonCount(genericButtonCount)
 	, m_buttonMask(0)
 	, m_hidMap(Generic_HID_map)
 	, m_buttons(0)
@@ -218,7 +220,7 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 
 	m_deviceType = NDOF_UnknownDevice;
 	m_hidMap = Generic_HID_map;
-	m_buttonCount = sizeof(Generic_HID_map) / sizeof(NDOF_ButtonT);
+	m_buttonCount = genericButtonCount;
 	m_buttonMask = 0;
 
 	// "mystery device" owners can help build a HID_map for their hardware
@@ -264,13 +266,11 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_buttonCount = 21;
 					m_hidMap = SpacePilot_HID_map;
 					break;
-
 				case 0xC621:
 					puts("ndof: using Spaceball 5000");
 					m_deviceType = NDOF_Spaceball5000;
 					m_buttonCount = 12;
 					break;
-
 				case 0xC623:
 					puts("ndof: using SpaceTraveler");
 					m_deviceType = NDOF_SpaceTraveler;
@@ -311,15 +311,8 @@ void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 
 void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
 {
-	if (button == NDOF_BUTTON_NONE) {
-		// just being exceptionally cautious...
-		// air-tight button masking and proper function key emulation
-		// should guarantee we never get to this point
-#ifdef DEBUG_NDOF_BUTTONS
-		printf("discarding NDOF_BUTTON_NONE (should not escape the NDOF manager)\n");
-#endif
-		return;
-	}
+	GHOST_ASSERT(button > NDOF_BUTTON_NONE && button < NDOF_BUTTON_LAST,
+		"rogue button trying to escape NDOF manager");
 
 	GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
 	GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
@@ -351,15 +344,18 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
 #ifdef DEBUG_NDOF_BUTTONS
-	if (m_deviceType != NDOF_UnknownDevice)
-		printf("ndof: button %d -> ", button_number);
+	printf("ndof: button %d -> ", button_number);
 #endif
 
-	NDOF_ButtonT button = m_hidMap[button_number];
+	NDOF_ButtonT button = (button_number < m_buttonCount) ? m_hidMap[button_number] : NDOF_BUTTON_NONE;
 
 	switch (button)
 	{
-		case NDOF_BUTTON_NONE: break;
+		case NDOF_BUTTON_NONE:
+#ifdef DEBUG_NDOF_BUTTONS
+			printf("discarded\n");
+#endif
+			break;
 		case NDOF_BUTTON_ESC: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
 		case NDOF_BUTTON_ALT: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
 		case NDOF_BUTTON_SHIFT: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
