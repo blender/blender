@@ -430,6 +430,15 @@ static void get_tc_filename(struct anim * anim, IMB_Timecode_Type tc,
 }
 
 /* ----------------------------------------------------------------------
+   - common rebuilder structures
+   ---------------------------------------------------------------------- */
+
+typedef struct IndexBuildContext {
+	int anim_type;
+} IndexBuildContext;
+
+
+/* ----------------------------------------------------------------------
    - ffmpeg rebuilder
    ---------------------------------------------------------------------- */
 
@@ -695,10 +704,6 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 	MEM_freeN(ctx);
 }
 
-typedef struct IndexBuildContext {
-	int anim_type;
-} IndexBuildContext;
-
 typedef struct FFmpegIndexBuilderContext {
 	int anim_type;
 
@@ -717,14 +722,6 @@ typedef struct FFmpegIndexBuilderContext {
 	IMB_Timecode_Type tcs_in_use;
 	IMB_Proxy_Size proxy_sizes_in_use;
 } FFmpegIndexBuilderContext;
-
-typedef struct FallbackIndexBuilderContext {
-	int anim_type;
-
-	struct anim *anim;
-	AviMovie *proxy_ctx[IMB_PROXY_MAX_SLOT];
-	IMB_Proxy_Size proxy_sizes_in_use;
-} FallbackIndexBuilderContext;
 
 static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
                                                       IMB_Proxy_Size proxy_sizes_in_use, int quality)
@@ -957,6 +954,14 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 /* ----------------------------------------------------------------------
    - internal AVI (fallback) rebuilder
    ---------------------------------------------------------------------- */
+
+typedef struct FallbackIndexBuilderContext {
+	int anim_type;
+
+	struct anim *anim;
+	AviMovie *proxy_ctx[IMB_PROXY_MAX_SLOT];
+	IMB_Proxy_Size proxy_sizes_in_use;
+} FallbackIndexBuilderContext;
 
 static AviMovie * alloc_proxy_output_avi(
 	struct anim * anim, char * filename, int width, int height,
