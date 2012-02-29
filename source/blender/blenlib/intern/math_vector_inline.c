@@ -77,6 +77,27 @@ MINLINE void copy_v4_v4(float r[4], const float a[4])
 	r[3]= a[3];
 }
 
+MINLINE void copy_v2_fl(float r[2], float f)
+{
+	r[0]= f;
+	r[1]= f;
+}
+
+MINLINE void copy_v3_fl(float r[3], float f)
+{
+	r[0]= f;
+	r[1]= f;
+	r[2]= f;
+}
+
+MINLINE void copy_v4_fl(float r[4], float f)
+{
+	r[0]= f;
+	r[1]= f;
+	r[2]= f;
+	r[3]= f;
+}
+
 /* short */
 MINLINE void copy_v2_v2_char(char r[2], const char a[2])
 {
