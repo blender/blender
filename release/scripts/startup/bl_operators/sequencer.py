@@ -33,10 +33,20 @@ class SequencerCrossfadeSounds(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
-            return context.scene.sequence_editor.active_strip.type == 'SOUND'
-        else:
+        seq1 = None
+        seq2 = None
+        for s in context.scene.sequence_editor.sequences:
+            if s.select and s.type == 'SOUND':
+                if seq1 is None:
+                    seq1 = s
+                elif seq2 is None:
+                    seq2 = s
+                else:
+                    return False
+        if seq2 is None:
             return False
+        else:
+            return True
 
     def execute(self, context):
         seq1 = None
