@@ -1176,6 +1176,8 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	}
 }
 
+static void vgroup_transfer_weight()
+{}
 
 static void vgroup_lock_all(Object *ob, int action)
 {
@@ -2365,6 +2367,33 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active",
 	                "Keep the values of the active group while normalizing others");
+}
+
+static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= ED_object_context(C);
+
+	vgroup_transfer_weight();
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Transfer Weight";
+	ot->idname= "OBJECT_OT_vertex_group_transfer_weight";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_transfer_weight_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_fix_exec(bContext *C, wmOperator *op)
