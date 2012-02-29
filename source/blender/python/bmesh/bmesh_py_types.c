@@ -39,6 +39,7 @@
 
 #include "../generic/py_capi_utils.h"
 
+#include "bmesh_py_select.h"
 #include "bmesh_py_types.h" /* own include */
 
 /* Common Flags
@@ -277,6 +278,23 @@ static int bpy_bmesh_select_mode_set(BPy_BMesh *self, PyObject *value)
 	}
 }
 
+PyDoc_STRVAR(bpy_bmesh_select_history_doc,
+"Sequence of selected items (the last is displayed as active).\n\n:type: :class:`BMEditSelSeq`"
+);
+static PyObject *bpy_bmesh_select_history_get(BPy_BMesh *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	return BPy_BMEditSel_CreatePyObject(self->bm);
+}
+
+static int bpy_bmesh_select_history_set(BPy_BMesh *self, PyObject *UNUSED(value))
+{
+	BPY_BM_CHECK_INT(self);
+
+	PyErr_SetString(PyExc_NotImplementedError, "not yet functional");
+	return -1;
+}
 
 /* Vert
  * ^^^^ */
@@ -458,6 +476,8 @@ static PyGetSetDef bpy_bmesh_getseters[] = {
     {(char *)"edges", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_edges_doc, (void *)BM_EDGES_OF_MESH},
     {(char *)"faces", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_faces_doc, (void *)BM_FACES_OF_MESH},
     {(char *)"select_mode", (getter)bpy_bmesh_select_mode_get, (setter)bpy_bmesh_select_mode_set, (char *)bpy_bmesh_select_mode_doc, NULL},
+
+    {(char *)"select_history", (getter)bpy_bmesh_select_history_get, (setter)bpy_bmesh_select_history_set, (char *)bpy_bmesh_select_history_doc, NULL},
 
     /* readonly checks */
     {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
@@ -1873,7 +1893,6 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t s
 
 	/* first loop up-until the start */
 	for (ok = TRUE; ok; ok = (BM_iter_step(&iter) != NULL)) {
-		/* PointerRNA itemptr = rna_macro_iter.ptr; */
 		if (count == start) {
 			break;
 		}
@@ -2343,6 +2362,8 @@ PyObject *BPyInit_bmesh_types(void)
 	mod_type_add(submodule, BPy_BMLoop_Type);
 	mod_type_add(submodule, BPy_BMElemSeq_Type);
 	mod_type_add(submodule, BPy_BMIter_Type);
+	mod_type_add(submodule, BPy_BMEditSelSeq_Type);
+	mod_type_add(submodule, BPy_BMEditSelIter_Type);
 
 #undef mod_type_add
 
