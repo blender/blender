@@ -49,23 +49,6 @@
  * Point in triangle tests stolen from scanfill.c.
  * Used for tesselator
  */
-static short testedgeside(const double v1[2], const double v2[2], const double v3[2])
-{
-	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
-	double inp;
-
-	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
-	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
-
-	if (inp < 0.0) {
-		return FALSE;
-	}
-	else if (inp == 0) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return FALSE;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return FALSE;
-	}
-	return TRUE;
-}
 
 static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
 {
@@ -83,14 +66,6 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
 		if (v2[0] == v3[0] && v2[1] == v3[1]) return FALSE;
 	}
 	return TRUE;
-}
-
-static int point_in_triangle(const double v1[2], const double v2[2], const double v3[2], const double pt[2])
-{
-	if (testedgeside(v1, v2, pt) && testedgeside(v2, v3, pt) && testedgeside(v3, v1, pt)) {
-		return TRUE;
-	}
-	return FALSE;
 }
 
 /**
@@ -694,14 +669,14 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
+	float v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
-	VECCOPY(v1, projectverts[v1i])
-	VECCOPY(v2, projectverts[v2i]);
-	VECCOPY(v3, projectverts[v3i]);
+	copy_v3_v3(v1, projectverts[v1i]);
+	copy_v3_v3(v2, projectverts[v2i]);
+	copy_v3_v3(v3, projectverts[v3i]);
 	
-	if (testedgeside(v1, v2, v3)) {
+	if (testedgesidef(v1, v2, v3)) {
 		return FALSE;
 	}
 
@@ -713,13 +688,13 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 			continue;
 		}
 		
-		VECCOPY(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
-		VECCOPY(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
+		copy_v3_v3(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
+		copy_v3_v3(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
 		
-		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
+		//if (linecrossesf(pv1, pv2, v1, v3)) return FALSE;
 
-		if (point_in_triangle(v1, v2, v3, pv1) ||
-		    point_in_triangle(v3, v2, v1, pv1))
+		if (isect_point_tri_v2(pv1, v1, v2, v3) ||
+		    isect_point_tri_v2(pv1, v3, v2, v1))
 		{
 			return FALSE;
 		}
