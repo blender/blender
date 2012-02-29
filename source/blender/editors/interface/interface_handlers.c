@@ -4767,8 +4767,8 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		}
 		/* reset to default */
 		/* XXX hardcoded keymap check.... */
-		else if(ELEM(event->type, DELKEY, PADPERIOD) && event->val == KM_PRESS) {
-			/* ctrl+del - reset active button; del - reset a whole array*/
+		else if(event->type == BACKSPACEKEY && event->val == KM_PRESS) {
+			/* ctrl+backspace = reset active button; backspace = reset a whole array*/
 			if (!(ELEM3(but->type, HSVCIRCLE, HSVCUBE, HISTOGRAM)))
 				ui_set_but_default(C, !event->ctrl);
 		}
