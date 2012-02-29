@@ -60,7 +60,7 @@ void logImageSetVerbose(int);
 LogImageFile* logImageOpenFromMem(unsigned char *buffer, unsigned int size, int cineon);
 LogImageFile* logImageOpen(const char* filename, int cineon);
 int logImageGetSize(const LogImageFile* logImage, int* xsize, int* ysize, int* channels);
-LogImageFile* logImageCreate(const char* filename, int cineon, int xsize, int ysize, int channels);interpolateOnTriangle
+LogImageFile* logImageCreate(const char* filename, int cineon, int xsize, int ysize, int channels);
 
 /* byte conversion routines for mapping logImage (usually) 10 bit values to 8 bit */
 /* see Kodak docs for details... */
