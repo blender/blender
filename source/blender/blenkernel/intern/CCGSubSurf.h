@@ -48,8 +48,6 @@ typedef enum {
 CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);
 void		ccgSubSurf_free	(CCGSubSurf *ss);
 
-CCGError	ccgSubSurf_sync	(CCGSubSurf *ss);
-
 CCGError	ccgSubSurf_initFullSync		(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initPartialSync	(CCGSubSurf *ss);
 

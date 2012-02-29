@@ -2773,3 +2773,23 @@ void CDDM_set_mface(DerivedMesh *dm, MFace *mface)
 
 	cddm->mface = mface;
 }
+
+void CDDM_set_mloop(DerivedMesh *dm, MLoop *mloop)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+
+	if (!CustomData_has_layer(&dm->loopData, CD_MLOOP))
+		CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_ASSIGN, mloop, dm->numLoopData);
+
+	cddm->mloop = mloop;
+}
+
+void CDDM_set_mpoly(DerivedMesh *dm, MPoly *mpoly)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+
+	if (!CustomData_has_layer(&dm->polyData, CD_MPOLY))
+		CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_ASSIGN, mpoly, dm->numPolyData);
+
+	cddm->mpoly = mpoly;
+}

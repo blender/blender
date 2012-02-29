@@ -55,8 +55,6 @@ void BKE_movieclip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
 int BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
 void BKE_movieclip_user_set_frame(struct MovieClipUser *user, int framenr);
 
-void BKE_movieclip_select_track(struct MovieClip *clip, struct MovieTrackingTrack *track, int area, int extend);
-
 void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *user, struct MovieClipScopes *scopes);
 
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUser *user, int *totseg_r, int **points_r);

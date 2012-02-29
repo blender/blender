@@ -103,9 +103,6 @@ void MESH_OT_edge_face_add(struct wmOperatorType *ot);
 void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
 void MESH_OT_duplicate(struct wmOperatorType *ot);
 
-void MESH_OT_fgon_make(struct wmOperatorType *ot);
-void MESH_OT_fgon_clear(struct wmOperatorType *ot);
-
 extern int EM_view3d_poll(struct bContext *C);
 
 struct wmKeyMap* knifetool_modal_keymap(struct wmKeyConfig *keyconf);
@@ -118,7 +115,6 @@ void MESH_OT_knife_cut(struct wmOperatorType *ot);
 void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_select_all(struct wmOperatorType *ot);
 void MESH_OT_select_interior_faces(struct wmOperatorType *ot);
-void MESH_OT_bmesh_test(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
 void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
@@ -140,7 +136,6 @@ void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_noise(struct wmOperatorType *ot);
-void EXPORT_MESH_OT_wavefront(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
@@ -153,7 +148,6 @@ void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
 void MESH_OT_vertices_randomize(struct wmOperatorType *ot);
 void MESH_OT_vertices_sort(struct wmOperatorType *ot);
-void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);
 

@@ -128,7 +128,6 @@ struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *na
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
-void clear_armature(struct Scene *scene, struct Object *ob, char mode);
 void docenter_armature (struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
 
 void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
@@ -139,7 +138,6 @@ void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 
 void create_vgroups_from_armature(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct Object *par, int mode, int mirror);
 
-void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
 void ED_armature_bone_rename(struct bArmature *arm, const char *oldnamep, const char *newnamep);
 

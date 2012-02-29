@@ -50,7 +50,6 @@ struct ARegion *file_buttons_region(struct ScrArea *sa);
 
 void file_draw_buttons(const bContext *C, ARegion *ar);
 void file_calc_previews(const bContext *C, ARegion *ar);
-void file_draw_previews(const bContext *C, ARegion *ar);
 void file_draw_list(const bContext *C, ARegion *ar);
 
 void file_draw_check_cb(bContext *C, void *arg1, void *arg2);
@@ -72,7 +71,6 @@ void FILE_OT_execute(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
 void FILE_OT_directory_new(struct wmOperatorType *ot);
-void FILE_OT_filename(struct wmOperatorType *ot);
 void FILE_OT_directory(struct wmOperatorType *ot);
 void FILE_OT_previous(struct wmOperatorType *ot);
 void FILE_OT_next(struct wmOperatorType *ot);

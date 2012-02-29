@@ -132,6 +132,4 @@ void graph_print_queue(DagNodeQueue *nqueue);
 void graph_print_queue_dist(DagNodeQueue *nqueue);
 void graph_print_adj_list(void);
 
-int build_deps(short mask);
-
-#endif
+#endif /* __DEPSGRAPH_PRIVATE_H__ */

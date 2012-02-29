@@ -613,7 +613,6 @@ DerivedMesh *mesh_create_derived_no_virtual(struct Scene *scene, struct Object *
 DerivedMesh *mesh_create_derived_physics(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
 											CustomDataMask dataMask);
 
-DerivedMesh *editbmesh_get_derived(struct BMEditMesh *em, float (*vertexCos)[3]);
 DerivedMesh *editbmesh_get_derived_base(struct Object *, struct BMEditMesh *em);
 DerivedMesh *editbmesh_get_derived_cage(struct Scene *scene, struct Object *, 
 									   struct BMEditMesh *em, CustomDataMask dataMask);
@@ -629,11 +628,6 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *
    number of modifiers left */
 int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct BMEditMesh *em,
 									   float (**deformmats)[3][3], float (**deformcos)[3]);
-
-/* returns an array of deform matrices for crazyspace correction when sculpting,
-   and the number of modifiers left */
-int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
-								float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float r_rgb[3], const float weight);
 /* Update the weight MCOL preview layer.

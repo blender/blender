@@ -713,9 +713,7 @@ struct TexResult;
 
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
-void ntreeTexSetPreviewFlag(int);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
-char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
 void ntreeTexEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);

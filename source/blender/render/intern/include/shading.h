@@ -56,7 +56,6 @@ typedef struct ShadeSample {
 
 	/* also the node shader callback */
 void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
-void shade_volume_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 
 void shade_input_set_triangle_i(struct ShadeInput *shi, struct ObjectInstanceRen *obi, struct VlakRen *vlr, short i1, short i2, short i3);
 void shade_input_set_triangle(struct ShadeInput *shi, volatile int obi, volatile int facenr, int normal_flip);

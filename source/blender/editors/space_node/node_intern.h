@@ -62,7 +62,6 @@ typedef struct bNodeLinkDrag
 ARegion *node_has_buttons_region(ScrArea *sa);
 
 /* node_header.c */
-void node_header_buttons(const bContext *C, ARegion *ar);
 void node_menus_register(void);
 
 /* node_draw.c */
@@ -105,7 +104,6 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
-void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4]);
 
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
@@ -116,7 +114,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
-void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
 int node_has_hidden_sockets(bNode *node, short flag);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set);

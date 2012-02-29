@@ -253,11 +253,6 @@ void create_vert_poly_map(struct ListBase **map, IndexNode **mem,
 void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,
                           const int totvert, const int totedge);
 
-/* functions for making menu's from customdata layers */
-int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
-void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
-int mesh_layers_menu(struct CustomData *data, int type);
-
 /* vertex level transformations & checks (no derived mesh) */
 
 int minmax_mesh(struct Mesh *me, float min[3], float max[3]);

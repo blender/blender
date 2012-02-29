@@ -142,7 +142,7 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 
 /* Remove the given element from the tree and balance again */
 // FIXME: this is not implemented yet... 
-void BLI_dlrbTree_remove(DLRBT_Tree *tree, DLRBT_Node *node);
+// void BLI_dlrbTree_remove(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* Node Operations (Manual) --------------------- */
 /* These methods require custom code for creating BST nodes and adding them to the 

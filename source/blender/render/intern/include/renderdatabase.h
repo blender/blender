@@ -88,7 +88,6 @@ void free_renderdata_tables(struct Render *re);
 void free_renderdata_vertnodes(struct VertTableNode *vertnodes);
 void free_renderdata_vlaknodes(struct VlakTableNode *vlaknodes);
 
-void set_normalflags(struct Render *re, struct ObjectRen *obr);
 void project_renderdata(struct Render *re, void (*projectfunc)(const float *, float mat[][4], float *),  int do_pano, float xoffs, int do_buckets);
 int clip_render_object(float boundbox[][3], float *bounds, float mat[][4]);
 
@@ -105,7 +104,6 @@ struct StrandBuffer *RE_addStrandBuffer(struct ObjectRen *obr, int totvert);
 struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex, int lay);
 struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4], int lay);
 void RE_makeRenderInstances(struct Render *re);
-void RE_instanceTransformNormal(struct ObjectInstanceRen *obi, float *nor, float *tnor);
 
 float *RE_vertren_get_sticky(struct ObjectRen *obr, struct VertRen *ver, int verify);
 float *RE_vertren_get_stress(struct ObjectRen *obr, struct VertRen *ver, int verify);

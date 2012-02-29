@@ -56,7 +56,6 @@ int ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obed
 int ED_object_get_active_image(struct Object *ob, int mat_nr, struct Image **ima, struct ImageUser **iuser, struct bNode **node);
 void ED_object_assign_active_image(struct Main *bmain, struct Object *ob, int mat_nr, struct Image *ima);
 
-int ED_uvedit_test_silent(struct Object *obedit);
 int ED_uvedit_test(struct Object *obedit);
 
 /* visibility and selection */

@@ -72,10 +72,6 @@ void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
 
 void compute_poly_plane(float (*verts)[3], int nverts);
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);
-void bmesh_flip_normal(BMesh *bm, BMFace *f);
-
-BMEdge *bmesh_disk_next(BMEdge *e, BMVert *v);
-BMEdge *bmesh_disk_prev(BMEdge *e, BMVert *v);
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"

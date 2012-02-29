@@ -554,7 +554,6 @@ int calc_manipulator_stats(const struct bContext *C);
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
-void add_tdi_poin(float *poin, float *old, float delta);
 void special_aftertrans_update(struct bContext *C, TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
@@ -649,14 +648,11 @@ void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);
 
-TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt);
-
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
-void restoreTransNodes(TransInfo *t);
 void recalcData(TransInfo *t);
 
 void calculateCenter(TransInfo *t);
@@ -683,7 +679,6 @@ int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
 struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
-int addObjectSpace(struct bContext *C, struct Object *ob);
 void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);
 
 #define ORIENTATION_NONE	0

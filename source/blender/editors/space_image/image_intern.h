@@ -51,8 +51,6 @@ struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
 extern const char *image_context_dir[]; /* doc access */
 
-void IMAGE_OT_toolbox(struct wmOperatorType *ot);
-
 /* image_draw.c */
 void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
 void draw_image_grease_pencil(struct bContext *C, short onlyv2d);

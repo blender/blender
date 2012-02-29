@@ -97,8 +97,6 @@ static int rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
 }
 
 /* bvh tree generics */
-template<class Tree> static int bvh_intersect(Tree *obj, Isect *isec);
-
 template<class Tree> static void bvh_add(Tree *obj, RayObject *ob)
 {
 	rtbuild_add( obj->builder, ob );

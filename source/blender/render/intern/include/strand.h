@@ -103,14 +103,5 @@ void strand_shade_cache_free(struct StrandShadeCache *cache);
 void strand_shade_segment(struct Render *re, struct StrandShadeCache *cache, struct StrandSegment *sseg, struct ShadeSample *ssamp, float t, float s, int addpassflag);
 void strand_shade_unref(struct StrandShadeCache *cache, struct StrandVert *svert);
 
-struct RenderBuckets *init_buckets(struct Render *re);
-void add_buckets_primitive(struct RenderBuckets *buckets, float *min, float *max, void *prim);
-void free_buckets(struct RenderBuckets *buckets);
-void project_hoco_to_bucket(struct RenderBuckets *buckets, float *hoco, float *bucketco);
-
-struct RenderPrimitiveIterator *init_primitive_iterator(struct Render *re, struct RenderBuckets *buckets, struct RenderPart *pa);
-void *next_primitive_iterator(struct RenderPrimitiveIterator *iter);
-void free_primitive_iterator(struct RenderPrimitiveIterator *iter);
-
 #endif
 

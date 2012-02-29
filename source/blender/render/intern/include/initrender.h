@@ -43,8 +43,6 @@ struct Object;
 void free_sample_tables(Render *re);
 void make_sample_tables(Render *re);
 
-void render_scene_set_window(Render *re, struct Object *camera, int blursample);
-
 void initparts(Render *re);
 void freeparts(Render *re);
 

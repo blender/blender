@@ -75,7 +75,6 @@ void IDP_ResizeIDPArray(struct IDProperty *prop, int len);
 /*this function works for strings too!*/
 void IDP_ResizeArray(struct IDProperty *prop, int newlen);
 void IDP_FreeArray(struct IDProperty *prop);
-void IDP_UnlinkArray(struct IDProperty *prop);
 
 /* ---------- String Type ------------ */
 IDProperty *IDP_NewString(const char *st, const char *name, int maxlen);/* maxlen excludes '\0' */

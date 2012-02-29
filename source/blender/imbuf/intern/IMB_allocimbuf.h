@@ -38,14 +38,8 @@
 
 struct ImBuf;
 
-short imb_addplanesImBuf(struct ImBuf *ibuf);
-
 short imb_addencodedbufferImBuf(struct ImBuf *ibuf);
 short imb_enlargeencodedbufferImBuf(struct ImBuf *ibuf);
-
-void imb_freeplanesImBuf(struct ImBuf *ibuf);
-
-short imb_addcmapImBuf(struct ImBuf *ibuf);
 
 #endif
 

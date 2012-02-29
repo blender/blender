@@ -237,7 +237,6 @@ void ED_view3d_clipping_set(struct RegionView3D *rv3d);
 void ED_view3d_clipping_enable(void);
 void ED_view3d_clipping_disable(void);
 
-void ED_view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
 float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);

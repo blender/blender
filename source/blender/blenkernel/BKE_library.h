@@ -83,9 +83,10 @@ void BKE_library_make_local(struct Main *bmain, struct Library *lib, int untagge
 struct ID *find_id(const char *type, const char *name);
 void clear_id_newpoins(void);
 
-void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb,struct ID* link, short *nr);
-void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb, struct ID *link, short *nr);
-void IPOnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
+void IDnames_to_pupstring(const char **str, const char *title, const char *extraops,
+                          struct ListBase *lb,struct ID* link, short *nr);
+void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops,
+                           struct ListBase *lb, struct ID *link, short *nr);
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);

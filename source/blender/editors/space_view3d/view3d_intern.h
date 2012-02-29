@@ -62,7 +62,6 @@ struct wmWindowManager;
 #define DRAW_FACE_SELECT 2
 
 /* view3d_header.c */
-void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);
 void VIEW3D_OT_layers(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
@@ -92,7 +91,6 @@ void VIEW3D_OT_manipulator(struct wmOperatorType *ot);
 void VIEW3D_OT_enable_manipulator(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
-void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4]);
@@ -146,7 +144,6 @@ float view3d_depth_near(struct ViewDepths *d);
 
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);
-void VIEW3D_OT_select_extend(struct wmOperatorType *ot);
 void VIEW3D_OT_select_circle(struct wmOperatorType *ot);
 void VIEW3D_OT_select_border(struct wmOperatorType *ot);
 void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);

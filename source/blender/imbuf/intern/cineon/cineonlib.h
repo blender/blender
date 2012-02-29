@@ -49,10 +49,6 @@ int cineonGetSize(const CineonFile* cineon, int* xsize, int* ysize, int* channel
 CineonFile* cineonCreate(const char* filename, int xsize, int ysize, int channels);
 int cineonIsMemFileCineon(unsigned char *mem);
 
-/* get / set header block NYI */
-int cineonGetHeader(CineonFile*, int*, void**);
-int cineonSetHeader(CineonFile*, int, void*);
-
 /* get/set scanline of converted bytes */
 int cineonGetRowBytes(CineonFile* cineon, unsigned short* row, int y);
 int cineonSetRowBytes(CineonFile* cineon, const unsigned short* row, int y);

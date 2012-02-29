@@ -36,7 +36,6 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 void BM_face_edges_kill(BMesh *bm, BMFace *f);
 void BM_face_verts_kill(BMesh *bm, BMFace *f);
 
-void BM_loop_kill(BMesh *bm, BMLoop *l);
 void BM_face_kill(BMesh *bm, BMFace *f);
 void BM_edge_kill(BMesh *bm, BMEdge *e);
 void BM_vert_kill(BMesh *bm, BMVert *v);

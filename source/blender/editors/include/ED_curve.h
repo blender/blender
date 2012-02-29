@@ -83,7 +83,6 @@ void	free_editText	(struct Object *obedit);
 void	ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
 
 int CU_select_nth(struct Object *obedit, int nth);
-ListBase *ED_curve_editnurbs(struct Curve *cu);
 
 void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct BezTriple *src, int count);
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);

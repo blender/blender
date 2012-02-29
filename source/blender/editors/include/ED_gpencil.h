@@ -86,15 +86,12 @@ void gpencil_panel_standard(const struct bContext *C, struct Panel *pa);
 short gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene, short (*gpf_cb)(struct bGPDframe *, struct Scene *));
 void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
 
-void deselect_gpencil_layers(void *data, short select_mode);
-
 short is_gplayer_frame_selected(struct bGPDlayer *gpl);
 void set_gplayer_frame_selection(struct bGPDlayer *gpl, short mode);
 void select_gpencil_frames(struct bGPDlayer *gpl, short select_mode);
 void select_gpencil_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 void borderselect_gplayer_frames(struct bGPDlayer *gpl, float min, float max, short select_mode);
 
-void delete_gpencil_layers(void);
 void delete_gplayer_frames(struct bGPDlayer *gpl);
 void duplicate_gplayer_frames(struct bGPDlayer *gpd);
 

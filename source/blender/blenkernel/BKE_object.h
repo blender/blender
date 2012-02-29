@@ -83,9 +83,6 @@ struct Object *copy_object(struct Object *ob);
 void make_local_object(struct Object *ob);
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
-void set_mblur_offs(float blur);
-void set_field_offs(float field);
-void disable_speed_curve(int val);
 
 void object_scale_to_mat3(struct Object *ob, float mat[][3]);
 void object_rot_to_mat3(struct Object *ob, float mat[][3]);
@@ -122,7 +119,6 @@ void BKE_scene_foreach_display_point(
 
 int BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
 
-void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 
 void *object_tfm_backup(struct Object *ob);

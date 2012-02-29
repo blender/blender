@@ -241,6 +241,11 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 	}
 }
 
+int BLI_mempool_count(BLI_mempool *pool)
+{
+	return pool->totused;
+}
+
 void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 {
 	if (!pool->allow_iter) {

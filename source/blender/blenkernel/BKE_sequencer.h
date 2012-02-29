@@ -286,7 +286,6 @@ void seq_update_sound_bounds_all(struct Scene *scene);
 void seq_update_sound_bounds(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Editing *ed);
 void seq_update_sound(struct Scene *scene, struct bSound *sound);
-void seqbase_sound_reload(struct Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void seqbase_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
 

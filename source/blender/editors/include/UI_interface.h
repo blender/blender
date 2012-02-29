@@ -268,7 +268,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 int uiGetRoundBox(void);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
-void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
@@ -612,7 +611,6 @@ void uiEndPanel(uiBlock *block, int width, int height);
  * as screen/ if ED_KEYMAP_UI is set, or internally in popup functions. */
 
 void UI_add_region_handlers(struct ListBase *handlers);
-void UI_add_area_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *popup);
 void UI_remove_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *popup);
 

@@ -342,13 +342,6 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
 
 /**
- * Encodes a png image from an ImBuf
- *
- * @attention Defined in png_encode.c
- */
-short IMB_png_encode(struct ImBuf *ibuf, int file, int flags);
-
-/**
  *
  * @attention Defined in util.c
  */
@@ -407,14 +400,6 @@ void IMB_buffer_float_clamp(float *buf, int width, int height);
  * @attention Defined in imageprocess.c
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
-
-/**
- * Change the ordering of the color bytes pointed to by rect from
- * rgba to abgr. size * 4 color bytes are reordered.
- *
- * @attention Defined in imageprocess.c
- */
-void IMB_convert_bgra_to_rgba(int size, unsigned int *rect);
 
 /**
  *
