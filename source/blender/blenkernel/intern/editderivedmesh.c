@@ -1125,7 +1125,7 @@ static void emDM_drawMappedFacesMat(
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
 
-	BM_mesh_elem_index_ensure(bm, BM_VERT);
+	BM_mesh_elem_index_ensure(bm, BM_VERT|BM_FACE);
 
 #define PASSATTRIB(loop, eve, vert) {											\
 	if (attribs.totorco) {														\
