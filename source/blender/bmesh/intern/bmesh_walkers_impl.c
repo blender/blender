@@ -670,7 +670,7 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	lwalk = BMW_state_add(walker);
 	*lwalk = owalk;
 
-	if (lwalk->l->f->len != 4)
+	if (lwalk->l->f->len % 2 != 0)
 		lwalk->l = lwalk->l->radial_next;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
@@ -698,6 +698,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 	BMEdge *e;
 	BMLoop *l = lwalk->l /* , *origl = lwalk->l */;
 	BMesh *bm = walker->bm;
+	int i, len;
 
 	BMW_state_remove(walker);
 
@@ -714,14 +715,25 @@ static void *edgeringWalker_step(BMWalker *walker)
 	}
 
 	l = l->radial_next;
-	l = l->next->next;
-	
-	if ((l->f->len != 4) || !BM_edge_is_manifold(bm, l->e)) {
-		l = lwalk->l->next->next;
+
+	i = len = l->f->len;
+	while (i > 0) {
+		l = l->next;
+		i -= 2;
 	}
 
+	if ((len <= 0) || (len % 2 != 0) || !BM_edge_is_manifold(bm, l->e)) {
+		l = lwalk->l;
+		i = len;
+		while (i > 0) {
+			l = l->next;
+			i -= 2;
+		}
+	}
+
+
 	/* only walk to manifold edge */
-	if ((l->f->len == 4) && BM_edge_is_manifold(bm, l->e) &&
+	if ((l->f->len % 2 == 0) && BM_edge_is_manifold(bm, l->e) &&
 	    !BLI_ghash_haskey(walker->visithash, l->e)) {
 		lwalk = BMW_state_add(walker);
 		lwalk->l = l;
