@@ -697,9 +697,9 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
-	copy_v3_v3(v1, projectverts[v1i]);
-	copy_v3_v3(v2, projectverts[v2i]);
-	copy_v3_v3(v3, projectverts[v3i]);
+	VECCOPY(v1, projectverts[v1i])
+	VECCOPY(v2, projectverts[v2i]);
+	VECCOPY(v3, projectverts[v3i]);
 	
 	if (testedgeside(v1, v2, v3)) {
 		return FALSE;
@@ -713,8 +713,8 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 			continue;
 		}
 		
-		copy_v3_v3(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
-		copy_v3_v3(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
+		VECCOPY(pv1, projectverts[BM_elem_index_get(l_iter->v)]);
+		VECCOPY(pv2, projectverts[BM_elem_index_get(l_iter->next->v)]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return FALSE;
 
