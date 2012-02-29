@@ -1213,7 +1213,7 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 	BPY_BM_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "|OO!:verts.new",
-	                      py_co,
+	                      &py_co,
 	                      &BPy_BMVert_Type, &py_vert_example))
 	{
 		return NULL;
@@ -1227,7 +1227,7 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 			BPY_BM_CHECK_OBJ(py_vert_example);
 		}
 
-		if (py_co && mathutils_array_parse(co, 3, 3, py_co, "verts.new(co)") != -1) {
+		if (!py_co || mathutils_array_parse(co, 3, 3, py_co, "verts.new(co)") == -1) {
 			return NULL;
 		}
 
