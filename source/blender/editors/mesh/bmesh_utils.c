@@ -546,7 +546,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 
 	BMEdit_Free(em);
 
-	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+	bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
 
 	em2 = BMEdit_Create(bm, TRUE);

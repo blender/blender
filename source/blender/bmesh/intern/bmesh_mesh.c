@@ -44,14 +44,14 @@
 #include "bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
-int bm_mesh_allocsize_default[4] = {512, 512, 2048, 512};
+BMAllocTemplate bm_mesh_allocsize_default = {512, 512, 2048, 512};
 
-static void bm_mempool_init(BMesh *bm, const int allocsize[4])
+static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {
-	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize[0], allocsize[0], FALSE, TRUE);
-	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize[1], allocsize[1], FALSE, TRUE);
-	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize[3], allocsize[3], FALSE, TRUE);
+	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize->totvert, allocsize->totvert, FALSE, TRUE);
+	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize->totedge, allocsize->totedge, FALSE, TRUE);
+	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize->totloop, allocsize->totloop, FALSE, FALSE);
+	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize->totface, allocsize->totface, FALSE, TRUE);
 
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
@@ -70,7 +70,7 @@ static void bm_mempool_init(BMesh *bm, const int allocsize[4])
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
+BMesh *BM_mesh_create(struct Object *ob, BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
@@ -173,7 +173,7 @@ void BM_mesh_clear(BMesh *bm)
 	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
-	bm_mempool_init(bm, bm_mesh_allocsize_default);
+	bm_mempool_init(bm, &bm_mesh_allocsize_default);
 
 	bm->stackdepth = 1;
 	bm->totflags = 1;

@@ -589,17 +589,17 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 	int i, j;
 
 	/* allocate a bmesh */
-	bm = BM_mesh_create(bmold->ob, bm_mesh_allocsize_default);
+	bm = BM_mesh_create(bmold->ob, &bm_mesh_allocsize_default);
 
 	CustomData_copy(&bmold->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmold->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmold->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmold->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
-	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default[0]);
-	CustomData_bmesh_init_pool(&bm->edata, bm_mesh_allocsize_default[1]);
-	CustomData_bmesh_init_pool(&bm->ldata, bm_mesh_allocsize_default[2]);
-	CustomData_bmesh_init_pool(&bm->pdata, bm_mesh_allocsize_default[3]);
+	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default.totvert);
+	CustomData_bmesh_init_pool(&bm->edata, bm_mesh_allocsize_default.totedge);
+	CustomData_bmesh_init_pool(&bm->ldata, bm_mesh_allocsize_default.totloop);
+	CustomData_bmesh_init_pool(&bm->pdata, bm_mesh_allocsize_default.totface);
 
 	vtable = MEM_mallocN(sizeof(BMVert *) * bmold->totvert, "BM_mesh_copy vtable");
 	etable = MEM_mallocN(sizeof(BMEdge *) * bmold->totedge, "BM_mesh_copy etable");

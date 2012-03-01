@@ -20,6 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h> /* for memcpy */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"

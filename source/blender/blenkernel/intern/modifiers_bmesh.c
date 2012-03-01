@@ -143,8 +143,12 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 	BMEditMesh *em = existing;
 	BMesh *bm;
 
-	if (em) bm = em->bm;
-	else bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+	if (em) {
+		bm = em->bm;
+	}
+	else {
+		bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
+	}
 
 	DM_to_bmesh_ex(dm, bm);
 
@@ -164,7 +168,7 @@ BMesh *DM_to_bmesh(Object *ob, DerivedMesh *dm)
 {
 	BMesh *bm;
 
-	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+	bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
 
 	DM_to_bmesh_ex(dm, bm);
 

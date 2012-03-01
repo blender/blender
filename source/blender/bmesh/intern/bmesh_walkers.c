@@ -27,8 +27,7 @@
  */
 
 #include <stdlib.h>
-
-
+#include <string.h> /* for memcpy */
 
 #include "BLI_listbase.h"
 

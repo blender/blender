@@ -31,13 +31,9 @@
 extern "C" {
 #endif
 
-#include "BLI_memarena.h"
 #include "BLI_ghash.h"
 
-#include "BKE_utildefines.h"
-
 #include <stdarg.h>
-#include <string.h> /* for memcpy */
 
 /*
  * operators represent logical, executable mesh modules.  all topological
@@ -140,7 +136,7 @@ typedef struct BMOperator {
 	int needflag;
 	int flag;
 	struct BMOpSlot slots[BMO_OP_MAX_SLOTS]; void (*exec)(BMesh *bm, struct BMOperator *op);
-	MemArena *arena;
+	struct MemArena *arena;
 } BMOperator;
 
 #define MAX_SLOTNAME	32

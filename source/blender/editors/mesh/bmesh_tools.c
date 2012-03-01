@@ -3206,16 +3206,16 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	if (!em)
 		return OPERATOR_CANCELLED;
 		
-	bmnew = BM_mesh_create(obedit, bm_mesh_allocsize_default);
+	bmnew = BM_mesh_create(obedit, &bm_mesh_allocsize_default);
 	CustomData_copy(&em->bm->vdata, &bmnew->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&em->bm->edata, &bmnew->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&em->bm->ldata, &bmnew->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&em->bm->pdata, &bmnew->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
-	CustomData_bmesh_init_pool(&bmnew->vdata, bm_mesh_allocsize_default[0]);
-	CustomData_bmesh_init_pool(&bmnew->edata, bm_mesh_allocsize_default[1]);
-	CustomData_bmesh_init_pool(&bmnew->ldata, bm_mesh_allocsize_default[2]);
-	CustomData_bmesh_init_pool(&bmnew->pdata, bm_mesh_allocsize_default[3]);
+	CustomData_bmesh_init_pool(&bmnew->vdata, bm_mesh_allocsize_default.totvert);
+	CustomData_bmesh_init_pool(&bmnew->edata, bm_mesh_allocsize_default.totedge);
+	CustomData_bmesh_init_pool(&bmnew->ldata, bm_mesh_allocsize_default.totloop);
+	CustomData_bmesh_init_pool(&bmnew->pdata, bm_mesh_allocsize_default.totface);
 		
 	basenew = ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);	/* 0 = fully linked */
 	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */

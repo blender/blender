@@ -440,7 +440,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, splitop, "isovertmap",
 	              "isovertmap");
 	
-	/* cleanu */
+	/* cleanup */
 	BMO_op_finish(bm, &delop);
 	BMO_op_finish(bm, &dupeop);
 }

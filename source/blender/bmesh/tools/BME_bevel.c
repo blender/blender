@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_memarena.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"

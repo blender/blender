@@ -29,13 +29,13 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_smallhash.h"
 #include "BLI_scanfill.h"
+#include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"

@@ -27,7 +27,9 @@
  *  \ingroup bmesh
  */
 
-BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4]);
+struct BMAllocTemplate;
+
+BMesh *BM_mesh_create(struct Object *ob, struct BMAllocTemplate *allocsize);
 
 void   BM_mesh_free(BMesh *bm);
 void   BM_mesh_data_free(BMesh *bm);
@@ -45,5 +47,11 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 BMVert *BM_vert_at_index(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index(BMesh *bm, const int index);
 BMFace *BM_face_at_index(BMesh *bm, const int index);
+
+typedef struct BMAllocTemplate {
+	int totvert, totedge, totloop, totface;
+} BMAllocTemplate;
+
+extern BMAllocTemplate bm_mesh_allocsize_default;
 
 #endif /* __BMESH_MESH_H__ */

@@ -51,6 +51,7 @@
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
