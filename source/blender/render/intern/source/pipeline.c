@@ -2063,7 +2063,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		
 		if(re->r.im_format.imtype==R_IMF_IMTYPE_MULTILAYER) {
 			if(re->result) {
-				RE_WriteRenderResult(re->reports, re->result, name, scene->r.im_format.compress);
+				RE_WriteRenderResult(re->reports, re->result, name, scene->r.im_format.exr_codec);
 				printf("Saved: %s", name);
 			}
 		}
