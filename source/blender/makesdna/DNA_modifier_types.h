@@ -809,12 +809,6 @@ typedef struct OceanModifierData {
 #define MOD_OCEAN_GENERATE_NORMALS	2
 
 
-/* BMESH_ONLY */
-typedef struct NgonInterpModifierData {
-	ModifierData modifier;
-	int		resolution, pad0;
-} NgonInterpModifierData;
-
 typedef struct WarpModifierData {
 	ModifierData modifier;
 	/* keep in sync with MappingInfoModifierData */
