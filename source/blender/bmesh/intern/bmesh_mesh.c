@@ -48,17 +48,17 @@ BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 
 static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {
-	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize->totvert, allocsize->totvert, FALSE, TRUE);
-	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize->totedge, allocsize->totedge, FALSE, TRUE);
-	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize->totloop, allocsize->totloop, FALSE, FALSE);
-	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize->totface, allocsize->totface, FALSE, TRUE);
+	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize->totvert, allocsize->totvert, BLI_MEMPOOL_ALLOW_ITER);
+	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize->totedge, allocsize->totedge, BLI_MEMPOOL_ALLOW_ITER);
+	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize->totloop, allocsize->totloop, 0);
+	bm->fpool = BLI_mempool_create(sizeof(BMFace), allocsize->totface, allocsize->totface, BLI_MEMPOOL_ALLOW_ITER);
 
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
 #endif
 
 	/* allocate one flag pool that we dont get rid of. */
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0);
 }
 
 /**

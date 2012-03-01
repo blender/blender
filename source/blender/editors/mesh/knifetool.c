@@ -2076,9 +2076,9 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	
 	ED_region_tag_redraw(kcd->ar);
 	
-	kcd->refs = BLI_mempool_create(sizeof(Ref), 1, 2048, FALSE, FALSE);
-	kcd->kverts = BLI_mempool_create(sizeof(KnifeVert), 1, 512, FALSE, TRUE);
-	kcd->kedges = BLI_mempool_create(sizeof(KnifeEdge), 1, 512, FALSE, TRUE);
+	kcd->refs = BLI_mempool_create(sizeof(Ref), 1, 2048, 0);
+	kcd->kverts = BLI_mempool_create(sizeof(KnifeVert), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
+	kcd->kedges = BLI_mempool_create(sizeof(KnifeEdge), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
 	
 	kcd->origedgemap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origedgemap");
 	kcd->origvertmap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origvertmap");

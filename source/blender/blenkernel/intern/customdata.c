@@ -2132,7 +2132,7 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 
 	/* If there are no layers, no pool is needed just yet */
 	if (data->totlayer) {
-		data->pool = BLI_mempool_create(data->totsize, totelem, chunksize, TRUE, FALSE);
+		data->pool = BLI_mempool_create(data->totsize, totelem, chunksize, BLI_MEMPOOL_SYSMALLOC);
 	}
 }
 
