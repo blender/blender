@@ -2254,6 +2254,8 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 			}
 			else
 				nodeRemLink(snode->edittree, tlink);
+			
+			snode->edittree->update |= NTREE_UPDATE_LINKS;
 		}
 	}
 }
@@ -3515,49 +3517,47 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME-2, "Name", "");
 }
 
-/* ****************** Multi File Output Add Socket  ******************* */
+/* ****************** File Output Add Socket  ******************* */
 
-static int node_output_multi_file_add_socket_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
 	bNode *node = nodeGetActive(ntree);
+	char file_path[MAX_NAME];
 	
 	if (!node)
 		return OPERATOR_CANCELLED;
 	
-	ntreeCompositOutputMultiFileAddSocket(ntree, node, &scene->r.im_format);
+	RNA_string_get(op->ptr, "file_path", file_path);
+	ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
 	
 	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
 
-static int node_output_multi_file_add_socket_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
-{
-	return node_output_multi_file_add_socket_exec(C, op);
-}
-
-void NODE_OT_output_multi_file_add_socket(wmOperatorType *ot)
+void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Multi File Node Socket";
-	ot->description= "Add a new input to a multi file output node";
-	ot->idname= "NODE_OT_output_multi_file_add_socket";
+	ot->name= "Add File Node Socket";
+	ot->description= "Add a new input to a file output node";
+	ot->idname= "NODE_OT_output_file_add_socket";
 	
 	/* callbacks */
-	ot->exec= node_output_multi_file_add_socket_exec;
-	ot->invoke= node_output_multi_file_add_socket_invoke;
+	ot->exec= node_output_file_add_socket_exec;
 	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_string(ot->srna, "file_path", "Image", MAX_NAME, "File Path", "Sub-path of the output file");
 }
 
 /* ****************** Multi File Output Remove Socket  ******************* */
 
-static int node_output_multi_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
@@ -3566,7 +3566,7 @@ static int node_output_multi_file_remove_active_socket_exec(bContext *C, wmOpera
 	if (!node)
 		return OPERATOR_CANCELLED;
 	
-	if (!ntreeCompositOutputMultiFileRemoveActiveSocket(ntree, node))
+	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
 		return OPERATOR_CANCELLED;
 	
 	snode_notify(C, snode);
@@ -3574,15 +3574,15 @@ static int node_output_multi_file_remove_active_socket_exec(bContext *C, wmOpera
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_output_multi_file_remove_active_socket(wmOperatorType *ot)
+void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Multi File Node Socket";
-	ot->description= "Remove active input from a multi file output node";
-	ot->idname= "NODE_OT_output_multi_file_remove_active_socket";
+	ot->name= "Remove File Node Socket";
+	ot->description= "Remove active input from a file output node";
+	ot->idname= "NODE_OT_output_file_remove_active_socket";
 	
 	/* callbacks */
-	ot->exec= node_output_multi_file_remove_active_socket_exec;
+	ot->exec= node_output_file_remove_active_socket_exec;
 	ot->poll= composite_node_active;
 	
 	/* flags */

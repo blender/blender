@@ -1369,6 +1369,19 @@ int nodeSocketIsHidden(bNodeSocket *sock)
 	return ((sock->flag & (SOCK_HIDDEN | SOCK_AUTO_HIDDEN | SOCK_UNAVAIL)) != 0);
 }
 
+void nodeSocketSetType(bNodeSocket *sock, int type)
+{
+	int old_type = sock->type;
+	void *old_default_value = sock->default_value;
+	
+	sock->type = type;
+	
+	sock->default_value = node_socket_make_default_value(sock->type);
+	node_socket_init_default_value(type, sock->default_value);
+	node_socket_convert_default_value(sock->type, sock->default_value, old_type, old_default_value);
+	node_socket_free_default_value(old_type, old_default_value);
+}
+
 /* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
@@ -1839,7 +1852,6 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_viewer(ttype);
 	register_node_type_cmp_splitviewer(ttype);
 	register_node_type_cmp_output_file(ttype);
-	register_node_type_cmp_output_multi_file(ttype);
 	register_node_type_cmp_view_levels(ttype);
 	
 	register_node_type_cmp_curve_rgb(ttype);

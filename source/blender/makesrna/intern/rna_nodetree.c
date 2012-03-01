@@ -245,32 +245,28 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 				return &RNA_NodeSocket##stypename##idname; \
 		}
 		
-		if (sock->struct_type == SOCK_STRUCT_NONE) {
+		switch (sock->struct_type) {
+		case SOCK_STRUCT_NONE:
 			switch (sock->type) {
 			case SOCK_FLOAT:
 				NODE_DEFINE_SUBTYPES_FLOAT
-						break;
+				break;
 			case SOCK_INT:
 				NODE_DEFINE_SUBTYPES_INT
-						break;
+				break;
 			case SOCK_BOOLEAN:
 				return &RNA_NodeSocketBoolean;
-				break;
 			case SOCK_VECTOR:
 				NODE_DEFINE_SUBTYPES_VECTOR
-						break;
+				break;
 			case SOCK_RGBA:
 				return &RNA_NodeSocketRGBA;
-				break;
 			case SOCK_SHADER:
 				return &RNA_NodeSocketShader;
 			}
-		}
-		else {
-			switch (sock->struct_type) {
-			case SOCK_STRUCT_OUTPUT_MULTI_FILE:
-				return &RNA_NodeImageMultiFileSocket;
-			}
+			break;
+		case SOCK_STRUCT_OUTPUT_FILE:
+			return &RNA_NodeImageFileSocket;
 		}
 		
 		#undef SUBTYPE
@@ -330,24 +326,6 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 		value = chroma->t1;
 	
 	chroma->t2 = value;
-}
-
-static void rna_Image_start_frame_set(PointerRNA *ptr, int value)
-{
-	bNode *node= (bNode*)ptr->data;
-	NodeImageFile *image = node->storage;
-	
-	CLAMP(value, MINFRAME, image->efra); 
-	image->sfra= value;
-}
-
-static void rna_Image_end_frame_set(PointerRNA *ptr, int value)
-{
-	bNode *node= (bNode*)ptr->data;
-	NodeImageFile *image = node->storage;
-
-	CLAMP(value, image->sfra, MAXFRAME);
-	image->efra= value;
 }
 
 static void rna_Node_scene_set(PointerRNA *ptr, PointerRNA value)
@@ -1770,61 +1748,29 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_output_file(StructRNA *srna)
-{
-	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "NodeImageFile", "storage");
-	
-	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "File Path", "Output path for the image, same functionality as render output");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop= RNA_def_property(srna, "image_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "im_format");
-	RNA_def_property_struct_type(prop, "ImageFormatSettings");
-	RNA_def_property_ui_text(prop, "Image Format", "");
-
-	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "sfra");
-	RNA_def_property_int_funcs(prop, NULL, "rna_Image_start_frame_set", NULL);
-	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Start Frame", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "efra");
-	RNA_def_property_int_funcs(prop, NULL, "rna_Image_end_frame_set", NULL);
-	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "End Frame", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-}
-
-static void rna_def_cmp_output_multi_file_socket(BlenderRNA *brna)
+static void rna_def_cmp_output_file_socket(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "NodeImageMultiFileSocket", "NodeSocketRGBA");
+	srna = RNA_def_struct(brna, "NodeImageFileSocket", "NodeSocketRGBA");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
-	RNA_def_struct_ui_text(srna, "Node Image Multi File Socket", "Socket data of multi file output node");
+	RNA_def_struct_ui_text(srna, "Node Image File Socket", "Socket data of file output node");
 	RNA_def_struct_ui_icon(srna, ICON_PLUG);
 	RNA_def_struct_sdna_from(srna, "bNodeSocket", NULL);
 	
 	RNA_def_struct_sdna_from(srna, "NodeImageMultiFileSocket", "storage");
 	
-	prop = RNA_def_property(srna, "use_render_format", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "use_render_format", 1);
-	RNA_def_property_ui_text(prop, "Use Render Format", "");
+	prop = RNA_def_property(srna, "use_node_format", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_node_format", 1);
+	RNA_def_property_ui_text(prop, "Use Node Format", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
 	
 	prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ImageFormatSettings");
 }
-static void def_cmp_output_multi_file(StructRNA *srna)
+static void def_cmp_output_file(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -1845,6 +1791,9 @@ static void def_cmp_output_multi_file(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "active_input");
 	RNA_def_property_ui_text(prop, "Active Input Index", "Active input index in details view list");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ImageFormatSettings");
 }
 
 static void def_cmp_dilate_erode(StructRNA *srna)
@@ -3477,7 +3426,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, NODE_FRAME, def_frame);
 	
 	/* special socket types */
-	rna_def_cmp_output_multi_file_socket(brna);
+	rna_def_cmp_output_file_socket(brna);
 }
 
 /* clean up macro definition */

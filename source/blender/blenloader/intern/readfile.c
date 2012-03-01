@@ -7685,6 +7685,77 @@ static void do_versions_nodetree_socket_auto_hidden_flags_2_62(bNodeTree *ntree)
 	}
 }
 
+static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type==CMP_NODE_OUTPUT_FILE) {
+			/* previous CMP_NODE_OUTPUT_FILE nodes get converted to multi-file outputs */
+			NodeImageFile *old_data = node->storage;
+			NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
+			bNodeSocket *old_image = BLI_findlink(&node->inputs, 0);
+			bNodeSocket *old_z = BLI_findlink(&node->inputs, 1);
+			bNodeSocket *sock;
+			
+			node->storage= nimf;
+			
+			BLI_strncpy(nimf->base_path, old_data->name, sizeof(nimf->base_path));
+			nimf->format = old_data->im_format;
+			
+			/* if z buffer is saved, change the image type to multilayer exr.
+			 * XXX this is slightly messy, Z buffer was ignored before for anything but EXR and IRIS ...
+			 * i'm just assuming here that IRIZ means IRIS with z buffer ...
+			 */
+			if (ELEM(old_data->im_format.imtype, R_IMF_IMTYPE_IRIZ, R_IMF_IMTYPE_OPENEXR)) {
+				nimf->format.imtype = R_IMF_IMTYPE_MULTILAYER;
+				sock = ntreeCompositOutputFileAddSocket(ntree, node, old_image->name, &nimf->format);
+				if (old_image->link) {
+					old_image->link->tosock = sock;
+					sock->link = old_image->link;
+				}
+				sock = ntreeCompositOutputFileAddSocket(ntree, node, old_z->name, &nimf->format);
+				if (old_z->link) {
+					old_z->link->tosock = sock;
+					sock->link = old_z->link;
+				}
+			}
+			else {
+				/* saves directly to base path, which is the old image output path */
+				sock = ntreeCompositOutputFileAddSocket(ntree, node, "", &nimf->format);
+				if (old_image->link) {
+					old_image->link->tosock = sock;
+					sock->link = old_image->link;
+				}
+			}
+			
+			nodeRemoveSocket(ntree, node, old_image);
+			nodeRemoveSocket(ntree, node, old_z);
+			MEM_freeN(old_data);
+		}
+		else if (node->type==CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED) {
+			NodeImageMultiFile *nimf = node->storage;
+			
+			/* CMP_NODE_OUTPUT_MULTI_FILE has been redeclared as CMP_NODE_OUTPUT_FILE */
+			node->type = CMP_NODE_OUTPUT_FILE;
+			
+			/* initialize the node-wide image format from render data, if available */
+			if (sce)
+				nimf->format = sce->r.im_format;
+			
+			/* transfer render format toggle to node format toggle */
+			for (sock=node->inputs.first; sock; sock=sock->next) {
+				NodeImageMultiFileSocket *simf = sock->storage;
+				simf->use_node_format = simf->use_render_format;
+			}
+			
+			/* we do have preview now */
+			node->flag |= NODE_PREVIEW;
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -13162,6 +13233,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
+
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 1))
+	{
+		/* update use flags for node sockets (was only temporary before) */
+		Scene *sce;
+		bNodeTree *ntree;
+		
+		for (sce=main->scene.first; sce; sce=sce->id.next)
+			if (sce->nodetree)
+				do_versions_nodetree_multi_file_output_format_2_62_1(sce, sce->nodetree);
+		
+		/* XXX can't associate with scene for group nodes, image format will stay uninitialized */
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			do_versions_nodetree_multi_file_output_format_2_62_1(NULL, ntree);
 	}
 
 

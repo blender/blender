@@ -347,7 +347,7 @@ extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeForLoop;
 extern StructRNA RNA_NodeGroup;
-extern StructRNA RNA_NodeImageMultiFileSocket;
+extern StructRNA RNA_NodeImageFileSocket;
 extern StructRNA RNA_NodeLink;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeSocketPanel;
