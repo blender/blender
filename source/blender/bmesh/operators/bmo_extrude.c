@@ -292,6 +292,14 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
 	for ( ; e; e = BMO_iter_step(&siter)) {
 		if (BMO_slot_map_contains(bm, op, "exclude", e)) {
+			/* this should always be wire,
+			 * assert if not since we dont want to kill off any faces (next) */
+			BLI_assert(BM_edge_is_wire(bm, e) == TRUE);
+
+			/* The original edge was excluded,
+			 * this would result in a standalone wire edge - see [#30399] */
+			BM_edge_kill(bm, e);
+
 			continue;
 		}
 
