@@ -352,17 +352,19 @@ typedef struct NodeHueSat {
 	float hue, sat, val;
 } NodeHueSat;
 
-typedef DNA_DEPRECATED struct NodeImageFile {
+typedef struct NodeImageFile {
 	char name[1024]; /* 1024 = FILE_MAX */
 	struct ImageFormatData im_format;
 	int sfra, efra;
 } NodeImageFile;
 
+/* XXX first struct fields should match NodeImageFile to ensure forward compatibility */
 typedef struct NodeImageMultiFile {
 	char base_path[1024];	/* 1024 = FILE_MAX */
+	ImageFormatData format;
+	int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;	/* XXX old frame rand values from NodeImageFile for forward compatibility */
 	int active_input;		/* selected input in details view list */
 	int pad;
-	ImageFormatData format;
 } NodeImageMultiFile;
 typedef struct NodeImageMultiFileSocket {
 	short use_render_format  DNA_DEPRECATED;
