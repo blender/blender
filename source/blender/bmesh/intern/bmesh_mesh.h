@@ -53,5 +53,6 @@ typedef struct BMAllocTemplate {
 } BMAllocTemplate;
 
 extern BMAllocTemplate bm_mesh_allocsize_default;
+extern BMAllocTemplate bm_mesh_chunksize_default;
 
 #endif /* __BMESH_MESH_H__ */

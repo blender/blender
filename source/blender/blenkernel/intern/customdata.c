@@ -2119,11 +2119,10 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 	BLI_assert(data->pool == NULL);
 
 	switch (htype) {
-		case BM_VERT: chunksize = 512;  break;
-		case BM_EDGE: chunksize = 1024; break;
-		case BM_LOOP: chunksize = 2048; break;
-		case BM_FACE: chunksize = 512;  break;
-		case BM_ALL: chunksize  = 512;  break; /* use this when its undefined */
+		case BM_VERT: chunksize = bm_mesh_chunksize_default.totvert;  break;
+		case BM_EDGE: chunksize = bm_mesh_chunksize_default.totedge;  break;
+		case BM_LOOP: chunksize = bm_mesh_chunksize_default.totloop;  break;
+		case BM_FACE: chunksize = bm_mesh_chunksize_default.totface;  break;
 		default:
 			BLI_assert(0);
 			chunksize = 512;
