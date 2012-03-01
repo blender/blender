@@ -163,6 +163,12 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			}
 			
 			ibuf = IMB_allocImBuf(cbuf->x, cbuf->y, format->planes, 0);
+			/* XXX have to set this explicitly it seems */
+			switch (format->planes) {
+			case R_IMF_PLANES_BW:	ibuf->channels = 1;	break;
+			case R_IMF_PLANES_RGB:	ibuf->channels = 3;	break;
+			case R_IMF_PLANES_RGBA:	ibuf->channels = 4;	break;
+			}
 			ibuf->rect_float = cbuf->rect;
 			ibuf->dither = rd->dither_intensity;
 			
