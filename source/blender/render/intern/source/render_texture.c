@@ -3556,6 +3556,8 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 		if(mat->mtex[tex_nr]) {
 			MTex *mtex = mat->mtex[tex_nr];
 
+			if(!mtex->tex) continue;
+
 			/* only keep compatible texflags */
 			mtex->texflag = mtex->texflag & (MTEX_RGBTOINT | MTEX_STENCIL | MTEX_NEGATIVE | MTEX_ALPHAMIX);
 
@@ -3629,9 +3631,12 @@ void RE_free_sample_material(Material *mat)
 		if(mat->septex & (1<<tex_nr)) continue;
 		if(mat->mtex[tex_nr]) {
 			MTex *mtex= mat->mtex[tex_nr];
-			free_texture(mtex->tex);
-			MEM_freeN(mtex->tex);
-			mtex->tex = NULL;
+	
+			if(mtex->tex) {
+				free_texture(mtex->tex);
+				MEM_freeN(mtex->tex);
+				mtex->tex = NULL;
+			}
 		}
 	}
 
