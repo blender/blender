@@ -271,7 +271,10 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 				     edge;
 				     edge = BM_iter_step(&iter))
 				{
-					if (BM_elem_flag_test(edge, hflag)) {
+					if (BM_elem_flag_test(edge, hflag) &&
+					    BM_edge_is_boundary(edge) &&
+					    BM_elem_flag_test(edge->l->f, hflag))
+					{
 						float co1[3], co2[3];
 
 						copy_v3_v3(co1, edge->v1->co);
