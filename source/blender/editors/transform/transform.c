@@ -4783,16 +4783,6 @@ void freeSlideVerts(TransInfo *t)
 	if (!sld)
 		return;
 	
-	/*handle multires reprojection, done
-      on transform completion since it's
-      really slow -joeedh*/
-	if (t->state != TRANS_CANCEL) {
-		projectSVData(t, 1);
-	} else {
-		sld->perc = 0.0;
-		projectSVData(t, 0);
-	}
-
 	freeSlideTempFaces(sld);
 
 	sld->em->bm->ob = t->obedit;

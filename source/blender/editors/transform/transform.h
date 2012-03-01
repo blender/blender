@@ -691,5 +691,6 @@ int getTransformOrientation(const struct bContext *C, float normal[3], float pla
 
 void freeSlideTempFaces(SlideData *sld);
 void freeSlideVerts(TransInfo *t);
+void projectSVData(TransInfo *t, int final);
 
 #endif
