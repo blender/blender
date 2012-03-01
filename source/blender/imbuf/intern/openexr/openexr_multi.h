@@ -43,7 +43,10 @@
 #define EXR_PASS_MAXCHAN	8
 
 
-#ifdef WITH_OPENEXR
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void *	IMB_exr_get_handle			(void);
 void	IMB_exr_add_channel			(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect);
 
@@ -64,36 +67,8 @@ void    IMB_exr_multilayer_convert	(void *handle, void *base,
 
 void	IMB_exr_close				(void *handle);
 
-
-#else
-
-/* ugly... but we only use it on pipeline.c, render module, now */
-
-void *	IMB_exr_get_handle			(void) {return NULL;}
-void	IMB_exr_add_channel			(void *handle, const char *layname, const char *channame, int xstride, int ystride, float *rect) {  (void)handle; (void)layname; (void)channame; (void)xstride; (void)ystride; (void)rect; }
-
-int		IMB_exr_begin_read			(void *handle, const char *filename, int *width, int *height) { (void)handle; (void)filename; (void)width; (void)height; return 0;}
-int		IMB_exr_begin_write			(void *handle, const char *filename, int width, int height, int compress) { (void)handle; (void)filename; (void)width; (void)height; (void)compress; return 0;}
-void	IMB_exrtile_begin_write		(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley) { (void)handle; (void)filename; (void)mipmap; (void)width; (void)height; (void)tilex; (void)tiley; }
-
-void	IMB_exr_set_channel			(void *handle, char *layname, const char *channame, int xstride, int ystride, float *rect) { (void)handle; (void)layname; (void)channame; (void)xstride; (void)ystride; (void)rect; }
-
-void	IMB_exr_read_channels		(void *handle) { (void)handle; }
-void	IMB_exr_write_channels		(void *handle) { (void)handle; }
-void	IMB_exrtile_write_channels	(void *handle, int partx, int party, int level) { (void)handle; (void)partx; (void)party; (void)level; }
-void	IMB_exrtile_clear_channels	(void *handle) { (void)handle; }
-
-void    IMB_exr_multilayer_convert	(void *handle, void *base,  
-									 void * (*addlayer)(void *base, char *str), 
-									 void (*addpass)(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id))
-									{
-										(void)handle; (void)base; (void)addlayer; (void)addpass;
-									}
-
-void	IMB_exr_close				(void *handle) { (void)handle; }
-
+#ifdef __cplusplus
+} // extern "C"
 #endif
-
-
 
 #endif /* __OPENEXR_MULTI_H */
