@@ -287,7 +287,7 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 	}
 	
 	/* when the filename has no permissions, this can fail */
-	if(IMB_exr_begin_write(exrhandle, filename, rectx, recty, nimf->format.compress)) {
+	if(IMB_exr_begin_write(exrhandle, filename, rectx, recty, nimf->format.exr_codec)) {
 		IMB_exr_write_channels(exrhandle);
 	}
 	else {
