@@ -47,6 +47,7 @@
 
 bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, const char *name, ImageFormatData *im_format)
 {
+	NodeImageMultiFile *nimf = node->storage;
 	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_RGBA);
 	
 	/* create format data for the input socket */
@@ -63,6 +64,8 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, con
 	/* use node data format by default */
 	sockdata->use_node_format = 1;
 	
+	nimf->active_input = BLI_findindex(&node->inputs, sock);
+	
 	return sock;
 }
 
@@ -70,9 +73,13 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 {
 	NodeImageMultiFile *nimf = node->storage;
 	bNodeSocket *sock = BLI_findlink(&node->inputs, nimf->active_input);
+	int totinputs = BLI_countlist(&node->inputs);
 	
 	if (!sock)
 		return 0;
+	
+	if (nimf->active_input == totinputs-1)
+		--nimf->active_input;
 	
 	/* free format data */
 	MEM_freeN(sock->storage);
