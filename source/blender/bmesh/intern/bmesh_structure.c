@@ -131,7 +131,6 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * Functions relating to this cycle:
  * - #bmesh_radial_append
  * - #bmesh_radial_loop_remove
- * - #bmesh_radial_loop_next
  * - #bmesh_radial_face_find
  * - #bmesh_radial_facevert_count
  * - #bmesh_radial_faceloop_find_first
@@ -379,7 +378,7 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 		}
 		
 		i++;
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 
 	return TRUE;
 }
@@ -438,25 +437,20 @@ BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v)
 		if (l_iter->v == v) {
 			return l_iter;
 		}
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 	return NULL;
 }
 
 BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v)
 {
 	BMLoop *l_iter;
-	l_iter = bmesh_radial_loop_next(l);
+	l_iter = l->radial_next;
 	do {
 		if (l_iter->v == v) {
 			return l_iter;
 		}
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 	return l;
-}
-
-BMLoop *bmesh_radial_loop_next(BMLoop *l)
-{
-	return l->radial_next;
 }
 
 int bmesh_radial_length(BMLoop *l)
@@ -536,7 +530,7 @@ int bmesh_radial_facevert_count(BMLoop *l, BMVert *v)
 		if (l_iter->v == v) {
 			count++;
 		}
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 
 	return count;
 }

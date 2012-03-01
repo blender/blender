@@ -274,8 +274,8 @@ static void *islandboundWalker_step(BMWalker *walker)
 	
 	while (1) {
 		l = BM_face_other_loop(e, f, v);
-		if (bmesh_radial_loop_next(l) != l) {
-			l = bmesh_radial_loop_next(l);
+		if (l != l->radial_next) {
+			l = l->radial_next;
 			f = l->f;
 			e = l->e;
 			if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
@@ -479,7 +479,7 @@ static void *loopWalker_step(BMWalker *walker)
 			if (!l)
 				break;
 
-			l2 = bmesh_radial_loop_next(l);
+			l2 = l->radial_next;
 
 			if (l2 == l) {
 				break;

@@ -56,7 +56,10 @@ BMEdge *bmesh_disk_faceedge_find_next(BMEdge *e, BMVert *v);
 /* RADIAL CYCLE MANAGMENT */
 void    bmesh_radial_append(BMEdge *e, BMLoop *l);
 void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
-BMLoop *bmesh_radial_loop_next(BMLoop *l);
+/* note:
+ *      bmesh_radial_loop_next(BMLoop *l) / prev.
+ * just use member access l->radial_next, l->radial_prev now */
+
 int     bmesh_radial_face_find(BMEdge *e, BMFace *f);
 int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);

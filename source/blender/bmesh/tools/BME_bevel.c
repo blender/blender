@@ -559,7 +559,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		/* find saved loop pointer */
 		l = se->l;
 		while (l->f != jf) {
-			l = bmesh_radial_loop_next(l);
+			l = l->radial_next;
 			BLI_assert(l != se->l);
 		}
 		l = l->prev;
@@ -605,7 +605,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		/* find saved loop pointer */
 		l = se->l;
 		while (l->f != jf) {
-			l = bmesh_radial_loop_next(l);
+			l = l->radial_next;
 			BLI_assert(l != se->l);
 		}
 	}

@@ -204,13 +204,16 @@ int BM_vert_edge_count(BMVert *v)
 int BM_edge_face_count(BMEdge *e)
 {
 	int count = 0;
-	BMLoop *l_iter = NULL;
 
 	if (e->l) {
-		l_iter = e->l;
+		BMLoop *l_iter;
+		BMLoop *l_first;
+
+		l_iter = l_first = e->l;
+
 		do {
 			count++;
-		} while ((l_iter = bmesh_radial_loop_next(l_iter)) != e->l);
+		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 
 	return count;

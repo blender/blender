@@ -53,7 +53,7 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 	for ( ; f2; f2 = BMW_step(&regwalker)) {
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		for ( ; l2; l2 = BM_iter_step(&liter2)) {
-			l3 = bmesh_radial_loop_next(l2);
+			l3 = l2->radial_next;
 			if ( BMO_elem_flag_test(bm, l3->f, FACE_MARK) !=
 			     BMO_elem_flag_test(bm, l2->f, FACE_MARK))
 			{

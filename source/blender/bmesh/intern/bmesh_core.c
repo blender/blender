@@ -789,7 +789,7 @@ static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 		}
 		
 		i += BM_ELEM_API_FLAG_TEST(l2->f, flag) ? 1 : 0;
-		l2 = bmesh_radial_loop_next(l2);
+		l2 = l2->radial_next;
 		if (UNLIKELY(c >= BM_LOOP_RADIAL_MAX)) {
 			BMESH_ASSERT(0);
 			goto error;
@@ -1452,7 +1452,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 			radlen = bmesh_radial_length(ke->l);
 			if (ke->l) {
 				/* first step, fix the neighboring loops of all loops in ke's radial cycl */
-				for (i = 0, killoop = ke->l; i < radlen; i++, killoop = bmesh_radial_loop_next(killoop)) {
+				for (i = 0, killoop = ke->l; i < radlen; i++, killoop = killoop->radial_next) {
 					/* relink loops and fix vertex pointer */
 					if (killoop->next->v == kv) {
 						killoop->next->v = tv;
@@ -1481,7 +1481,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 					/* this should be wrapped into a bme_free_radial function to be used by bmesh_KF as well.. */
 					for (i = 0; i < radlen; i++) {
 						loops[i] = killoop;
-						killoop = bmesh_radial_loop_next(killoop);
+						killoop = killoop->radial_next;
 					}
 					for (i = 0; i < radlen; i++) {
 						bm->totloop--;
@@ -1508,7 +1508,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 			BMESH_ASSERT(edok != FALSE);
 
 			/* Validate loop cycle of all faces attached to o */
-			for (i = 0, l = oe->l; i < radlen; i++, l = bmesh_radial_loop_next(l)) {
+			for (i = 0, l = oe->l; i < radlen; i++, l = l->radial_next) {
 				BMESH_ASSERT(l->e == oe);
 				edok = bmesh_verts_in_edge(l->v, l->next->v, oe);
 				BMESH_ASSERT(edok != FALSE);
