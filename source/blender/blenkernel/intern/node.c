@@ -903,11 +903,14 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	node_unlink_attached(ntree, node);
 	
 	BLI_remlink(&ntree->nodes, node);
-
+	
 	/* since it is called while free database, node->id is undefined */
 	
 	if (treetype->free_node_cache)
 		treetype->free_node_cache(ntree, node);
+	
+	if(node->typeinfo && node->typeinfo->freestoragefunc)
+		node->typeinfo->freestoragefunc(node);
 	
 	for (sock=node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
@@ -921,10 +924,6 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	}
 
 	nodeFreePreview(node);
-
-	if(node->typeinfo && node->typeinfo->freestoragefunc) {
-		node->typeinfo->freestoragefunc(node);
-	}
 
 	MEM_freeN(node);
 	
