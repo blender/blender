@@ -944,8 +944,10 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 
 #ifdef USE_BMESH_HOLES
 		for (lst = f->loops.first; lst; lst = lst->next) {
-			if (lst == f->loops.first) continue;
-			
+			if (lst == f->loops.first) {
+				continue;
+			}
+
 			BLI_remlink(&f->loops, lst);
 			BLI_addtail(&holes, lst);
 		}

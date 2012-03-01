@@ -203,19 +203,22 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	 * original geometry unless caller explicitly asked to keep it. */
 	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BMO_elem_flag_test(bm, e, EXT_INPUT)) continue;
 
-			found = 0;
+			if (!BMO_elem_flag_test(bm, e, EXT_INPUT)) {
+				continue;
+			}
+
+			found = FALSE;
 			f = BM_iter_new(&fiter, bm, BM_FACES_OF_EDGE, e);
 			for (rlen = 0; f; f = BM_iter_step(&fiter), rlen++) {
 				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
-					found = 1;
+					found = TRUE;
 					delorig = 1;
 					break;
 				}
 			}
 
-			if (!found && (rlen > 1)) {
+			if ((found == FALSE) && (rlen > 1)) {
 				BMO_elem_flag_enable(bm, e, EXT_DEL);
 			}
 		}
@@ -223,23 +226,26 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* calculate verts to delet */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		found = 0;
+		found = FALSE;
 
 		BM_ITER(e, &viter, bm, BM_EDGES_OF_VERT, v) {
 			if (!BMO_elem_flag_test(bm, e, EXT_INPUT) || !BMO_elem_flag_test(bm, e, EXT_DEL)) {
-				found = 1;
-				break;
-			}
-		}
-		
-		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, v) {
-			if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
-				found = 1;
+				found = TRUE;
 				break;
 			}
 		}
 
-		if (!found) {
+		/* avoid an extra loop */
+		if (found == TRUE) {
+			BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, v) {
+				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
+					found = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (found == FALSE) {
 			BMO_elem_flag_enable(bm, v, EXT_DEL);
 		}
 	}
@@ -275,11 +281,15 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
 	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
 	for ( ; e; e = BMO_iter_step(&siter)) {
-		if (BMO_slot_map_contains(bm, op, "exclude", e)) continue;
+		if (BMO_slot_map_contains(bm, op, "exclude", e)) {
+			continue;
+		}
 
-		newedge = BMO_iter_map_value(&siter);
-		newedge = *(BMEdge **)newedge;
-		if (!newedge) continue;
+		newedge = *(BMEdge **)BMO_iter_map_value(&siter);
+
+		if (!newedge) {
+			continue;
+		}
 
 		/* orient loop to give same normal as a loop of newedge
 		 * if it exists (will be an extruded face),
@@ -309,7 +319,11 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		/* copy attribute */
 		l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
 		for ( ; l; l = BM_iter_step(&iter)) {
-			if (l->e != e && l->e != newedge) continue;
+
+			if (l->e != e && l->e != newedge) {
+				continue;
+			}
+
 			l2 = l->radial_next;
 			
 			if (l2 == l) {
@@ -349,7 +363,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		BM_edge_create(bm, v, v2, v->e, TRUE);
 	}
 
-	/* cleanu */
+	/* cleanup */
 	if (delorig) BMO_op_finish(bm, &delop);
 	BMO_op_finish(bm, &dupeop);
 }

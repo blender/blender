@@ -51,7 +51,9 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		BLI_array_empty(loops);
 		BLI_array_empty(verts);
 		
-		if (BMO_elem_flag_test(bm, f, FACE_NEW)) continue;
+		if (BMO_elem_flag_test(bm, f, FACE_NEW)) {
+			continue;
+		}
 
 		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 		lastl = NULL;
@@ -74,7 +76,9 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		if (BLI_array_count(loops) == 0) continue;
+		if (BLI_array_count(loops) == 0) {
+			continue;
+		}
 		
 		if (BLI_array_count(loops) > 2) {
 			BLI_array_growone(loops);
@@ -87,7 +91,9 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		BM_face_legal_splits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
 		
 		for (i = 0; i < BLI_array_count(loops) / 2; i++) {
-			if (loops[i * 2] == NULL) continue;
+			if (loops[i * 2] == NULL) {
+				continue;
+			}
 
 			BLI_array_growone(verts);
 			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;

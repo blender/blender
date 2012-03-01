@@ -959,7 +959,9 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		shrink_edgef(v1, v2, fac1);
 
 		for (j = 0; j < len; j++) {
-			if (!loops[j][0]) continue;
+			if (!loops[j][0]) {
+				continue;
+			}
 
 			p3 = edgeverts[j * 2];
 			p4 = edgeverts[j * 2 + 1];
@@ -972,22 +974,20 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 
 	for (i = 0; i < len; i++) {
 		for (j = 0; j < len; j++) {
-			if (j == i) continue;
-			if (!loops[i][0]) continue;
-			if (!loops[j][0]) continue;
+			if (j != i && loops[i][0] && loops[j][0]) {
+				p1 = edgeverts[i * 2];
+				p2 = edgeverts[i * 2 + 1];
+				p3 = edgeverts[j * 2];
+				p4 = edgeverts[j * 2 + 1];
 
-			p1 = edgeverts[i * 2];
-			p2 = edgeverts[i * 2 + 1];
-			p3 = edgeverts[j * 2];
-			p4 = edgeverts[j * 2 + 1];
+				copy_v3_v3(v1, p1);
+				copy_v3_v3(v2, p2);
 
-			copy_v3_v3(v1, p1);
-			copy_v3_v3(v2, p2);
+				shrink_edgef(v1, v2, fac1);
 
-			shrink_edgef(v1, v2, fac1);
-
-			if (linecrossesf(v1, v2, p3, p4)) {
-				loops[i][0] = NULL;
+				if (linecrossesf(v1, v2, p3, p4)) {
+					loops[i][0] = NULL;
+				}
 			}
 		}
 	}

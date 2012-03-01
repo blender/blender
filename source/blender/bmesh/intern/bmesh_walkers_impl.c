@@ -360,7 +360,10 @@ static void *islandWalker_step(BMWalker *walker)
 			if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
 				continue;
 			}
-			if (BLI_ghash_haskey(walker->visithash, f)) continue;
+
+			if (BLI_ghash_haskey(walker->visithash, f)) {
+				continue;
+			}
 			
 			iwalk = BMW_state_add(walker);
 			iwalk->cur = f;

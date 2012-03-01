@@ -837,7 +837,9 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 
 		for (i = 0; i < PLEN; i++) {
 			pat = patterns[i];
-			if (!pat) continue;
+			if (!pat) {
+				continue;
+			}
 
 			if (pat->len == face->len) {
 				for (a = 0; a < pat->len; a++) {

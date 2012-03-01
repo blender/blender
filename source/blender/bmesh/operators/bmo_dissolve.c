@@ -96,7 +96,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 	
 	/* collect region */
 	BMO_ITER(f, &oiter, bm, op, "faces", BM_FACE) {
-		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) continue;
+
+		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
+			continue;
+		}
 
 		BLI_array_empty(faces);
 		faces = NULL; /* forces different allocatio */
