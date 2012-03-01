@@ -755,10 +755,10 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	params.off[2] = (float)BLI_drand() * 200.0f;
 	
 	BMO_slot_map_to_flag(bmesh, op, "custompatterns",
-	                     FACE_CUSTOMFILL);
+	                     FACE_CUSTOMFILL, BM_FACE);
 
 	BMO_slot_map_to_flag(bmesh, op, "edgepercents",
-	                     EDGE_PERCENT);
+	                     EDGE_PERCENT, BM_EDGE);
 
 	for (face = BM_iter_new(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face;

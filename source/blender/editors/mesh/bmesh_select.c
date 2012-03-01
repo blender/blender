@@ -1087,7 +1087,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "Select ring");
 }
 
-void MESH_OT_edgering_select (wmOperatorType *ot)
+void MESH_OT_edgering_select(wmOperatorType *ot)
 {
 	/* description */
 	ot->name = "Edge Ring Select";

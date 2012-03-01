@@ -29,9 +29,11 @@
 
 #include "bmesh_operators_private.h" /* own include */
 
-#define EXT_INPUT 1
-#define EXT_KEEP  2
-#define EXT_DEL   4
+enum {
+	EXT_INPUT   = 1,
+	EXT_KEEP    = 2,
+	EXT_DEL     = 4
+};
 
 #define VERT_MARK 1
 #define EDGE_MARK 1
@@ -192,7 +194,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
-	int rlen, found, fwd, delorig = 0;
+	int found, fwd, delorig = FALSE;
 
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, "dupe");
@@ -204,21 +206,27 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 
+			int edge_face_tot;
+
 			if (!BMO_elem_flag_test(bm, e, EXT_INPUT)) {
 				continue;
 			}
 
-			found = FALSE;
-			f = BM_iter_new(&fiter, bm, BM_FACES_OF_EDGE, e);
-			for (rlen = 0; f; f = BM_iter_step(&fiter), rlen++) {
+			found = FALSE; /* found a face that isn't input? */
+			edge_face_tot = 0; /* edge/face count */
+
+			BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
 				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 					found = TRUE;
-					delorig = 1;
+					delorig = TRUE;
 					break;
 				}
+
+				edge_face_tot++;
 			}
 
-			if ((found == FALSE) && (rlen > 1)) {
+			if ((edge_face_tot > 1) && (found == FALSE)) {
+				/* edge has a face user, that face isnt extrude input */
 				BMO_elem_flag_enable(bm, e, EXT_DEL);
 			}
 		}
@@ -256,7 +264,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (delorig) {
+	if (delorig == TRUE) {
 		BMO_op_initf(bm, &delop, "del geom=%fvef context=%i",
 		             EXT_DEL, DEL_ONLYTAGGED);
 	}
@@ -267,11 +275,13 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	if (bm->act_face && BMO_elem_flag_test(bm, bm->act_face, EXT_INPUT))
 		bm->act_face = BMO_slot_map_ptr_get(bm, &dupeop, "facemap", bm->act_face);
 
-	if (delorig) BMO_op_exec(bm, &delop);
+	if (delorig) {
+		BMO_op_exec(bm, &delop);
+	}
 	
 	/* if not delorig, reverse loops of original face */
 	if (!delorig) {
-		for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 			if (BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 				BM_face_normal_flip(bm, f);
 			}

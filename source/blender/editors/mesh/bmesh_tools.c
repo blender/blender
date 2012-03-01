@@ -3346,7 +3346,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 	if (type == 0)
 		retval = mesh_separate_selected(bmain, scene, base, op);
 	else if (type == 1)
-		retval = mesh_separate_material (bmain, scene, base, op);
+		retval = mesh_separate_material(bmain, scene, base, op);
 	else if (type == 2)
 		retval = mesh_separate_loose(bmain, scene, base, op);
 	   

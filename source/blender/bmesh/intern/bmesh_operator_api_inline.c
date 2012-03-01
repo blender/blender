@@ -88,7 +88,7 @@ BM_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *
 BM_INLINE void BMO_slot_map_ptr_insert(BMesh *bm, BMOperator *op, const char *slotname,
                                        void *element, void *val)
 {
-	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(void*));
+	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(void *));
 }
 
 BM_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, void *element)
@@ -96,7 +96,12 @@ BM_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const cha
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) return 0;
+	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
+#ifdef DEBUG
+		printf("%s: invalid type %d\n", __func__, slot->slottype);
+#endif
+		return 0;
+	}
 	if (!slot->data.ghash) return 0;
 
 	return BLI_ghash_haskey(slot->data.ghash, element);
@@ -109,7 +114,12 @@ BM_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const c
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 
 	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) return NULL;
+	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
+#ifdef DEBUG
+		printf("%s: invalid type %d\n", __func__, slot->slottype);
+#endif
+		return NULL;
+	}
 	if (!slot->data.ghash) return NULL;
 
 	mapping = (BMOElemMapping *)BLI_ghash_lookup(slot->data.ghash, element);
@@ -140,7 +150,7 @@ BM_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotna
 BM_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slotname,
                                      void *element)
 {
-	void **val = (void**) BMO_slot_map_data_get(bm, op, slotname, element);
+	void **val = (void **) BMO_slot_map_data_get(bm, op, slotname, element);
 	if (val) return *val;
 
 	return NULL;

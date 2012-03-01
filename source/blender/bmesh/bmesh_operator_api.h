@@ -327,8 +327,8 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag);
 
 /* flags all elements in a mapping.  note that the mapping must only have
  * bmesh elements in it.*/
-void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op,
-                          const char *slotname, const short oflag);
+void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                          const short oflag, const char hflag);
 
 /* this part of the API is used to iterate over element buffer or
  * mapping slots.

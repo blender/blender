@@ -234,7 +234,7 @@ BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2)
 	BMEdge *e_iter, *e_first;
 	
 	if (v1->e) {
-		e_first = e_iter= v1->e;
+		e_first = e_iter = v1->e;
 
 		do {
 			if (bmesh_verts_in_edge(v1, v2, e_iter)) {

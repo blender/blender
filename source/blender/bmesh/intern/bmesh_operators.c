@@ -153,8 +153,8 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 	op->exec = opdefines[opcode]->exec;
 
 	/* memarena, used for operator's slot buffers */
-	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bmesh operator");
-	BLI_memarena_use_calloc (op->arena);
+	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+	BLI_memarena_use_calloc(op->arena);
 }
 
 /**
@@ -267,7 +267,9 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 			BMOElemMapping *srcmap, *dstmap;
 
 			/* sanity check */
-			if (!source_slot->data.ghash) return;
+			if (!source_slot->data.ghash) {
+				return;
+			}
 			
 			if (!dest_slot->data.ghash) {
 				dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash,
@@ -534,11 +536,7 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname
 {
 	BMOElemMapping *mapping;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) {
-		return;
-	}
+	BLI_assert(slot->slottype == BMO_OP_SLOT_MAPPING);
 
 	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
 
@@ -595,8 +593,8 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 }
 #endif
 
-void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op,
-                          const char *slotname, const short oflag)
+void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                          const short oflag, const char htype)
 {
 	GHashIterator it;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -605,12 +603,13 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op,
 	BLI_assert(slot->slottype == BMO_OP_SLOT_MAPPING);
 
 	/* sanity check */
-	if (slot->slottype != BMO_OP_SLOT_MAPPING) return;
 	if (!slot->data.ghash) return;
 
 	BLI_ghashIterator_init(&it, slot->data.ghash);
 	for ( ; (ele_f = BLI_ghashIterator_getKey(&it)); BLI_ghashIterator_step(&it)) {
-		BMO_elem_flag_enable(bm, ele_f, oflag);
+		if (ele_f->head.htype & htype) {
+			BMO_elem_flag_enable(bm, ele_f, oflag);
+		}
 	}
 }
 
@@ -865,7 +864,7 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname
 	BMHeader **data =  slot->data.p;
 	int i;
 
-	BLI_assert(slot->slottype > BMO_OP_SLOT_VEC);
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
@@ -886,7 +885,9 @@ void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotnam
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
-	
+
+	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
+
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
 			continue;
