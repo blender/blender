@@ -2098,7 +2098,11 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	RE_ReleaseResultImage(re);
 
 	BLI_timestr(re->i.lastframetime, name);
-	printf(" Time: %s\n", name);
+	printf(" Time: %s", name);
+
+	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+
+	fputc('\n', stdout);
 	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
 
 	return ok;
