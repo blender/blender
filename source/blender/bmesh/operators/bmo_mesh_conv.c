@@ -137,10 +137,10 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		printf("shapekey <-> mesh mismatch!\n");
 	}
 	
-	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default.totvert);
-	CustomData_bmesh_init_pool(&bm->edata, bm_mesh_allocsize_default.totedge);
-	CustomData_bmesh_init_pool(&bm->ldata, bm_mesh_allocsize_default.totloop);
-	CustomData_bmesh_init_pool(&bm->pdata, bm_mesh_allocsize_default.totface);
+	CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
+	CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
+	CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
+	CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
 		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL);

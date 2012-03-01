@@ -575,9 +575,9 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 	}
 }
 
-BMesh *BM_mesh_copy(BMesh *bmold)
+BMesh *BM_mesh_copy(BMesh *bm_old)
 {
-	BMesh *bm;
+	BMesh *bm_new;
 	BMVert *v, *v2, **vtable = NULL;
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
 	BLI_array_declare(edges);
@@ -587,57 +587,61 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 	BMEditSelection *ese;
 	BMIter iter, liter;
 	int i, j;
+	BMAllocTemplate allocsize = {bm_old->totvert,
+	                             bm_old->totedge,
+	                             bm_old->totloop,
+	                             bm_old->totface};
 
 	/* allocate a bmesh */
-	bm = BM_mesh_create(bmold->ob, &bm_mesh_allocsize_default);
+	bm_new = BM_mesh_create(bm_old->ob, &allocsize);
 
-	CustomData_copy(&bmold->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bmold->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bmold->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bmold->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_old->pdata, &bm_new->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
-	CustomData_bmesh_init_pool(&bm->vdata, bm_mesh_allocsize_default.totvert);
-	CustomData_bmesh_init_pool(&bm->edata, bm_mesh_allocsize_default.totedge);
-	CustomData_bmesh_init_pool(&bm->ldata, bm_mesh_allocsize_default.totloop);
-	CustomData_bmesh_init_pool(&bm->pdata, bm_mesh_allocsize_default.totface);
+	CustomData_bmesh_init_pool(&bm_new->vdata, allocsize.totvert, BM_VERT);
+	CustomData_bmesh_init_pool(&bm_new->edata, allocsize.totedge, BM_EDGE);
+	CustomData_bmesh_init_pool(&bm_new->ldata, allocsize.totloop, BM_LOOP);
+	CustomData_bmesh_init_pool(&bm_new->pdata, allocsize.totface, BM_FACE);
 
-	vtable = MEM_mallocN(sizeof(BMVert *) * bmold->totvert, "BM_mesh_copy vtable");
-	etable = MEM_mallocN(sizeof(BMEdge *) * bmold->totedge, "BM_mesh_copy etable");
-	ftable = MEM_mallocN(sizeof(BMFace *) * bmold->totface, "BM_mesh_copy ftable");
+	vtable = MEM_mallocN(sizeof(BMVert *) * bm_old->totvert, "BM_mesh_copy vtable");
+	etable = MEM_mallocN(sizeof(BMEdge *) * bm_old->totedge, "BM_mesh_copy etable");
+	ftable = MEM_mallocN(sizeof(BMFace *) * bm_old->totface, "BM_mesh_copy ftable");
 
-	v = BM_iter_new(&iter, bmold, BM_VERTS_OF_MESH, NULL);
+	v = BM_iter_new(&iter, bm_old, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; v; v = BM_iter_step(&iter), i++) {
-		v2 = BM_vert_create(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
-		BM_elem_attrs_copy(bmold, bm, v, v2);
+		v2 = BM_vert_create(bm_new, v->co, NULL); /* copy between meshes so cant use 'example' argument */
+		BM_elem_attrs_copy(bm_old, bm_new, v, v2);
 		vtable[i] = v2;
 		BM_elem_index_set(v, i); /* set_inline */
 		BM_elem_index_set(v2, i); /* set_inline */
 	}
-	bmold->elem_index_dirty &= ~BM_VERT;
-	bm->elem_index_dirty &= ~BM_VERT;
+	bm_old->elem_index_dirty &= ~BM_VERT;
+	bm_new->elem_index_dirty &= ~BM_VERT;
 
 	/* safety check */
-	BLI_assert(i == bmold->totvert);
+	BLI_assert(i == bm_old->totvert);
 	
-	e = BM_iter_new(&iter, bmold, BM_EDGES_OF_MESH, NULL);
+	e = BM_iter_new(&iter, bm_old, BM_EDGES_OF_MESH, NULL);
 	for (i = 0; e; e = BM_iter_step(&iter), i++) {
-		e2 = BM_edge_create(bm,
+		e2 = BM_edge_create(bm_new,
 		                    vtable[BM_elem_index_get(e->v1)],
 		                    vtable[BM_elem_index_get(e->v2)],
 		                    e, FALSE);
 
-		BM_elem_attrs_copy(bmold, bm, e, e2);
+		BM_elem_attrs_copy(bm_old, bm_new, e, e2);
 		etable[i] = e2;
 		BM_elem_index_set(e, i); /* set_inline */
 		BM_elem_index_set(e2, i); /* set_inline */
 	}
-	bmold->elem_index_dirty &= ~BM_EDGE;
-	bm->elem_index_dirty &= ~BM_EDGE;
+	bm_old->elem_index_dirty &= ~BM_EDGE;
+	bm_new->elem_index_dirty &= ~BM_EDGE;
 
 	/* safety check */
-	BLI_assert(i == bmold->totedge);
+	BLI_assert(i == bm_old->totedge);
 	
-	f = BM_iter_new(&iter, bmold, BM_FACES_OF_MESH, NULL);
+	f = BM_iter_new(&iter, bm_old, BM_FACES_OF_MESH, NULL);
 	for (i = 0; f; f = BM_iter_step(&iter), i++) {
 		BM_elem_index_set(f, i); /* set_inline */
 
@@ -646,7 +650,7 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 		BLI_array_growitems(loops, f->len);
 		BLI_array_growitems(edges, f->len);
 
-		l = BM_iter_new(&liter, bmold, BM_LOOPS_OF_FACE, f);
+		l = BM_iter_new(&liter, bm_old, BM_LOOPS_OF_FACE, f);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
 			loops[j] = l;
 			edges[j] = etable[BM_elem_index_get(l->e)];
@@ -660,32 +664,32 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 			v2 = vtable[BM_elem_index_get(loops[0]->v)];
 		}
 
-		f2 = BM_face_create_ngon(bm, v, v2, edges, f->len, FALSE);
+		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, FALSE);
 		if (!f2)
 			continue;
 		/* use totface incase adding some faces fails */
-		BM_elem_index_set(f2, (bm->totface - 1)); /* set_inline */
+		BM_elem_index_set(f2, (bm_new->totface - 1)); /* set_inline */
 
 		ftable[i] = f2;
 
-		BM_elem_attrs_copy(bmold, bm, f, f2);
+		BM_elem_attrs_copy(bm_old, bm_new, f, f2);
 		copy_v3_v3(f2->no, f->no);
 
-		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f2);
+		l = BM_iter_new(&liter, bm_new, BM_LOOPS_OF_FACE, f2);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
-			BM_elem_attrs_copy(bmold, bm, loops[j], l);
+			BM_elem_attrs_copy(bm_old, bm_new, loops[j], l);
 		}
 
-		if (f == bmold->act_face) bm->act_face = f2;
+		if (f == bm_old->act_face) bm_new->act_face = f2;
 	}
-	bmold->elem_index_dirty &= ~BM_FACE;
-	bm->elem_index_dirty &= ~BM_FACE;
+	bm_old->elem_index_dirty &= ~BM_FACE;
+	bm_new->elem_index_dirty &= ~BM_FACE;
 
 	/* safety check */
-	BLI_assert(i == bmold->totface);
+	BLI_assert(i == bm_old->totface);
 
 	/* copy over edit selection history */
-	for (ese = bmold->selected.first; ese; ese = ese->next) {
+	for (ese = bm_old->selected.first; ese; ese = ese->next) {
 		void *ele = NULL;
 
 		if (ese->htype == BM_VERT)
@@ -700,7 +704,7 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 		}
 		
 		if (ele)
-			BM_select_history_store(bm, ele);
+			BM_select_history_store(bm_new, ele);
 	}
 
 	MEM_freeN(etable);
@@ -710,7 +714,7 @@ BMesh *BM_mesh_copy(BMesh *bmold)
 	BLI_array_free(loops);
 	BLI_array_free(edges);
 
-	return bm;
+	return bm_new;
 }
 
 /* ME -> BM */

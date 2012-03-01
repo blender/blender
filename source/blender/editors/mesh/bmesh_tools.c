@@ -3201,28 +3201,28 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	Object *obedit = editbase->object;
 	Mesh *me = obedit->data;
 	BMEditMesh *em = me->edit_btmesh;
-	BMesh *bmnew;
+	BMesh *bm_new;
 	
 	if (!em)
 		return OPERATOR_CANCELLED;
 		
-	bmnew = BM_mesh_create(obedit, &bm_mesh_allocsize_default);
-	CustomData_copy(&em->bm->vdata, &bmnew->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&em->bm->edata, &bmnew->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&em->bm->ldata, &bmnew->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&em->bm->pdata, &bmnew->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	bm_new = BM_mesh_create(obedit, &bm_mesh_allocsize_default);
+	CustomData_copy(&em->bm->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->ldata, &bm_new->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->pdata, &bm_new->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
-	CustomData_bmesh_init_pool(&bmnew->vdata, bm_mesh_allocsize_default.totvert);
-	CustomData_bmesh_init_pool(&bmnew->edata, bm_mesh_allocsize_default.totedge);
-	CustomData_bmesh_init_pool(&bmnew->ldata, bm_mesh_allocsize_default.totloop);
-	CustomData_bmesh_init_pool(&bmnew->pdata, bm_mesh_allocsize_default.totface);
+	CustomData_bmesh_init_pool(&bm_new->vdata, bm_mesh_allocsize_default.totvert, BM_VERT);
+	CustomData_bmesh_init_pool(&bm_new->edata, bm_mesh_allocsize_default.totedge, BM_EDGE);
+	CustomData_bmesh_init_pool(&bm_new->ldata, bm_mesh_allocsize_default.totloop, BM_LOOP);
+	CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 		
 	basenew = ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);	/* 0 = fully linked */
 	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 
 	ED_base_object_select(basenew, BA_DESELECT);
 	
-	EDBM_CallOpf(em, wmop, "dupe geom=%hvef dest=%p", BM_ELEM_SELECT, bmnew);
+	EDBM_CallOpf(em, wmop, "dupe geom=%hvef dest=%p", BM_ELEM_SELECT, bm_new);
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_FACES);
 
 	/* clean up any loose edges */
@@ -3248,11 +3248,11 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
 
-	BM_mesh_normals_update(bmnew, TRUE);
-	BMO_op_callf(bmnew, "bmesh_to_mesh mesh=%p object=%p notesselation=%b",
+	BM_mesh_normals_update(bm_new, TRUE);
+	BMO_op_callf(bm_new, "bmesh_to_mesh mesh=%p object=%p notesselation=%b",
 	             basenew->object->data, basenew->object, TRUE);
 		
-	BM_mesh_free(bmnew);
+	BM_mesh_free(bm_new);
 	((Mesh *)basenew->object->data)->edit_btmesh = NULL;
 	
 	return 1;

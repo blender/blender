@@ -44,7 +44,7 @@
 #include "bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
-BMAllocTemplate bm_mesh_allocsize_default = {512, 512, 2048, 512};
+BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 
 static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {

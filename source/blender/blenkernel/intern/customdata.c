@@ -2111,19 +2111,33 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata,
 	}
 }
 
-void CustomData_bmesh_init_pool(CustomData *data, int allocsize)
+void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
+	int chunksize;
+
 	/* Dispose old pools before calling here to avoid leaks */
 	BLI_assert(data->pool == NULL);
 
+	switch (htype) {
+		case BM_VERT: chunksize = 512;  break;
+		case BM_EDGE: chunksize = 1024; break;
+		case BM_LOOP: chunksize = 2048; break;
+		case BM_FACE: chunksize = 512;  break;
+		case BM_ALL: chunksize  = 512;  break; /* use this when its undefined */
+		default:
+			BLI_assert(0);
+			chunksize = 512;
+			break;
+	}
+
 	/* If there are no layers, no pool is needed just yet */
 	if (data->totlayer) {
-		data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, TRUE, FALSE);
+		data->pool = BLI_mempool_create(data->totsize, totelem, chunksize, TRUE, FALSE);
 	}
 }
 
 void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
-                            int mask, int alloctype, BMesh *bm, int type)
+                            int mask, int alloctype, BMesh *bm, const char htype)
 {
 	BMHeader *h;
 	BMIter iter;
@@ -2132,9 +2146,9 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	int t;
 	
 	CustomData_merge(source, dest, mask, alloctype, 0);
-	CustomData_bmesh_init_pool(dest, 512);
+	CustomData_bmesh_init_pool(dest, 512, htype);
 
-	switch (type) {
+	switch (htype) {
 		case BM_VERT:
 			t = BM_VERTS_OF_MESH; break;
 		case BM_EDGE:
