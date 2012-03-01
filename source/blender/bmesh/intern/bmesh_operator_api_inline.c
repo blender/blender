@@ -80,7 +80,7 @@ BM_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *
 }
 
 
-/* pointer versoins of BMO_slot_map_float_get and BMO_slot_map_float_insert.
+/* pointer versions of BMO_slot_map_float_get and BMO_slot_map_float_insert.
  *
  * do NOT use these for non-operator-api-allocated memory! instead
  * use BMO_slot_map_data_get and BMO_slot_map_insert, which copies the data. */

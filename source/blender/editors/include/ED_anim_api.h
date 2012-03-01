@@ -339,7 +339,7 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ------------------------ Drawing TypeInfo -------------------------- */
 
-/* flag-setting behaviour */
+/* flag-setting behavior */
 typedef enum eAnimChannels_SetFlag {
 	ACHANNEL_SETFLAG_CLEAR = 0,		/* turn off */
 	ACHANNEL_SETFLAG_ADD,			/* turn on */
@@ -358,7 +358,7 @@ typedef enum eAnimChannel_Settings {
 } eAnimChannel_Settings;
 
 
-/* Drawing, mouse handling, and flag setting behaviour... */
+/* Drawing, mouse handling, and flag setting behavior... */
 typedef struct bAnimChannelType {
 	/* type data */
 		/* name of the channel type, for debugging */

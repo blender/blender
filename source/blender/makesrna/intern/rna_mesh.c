@@ -1452,7 +1452,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
 	/* faked, actually access to loop vertex values, dont this way because manually setting up vertex/edge per loop is very low level
-	 * instead we setup poly sizes, assign indicies, then calc edges automatic when creating meshes from rna/py */
+	 * instead we setup poly sizes, assign indices, then calc edges automatic when creating meshes from rna/py */
 	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_array(prop, 3); // eek, this is still used in some cases but infact we dont want to use it at all here.
 	RNA_def_property_flag(prop, PROP_DYNAMIC);

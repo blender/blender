@@ -353,7 +353,7 @@ static BMOpDefine bmo_weldverts_def = {
 /*
  * Make Vertex
  *
- * Creates a single vertex; this bmop was necassary
+ * Creates a single vertex; this bmop was necessary
  * for click-create-vertex.
  */
 static BMOpDefine bmo_makevert_def = {
@@ -454,7 +454,7 @@ static BMOpDefine bmo_edgenet_prepare_def = {
  * Rotate
  *
  * Rotate vertices around a center, using a 3x3 rotation
- * matrix.  Equivilent of the old rotateflag function.
+ * matrix.  Equivalent of the old rotateflag function.
  */
 static BMOpDefine bmo_rotate_def = {
 	"rotate",
@@ -469,7 +469,7 @@ static BMOpDefine bmo_rotate_def = {
 /*
  * Translate
  *
- * Translate vertices by an offset.  Equivelent of the
+ * Translate vertices by an offset.  Equivalent of the
  * old translateflag function.
  */
 static BMOpDefine bmo_translate_def = {

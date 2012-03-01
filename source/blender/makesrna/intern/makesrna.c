@@ -117,7 +117,7 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 	}
 
 
-	/* XXX, trick to work around dependancy problem
+	/* XXX, trick to work around dependency problem
 	 * assumes dep_files is in the same dir as makesrna.c, which is true for now. */
 
 	if(1) {

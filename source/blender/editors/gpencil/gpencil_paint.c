@@ -701,7 +701,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 		
 		pt= gps->points;
 		
-		/* convert all points (normal behaviour) */
+		/* convert all points (normal behavior) */
 		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr+i:NULL);

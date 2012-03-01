@@ -31,7 +31,7 @@
 
 /** \file BLI_kdtree.h
  *  \ingroup bli
- *  \brief A kd-tree for nearest neighbour search.
+ *  \brief A kd-tree for nearest neighbor search.
  *  \author Janne Karhu
  *  \author Brecht van Lommel
  */

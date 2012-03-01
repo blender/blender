@@ -166,7 +166,7 @@ protected:
 						// copy pixel
 						*dstBuff = filter.convert(srcBuff, x, y, srcSize, pixSize);
 			}
-			// else scale picture (nearest neighbour)
+			// else scale picture (nearest neighbor)
 		else
 		{
 			// interpolation accumulator

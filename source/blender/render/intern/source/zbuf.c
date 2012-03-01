@@ -2736,7 +2736,7 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 }
 
 /* char value==255 is filled in, rest should be zero */
-/* returns alpha values, but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbour */
+/* returns alpha values, but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbor */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 {
 	char *row1, *row2, *row3;

@@ -1271,7 +1271,7 @@ const MT_Point3& KX_GameObject::NodeGetLocalPosition() const
 }
 
 
-/* Suspend/ resume: for the dynamic behaviour, there is a simple
+/* Suspend/ resume: for the dynamic behavior, there is a simple
  * method. For the residual motion, there is not. I wonder what the
  * correct solution is for Sumo. Remove from the motion-update tree?
  *

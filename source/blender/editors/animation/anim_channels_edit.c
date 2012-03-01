@@ -951,7 +951,7 @@ static void split_groups_action_temp (bAction *act, bActionGroup *tgrp)
 		}
 	}
 	
-	/* Initialise memory for temp-group */
+	/* Initialize memory for temp-group */
 	memset(tgrp, 0, sizeof(bActionGroup));
 	tgrp->flag |= (AGRP_EXPANDED|AGRP_TEMP);
 	BLI_strncpy(tgrp->name, "#TempGroup", sizeof(tgrp->name));
@@ -1784,7 +1784,7 @@ static int animchannels_deselectall_exec (bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
 		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_TOGGLE);
 	else

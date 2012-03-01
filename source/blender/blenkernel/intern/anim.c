@@ -81,7 +81,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 /* ******************************************************************** */
 /* Animation Visualisation */
 
-/* Initialise the default settings for animation visualisation */
+/* Initialize the default settings for animation visualisation */
 void animviz_settings_init(bAnimVizSettings *avs)
 {
 	/* sanity check */
@@ -234,7 +234,7 @@ typedef struct MPathTarget {
 /* get list of motion paths to be baked for the given object
  * 	- assumes the given list is ready to be used
  */
-// TODO: it would be nice in future to be able to update objects dependant on these bones too?
+// TODO: it would be nice in future to be able to update objects dependent on these bones too?
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;

@@ -1791,7 +1791,7 @@ static int bm_vert_cut(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 			continue;
 		}
 
-		/* Loops here should alway refer to an edge that has v as an
+		/* Loops here should always refer to an edge that has v as an
 		 * endpoint. For each appearance of this vert in a face, there
 		 * will actually be two iterations: one for the loop heading
 		 * towards vertex v, and another for the loop heading out from

@@ -1164,7 +1164,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* if selOnly option is enabled, if user hasn't selected any bones, 
-	 * just go back to default behaviour to be more in line with other pose tools
+	 * just go back to default behavior to be more in line with other pose tools
 	 */
 	if (selOnly) {
 		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0)

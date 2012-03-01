@@ -345,7 +345,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 	}
 }
 
-/* unwrap handle initialisation for subsurf aware-unwrapper. The many modifications required to make the original function(see above)
+/* unwrap handle initialization for subsurf aware-unwrapper. The many modifications required to make the original function(see above)
  * work justified the existence of a new function. */
 static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *em, short fill, short sel, short correct_aspect)
 {
@@ -356,7 +356,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	BMFace *editFace;
 	int i;
 
-	/* modifier initialisation data, will  control what type of subdivision will happen*/
+	/* modifier initialization data, will  control what type of subdivision will happen*/
 	SubsurfModifierData smd = {{0}};
 	/* Used to hold subsurfed Mesh */
 	DerivedMesh *derivedMesh, *initialDerived;

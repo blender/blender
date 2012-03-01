@@ -43,7 +43,7 @@ BM_INLINE float D(float *data, const int res[3], int x, int y, int z)
 	return data[ V_I(x, y, z, res) ];
 }
 
-/* *** nearest neighbour *** */
+/* *** nearest neighbor *** */
 /* input coordinates must be in bounding box 0.0 - 1.0 */
 float voxel_sample_nearest(float *data, const int res[3], const float co[3])
 {

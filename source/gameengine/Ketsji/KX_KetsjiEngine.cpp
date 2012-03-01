@@ -1447,7 +1447,7 @@ void KX_KetsjiEngine::RenderDebugProperties()
 {
 	STR_String debugtxt;
 	int xcoord = 10;	// mmmm, these constants were taken from blender source
-	int ycoord = 14;	// to 'mimic' behaviour
+	int ycoord = 14;	// to 'mimic' behavior
 
 	float tottime = m_logger->GetAverage();
 	if (tottime < 1e-6f) {

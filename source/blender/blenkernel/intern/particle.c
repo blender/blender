@@ -2874,10 +2874,12 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 		copy_v3_v3(prev_tangent, tangent);
 	}
 }
-/* Calculates paths ready for drawing/rendering.									*/
-/* -Usefull for making use of opengl vertex arrays for super fast strand drawing.	*/
-/* -Makes child strands possible and creates them too into the cache.				*/
-/* -Cached path data is also used to determine cut position for the editmode tool.	*/
+
+/**
+ * Calculates paths ready for drawing/rendering
+ * - Useful for making use of opengl vertex arrays for super fast strand drawing.
+ * - Makes child strands possible and creates them too into the cache.
+ * - Cached path data is also used to determine cut position for the editmode tool. */
 void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 {
 	PARTICLE_PSMD;

@@ -48,7 +48,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-/* Platform independend time	*/
 #include "PIL_time.h"
 
 #include "WM_types.h"
@@ -169,7 +168,7 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 	
-	/* update dependancy */
+	/* update dependency */
 	DAG_id_tag_update(&cObject->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, cObject);
 	DAG_scene_sort(CTX_data_main(C), scene);

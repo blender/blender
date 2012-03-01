@@ -186,7 +186,7 @@ static int has_poselib_pose_data_poll (bContext *C)
 
 /* ----------------------------------- */
 
-/* Initialise a new poselib (whether it is needed or not) */
+/* Initialize a new poselib (whether it is needed or not) */
 static bAction *poselib_init_new (Object *ob)
 {
 	/* sanity checks - only for armatures */
@@ -201,7 +201,7 @@ static bAction *poselib_init_new (Object *ob)
 	return ob->poselib;
 }
 
-/* Initialise a new poselib (checks if that needs to happen) */
+/* Initialize a new poselib (checks if that needs to happen) */
 static bAction *poselib_validate (Object *ob)
 {
 	if (ELEM(NULL, ob, ob->pose))

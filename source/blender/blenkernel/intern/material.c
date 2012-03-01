@@ -1886,7 +1886,7 @@ int do_version_tface(Main *main, int fileload)
 						ma->game.flag = -flag;
 						
 						/* some people uses multitexture with TexFace by creating a texture
-						 * channel which not neccessarly the tf->tpage image. But the game engine
+						 * channel which not necessarily the tf->tpage image. But the game engine
 						 * was enabling it. Now it's required to set "Face Texture [Alpha] in the
 						 * material settings. */
 						if (!fileload)

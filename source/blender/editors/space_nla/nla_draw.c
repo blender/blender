@@ -172,7 +172,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 			color[2]= 0.86f;
 		}
 		else {
-			/* normal, unselected strip - use (hardly noticable) blue tinge */
+			/* normal, unselected strip - use (hardly noticeable) blue tinge */
 			// FIXME: hardcoded temp-hack colors
 			color[0]= 0.11f;
 			color[1]= 0.15f;
@@ -190,7 +190,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 			color[2]= 0.59f;
 		}
 		else {
-			/* normal, unselected strip - use (hardly noticable) dark purple tinge */
+			/* normal, unselected strip - use (hardly noticeable) dark purple tinge */
 			// FIXME: hardcoded temp-hack colors
 			color[0]= 0.20f;
 			color[1]= 0.15f;
@@ -207,7 +207,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 			color[2]= 0.48f;
 		}
 		else {
-			/* normal, unselected strip - use (hardly noticable) teal tinge */
+			/* normal, unselected strip - use (hardly noticeable) teal tinge */
 			// FIXME: hardcoded temp-hack colors
 			color[0]= 0.17f;
 			color[1]= 0.24f;
@@ -813,7 +813,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					/* only on top two corners, to show that this channel sits on top of the preceding ones */
 					uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 					
-					/* draw slightly shifted up vertically to look like it has more separtion from other channels,
+					/* draw slightly shifted up vertically to look like it has more separation from other channels,
 					 * but we then need to slightly shorten it so that it doesn't look like it overlaps
 					 */
 					uiDrawBox(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc+NLACHANNEL_SKIP-1, 8);

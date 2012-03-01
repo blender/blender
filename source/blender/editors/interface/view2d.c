@@ -157,7 +157,7 @@ static void view2d_masks(View2D *v2d)
 
 /* Refresh and Validation */
 
-/* Initialise all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
+/* Initialize all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
  *	- for some of these presets, it is expected that the region will have defined some
  * 	  additional settings necessary for the customisation of the 2D viewport to its requirements
  *	- this function should only be called from region init() callbacks, where it is expected that
@@ -177,7 +177,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 		
 		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
 		switch (type) {
-			/* 'standard view' - optimum setup for 'standard' view behaviour,
+			/* 'standard view' - optimum setup for 'standard' view behavior,
 			 *  that should be used new views as basis for their
 			 * 	own unique View2D settings, which should be used instead of this in most cases...
 			 */
@@ -588,7 +588,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			 * 
 			 * So, resolution is to just shift view by the gap between the extremities.
 			 * We favour moving the 'minimum' across, as that's origin for most things
-			 * (XXX - in the past, max was favoured... if there are bugs, swap!)
+			 * (XXX - in the past, max was favored... if there are bugs, swap!)
 			 */
 			if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
@@ -980,7 +980,7 @@ void UI_view2d_view_ortho(View2D *v2d)
 	rctf curmasked;
 	float xofs, yofs;
 	
-	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
+	/* pixel offsets (-0.375f) are needed to get 1:1 correspondence with pixels for smooth UI drawing, 
 	 * but only applied where requsted
 	 */
 	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
@@ -1019,7 +1019,7 @@ void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, short xaxis)
 	rctf curmasked;
 	float xofs, yofs;
 	
-	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
+	/* pixel offsets (-0.375f) are needed to get 1:1 correspondence with pixels for smooth UI drawing, 
 	 * but only applied where requsted
 	 */
 	/* XXX temp (ton) */

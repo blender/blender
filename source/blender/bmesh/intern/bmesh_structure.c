@@ -107,7 +107,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * some nice utilities for navigating disk cycles in a way that hides this detail from the
  * tool writer.
  *
- * Note that the disk cycle is completley independent from face data. One advantage of this
+ * Note that the disk cycle is completely independent from face data. One advantage of this
  * is that wire edges are fully integrated into the topology database. Another is that the
  * the disk cycle has no problems dealing with non-manifold conditions involving faces.
  *
@@ -152,7 +152,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *
  * \note the order of elements in all cycles except the loop cycle is undefined. This
  * leads to slightly increased seek time for deriving some adjacency relations, however the
- * advantage is that no intrinsic properties of the data structures are dependant upon the
+ * advantage is that no intrinsic properties of the data structures are dependent upon the
  * cycle order and all non-manifold conditions are represented trivially.
  */
 int bmesh_disk_edge_append(BMEdge *e, BMVert *v)

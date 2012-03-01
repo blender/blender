@@ -378,8 +378,8 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	}
 
 	/* support for odd paths: eg /../home/me --> /home/me
-	 * this is a valid path in blender but we cant handle this the useual way below
-	 * simply strip this prefix then evaluate the path as useual. pythons os.path.normpath() does this */
+	 * this is a valid path in blender but we cant handle this the usual way below
+	 * simply strip this prefix then evaluate the path as usual. pythons os.path.normpath() does this */
 	while((strncmp(dir, "/../", 4)==0)) {
 		memmove( dir, dir + 4, strlen(dir + 4) + 1 );
 	}
@@ -1571,7 +1571,7 @@ char *BLI_path_basename(char *path)
 
   This logic will help ensure that all image paths are relative and
   that a user gets his images in one place. It'll also provide
-  consistent behaviour across exporters.
+  consistent behavior across exporters.
  */
 int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
 {

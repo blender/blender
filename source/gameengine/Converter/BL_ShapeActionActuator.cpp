@@ -221,7 +221,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	
 	priority = m_priority;
 	
-	/* Determine pre-incrementation behaviour and set appropriate flags */
+	/* Determine pre-incrementation behavior and set appropriate flags */
 	switch (m_playtype){
 	case ACT_ACTION_MOTION:
 		if (bNegativeEvent){

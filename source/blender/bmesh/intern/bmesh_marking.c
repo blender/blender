@@ -619,7 +619,7 @@ void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 		 * however selecting different edges can swap the direction of the y axis.
 		 * this makes it less likely for the y axis of the manipulator
 		 * (running along the edge).. to flip less often.
-		 * at least its more pradictable */
+		 * at least its more predictable */
 		if (eed->v2->co[1] > eed->v1->co[1]) {  /* check which to do first */
 			sub_v3_v3v3(r_plane, eed->v2->co, eed->v1->co);
 		}
@@ -854,7 +854,7 @@ void BM_edge_hide_set(BMesh *bm, BMEdge *e, int hide)
 	
 	BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
 
-	/* hide vertices if necassary */
+	/* hide vertices if necessary */
 	vert_flush_hide_set(bm, e->v1);
 	vert_flush_hide_set(bm, e->v2);
 }

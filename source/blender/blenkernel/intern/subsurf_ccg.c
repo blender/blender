@@ -3343,7 +3343,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		CCGSubSurf *ss;
 
 		/* It is quite possible there is a much better place to do this. It
-		 * depends a bit on how rigourously we expect this function to never
+		 * depends a bit on how rigorously we expect this function to never
 		 * be called in editmode. In semi-theory we could share a single
 		 * cache, but the handles used inside and outside editmode are not
 		 * the same so we would need some way of converting them. Its probably

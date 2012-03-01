@@ -206,7 +206,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 /**
  * \brief Faces Join Pair
  *
- * Joins two adjacenct faces togather.
+ * Joins two adjacent faces togather.
  *
  * Because this method calls to #BM_faces_join to do its work, if a pair
  * of faces share multiple edges, the pair of faces will be joined at

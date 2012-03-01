@@ -111,7 +111,7 @@ void GPC_Canvas::SetViewPort(int x1, int y1, int x2, int y2)
 		*/
 		
 		/* XXX, nasty, this needs to go somewhere else,
-		 * but where... definitly need to clean up this
+		 * but where... definitely need to clean up this
 		 * whole canvas/rendertools mess.
 		 */
 	glEnable(GL_SCISSOR_TEST);

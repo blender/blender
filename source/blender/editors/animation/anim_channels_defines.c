@@ -2493,7 +2493,7 @@ static bAnimChannelType ACF_GPL =
 static bAnimChannelType *animchannelTypeInfo[ANIMTYPE_NUM_TYPES];
 static short ACF_INIT= 1; /* when non-zero, the list needs to be updated */
 
-/* Initialise type info definitions */
+/* Initialize type info definitions */
 static void ANIM_init_channel_typeinfo_data (void)
 {
 	int type= 0;

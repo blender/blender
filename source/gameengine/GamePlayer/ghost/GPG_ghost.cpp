@@ -437,7 +437,7 @@ int main(int argc, char** argv)
 			break;
 		case SCREEN_SAVER_MODE_PASSWORD:
 			/* This is W95 only, which we currently do not support.
-			   Fall-back to normal screen saver behaviour in that case... */
+			   Fall-back to normal screen saver behavior in that case... */
 		case SCREEN_SAVER_MODE_SAVER:
 			fullScreen = true;
 			fullScreenParFound = true;

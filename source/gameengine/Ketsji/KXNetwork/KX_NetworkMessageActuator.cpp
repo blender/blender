@@ -23,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Ketsji Logic Extenstion: Network Message Actuator generic implementation
+ * Ketsji Logic Extension: Network Message Actuator generic implementation
  */
 
 /** \file gameengine/Ketsji/KXNetwork/KX_NetworkMessageActuator.cpp

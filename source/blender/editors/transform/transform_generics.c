@@ -500,7 +500,7 @@ static void recalcData_nla(TransInfo *t)
 			continue;
 		}
 		
-		/* firstly, check if the proposed transform locations would overlap with any neighbouring strips
+		/* firstly, check if the proposed transform locations would overlap with any neighboring strips
 		 * (barring transitions) which are absolute barriers since they are not being moved
 		 *
 		 * this is done as a iterative procedure (done 5 times max for now)

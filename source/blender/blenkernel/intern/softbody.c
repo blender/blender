@@ -988,7 +988,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[2] += s*v1[2];
 }
 
-/* +++ dependancy information functions*/
+/* +++ dependency information functions*/
 
 static int are_there_deflectors(Scene *scene, unsigned int layer)
 {
@@ -1007,7 +1007,7 @@ static int query_external_colliders(Scene *scene, Object *me)
 {
 	return(are_there_deflectors(scene, me->lay));
 }
-/* --- dependancy information functions*/
+/* --- dependency information functions*/
 
 
 /* +++ the aabb "force" section*/
@@ -1606,7 +1606,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					}
 					f = normalize_v3(vel);
 					f = -0.0001f*f*f*sb->aeroedge;
-					/* (todo) add a nice angle dependant function done for now BUT */
+					/* (todo) add a nice angle dependent function done for now BUT */
 					/* still there could be some nice drag/lift function, but who needs it */
 
 					sub_v3_v3v3(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);

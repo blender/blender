@@ -295,7 +295,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 			break;
 	}
 	
-	// update dependancy since a domain - other type switch could have happened
+	// update dependency since a domain - other type switch could have happened
 	rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 

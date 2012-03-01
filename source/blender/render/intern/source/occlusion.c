@@ -1497,7 +1497,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 	else
 		return 0;
 
-	/* try to interpolate between 4 neighbouring pixels */
+	/* try to interpolate between 4 neighboring pixels */
 	samples[0]= find_occ_sample(cache, x, y);
 	samples[1]= find_occ_sample(cache, x+cache->step, y);
 	samples[2]= find_occ_sample(cache, x, y+cache->step);

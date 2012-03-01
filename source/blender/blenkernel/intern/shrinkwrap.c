@@ -306,7 +306,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	else
 	{
 		//The code supports any axis that is a combination of X,Y,Z
-		//altought currently UI only allows to set the 3 diferent axis
+		//altought currently UI only allows to set the 3 different axis
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) proj_axis[0] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) proj_axis[1] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;
@@ -405,7 +405,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
  * Shrinkwrap moving vertexs to the nearest surface point on the target
  *
  * it builds a BVHTree from the target mesh and then performs a
- * NN matchs for each vertex
+ * NN matches for each vertex
  */
 static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {

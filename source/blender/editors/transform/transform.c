@@ -5355,7 +5355,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 #if 0   /* 'doTime' disabled for now */
 
 		const Scene *scene= t->scene;
-		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behaviour given the option's label, hence disabled
+		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behavior given the option's label, hence disabled
 		const double secf= FPS;
 #endif
 		double val;

@@ -671,7 +671,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 }
 
 /* This following macro should be used for all standard single-target *_get_tars functions 
- * to save typing and reduce maintainance woes.
+ * to save typing and reduce maintenance woes.
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
@@ -705,7 +705,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 	}
 	
 /* This following macro should be used for all standard single-target *_get_tars functions 
- * to save typing and reduce maintainance woes. It does not do the subtarget related operations
+ * to save typing and reduce maintenance woes. It does not do the subtarget related operations
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
@@ -724,7 +724,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 	}
 
 /* This following macro should be used for all standard single-target *_flush_tars functions
- * to save typing and reduce maintainance woes.
+ * to save typing and reduce maintenance woes.
  * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
@@ -745,7 +745,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 	}
 	
 /* This following macro should be used for all standard single-target *_flush_tars functions
- * to save typing and reduce maintainance woes. It does not do the subtarget related operations.
+ * to save typing and reduce maintenance woes. It does not do the subtarget related operations.
  * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
@@ -2221,7 +2221,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
-			/* behaviour undefined... */
+			/* behavior undefined... */
 			puts("Error: unknown owner type for Action Constraint");
 		}
 	}
@@ -3920,7 +3920,7 @@ static bConstraintTypeInfo CTI_PIVOT = {
 	NULL, /* relink data */
 	pivotcon_id_looper, /* id looper */
 	NULL, /* copy data */
-	NULL, /* new data */ // XXX: might be needed to get 'normal' pivot behaviour...
+	NULL, /* new data */ // XXX: might be needed to get 'normal' pivot behavior...
 	pivotcon_get_tars, /* get constraint targets */
 	pivotcon_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */

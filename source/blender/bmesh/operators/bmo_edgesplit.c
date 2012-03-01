@@ -298,7 +298,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 				}
 				else {
 					/* generate unique vert for non-seam edge(s)
-					 * around the manifold vert fan if necassary */
+					 * around the manifold vert fan if necessary */
 
 					/* first check that we have two seam edges
 					 * somewhere within this fa */

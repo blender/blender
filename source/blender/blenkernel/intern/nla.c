@@ -286,7 +286,7 @@ NlaStrip *add_nlastrip (bAction *act)
 	 *	- selected flag to highlight this to the user
 	 *	- auto-blends to ensure that blend in/out values are automatically 
 	 *	  determined by overlaps of strips
-	 *	- (XXX) synchronisation of strip-length in accordance with changes to action-length
+	 *	- (XXX) synchronization of strip-length in accordance with changes to action-length
 	 *	  is not done though, since this should only really happens in editmode for strips now
 	 *	  though this decision is still subject to further review...
 	 */
@@ -778,7 +778,7 @@ short BKE_nlameta_add_strip (NlaStrip *mstrip, NlaStrip *strip)
 		return 0;
 		
 	/* check if this would need to be added to the ends of the meta,
-	 * and subsequently, if the neighbouring strips allow us enough room
+	 * and subsequently, if the neighboring strips allow us enough room
 	 */
 	if (strip->start < mstrip->start) {
 		/* check if strip to the left (if it exists) ends before the 
@@ -1235,7 +1235,7 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 			/* store path - make copy, and store that */
 			fcu->rna_path= BLI_strdupn("influence", 9);
 			
-			// TODO: insert a few keyframes to ensure default behaviour?
+			// TODO: insert a few keyframes to ensure default behavior?
 		}
 	}
 	
@@ -1256,7 +1256,7 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 			/* store path - make copy, and store that */
 			fcu->rna_path= BLI_strdupn("strip_time", 10);
 			
-			// TODO: insert a few keyframes to ensure default behaviour?
+			// TODO: insert a few keyframes to ensure default behavior?
 		}
 	}
 }

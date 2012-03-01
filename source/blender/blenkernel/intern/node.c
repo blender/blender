@@ -991,7 +991,7 @@ void ntreeSetOutput(bNodeTree *ntree)
 {
 	bNode *node;
 
-	/* find the active outputs, might become tree type dependant handler */
+	/* find the active outputs, might become tree type dependent handler */
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
 			bNode *tnode;

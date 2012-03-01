@@ -258,7 +258,7 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const subdparams *par
 	alter_co(bm, v2, &temp, params, 1.0, &ov1, &ov2);
 }
 
-/* note: the patterns are rotated as necassary to
+/* note: the patterns are rotated as necessary to
  * match the input geometry.  they're based on the
  * pre-split state of the  face */
 

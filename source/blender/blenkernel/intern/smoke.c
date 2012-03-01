@@ -1163,7 +1163,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 											for(z = 0; z < sds->res[2]; z++)													
 											{
 
-												// neighbour cell emission densities (for high resolution smoke smooth interpolation)
+												// neighbor cell emission densities (for high resolution smoke smooth interpolation)
 												float c000, c001, c010, c011,  c100, c101, c110, c111;
 
 												c000 = (x>0 && y>0 && z>0) ? temp_emission_map[smoke_get_index(x-1, sds->res[0], y-1, sds->res[1], z-1)] : 0;

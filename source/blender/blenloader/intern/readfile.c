@@ -8372,7 +8372,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ob = main->object.first;
 
 		/* adapt form factor in order to get the 'old' physics
-		 * behaviour back...*/
+		 * behavior back...*/
 
 		while (ob) {
 			/* in future, distinguish between different
@@ -10724,7 +10724,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->m_contactProcessingThreshold = 1.; //pad3 is used for m_contactProcessingThreshold
 			if(ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
-				   to compound shaper as well (was the behaviour before, now it's optional) */
+				   to compound shaper as well (was the behavior before, now it's optional) */
 				Object *parent= newlibadr(fd, lib, ob->parent);
 				while (parent && parent != ob &&  parent->parent != NULL) {
 					parent = newlibadr(fd, lib, parent->parent);
@@ -10865,7 +10865,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_versions_gpencil_2_50(main, screen);
 		}
 		
-		/* shader, composit and texture node trees have id.name empty, put something in
+		/* shader, composite and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
@@ -10881,7 +10881,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		/* and composit trees */
+		/* and composite trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && sce->nodetree->id.name[0] == '\0')
 				strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
@@ -11274,7 +11274,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Lamp *la;
 		
-		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialisation */
+		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialization */
 		for (ob= main->object.first; ob; ob= ob->id.next) {
 			/* new variables for all objects */
 			ob->quat[0]= 1.0f;
@@ -11623,7 +11623,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			animviz_settings_init(&ob->avs);
 			
 			/* if armature, copy settings for pose from armature data 
-			 * performing initialisation where appropriate 
+			 * performing initialization where appropriate
 			 */
 			if (ob->pose && ob->data) {
 				bArmature *arm= newlibadr(fd, lib, ob->data);
@@ -12382,7 +12382,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bNodeTree *ntree;
 		
 		/* node sockets are not exposed automatically any more,
-		 * this mimics the old behaviour by adding all unlinked sockets to groups.
+		 * this mimics the old behavior by adding all unlinked sockets to groups.
 		 */
 		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next) {
 			/* XXX Only setting a flag here. Actual adding of group sockets

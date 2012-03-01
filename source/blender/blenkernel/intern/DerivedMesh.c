@@ -1359,7 +1359,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 		}
 	} else {
-		/* default behaviour for meshes */
+		/* default behavior for meshes */
 		if(inputVertexCos)
 			deformedVerts = inputVertexCos;
 		else

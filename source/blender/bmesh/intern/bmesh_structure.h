@@ -35,7 +35,7 @@
  * None of these functions should ever be exported to the rest of Blender.
  *
  * in the vast majority of cases thes should not be used directly.
- * if absolutely necassary, see function defitions in code for
+ * if absolutely necessary, see function definitions in code for
  * descriptive comments.  but seriously, don't use this stuff.
  */
 

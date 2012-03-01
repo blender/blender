@@ -92,7 +92,7 @@ char *BLI_getQuotedStr(const char *str, const char *prefix);
 	 * string with all instances of oldText replaced with newText,
 	 * and returns it.
 	 * 
-	 * @param str The string to replace occurances of oldText in
+	 * @param str The string to replace occurrences of oldText in
 	 * @param oldText The text in the string to find and replace
 	 * @param newText The text in the string to find and replace
 	 * @retval Returns the duplicated string

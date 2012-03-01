@@ -145,7 +145,7 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->looplistpool);
 #endif
 
-	/* These tables aren't used yet, so it's not stricly necessary
+	/* These tables aren't used yet, so it's not strictly necessary
 	 * to 'end' them (with 'e' param) but if someone tries to start
 	 * using them, having these in place will save a lot of pain */
 	mesh_octree_table(NULL, NULL, NULL, 'e');

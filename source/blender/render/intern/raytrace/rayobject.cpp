@@ -282,7 +282,7 @@ MALWAYS_INLINE int isec_tri_quad_neighbour(float start[3], float dir[3], RayFace
 	return 0;
 }
 
-/* RayFace intersection with checks and neighbour verifaction included,
+/* RayFace intersection with checks and neighbor verifaction included,
    Isect is modified if the face is hit. */
 
 MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
@@ -321,7 +321,7 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 	if(ok) {
 	
 		/* when a shadow ray leaves a face, it can be little outside the edges
-		   of it, causing intersection to be detected in its neighbour face */
+		   of it, causing intersection to be detected in its neighbor face */
 		if(is->skip & RE_SKIP_VLR_NEIGHBOUR)
 		{
 			if(dist < 0.1f && is->orig.ob == face->ob)

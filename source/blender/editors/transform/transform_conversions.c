@@ -3055,7 +3055,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TimeToTransData(td, bezt->vec[1], adt);
 				
-				/*set flags to move handles as necassary*/
+				/*set flags to move handles as necessary*/
 				td->flag |= TD_MOVEHANDLE1|TD_MOVEHANDLE2;
 				td2d->h1 = bezt->vec[0];
 				td2d->h2 = bezt->vec[2];
@@ -3274,7 +3274,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
 /* ********************* GRAPH EDITOR ************************* */
 
-/* Helper function for createTransGraphEditData, which is reponsible for associating
+/* Helper function for createTransGraphEditData, which is responsible for associating
  * source data with transform data
  */
 static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, BezTriple *bezt, 
@@ -4356,7 +4356,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	td->con= ob->constraints.first;
 
-	/* hack: tempolarily disable tracking and/or constraints when getting
+	/* hack: temporarily disable tracking and/or constraints when getting
 	 *		object matrix, if tracking is on, or if constraints don't need
 	 * 		inverse correction to stop it from screwing up space conversion
 	 *		matrix later

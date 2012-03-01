@@ -79,7 +79,7 @@ static bNodeSocketTemplate cmp_node_bilateralblur_out[]= {
 	dest[x*pix + 2] = mean1[2]*mean0;                                         \
 	dest[x*pix + 3] = mean1[3]*mean0;
 
-/* initializes deltas for fast access to neighbour pixels */
+/* initializes deltas for fast access to neighbor pixels */
 #define INIT_3X3_DELTAS( deltas, step, nch )                                  \
 	((deltas)[0] =  (nch),  (deltas)[1] = -(step) + (nch),                    \
 	 (deltas)[2] = -(step), (deltas)[3] = -(step) - (nch),                    \

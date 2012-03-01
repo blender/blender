@@ -181,7 +181,7 @@ public:
  *
  * Together with CExpression, CValue and it's derived classes can be used to
  * parse expressions into a parsetree with error detecting/correcting capabilities
- * also expandible by a CFactory pluginsystem 
+ * also expandable by a CFactory pluginsystem 
  *
  * Base class for all editor functionality, flexible object type that allows
  * calculations and uses reference counting for memory management.

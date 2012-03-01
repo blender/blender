@@ -104,7 +104,7 @@ typedef struct LayerTypeInfo {
 	   default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
 
-    /* functions necassary for geometry collapse*/
+    /* functions necessary for geometry collapse*/
 	int (*equal)(void *data1, void *data2);
 	void (*multiply)(void *data, float fac);
 	void (*initminmax)(void *min, void *max);
@@ -1664,7 +1664,7 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int t
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		/* MEM_dupallocN won't work in case of complex layers, like e.g.
 		 * CD_MDEFORMVERT, which has pointers to allocated data...
 		 * So in case a custom copy function is defined, use it!
 		 */
@@ -1697,7 +1697,7 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		/* MEM_dupallocN won't work in case of complex layers, like e.g.
 		 * CD_MDEFORMVERT, which has pointers to allocated data...
 		 * So in case a custom copy function is defined, use it!
 		 */

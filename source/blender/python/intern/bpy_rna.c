@@ -2470,7 +2470,7 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
 }
 
 /* note: currently this is a copy of 'pyrna_prop_collection_subscript' with
- * large blocks commented, we may support slice/key indicies later */
+ * large blocks commented, we may support slice/key indices later */
 static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self, PyObject *key, PyObject *value)
 {
 	PYRNA_PROP_CHECK_INT(self);

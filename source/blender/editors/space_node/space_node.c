@@ -339,7 +339,7 @@ static void node_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-/* Initialise main area, setting handlers. */
+/* Initialize main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;

@@ -89,7 +89,7 @@ typedef struct RayFace {
 RayObject* RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 
 /* RayObject representing faces directly from a given VlakRen structure. Thus
-   allowing to save memory, but making code triangle intersection dependant on
+   allowing to save memory, but making code triangle intersection dependent on
    render structures. */
 
 typedef struct VlakPrimitive {

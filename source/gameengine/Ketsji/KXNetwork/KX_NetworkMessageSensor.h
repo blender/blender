@@ -27,7 +27,7 @@
 
 /** \file KX_NetworkMessageSensor.h
  *  \ingroup ketsjinet
- *  \brief Ketsji Logic Extenstion: Network Message Sensor class
+ *  \brief Ketsji Logic Extension: Network Message Sensor class
  */
 #ifndef __KX_NETWORKMESSAGESENSOR_H__
 #define __KX_NETWORKMESSAGESENSOR_H__

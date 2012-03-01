@@ -4377,7 +4377,7 @@ void param_pack(ParamHandle *handle, float margin)
 	}	
 	
 	if(margin>0.0f) {
-		/* multiply the margin by the area to give predictable results not dependant on UV scale,
+		/* multiply the margin by the area to give predictable results not dependent on UV scale,
 		 * ...Without using the area running pack multiple times also gives a bad feedback loop.
 		 * multiply by 0.1 so the margin value from the UI can be from 0.0 to 1.0 but not give a massive margin */
 		margin = (margin*(float)area) * 0.1f;

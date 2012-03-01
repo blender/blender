@@ -150,7 +150,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		/* transfer flag */
 		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag);
 
-		/* this is necassary for selection counts to work properl */
+		/* this is necessary for selection counts to work properl */
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) BM_vert_select_set(bm, v, TRUE);
 
 		normal_short_to_float_v3(v->no, mvert->no);
@@ -196,7 +196,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		/* transfer flags */
 		e->head.hflag = BM_edge_flag_from_mflag(medge->flag);
 
-		/* this is necassary for selection counts to work properly */
+		/* this is necessary for selection counts to work properly */
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) BM_elem_select_set(bm, e, TRUE);
 		
 		/* Copy Custom Dat */
@@ -260,7 +260,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		/* transfer flag */
 		f->head.hflag = BM_face_flag_from_mflag(mpoly->flag);
 
-		/* this is necassary for selection counts to work properl */
+		/* this is necessary for selection counts to work properl */
 		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) BM_elem_select_set(bm, f, TRUE);
 
 		f->mat_nr = mpoly->mat_nr;
@@ -688,7 +688,7 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 		/* go through and find any shapekey customdata layers
 		 * that might not have corresponding KeyBlocks, and add them if
-		 * necassary */
+		 * necessary */
 		j = 0;
 		for (i = 0; i < bm->vdata.totlayer; i++) {
 			if (bm->vdata.layers[i].type != CD_SHAPEKEY)

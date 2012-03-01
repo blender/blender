@@ -295,7 +295,7 @@ void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_he
 						isect = 1;
 					} else {
 						/* do a full search for colliding box
-						 * this is really slow, some spacialy divided
+						 * this is really slow, some spatially divided
 						 * data-structure would be better */
 						for (box_test=boxarray; box_test != box; box_test++) {
 							if BOXINTERSECT(box, box_test) {

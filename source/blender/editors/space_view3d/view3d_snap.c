@@ -285,7 +285,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				if (BM_elem_index_get(eve)) tottrans++;
 		}
-		/* for any of the 3 loops above which all dirty the indicies */
+		/* for any of the 3 loops above which all dirty the indices */
 		bm->elem_index_dirty |= BM_VERT;
 		
 		/* and now make transverts */

@@ -2610,7 +2610,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-#if 0 //I think the BM_elem_select_set api stuff handles all this as necassary?
+#if 0 //I think the BM_elem_select_set api stuff handles all this as necessary?
 	if(select) EM_select_flush(em);
 	else EM_deselect_flush(em);
 #endif

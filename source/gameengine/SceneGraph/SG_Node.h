@@ -81,7 +81,7 @@ public:
 	);
 
 	/**
-	 * Return true if the node is the ancessor of child
+	 * Return true if the node is the ancestor of child
 	 */
 		bool
 	IsAncessor(

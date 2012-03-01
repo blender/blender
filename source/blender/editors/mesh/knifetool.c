@@ -1678,7 +1678,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 			}
 		}
 	}
-	/* BMESH_TODO, check if the code above validates the indicies */
+	/* BMESH_TODO, check if the code above validates the indices */
 	/* bm->elem_index_dirty &= ~BM_FACE; */
 	bm->elem_index_dirty |= BM_FACE;
 
@@ -1721,7 +1721,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BMO_elem_flag_enable(bm, e, BOUNDARY);
 	}
 
-	/* turn knife verts into real verts, as necassary */
+	/* turn knife verts into real verts, as necessary */
 	BLI_mempool_iternew(kcd->kverts, &iter);
 	for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {
 		if (!kfv->v) {

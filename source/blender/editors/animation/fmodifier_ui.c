@@ -175,7 +175,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 		}
 			break;
 		
-		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial expression */
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial expression */
 		{
 			float *cp = NULL;
 			unsigned int i;

@@ -755,7 +755,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  * 	Use this when validation of necessary animation data is not necessary, since an RNA-pointer to the necessary
  *	data being keyframed, and a pointer to the F-Curve to use have both been provided.
  *
- *	The flag argument is used for special settings that alter the behaviour of
+ *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
@@ -874,7 +874,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
 /* Main Keyframing API call:
  *	Use this when validation of necessary animation data is necessary, since it may not exist yet.
  *	
- *	The flag argument is used for special settings that alter the behaviour of
+ *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  *
@@ -968,7 +968,7 @@ short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
  *	Use this when validation of necessary animation data isn't necessary as it
  *	already exists. It will delete a keyframe at the current frame.
  *	
- *	The flag argument is used for special settings that alter the behaviour of
+ *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
 short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
@@ -1239,8 +1239,8 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	
 	/* whether the menu should always be shown 
-	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behaviour),
-	 *	  although in some cases it might be useful to always shown (pre 2.5 behaviour)
+	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behavior),
+	 *	  although in some cases it might be useful to always shown (pre 2.5 behavior)
 	 */
 	prop= RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -1711,7 +1711,7 @@ short id_frame_has_keyframe (ID *id, float frame, short filter)
 			break;
 			
 		case ID_SCE: /* scene */
-		// XXX TODO... for now, just use 'normal' behaviour
+		// XXX TODO... for now, just use 'normal' behavior
 		//	break;
 		
 		default: 	/* 'normal type' */

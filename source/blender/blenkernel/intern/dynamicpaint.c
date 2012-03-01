@@ -84,7 +84,7 @@ static float gaussianFactors[5] = {	0.996849f,
 								0.524141f};
 static float gaussianTotal = 3.309425f;
 
-/* UV Image neighbouring pixel table x and y list */
+/* UV Image neighboring pixel table x and y list */
 static int neighX[8] = {1,1,0,-1,-1,-1, 0, 1};
 static int neighY[8] = {0,1,1, 1, 0,-1,-1,-1};
 
@@ -139,7 +139,7 @@ typedef struct Vec3f {
 } Vec3f;
 
 typedef struct BakeAdjPoint {
-	float dir[3];	/* vector pointing towards this neighbour */
+	float dir[3];	/* vector pointing towards this neighbor */
 	float dist;		/* distance to */
 } BakeAdjPoint;
 
@@ -160,7 +160,7 @@ typedef struct PaintBakeData {
 	Bounds3D mesh_bounds;
 
 	/* adjacency info */
-	BakeAdjPoint *bNeighs; /* current global neighbour distances and directions, if required */
+	BakeAdjPoint *bNeighs; /* current global neighbor distances and directions, if required */
 	double average_dist;
 	/* space partitioning */
 	VolumeGrid *grid;		/* space partitioning grid to optimize brush checks */
@@ -183,7 +183,7 @@ typedef struct PaintUVPoint {
 	unsigned int v1, v2, v3;				/* vertex indexes */
 
 	unsigned int neighbour_pixel;	/* If this pixel isn't uv mapped to any face,
-									   but it's neighbouring pixel is */
+									   but it's neighboring pixel is */
 	short quad;
 } PaintUVPoint;
 
@@ -196,7 +196,7 @@ typedef struct ImgSeqFormatData {
 #define ADJ_ON_MESH_EDGE (1<<0)
 
 typedef struct PaintAdjData {
-	int *n_target;		/* array of neighbouring point indexes,
+	int *n_target;		/* array of neighboring point indexes,
 							       for single sample use (n_index+neigh_num) */
 	int *n_index;		/* index to start reading n_target for each point */
 	int *n_num;		/* num of neighs for each point */
@@ -1308,7 +1308,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 			n_pos += ad->n_num[i];
 		}
 
-		/* and now add neighbour data using that info */
+		/* and now add neighbor data using that info */
 		for (i=0; i<numOfEdges; i++) {
 			/* first vertex */
 			int index = edge[i].v1;
@@ -1889,7 +1889,7 @@ struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scen
 /***************************** Image Sequence / UV Image Surface Calls ******************************/
 
 /*
-*	Tries to find the neighbouring pixel in given (uv space) direction.
+*	Tries to find the neighboring pixel in given (uv space) direction.
 *	Result is used by effect system to move paint on the surface.
 *
 *   px,py : origin pixel x and y
@@ -1898,7 +1898,7 @@ struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scen
 static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh *dm,
                                            const char *uvname, int w, int h, int px, int py, int n_index)
 {
-	/* Note: Current method only uses polygon edges to detect neighbouring pixels.
+	/* Note: Current method only uses polygon edges to detect neighboring pixels.
 	*  -> It doesn't always lead to the optimum pixel but is accurate enough
 	*  and faster/simplier than including possible face tip point links)
 	*/
@@ -1914,11 +1914,11 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 	if (x<0 || x>=w) return OUT_OF_TEXTURE;
 	if (y<0 || y>=h) return OUT_OF_TEXTURE;
 
-	tPoint = &tempPoints[x+w*y];		/* UV neighbour */
+	tPoint = &tempPoints[x+w*y];		/* UV neighbor */
 	cPoint = &tempPoints[px+w*py];		/* Origin point */
 
 	/*
-	*	Check if shifted point is on same face -> it's a correct neighbour
+	*	Check if shifted point is on same face -> it's a correct neighbor
 	*   (and if it isn't marked as an "edge pixel")
 	*/
 	if ((tPoint->face_index == cPoint->face_index) && (tPoint->neighbour_pixel == -1))
@@ -1937,11 +1937,11 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 	}
 
 	/*
-	*	If we get here, the actual neighbouring pixel
+	*	If we get here, the actual neighboring pixel
 	*	is located on a non-linked uv face, and we have to find
 	*	it's "real" position.
 	*
-	*	Simple neighbouring face finding algorithm:
+	*	Simple neighboring face finding algorithm:
 	*	- find closest uv edge to shifted pixel and get
 	*	  the another face that shares that edge
 	*	- find corresponding position of that new face edge
@@ -2075,7 +2075,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 			if (tempPoints[final_index].face_index != target_face) return NOT_FOUND;
 
 			/*
-			*	If final point is an "edge pixel", use it's "real" neighbour instead
+			*	If final point is an "edge pixel", use it's "real" neighbor instead
 			*/
 			if (tempPoints[final_index].neighbour_pixel != -1) final_index = cPoint->neighbour_pixel;
 
@@ -2322,7 +2322,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 		/*
 		*	Now loop through every pixel that was left without index
-		*	and find if they have neighbouring pixels that have an index.
+		*	and find if they have neighboring pixels that have an index.
 		*	If so use that polygon as pixel surface.
 		*	(To avoid seams on uv island edges)
 		*/
@@ -2350,14 +2350,14 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 					point[0] = ((float)tx + 0.5f) / w;
 					point[1] = ((float)ty + 0.5f) / h;
 
-					/* search through defined area for neighbour	*/
+					/* search through defined area for neighbor	*/
 					for (u=u_min; u<=u_max; u++)
 						for (v=v_min; v<=v_max; v++) {
 							/* if not this pixel itself	*/
 							if (u!=0 || v!=0) {
 								ind = (tx+u)+w*(ty+v);
 
-								/* if neighbour has index	*/
+								/* if neighbor has index	*/
 								if (tempPoints[ind].face_index != -1) {
 
 									float uv1co[2], uv2co[2], uv3co[2], uv[2];
@@ -2402,7 +2402,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 		}
 
 		/*
-		*	When base loop is over convert found neighbour indexes to real ones
+		*	When base loop is over convert found neighbor indexes to real ones
 		*	Also count the final number of active surface points
 		*/
 		for (ty = 0; ty < h; ty++)
@@ -2450,7 +2450,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 							for (i=0; i<8; i++) {
 
-								/* Try to find a neighbouring pixel in defined direction
+								/* Try to find a neighboring pixel in defined direction
 								*  If not found, -1 is returned */
 								int n_target = dynamicPaint_findNeighbourPixel(tempPoints, dm, uvname, w, h, tx, ty, i);
 
@@ -3948,7 +3948,7 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 
 		if (n_index == closest_id[0]) continue;
 
-		/* only accept neighbour at "other side" of the first one in relation to force dir
+		/* only accept neighbor at "other side" of the first one in relation to force dir
 		*  so make sure angle between this and closest neigh is greater than first angle */
 		if (dir_dot>closest_d[1] && closest_dot<closest_d[0] && dir_dot>0.0f) {closest_d[1]=dir_dot; closest_id[1]=n_index;}
 	}
@@ -3983,7 +3983,7 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		closest_d[1] *= acosf(temp)/1.57079633f;
 	}
 	else {
-		/* if only single neighbour, still linearize force intersection effect */
+		/* if only single neighbor, still linearize force intersection effect */
 		closest_d[0] = 1.0f - acosf(closest_d[0])/1.57079633f;
 	}
 }
@@ -4177,7 +4177,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 			/*  Only reads values from the surface copy (prevPoint[]),
 			*	so this one is thread safe */
 
-			/*	Loop through neighbouring points	*/
+			/*	Loop through neighboring points	*/
 			for (i=0; i<numOfNeighs; i++) {
 				int n_index = sData->adj_data->n_index[index]+i;
 				float w_factor;
@@ -4226,7 +4226,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 
 				totalAlpha += ePoint->e_alpha;
 
-				/* Check if neighbouring point has lower alpha,
+				/* Check if neighboring point has lower alpha,
 				*  if so, decrease this point's alpha as well*/
 				if (pPoint->alpha <= 0.0f && pPoint->e_alpha <= 0.0f && pPoint->wetness <= 0.0f) continue;
 

@@ -100,7 +100,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	  layer data pointer to find where the active layer has ended up.
 
 	  
-	  this is necassary because the deletion functions only support deleting the active
+	  this is necessary because the deletion functions only support deleting the active
 	  layer. */
 	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
 	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;

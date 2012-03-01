@@ -158,7 +158,7 @@ public:
 
 	/**
 	 * @section Methods inherited from abstract base class RAS_ICanvas.
-	 * Semantics are not yet honoured.
+	 * Semantics are not yet honored.
 	 */
 	
 	void SetMouseState(RAS_MouseState mousestate)
@@ -187,8 +187,8 @@ public:
 	 * @param imageWidth		Width of the banner image in pixels.
 	 * @param imageHeight		Height of the banner image in pixels.
 	 * @param imageData			Pointer to the pixels of the image to display.
-	 * @param alignement		Where the banner will be positioned on the canvas.
-	 * @param enabled			Whether the banner will be displayed intiallly.
+	 * @param alignment		Where the banner will be positioned on the canvas.
+	 * @param enabled			Whether the banner will be displayed initially.
 	 * @return A banner id.
 	 */
 	TBannerId AddBanner(
@@ -199,7 +199,7 @@ public:
 
 	/**
 	 * Disposes a banner.
-	 * @param id Bannner to be disposed.
+	 * @param id Banner to be disposed.
 	 */
 	void DisposeBanner(TBannerId id);
 
@@ -224,7 +224,7 @@ public:
 protected:
 	/**
 	 * Disposes a banner.
-	 * @param it Bannner to be disposed.
+	 * @param it Banner to be disposed.
 	 */
 	void DisposeBanner(TBannerData& banner);
 

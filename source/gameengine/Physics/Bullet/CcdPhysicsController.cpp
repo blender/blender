@@ -1566,7 +1566,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				MVert *v2= &mvert[mf->v2];
 				MVert *v3= &mvert[mf->v3];
 
-				// the face indicies
+				// the face indices
 				tri_pt[0]= vert_remap_array[mf->v1];
 				tri_pt[1]= vert_remap_array[mf->v2];
 				tri_pt[2]= vert_remap_array[mf->v3];

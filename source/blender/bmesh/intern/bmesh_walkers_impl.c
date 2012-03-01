@@ -787,7 +787,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 		return l;
 
 	/* go over loops around l->v and nl->v and see which ones share l and nl's
-	 * mloopuv's coordinates. in addition, push on l->next if necassary */
+	 * mloopuv's coordinates. in addition, push on l->next if necessary */
 	for (i = 0; i < 2; i++) {
 		cl = i ? nl : l;
 		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {

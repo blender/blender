@@ -171,7 +171,7 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
 		deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_INVERT);
 	else
@@ -308,7 +308,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use 
 		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-		 *	- the frame-range select option is favoured over the channel one (x over y), as frame-range one is often
+		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))

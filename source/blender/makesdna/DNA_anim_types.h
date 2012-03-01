@@ -559,7 +559,7 @@ typedef struct NlaStrip {
 	
 	ListBase strips;			/* 'Child' strips (used for 'meta' strips) */
 	bAction *act;				/* Action that is referenced by this strip (strip is 'user' of the action) */
-	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
+	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondence of action with context) */
 	
 	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
 	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
@@ -752,7 +752,7 @@ typedef enum eKSP_Grouping {
  * be keyframed together, providing a convenient way for animators
  * to insert keyframes without resorting to Auto-Keyframing.
  *
- * A few 'generic' (non-absolute and dependant on templates) KeyingSets 
+ * A few 'generic' (non-absolute and dependent on templates) KeyingSets 
  * are defined 'built-in' to facilitate easy animating for the casual
  * animator without the need to add extra steps to the rigging process.
  */

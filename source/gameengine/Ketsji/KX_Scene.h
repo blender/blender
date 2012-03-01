@@ -191,7 +191,7 @@ protected:
 	NG_NetworkScene* m_networkScene;
 
 	/**
-	 * A temoprary variable used to parent objects together on
+	 * A temporary variable used to parent objects together on
 	 * replication. Don't get confused by the name it is not
 	 * the scene's root node!
 	 */

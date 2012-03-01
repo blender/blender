@@ -1086,7 +1086,7 @@ typedef struct Scene {
 	
 	void *fps_info;					/* (runtime) info/cache used for presenting playback framerate info to the user */
 	
-	/* none of the dependancy graph  vars is mean to be saved */
+	/* none of the dependency graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
 	short recalc;				/* recalc = counterpart of ob->recalc */

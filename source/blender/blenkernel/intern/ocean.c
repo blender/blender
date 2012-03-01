@@ -170,7 +170,7 @@ static float gaussRand (void)
 }
 
 /**
- * Som usefull functions
+ * Some useful functions
  * */
 MINLINE float lerp(float a,float b,float f)
 {

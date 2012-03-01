@@ -199,7 +199,7 @@ extern const char *view3d_context_dir[]; /* doc access */
 /* draw_volume.c */
 void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
 
-/* workaround for trivial but noticable camera bug caused by imprecision
+/* workaround for trivial but noticeable camera bug caused by imprecision
  * between view border calculation in 2D/3D space, workaround for bug [#28037].
  * without this deifne we get the old behavior which is to try and align them
  * both which _mostly_ works fine, but when the camera moves beyond ~1000 in

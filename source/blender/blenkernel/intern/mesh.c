@@ -2343,7 +2343,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 					mf->flag = mp->flag;
 
 #ifdef USE_TESSFACE_SPEEDUP
-					mf->edcode |= TESSFACE_SCANFILL; /* tag for sorting loop indicies */
+					mf->edcode |= TESSFACE_SCANFILL; /* tag for sorting loop indices */
 #endif
 
 					if (poly_orig_index) {

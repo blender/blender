@@ -122,7 +122,7 @@ IMPORTANT:
  - do not use #defines in structs for array lengths, this cannot be read by the dna functions
  - do not use uint, but unsigned int instead, ushort and ulong are allowed
  - only use a long in Blender if you want this to be the size of a pointer. so it is
-   32 bits or 64 bits, dependant at the cpu architecture
+   32 bits or 64 bits, dependent at the cpu architecture
  - chars are always unsigned
  - aligment of variables has to be done in such a way, that any system does
    not create 'padding' (gaps) in structures. So make sure that:

@@ -42,7 +42,7 @@
  *
  * original desing: walkers directly emulation recursive functions.
  * functions save their state onto a worklist, and also add new states
- * to implement recursive or looping behaviour.  generally only one
+ * to implement recursive or looping behavior.  generally only one
  * state push per call with a specific state is desired.
  *
  * basic design pattern: the walker step function goes through it's
@@ -53,8 +53,8 @@
  * - Walkers use tool flags, not header flags.
  * - Walkers now use ghash for storing visited elements,
  *   rather then stealing flags.  ghash can be rewritten
- *   to be faster if necassary, in the far future :) .
- * - tools should ALWAYS have necassary error handling
+ *   to be faster if necessary, in the far future :) .
+ * - tools should ALWAYS have necessary error handling
  *   for if walkers fail.
  */
 

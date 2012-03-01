@@ -881,7 +881,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 	return 1;
 }
 
-/* Stitch hash initialisation functions */
+/* Stitch hash initialization functions */
 static unsigned int	uv_edge_hash(const void *key)
 {
 	UvEdge *edge = (UvEdge *)key;

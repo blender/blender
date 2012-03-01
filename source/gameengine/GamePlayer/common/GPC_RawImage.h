@@ -60,7 +60,7 @@ public:
 	 * @param width		The width of the image created.
 	 * @param height	The height of the image created.
 	 * @param alignment How the resource image is located in the image created.
-	 * @param offsetX	Amount of horzontal offset applied to the resource image.
+	 * @param offsetX	Amount of horizontal offset applied to the resource image.
 	 * @param offsetY	Amount of vertical offset applied to the resource image.
 	 */
 	virtual bool Load(const char *srcName,

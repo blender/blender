@@ -663,7 +663,7 @@ static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index
  * Advantages of the used trees include:
  *  - No need to store child/parent relations (they are implicit);
  *  - Any node child always has an index greater than the parent;
- *  - Brother nodes are sequencial in memory;
+ *  - Brother nodes are sequential in memory;
  *
  *
  * Some math relations derived for general implicit trees:
@@ -688,7 +688,7 @@ static int implicit_needed_branches(int tree_type, int leafs)
  *
  * It arranges the elements in the given partitions such that:
  *  - any element in partition N is less or equal to any element in partition N+1.
- *  - if all elements are diferent all partition will get the same subset of elements
+ *  - if all elements are different all partition will get the same subset of elements
  *    as if the array was sorted.
  *
  * partition P is described as the elements in the range ( nth[P] , nth[P+1] ]

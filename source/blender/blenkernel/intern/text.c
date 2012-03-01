@@ -90,7 +90,7 @@ be popped ... other st's retain their own top location.
 
 Markers
 --
-The mrk->flags define the behaviour and relationships between markers. The
+The mrk->flags define the behavior and relationships between markers. The
 upper two bytes are used to hold a group ID, the lower two are normal flags. If
 TMARK_EDITALL is set the group ID defines which other markers should be edited.
 
@@ -2617,7 +2617,7 @@ void txt_backspace_word (Text *text)
 }
 
 /* Max spaces to replace a tab with, currently hardcoded to TXT_TABSIZE = 4.
- * Used by txt_convert_tab_to_spaces, indent and unintent.
+ * Used by txt_convert_tab_to_spaces, indent and unindent.
  * Remember to change this string according to max tab size */
 static char tab_to_spaces[] = "    ";
 

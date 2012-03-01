@@ -179,7 +179,7 @@ void draw_motion_path_instance(Scene *scene,
 	glPointSize(1.0);
 	
 	/* draw little black point at each frame
-	 * NOTE: this is not really visible/noticable
+	 * NOTE: this is not really visible/noticeable
 	 */
 	glBegin(GL_POINTS);
 	for (i=0, mpv=mpv_start; i < len; i++, mpv++) 

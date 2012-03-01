@@ -99,7 +99,7 @@ static FModifierTypeInfo FMI_MODNAME = {
 /* Generators available:
  * 	1) simple polynomial generator:
  *		- Exanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])  
- *		- Factorised form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
+ *		- Factorized form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
  */
 
 static void fcm_generator_free (FModifier *fcm)
@@ -198,7 +198,7 @@ static void fcm_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
-	/* behaviour depends on mode 
+	/* behavior depends on mode 
 	 * NOTE: the data in its default state is fine too
 	 */
 	switch (data->mode) {
@@ -238,7 +238,7 @@ static void fcm_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *
 		}
 			break;
 			
-		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial */
 		{
 			float value= 1.0f, *cp=NULL;
 			unsigned int i;
@@ -506,13 +506,15 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 /* Cycles F-Curve Modifier  --------------------------- */
 
 /* This modifier changes evaltime to something that exists within the curve's frame-range, 
- * then re-evaluates modifier stack up to this point using the new time. This re-entrant behaviour
- * is very likely to be more time-consuming than the original approach... (which was tighly integrated into 
+ * then re-evaluates modifier stack up to this point using the new time. This re-entrant behavior
+ * is very likely to be more time-consuming than the original approach... (which was tightly integrated into
  * the calculation code...).
  *
- * NOTE: this needs to be at the start of the stack to be of use, as it needs to know the extents of the keyframes/sample-data
- * Possible TODO - store length of cycle information that can be initialised from the extents of the keyframes/sample-data, and adjusted
- * 				as appropriate
+ * NOTE: this needs to be at the start of the stack to be of use, as it needs to know the extents of the
+ * keyframes/sample-data.
+ *
+ * Possible TODO - store length of cycle information that can be initialised from the extents of the
+ * keyframes/sample-data, and adjusted as appropriate.
  */
 
 /* temp data used during evaluation */

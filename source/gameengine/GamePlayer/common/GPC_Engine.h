@@ -113,7 +113,7 @@ public:
 	bool Loading(void) {return m_loading;}
 	bool Running(void) const {return m_running;}
 
-	virtual float DetermineProgress(void);  // will be platform dependant
+	virtual float DetermineProgress(void);  // will be platform dependent
 	void UpdateLoadingAnimation(void);
 
 private:

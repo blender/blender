@@ -1850,9 +1850,11 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 
 /* Note for rect_to_uvspace_ortho() and rect_to_uvspace_persp()
  * in ortho view this function gives good results when bucket_bounds are outside the triangle
- * however in some cases, perspective view will mess up with faces that have minimal screenspace area (viewed from the side)
+ * however in some cases, perspective view will mess up with faces that have minimal screenspace area
+ * (viewed from the side)
  * 
- * for this reason its not relyable in this case so we'll use the Simple Barycentric' funcs that only account for points inside the triangle.
+ * for this reason its not reliable in this case so we'll use the Simple Barycentric'
+ * funcs that only account for points inside the triangle.
  * however switching back to this for ortho is always an option */
 
 static void rect_to_uvspace_ortho(
@@ -2434,7 +2436,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						if (is_ortho)	screen_px_from_ortho(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						else			screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						
-						/* a pitty we need to get the worldspace pixel location here */
+						/* a pity we need to get the worldspace pixel location here */
 						if(do_clip) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
 							if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
@@ -2655,7 +2657,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 #endif
 											}
 											
-											/* a pitty we need to get the worldspace pixel location here */
+											/* a pity we need to get the worldspace pixel location here */
 											if(do_clip) {
 												if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
@@ -2731,7 +2733,7 @@ static void project_bucket_bounds(const ProjPaintState *ps, const int bucket_x, 
 
 /* Fill this bucket with pixels from the faces that intersect it.
  * 
- * have bucket_bounds as an argument so we don;t need to give bucket_x/y the rect function needs */
+ * have bucket_bounds as an argument so we don't need to give bucket_x/y the rect function needs */
 static void project_bucket_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, rctf *bucket_bounds)
 {
 	LinkNode *node;

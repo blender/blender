@@ -42,7 +42,7 @@ extern "C" {
 extern 
 	/** Return an indication of time, expressed	as
 	 * seconds since some fixed point. Successive calls
-	 * are guarenteed to generate values greator than or 
+	 * are guarenteed to generate values greater than or
 	 * equal to the last call.
 	 */
 double	PIL_check_seconds_timer		(void);

@@ -295,7 +295,7 @@ public:
 	virtual int		GetNumActiveEvents();
 
 	/**
-	 * Get the number of ramping events (just_activated, just_released)
+	 * Get the number of remapping events (just_activated, just_released)
 	 */
 	virtual int		GetNumJustEvents();
 	

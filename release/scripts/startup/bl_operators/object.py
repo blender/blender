@@ -125,7 +125,7 @@ class SelectCamera(Operator):
 
 
 class SelectHierarchy(Operator):
-    '''Select object relative to the active object's position''' \
+    '''Select object relative to the active object's position ''' \
     '''in the hierarchy'''
     bl_idname = "object.select_hierarchy"
     bl_label = "Select Hierarchy"

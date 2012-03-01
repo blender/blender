@@ -850,7 +850,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		/* draw curve:
 		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
 		 *	  so we need to check which method should be used
-		 *	- controls from active modifier take precidence over keyframes
+		 *	- controls from active modifier take precedence over keyframes
 		 *	  (XXX! editing tools need to take this into account!)
 		 */
 		 

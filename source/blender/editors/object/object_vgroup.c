@@ -769,7 +769,7 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count)
 		MLoop *ml = &me->mloop[mp->loopstart];
 		while(j--) {
 			/* XXX This assume a vert can only be once in a poly, even though
-			 *     it seems logical to me, not totaly sure of that. */
+			 *     it seems logical to me, not totally sure of that. */
 			if (ml->v == vert) {
 				int a, b, k;
 				if(j == first_l) {
@@ -1604,7 +1604,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		}
 
 		/* unlike editmesh we know that by only looping over the first hald of
-		 * the 'u' indicies it will cover all points except the middle which is
+		 * the 'u' indices it will cover all points except the middle which is
 		 * ok in this case */
 		pntsu_half= lt->pntsu / 2;
 
@@ -2644,7 +2644,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 
 	if((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies",
+		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
 		            change, fail);
 	}
 
@@ -2795,7 +2795,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 
 		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
 
-		/*create as necassary*/
+		/*create as necessary*/
 		while(dvert && dvert_tot--) {
 			if(dvert->totweight)
 				defvert_remap(dvert, sort_map, defbase_tot);
