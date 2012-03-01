@@ -283,7 +283,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	if (a)
 		BMO_op_finish(bm, &bmop);
 
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
@@ -372,7 +372,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
@@ -439,7 +439,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
@@ -486,7 +486,7 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 
 	MEM_freeN(tv);
 
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 
@@ -558,7 +558,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 		BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
@@ -654,7 +654,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
 
 	BMO_op_callf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
 void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
@@ -732,5 +732,5 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 	BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
 	BM_face_create_quad_tri(bm, v8, v7, v6, v5, NULL, FALSE);
 
-	BMO_slot_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }

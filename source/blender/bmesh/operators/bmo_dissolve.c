@@ -176,7 +176,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 	if (BMO_error_occurred(bm)) goto cleanup;
 
-	BMO_slot_from_flag(bm, op, "regionout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "regionout", FACE_NEW, BM_FACE);
 
 cleanup:
 	/* free/cleanu */

@@ -291,8 +291,8 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, cons
 
 /* puts every element of type type (which is a bitmask) with tool flag flag,
  * into a slot. */
-void BMO_slot_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                        const short oflag, const char htype);
+void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
+                               const short oflag, const char htype);
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
@@ -311,11 +311,11 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotna
 /* puts every element of type type (which is a bitmask) with header flag
  * flag, into a slot.  note: ignores hidden elements (e.g. elements with
  * header flag BM_ELEM_HIDDEN set).*/
-void BMO_slot_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                         const char hflag, const char htype);
+void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
+                                const char hflag, const char htype);
 
 /* counts number of elements inside a slot array. */
-int BMO_slot_buf_count(BMesh *bm, BMOperator *op, const char *slotname);
+int BMO_slot_buffer_count(BMesh *bm, BMOperator *op, const char *slotname);
 int BMO_slot_map_count(BMesh *bm, BMOperator *op, const char *slotname);
 
 void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
@@ -371,7 +371,7 @@ typedef struct BMOIter {
 	char restrictmask; /* bitwise '&' with BMHeader.htype */
 } BMOIter;
 
-void *BMO_slot_elem_first(BMOperator *op, const char *slotname);
+void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slotname);
 
 /* restrictmask restricts the iteration to certain element types
  * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating

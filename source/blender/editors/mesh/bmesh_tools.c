@@ -248,8 +248,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	BMElem *ele;
 	
 	BMO_op_init(bm, &extop, "extrude_face_region");
-	BMO_slot_from_hflag(bm, &extop, "edgefacein",
-	                       hflag, BM_VERT|BM_EDGE|BM_FACE);
+	BMO_slot_buffer_from_hflag(bm, &extop, "edgefacein", hflag, BM_VERT|BM_EDGE|BM_FACE);
 
 	/* If a mirror modifier with clipping is on, we need to adjust some 
 	 * of the cases above to handle edges on the line of symmetry.
@@ -3143,7 +3142,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	BMO_slot_from_flag(bm, &bmop, "edges", 1, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, &bmop, "edges", 1, BM_EDGE);
 
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_slot_int_set(&bmop, "numcuts", numcuts);

@@ -110,7 +110,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 
 	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
-	BMO_slot_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
 }
 
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
@@ -162,7 +162,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
@@ -181,8 +181,8 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
-	BMO_slot_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
-	BMO_slot_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
 }
 
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
@@ -291,11 +291,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
 	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
 	for ( ; e; e = BMO_iter_step(&siter)) {
-		if (BMO_slot_map_contains(bm, op, "exclude", e)) {
-			/* this should always be wire,
-			 * assert if not since we dont want to kill off any faces (next) */
-			BLI_assert(BM_edge_is_wire(bm, e) == TRUE);
 
+		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
+		if (BM_edge_is_wire(bm, e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
 			/* The original edge was excluded,
 			 * this would result in a standalone wire edge - see [#30399] */
 			BM_edge_kill(bm, e);

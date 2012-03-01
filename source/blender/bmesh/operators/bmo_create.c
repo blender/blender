@@ -1035,7 +1035,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edge_free_path(pathbase, path);
 	}
 
-	BMO_slot_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
 
 	BLI_array_free(edges);
 	BLI_array_free(verts);
@@ -1232,7 +1232,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_from_flag(bm, op, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", ELE_NEW, BM_EDGE);
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);
@@ -1340,7 +1340,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &op2);
 
 	/* return if edge net create did somethin */
-	if (BMO_slot_buf_count(bm, &op2, "faceout")) {
+	if (BMO_slot_buffer_count(bm, &op2, "faceout")) {
 		BMO_slot_copy(&op2, op, "faceout", "faceout");
 		BMO_op_finish(bm, &op2);
 		return;
@@ -1353,7 +1353,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &op2);
 	
 	/* if we dissolved anything, then return */
-	if (BMO_slot_buf_count(bm, &op2, "regionout")) {
+	if (BMO_slot_buffer_count(bm, &op2, "regionout")) {
 		BMO_slot_copy(&op2, op, "regionout", "faceout");
 		BMO_op_finish(bm, &op2);
 		return;
