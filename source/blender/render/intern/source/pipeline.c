@@ -1894,7 +1894,7 @@ static void validate_render_settings(Render *re)
 	if(RE_engine_is_external(re)) {
 		/* not supported yet */
 		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
-		re->r.mode &= ~R_FIELDS;
+		re->r.mode &= ~(R_FIELDS|R_MBLUR);
 	}
 }
 
