@@ -348,27 +348,50 @@ int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
  * Tests whether or not this edge is manifold.
  * A manifold edge either has 1 or 2 faces attached to it.
  */
+
+#if 1 /* fast path for checking manifold */
+int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
+{
+	const BMLoop *l = e->l;
+	return (l && ((l->radial_next == l) ||              /* 1 face user  */
+	              (l->radial_next->radial_next == l))); /* 2 face users */
+}
+#else
 int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
-	if (count != 2 && count != 1) {
+	if (count == 2 || count == 1) {
+		return TRUE;
+	}
+	else {
 		return FALSE;
 	}
-	return TRUE;
 }
+#endif
 
 /**
  * Tests whether or not an edge is on the boundary
  * of a shell (has one face associated with it)
  */
+
+#if 1 /* fast path for checking boundry */
+int BM_edge_is_boundary(BMEdge *e)
+{
+	const BMLoop *l = e->l;
+	return (l && (l->radial_next == l));
+}
+#else
 int BM_edge_is_boundary(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
 	if (count == 1) {
 		return TRUE;
 	}
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
+#endif
 
 /**
  *  Counts the number of edges two faces share (if any)
