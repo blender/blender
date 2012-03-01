@@ -48,7 +48,7 @@ typedef struct BLI_mempool BLI_mempool;
  * first four bytes of the elements never contain the character string
  * 'free'.  use with care.*/
 
-BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk, int flag);
+BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag);
 void *BLI_mempool_alloc(BLI_mempool *pool);
 void *BLI_mempool_calloc(BLI_mempool *pool);
 void  BLI_mempool_free(BLI_mempool *pool, void *addr);
