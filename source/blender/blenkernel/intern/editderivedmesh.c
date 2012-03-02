@@ -47,9 +47,9 @@
 #include "BKE_paint.h"
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_curve_types.h" /* for Curve */
 
 #include "MEM_guardedalloc.h"
 
@@ -1706,4 +1706,16 @@ DerivedMesh *getEditDerivedBMesh(
 	}
 
 	return (DerivedMesh*) bmdm;
+}
+
+/**
+ * \brief Return the BMEditMesh for a given object
+ *
+ * \note this function assumes this is a mesh object,
+ * don't add NULL data check here. caller must do that
+ */
+BMEditMesh *BMEdit_FromObject(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+	return ((Mesh *)   ob->data   )->edit_btmesh;
 }

@@ -245,7 +245,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (!em)
 		return;

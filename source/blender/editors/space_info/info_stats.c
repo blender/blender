@@ -140,7 +140,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 static void stats_object_edit(Object *obedit, SceneStats *stats)
 {
 	if(obedit->type==OB_MESH) {
-		BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 
 		stats->totvert = em->bm->totvert;
 		stats->totvertsel = em->bm->totvertsel;

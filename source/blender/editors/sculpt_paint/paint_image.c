@@ -4661,7 +4661,7 @@ static int uv_sculpt_brush_poll(bContext *C)
 	if(!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
 		return 0;
 
-	em = ((Mesh *)obedit->data)->edit_btmesh;
+	em = BMEdit_FromObject(obedit);
 	ret = EDBM_texFaceCheck(em);
 
 	if(ret && sima) {

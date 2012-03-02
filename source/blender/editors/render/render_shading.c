@@ -165,7 +165,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if(ob && ob->actcol>0) {
 		if(ob->type == OB_MESH) {
-			BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(ob);
 			BMFace *efa;
 			BMIter iter;
 
@@ -220,13 +220,13 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 
 static int material_slot_de_select(bContext *C, int select)
 {
-	Object *ob= ED_object_context(C);
+	Object *ob = ED_object_context(C);
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
 
 	if(ob->type == OB_MESH) {
-		BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(ob);
 
 		if(em) {
 			EDBM_deselect_by_material(em, ob->actcol-1, select);

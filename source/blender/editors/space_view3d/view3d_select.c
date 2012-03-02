@@ -516,7 +516,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	lasso_select_boundbox(&rect, mcords, moves);
 	
 	/* set editmesh */
-	vc->em= ((Mesh *)vc->obedit->data)->edit_btmesh;
+	vc->em = BMEdit_FromObject(vc->obedit);
 
 	data.vc= vc;
 	data.rect = &rect;
@@ -2073,7 +2073,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	if (vc.obedit) {
 		switch(vc.obedit->type) {
 		case OB_MESH:
-			vc.em= ((Mesh *)vc.obedit->data)->edit_btmesh;
+			vc.em = BMEdit_FromObject(vc.obedit);
 			ret= do_mesh_box_select(&vc, &rect, select, extend);
 //			if (EM_texFaceCheck())
 			if (ret & OPERATOR_FINISHED) {
@@ -2336,7 +2336,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 	bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
-	vc->em= ((Mesh *)vc->obedit->data)->edit_btmesh;
+	vc->em = BMEdit_FromObject(vc->obedit);
 
 	data.vc = vc;
 	data.select = select;

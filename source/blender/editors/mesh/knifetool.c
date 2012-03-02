@@ -2051,7 +2051,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	kcd->draw_handle = ED_region_draw_cb_activate(kcd->ar->type, knifetool_draw, kcd, REGION_DRAW_POST_VIEW);
 	em_setup_viewcontext(C, &kcd->vc);
 
-	kcd->em = ((Mesh *)kcd->ob->data)->edit_btmesh;
+	kcd->em = BMEdit_FromObject(kcd->ob);
 
 	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
@@ -2185,7 +2185,7 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	obedit = CTX_data_edit_object(C);
-	if (!obedit || obedit->type != OB_MESH || ((Mesh *)obedit->data)->edit_btmesh != kcd->em) {
+	if (!obedit || obedit->type != OB_MESH || BMEdit_FromObject(obedit) != kcd->em) {
 		knifetool_exit(C, op);
 		return OPERATOR_FINISHED;
 	}

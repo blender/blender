@@ -174,7 +174,7 @@ static int ED_operator_editmesh_face_select(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH) {
-		BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 		if (em && em->selectmode & SCE_SELECT_FACE) {
 			return 1;
 		}

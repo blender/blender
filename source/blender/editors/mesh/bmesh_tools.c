@@ -77,7 +77,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int cuts = RNA_int_get(op->ptr,"number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal")/2.5;
@@ -368,7 +368,7 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		
 	int steps = RNA_int_get(op->ptr,"steps");
@@ -508,7 +508,7 @@ static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	EDBM_Extrude_Mesh(scene, obedit, em, op, NULL);
 
@@ -543,7 +543,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 static int mesh_extrude_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	float nor[3];
 
 	EDBM_Extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
@@ -573,7 +573,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 static int mesh_extrude_edges_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	float nor[3];
 
 	EDBM_Extrude_edges_indiv(em, op, BM_ELEM_SELECT, nor);
@@ -603,7 +603,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 static int mesh_extrude_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	float nor[3];
 
 	EDBM_Extrude_face_indiv(em, op, BM_ELEM_SELECT, nor);
@@ -642,7 +642,7 @@ void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
 static int mesh_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int action = RNA_enum_get(op->ptr, "action");
 	
 	switch (action) {
@@ -685,7 +685,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 static int mesh_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (EDBM_select_interior_faces(em)) {
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
@@ -903,7 +903,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 
 static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, Scene *UNUSED(scene))
 {
-	BMEditMesh *bem = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *bem = BMEdit_FromObject(obedit);
 	
 	if (event < 1) return OPERATOR_CANCELLED;
 
@@ -978,7 +978,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	Scene *scene = CTX_data_scene(C);
 	int type = RNA_enum_get(op->ptr, "type");
 	
@@ -1027,7 +1027,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 {
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	if (!EDBM_InitOpf(em, &bmop, op, "contextual_create geom=%hfev", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
@@ -1066,7 +1066,7 @@ static int editbmesh_mark_seam(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = ((Mesh *)obedit->data);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMIter iter;
@@ -1120,7 +1120,7 @@ static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = ((Mesh *)obedit->data);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMIter iter;
@@ -1176,7 +1176,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 static int editbmesh_vert_connect(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 	int len = 0;
@@ -1213,7 +1213,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 static int editbmesh_edge_split(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 	int len = 0;
@@ -1256,7 +1256,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	EDBM_InitOpf(em, &bmop, op, "dupe geom=%hvef", BM_ELEM_SELECT);
@@ -1305,7 +1305,7 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 static int flip_normals(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	if (!EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
@@ -1340,7 +1340,7 @@ static const EnumPropertyItem direction_items[] = {
 static int edge_rotate_selected(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
 	BMEdge *eed;
 	BMIter iter;
@@ -1458,7 +1458,7 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 static int hide_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	EDBM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
 		
@@ -1532,7 +1532,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 static int reveal_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	EDBM_reveal_mesh(em);
 
@@ -1560,7 +1560,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	/* doflip has to do with bmesh_rationalize_normals, it's an internal
 	 * thing */
@@ -1598,7 +1598,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 static int do_smooth_vertex(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	ModifierData *md;
 	int mirrx = FALSE, mirry = FALSE, mirrz = FALSE;
 	int i, repeat;
@@ -1677,7 +1677,7 @@ static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMEdge *e;
@@ -1765,7 +1765,7 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	mesh_set_smooth_faces(em, 1);
 
@@ -1793,7 +1793,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	mesh_set_smooth_faces(em, 0);
 
@@ -1830,7 +1830,7 @@ static const EnumPropertyItem axis_items[] = {
 static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	/* get the direction from RNA */
@@ -1858,7 +1858,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
@@ -1883,7 +1883,7 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 static int mesh_rotate_colors(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	/* get the direction from RNA */
@@ -1914,7 +1914,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 static int mesh_reverse_colors(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
@@ -2084,7 +2084,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int status = 0, uvs = RNA_boolean_get(op->ptr, "uvs");
 
 	switch(RNA_enum_get(op->ptr, "type")) {
@@ -2135,7 +2135,7 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), 
 	
 	obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH) {
-		BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			if (em->bm->selected.first && em->bm->selected.last &&
@@ -2190,7 +2190,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 static int removedoublesflag_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
 	int count;
 
@@ -2254,7 +2254,7 @@ typedef struct PathEdge {
 static int select_vertex_path_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 	BMEditSelection *sv, *ev;
 
@@ -2345,7 +2345,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 	BMBVHTree *bvhtree;
@@ -2731,7 +2731,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 static int select_axis_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMEditSelection *ese = em->bm->selected.last;
 	int axis = RNA_enum_get(op->ptr, "axis");
 	int mode = RNA_enum_get(op->ptr, "mode"); /* -1 == aligned, 0 == neg, 1 == pos */
@@ -3068,7 +3068,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	ARegion *ar = CTX_wm_region(C);
 	BMVert *bv;
@@ -3392,7 +3392,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 static int fill_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
 	
 	if (!EDBM_InitOpf(em, &bmop, op, "triangle_fill edges=%he", BM_ELEM_SELECT)) {
@@ -3432,7 +3432,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 static int beautify_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_CallOpf(em, op, "beautify_fill faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
@@ -3462,7 +3462,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
@@ -3490,7 +3490,7 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int dosharp, douvs, dovcols, domaterials;
 	float limit = RNA_float_get(op->ptr, "limit");
 
@@ -3540,7 +3540,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 static int dissolve_limited_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 
 	if (!EDBM_CallOpf(em, op,
@@ -3580,7 +3580,7 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 static int split_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	EDBM_InitOpf(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, FALSE);
@@ -3620,7 +3620,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator spinop;
 	float cent[3], axis[3], imat[3][3];
@@ -3700,7 +3700,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 static int screw_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMVert *eve, *v1, *v2;
@@ -3826,7 +3826,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
 	BMIter iter;
 	int numverts = RNA_int_get(op->ptr, "number");
@@ -3885,7 +3885,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 static int select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMVert *eve;
 	BMEdge *eed;
 	BMIter iter;
@@ -3930,7 +3930,7 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 static int select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int extend = RNA_boolean_get(op->ptr, "extend");
 
 	EDBM_select_mirrored(obedit, em, extend);
@@ -4318,7 +4318,7 @@ static void hashvert_flag(EditMesh *em, int flag)
 static int mesh_vertices_randomize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 #if 1 /* BMESH TODO */
 	(void)em;
 #else
@@ -4349,7 +4349,7 @@ void MESH_OT_vertices_randomize(wmOperatorType *ot)
 static int mesh_noise_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	Material *ma;
 	Tex *tex;
 	BMVert *eve;
@@ -4421,7 +4421,7 @@ void MESH_OT_noise(wmOperatorType *ot)
 static int mesh_bevel_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMIter iter;
 	BMEdge *eed;
 	BMOperator bmop;
@@ -4515,7 +4515,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 static int bridge_edge_loops(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
 	if (!EDBM_CallOpf(em, op, "bridge_loops edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;

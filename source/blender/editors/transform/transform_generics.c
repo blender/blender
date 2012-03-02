@@ -714,7 +714,7 @@ static void recalcData_view3d(TransInfo *t)
 			if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 		}
 		else if (t->obedit->type == OB_MESH) {
-			BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(t->obedit);
 			/* mirror modifier clipping? */
 			if(t->state != TRANS_CANCEL) {
 				/* apply clipping after so we never project past the clip plane [#25423] */
@@ -1540,7 +1540,7 @@ void calculateCenter(TransInfo *t)
 		if (t->obedit) {
 			if (t->obedit && t->obedit->type == OB_MESH) {
 				BMEditSelection ese;
-				BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+				BMEditMesh *em = BMEdit_FromObject(t->obedit);
 
 				if (EDBM_get_actSelection(em, &ese)) {
 					EDBM_editselection_center(em, t->center, &ese);

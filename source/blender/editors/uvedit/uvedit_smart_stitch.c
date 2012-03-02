@@ -985,7 +985,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	/* initialize state */
 	state->use_limit = RNA_boolean_get(op->ptr, "use_limit");
 	state->limit_dist = RNA_float_get(op->ptr, "limit");
-	state->em = em = ((Mesh *)obedit->data)->edit_btmesh;
+	state->em = em = BMEdit_FromObject(obedit);
 	state->snap_islands = RNA_boolean_get(op->ptr, "snap_islands");
 	state->static_island = RNA_int_get(op->ptr, "static_island");
 	state->midpoints = RNA_boolean_get(op->ptr, "midpoint_snap");

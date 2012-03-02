@@ -88,6 +88,7 @@ typedef struct BMEditMesh {
 void BMEdit_RecalcTesselation(BMEditMesh *tm);
 BMEditMesh *BMEdit_Create(BMesh *bm, int do_tesselate);
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm);
+BMEditMesh *BMEdit_FromObject(struct Object *ob);
 void BMEdit_Free(BMEditMesh *em);
 void BMEdit_UpdateLinkedCustomData(BMEditMesh *em);
 

@@ -154,24 +154,30 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				et = &etags[BM_elem_index_get(l->e)];
 				if (et->newe1 == l->e) {
 					if (et->newe1) {
+						printf("ret1a %p\n", et->newe1);
 						BMO_elem_flag_enable(bm, et->newe1, EDGE_RET1);
 						BMO_elem_flag_disable(bm, et->newe1, EDGE_SEAM);
 					}
 					if (et->newe2) {
+						printf("ret2a %p\n", et->newe2);
 						BMO_elem_flag_enable(bm, et->newe2, EDGE_RET2);
 						BMO_elem_flag_disable(bm, et->newe2, EDGE_SEAM);
 					}
 				}
 				else {
 					if (et->newe1) {
+						printf("ret2b %p\n", et->newe1);
 						BMO_elem_flag_enable(bm, et->newe1, EDGE_RET2);
 						BMO_elem_flag_disable(bm, et->newe1, EDGE_SEAM);
 					}
 					if (et->newe2) {
+						printf("ret2b %p\n", et->newe2);
 						BMO_elem_flag_enable(bm, et->newe2, EDGE_RET1);
 						BMO_elem_flag_disable(bm, et->newe2, EDGE_SEAM);
 					}
 				}
+
+				printf("SEAM %d\n", BMO_elem_flag_test(bm, l->e, EDGE_SEAM));
 
 				/* If the original edge was non-manifold edges, then it is
 				 * possible l->e is not et->newe1 or et->newe2. So always clear

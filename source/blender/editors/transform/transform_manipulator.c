@@ -299,7 +299,7 @@ int calc_manipulator_stats(const bContext *C)
 		if((ob->lay & v3d->lay)==0) return 0;
 
 		if(obedit->type==OB_MESH) {
-			BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(obedit);
 			BMEditSelection ese;
 			float vec[3]= {0,0,0};
 

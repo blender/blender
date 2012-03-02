@@ -303,7 +303,7 @@ static void createTransTexspace(TransInfo *t)
 
 static void createTransEdge(TransInfo *t)
 {
-	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	TransData *td = NULL;
 	BMEdge *eed;
 	BMIter iter;
@@ -2022,7 +2022,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	TransData *tob = NULL;
-	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMesh *bm = em->bm;
 	BMVert *eve;
 	BMIter iter;
@@ -2442,7 +2442,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	TransData2D *td2d = NULL;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -5145,7 +5145,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH)
 		{
-			BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(t->obedit);
 			/* table needs to be created for each edit command, since vertices can move etc */
 			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}

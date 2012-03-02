@@ -132,7 +132,7 @@ static void draw_uvs_shadow(Object *obedit)
 	BMIter iter, liter;
 	MLoopUV *luv;
 	
-	em= ((Mesh*)obedit->data)->edit_btmesh;
+	em = BMEdit_FromObject(obedit);
 
 	/* draws the grey mesh when painting */
 	glColor3ub(112, 112, 112);
