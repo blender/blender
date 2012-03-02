@@ -178,7 +178,7 @@ void *BMW_walk(BMWalker *walker)
  */
 void *BMW_current_state(BMWalker *walker)
 {
-	bmesh_walkerGeneric *currentstate = walker->states.first;
+	BMwGenericWalker *currentstate = walker->states.first;
 	if (currentstate) {
 		/* Automatic update of depth. For most walkers that
 		 * follow the standard "Step" pattern of:
@@ -220,7 +220,7 @@ void BMW_state_remove(BMWalker *walker)
  */
 void *BMW_state_add(BMWalker *walker)
 {
-	bmesh_walkerGeneric *newstate;
+	BMwGenericWalker *newstate;
 	newstate = BLI_mempool_alloc(walker->worklist);
 	newstate->depth = walker->depth;
 	switch (walker->order)

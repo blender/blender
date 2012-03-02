@@ -494,7 +494,7 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 /*
  * extra face data (computed data)
  */
-typedef struct tmp_face_ext {
+typedef struct SimSel_FaceExt {
 	BMFace		*f;			/* the face */
 	float	c[3];			/* center */
 	union {
@@ -503,7 +503,7 @@ typedef struct tmp_face_ext {
 		float	d;			/* 4th component of plane (the first three being the normal) */
 		struct Image	*t;	/* image pointer */
 	};
-} tmp_face_ext;
+} SimSel_FaceExt;
 
 /*
  * Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
@@ -516,7 +516,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	BMOIter fs_iter;
 	int num_sels = 0, num_total = 0, i = 0, idx = 0;
 	float angle = 0.0f;
-	tmp_face_ext *f_ext = NULL;
+	SimSel_FaceExt *f_ext = NULL;
 	int *indices = NULL;
 	float t_no[3];	/* temporary normal */
 	int type = BMO_slot_int_get(op, "type");
@@ -540,7 +540,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 
 	/* allocate memory for the selected faces indices and for all temporary faces */
 	indices	= (int *)MEM_callocN(sizeof(int) * num_sels, "face indices util.c");
-	f_ext = (tmp_face_ext *)MEM_callocN(sizeof(tmp_face_ext) * num_total, "f_ext util.c");
+	f_ext = (SimSel_FaceExt *)MEM_callocN(sizeof(SimSel_FaceExt) * num_total, "f_ext util.c");
 
 	/* loop through all the faces and fill the faces/indices structure */
 	BM_ITER(fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
@@ -685,7 +685,7 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 /*
  * extra edge information
  */
-typedef struct tmp_edge_ext {
+typedef struct SimSel_EdgeExt {
 	BMEdge		*e;
 	union {
 		float		dir[3];
@@ -696,7 +696,7 @@ typedef struct tmp_edge_ext {
 		float		length;			/* edge length */
 		int			faces;			/* faces count */
 	};
-} tmp_edge_ext;
+} SimSel_EdgeExt;
 
 /*
  * select similar edges: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
@@ -710,7 +710,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 	BMEdge	*e;		/* mesh edge */
 	int idx = 0, i = 0 /* , f = 0 */;
 	int *indices = NULL;
-	tmp_edge_ext *e_ext = NULL;
+	SimSel_EdgeExt *e_ext = NULL;
 	// float *angles = NULL;
 	float angle;
 
@@ -728,7 +728,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 
 	/* allocate memory for the selected edges indices and for all temporary edges */
 	indices	= (int *)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
-	e_ext = (tmp_edge_ext *)MEM_callocN(sizeof(tmp_edge_ext) * num_total, "e_ext util.c");
+	e_ext = (SimSel_EdgeExt *)MEM_callocN(sizeof(SimSel_EdgeExt) * num_total, "e_ext util.c");
 
 	/* loop through all the edges and fill the edges/indices structure */
 	BM_ITER(e, &e_iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -858,13 +858,13 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 **************************************************************************** */
 #define VERT_MARK	1
 
-typedef struct tmp_vert_ext {
+typedef struct SimSel_VertExt {
 	BMVert *v;
 	union {
 		int num_faces; /* adjacent faces */
 		MDeformVert *dvert; /* deform vertex */
 	};
-} tmp_vert_ext;
+} SimSel_VertExt;
 
 /*
  * select similar vertices: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
@@ -876,7 +876,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 	BMIter v_iter;		/* mesh verts iterator */
 	BMVert *vs;		/* selected vertex */
 	BMVert *v;			/* mesh vertex */
-	tmp_vert_ext *v_ext = NULL;
+	SimSel_VertExt *v_ext = NULL;
 	int *indices = NULL;
 	int num_total = 0, num_sels = 0, i = 0, idx = 0;
 	int type = BMO_slot_int_get(op, "type");
@@ -892,7 +892,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 
 	/* allocate memory for the selected vertices indices and for all temporary vertices */
 	indices	= (int *)MEM_mallocN(sizeof(int) * num_sels, "vertex indices");
-	v_ext = (tmp_vert_ext *)MEM_mallocN(sizeof(tmp_vert_ext) * num_total, "vertex extra");
+	v_ext = (SimSel_VertExt *)MEM_mallocN(sizeof(SimSel_VertExt) * num_total, "vertex extra");
 
 	/* loop through all the vertices and fill the vertices/indices structure */
 	BM_ITER(v, &v_iter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -1191,12 +1191,12 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 ** shortest vertex path select
 **************************************************************************** */
 
-typedef struct element_node {
+typedef struct ElemNode {
 	BMVert *v;	/* vertex */
 	BMVert *parent;	/* node parent id */
 	float weight;	/* node weight */
 	HeapNode *hn;	/* heap node */
-} element_node;
+} ElemNode;
 
 void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 {
@@ -1206,7 +1206,7 @@ void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;		/* mesh vertex */
 	Heap *h = NULL;
 
-	element_node *vert_list = NULL;
+	ElemNode *vert_list = NULL;
 
 	int num_total = 0 /*, num_sels = 0 */, i = 0;
 	int type = BMO_slot_int_get(op, "type");
@@ -1221,7 +1221,7 @@ void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 
 	/* allocate memory for the nodes */
-	vert_list = (element_node *)MEM_mallocN(sizeof(element_node) * num_total, "vertex nodes");
+	vert_list = (ElemNode *)MEM_mallocN(sizeof(ElemNode) * num_total, "vertex nodes");
 
 	/* iterate through all the mesh vertices */
 	/* loop through all the vertices and fill the vertices/indices structure */

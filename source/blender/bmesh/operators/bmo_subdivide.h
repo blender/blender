@@ -27,7 +27,7 @@
  *  \ingroup bmesh
  */
 
-typedef struct subdparams {
+typedef struct SubDParams {
 	int numcuts;
 	float smooth;
 	float fractal;
@@ -36,10 +36,10 @@ typedef struct subdparams {
 	int origkey; /* shapekey holding displaced vertex coordinates for current geometry */
 	BMOperator *op;
 	float off[3];
-} subdparams;
+} SubDParams;
 
 typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts,
-                                     const subdparams *params);
+                                     const SubDParams *params);
 
 /*
  * note: this is a pattern-based edge subdivider.
