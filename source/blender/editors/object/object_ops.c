@@ -173,6 +173,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);
+	WM_operatortype_append(OBJECT_OT_vertex_group_transfer_weight_all);
 	WM_operatortype_append(OBJECT_OT_vertex_group_transfer_weight);
 	WM_operatortype_append(OBJECT_OT_vertex_group_lock);
 	WM_operatortype_append(OBJECT_OT_vertex_group_fix);
