@@ -154,6 +154,13 @@ void BM_mesh_data_free(BMesh *bm)
 
 	BLI_freelistN(&bm->selected);
 
+	if (bm->py_handle) {
+		extern void bpy_bm_generic_invalidate(void *self);
+
+		bpy_bm_generic_invalidate(bm->py_handle);
+		bm->py_handle = NULL;
+	}
+
 	BMO_error_clear(bm);
 }
 
