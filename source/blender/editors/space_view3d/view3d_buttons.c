@@ -131,6 +131,36 @@ typedef struct {
 	float *defweightp;
 } TransformProperties;
 
+/* Helper function to compute a median changed value,
+ * when the value should be clamped in [0.0, 1.0].
+ * Returns either 0.0, 1.0 (both can be applied directly), a positive scale factor
+ * for scale down, or a negative one for scale up.
+ */
+static float compute_scale_factor(const float ve_median, const float median)
+{
+	if (ve_median <= 0.0f)
+		return 0.0f;
+	else if (ve_median >= 1.0f)
+		return 1.0f;
+	else {
+		/* Scale value to target median. */
+		float median_new = ve_median;
+		float median_orig = ve_median - median; /* Previous median value. */
+
+		/* In case of floating point error. */
+		CLAMP(median_orig, 0.0f, 1.0f);
+		CLAMP(median_new, 0.0f, 1.0f);
+
+		if (median_new <= median_orig) {
+			/* Scale down. */
+			return median_new / median_orig;
+		}
+		else {
+			/* Scale up, negative to indicate it... */
+			return -(1.0f - median_new) / (1.0f - median_orig);
+		}
+	}
+}
 
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
@@ -312,78 +342,45 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		uiBut *but;
 
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
-		
+
 		uiBlockBeginAlign(block);
 		if (tot==1) {
 			uiDefBut(block, LABEL, 0, "Vertex:",					0, 150, 200, 20, NULL, 0, 0, 0, 0, "");
-			uiBlockBeginAlign(block);
-
-			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 130, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
-			uiButSetUnitType(but, PROP_UNIT_LENGTH);
-			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 110, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
-			uiButSetUnitType(but, PROP_UNIT_LENGTH);
-			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 90, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
-			uiButSetUnitType(but, PROP_UNIT_LENGTH);
-
-			if (totw==1) {
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 70, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
-				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
-				uiBlockEndAlign(block);
-				if (totweight)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "");
-				if (totradius) {
-					if (totradius==1) uiDefButR(block, NUM, 0, "Radius", 0, 20, 200, 20, &radius_ptr, "radius", 0, 0.0, 100.0, 10, 3, NULL);
-					else uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
-				}
-			}
-			else {
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
-				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
-				uiBlockEndAlign(block);
-				if (totweight)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 40, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
-				if (totradius) {
-					if (totradius==1) uiDefButR(block, NUM, 0, "Radius", 0, 40, 200, 20, &radius_ptr, "radius", 0, 0.0, 100.0, 10, 3, NULL);
-					else uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 40, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
-				}
-			}
 		}
 		else {
 			uiDefBut(block, LABEL, 0, "Median:",					0, 150, 200, 20, NULL, 0, 0, 0, 0, "");
-			uiBlockBeginAlign(block);
-			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 130, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
-			uiButSetUnitType(but, PROP_UNIT_LENGTH);
-			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 110, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
-			uiButSetUnitType(but, PROP_UNIT_LENGTH);
-			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 90, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
-			uiButSetUnitType(but, PROP_UNIT_LENGTH);
-			if (totw==tot) {
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 70, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
-				uiBlockEndAlign(block);
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
-				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
-				uiBlockEndAlign(block);
-				if (totweight)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
-				if (totradius)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
-				uiBlockEndAlign(block);
-			}
-			else {
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
-				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
-				uiBlockEndAlign(block);
-				if (totweight)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 40, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "Weight is used for SoftBody Goal");
-				if (totradius)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
-				uiBlockEndAlign(block);
-			}
+		}
+
+		uiBlockBeginAlign(block);
+
+		but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 130, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
+		uiButSetUnitType(but, PROP_UNIT_LENGTH);
+		but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 110, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
+		uiButSetUnitType(but, PROP_UNIT_LENGTH);
+		but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 90, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
+		uiButSetUnitType(but, PROP_UNIT_LENGTH);
+
+		if (totw==tot) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 70, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
+		}
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
+		uiBlockEndAlign(block);
+
+		if (totweight == 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 40, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "Weight is used for SoftBody Goal");
+		}
+		else if (totweight > 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Mean Weight:",	0, 40, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "Weight is used for SoftBody Goal");
+		}
+
+		if (totradius == 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
+		}
+		else if (totradius > 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Mean Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
 		}
 
 		if (totedge==1) {
@@ -394,6 +391,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Mean Crease:",	0, 40, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Mean Bevel Weight:",	0, 20, 200, 20, &(tfp->ve_median[6]), 0.0, 1.0, 1, 3, "");
 		}
+
+		uiBlockEndAlign(block);
+		uiBlockEndAlign(block);
 
 	}
 	else {	// apply
@@ -430,56 +430,37 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			
 			if (median[3] != 0.0f) {
 				BMEdge *eed;
-				const float fixed_crease= (ve_median[3] <= 0.0f ? 0.0f : (ve_median[3] >= 1.0f ? 1.0f : FLT_MAX));
-				
-				if (fixed_crease != FLT_MAX) {
-					/* simple case */
+				const float sca = compute_scale_factor(ve_median[3], median[3]);
 
+				if (ELEM(sca, 0.0f, 1.0f)) {
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-							if (!crease) break;
-							
-							*crease= fixed_crease;
+							if (!crease)
+								break;
+							*crease = sca;
+						}
+					}
+				}
+				else if (sca > 0.0f) {
+					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
+							if (!crease)
+								break;
+							*crease *= sca;
+							CLAMP(*crease, 0.0f, 1.0f);
 						}
 					}
 				}
 				else {
-					/* scale crease to target median */
-					float median_new= ve_median[3];
-					float median_orig= ve_median[3] - median[3]; /* previous median value */
-
-					/* incase of floating point error */
-					CLAMP(median_orig, 0.0f, 1.0f);
-					CLAMP(median_new, 0.0f, 1.0f);
-
-					if (median_new < median_orig) {
-						/* scale down */
-						const float sca= median_new / median_orig;
-						
-						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-							if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-								
-								if (!crease) break;
-								
-								*crease *= sca;
-								CLAMP(*crease, 0.0f, 1.0f);
-							}
-						}
-					}
-					else {
-						/* scale up */
-						const float sca= (1.0f - median_new) / (1.0f - median_orig);
-
-						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-							if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-								if (!crease) break;
-
-								*crease = 1.0f - ((1.0f - *crease) * sca);
-								CLAMP(*crease, 0.0f, 1.0f);
-							}
+					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
+							if (!crease)
+								break;
+							*crease = 1.0f + ((1.0f - *crease) * sca);
+							CLAMP(*crease, 0.0f, 1.0f);
 						}
 					}
 				}
@@ -487,55 +468,37 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 			if (median[6] != 0.0f) {
 				BMEdge *eed;
-				const float fixed_bweight = (ve_median[6] <= 0.0f ? 0.0f : (ve_median[6] >= 1.0f ? 1.0f : FLT_MAX));
+				const float sca = compute_scale_factor(ve_median[6], median[6]);
 
-				if (fixed_bweight != FLT_MAX) {
-					/* simple case */
-
+				if (ELEM(sca, 0.0f, 1.0f)) {
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-							if (!bweight) break;
-							
-							*bweight = fixed_bweight;
+							if (!bweight)
+								break;
+							*bweight = sca;
+						}
+					}
+				}
+				else if (sca > 0.0f) {
+					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
+							if (!bweight)
+								break;
+							*bweight *= sca;
+							CLAMP(*bweight, 0.0f, 1.0f);
 						}
 					}
 				}
 				else {
-					/* scale crease to target median */
-					float median_new = ve_median[6];
-					float median_orig = ve_median[6] - median[6]; /* previous median value */
-
-					/* incase of floating point error */
-					CLAMP(median_orig, 0.0f, 1.0f);
-					CLAMP(median_new, 0.0f, 1.0f);
-
-					if (median_new < median_orig) {
-						/* scale down */
-						const float sca = median_new / median_orig;
-						
-						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-							if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-								if (!bweight) break;
-								
-								*bweight *= sca;
-								CLAMP(*bweight, 0.0f, 1.0f);
-							}
-						}
-					}
-					else {
-						/* scale up */
-						const float sca = (1.0f - median_new) / (1.0f - median_orig);
-
-						BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-							if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-								if (!bweight) break;
-
-								*bweight = 1.0f - ((1.0f - *bweight) * sca);
-								CLAMP(*bweight, 0.0f, 1.0f);
-							}
+					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
+							if (!bweight)
+								break;
+							*bweight = 1.0f + ((1.0f - *bweight) * sca);
+							CLAMP(*bweight, 0.0f, 1.0f);
 						}
 					}
 				}
@@ -549,6 +512,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			BezTriple *bezt;
 			int a;
 			ListBase *nurbs= curve_editnurbs(cu);
+			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
 
 			nu= nurbs->first;
 			while (nu) {
@@ -560,7 +524,18 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 							add_v3_v3(bezt->vec[0], median);
 							add_v3_v3(bezt->vec[1], median);
 							add_v3_v3(bezt->vec[2], median);
-							bezt->weight+= median[4];
+
+							if (median[4] != 0.0f) {
+								if (ELEM(scale_w, 0.0f, 1.0f)) {
+									bezt->weight = scale_w;
+								}
+								else {
+									bezt->weight = scale_w > 0.0f ? bezt->weight * scale_w :
+									                                1.0f + ((1.0f - bezt->weight) * scale_w);
+									CLAMP(bezt->weight, 0.0f, 1.0f);
+								}
+							}
+
 							bezt->radius+= median[5];
 						}
 						else {
@@ -581,7 +556,18 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						if (bp->f1 & SELECT) {
 							add_v3_v3(bp->vec, median);
 							bp->vec[3]+= median[3];
-							bp->weight+= median[4];
+
+							if (median[4] != 0.0f) {
+								if (ELEM(scale_w, 0.0f, 1.0f)) {
+									bp->weight = scale_w;
+								}
+								else {
+									bp->weight = scale_w > 0.0f ? bp->weight * scale_w :
+									                              1.0f + ((1.0f - bp->weight) * scale_w);
+									CLAMP(bp->weight, 0.0f, 1.0f);
+								}
+							}
+
 							bp->radius+= median[5];
 						}
 						bp++;
@@ -597,13 +583,24 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			Lattice *lt= ob->data;
 			BPoint *bp;
 			int a;
-			
+			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
+
 			a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 			bp= lt->editlatt->latt->def;
 			while (a--) {
 				if (bp->f1 & SELECT) {
 					add_v3_v3(bp->vec, median);
-					bp->weight+= median[4];
+
+					if (median[4] != 0.0f) {
+						if (ELEM(scale_w, 0.0f, 1.0f)) {
+							bp->weight = scale_w;
+						}
+						else {
+							bp->weight = scale_w > 0.0f ? bp->weight * scale_w :
+							                              1.0f + ((1.0f - bp->weight) * scale_w);
+							CLAMP(bp->weight, 0.0f, 1.0f);
+						}
+					}
 				}
 				bp++;
 			}
