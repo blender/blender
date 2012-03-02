@@ -751,19 +751,24 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 
 /************************** Add Geometry Layers *************************/
 
-void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
+void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 {
 	int *polyindex = NULL;
 	float (*face_nors)[3];
 
-	if(mesh->totface > 0 && mesh->totpoly == 0)
+	if(mesh->totface > 0 && mesh->totpoly == 0) {
 		convert_mfaces_to_mpolys(mesh);
+
+		/* would only be converting back again, dont bother */
+		calc_tessface = FALSE;
+	}
 
 	if(calc_edges || (mesh->totpoly && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges);
 
-	/* TODO, make this optional, we dont always want this! */
-	BKE_mesh_tessface_calc(mesh);
+	if (calc_tessface) {
+		BKE_mesh_tessface_calc(mesh);
+	}
 
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
