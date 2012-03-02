@@ -343,7 +343,7 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 	if(ID_REAL_USERS(mb) <= 0)
 		free_libblock(&bmain->mball, mb);
 	else
-		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Metaball \"%s\" must have zero users to be removed, found %d",
 		            mb->id.name+2, ID_REAL_USERS(mb));
 }
 
@@ -1066,7 +1066,7 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "BlendDataMetaBalls");
 	srna= RNA_def_struct(brna, "BlendDataMetaBalls", NULL);
 	RNA_def_struct_sdna(srna, "Main");
-	RNA_def_struct_ui_text(srna, "Main MetaBalls", "Collection of metaballs");
+	RNA_def_struct_ui_text(srna, "Main Metaballs", "Collection of metaballs");
 
 	func= RNA_def_function(srna, "new", "rna_Main_metaballs_new");
 	RNA_def_function_ui_description(func, "Add a new metaball to the main database");
@@ -1079,7 +1079,7 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "remove", "rna_Main_metaballs_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a metaball from the current blendfile");
-	parm= RNA_def_pointer(func, "metaball", "MetaBall", "", "MetaBall to remove");
+	parm= RNA_def_pointer(func, "metaball", "MetaBall", "", "Metaball to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	func= RNA_def_function(srna, "tag", "rna_Main_metaballs_tag");

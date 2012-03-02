@@ -27,7 +27,7 @@ from bpy.props import (StringProperty,
 
 
 class SelectPattern(Operator):
-    '''Select object matching a naming pattern'''
+    '''Select objects matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
     bl_options = {'REGISTER', 'UNDO'}

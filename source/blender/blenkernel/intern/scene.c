@@ -662,7 +662,7 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 		/* XXX particle systems with metas+dupligroups call this recursively */
 		/* see bug #18725 */
 		if (in_next_object) {
-			printf("ERROR: MetaBall generation called recursively, not supported\n");
+			printf("ERROR: Metaball generation called recursively, not supported\n");
 			
 			return F_ERROR;
 		}

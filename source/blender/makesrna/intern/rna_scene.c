@@ -1815,7 +1815,7 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
-	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs");
+	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs (e.g. 1m 0cm)");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
@@ -3101,7 +3101,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
 		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
 		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
-		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes, optionally showing result"},
+		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* Bake */
@@ -3328,7 +3328,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_local_coords", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "raytrace_options", R_RAYTRACE_USE_LOCAL_COORDS);
 	RNA_def_property_ui_text(prop, "Use Local Coords",
-	                         "Vertex coordinates are stored localy on each primitive "
+	                         "Vertex coordinates are stored locally on each primitive "
 	                         "(increases memory usage, but may have impact on speed)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
@@ -3546,12 +3546,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_free_image_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
 	RNA_def_property_ui_text(prop, "Free Image Textures",
-	                         "Free all image texture from memory after render, to save memory before compositing");
+	                         "Free all image textures from memory after render, to save memory before compositing");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "use_free_unused_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_COMP_FREE);
-	RNA_def_property_ui_text(prop, "Free Unused Nodes", "Free Nodes that are not used while compositing, to save memory");
+	RNA_def_property_ui_text(prop, "Free Unused Nodes",
+	                         "Free Nodes that are not used while compositing, to save memory");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "use_save_buffers", PROP_BOOLEAN, PROP_NONE);

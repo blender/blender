@@ -1653,15 +1653,17 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
 	ot->description="Open a Blender file";
-	
+
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
 	/* ommit window poll so this can work in background mode */
-	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
-	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source", "Allow blend file execute scripts automatically, default available from system preferences");
+	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source",
+	                "Allow .blend file to execute scripts automatically, default available from system preferences");
 }
 
 /* **************** link/append *************** */

@@ -1829,7 +1829,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem drawtype_items[] = {
-		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", "Draw the bounding box of the object"},
+		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", "Draw the bounds of the object"},
 		{OB_WIRE, "WIRE", 0, "Wire", "Draw the object as a wireframe"},
 		{OB_SOLID, "SOLID", 0, "Solid", "Draw the object as a solid (if solid drawing is enabled in the viewport)"},
 		{OB_TEXTURE, "TEXTURED", 0, "Textured", "Draw the object with textures (if textures are enabled in the viewport)"},

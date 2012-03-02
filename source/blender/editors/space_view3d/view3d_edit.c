@@ -3108,7 +3108,7 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag   = 0;
 
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove ", 0, INT_MAX);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove", 0, INT_MAX);
 }
 
 /* ********************* set clipping operator ****************** */

@@ -45,7 +45,7 @@
 static EnumPropertyItem image_source_items[]= {
 	{IMA_SRC_FILE, "FILE", 0, "Single Image", "Single image file"},
 	{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
-	{IMA_SRC_MOVIE, "MOVIE", 0, "Movie File", "Movie file"},
+	{IMA_SRC_MOVIE, "MOVIE", 0, "Movie", "Movie file"},
 	{IMA_SRC_GENERATED, "GENERATED", 0, "Generated", "Generated image"},
 	{IMA_SRC_VIEWER, "VIEWER", 0, "Viewer", "Compositing node viewer"},
 	{0, NULL, 0, NULL, NULL}};

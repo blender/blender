@@ -315,7 +315,7 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_OB: return N_("Browse Object to be linked");
 			case ID_ME: return N_("Browse Mesh Data to be linked");
 			case ID_CU: return N_("Browse Curve Data to be linked");
-			case ID_MB: return N_("Browse MetaBall Data to be linked");
+			case ID_MB: return N_("Browse Metaball Data to be linked");
 			case ID_MA: return N_("Browse Material to be linked");
 			case ID_TE: return N_("Browse Texture to be linked");
 			case ID_IM: return N_("Browse Image to be linked");
