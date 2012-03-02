@@ -1589,11 +1589,11 @@ static void cdDM_foreachMappedFaceCenter(
 
 }
 
-void CDDM_recalc_tesselation_ex(DerivedMesh *dm, const int do_face_nor_cpy)
+void CDDM_recalc_tessellation_ex(DerivedMesh *dm, const int do_face_nor_cpy)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
-	dm->numTessFaceData = mesh_recalcTesselation(&dm->faceData, &dm->loopData, &dm->polyData,
+	dm->numTessFaceData = mesh_recalcTessellation(&dm->faceData, &dm->loopData, &dm->polyData,
 	                                             cddm->mvert,
 	                                             dm->numTessFaceData, dm->numLoopData, dm->numPolyData,
 	                                             do_face_nor_cpy);
@@ -1605,14 +1605,14 @@ void CDDM_recalc_tesselation_ex(DerivedMesh *dm, const int do_face_nor_cpy)
 
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
-	/* Tesselation recreated faceData, and the active layer indices need to get re-propagated
+	/* Tessellation recreated faceData, and the active layer indices need to get re-propagated
 	   from loops and polys to faces */
 	CustomData_bmesh_update_active_layers(&dm->faceData, &dm->polyData, &dm->loopData);
 }
 
-void CDDM_recalc_tesselation(DerivedMesh *dm)
+void CDDM_recalc_tessellation(DerivedMesh *dm)
 {
-	CDDM_recalc_tesselation_ex(dm, TRUE);
+	CDDM_recalc_tessellation_ex(dm, TRUE);
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -1674,7 +1674,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	dm->calcNormals = CDDM_calc_normals_mapping;
-	dm->recalcTesselation = CDDM_recalc_tesselation;
+	dm->recalcTessellation = CDDM_recalc_tessellation;
 
 	dm->getVertCos = cdDM_getVertCos;
 	dm->getVertCo = cdDM_getVertCo;
@@ -1928,7 +1928,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	CustomData_merge(&bm->pdata, &dm->polyData, mask,
 	                 CD_CALLOC, dm->numPolyData);
 	
-	/*add tesselation mface layers*/
+	/*add tessellation mface layers*/
 	if (use_tessface) {
 		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
 	}
@@ -2083,7 +2083,7 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 #if 0
 	/* BMESH_TODO: Find out why this is necessary (or else find a way to remove
 	   it). If it is necessary, add a comment explaining why. */
-	CDDM_recalc_tesselation((DerivedMesh *)cddm);
+	CDDM_recalc_tessellation((DerivedMesh *)cddm);
 #endif
 
 	return dm;
@@ -2190,15 +2190,15 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 
 
 	if (dm->numTessFaceData == 0) {
-		/* No tesselation on this mesh yet, need to calculate one.
+		/* No tessellation on this mesh yet, need to calculate one.
 		 *
 		 * Important not to update face normals from polys since it
 		 * interfears with assigning the new normal layer in the following code.
 		 */
-		CDDM_recalc_tesselation_ex(dm, FALSE);
+		CDDM_recalc_tessellation_ex(dm, FALSE);
 	}
 	else {
-		/* A tesselation already exists, it should always have a CD_POLYINDEX */
+		/* A tessellation already exists, it should always have a CD_POLYINDEX */
 		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
 		CustomData_free_layers(&dm->faceData, CD_NORMAL, dm->numTessFaceData);
 	}
@@ -2269,7 +2269,7 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
  *
  * this is a really horribly written function.  ger. - joeedh
  *
- * note, CDDM_recalc_tesselation has to run on the returned DM if you want to access tessfaces.
+ * note, CDDM_recalc_tessellation has to run on the returned DM if you want to access tessfaces.
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 {

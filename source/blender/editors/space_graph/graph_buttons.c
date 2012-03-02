@@ -458,7 +458,7 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 	PointerRNA dtar_ptr;
 	uiLayout *row, *col;
 	
-	/* initialise RNA pointer to the target */
+	/* initialize RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
 	
 	/* Target ID */
@@ -489,7 +489,7 @@ static void graph_panel_driverVar__rotDiff(uiLayout *layout, ID *id, DriverVar *
 	PointerRNA dtar_ptr, dtar2_ptr;
 	uiLayout *col;
 	
-	/* initialise RNA pointer to the target */
+	/* initialize RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
 	
@@ -525,7 +525,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 	PointerRNA dtar_ptr, dtar2_ptr;
 	uiLayout *col;
 	
-	/* initialise RNA pointer to the target */
+	/* initialize RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
 	
@@ -563,7 +563,7 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 	PointerRNA dtar_ptr;
 	uiLayout *col, *sub;
 	
-	/* initialise RNA pointer to the target */
+	/* initialize RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
 	
 	/* properties */

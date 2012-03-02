@@ -97,7 +97,7 @@ typedef void (*DLRBT_NUpdate_FP)(void *node, void *data);
 
 /* ADT Management ------------------------------- */
 
-/* Create a new tree, and initialise as necessary */
+/* Create a new tree, and initialize as necessary */
 DLRBT_Tree *BLI_dlrbTree_new(void);
 
 /* Initialises some given trees */

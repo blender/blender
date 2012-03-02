@@ -1095,7 +1095,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error");
 	}
 
-	/* initialise initial auto=ik chainlen's? */
+	/* initialize initial auto=ik chainlen's? */
 	if (ik_on) transform_autoik_update(t, 0);
 }
 
@@ -3650,7 +3650,7 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert, const short UNUSED(
 			}
 			
 			/* do we need to check if the handles need to be swapped?
-			 * optimisation: this only needs to be performed in the first loop
+			 * optimization: this only needs to be performed in the first loop
 			 */
 			if (bezm->swapHs == 0) {
 				if ( (bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
@@ -4947,7 +4947,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data */
+		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 			
@@ -5062,7 +5062,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		bAnimContext ac;
 		const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
 		
-		/* initialise relevant anim-context 'context' data */
+		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 		
@@ -5112,7 +5112,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_NLA) {
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data */
+		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 			

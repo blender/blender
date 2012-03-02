@@ -168,7 +168,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	short tot_changed= 0, init= 0;
 	uiStyle *style= UI_GetStyle();
 
-	/* initialise data if there is a need for such */
+	/* initialize data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
 		v2d->flag |= V2D_IS_INITIALISED;
@@ -1200,7 +1200,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
-		/* initialise initial settings */
+		/* initialize initial settings */
 		vec1[0]= vec2[0]= grid->startx;
 		vec1[1]= grid->starty;
 		vec2[1]= v2d->cur.ymax;

@@ -131,15 +131,15 @@ int BLI_has_parent(char *path);
 
 	/**
 	 * Blender's path code replacement function.
-	 * Bases @a path strings leading with "//" by the
-	 * directory @a basepath, and replaces instances of
-	 * '#' with the @a framenum. Results are written
-	 * back into @a path.
+	 * Bases \a path strings leading with "//" by the
+	 * directory \a basepath, and replaces instances of
+	 * '#' with the \a framenum. Results are written
+	 * back into \a path.
 	 * 
-	 * @a path The path to convert
-	 * @a basepath The directory to base relative paths with.
-	 * @a framenum The framenumber to replace the frame code with.
-	 * @retval Returns true if the path was relative (started with "//").
+	 * \a path The path to convert
+	 * \a basepath The directory to base relative paths with.
+	 * \a framenum The framenumber to replace the frame code with.
+	 * \retval Returns true if the path was relative (started with "//").
 	 */
 int BLI_path_abs(char *path, const char *basepath);
 int BLI_path_frame(char *path, int frame, int digits);
@@ -156,12 +156,12 @@ void BLI_path_rel(char *file, const char *relfile);
 #endif
 
 	/**
-	 * Change every @a from in @a string into @a to. The
-	 * result will be in @a string
+	 * Change every \a from in \a string into \a to. The
+	 * result will be in \a string
 	 *
-	 * @a string The string to work on
-	 * @a from The character to replace
-	 * @a to The character to replace with
+	 * \a string The string to work on
+	 * \a from The character to replace
+	 * \a to The character to replace with
 	 */
 void BLI_char_switch(char *string, char from, char to);
 

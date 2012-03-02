@@ -1133,7 +1133,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 	}
 	
 	if(type == TO_TABS) // Converting to tabs
-	{	//start over from the begining
+	{	//start over from the beginning
 		tmp = text->lines.first;
 		
 		while(tmp) {

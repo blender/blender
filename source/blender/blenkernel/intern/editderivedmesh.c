@@ -75,7 +75,7 @@ BMEditMesh *BMEdit_Create(BMesh *bm, int do_tesselate)
 
 	tm->bm = bm;
 	if (do_tesselate) {
-		BMEdit_RecalcTesselation(tm);
+		BMEdit_RecalcTessellation(tm);
 	}
 
 	return tm;
@@ -90,12 +90,12 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 
 	tm2->bm = BM_mesh_copy(tm->bm);
 
-	/*The tesselation is NOT calculated on the copy here,
+	/*The tessellation is NOT calculated on the copy here,
 	  because currently all the callers of this function use
 	  it to make a backup copy of the BMEditMesh to restore
 	  it in the case of errors in an operation. For perf
 	  reasons, in that case it makes more sense to do the
-	  tesselation only when/if that copy ends up getting
+	  tessellation only when/if that copy ends up getting
 	  used.*/
 	tm2->looptris = NULL;
 
@@ -106,7 +106,7 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 	return tm2;
 }
 
-static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
+static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 {
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
@@ -245,21 +245,21 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 
 }
 
-void BMEdit_RecalcTesselation(BMEditMesh *em)
+void BMEdit_RecalcTessellation(BMEditMesh *em)
 {
-	BMEdit_RecalcTesselation_intern(em);
+	BMEdit_RecalcTessellation_intern(em);
 
 	/* commented because editbmesh_build_data() ensures we get tessfaces */
 #if 0
 	if (em->derivedFinal && em->derivedFinal == em->derivedCage) {
-		if (em->derivedFinal->recalcTesselation)
-			em->derivedFinal->recalcTesselation(em->derivedFinal);
+		if (em->derivedFinal->recalcTessellation)
+			em->derivedFinal->recalcTessellation(em->derivedFinal);
 	}
 	else if (em->derivedFinal) {
-		if (em->derivedCage->recalcTesselation)
-			em->derivedCage->recalcTesselation(em->derivedCage);
-		if (em->derivedFinal->recalcTesselation)
-			em->derivedFinal->recalcTesselation(em->derivedFinal);
+		if (em->derivedCage->recalcTessellation)
+			em->derivedCage->recalcTessellation(em->derivedCage);
+		if (em->derivedFinal->recalcTessellation)
+			em->derivedFinal->recalcTessellation(em->derivedFinal);
 	}
 #endif
 }
@@ -314,13 +314,13 @@ void BMEdit_Free(BMEditMesh *em)
 ok, basic design:
 
 the bmesh derivedmesh exposes the mesh as triangles.  it stores pointers
-to three loops per triangle.  the derivedmesh stores a cache of tesselations
+to three loops per triangle.  the derivedmesh stores a cache of tessellations
 for each face.  this cache will smartly update as needed (though at first
 it'll simply be more brute force).  keeping track of face/edge counts may
 be a small problbm.
 
 this won't be the most efficient thing, considering that internal edges and
-faces of tesselations are exposed.  looking up an edge by index in particular
+faces of tessellations are exposed.  looking up an edge by index in particular
 is likely to be a little slow.
 */
 
@@ -345,7 +345,7 @@ static void emDM_calcNormals(DerivedMesh *UNUSED(dm))
 	   BMVerts and BMFaces */
 }
 
-static void emDM_recalcTesselation(DerivedMesh *UNUSED(dm))
+static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 {
 	/* do nothing */
 }
@@ -1635,7 +1635,7 @@ DerivedMesh *getEditDerivedBMesh(
 	bmdm->dm.getTessFaceDataArray = emDM_getTessFaceDataArray;
 
 	bmdm->dm.calcNormals = emDM_calcNormals;
-	bmdm->dm.recalcTesselation = emDM_recalcTesselation;
+	bmdm->dm.recalcTessellation = emDM_recalcTessellation;
 
 	bmdm->dm.foreachMappedVert = emDM_foreachMappedVert;
 	bmdm->dm.foreachMappedEdge = emDM_foreachMappedEdge;

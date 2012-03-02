@@ -1027,7 +1027,7 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 		BMO_pop(bm);
 	}
 
-	BMEdit_RecalcTesselation(em);
+	BMEdit_RecalcTessellation(em);
 
 	/* interactive preview? */
 	if (rtd) {

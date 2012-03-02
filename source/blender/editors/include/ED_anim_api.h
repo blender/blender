@@ -427,7 +427,7 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	- anim_data: list of the all the anim channels that can be chosen
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *		  then the channels under closed expanders get ignored...
- *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
+ *	- ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 

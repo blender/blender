@@ -303,7 +303,7 @@ const char *mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
 	return NULL;
 }
 
-static void mesh_ensure_tesselation_customdata(Mesh *me)
+static void mesh_ensure_tessellation_customdata(Mesh *me)
 {
 	const int tottex_original = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
 	const int totcol_original = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
@@ -322,7 +322,7 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
 		 * first time from bmesh, rather then giving a warning about this we could be smarter
 		 * and check if there was any data to begin with, for now just print the warning with
 		 * some info to help troubleshoot whats going on - campbell */
-		printf("%s: warning! Tesselation uvs or vcol data got out of sync, "
+		printf("%s: warning! Tessellation uvs or vcol data got out of sync, "
 		       "had to reset!\n    CD_MTFACE: %d != CD_MTEXPOLY: %d || CD_MCOL: %d != CD_MLOOPCOL: %d\n",
 		       __func__, tottex_tessface, tottex_original, totcol_tessface, totcol_original);
 	}
@@ -340,7 +340,7 @@ static void mesh_update_linked_customdata(Mesh *me, const short do_ensure_tess_c
 		BMEdit_UpdateLinkedCustomData(me->edit_btmesh);
 
 	if (do_ensure_tess_cd) {
-		mesh_ensure_tesselation_customdata(me);
+		mesh_ensure_tessellation_customdata(me);
 	}
 
 	CustomData_bmesh_update_active_layers(&me->fdata, &me->pdata, &me->ldata);
@@ -1688,7 +1688,7 @@ void mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 			}
 			else {
 				/* eek, we're not corresponding to polys */
-				printf("error in mesh_calc_normals; tesselation face indices are incorrect.  normals may look bad.\n");
+				printf("error in mesh_calc_normals; tessellation face indices are incorrect.  normals may look bad.\n");
 			}
 		}
 	}
@@ -2185,10 +2185,10 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 }
 
 /*
-  this function recreates a tesselation.
-  returns number of tesselation faces.
+  this function recreates a tessellation.
+  returns number of tessellation faces.
  */
-int mesh_recalcTesselation(CustomData *fdata,
+int mesh_recalcTessellation(CustomData *fdata,
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int UNUSED(totloop),
                            int totpoly,
@@ -2467,8 +2467,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 
 /*
- * this function recreates a tesselation.
- * returns number of tesselation faces.
+ * this function recreates a tessellation.
+ * returns number of tessellation faces.
  */
 int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	struct CustomData *pdata, int totface, int UNUSED(totloop), int totpoly)
@@ -2946,7 +2946,7 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-	mesh->totface = mesh_recalcTesselation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
+	mesh->totface = mesh_recalcTessellation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
 	                                       mesh->mvert,
 	                                       mesh->totface, mesh->totloop, mesh->totpoly,
 	                                       /* calc normals right after, dont copy from polys here */

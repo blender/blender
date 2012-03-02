@@ -157,7 +157,7 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 	}
 	else {
 		if (do_tesselate) {
-			BMEdit_RecalcTesselation(em);
+			BMEdit_RecalcTessellation(em);
 		}
 	}
 

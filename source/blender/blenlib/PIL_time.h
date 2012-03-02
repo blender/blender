@@ -42,14 +42,14 @@ extern "C" {
 extern 
 	/** Return an indication of time, expressed	as
 	 * seconds since some fixed point. Successive calls
-	 * are guarenteed to generate values greater than or
+	 * are guaranteed to generate values greater than or
 	 * equal to the last call.
 	 */
 double	PIL_check_seconds_timer		(void);
 
 	/**
 	 * Platform-independent sleep function.
-	 * @param ms Number of milliseconds to sleep
+	 * \param ms Number of milliseconds to sleep
 	 */
 void	PIL_sleep_ms				(int ms);
 

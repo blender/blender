@@ -153,7 +153,7 @@ static void draw_fcurve_vertices_keyframes (FCurve *fcu, SpaceIpo *UNUSED(sipo),
 	bglBegin(GL_POINTS);
 	
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
-		/* as an optimisation step, only draw those in view 
+		/* as an optimization step, only draw those in view 
 		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
 		 */
 		if IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
@@ -185,7 +185,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 {
 	static GLuint displist=0;
 	
-	/* initialise round circle shape */
+	/* initialize round circle shape */
 	if (displist == 0) {
 		GLUquadricObj *qobj;
 		
@@ -428,7 +428,7 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 {
 	static GLuint displist=0;
 	
-	/* initialise X shape */
+	/* initialize X shape */
 	if (displist == 0) {
 		displist= glGenLists(1);
 		glNewList(displist, GL_COMPILE);
@@ -678,7 +678,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 	}
 	
 	/* draw curve between first and last keyframe (if there are enough to do so) */
-	// TODO: optimise this to not have to calc stuff out of view too?
+	// TODO: optimize this to not have to calc stuff out of view too?
 	while (b--) {
 		if (prevbezt->ipo==BEZT_IPO_CONST) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */

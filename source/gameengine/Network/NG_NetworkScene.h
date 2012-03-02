@@ -105,7 +105,7 @@ protected:
 
 	/**
 	 * Releases messages for the given message map.
-	 * @param map	Message map with messages.
+	 * \param map	Message map with messages.
 	 */
 	void ClearMessageMap(TMessageMap& map);	
 

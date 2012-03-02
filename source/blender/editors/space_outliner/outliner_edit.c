@@ -978,7 +978,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	PropertyRNA *prop;
 	char *newpath=NULL;
 	
-	/* optimise tricks:
+	/* optimize tricks:
 	 *	- Don't do anything if the selected item is a 'struct', but arrays are allowed
 	 */
 	if (tselem->type == TSE_RNA_STRUCT)

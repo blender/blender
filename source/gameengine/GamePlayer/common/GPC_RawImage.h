@@ -52,16 +52,16 @@ public:
 	/**
 	 * Loads the image form the resource into memory.
 	 * Converts size of the image and places it with given alignment.
-	 * @param hInstApp	The application's instance (location of the resources).
-	 * @param lpName	Name of the resource.
-	 * @param lpType	Type of the resource.
-	 * @param srcWidth	The width of the resource image.
-	 * @param srcHeight	The height of the resource image.
-	 * @param width		The width of the image created.
-	 * @param height	The height of the image created.
-	 * @param alignment How the resource image is located in the image created.
-	 * @param offsetX	Amount of horizontal offset applied to the resource image.
-	 * @param offsetY	Amount of vertical offset applied to the resource image.
+	 * \param hInstApp	The application's instance (location of the resources).
+	 * \param lpName	Name of the resource.
+	 * \param lpType	Type of the resource.
+	 * \param srcWidth	The width of the resource image.
+	 * \param srcHeight	The height of the resource image.
+	 * \param width		The width of the image created.
+	 * \param height	The height of the image created.
+	 * \param alignment How the resource image is located in the image created.
+	 * \param offsetX	Amount of horizontal offset applied to the resource image.
+	 * \param offsetY	Amount of vertical offset applied to the resource image.
 	 */
 	virtual bool Load(const char *srcName,
 		int destWidth, int destHeight,
@@ -70,7 +70,7 @@ public:
 
 	/**
 	 * Returns the width of the image.
-	 * @return The width of the image.
+	 * \return The width of the image.
 	 */
 	virtual int Width() const
 	{
@@ -79,7 +79,7 @@ public:
 
 	/**
 	 * Returns the height of the image.
-	 * @return The height of the image.
+	 * \return The height of the image.
 	 */
 	virtual int Height() const
 	{
@@ -88,7 +88,7 @@ public:
 
 	/**
 	 * Returns a pointer to the data loaded from the resource.
-	 * @return A pointer to the data loaded from the resource.
+	 * \return A pointer to the data loaded from the resource.
 	 */
 	virtual unsigned char *Data() const
 	{
@@ -97,7 +97,7 @@ public:
 
 	/**
 	 * Returns the size of the data loaded from the resource.
-	 * @return The size of the  loaded from the resource.
+	 * \return The size of the  loaded from the resource.
 	 */
 	virtual int DataSize() const
 	{

@@ -536,7 +536,7 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
 	{{BMO_OP_SLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
 	 {BMO_OP_SLOT_PNT, "object"}, //pointer to an object structure
-	 {BMO_OP_SLOT_BOOL, "notesselation"}, //don't calculate mfaces
+	 {BMO_OP_SLOT_BOOL, "notessellation"}, //don't calculate mfaces
 	 {0, /* null-terminating sentine */}},
 	bmo_bmesh_to_mesh_exec,
 	0,

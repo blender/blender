@@ -34,7 +34,7 @@ public:
 	void Configure(CValue* menuvalue);
 	void Add(CValue* value);
 
-	/** @attention not implemented yet :( */
+	/** \attention not implemented yet :( */
 	virtual CValue* Calc(VALUE_OPERATOR op,CValue *val);
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype,
 							  VALUE_OPERATOR op,

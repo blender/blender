@@ -36,7 +36,7 @@
 /* *********************************************** */
 /* Tree API */
 
-/* Create a new tree, and initialise as necessary */
+/* Create a new tree, and initialize as necessary */
 DLRBT_Tree *BLI_dlrbTree_new (void)
 {
 	/* just allocate for now */

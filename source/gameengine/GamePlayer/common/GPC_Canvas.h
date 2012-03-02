@@ -106,7 +106,7 @@ public:
 	virtual void ResizeWindow(int width, int height){};
 
 	/**
-	 * @section Methods inherited from abstract base class RAS_ICanvas.
+	 * \section Methods inherited from abstract base class RAS_ICanvas.
 	 */
 	
 		int 
@@ -157,7 +157,7 @@ public:
 	void ClearColor(float r, float g, float b, float a);
 
 	/**
-	 * @section Methods inherited from abstract base class RAS_ICanvas.
+	 * \section Methods inherited from abstract base class RAS_ICanvas.
 	 * Semantics are not yet honored.
 	 */
 	
@@ -176,20 +176,20 @@ public:
 	void ClearBuffer(int type);
 
 	/**
-	 * @section Services provided by this class.
+	 * \section Services provided by this class.
 	 */
 
 	/**
 	 * Enables display of a banner.
 	 * The image data is copied inside.
-	 * @param bannerWidth		Display width of the banner.
-	 * @param bannerHeight		Display height of the banner.
-	 * @param imageWidth		Width of the banner image in pixels.
-	 * @param imageHeight		Height of the banner image in pixels.
-	 * @param imageData			Pointer to the pixels of the image to display.
-	 * @param alignment		Where the banner will be positioned on the canvas.
-	 * @param enabled			Whether the banner will be displayed initially.
-	 * @return A banner id.
+	 * \param bannerWidth		Display width of the banner.
+	 * \param bannerHeight		Display height of the banner.
+	 * \param imageWidth		Width of the banner image in pixels.
+	 * \param imageHeight		Height of the banner image in pixels.
+	 * \param imageData			Pointer to the pixels of the image to display.
+	 * \param alignment		Where the banner will be positioned on the canvas.
+	 * \param enabled			Whether the banner will be displayed initially.
+	 * \return A banner id.
 	 */
 	TBannerId AddBanner(
 		unsigned int bannerWidth, unsigned int bannerHeight,
@@ -199,7 +199,7 @@ public:
 
 	/**
 	 * Disposes a banner.
-	 * @param id Banner to be disposed.
+	 * \param id Banner to be disposed.
 	 */
 	void DisposeBanner(TBannerId id);
 
@@ -210,21 +210,21 @@ public:
 
 	/**
 	 * Enables or disables display of a banner.
-	 * @param id		Banner id of the banner to be enabled/disabled.
-	 * @param enabled	New state of the banner.
+	 * \param id		Banner id of the banner to be enabled/disabled.
+	 * \param enabled	New state of the banner.
 	 */
 	void SetBannerEnabled(TBannerId id, bool enabled = true);
 
 	/**
 	 * Enables or disables display of all banners.
-	 * @param enabled	New state of the banners.
+	 * \param enabled	New state of the banners.
 	 */
 	void SetBannerDisplayEnabled(bool enabled = true);
 
 protected:
 	/**
 	 * Disposes a banner.
-	 * @param it Banner to be disposed.
+	 * \param it Banner to be disposed.
 	 */
 	void DisposeBanner(TBannerData& banner);
 

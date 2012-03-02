@@ -323,7 +323,7 @@ int BLI_rename(const char *from, const char *to)
 /*
  * but the UNIX world is tied to the interface, and the system
  * timer, and... We implement a callback mechanism. The system will
- * have to initialise the callback before the functions will work!
+ * have to initialize the callback before the functions will work!
  * */
 static char str[12 + (MAXPATHLEN * 2)];
 

@@ -81,8 +81,8 @@ public:
 	/**
 	 * Gets the eight corners of this treenode's bounding box,
 	 * in world coordinates.
-	 * @param box: an array of 8 MT_Point3
-	 * @example MT_Point3 box[8];
+	 * \param box: an array of 8 MT_Point3
+	 * \example MT_Point3 box[8];
 	 *          treenode->get(box);
 	 */
 	void get(MT_Point3 *box) const;
@@ -127,7 +127,7 @@ public:
  *  It joins pairs of SG_Nodes to minimise the size of the resultant
  *  bounding box.
  *  cf building an optimised Huffman tree.
- *  @warning O(n^3)!!!
+ *  \warning O(n^3)!!!
  */
 class SG_TreeFactory 
 {

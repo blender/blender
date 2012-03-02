@@ -90,7 +90,7 @@ typedef struct v2dViewPanData {
 	short in_scroller;		/* for MMB in scrollers (old feature in past, but now not that useful) */
 } v2dViewPanData;
  
-/* initialise panning customdata */
+/* initialize panning customdata */
 static int view_pan_init(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -315,7 +315,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
 	
-	/* initialise default settings (and validate if ok to run) */
+	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
 		
@@ -359,7 +359,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
 	
-	/* initialise default settings (and validate if ok to run) */
+	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
 		
@@ -402,7 +402,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
 	
-	/* initialise default settings (and validate if ok to run) */
+	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
 		
@@ -452,7 +452,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
 	
-	/* initialise default settings (and validate if ok to run) */
+	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
 		
@@ -527,7 +527,7 @@ typedef struct v2dViewZoomData {
 } v2dViewZoomData;
 
 
-/* initialise panning customdata */
+/* initialize panning customdata */
 static int view_zoomdrag_init(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -1286,7 +1286,7 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	return SCROLLHANDLE_BAR;
 } 
 
-/* initialise customdata for scroller manipulation operator */
+/* initialize customdata for scroller manipulation operator */
 static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, short in_scroller)
 {
 	v2dScrollerMove *vsm;
@@ -1510,7 +1510,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (in_scroller) {
 		v2dScrollerMove *vsm;
 		
-		/* initialise customdata */
+		/* initialize customdata */
 		scroller_activate_init(C, op, event, in_scroller);
 		vsm= (v2dScrollerMove *)op->customdata;
 		

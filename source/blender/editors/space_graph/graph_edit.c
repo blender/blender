@@ -1582,7 +1582,7 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 			continue;
 		}
 		
-		/* optimisation: assume that xyz curves will always be stored consecutively,
+		/* optimization: assume that xyz curves will always be stored consecutively,
 		 * so if the paths or the ID's don't match up, then a curve needs to be added 
 		 * to a new group
 		 */

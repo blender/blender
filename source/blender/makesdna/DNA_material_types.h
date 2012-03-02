@@ -168,7 +168,7 @@ typedef struct Material {
 	float sss_front, sss_back;
 	short sss_flag, sss_preset;
 
-	int mapto_textured;	/* render-time cache to optimise texture lookups */
+	int mapto_textured;	/* render-time cache to optimize texture lookups */
 	short shadowonly_flag;  /* "shadowsonly" type */
 	short index;            /* custom index for render passes */
 

@@ -957,7 +957,7 @@ static void fmods_init_typeinfo (void)
  */
 FModifierTypeInfo *get_fmodifier_typeinfo (int type)
 {
-	/* initialise the type-info list? */
+	/* initialize the type-info list? */
 	if (FMI_INIT) {
 		fmods_init_typeinfo();
 		FMI_INIT = 0;
@@ -1243,7 +1243,7 @@ static float eval_fmodifier_influence (FModifier *fcm, float evaltime)
 }
 
 /* evaluate time modifications imposed by some F-Curve Modifiers
- *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
+ *	- this step acts as an optimization to prevent the F-Curve stack being evaluated 
  *	  several times by modifiers requesting the time be modified, as the final result
  *	  would have required using the modified time
  *	- modifiers only ever receive the unmodified time, as subsequent modifiers should be

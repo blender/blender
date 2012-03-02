@@ -55,7 +55,7 @@ static const char *bmo_error_messages[] = {
 	"Could not traverse mesh",
 	"Could not dissolve faces",
 	"Could not dissolve vertices",
-	"Tesselation error",
+	"Tessellation error",
 	"Can not deal with non-manifold geometry",
 	"Invalid selection",
 	"Internal mesh error",

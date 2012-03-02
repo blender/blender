@@ -191,7 +191,7 @@ public:
 	void				InvalidateProjectionMatrix(bool valid = false);
 	
 	/** Gets the modelview matrix that is used by the rasterizer. 
-	 *  @warning If the Camera is a dynamic object then this method may return garbage.  Use GetCameraToWorld() instead.
+	 *  \warning If the Camera is a dynamic object then this method may return garbage.  Use GetCameraToWorld() instead.
 	 */
 	const MT_Matrix4x4&		GetModelviewMatrix() const;
 
@@ -217,21 +217,21 @@ public:
 	/**
 	 * Tests if the given sphere is inside this camera's view frustum.
 	 *
-	 * @param center The center of the sphere, in world coordinates.
-	 * @param radius The radius of the sphere.
-	 * @return INSIDE, INTERSECT, or OUTSIDE depending on the sphere's relation to the frustum.
+	 * \param center The center of the sphere, in world coordinates.
+	 * \param radius The radius of the sphere.
+	 * \return INSIDE, INTERSECT, or OUTSIDE depending on the sphere's relation to the frustum.
 	 */
 	int SphereInsideFrustum(const MT_Point3& center, const MT_Scalar &radius);
 	/**
 	 * Tests the given eight corners of a box with the view frustum.
 	 *
-	 * @param box a pointer to eight MT_Point3 representing the world coordinates of the corners of the box.
-	 * @return INSIDE, INTERSECT, or OUTSIDE depending on the box's relation to the frustum.
+	 * \param box a pointer to eight MT_Point3 representing the world coordinates of the corners of the box.
+	 * \return INSIDE, INTERSECT, or OUTSIDE depending on the box's relation to the frustum.
 	 */
 	int BoxInsideFrustum(const MT_Point3 *box);
 	/**
 	 * Tests the given point against the view frustum.
-	 * @return true if the given point is inside or on the view frustum; false if it is outside.
+	 * \return true if the given point is inside or on the view frustum; false if it is outside.
 	 */
 	bool PointInsideFrustum(const MT_Point3& x);
 	

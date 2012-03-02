@@ -694,7 +694,7 @@ int BLI_path_abs(char *path, const char *basepath)
 	BLI_char_switch(base, '\\', '/');	
 
 	/* Paths starting with // will get the blend file as their base,
-	 * this isnt standard in any os but is uesed in blender all over the place */
+	 * this isnt standard in any os but is used in blender all over the place */
 	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
 		if (lslash) {
@@ -1748,9 +1748,9 @@ static int add_win32_extension(char *name)
 * the name to its 8.3 version to prevent problems with
 * spaces and stuff. Final result is returned in fullname.
 *
-* @param fullname The full path and full name of the executable
+* \param fullname The full path and full name of the executable
 * (must be FILE_MAX minimum)
-* @param name The name of the executable (usually argv[0]) to be checked
+* \param name The name of the executable (usually argv[0]) to be checked
 */
 static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
@@ -1854,9 +1854,9 @@ const char *BLI_program_dir(void)
 * 
 * Also make sure the temp dir has a trailing slash
 *
-* @param fullname The full path to the temp directory
-* @param maxlen The size of the fullname buffer
-* @param userdir Directory specified in user preferences 
+* \param fullname The full path to the temp directory
+* \param maxlen The size of the fullname buffer
+* \param userdir Directory specified in user preferences 
 */
 static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 {

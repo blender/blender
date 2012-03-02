@@ -268,7 +268,7 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 
 		if (curchan->iktree.first != NULL)
 			// Oh oh, there is already a chain starting from this channel and our chain is longer... 
-			// Should handle this by moving the previous chain up to the begining of our chain
+			// Should handle this by moving the previous chain up to the beginning of our chain
 			// For now we just stop here
 			break;
 	}

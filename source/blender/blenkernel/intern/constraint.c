@@ -279,7 +279,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 	
 	/* prevent crashes in these unlikely events  */
 	if (ob==NULL || mat==NULL) return;
-	/* optimise trick - check if need to do anything */
+	/* optimize trick - check if need to do anything */
 	if (from == to) return;
 	
 	/* are we dealing with pose-channels or objects */
@@ -2148,7 +2148,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		float s, t;
 		short axis;
 		
-		/* initialise return matrix */
+		/* initialize return matrix */
 		unit_m4(ct->matrix);
 		
 		/* get the transform matrix of the target */
@@ -4294,7 +4294,7 @@ static void constraints_init_typeinfo (void)
  */
 bConstraintTypeInfo *get_constraint_typeinfo (int type)
 {
-	/* initialise the type-info list? */
+	/* initialize the type-info list? */
 	if (CTI_INIT) {
 		constraints_init_typeinfo();
 		CTI_INIT = 0;
@@ -4412,7 +4412,7 @@ static bConstraint *add_new_constraint_internal (const char *name, short type)
 
 	/* Determine a basic name, and info */
 	if (cti) {
-		/* initialise constraint data */
+		/* initialize constraint data */
 		con->data = MEM_callocN(cti->size, cti->structName);
 		
 		/* only constraints that change any settings need this */
@@ -4757,7 +4757,7 @@ void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, L
 		cti->get_constraint_targets(con, targets);
 		
 		/* set matrices 
-		 * 	- calculate if possible, otherwise just initialise as identity matrix 
+		 * 	- calculate if possible, otherwise just initialize as identity matrix 
 		 */
 		if (cti->get_target_matrix) {
 			for (ct= targets->first; ct; ct= ct->next) 

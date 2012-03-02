@@ -316,7 +316,7 @@ public:
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 	/** Set the wireframe color of this value depending on the CSG
 	 * operator type <op>
-	 * @attention: not implemented */
+	 * \attention: not implemented */
 	virtual void		SetColorOperator(VALUE_OPERATOR op);
 
 	virtual const STR_String &	GetText() = 0;
@@ -327,7 +327,7 @@ public:
 	virtual STR_String&	GetName() = 0;											// Retrieve the name of the value
 	virtual void		SetName(const char *name) = 0;								// Set the name of the value
 	/** Sets the value to this cvalue.
-	 * @attention this particular function should never be called. Why not abstract? */
+	 * \attention this particular function should never be called. Why not abstract? */
 	virtual void		SetValue(CValue* newval);
 	virtual CValue*		GetReplica() =0;
 	virtual void			ProcessReplica();

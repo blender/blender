@@ -1174,7 +1174,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		}
 	}
 
-	/***** initialise static island preview data *****/
+	/***** initialize static island preview data *****/
 
 	state->tris_per_island = MEM_mallocN(sizeof(*state->tris_per_island)*state->element_map->totalIslands,
 			"stitch island tris");

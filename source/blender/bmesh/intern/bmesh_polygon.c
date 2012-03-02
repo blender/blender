@@ -25,7 +25,7 @@
  *
  * This file contains code for dealing
  * with polygons (normal/area calculation,
- * tesselation, etc)
+ * tessellation, etc)
  *
  * BMESH_TODO:
  *  - Add in Tesselator frontend that creates

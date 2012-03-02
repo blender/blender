@@ -362,7 +362,7 @@ void KX_Scene::SetFramingType(RAS_FrameSettings & frame_settings)
 /**
  * Return a const reference to the framing 
  * type set by the above call.
- * The contents are not guarenteed to be sensible
+ * The contents are not guaranteed to be sensible
  * if you don't call the above function.
  */
 const RAS_FrameSettings& KX_Scene::GetFramingType() const 

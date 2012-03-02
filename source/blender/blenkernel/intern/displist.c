@@ -709,7 +709,7 @@ static ModifierData *curve_get_tesselate_point(Scene *scene, Object *ob, int for
 		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			preTesselatePoint = md;
 
-			/* this modifiers are moving point of tesselation automatically
+			/* this modifiers are moving point of tessellation automatically
 			   (some of them even can't be applied on tesselated curve), set flag
 			   for incformation button in modifier's header */
 			md->mode |= eModifierMode_ApplyOnSpline;
@@ -1168,7 +1168,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	}
 
 	/* make copy of 'undeformed" displist for texture space calculation
-	   actually, it's not totally undeformed -- pre-tesselation modifiers are
+	   actually, it's not totally undeformed -- pre-tessellation modifiers are
 	   already applied, thats how it worked for years, so keep for compatibility (sergey) */
 	copy_displist(&cu->disp, dispbase);
 
@@ -1394,7 +1394,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
 		/* make copy of 'undeformed" displist for texture space calculation
-		   actually, it's not totally undeformed -- pre-tesselation modifiers are
+		   actually, it's not totally undeformed -- pre-tessellation modifiers are
 		   already applied, thats how it worked for years, so keep for compatibility (sergey) */
 		copy_displist(&cu->disp, dispbase);
 

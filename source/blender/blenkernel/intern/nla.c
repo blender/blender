@@ -841,7 +841,7 @@ void BKE_nlameta_flush_transforms (NlaStrip *mstrip)
 	oEnd= ((NlaStrip *)mstrip->strips.last)->end;
 	offset= mstrip->start - oStart;
 	
-	/* optimisation:
+	/* optimization:
 	 * don't flush if nothing changed yet
 	 *	TODO: maybe we need a flag to say always flush?
 	 */
@@ -1018,7 +1018,7 @@ short BKE_nlatrack_get_bounds (NlaTrack *nlt, float bounds[2])
 {
 	NlaStrip *strip;
 	
-	/* initialise bounds */
+	/* initialize bounds */
 	if (bounds)
 		bounds[0] = bounds[1] = 0.0f;
 	else

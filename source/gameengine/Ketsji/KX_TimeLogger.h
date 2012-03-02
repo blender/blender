@@ -49,7 +49,7 @@ class KX_TimeLogger {
 public:
 	/**
 	 * Constructor.
-	 * @param maxNumMesasurements Maximum number of measurements stored (>1).
+	 * \param maxNumMesasurements Maximum number of measurements stored (>1).
 	 */
 	KX_TimeLogger(unsigned int maxNumMeasurements = 10);
 
@@ -70,25 +70,25 @@ public:
 
 	/**
 	 * Starts logging in current measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void StartLog(double now);
 
 	/**
 	 * End logging in current measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void EndLog(double now);
 
 	/**
 	 * Logs time in next measurement.
-	 * @param now	The current time.
+	 * \param now	The current time.
 	 */
 	virtual void NextMeasurement(double now);
 
 	/**
 	 * Returns average of all but the current measurement.
-	 * @return The average of all but the current measurement.
+	 * \return The average of all but the current measurement.
 	 */
 	virtual double GetAverage(void) const;
 

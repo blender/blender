@@ -792,7 +792,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 				uiButSetFlag(but, UI_BUT_DISABLED);
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
-		} /* tesselation point for curve-typed objects */
+		} /* tessellation point for curve-typed objects */
 		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 			/* some modifiers could work with pre-tesselated curves only */
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {

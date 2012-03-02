@@ -524,7 +524,7 @@ static void gp_stroke_simplify (tGPsdata *p)
 			float co[2], pressure;
 			int mco[2];
 			
-			/* initialise values */
+			/* initialize values */
 			co[0]= 0;
 			co[1]= 0;
 			pressure = 0;
@@ -802,7 +802,7 @@ static short gp_stroke_eraser_strokeinside (int mval[], int UNUSED(mvalo[]), sho
 } 
 
 /* eraser tool - evaluation per stroke */
-// TODO: this could really do with some optimisation (KD-Tree/BVH?)
+// TODO: this could really do with some optimization (KD-Tree/BVH?)
 static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], short rad, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
@@ -1600,7 +1600,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	
 	//printf("GPencil - Starting Re-Drawing \n");
 	
-	/* try to initialise context data needed while drawing */
+	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) MEM_freeN(op->customdata);
 		//printf("\tGP - no valid data \n");
@@ -1674,7 +1674,7 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	if (G.f & G_DEBUG)
 		printf("GPencil - Starting Drawing \n");
 	
-	/* try to initialise context data needed while drawing */
+	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) 
 			MEM_freeN(op->customdata);

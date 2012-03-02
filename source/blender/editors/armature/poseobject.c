@@ -497,7 +497,7 @@ static short pose_select_same_group (bContext *C, Object *ob, short extend)
 	}
 	CTX_DATA_END;
 	
-	/* small optimisation: only loop through bones a second time if there are any groups tagged */
+	/* small optimization: only loop through bones a second time if there are any groups tagged */
 	if (tagged) {
 		/* only if group matches (and is not selected or current bone) */
 		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 

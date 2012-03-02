@@ -40,7 +40,7 @@ ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
 /*this structure replaces EditMesh.
  
   through this, you get access to both the edit bmesh,
-  it's tesselation, and various stuff that doesn't belong in the BMesh
+  it's tessellation, and various stuff that doesn't belong in the BMesh
   struct itself.
   
   the entire derivedmesh and modifier system works with this structure,
@@ -52,7 +52,7 @@ typedef struct BMEditMesh {
 	struct BMEditMesh *emcopy;
 	int emcopyusers;
 	
-	/*we store tesselations as triplets of three loops,
+	/*we store tessellations as triplets of three loops,
 	  which each define a triangle.*/
 	struct BMLoop *(*looptris)[3];
 	int tottri;
@@ -85,7 +85,7 @@ typedef struct BMEditMesh {
  * BMESH_TODO, look into having the update elsewhere. */
 #define BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
 
-void BMEdit_RecalcTesselation(BMEditMesh *tm);
+void BMEdit_RecalcTessellation(BMEditMesh *tm);
 BMEditMesh *BMEdit_Create(BMesh *bm, int do_tesselate);
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm);
 BMEditMesh *BMEdit_FromObject(struct Object *ob);

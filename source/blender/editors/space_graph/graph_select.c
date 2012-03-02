@@ -449,7 +449,7 @@ static void columnselect_graph_keys (bAnimContext *ac, short mode)
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked;
 	
-	/* initialise keyframe editing data */
+	/* initialize keyframe editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* build list of columns */
@@ -1180,7 +1180,7 @@ static void mouse_graph_keys (bAnimContext *ac, const int mval[2], short select_
 		KeyframeEditFunc select_cb;
 		KeyframeEditData ked;
 		
-		/* initialise keyframe editing data */
+		/* initialize keyframe editing data */
 		memset(&ked, 0, sizeof(KeyframeEditData));
 		
 		/* set up BezTriple edit callbacks */
@@ -1262,7 +1262,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short
 		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, FALSE);
 	}
 	
-	/* initialise keyframe editing data */
+	/* initialize keyframe editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* set up BezTriple edit callbacks */

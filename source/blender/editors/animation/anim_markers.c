@@ -232,7 +232,7 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 		selcount= BLI_countlist(markers);
 	
 	/* if only selected are to be considered, only consider the selected ones
-	 * (optimisation for not searching list) 
+	 * (optimization for not searching list)
 	 */
 	if (selcount > 1) {
 		for (marker= markers->first; marker; marker= marker->next) {
@@ -323,7 +323,7 @@ TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 /* --------------------------------- */
 
 /* Print debugging prints of list of markers 
- * BSI's: do NOT make static or put in if-defs as "unused code". That's too much trouble when we need to use for quick debuggging!
+ * BSI's: do NOT make static or put in if-defs as "unused code". That's too much trouble when we need to use for quick debugging!
  */
 void debug_markers_print_list(ListBase *markers)
 {
@@ -933,7 +933,7 @@ static void ed_marker_duplicate_apply(bContext *C)
 		return;
 
 	/* go through the list of markers, duplicate selected markers and add duplicated copies
-	 * to the begining of the list (unselect original markers) 
+	 * to the beginning of the list (unselect original markers)
 	 */
 	for (marker= markers->first; marker; marker= marker->next) {
 		if (marker->flag & SELECT) {
@@ -950,7 +950,7 @@ static void ed_marker_duplicate_apply(bContext *C)
 			newmarker->camera= marker->camera;
 #endif
 
-			/* new marker is added to the begining of list */
+			/* new marker is added to the beginning of list */
 			// FIXME: bad ordering!
 			BLI_addhead(markers, newmarker);
 		}
@@ -1339,7 +1339,7 @@ static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 
 static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
 {
-	/* must initialise the marker name first if there is a marker selected */
+	/* must initialize the marker name first if there is a marker selected */
 	TimeMarker *marker = ED_markers_get_first_selected(ED_context_get_markers(C));
 	if (marker)
 		RNA_string_set(op->ptr, "name", marker->name);

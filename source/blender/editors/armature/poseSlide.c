@@ -159,7 +159,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	pso->ob->pose->flag |= POSE_LOCKED;
 	pso->ob->pose->flag &= ~POSE_DO_UNLOCK;
 	
-	/* do basic initialise of RB-BST used for finding keyframes, but leave the filling of it up 
+	/* do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up 
 	 * to the caller of this (usually only invoke() will do it, to make things more efficient).
 	 */
 	BLI_dlrbTree_init(&pso->keys);
@@ -730,7 +730,7 @@ static int pose_slide_push_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data  */
+	/* initialize data  */
 	if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -747,7 +747,7 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data (from RNA-props) */
+	/* initialize data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -787,7 +787,7 @@ static int pose_slide_relax_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data  */
+	/* initialize data  */
 	if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -804,7 +804,7 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data (from RNA-props) */
+	/* initialize data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -844,7 +844,7 @@ static int pose_slide_breakdown_invoke (bContext *C, wmOperator *op, wmEvent *UN
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data  */
+	/* initialize data  */
 	if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
@@ -861,7 +861,7 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 {
 	tPoseSlideOp *pso;
 	
-	/* initialise data (from RNA-props) */
+	/* initialize data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;

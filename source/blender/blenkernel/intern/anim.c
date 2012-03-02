@@ -318,7 +318,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	/* find the last object with the tag 
 	 *	- all those afterwards are assumed to not be relevant for our calculations
 	 */
-	// optimise further by moving out...
+	// optimize further by moving out...
 	for (base=scene->base.first; base; base=base->next) {
 		if (base->object->flag & BA_TEMP_TAG)
 			last = base;
@@ -416,7 +416,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	}
 	if (efra <= sfra) return;
 	
-	/* optimise the depsgraph for faster updates */
+	/* optimize the depsgraph for faster updates */
 	// TODO: whether this is used should depend on some setting for the level of optimisations used
 	motionpaths_calc_optimise_depsgraph(scene, targets);
 	

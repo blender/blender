@@ -360,7 +360,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	const int numPolys =     dm->getNumPolys(dm);
 
 	if ( (numTessFaces == 0) && (numPolys != 0)) {
-		dm->recalcTesselation(dm);
+		dm->recalcTessellation(dm);
 
 		if (dm->getNumTessFaces(dm) != 0) {
 			/* printf("info %s: polys -> ngons calculated\n", __func__); */
@@ -1091,9 +1091,9 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 			wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
 
 		/* Now copy colors in all face verts. */
-		/*first add colors to the tesselation faces*/
+		/*first add colors to the tessellation faces*/
 		/* XXX Why update that layer? We have to update WEIGHT_MLOOPCOL anyway, 
-		 *     and tesselation recreates mface layers from mloop/mpoly ones, so no
+		 *     and tessellation recreates mface layers from mloop/mpoly ones, so no
 		 *     need to fill WEIGHT_MCOL here. */
 #if 0
 		for (i = 0; i < numFaces; i++, mf++, wtcol_f_step += (4 * 4)) {
@@ -1661,7 +1661,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		/* calculating normals can re-calculate tessfaces in some cases */
 		int num_tessface = finaldm->getNumTessFaces(finaldm);
 		/* --------------------------------------------------------------------- */
-		/* First calculate the polygon and vertex normals, re-tesselation
+		/* First calculate the polygon and vertex normals, re-tessellation
 		 * copies these into the tessface's normal layer */
 
 
@@ -1673,13 +1673,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		finaldm->calcNormals(finaldm);
 #endif
 
-		/* Re-tesselation is necessary to push render data (uvs, textures, colors)
+		/* Re-tessellation is necessary to push render data (uvs, textures, colors)
 		 * from loops and polys onto the tessfaces. This may be currently be
-		 * redundantin cases where the render mode doesn't use these inputs, but
-		 * ideally eventually tesselation would happen on-demand, and this is one
+		 * redundant in cases where the render mode doesn't use these inputs, but
+		 * ideally eventually tessellation would happen on-demand, and this is one
 		 * of the primary places it would be needed. */
 		if (num_tessface == 0 && finaldm->getNumTessFaces(finaldm) == 0) {
-			finaldm->recalcTesselation(finaldm);
+			finaldm->recalcTessellation(finaldm);
 		}
 		/* Need to watch this, it can cause issues, see bug [#29338]             */
 		/* take care with this block, we really need testing frameworks          */

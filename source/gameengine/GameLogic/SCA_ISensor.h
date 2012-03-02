@@ -119,9 +119,9 @@ public:
 	virtual CValue* GetReplica()=0;
 
 	/** Set parameters for the pulsing behavior.
-	 * @param posmode Trigger positive pulses?
-	 * @param negmode Trigger negative pulses?
-	 * @param freq    Frequency to use when doing pulsing.
+	 * \param posmode Trigger positive pulses?
+	 * \param negmode Trigger negative pulses?
+	 * \param freq    Frequency to use when doing pulsing.
 	 */
 	void SetPulseMode(bool posmode,
 					  bool negmode,

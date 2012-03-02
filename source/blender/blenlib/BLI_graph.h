@@ -177,7 +177,7 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3]);
 
 /* BArc symmetry flags
  * 
- * axial symetry sides */
+ * axial symmetry sides */
 #define SYM_SIDE_POSITIVE		1
 #define SYM_SIDE_NEGATIVE		2
 /* Anything higher is the order in radial symmetry */

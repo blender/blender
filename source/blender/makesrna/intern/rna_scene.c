@@ -2393,7 +2393,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dome Mode", "Dome physical configurations");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
-	prop= RNA_def_property(srna, "dome_tesselation", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dome_tessellation", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dome.res");
 	RNA_def_property_ui_range(prop, 1, 8, 1, 1);
 	RNA_def_property_ui_text(prop, "Tessellation", "Tessellation level - check the generated mesh in wireframe mode");

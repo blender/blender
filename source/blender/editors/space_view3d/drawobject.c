@@ -4133,7 +4133,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 /* mostly tries to use vertex arrays for speed										*/
 
 /* 1. check that everything is ok & updated */
-/* 2. start initialising things				*/
+/* 2. start initializing things				*/
 /* 3. initialize according to draw type		*/
 /* 4. allocate drawing data arrays			*/
 /* 5. start filling the arrays				*/

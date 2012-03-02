@@ -422,7 +422,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked= {{NULL}};
 	
-	/* initialise keyframe editing data */
+	/* initialize keyframe editing data */
 	
 	/* build list of columns */
 	switch (mode) {

@@ -217,7 +217,7 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 }
 
 /**
-  * @param self A PyObjectPlus_Proxy
+  * \param self A PyObjectPlus_Proxy
   */
 void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {

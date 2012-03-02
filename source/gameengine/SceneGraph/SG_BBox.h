@@ -117,14 +117,14 @@ public:
 	/**
 	 * Get the eight points that define this bounding box.
 	 *
-	 * @param world a world transform to apply to the produced points bounding box.
+	 * \param world a world transform to apply to the produced points bounding box.
 	 */
 	void get(MT_Point3 *box, const MT_Transform &world) const;
 	/**
 	 * Get the eight points that define this axis aligned bounding box.
 	 * This differs from SG_BBox::get() in that the produced box will be world axis aligned.
 	 * The maximum & minimum local points will be transformed *before* splitting to 8 points.
-	 * @param world a world transform to be applied.
+	 * \param world a world transform to be applied.
 	 */
 	void getaa(MT_Point3 *box, const MT_Transform &world) const;
 	

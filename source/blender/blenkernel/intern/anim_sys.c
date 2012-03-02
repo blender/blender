@@ -1176,7 +1176,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			if (RNA_property_update_check(prop)) {
 				short skip_updates_hack = 0;
 				
-				/* optimisation hacks: skip property updates for those properties
+				/* optimization hacks: skip property updates for those properties
 				 * for we know that which the updates in RNA were really just for
 				 * flushing property editing via UI/Py
 				 */
@@ -1676,7 +1676,7 @@ static void nlaevalchan_buffers_accumulate (ListBase *channels, ListBase *tmp_bu
 {
 	NlaEvalChannel *nec, *necn, *necd;
 	
-	/* optimise - abort if no channels */
+	/* optimize - abort if no channels */
 	if (tmp_buffer->first == NULL)
 		return;
 	
@@ -2288,13 +2288,13 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 		} \
 	}
 	
-	/* optimisation: 
+	/* optimization: 
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
 	 * which should ultimately be empty, since it is not possible for now to have any animation 
 	 * without some actions, and drivers wouldn't get affected by any state changes
 	 *
 	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
-	 * set correctly, so this optimisation must be skipped in that case...
+	 * set correctly, so this optimization must be skipped in that case...
 	 */
 	if ((main->action.first == NULL) && (main->curve.first == NULL)) {
 		if (G.f & G_DEBUG)
@@ -2347,7 +2347,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
-		 * this tagged by Depsgraph on framechange. This optimisation means that objects
+		 * this tagged by Depsgraph on framechange. This optimization means that objects
 		 * linked from other (not-visible) scenes will not need their data calculated.
 		 */
 	EVAL_ANIM_IDS(main->object.first, 0); 

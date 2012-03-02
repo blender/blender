@@ -446,7 +446,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 		}
 		else {
 			/* just add a keyframe if there's only one keyframe 
-			 * and the new one occurs before the exisiting one does.
+			 * and the new one occurs before the existing one does.
 			 */
 			if ((cFrame < beztPosi) && (totCount==1))
 				return KEYNEEDED_JUSTADD;

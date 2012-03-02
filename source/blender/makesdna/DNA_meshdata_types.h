@@ -38,7 +38,7 @@
 struct Bone;
 struct Image;
 
-/*tesselation face, see MLoop/MPoly for the real face data*/
+/*tessellation face, see MLoop/MPoly for the real face data*/
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
@@ -68,7 +68,7 @@ typedef struct MVert {
 	char flag, bweight;
 } MVert;
 
-/* tesselation vertex color data.
+/* tessellation vertex color data.
  * at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
@@ -76,7 +76,7 @@ typedef struct MCol {
 } MCol;
 
 /*new face structure, replaces MFace, which is now
-  only used for storing tesselations.*/
+  only used for storing tessellations.*/
 typedef struct MPoly {
 	/* offset into loop array and number of loops in the face */
 	int loopstart;
@@ -134,7 +134,7 @@ typedef struct MSelect {
 	int type; /* EDITVERT/EDITEDGE/EDITFACE */
 } MSelect;
 
-/*tesselation uv face data*/
+/*tessellation uv face data*/
 typedef struct MTFace {
 	float uv[4][2];
 	struct Image *tpage;

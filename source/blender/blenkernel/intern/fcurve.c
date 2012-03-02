@@ -362,7 +362,7 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
 	
-	/* initialise replace-flag first */
+	/* initialize replace-flag first */
 	*replace= 0;
 	
 	/* sneaky optimisations (don't go through searching process if...):

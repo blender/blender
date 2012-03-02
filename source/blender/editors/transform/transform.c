@@ -5436,7 +5436,7 @@ void initTimeTranslate(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	/* initialise snap like for everything else */
+	/* initialize snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
 
@@ -5590,7 +5590,7 @@ void initTimeSlide(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	/* initialise snap like for everything else */
+	/* initialize snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
 
@@ -5732,7 +5732,7 @@ void initTimeScale(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	/* initialise snap like for everything else */
+	/* initialize snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
 

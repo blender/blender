@@ -595,7 +595,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 					/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
 
-					/*Insert BMesh-tesselation triangles into the bvh tree, unless they are hidden
+					/*Insert BMesh-tessellation triangles into the bvh tree, unless they are hidden
 					  and/or selected. Even if the faces themselves are not selected for the snapped
 					  transform, having a vertex selected means the face (and thus it's tesselated
 					  triangles) will be moving and will not be a good snap targets.*/

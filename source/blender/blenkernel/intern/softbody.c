@@ -860,7 +860,7 @@ static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring
 		if (totspring)
 			sb->bspring= MEM_mallocN( totspring*sizeof(BodySpring), "bodyspring");
 
-			/* initialise BodyPoint array */
+			/* initialize BodyPoint array */
 		for (i=0; i<totpoint; i++) {
 			BodyPoint *bp = &sb->bpoint[i];
 

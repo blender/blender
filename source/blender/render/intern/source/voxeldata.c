@@ -155,7 +155,7 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 	ima->source = IMA_SRC_SEQUENCE;
 	iuser.framenr = 1 + iuser.offset;
 
-	/* find the first valid ibuf and use it to initialise the resolution of the data set */
+	/* find the first valid ibuf and use it to initialize the resolution of the data set */
 	/* need to do this in advance so we know how much memory to allocate */
 	ibuf= BKE_image_get_ibuf(ima, &iuser);
 	while (!ibuf && (iuser.framenr < iuser.frames)) {

@@ -516,7 +516,7 @@ static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
 	 * like this one don't push undo data until after modal mode is
 	 * done.*/
 	EDBM_RecalcNormals(em);
-	BMEdit_RecalcTesselation(em);
+	BMEdit_RecalcTessellation(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	
@@ -876,7 +876,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	 * like this one don't push undo data until after modal mode is
 	 * done. */
 	EDBM_RecalcNormals(vc.em);
-	BMEdit_RecalcTesselation(vc.em);
+	BMEdit_RecalcTessellation(vc.em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data);
 	DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
@@ -3249,7 +3249,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
 
 	BM_mesh_normals_update(bm_new, TRUE);
-	BMO_op_callf(bm_new, "bmesh_to_mesh mesh=%p object=%p notesselation=%b",
+	BMO_op_callf(bm_new, "bmesh_to_mesh mesh=%p object=%p notessellation=%b",
 	             basenew->object->data, basenew->object, TRUE);
 		
 	BM_mesh_free(bm_new);
@@ -3592,7 +3592,7 @@ static int split_mesh_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Geometry has changed, need to recalc normals and looptris */
-	BMEdit_RecalcTesselation(em);
+	BMEdit_RecalcTessellation(em);
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);

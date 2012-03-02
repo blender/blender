@@ -293,7 +293,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 }	
 
 
-/* Standard panel to be included whereever Grease Pencil is used... */
+/* Standard panel to be included wherever Grease Pencil is used... */
 void gpencil_panel_standard(const bContext *C, Panel *pa)
 {
 	bGPdata **gpd_ptr = NULL;

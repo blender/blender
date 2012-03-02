@@ -6857,7 +6857,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	else
 		ar->alignment= RGN_ALIGN_TOP;
 	
-	/* initialise view2d data for header region, to allow panning */
+	/* initialize view2d data for header region, to allow panning */
 	/* is copy from ui_view2d.c */
 	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
@@ -9868,7 +9868,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 				
-				/* correctly initialise constinv matrix */
+				/* correctly initialize constinv matrix */
 				unit_m4(ob->constinv);
 				
 				if (ob->type == OB_ARMATURE) {
@@ -9898,7 +9898,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								}
 							}
 							
-							/* correctly initialise constinv matrix */
+							/* correctly initialize constinv matrix */
 							unit_m4(pchan->constinv);
 						}
 					}
@@ -11510,7 +11510,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Object *ob;
 
-		/* properly initialise hair clothsim data on old files */
+		/* properly initialize hair clothsim data on old files */
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			for(md= ob->modifiers.first; md; md= md->next) {
@@ -11619,7 +11619,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		/* anim viz changes */
 		for (ob= main->object.first; ob; ob= ob->id.next) {
-			/* initialise object defaults */
+			/* initialize object defaults */
 			animviz_settings_init(&ob->avs);
 			
 			/* if armature, copy settings for pose from armature data 
@@ -11895,7 +11895,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (brush->curve) brush->curve->preset = CURVE_PRESET_SMOOTH;
 		}
 		
-		/* properly initialise active flag for fluidsim modifiers */
+		/* properly initialize active flag for fluidsim modifiers */
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			for(md= ob->modifiers.first; md; md= md->next) {
@@ -12052,7 +12052,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
-		/* initialise scene active layer */
+		/* initialize scene active layer */
 		for (scene= main->scene.first; scene; scene=scene->id.next) {
 			int i;
 			for(i=0; i<20; i++) {
@@ -12422,7 +12422,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
 			if (sc->redraws_flag == 0) {
-				/* just initialise to default? */
+				/* just initialize to default? */
 				// XXX: we could also have iterated through areas, and taken them from the first timeline available...
 				sc->redraws_flag = TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 			}

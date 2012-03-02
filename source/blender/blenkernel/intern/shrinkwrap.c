@@ -287,7 +287,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	BVHTreeRayHit hit;
 	BVHTreeFromMesh treeData= NULL_BVHTreeFromMesh;
 
-	//auxiliar target
+	//auxiliary target
 	DerivedMesh *auxMesh	= NULL;
 	BVHTreeFromMesh auxData	= NULL_BVHTreeFromMesh;
 	SpaceTransform local2aux;
@@ -306,7 +306,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	else
 	{
 		//The code supports any axis that is a combination of X,Y,Z
-		//altought currently UI only allows to set the 3 different axis
+		//although currently UI only allows to set the 3 different axis
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) proj_axis[0] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) proj_axis[1] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;

@@ -53,12 +53,12 @@
  * Loads any Core Graphics supported type
  * Currently is : TIFF, BMP, JPEG, GIF, PNG, DIB, ICO, and various RAW formats
  *
- * @param mem:   Memory containing the bitmap image
- * @param size:  Size of the mem buffer.
- * @param flags: If flags has IB_test set then the file is not actually loaded,
+ * \param mem:   Memory containing the bitmap image
+ * \param size:  Size of the mem buffer.
+ * \param flags: If flags has IB_test set then the file is not actually loaded,
  *                but all other operations take place.
  *
- * @return: A newly allocated ImBuf structure if successful, otherwise NULL.
+ * \return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
 struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 {
@@ -197,11 +197,11 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
  *
  * Accepted formats: TIFF, GIF, BMP, PNG, JPEG, JPEG2000
  *
- * @param ibuf:  Image buffer.
- * @param name:  Name of the image file to create.
- * @param flags: Currently largely ignored.
+ * \param ibuf:  Image buffer.
+ * \param name:  Name of the image file to create.
+ * \param flags: Currently largely ignored.
  *
- * @return: 1 if the function is successful, 0 on failure.
+ * \return: 1 if the function is successful, 0 on failure.
  */
 
 #define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))

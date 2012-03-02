@@ -410,7 +410,7 @@ void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y
 	GLubyte dummy= 0;
 
 		/* As long as known good coordinates are correct
-		 * this is guarenteed to generate an ok raster
+		 * this is guaranteed to generate an ok raster
 		 * position (ignoring potential (real) overflow
 		 * issues).
 		 */

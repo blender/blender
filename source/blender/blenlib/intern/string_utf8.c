@@ -369,7 +369,7 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
   return result;
 }
 
-/* varient that increments the length */
+/* variant that increments the length */
 unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
 {
 	int i, mask = 0, len;
@@ -384,7 +384,7 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
 	return result;
 }
 
-/* another varient that steps over the index,
+/* another variant that steps over the index,
  * note, currently this also falls back to latin1 for text drawing. */
 unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 {
@@ -433,7 +433,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 /**
  * BLI_str_utf8_from_unicode:
  * @c a Unicode character code
- * @param outbuf output buffer, must have at least 6 bytes of space.
+ * \param outbuf output buffer, must have at least 6 bytes of space.
  *       If %NULL, the length will be computed and returned
  *       and nothing will be written to outbuf.
  *

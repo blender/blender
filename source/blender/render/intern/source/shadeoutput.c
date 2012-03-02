@@ -1253,7 +1253,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* only shadow lamps shouldn't affect shadow-less materials at all */
 	if ((lar->mode & LA_ONLYSHADOW) && (!(ma->mode & MA_SHADOW) || !(R.r.mode & R_SHADOW)))
 		return;
-	/* optimisation, don't render fully black lamps */
+	/* optimization, don't render fully black lamps */
 	if (!(lar->mode & LA_TEXTURE) && (lar->r + lar->g + lar->b == 0.0f))
 		return;
 	

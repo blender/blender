@@ -53,7 +53,7 @@
 #include "RAS_2DFilterManager.h"
 
 /**
- * @section Forward declarations
+ * \section Forward declarations
  */
 struct SM_MaterialProps;
 struct SM_ShapeProps;
@@ -181,7 +181,7 @@ protected:
 	KX_WorldInfo* m_worldinfo;
 
 	/**
-	 * @section Different scenes, linked to ketsji scene
+	 * \section Different scenes, linked to ketsji scene
 	 */
 
 	/**
@@ -342,7 +342,7 @@ public:
 	void RemoveAnimatedObject(CValue* gameobj);
 
 	/**
-	 * @section Logic stuff
+	 * \section Logic stuff
 	 * Initiate an update of the logic system.
 	 */
 	void LogicBeginFrame(double curtime);
@@ -451,7 +451,7 @@ public:
 
 	/**
 	 * Activates new desired canvas width set at design time.
-	 * @param width	The new desired width.
+	 * \param width	The new desired width.
 	 */
 		void					
 	SetCanvasDesignWidth(
@@ -459,7 +459,7 @@ public:
 	);
 	/**
 	 * Activates new desired canvas height set at design time.
-	 * @param width	The new desired height.
+	 * \param width	The new desired height.
 	 */
 		void					
 	SetCanvasDesignHeight(
@@ -467,7 +467,7 @@ public:
 	);
 	/**
 	 * Returns the current desired canvas width set at design time.
-	 * @return The desired width.
+	 * \return The desired width.
 	 */
 		unsigned int			
 	GetCanvasDesignWidth(
@@ -476,7 +476,7 @@ public:
 
 	/**
 	 * Returns the current desired canvas height set at design time.
-	 * @return The desired height.
+	 * \return The desired height.
 	 */
 		unsigned int			
 	GetCanvasDesignHeight(
@@ -495,7 +495,7 @@ public:
 	/**
 	 * Return a const reference to the framing 
 	 * type set by the above call.
-	 * The contents are not guarenteed to be sensible
+	 * The contents are not guaranteed to be sensible
 	 * if you don't call the above function.
 	 */
 
@@ -518,7 +518,7 @@ public:
 	const RAS_Rect& GetSceneViewport() const;
 	
 	/**
-	 * @section Accessors to different scenes of this scene
+	 * \section Accessors to different scenes of this scene
 	 */
 	void SetNetworkDeviceInterface(NG_NetworkDeviceInterface* newInterface);
 	void SetNetworkScene(NG_NetworkScene *newScene);

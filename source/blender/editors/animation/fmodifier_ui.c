@@ -312,7 +312,7 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
 	
-	/* initialise exists-flag first */
+	/* initialize exists-flag first */
 	*exists= 0;
 	
 	/* sneaky optimisations (don't go through searching process if...):

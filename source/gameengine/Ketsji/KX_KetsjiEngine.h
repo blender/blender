@@ -279,13 +279,13 @@ public:
 	
 	/**
 	 * Sets display of all frames.
-	 * @param bUseFixedTime	New setting for display all frames.
+	 * \param bUseFixedTime	New setting for display all frames.
 	 */ 
 	void SetUseFixedTime(bool bUseFixedTime);
 
 	/**
 	 * Returns display of all frames.
-	 * @return Current setting for display all frames.
+	 * \return Current setting for display all frames.
 	 */ 
 	bool GetUseFixedTime(void) const;
 
@@ -360,35 +360,35 @@ public:
 
 	/**
 	 * Activates or deactivates timing information display.
-	 * @param frameRate		Display for frame rate on or off.
-	 * @param profile		Display for individual components on or off.
-	 * @param properties	Display of scene object debug properties on or off.
+	 * \param frameRate		Display for frame rate on or off.
+	 * \param profile		Display for individual components on or off.
+	 * \param properties	Display of scene object debug properties on or off.
 	 */ 
 	void SetTimingDisplay(bool frameRate, bool profile, bool properties);
 
 	/**
 	 * Returns status of timing information display.
-	 * @param frameRate		Display for frame rate on or off.
-	 * @param profile		Display for individual components on or off.
-	 * @param properties	Display of scene object debug properties on or off.
+	 * \param frameRate		Display for frame rate on or off.
+	 * \param profile		Display for individual components on or off.
+	 * \param properties	Display of scene object debug properties on or off.
 	 */ 
 	void GetTimingDisplay(bool& frameRate, bool& profile, bool& properties) const;
 
 	/** 
 	 * Sets cursor hiding on every frame.
-	 * @param hideCursor Turns hiding on or off.
+	 * \param hideCursor Turns hiding on or off.
 	 */
 	void SetHideCursor(bool hideCursor);
 
 	/** 
 	 * Returns the current setting for cursor hiding.
-	 * @return The current setting for cursor hiding.
+	 * \return The current setting for cursor hiding.
 	 */
 	bool GetHideCursor(void) const;
 
 	/** 
 	 * Enables/disables the use of the framing bar color of the Blender file's scenes.
-	 * @param overrideFrameColor The new setting.
+	 * \param overrideFrameColor The new setting.
 	 */
 	void SetUseOverrideFrameColor(bool overrideFrameColor);
 
@@ -399,17 +399,17 @@ public:
 
 	/** 
 	 * Set the color used for framing bar color instead of the one in the Blender file's scenes.
-	 * @param r Red component of the override color.
-	 * @param g Green component of the override color.
-	 * @param b Blue component of the override color.
+	 * \param r Red component of the override color.
+	 * \param g Green component of the override color.
+	 * \param b Blue component of the override color.
 	 */
 	void SetOverrideFrameColor(float r, float g, float b);
 
 	/** 
 	 * Returns the color used for framing bar color instead of the one in the Blender file's scenes.
-	 * @param r Red component of the override color.
-	 * @param g Green component of the override color.
-	 * @param b Blue component of the override color.
+	 * \param r Red component of the override color.
+	 * \param g Green component of the override color.
+	 * \param b Blue component of the override color.
 	 */
 	void GetOverrideFrameColor(float& r, float& g, float& b) const;
 
@@ -424,7 +424,7 @@ protected:
 	 * Processes all scheduled scene activity.
 	 * At the end, if the scene lists have changed,
 	 * SceneListsChanged(void) is called.
-	 * @see SceneListsChanged(void).
+	 * \see SceneListsChanged(void).
 	 */
 	void			ProcessScheduledScenes(void);
 

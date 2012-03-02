@@ -91,7 +91,7 @@ public:
 	 * Get the current list of children. Do not use this interface for
 	 * adding or removing children please use the methods of this class for
 	 * that.
-	 * @return a reference to the list of children of this node.
+	 * \return a reference to the list of children of this node.
 	 */
 	
 	NodeList& GetSGChildren()
@@ -101,7 +101,7 @@ public:
 
 	/**
 	 * Get the current list of children.
-	 * @return a const reference to the current list of children of this node.
+	 * \return a const reference to the current list of children of this node.
 	 */
 
 	const NodeList& GetSGChildren() const
