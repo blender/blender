@@ -1372,7 +1372,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 
 	if (!eed) {
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				/* de-select the edge before */
 				do_deselect = TRUE;
 				break;
@@ -4356,20 +4356,22 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	float fac = RNA_float_get(op->ptr, "factor");
 
-	if (em == NULL) return OPERATOR_FINISHED;
+	if (em == NULL) {
+		return OPERATOR_FINISHED;
+	}
 
-	ma = give_current_material(obedit, obedit->actcol);
-	if (ma == 0 || ma->mtex[0] == 0 || ma->mtex[0]->tex == 0) {
+	if ((ma  = give_current_material(obedit, obedit->actcol)) == NULL ||
+	    (tex = give_current_material_texture(ma)) == NULL)
+	{
 		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned");
 		return OPERATOR_FINISHED;
 	}
-	tex = give_current_material_texture(ma);
 
 	if (tex->type == TEX_STUCCI) {
 		float b2, vec[3];
 		float ofs = tex->turbul / 200.0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && !BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				b2 = BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
 				if (tex->stype) ofs *= (b2 * b2);
 				vec[0] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0] + ofs, eve->co[1], eve->co[2]));
@@ -4382,7 +4384,7 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && !BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				float tin, dum;
 				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0);
 				eve->co[2] += fac * tin;

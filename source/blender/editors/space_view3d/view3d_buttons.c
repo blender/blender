@@ -436,9 +436,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-							if (!crease)
-								break;
-							*crease = sca;
+							if (crease) {
+								*crease = sca;
+							}
 						}
 					}
 				}
@@ -446,10 +446,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-							if (!crease)
-								break;
-							*crease *= sca;
-							CLAMP(*crease, 0.0f, 1.0f);
+							if (crease) {
+								*crease *= sca;
+								CLAMP(*crease, 0.0f, 1.0f);
+							}
 						}
 					}
 				}
@@ -457,10 +457,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *crease = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-							if (!crease)
-								break;
-							*crease = 1.0f + ((1.0f - *crease) * sca);
-							CLAMP(*crease, 0.0f, 1.0f);
+							if (crease) {
+								*crease = 1.0f + ((1.0f - *crease) * sca);
+								CLAMP(*crease, 0.0f, 1.0f);
+							}
 						}
 					}
 				}
@@ -474,9 +474,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-							if (!bweight)
-								break;
-							*bweight = sca;
+							if (bweight) {
+								*bweight = sca;
+							}
 						}
 					}
 				}
@@ -484,10 +484,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-							if (!bweight)
-								break;
-							*bweight *= sca;
-							CLAMP(*bweight, 0.0f, 1.0f);
+							if (bweight) {
+								*bweight *= sca;
+								CLAMP(*bweight, 0.0f, 1.0f);
+							}
 						}
 					}
 				}
@@ -495,10 +495,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 							float *bweight = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-							if (!bweight)
-								break;
-							*bweight = 1.0f + ((1.0f - *bweight) * sca);
-							CLAMP(*bweight, 0.0f, 1.0f);
+							if (bweight) {
+								*bweight = 1.0f + ((1.0f - *bweight) * sca);
+								CLAMP(*bweight, 0.0f, 1.0f);
+							}
 						}
 					}
 				}

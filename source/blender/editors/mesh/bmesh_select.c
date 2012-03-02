@@ -1894,7 +1894,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	}
 	else  {
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT) && !BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
 			}
 			else {
@@ -2470,7 +2470,7 @@ static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 		BMIter liter;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
-			if (BM_elem_flag_test(l->v, BM_ELEM_SELECT) && !BM_elem_flag_test(l->v, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
 				BM_elem_flag_enable(l->next->v, BM_ELEM_TAG);
 				BM_elem_select_set(em->bm, l->v, FALSE);
 			}
