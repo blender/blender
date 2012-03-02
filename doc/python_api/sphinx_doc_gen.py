@@ -20,42 +20,69 @@
 
 # <pep8 compliant>
 
-script_help_msg = '''
-Usage:
+script_help_msg = """
 
-For HTML generation
--------------------
-- Run this script from blenders root path once you have compiled blender
+API dump in RST files
+---------------------
+  Run this script from blenders root path once you have compiled blender
 
     ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/
   providing ./blender.bin is or links to the blender executable
 
-- Generate html docs by running...
+  To choose sphinx-in directory use the -o option, putting the path  after '--'.
+  Example:
+  ./cmake/bin/blender -b -P ./blender/doc/python_api/sphinx_doc_gen.py -- -o ./python_api
+
+Sphinx: HTML generation
+-----------------------
+  Generate html docs by running...
 
     cd doc/python_api
     sphinx-build sphinx-in sphinx-out
 
   This requires sphinx 1.0.7 to be installed.
 
-For PDF generation
-------------------
-- After you have built doc/python_api/sphinx-in (see above), run:
+Sphinx: PDF generation
+----------------------
+  After you have built doc/python_api/sphinx-in (see above), run:
 
     sphinx-build -b latex doc/python_api/sphinx-in doc/python_api/sphinx-out
     cd doc/python_api/sphinx-out
     make
-'''
+    
+"""
 
-# Check we're running in blender
-if __import__("sys").modules.get("bpy") is None:
+try:
+    import bpy  # blender module
+except:
     print("\nError, this script must run from inside blender")
     print(script_help_msg)
-
     import sys
     sys.exit()
 
+import rna_info     # blender module
+
+# import rpdb2; rpdb2.start_embedded_debugger('test')
+import os
+import sys
+import inspect
+import shutil
+
+from platform import platform
+PLATFORM = platform().split('-')[0].lower()    # 'linux', 'darwin', 'windows'
+
+# this script dir
+SCRIPT_DIR = os.path.dirname(__file__)
+
+# examples
+EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
+EXAMPLE_SET = set()
+EXAMPLE_SET_USED = set()
+
+#rst files dir
+RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 
 # Switch for quick testing
 if 1:
@@ -105,7 +132,7 @@ sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
     """
 
 # extra info, not api reference docs
-# stored in ./rst/info/
+# stored in ./rst/info_*
 INFO_DOCS = (
     ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get your feet wet?"),
     ("info_overview.rst", "Blender/Python API Overview: a more complete explanation of python integration"),
@@ -131,20 +158,11 @@ except ImportError:
     EXCLUDE_MODULES = EXCLUDE_MODULES + ("aud", )
 
 
-# import rpdb2; rpdb2.start_embedded_debugger('test')
-import os
-import inspect
-import bpy
-import rna_info
-
 # lame, python wont give some access
 ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 from types import MemberDescriptorType
-
-EXAMPLE_SET = set()
-EXAMPLE_SET_USED = set()
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
@@ -218,7 +236,7 @@ def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
 
         # extract the comment
-        filepath = "../examples/%s.%s" % (example_id, ext)
+        filepath = os.path.join(EXAMPLES_DIR, "%s.%s" % (example_id, ext))
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
         text, line_no = example_extract_docstring(filepath_full)
@@ -263,6 +281,7 @@ def write_indented_lines(ident, fn, text, strip=True):
         del lines[-1]
 
     if strip:
+        # set indentation to <indent>
         ident_strip = 1000
         for l in lines:
             if l.strip():
@@ -270,6 +289,7 @@ def write_indented_lines(ident, fn, text, strip=True):
         for l in lines:
             fn(ident + l[ident_strip:] + "\n")
     else:
+        # add <indent> number of blanks to the current indentation
         for l in lines:
             fn(ident + l + "\n")
 
@@ -1310,7 +1330,9 @@ def rna2sphinx(BASEPATH):
 
     if "bpy.context" not in EXCLUDE_MODULES:
         # one of a kind, context doc (uses ctypes to extract info!)
-        pycontext2sphinx(BASEPATH)
+        # doesn't work on mac
+        if PLATFORM != "darwin":
+            pycontext2sphinx(BASEPATH)
 
     # python modules
     if "bpy.utils" not in EXCLUDE_MODULES:
@@ -1370,15 +1392,13 @@ def rna2sphinx(BASEPATH):
         #import bgl as module
         #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper")
         #del module
-        import shutil
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bgl.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bgl.rst"), BASEPATH)
 
     if "gpu" not in EXCLUDE_MODULES:
         #import gpu as module
         #pymodule2sphinx(BASEPATH, "gpu", module, "GPU Shader Module")
         #del module
-        import shutil
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "gpu.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "gpu.rst"), BASEPATH)
 
     if "aud" not in EXCLUDE_MODULES:
         import aud as module
@@ -1386,21 +1406,21 @@ def rna2sphinx(BASEPATH):
     del module
 
     ## game engine
-    import shutil
+
     # copy2 keeps time/date stamps
     if "bge" not in EXCLUDE_MODULES:
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.types.rst"), BASEPATH)
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.logic.rst"), BASEPATH)
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.render.rst"), BASEPATH)
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.texture.rst"), BASEPATH)
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.events.rst"), BASEPATH)
-        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.constraints.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bge.types.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bge.logic.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bge.render.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bge.texture.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bge.events.rst"), BASEPATH)
+        shutil.copy2(os.path.join(RST_DIR, "bge.constraints.rst"), BASEPATH)
 
-    shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
+    shutil.copy2(os.path.join(RST_DIR, "change_log.rst"), BASEPATH)
 
     if not EXCLUDE_INFO_DOCS:
         for info, info_desc in INFO_DOCS:
-            shutil.copy2(os.path.join(BASEPATH, "..", "rst", info), BASEPATH)
+            shutil.copy2(os.path.join(RST_DIR, info), BASEPATH)
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")
@@ -1422,53 +1442,89 @@ def rna2sphinx(BASEPATH):
     file.close()
 
 
+def handle_args():
+    '''
+    get the args passed to blender after "--", all of which are ignored by blender
+    
+    we can give the path of sphinx-in after '--', using for example:
+    ./cmake/bin/blender -b -P ./blender/doc/python_api/sphinx_doc_gen.py -- ./python_api
+    '''
+    
+    import argparse  # to parse options for us and print a nice help message
+    
+    # When --help or no args are given, print the usage text
+    parser = argparse.ArgumentParser(
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     usage=script_help_msg)
+    
+    # output dir for apidocs 
+    parser.add_argument("-o", "--output",
+                        dest="output_dir",
+                        type=str,
+                        required=False,
+                        help="Path of API docs directory (optional)")
+            
+    argv = []
+    if "--" in sys.argv:
+        argv = sys.argv[sys.argv.index("--") + 1:]  # get all args after "--"
+    
+    return parser.parse_args(argv)
+
+
 def main():
-    import shutil
+    
+    args = handle_args()
+    
+    # output dirs
+    if args.output_dir:
+        output_dir = args.output_dir
+        if not os.path.exists(args.output_dir):
+            os.mkdir(args.output_dir)
+    else:
+        output_dir = SCRIPT_DIR
 
-    script_dir = os.path.dirname(__file__)
-    path_in = os.path.join(script_dir, "sphinx-in")
-    path_out = os.path.join(script_dir, "sphinx-out")
-    path_examples = os.path.join(script_dir, "examples")
+    sphinx_in_dir = os.path.join(output_dir, "sphinx-in")
+    sphinx_out_dir = os.path.join(output_dir, "sphinx-out")
+
     # only for partial updates
-    path_in_tmp = path_in + "-tmp"
+    sphinx_in_tmp_dir = sphinx_in_dir + "-tmp"
+    if not os.path.exists(sphinx_in_dir):
+        os.mkdir(sphinx_in_dir)
 
-    if not os.path.exists(path_in):
-        os.mkdir(path_in)
-
-    for f in os.listdir(path_examples):
+    for f in os.listdir(EXAMPLES_DIR):
         if f.endswith(".py"):
             EXAMPLE_SET.add(os.path.splitext(f)[0])
 
     # only for full updates
     if _BPY_FULL_REBUILD:
-        shutil.rmtree(path_in, True)
-        shutil.rmtree(path_out, True)
+        shutil.rmtree(sphinx_in_dir, True)
+        shutil.rmtree(sphinx_out_dir, True)
     else:
         # write here, then move
-        shutil.rmtree(path_in_tmp, True)
+        shutil.rmtree(sphinx_in_tmp_dir, True)
 
-    rna2sphinx(path_in_tmp)
+    rna2sphinx(sphinx_in_tmp_dir)
 
     if not _BPY_FULL_REBUILD:
         import filecmp
 
-        # now move changed files from 'path_in_tmp' --> 'path_in'
-        file_list_path_in = set(os.listdir(path_in))
-        file_list_path_in_tmp = set(os.listdir(path_in_tmp))
+        # now move changed files from 'sphinx_in_tmp_dir' --> 'sphinx_in_dir'
+        file_list_sphinx_in_dir = set(os.listdir(sphinx_in_dir))
+        file_list_sphinx_in_tmp_dir = set(os.listdir(sphinx_in_tmp_dir))
 
         # remove deprecated files that have been removed.
-        for f in sorted(file_list_path_in):
-            if f not in file_list_path_in_tmp:
+        for f in sorted(file_list_sphinx_in_dir):
+            if f not in file_list_sphinx_in_tmp_dir:
                 print("\tdeprecated: %s" % f)
-                os.remove(os.path.join(path_in, f))
+                os.remove(os.path.join(sphinx_in_dir, f))
 
         # freshen with new files.
-        for f in sorted(file_list_path_in_tmp):
-            f_from = os.path.join(path_in_tmp, f)
-            f_to = os.path.join(path_in, f)
+        for f in sorted(file_list_sphinx_in_tmp_dir):
+            f_from = os.path.join(sphinx_in_tmp_dir, f)
+            f_to = os.path.join(sphinx_in_dir, f)
 
             do_copy = True
-            if f in file_list_path_in:
+            if f in file_list_sphinx_in_dir:
                 if filecmp.cmp(f_from, f_to):
                     do_copy = False
 
@@ -1480,12 +1536,11 @@ def main():
 
     EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
     if EXAMPLE_SET_UNUSED:
-        print("\nUnused examples found in '%s'..." % path_examples)
+        print("\nUnused examples found in '%s'..." % EXAMPLES_DIR)
         for f in EXAMPLE_SET_UNUSED:
             print("    %s.py" % f)
         print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
 
-    import sys
     sys.exit()
 
 if __name__ == '__main__':
