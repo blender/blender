@@ -486,23 +486,26 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	delete [] VIndices;
 	delete [] NIndices;
 
-	// Removal of degenerate triangles
+	// Fix for degenerated triangles
 	// A degenerate triangle is a triangle such that
 	// 1) A and B are in the same position in the 3D space; or
 	// 2) the distance between point P and line segment AB is zero.
-	// Only those degenerate triangles in the second form are addressed here
-	// (by transforming them into the first form).  Those in the first form
-	// are addressed later in WShape::MakeFace().
-	unsigned vi0, vi1, vi2, vi;
-	unsigned ni0, ni1, ni2, ni;
-	unsigned numDetris = 0;
+	// Only those degenerate triangles in the second form are resolved here
+	// by adding a small offset to P, whereas those in the first form are
+	// addressed later in WShape::MakeFace().
+	typedef struct {
+		unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
+		Vec3r v;
+		unsigned n;
+	} detri_t;
+	vector<detri_t> detriList;
+	Vec3r zero(0.0, 0.0, 0.0);
+	unsigned vi0, vi1, vi2;
 	for (i = 0; i < viSize; i += 3) {
+		detri_t detri;
 		vi0 = cleanVIndices[i];
 		vi1 = cleanVIndices[i+1];
 		vi2 = cleanVIndices[i+2];
-		ni0 = cleanNIndices[i];
-		ni1 = cleanNIndices[i+1];
-		ni2 = cleanNIndices[i+2];
 		Vec3r v0(cleanVertices[vi0], cleanVertices[vi0+1], cleanVertices[vi0+2]);
 		Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
 		Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
@@ -510,57 +513,69 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			// do nothing for now
 		}
 		else if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1e-6) {
-			if ((v1-v0).squareNorm() < (v2-v0).squareNorm()) {
-				vi = vi1;
-				ni = ni1;
-			} else {
-				vi = vi2;
-				ni = ni2;
-			}
-			cleanVertices[vi0] = cleanVertices[vi];
-			cleanVertices[vi0+1] = cleanVertices[vi+1];
-			cleanVertices[vi0+2] = cleanVertices[vi+2];
-			cleanNormals[ni0] = cleanNormals[ni];
-			cleanNormals[ni0+1] = cleanNormals[ni+1];
-			cleanNormals[ni0+2] = cleanNormals[ni+2];
-			++numDetris;
+			detri.viP = vi0; detri.viA = vi1; detri.viB = vi2;
 		}
 		else if (GeomUtils::distPointSegment<Vec3r>(v1, v0, v2) < 1e-6) {
-			if ((v0-v1).squareNorm() < (v2-v1).squareNorm()) {
-				vi = vi0;
-				ni = ni0;
-			} else {
-				vi = vi2;
-				ni = ni2;
-			}
-			cleanVertices[vi1] = cleanVertices[vi];
-			cleanVertices[vi1+1] = cleanVertices[vi+1];
-			cleanVertices[vi1+2] = cleanVertices[vi+2];
-			cleanNormals[ni1] = cleanNormals[ni];
-			cleanNormals[ni1+1] = cleanNormals[ni+1];
-			cleanNormals[ni1+2] = cleanNormals[ni+2];
-			++numDetris;
+			detri.viP = vi1; detri.viA = vi0; detri.viB = vi2;
 		}
 		else if (GeomUtils::distPointSegment<Vec3r>(v2, v0, v1) < 1e-6) {
-			if ((v0-v2).squareNorm() < (v1-v2).squareNorm()) {
-				vi = vi0;
-				ni = ni0;
-			} else {
-				vi = vi1;
-				ni = ni1;
-			}
-			cleanVertices[vi2] = cleanVertices[vi];
-			cleanVertices[vi2+1] = cleanVertices[vi+1];
-			cleanVertices[vi2+2] = cleanVertices[vi+2];
-			cleanNormals[ni2] = cleanNormals[ni];
-			cleanNormals[ni2+1] = cleanNormals[ni+1];
-			cleanNormals[ni2+2] = cleanNormals[ni+2];
-			++numDetris;
+			detri.viP = vi2; detri.viA = vi0; detri.viB = vi1;
 		}
+		else {
+			continue;
+		}
+		detri.v = zero;
+		detri.n = 0;
+		for (unsigned j = 0; j < viSize; j += 3) {
+			if (i == j)
+				continue;
+			vi0 = cleanVIndices[j];
+			vi1 = cleanVIndices[j+1];
+			vi2 = cleanVIndices[j+2];
+			Vec3r v0(cleanVertices[vi0], cleanVertices[vi0+1], cleanVertices[vi0+2]);
+			Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
+			Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
+			if (detri.viP == vi0 && (detri.viA == vi1 || detri.viB == vi1)) {
+				detri.v += (v2 - v0);
+				detri.n++;
+			} else if (detri.viP == vi0 && (detri.viA == vi2 || detri.viB == vi2)) {
+				detri.v += (v1 - v0);
+				detri.n++;
+			} else if (detri.viP == vi1 && (detri.viA == vi0 || detri.viB == vi0)) {
+				detri.v += (v2 - v1);
+				detri.n++;
+			} else if (detri.viP == vi1 && (detri.viA == vi2 || detri.viB == vi2)) {
+				detri.v += (v0 - v1);
+				detri.n++;
+			} else if (detri.viP == vi2 && (detri.viA == vi0 || detri.viB == vi0)) {
+				detri.v += (v1 - v2);
+				detri.n++;
+			} else if (detri.viP == vi2 && (detri.viA == vi1 || detri.viB == vi1)) {
+				detri.v += (v0 - v2);
+				detri.n++;
+			}
+		}
+		if (detri.n > 0) {
+			detri.v.normalizeSafe();
+		}
+		detriList.push_back(detri);
 	}
-	if (numDetris > 0) {
+	if (detriList.size() > 0) {
+		vector<detri_t>::iterator v;
+		for (v = detriList.begin(); v != detriList.end(); v++) {
+			detri_t detri = (*v);
+			if (detri.n == 0) {
+				cleanVertices[detri.viP]   = cleanVertices[detri.viA];
+				cleanVertices[detri.viP+1] = cleanVertices[detri.viA+1];
+				cleanVertices[detri.viP+2] = cleanVertices[detri.viA+2];
+			} else if (detri.v.norm() > 0.0) {
+				cleanVertices[detri.viP]   += 1e-5 * detri.v.x();
+				cleanVertices[detri.viP+1] += 1e-5 * detri.v.y();
+				cleanVertices[detri.viP+2] += 1e-5 * detri.v.z();
+			}
+		}
 		printf("Warning: Object %s contains %d degenerate triangle%s (strokes may be incorrect)\n",
-			name, numDetris, (numDetris > 1) ? "s" : "");
+			name, detriList.size(), (detriList.size() > 1) ? "s" : "");
 	}
 
 	// Create the IndexedFaceSet with the retrieved attributes
