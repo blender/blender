@@ -299,7 +299,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	float co[2], radius, radius_root;
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	unsigned int tool;
 	UvSculptData *sculptdata = (UvSculptData *)op->customdata;
 	SpaceImage *sima;
@@ -471,7 +471,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = scene->toolsettings;
 	UvSculptData *data = MEM_callocN(sizeof(*data), "UV Smooth Brush Data");
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 
 	op->customdata = data;

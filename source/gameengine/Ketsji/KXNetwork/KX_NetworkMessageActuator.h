@@ -27,7 +27,7 @@
 
 /** \file KX_NetworkMessageActuator.h
  *  \ingroup ketsjinet
- *  \brief Ketsji Logic Extenstion: Network Message Actuator class
+ *  \brief Ketsji Logic Extension: Network Message Actuator class
  */
 
 #ifndef __KX_NETWORKMESSAGEACTUATOR_H__

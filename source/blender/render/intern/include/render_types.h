@@ -190,7 +190,7 @@ struct Render
 	struct RayObject *raytree;
 	struct RayFace *rayfaces;
 	struct VlakPrimitive *rayprimitives;
-	float maxdist; /* needed for keeping an incorrect behaviour of SUN and HEMI lights (avoid breaking old scenes) */
+	float maxdist; /* needed for keeping an incorrect behavior of SUN and HEMI lights (avoid breaking old scenes) */
 
 	/* occlusion tree */
 	void *occlusiontree;

@@ -497,7 +497,7 @@ int uiButGetUnitType(uiBut *but);
 
 /* Special Buttons
  *
- * Butons with a more specific purpose:
+ * Buttons with a more specific purpose:
  * - IDPoinBut: for creating buttons that work on a pointer to an ID block.
  * - MenuBut: buttons that popup a menu (in headers usually).
  * - PulldownBut: like MenuBut, but creating a uiBlock (for compatibility).

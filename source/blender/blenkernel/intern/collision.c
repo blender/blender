@@ -1380,7 +1380,7 @@ static void machine_epsilon_offset(Cloth *cloth)
 	
 	cv = cloth->verts;
 	for (i=0; i<cloth->numverts; i++, cv++) {
-		/*aggrevatingly enough, it's necassary to offset the coordinates
+		/*aggrevatingly enough, it's necessary to offset the coordinates
 		 by a multiple of the 32-bit floating point epsilon when switching
 		 into doubles*/
 		#define RNDSIGN (float)(-1*(BLI_rand()%2==0)|1)

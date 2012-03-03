@@ -112,17 +112,17 @@ static float uvedit_old_center[2];
 
 static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Image *ima= sima->image;
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Image *ima = sima->image;
 	BMEditMesh *em;
 	float center[2];
 	int imx, imy, step, digits;
 
 	ED_space_image_size(sima, &imx, &imy);
 	
-	em= ((Mesh *)obedit->data)->edit_btmesh;
+	em = BMEdit_FromObject(obedit);
 
 	if(uvedit_center(scene, em, ima, center)) {
 		copy_v2_v2(uvedit_old_center, center);
@@ -161,7 +161,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 	if(event != B_UVEDIT_VERTEX)
 		return;
 
-	em= ((Mesh *)obedit->data)->edit_btmesh;
+	em = BMEdit_FromObject(obedit);
 
 	ED_space_image_size(sima, &imx, &imy);
 	uvedit_center(scene, em, ima, center);

@@ -974,7 +974,7 @@ static int distribute_compare_orig_index(const void *p1, const void *p2)
 		return -1;
 	else if(index1 == index2) {
 		/* this pointer comparison appears to make qsort stable for glibc,
-		 * and apparently on solaris too, makes the renders reproducable */
+		 * and apparently on solaris too, makes the renders reproducible */
 		if(p1 < p2)
 			return -1;
 		else if(p1 == p2)

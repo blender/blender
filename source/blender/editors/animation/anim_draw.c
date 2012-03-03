@@ -189,7 +189,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	
 	/* get timecode string 
 	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
-	 *	- power = 0, gives 'standard' behaviour for time
+	 *	- power = 0, gives 'standard' behavior for time
 	 *	  but power = 1 is required for frames (to get integer frames)
 	 */
 	if (time)

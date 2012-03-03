@@ -41,7 +41,7 @@ extern "C" {
   
   /**
  * Test presence of OpenEXR file.
- * @param mem pointer to loaded OpenEXR bitstream
+ * \param mem pointer to loaded OpenEXR bitstream
  */
   
 int		imb_is_a_openexr			(unsigned char *mem);

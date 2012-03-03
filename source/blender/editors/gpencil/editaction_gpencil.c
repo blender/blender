@@ -580,7 +580,7 @@ static short mirror_gpf_marker (bGPDframe *gpf, Scene *scene)
 		}
 	}
 	else {
-		/* initialisation time */
+		/* initialization time */
 		if (initialised) {
 			/* reset everything for safety */
 			marker = NULL;

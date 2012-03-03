@@ -30,60 +30,60 @@
  */
 
 extern BMWalker *bm_walker_types[];
-extern int bm_totwalkers;
+extern const int bm_totwalkers;
 
 
-/* Pointer hiding*/
-typedef struct bmesh_walkerGeneric {
+/* Pointer hiding */
+typedef struct BMwGenericWalker {
 	Link link;
 	int depth;
-} bmesh_walkerGeneric;
+} BMwGenericWalker;
 
 
-typedef struct shellWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwShellWalker {
+	BMwGenericWalker header;
 	BMEdge *curedge;
-} shellWalker;
+} BMwShellWalker;
 
-typedef struct islandboundWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwIslandboundWalker {
+	BMwGenericWalker header;
 	BMLoop *base;
 	BMVert *lastv;
 	BMLoop *curloop;
-} islandboundWalker;
+} BMwIslandboundWalker;
 
-typedef struct islandWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwIslandWalker {
+	BMwGenericWalker header;
 	BMFace *cur;
-} islandWalker;
+} BMwIslandWalker;
 
-typedef struct loopWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwLoopWalker {
+	BMwGenericWalker header;
 	BMEdge *cur, *start;
 	BMVert *lastv, *startv;
 	int startrad, stage2;
-} loopWalker;
+} BMwLoopWalker;
 
-typedef struct faceloopWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwFaceLoopWalker {
+	BMwGenericWalker header;
 	BMLoop *l;
 	int nocalc;
-} faceloopWalker;
+} BMwFaceLoopWalker;
 
-typedef struct edgeringWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwEdgeringWalker {
+	BMwGenericWalker header;
 	BMLoop *l;
 	BMEdge *wireedge;
-} edgeringWalker;
+} BMwEdgeringWalker;
 
-typedef struct uvedgeWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwUVEdgeWalker {
+	BMwGenericWalker header;
 	BMLoop *l;
-} uvedgeWalker;
+} BMwUVEdgeWalker;
 
-typedef struct connectedVertexWalker {
-	bmesh_walkerGeneric header;
+typedef struct BMwConnectedVertexWalker {
+	BMwGenericWalker header;
 	BMVert *curvert;
-} connectedVertexWalker;
+} BMwConnectedVertexWalker;
 
 #endif /* __BMESH_WALKERS_PRIVATE_H__ */

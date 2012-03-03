@@ -944,7 +944,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							float log2_search_to_pattern_ratio = log(floor(search_to_pattern_ratio)) / M_LN2;
 							int max_pyramid_levels= floor(log2_search_to_pattern_ratio + 1);
 
-							/* try to accomodate the user's choice of pyramid level in a way
+							/* try to accommodate the user's choice of pyramid level in a way
 							 * that doesn't cause the coarsest pyramid pattern to be larger
 							 * than the search size */
 							int level= MIN2(track->pyramid_levels, max_pyramid_levels);

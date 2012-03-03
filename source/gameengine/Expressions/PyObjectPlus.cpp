@@ -217,7 +217,7 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 }
 
 /**
-  * @param self A PyObjectPlus_Proxy
+  * \param self A PyObjectPlus_Proxy
   */
 void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
@@ -295,7 +295,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 	}
 	if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
 	{
-		// the attribute has no field correspondance, handover processing to function.
+		// the attribute has no field correspondence, handover processing to function.
 		if (attrdef->m_getFunction == NULL)
 			return NULL;
 		return (*attrdef->m_getFunction)(ptr, attrdef);

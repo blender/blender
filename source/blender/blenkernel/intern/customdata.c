@@ -51,6 +51,7 @@
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
@@ -104,7 +105,7 @@ typedef struct LayerTypeInfo {
 	   default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
 
-    /* functions necassary for geometry collapse*/
+    /* functions necessary for geometry collapse*/
 	int (*equal)(void *data1, void *data2);
 	void (*multiply)(void *data, float fac);
 	void (*initminmax)(void *min, void *max);
@@ -1081,7 +1082,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_ORIGINDEX | CD_MASK_POLYINDEX;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
-	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS;
+	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS | CD_MASK_CREASE | CD_MASK_BWEIGHT;
 const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL;
@@ -1664,7 +1665,7 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int t
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		/* MEM_dupallocN won't work in case of complex layers, like e.g.
 		 * CD_MDEFORMVERT, which has pointers to allocated data...
 		 * So in case a custom copy function is defined, use it!
 		 */
@@ -1697,7 +1698,7 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		/* MEM_dupallocN won't work in case of complex layers, like e.g.
 		 * CD_MDEFORMVERT, which has pointers to allocated data...
 		 * So in case a custom copy function is defined, use it!
 		 */
@@ -2110,19 +2111,32 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata,
 	}
 }
 
-void CustomData_bmesh_init_pool(CustomData *data, int allocsize)
+void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
+	int chunksize;
+
 	/* Dispose old pools before calling here to avoid leaks */
 	BLI_assert(data->pool == NULL);
 
+	switch (htype) {
+		case BM_VERT: chunksize = bm_mesh_chunksize_default.totvert;  break;
+		case BM_EDGE: chunksize = bm_mesh_chunksize_default.totedge;  break;
+		case BM_LOOP: chunksize = bm_mesh_chunksize_default.totloop;  break;
+		case BM_FACE: chunksize = bm_mesh_chunksize_default.totface;  break;
+		default:
+			BLI_assert(0);
+			chunksize = 512;
+			break;
+	}
+
 	/* If there are no layers, no pool is needed just yet */
 	if (data->totlayer) {
-		data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, TRUE, FALSE);
+		data->pool = BLI_mempool_create(data->totsize, totelem, chunksize, BLI_MEMPOOL_SYSMALLOC);
 	}
 }
 
 void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
-                            int mask, int alloctype, BMesh *bm, int type)
+                            int mask, int alloctype, BMesh *bm, const char htype)
 {
 	BMHeader *h;
 	BMIter iter;
@@ -2131,9 +2145,9 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	int t;
 	
 	CustomData_merge(source, dest, mask, alloctype, 0);
-	CustomData_bmesh_init_pool(dest, 512);
+	CustomData_bmesh_init_pool(dest, 512, htype);
 
-	switch (type) {
+	switch (htype) {
 		case BM_VERT:
 			t = BM_VERTS_OF_MESH; break;
 		case BM_EDGE:

@@ -114,7 +114,7 @@ typedef struct bNodeSocket {
 
 /* sock->struct_type */
 #define SOCK_STRUCT_NONE				0	/* default, type is defined by sock->type only */
-#define SOCK_STRUCT_OUTPUT_MULTI_FILE	1	/* multi file output node socket */
+#define SOCK_STRUCT_OUTPUT_FILE			1	/* file output node socket */
 
 /* socket side (input/output) */
 #define SOCK_IN		1
@@ -358,14 +358,17 @@ typedef struct NodeImageFile {
 	int sfra, efra;
 } NodeImageFile;
 
+/* XXX first struct fields should match NodeImageFile to ensure forward compatibility */
 typedef struct NodeImageMultiFile {
 	char base_path[1024];	/* 1024 = FILE_MAX */
+	ImageFormatData format;
+	int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;	/* XXX old frame rand values from NodeImageFile for forward compatibility */
 	int active_input;		/* selected input in details view list */
 	int pad;
 } NodeImageMultiFile;
 typedef struct NodeImageMultiFileSocket {
-	short use_render_format;	/* use global render settings instead of own format */
-	short pad1;
+	short use_render_format  DNA_DEPRECATED;
+	short use_node_format;	/* use overall node image format */
 	int pad2;
 	ImageFormatData format;
 } NodeImageMultiFileSocket;

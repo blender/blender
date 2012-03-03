@@ -581,7 +581,7 @@ CExpression* CParser::ProcessText
 	ch = text[0];
 	/*if (ch != '=') {
 	expr = new CConstExpr(new CStringValue(text));
-	*dependant = deplist;
+	*dependent = deplist;
 	return expr;
 	} else 
 	*/

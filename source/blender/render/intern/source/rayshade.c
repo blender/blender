@@ -461,7 +461,7 @@ void makeraytree(Render *re)
 	else
 	{
 		//Calculate raytree max_size
-		//This is ONLY needed to kept a bogus behaviour of SUN and HEMI lights
+		//This is ONLY needed to kept a bogus behavior of SUN and HEMI lights
 		INIT_MINMAX(min, max);
 		RE_rayobject_merge_bb( re->raytree, min, max );
 		for(i=0; i<3; i++)
@@ -1085,7 +1085,7 @@ static void QMC_initPixel(QMCSampler *qsa, int thread)
 	else { 	/* SAMP_TYPE_HALTON */
 		
 		/* generate a new randomised halton sequence per pixel
-		 * to alleviate qmc artifacts and make it reproducable 
+		 * to alleviate qmc artifacts and make it reproducible 
 		 * between threads/frames */
 		double ht_invprimes[2], ht_nums[2];
 		double r[2];

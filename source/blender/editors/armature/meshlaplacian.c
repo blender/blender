@@ -1494,7 +1494,7 @@ static float meshdeform_boundary_total_weight(MeshDeformBind *mdb, int x, int y,
 
 	a= meshdeform_index(mdb, x, y, z, 0);
 
-	/* count weight for neighbour cells */
+	/* count weight for neighbor cells */
 	for(i=1; i<=6; i++) {
 		if(meshdeform_index(mdb, x, y, z, i) == -1)
 			continue;

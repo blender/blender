@@ -423,7 +423,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 		
 		eval_time = domainSettings->bakeStart + i;
 		
-		/* XXX: This can't be used due to an anim sys optimisation that ignores recalc object animation,
+		/* XXX: This can't be used due to an anim sys optimization that ignores recalc object animation,
 		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
 		 * --> BKE_animsys_evaluate_all_animation(G.main, eval_time);
 		 * This doesn't work with drivers:
@@ -975,7 +975,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	channels->length = scene->r.efra;
 	channels->aniFrameTime = (domainSettings->animEnd - domainSettings->animStart)/(double)noFrames;
 	
-	/* ******** initialise and allocate animation channels ******** */
+	/* ******** initialize and allocate animation channels ******** */
 	fluid_init_all_channels(C, fsDomain, domainSettings, channels, fobjects);
 
 	/* reset to original current frame */

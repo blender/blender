@@ -111,12 +111,12 @@ int isect_ray_plane_v3(const float p1[3], const float d[3],
 
 /**
  * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
- * @param out The intersection point.
- * @param l1 The first point of the line.
- * @param l2 The second point of the line.
- * @param plane_co A point on the plane to intersect with.
- * @param plane_no The direction of the plane (does not need to be normalized).
- * @param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
+ * \param out The intersection point.
+ * \param l1 The first point of the line.
+ * \param l2 The second point of the line.
+ * \param plane_co A point on the plane to intersect with.
+ * \param plane_no The direction of the plane (does not need to be normalized).
+ * \param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
  */
 int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
                         const float plane_co[3], const float plane_no[3], const short no_flip);
@@ -125,12 +125,12 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
  * Intersect two planes, return a point on the intersection and a vector
  * that runs on the direction of the intersection.
  * Return error code is the same as 'isect_line_line_v3'.
- * @param r_isect_co The resulting intersection point.
- * @param r_isect_no The resulting vector of the intersection.
- * @param plane_a_co The point on the first plane.
- * @param plane_a_no The normal of the first plane.
- * @param plane_b_co The point on the second plane.
- * @param plane_b_no The normal of the second plane.
+ * \param r_isect_co The resulting intersection point.
+ * \param r_isect_no The resulting vector of the intersection.
+ * \param plane_a_co The point on the first plane.
+ * \param plane_a_no The normal of the first plane.
+ * \param plane_b_co The point on the second plane.
+ * \param plane_b_no The normal of the second plane.
  */
 void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
                           const float plane_a_co[3], const float plane_a_no[3],

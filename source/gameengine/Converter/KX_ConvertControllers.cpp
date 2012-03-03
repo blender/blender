@@ -228,7 +228,7 @@ void BL_ConvertControllers(
 				else {
 					/* We cant do this because importing runs the script which could end up accessing
 					 * internal BGE functions, this is unstable while we're converting the scene.
-					 * This is a pitty because its useful to see errors at startup but cant help it */
+					 * This is a pity because its useful to see errors at startup but cant help it */
 					
 					// pyctrl->Import();
 				}

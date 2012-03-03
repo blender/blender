@@ -73,7 +73,7 @@ void EDBM_ClearMesh(BMEditMesh *em)
 	
 	em->derivedCage = em->derivedFinal = NULL;
 	
-	/* free tesselation data */
+	/* free tessellation data */
 	em->tottri = 0;
 	if (em->looptris) 
 		MEM_freeN(em->looptris);
@@ -143,7 +143,7 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const int re
 
 		BMEdit_Free(em);
 		*em = *emcopy;
-		BMEdit_RecalcTesselation(em);
+		BMEdit_RecalcTessellation(em);
 
 		MEM_freeN(emcopy);
 		em->emcopyusers = 0;
@@ -245,7 +245,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	if (!em)
 		return;
@@ -521,13 +521,13 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 #ifdef BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
 
-	/* we recalc the tesselation here, to avoid seeding calls to
-	 * BMEdit_RecalcTesselation throughout the code. */
-	BMEdit_RecalcTesselation(em);
+	/* we recalc the tessellation here, to avoid seeding calls to
+	 * BMEdit_RecalcTessellation throughout the code. */
+	BMEdit_RecalcTessellation(em);
 
 #endif
 
-	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%b", &um->me, TRUE);
+	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notessellation=%b", &um->me, TRUE);
 	um->selectmode = em->selectmode;
 
 	return um;
@@ -546,7 +546,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 
 	BMEdit_Free(em);
 
-	bm = BM_mesh_create(ob, bm_mesh_allocsize_default);
+	bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
 
 	em2 = BMEdit_Create(bm, TRUE);

@@ -46,7 +46,7 @@ extern "C" {
  * rect is one with a zero (or negative)
  * width or height.
  *
- * @return True if @a rect is empty.
+ * \return True if \a rect is empty.
  */
 int  BLI_rcti_is_empty(struct rcti *rect);
 int  BLI_rctf_is_empty(struct rctf *rect);

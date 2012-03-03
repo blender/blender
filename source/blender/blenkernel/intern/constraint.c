@@ -279,7 +279,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 	
 	/* prevent crashes in these unlikely events  */
 	if (ob==NULL || mat==NULL) return;
-	/* optimise trick - check if need to do anything */
+	/* optimize trick - check if need to do anything */
 	if (from == to) return;
 	
 	/* are we dealing with pose-channels or objects */
@@ -671,7 +671,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 }
 
 /* This following macro should be used for all standard single-target *_get_tars functions 
- * to save typing and reduce maintainance woes.
+ * to save typing and reduce maintenance woes.
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
@@ -705,7 +705,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 	}
 	
 /* This following macro should be used for all standard single-target *_get_tars functions 
- * to save typing and reduce maintainance woes. It does not do the subtarget related operations
+ * to save typing and reduce maintenance woes. It does not do the subtarget related operations
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
@@ -724,7 +724,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 	}
 
 /* This following macro should be used for all standard single-target *_flush_tars functions
- * to save typing and reduce maintainance woes.
+ * to save typing and reduce maintenance woes.
  * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
@@ -745,7 +745,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 	}
 	
 /* This following macro should be used for all standard single-target *_flush_tars functions
- * to save typing and reduce maintainance woes. It does not do the subtarget related operations.
+ * to save typing and reduce maintenance woes. It does not do the subtarget related operations.
  * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
@@ -2148,7 +2148,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		float s, t;
 		short axis;
 		
-		/* initialise return matrix */
+		/* initialize return matrix */
 		unit_m4(ct->matrix);
 		
 		/* get the transform matrix of the target */
@@ -2221,7 +2221,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
-			/* behaviour undefined... */
+			/* behavior undefined... */
 			puts("Error: unknown owner type for Action Constraint");
 		}
 	}
@@ -3920,7 +3920,7 @@ static bConstraintTypeInfo CTI_PIVOT = {
 	NULL, /* relink data */
 	pivotcon_id_looper, /* id looper */
 	NULL, /* copy data */
-	NULL, /* new data */ // XXX: might be needed to get 'normal' pivot behaviour...
+	NULL, /* new data */ // XXX: might be needed to get 'normal' pivot behavior...
 	pivotcon_get_tars, /* get constraint targets */
 	pivotcon_flush_tars, /* flush constraint targets */
 	default_get_tarmat, /* get target matrix */
@@ -4294,7 +4294,7 @@ static void constraints_init_typeinfo (void)
  */
 bConstraintTypeInfo *get_constraint_typeinfo (int type)
 {
-	/* initialise the type-info list? */
+	/* initialize the type-info list? */
 	if (CTI_INIT) {
 		constraints_init_typeinfo();
 		CTI_INIT = 0;
@@ -4412,7 +4412,7 @@ static bConstraint *add_new_constraint_internal (const char *name, short type)
 
 	/* Determine a basic name, and info */
 	if (cti) {
-		/* initialise constraint data */
+		/* initialize constraint data */
 		con->data = MEM_callocN(cti->size, cti->structName);
 		
 		/* only constraints that change any settings need this */
@@ -4757,7 +4757,7 @@ void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, L
 		cti->get_constraint_targets(con, targets);
 		
 		/* set matrices 
-		 * 	- calculate if possible, otherwise just initialise as identity matrix 
+		 * 	- calculate if possible, otherwise just initialize as identity matrix 
 		 */
 		if (cti->get_target_matrix) {
 			for (ct= targets->first; ct; ct= ct->next) 

@@ -1619,7 +1619,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sync Action Length";
 	ot->idname= "NLA_OT_action_sync_length";
-	ot->description= "Synchronise the length of the referenced Action with the length used in the strip";
+	ot->description= "Synchronize the length of the referenced Action with the length used in the strip";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_sync_actlen_exec;

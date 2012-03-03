@@ -594,7 +594,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 		key= me->key= add_key((ID *)me);
 		key->type= KEY_RELATIVE;
 
-		/* first key added, so it was the basis. initialise it with the existing mesh */
+		/* first key added, so it was the basis. initialize it with the existing mesh */
 		kb= add_keyblock(key, NULL);
 		mesh_to_key(me, kb);
 	}

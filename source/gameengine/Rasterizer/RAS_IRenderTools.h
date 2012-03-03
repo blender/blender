@@ -103,13 +103,13 @@ public:
 
 	/**
 	 * Renders 3D text string using BFL.
-	 * @param fontid	The id of the font.
-	 * @param text		The string to render.
-	 * @param size		The size of the text.
-	 * @param dpi		The resolution of the text.
-	 * @param color		The color of the object.
-	 * @param mat		The Matrix of the text object.
-	 * @param aspect	A scaling factor to compensate for the size.
+	 * \param fontid	The id of the font.
+	 * \param text		The string to render.
+	 * \param size		The size of the text.
+	 * \param dpi		The resolution of the text.
+	 * \param color		The color of the object.
+	 * \param mat		The Matrix of the text object.
+	 * \param aspect	A scaling factor to compensate for the size.
 	 */
 	virtual 
 		void	
@@ -125,12 +125,12 @@ public:
 
 	/**
 	 * Renders 2D text string.
-	 * @param mode      The type of text
-	 * @param text		The string to render.
-	 * @param xco		Position on the screen (origin in lower left corner).
-	 * @param yco		Position on the screen (origin in lower left corner).
-	 * @param width		Width of the canvas to draw to.
-	 * @param height	Height of the canvas to draw to.
+	 * \param mode      The type of text
+	 * \param text		The string to render.
+	 * \param xco		Position on the screen (origin in lower left corner).
+	 * \param yco		Position on the screen (origin in lower left corner).
+	 * \param width		Width of the canvas to draw to.
+	 * \param height	Height of the canvas to draw to.
 	 */
 	virtual 
 		void	

@@ -225,7 +225,7 @@ void GPC_Engine::StartLoadingAnimation()
 }
 
 	
-// will be platform dependant
+// will be platform dependent
 float GPC_Engine::DetermineProgress(void)
 {
 #if 0

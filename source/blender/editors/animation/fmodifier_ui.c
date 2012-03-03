@@ -175,7 +175,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 		}
 			break;
 		
-		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial expression */
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial expression */
 		{
 			float *cp = NULL;
 			unsigned int i;
@@ -312,7 +312,7 @@ static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float 
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
 	
-	/* initialise exists-flag first */
+	/* initialize exists-flag first */
 	*exists= 0;
 	
 	/* sneaky optimisations (don't go through searching process if...):

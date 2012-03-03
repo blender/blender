@@ -104,7 +104,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, int update)
 	if ((scene->toolsettings->automerge) &&
 	    (obedit && obedit->type == OB_MESH))
 	{
-		em = ((Mesh *)obedit->data)->edit_btmesh;
+		em = BMEdit_FromObject(obedit);
 		if (!em)
 			return;
 
@@ -694,7 +694,7 @@ static EnumPropertyItem prop_similar_types[] = {
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	/* get the type from RNA */
@@ -735,7 +735,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
 	/* get the type from RNA */
@@ -782,7 +782,7 @@ VERT GROUP
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)ob->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
@@ -835,7 +835,7 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 	if (obedit && obedit->type == OB_MESH) {
 		EnumPropertyItem *item = NULL;
 		int a, totitem = 0;
-		BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			for (a = SIMVERT_NORMAL; a < SIMEDGE_LENGTH; a++) {
@@ -910,7 +910,7 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 static int loop_multiselect(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMEdge *eed;
 	BMEdge **edarray;
 	int edindex;
@@ -1089,7 +1089,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "Select ring");
 }
 
-void MESH_OT_edgering_select (wmOperatorType *ot)
+void MESH_OT_edgering_select(wmOperatorType *ot)
 {
 	/* description */
 	ot->name = "Edge Ring Select";
@@ -1738,7 +1738,7 @@ static void linked_limit_default(bContext *C, wmOperator *op)
 {
 	if (!RNA_struct_property_is_set(op->ptr, "limit")) {
 		Object *obedit = CTX_data_edit_object(C);
-		BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 		if (em->selectmode == SCE_SELECT_FACE)
 			RNA_boolean_set(op->ptr, "limit", TRUE);
 		else
@@ -1860,7 +1860,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMVert *v;
@@ -1904,7 +1904,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	}
 	else  {
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT) && !BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
 			}
 			else {
@@ -1955,7 +1955,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 static int select_more(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	EDBM_select_more(em);
 
@@ -1981,7 +1981,7 @@ void MESH_OT_select_more(wmOperatorType *ot)
 static int select_less(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 
 	EDBM_select_less(em);
 
@@ -2155,7 +2155,7 @@ static int EM_deselect_nth(BMEditMesh *em, int nth, int offset)
 static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int nth = RNA_int_get(op->ptr, "nth");
 	int offset = RNA_int_get(op->ptr, "offset");
 
@@ -2217,7 +2217,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	* small enough, select the edge
 	*/
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMIter iter;
 	BMEdge *e;
 	BMLoop *l1, *l2;
@@ -2270,7 +2270,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMIter iter, liter, liter2;
 	BMFace *f, **stack = NULL;
 	BLI_array_declare(stack);
@@ -2351,7 +2351,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 static int select_non_manifold_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMVert *v;
 	BMEdge *e;
 	BMIter iter;
@@ -2400,7 +2400,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 static int mesh_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMVert *eve;
 	BMEdge *eed;
 	BMFace *efa;
@@ -2466,7 +2466,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = (((Mesh *)obedit->data))->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *f;
 	BMVert *v;
 	BMIter iter;
@@ -2480,7 +2480,7 @@ static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 		BMIter liter;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
-			if (BM_elem_flag_test(l->v, BM_ELEM_SELECT) && !BM_elem_flag_test(l->v, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
 				BM_elem_flag_enable(l->next->v, BM_ELEM_TAG);
 				BM_elem_select_set(em->bm, l->v, FALSE);
 			}
@@ -2516,7 +2516,7 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *f;
 	BMEdge *e;
 	BMIter iter;
@@ -2720,7 +2720,7 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 static int loop_to_region(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMIter iter;
 	BMFace *f;
 	int selbigger = RNA_boolean_get(op->ptr, "select_bigger");

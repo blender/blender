@@ -53,7 +53,7 @@ static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 	for ( ; f2; f2 = BMW_step(&regwalker)) {
 		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		for ( ; l2; l2 = BM_iter_step(&liter2)) {
-			l3 = bmesh_radial_loop_next(l2);
+			l3 = l2->radial_next;
 			if ( BMO_elem_flag_test(bm, l3->f, FACE_MARK) !=
 			     BMO_elem_flag_test(bm, l2->f, FACE_MARK))
 			{
@@ -96,7 +96,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 	
 	/* collect region */
 	BMO_ITER(f, &oiter, bm, op, "faces", BM_FACE) {
-		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) continue;
+
+		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
+			continue;
+		}
 
 		BLI_array_empty(faces);
 		faces = NULL; /* forces different allocatio */
@@ -171,12 +174,14 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (BMO_error_occurred(bm)) goto cleanup;
+	if (BMO_error_occurred(bm)) {
+		goto cleanup;
+	}
 
-	BMO_slot_from_flag(bm, op, "regionout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "regionout", FACE_NEW, BM_FACE);
 
 cleanup:
-	/* free/cleanu */
+	/* free/cleanup */
 	for (i = 0; i < BLI_array_count(regions); i++) {
 		if (regions[i]) MEM_freeN(regions[i]);
 	}
@@ -319,13 +324,11 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 }
 void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 {
-	BMOpSlot *vinput;
 	BMIter iter, fiter;
 	BMVert *v;
 	BMFace *f;
 	/* int i; */
-	
-	vinput = BMO_slot_get(op, "verts");
+
 	BMO_slot_buffer_flag_enable(bm, op, "verts", VERT_MARK, BM_VERT);
 	
 	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
@@ -463,14 +466,14 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 #endif
 
 /**/
-typedef struct DissolveElemWeight_t {
+typedef struct DissolveElemWeight {
 	BMHeader *ele;
 	float weight;
-} DissolveElemWeight_t;
+} DissolveElemWeight;
 
 static int dissolve_elem_cmp(const void *a1, const void *a2)
 {
-	const struct DissolveElemWeight_t *d1 = a1, *d2 = a2;
+	const struct DissolveElemWeight *d1 = a1, *d2 = a2;
 
 	if      (d1->weight > d2->weight) return  1;
 	else if (d1->weight < d2->weight) return -1;
@@ -483,8 +486,8 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *vinput = BMO_slot_get(op, "verts");
 	const float angle_max = (float)M_PI / 2.0f;
 	const float angle_limit = minf(angle_max, BMO_slot_float_get(op, "angle_limit"));
-	DissolveElemWeight_t *weight_elems = MEM_mallocN(MAX2(einput->len, vinput->len) *
-	                                                 sizeof(DissolveElemWeight_t), __func__);
+	DissolveElemWeight *weight_elems = MEM_mallocN(MAX2(einput->len, vinput->len) *
+	                                                 sizeof(DissolveElemWeight), __func__);
 	int i, tot_found;
 
 	/* --- first edges --- */
@@ -506,7 +509,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (tot_found != 0) {
-		qsort(weight_elems, einput->len, sizeof(DissolveElemWeight_t), dissolve_elem_cmp);
+		qsort(weight_elems, einput->len, sizeof(DissolveElemWeight), dissolve_elem_cmp);
 
 		for (i = 0; i < tot_found; i++) {
 			BMEdge *e = (BMEdge *)weight_elems[i].ele;
@@ -541,7 +544,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (tot_found != 0) {
-		qsort(weight_elems, vinput->len, sizeof(DissolveElemWeight_t), dissolve_elem_cmp);
+		qsort(weight_elems, vinput->len, sizeof(DissolveElemWeight), dissolve_elem_cmp);
 
 		for (i = 0; i < tot_found; i++) {
 			BMVert *v = (BMVert *)weight_elems[i].ele;

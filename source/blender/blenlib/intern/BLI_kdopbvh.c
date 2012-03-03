@@ -656,14 +656,14 @@ static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index
  * Its possible to find the position of the child or the parent with simple maths (multiplication and adittion). This type
  * of tree is for example used on heaps.. where node N has its childs at indexs N*2 and N*2+1.
  *
- * Altought in this case the tree type is general.. and not know until runtime.
+ * Although in this case the tree type is general.. and not know until runtime.
  * tree_type stands for the maximum number of childs that a tree node can have.
  * All tree types >= 2 are supported.
  *
  * Advantages of the used trees include:
  *  - No need to store child/parent relations (they are implicit);
  *  - Any node child always has an index greater than the parent;
- *  - Brother nodes are sequencial in memory;
+ *  - Brother nodes are sequential in memory;
  *
  *
  * Some math relations derived for general implicit trees:
@@ -688,7 +688,7 @@ static int implicit_needed_branches(int tree_type, int leafs)
  *
  * It arranges the elements in the given partitions such that:
  *  - any element in partition N is less or equal to any element in partition N+1.
- *  - if all elements are diferent all partition will get the same subset of elements
+ *  - if all elements are different all partition will get the same subset of elements
  *    as if the array was sorted.
  *
  * partition P is described as the elements in the range ( nth[P] , nth[P+1] ]
@@ -721,7 +721,7 @@ static void split_leafs(BVHNode **leafs_array, int *nth, int partitions, int spl
  * to use multithread building.
  *
  * To archieve this is necessary to find how much leafs are accessible from a certain branch, BVHBuildHelper
- * implicit_needed_branches and implicit_leafs_index are auxiliar functions to solve that "optimal-split".
+ * implicit_needed_branches and implicit_leafs_index are auxiliary functions to solve that "optimal-split".
  */
 static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, BVHNode **leafs_array, int num_leafs)
 {

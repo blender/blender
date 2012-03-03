@@ -119,7 +119,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &weldop);
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_from_flag(bm, op, "newout", ELE_NEW, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "newout", ELE_NEW, BM_ALL);
 
 	BLI_array_free(vmap);
 	BLI_array_free(emap);

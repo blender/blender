@@ -48,32 +48,32 @@ typedef struct DynStr DynStr;
 	/**
 	 * Create a new DynStr.
 	 * 
-	 * @return Pointer to a new DynStr.
+	 * \return Pointer to a new DynStr.
 	 */
 DynStr*	BLI_dynstr_new					(void);
 
 	/**
 	 * Append a c-string to a DynStr.
 	 * 
-	 * @param ds The DynStr to append to.
-	 * @param cstr The c-string to append.
+	 * \param ds The DynStr to append to.
+	 * \param cstr The c-string to append.
 	 */
 void	BLI_dynstr_append				(DynStr *ds, const char *cstr);
 
 /**
  * Append a length clamped c-string to a DynStr.
  *
- * @param ds The DynStr to append to.
- * @param cstr The c-string to append.
- * @param len The maximum length of the c-string to copy.
+ * \param ds The DynStr to append to.
+ * \param cstr The c-string to append.
+ * \param len The maximum length of the c-string to copy.
  */
 void	BLI_dynstr_nappend				(DynStr *ds, const char *cstr, int len);
 
 	/**
 	 * Append a c-string to a DynStr, but with formatting like printf.
 	 * 
-	 * @param ds The DynStr to append to.
-	 * @param format The printf format string to use.
+	 * \param ds The DynStr to append to.
+	 * \param format The printf format string to use.
 	 */
 void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...)
 #ifdef __GNUC__
@@ -85,8 +85,8 @@ void	BLI_dynstr_vappendf				(DynStr *ds, const char *format, va_list args);
 	/**
 	 * Find the length of a DynStr.
 	 * 
-	 * @param ds The DynStr of interest.
-	 * @return The length of @a ds.
+	 * \param ds The DynStr of interest.
+	 * \return The length of \a ds.
 	 */
 int		BLI_dynstr_get_len				(DynStr *ds);
 
@@ -95,8 +95,8 @@ int		BLI_dynstr_get_len				(DynStr *ds);
 	 * <i> The returned c-string should be free'd
 	 * using MEM_freeN. </i>
 	 * 
-	 * @param ds The DynStr of interest.
-	 * @return The contents of @a ds as a c-string.
+	 * \param ds The DynStr of interest.
+	 * \return The contents of \a ds as a c-string.
 	 */
 char*	BLI_dynstr_get_cstring			(DynStr *ds);
 
@@ -105,16 +105,16 @@ char*	BLI_dynstr_get_cstring			(DynStr *ds);
  * <i> The str argument must be allocated to be at
  * least the size of BLI_dynstr_get_len(ds) + 1. </i>
  *
- * @param ds The DynStr of interest.
- * @param str The string to fill.
- * @return The contents of @a ds as a c-string.
+ * \param ds The DynStr of interest.
+ * \param str The string to fill.
+ * \return The contents of \a ds as a c-string.
  */
 void	BLI_dynstr_get_cstring_ex		(DynStr *ds, char *str);
 
 	/**
 	 * Free the DynStr
 	 * 
-	 * @param ds The DynStr to free.
+	 * \param ds The DynStr to free.
 	 */
 void	BLI_dynstr_free					(DynStr *ds);
 

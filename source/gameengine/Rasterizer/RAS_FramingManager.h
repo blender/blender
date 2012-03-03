@@ -39,7 +39,7 @@
 class RAS_Rect;
 
 /**
- * @section RAS_FrameSettings
+ * \section RAS_FrameSettings
  * This is a value type describing the framing used
  * by a particular scene in the game engine.
  * Each KX_Scene contains a RAS_FrameSetting describing
@@ -193,7 +193,7 @@ enum RAS_SensorFit
 };
 
 /**
- * @section RAS_FramingManager
+ * \section RAS_FramingManager
  * This class helps to compute a view frustum
  * and a viewport rectangle given the 
  * above settings and a description of the 

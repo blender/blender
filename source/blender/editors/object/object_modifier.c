@@ -478,7 +478,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 			key= me->key= add_key((ID *)me);
 			key->type= KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
-			 * Initialise it with the mesh, and add another for the modifier */
+			 * Initialize it with the mesh, and add another for the modifier */
 			kb= add_keyblock(key, NULL);
 			mesh_to_key(me, kb);
 		}
@@ -1655,7 +1655,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	for (f=omd->bakestart; f<=omd->bakeend; f++) {
 		/* from physics_fluid.c:
 		 
-		 * XXX: This can't be used due to an anim sys optimisation that ignores recalc object animation,
+		 * XXX: This can't be used due to an anim sys optimization that ignores recalc object animation,
 		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
 		 * --> BKE_animsys_evaluate_all_animation(G.main, eval_time);
 		 * This doesn't work with drivers:

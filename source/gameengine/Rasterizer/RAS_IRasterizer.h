@@ -202,7 +202,7 @@ public:
 	virtual void	SetStereoMode(const StereoMode stereomode)=0;
 	/**
 	 * Stereo can be used to query if the rasterizer is in stereo mode.
-	 * @return true if stereo mode is enabled.
+	 * \return true if stereo mode is enabled.
 	 */
 	virtual bool	Stereo()=0;
 	virtual StereoMode GetStereoMode()=0;
@@ -236,7 +236,7 @@ public:
 
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.
-	 * The text to be rendered is from @param rendertools client object's text property.
+	 * The text to be rendered is from \param rendertools client object's text property.
 	 */
 	virtual void	IndexPrimitives_3DText(class RAS_MeshSlot& ms,
 							class RAS_IPolyMaterial* polymat,
@@ -247,7 +247,7 @@ public:
 	/**
 	 * Set the projection matrix for the rasterizer. This projects
 	 * from camera coordinates to window coordinates.
-	 * @param mat The projection matrix.
+	 * \param mat The projection matrix.
 	 */
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat)=0;
 	/**
@@ -292,11 +292,11 @@ public:
 								 float alpha)=0;
 	
 	/**
-	 * @param drawingmode = KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
+	 * \param drawingmode = KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
 	 */
 	virtual void	SetDrawingMode(int drawingmode)=0;
 	/**
-	 * @return the current drawing mode: KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
+	 * \return the current drawing mode: KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
 	 */
 	virtual int	GetDrawingMode()=0;
 	/**
@@ -312,13 +312,13 @@ public:
 	virtual double	GetTime()=0;
 	/**
 	 * Generates a projection matrix from the specified frustum.
-	 * @param left the left clipping plane
-	 * @param right the right clipping plane
-	 * @param bottom the bottom clipping plane
-	 * @param top the top clipping plane
-	 * @param frustnear the near clipping plane
-	 * @param frustfar the far clipping plane
-	 * @return a 4x4 matrix representing the projection transform.
+	 * \param left the left clipping plane
+	 * \param right the right clipping plane
+	 * \param bottom the bottom clipping plane
+	 * \param top the top clipping plane
+	 * \param frustnear the near clipping plane
+	 * \param frustfar the far clipping plane
+	 * \return a 4x4 matrix representing the projection transform.
 	 */
 	virtual MT_Matrix4x4 GetFrustumMatrix(
 		float left,
@@ -333,13 +333,13 @@ public:
 
 	/**
 	 * Generates a orthographic projection matrix from the specified frustum.
-	 * @param left the left clipping plane
-	 * @param right the right clipping plane
-	 * @param bottom the bottom clipping plane
-	 * @param top the top clipping plane
-	 * @param frustnear the near clipping plane
-	 * @param frustfar the far clipping plane
-	 * @return a 4x4 matrix representing the projection transform.
+	 * \param left the left clipping plane
+	 * \param right the right clipping plane
+	 * \param bottom the bottom clipping plane
+	 * \param top the top clipping plane
+	 * \param frustnear the near clipping plane
+	 * \param frustfar the far clipping plane
+	 * \return a 4x4 matrix representing the projection transform.
 	 */
 	virtual MT_Matrix4x4 GetOrthoMatrix(
 		float left,

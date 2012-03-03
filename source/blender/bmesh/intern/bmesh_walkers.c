@@ -27,8 +27,7 @@
  */
 
 #include <stdlib.h>
-
-
+#include <string.h> /* for memcpy */
 
 #include "BLI_listbase.h"
 
@@ -42,7 +41,7 @@
  *
  * original desing: walkers directly emulation recursive functions.
  * functions save their state onto a worklist, and also add new states
- * to implement recursive or looping behaviour.  generally only one
+ * to implement recursive or looping behavior.  generally only one
  * state push per call with a specific state is desired.
  *
  * basic design pattern: the walker step function goes through it's
@@ -53,8 +52,8 @@
  * - Walkers use tool flags, not header flags.
  * - Walkers now use ghash for storing visited elements,
  *   rather then stealing flags.  ghash can be rewritten
- *   to be faster if necassary, in the far future :) .
- * - tools should ALWAYS have necassary error handling
+ *   to be faster if necessary, in the far future :) .
+ * - tools should ALWAYS have necessary error handling
  *   for if walkers fail.
  */
 
@@ -113,7 +112,7 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 		BLI_assert(mask_face == 0 || (walker->valid_mask & BM_FACE));
 	}
 	
-	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, TRUE, FALSE);
+	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, BLI_MEMPOOL_SYSMALLOC);
 	walker->states.first = walker->states.last = NULL;
 }
 
@@ -179,7 +178,7 @@ void *BMW_walk(BMWalker *walker)
  */
 void *BMW_current_state(BMWalker *walker)
 {
-	bmesh_walkerGeneric *currentstate = walker->states.first;
+	BMwGenericWalker *currentstate = walker->states.first;
 	if (currentstate) {
 		/* Automatic update of depth. For most walkers that
 		 * follow the standard "Step" pattern of:
@@ -221,7 +220,7 @@ void BMW_state_remove(BMWalker *walker)
  */
 void *BMW_state_add(BMWalker *walker)
 {
-	bmesh_walkerGeneric *newstate;
+	BMwGenericWalker *newstate;
 	newstate = BLI_mempool_alloc(walker->worklist);
 	newstate->depth = walker->depth;
 	switch (walker->order)

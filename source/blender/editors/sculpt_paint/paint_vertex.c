@@ -2837,8 +2837,8 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 #endif
 #define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
 
-		/* update vertex colors for tesselations incrementally,
-		 * rather then regenerating the tesselation altogether */
+		/* update vertex colors for tessellations incrementally,
+		 * rather then regenerating the tessellation altogether */
 		for (e = vpd->polyfacemap[index].first; e; e = e->next) {
 			mf = me->mface + e->facenr;
 			mc = me->mcol + e->facenr*4;

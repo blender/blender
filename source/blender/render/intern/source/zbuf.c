@@ -1032,9 +1032,9 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
  * This is one of the z buffer fill functions called in zbufclip() and
  * zbufwireclip(). 
  *
- * @param v1 [4 floats, world coordinates] first vertex
- * @param v2 [4 floats, world coordinates] second vertex
- * @param v3 [4 floats, world coordinates] third vertex
+ * \param v1 [4 floats, world coordinates] first vertex
+ * \param v2 [4 floats, world coordinates] second vertex
+ * \param v3 [4 floats, world coordinates] third vertex
  */
 
 /* WATCH IT: zbuffillGLinv4 and zbuffillGL4 are identical except for a 2 lines,
@@ -1285,9 +1285,9 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
  * This is one of the z buffer fill functions called in zbufclip() and
  * zbufwireclip(). 
  *
- * @param v1 [4 floats, world coordinates] first vertex
- * @param v2 [4 floats, world coordinates] second vertex
- * @param v3 [4 floats, world coordinates] third vertex
+ * \param v1 [4 floats, world coordinates] first vertex
+ * \param v2 [4 floats, world coordinates] second vertex
+ * \param v3 [4 floats, world coordinates] third vertex
  */
 
 /* now: filling two Z values, the closest and 2nd closest */
@@ -1594,12 +1594,12 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
  * viewspace coordinates. labda = -1 means no clipping, labda in [0,
 	 * 1] means a clipping.
  * Note: uses globals.
- * @param v1 start coordinate s
- * @param v2 target coordinate t
- * @param b1 
- * @param b2 
- * @param b3
- * @param a index for coordinate (x, y, or z)
+ * \param v1 start coordinate s
+ * \param v2 target coordinate t
+ * \param b1 
+ * \param b2 
+ * \param b3
+ * \param a index for coordinate (x, y, or z)
  */
 
 static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a, float clipcrop)
@@ -1652,11 +1652,11 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
  * vertex list of this face.
  * 
  * 
- * @param v1 start coordinate s
- * @param v2 target coordinate t
- * @param b1 
- * @param b2 
- * @param clve vertex vector.
+ * \param v1 start coordinate s
+ * \param v2 target coordinate t
+ * \param b1 
+ * \param b2 
+ * \param clve vertex vector.
  */
 
 static void makevertpyra(float *vez, float *labda, float **trias, float *v1, float *v2, int *b1, int *clve)
@@ -2736,7 +2736,7 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 }
 
 /* char value==255 is filled in, rest should be zero */
-/* returns alpha values, but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbour */
+/* returns alpha values, but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbor */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 {
 	char *row1, *row2, *row3;

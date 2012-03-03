@@ -2470,7 +2470,7 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
 }
 
 /* note: currently this is a copy of 'pyrna_prop_collection_subscript' with
- * large blocks commented, we may support slice/key indicies later */
+ * large blocks commented, we may support slice/key indices later */
 static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self, PyObject *key, PyObject *value)
 {
 	PYRNA_PROP_CHECK_INT(self);
@@ -6500,14 +6500,16 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
 			py_ret = PyObject_Call(py_func, args_fake, py_kw);
 
-			Py_DECREF(args_fake); /* free's py_srna_cobject too */
-
 			if (py_ret) {
 				Py_DECREF(py_ret);
+				Py_DECREF(args_fake); /* free's py_srna_cobject too */
 			}
 			else {
+				/* _must_ print before decreffing args_fake */
 				PyErr_Print();
 				PyErr_Clear();
+
+				Py_DECREF(args_fake); /* free's py_srna_cobject too */
 
 				// PyC_LineSpit();
 				PyErr_Format(PyExc_ValueError,

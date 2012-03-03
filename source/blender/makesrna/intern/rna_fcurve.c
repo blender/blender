@@ -599,7 +599,7 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 		fcu->totvert += tot;
 		
 		while(tot--) {
-			/* defaults, no userprefs gives pradictable results for API */
+			/* defaults, no userprefs gives predictable results for API */
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->ipo= BEZT_IPO_BEZ;
 			bezt->h1= bezt->h2= HD_AUTO_ANIM;
@@ -633,7 +633,7 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	
 	static EnumPropertyItem generator_mode_items[] = {
 		{FCM_GENERATOR_POLYNOMIAL, "POLYNOMIAL", 0, "Expanded Polynomial", ""},
-		{FCM_GENERATOR_POLYNOMIAL_FACTORISED, "POLYNOMIAL_FACTORISED", 0, "Factorised Polynomial", ""},
+		{FCM_GENERATOR_POLYNOMIAL_FACTORISED, "POLYNOMIAL_FACTORISED", 0, "Factorized Polynomial", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierGenerator", "FModifier");

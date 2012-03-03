@@ -353,7 +353,7 @@ typedef struct DupliObject {
 #define OB_NO_CONSTRAINTS	8192 /* runtime constraints disable */
 
 /* (short) ipoflag */
-/* XXX: many old flags for features removed due to incompatability 
+/* XXX: many old flags for features removed due to incompatibility
  * with new system and/or other design issues were here 
  */
 	/* for stride/path editing (XXX: NEEDS REVIEW) */

@@ -257,7 +257,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 			}
 		} else
 		{
-			/* First, the pulsing behaviour, if pulse mode is
+			/* First, the pulsing behavior, if pulse mode is
 			 * active. It seems something goes wrong if pulse mode is
 			 * not set :( */
 			if (m_pos_pulsemode) {

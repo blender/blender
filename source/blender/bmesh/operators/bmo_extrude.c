@@ -29,9 +29,11 @@
 
 #include "bmesh_operators_private.h" /* own include */
 
-#define EXT_INPUT 1
-#define EXT_KEEP  2
-#define EXT_DEL   4
+enum {
+	EXT_INPUT   = 1,
+	EXT_KEEP    = 2,
+	EXT_DEL     = 4
+};
 
 #define VERT_MARK 1
 #define EDGE_MARK 1
@@ -108,7 +110,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 
 	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
-	BMO_slot_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
 }
 
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
@@ -160,7 +162,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
@@ -179,8 +181,8 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
-	BMO_slot_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
-	BMO_slot_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
 }
 
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
@@ -192,7 +194,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
-	int rlen, found, fwd, delorig = 0;
+	int found, fwd, delorig = FALSE;
 
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, "dupe");
@@ -203,19 +205,28 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	 * original geometry unless caller explicitly asked to keep it. */
 	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BMO_elem_flag_test(bm, e, EXT_INPUT)) continue;
 
-			found = 0;
-			f = BM_iter_new(&fiter, bm, BM_FACES_OF_EDGE, e);
-			for (rlen = 0; f; f = BM_iter_step(&fiter), rlen++) {
-				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
-					found = 1;
-					delorig = 1;
-					break;
-				}
+			int edge_face_tot;
+
+			if (!BMO_elem_flag_test(bm, e, EXT_INPUT)) {
+				continue;
 			}
 
-			if (!found && (rlen > 1)) {
+			found = FALSE; /* found a face that isn't input? */
+			edge_face_tot = 0; /* edge/face count */
+
+			BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
+					found = TRUE;
+					delorig = TRUE;
+					break;
+				}
+
+				edge_face_tot++;
+			}
+
+			if ((edge_face_tot > 1) && (found == FALSE)) {
+				/* edge has a face user, that face isnt extrude input */
 				BMO_elem_flag_enable(bm, e, EXT_DEL);
 			}
 		}
@@ -223,23 +234,26 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* calculate verts to delet */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		found = 0;
+		found = FALSE;
 
 		BM_ITER(e, &viter, bm, BM_EDGES_OF_VERT, v) {
 			if (!BMO_elem_flag_test(bm, e, EXT_INPUT) || !BMO_elem_flag_test(bm, e, EXT_DEL)) {
-				found = 1;
-				break;
-			}
-		}
-		
-		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, v) {
-			if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
-				found = 1;
+				found = TRUE;
 				break;
 			}
 		}
 
-		if (!found) {
+		/* avoid an extra loop */
+		if (found == TRUE) {
+			BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, v) {
+				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
+					found = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (found == FALSE) {
 			BMO_elem_flag_enable(bm, v, EXT_DEL);
 		}
 	}
@@ -250,7 +264,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (delorig) {
+	if (delorig == TRUE) {
 		BMO_op_initf(bm, &delop, "del geom=%fvef context=%i",
 		             EXT_DEL, DEL_ONLYTAGGED);
 	}
@@ -261,11 +275,13 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	if (bm->act_face && BMO_elem_flag_test(bm, bm->act_face, EXT_INPUT))
 		bm->act_face = BMO_slot_map_ptr_get(bm, &dupeop, "facemap", bm->act_face);
 
-	if (delorig) BMO_op_exec(bm, &delop);
+	if (delorig) {
+		BMO_op_exec(bm, &delop);
+	}
 	
 	/* if not delorig, reverse loops of original face */
 	if (!delorig) {
-		for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 			if (BMO_elem_flag_test(bm, f, EXT_INPUT)) {
 				BM_face_normal_flip(bm, f);
 			}
@@ -275,11 +291,21 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
 	e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0);
 	for ( ; e; e = BMO_iter_step(&siter)) {
-		if (BMO_slot_map_contains(bm, op, "exclude", e)) continue;
 
-		newedge = BMO_iter_map_value(&siter);
-		newedge = *(BMEdge **)newedge;
-		if (!newedge) continue;
+		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
+		if (BM_edge_is_wire(bm, e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
+			/* The original edge was excluded,
+			 * this would result in a standalone wire edge - see [#30399] */
+			BM_edge_kill(bm, e);
+
+			continue;
+		}
+
+		newedge = *(BMEdge **)BMO_iter_map_value(&siter);
+
+		if (!newedge) {
+			continue;
+		}
 
 		/* orient loop to give same normal as a loop of newedge
 		 * if it exists (will be an extruded face),
@@ -309,7 +335,11 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		/* copy attribute */
 		l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
 		for ( ; l; l = BM_iter_step(&iter)) {
-			if (l->e != e && l->e != newedge) continue;
+
+			if (l->e != e && l->e != newedge) {
+				continue;
+			}
+
 			l2 = l->radial_next;
 			
 			if (l2 == l) {
@@ -349,7 +379,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		BM_edge_create(bm, v, v2, v->e, TRUE);
 	}
 
-	/* cleanu */
+	/* cleanup */
 	if (delorig) BMO_op_finish(bm, &delop);
 	BMO_op_finish(bm, &dupeop);
 }

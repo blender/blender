@@ -603,7 +603,7 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 /* TODO. merge with code above! */
 
 /* Adds the given vertex to the specified vertex group, with given weight.
- * warning, this does NOT check for existign, assume caller already knows its not there */
+ * warning, this does NOT check for existing, assume caller already knows its not there */
 void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weight)
 {
 	MDeformWeight *dw_new;

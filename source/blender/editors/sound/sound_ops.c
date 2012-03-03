@@ -299,7 +299,7 @@ static void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Update animation cache";
-	ot->description= "Updates the audio animation cache so that it's up to date";
+	ot->description= "Update the audio animation cache";
 	ot->idname= "SOUND_OT_bake_animation";
 
 	/* api callbacks */

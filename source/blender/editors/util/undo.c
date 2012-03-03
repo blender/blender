@@ -95,7 +95,7 @@ void ED_undo_push(bContext *C, const char *str)
 		if (U.undosteps == 0) {
 			if (obedit->type == OB_MESH) {
 				Mesh *me= obedit->data;
-				BMEdit_RecalcTesselation(me->edit_btmesh);
+				BMEdit_RecalcTessellation(me->edit_btmesh);
 			}
 		}
 

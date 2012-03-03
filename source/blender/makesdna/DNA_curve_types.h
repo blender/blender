@@ -125,7 +125,7 @@ typedef struct Nurb {
 	short mat_nr;		/* index into material list */
 	short hide, flag;
 	short pntsu, pntsv;		/* number of points in the U or V directions */
-	short resolu, resolv;	/* tesselation resolution in the U or V directions */
+	short resolu, resolv;	/* tessellation resolution in the U or V directions */
 	short orderu, orderv;
 	short flagu, flagv;
 	

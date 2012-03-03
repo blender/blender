@@ -77,10 +77,10 @@ typedef struct Mesh {
 	struct MLoopCol *mloopcol;
 /* END BMESH ONLY */
 
-	/*mface stores the tesselation (triangulation) of the mesh,
+	/*mface stores the tessellation (triangulation) of the mesh,
 	  real faces are now stored in nface.*/
-	struct MFace *mface;	/* array of mesh object mode faces for tesselation */
-	struct MTFace *mtface;	/* store tesselation face UV's and texture here */
+	struct MFace *mface;	/* array of mesh object mode faces for tessellation */
+	struct MTFace *mtface;	/* store tessellation face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */

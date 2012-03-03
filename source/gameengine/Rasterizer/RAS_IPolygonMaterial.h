@@ -135,7 +135,7 @@ public:
 	/**
 	 * Returns the caching information for this material,
 	 * This can be used to speed up the rasterizing process.
-	 * @return The caching information.
+	 * \return The caching information.
 	 */
 	virtual TCachingInfo GetCachingInfo(void) const { return 0; }
 
@@ -143,8 +143,8 @@ public:
 	 * Activates the material in the rasterizer.
 	 * On entry, the cachingInfo contains info about the last activated material.
 	 * On exit, the cachingInfo should contain updated info about this material.
-	 * @param rasty			The rasterizer in which the material should be active.
-	 * @param cachingInfo	The information about the material used to speed up rasterizing.
+	 * \param rasty			The rasterizer in which the material should be active.
+	 * \param cachingInfo	The information about the material used to speed up rasterizing.
 	 */
 	virtual bool Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
 	{ 
@@ -177,7 +177,7 @@ public:
 	virtual void		Replace_IScene(SCA_IScene *val) {}; /* overridden by KX_BlenderMaterial */
 
 	/**
-	* @return the equivalent drawing mode for the material settings (equivalent to old TexFace tface->mode).
+	* \return the equivalent drawing mode for the material settings (equivalent to old TexFace tface->mode).
 	*/
 	int					ConvertFaceMode(struct GameSettings *game, bool image) const;
 

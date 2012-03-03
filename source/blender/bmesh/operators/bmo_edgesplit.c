@@ -20,6 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h> /* for memcpy */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
@@ -298,7 +300,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 				}
 				else {
 					/* generate unique vert for non-seam edge(s)
-					 * around the manifold vert fan if necassary */
+					 * around the manifold vert fan if necessary */
 
 					/* first check that we have two seam edges
 					 * somewhere within this fa */
@@ -414,8 +416,8 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 #endif
 	
 	tag_out_edges(bm, etags, op);
-	BMO_slot_from_flag(bm, op, "edgeout1", EDGE_RET1, BM_EDGE);
-	BMO_slot_from_flag(bm, op, "edgeout2", EDGE_RET2, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout1", EDGE_RET1, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout2", EDGE_RET2, BM_EDGE);
 
 	BLI_array_free(verts);
 	BLI_array_free(edges_tmp);

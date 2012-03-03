@@ -1799,7 +1799,7 @@ void sk_applyCutGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSED
 		SK_Point pt;
 
 		pt.type = PT_EXACT;
-		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
+		pt.mode = PT_PROJECT; /* take mode from neighboring points */
 		copy_v3_v3(pt.p, isect->p);
 		copy_v3_v3(pt.no, isect->stroke->points[isect->before].no);
 
@@ -1841,7 +1841,7 @@ void sk_applyTrimGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSE
 		float stroke_dir[3];
 
 		pt.type = PT_EXACT;
-		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
+		pt.mode = PT_PROJECT; /* take mode from neighboring points */
 		copy_v3_v3(pt.p, isect->p);
 		copy_v3_v3(pt.no, isect->stroke->points[isect->before].no);
 

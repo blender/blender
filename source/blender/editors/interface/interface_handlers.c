@@ -1474,7 +1474,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 }
 
 /* this is used for both utf8 and ascii, its meant to be used for single keys,
- * notie the buffer is either copied or not, so its not suitable for pasting in
+ * notice the buffer is either copied or not, so its not suitable for pasting in
  * - campbell */
 static int ui_textedit_type_buf(uiBut *but, uiHandleButtonData *data,
                                 const char *utf8_buf, int utf8_buf_len)
@@ -3034,7 +3034,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				ui_apply_button(C, but->block, but, data, 1);
 
 				/* button's state need to be changed to EXIT so moving mouse away from this mouse wouldn't lead
-				 * to cancel changes made to this button, but shanging state to EXIT also makes no button active for
+				 * to cancel changes made to this button, but changing state to EXIT also makes no button active for
 				 * a while which leads to triggering operator when doing fast scrolling mouse wheel.
 				 * using post activate stuff from button allows to make button be active again after checking for all
 				 * all that mouse leave and cancel stuff, so wuick scrool wouldnt't be an issue anumore.

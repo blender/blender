@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_memarena.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -559,7 +560,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		/* find saved loop pointer */
 		l = se->l;
 		while (l->f != jf) {
-			l = bmesh_radial_loop_next(l);
+			l = l->radial_next;
 			BLI_assert(l != se->l);
 		}
 		l = l->prev;
@@ -605,7 +606,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		/* find saved loop pointer */
 		l = se->l;
 		while (l->f != jf) {
-			l = bmesh_radial_loop_next(l);
+			l = l->radial_next;
 			BLI_assert(l != se->l);
 		}
 	}
@@ -1026,7 +1027,7 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 		BMO_pop(bm);
 	}
 
-	BMEdit_RecalcTesselation(em);
+	BMEdit_RecalcTessellation(em);
 
 	/* interactive preview? */
 	if (rtd) {

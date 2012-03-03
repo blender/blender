@@ -353,7 +353,7 @@ static BMOpDefine bmo_weldverts_def = {
 /*
  * Make Vertex
  *
- * Creates a single vertex; this bmop was necassary
+ * Creates a single vertex; this bmop was necessary
  * for click-create-vertex.
  */
 static BMOpDefine bmo_makevert_def = {
@@ -454,7 +454,7 @@ static BMOpDefine bmo_edgenet_prepare_def = {
  * Rotate
  *
  * Rotate vertices around a center, using a 3x3 rotation
- * matrix.  Equivilent of the old rotateflag function.
+ * matrix.  Equivalent of the old rotateflag function.
  */
 static BMOpDefine bmo_rotate_def = {
 	"rotate",
@@ -469,7 +469,7 @@ static BMOpDefine bmo_rotate_def = {
 /*
  * Translate
  *
- * Translate vertices by an offset.  Equivelent of the
+ * Translate vertices by an offset.  Equivalent of the
  * old translateflag function.
  */
 static BMOpDefine bmo_translate_def = {
@@ -536,7 +536,7 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
 	{{BMO_OP_SLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
 	 {BMO_OP_SLOT_PNT, "object"}, //pointer to an object structure
-	 {BMO_OP_SLOT_BOOL, "notesselation"}, //don't calculate mfaces
+	 {BMO_OP_SLOT_BOOL, "notessellation"}, //don't calculate mfaces
 	 {0, /* null-terminating sentine */}},
 	bmo_bmesh_to_mesh_exec,
 	0,

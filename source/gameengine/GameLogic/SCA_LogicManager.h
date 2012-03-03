@@ -26,7 +26,7 @@
  */
 /** \file SCA_IController.h
  *  \ingroup gamelogic
- *  \brief Regulates the top-level logic behaviour for one scene.
+ *  \brief Regulates the top-level logic behavior for one scene.
  */
 #ifndef __SCA_LOGICMANAGER_H__
 #define __SCA_LOGICMANAGER_H__

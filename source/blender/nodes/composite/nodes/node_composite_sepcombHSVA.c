@@ -141,11 +141,10 @@ static void node_composit_exec_combhsva(void *UNUSED(data), bNode *node, bNodeSt
 	/* stack order out: 1 rgba channels */
 	/* stack order in: 4 value channels */
 
-	/* input no image? then only color operation */
+	/* input no image? then only color operation in HSV */
 	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
-		out[0]->vec[0] = in[0]->vec[0];
-		out[0]->vec[1] = in[1]->vec[0];
-		out[0]->vec[2] = in[2]->vec[0];
+		hsv_to_rgb(in[0]->vec[0], in[1]->vec[0], in[2]->vec[0],
+		&out[0]->vec[0], &out[0]->vec[1], &out[0]->vec[2]);
 		out[0]->vec[3] = in[3]->vec[0];
 	}
 	else {

@@ -249,7 +249,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 {
 	ShaderCallData scd;
 	/*
-	@note: preserve material from ShadeInput for material id, nodetree execs change it
+	\note: preserve material from ShadeInput for material id, nodetree execs change it
 	fix for bug "[#28012] Mat ID messy with shader nodes"
 	*/
 	Material *mat = shi->mat;
@@ -277,7 +277,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);
 	ntreeReleaseThreadStack(nts);
 	
-	// @note: set material back to preserved material
+	// \note: set material back to preserved material
 	shi->mat = mat;
 	/* better not allow negative for now */
 	if(shr->combined[0]<0.0f) shr->combined[0]= 0.0f;

@@ -232,9 +232,9 @@ static void writedata_free(WriteData *wd)
 
 /**
  * Low level WRITE(2) wrapper that buffers data
- * @param adr Pointer to new chunk of data
- * @param len Length of new chunk of data
- * @warning Talks to other functions with global parameters
+ * \param adr Pointer to new chunk of data
+ * \param len Length of new chunk of data
+ * \warning Talks to other functions with global parameters
  */
  
 #define MYWRITE_FLUSH		NULL
@@ -285,10 +285,10 @@ static void mywrite( WriteData *wd, void *adr, int len)
 
 /**
  * BeGiN initializer for mywrite
- * @param file File descriptor
- * @param compare Previous memory file (can be NULL).
- * @param current The current memory file (can be NULL).
- * @warning Talks to other functions with global parameters
+ * \param file File descriptor
+ * \param compare Previous memory file (can be NULL).
+ * \param current The current memory file (can be NULL).
+ * \warning Talks to other functions with global parameters
  */
 static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)
 {
@@ -306,9 +306,9 @@ static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)
 
 /**
  * END the mywrite wrapper
- * @return 1 if write failed
- * @return unknown global variable otherwise
- * @warning Talks to other functions with global parameters
+ * \return 1 if write failed
+ * \return unknown global variable otherwise
+ * \warning Talks to other functions with global parameters
  */
 static int endwrite(WriteData *wd)
 {
@@ -728,7 +728,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
 		
-		if (node->type==CMP_NODE_OUTPUT_MULTI_FILE) {
+		if (node->type==CMP_NODE_OUTPUT_FILE) {
 			/* inputs have own storage data */
 			for (sock=node->inputs.first; sock; sock=sock->next)
 				writestruct(wd, DATA, "NodeImageMultiFileSocket", 1, sock->storage);

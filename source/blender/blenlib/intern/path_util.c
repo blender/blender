@@ -378,8 +378,8 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	}
 
 	/* support for odd paths: eg /../home/me --> /home/me
-	 * this is a valid path in blender but we cant handle this the useual way below
-	 * simply strip this prefix then evaluate the path as useual. pythons os.path.normpath() does this */
+	 * this is a valid path in blender but we cant handle this the usual way below
+	 * simply strip this prefix then evaluate the path as usual. pythons os.path.normpath() does this */
 	while((strncmp(dir, "/../", 4)==0)) {
 		memmove( dir, dir + 4, strlen(dir + 4) + 1 );
 	}
@@ -694,7 +694,7 @@ int BLI_path_abs(char *path, const char *basepath)
 	BLI_char_switch(base, '\\', '/');	
 
 	/* Paths starting with // will get the blend file as their base,
-	 * this isnt standard in any os but is uesed in blender all over the place */
+	 * this isnt standard in any os but is used in blender all over the place */
 	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
 		if (lslash) {
@@ -1571,7 +1571,7 @@ char *BLI_path_basename(char *path)
 
   This logic will help ensure that all image paths are relative and
   that a user gets his images in one place. It'll also provide
-  consistent behaviour across exporters.
+  consistent behavior across exporters.
  */
 int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
 {
@@ -1748,9 +1748,9 @@ static int add_win32_extension(char *name)
 * the name to its 8.3 version to prevent problems with
 * spaces and stuff. Final result is returned in fullname.
 *
-* @param fullname The full path and full name of the executable
+* \param fullname The full path and full name of the executable
 * (must be FILE_MAX minimum)
-* @param name The name of the executable (usually argv[0]) to be checked
+* \param name The name of the executable (usually argv[0]) to be checked
 */
 static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
@@ -1854,9 +1854,9 @@ const char *BLI_program_dir(void)
 * 
 * Also make sure the temp dir has a trailing slash
 *
-* @param fullname The full path to the temp directory
-* @param maxlen The size of the fullname buffer
-* @param userdir Directory specified in user preferences 
+* \param fullname The full path to the temp directory
+* \param maxlen The size of the fullname buffer
+* \param userdir Directory specified in user preferences 
 */
 static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 {

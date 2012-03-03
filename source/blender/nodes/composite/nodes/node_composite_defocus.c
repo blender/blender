@@ -462,7 +462,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 				// (eg. aa disk blur without test: 112 sec, vs with test: 176 sec...)
 				// iff center blur radius > threshold
 				// and if overlap pixel in focus, do nothing, else add color/weigbt
-				// (threshold constant is dependant on amount of blur)
+				// (threshold constant is dependent on amount of blur)
 				#define TESTBG1(c, w) {\
 					if (ct_crad > nqd->bthresh) {\
 						if (crad->rect[p] > nqd->bthresh) {\

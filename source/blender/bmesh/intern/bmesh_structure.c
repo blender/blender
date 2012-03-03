@@ -107,7 +107,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * some nice utilities for navigating disk cycles in a way that hides this detail from the
  * tool writer.
  *
- * Note that the disk cycle is completley independent from face data. One advantage of this
+ * Note that the disk cycle is completely independent from face data. One advantage of this
  * is that wire edges are fully integrated into the topology database. Another is that the
  * the disk cycle has no problems dealing with non-manifold conditions involving faces.
  *
@@ -131,7 +131,6 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * Functions relating to this cycle:
  * - #bmesh_radial_append
  * - #bmesh_radial_loop_remove
- * - #bmesh_radial_loop_next
  * - #bmesh_radial_face_find
  * - #bmesh_radial_facevert_count
  * - #bmesh_radial_faceloop_find_first
@@ -152,7 +151,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  *
  * \note the order of elements in all cycles except the loop cycle is undefined. This
  * leads to slightly increased seek time for deriving some adjacency relations, however the
- * advantage is that no intrinsic properties of the data structures are dependant upon the
+ * advantage is that no intrinsic properties of the data structures are dependent upon the
  * cycle order and all non-manifold conditions are represented trivially.
  */
 int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
@@ -234,7 +233,7 @@ BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2)
 	BMEdge *e_iter, *e_first;
 	
 	if (v1->e) {
-		e_first = e_iter= v1->e;
+		e_first = e_iter = v1->e;
 
 		do {
 			if (bmesh_verts_in_edge(v1, v2, e_iter)) {
@@ -379,7 +378,7 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 		}
 		
 		i++;
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 
 	return TRUE;
 }
@@ -438,25 +437,20 @@ BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v)
 		if (l_iter->v == v) {
 			return l_iter;
 		}
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 	return NULL;
 }
 
 BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v)
 {
 	BMLoop *l_iter;
-	l_iter = bmesh_radial_loop_next(l);
+	l_iter = l->radial_next;
 	do {
 		if (l_iter->v == v) {
 			return l_iter;
 		}
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 	return l;
-}
-
-BMLoop *bmesh_radial_loop_next(BMLoop *l)
-{
-	return l->radial_next;
 }
 
 int bmesh_radial_length(BMLoop *l)
@@ -536,7 +530,7 @@ int bmesh_radial_facevert_count(BMLoop *l, BMVert *v)
 		if (l_iter->v == v) {
 			count++;
 		}
-	} while ((l_iter = bmesh_radial_loop_next(l_iter)) != l);
+	} while ((l_iter = l_iter->radial_next) != l);
 
 	return count;
 }

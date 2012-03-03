@@ -217,7 +217,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
                 # paint-map output
                 row = layout.row()
-                row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap layer: ")
+                row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap layer:")
                 if surface.output_exists(object=ob, index=0):
                     ic = 'ZOOMOUT'
                 else:
@@ -227,7 +227,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
                 # wet-map output
                 row = layout.row()
-                row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap layer: ")
+                row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap layer:")
                 if surface.output_exists(object=ob, index=1):
                     ic = 'ZOOMOUT'
                 else:
@@ -237,7 +237,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
             elif surface_type == 'WEIGHT':
                 row = layout.row()
-                row.prop_search(surface, "output_name_a", ob, "vertex_groups", text="Vertex Group: ")
+                row.prop_search(surface, "output_name_a", ob, "vertex_groups", text="Vertex Group:")
                 if surface.output_exists(object=ob, index=0):
                     ic = 'ZOOMOUT'
                 else:
@@ -270,7 +270,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
                 sub.prop(surface, "output_name_b", text="")
             else:
                 col = layout.column()
-                col.prop(surface, "output_name_a", text="Filename: ")
+                col.prop(surface, "output_name_a", text="Filename:")
                 if surface_type == 'DISPLACE':
                     col.prop(surface, "displace_type", text="Displace Type")
                     col.prop(surface, "depth_clamp")
@@ -309,7 +309,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
             layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Map:")
 
         elif surface.init_color_type == 'VERTEX_COLOR':
-            layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")
+            layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer:")
 
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):

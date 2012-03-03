@@ -2040,12 +2040,15 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 {
 	BMesh *bm = self->bm;
 
-	BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
-	BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
-	BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
-	BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
+	/* have have been freed by bmesh */
+	if (bm) {
+		BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
+		BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
+		BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
+		BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
 
-	bm->py_handle = NULL;
+		bm->py_handle = NULL;
+	}
 
 	PyObject_DEL(self);
 }
@@ -2384,6 +2387,7 @@ PyObject *BPy_BMesh_CreatePyObject(BMesh *bm)
 	else {
 		self = PyObject_New(BPy_BMesh, &BPy_BMesh_Type);
 		self->bm = bm;
+		bm->py_handle = self; /* point back */
 
 		BM_data_layer_add(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
 		BM_data_layer_add(bm, &bm->edata, CD_BM_ELEM_PYPTR);

@@ -64,19 +64,19 @@ extern "C" {
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
 
 /*
- * this function recreates a tesselation.
- * returns number of tesselation faces.
+ * this function recreates a tessellation.
+ * returns number of tessellation faces.
  *
- * use_poly_origindex sets whether or not the tesselation faces' origindex
+ * use_poly_origindex sets whether or not the tessellation faces' origindex
  * layer should point to original poly indices or real poly indices.
  *
- * use_face_origindex sets the tesselation faces' origindex layer
- * to point to the tesselation faces themselves, not the polys.
+ * use_face_origindex sets the tessellation faces' origindex layer
+ * to point to the tessellation faces themselves, not the polys.
  *
  * if both of the above are 0, it'll use the indices of the mpolys of the MPoly
  * data in pdata, and ignore the origindex layer altogether.
  */
-int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
+int mesh_recalcTessellation(struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
                            struct MVert *mvert,
                            int totface, int totloop, int totpoly,
                            const int do_face_normals);
@@ -198,7 +198,7 @@ typedef struct UvMapVert {
 
 /* UvElement stores per uv information so that we can quickly access information for a uv.
  * it is actually an improved UvMapVert, including an island and a direct pointer to the face
- * to avoid initialising face arrays */
+ * to avoid initializing face arrays */
 typedef struct UvElement {
 	/* Next UvElement corresponding to same vertex */
 	struct UvElement *next;

@@ -333,17 +333,17 @@ static char *view3d_modeselect_pup(Scene *scene)
 
 static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 {
-	wmWindow *win= CTX_wm_window(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
+	wmWindow *win = CTX_wm_window(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	ScrArea *sa = CTX_wm_area(C);
+	View3D *v3d = sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em= NULL;
-	int ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
+	BMEditMesh *em = NULL;
+	int ctrl = win->eventstate->ctrl, shift= win->eventstate->shift;
 	PointerRNA props_ptr;
 	
-	if (obedit && obedit->type==OB_MESH) {
-		em= ((Mesh *)obedit->data)->edit_btmesh;
+	if (obedit && obedit->type == OB_MESH) {
+		em = BMEdit_FromObject(obedit);
 	}
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
@@ -449,7 +449,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 
 	if (obedit && (obedit->type == OB_MESH)) {
-		BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 		uiLayout *row;
 
 		row= uiLayoutRow(layout, 1);

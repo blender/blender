@@ -1116,7 +1116,7 @@ void graph_bfs(void)
 		pos[i] = 0;
 	
 	/* Init
-	 * dagnode.first is alway the root (scene) 
+	 * dagnode.first is always the root (scene)
 	 */
 	node = MainDag->DagNode.first;
 	while(node) {
@@ -1185,7 +1185,7 @@ int pre_and_post_source_BFS(DagForest *dag, short mask, DagNode *source, graph_a
 	/* fprintf(stderr,"starting BFS \n ------------\n"); */	
 	
 	/* Init
-		* dagnode.first is alway the root (scene) 
+		* dagnode.first is always the root (scene)
 		*/
 	node = dag->DagNode.first;
 	nqueue = queue_create(DAGQUEUEALLOC);
@@ -1252,7 +1252,7 @@ DagNodeQueue * graph_dfs(void)
 		pos[i] = 0;
 	
 	/* Init
-	 * dagnode.first is alway the root (scene) 
+	 * dagnode.first is always the root (scene)
 	 */
 	node = MainDag->DagNode.first;
 	while(node) {
@@ -1376,7 +1376,7 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 	nqueue = queue_create(DAGQUEUEALLOC);
 	
 	/* Init
-		* dagnode.first is alway the root (scene) 
+		* dagnode.first is always the root (scene)
 		*/
 	node = dag->DagNode.first;
 	while(node) {

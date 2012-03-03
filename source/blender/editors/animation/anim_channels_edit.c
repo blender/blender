@@ -371,7 +371,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
  *	- anim_data: list of the all the anim channels that can be chosen
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *		  then the channels under closed expanders get ignored...
- *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
+ *	- ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 
@@ -955,7 +955,7 @@ static void split_groups_action_temp (bAction *act, bActionGroup *tgrp)
 		}
 	}
 	
-	/* Initialise memory for temp-group */
+	/* Initialize memory for temp-group */
 	memset(tgrp, 0, sizeof(bActionGroup));
 	tgrp->flag |= (AGRP_EXPANDED|AGRP_TEMP);
 	BLI_strncpy(tgrp->name, "#TempGroup", sizeof(tgrp->name));
@@ -1788,7 +1788,7 @@ static int animchannels_deselectall_exec (bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
 		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_TOGGLE);
 	else

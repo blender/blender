@@ -68,8 +68,8 @@ double	BLI_drand		(void);
 	/** Return a pseudo-random number N where 0.0f<=N<1.0f */
 float	BLI_frand		(void);
 
-	/** Fills a block of memory starting at @a addr
-	 * and extending @a len bytes with pseudo-random
+	/** Fills a block of memory starting at \a addr
+	 * and extending \a len bytes with pseudo-random
 	 * contents. This routine does not use nor modify
 	 * the state of the BLI random number generator.
 	 */

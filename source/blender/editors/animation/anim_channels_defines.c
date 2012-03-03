@@ -2571,12 +2571,12 @@ static bAnimChannelType ACF_GPL =
 static bAnimChannelType *animchannelTypeInfo[ANIMTYPE_NUM_TYPES];
 static short ACF_INIT= 1; /* when non-zero, the list needs to be updated */
 
-/* Initialise type info definitions */
+/* Initialize type info definitions */
 static void ANIM_init_channel_typeinfo_data (void)
 {
 	int type= 0;
 	
-	/* start initialising if necessary... */
+	/* start initializing if necessary... */
 	if (ACF_INIT) {
 		ACF_INIT= 0;
 		
@@ -3361,7 +3361,7 @@ void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *al
 		 *	- even if we can draw sliders for this view, we must also check that the channel-type supports them
 		 *	  (only only F-Curves really can support them for now)
 		 *	- to make things easier, we use RNA-autobuts for this so that changes are reflected immediately, 
-		 *	  whereever they occurred. BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
+		 *	  wherever they occurred. BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
 		 *	  and wouldn't be able to auto-keyframe...
 		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
 		 */

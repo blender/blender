@@ -55,28 +55,28 @@ typedef struct ImMetaData {
 void IMB_metadata_free(struct ImBuf* img);
 
 /** read the field from the image info into the field 
- *  @param img - the ImBuf that contains the image data
- *  @param key - the key of the field
- *  @param value - the data in the field, first one found with key is returned, 
+ *  \param img - the ImBuf that contains the image data
+ *  \param key - the key of the field
+ *  \param value - the data in the field, first one found with key is returned, 
 				  memory has to be allocated by user.
- *  @param len - length of value buffer allocated by user.
- *  @return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
+ *  \param len - length of value buffer allocated by user.
+ *  \return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
  */
 int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* value, int len);
 
 /** set user data in the ImMetaData struct, which has to be allocated with IMB_metadata_create
  *  before calling this function.
- *  @param img - the ImBuf that contains the image data
- *  @param key - the key of the field
- *  @param value - the data to be written to the field. zero terminated string
- *  @return    - 1 (true) if ImageInfo present, 0 (false) otherwise
+ *  \param img - the ImBuf that contains the image data
+ *  \param key - the key of the field
+ *  \param value - the data to be written to the field. zero terminated string
+ *  \return    - 1 (true) if ImageInfo present, 0 (false) otherwise
  */
 int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* value);
 
 /** delete the key/field par in the ImMetaData struct.
- * @param img - the ImBuf that contains the image data
- * @param key - the key of the field
- * @return - 1 (true) if delete the key/field, 0 (false) otherwise
+ * \param img - the ImBuf that contains the image data
+ * \param key - the key of the field
+ * \return - 1 (true) if delete the key/field, 0 (false) otherwise
  */
 int IMB_metadata_del_field(struct ImBuf *img, const char *key);
 

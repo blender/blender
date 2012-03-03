@@ -720,11 +720,11 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 	BLI_mempool *oldpool = olddata->pool;
 	void *block;
 
-	CustomData_bmesh_init_pool(data, data == &bm->ldata ? 2048 : 512);
-
 	if (data == &bm->vdata) {
 		BMVert *eve;
-		
+
+		CustomData_bmesh_init_pool(data, bm->totvert, BM_VERT);
+
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
@@ -736,6 +736,8 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 	else if (data == &bm->edata) {
 		BMEdge *eed;
 
+		CustomData_bmesh_init_pool(data, bm->totedge, BM_EDGE);
+
 		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
@@ -744,30 +746,38 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 			eed->head.data = block;
 		}
 	}
-	else if (data == &bm->pdata || data == &bm->ldata) {
+	else if (data == &bm->ldata) {
 		BMIter liter;
 		BMFace *efa;
 		BMLoop *l;
 
+		CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
 		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if (data == &bm->pdata) {
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 				block = NULL;
 				CustomData_bmesh_set_default(data, &block);
-				CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);
-				CustomData_bmesh_free_block(olddata, &efa->head.data);
-				efa->head.data = block;
-			}
-
-			if (data == &bm->ldata) {
-				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-					block = NULL;
-					CustomData_bmesh_set_default(data, &block);
-					CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
-					CustomData_bmesh_free_block(olddata, &l->head.data);
-					l->head.data = block;
-				}
+				CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
+				CustomData_bmesh_free_block(olddata, &l->head.data);
+				l->head.data = block;
 			}
 		}
+	}
+	else if (data == &bm->pdata) {
+		BMFace *efa;
+
+		CustomData_bmesh_init_pool(data, bm->totface, BM_FACE);
+
+		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			block = NULL;
+			CustomData_bmesh_set_default(data, &block);
+			CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);
+			CustomData_bmesh_free_block(olddata, &efa->head.data);
+			efa->head.data = block;
+		}
+	}
+	else {
+		/* should never reach this! */
+		BLI_assert(0);
 	}
 
 	if (oldpool) {

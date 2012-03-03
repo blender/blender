@@ -303,7 +303,7 @@ static void createTransTexspace(TransInfo *t)
 
 static void createTransEdge(TransInfo *t)
 {
-	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	TransData *td = NULL;
 	BMEdge *eed;
 	BMIter iter;
@@ -1095,7 +1095,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error");
 	}
 
-	/* initialise initial auto=ik chainlen's? */
+	/* initialize initial auto=ik chainlen's? */
 	if (ik_on) transform_autoik_update(t, 0);
 }
 
@@ -2022,7 +2022,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	TransData *tob = NULL;
-	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMesh *bm = em->bm;
 	BMVert *eve;
 	BMIter iter;
@@ -2442,7 +2442,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	TransData2D *td2d = NULL;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -3055,7 +3055,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TimeToTransData(td, bezt->vec[1], adt);
 				
-				/*set flags to move handles as necassary*/
+				/*set flags to move handles as necessary*/
 				td->flag |= TD_MOVEHANDLE1|TD_MOVEHANDLE2;
 				td2d->h1 = bezt->vec[0];
 				td2d->h2 = bezt->vec[2];
@@ -3274,7 +3274,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
 /* ********************* GRAPH EDITOR ************************* */
 
-/* Helper function for createTransGraphEditData, which is reponsible for associating
+/* Helper function for createTransGraphEditData, which is responsible for associating
  * source data with transform data
  */
 static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, BezTriple *bezt, 
@@ -3650,7 +3650,7 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert, const short UNUSED(
 			}
 			
 			/* do we need to check if the handles need to be swapped?
-			 * optimisation: this only needs to be performed in the first loop
+			 * optimization: this only needs to be performed in the first loop
 			 */
 			if (bezm->swapHs == 0) {
 				if ( (bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
@@ -4356,7 +4356,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	td->con= ob->constraints.first;
 
-	/* hack: tempolarily disable tracking and/or constraints when getting
+	/* hack: temporarily disable tracking and/or constraints when getting
 	 *		object matrix, if tracking is on, or if constraints don't need
 	 * 		inverse correction to stop it from screwing up space conversion
 	 *		matrix later
@@ -4877,9 +4877,25 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				/* we need to delete the temporary faces before automerging */
 				if(t->mode == TFM_EDGE_SLIDE){
 					SlideData *sld = t->customData;
+
+					/* handle multires reprojection, done
+					 * on transform completion since it's
+					 * really slow -joeedh */
+					projectSVData(t, TRUE);
+
+					/* free temporary faces to avoid automerging and deleting
+					 * during cleanup - psy-fi */
 					freeSlideTempFaces(sld);
 				}
 				EDBM_automerge(t->scene, t->obedit, 1);
+			}
+			else {
+				if (t->mode == TFM_EDGE_SLIDE) {
+					SlideData *sld = t->customData;
+
+					sld->perc = 0.0;
+					projectSVData(t, FALSE);
+				}
 			}
 		}
 	}
@@ -4931,7 +4947,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data */
+		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 			
@@ -5046,7 +5062,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		bAnimContext ac;
 		const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
 		
-		/* initialise relevant anim-context 'context' data */
+		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 		
@@ -5096,7 +5112,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_NLA) {
 		bAnimContext ac;
 		
-		/* initialise relevant anim-context 'context' data */
+		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
 			return;
 			
@@ -5129,7 +5145,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH)
 		{
-			BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(t->obedit);
 			/* table needs to be created for each edit command, since vertices can move etc */
 			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}

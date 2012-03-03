@@ -102,24 +102,71 @@ static void node_socket_button_label(const bContext *UNUSED(C), uiBlock *block,
 	uiDefBut(block, LABEL, 0, sock->name, x, y, width, NODE_DY, NULL, 0, 0, 0, 0, "");
 }
 
+/* draw function for file output node sockets.
+ * XXX a bit ugly use atm, called from datatype button functions,
+ * since all node types and callbacks only use data type without struct_type.
+ */
+static void node_socket_button_output_file(const bContext *C, uiBlock *block,
+                                           bNodeTree *ntree, bNode *node, bNodeSocket *sock,
+                                           const char *UNUSED(name), int x, int y, int width)
+{
+	uiLayout *layout, *row;
+	PointerRNA nodeptr, sockptr, imfptr;
+	int imtype;
+	int rx, ry;
+	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
+	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &sockptr);
+	
+	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y+NODE_DY, width, 20, UI_GetStyle());
+	row = uiLayoutRow(layout, 0);		
+	
+	uiItemL(row, sock->name, 0);
+	
+	imfptr = RNA_pointer_get(&nodeptr, "format");
+	imtype = RNA_enum_get(&imfptr, "file_format");
+	/* in multilayer format all socket format details are ignored */
+	if (imtype != R_IMF_IMTYPE_MULTILAYER) {
+		PropertyRNA *imtype_prop;
+		const char *imtype_name;
+		
+		if (!RNA_boolean_get(&sockptr, "use_node_format"))
+			imfptr = RNA_pointer_get(&sockptr, "format");
+		
+		imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
+		RNA_property_enum_name((bContext*)C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+		uiItemL(row, imtype_name, 0);
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+	}
+	
+	uiBlockLayoutResolve(block, &rx, &ry);
+}
 
 static void node_socket_button_default(const bContext *C, uiBlock *block,
 								bNodeTree *ntree, bNode *node, bNodeSocket *sock,
 								const char *name, int x, int y, int width)
 {
-	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
-	else {
-		PointerRNA ptr;
-		uiBut *bt;
-		
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		
-		bt = uiDefButR(block, NUM, B_NODE_EXEC, name,
-					   x, y+1, width, NODE_DY-2, 
-					   &ptr, "default_value", 0, 0, 0, -1, -1, NULL);
-		if (node)
-			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
+	switch (sock->struct_type) {
+	case SOCK_STRUCT_NONE: {
+		if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
+			node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
+		else {
+			PointerRNA ptr;
+			uiBut *bt;
+			
+			RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
+			
+			bt = uiDefButR(block, NUM, B_NODE_EXEC, name,
+						   x, y+1, width, NODE_DY-2, 
+						   &ptr, "default_value", 0, 0, 0, -1, -1, NULL);
+			if (node)
+				uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
+		}
+		break;
+	}
+	case SOCK_STRUCT_OUTPUT_FILE:
+		node_socket_button_output_file(C, block, ntree, node, sock, name, x, y, width);
+		break;
 	}
 }
 
@@ -149,25 +196,33 @@ static void node_socket_button_components(const bContext *C, uiBlock *block,
 								   bNodeTree *ntree, bNode *node, bNodeSocket *sock,
 								   const char *name, int x, int y, int width)
 {
-	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
-		node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
-	else {
-		PointerRNA ptr;
-		SocketComponentMenuArgs *args;
-		
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		
-		args= MEM_callocN(sizeof(SocketComponentMenuArgs), "SocketComponentMenuArgs");
-		
-		args->ptr = ptr;
-		args->x = x;
-		args->y = y;
-		args->width = width;
-		args->cb = node_sync_cb;
-		args->arg1 = CTX_wm_space_node(C);
-		args->arg2 = node;
-		
-		uiDefBlockButN(block, socket_component_menu, args, name, x, y+1, width, NODE_DY-2, "");
+	switch (sock->struct_type) {
+	case SOCK_STRUCT_NONE: {
+		if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
+			node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
+		else {
+			PointerRNA ptr;
+			SocketComponentMenuArgs *args;
+			
+			RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
+			
+			args= MEM_callocN(sizeof(SocketComponentMenuArgs), "SocketComponentMenuArgs");
+			
+			args->ptr = ptr;
+			args->x = x;
+			args->y = y;
+			args->width = width;
+			args->cb = node_sync_cb;
+			args->arg1 = CTX_wm_space_node(C);
+			args->arg2 = node;
+			
+			uiDefBlockButN(block, socket_component_menu, args, name, x, y+1, width, NODE_DY-2, "");
+		}
+		break;
+	}
+	case SOCK_STRUCT_OUTPUT_FILE:
+		node_socket_button_output_file(C, block, ntree, node, sock, name, x, y, width);
+		break;
 	}
 }
 
@@ -200,28 +255,9 @@ static void node_socket_button_color(const bContext *C, uiBlock *block,
 		}
 		break;
 	}
-	case SOCK_STRUCT_OUTPUT_MULTI_FILE: {
-		uiLayout *layout, *row;
-		PointerRNA ptr, imfptr;
-		PropertyRNA *imtype_prop;
-		const char *imtype_name;
-		int rx, ry;
-		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
-		imfptr = RNA_pointer_get(&ptr, "format");
-		
-		layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y+NODE_DY, width, 20, UI_GetStyle());
-		row = uiLayoutRow(layout, 0);		
-		
-		uiItemL(row, sock->name, 0);
-		imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
-		RNA_property_enum_name((bContext*)C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		uiItemL(row, imtype_name, 0);
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
-		uiBlockLayoutResolve(block, &rx, &ry);
+	case SOCK_STRUCT_OUTPUT_FILE:
+		node_socket_button_output_file(C, block, ntree, node, sock, name, x, y, width);
 		break;
-	}
 	}
 }
 
@@ -1699,56 +1735,54 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	bNode *node= ptr->data;
-	NodeImageFile *nif= node->storage;
-	PointerRNA imfptr;
-
-	uiLayout *row;
-
-	uiItemR(layout, ptr, "filepath", 0, "", ICON_NONE);
-
-	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &nif->im_format, &imfptr);
-	uiTemplateImageSettings(layout, &imfptr);
-
-	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "frame_start", 0, "Start", ICON_NONE);
-	uiItemR(row, ptr, "frame_end", 0, "End", ICON_NONE);
-}
-
-static void node_composit_buts_multi_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-	uiItemL(layout, "Base Path:", 0);
+	PointerRNA imfptr = RNA_pointer_get(ptr, "format");
+	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
+	
+	if (multilayer)
+		uiItemL(layout, "Path:", 0);
+	else
+		uiItemL(layout, "Base Path:", 0);
 	uiItemR(layout, ptr, "base_path", 0, "", ICON_NONE);
 }
-static void node_composit_buts_multi_file_output_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	PointerRNA imfptr = RNA_pointer_get(ptr, "format");
 	PointerRNA active_input_ptr = RNA_pointer_get(ptr, "active_input");
+	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	
-	node_composit_buts_multi_file_output(layout, C, ptr);
+	node_composit_buts_file_output(layout, C, ptr);
+	uiTemplateImageSettings(layout, &imfptr);
 	
-	uiItemO(layout, "Add Input", ICON_ZOOMIN, "NODE_OT_output_multi_file_add_socket");
+	uiItemS(layout);
+	
+	uiItemO(layout, "Add Input", ICON_ZOOMIN, "NODE_OT_output_file_add_socket");
 	
 	uiTemplateList(layout, C, ptr, "inputs", ptr, "active_input_index", NULL, 0, 0, 0);
 	
 	if (active_input_ptr.data) {
-		PointerRNA imfptr = RNA_pointer_get(&active_input_ptr, "format");
 		uiLayout *row, *col;
 		
 		col = uiLayoutColumn(layout, 1);
-		uiItemL(col, "File Path:", 0);
+		if (multilayer)
+			uiItemL(col, "Layer Name:", 0);
+		else
+			uiItemL(col, "File Path:", 0);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, &active_input_ptr, "name", 0, "", 0);
-		uiItemFullO(row, "NODE_OT_output_multi_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
+		uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
 		
-		uiItemS(layout);
-		
-		col = uiLayoutColumn(layout, 1);
-		uiItemL(col, "Format:", 0);
-		uiItemR(col, &active_input_ptr, "use_render_format", 0, NULL, 0);
-		
-		col= uiLayoutColumn(layout, 0);
-		uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_render_format")==0);
-		uiTemplateImageSettings(col, &imfptr);
+		/* in multilayer format all socket format details are ignored */
+		if (!multilayer) {
+			imfptr = RNA_pointer_get(&active_input_ptr, "format");
+			
+			col = uiLayoutColumn(layout, 1);
+			uiItemL(col, "Format:", 0);
+			uiItemR(col, &active_input_ptr, "use_node_format", 0, NULL, 0);
+			
+			col= uiLayoutColumn(layout, 0);
+			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format")==0);
+			uiTemplateImageSettings(col, &imfptr);
+		}
 	}
 }
 
@@ -1986,10 +2020,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->uifunc= node_composit_buts_file_output;
-			break;
-		case CMP_NODE_OUTPUT_MULTI_FILE:
-			ntype->uifunc= node_composit_buts_multi_file_output;
-			ntype->uifuncbut= node_composit_buts_multi_file_output_details;
+			ntype->uifuncbut= node_composit_buts_file_output_details;
 			break;
 		case CMP_NODE_DIFF_MATTE:
 			ntype->uifunc=node_composit_buts_diff_matte;

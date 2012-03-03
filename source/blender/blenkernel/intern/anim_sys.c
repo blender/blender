@@ -1183,7 +1183,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			if (RNA_property_update_check(prop)) {
 				short skip_updates_hack = 0;
 				
-				/* optimisation hacks: skip property updates for those properties
+				/* optimization hacks: skip property updates for those properties
 				 * for we know that which the updates in RNA were really just for
 				 * flushing property editing via UI/Py
 				 */
@@ -1683,7 +1683,7 @@ static void nlaevalchan_buffers_accumulate (ListBase *channels, ListBase *tmp_bu
 {
 	NlaEvalChannel *nec, *necn, *necd;
 	
-	/* optimise - abort if no channels */
+	/* optimize - abort if no channels */
 	if (tmp_buffer->first == NULL)
 		return;
 	
@@ -2151,7 +2151,7 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
 
 /* Overview of how this system works:
  *	1) Depsgraph sorts data as necessary, so that data is in an order that means 
- *		that all dependences are resolved before dependants.
+ *		that all dependencies are resolved before dependants.
  *	2) All normal animation is evaluated, so that drivers have some basis values to
  *		work with
  *		a.	NLA stacks are done first, as the Active Actions act as 'tweaking' tracks
@@ -2160,14 +2160,14 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  *
  * --------------< often in a separate phase... >------------------ 
  *
- *	3) Drivers/expressions are evaluated on top of this, in an order where dependences are
+ *	3) Drivers/expressions are evaluated on top of this, in an order where dependencies are
  *		resolved nicely. 
  *	   Note: it may be necessary to have some tools to handle the cases where some higher-level
  *		drivers are added and cause some problematic dependencies that didn't exist in the local levels...
  *
  * --------------< always executed >------------------ 
  *
- * Maintainance of editability of settings (XXX):
+ * Maintenance of editability of settings (XXX):
  *	In order to ensure that settings that are animated can still be manipulated in the UI without requiring
  *	that keyframes are added to prevent these values from being overwritten, we use 'overrides'. 
  *
@@ -2295,13 +2295,13 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 		} \
 	}
 	
-	/* optimisation: 
+	/* optimization: 
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
 	 * which should ultimately be empty, since it is not possible for now to have any animation 
 	 * without some actions, and drivers wouldn't get affected by any state changes
 	 *
 	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
-	 * set correctly, so this optimisation must be skipped in that case...
+	 * set correctly, so this optimization must be skipped in that case...
 	 */
 	if ((main->action.first == NULL) && (main->curve.first == NULL)) {
 		if (G.f & G_DEBUG)
@@ -2357,7 +2357,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
-		 * this tagged by Depsgraph on framechange. This optimisation means that objects
+		 * this tagged by Depsgraph on framechange. This optimization means that objects
 		 * linked from other (not-visible) scenes will not need their data calculated.
 		 */
 	EVAL_ANIM_IDS(main->object.first, 0); 

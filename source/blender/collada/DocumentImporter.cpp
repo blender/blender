@@ -264,7 +264,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 }
 
 /** When this method is called, the writer must write the global document asset.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeGlobalAsset ( const COLLADAFW::FileInfo* asset ) 
 {
 	unit_converter.read_asset(asset);
@@ -273,7 +273,7 @@ bool DocumentImporter::writeGlobalAsset ( const COLLADAFW::FileInfo* asset )
 }
 
 /** When this method is called, the writer must write the scene.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeScene ( const COLLADAFW::Scene* scene ) 
 {
 	// XXX could store the scene id, but do nothing for now
@@ -478,7 +478,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 }
 
 /** When this method is called, the writer must write the entire visual scene.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
 {
 	if(mImportStage!=General)
@@ -501,7 +501,7 @@ bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualSc
 
 /** When this method is called, the writer must handle all nodes contained in the 
 	library nodes.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* libraryNodes ) 
 {
 	if(mImportStage!=General)
@@ -519,7 +519,7 @@ bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* librar
 }
 
 /** When this method is called, the writer must write the geometry.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom ) 
 {
 	if(mImportStage!=General)
@@ -529,7 +529,7 @@ bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom )
 }
 
 /** When this method is called, the writer must write the material.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat ) 
 {
 	if(mImportStage!=General)
@@ -717,7 +717,7 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 }
 
 /** When this method is called, the writer must write the effect.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 
 bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect ) 
 {
@@ -756,7 +756,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 
 
 /** When this method is called, the writer must write the camera.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera ) 
 {
 	if(mImportStage!=General)
@@ -872,7 +872,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 }
 
 /** When this method is called, the writer must write the image.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeImage( const COLLADAFW::Image* image ) 
 {
 	if(mImportStage!=General)
@@ -897,7 +897,7 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 }
 
 /** When this method is called, the writer must write the light.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLight( const COLLADAFW::Light* light ) 
 {
 	if(mImportStage!=General)
@@ -1089,7 +1089,7 @@ bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* anima
 }
 
 /** When this method is called, the writer must write the skin controller data.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
+	\return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeSkinControllerData( const COLLADAFW::SkinControllerData* skin ) 
 {
 	return armature_importer.write_skin_controller_data(skin);

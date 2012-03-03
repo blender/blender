@@ -315,7 +315,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				bMouseSensor *bmouse = (bMouseSensor *)sens->data;
 				
 				/* There are two main types of mouse sensors. If there is
-				* no focus-related behaviour requested, we can make do
+				* no focus-related behavior requested, we can make do
 				* with a basic sensor. This cuts down memory usage and
 				* gives a slight performance gain. */
 				

@@ -339,7 +339,7 @@ static void recalcData_actedit(TransInfo *t)
 	bAnimListElem *ale;
 	int filter;
 	
-	/* initialise relevant anim-context 'context' data from TransInfo data */
+	/* initialize relevant anim-context 'context' data from TransInfo data */
 		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene= t->scene;
 	ac.obact= OBACT;
@@ -389,7 +389,7 @@ static void recalcData_graphedit(TransInfo *t)
 	int dosort = 0;
 	
 	
-	/* initialise relevant anim-context 'context' data from TransInfo data */
+	/* initialize relevant anim-context 'context' data from TransInfo data */
 		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	scene= ac.scene= t->scene;
 	ac.obact= OBACT;
@@ -500,7 +500,7 @@ static void recalcData_nla(TransInfo *t)
 			continue;
 		}
 		
-		/* firstly, check if the proposed transform locations would overlap with any neighbouring strips
+		/* firstly, check if the proposed transform locations would overlap with any neighboring strips
 		 * (barring transitions) which are absolute barriers since they are not being moved
 		 *
 		 * this is done as a iterative procedure (done 5 times max for now)
@@ -714,7 +714,7 @@ static void recalcData_view3d(TransInfo *t)
 			if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 		}
 		else if (t->obedit->type == OB_MESH) {
-			BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(t->obedit);
 			/* mirror modifier clipping? */
 			if(t->state != TRANS_CANCEL) {
 				/* apply clipping after so we never project past the clip plane [#25423] */
@@ -727,7 +727,7 @@ static void recalcData_view3d(TransInfo *t)
 			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
 			EDBM_RecalcNormals(em);
-			BMEdit_RecalcTesselation(em);
+			BMEdit_RecalcTessellation(em);
 		}
 		else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
 			bArmature *arm= t->obedit->data;
@@ -1540,7 +1540,7 @@ void calculateCenter(TransInfo *t)
 		if (t->obedit) {
 			if (t->obedit && t->obedit->type == OB_MESH) {
 				BMEditSelection ese;
-				BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+				BMEditMesh *em = BMEdit_FromObject(t->obedit);
 
 				if (EDBM_get_actSelection(em, &ese)) {
 					EDBM_editselection_center(em, t->center, &ese);

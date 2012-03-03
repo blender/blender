@@ -2367,7 +2367,7 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
 /* next == 1 -> select next 		*/
 /* next == -1 -> select previous 	*/
 /* cont == 1 -> select continuously 	*/
-/* selstatus, inverts behaviour		*/
+/* selstatus, inverts behavior		*/
 static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus)
 {
 	Nurb *nu;
@@ -5084,7 +5084,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	short *selbpoints;
 	
 	/* note that NURBS surface is a special case because we mimic */
-	/* the behaviour of "select more" of mesh tools.	      */
+	/* the behavior of "select more" of mesh tools.	      */
 	/* The algorithm is designed to work in planar cases so it    */
 	/* may not be optimal always (example: end of NURBS sphere)   */
 	if(obedit->type==OB_SURF) {

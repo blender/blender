@@ -63,7 +63,7 @@ static void draw_curve_knot(float x, float y, float xscale, float yscale, float 
 {
 	static GLuint displist=0;
 
-	/* initialise round circle shape */
+	/* initialize round circle shape */
 	if (displist == 0) {
 		GLUquadricObj *qobj;
 

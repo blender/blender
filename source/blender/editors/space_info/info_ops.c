@@ -362,7 +362,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	}
 
 	if (rti->widthfac == 0.0f) {
-		/* initialise colors based on report type */
+		/* initialize colors based on report type */
 		if(report->type & RPT_ERROR_ALL) {
 			rti->col[0] = 1.0;
 			rti->col[1] = 0.2;

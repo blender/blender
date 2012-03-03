@@ -544,7 +544,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				bAction *act = verify_adt_action(&cu->id, 1);
 				FCurve *fcu = verify_fcurve(act, NULL, "eval_time", 0, 1);
 				
-				/* setup dummy 'generator' modifier here to get 1-1 correspondance still working */
+				/* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
 				if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first)
 					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
 			}

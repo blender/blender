@@ -284,7 +284,7 @@ public:
 	);
 
 	/** 
-	 * @section Stuff which is here due to poor design.
+	 * \section Stuff which is here due to poor design.
 	 * Inherited from CValue and needs an implementation. 
 	 * Do not expect these functions do to anything sensible.
 	 */
@@ -324,7 +324,7 @@ public:
 	);
 
 	/**
-	 * @section Inherited from CValue. These are the useful
+	 * \section Inherited from CValue. These are the useful
 	 * part of the CValue interface that this class implements. 
 	 */
 
@@ -428,7 +428,7 @@ public:
 	);
 
 	/**
-	 * @return a pointer to the physics controller owned by this class.
+	 * \return a pointer to the physics controller owned by this class.
 	 */
 
 	KX_IPhysicsController* GetPhysicsController();
@@ -449,7 +449,7 @@ public:
 	}
 
 	/**
-	 * @return a pointer to the graphic controller owner by this class 
+	 * \return a pointer to the graphic controller owner by this class 
 	 */
 	PHY_IGraphicController* GetGraphicController()
 	{
@@ -466,7 +466,7 @@ public:
 	void ActivateGraphicController(bool recurse);
 
 	/**
-	 * @section Coordinate system manipulation functions
+	 * \section Coordinate system manipulation functions
 	 */
 
 	void	NodeSetLocalPosition(const MT_Point3& trans	);
@@ -496,7 +496,7 @@ public:
 	const MT_Point3& NodeGetLocalPosition(  ) const;
 
 	/**
-	 * @section scene graph node accessor functions.
+	 * \section scene graph node accessor functions.
 	 */
 
 	SG_Node*	GetSGNode(	) 
@@ -510,7 +510,7 @@ public:
 	}
 
 	/**
-	 * @section blender object accessor functions.
+	 * \section blender object accessor functions.
 	 */
 
 	struct Object* GetBlenderObject( )
@@ -572,7 +572,7 @@ public:
 
 
 	/**
-	 * @section Physics accessors for this node.
+	 * \section Physics accessors for this node.
 	 *
 	 * All these calls get passed directly to the physics controller 
 	 * owned by this object.
@@ -673,7 +673,7 @@ public:
 	);
 
 	/**
-	 * @section Mesh accessor functions.
+	 * \section Mesh accessor functions.
 	 */
 
 	/**	
@@ -829,7 +829,7 @@ public:
 	) { return m_bIsNegativeScaling; }
 
 	/**
-	 * @section Logic bubbling methods.
+	 * \section Logic bubbling methods.
 	 */
 
 	/**
@@ -885,7 +885,7 @@ public:
 
 #ifdef WITH_PYTHON
 	/**
-	 * @section Python interface functions.
+	 * \section Python interface functions.
 	 */
 	virtual PyObject* py_repr(void)
 	{

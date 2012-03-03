@@ -404,7 +404,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolConst,
 /* 12. setBoolUniform, */
 KX_PYMETHODDEF_DOC_NOARGS(SCA_RandomActuator, setBoolUniform,
 "setBoolUniform()\n"
-"\tSet this generator to produce true and false, each with 50%% chance of occuring\n") 
+"\tSet this generator to produce true and false, each with 50%% chance of occurring\n") 
 {
 	/* no args */
 	m_distribution = KX_RANDOMACT_BOOL_UNIFORM;

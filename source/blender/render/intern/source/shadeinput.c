@@ -91,7 +91,7 @@ extern struct Render R;
 
 	*/
 
-/* initialise material variables in shadeinput, 
+/* initialize material variables in shadeinput, 
  * doing inverse gamma correction where applicable */
 void shade_input_init_material(ShadeInput *shi)
 {

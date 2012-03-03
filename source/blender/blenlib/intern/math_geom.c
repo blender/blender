@@ -850,7 +850,7 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 		float l1_plane[3]; /* line point aligned with the plane */
 		float dist; /* 'plane_no' aligned distance to the 'plane_co' */
 
-		/* for pradictable flipping since the plane is only used to
+		/* for predictable flipping since the plane is only used to
 		 * define a direction, ignore its flipping and aligned with 'l_vec' */
 		if(dot < 0.0f) {
 			dot= -dot;

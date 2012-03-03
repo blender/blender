@@ -166,10 +166,11 @@ help:
 	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
 	@echo ""
 	@echo "Static Source Code Checking (not assosiated with building blender)"
-	@echo "  * check_cppcheck  - run blender source through cppcheck (C & C++)"
-	@echo "  * check_splint    - run blenders source through splint (C only)"
-	@echo "  * check_sparse    - run blenders source through sparse (C only)"
-	@echo "  * check_spelling  - check for spelling errors (Python only for now)"
+	@echo "  * check_cppcheck    - run blender source through cppcheck (C & C++)"
+	@echo "  * check_splint      - run blenders source through splint (C only)"
+	@echo "  * check_sparse      - run blenders source through sparse (C only)"
+	@echo "  * check_spelling_c  - check for spelling errors (C/C++ only)"
+	@echo "  * check_spelling_py - check for spelling errors (Python only)"
 	@echo ""
 	@echo "Documentation Targets (not assosiated with building blender)"
 	@echo "  * doc_py   - generate sphinx python api docs"
@@ -243,8 +244,11 @@ check_sparse:
 	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
 
-check_spelling:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py `find $(BLENDER_DIR)/release/scripts -name "*.py" | sort`
+check_spelling_py:
+	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/release/scripts
+
+check_spelling_c:
+	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source
 
 
 # -----------------------------------------------------------------------------

@@ -55,7 +55,7 @@ extern struct Render R;
 
 
 /* ------------------------------------------------------------------------- */
-/* Debug/behaviour defines                                                   */
+/* Debug/behavior defines                                                   */
 /* if defined: alpha blending with floats clips color, as with shorts       */
 /* #define RE_FLOAT_COLOR_CLIPPING  */
 /* if defined: alpha values are clipped                                      */

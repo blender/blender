@@ -1650,7 +1650,7 @@ static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, flo
 		
 		if (editobject)
 		{
-			em = ((Mesh *)ob->data)->edit_btmesh;
+			em = BMEdit_FromObject(ob);
 			/* dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
 			dm = editbmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
 		}
@@ -1976,7 +1976,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 				}
 				else
 				{
-					em = ((Mesh *)ob->data)->edit_btmesh;
+					em = BMEdit_FromObject(ob);
 					dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 					
 					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);

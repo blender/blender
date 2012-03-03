@@ -1217,7 +1217,7 @@ void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bo
 	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
 	if (!pchan)
 		return;
-	//Fill frame array with key frame values framed at @param:transform_type
+	//Fill frame array with key frame values framed at \param:transform_type
 	switch (transform_type) {
 		case 0:
 			find_rotation_frames(ob_arm, fra, prefix, pchan->rotmode);

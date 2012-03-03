@@ -44,21 +44,22 @@
 #include "bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
-int bm_mesh_allocsize_default[4] = {512, 512, 2048, 512};
+BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
+BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
-static void bm_mempool_init(BMesh *bm, const int allocsize[4])
+static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {
-	bm->vpool =        BLI_mempool_create(sizeof(BMVert),     allocsize[0], allocsize[0], FALSE, TRUE);
-	bm->epool =        BLI_mempool_create(sizeof(BMEdge),     allocsize[1], allocsize[1], FALSE, TRUE);
-	bm->lpool =        BLI_mempool_create(sizeof(BMLoop),     allocsize[2], allocsize[2], FALSE, FALSE);
-	bm->fpool =        BLI_mempool_create(sizeof(BMFace),     allocsize[3], allocsize[3], FALSE, TRUE);
+	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize->totvert, bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
+	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize->totedge, bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
+	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize->totloop, bm_mesh_chunksize_default.totloop, 0);
+	bm->fpool = BLI_mempool_create(sizeof(BMFace), allocsize->totface, bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
 
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
 #endif
 
 	/* allocate one flag pool that we dont get rid of. */
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0);
 }
 
 /**
@@ -70,7 +71,7 @@ static void bm_mempool_init(BMesh *bm, const int allocsize[4])
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(struct Object *ob, const int allocsize[4])
+BMesh *BM_mesh_create(struct Object *ob, BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
@@ -145,13 +146,20 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->looplistpool);
 #endif
 
-	/* These tables aren't used yet, so it's not stricly necessary
+	/* These tables aren't used yet, so it's not strictly necessary
 	 * to 'end' them (with 'e' param) but if someone tries to start
 	 * using them, having these in place will save a lot of pain */
 	mesh_octree_table(NULL, NULL, NULL, 'e');
 	mesh_mirrtopo_table(NULL, 'e');
 
 	BLI_freelistN(&bm->selected);
+
+	if (bm->py_handle) {
+		extern void bpy_bm_generic_invalidate(void *self);
+
+		bpy_bm_generic_invalidate(bm->py_handle);
+		bm->py_handle = NULL;
+	}
 
 	BMO_error_clear(bm);
 }
@@ -173,7 +181,7 @@ void BM_mesh_clear(BMesh *bm)
 	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
-	bm_mempool_init(bm, bm_mesh_allocsize_default);
+	bm_mempool_init(bm, &bm_mesh_allocsize_default);
 
 	bm->stackdepth = 1;
 	bm->totflags = 1;

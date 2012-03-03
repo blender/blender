@@ -113,11 +113,11 @@ static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize)
 /**
  * Reads data from an in-memory TIFF file.
  *
- * @param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
- * @param data:   Buffer to contain data (treat as void*).
- * @param n:      Number of bytes to read.
+ * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
+ * \param data:   Buffer to contain data (treat as void*).
+ * \param n:      Number of bytes to read.
  *
- * @return: Number of bytes actually read.
+ * \return: Number of bytes actually read.
  * 	 0 = EOF.
  */
 static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
@@ -177,15 +177,15 @@ static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
 /**
  * Seeks to a new location in an in-memory TIFF file.
  *
- * @param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
- * @param ofs:    Offset value (interpreted according to whence below).
- * @param whence: This can be one of three values:
+ * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
+ * \param ofs:    Offset value (interpreted according to whence below).
+ * \param whence: This can be one of three values:
  * 	SEEK_SET - The offset is set to ofs bytes.
  * 	SEEK_CUR - The offset is set to its current location plus ofs bytes.
  * 	SEEK_END - (This is unsupported and will return -1, indicating an
  * 	            error).
  *
- * @return: Resulting offset location within the file, measured in bytes from
+ * \return: Resulting offset location within the file, measured in bytes from
  *          the beginning of the file.  (-1) indicates an error.
  */
 static toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
@@ -231,9 +231,9 @@ static toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
  *       are made to access the file after that point.  However, no such
  *       attempts should ever be made (in theory).
  *
- * @param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
+ * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
  *
- * @return: 0
+ * \return: 0
  */
 static int imb_tiff_CloseProc(thandle_t handle)
 {
@@ -259,7 +259,7 @@ static int imb_tiff_CloseProc(thandle_t handle)
 /**
  * Returns the size of an in-memory TIFF file in bytes.
  *
- * @return: Size of file (in bytes).
+ * \return: Size of file (in bytes).
  */
 static toff_t imb_tiff_SizeProc(thandle_t handle)
 {
@@ -495,12 +495,12 @@ void imb_inittiff(void)
  * Loads a TIFF file.
  *
  *
- * @param mem:   Memory containing the TIFF file.
- * @param size:  Size of the mem buffer.
- * @param flags: If flags has IB_test set then the file is not actually loaded,
+ * \param mem:   Memory containing the TIFF file.
+ * \param size:  Size of the mem buffer.
+ * \param flags: If flags has IB_test set then the file is not actually loaded,
  *                but all other operations take place.
  *
- * @return: A newly allocated ImBuf structure if successful, otherwise NULL.
+ * \return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
 ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 {
@@ -661,11 +661,11 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int 
  * Blender by setting "Premul" alpha handling.  Other alpha conventions are
  * not strictly correct, but are permitted anyhow.
  *
- * @param ibuf:  Image buffer.
- * @param name:  Name of the TIFF file to create.
- * @param flags: Currently largely ignored.
+ * \param ibuf:  Image buffer.
+ * \param name:  Name of the TIFF file to create.
+ * \param flags: Currently largely ignored.
  *
- * @return: 1 if the function is successful, 0 on failure.
+ * \return: 1 if the function is successful, 0 on failure.
  */
 
 int imb_savetiff(ImBuf *ibuf, const char *name, int flags)

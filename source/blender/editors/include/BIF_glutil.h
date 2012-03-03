@@ -55,27 +55,27 @@ extern unsigned char stipple_diag_stripes_neg[128];
 
 	/**
 	 * Draw a lined (non-looping) arc with the given
-	 * @a radius, starting at angle @a start and arcing 
-	 * through @a angle. The arc is centered at the origin 
+	 * \a radius, starting at angle \a start and arcing
+	 * through \a angle. The arc is centered at the origin
 	 * and drawn in the XY plane.
 	 * 
-	 * @param start The initial angle (in radians).
-	 * @param angle The length of the arc (in radians).
-	 * @param radius The arc radius.
-	 * @param nsegments The number of segments to use in drawing the arc.
+	 * \param start The initial angle (in radians).
+	 * \param angle The length of the arc (in radians).
+	 * \param radius The arc radius.
+	 * \param nsegments The number of segments to use in drawing the arc.
 	 */
 void glutil_draw_lined_arc	(float start, float angle, float radius, int nsegments);
 
 	/**
-	 * Draw a filled arc with the given @a radius, 
-	 * starting at angle @a start and arcing through 
-	 * @a angle. The arc is centered at the origin 
+	 * Draw a filled arc with the given \a radius,
+	 * starting at angle \a start and arcing through
+	 * \a angle. The arc is centered at the origin
 	 * and drawn in the XY plane.
 	 * 
-	 * @param start The initial angle (in radians).
-	 * @param angle The length of the arc (in radians).
-	 * @param radius The arc radius.
-	 * @param nsegments The number of segments to use in drawing the arc.
+	 * \param start The initial angle (in radians).
+	 * \param angle The length of the arc (in radians).
+	 * \param radius The arc radius.
+	 * \param nsegments The number of segments to use in drawing the arc.
 	 */
 void glutil_draw_filled_arc	(float start, float angle, float radius, int nsegments);
 
@@ -93,11 +93,11 @@ float glaGetOneFloat		(int param);
 
 	/**
 	 * Functions like glRasterPos2i, except ensures that the resulting
-	 * raster position is valid. @a known_good_x and @a known_good_y
+	 * raster position is valid. \a known_good_x and \a known_good_y
 	 * should be coordinates of a point known to be within the current
 	 * view frustum.
-	 * @attention This routine should be used when the distance of @a x 
-	 * and @a y away from the known good point is small (ie. for small icons
+	 * \attention This routine should be used when the distance of \a x
+	 * and \a y away from the known good point is small (ie. for small icons
 	 * and for bitmap characters), when drawing large+zoomed images it is
 	 * possible for overflow to occur, the glaDrawPixelsSafe routine should
 	 * be used instead.
@@ -106,20 +106,20 @@ void glaRasterPosSafe2f		(float x, float y, float known_good_x, float known_good
 
 	/**
 	 * Functions like a limited glDrawPixels, except ensures that 
-	 * the image is displayed onscreen even if the @a x and @a y 
+	 * the image is displayed onscreen even if the \a x and \a y
 	 * coordinates for would be clipped. The routine respects the
 	 * glPixelZoom values, pixel unpacking parameters are _not_ 
 	 * respected.
 
-	 * @attention This routine makes many assumptions: the rect data
+	 * \attention This routine makes many assumptions: the rect data
 	 * is expected to be in RGBA unsigned byte format, the coordinate
 	 * (0.375, 0.375) is assumed to be within the view frustum, and the 
 	 * modelview and projection matrices are assumed to define a 
 	 * 1-to-1 mapping to screen space.
-	 * @attention Furthmore, in the case of zoomed or unpixel aligned
+	 * \attention Furthmore, in the case of zoomed or unpixel aligned
 	 * images extending outside the view frustum, but still within the 
 	 * window, some portion of the image may be visible left and/or
-	 * below of the given @a x and @a y coordinates. It is recommended
+	 * below of the given \a x and \a y coordinates. It is recommended
 	 * to use the glScissor functionality if images are to be drawn
 	 * with an inset view matrix.
 	 */
@@ -132,7 +132,7 @@ void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int 
 	 * clipped when offscreen. The routine respects the glPixelZoom values, 
 	 * pixel unpacking parameters are _not_ respected.
 
-	 * @attention This routine makes many assumptions: the rect data
+	 * \attention This routine makes many assumptions: the rect data
 	 * is expected to be in RGBA byte or float format, and the 
 	 * modelview and projection matrices are assumed to define a 
 	 * 1-to-1 mapping to screen space.
@@ -152,7 +152,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	 * thus no reason to +-0.5 the coordinates or perform other silly
 	 * tricks.
 	 *
-	 * @param screen_rect The screen rectangle to be defined for 2D drawing.
+	 * \param screen_rect The screen rectangle to be defined for 2D drawing.
 	 */
 void glaDefine2DArea		(struct rcti *screen_rect);
 
@@ -170,17 +170,17 @@ typedef struct gla2DDrawInfo gla2DDrawInfo;
 	 * thus no reason to +-0.5 the coordinates or perform other silly
 	 * tricks.
 	 *
-	 * @param screen_rect The screen rectangle to be used for 2D drawing.
-	 * @param world_rect The world rectangle that the 2D area represented
-	 * by @a screen_rect is supposed to represent. If NULL it is assumed the
+	 * \param screen_rect The screen rectangle to be used for 2D drawing.
+	 * \param world_rect The world rectangle that the 2D area represented
+	 * by \a screen_rect is supposed to represent. If NULL it is assumed the
 	 * world has a 1 to 1 mapping to the screen.
 	 */
 gla2DDrawInfo*	glaBegin2DDraw			(struct rcti *screen_rect, struct rctf *world_rect);
 
-	/** Translate the (@a wo_x, @a wo_y) point from world coordinates into screen space. */
+	/** Translate the (\a wo_x, \a wo_y) point from world coordinates into screen space. */
 void			gla2DDrawTranslatePt	(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r);
 
-	/** Translate the @a world point from world coordiantes into screen space. */
+	/** Translate the \a world point from world coordiantes into screen space. */
 void			gla2DDrawTranslatePtv	(gla2DDrawInfo *di, float world[2], int screen_r[2]);
 
 	/* Restores the previous OpenGL state and free's the auxilary

@@ -184,8 +184,8 @@ char *BLI_getQuotedStr (const char *str, const char *prefix)
 	return BLI_strdupn(startMatch, (size_t)(endMatch-startMatch));
 }
 
-/* Replaces all occurances of oldText with newText in str, returning a new string that doesn't 
- * contain the 'replaced' occurances.
+/* Replaces all occurrences of oldText with newText in str, returning a new string that doesn't 
+ * contain the 'replaced' occurrences.
  */
 // A rather wasteful string-replacement utility, though this shall do for now...
 // Feel free to replace this with an even safe + nicer alternative 
@@ -231,7 +231,7 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 		str += lenOld;
 	}
 	
-	/* finish off and return a new string that has had all occurances of */
+	/* finish off and return a new string that has had all occurrences of */
 	if (ds) {
 		char *newStr;
 		

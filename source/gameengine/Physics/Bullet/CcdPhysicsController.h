@@ -178,7 +178,7 @@ public:
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
 	
-	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
+	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indices
 											// quads turn into 2 tris
 
 	std::vector<UVco>		m_triFaceUVcoArray;	// Contains an array of pair of UV coordinate for each vertex of faces

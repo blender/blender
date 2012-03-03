@@ -764,7 +764,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	if(lar->bufflag & (LA_SHADBUF_AUTO_START|LA_SHADBUF_AUTO_END))
 		shadowbuf_autoclip(re, lar);
 	
-	/* just to enforce identical behaviour of all irregular buffers */
+	/* just to enforce identical behavior of all irregular buffers */
 	if(lar->buftype==LA_SHADBUF_IRREGULAR)
 		shb->size= 1024;
 	

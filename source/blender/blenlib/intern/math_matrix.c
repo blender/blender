@@ -1196,7 +1196,7 @@ void loc_eul_size_to_mat4(float mat[4][4], const float loc[3], const float eul[3
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* initialise new matrix */
+	/* initialize new matrix */
 	unit_m4(mat);
 	
 	/* make rotation + scaling part */
@@ -1219,7 +1219,7 @@ void loc_eulO_size_to_mat4(float mat[4][4], const float loc[3], const float eul[
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* initialise new matrix */
+	/* initialize new matrix */
 	unit_m4(mat);
 	
 	/* make rotation + scaling part */
@@ -1243,7 +1243,7 @@ void loc_quat_size_to_mat4(float mat[4][4], const float loc[3], const float quat
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* initialise new matrix */
+	/* initialize new matrix */
 	unit_m4(mat);
 	
 	/* make rotation + scaling part */

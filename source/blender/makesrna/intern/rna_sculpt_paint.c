@@ -135,7 +135,7 @@ static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UN
 	ParticleSystem *psys= edit ? edit->psys : NULL;
 #else
 	/* use this rather than PE_get_current() - because the editing cache is
-	 * dependant on the cache being updated which can happen after this UI
+	 * dependent on the cache being updated which can happen after this UI
 	 * draws causing a glitch [#28883] */
 	ParticleSystem *psys= psys_get_current(ob);
 #endif

@@ -133,8 +133,8 @@ struct DerivedMesh {
 	/* calculate vert and face normals */
 	void (*calcNormals)(DerivedMesh *dm);
 
-	/* recalculates mesh tesselation */
-	void (*recalcTesselation)(DerivedMesh *dm);
+	/* recalculates mesh tessellation */
+	void (*recalcTessellation)(DerivedMesh *dm);
 
 	/* Misc. Queries */
 
@@ -407,19 +407,19 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
-/* utility function to initialise a DerivedMesh's function pointers to
+/* utility function to initialize a DerivedMesh's function pointers to
  * the default implementation (for those functions which have a default)
  */
 void DM_init_funcs(DerivedMesh *dm);
 
-/* utility function to initialise a DerivedMesh for the desired number
+/* utility function to initialize a DerivedMesh for the desired number
  * of vertices, edges and faces (doesn't allocate memory for them, just
  * sets up the custom data layers)
  */
 void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges, 
              int numFaces, int numLoops, int numPolys);
 
-/* utility function to initialise a DerivedMesh for the desired number
+/* utility function to initialize a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,

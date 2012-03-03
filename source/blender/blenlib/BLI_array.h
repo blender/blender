@@ -51,7 +51,7 @@
  *
  * arrays are buffered, using double-buffering (so on each reallocation,
  * the array size is doubled).  supposedly this should give good Big Oh
- * behaviour, though it may not be the best in practice.
+ * behavior, though it may not be the best in practice.
  */
 
 #define BLI_array_declare(arr)                                                \

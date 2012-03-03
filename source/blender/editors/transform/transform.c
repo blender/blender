@@ -4783,16 +4783,6 @@ void freeSlideVerts(TransInfo *t)
 	if (!sld)
 		return;
 	
-	/*handle multires reprojection, done
-      on transform completion since it's
-      really slow -joeedh*/
-	if (t->state != TRANS_CANCEL) {
-		projectSVData(t, 1);
-	} else {
-		sld->perc = 0.0;
-		projectSVData(t, 0);
-	}
-
 	freeSlideTempFaces(sld);
 
 	sld->em->bm->ob = t->obedit;
@@ -5365,7 +5355,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 #if 0   /* 'doTime' disabled for now */
 
 		const Scene *scene= t->scene;
-		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behaviour given the option's label, hence disabled
+		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behavior given the option's label, hence disabled
 		const double secf= FPS;
 #endif
 		double val;
@@ -5446,7 +5436,7 @@ void initTimeTranslate(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	/* initialise snap like for everything else */
+	/* initialize snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
 
@@ -5600,7 +5590,7 @@ void initTimeSlide(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	/* initialise snap like for everything else */
+	/* initialize snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
 
@@ -5742,7 +5732,7 @@ void initTimeScale(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	/* initialise snap like for everything else */
+	/* initialize snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
 

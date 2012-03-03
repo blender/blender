@@ -29,13 +29,13 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_smallhash.h"
 #include "BLI_scanfill.h"
+#include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
@@ -1678,7 +1678,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 			}
 		}
 	}
-	/* BMESH_TODO, check if the code above validates the indicies */
+	/* BMESH_TODO, check if the code above validates the indices */
 	/* bm->elem_index_dirty &= ~BM_FACE; */
 	bm->elem_index_dirty |= BM_FACE;
 
@@ -1721,7 +1721,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BMO_elem_flag_enable(bm, e, BOUNDARY);
 	}
 
-	/* turn knife verts into real verts, as necassary */
+	/* turn knife verts into real verts, as necessary */
 	BLI_mempool_iternew(kcd->kverts, &iter);
 	for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {
 		if (!kfv->v) {
@@ -2051,7 +2051,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	kcd->draw_handle = ED_region_draw_cb_activate(kcd->ar->type, knifetool_draw, kcd, REGION_DRAW_POST_VIEW);
 	em_setup_viewcontext(C, &kcd->vc);
 
-	kcd->em = ((Mesh *)kcd->ob->data)->edit_btmesh;
+	kcd->em = BMEdit_FromObject(kcd->ob);
 
 	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
@@ -2076,9 +2076,9 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	
 	ED_region_tag_redraw(kcd->ar);
 	
-	kcd->refs = BLI_mempool_create(sizeof(Ref), 1, 2048, FALSE, FALSE);
-	kcd->kverts = BLI_mempool_create(sizeof(KnifeVert), 1, 512, FALSE, TRUE);
-	kcd->kedges = BLI_mempool_create(sizeof(KnifeEdge), 1, 512, FALSE, TRUE);
+	kcd->refs = BLI_mempool_create(sizeof(Ref), 1, 2048, 0);
+	kcd->kverts = BLI_mempool_create(sizeof(KnifeVert), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
+	kcd->kedges = BLI_mempool_create(sizeof(KnifeEdge), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
 	
 	kcd->origedgemap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origedgemap");
 	kcd->origvertmap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origvertmap");
@@ -2185,7 +2185,7 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	obedit = CTX_data_edit_object(C);
-	if (!obedit || obedit->type != OB_MESH || ((Mesh *)obedit->data)->edit_btmesh != kcd->em) {
+	if (!obedit || obedit->type != OB_MESH || BMEdit_FromObject(obedit) != kcd->em) {
 		knifetool_exit(C, op);
 		return OPERATOR_FINISHED;
 	}

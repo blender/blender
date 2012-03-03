@@ -170,7 +170,7 @@ void give_ibuf_prefetch_request(SeqRenderData context, float cfra, int chan_show
 int seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
 int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
 
-/* maintainance functions, mostly for RNA */
+/* maintenance functions, mostly for RNA */
 // extern 
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
 void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq);

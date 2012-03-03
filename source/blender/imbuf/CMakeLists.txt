@@ -104,6 +104,10 @@ set(SRC
 
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
+else()
+	list(APPEND SRC
+		intern/openexr/openexr_stub.cpp
+	)
 endif()
 
 if(WITH_IMAGE_TIFF)

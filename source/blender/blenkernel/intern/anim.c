@@ -81,7 +81,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 /* ******************************************************************** */
 /* Animation Visualisation */
 
-/* Initialise the default settings for animation visualisation */
+/* Initialize the default settings for animation visualisation */
 void animviz_settings_init(bAnimVizSettings *avs)
 {
 	/* sanity check */
@@ -234,7 +234,7 @@ typedef struct MPathTarget {
 /* get list of motion paths to be baked for the given object
  * 	- assumes the given list is ready to be used
  */
-// TODO: it would be nice in future to be able to update objects dependant on these bones too?
+// TODO: it would be nice in future to be able to update objects dependent on these bones too?
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
@@ -318,7 +318,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	/* find the last object with the tag 
 	 *	- all those afterwards are assumed to not be relevant for our calculations
 	 */
-	// optimise further by moving out...
+	// optimize further by moving out...
 	for (base=scene->base.first; base; base=base->next) {
 		if (base->object->flag & BA_TEMP_TAG)
 			last = base;
@@ -416,7 +416,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	}
 	if (efra <= sfra) return;
 	
-	/* optimise the depsgraph for faster updates */
+	/* optimize the depsgraph for faster updates */
 	// TODO: whether this is used should depend on some setting for the level of optimisations used
 	motionpaths_calc_optimise_depsgraph(scene, targets);
 	

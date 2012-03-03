@@ -2858,7 +2858,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	return ccgdm->pbvh;
 }
 
-static void ccgDM_recalcTesselation(DerivedMesh *UNUSED(dm))
+static void ccgDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 {
 	/* Nothing to do: CCG handles creating its own tessfaces */
 }
@@ -2967,7 +2967,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
 
 	ccgdm->dm.calcNormals = ccgDM_calcNormals;
-	ccgdm->dm.recalcTesselation = ccgDM_recalcTesselation;
+	ccgdm->dm.recalcTessellation = ccgDM_recalcTessellation;
 
 	ccgdm->dm.getVertCos = ccgdm_getVertCos;
 	ccgdm->dm.foreachMappedVert = ccgDM_foreachMappedVert;
@@ -3343,7 +3343,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		CCGSubSurf *ss;
 
 		/* It is quite possible there is a much better place to do this. It
-		 * depends a bit on how rigourously we expect this function to never
+		 * depends a bit on how rigorously we expect this function to never
 		 * be called in editmode. In semi-theory we could share a single
 		 * cache, but the handles used inside and outside editmode are not
 		 * the same so we would need some way of converting them. Its probably

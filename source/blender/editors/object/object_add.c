@@ -1372,7 +1372,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			DM_to_mesh(dm, newob->data, newob);
 
-			/* re-tesselation is called by DM_to_mesh */
+			/* re-tessellation is called by DM_to_mesh */
 
 			dm->release(dm);
 			object_free_modifiers(newob);	/* after derivedmesh calls! */

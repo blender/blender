@@ -952,7 +952,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
-/* force set distances between neighbouring keys */
+/* force set distances between neighboring keys */
 static void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
 {
 	
@@ -977,7 +977,7 @@ static void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
 		}
 	}
 }
-/* try to find a nice solution to keep distances between neighbouring keys */
+/* try to find a nice solution to keep distances between neighboring keys */
 static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 {
 	ParticleEditSettings *pset=PE_settings(scene);
@@ -2196,7 +2196,7 @@ static void remove_tagged_keys(Object *ob, ParticleSystem *psys)
 
 /************************ subdivide opertor *********************/
 
-/* works like normal edit mode subdivide, inserts keys between neighbouring selected keys */
+/* works like normal edit mode subdivide, inserts keys between neighboring selected keys */
 static void subdivide_particle(PEData *data, int pa_index)
 {
 	PTCacheEdit *edit= data->edit;

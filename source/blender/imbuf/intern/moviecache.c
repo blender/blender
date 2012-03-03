@@ -204,9 +204,9 @@ struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashC
 	MovieCache *cache;
 
 	cache= MEM_callocN(sizeof(MovieCache), "MovieCache");
-	cache->keys_pool= BLI_mempool_create(sizeof(MovieCacheKey), 64, 64, FALSE, FALSE);
-	cache->items_pool= BLI_mempool_create(sizeof(MovieCacheItem), 64, 64, FALSE, FALSE);
-	cache->userkeys_pool= BLI_mempool_create(keysize, 64, 64, FALSE, FALSE);
+	cache->keys_pool= BLI_mempool_create(sizeof(MovieCacheKey), 64, 64, 0);
+	cache->items_pool= BLI_mempool_create(sizeof(MovieCacheItem), 64, 64, 0);
+	cache->userkeys_pool= BLI_mempool_create(keysize, 64, 64, 0);
 	cache->hash= BLI_ghash_new(moviecache_hashhash, moviecache_hashcmp, "MovieClip ImBuf cache hash");
 
 	cache->keysize= keysize;

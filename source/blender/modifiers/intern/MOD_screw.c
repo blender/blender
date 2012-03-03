@@ -611,7 +611,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				 * we know the surrounding edges are ordered correctly now
 				 * so its safe to create vertex normals.
 				 *
-				 * calculate vertex normals that can be propodated on lathing
+				 * calculate vertex normals that can be propagated on lathing
 				 * use edge connectivity work this out */
 				if (vc->v[0] >= 0) {
 					if (vc->v[1] >= 0) {

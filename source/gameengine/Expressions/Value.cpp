@@ -433,7 +433,7 @@ int CValue::GetPropertyCount()
 
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
-	assertd(false); // don;t get vector from me
+	assertd(false); // don't get vector from me
 	return m_sZeroVec;//::sZero;
 }
 

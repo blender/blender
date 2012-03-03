@@ -3384,7 +3384,7 @@ int uiButGetUnitType(uiBut *but)
 {
 	int ownUnit = (int)but->unit_type;
 	
-	/* own unit define always takes precidence over RNA provided, allowing for overriding 
+	/* own unit define always takes precedence over RNA provided, allowing for overriding 
 	 * default value provided in RNA in a few special cases (i.e. Active Keyframe in Graph Edit)
 	 */
 	// XXX: this doesn't allow clearing unit completely, though the same could be said for icons

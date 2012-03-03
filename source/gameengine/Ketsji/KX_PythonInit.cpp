@@ -1720,7 +1720,7 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
  * These exist so the current blend dir "//" can always be used to import modules from.
  * the reason we need a few functions for this is that python is not only used by the game engine
  * so we cant just add to sys.path all the time, it would leave pythons state in a mess.
- * It would also be incorrect since loading blend files for new levels etc would alwasy add to sys.path
+ * It would also be incorrect since loading blend files for new levels etc would always add to sys.path
  * 
  * To play nice with blenders python, the sys.path is backed up and the current blendfile along
  * with all its lib paths are added to the sys path.

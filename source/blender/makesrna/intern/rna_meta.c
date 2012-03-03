@@ -133,7 +133,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Meta
 	found= BLI_remlink_safe(&mb->elems, ml);
 
 	if(!found) {
-		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" does not contain spline given", mb->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Metaball \"%s\" does not contain spline given", mb->id.name+2);
 		return;
 	}
 
@@ -167,7 +167,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MetaElement", NULL);
 	RNA_def_struct_sdna(srna, "MetaElem");
-	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock");
+	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a Metaball datablock");
 	RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
 
 	/* enums */

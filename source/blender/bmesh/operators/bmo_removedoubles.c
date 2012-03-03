@@ -510,8 +510,10 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 	len = BLI_array_count(verts);
 	for (i = 0; i < len; i++) {
 		v = verts[i];
-		if (BMO_elem_flag_test(bm, v, VERT_DOUBLE)) continue;
-		
+		if (BMO_elem_flag_test(bm, v, VERT_DOUBLE)) {
+			continue;
+		}
+
 		for (j = i + 1; j < len; j++) {
 			v2 = verts[j];
 

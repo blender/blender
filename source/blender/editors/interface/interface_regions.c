@@ -154,8 +154,8 @@ static void menudata_free(MenuData *md)
 	 * indicates a seperator, sss%l indicates a label and
 	 * new column.
 	 * 
-	 * @param str String to be parsed.
-	 * @retval new menudata structure, free with menudata_free()
+	 * \param str String to be parsed.
+	 * \retval new menudata structure, free with menudata_free()
 	 */
 static MenuData *decompose_menu_string(const char *str)
 {

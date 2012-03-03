@@ -844,7 +844,7 @@ void VideoFFmpeg::setPositions (void)
 		m_startTime -= double(m_lastFrame) / actFrameRate();
 	else {
 		m_startTime -= m_range[0];
-		// start from begining, stop cache just in case
+		// start from beginning, stop cache just in case
 		stopCache();
 	}
 }
@@ -959,7 +959,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 				// of the file.
 				if (position <= m_preseek)
 				{
-					// we can safely go the begining of the file
+					// we can safely go the beginning of the file
 					if (av_seek_frame(m_formatCtx, m_videoStream, 0, AVSEEK_FLAG_BYTE) >= 0)
 					{
 						// binary seek does not reset the timestamp, must do it now
@@ -1188,7 +1188,7 @@ static PyGetSetDef videoGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)", NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{(char*)"preseek", (getter)VideoFFmpeg_getPreseek, (setter)VideoFFmpeg_setPreseek, (char*)"nb of frames of preseek", NULL},
@@ -1309,7 +1309,7 @@ static PyGetSetDef imageGetSets[] =
 	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
-	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)", NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}

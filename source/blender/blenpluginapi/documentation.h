@@ -27,13 +27,13 @@
  * @mainpage plugin API - the access point for texture and sequence
  * plugins
  *
- * @section about About the plugin API
+ * \section about About the plugin API
  *
  * This API wraps functions that are used by texture and sequence
  * plugins. They are explicitly wrapped in order to make the
  * dependencies to the rest of the system clear.
  *
- * @section issues Known issues with the plugin API
+ * \section issues Known issues with the plugin API
  *
  * - It can be difficult at times to get access to the API functions
  * linked into the final executable. On gcc, the -fpic and -shared
@@ -59,7 +59,7 @@
  * code. It will be removed as soon as the replacing system is in
  * place.
  * 
- * @section dependencies Dependencies
+ * \section dependencies Dependencies
  *
  * The plugins wraps functions from IMB and BLI. In addition, they
  * define some useful variables.

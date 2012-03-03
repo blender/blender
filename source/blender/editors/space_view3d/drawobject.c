@@ -1482,7 +1482,7 @@ static void draw_limit_line(float sta, float end, unsigned int col)
 
 
 /* yafray: draw camera focus point (cross, similar to aqsis code in tuhopuu) */
-/* qdn: now also enabled for Blender to set focus point for defocus composit node */
+/* qdn: now also enabled for Blender to set focus point for defocus composite node */
 static void draw_focus_cross(float dist, float size)
 {
 	glBegin(GL_LINES);
@@ -1822,7 +1822,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 			if (cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
-				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composit node */
+				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composite node */
 				draw_focus_cross(object_camera_dof_distance(ob), cam->drawsize);
 			}
 
@@ -2018,7 +2018,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 /* Note! - foreach funcs should be called while drawing or directly after
  * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
  * but would not give correct results with dupli's for eg. which dont
- * use the object matrix in the useual way */
+ * use the object matrix in the usual way */
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	foreachScreenVert_userData *data = userData;
@@ -4159,7 +4159,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 /* mostly tries to use vertex arrays for speed										*/
 
 /* 1. check that everything is ok & updated */
-/* 2. start initialising things				*/
+/* 2. start initializing things				*/
 /* 3. initialize according to draw type		*/
 /* 4. allocate drawing data arrays			*/
 /* 5. start filling the arrays				*/

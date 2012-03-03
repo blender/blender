@@ -497,7 +497,7 @@ static short pose_select_same_group (bContext *C, Object *ob, short extend)
 	}
 	CTX_DATA_END;
 	
-	/* small optimisation: only loop through bones a second time if there are any groups tagged */
+	/* small optimization: only loop through bones a second time if there are any groups tagged */
 	if (tagged) {
 		/* only if group matches (and is not selected or current bone) */
 		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
@@ -1164,7 +1164,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* if selOnly option is enabled, if user hasn't selected any bones, 
-	 * just go back to default behaviour to be more in line with other pose tools
+	 * just go back to default behavior to be more in line with other pose tools
 	 */
 	if (selOnly) {
 		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0)

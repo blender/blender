@@ -100,7 +100,7 @@ bool KX_MouseFocusSensor::Evaluate()
 //  	cout << "evaluate focus mouse sensor "<<endl;
 	m_reset = false;
 	if (m_focusmode) {
-		/* Focus behaviour required. Test mouse-on. The rest is
+		/* Focus behavior required. Test mouse-on. The rest is
 		 * equivalent to handling a key. */
 		obHasFocus = ParentObjectHasFocus();
 		
@@ -123,7 +123,7 @@ bool KX_MouseFocusSensor::Evaluate()
 			result = true;
 		}
 	} else {
-		/* No focus behaviour required: revert to the basic mode. This
+		/* No focus behavior required: revert to the basic mode. This
 		 * mode is never used, because the converter never makes this
 		 * sensor for a mouse-key event. It is here for
 		 * completeness. */

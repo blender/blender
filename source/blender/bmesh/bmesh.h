@@ -201,63 +201,12 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 
+#include <stdlib.h>
 #include "BLI_utildefines.h"
 
 #include "bmesh_class.h"
 
 /*forward declarations*/
-
-/*
- * BMHeader
- *
- * All mesh elements begin with a BMHeader. This structure
- * hold several types of data
- *
- * 1: The type of the element (vert, edge, loop or face)
- * 2: Persistant "header" flags/markings (sharp, seam, select, hidden, ect)
-      note that this is different from the "tool" flags.
- * 3: Unique ID in the bmesh.
- * 4: some elements for internal record keeping.
- *
-*/
-
-/* BMHeader->htype (char) */
-enum {
-	BM_VERT = 1,
-	BM_EDGE = 2,
-	BM_LOOP = 4,
-	BM_FACE = 8
-};
-
-#define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
-
-/* BMHeader->hflag (char) */
-enum {
-	BM_ELEM_SELECT  = (1 << 0),
-	BM_ELEM_HIDDEN  = (1 << 1),
-	BM_ELEM_SEAM    = (1 << 2),
-	BM_ELEM_SMOOTH  = (1 << 3), /* used for faces and edges, note from the user POV,
-                                  * this is a sharp edge when disabled */
-
-	BM_ELEM_TAG     = (1 << 4), /* internal flag, used for ensuring correct normals
-                                 * during multires interpolation, and any other time
-                                 * when temp tagging is handy.
-                                 * always assume dirty & clear before use. */
-
-	BM_ELEM_FREESTYLE = (1 << 5), /* used for Freestyle faces and edges */
-	/* we have 2 spare flags which is awesome but since we're limited to 8
-	 * only add new flags with care! - campbell */
-	/* BM_ELEM_SPARE  = (1 << 5), */
-	/* BM_ELEM_SPARE  = (1 << 6), */
-
-	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
-                                     * since tools may want to tag verts and
-                                     * not have functions clobber them */
-};
-
-/* Mesh Level Ops */
-extern int bm_mesh_allocsize_default[4];
-
 
 /* ------------------------------------------------------------------------- */
 /* bmesh_inline.c */
@@ -282,7 +231,7 @@ BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
  * sure if the index values are valid because certain operations have modified
  * the mesh structure.
  *
- * To set the elements to valid indicies 'BM_mesh_elem_index_ensure' should be used
+ * To set the elements to valid indices 'BM_mesh_elem_index_ensure' should be used
  * rather then adding inline loops, however there are cases where we still
  * set the index directly
  *

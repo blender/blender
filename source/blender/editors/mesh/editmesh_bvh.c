@@ -90,7 +90,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	  so that e.g. mirror or array use original vertex coordiantes and not mirrored or duplicate*/
 	BLI_smallhash_init(&shash);
 	
-	BMEdit_RecalcTesselation(em);
+	BMEdit_RecalcTessellation(em);
 
 	tree->ob = obedit;
 	tree->scene = scene;

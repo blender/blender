@@ -903,11 +903,14 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	node_unlink_attached(ntree, node);
 	
 	BLI_remlink(&ntree->nodes, node);
-
+	
 	/* since it is called while free database, node->id is undefined */
 	
 	if (treetype->free_node_cache)
 		treetype->free_node_cache(ntree, node);
+	
+	if(node->typeinfo && node->typeinfo->freestoragefunc)
+		node->typeinfo->freestoragefunc(node);
 	
 	for (sock=node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
@@ -921,10 +924,6 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	}
 
 	nodeFreePreview(node);
-
-	if(node->typeinfo && node->typeinfo->freestoragefunc) {
-		node->typeinfo->freestoragefunc(node);
-	}
 
 	MEM_freeN(node);
 	
@@ -992,7 +991,7 @@ void ntreeSetOutput(bNodeTree *ntree)
 {
 	bNode *node;
 
-	/* find the active outputs, might become tree type dependant handler */
+	/* find the active outputs, might become tree type dependent handler */
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
 			bNode *tnode;
@@ -1367,6 +1366,19 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 int nodeSocketIsHidden(bNodeSocket *sock)
 {
 	return ((sock->flag & (SOCK_HIDDEN | SOCK_AUTO_HIDDEN | SOCK_UNAVAIL)) != 0);
+}
+
+void nodeSocketSetType(bNodeSocket *sock, int type)
+{
+	int old_type = sock->type;
+	void *old_default_value = sock->default_value;
+	
+	sock->type = type;
+	
+	sock->default_value = node_socket_make_default_value(sock->type);
+	node_socket_init_default_value(type, sock->default_value);
+	node_socket_convert_default_value(sock->type, sock->default_value, old_type, old_default_value);
+	node_socket_free_default_value(old_type, old_default_value);
 }
 
 /* ************** dependency stuff *********** */
@@ -1839,7 +1851,6 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_viewer(ttype);
 	register_node_type_cmp_splitviewer(ttype);
 	register_node_type_cmp_output_file(ttype);
-	register_node_type_cmp_output_multi_file(ttype);
 	register_node_type_cmp_view_levels(ttype);
 	
 	register_node_type_cmp_curve_rgb(ttype);

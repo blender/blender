@@ -1094,7 +1094,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			seq->flag |= SELECT;
 			changed = TRUE;
 
-			/* Unfortunately, we must restart checks from the begining. */
+			/* Unfortunately, we must restart checks from the beginning. */
 			seq_end(&iter);
 			seq_begin(ed, &iter, 1);
 		}
