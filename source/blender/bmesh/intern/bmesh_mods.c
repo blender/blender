@@ -709,6 +709,43 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 }
 
 /**
+ * \brief Check if Rotate Edge is OK
+ *
+ * Quick check to see if we could rotate the edge,
+ * use this to avoid calling exceptions on common cases.
+ */
+int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
+{
+	BMFace *fa, *fb;
+	if (BM_edge_face_pair(e, &fa, &fb)) {
+		BMLoop *la, *lb;
+
+		la = BM_face_other_vert_loop(e->v2, fa, e->v1);
+		lb = BM_face_other_vert_loop(e->v2, fb, e->v1);
+
+		/* check that the next vert in both faces isnt the same
+		 * (ie - the next edge doesnt sharwe the same faces).
+		 * since we can't rotate usefully in this case. */
+		if (la->v == lb->v) {
+			return FALSE;
+		}
+
+		/* mirror of the check above but in the opposite direction */
+		la = BM_face_other_vert_loop(e->v1, fa, e->v2);
+		lb = BM_face_other_vert_loop(e->v1, fb, e->v2);
+
+		if (la->v == lb->v) {
+			return FALSE;
+		}
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+/**
  * \brief Rotate Edge
  *
  * Spins an edge topologically,
@@ -727,16 +764,12 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw)
 	BMFace *f;
 	BMIter liter;
 
+	if (!BM_edge_rotate_check(bm, e)) {
+		return NULL;
+	}
+
 	v1 = e->v1;
 	v2 = e->v2;
-
-	if (BM_edge_face_count(e) != 2)
-		return NULL;
-
-	/* If either of e's vertices has valence 2, then
-	 * dissolving the edge would leave a spur, so not allowed */
-	if (BM_vert_edge_count(e->v1) == 2 || BM_vert_edge_count(e->v2) == 2)
-		return NULL;
 
 	f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
 

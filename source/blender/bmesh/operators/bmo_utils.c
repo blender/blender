@@ -125,16 +125,39 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, *e2;
 	int ccw = BMO_slot_bool_get(op, "ccw");
 
-	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		if (!(e2 = BM_edge_rotate(bm, e, ccw))) {
-			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
-			return;
-		}
+#define EDGE_OUT   1
+#define FACE_TAINT 1
 
-		BMO_elem_flag_enable(bm, e2, 1);
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		if (BM_edge_rotate_check(bm, e)) {
+			BMFace *fa, *fb;
+			if (BM_edge_face_pair(e, &fa, &fb)) {
+
+				/* check we're untouched */
+				if (BMO_elem_flag_test(bm, fa, FACE_TAINT) == FALSE &&
+				    BMO_elem_flag_test(bm, fb, FACE_TAINT) == FALSE)
+				{
+
+					if (!(e2 = BM_edge_rotate(bm, e, ccw))) {
+						BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
+						return;
+					}
+
+					BMO_elem_flag_enable(bm, e2, EDGE_OUT);
+
+					/* dont touch again */
+					BMO_elem_flag_enable(bm, fa, FACE_TAINT);
+					BMO_elem_flag_enable(bm, fb, FACE_TAINT);
+				}
+			}
+		}
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", 1, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
+
+#undef EDGE_OUT
+#undef FACE_TAINT
+
 }
 
 #define SEL_FLAG	1

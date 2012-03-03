@@ -65,7 +65,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
 /**
  * \brief BMESH OTHER EDGE IN FACE SHARING A VERTEX
  *
- * Finds the other loop that shares 'v' with 'e's loop in 'f'.
+ * Finds the other loop that shares \a v with \a e loop in \a f.
  */
 BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 {
@@ -81,6 +81,50 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
 	} while ((l_iter = l_iter->next) != l_first);
 	
 	return l_iter->v == v ? l_iter->prev : l_iter->next;
+}
+
+/**
+ * \brief BMESH NEXT LOOP IN FACE SHARING A VERTEX
+ *
+ * Finds the other loop in a face.
+ *
+ * This function returns a loop in \a f that shares an edge with \v
+ * The direction is defined by \a v_prev, where the return value is
+ * the loop of what would be 'v_next'
+ *
+ * \note \a v_prev and \a v _implicitly_ define an edge.
+ */
+BMLoop *BM_face_other_vert_loop(BMVert *v_prev, BMFace *f, BMVert *v)
+{
+	BMIter liter;
+	BMLoop *l_iter;
+
+	BLI_assert(BM_edge_exists(v_prev, v) != NULL);
+
+	BM_ITER(l_iter, &liter, NULL, BM_LOOPS_OF_VERT, v) {
+		if (l_iter->f == f) {
+			break;
+		}
+	}
+
+	if (l_iter) {
+		if (l_iter->prev->v == v_prev) {
+			return l_iter->next;
+		}
+		else if (l_iter->next->v == v_prev) {
+			return l_iter->prev;
+		}
+		else {
+			/* invalid args */
+			BLI_assert(0);
+			return NULL;
+		}
+	}
+	else {
+		/* invalid args */
+		BLI_assert(0);
+		return NULL;
+	}
 }
 
 /**
@@ -188,6 +232,31 @@ int BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 {
 	return bmesh_edge_other_vert_get(e, v);
+}
+
+/**
+ * Utility function, since enough times we have an edge
+ * and want to access 2 connected faces.
+ *
+ * \return TRUE when only 2 faces are found.
+ */
+int BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb)
+{
+	BMLoop *la, *lb;
+
+	if ((la = e->l) &&
+	    (lb = la->radial_next) &&
+	    (lb->radial_next == la))
+	{
+		*r_fa = la->f;
+		*r_fb = lb->f;
+		return TRUE;
+	}
+	else {
+		*r_fa = NULL;
+		*r_fb = NULL;
+		return FALSE;
+	}
 }
 
 /**
