@@ -238,6 +238,12 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 	*ls->pm++ = marks;
 }
 
+struct detri_t {
+	unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
+	Vec3r v;
+	unsigned n;
+};
+
 void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 {
 	ObjectRen *obr = obi->obr;
@@ -493,11 +499,6 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	// Only those degenerate triangles in the second form are resolved here
 	// by adding a small offset to P, whereas those in the first form are
 	// addressed later in WShape::MakeFace().
-	typedef struct {
-		unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
-		Vec3r v;
-		unsigned n;
-	} detri_t;
 	vector<detri_t> detriList;
 	Vec3r zero(0.0, 0.0, 0.0);
 	unsigned vi0, vi1, vi2;
