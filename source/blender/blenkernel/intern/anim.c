@@ -955,8 +955,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					
 					
 					/* par_space_mat - only used for groups so we can modify the space dupli's are in
-					   when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
-					*/
+					 * when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
+					 */
 					if(par_space_mat)
 						mult_m4_m4m4(vdd.obmat, par_space_mat, ob->obmat);
 					else
@@ -1085,8 +1085,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	/* End Scene/Group object loop, below is generic */
 					
 					/* par_space_mat - only used for groups so we can modify the space dupli's are in
-					   when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
-					*/
+					 * when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
+					 */
 					if(par_space_mat)
 						mult_m4_m4m4(ob__obmat, par_space_mat, ob->obmat);
 					else
@@ -1117,11 +1117,11 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 							v1= mvert[(mv1= loopstart[0].v)].co;
 							v2= mvert[(mv2= loopstart[1].v)].co;
 							v3= mvert[(mv3= loopstart[2].v)].co;
-							/*
+#if 0
 							if (mp->totloop > 3) {
 								v4= mvert[(mv4= loopstart[3].v)].co;
 							}
-							*/
+#endif
 						}
 
 						/* translation */
@@ -1626,8 +1626,8 @@ void free_object_duplilist(ListBase *lb)
 	DupliObject *dob;
 	
 	/* loop in reverse order, if object is instanced multiple times
-	   the original layer may not really be original otherwise, proper
-	   solution is more complicated */
+	 * the original layer may not really be original otherwise, proper
+	 * solution is more complicated */
 	for(dob= lb->last; dob; dob= dob->prev) {
 		dob->ob->lay= dob->origlay;
 		copy_m4_m4(dob->ob->obmat, dob->omat);

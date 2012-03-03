@@ -31,20 +31,19 @@ struct BMFace;
 struct Mesh;
 struct DerivedMesh;
 
-/*
-ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
-    BMEdit module is for code shared with blenkernel that concerns
-    the BMEditMesh structure.
-*/
+/* ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+ *     BMEdit module is for code shared with blenkernel that concerns
+ *     the BMEditMesh structure.
+ */
 
-/*this structure replaces EditMesh.
- 
-  through this, you get access to both the edit bmesh,
-  it's tessellation, and various stuff that doesn't belong in the BMesh
-  struct itself.
-  
-  the entire derivedmesh and modifier system works with this structure,
-  and not BMesh.  Mesh->edit_bmesh stores a pointer to this structure.*/
+/* this structure replaces EditMesh.
+ *
+ * through this, you get access to both the edit bmesh,
+ * it's tessellation, and various stuff that doesn't belong in the BMesh
+ * struct itself.
+ *
+ * the entire derivedmesh and modifier system works with this structure,
+ * and not BMesh.  Mesh->edit_bmesh stores a pointer to this structure. */
 typedef struct BMEditMesh {
 	struct BMesh *bm;
 
@@ -52,8 +51,8 @@ typedef struct BMEditMesh {
 	struct BMEditMesh *emcopy;
 	int emcopyusers;
 	
-	/*we store tessellations as triplets of three loops,
-	  which each define a triangle.*/
+	/* we store tessellations as triplets of three loops,
+	 * which each define a triangle.*/
 	struct BMLoop *(*looptris)[3];
 	int tottri;
 

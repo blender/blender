@@ -377,8 +377,8 @@ int bmesh_elem_check(BMesh *UNUSED(bm), void *element, const char htype)
 			if (l->f->len <= 0)
 				err |= (1 << 13);
 
-			/* validate boundary loop--invalid for hole loops, of course,
-		 * but we won't be allowing those for a while ye */
+			/* validate boundary loop -- invalid for hole loops, of course,
+			 * but we won't be allowing those for a while yet */
 			l2 = l;
 			i = 0;
 			do {

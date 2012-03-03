@@ -290,9 +290,9 @@ void make_local_material(Material *ma)
 	int a, is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if (ma->id.lib==NULL) return;
 
@@ -304,7 +304,7 @@ void make_local_material(Material *ma)
 	}
 
 	/* Check which other IDs reference this one to determine if it's used by
-	   lib or local */
+	 * lib or local */
 	/* test objects */
 	ob= bmain->object.first;
 	while(ob) {
@@ -1614,7 +1614,7 @@ static void calculate_tface_materialname(char *matname, char *newname, int flag)
 	// otherwise do:
 	int digits = integer_getdigits(flag);
 	/* clamp the old name, remove the MA prefix and add the .TF.flag suffix
-	e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
+	 * e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
 	BLI_snprintf(newname, MAX_ID_NAME, "%.*s.TF.%0*d", MAX_ID_NAME-(digits+5), matname, digits, flag);
 }
 

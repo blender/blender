@@ -115,10 +115,10 @@ void BLI_splitdirstring(char *di,char *fi);
 void BLI_clean(char *path);
 
 /**
-	 * dir can be any input, like from buttons, and this function
-	 * converts it to a regular full path.
-	 * Also removes garbage from directory paths, like /../ or double slashes etc 
-	 */
+ * dir can be any input, like from buttons, and this function
+ * converts it to a regular full path.
+ * Also removes garbage from directory paths, like /../ or double slashes etc 
+ */
 void BLI_cleanup_file(const char *relabase, char *dir); /* removes trailing slash */
 void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
 void BLI_cleanup_path(const char *relabase, char *dir); /* doesn't touch trailing slash */
@@ -129,18 +129,18 @@ int BLI_parent_dir(char *path);
 /* return whether directory is root and thus has no parent dir */
 int BLI_has_parent(char *path);
 
-	/**
-	 * Blender's path code replacement function.
-	 * Bases \a path strings leading with "//" by the
-	 * directory \a basepath, and replaces instances of
-	 * '#' with the \a framenum. Results are written
-	 * back into \a path.
-	 * 
-	 * \a path The path to convert
-	 * \a basepath The directory to base relative paths with.
-	 * \a framenum The framenumber to replace the frame code with.
-	 * \retval Returns true if the path was relative (started with "//").
-	 */
+/**
+ * Blender's path code replacement function.
+ * Bases \a path strings leading with "//" by the
+ * directory \a basepath, and replaces instances of
+ * '#' with the \a framenum. Results are written
+ * back into \a path.
+ * 
+ * \a path The path to convert
+ * \a basepath The directory to base relative paths with.
+ * \a framenum The framenumber to replace the frame code with.
+ * \retval Returns true if the path was relative (started with "//").
+ */
 int BLI_path_abs(char *path, const char *basepath);
 int BLI_path_frame(char *path, int frame, int digits);
 int BLI_path_frame_range(char *path, int sta, int end, int digits);
@@ -155,14 +155,14 @@ void BLI_path_rel(char *file, const char *relfile);
 #  define BLI_path_ncmp strncmp
 #endif
 
-	/**
-	 * Change every \a from in \a string into \a to. The
-	 * result will be in \a string
-	 *
-	 * \a string The string to work on
-	 * \a from The character to replace
-	 * \a to The character to replace with
-	 */
+/**
+ * Change every \a from in \a string into \a to. The
+ * result will be in \a string
+ *
+ * \a string The string to work on
+ * \a from The character to replace
+ * \a to The character to replace with
+ */
 void BLI_char_switch(char *string, char from, char to);
 
 	/* Initialize path to program executable */

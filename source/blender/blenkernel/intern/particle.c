@@ -2859,8 +2859,8 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 		cosangle= dot_v3v3(tangent, prev_tangent);
 
 		/* note we do the comparison on cosangle instead of
-		* angle, since floating point accuracy makes it give
-		* different results across platforms */
+		 * angle, since floating point accuracy makes it give
+		 * different results across platforms */
 		if(cosangle > 0.999999f) {
 			copy_v4_v4(key1->rot, key2->rot);
 		}
@@ -4426,7 +4426,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part, Partic
 
 		if (num >= psmd->dm->getNumTessFaces(psmd->dm)) {
 			/* happens when simplify is enabled
-				* gives invalid coords but would crash otherwise */
+			 * gives invalid coords but would crash otherwise */
 			num= DMCACHE_NOTFOUND;
 		}
 

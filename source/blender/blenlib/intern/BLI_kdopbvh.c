@@ -201,16 +201,18 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //static int size_threshold = 16;
 /*
-* Common methods for all algorithms
-*/
-/*static int floor_lg(int a)
+ * Common methods for all algorithms
+ */
+#if 0
+static int floor_lg(int a)
 {
 	return (int)(floor(log(a)/log(2)));
-}*/
+}
+#endif
 
 /*
-* Insertion sort algorithm
-*/
+ * Insertion sort algorithm
+ */
 static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
 {
 	int i,j;
@@ -244,8 +246,8 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 }
 
 /*
-* Heapsort algorithm
-*/
+ * Heapsort algorithm
+ */
 #if 0
 static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 {
@@ -310,8 +312,8 @@ static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis) //
 
 #if 0
 /*
-* Quicksort algorithm modified for Introsort
-*/
+ * Quicksort algorithm modified for Introsort
+ */
 static void bvh_introsort_loop (BVHNode **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
@@ -1210,7 +1212,7 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 			nearest[i] = proj[i]; 
 	}
 
-/*
+#if 0
 	//nearest on a general hull
 	copy_v3_v3(nearest, data->co);
 	for(i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv+=2)
@@ -1228,7 +1230,8 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 			madd_v3_v3fl(nearest, KDOP_AXES[i], du);
 		}
 	}
-*/
+#endif
+
 	return len_squared_v3v3(proj, nearest);
 }
 

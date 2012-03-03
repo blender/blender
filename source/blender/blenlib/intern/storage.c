@@ -444,9 +444,9 @@ int BLI_exists(const char *name)
 {
 #if defined(WIN32) && !defined(__MINGW32__)
 	struct _stat64i32 st;
-	/*  in Windows stat doesn't recognize dir ending on a slash 
-		To not break code where the ending slash is expected we
-		don't mess with the argument name directly here - elubie */
+	/* in Windows stat doesn't recognize dir ending on a slash 
+	 * To not break code where the ending slash is expected we
+	 * don't mess with the argument name directly here - elubie */
 	char tmp[FILE_MAX];
 	int len, res;
 	BLI_strncpy(tmp, name, FILE_MAX);

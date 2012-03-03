@@ -118,8 +118,8 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 			if (is_quad_convex_v3(v1->co, v2->co, v3->co, v4->co)) {
 				float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 				/* testing rule:
-				* the area divided by the total edge lengths
-				*/
+				 * the area divided by the total edge lengths
+				 */
 				len1 = len_v3v3(v1->co, v2->co);
 				len2 = len_v3v3(v2->co, v3->co);
 				len3 = len_v3v3(v3->co, v4->co);

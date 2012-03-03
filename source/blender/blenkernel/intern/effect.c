@@ -717,11 +717,11 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 		
 		if(eff->pd->forcefield == PFIELD_CHARGE) {
 			/* Only the charge of the effected particle is used for 
-			interaction, not fall-offs. If the fall-offs aren't the	
-			same this will be unphysical, but for animation this		
-			could be the wanted behavior. If you want physical
-			correctness the fall-off should be spherical 2.0 anyways.
-			*/
+			 * interaction, not fall-offs. If the fall-offs aren't the	
+			 * same this will be unphysical, but for animation this		
+			 * could be the wanted behavior. If you want physical
+			 * correctness the fall-off should be spherical 2.0 anyways.
+			 */
 			efd->charge = eff->pd->f_strength;
 		}
 		else if(eff->pd->forcefield == PFIELD_HARMONIC && (eff->pd->flag & PFIELD_MULTIPLE_SPRINGS)==0) {
@@ -943,34 +943,33 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 }
 
 /*  -------- pdDoEffectors() --------
-	generic force/speed system, now used for particles and softbodies
-	scene       = scene where it runs in, for time and stuff
-	lb			= listbase with objects that take part in effecting
-	opco		= global coord, as input
-	force		= force accumulator
-	speed		= actual current speed which can be altered
-	cur_time	= "external" time in frames, is constant for static particles
-	loc_time	= "local" time in frames, range <0-1> for the lifetime of particle
-	par_layer	= layer the caller is in
-	flags		= only used for softbody wind now
-	guide		= old speed of particle
-
-*/
+ * generic force/speed system, now used for particles and softbodies
+ * scene       = scene where it runs in, for time and stuff
+ * lb			= listbase with objects that take part in effecting
+ * opco		= global coord, as input
+ * force		= force accumulator
+ * speed		= actual current speed which can be altered
+ * cur_time	= "external" time in frames, is constant for static particles
+ * loc_time	= "local" time in frames, range <0-1> for the lifetime of particle
+ * par_layer	= layer the caller is in
+ * flags		= only used for softbody wind now
+ * guide		= old speed of particle
+ */
 void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *weights, EffectedPoint *point, float *force, float *impulse)
 {
 /*
-	Modifies the force on a particle according to its
-	relation with the effector object
-	Different kind of effectors include:
-		Forcefields: Gravity-like attractor
-		(force power is related to the inverse of distance to the power of a falloff value)
-		Vortex fields: swirling effectors
-		(particles rotate around Z-axis of the object. otherwise, same relation as)
-		(Forcefields, but this is not done through a force/acceleration)
-		Guide: particles on a path
-		(particles are guided along a curve bezier or old nurbs)
-		(is independent of other effectors)
-*/
+ * Modifies the force on a particle according to its
+ * relation with the effector object
+ * Different kind of effectors include:
+ *     Forcefields: Gravity-like attractor
+ *     (force power is related to the inverse of distance to the power of a falloff value)
+ *     Vortex fields: swirling effectors
+ *     (particles rotate around Z-axis of the object. otherwise, same relation as)
+ *     (Forcefields, but this is not done through a force/acceleration)
+ *     Guide: particles on a path
+ *     (particles are guided along a curve bezier or old nurbs)
+ *     (is independent of other effectors)
+ */
 	EffectorCache *eff;
 	EffectorData efd;
 	int p=0, tot = 1, step = 1;

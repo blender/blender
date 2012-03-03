@@ -60,8 +60,8 @@ void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
-   * for each hit calling a callback
-   * gather nodes in an array (easy to multithread) */
+ * - for each hit calling a callback
+ * - gather nodes in an array (easy to multithread) */
 
 void BLI_pbvh_search_callback(PBVH *bvh,
 	BLI_pbvh_SearchCallback scb, void *search_data,
@@ -72,9 +72,9 @@ void BLI_pbvh_search_gather(PBVH *bvh,
 	PBVHNode ***array, int *tot);
 
 /* Raycast
-   the hit callback is called for all leaf nodes intersecting the ray;
-   it's up to the callback to find the primitive within the leaves that is
-   hit first */
+ * the hit callback is called for all leaf nodes intersecting the ray;
+ * it's up to the callback to find the primitive within the leaves that is
+ * hit first */
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       float ray_start[3], float ray_normal[3], int original);
@@ -131,8 +131,8 @@ int BLI_pbvh_isDeformed(struct PBVH *pbvh);
 /* Vertex Iterator */
 
 /* this iterator has quite a lot of code, but it's designed to:
-   - allow the compiler to eliminate dead code and variables
-   - spend most of the time in the relatively simple inner loop */
+ * - allow the compiler to eliminate dead code and variables
+ * - spend most of the time in the relatively simple inner loop */
 
 #define PBVH_ITER_ALL		0
 #define PBVH_ITER_UNIQUE	1
@@ -159,7 +159,7 @@ typedef struct PBVHVertexIter {
 	int *vert_indices;
 
 	/* result: these are all computed in the macro, but we assume
-	   that compiler optimizations will skip the ones we don't use */
+	 * that compiler optimizations will skip the ones we don't use */
 	struct MVert *mvert;
 	float *co;
 	short *no;

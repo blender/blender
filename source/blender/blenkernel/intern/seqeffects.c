@@ -3098,8 +3098,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 }
 
 /* **********************************************************************
-   sequence effect factory
-   ********************************************************************** */
+ * sequence effect factory
+ * ********************************************************************** */
 
 
 static void init_noop(struct Sequence *UNUSED(seq))

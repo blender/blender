@@ -745,8 +745,8 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 	}
 
 	/* duplicate currently operating tracks to temporary list.
-	   this is needed to keep names in unique state and it's faster to change names
-	   of currently operating tracks (if needed) */
+	 * this is needed to keep names in unique state and it's faster to change names
+	 * of currently operating tracks (if needed) */
 	for(a= 0; a<map->num_tracks; a++) {
 		int replace_sel= 0, replace_rot= 0;
 		MovieTrackingTrack *new_track, *old;
@@ -1480,7 +1480,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					#pragma omp critical
 					{
 						/* check if there's no keyframe/tracked markers before tracking marker.
-						   if so -- create disabled marker before currently tracking "segment" */
+						 * if so -- create disabled marker before currently tracking "segment" */
 						put_disabled_marker(track, marker, !context->backwards, 0);
 					}
 				}
@@ -2684,7 +2684,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 
 	if(tangle==0.0f) {
 		/* if angle is zero, then it's much faster to use rect copy
-		   but could be issues with subpixel precisions */
+		 * but could be issues with subpixel precisions */
 		IMB_rectcpy(tmpibuf, ibuf, tloc[0]-(tscale-1.0f)*width/2.0f, tloc[1]-(tscale-1.0f)*height/2.0f, 0, 0, ibuf->x, ibuf->y);
 	} else {
 		float mat[4][4];

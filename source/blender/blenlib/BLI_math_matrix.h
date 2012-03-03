@@ -71,7 +71,7 @@ void mul_m3_m3m3(float R[3][3], float A[3][3], float B[3][3]);
 void mul_m4_m3m4(float R[4][4], float A[3][3], float B[4][4]);
 void mul_m4_m4m3(float R[4][4], float A[4][4], float B[3][3]);
 /* note: the A,B arguments are reversed compared to previous mul_m4_m4m4
-   function, for consistency with above functions & math notation. */
+ * function, for consistency with above functions & math notation. */
 void mult_m4_m4m4(float R[4][4], float A[4][4], float B[4][4]);
 void mult_m3_m3m4(float R[3][3], float A[4][4], float B[3][3]);
 

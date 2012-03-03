@@ -278,7 +278,7 @@ void tex_space_mball(Object *ob)
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
-	/*
+#if 0
 	loc[0]= (min[0]+max[0])/2.0f;
 	loc[1]= (min[1]+max[1])/2.0f;
 	loc[2]= (min[2]+max[2])/2.0f;
@@ -286,7 +286,7 @@ void tex_space_mball(Object *ob)
 	size[0]= (max[0]-min[0])/2.0f;
 	size[1]= (max[1]-min[1])/2.0f;
 	size[2]= (max[2]-min[2])/2.0f;
-	*/
+#endif
 	boundbox_set_from_min_max(bb, min, max);
 }
 
@@ -485,7 +485,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
  * "An Implicit Surface Polygonizer"
  * by Jules Bloomenthal, jbloom@beauty.gmu.edu
  * in "Graphics Gems IV", Academic Press, 1994
-
+ *
  * Authored by Jules Bloomenthal, Xerox PARC.
  * Copyright (c) Xerox Corporation, 1991.  All rights reserved.
  * Permission is granted to reproduce, use and distribute this code for
@@ -949,7 +949,7 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 }
 
 /* setcorner: return corner with the given lattice location
-   set (and cache) its function value */
+ * set (and cache) its function value */
 
 CORNER *setcorner (PROCESS* p, int i, int j, int k)
 {

@@ -51,7 +51,7 @@ struct CollisionTree;
 #define SOFTGOALSNAP  0.999f
 
 /* This is approximately the smallest number that can be
-* represented by a float, given its precision. */
+ * represented by a float, given its precision. */
 #define ALMOST_ZERO		FLT_EPSILON
 
 /* Bits to or into the ClothVertex.flags. */
@@ -60,15 +60,15 @@ struct CollisionTree;
 #define CLOTH_VERT_FLAG_PINNED_EM 3
 
 /**
-* This structure describes a cloth object against which the
-* simulation can run.
-*
-* The m and n members of this structure represent the assumed
-* rectangular ordered grid for which the original paper is written.
-* At some point they need to disappear and we need to determine out
-* own connectivity of the mesh based on the actual edges in the mesh.
-*
-**/
+ * This structure describes a cloth object against which the
+ * simulation can run.
+ *
+ * The m and n members of this structure represent the assumed
+ * rectangular ordered grid for which the original paper is written.
+ * At some point they need to disappear and we need to determine out
+ * own connectivity of the mesh based on the actual edges in the mesh.
+ *
+ */
 typedef struct Cloth
 {
 	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
@@ -237,7 +237,7 @@ typedef enum
 
 
 /* This structure defines how to call the solver.
-*/
+ */
 typedef struct
 {
 	const char		*name;

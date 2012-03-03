@@ -3024,14 +3024,14 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 			}
 
 			/* dosnt work now - TODO */
-			/*
+#if 0
 			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
 				int ofs;
 				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq, 0);
 				seq->start -= ofs;
 				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq, 0) + ofs );
-			}*/
-
+			}
+#endif
 		}
 	}
 
@@ -3061,7 +3061,7 @@ void seq_single_fix(Sequence *seq)
 		return;
 
 	/* make sure the image is always at the start since there is only one,
-	   adjusting its start should be ok */
+	 * adjusting its start should be ok */
 	left = seq_tx_get_final_left(seq, 0);
 	start = seq->start;
 	if (start != left) {
@@ -3290,13 +3290,13 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
 	int seqmute;
 
 	/* for sound we go over full meta tree to update muted state,
-	   since sound is played outside of evaluating the imbufs, */
+	 *  since sound is played outside of evaluating the imbufs, */
 	for(seq=seqbasep->first; seq; seq=seq->next) {
 		seqmute= (mute || (seq->flag & SEQ_MUTE));
 
 		if(seq->type == SEQ_META) {
 			/* if this is the current meta sequence, unmute because
-			   all sequences above this were set to mute */
+			 * all sequences above this were set to mute */
 			if(seq == metaseq)
 				seqmute= 0;
 

@@ -827,8 +827,8 @@ void ntreeClearPreview(bNodeTree *ntree)
 }
 
 /* hack warning! this function is only used for shader previews, and 
-since it gets called multiple times per pixel for Ztransp we only
-add the color once. Preview gets cleared before it starts render though */
+ * since it gets called multiple times per pixel for Ztransp we only
+ * add the color once. Preview gets cleared before it starts render though */
 void nodeAddToPreview(bNode *node, float *col, int x, int y, int do_manage)
 {
 	bNodePreview *preview= node->preview;
@@ -1036,7 +1036,7 @@ void ntreeSetOutput(bNodeTree *ntree)
 	}
 	
 	/* here we could recursively set which nodes have to be done,
-		might be different for editor or for "real" use... */
+	 * might be different for editor or for "real" use... */
 }
 
 typedef struct MakeLocalCallData {
@@ -1083,9 +1083,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	MakeLocalCallData cd;
 	
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {

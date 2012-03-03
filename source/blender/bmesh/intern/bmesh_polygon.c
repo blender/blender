@@ -825,14 +825,17 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			
 			if (newfaces) newfaces[nf_i++] = f;
 
-			/* l = f->loopbase;
+#if 0
+			l = f->loopbase;
 			do {
 				if (l->v == v) {
 					f->loopbase = l;
 					break;
 				}
 				l = l->next;
-			} while (l != f->loopbase); */
+			} while (l != f->loopbase);
+#endif
+
 		}
 	}
 

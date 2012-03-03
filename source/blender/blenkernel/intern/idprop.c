@@ -60,8 +60,8 @@ static char idp_size_table[] = {
 
 /* --------- property array type -------------*/
 
-/*note: as a start to move away from the stupid IDP_New function, this type
-  has it's own allocation function.*/
+/* note: as a start to move away from the stupid IDP_New function, this type
+ * has it's own allocation function.*/
 IDProperty *IDP_NewIDPArray(const char *name)
 {
 	IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty prop array");
@@ -82,12 +82,12 @@ IDProperty *IDP_CopyIDPArray(IDProperty *array)
 
 	narray->data.pointer = MEM_dupallocN(array->data.pointer);
 	for (i=0; i<narray->len; i++) {
-		/*ok, the copy functions always allocate a new structure,
-		  which doesn't work here.  instead, simply copy the
-		  contents of the new structure into the array cell,
-		  then free it.  this makes for more maintainable
-		  code than simply reimplementing the copy functions
-		  in this loop.*/
+		/* ok, the copy functions always allocate a new structure,
+		 * which doesn't work here.  instead, simply copy the
+		 * contents of the new structure into the array cell,
+		 * then free it.  this makes for more maintainable
+		 * code than simply reimplementing the copy functions
+		 * in this loop.*/
 		tmp = IDP_CopyProperty(GETPROP(narray, i));
 		memcpy(GETPROP(narray, i), tmp, sizeof(IDProperty));
 		MEM_freeN(tmp);
@@ -368,8 +368,8 @@ void IDP_ConcatStringC(IDProperty *prop, const char *st)
 	int newlen;
 
 	newlen = prop->len + strlen(st);
-	/*we have to remember that prop->len includes the null byte for strings.
-	 so there's no need to add +1 to the resize function.*/
+	/* we have to remember that prop->len includes the null byte for strings.
+	 * so there's no need to add +1 to the resize function.*/
 	IDP_ResizeArray(prop, newlen);
 	strcat(prop->data.pointer, st);
 }
@@ -378,8 +378,8 @@ void IDP_ConcatString(IDProperty *str1, IDProperty *append)
 {
 	int newlen;
 
-	/*since ->len for strings includes the NULL byte, we have to subtract one or
-	 we'll get an extra null byte after each concatination operation.*/
+	/* since ->len for strings includes the NULL byte, we have to subtract one or
+	 * we'll get an extra null byte after each concatination operation.*/
 	newlen = str1->len + append->len - 1;
 	IDP_ResizeArray(str1, newlen);
 	strcat(str1->data.pointer, append->data.pointer);
@@ -455,8 +455,8 @@ void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 }
 
 /*
- replaces all properties with the same name in a destination group from a source group.
-*/
+ * replaces all properties with the same name in a destination group from a source group.
+ */
 void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 {
 	IDProperty *loop, *prop;
@@ -483,9 +483,9 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 	}
 }
 /*
- replaces a property with the same name in a group, or adds 
- it if the propery doesn't exist.
-*/
+ * replaces a property with the same name in a group, or adds 
+ * it if the propery doesn't exist.
+ */
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
 	IDProperty *loop;
@@ -502,8 +502,8 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 	}
 }
 
-/*returns 0 if an id property with the same name exists and it failed,
-  or 1 if it succeeded in adding to the group.*/
+/* returns 0 if an id property with the same name exists and it failed,
+ * or 1 if it succeeded in adding to the group.*/
 int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
 	if (IDP_GetPropertyFromGroup(group, prop->name) == NULL) {
@@ -574,10 +574,10 @@ void IDP_FreeIterBeforeEnd(void *vself)
 	MEM_freeN(vself);
 }
 
-/*Ok, the way things work, Groups free the ID Property structs of their children.
-  This is because all ID Property freeing functions free only direct data (not the ID Property
-  struct itself), but for Groups the child properties *are* considered
-  direct data.*/
+/* Ok, the way things work, Groups free the ID Property structs of their children.
+ * This is because all ID Property freeing functions free only direct data (not the ID Property
+ * struct itself), but for Groups the child properties *are* considered
+ * direct data. */
 static void IDP_FreeGroup(IDProperty *prop)
 {
 	IDProperty *loop;
@@ -761,9 +761,9 @@ IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *n
 	return prop;
 }
 
-/*NOTE: this will free all child properties including list arrays and groups!
-  Also, note that this does NOT unlink anything!  Plus it doesn't free
-  the actual IDProperty struct either.*/
+/* NOTE: this will free all child properties including list arrays and groups!
+ * Also, note that this does NOT unlink anything!  Plus it doesn't free
+ * the actual IDProperty struct either.*/
 void IDP_FreeProperty(IDProperty *prop)
 {
 	switch (prop->type) {
@@ -782,8 +782,8 @@ void IDP_FreeProperty(IDProperty *prop)
 	}
 }
 
-/*Unlinks any IDProperty<->ID linkage that might be going on.
-  note: currently unused.*/
+/* Unlinks any IDProperty<->ID linkage that might be going on.
+ * note: currently unused.*/
 void IDP_UnlinkProperty(IDProperty *prop)
 {
 	switch (prop->type) {

@@ -1950,9 +1950,9 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 }
 
 /* get object transformation matrix without recalculating dependencies and
-   constraints -- assume dependencies are already solved by depsgraph.
-   no changes to object and it's parent would be done.
-   used for bundles orientation in 3d space relative to parented blender camera */
+ * constraints -- assume dependencies are already solved by depsgraph.
+ * no changes to object and it's parent would be done.
+ * used for bundles orientation in 3d space relative to parented blender camera */
 void where_is_object_mat(Scene *scene, Object *ob, float obmat[4][4])
 {
 	float slowmat[4][4] = MAT4_UNITY;
@@ -2058,7 +2058,7 @@ void where_is_object(struct Scene *scene, Object *ob)
 void where_is_object_simul(Scene *scene, Object *ob)
 /* was written for the old game engine (until 2.04) */
 /* It seems that this function is only called
-for a lamp that is the child of another object */
+ * for a lamp that is the child of another object */
 {
 	Object *par;
 	float *fp1, *fp2;
@@ -2472,16 +2472,16 @@ void object_handle_update(Scene *scene, Object *ob)
 		if (ob->recalc & OB_RECALC_DATA) {
 			if (ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures
-				   with poses we do it ahead of where_is_object to ensure animation
-				   is evaluated on the rebuilt pose, otherwise we get incorrect poses
-				   on file load */
+				 * with poses we do it ahead of where_is_object to ensure animation
+				 * is evaluated on the rebuilt pose, otherwise we get incorrect poses
+				 * on file load */
 				if (ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
 			}
 		}
 
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
-		   which is only in where_is_object now */
+		 * which is only in where_is_object now */
 		// XXX: should this case be OB_RECALC_OB instead?
 		if (ob->recalc & OB_RECALC_ALL) {
 			
@@ -2658,8 +2658,8 @@ void object_sculpt_modifiers_changed(Object *ob)
 
 	if (!ss->cache) {
 		/* we free pbvh on changes, except during sculpt since it can't deal with
-		   changing PVBH node organization, we hope topology does not change in
-		   the meantime .. weak */
+		 * changing PVBH node organization, we hope topology does not change in
+		 * the meantime .. weak */
 		if (ss->pbvh) {
 				BLI_pbvh_free(ss->pbvh);
 				ss->pbvh= NULL;

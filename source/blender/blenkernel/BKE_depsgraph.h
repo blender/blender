@@ -34,9 +34,7 @@
 extern "C" {
 #endif
 
-/*
-#define DEPS_DEBUG
-*/
+// #define DEPS_DEBUG
 
 struct ID;
 struct Main;

@@ -120,10 +120,10 @@ static struct bUnitDef buMetricLenDef[] = {
 
 	/* These get displayed because of float precision problems in the transform header,
 	 * could work around, but for now probably people wont use these */
-	/*
+#if 0
 	{"nanometer", "Nanometers",		"nm", NULL,	0.000000001, 0.0,	B_UNIT_DEF_NONE},
 	{"picometer", "Picometers",		"pm", NULL,	0.000000000001, 0.0,B_UNIT_DEF_NONE},
-	*/
+#endif
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef)/sizeof(bUnitDef)};

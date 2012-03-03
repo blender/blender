@@ -321,16 +321,14 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 	return (ret_value);
 }
 	
-/* 
-
-This function compares a packed file to a 'real' file.
-It returns an integer indicating if:
-
-PF_EQUAL		- the packed file and original file are identical
-PF_DIFFERENT	- the packed file and original file differ
-PF_NOFILE		- the original file doens't exist
-
-*/
+/*
+ * This function compares a packed file to a 'real' file.
+ * It returns an integer indicating if:
+ *
+ * PF_EQUAL		- the packed file and original file are identical
+ * PF_DIFFERENT	- the packed file and original file differ
+ * PF_NOFILE	- the original file doens't exist
+ */
 
 int checkPackedFile(const char *filename, PackedFile *pf)
 {
@@ -380,14 +378,11 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	return(ret_val);
 }
 
-/*
-
-   unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
-
-It returns a char *to the existing file name / new file name or NULL when
-there was an error or when the user desides to cancel the operation.
-
-*/
+/* unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
+ *
+ * It returns a char *to the existing file name / new file name or NULL when
+ * there was an error or when the user desides to cancel the operation.
+ */
 
 char *unpackFile(ReportList *reports, const char *abs_name, const char *local_name, PackedFile *pf, int how)
 {

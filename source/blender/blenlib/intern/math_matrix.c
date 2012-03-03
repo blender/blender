@@ -1290,7 +1290,7 @@ void print_m4(const char *str, float m[][4])
 
 /*********************************** SVD ************************************
  * from TNT matrix library
-
+ *
  * Compute the Single Value Decomposition of an arbitrary matrix A
  * That is compute the 3 matrices U,W,V with U column orthogonal (m,n) 
  * ,W a diagonal matrix and V an orthogonal square matrix s.t. 
@@ -1724,7 +1724,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon)
 {
 	/* compute moon-penrose pseudo inverse of matrix, singular values
-	   below epsilon are ignored for stability (truncated SVD) */
+	 * below epsilon are ignored for stability (truncated SVD) */
 	float V[4][4], W[4], Wm[4][4], U[4][4];
 	int i;
 

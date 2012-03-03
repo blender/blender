@@ -37,7 +37,7 @@
  * the iterators provided in this file instead
  * of inspecting the structure directly.
  *
-*/
+ */
 
 #include "BLI_mempool.h"
 

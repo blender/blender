@@ -161,9 +161,9 @@ void make_local_lamp(Lamp *la)
 	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if(la->id.lib==NULL) return;
 	if(la->id.us==1) {

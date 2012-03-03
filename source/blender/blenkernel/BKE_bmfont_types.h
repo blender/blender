@@ -34,10 +34,11 @@
  */
 #define is_power_of_two(N) ((N ^ (N - 1)) == (2 * N - 1))
 /*
-Moved to IMB_imbuf_types.h where it will live close to the ImBuf type.
-It is used as a userflag bit mask.
-#define IB_BITMAPFONT 1
-*/
+ * Moved to IMB_imbuf_types.h where it will live close to the ImBuf type.
+ * It is used as a userflag bit mask.
+ */
+// #define IB_BITMAPFONT 1
+
 typedef struct bmGlyph {
 	unsigned short unicode;
 	short locx, locy;

@@ -82,7 +82,7 @@ struct ScanFillVert *BLI_addfillvert(const float vec[3]);
 struct ScanFillEdge *BLI_addfilledge(struct ScanFillVert *v1, struct ScanFillVert *v2);
 
 /* Optionally set ScanFillEdge f to this to mark original boundary edges.
-  Only needed if there are internal diagonal edges pased to BLI_edgefill. */
+ * Only needed if there are internal diagonal edges pased to BLI_edgefill. */
 #define FILLBOUNDARY 1
 
 int BLI_begin_edgefill(void);

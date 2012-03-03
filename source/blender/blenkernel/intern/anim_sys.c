@@ -1191,8 +1191,8 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 #endif
 
 			/* as long as we don't do property update, we still tag datablock
-			   as having been updated. this flag does not cause any updates to
-			   be run, it's for e.g. render engines to synchronize data */
+			 * as having been updated. this flag does not cause any updates to
+			 * be run, it's for e.g. render engines to synchronize data */
 			if(new_ptr.id.data) {
 				ID *id= new_ptr.id.data;
 				id->flag |= LIB_ID_RECALC;

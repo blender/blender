@@ -372,7 +372,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	vfd= vfont_get_data(bmain, which_vfont(cu, info));
 	if (!vfd) return;
 
-	/*
+#if 0
 	if (cu->selend < cu->selstart) {
 		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart-2)))
 			sel= 1;
@@ -381,7 +381,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 		if ((charidx >= (cu->selstart-1)) && (charidx <= (cu->selend-1)))
 			sel= 1;
 	}
-	*/
+#endif
 
 	/* make a copy at distance ofsx,ofsy with shear*/
 	fsize= cu->fsize;
@@ -541,7 +541,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 	wchar_t *mem, *tmp, ascii;
 
 	/* renark: do calculations including the trailing '\0' of a string
-	   because the cursor can be at that location */
+	 * because the cursor can be at that location */
 
 	if(ob->type!=OB_FONT) return NULL;
 
@@ -941,7 +941,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 
 	if(mode==FO_CURSUP || mode==FO_CURSDOWN || mode==FO_PAGEUP || mode==FO_PAGEDOWN) {
 		/* 2: curs up
-		   3: curs down */
+		 * 3: curs down */
 		ct= chartransdata+cu->pos;
 		
 		if((mode==FO_CURSUP || mode==FO_PAGEUP) && ct->linenr==0);

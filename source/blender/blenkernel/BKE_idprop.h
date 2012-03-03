@@ -58,8 +58,8 @@ typedef union IDPropertyTemplate {
 
 /* ----------- Property Array Type ---------- */
 
-/*note: as a start to move away from the stupid IDP_New function, this type
-  has it's own allocation function.*/
+/* note: as a start to move away from the stupid IDP_New function, this type
+ * has it's own allocation function.*/
 IDProperty *IDP_NewIDPArray(const char *name);
 IDProperty *IDP_CopyIDPArray(IDProperty *array);
 
@@ -93,104 +93,108 @@ void IDP_UnlinkID(struct IDProperty *prop);
 void IDP_SyncGroupValues(struct IDProperty *dest, struct IDProperty *src);
 
 /**
- replaces all properties with the same name in a destination group from a source group.
-*/
+ * replaces all properties with the same name in a destination group from a source group.
+ */
 void IDP_ReplaceGroupInGroup(struct IDProperty *dest, struct IDProperty *src);
 
-/** checks if a property with the same name as prop exists, and if so replaces it.
-  Use this to preserve order!*/
+/**
+ * Checks if a property with the same name as prop exists, and if so replaces it.
+ * Use this to preserve order!*/
 void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);
 
 /**
-This function has a sanity check to make sure ID properties with the same name don't
-get added to the group.
-
-The sanity check just means the property is not added to the group if another property
-exists with the same name; the client code using ID properties then needs to detect this 
-(the function that adds new properties to groups, IDP_AddToGroup, returns 0 if a property can't
-be added to the group, and 1 if it can) and free the property.
-
-Currently the code to free ID properties is designesd to leave the actual struct
-you pass it un-freed, this is needed for how the system works.  This means
-to free an ID property, you first call IDP_FreeProperty then MEM_freeN the
-struct.  In the future this will just be IDP_FreeProperty and the code will
-be reorganized to work properly.
-*/
+ * This function has a sanity check to make sure ID properties with the same name don't
+ * get added to the group.
+ * 
+ * The sanity check just means the property is not added to the group if another property
+ * exists with the same name; the client code using ID properties then needs to detect this 
+ * (the function that adds new properties to groups, IDP_AddToGroup, returns 0 if a property can't
+ * be added to the group, and 1 if it can) and free the property.
+ * 
+ * Currently the code to free ID properties is designesd to leave the actual struct
+ * you pass it un-freed, this is needed for how the system works.  This means
+ * to free an ID property, you first call IDP_FreeProperty then MEM_freeN the
+ * struct.  In the future this will just be IDP_FreeProperty and the code will
+ * be reorganized to work properly.
+ */
 int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
 
 /** this is the same as IDP_AddToGroup, only you pass an item
-  in the group list to be inserted after.*/
+ * in the group list to be inserted after. */
 int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
 					  struct IDProperty *pnew);
 
 /** \note this does not free the property!!
-
- To free the property, you have to do:
- IDP_FreeProperty(prop); //free all subdata
- MEM_freeN(prop); //free property struct itself
-
-*/
+ *
+ * To free the property, you have to do:
+ * IDP_FreeProperty(prop); //free all subdata
+ * MEM_freeN(prop); //free property struct itself
+ */
 void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
 
 IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name);
 /** same as above but ensure type match */
 IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *name, const char type);
 
-/** Get an iterator to iterate over the members of an id property group.
- Note that this will automatically free the iterator once iteration is complete;
- if you stop the iteration before hitting the end, make sure to call
- IDP_FreeIterBeforeEnd().*/
+/**
+ * Get an iterator to iterate over the members of an id property group.
+ * Note that this will automatically free the iterator once iteration is complete;
+ * if you stop the iteration before hitting the end, make sure to call
+ * IDP_FreeIterBeforeEnd(). */
 void *IDP_GetGroupIterator(struct IDProperty *prop);
 
-/** Returns the next item in the iteration.  To use, simple for a loop like the following:
- while (IDP_GroupIterNext(iter) != NULL) {
-	. . .
- }*/
+/**
+ * Returns the next item in the iteration.  To use, simple for a loop like the following:
+ * while (IDP_GroupIterNext(iter) != NULL) {
+ *     ...
+ * }
+ */
 IDProperty *IDP_GroupIterNext(void *vself);
 
-/** Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
-  when the iterator hits the end of the list it'll automatially free itself.*/
+/**
+ * Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
+ * when the iterator hits the end of the list it'll automatially free itself.*/
 void IDP_FreeIterBeforeEnd(void *vself);
 
 /*-------- Main Functions --------*/
 /** Get the Group property that contains the id properties for ID id.  Set create_if_needed
-  to create the Group property and attach it to id if it doesn't exist; otherwise
-  the function will return NULL if there's no Group property attached to the ID.*/
+ * to create the Group property and attach it to id if it doesn't exist; otherwise
+ * the function will return NULL if there's no Group property attached to the ID.*/
 struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
 struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
 
 int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2);
 
 /**
-Allocate a new ID.
-
-This function takes three arguments: the ID property type, a union which defines
-it's initial value, and a name.
-
-The union is simple to use; see the top of this header file for its definition. 
-An example of using this function:
-
- IDPropertyTemplate val;
- IDProperty *group, *idgroup, *color;
- group = IDP_New(IDP_GROUP, val, "group1"); //groups don't need a template.
-
- val.array.len = 4
- val.array.type = IDP_FLOAT;
- color = IDP_New(IDP_ARRAY, val, "color1");
-
- idgroup = IDP_GetProperties(some_id, 1);
- IDP_AddToGroup(idgroup, color);
- IDP_AddToGroup(idgroup, group);
-
-Note that you MUST either attach the id property to an id property group with 
-IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
-a memory leak.
-*/
+ * Allocate a new ID.
+ *
+ * This function takes three arguments: the ID property type, a union which defines
+ * it's initial value, and a name.
+ *
+ * The union is simple to use; see the top of this header file for its definition. 
+ * An example of using this function:
+ *
+ *     IDPropertyTemplate val;
+ *     IDProperty *group, *idgroup, *color;
+ *     group = IDP_New(IDP_GROUP, val, "group1"); //groups don't need a template.
+ *    
+ *     val.array.len = 4
+ *     val.array.type = IDP_FLOAT;
+ *     color = IDP_New(IDP_ARRAY, val, "color1");
+ *    
+ *     idgroup = IDP_GetProperties(some_id, 1);
+ *     IDP_AddToGroup(idgroup, color);
+ *     IDP_AddToGroup(idgroup, group);
+ * 
+ * Note that you MUST either attach the id property to an id property group with 
+ * IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
+ * a memory leak.
+ */
 struct IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name);
 
 /** \note this will free all child properties of list arrays and groups!
-  Also, note that this does NOT unlink anything!  Plus it doesn't free
-  the actual struct IDProperty struct either.*/
+ * Also, note that this does NOT unlink anything!  Plus it doesn't free
+ * the actual struct IDProperty struct either.*/
 void IDP_FreeProperty(struct IDProperty *prop);
 
 /** Unlinks any struct IDProperty<->ID linkage that might be going on.*/

@@ -523,7 +523,7 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 	float d= dot_v3v3(a, a);
 
 	/* a larger value causes normalize errors in a
-	   scaled down models with camera xtreme close */
+	 * scaled down models with camera xtreme close */
 	if(d > 1.0e-35f) {
 		d= sqrtf(d);
 		mul_v3_v3fl(r, a, 1.0f/d);
@@ -541,7 +541,7 @@ MINLINE double normalize_v3_d(double n[3])
 	double d= n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
 
 	/* a larger value causes normalize errors in a
-	   scaled down models with camera xtreme close */
+	 * scaled down models with camera xtreme close */
 	if(d > 1.0e-35) {
 		double mul;
 

@@ -69,7 +69,7 @@ void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width,
 void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int width, int height)
 {
 	/* these two passes could be combined into one, but it's more readable and 
-	* easy to tweak like this, speed isn't really that much of an issue in this situation... */
+	 * easy to tweak like this, speed isn't really that much of an issue in this situation... */
  
 	int checkerwidth= 32, dark= 1;
 	int x, y;

@@ -63,52 +63,52 @@ struct PBVHNode {
 	BB orig_vb;
 
 	/* For internal nodes, the offset of the children in the PBVH
-	   'nodes' array. */
+	 * 'nodes' array. */
 	int children_offset;
 
 	/* Pointer into the PBVH prim_indices array and the number of
-	   primitives used by this leaf node.
-
-	   Used for leaf nodes in both mesh- and multires-based PBVHs.
-	*/
+	 * primitives used by this leaf node.
+	 *
+	 * Used for leaf nodes in both mesh- and multires-based PBVHs.
+	 */
 	int *prim_indices;
 	unsigned int totprim;
 
 	/* Array of indices into the mesh's MVert array. Contains the
-	   indices of all vertices used by faces that are within this
-	   node's bounding box.
-
-	   Note that a vertex might be used by a multiple faces, and
-	   these faces might be in different leaf nodes. Such a vertex
-	   will appear in the vert_indices array of each of those leaf
-	   nodes.
-
-	   In order to support cases where you want access to multiple
-	   nodes' vertices without duplication, the vert_indices array
-	   is ordered such that the first part of the array, up to
-	   index 'uniq_verts', contains "unique" vertex indices. These
-	   vertices might not be truly unique to this node, but if
-	   they appear in another node's vert_indices array, they will
-	   be above that node's 'uniq_verts' value.
-
-	   Used for leaf nodes in a mesh-based PBVH (not multires.)
-	*/
+	 * indices of all vertices used by faces that are within this
+	 * node's bounding box.
+	 *
+	 * Note that a vertex might be used by a multiple faces, and
+	 * these faces might be in different leaf nodes. Such a vertex
+	 * will appear in the vert_indices array of each of those leaf
+	 * nodes.
+	 *
+	 * In order to support cases where you want access to multiple
+	 * nodes' vertices without duplication, the vert_indices array
+	 * is ordered such that the first part of the array, up to
+	 * index 'uniq_verts', contains "unique" vertex indices. These
+	 * vertices might not be truly unique to this node, but if
+	 * they appear in another node's vert_indices array, they will
+	 * be above that node's 'uniq_verts' value.
+	 *
+	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
+	 */
 	int *vert_indices;
 	unsigned int uniq_verts, face_verts;
 
 	/* An array mapping face corners into the vert_indices
-	   array. The array is sized to match 'totprim', and each of
-	   the face's corners gets an index into the vert_indices
-	   array, in the same order as the corners in the original
-	   MFace. The fourth value should not be used if the original
-	   face is a triangle.
-
-	   Used for leaf nodes in a mesh-based PBVH (not multires.)
-	*/
+	 * array. The array is sized to match 'totprim', and each of
+	 * the face's corners gets an index into the vert_indices
+	 * array, in the same order as the corners in the original
+	 * MFace. The fourth value should not be used if the original
+	 * face is a triangle.
+	 *
+	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
+	 */
 	int (*face_vert_indices)[4];
 
 	/* Indicates whether this node is a leaf or not; also used for
-	   marking various updates that need to be applied. */
+	 * marking various updates that need to be applied. */
 	PBVHNodeFlags flag : 8;
 
 	/* Used for raycasting: how close bb is to the ray point. */
@@ -140,7 +140,7 @@ struct PBVH {
 	int gridsize;
 
 	/* Only used during BVH build and update,
-	   don't need to remain valid after */
+	 * don't need to remain valid after */
 	BLI_bitmap vert_bitmap;
 
 #ifdef PERFCNTRS
@@ -311,7 +311,7 @@ static void grow_nodes(PBVH *bvh, int totnode)
 }
 
 /* Add a vertex to the map, with a positive value for unique vertices and
-   a negative value for additional vertices */
+ * a negative value for additional vertices */
 static int map_insert_vert(PBVH *bvh, GHash *map,
 				unsigned int *face_verts,
 				unsigned int *uniq_verts, int vertex)
@@ -417,15 +417,15 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 }
 
 /* Recursively build a node in the tree
-
-   vb is the voxel box around all of the primitives contained in
-   this node.
-
-   cb is the bounding box around all the centroids of the primitives
-   contained in this node
-
-   offset and start indicate a range in the array of primitive indices
-*/
+ *
+ * vb is the voxel box around all of the primitives contained in
+ * this node.
+ *
+ * cb is the bounding box around all the centroids of the primitives
+ * contained in this node
+ *
+ * offset and start indicate a range in the array of primitive indices
+ */
 
 static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 		   int offset, int count)
@@ -689,7 +689,7 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 	int revisiting;
 
 	/* purpose here is to traverse tree, visiting child nodes before their
-	   parents, this order is necessary for e.g. computing bounding boxes */
+	 * parents, this order is necessary for e.g. computing bounding boxes */
 
 	while(iter->stacksize) {
 		/* pop node */
@@ -925,18 +925,18 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 		return;
 
 	/* could be per node to save some memory, but also means
-	   we have to store for each vertex which node it is in */
+	 * we have to store for each vertex which node it is in */
 	vnor= MEM_callocN(sizeof(float)*3*bvh->totvert, "bvh temp vnors");
 
-	/* subtle assumptions:
-	   - We know that for all edited vertices, the nodes with faces
-		 adjacent to these vertices have been marked with PBVH_UpdateNormals.
-		 This is true because if the vertex is inside the brush radius, the
-		 bounding box of it's adjacent faces will be as well.
-	   - However this is only true for the vertices that have actually been
-		 edited, not for all vertices in the nodes marked for update, so we
-		 can only update vertices marked with ME_VERT_PBVH_UPDATE.
-	*/
+    /* subtle assumptions:
+     * - We know that for all edited vertices, the nodes with faces
+     *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
+     *   This is true because if the vertex is inside the brush radius, the
+     *   bounding box of it's adjacent faces will be as well.
+     * - However this is only true for the vertices that have actually been
+     *   edited, not for all vertices in the nodes marked for update, so we
+     *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
+     */
 
 	#pragma omp parallel for private(n) schedule(static)
 	for(n = 0; n < totnode; n++) {
@@ -966,7 +966,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 					if(bvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
 						/* this seems like it could be very slow but profile
-						   does not show this, so just leave it for now? */
+						 * does not show this, so just leave it for now? */
 						#pragma omp atomic
 						vnor[v][0] += fn[0];
 						#pragma omp atomic
@@ -1454,10 +1454,10 @@ void BLI_pbvh_node_draw(PBVHNode *node, void *UNUSED(data))
 }
 
 /* Adapted from:
-   http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
-   Returns true if the AABB is at least partially within the frustum
-   (ok, not a real frustum), false otherwise.
-*/
+ * http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
+ * Returns true if the AABB is at least partially within the frustum
+ * (ok, not a real frustum), false otherwise.
+ */
 int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 {
 	float (*planes)[4] = data;

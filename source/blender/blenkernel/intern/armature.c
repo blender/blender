@@ -1584,7 +1584,7 @@ void where_is_armature_bone(Bone *bone, Bone *prevbone)
 }
 
 /* updates vectors and matrices on rest-position level, only needed
-   after editing armature itself, now only on reading file */
+ * after editing armature itself, now only on reading file */
 void where_is_armature(bArmature *arm)
 {
 	Bone *bone;

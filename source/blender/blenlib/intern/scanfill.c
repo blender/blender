@@ -139,9 +139,9 @@ struct mem_elements {
 
 
 /* simple optimization for allocating thousands of small memory blocks
-   only to be used within loops, and not by one function at a time
-   free in the end, with argument '-1'
-*/
+ * only to be used within loops, and not by one function at a time
+ * free in the end, with argument '-1'
+ */
 #define MEM_ELEM_BLOCKSIZE 16384
 static struct mem_elements *  melem__cur= NULL;
 static int                    melem__offs= 0; /* the current free address */
@@ -423,7 +423,7 @@ static short boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 static void testvertexnearedge(void)
 {
 	/* only vertices with ->h==1 are being tested for
-		being close to an edge, if true insert */
+	 * being close to an edge, if true insert */
 
 	ScanFillVert *eve;
 	ScanFillEdge *eed,*ed1;
@@ -528,7 +528,8 @@ static int scanfill(PolyFill *pf)
 
 	nr= pf->nr;
 
-	/* PRINTS
+	/* PRINTS */
+#if 0
 	verts= pf->verts;
 	eve= fillvertbase.first;
 	while(eve) {
@@ -539,7 +540,8 @@ static int scanfill(PolyFill *pf)
 	while(eed) {
 		printf("edge: %x  verts: %x %x\n",eed,eed->v1,eed->v2);
 		eed= eed->next;
-	} */
+	}
+#endif
 
 	/* STEP 0: remove zero sized edges */
 	eed= filledgebase.first;
@@ -567,8 +569,8 @@ static int scanfill(PolyFill *pf)
 	}
 
 	/* STEP 1: make using FillVert and FillEdge lists a sorted
-		ScanFillVertLink list
-	*/
+	 * ScanFillVertLink list
+	 */
 	sc= scdata= (ScanFillVertLink *)MEM_callocN(pf->verts*sizeof(ScanFillVertLink),"Scanfill1");
 	eve= fillvertbase.first;
 	verts= 0;
@@ -591,10 +593,10 @@ static int scanfill(PolyFill *pf)
 		nexted= eed->next;
 		BLI_remlink(&filledgebase,eed);
 		/* This code is for handling zero-length edges that get
-		   collapsed in step 0. It was removed for some time to
-		   fix trunk bug #4544, so if that comes back, this code
-		   may need some work, or there will have to be a better
-		   fix to #4544. */
+		 * collapsed in step 0. It was removed for some time to
+		 * fix trunk bug #4544, so if that comes back, this code
+		 * may need some work, or there will have to be a better
+		 * fix to #4544. */
 		if(eed->v1->f==255) {
 			v1= eed->v1;
 			while((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
@@ -609,7 +611,7 @@ static int scanfill(PolyFill *pf)
 
 		eed= nexted;
 	}
-	/*
+#if 0
 	sc= scdata;
 	for(a=0;a<verts;a++) {
 		printf("\nscvert: %x\n",sc->v1);
@@ -619,7 +621,8 @@ static int scanfill(PolyFill *pf)
 			eed= eed->next;
 		}
 		sc++;
-	}*/
+	}
+#endif
 
 
 	/* STEP 2: FILL LOOP */
@@ -788,13 +791,13 @@ int BLI_begin_edgefill(void)
 int BLI_edgefill(short mat_nr)
 {
 	/*
-	  - fill works with its own lists, so create that first (no faces!)
-	  - for vertices, put in ->tmp.v the old pointer
-	  - struct elements xs en ys are not used here: don't hide stuff in it
-	  - edge flag ->f becomes 2 when it's a new edge
-	  - mode: & 1 is check for crossings, then create edges (TO DO )
-	  - returns number of triangle faces added.
-	*/
+	 * - fill works with its own lists, so create that first (no faces!)
+	 * - for vertices, put in ->tmp.v the old pointer
+	 * - struct elements xs en ys are not used here: don't hide stuff in it
+	 * - edge flag ->f becomes 2 when it's a new edge
+	 * - mode: & 1 is check for crossings, then create edges (TO DO )
+	 * - returns number of triangle faces added.
+	 */
 	ListBase tempve, temped;
 	ScanFillVert *eve;
 	ScanFillEdge *eed,*nexted;
@@ -990,14 +993,14 @@ int BLI_edgefill(short mat_nr)
 
 
 	/* CURRENT STATUS:
-	- eve->f      :1= availalble in edges
-	- eve->xs     :polynumber
-	- eve->h      :amount of edges connected to vertex
-	- eve->tmp.v  :store! original vertex number
-
-	- eed->f      :1= boundary edge (optionally set by caller)
-	- eed->f1 :poly number
-	*/
+	 * - eve->f       :1= availalble in edges
+	 * - eve->xs      :polynumber
+	 * - eve->h       :amount of edges connected to vertex
+	 * - eve->tmp.v   :store! original vertex number
+	 * 
+	 * - eed->f       :1= boundary edge (optionally set by caller)
+	 * - eed->poly_nr :poly number
+	 */
 
 
 	/* STEP 3: MAKE POLYFILL STRUCT */
@@ -1040,13 +1043,15 @@ int BLI_edgefill(short mat_nr)
 
 		/* so, sort first */
 		qsort(pflist, poly, sizeof(PolyFill), vergpoly);
-		
-		/*pf= pflist;
+
+#if 0
+		pf= pflist;
 		for(a=1;a<=poly;a++) {
 			printf("poly:%d edges:%d verts:%d flag: %d\n",a,pf->edges,pf->verts,pf->f);
 			PRINT2(f, f, pf->min[0], pf->min[1]);
 			pf++;
-		}*/
+		}
+#endif
 	
 		polycache= pc= MEM_callocN(sizeof(short)*poly, "polycache");
 		pf= pflist;
@@ -1071,13 +1076,15 @@ int BLI_edgefill(short mat_nr)
 		}
 		MEM_freeN(polycache);
 	}
-	
-	/* printf("after merge\n");
+
+#if 0
+	printf("after merge\n");
 	pf= pflist;
 	for(a=1;a<=poly;a++) {
 		printf("poly:%d edges:%d verts:%d flag: %d\n",a,pf->edges,pf->verts,pf->f);
 		pf++;
-	} */
+	}
+#endif
 
 	/* STEP 5: MAKE TRIANGLES */
 

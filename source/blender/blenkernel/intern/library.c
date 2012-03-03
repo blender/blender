@@ -123,8 +123,8 @@
 #define MAX_IDPUP		60	/* was 24 */
 
 /* GS reads the memory pointed at in a specific ordering. 
-   only use this definition, makes little and big endian systems
-   work fine, in conjunction with MAKE_ID */
+ * only use this definition, makes little and big endian systems
+ * work fine, in conjunction with MAKE_ID */
 
 /* from blendef: */
 #define GS(a)	(*((short *)(a)))
@@ -409,7 +409,7 @@ int id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 				/* copy animation actions too */
 				BKE_copy_animdata_id_action(id);
 				/* us is 1 by convention, but RNA_property_pointer_set
-				   will also incremement it, so set it to zero */
+				 * will also incremement it, so set it to zero */
 				newid->us= 0;
 				
 				/* assign copy */
@@ -577,14 +577,14 @@ int set_listbasepointers(Main *main, ListBase **lb)
 }
 
 /* *********** ALLOC AND FREE *****************
-  
-free_libblock(ListBase *lb, ID *id )
-	provide a list-basis and datablock, but only ID is read
-
-void *alloc_libblock(ListBase *lb, type, name)
-	inserts in list and returns a new ID
-
- ***************************** */
+ *
+ * free_libblock(ListBase *lb, ID *id )
+ * provide a list-basis and datablock, but only ID is read
+ *
+ * void *alloc_libblock(ListBase *lb, type, name)
+ * inserts in list and returns a new ID
+ *
+ * **************************** */
 
 static ID *alloc_libblock_notest(short type)
 {
@@ -1268,16 +1268,18 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	 * however all data in blender should be sorted, not just duplicate names
 	 * sorting should not hurt, but noting just incause it alters the way other
 	 * functions work, so sort every time */
-	/* if( result )
-		sort_alpha_id(lb, id);*/
-	
+#if 0
+	if( result )
+		sort_alpha_id(lb, id);
+#endif
+
 	sort_alpha_id(lb, id);
 	
 	return result;
 }
 
 /* Pull an ID out of a library (make it local). Only call this for IDs that
-   don't have other library users. */
+ * don't have other library users. */
 void id_clear_lib_data(Main *bmain, ID *id)
 {
 	BKE_id_lib_local_paths(bmain, id->lib, id);

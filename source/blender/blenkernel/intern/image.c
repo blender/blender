@@ -324,7 +324,7 @@ Image *copy_image(Image *ima)
 static void extern_local_image(Image *UNUSED(ima))
 {
 	/* Nothing to do: images don't link to other IDs. This function exists to
-	   match id_make_local pattern. */
+	 * match id_make_local pattern. */
 }
 
 void make_local_image(struct Image *ima)
@@ -343,7 +343,7 @@ void make_local_image(struct Image *ima)
 	if(ima->id.lib==NULL) return;
 
 	/* Can't take short cut here: must check meshes at least because of bogus
-	   texface ID refs. - z0r */
+	 * texface ID refs. - z0r */
 #if 0
 	if(ima->id.us==1) {
 		id_clear_lib_data(bmain, &ima->id);
@@ -438,8 +438,8 @@ void make_local_image(struct Image *ima)
 			brush= brush->id.next;
 		}
 		/* Transfer references in texfaces. Texfaces don't add to image ID
-		   user count *unless* there are no other users. See
-		   readfile.c:lib_link_mtface. */
+		 * user count *unless* there are no other users. See
+		 * readfile.c:lib_link_mtface. */
 		me= bmain->mesh.first;
 		while(me) {
 			if(me->mtface) {
@@ -697,9 +697,9 @@ void free_old_images(void)
 	int ctime = (int)PIL_check_seconds_timer();
 	
 	/* 
-	   Run garbage collector once for every collecting period of time 
-	   if textimeout is 0, that's the option to NOT run the collector
-	*/
+	 * Run garbage collector once for every collecting period of time 
+	 * if textimeout is 0, that's the option to NOT run the collector
+	 */
 	if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime)
 		return;
 
@@ -712,10 +712,8 @@ void free_old_images(void)
 	ima= G.main->image.first;
 	while(ima) {
 		if((ima->flag & IMA_NOCOLLECT)==0 && ctime - ima->lastused > U.textimeout) {
-			/*
-			   If it's in GL memory, deallocate and set time tag to current time
-			   This gives textures a "second chance" to be used before dying.
-			*/
+			/* If it's in GL memory, deallocate and set time tag to current time
+			 * This gives textures a "second chance" to be used before dying. */
 			if(ima->bindcode || ima->repbind) {
 				GPU_free_image(ima);
 				ima->lastused = ctime;
@@ -797,11 +795,12 @@ void BKE_image_free_all_textures(void)
 				if(ibuf->userflags & IB_BITMAPDIRTY)
 					break;
 				
-				/* if(ibuf->mipmap[0]) 
+#if 0
+				if(ibuf->mipmap[0]) 
 					totsize+= 1.33*ibuf->x*ibuf->y*4;
 				else
-					totsize+= ibuf->x*ibuf->y*4;*/
-				
+					totsize+= ibuf->x*ibuf->y*4;
+#endif
 			}
 			if(ibuf==NULL)
 				image_free_buffers(ima);
@@ -1722,22 +1721,21 @@ struct anim *openanim(const char *name, int flags, int streamindex)
 
 
 /* Notes about Image storage 
-- packedfile
-  -> written in .blend
-- filename
-  -> written in .blend
-- movie
-  -> comes from packedfile or filename
-- renderresult
-  -> comes from packedfile or filename
-- listbase
-  -> ibufs from exrhandle
-- flipbook array
-  -> ibufs come from movie, temporary renderresult or sequence
-- ibuf
-  -> comes from packedfile or filename or generated
-
-*/
+ * - packedfile
+ *   -> written in .blend
+ * - filename
+ *   -> written in .blend
+ * - movie
+ *   -> comes from packedfile or filename
+ * - renderresult
+ *   -> comes from packedfile or filename
+ * - listbase
+ *   -> ibufs from exrhandle
+ * - flipbook array
+ *   -> ibufs come from movie, temporary renderresult or sequence
+ * - ibuf
+ *   -> comes from packedfile or filename or generated
+ */
 
 
 /* forces existence of 1 Image for renderout or nodes, returns Image */
@@ -1910,7 +1908,7 @@ void BKE_image_release_renderresult(Scene *scene, Image *ima)
 void BKE_image_backup_render(Scene *scene, Image *ima)
 {
 	/* called right before rendering, ima->renders contains render
-	   result pointers for everything but the current render */
+	 * result pointers for everything but the current render */
 	Render *re= RE_GetRender(scene->id.name);
 	int slot= ima->render_slot, last= ima->last_render_slot;
 
@@ -2229,7 +2227,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 
 
 /* showing RGBA result itself (from compo/sequence) or
-   like exr, using layers etc */
+ * like exr, using layers etc */
 /* always returns a single ibuf, also during render progress */
 static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_r)
 {
@@ -2321,8 +2319,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	ibuf->y= rres.recty;
 	
 	/* free rect buffer if float buffer changes, so it can be recreated with
-	   the updated result, and also in case we got byte buffer from sequencer,
-	   so we don't keep reference to freed buffer */
+	 * the updated result, and also in case we got byte buffer from sequencer,
+	 * so we don't keep reference to freed buffer */
 	if(ibuf->rect_float!=rectf || rect || !rectf)
 		imb_freerectImBuf(ibuf);
 
@@ -2513,7 +2511,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 			else if(ima->source == IMA_SRC_VIEWER) {
 				if(ima->type==IMA_TYPE_R_RESULT) {
 					/* always verify entirely, and potentially
-					   returns pointer to release later */
+					 * returns pointer to release later */
 					ibuf= image_get_render_result(ima, iuser, lock_r);
 				}
 				else if(ima->type==IMA_TYPE_COMPOSITE) {

@@ -293,8 +293,8 @@ void bisect_v3_v3v3v3(float out[3], const float v1[3], const float v2[3], const 
 }
 
 /* Returns a reflection vector from a vector and a normal vector
-reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
-*/
+ * reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
+ */
 void reflect_v3_v3v3(float out[3], const float v1[3], const float v2[3])
 {
 	float vec[3], normal[3];
@@ -336,8 +336,8 @@ void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
 }
 
 /* Rotate a point p by angle theta around an arbitrary axis r
-   http://local.wasp.uwa.edu.au/~pbourke/geometry/
-*/
+ * http://local.wasp.uwa.edu.au/~pbourke/geometry/
+ */
 void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
 {
 	const float costheta= cos(angle);

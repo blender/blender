@@ -1077,7 +1077,7 @@ void compatible_eul(float eul[3], const float oldrot[3])
 	}
 	
 	/* the method below was there from ancient days... but why! probably because the code sucks :)
-		*/
+	 */
 #if 0	
 	/* calc again */
 	dx= eul[0] - oldrot[0];
@@ -1134,10 +1134,10 @@ void mat3_to_compatible_eul(float eul[3], const float oldrot[3], float mat[][3])
 
 /* Euler Rotation Order Code:
  * was adapted from  
-		  ANSI C code from the article
-		"Euler Angle Conversion"
-		by Ken Shoemake, shoemake@graphics.cis.upenn.edu
-		in "Graphics Gems IV", Academic Press, 1994
+ *      ANSI C code from the article
+ *      "Euler Angle Conversion"
+ *      by Ken Shoemake, shoemake@graphics.cis.upenn.edu
+ *      in "Graphics Gems IV", Academic Press, 1994
  * for use in Blender
  */
 
@@ -1393,37 +1393,37 @@ void eulO_to_gimbal_axis(float gmat[][3], const float eul[3], const short order)
 
 /******************************* Dual Quaternions ****************************/
 
-/*
-   Conversion routines between (regular quaternion, translation) and
-   dual quaternion.
-
-   Version 1.0.0, February 7th, 2007
-
-   Copyright (C) 2006-2007 University of Dublin, Trinity College, All Rights 
-   Reserved
-
-   This software is provided 'as-is', without any express or implied
-   warranty.  In no event will the author(s) be held liable for any damages
-   arising from the use of this software.
-
-   Permission is granted to anyone to use this software for any purpose,
-   including commercial applications, and to alter it and redistribute it
-   freely, subject to the following restrictions:
-
-   1. The origin of this software must not be misrepresented; you must not
-	  claim that you wrote the original software. If you use this software
-	  in a product, an acknowledgment in the product documentation would be
-	  appreciated but is not required.
-   2. Altered source versions must be plainly marked as such, and must not be
-	  misrepresented as being the original software.
-   3. This notice may not be removed or altered from any source distribution.
-
-   Author: Ladislav Kavan, kavanl@cs.tcd.ie
-
-   Changes for Blender:
-   - renaming, style changes and optimizations
-   - added support for scaling
-*/
+/**
+ * Conversion routines between (regular quaternion, translation) and
+ * dual quaternion.
+ *
+ * Version 1.0.0, February 7th, 2007
+ *
+ * Copyright (C) 2006-2007 University of Dublin, Trinity College, All Rights 
+ * Reserved
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the author(s) be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ * \author Ladislav Kavan, kavanl@cs.tcd.ie
+ *
+ * Changes for Blender:
+ * - renaming, style changes and optimizations
+ * - added support for scaling
+ */
 
 void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 {
@@ -1432,7 +1432,7 @@ void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 	float R[4][4], S[4][4];
 
 	/* split scaling and rotation, there is probably a faster way to do
-	   this, it's done like this now to correctly get negative scaling */
+	 * this, it's done like this now to correctly get negative scaling */
 	mult_m4_m4m4(baseRS, mat, basemat);
 	mat4_to_size(scale,baseRS);
 

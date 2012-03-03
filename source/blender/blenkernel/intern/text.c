@@ -440,11 +440,11 @@ Text *add_text(const char *file, const char *relpath)
 	}
 
 	/* create new line in cases:
-	   - rest of line (if last line in file hasn't got \n terminator).
-	     in this case content of such line would be used to fill text line buffer
-	   - file is empty. in this case new line is needed to start editing from.
-	   - last characted in buffer is \n. in this case new line is needed to
-	     deal with newline at end of file. (see [#28087]) (sergey) */
+	 * - rest of line (if last line in file hasn't got \n terminator).
+	 *   in this case content of such line would be used to fill text line buffer
+	 * - file is empty. in this case new line is needed to start editing from.
+	 * - last characted in buffer is \n. in this case new line is needed to
+	 *   deal with newline at end of file. (see [#28087]) (sergey) */
 	if (llen!=0 || ta->nlines==0 || buffer[len-1]=='\n') {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
@@ -3062,8 +3062,8 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, const unsign
 }
 
 /* Returns the first matching marker on the specified line between two points.
-   If the group or flags fields are non-zero the returned flag must be in the
-   specified group and have at least the specified flags set. */
+ * If the group or flags fields are non-zero the returned flag must be in the
+ * specified group and have at least the specified flags set. */
 TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3085,8 +3085,8 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 }
 
 /* Clears all markers on the specified line between two points. If the group or
-   flags fields are non-zero the returned flag must be in the specified group
-   and have at least the specified flags set. */
+ * flags fields are non-zero the returned flag must be in the specified group
+ * and have at least the specified flags set. */
 short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3111,8 +3111,8 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 }
 
 /* Clears all markers in the specified group (if given) with at least the
-   specified flags set. Useful for clearing temporary markers (group=0,
-   flags=TMARK_TEMP) */
+ * specified flags set. Useful for clearing temporary markers (group=0,
+ * flags=TMARK_TEMP) */
 short txt_clear_markers(Text *text, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3131,7 +3131,7 @@ short txt_clear_markers(Text *text, int group, int flags)
 }
 
 /* Finds the marker at the specified line and cursor position with at least the
-   specified flags set in the given group (if non-zero). */
+ * specified flags set in the given group (if non-zero). */
 TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int flags)
 {
 	TextMarker *marker;
@@ -3150,7 +3150,7 @@ TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int
 }
 
 /* Finds the previous marker in the same group. If no other is found, the same
-   marker will be returned */
+ * marker will be returned */
 TextMarker *txt_prev_marker(Text *text, TextMarker *marker)
 {
 	TextMarker *tmp= marker;
@@ -3164,7 +3164,7 @@ TextMarker *txt_prev_marker(Text *text, TextMarker *marker)
 }
 
 /* Finds the next marker in the same group. If no other is found, the same
-   marker will be returned */
+ * marker will be returned */
 TextMarker *txt_next_marker(Text *text, TextMarker *marker)
 {
 	TextMarker *tmp= marker;

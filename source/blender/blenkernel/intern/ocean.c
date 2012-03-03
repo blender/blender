@@ -726,14 +726,14 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 				}
 				fftw_execute(o->_N_z_plan);
 
-			/*for ( i = 0 ; i  < o->_M ; ++i)
-			 {
-			 for ( j  = 0 ; j  < o->_N ; ++j)
-			 {
-			 o->_N_y[i*o->_N+j] = 1.0f/scale;
-			 }
-			 }
-			 (MEM01)*/
+#if 0
+				for ( i = 0 ; i  < o->_M ; ++i) {
+					for ( j  = 0 ; j  < o->_N ; ++j) {
+						o->_N_y[i*o->_N+j] = 1.0f/scale;
+					}
+				}
+				(MEM01)
+#endif
 			o->_N_y = 1.0f/scale;
 			}
 		} // section 8
@@ -1260,12 +1260,12 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 					// break up the foam where height (Y) is low (wave valley),
 					// and X and Z displacement is greatest
 
-					/*
+#if 0
 					vec[0] = ocr.disp[0];
 					vec[1] = ocr.disp[2];
 					hor_stretch = len_v2(vec);
 					CLAMP(hor_stretch, 0.0, 1.0);
-					*/
+#endif
 
 					neg_disp = ocr.disp[1] < 0.0f ? 1.0f+ocr.disp[1] : 1.0f;
 					neg_disp = neg_disp < 0.0f ? 0.0f : neg_disp;

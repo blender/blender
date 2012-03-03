@@ -227,8 +227,8 @@ void get_default_root(char* root)
 	char str[MAX_PATH+1];
 	
 	/* the default drive to resolve a directory without a specified drive 
-	   should be the Windows installation drive, since this was what the OS
-	   assumes. */
+	 * should be the Windows installation drive, since this was what the OS
+	 * assumes. */
 	if (GetWindowsDirectory(str,MAX_PATH+1)) {
 		root[0] = str[0];
 		root[1] = ':';
@@ -236,7 +236,7 @@ void get_default_root(char* root)
 		root[3] = '\0';
 	} else {		
 		/* if GetWindowsDirectory fails, something has probably gone wrong, 
-		   we are trying the blender install dir though */
+		 * we are trying the blender install dir though */
 		if (GetModuleFileName(NULL,str,MAX_PATH+1)) {
 			printf("Error! Could not get the Windows Directory - Defaulting to Blender installation Dir!");
 			root[0] = str[0];

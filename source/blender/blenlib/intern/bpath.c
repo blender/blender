@@ -499,7 +499,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			Tex *tex = (Tex *)id;
 			if (tex->plugin) {
 				/* FIXME: rewrite_path assumes path length of FILE_MAX, but
-					   tex->plugin->name is 160. ... is this field even a path? */
+				 * tex->plugin->name is 160. ... is this field even a path? */
 				//rewrite_path(tex->plugin->name, visit_cb, bpath_user_data);
 			}
 			if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format)) {
@@ -594,7 +594,7 @@ void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, voi
 }
 
 /* Rewrites a relative path to be relative to the main file - unless the path is
-   absolute, in which case it is not altered. */
+ * absolute, in which case it is not altered. */
 int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
 {
 	/* be sure there is low chance of the path being too short */
@@ -609,7 +609,7 @@ int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_sr
 	}
 
 	/* Make referenced file absolute. This would be a side-effect of
-	   BLI_cleanup_file, but we do it explicitely so we know if it changed. */
+	 * BLI_cleanup_file, but we do it explicitely so we know if it changed. */
 	BLI_strncpy(filepath, path_src, FILE_MAX);
 	if (BLI_path_abs(filepath, base_old)) {
 		/* Path was relative and is now absolute. Remap.

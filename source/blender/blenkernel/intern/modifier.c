@@ -373,11 +373,11 @@ LinkNode *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData 
 	}
 
 	/* build the list of required data masks - each mask in the list must
-	* include all elements of the masks that follow it
-	*
-	* note the list is currently in reverse order, so "masks that follow it"
-	* actually means "masks that precede it" at the moment
-	*/
+	 * include all elements of the masks that follow it
+	 *
+	 * note the list is currently in reverse order, so "masks that follow it"
+	 * actually means "masks that precede it" at the moment
+	 */
 	for(curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
 		if(prev) {
 			CustomDataMask prev_mask = (CustomDataMask)GET_INT_FROM_POINTER(prev->link);
@@ -414,9 +414,9 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 
 ModifierData *modifiers_getVirtualModifierList(Object *ob)
 {
-		/* Kinda hacky, but should be fine since we are never
-	* reentrant and avoid free hassles.
-		*/
+	/* Kinda hacky, but should be fine since we are never
+	 * reentrant and avoid free hassles.
+	 */
 	static ArmatureModifierData amd;
 	static CurveModifierData cmd;
 	static LatticeModifierData lmd;
@@ -491,8 +491,7 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ArmatureModifierData *amd= NULL;
 	
-	/* return the first selected armature, this lets us use multiple armatures
-	*/
+	/* return the first selected armature, this lets us use multiple armatures */
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Armature) {
 			amd = (ArmatureModifierData*) md;
@@ -508,16 +507,15 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 }
 
 /* Takes an object and returns its first selected lattice, else just its
-* lattice
-* This should work for multiple lattics per object
-*/
+ * lattice
+ * This should work for multiple lattics per object
+ */
 Object *modifiers_isDeformedByLattice(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	LatticeModifierData *lmd= NULL;
 	
-	/* return the first selected lattice, this lets us use multiple lattices
-	*/
+	/* return the first selected lattice, this lets us use multiple lattices */
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Lattice) {
 			lmd = (LatticeModifierData*) md;
@@ -614,7 +612,7 @@ void test_object_modifiers(Object *ob)
 	ModifierData *md;
 
 	/* just multires checked for now, since only multires
-	   modifies mesh data */
+	 * modifies mesh data */
 
 	if(ob->type != OB_MESH) return;
 

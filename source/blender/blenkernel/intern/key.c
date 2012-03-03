@@ -221,9 +221,9 @@ void make_local_key(Key *key)
 {
 
 	/* - only lib users: do nothing
-	* - only local users: set flag
-	* - mixed: make copy
-	*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	if(key==NULL) return;
 	
 	key->id.lib= NULL;
@@ -265,7 +265,7 @@ void sort_keys(Key *key)
 		if(key->ipo && key->ipo->curve.first != key->ipo->curve.last ) {
 			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
 				/* if we find the curve, remove it and reinsert in the 
-				 right place */
+				 * right place */
 				if(icu->adrcode==kb->adrcode) {
 					IpoCurve *icu2;
 					BLI_remlink(&key->ipo->curve, icu);
@@ -537,7 +537,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 {
 	if(kb == actkb) {
 		/* this hack makes it possible to edit shape keys in
-		   edit mode with shape keys blending applied */
+		 * edit mode with shape keys blending applied */
 		if(GS(key->from->name) == ID_ME) {
 			Mesh *me;
 			BMVert *eve;

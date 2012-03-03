@@ -121,8 +121,8 @@ static const char *cmpcode_to_str(int code)
 		}
 }
 
-/*thresh is threshold for comparing vertices, uvs, vertex colors,
-  weights, etc.*/
+/* thresh is threshold for comparing vertices, uvs, vertex colors,
+ * weights, etc.*/
 static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float thresh)
 {
 	CustomDataLayer *l1, *l2;
@@ -438,8 +438,8 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 void free_dverts(MDeformVert *dvert, int totvert)
 {
 	/* Instead of freeing the verts directly,
-	call this function to delete any special
-	vert data */
+	 * call this function to delete any special
+	 * vert data */
 	int	i;
 
 	if (!dvert)
@@ -738,7 +738,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 }
 
 /* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
-   this is necessary to make the if (mface->v4) check for quads work */
+ * this is necessary to make the if (mface->v4) check for quads work */
 int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
@@ -1852,8 +1852,8 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 		
 		if (corners == 0) {
 			/* Empty MDisp layers appear in at least one of the sintel.blend files.
-			   Not sure why this happens, but it seems fine to just ignore them here.
-			   If corners==0 for a non-empty layer though, something went wrong. */
+			 * Not sure why this happens, but it seems fine to just ignore them here.
+			 * If corners==0 for a non-empty layer though, something went wrong. */
 			BLI_assert(fd->totdisp == 0);
 		}
 		else {
@@ -2071,8 +2071,8 @@ void free_uv_vert_map(UvVertMap *vmap)
 }
 
 /* Generates a map where the key is the vertex and the value is a list
-   of polys that use that vertex as a corner. The lists are allocated
-   from one memory pool. */
+ * of polys that use that vertex as a corner. The lists are allocated
+ * from one memory pool. */
 void create_vert_poly_map(ListBase **map, IndexNode **mem,
                           MPoly *mpoly, MLoop *mloop,
                           const int totvert, const int totpoly, const int totloop)
@@ -2097,8 +2097,8 @@ void create_vert_poly_map(ListBase **map, IndexNode **mem,
 }
 
 /* Generates a map where the key is the vertex and the value is a list
-   of edges that use that vertex as an endpoint. The lists are allocated
-   from one memory pool. */
+ * of edges that use that vertex as an endpoint. The lists are allocated
+ * from one memory pool. */
 void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, const int totvert, const int totedge)
 {
 	int i, j;
@@ -2185,8 +2185,8 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 }
 
 /*
-  this function recreates a tessellation.
-  returns number of tessellation faces.
+ * this function recreates a tessellation.
+ * returns number of tessellation faces.
  */
 int mesh_recalcTessellation(CustomData *fdata,
                            CustomData *ldata, CustomData *pdata,
@@ -2585,7 +2585,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
  * polygon See Graphics Gems for 
  * computing newell normal.
  *
-*/
+ */
 static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart, 
                                   MVert *mvert, float normal[3])
 {
@@ -2612,16 +2612,16 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 		}
 		
 		/* newell's method
-		
-		so thats?:
-		(a[1] - b[1]) * (a[2] + b[2]);
-		a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
-
-		odd.  half of that is the cross product. . .what's the
-		other half?
-
-		also could be like a[1]*(b[2] + a[2]) - b[1]*(a[2] - b[2])
-		*/
+		 * 
+		 * so thats?:
+		 * (a[1] - b[1]) * (a[2] + b[2]);
+		 * a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
+		 * 
+		 * odd.  half of that is the cross product. . .what's the
+		 * other half?
+		 * 
+		 * also could be like a[1]*(b[2] + a[2]) - b[1]*(a[2] - b[2])
+		 */
 
 		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
 		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
@@ -2834,7 +2834,7 @@ float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 }
 
 /* Find the index of the loop in 'poly' which references vertex,
-   returns -1 if not found */
+ * returns -1 if not found */
 int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
 							 unsigned vert)
 {
@@ -2848,8 +2848,8 @@ int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
 }
 
 /* Fill 'adj_r' with the loop indices in 'poly' adjacent to the
-   vertex. Returns the index of the loop matching vertex, or -1 if the
-   vertex is not in 'poly' */
+ * vertex. Returns the index of the loop matching vertex, or -1 if the
+ * vertex is not in 'poly' */
 int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 								 const MLoop *mloop, unsigned vert)
 {

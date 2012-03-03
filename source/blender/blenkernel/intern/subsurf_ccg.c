@@ -2239,7 +2239,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 				}
 
 				/* no need to set shading mode to flat because
-				*  normals are already used to change shading */
+				 *  normals are already used to change shading */
 				glShadeModel(GL_SMOOTH);
 				
 				for (S=0; S<numVerts; S++) {
@@ -2797,7 +2797,7 @@ static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm)
 	MultiresModifierData *mmd= ccgdm->multires.mmd;
 
 	/* both of multires and subsurm modifiers are CCG, but
-	   grids should only be used when sculpting on multires */
+	 * grids should only be used when sculpting on multires */
 	if(!mmd)
 		return 0;
 
@@ -2822,9 +2822,9 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if(ob->sculpt->pbvh) {
 		if(grid_pbvh) {
 			/* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
-			   but this can be freed on ccgdm release, this updates the pointers
-			   when the ccgdm gets remade, the assumption is that the topology
-			   does not change. */
+			 * but this can be freed on ccgdm release, this updates the pointers
+			 * when the ccgdm gets remade, the assumption is that the topology
+			 * does not change. */
 			ccgdm_create_grids(dm);
 			BLI_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void**)ccgdm->gridFaces);
 		}
@@ -2836,8 +2836,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		return ccgdm->pbvh;
 
 	/* no pbvh exists yet, we need to create one. only in case of multires
-	   we build a pbvh over the modified mesh, in other cases the base mesh
-	   is being sculpted, so we build a pbvh from that. */
+	 * we build a pbvh over the modified mesh, in other cases the base mesh
+	 * is being sculpted, so we build a pbvh from that. */
 	if(grid_pbvh) {
 		ccgdm_create_grids(dm);
 
@@ -3423,7 +3423,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 		}
 
 		/* ad-hoc correction for boundary vertices, to at least avoid them
-		   moving completely out of place (brecht) */
+		 * moving completely out of place (brecht) */
 		if(numFaces && numFaces != N)
 			mul_v3_fl(face_sum, (float)N/(float)numFaces);
 

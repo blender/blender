@@ -663,8 +663,10 @@ static const char *sound_adrcodes_to_paths (int adrcode, int *array_index)
 		case SND_PITCH:
 			return "pitch";
 	/* XXX Joshua -- I had wrapped panning in rna, but someone commented out, calling it "unused" */
-	/*	case SND_PANNING:
-			return "panning"; */
+#if 0
+		case SND_PANNING:
+			return "panning";
+#endif
 		case SND_ATTEN:
 			return "attenuation";
 	}
@@ -762,11 +764,12 @@ static const char *particle_adrcodes_to_paths (int adrcode, int *array_index)
 			return "settings.billboard_tilt";
 		
 		/* PartDeflect needs to be sorted out properly in rna_object_force;
-		   If anyone else works on this, but is unfamiliar, these particular
-			settings reference the particles of the system themselves
-			being used as forces -- it will use the same rna structure
-			as the similar object forces				*/
-		/*case PART_PD_FSTR:
+		 * If anyone else works on this, but is unfamiliar, these particular
+		 * settings reference the particles of the system themselves
+		 * being used as forces -- it will use the same rna structure
+		 * as the similar object forces */
+#if 0
+		case PART_PD_FSTR:
 			if (part->pd) poin= &(part->pd->f_strength);
 			break;
 		case PART_PD_FFALL:
@@ -783,11 +786,12 @@ static const char *particle_adrcodes_to_paths (int adrcode, int *array_index)
 			break;
 		case PART_PD2_FMAXD:
 			if (part->pd2) poin= &(part->pd2->maxdist);
-			break;*/
+			break;
+#endif
 
-		}
-		
-	return NULL;	
+	}
+
+	return NULL;
 }
 
 /* ------- */
@@ -1914,9 +1918,9 @@ void do_versions_ipos_to_animato(Main *main)
 				}
 				
 				/* patch adrcode, so that we can map
-				   to different DNA variables later 
-				   (semi-hack (tm) )
-				*/
+				 * to different DNA variables later 
+				 * (semi-hack (tm) )
+				 */
 				switch (seq->type) {
 					case SEQ_IMAGE:
 					case SEQ_META:

@@ -3860,16 +3860,16 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
 
 		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
-		adaptive step size algo in a nutshell:
-		1.  set sheduled time step to new dtime
-		2.  try to advance the sheduled time step, beeing optimistic execute it
-		3.  check for success
-		3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so!
-		3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
-		4.  check if we did reach dtime
-		4.a nope we need to do some more at 2.
-		4.b yup we're done
-		*/
+		 * adaptive step size algo in a nutshell:
+		 * 1.  set sheduled time step to new dtime
+		 * 2.  try to advance the sheduled time step, beeing optimistic execute it
+		 * 3.  check for success
+		 * 3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so!
+		 * 3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
+		 * 4.  check if we did reach dtime
+		 * 4.a nope we need to do some more at 2.
+		 * 4.b yup we're done
+		 */
 
 		copy_v3_v3(bp->prevpos, bp->pos);
 		copy_v3_v3(bp->prevvec, bp->vec);
@@ -3917,9 +3917,9 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	sst=PIL_check_seconds_timer();
 	/* Integration back in time is possible in theory, but pretty useless here.
-	So we refuse to do so. Since we do not know anything about 'outside' canges
-	especially colliders we refuse to go more than 10 frames.
-	*/
+	 * So we refuse to do so. Since we do not know anything about 'outside' canges
+	 * especially colliders we refuse to go more than 10 frames.
+	 */
 	if (dtime < 0 || dtime > 10.5f) return;
 
 	ccd_update_deflector_hash(scene, ob, sb->scratch->colliderhash);
@@ -3938,9 +3938,8 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		float forcetimemax = 1.0f; /* set defaults guess we shall do one frame */
 		float forcetimemin = 0.01f; /* set defaults guess 1/100 is tight enough */
 		float timedone =0.0; /* how far did we get without violating error condition */
-							 /* loops = counter for emergency brake
-							 * we don't want to lock up the system if physics fail
-		*/
+		                     /* loops = counter for emergency brake
+		                      * we don't want to lock up the system if physics fail */
 		int loops = 0;
 
 		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */

@@ -90,13 +90,13 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 
 	tm2->bm = BM_mesh_copy(tm->bm);
 
-	/*The tessellation is NOT calculated on the copy here,
-	  because currently all the callers of this function use
-	  it to make a backup copy of the BMEditMesh to restore
-	  it in the case of errors in an operation. For perf
-	  reasons, in that case it makes more sense to do the
-	  tessellation only when/if that copy ends up getting
-	  used.*/
+	/* The tessellation is NOT calculated on the copy here,
+	 * because currently all the callers of this function use
+	 * it to make a backup copy of the BMEditMesh to restore
+	 * it in the case of errors in an operation. For perf
+	 * reasons, in that case it makes more sense to do the
+	 * tessellation only when/if that copy ends up getting
+	 * used.*/
 	tm2->looptris = NULL;
 
 	tm2->vert_index = NULL;
@@ -311,18 +311,18 @@ void BMEdit_Free(BMEditMesh *em)
 }
 
 /*
-ok, basic design:
-
-the bmesh derivedmesh exposes the mesh as triangles.  it stores pointers
-to three loops per triangle.  the derivedmesh stores a cache of tessellations
-for each face.  this cache will smartly update as needed (though at first
-it'll simply be more brute force).  keeping track of face/edge counts may
-be a small problbm.
-
-this won't be the most efficient thing, considering that internal edges and
-faces of tessellations are exposed.  looking up an edge by index in particular
-is likely to be a little slow.
-*/
+ * ok, basic design:
+ *
+ * the bmesh derivedmesh exposes the mesh as triangles.  it stores pointers
+ * to three loops per triangle.  the derivedmesh stores a cache of tessellations
+ * for each face.  this cache will smartly update as needed (though at first
+ * it'll simply be more brute force).  keeping track of face/edge counts may
+ * be a small problbm.
+ *
+ * this won't be the most efficient thing, considering that internal edges and
+ * faces of tessellations are exposed.  looking up an edge by index in particular
+ * is likely to be a little slow.
+ */
 
 typedef struct EditDerivedBMesh {
 	DerivedMesh dm;
@@ -342,7 +342,7 @@ typedef struct EditDerivedBMesh {
 static void emDM_calcNormals(DerivedMesh *UNUSED(dm))
 {
 	/* Nothing to do: normals are already calculated and stored on the
-	   BMVerts and BMFaces */
+	 * BMVerts and BMFaces */
 }
 
 static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
@@ -1511,8 +1511,8 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 			data = datalayer = DM_get_tessface_data_layer(dm, type);
 			for (i=0; i<bmdm->tc->tottri; i++, data+=size) {
 				efa = bmdm->tc->looptris[i][0]->f;
-				/*BMESH_TODO: need to still add tface data,
-				  derived from the loops.*/
+				/* BMESH_TODO: need to still add tface data,
+				 * derived from the loops.*/
 				bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, type);
 				memcpy(data, bmdata, size);
 			}

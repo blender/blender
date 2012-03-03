@@ -4763,8 +4763,8 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 }
 
 /*
-*	Do Dynamic Paint step. Paints scene brush objects of current state/frame to the surface.
-*/
+ * Do Dynamic Paint step. Paints scene brush objects of current state/frame to the surface.
+ */
 static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
 {
 	PaintSurfaceData *sData = surface->data;
@@ -4775,8 +4775,8 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 
 	dynamicPaint_surfacePreStep(surface, timescale);
 	/*
-	*	Loop through surface's target paint objects and do painting
-	*/
+	 * Loop through surface's target paint objects and do painting
+	 */
 	{
 		Base *base = NULL;
 		GroupObject *go = NULL;	
@@ -4924,8 +4924,8 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 }
 
 /*
-*	Calculate a single frame and included subframes for surface
-*/
+ * Calculate a single frame and included subframes for surface
+ */
 int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, Scene *scene, Object *cObject, int frame)
 {
 	float timescale = 1.0f;

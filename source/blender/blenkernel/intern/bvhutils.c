@@ -588,17 +588,17 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			{
 				BMEditMesh *em= data->em_evil;
 				if(em) {
-					/*data->em_evil is only set for snapping, and only for the mesh of the object
-					  which is currently open in edit mode. When set, the bvhtree should not contain
-					  faces that will interfere with snapping (e.g. faces that are hidden/selected
-					  or faces that have selected verts).*/
+					/* data->em_evil is only set for snapping, and only for the mesh of the object
+					 * which is currently open in edit mode. When set, the bvhtree should not contain
+					 * faces that will interfere with snapping (e.g. faces that are hidden/selected
+					 * or faces that have selected verts).*/
 
 					/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
 
-					/*Insert BMesh-tessellation triangles into the bvh tree, unless they are hidden
-					  and/or selected. Even if the faces themselves are not selected for the snapped
-					  transform, having a vertex selected means the face (and thus it's tesselated
-					  triangles) will be moving and will not be a good snap targets.*/
+					/* Insert BMesh-tessellation triangles into the bvh tree, unless they are hidden
+					 * and/or selected. Even if the faces themselves are not selected for the snapped
+					 * transform, having a vertex selected means the face (and thus it's tesselated
+					 * triangles) will be moving and will not be a good snap targets.*/
 					for (i = 0; i < em->tottri; i++) {
 						BMLoop **tri = em->looptris[i];
 						BMFace *f;
@@ -606,28 +606,28 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 						BMIter iter;
 						int insert;
 
-						/*Each loop of the triangle points back to the BMFace it was tesselated from.
-						  All three should point to the same face, so just use the face from the first
-						  loop.*/
+						/* Each loop of the triangle points back to the BMFace it was tesselated from.
+						 * All three should point to the same face, so just use the face from the first
+						 * loop.*/
 						f = tri[0]->f;
 
-						/*If the looptris is ordered such that all triangles tesselated from a single
-						  faces are consecutive elements in the array, then we could speed up the tests
-						  below by using the insert value from the previous iteration.*/
+						/* If the looptris is ordered such that all triangles tesselated from a single
+						 * faces are consecutive elements in the array, then we could speed up the tests
+						 * below by using the insert value from the previous iteration.*/
 
 						/*Start with the assumption the triangle should be included for snapping.*/
 						insert = 1;
 
 						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-							/*Don't insert triangles tesselated from faces that are hidden
-							  or selected*/
+							/* Don't insert triangles tesselated from faces that are hidden
+							 * or selected*/
 							insert = 0;
 						}
 						else {
 							BM_ITER(v, &iter, em->bm, BM_VERTS_OF_FACE, f) {
 								if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-									/*Don't insert triangles tesselated from faces that have
-									  any selected verts.*/
+									/* Don't insert triangles tesselated from faces that have
+									 * any selected verts.*/
 									insert = 0;
 								}
 							}
@@ -635,8 +635,8 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 						if (insert)
 						{
-							/*No reason found to block hit-testing the triangle for snap,
-							  so insert it now.*/
+							/* No reason found to block hit-testing the triangle for snap,
+							 * so insert it now.*/
 							float co[4][3];
 							copy_v3_v3(co[0], tri[0]->v->co);
 							copy_v3_v3(co[1], tri[1]->v->co);

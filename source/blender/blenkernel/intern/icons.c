@@ -79,7 +79,7 @@ static void icon_free(void *val)
 }
 
 /* create an id for a new icon and make sure that ids from deleted icons get reused
-   after the integer number range is used up */
+ * after the integer number range is used up */
 static int get_next_free_id(void)
 {
 	int startId = gFirstIconId;

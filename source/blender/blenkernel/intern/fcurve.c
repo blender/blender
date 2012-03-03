@@ -827,7 +827,7 @@ void calchandles_fcurve (FCurve *fcu)
  * 		-> Auto handles: become aligned when selection status is NOT(000 || 111)
  * 		-> Vector handles: become 'nothing' when (one half selected AND other not)
  *  - PHASE 2: recalculate handles
-*/
+ */
 void testhandles_fcurve (FCurve *fcu, const short use_handle)
 {
 	BezTriple *bezt;
@@ -1686,7 +1686,7 @@ static float evaluate_driver (ChannelDriver *driver, const float evaltime)
 /* The total length of the handles is not allowed to be more
  * than the horizontal distance between (v1-v4).
  * This is to prevent curve loops.
-*/
+ */
 void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2])
 {
 	float h1[2], h2[2], len1, len2, len, fac;

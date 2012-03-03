@@ -2468,7 +2468,7 @@ CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, 
 }
 
 /* stitch together face grids, averaging coordinates at edges
-   and vertices, for multires displacements */
+ * and vertices, for multires displacements */
 CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
 	CCGVert **effectedV;
@@ -2634,8 +2634,8 @@ CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **effectedF, int numEf
 }
 
 /* compute subdivision levels from a given starting point, used by
-   multires subdivide/propagate, by filling in coordinates at a
-   certain level, and then subdividing that up to the highest level */
+ * multires subdivide/propagate, by filling in coordinates at a
+ * certain level, and then subdividing that up to the highest level */
 CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
 	CCGVert **effectedV;
