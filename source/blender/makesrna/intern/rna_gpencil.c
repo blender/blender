@@ -225,13 +225,15 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	/* Onion-Skinning */
 	prop= RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ONIONSKIN);
-	RNA_def_property_ui_text(prop, "Use Onion Skinning", "Ghost frames on either side of frame");
+	RNA_def_property_ui_text(prop, "Onion Skinning", "Ghost frames on either side of frame");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "ghost_range_max", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gstep");
 	RNA_def_property_range(prop, 0, 120);
-	RNA_def_property_ui_text(prop, "Max Ghost Range", "Maximum number of frames on either side of the active frame to show (0 = show the 'first' available sketch on either side)");
+	RNA_def_property_ui_text(prop, "Max Ghost Range",
+	                         "Maximum number of frames on either side of the active frame to show "
+	                         "(0 = show the 'first' available sketch on either side)");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	/* Flags */
@@ -273,7 +275,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	/* X-Ray */
 	prop= RNA_def_property(srna, "show_x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_NO_XRAY);
-	RNA_def_property_ui_text(prop, "X Ray", "");
+	RNA_def_property_ui_text(prop, "X Ray", "Make the layer draw in front of objects");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 }
 

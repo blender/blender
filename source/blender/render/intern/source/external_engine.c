@@ -36,6 +36,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -60,7 +62,7 @@
 
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
-	"BLENDER_RENDER", "Blender Render", RE_INTERNAL,
+	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
@@ -68,7 +70,7 @@ static RenderEngineType internal_render_type = {
 
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
-	"BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME,
+	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL|RE_GAME,
 	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 

@@ -2884,8 +2884,8 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 
 		col= uiLayoutColumn(layout, 0);
 		block= uiLayoutGetBlock(col);
-		but = uiDefIconTextBut(block , BUT, 0, ICON_FILE_REFRESH, "Reset", 0, 0, 18, 20, NULL, 0.0, 0.0, 0.0, 0.0,
-		                       "Reset operator defaults");
+		but = uiDefIconTextBut(block , BUT, 0, ICON_FILE_REFRESH, IFACE_("Reset"), 0, 0, 18, 20,
+		                       NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Reset operator defaults"));
 		uiButSetFunc(but, ui_layout_operator_buts__reset_cb, op, NULL);
 	}
 
