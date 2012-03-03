@@ -186,7 +186,7 @@ public:                                                                       \
 #define PY_SET_ATTR_SUCCESS		 0
 
 /**
- * These macros are helpfull when embedding Python routines. The second
+ * These macros are helpful when embedding Python routines. The second
  * macro is one that also requires a documentation string
  */
 #define KX_PYMETHOD(class_name, method_name)                                   \

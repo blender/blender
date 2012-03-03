@@ -649,7 +649,7 @@ static int bm_loop_length(BMLoop *l)
  * \brief Loop Reverse
  *
  * Changes the winding order of a face from CW to CCW or vice versa.
- * This euler is a bit peculiar in compairson to others as it is its
+ * This euler is a bit peculiar in comparison to others as it is its
  * own inverse.
  *
  * BMESH_TODO: reinsert validation code.
@@ -1096,7 +1096,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
  * level wrapping functions (when holes are fully implemented, anyway).
  *
  * \note that holes represents which holes goes to the new face, and of
- * course this requires removing them from the exitsing face first, since
+ * course this requires removing them from the existing face first, since
  * you cannot have linked list links inside multiple lists.
  *
  * \return A BMFace pointer

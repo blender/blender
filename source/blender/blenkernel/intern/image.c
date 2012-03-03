@@ -1834,7 +1834,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 		break;
 	}
 	
-	/* dont use notifiers because they are not 100% sure to succseed
+	/* dont use notifiers because they are not 100% sure to succeeded
 	 * this also makes sure all scenes are accounted for. */
 	{
 		Scene *scene;

@@ -707,7 +707,7 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
  *
  * Used by tesselator to find
  * the next triangle to 'clip off'
- * of a polygon while tesselating.
+ * of a polygon while tessellating.
  */
 static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert)
 {

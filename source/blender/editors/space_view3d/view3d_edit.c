@@ -302,12 +302,12 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 /* 'clip' is used to know if our clip setting has changed */
 void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 {
-	ARegion *arsync= NULL;
+	ARegion *ar_sync= NULL;
 	RegionView3D *rv3d= ar->regiondata;
 	short viewlock;
 	/* this function copies flags from the first of the 3 other quadview
-	   regions to the 2 other, so it assumes this is the region whose
-	   properties are always being edited, weak */
+	 * regions to the 2 other, so it assumes this is the region whose
+	 * properties are always being edited, weak */
 	viewlock= rv3d->viewlock;
 
 	if ((viewlock & RV3D_LOCKED)==0)
@@ -326,15 +326,15 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 				rv3d->rflag &= ~RV3D_BOXCLIP;
 			}
 
-			/* use arsync so we sync with one of the aligned views below
+			/* use ar_sync so we sync with one of the aligned views below
 			 * else the view jumps on changing view settings like 'clip'
 			 * since it copies from the perspective view */
-			arsync= ar;
+			ar_sync= ar;
 		}
 	}
 
 	if (rv3d->viewlock & RV3D_BOXVIEW) {
-		view3d_boxview_copy(sa, arsync ? arsync : sa->regionbase.last);
+		view3d_boxview_copy(sa, ar_sync ? ar_sync : sa->regionbase.last);
 	}
 
 	ED_area_tag_redraw(sa);
@@ -445,8 +445,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 				negate_v3_v3(my_origin, rv3d->ofs);				/* ofs is flipped */
 
-				/* Set the dist value to be the distance from this 3d point */
-				/* this means youll always be able to zoom into it and panning wont go bad when dist was zero */
+				/* Set the dist value to be the distance from this 3d point
+				 * this means youll always be able to zoom into it and panning wont go bad when dist was zero */
 
 				/* remove dist value */
 				upvec[0] = upvec[1] = 0;
@@ -646,10 +646,10 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 			si -= 2.0f;
 
 		/* This relation is used instead of
-			* phi = asin(si) so that the angle
-			* of rotation is linearly proportional
-			* to the distance that the mouse is
-			* dragged. */
+		 * - phi = asin(si) so that the angle
+		 * - of rotation is linearly proportional
+		 * - to the distance that the mouse is
+		 * - dragged. */
 		phi = si * (float)(M_PI / 2.0);
 
 		q1[0]= cos(phi);
@@ -676,8 +676,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		float m_inv[3][3];
 		float xvec[3] = {1.0f, 0.0f, 0.0f};
 		/* Sensitivity will control how fast the viewport rotates.  0.0035 was
-			obtained experimentally by looking at viewport rotation sensitivities
-			on other modeling programs. */
+		 * obtained experimentally by looking at viewport rotation sensitivities
+		 * on other modeling programs. */
 		/* Perhaps this should be a configurable user parameter. */
 		const float sensitivity = 0.0035f;
 
@@ -3538,11 +3538,12 @@ int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], cons
 	return (*depth==FLT_MAX) ? 0:1;
 }
 
-/* Gets the view trasnformation from a camera
-* currently dosnt take camzoom into account
-*
-* The dist is not modified for this function, if NULL its assimed zero
-* */
+/**
+ * Gets the view trasnformation from a camera
+ * currently dosnt take camzoom into account
+ *
+ * The dist is not modified for this function, if NULL its assimed zero
+ */
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 {
 	/* Offset */

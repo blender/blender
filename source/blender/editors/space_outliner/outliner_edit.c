@@ -1128,7 +1128,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportL
 			short flag= 0;
 			short groupmode= KSP_GROUP_KSNAME;
 			
-			/* check if RNA-property described by this selected element is an animateable prop */
+			/* check if RNA-property described by this selected element is an animatable prop */
 			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
@@ -1307,7 +1307,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			short flag= 0;
 			short groupmode= KSP_GROUP_KSNAME;
 			
-			/* check if RNA-property described by this selected element is an animateable prop */
+			/* check if RNA-property described by this selected element is an animatable prop */
 			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 

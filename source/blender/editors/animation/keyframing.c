@@ -1449,9 +1449,9 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	else if (G.f & G_DEBUG) {
 		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
 		if (prop)
-			printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
+			printf("animatable = %d \n", RNA_property_animateable(&ptr, prop));
 		else
-			printf("animateable = NULL \n");
+			printf("animatable = NULL \n");
 	}
 	
 	if (success) {

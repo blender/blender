@@ -2192,7 +2192,7 @@ int mesh_recalcTessellation(CustomData *fdata,
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int UNUSED(totloop),
                            int totpoly,
-                           /* when teseelating to recalcilate normals after
+                           /* when tessellating to recalcilate normals after
                             * we can skip copying here */
                            const int do_face_nor_cpy)
 {

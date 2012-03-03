@@ -1753,7 +1753,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					}
 
 					/* create "new" bb, only point 0 and 6, which are
-					 * neccesary for octal tree filling */
+					 * necessary for octal tree filling */
 					mainb[a]->bb->vec[0][0] = min_x - ml->rad;
 					mainb[a]->bb->vec[0][1] = min_y - ml->rad;
 					mainb[a]->bb->vec[0][2] = min_z - ml->rad;

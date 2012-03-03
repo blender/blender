@@ -778,7 +778,7 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	UI_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
 	glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_RESOL);
 
-	/* finishe up */
+	/* finish up */
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 	glDisable(GL_BLEND);

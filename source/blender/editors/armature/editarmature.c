@@ -3605,7 +3605,7 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
 
 /* Switch Direction operator:
  * Currently, this does not use context loops, as context loops do not make it
- * easy to retrieve any hierarchial/chain relationships which are necessary for
+ * easy to retrieve any hierarchical/chain relationships which are necessary for
  * this to be done easily.
  */
 

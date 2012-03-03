@@ -528,7 +528,7 @@ typedef struct AnimMapPair {
 
 /* Retargetting Information for Actions 
  *
- * This should only be used if it is strictly necessary (i.e. user will need to explictly 
+ * This should only be used if it is strictly necessary (i.e. user will need to explicitly 
  * add this when they find that some channels do not match, or motion is not going to right 
  * places). When executing an action, this will be checked to see if it provides any useful
  * remaps for the given paths.
@@ -661,7 +661,7 @@ typedef enum eNlaStrip_Type {
 
 /* NLA Track (nlt)
  *
- * A track groups a bunch of 'strips', which should form a continous set of 
+ * A track groups a bunch of 'strips', which should form a continuous set of 
  * motion, on top of which other such groups can be layered. This should allow
  * for animators to work in a non-destructive manner, layering tweaks, etc. over
  * 'rough' blocks of their work.

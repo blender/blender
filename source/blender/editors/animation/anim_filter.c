@@ -1229,7 +1229,7 @@ static size_t animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, K
 		
 		/* loop through the channels adding ShapeKeys as appropriate */
 		for (kb= key->block.first; kb; kb= kb->next) {
-			/* skip the first one, since that's the non-animateable basis */
+			/* skip the first one, since that's the non-animatable basis */
 			// XXX maybe in future this may become handy?
 			if (kb == key->block.first) continue;
 			

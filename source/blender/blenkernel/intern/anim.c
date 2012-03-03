@@ -453,7 +453,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 
 /* free curve path data 
  * NOTE: frees the path itself!
- * NOTE: this is increasingly innacurate with non-uniform BevPoint subdivisions [#24633]
+ * NOTE: this is increasingly inaccurate with non-uniform BevPoint subdivisions [#24633]
  */
 void free_path(Path *path)
 {

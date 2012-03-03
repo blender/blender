@@ -43,7 +43,7 @@
  *
  * This define converts a numerical value to the equivalent 24-bit
  * color, while not being endian-sensitive. On little-endians, this
- * is the same as doing a 'naive'indexing, on big-endian, it is not!
+ * is the same as doing a 'naive' indexing, on big-endian, it is not!
  * */
 #define cpack(x)	glColor3ub( ((x)&0xFF), (((x)>>8)&0xFF), (((x)>>16)&0xFF) )
 

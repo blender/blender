@@ -2225,7 +2225,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	}
 	
 	/* render shadows after updating all lamps, nested object_duplilist
-		* don't work correct since it's replacing object matrices */
+	 * don't work correct since it's replacing object matrices */
 	for (shadow=shadows.first; shadow; shadow=shadow->next) {
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];

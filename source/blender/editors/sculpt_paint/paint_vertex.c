@@ -1845,7 +1845,7 @@ static void do_weight_paint_vertex(/* vars which remain the same for every vert 
 		if (wpi->do_auto_normalize) {
 			/* note on normalize - this used to be applied after painting and normalize all weights,
 			 * in some ways this is good because there is feedback where the more weights involved would
-			 * 'risist' so you couldn't instantly zero out other weights by painting 1.0 on the active.
+			 * 'resist' so you couldn't instantly zero out other weights by painting 1.0 on the active.
 			 *
 			 * However this gave a problem since applying mirror, then normalize both verts
 			 * the resulting weight wont match on both sides.
@@ -1869,7 +1869,7 @@ static void do_weight_paint_vertex(/* vars which remain the same for every vert 
 					 * - auto normalize is enabled
 					 * - the group you are painting onto has a L / R version
 					 *
-					 * We wan't L/R vgroups to have the same weight but this cant be if both are over 0.5,
+					 * We want L/R vgroups to have the same weight but this cant be if both are over 0.5,
 					 * We _could_ have special check for that, but this would need its own normalize function which
 					 * holds 2 groups from changing at once.
 					 *

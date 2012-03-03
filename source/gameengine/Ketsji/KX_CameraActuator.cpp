@@ -210,7 +210,7 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 
 bool KX_CameraActuator::Update(double curtime, bool frame)
 {
-	/* wondering... is it really neccesary/desirable to suppress negative    */
+	/* wondering... is it really necessary/desirable to suppress negative    */
 	/* events here?                                                          */
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();

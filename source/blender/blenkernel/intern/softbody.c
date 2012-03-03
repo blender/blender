@@ -3289,7 +3289,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 			get_scalar_from_vertexgroup(ob, a,(short) (sb->vertgroup-1), &bp->goal);
 			/* do this always, regardless successfull read from vertex group */
-			/* this is where '2.5 every thing is animateable' goes wrong in the first place jow_go_for2_5 */
+			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
 			/* should be fixed for meshes */
@@ -3585,7 +3585,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		if (nu->bezt) {
 			/* bezier case ; this is nicly said naive; who ever wrote this part, it was not me (JOW) :) */
 			/* a: never ever make tangent handles (sub) and or (ob)ject to collision */
-			/* b: rather calculate them using some C2 (C2= continous in second derivate -> no jump in bending ) condition */
+			/* b: rather calculate them using some C2 (C2= continuous in second derivate -> no jump in bending ) condition */
 			/* not too hard to do, but needs some more code to care for;  some one may want look at it  JOW 2010/06/12*/
 			for (bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp+=3, curindex+=3) {
 				if (setgoal) {

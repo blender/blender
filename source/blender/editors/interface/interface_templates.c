@@ -802,7 +802,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 						TIP_("This modifier could be applied on splines' points only"));
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			} else if (mti->type != eModifierTypeType_Constructive) {
-				/* constructive modifiers tesselates curve before applying */
+				/* constructive modifiers tessellates curve before applying */
 				uiItemR(row, &ptr, "use_apply_on_spline", 0, "", ICON_NONE);
 			}
 		}

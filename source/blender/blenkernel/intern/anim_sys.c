@@ -1589,14 +1589,14 @@ static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, 
 		/* get path, remapped as appropriate to work in its new environment */
 	/* free_path= */ /* UNUSED */ animsys_remap_path(strip->remap, fcu->rna_path, &path);
 	
-		/* a valid property must be available, and it must be animateable */
+		/* a valid property must be available, and it must be animatable */
 	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0) {
 		if (G.f & G_DEBUG) printf("NLA Strip Eval: Cannot resolve path \n");
 		return NULL;
 	}
-		/* only ok if animateable */
+		/* only ok if animatable */
 	else if (RNA_property_animateable(&new_ptr, prop) == 0) {
-		if (G.f & G_DEBUG) printf("NLA Strip Eval: Property not animateable \n");
+		if (G.f & G_DEBUG) printf("NLA Strip Eval: Property not animatable \n");
 		return NULL;
 	}
 	

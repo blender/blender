@@ -103,7 +103,7 @@ enum {
 	/* walk over connected geometry.  can restrict to a search flag,
 	 * or not, it's optional.
 	 *
-	 * takes a vert as an arugment, and spits out edges, restrict flag acts
+	 * takes a vert as an argument, and spits out edges, restrict flag acts
 	 * on the edges as well. */
 	BMW_SHELL,
 	/*walk over an edge loop.  search flag doesn't do anything.*/

@@ -386,7 +386,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, f2, FACE_NEW);
 	}
 	
-	/* remake_face() sets invalid indecies,
+	/* remake_face() sets invalid indices,
 	 * likely these will be corrected on operator exit anyway */
 	bm->elem_index_dirty &= ~BM_EDGE;
 

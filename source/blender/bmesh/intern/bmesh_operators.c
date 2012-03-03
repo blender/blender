@@ -679,7 +679,7 @@ static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot
  * into a slot for an operator.
  */
 void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                         const char hflag, const char htype)
+                                const char hflag, const char htype)
 {
 	BMIter elements;
 	BMElem *ele;

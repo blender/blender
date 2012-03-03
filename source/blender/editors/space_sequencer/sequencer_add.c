@@ -592,7 +592,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* If seq1 is NULL and no error was rasied it means the seq is standalone
+	/* If seq1 is NULL and no error was raised it means the seq is standalone
 	 * (like color strips) and we need to check its start and end frames are valid */
 	if (seq1==NULL && end_frame <= start_frame) {
 		BKE_report(op->reports, RPT_ERROR, "Start and end frame are not set");

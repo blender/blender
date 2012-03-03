@@ -704,7 +704,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 #define SCR_BACK 0.55
 #define SCR_ROUND 12
 
-/* draw vertical shape visualising future joining (left as well
+/* draw vertical shape visualizing future joining (left as well
  * right direction of future joining) */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir)
 {
@@ -777,7 +777,7 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir)
 	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
 }
 
-/* draw vertical shape visualising future joining (up/down direction) */
+/* draw vertical shape visualizing future joining (up/down direction) */
 static void draw_vertical_join_shape(ScrArea *sa, char dir)
 {
 	vec2f points[10];

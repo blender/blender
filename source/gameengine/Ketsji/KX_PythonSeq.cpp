@@ -356,7 +356,7 @@ PyMethodDef KX_PythonSeq_methods[] = {
 };
 
 /*
- * Initialize the interator index
+ * Initialize the iterator index
  */
 
 static PyObject *KX_PythonSeq_getIter(KX_PythonSeq *self)

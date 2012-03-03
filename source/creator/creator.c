@@ -1236,10 +1236,8 @@ int main(int argc, const char **argv)
 	/**
 	 * NOTE: the U.pythondir string is NULL until WM_init() is executed,
 	 * so we provide the BPY_ function below to append the user defined
-	 * pythondir to Python's sys.path at this point.  Simply putting
-	 * WM_init() before BPY_python_start() crashes Blender at startup.
-	 * Update: now this function also inits the bpymenus, which also depend
-	 * on U.pythondir.
+	 * python-dir to Python's sys.path at this point.  Simply putting
+	 * WM_init() before #BPY_python_start() crashes Blender at startup.
 	 */
 
 	// TODO - U.pythondir

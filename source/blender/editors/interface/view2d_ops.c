@@ -801,7 +801,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	dx= RNA_float_get(op->ptr, "deltax");
 	dy= RNA_float_get(op->ptr, "deltay");
 
-	/* continous zoom shouldn't move that fast... */
+	/* continuous zoom shouldn't move that fast... */
 	if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
 		double time= PIL_check_seconds_timer();
 		float time_step= (float)(time - vzd->timer_lastdraw);
@@ -1004,7 +1004,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			fac= 0.01f * (event->y - vzd->lasty);
 			dy= fac * (v2d->cur.ymax - v2d->cur.ymin);
 #if 0
-			/* continous zoom shouldn't move that fast... */
+			/* continuous zoom shouldn't move that fast... */
 			if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
 				double time= PIL_check_seconds_timer();
 				float time_step= (float)(time - vzd->timer_lastdraw);

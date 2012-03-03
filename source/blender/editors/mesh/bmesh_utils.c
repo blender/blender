@@ -277,7 +277,7 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 		MEM_freeN(me->edit_btmesh);
 	}
 
-	/* currently executing operators re-tesselates, so we can avoid doing here
+	/* currently executing operators re-tessellates, so we can avoid doing here
 	 * but at some point it may need to be added back. */
 #if 0
 	me->edit_btmesh = BMEdit_Create(bm, TRUE);

@@ -152,9 +152,9 @@ typedef enum PropertyFlag {
 	 * for editing. */
 	PROP_LIB_EXCEPTION = 1<<16,
 
-	/* animateable means the property can be driven by some
+	/* animatable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
-	 * properties are animateable by default except for pointers
+	 * properties are animatable by default except for pointers
 	 * and collections */
 	PROP_ANIMATABLE = 1<<1,
 

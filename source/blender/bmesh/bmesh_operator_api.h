@@ -35,7 +35,7 @@ extern "C" {
 
 #include <stdarg.h>
 
-/*
+/**
  * operators represent logical, executable mesh modules.  all topological
  * operations involving a bmesh has to go through them.
  *
@@ -55,18 +55,22 @@ extern "C" {
  * bmesh_opdefines.c and the BMOpDefine struct for how to define new operators.
  *
  * in general, operators are fed arrays of elements, created using either
- * BM_HeaderFlag_To_Slot or BM_Flag_To_Slot (or through one of the format
- * specifyers in BMO_op_callf or BMO_op_initf).  Note that multiple element
- * types (e.g. faces and edges) can be fed to the same slot array.  Operators
- * act on this data, and possibly spit out data into output slots.
+ * #BMO_slot_buffer_from_hflag or #BMO_slot_buffer_from_flag
+ * (or through one of the format specifiers in #BMO_op_callf or #BMO_op_initf).
  *
- * some notes:
- * - operators should never read from header flags (e.g. element->head.flag). for
- *   example, if you want an operator to only operate on selected faces, you
- *   should use BM_HeaderFlag_To_Slot to put the selected elements into a slot.
- * - when you read from an element slot array or mapping, you can either tool-flag
- *   all the elements in it, or read them using an iterator APi (which is
- *   semantically similar to the iterator api in bmesh_iterators.h).
+ * \note multiple element types (e.g. faces and edges)
+ * can be fed to the same slot array.  Operators act on this data,
+ * and possibly spit out data into output slots.
+ *
+ * \note operators should never read from header flags (e.g. element->head.flag).
+ * For example, if you want an operator to only operate on selected faces, you
+ * should use #BMO_slot_buffer_from_hflag to put the selected elements into a slot.
+ *
+ * \note when you read from an element slot array or mapping, you can either tool-flag
+ * all the elements in it, or read them using an iterator API (which is semantically
+ * similar to the iterator api in bmesh_iterators.h).
+ *
+ * \note only #BMLoop items can't be put into slots as with verts, edges & faces.
  */
 
 struct GHashIterator;
