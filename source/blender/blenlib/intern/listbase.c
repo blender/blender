@@ -338,6 +338,21 @@ void *BLI_findlink(const ListBase *listbase, int number)
 	return link;
 }
 
+void *BLI_rfindlink(const ListBase *listbase, int number)
+{
+	Link *link = NULL;
+
+	if (number >= 0) {
+		link = listbase->last;
+		while (link != NULL && number != 0) {
+			number--;
+			link = link->prev;
+		}
+	}
+
+	return link;
+}
+
 int BLI_findindex(const ListBase *listbase, void *vlink)
 {
 	Link *link= NULL;

@@ -1564,7 +1564,7 @@ static PyObject *bpy_bmedgeseq_get(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
-		if ((e=BM_edge_exists(vert_array[0], vert_array[1]))) {
+		if ((e = BM_edge_exists(vert_array[0], vert_array[1]))) {
 			ret = BPy_BMEdge_CreatePyObject(bm, e);
 		}
 		else {
@@ -2572,7 +2572,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 	PyObject *seq_fast;
 	*r_size = 0;
 
-	if (!(seq_fast=PySequence_Fast(seq, error_prefix))) {
+	if (!(seq_fast = PySequence_Fast(seq, error_prefix))) {
 		return NULL;
 	}
 	else {

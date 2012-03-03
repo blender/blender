@@ -41,15 +41,16 @@ extern "C" {
 #endif
 
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
-void *BLI_findlink(const struct ListBase *listbase, int number);
 int BLI_findindex(const struct ListBase *listbase, void *vlink);
 int BLI_findstringindex(const struct ListBase *listbase, const char *id, const int offset);
 
 /* find forwards */
+void *BLI_findlink(const struct ListBase *listbase, int number);
 void *BLI_findstring(const struct ListBase *listbase, const char *id, const int offset);
 void *BLI_findstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
 
 /* find backwards */
+void *BLI_rfindlink(const struct ListBase *listbase, int number);
 void *BLI_rfindstring(const struct ListBase *listbase, const char *id, const int offset);
 void *BLI_rfindstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
 

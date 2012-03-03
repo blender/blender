@@ -23,10 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_api.c
+/** \file blender/python/bmesh/bmesh_py_select.c
  *  \ingroup pybmesh
  *
- * This file defines the 'bmesh' module.
+ * This file defines the types for 'BMesh.select_history'
+ * sequence and iterator.
  */
 
 #include <Python.h>
@@ -47,9 +48,24 @@
 
 #include "bmesh_py_api.h" /* own include */
 
-static PyGetSetDef bpy_bmeditselseq_getseters[] = {
-    // {(char *)"verts", (getter)bpy_bmeditselseq_get, (setter)NULL, (char *)bpy_bmesh_verts_doc, (void *)BM_VERTS_OF_MESH},
+PyDoc_STRVAR(bpy_bmeditselseq_active_doc,
+"The last selected element or None (read-only).\n\n:type: :class:`BMVert`, :class:`BMEdge` or :class:`BMFace`"
+);
+static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void *UNUSED(closure))
+{
+	BMEditSelection *ese;
+	BPY_BM_CHECK_OBJ(self);
 
+	if ((ese = self->bm->selected.last)) {
+		return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+static PyGetSetDef bpy_bmeditselseq_getseters[] = {
+    {(char *)"active", (getter)bpy_bmeditselseq_active_get, (setter)NULL, (char *)bpy_bmeditselseq_active_doc, (void *)BM_VERTS_OF_MESH},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -71,19 +87,25 @@ static Py_ssize_t bpy_bmeditselseq_length(BPy_BMEditSelSeq *self)
 
 static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keynum)
 {
+	BMEditSelection *ese;
+
 	BPY_BM_CHECK_OBJ(self);
 
-	if (keynum < 0) keynum += bpy_bmeditselseq_length(self); /* only get length on negative value, may loop entire seq */
-	if (keynum >= 0) {
-		BMEditSelection *ese = BLI_findlink(&self->bm->selected, keynum);
-		if (ese) {
-			return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
-		}
+	if (keynum < 0) {
+		ese = BLI_rfindlink(&self->bm->selected, -1 - keynum);
+	}
+	else {
+		ese = BLI_findlink(&self->bm->selected, keynum);
 	}
 
-	PyErr_Format(PyExc_IndexError,
-	             "BMElemSeq[index]: index %d out of range", keynum);
-	return NULL;
+	if (ese) {
+		return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
+	}
+	else {
+		PyErr_Format(PyExc_IndexError,
+			         "BMElemSeq[index]: index %d out of range", keynum);
+		return NULL;
+	}
 }
 
 static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self, Py_ssize_t start, Py_ssize_t stop)

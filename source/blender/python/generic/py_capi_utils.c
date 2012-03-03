@@ -50,11 +50,11 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 	Py_ssize_t value_len;
 	Py_ssize_t i;
 
-	if (!(value_fast=PySequence_Fast(value, error_prefix))) {
+	if (!(value_fast = PySequence_Fast(value, error_prefix))) {
 		return -1;
 	}
 
-	value_len= PySequence_Fast_GET_SIZE(value_fast);
+	value_len = PySequence_Fast_GET_SIZE(value_fast);
 
 	if (value_len != length) {
 		Py_DECREF(value);
@@ -69,13 +69,13 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 		if (is_double) {
 			double *array_double= array;
 			for (i=0; i<length; i++) {
-				array_double[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+				array_double[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
 			}
 		}
 		else {
 			float *array_float= array;
 			for (i=0; i<length; i++) {
-				array_float[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+				array_float[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
 			}
 		}
 	}
@@ -83,13 +83,13 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 		/* could use is_double for 'long int' but no use now */
 		int *array_int= array;
 		for (i=0; i<length; i++) {
-			array_int[i]= PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_int[i] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
 	else if (type == &PyBool_Type) {
 		int *array_bool= array;
 		for (i=0; i<length; i++) {
-			array_bool[i]= (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+			array_bool[i] = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
 		}
 	}
 	else {
