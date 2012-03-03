@@ -1025,7 +1025,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	ar->regiondata= data;
 	
 	/* special case, hardcoded feature, not draw backdrop when called from menus,
-	   assume for design that popup already added it */
+	 * assume for design that popup already added it */
 	if(but->block->flag & UI_BLOCK_LOOP)
 		data->noback= 1;
 	
@@ -1664,7 +1664,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	for(a=0; a<md->nitems; a++) {
 		if(a == column_end) {
 			/* start new column, and find out where it ends in advance, so we
-			   can flip the order of items properly per column */
+			 * can flip the order of items properly per column */
 			column_start= a;
 			column_end= md->nitems;
 
@@ -1756,7 +1756,7 @@ static void ui_warp_pointer(int x, int y)
 {
 	/* XXX 2.50 which function to use for this? */
 	/* OSX has very poor mousewarp support, it sends events;
-	   this causes a menu being pressed immediately ... */
+	 * this causes a menu being pressed immediately ... */
 	#ifndef __APPLE__
 	warp_pointer(x, y);
 	#endif
@@ -2252,7 +2252,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	block= pup->block;
 	
 	/* in some cases we create the block before the region,
-	   so we set it delayed here if necessary */
+	 * so we set it delayed here if necessary */
 	if(BLI_findindex(&handle->region->uiblocks, block) == -1)
 		uiBlockSetRegion(block, handle->region);
 
@@ -2270,15 +2270,15 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		if((block->flag & UI_BLOCK_POPUP_MEMORY) &&
 			(bt= ui_popup_menu_memory(block, NULL))) {
 			/* position mouse on last clicked item, at 0.8*width of the
-			   button, so it doesn't overlap the text too much, also note
-			   the offset is negative because we are inverse moving the
-			   block to be under the mouse */
+			 * button, so it doesn't overlap the text too much, also note
+			 * the offset is negative because we are inverse moving the
+			 * block to be under the mouse */
 			offset[0]= -(bt->x1 + 0.8f*(bt->x2 - bt->x1));
 			offset[1]= -(bt->y1 + 0.5f*UI_UNIT_Y);
 		}
 		else {
 			/* position mouse at 0.8*width of the button and below the tile
-			   on the first item */
+			 * on the first item */
 			offset[0]= 0;
 			for(bt=block->buttons.first; bt; bt=bt->next)
 				offset[0]= MIN2(offset[0], -(bt->x1 + 0.8f*(bt->x2 - bt->x1)));

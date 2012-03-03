@@ -841,8 +841,8 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 }
 
 /* draw info beside axes in bottom left-corner: 
-* 	framenum, object name, bone name (if available), marker name (if available)
-*/
+ * framenum, object name, bone name (if available), marker name (if available)
+ */
 static void draw_selected_name(Scene *scene, Object *ob)
 {
 	char info[256], *markern;
@@ -1225,7 +1225,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we
-			   assume and square sensor and only use sensor_x */
+			 * assume and square sensor and only use sensor_x */
 			float sizex= scene->r.xsch*scene->r.xasp;
 			float sizey= scene->r.ysch*scene->r.yasp;
 			int sensor_fit = camera_sensor_fit(ca->sensor_fit, sizex, sizey);
@@ -1562,8 +1562,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				ibuf= BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
 
 				/* working with ibuf from image and clip has got different workflow now.
-				   ibuf acquired from clip is referenced by cache system and should
-				   be dereferenced after usage. */
+				 * ibuf acquired from clip is referenced by cache system and should
+				 * be dereferenced after usage. */
 				freeibuf= ibuf;
 			}
 
@@ -1764,9 +1764,9 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, int c
 /* *********************** */
 
 /*
-	In most cases call draw_dupli_objects,
-	draw_dupli_objects_color was added because when drawing set dupli's
-	we need to force the color
+ * In most cases call draw_dupli_objects,
+ * draw_dupli_objects_color was added because when drawing set dupli's
+ * we need to force the color
  */
 
 #if 0
@@ -1895,7 +1895,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base)
 {
 	/* define the color here so draw_dupli_objects_color can be called
-	* from the set loop */
+	 * from the set loop */
 	
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
 	/* debug */
@@ -2753,9 +2753,11 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		v3d->zbuf= FALSE;
 
 	/* enables anti-aliasing for 3D view drawing */
-	/*if (!(U.gameflags & USER_DISABLE_AA))
-		glEnable(GL_MULTISAMPLE_ARB);*/
-	
+#if 0
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
+#endif
+
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
 
@@ -2868,10 +2870,12 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		ED_view3d_clipping_disable();
 	
 	BIF_draw_manipulator(C);
-	
+
+#if 0
 	/* Disable back anti-aliasing */
-	/*if (!(U.gameflags & USER_DISABLE_AA))
-		glDisable(GL_MULTISAMPLE_ARB);*/
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+#endif
 
 	if (v3d->zbuf) {
 		v3d->zbuf= FALSE;

@@ -51,22 +51,22 @@ struct EnumPropertyItem;
 /* ******************** bmeshutils.c */
 
 /*
-ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
-    BMEdit module is for code shared with blenkernel that concerns
-    the BMEditMesh structure.
-*/
+ * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+ * BMEdit module is for code shared with blenkernel that concerns
+ * the BMEditMesh structure.
+ */
 
 /*calls a bmesh op, reporting errors to the user, etc*/
 int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
 
-/*same as above, but doesn't report errors.*/
+/* same as above, but doesn't report errors.*/
 int EDBM_CallOpfSilent(struct BMEditMesh *em, const char *fmt, ...);
 
-/*these next two functions are the split version of EDBM_CallOpf, so you can
-  do stuff with a bmesh operator, after initializing it but before executing
-  it.
-  
-  execute the operator with BM_Exec_Op*/
+/* these next two functions are the split version of EDBM_CallOpf, so you can
+ * do stuff with a bmesh operator, after initializing it but before executing
+ * it.
+ *
+ * execute the operator with BM_Exec_Op */
 int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
                  struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/

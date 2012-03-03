@@ -30,11 +30,6 @@
  *  \ingroup edobj
  */
 
-
-/*
-	meshtools.c: no editmode (violated already :), tools operating on meshes
-*/
-
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -86,7 +81,7 @@
 /* ****************** multires BAKING ********************** */
 
 /* holder of per-object data needed for bake job
-   needed to make job totally thread-safe */
+ * needed to make job totally thread-safe */
 typedef struct MultiresBakerJobData {
 	struct MultiresBakerJobData *next, *prev;
 	DerivedMesh *lores_dm, *hires_dm;
@@ -239,11 +234,11 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	w= 1-u-v;
 
 	/* the sign is the same at all face vertices for any non degenerate face.
-	   Just in case we clamp the interpolated value though. */
+	 * Just in case we clamp the interpolated value though. */
 	sign= (tang0[3]*u + tang1[3]*v + tang2[3]*w)<0 ? (-1.0f) : 1.0f;
 
 	/* this sequence of math is designed specifically as is with great care
-	   to be compatible with our shader. Please don't change without good reason. */
+	 * to be compatible with our shader. Please don't change without good reason. */
 	for(r= 0; r<3; r++) {
 		from_tang[0][r]= tang0[r]*u + tang1[r]*v + tang2[r]*w;
 		from_tang[2][r]= no0[r]*u + no1[r]*v + no2[r]*w;
@@ -413,7 +408,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image* ima, MPassKnownData
 			data.face_index= f;
 
 			/* might support other forms of diagonal splits later on such as
-			   split by shortest diagonal.*/
+			 * split by shortest diagonal.*/
 			verts[0][0]=0;
 			verts[1][0]=1;
 			verts[2][0]=2;
@@ -475,7 +470,7 @@ static void interp_barycentric_tri_data(float data[3][3], float u, float v, floa
 }
 
 /* mode = 0: interpolate normals,
-   mode = 1: interpolate coord */
+ * mode = 1: interpolate coord */
 static void interp_bilinear_grid(DMGridData *grid, int grid_size, float crn_x, float crn_y, int mode, float res[3])
 {
 	int x0, x1, y0, y1;
@@ -552,7 +547,7 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *orig
 }
 
 /* mode = 0: interpolate normals,
-   mode = 1: interpolate coord */
+ * mode = 1: interpolate coord */
 static void interp_bilinear_mface(DerivedMesh *dm, MFace *mface, const float u, const float v, const int mode, float res[3])
 {
 	float data[4][3];
@@ -573,7 +568,7 @@ static void interp_bilinear_mface(DerivedMesh *dm, MFace *mface, const float u, 
 }
 
 /* mode = 0: interpolate normals,
-   mode = 1: interpolate coord */
+ * mode = 1: interpolate coord */
 static void interp_barycentric_mface(DerivedMesh *dm, MFace *mface, const float u, const float v, const int mode, float res[3])
 {
 	float data[3][3];
@@ -691,11 +686,11 @@ static void free_heights_data(void *bake_data)
 }
 
 /* MultiresBake callback for heights baking
-   general idea:
-     - find coord of point with specified UV in hi-res mesh (let's call it p1)
-     - find coord of point and normal with specified UV in lo-res mesh (or subdivided lo-res
-       mesh to make texture smoother) let's call this point p0 and n.
-     - height wound be dot(n, p1-p0) */
+ * general idea:
+ *   - find coord of point with specified UV in hi-res mesh (let's call it p1)
+ *   - find coord of point and normal with specified UV in lo-res mesh (or subdivided lo-res
+ *     mesh to make texture smoother) let's call this point p0 and n.
+ *   - height wound be dot(n, p1-p0) */
 static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
                                    const int face_index, const int lvl, const float st[2],
                                    float UNUSED(tangmat[3][3]), const int x, const int y)
@@ -759,10 +754,10 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 }
 
 /* MultiresBake callback for normals' baking
-   general idea:
-     - find coord and normal of point with specified UV in hi-res mesh
-     - multiply it by tangmat
-     - vector in color space would be norm(vec) /2 + (0.5, 0.5, 0.5) */
+ * general idea:
+ *   - find coord and normal of point with specified UV in hi-res mesh
+ *   - multiply it by tangmat
+ *   - vector in color space would be norm(vec) /2 + (0.5, 0.5, 0.5) */
 static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
                                    const int face_index, const int lvl, const float st[2],
                                    float tangmat[3][3], const int x, const int y)

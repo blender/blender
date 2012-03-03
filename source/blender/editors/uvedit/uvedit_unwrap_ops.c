@@ -154,7 +154,7 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 	MLoopUV *luv;
 	
 	/* verify if we have any selected uv's before unwrapping,
-	   so we can cancel the operator early */
+	 * so we can cancel the operator early */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 			if(BM_elem_flag_test(efa, BM_ELEM_HIDDEN))

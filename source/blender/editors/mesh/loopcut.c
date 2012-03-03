@@ -133,8 +133,8 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 }
 
-/*given two opposite edges in a face, finds the ordering of their vertices so
-  that cut preview lines won't cross each other*/
+/* given two opposite edges in a face, finds the ordering of their vertices so
+ * that cut preview lines won't cross each other*/
 static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
                                 BMVert *lastv1, BMVert *v[2][2])
 {

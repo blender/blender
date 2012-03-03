@@ -210,7 +210,7 @@ int uiIconFromID(ID *id)
 	}
 
 	/* otherwise get it through RNA, creating the pointer
-	   will set the right type, also with subclassing */
+	 * will set the right type, also with subclassing */
 	RNA_id_pointer_create(id, &ptr);
 
 	return (ptr.type)? RNA_struct_ui_icon(ptr.type) : ICON_NONE;

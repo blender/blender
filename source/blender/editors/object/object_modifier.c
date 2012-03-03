@@ -217,7 +217,7 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 			if(me->edit_btmesh) {
 				BMEditMesh *em= me->edit_btmesh;
 				/* CustomData_external_remove is used here only to mark layer as non-external
-				   for further free-ing, so zero element count looks safer than em->totface */
+				 * for further free-ing, so zero element count looks safer than em->totface */
 				CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
 				BM_data_layer_free(em->bm, &em->bm->ldata, CD_MDISPS);
 			} else {
@@ -447,15 +447,15 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 	}
 
 	/*
-	  It should be ridiculously easy to extract the original verts that we want
-	  and form the shape data.  We can probably use the CD KEYINDEX layer (or
-	  whatever I ended up calling it, too tired to check now), though this would
-	  by necassity have to make some potentially ugly assumptions about the order
-	  of the mesh data :-/  you can probably assume in 99% of cases that the first
-	  element of a given index is the original, and any subsequent duplicates are
-	  copies/interpolates, but that's an assumption that would need to be tested
-	  and then predominantly stated in comments in a half dozen headers.
-	*/
+	 * It should be ridiculously easy to extract the original verts that we want
+	 * and form the shape data.  We can probably use the CD KEYINDEX layer (or
+	 * whatever I ended up calling it, too tired to check now), though this would
+	 * by necassity have to make some potentially ugly assumptions about the order
+	 * of the mesh data :-/  you can probably assume in 99% of cases that the first
+	 * element of a given index is the original, and any subsequent duplicates are
+	 * copies/interpolates, but that's an assumption that would need to be tested
+	 * and then predominantly stated in comments in a half dozen headers.
+	 */
 
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
@@ -1654,7 +1654,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	/* precalculate time variable before baking */
 	for (f=omd->bakestart; f<=omd->bakeend; f++) {
 		/* from physics_fluid.c:
-		 
+		 *
 		 * XXX: This can't be used due to an anim sys optimization that ignores recalc object animation,
 		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
 		 * --> BKE_animsys_evaluate_all_animation(G.main, eval_time);
@@ -1680,7 +1680,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	ocean = BKE_add_ocean();
 	init_ocean_modifier_bake(ocean, omd);
 	
-	/*
+#if 0
 	 BKE_bake_ocean(ocean, och);
 	
 	omd->oceancache = och;
@@ -1690,7 +1690,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	*/
+#endif
 	
 	/* job stuff */
 	

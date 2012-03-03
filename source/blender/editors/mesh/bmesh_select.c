@@ -214,11 +214,11 @@ void EDBM_free_backbuf(void)
 }
 
 /* mcords is a polygon mask
-   - grab backbuffer,
-   - draw with black in backbuffer, 
-   - grab again and compare
-   returns 'OK' 
-*/
+ * - grab backbuffer,
+ * - draw with black in backbuffer, 
+ * - grab again and compare
+ * returns 'OK' 
+ */
 int EDBM_mask_init_backbuf_border(ViewContext *vc, int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *drm;
@@ -626,10 +626,10 @@ BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 }
 
 /* best distance based on screen coords. 
-   use em->selectmode to define how to use 
-   selected vertices and edges get disadvantage
-   return 1 if found one
-*/
+ * use em->selectmode to define how to use 
+ * selected vertices and edges get disadvantage
+ * return 1 if found one
+ */
 static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
 	BMEditMesh *em = vc->em;
@@ -770,13 +770,11 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 /* ********************************* */
 
 /*
-VERT GROUP
- mode 1: same normal
- mode 2: same number of face users
- mode 3: same vertex groups
-*/
-
-
+ * VERT GROUP
+ * mode 1: same normal
+ * mode 2: same number of face users
+ * mode 3: same vertex groups
+ */
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
@@ -1271,7 +1269,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	 * path to edge n found so far, Finally, heap is a priority heap which is built on the
 	 * the same data as the cost arry, but inverted: it is a worklist of edges prioritized
 	 * by the shortest path found so far to the edge.
-	*/
+	 */
 
 #if 0 /* UNUSED */ /* this block does nothing, not sure why its here? - campbell */
 	for (i = 0; i < totvert; i++) {
@@ -1995,8 +1993,8 @@ void MESH_OT_select_less(wmOperatorType *ot)
 }
 
 /* Walk all reachable elements of the same type as h_act in breadth-first
-   order, starting from h_act. Deselects elements if the depth when they
-   are reached is not a multiple of "nth". */
+ * order, starting from h_act. Deselects elements if the depth when they
+ * are reached is not a multiple of "nth". */
 static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h_act)
 {
 	BMElem *ele;
@@ -2203,9 +2201,9 @@ int EM_view3d_poll(bContext *C)
 static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 {
 	/* Find edges that have exactly two neighboring faces,
-	* check the angle between those faces, and if angle is
-	* small enough, select the edge
-	*/
+	 * check the angle between those faces, and if angle is
+	 * small enough, select the edge
+	 */
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMIter iter;
@@ -2543,7 +2541,7 @@ static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* If in face-only select mode, switch to edge select mode so that
-	   an edge-only selection is not inconsistent state */
+	 * an edge-only selection is not inconsistent state */
 	if (em->selectmode == SCE_SELECT_FACE) {
 		em->selectmode = SCE_SELECT_EDGE;
 		EDBM_selectmode_set(em);

@@ -73,8 +73,8 @@ void ED_editors_init(bContext *C)
 	ID *data;
 
 	/* toggle on modes for objects that were saved with these enabled. for
-	   e.g. linked objects we have to ensure that they are actually the
-	   active object in this scene. */
+	 * e.g. linked objects we have to ensure that they are actually the
+	 * active object in this scene. */
 	for(ob=bmain->object.first; ob; ob=ob->id.next) {
 		int mode= ob->mode;
 

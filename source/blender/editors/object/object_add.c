@@ -278,7 +278,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 	}
 
 	/* in local view we additionally add local view layers,
-	   not part of operator properties */
+	 * not part of operator properties */
 	if(v3d && v3d->localvd)
 		*layer |= v3d->lay;
 
@@ -1073,8 +1073,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		Base *basen;
 		Object *ob= copy_object(dob->ob);
 		/* font duplis can have a totcol without material, we get them from parent
-		* should be implemented better...
-		*/
+		 * should be implemented better...
+		 */
 		if(ob->mat==NULL) ob->totcol= 0;
 		
 		basen= MEM_dupallocN(base);
@@ -1600,10 +1600,10 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /**************************** Duplicate ************************/
 
 /* 
-	dupflag: a flag made from constants declared in DNA_userdef_types.h
-	The flag tells adduplicate() weather to copy data linked to the object, or to reference the existing data.
-	U.dupflag for default operations or you can construct a flag as python does
-	if the dupflag is 0 then no data will be copied (linked duplicate) */
+ * dupflag: a flag made from constants declared in DNA_userdef_types.h
+ * The flag tells adduplicate() weather to copy data linked to the object, or to reference the existing data.
+ * U.dupflag for default operations or you can construct a flag as python does
+ * if the dupflag is 0 then no data will be copied (linked duplicate) */
 
 /* used below, assumes id.new is correct */
 /* leaves selection of base/object unaltered */
@@ -1878,7 +1878,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		Base *basen= object_add_duplicate_internal(bmain, scene, base, dupflag);
 		
 		/* note that this is safe to do with this context iterator,
-		   the list is made in advance */
+		 * the list is made in advance */
 		ED_base_object_select(base, BA_DESELECT);
 
 		if (basen == NULL) {

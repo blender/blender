@@ -644,7 +644,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			for(a=0; a<me->totcol; a++) 
 				outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
 			/* could do tfaces with image links, but the images are not grouped nicely.
-			   would require going over all tfaces, sort images in use. etc... */
+			 * would require going over all tfaces, sort images in use. etc... */
 		}
 			break;
 		case ID_CU:
@@ -1412,8 +1412,8 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	int show_opened= (soops->treestore==NULL); /* on first view, we open scenes */
 
 	/* Are we looking for something - we want to tag parents to filter child matches
-	 - NOT in datablocks view - searching all datablocks takes way too long to be useful
-	 - this variable is only set once per tree build */
+	 * - NOT in datablocks view - searching all datablocks takes way too long to be useful
+	 * - this variable is only set once per tree build */
 	if(soops->search_string[0]!=0 && soops->outlinevis!=SO_DATABLOCKS)
 		soops->search_flags |= SO_SEARCH_RECURSIVE;
 	else

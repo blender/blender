@@ -31,8 +31,8 @@
 
 
 /*
-	meshtools.c: no editmode (violated already :), tools operating on meshes
-*/
+ * meshtools.c: no editmode (violated already :), tools operating on meshes
+ */
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -87,7 +87,7 @@
 /*********************** JOIN ***************************/
 
 /* join selected meshes into the active mesh, context sensitive
-return 0 if no join is made (error) and 1 if the join is done */
+ * return 0 if no join is made (error) and 1 if the join is done */
 
 int join_mesh_exec(bContext *C, wmOperator *op)
 {
@@ -555,7 +555,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 /*********************** JOIN AS SHAPES ***************************/
 
 /* Append selected meshes vertex locations as shapes of the active mesh, 
-  return 0 if no join is made (error) and 1 of the join is done */
+ * return 0 if no join is made (error) and 1 of the join is done */
 
 int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 {

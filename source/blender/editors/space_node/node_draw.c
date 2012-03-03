@@ -653,11 +653,13 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_DrawTriIcon(rct->xmin+10.0f, rct->ymax-NODE_DY/2.0f, 'v');
 	}
 	
-	/* this isn't doing anything for the label, so commenting out
+	/* this isn't doing anything for the label, so commenting out */
+#if 0
 	if(node->flag & SELECT) 
 		UI_ThemeColor(TH_TEXT_HI);
 	else
-		UI_ThemeColor(TH_TEXT); */
+		UI_ThemeColor(TH_TEXT);
+#endif
 	
 	BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 	

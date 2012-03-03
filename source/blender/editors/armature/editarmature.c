@@ -179,7 +179,7 @@ EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 }
 
 /* helper function for tools to work on mirrored parts.
-   it leaves mirrored bones selected then too, which is a good indication of what happened */
+ * it leaves mirrored bones selected then too, which is a good indication of what happened */
 static void armature_select_mirrored(bArmature *arm)
 {
 	/* Select mirrored bones */
@@ -438,8 +438,8 @@ void ED_armature_from_edit(Object *obedit)
 			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
 	
-	/*	Fix parenting in a separate pass to ensure ebone->bone connections
-		are valid at this point */
+	/* Fix parenting in a separate pass to ensure ebone->bone connections
+	 * are valid at this point */
 	for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
 		newBone= (Bone *)eBone->temp;
 		if (eBone->parent) {
@@ -1770,8 +1770,8 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 	int			sel=1;
 	
 	if(toggle==1) {
-		/*	Determine if there are any selected bones
-		And therefore whether we are selecting or deselecting */
+		/* Determine if there are any selected bones
+		 * and therefore whether we are selecting or deselecting */
 		for (eBone=arm->edbo->first;eBone;eBone=eBone->next){
 			//			if(arm->layer & eBone->layer) {
 			if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
@@ -1858,7 +1858,7 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 			ED_armature_deselect_all(obedit, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
-		   so a root selection needs to be delivered to the parent tip */
+		 * so a root selection needs to be delivered to the parent tip */
 		
 		if(selmask & BONE_SELECTED) {
 			if(nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
@@ -2375,7 +2375,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* TODO most of this code is copied from set3dcursor_invoke,
-	   it would be better to reuse code in set3dcursor_invoke */
+	 * it would be better to reuse code in set3dcursor_invoke */
 
 	/* temporarily change 3d cursor position */
 	Scene *scene;
@@ -3783,10 +3783,10 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	else if (arm->flag & ARM_MIRROR_EDIT) {
 		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
 		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 * This is useful for arm-chains, for example parenting lower arm to upper arm
 		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-		 *	then just use actbone. Useful when doing upper arm to spine.
+		 *   then just use actbone. Useful when doing upper arm to spine.
 		 */
 		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
 		if (actmirb == NULL) 
@@ -3972,8 +3972,8 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
-		/*	Determine if there are any selected bones
-		And therefore whether we are selecting or deselecting */
+		/* Determine if there are any selected bones
+		 * And therefore whether we are selecting or deselecting */
 		if (CTX_DATA_COUNT(C, selected_bones) > 0)
 			action = SEL_DESELECT;
 	}
@@ -4158,8 +4158,8 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
 	selbone->roll = actbone->roll;
 	
 	/* if the bone being aligned has connected descendants they must be moved
-	according to their parent new position, otherwise they would be left
-	in an unconsistent state: connected but away from the parent*/
+	 * according to their parent new position, otherwise they would be left
+	 * in an unconsistent state: connected but away from the parent*/
 	fix_editbone_connected_children(edbo, selbone);
 	return;
 }
@@ -4179,10 +4179,10 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 	else if (arm->flag & ARM_MIRROR_EDIT) {
 		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
 		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 *   This is useful for arm-chains, for example parenting lower arm to upper arm
 		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-		 *	then just use actbone. Useful when doing upper arm to spine.
+		 *   then just use actbone. Useful when doing upper arm to spine.
 		 */
 		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
 		if (actmirb == NULL) 
@@ -4208,8 +4208,8 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
 		 * - since the active one (and/or its mirror) will also be selected, we also need 
-		 * 	to check that we are not trying to opearate on them, since such an operation 
-		 *	would cause errors
+		 *   to check that we are not trying to opearate on them, since such an operation 
+		 *   would cause errors
 		 */
 		
 		/* align selected bones to the active one */
@@ -4254,11 +4254,11 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 				int (*bone_func)(Object *, Bone *, void *)) 
 {
 	/* We want to apply the function bone_func to every bone 
-	* in an armature -- feed bone_looper the first bone and 
-	* a pointer to the bone_func and watch it go!. The int count 
-	* can be useful for counting bones with a certain property
-	* (e.g. skinnable)
-	*/
+	 * in an armature -- feed bone_looper the first bone and 
+	 * a pointer to the bone_func and watch it go!. The int count 
+	 * can be useful for counting bones with a certain property
+	 * (e.g. skinnable)
+	 */
 	int count = 0;
 	
 	if (bone) {
@@ -4269,8 +4269,8 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 		count += bone_looper(ob, bone->childbase.first, data, bone_func);
 		
 		/* try to execute bone_func for the next bone at this
-			* depth of the recursion.
-			*/
+		 * depth of the recursion.
+		 */
 		count += bone_looper(ob, bone->next, data, bone_func);
 	}
 	
@@ -4342,10 +4342,10 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 }
 
 /* test==0: deselect all
-   test==1: swap select (apply to all the opposite of current situation) 
-   test==2: only clear active tag
-   test==3: swap select (no test / inverse selection status of all independently)
-*/
+ * test==1: swap select (apply to all the opposite of current situation) 
+ * test==2: only clear active tag
+ * test==3: swap select (no test / inverse selection status of all independently)
+ */
 void ED_pose_deselectall (Object *ob, int test)
 {
 	bArmature *arm= ob->data;
@@ -4437,9 +4437,9 @@ static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
 static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
 {
 	/* This group creates a vertex group to ob that has the
-	  * same name as bone (provided the bone is skinnable). 
+	 * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
-	  */
+	 */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!defgroup_find_name(ob,bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
@@ -4688,7 +4688,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	}
 	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
 		/* is subsurf on? Lets use the verts on the limit surface then.
-		  * = same amount of vertices as mesh, but vertices  moved to the
+		 * = same amount of vertices as mesh, but vertices  moved to the
 		 * subsurfed position, like for 'optimal'. */
 		subsurf_calculate_limit_positions(mesh, verts);
 		vertsfilled = 1;

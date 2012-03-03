@@ -1280,8 +1280,8 @@ static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, u
 static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, float length)
 {
 	
-	/*	Draw a 3d octahedral bone, we use normalized space based on length,
-		for glDisplayLists */
+	/* Draw a 3d octahedral bone, we use normalized space based on length,
+	 * for glDisplayLists */
 	
 	glScalef(length, length, length);
 

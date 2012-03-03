@@ -517,10 +517,10 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 				
 				/* first arg is normally rv3d->dist, but this isnt available here and seems to work quite well without */
 				bglPolygonOffset(1.0f, 1.0f);
-				/*
+#if 0
 				glEnable(GL_POLYGON_OFFSET_LINE);
 				glPolygonOffset(-1.0f, -1.0f);
-				*/
+#endif
 			}
 			
 			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
@@ -530,10 +530,10 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 				glDisable(GL_DEPTH_TEST);
 				
 				bglPolygonOffset(0.0, 0.0);
-				/*
+#if 0
 				glDisable(GL_POLYGON_OFFSET_LINE);
 				glPolygonOffset(0, 0);
-				*/
+#endif
 			}
 		}
 		else if (gps->totpoints > 1)	

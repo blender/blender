@@ -123,7 +123,7 @@ void ED_base_object_activate(bContext *C, Base *base)
 static int objects_selectable_poll(bContext *C)
 {
 	/* we don't check for linked scenes here, selection is
-	   still allowed then for inspection of scene */
+	 * still allowed then for inspection of scene */
 	Object *obact= CTX_data_active_object(C);
 
 	if(CTX_data_edit_object(C))

@@ -183,10 +183,10 @@ typedef struct FlyInfo {
 	short pan_view; /* when true, pan the view instead of rotating */
 
 	/* relative view axis locking - xlock, zlock
-	0; disabled
-	1; enabled but not checking because mouse hasnt moved outside the margin since locking was checked an not needed
-	   when the mouse moves, locking is set to 2 so checks are done.
-	2; mouse moved and checking needed, if no view altering is donem its changed back to 1 */
+	 * 0) disabled
+	 * 1) enabled but not checking because mouse hasnt moved outside the margin since locking was checked an not needed
+	 *    when the mouse moves, locking is set to 2 so checks are done.
+	 * 2) mouse moved and checking needed, if no view altering is donem its changed back to 1 */
 	short xlock, zlock;
 	float xlock_momentum, zlock_momentum; /* nicer dynamics */
 	float grid; /* world scale 1.0 default */
@@ -202,8 +202,8 @@ typedef struct FlyInfo {
 	short persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 
 	short is_ortho_cam; /* are we flying an ortho camera in perspective view,
-						 * which was originall in ortho view?
-						 * could probably figure it out but better be explicit */
+	                     * which was originall in ortho view?
+	                     * could probably figure it out but better be explicit */
 
 	void *obtfm; /* backup the objects transform */
 
@@ -223,7 +223,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSE
 	FlyInfo *fly = arg;
 
 	/* draws 4 edge brackets that frame the safe area where the
-	mouse can move during fly mode without spinning the view */
+	 * mouse can move during fly mode without spinning the view */
 	float x1, x2, y1, y2;
 	
 	x1= 0.45f * (float)fly->ar->winx;
@@ -377,11 +377,11 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		copy_v3_v3(fly->ofs_backup, fly->rv3d->ofs);
 
 		/* the dist defines a vector that is infront of the offset
-		to rotate the view about.
-		this is no good for fly mode because we
-		want to rotate about the viewers center.
-		but to correct the dist removal we must
-		alter offset so the view doesn't jump. */
+		 * to rotate the view about.
+		 * this is no good for fly mode because we
+		 * want to rotate about the viewers center.
+		 * but to correct the dist removal we must
+		 * alter offset so the view doesn't jump. */
 
 		fly->rv3d->dist= 0.0f;
 
@@ -720,10 +720,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 #define FLY_ZUP_CORRECT_FAC 0.1f /* amount to correct per step */
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 
-	/*
-	fly mode - Shift+F
-	a fly loop where the user can move move the view as if they are flying
-	*/
+	/* fly mode - Shift+F
+	 * a fly loop where the user can move move the view as if they are flying
+	 */
 	RegionView3D *rv3d= fly->rv3d;
 	ARegion *ar = fly->ar;
 
@@ -807,7 +806,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			/*fprintf(stderr, "%f\n", time_redraw);*/ /* 0.002 is a small redraw 0.02 is larger */
 
 			/* Scale the time to use shift to scale the speed down- just like
-			shift slows many other areas of blender down */
+			 * shift slows many other areas of blender down */
 			if (fly->use_precision)
 				fly->speed= fly->speed * (1.0f-time_redraw_clamped);
 
@@ -829,7 +828,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			}
 			else {
 				float roll; /* similar to the angle between the camera's up and the Z-up,
-				             * but its very rough so just roll*/
+				             * but its very rough so just roll */
 
 				/* rotate about the X axis- look up/down */
 				if (moffset[1]) {
@@ -988,8 +987,10 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	RegionView3D* rv3d = fly->rv3d;
 	const int flag = U.ndof_flag;
 
-/*	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE),
-	    shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM)); */
+#if 0
+	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE),
+	    shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
+#endif
 
 	int shouldRotate = (fly->pan_view == FALSE),
 	    shouldTranslate = TRUE;

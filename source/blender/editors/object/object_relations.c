@@ -134,7 +134,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		em= me->edit_btmesh;
 
 		/* derivedMesh might be needed for solving parenting,
-		   so re-create it here */
+		 * so re-create it here */
 		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
 
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {

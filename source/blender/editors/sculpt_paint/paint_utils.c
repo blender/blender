@@ -68,8 +68,8 @@
 #include "paint_intern.h"
 
 /* Convert the object-space axis-aligned bounding box (expressed as
-   its minimum and maximum corners) into a screen-space rectangle,
-   returns zero if the result is empty */
+ * its minimum and maximum corners) into a screen-space rectangle,
+ * returns zero if the result is empty */
 int paint_convert_bb_to_rect(rcti *rect,
 							 const float bb_min[3],
 							 const float bb_max[3],
@@ -113,8 +113,8 @@ int paint_convert_bb_to_rect(rcti *rect,
 }
 
 /* Get four planes in object-space that describe the projection of
-   screen_rect from screen into object-space (essentially converting a
-   2D screens-space bounding box into four 3D planes) */
+ * screen_rect from screen into object-space (essentially converting a
+ * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
 							  const ARegion *ar,
 							  RegionView3D *rv3d,
@@ -141,7 +141,7 @@ void paint_calc_redraw_planes(float planes[4][4],
 
 /* convert a point in model coordinates to 2D screen coordinates */
 /* TODO: can be deleted once all calls are replaced with
-   view3d_project_float() */
+ * view3d_project_float() */
 void projectf(bglMats *mats, const float v[3], float p[2])
 {
 	double ux, uy, uz;
@@ -231,7 +231,7 @@ static void imapaint_tri_weights(Object *ob,
 	h[2]= 1.0f;
 
 	/* solve for(w1,w2,w3)/perspdiv in:
-	   h*perspdiv = Project*Model*(w1*v1 + w2*v2 + w3*v3) */
+	 * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
 
 	wmat[0][0]= pv1[0];  wmat[1][0]= pv2[0];  wmat[2][0]= pv3[0];
 	wmat[0][1]= pv1[1];  wmat[1][1]= pv2[1];  wmat[2][1]= pv3[1];
@@ -283,7 +283,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 
 			if(mf.v4) {
 				/* the triangle with the largest absolute values is the one
-				   with the most negative weights */
+				 * with the most negative weights */
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if(absw < minabsw) {

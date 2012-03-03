@@ -124,8 +124,8 @@ void make_unique_prop_names(bContext *C, char *str)
 	char **names;
 	
 	/* this function is called by a Button, and gives the current
-		* stringpointer as an argument, this is the one that can change
-		*/
+	 * stringpointer as an argument, this is the one that can change
+	 */
 	
 	idar= get_selected_and_linked_obs(C, &obcount, BUTS_SENS_SEL|BUTS_SENS_ACT|BUTS_ACT_SEL|BUTS_ACT_ACT|BUTS_CONT_SEL|BUTS_CONT_ACT);
 	
@@ -436,8 +436,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 				ob->scaflag |= OB_SHOWCONT;
 				BLI_addtail(&(ob->controllers), cont);
 				/* set the controller state mask from the current object state.
-				   A controller is always in a single state, so select the lowest bit set
-				   from the object state */
+				 * A controller is always in a single state, so select the lowest bit set
+				 * from the object state */
 				for (bit=0; bit<32; bit++) {
 					if (ob->state & (1<<bit))
 						break;
@@ -1187,9 +1187,9 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			
 			ts= sens->data; 
 			
-			/* uiDefBut(block, TEX, 1, "Property:",	xco,yco-22,width, 19, &ts->name, 0, MAX_NAME, 0, 0, "Only look for Objects with this property"); */
+			// uiDefBut(block, TEX, 1, "Property:",	xco,yco-22,width, 19, &ts->name, 0, MAX_NAME, 0, 0, "Only look for Objects with this property");
 			uiDefIDPoinBut(block, test_matpoin_but, ID_MA, 1, "MA:",(short)(xco + 10),(short)(yco-44), (short)(width - 20), 19, &ts->ma,  "Only look for floors with this Material"); 
-			///* uiDefButF(block, NUM, 1, "Margin:",	xco+width/2,yco-44,width/2, 19, &ts->dist, 0.0, 10.0, 100, 0, "Extra margin (distance) for larger sensitivity"); 
+			// uiDefButF(block, NUM, 1, "Margin:",	xco+width/2,yco-44,width/2, 19, &ts->dist, 0.0, 10.0, 100, 0, "Extra margin (distance) for larger sensitivity"); 
 			yco-= ysize; 
 			break; 
 		}
@@ -1458,7 +1458,8 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			draw_default_sensor_header(sens, block, xco, yco, width);
 			
 			/* Line 2: type selection. The number are a bit mangled to get
-			* proper compatibility with older .blend files. */
+			 * proper compatibility with older .blend files. */
+
 			/* Any sensor type default is 0 but the ms enum starts in 1.
 			 * Therefore the mosue sensor is initialized to 1 in sca.c */
 			str= "Type %t|Left button %x1|Middle button %x2|"
@@ -2557,7 +2558,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				   uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, sizeof(gma->filename), 0, 0, "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
 //				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, sizeof(gma->loadaniname), 0, 0, "Use this loadinganimation");
 			}
-/*			else if (gma->type == ACT_GAME_START)
+#if 0
+			else if (gma->type == ACT_GAME_START)
 			{
 				ysize = 68; 
 				glRects(xco, yco-ysize, xco+width, yco); 
@@ -2566,7 +2568,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				   uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, sizeof(gma->filename), 0, 0, "Load this file");
 				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, sizeof(gma->loadaniname), 0, 0, "Use this loadinganimation");
 			}
-*/			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG))
+#endif
+			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG))
 			{
 				ysize = 28; 
 				glRects(xco, yco-ysize, xco+width, yco); 
@@ -4834,7 +4837,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 
 	/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that 
-	   we can determine which is actually linked/visible */
+	 * we can determine which is actually linked/visible */
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		act= ob->actuators.first;
@@ -4881,7 +4884,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		
 		/* mark all actuators linked to these controllers */
 		/* note that some of these actuators could be from objects that are not in the display list.
-		   It's ok because those actuators will not be displayed here */
+		 * It's ok because those actuators will not be displayed here */
 		cont= ob->controllers.first;
 		while(cont) {
 			for (iact=0; iact<cont->totlinks; iact++) {

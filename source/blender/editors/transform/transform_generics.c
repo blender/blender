@@ -1467,9 +1467,9 @@ void calculateCenterMedian(TransInfo *t)
 		}
 		else {
 			/*
-			   All the selected elements are at the head of the array
-			   which means we can stop when it finds unselected data
-			*/
+			 * All the selected elements are at the head of the array
+			 * which means we can stop when it finds unselected data
+			 */
 			break;
 		}
 	}
@@ -1493,9 +1493,9 @@ void calculateCenterBound(TransInfo *t)
 			}
 			else {
 				/*
-				   All the selected elements are at the head of the array
-				   which means we can stop when it finds unselected data
-				*/
+				 * All the selected elements are at the head of the array
+				 * which means we can stop when it finds unselected data
+				 */
 				break;
 			}
 		}
@@ -1657,9 +1657,9 @@ void calculatePropRatio(TransInfo *t)
 					(connected == 0 &&
 						td->rdist > t->prop_size)) {
 				/*
-				   The elements are sorted according to their dist member in the array,
-				   that means we can stop when it finds one element outside of the propsize.
-				*/
+				 * The elements are sorted according to their dist member in the array,
+				 * that means we can stop when it finds one element outside of the propsize.
+				 */
 				td->flag |= TD_NOACTION;
 				td->factor = 0.0f;
 				restoreElement(td);

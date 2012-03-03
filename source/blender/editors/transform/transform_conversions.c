@@ -213,7 +213,7 @@ static void sort_trans_data(TransInfo *t)
 }
 
 /* distance calculated from not-selected vertex to nearest selected vertex
-   warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
+ * warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
 static void set_prop_dist(TransInfo *t, short with_dist)
 {
 	TransData *tob;
@@ -393,8 +393,8 @@ static short apply_targetless_ik(Object *ob)
 	int segcount, apply= 0;
 
 	/* now we got a difficult situation... we have to find the
-	   target-less IK pchans, and apply transformation to the all
-	   pchans that were in the chain */
+	 * target-less IK pchans, and apply transformation to the all
+	 * pchans that were in the chain */
 
 	for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 		data= has_targetless_ik(pchan);
@@ -1867,10 +1867,10 @@ void flushTransParticles(TransInfo *t)
 /* proportional distance based on connectivity  */
 #define THRESHOLDFACTOR (1.0f-0.0001f)
 
-/*I did this wrong, it should be a breadth-first search
-  but instead it's a depth-first search, fudged
-  to report shortest distances.  I have no idea how fast
-  or slow this is.*/
+/* I did this wrong, it should be a breadth-first search
+ * but instead it's a depth-first search, fudged
+ * to report shortest distances.  I have no idea how fast
+ * or slow this is. */
 static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], float *dists)
 {
 	BMVert **queue = NULL;
@@ -2140,12 +2140,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
 		if(modifiers_isCorrectableDeformed(t->obedit)) {
 			/* check if we can use deform matrices for modifier from the
-			   start up to stack, they are more accurate than quats */
+			 * start up to stack, they are more accurate than quats */
 			totleft= editbmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
 			/* if we still have more modifiers, also do crazyspace
-			   correction with quats, relative to the coordinates after
-			   the modifiers that support deform matrices (defcos) */
+			 * correction with quats, relative to the coordinates after
+			 * the modifiers that support deform matrices (defcos) */
 			if(totleft > 0) {
 				mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
 				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
@@ -2404,9 +2404,9 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 
 	/* uv coords are scaled by aspects. this is needed for rotations and
-	   proportional editing to be consistent with the stretchted uv coords
-	   that are displayed. this also means that for display and numinput,
-	   and when the the uv coords are flushed, these are converted each time */
+	 * proportional editing to be consistent with the stretchted uv coords
+	 * that are displayed. this also means that for display and numinput,
+	 * and when the the uv coords are flushed, these are converted each time */
 	td2d->loc[0] = uv[0]*aspx;
 	td2d->loc[1] = uv[1]*aspy;
 	td2d->loc[2] = 0.0f;
@@ -2476,7 +2476,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	t->total= (propmode)? count: countsel;
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(UV Editing)");
 	/* for each 2d uv coord a 3d vector is allocated, so that they can be
-	   treated just as if they were 3d verts */
+	 * treated just as if they were 3d verts */
 	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
 
 	if(sima->flag & SI_CLIP_UV)
@@ -3423,7 +3423,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
 				if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 					/* for 'normal' pivots - just include anything that is selected.
-					   this works a bit differently in translation modes */
+					 * this works a bit differently in translation modes */
 					if (sel2) count++;
 					else {
 						if (sel1) count++;
@@ -3683,7 +3683,7 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 	/* dynamically allocate an array of chars to mark whether an TransData's
 	 * pointers have been fixed already, so that we don't override ones that are
 	 * already done
-	  */
+	 */
 	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
 	
 	/* for each beztmap item, find if it is used anywhere */
@@ -4459,8 +4459,8 @@ static void set_trans_object_base_flags(TransInfo *t)
 	View3D *v3d = t->view;
 
 	/*
-	 if Base selected and has parent selected:
-	 base->flag= BA_WAS_SEL
+	 * if Base selected and has parent selected:
+	 * base->flag= BA_WAS_SEL
 	 */
 	Base *base;
 
@@ -4938,7 +4938,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		if(t->scene->nodetree) {
 			/* tracks can be used for stabilization nodes,
-			   flush update for such nodes */
+			 * flush update for such nodes */
 			nodeUpdateID(t->scene->nodetree, &clip->id);
 			WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
 		}

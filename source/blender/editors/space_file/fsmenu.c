@@ -210,8 +210,8 @@ void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx
 
 	if (fsme) {
 		/* you should only be able to remove entries that were 
-		   not added by default, like windows drives.
-		   also separators (where path == NULL) shouldn't be removed */
+		 * not added by default, like windows drives.
+		 * also separators (where path == NULL) shouldn't be removed */
 		if (fsme->save && fsme->path) {
 
 			/* remove fsme from list */
@@ -341,8 +341,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		}
 
 		/* As 10.4 doesn't provide proper API to retrieve the favorite places,
-		 assume they are the standard ones 
-		 TODO : replace hardcoded paths with proper BLI_get_folder calls */
+		 * assume they are the standard ones 
+		 * TODO : replace hardcoded paths with proper BLI_get_folder calls */
 		home = getenv("HOME");
 		if(home) {
 			BLI_snprintf(line, 256, "%s/", home);

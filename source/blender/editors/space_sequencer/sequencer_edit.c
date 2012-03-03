@@ -414,7 +414,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 					
 					if (displen / pixelx > 16) { /* dont even try to grab the handles of small strips */
 						/* Set the max value to handle to 1/3 of the total len when its less then 28.
-						* This is important because otherwise selecting handles happens even when you click in the middle */
+						 * This is important because otherwise selecting handles happens even when you click in the middle */
 						
 						if ((displen/3) < 30*pixelx) {
 							handsize = displen/3;
@@ -515,7 +515,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	}
 
 	/* make sequence selection a little bit more intuitive
-	   for 3 strips: the last-strip should be sequence3 */
+	 * for 3 strips: the last-strip should be sequence3 */
 	if (seq3 != NULL && seq2 != NULL) {
 		Sequence *tmp = seq2;
 		seq2 = seq3;
@@ -559,7 +559,7 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 	Sequence *seq1, *seq2, *seq3;
 
 	/* try to find a replacement input sequence, and flag for later deletion if
-	   no replacement can be found */
+	 * no replacement can be found */
 
 	if(!seq)
 		return NULL;
@@ -886,7 +886,7 @@ static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 	WM_cursor_wait(0);
 }
 
-/*
+#if 0
 static void set_filter_seq(Scene *scene)
 {
 	Sequence *seq;
@@ -909,7 +909,7 @@ static void set_filter_seq(Scene *scene)
 	}
 	SEQ_END
 }
-*/
+#endif
 
 static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
 {
@@ -980,7 +980,7 @@ static void UNUSED_FUNCTION(no_gaps)(Scene *scene)
 static int seq_get_snaplimit(View2D *v2d)
 {
 	/* fake mouse coords to get the snap value
-	a bit lazy but its only done once pre transform */
+	 * a bit lazy but its only done once pre transform */
 	float xmouse, ymouse, x;
 	int mval[2] = {24, 0}; /* 24 screen px snap */
 	
@@ -1733,7 +1733,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	while (seq) {
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
 			/* remove seq so overlap tests dont conflict,
-			see seq_free_sequence below for the real free'ing */
+			 * see seq_free_sequence below for the real free'ing */
 			BLI_remlink(ed->seqbasep, seq);
 			/* if(seq->ipo) seq->ipo->id.us--; */
 			/* XXX, remove fcurve and assign to split image strips */
@@ -2306,8 +2306,8 @@ static int find_next_prev_edit(Scene *scene, int cfra, int side)
 	}
 
 	/* if no sequence to the right is found and the
-	   frame is on the start of the last sequence,
-	   move to the end of the last sequence */
+	 * frame is on the start of the last sequence,
+	 * move to the end of the last sequence */
 	if (frame_seq) cfra = frame_seq->enddisp;
 
 	return best_seq ? best_seq->startdisp : cfra;

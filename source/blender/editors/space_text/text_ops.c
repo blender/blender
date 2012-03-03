@@ -1775,10 +1775,10 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 }
 
 /* Moves the cursor vertically by the specified number of lines.
- If the destination line is shorter than the current cursor position, the
- cursor will be positioned at the end of this line.
-
- This is to replace screen_skip for PageUp/Down operations.
+ * If the destination line is shorter than the current cursor position, the
+ * cursor will be positioned at the end of this line.
+ *
+ * This is to replace screen_skip for PageUp/Down operations.
  */
 static void cursor_skip(SpaceText* st, ARegion *ar, Text *text, int lines, int sel)
 {
@@ -2243,9 +2243,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll";
-	/*don't really see the difference between this and
-	  scroll_bar. Both do basically the same thing (aside 
-	  from keymaps).*/
+	/* don't really see the difference between this and
+	 * scroll_bar. Both do basically the same thing (aside 
+	 * from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
 	ot->description= "Scroll text screen";
 	
@@ -2337,9 +2337,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scrollbar";
-	/*don't really see the difference between this and
-	  scroll. Both do basically the same thing (aside 
-	  from keymaps).*/
+	/* don't really see the difference between this and
+	 * scroll. Both do basically the same thing (aside 
+	 * from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
 	ot->description= "Scroll text screen";
 	
@@ -3103,9 +3103,9 @@ static EnumPropertyItem resolution_items[]= {
 	{0, NULL, 0, NULL, NULL}};
 
 /* returns 0 if file on disk is the same or Text is in memory only
-   returns 1 if file has been modified on disk since last local edit
-   returns 2 if file on disk has been deleted
-   -1 is returned if an error occurs */
+ * returns 1 if file has been modified on disk since last local edit
+ * returns 2 if file on disk has been deleted
+ * -1 is returned if an error occurs */
 
 int text_file_modified(Text *text)
 {

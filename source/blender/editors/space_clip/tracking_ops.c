@@ -334,7 +334,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 }
 
 /* corner = 0: right-bottom corner,
-   corner = 1: left-top corner */
+ * corner = 1: left-top corner */
 static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int area, float co[2], int corner, int width, int height)
 {
@@ -1328,10 +1328,10 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 	tmj->lastfra= tmj->sfra;
 
 	/* XXX: silly to store this, but this data is needed to update scene and movieclip
-	        frame numbers when tracking is finished. This introduces better feedback for artists.
-	        Maybe there's another way to solve this problem, but can't think better way atm.
-	        Anyway, this way isn't more unstable as animation rendering animation
-	        which uses the same approach (except storing screen). */
+	 *      frame numbers when tracking is finished. This introduces better feedback for artists.
+	 *      Maybe there's another way to solve this problem, but can't think better way atm.
+	 *      Anyway, this way isn't more unstable as animation rendering animation
+	 *      which uses the same approach (except storing screen). */
 	tmj->scene= scene;
 	tmj->main= CTX_data_main(C);
 	tmj->screen= CTX_wm_screen(C);
@@ -1348,10 +1348,10 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 	while(framenr != tmj->efra) {
 		if(tmj->delay>0) {
 			/* tracking should happen with fixed fps. Calculate time
-			   using current timer value before tracking frame and after.
-
-			   Small (and maybe unneeded optimization): do not calculate exec_time
-			   for "Fastest" tracking */
+			 * using current timer value before tracking frame and after.
+			 *
+			 * Small (and maybe unneeded optimization): do not calculate exec_time
+			 * for "Fastest" tracking */
 
 			double start_time= PIL_check_seconds_timer(), exec_time;
 
@@ -1493,9 +1493,9 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
-	   with fixed FPS. To deal with editor refresh we have to syncronize
-	   tracks from job and tracks in clip. Do this in timer callback
-	   to prevent threading conflicts. */
+	 * with fixed FPS. To deal with editor refresh we have to syncronize
+	 * tracks from job and tracks in clip. Do this in timer callback
+	 * to prevent threading conflicts. */
 	if(tmj->delay>0) WM_jobs_timer(steve, tmj->delay/1000.0f, NC_MOVIECLIP|NA_EVALUATED, 0);
 	else WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
 
@@ -3332,7 +3332,7 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 				}
 				else if(markers[a].flag&MARKER_DISABLED) {
 					/* current segment which would be deleted was finished by disabled marker,
-					   so next segment should be started from disabled marker */
+					 * so next segment should be started from disabled marker */
 					start_disabled= 1;
 				}
 			}

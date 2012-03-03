@@ -70,7 +70,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	if(!ob) return OPERATOR_CANCELLED;
 	
 	/* linking to same group requires its own loop so we can avoid
-	   looking up the active objects groups each time */
+	 * looking up the active objects groups each time */
 
 	for(group= bmain->group.first; group; group=group->id.next) {
 		if(object_in_group(ob, group)) {
@@ -117,7 +117,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	if(!ob) return OPERATOR_CANCELLED;
 	
 	/* linking to same group requires its own loop so we can avoid
-	   looking up the active objects groups each time */
+	 * looking up the active objects groups each time */
 
 	for(group= bmain->group.first; group; group=group->id.next) {
 		if(object_in_group(ob, group)) {

@@ -797,7 +797,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			/* some modifiers could work with pre-tesselated curves only */
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tesselated button, so users could have
-				   message for this modifiers */
+				 * message for this modifiers */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
 						TIP_("This modifier could be applied on splines' points only"));
 				uiButSetFlag(but, UI_BUT_DISABLED);
@@ -1251,8 +1251,8 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNAUpdateCb *cb= (RNAUpdateCb*)arg_cb;
 
 	/* we call update here on the pointer property, this way the
-	   owner of the curve mapping can still define it's own update
-	   and notifier, even if the CurveMapping struct is shared. */
+	 * owner of the curve mapping can still define it's own update
+	 * and notifier, even if the CurveMapping struct is shared. */
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
@@ -1313,7 +1313,7 @@ static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
 	ColorBand *coba= coba_v;
 
 	/* sneaky update here, we need to sort the colorband points to be in order,
-	   however the RNA pointer then is wrong, so we update it */
+	 * however the RNA pointer then is wrong, so we update it */
 	colorband_update_sort(coba);
 	bt->rnapoin.data = coba->data + coba->cur;
 }
@@ -2732,7 +2732,7 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 		template_keymap_item_properties(layout, NULL, &propptr);
 
 		/* attach callbacks to compensate for missing properties update,
-		   we don't know which keymap (item) is being modified there */
+		 * we don't know which keymap (item) is being modified there */
 		for(; but; but=but->next)
 			uiButSetFunc(but, keymap_item_modified, ptr->data, NULL);
 	}

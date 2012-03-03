@@ -136,8 +136,8 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 				if (ked) ked->curIndex= i;
 				
 				/* Exit with return-code '1' if function returns positive
-				* This is useful if finding if some BezTriple satisfies a condition.
-				*/
+				 * This is useful if finding if some BezTriple satisfies a condition.
+				 */
 				if (key_cb(ked, bezt)) return 1;
 			}
 		}

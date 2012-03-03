@@ -74,8 +74,8 @@
 #include "view3d_intern.h"	// own include
 
 /* use this call when executing an operator,
-   event system doesn't set for each event the
-   opengl drawing context */
+ * event system doesn't set for each event the
+ * opengl drawing context */
 void view3d_operator_needs_opengl(const bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
@@ -179,7 +179,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 			changed = 1;
 		
 		/* The new view is different from the old one
-			* so animate the view */
+		 * so animate the view */
 		if (changed) {
 
 			/* original values */
@@ -203,9 +203,9 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
 			
 			/* if this is view rotation only
-				* we can decrease the time allowed by
-				* the angle between quats 
-				* this means small rotations wont lag */
+			 * we can decrease the time allowed by
+			 * the angle between quats 
+			 * this means small rotations wont lag */
 			if (quat && !ofs && !dist) {
 				float vec1[3]={0,0,1}, vec2[3]= {0,0,1};
 				float q1[4], q2[4];
@@ -531,7 +531,7 @@ void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, co
 	int val, flip_sign, a;
 
 	/* near zero floating point values can give issues with gluUnProject
-		in side view on some implementations */
+	 * in side view on some implementations */
 	if (fabs(mats->modelview[0]) < 1e-6) mats->modelview[0]= 0.0;
 	if (fabs(mats->modelview[5]) < 1e-6) mats->modelview[5]= 0.0;
 
@@ -553,8 +553,8 @@ void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, co
 	}
 
 	/* verify if we have negative scale. doing the transform before cross
-	   product flips the sign of the vector compared to doing cross product
-	   before transform then, so we correct for that. */
+	 * product flips the sign of the vector compared to doing cross product
+	 * before transform then, so we correct for that. */
 	for (a=0; a<16; a++)
 		((float*)modelview)[a] = mats->modelview[a];
 	flip_sign = is_negative_m4(modelview);
@@ -649,15 +649,15 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	if (rv3d->zfac < 0.0f)
 		flip= TRUE;
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that 
-		* (accounting for near zero values)
-		* */
+	 * (accounting for near zero values)
+	 */
 	if (rv3d->zfac < 1.e-6f && rv3d->zfac > -1.e-6f) rv3d->zfac = 1.0f;
 	
 	/* Negative zfac means x, y, z was behind the camera (in perspective).
-		* This gives flipped directions, so revert back to ok default case.
-	*/
-	// NOTE: I've changed this to flip zfac to be positive again for now so that GPencil draws ok
-	// 	-- Aligorith, 2009Aug31
+	 * This gives flipped directions, so revert back to ok default case.
+	 */
+	/* NOTE: I've changed this to flip zfac to be positive again for now so that GPencil draws ok
+	 * Aligorith, 2009Aug31 */
 	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
 	if (rv3d->zfac < 0.0f) rv3d->zfac= -rv3d->zfac;
 	
@@ -757,7 +757,7 @@ void ED_view3d_ob_project_mat_get(RegionView3D *rv3d, Object *ob, float pmat[4][
 }
 
 /* Uses window coordinates (x,y) and depth component z to find a point in
-   modelspace */
+ * modelspace */
 void view3d_unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
 {
 	double ux, uy, uz;
@@ -1192,11 +1192,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	}
 }
 
-/* IGLuint-> GLuint*/
+/* IGLuint-> GLuint */
 /* Warning: be sure to account for a negative return value
-*   This is an error, "Too many objects in select buffer"
-*   and no action should be taken (can crash blender) if this happens
-*/
+ *   This is an error, "Too many objects in select buffer"
+ *   and no action should be taken (can crash blender) if this happens
+ */
 short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input)
 {
 	Scene *scene= vc->scene;
@@ -1683,9 +1683,9 @@ static void game_set_commmandline_options(GameData *gm)
 static int game_engine_poll(bContext *C)
 {
 	/* we need a context and area to launch BGE
-	it's a temporary solution to avoid crash at load time
-	if we try to auto run the BGE. Ideally we want the
-	context to be set as soon as we load the file. */
+	 * it's a temporary solution to avoid crash at load time
+	 * if we try to auto run the BGE. Ideally we want the
+	 * context to be set as soon as we load the file. */
 
 	if (CTX_wm_window(C)==NULL) return 0;
 	if (CTX_wm_screen(C)==NULL) return 0;
@@ -1743,7 +1743,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* redraw to hide any menus/popups, we don't go back to
-	   the window manager until after this operator exits */
+	 * the window manager until after this operator exits */
 	WM_redraw_windows(C);
 
 	rv3d= CTX_wm_region_view3d(C);
@@ -1789,7 +1789,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	if (prevwin) {
 		/* restore context, in case it changed in the meantime, for
-		   example by working in another window or closing it */
+		 * example by working in another window or closing it */
 		CTX_wm_region_set(C, prevar);
 		CTX_wm_window_set(C, prevwin);
 		CTX_wm_area_set(C, prevsa);

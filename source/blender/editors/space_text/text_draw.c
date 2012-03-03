@@ -180,11 +180,11 @@ void flatten_string_free(FlattenString *fs)
 }
 
 /* Checks the specified source string for a Python built-in function name. This
- name must start at the beginning of the source string and must be followed by
- a non-identifier (see text_check_identifier(char)) or null character.
- 
- If a built-in function is found, the length of the matching name is returned.
- Otherwise, -1 is returned. */
+ * name must start at the beginning of the source string and must be followed by
+ * a non-identifier (see text_check_identifier(char)) or null character.
+ * 
+ * If a built-in function is found, the length of the matching name is returned.
+ * Otherwise, -1 is returned. */
 
 static int find_builtinfunc(char *string)
 {
@@ -219,11 +219,11 @@ static int find_builtinfunc(char *string)
 }
 
 /* Checks the specified source string for a Python special name. This name must
- start at the beginning of the source string and must be followed by a non-
- identifier (see text_check_identifier(char)) or null character.
- 
- If a special name is found, the length of the matching name is returned.
- Otherwise, -1 is returned. */
+ * start at the beginning of the source string and must be followed by a non-
+ * identifier (see text_check_identifier(char)) or null character.
+ * 
+ * If a special name is found, the length of the matching name is returned.
+ * Otherwise, -1 is returned. */
 
 static int find_specialvar(char *string) 
 {
@@ -271,7 +271,7 @@ static int find_bool(char *string)
 }
 
 /* Ensures the format string for the given line is long enough, reallocating
- as needed. Allocation is done here, alone, to ensure consistency. */
+ * as needed. Allocation is done here, alone, to ensure consistency. */
 static int text_check_format_len(TextLine *line, unsigned int len)
 {
 	if(line->format) {
@@ -290,18 +290,18 @@ static int text_check_format_len(TextLine *line, unsigned int len)
 }
 
 /* Formats the specified line. If do_next is set, the process will move on to
- the succeeding line if it is affected (eg. multiline strings). Format strings
- may contain any of the following characters:
-	 '_'		Whitespace
-	 '#'		Comment text
-	 '!'		Punctuation and other symbols
-	 'n'		Numerals
-	 'l'		String letters
-	 'v'		Special variables (class, def)
-	 'b'		Built-in names (print, for, etc.)
-	 'q'		Other text (identifiers, etc.)
- It is terminated with a null-terminator '\0' followed by a continuation
- flag indicating whether the line is part of a multi-line string. */
+ * the succeeding line if it is affected (eg. multiline strings). Format strings
+ * may contain any of the following characters:
+ *  '_'  Whitespace
+ *  '#'  Comment text
+ *  '!'  Punctuation and other symbols
+ *  'n'  Numerals
+ *  'l'  String letters
+ *  'v'  Special variables (class, def)
+ *  'b'  Built-in names (print, for, etc.)
+ *  'q'  Other text (identifiers, etc.)
+ * It is terminated with a null-terminator '\0' followed by a continuation
+ * flag indicating whether the line is part of a multi-line string. */
 
 static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 {
@@ -488,31 +488,29 @@ static void format_draw_color(char formatchar)
 
 /************************** draw text *****************************/
 
-/***********************/ /*
-
-Notes on word-wrap
---
-All word-wrap functions follow the algorithm below to maintain consistency.
-	line		The line to wrap (tabs converted to spaces)
-	view_width	The maximum number of characters displayable in the region
-				This equals region_width/font_width for the region
-	wrap_chars	Characters that allow wrapping. This equals [' ', '\t', '-']
-
-def wrap(line, view_width, wrap_chars):
-	draw_start = 0
-	draw_end = view_width
-	pos = 0
-	for c in line:
-		if pos-draw_start >= view_width:
-			print line[draw_start:draw_end]
-			draw_start = draw_end
-			draw_end += view_width
-		elif c in wrap_chars:
-			draw_end = pos+1
-		pos += 1
-	print line[draw_start:]
-
-*/ /***********************/
+/* Notes on word-wrap
+ * --
+ * All word-wrap functions follow the algorithm below to maintain consistency.
+ *     line        The line to wrap (tabs converted to spaces)
+ *     view_width    The maximum number of characters displayable in the region
+ *                 This equals region_width/font_width for the region
+ *     wrap_chars    Characters that allow wrapping. This equals [' ', '\t', '-']
+ * 
+ * def wrap(line, view_width, wrap_chars):
+ *     draw_start = 0
+ *     draw_end = view_width
+ *     pos = 0
+ *     for c in line:
+ *         if pos-draw_start >= view_width:
+ *             print line[draw_start:draw_end]
+ *             draw_start = draw_end
+ *             draw_end += view_width
+ *         elif c in wrap_chars:
+ *             draw_end = pos+1
+ *         pos += 1
+ *     print line[draw_start:]
+ * 
+ */
 
 int wrap_width(SpaceText *st, ARegion *ar)
 {
@@ -961,8 +959,8 @@ void text_drawcache_tag_update(SpaceText *st, int full)
 			}
 
 			/* quick cache recalculation is also used in delete operator,
-			   which could merge lines which are adjusent to current selection lines
-			   expand recalculate area to this lines */
+			 * which could merge lines which are adjusent to current selection lines
+			 * expand recalculate area to this lines */
 			if(drawcache->valid_head>0) drawcache->valid_head--;
 			if(drawcache->valid_tail>0) drawcache->valid_tail--;
 		} else {
@@ -1856,7 +1854,7 @@ void text_update_character_width(SpaceText *st)
 }
 
 /* Moves the view to the cursor location,
-  also used to make sure the view isnt outside the file */
+ * also used to make sure the view isnt outside the file */
 void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 {
 	Text *text;

@@ -305,12 +305,12 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	/*
+#if 0
 	printf("Viewinv:\n");
 	printf("%f, %f, %f\n", rv3d->viewinv[0][0], rv3d->viewinv[0][1], rv3d->viewinv[0][2]);
 	printf("%f, %f, %f\n", rv3d->viewinv[1][0], rv3d->viewinv[1][1], rv3d->viewinv[1][2]);
 	printf("%f, %f, %f\n", rv3d->viewinv[2][0], rv3d->viewinv[2][1], rv3d->viewinv[2][2]);
-	*/
+#endif
 
 	// get view vector
 	copy_v3_v3(viewnormal, rv3d->viewinv[2]);

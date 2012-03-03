@@ -2076,8 +2076,8 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 		if (td->ext->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			/* objects and bones do normalization first too, otherwise
-			   we don't necessarily end up with a rotation matrix, and
-			   then conversion back to quat gives a different result */
+			 * we don't necessarily end up with a rotation matrix, and
+			 * then conversion back to quat gives a different result */
 			float quat[4];
 			normalize_qt_qt(quat, td->ext->quat);
 			quat_to_mat4(cob->matrix, quat);
@@ -3740,7 +3740,7 @@ int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 			continue;
 
 		if(td->val) {
-			//*td->val= ratio;
+			// *td->val= ratio;
 			*td->val= td->ival*ratio;
 			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
@@ -4396,8 +4396,8 @@ static int createSlideVerts(TransInfo *t)
 			numsel = 0;
 			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
 				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-					/*BMESH_TODO: this is probably very evil,
-					  set v->e to a selected edge*/
+					/* BMESH_TODO: this is probably very evil,
+					 * set v->e to a selected edge*/
 					v->e = e;
 
 					numsel++;
@@ -4560,8 +4560,8 @@ static int createSlideVerts(TransInfo *t)
 			BMEdge *e2;
 			float vec1[3], dis2, mval[2] = {t->mval[0], t->mval[1]}, d;
 						
-			/*search cross edges for visible edge to the mouse cursor,
-              then use the shared vertex to calculate screen vector*/
+			/* search cross edges for visible edge to the mouse cursor,
+             * then use the shared vertex to calculate screen vector*/
 			dis2 = -1.0f;
 			for (i=0; i<2; i++) {
 				v = i?e->v1:e->v2;
@@ -4692,8 +4692,8 @@ void projectSVData(TransInfo *t, int final)
 			BLI_smallhash_insert(&visit, (uintptr_t)f, NULL);
 			
 			/*the face attributes of the copied face will get
-			  copied over, so its necessary to save the selection
-			  and hidden state*/
+			 * copied over, so its necessary to save the selection
+			 * and hidden state*/
 			sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
 			hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 			

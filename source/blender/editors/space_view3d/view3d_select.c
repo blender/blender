@@ -394,8 +394,8 @@ int lasso_inside_edge(int mcords[][2], short moves, int x0, int y0, int x1, int 
 
 
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
-   and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
-*/
+ * and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
+ */
 static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], short moves, short select)
 {
 	bPoseChannel *pchan;
@@ -962,7 +962,7 @@ static void view3d_lasso_select(bContext *C, ViewContext *vc, int mcords[][2], s
 
 
 /* lasso operator gives properties, but since old code works
-   with short array we convert */
+ * with short array we convert */
 static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	ViewContext vc;
@@ -1377,7 +1377,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 		base= startbase;
 		while (base) {
 			/* skip objects with select restriction, to prevent prematurely ending this loop
-			* with an un-selectable choice */
+			 * with an un-selectable choice */
 			if (base->object->restrictflag & OB_RESTRICT_SELECT) {
 				base=base->next;
 				if (base==NULL) base= FIRSTBASE;
@@ -1534,13 +1534,13 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 							hitresult= buffer[3+(i*4)];
 
 							/* if there's bundles in buffer select bundles first,
-							   so non-camera elements should be ignored in buffer */
+							 * so non-camera elements should be ignored in buffer */
 							if (basact->selcol != (hitresult & 0xFFFF)) {
 								continue;
 							}
 
 							/* index of bundle is 1<<16-based. if there's no "bone" index
-							   in hight word, this buffer value belongs to camera,. not to bundle */
+							 * in hight word, this buffer value belongs to camera,. not to bundle */
 							if (buffer[4*i+3] & 0xFFFF0000) {
 								MovieClip *clip= object_get_movieclip(scene, basact->object, 0);
 								MovieTracking *tracking= &clip->tracking;
@@ -1578,7 +1578,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 
 						if (!changed) {
 							/* fallback to regular object selection if no new bundles were selected,
-							   allows to select object parented to reconstruction object */
+							 * allows to select object parented to reconstruction object */
 							basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, startbase, 0);
 						}
 					}
@@ -1586,7 +1586,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 				else if (ED_do_pose_selectbuffer(scene, basact, buffer, hits, extend) ) {	/* then bone is found */
 				
 					/* we make the armature selected: 
-					   not-selected active object in posemode won't work well for tools */
+					 * not-selected active object in posemode won't work well for tools */
 					basact->flag|= SELECT;
 					basact->object->flag= basact->flag;
 					
@@ -1984,16 +1984,16 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 	vbuffer = MEM_mallocN(4 * (totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
 	hits= view3d_opengl_select(vc, vbuffer, 4*(totobj+MAXPICKBUF), rect);
 	/*
-	LOGIC NOTES (theeth):
-	The buffer and ListBase have the same relative order, which makes the selection
-	very simple. Loop through both data sets at the same time, if the color
-	is the same as the object, we have a hit and can move to the next color
-	and object pair, if not, just move to the next object,
-	keeping the same color until we have a hit.
-
-	The buffer order is defined by OGL standard, hopefully no stupid GFX card
-	does it incorrectly.
-	*/
+	 * LOGIC NOTES (theeth):
+	 * The buffer and ListBase have the same relative order, which makes the selection
+	 * very simple. Loop through both data sets at the same time, if the color
+	 * is the same as the object, we have a hit and can move to the next color
+	 * and object pair, if not, just move to the next object,
+	 * keeping the same color until we have a hit.
+	 * 
+	 * The buffer order is defined by OGL standard, hopefully no stupid GFX card
+	 * does it incorrectly.
+	 */
 
 	if (hits>0) { /* no need to loop if there's no hit */
 		Base *base;
@@ -2167,7 +2167,7 @@ static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], un
 
 	if (size > 0) {
 		/* sample rect to increase changes of selecting, so that when clicking
-		   on an face in the backbuf, we can still select a vert */
+		 * on an face in the backbuf, we can still select a vert */
 
 		int dist;
 		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert+1, &dist,0,NULL, NULL);

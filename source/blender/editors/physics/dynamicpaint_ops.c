@@ -268,9 +268,9 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 /***************************** Image Sequence Baking ******************************/
 
 /*
-*	Do actual bake operation. Loop through to-be-baked frames.
-*	Returns 0 on failture.
-*/
+ * Do actual bake operation. Loop through to-be-baked frames.
+ * Returns 0 on failture.
+ */
 static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surface, Object *cObject)
 {
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
@@ -308,8 +308,8 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 		if (!dynamicPaint_calculateFrame(surface, scene, cObject, frame)) return 0;
 
 		/*
-		*	Save output images
-		*/
+		 * Save output images
+		 */
 		{
 			char filename[FILE_MAX];
 
@@ -351,8 +351,8 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	DynamicPaintSurface *surface;
 
 	/*
-	*	Get modifier data
-	*/
+	 * Get modifier data
+	 */
 	pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
 	if (!pmd) {
 		BKE_report(op->reports, RPT_ERROR, "Bake Failed: No Dynamic Paint modifier found.");
@@ -380,7 +380,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	dynamicPaint_freeSurfaceData(surface);
 
 	/* Bake was successful:
-	*  Report for ended bake and how long it took */
+	 *  Report for ended bake and how long it took */
 	if (status) {
 		/* Format time string	*/
 		char time_str[30];

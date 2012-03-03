@@ -129,12 +129,12 @@ struct LaplacianSystem {
 /* Laplacian matrix construction */
 
 /* Computation of these weights for the laplacian is based on:
-   "Discrete Differential-Geometry Operators for Triangulated 2-Manifolds",
-   Meyer et al, 2002. Section 3.5, formula (8).
-   
-   We do it a bit different by going over faces instead of going over each
-   vertex and adjacent faces, since we don't store this adjacency. Also, the
-   formulas are tweaked a bit to work for non-manifold meshes. */
+ * "Discrete Differential-Geometry Operators for Triangulated 2-Manifolds",
+ * Meyer et al, 2002. Section 3.5, formula (8).
+ * 
+ * We do it a bit different by going over faces instead of going over each
+ * vertex and adjacent faces, since we don't store this adjacency. Also, the
+ * formulas are tweaked a bit to work for non-manifold meshes. */
 
 static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
 {
@@ -217,7 +217,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	v3= sys->verts[i3];
 
 	/* instead of *0.5 we divided by the number of faces of the edge, it still
-	   needs to be verified that this is indeed the correct thing to do! */
+	 * needs to be verified that this is indeed the correct thing to do! */
 	t1= cotan_weight(v1, v2, v3)/laplacian_edge_count(sys->edgehash, i2, i3);
 	t2= cotan_weight(v2, v3, v1)/laplacian_edge_count(sys->edgehash, i3, i1);
 	t3= cotan_weight(v3, v1, v2)/laplacian_edge_count(sys->edgehash, i1, i2);
@@ -391,7 +391,7 @@ float laplacian_system_get_solution(int v)
 
 /************************* Heat Bone Weighting ******************************/
 /* From "Automatic Rigging and Animation of 3D Characters"
-		 Ilya Baran and Jovan Popovic, SIGGRAPH 2007 */
+ * Ilya Baran and Jovan Popovic, SIGGRAPH 2007 */
 
 #define C_WEIGHT			1.0f
 #define WEIGHT_LIMIT_START	0.05f
@@ -827,13 +827,13 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 #ifdef RIGID_DEFORM
 /********************** As-Rigid-As-Possible Deformation ******************/
 /* From "As-Rigid-As-Possible Surface Modeling",
-		Olga Sorkine and Marc Alexa, ESGP 2007. */
+ * Olga Sorkine and Marc Alexa, ESGP 2007. */
 
 /* investigate:
-   - transpose R in orthogonal
-   - flipped normals and per face adding
-   - move cancelling to transform, make origco pointer
-*/
+ * - transpose R in orthogonal
+ * - flipped normals and per face adding
+ * - move cancelling to transform, make origco pointer
+ */
 
 static LaplacianSystem *RigidDeformSystem = NULL;
 
@@ -1052,8 +1052,8 @@ void rigid_deform_end(int cancel)
 
 /************************** Harmonic Coordinates ****************************/
 /* From "Harmonic Coordinates for Character Articulation",
-	Pushkar Joshi, Mark Meyer, Tony DeRose, Brian Green and Tom Sanocki,
-	SIGGRAPH 2007. */
+ * Pushkar Joshi, Mark Meyer, Tony DeRose, Brian Green and Tom Sanocki,
+ * SIGGRAPH 2007. */
 
 #define EPSILON 0.0001f
 

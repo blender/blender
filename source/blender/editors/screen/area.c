@@ -496,9 +496,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 }
 
 /* **********************************
-   maybe silly, but let's try for now
-   to keep these tags protected
-   ********************************** */
+ * maybe silly, but let's try for now
+ * to keep these tags protected
+ * ********************************** */
 
 void ED_region_tag_redraw(ARegion *ar)
 {
@@ -658,8 +658,8 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	int tot=0;
 	
 	/* count how many actionzones with along same edge are available.
-	   This allows for adding more action zones in the future without
-	   having to worry about correct offset */
+	 * This allows for adding more action zones in the future without
+	 * having to worry about correct offset */
 	for(azt= sa->actionzones.first; azt; azt= azt->next) {
 		if(azt->edge == az->edge) tot++;
 	}
@@ -1432,7 +1432,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 
 	if(sl->next) {
 		/* workaround for case of double prevspace, render window
-		   with a file browser on top of it */
+		 * with a file browser on top of it */
 		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
 			ED_area_newspace(C, sa, sl->next->next->spacetype);
 		else

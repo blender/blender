@@ -60,20 +60,19 @@
 /* style + theme + layout-engine = UI */
 
 /* 
- This is a complete set of layout rules, the 'state' of the Layout 
- Engine. Multiple styles are possible, defined via C or Python. Styles 
- get a name, and will typically get activated per region type, like 
- "Header", or "Listview" or "Toolbar". Properties of Style definitions 
- are:
- 
- - default collumn properties, internal spacing, aligning, min/max width
- - button alignment rules (for groups)
- - label placement rules
- - internal labeling or external labeling default
- - default minimum widths for buttons/labels (in amount of characters)
- - font types, styles and relative sizes for Panel titles, labels, etc.
-
-*/
+ * This is a complete set of layout rules, the 'state' of the Layout 
+ * Engine. Multiple styles are possible, defined via C or Python. Styles 
+ * get a name, and will typically get activated per region type, like 
+ * "Header", or "Listview" or "Toolbar". Properties of Style definitions 
+ * are:
+ *
+ * - default collumn properties, internal spacing, aligning, min/max width
+ * - button alignment rules (for groups)
+ * - label placement rules
+ * - internal labeling or external labeling default
+ * - default minimum widths for buttons/labels (in amount of characters)
+ * - font types, styles and relative sizes for Panel titles, labels, etc.
+ */
 
 
 /* ********************************************** */

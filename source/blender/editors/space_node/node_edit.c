@@ -139,7 +139,7 @@ static void compo_freejob(void *cjv)
 }
 
 /* only now we copy the nodetree, so adding many jobs while
-   sliding buttons doesn't frustrate */
+ * sliding buttons doesn't frustrate */
 static void compo_initjob(void *cjv)
 {
 	CompoJob *cj= cjv;
@@ -2879,7 +2879,7 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_cursor_wait(0);
 
 	/* note we are careful to send the right notifier, as otherwise the
-	   compositor would reexecute and overwrite the full sample result */
+	 * compositor would reexecute and overwrite the full sample result */
 	WM_event_add_notifier(C, NC_SCENE|ND_COMPO_RESULT, NULL);
 
 	return OPERATOR_FINISHED;

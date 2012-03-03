@@ -104,8 +104,8 @@ typedef struct tGPsdata {
 	short radius;		/* radius of influence for eraser */
 	short flags;		/* flags that can get set during runtime */
 
-	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
-						 * to region space */
+	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
+	                     * to region space */
 
 	float custom_color[4]; /* custom color for (?) */
 } tGPsdata;
@@ -578,8 +578,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	}
 	
 	/* special case for poly line -- for already added stroke during session
-	   coordinates are getting added to stroke immediatelly to allow more
-	   interactive behavior */
+	 * coordinates are getting added to stroke immediatelly to allow more
+	 * interactive behavior */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		if (p->flags & GP_PAINTFLAG_STROKEADDED)
 			return;
@@ -1148,7 +1148,7 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	
 	if (ED_gpencil_session_active()==0) {
 		/* initialize undo stack,
-		   also, existing undo stack would make buffer drawn */
+		 * also, existing undo stack would make buffer drawn */
 		gpencil_undo_init(p->gpd);
 	}
 	
@@ -1369,7 +1369,7 @@ static void gp_paint_strokeend (tGPsdata *p)
 static void gp_paint_cleanup (tGPsdata *p)
 {
 	/* p->gpd==NULL happens when stroke failed to initialize,
-	      for example. when GP is hidden in current space (sergey) */
+	 * for example. when GP is hidden in current space (sergey) */
 	if (p->gpd) {
 		/* finish off a stroke */
 		gp_paint_strokeend(p);

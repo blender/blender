@@ -1986,7 +1986,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			const char *utf8_buf= event->utf8_buf;
 
 			/* exception that's useful for number buttons, some keyboard
-			   numpads have a comma instead of a period */
+			 * numpads have a comma instead of a period */
 			if(ELEM3(but->type, NUM, NUMABS, NUMSLI)) { /* could use data->min*/
 				if(event->type == PADPERIOD && ascii == ',') {
 					ascii = '.';
@@ -2980,9 +2980,10 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 				retval= WM_UI_HANDLER_BREAK;
 			}
 			/* UNUSED - otherwise code is ok, add back if needed */
-			/* else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
+#if 0
+			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
 				click= 1;
-			*/
+#endif
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
@@ -4674,12 +4675,13 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemFullO(layout, "WM_OT_doc_view", "View Docs", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
 
 			/* XXX inactive option, not for public! */
-/*			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
+#if 0
+			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 
 			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
- */
+ #endif
 		}
 		else if (but->optype) {
 			WM_operator_py_idname(buf, but->optype->idname);
@@ -5252,10 +5254,10 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	if(state != BUTTON_STATE_EXIT) {
 		/* When objects for eg. are removed, running ui_check_but() can access
-		   the removed data - so disable update on exit. Also in case of
-		   highlight when not in a popup menu, we remove because data used in
-		   button below popup might have been removed by action of popup. Needs
-		   a more reliable solution... */
+		 * the removed data - so disable update on exit. Also in case of
+		 * highlight when not in a popup menu, we remove because data used in
+		 * button below popup might have been removed by action of popup. Needs
+		 * a more reliable solution... */
 		if(state != BUTTON_STATE_HIGHLIGHT || (but->block->flag & UI_BLOCK_LOOP))
 			ui_check_but(but);
 	}

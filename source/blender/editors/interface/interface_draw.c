@@ -432,7 +432,8 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 
 	if (!ibuf) return;
 	
-	/* scissor doesn't seem to be doing the right thing...?
+	/* scissor doesn't seem to be doing the right thing...? */
+#if 0
 	//glColor4f(1.0, 0.f, 0.f, 1.f);
 	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
 
@@ -441,7 +442,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	// prevent drawing outside widget area
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
-	*/
+#endif
 	
 	glEnable(GL_BLEND);
 	glColor4f(0.0, 0.0, 0.0, 0.0);
@@ -451,10 +452,10 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	
 	glDisable(GL_BLEND);
 	
-	/* 
+#if 0
 	// restore scissortest
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	*/
+#endif
 	
 #endif
 }
@@ -1138,7 +1139,8 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 			setlinestyle(0);
 			glBegin(GL_LINES);
 			
-			/* glColor3ub(0, 0, 0);
+#if 0
+			glColor3ub(0, 0, 0);
 			glVertex2fv(v1);
 			glVertex2fv(v1a);
 			glColor3ub(255, 255, 255);
@@ -1150,7 +1152,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 			glColor3ub(255, 255, 255);
 			glVertex2fv(v2a);
 			glVertex2fv(v3);
-			*/
+#endif
 		}
 		else {
 			glColor3ub(0, 0, 0);
@@ -1367,17 +1369,21 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	
 	
 	/* cfra option */
-	/* XXX 2.48
+	/* XXX 2.48 */
+#if 0
 	if(cumap->flag & CUMA_DRAW_CFRA) {
 		glColor3ub(0x60, 0xc0, 0x40);
 		glBegin(GL_LINES);
 		glVertex2f(rect->xmin + zoomx*(cumap->sample[0]-offsx), rect->ymin);
 		glVertex2f(rect->xmin + zoomx*(cumap->sample[0]-offsx), rect->ymax);
 		glEnd();
-	}*/
+	}
+#endif
 	/* sample option */
-	/* XXX 2.48
-	 * if(cumap->flag & CUMA_DRAW_SAMPLE) {
+
+	/* XXX 2.48 */
+#if 0
+	if(cumap->flag & CUMA_DRAW_SAMPLE) {
 		if(cumap->cur==3) {
 			float lum= cumap->sample[0]*0.35f + cumap->sample[1]*0.45f + cumap->sample[2]*0.2f;
 			glColor3ub(240, 240, 240);
@@ -1400,8 +1406,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 			glVertex2f(rect->xmin + zoomx*(cumap->sample[cumap->cur]-offsx), rect->ymax);
 			glEnd();
 		}
-	}*/
-	
+	}
+#endif
+
 	/* the curve */
 	glColor3ubv((unsigned char*)wcol->item);
 	glEnable(GL_LINE_SMOOTH);

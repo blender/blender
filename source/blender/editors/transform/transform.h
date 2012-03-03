@@ -103,20 +103,20 @@ typedef struct TransCon {
 	float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
 	float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
 	float center[3];     /* transformation center to define where to draw the view widget
-							ALWAYS in global space. Unlike the transformation center                  */
+	                      * ALWAYS in global space. Unlike the transformation center                  */
 	int   imval[2];	     /* initial mouse value for visual calculation                                */
-						 /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
+	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
 	int   mode;          /* Mode flags of the Constraint                                              */
 	void  (*drawExtra)(struct TransInfo *);
-						 /* For constraints that needs to draw differently from the other
-							uses this instead of the generic draw function							  */
+	                     /* For constraints that needs to draw differently from the other
+	                      * uses this instead of the generic draw function                            */
 	void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *, float *);
-						 /* Apply function pointer for linear vectorial transformation                */
-						 /* The last three parameters are pointers to the in/out/printable vectors    */
+	                     /* Apply function pointer for linear vectorial transformation                */
+	                     /* The last three parameters are pointers to the in/out/printable vectors    */
 	void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
-						 /* Apply function pointer for size transformation */
+	                     /* Apply function pointer for size transformation */
 	void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
-						 /* Apply function pointer for rotation transformation */
+	                     /* Apply function pointer for rotation transformation */
 } TransCon;
 
 typedef struct TransDataExtension {
@@ -129,10 +129,10 @@ typedef struct TransDataExtension {
 	float  irot[3];      /* Initial rotation                                                               */
 	float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
 	float  iquat[4];	 /* Initial rotation quaternion                                                    */
-	float *rotAngle;	 /* Rotation angle of the data to transform (Faculative) 						 */
-	float  irotAngle;	 /* Initial rotation angle 												 */
-	float *rotAxis;		 /* Rotation axis of the data to transform (Faculative) 						 */
-	float  irotAxis[4];	 /* Initial rotation axis 													 */
+	float *rotAngle;	 /* Rotation angle of the data to transform (Faculative)                           */
+	float  irotAngle;	 /* Initial rotation angle                                                         */
+	float *rotAxis;		 /* Rotation axis of the data to transform (Faculative)                            */
+	float  irotAxis[4];	 /* Initial rotation axis                                                          */
 	float *size;         /* Size of the data to transform (Faculative)                                     */
 	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */

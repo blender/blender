@@ -1218,7 +1218,7 @@ static void update_velocities(PTCacheEdit *edit)
 void PE_update_object(Scene *scene, Object *ob, int useflag)
 {
 	/* use this to do partial particle updates, not usable when adding or
-	   removing, then a full redo is necessary and calling this may crash */
+	 * removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	POINT_P;

@@ -200,9 +200,8 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 		}
 		else if (t->spacetype==SPACE_IMAGE)
 		{
-			/*This will not draw, and Im nor sure why - campbell */
-			
-			/*			
+			/* This will not draw, and Im nor sure why - campbell */
+#if 0
 			float xuser_asp, yuser_asp;
 			int wi, hi;
 			float w, h;
@@ -230,7 +229,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			
 			glTranslatef(-t->tsnap.snapPoint[0], -t->tsnap.snapPoint[1], 0.0f);
 			setlinestyle(0);
-			*/
+#endif
 			
 		}
 	}

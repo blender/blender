@@ -96,30 +96,30 @@ int         mesh_mirrtopo_table(struct Object *ob, char mode);
 
 /* bmeshutils.c */
 
-/*
- [note: I've decided to use ideasman's code for non-editmode stuff, but since
-  it has a big "not for editmode!" disclaimer, I'm going to keep what I have here
-  - joeedh]
-  
- x-mirror editing api.  usage:
-  
-  EDBM_CacheMirrorVerts(em);
-  ...
-  ...
-  BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-     mirrorv = EDBM_GetMirrorVert(em, v);
-  }
-  ...
-  ...
-  EDBM_EndMirrorCache(em);
- 
-  note: why do we only allow x axis mirror editing?
-  */
+/**
+ * [note: I've decided to use ideasman's code for non-editmode stuff, but since
+ *  it has a big "not for editmode!" disclaimer, I'm going to keep what I have here
+ *  - joeedh]
+ *  
+ * x-mirror editing api.  usage:
+ *  
+ *  EDBM_CacheMirrorVerts(em);
+ *  ...
+ *  ...
+ *  BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+ *     mirrorv = EDBM_GetMirrorVert(em, v);
+ *  }
+ *  ...
+ *  ...
+ *  EDBM_EndMirrorCache(em);
+ *
+ * \note why do we only allow x axis mirror editing?
+ */
 void EDBM_CacheMirrorVerts(struct BMEditMesh *em, const short use_select); /* note, replaces EM_cache_x_mirror_vert in trunk */
 
-/*retrieves mirrored cache vert, or NULL if there isn't one.
-  note: calling this without ensuring the mirror cache state
-  is bad.*/
+/* retrieves mirrored cache vert, or NULL if there isn't one.
+ * note: calling this without ensuring the mirror cache state
+ * is bad.*/
 struct BMVert *EDBM_GetMirrorVert(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_ClearMirrorVert(struct BMEditMesh *em, struct BMVert *v);
 void EDBM_EndMirrorCache(struct BMEditMesh *em);

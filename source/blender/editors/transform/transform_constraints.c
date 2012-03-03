@@ -231,8 +231,8 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	angle = RAD2DEGF(angle);
 
 	/* For when view is parallel to constraint... will cause NaNs otherwise
-	   So we take vertical motion in 3D space and apply it to the
-	   constraint axis. Nice for camera grab + MMB */
+	 * So we take vertical motion in 3D space and apply it to the
+	 * constraint axis. Nice for camera grab + MMB */
 	if(angle < 5.0f) {
 		project_v3_v3v3(vec, in, t->viewinv[1]);
 		factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
@@ -597,11 +597,11 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
 }
 
 /*
-	Set the constraint according to the user defined orientation
-
-	ftext is a format string passed to BLI_snprintf. It will add the name of
-	the orientation where %s is (logically).
-*/
+ * Set the constraint according to the user defined orientation
+ *
+ * ftext is a format string passed to BLI_snprintf. It will add the name of
+ * the orientation where %s is (logically).
+ */
 void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[])
 {
 	char text[40];
@@ -757,10 +757,10 @@ static void drawObjectConstraint(TransInfo *t)
 	TransData * td = t->data;
 
 	/* Draw the first one lighter because that's the one who controls the others.
-	   Meaning the transformation is projected on that one and just copied on the others
-	   constraint space.
-	   In a nutshell, the object with light axis is controlled by the user and the others follow.
-	   Without drawing the first light, users have little clue what they are doing.
+	 * Meaning the transformation is projected on that one and just copied on the others
+	 * constraint space.
+	 * In a nutshell, the object with light axis is controlled by the user and the others follow.
+	 * Without drawing the first light, users have little clue what they are doing.
 	 */
 	if (t->con.mode & CON_AXIS0) {
 		drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', DRAWLIGHT);
@@ -896,12 +896,12 @@ static void setNearestAxis3d(TransInfo *t)
 	mvec[2] = 0.0f;
 
 	/* we need to correct axis length for the current zoomlevel of view,
-	   this to prevent projected values to be clipped behind the camera
-	   and to overflow the short integers.
-	   The formula used is a bit stupid, just a simplification of the substraction
-	   of two 2D points 30 pixels apart (that's the last factor in the formula) after
-	   projecting them with window_to_3d_delta and then get the length of that vector.
-	*/
+	 * this to prevent projected values to be clipped behind the camera
+	 * and to overflow the short integers.
+	 * The formula used is a bit stupid, just a simplification of the substraction
+	 * of two 2D points 30 pixels apart (that's the last factor in the formula) after
+	 * projecting them with window_to_3d_delta and then get the length of that vector.
+	 */
 	zfac= t->persmat[0][3]*t->center[0]+ t->persmat[1][3]*t->center[1]+ t->persmat[2][3]*t->center[2]+ t->persmat[3][3];
 	zfac = len_v3(t->persinv[0]) * 2.0f/t->ar->winx * zfac * 30.0f;
 
@@ -1041,10 +1041,10 @@ int getConstraintSpaceDimension(TransInfo *t)
 
 	return n;
 /*
-  Someone willing to do it criptically could do the following instead:
-
-  return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
-
-  Based on the assumptions that the axis flags are one after the other and start at 1
-*/
+ * Someone willing to do it criptically could do the following instead:
+ *
+ * return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+ *
+ * Based on the assumptions that the axis flags are one after the other and start at 1
+ */
 }

@@ -815,8 +815,8 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count)
 }
 
 /* get a single point in space by averaging a point cloud (vectors of size 3)
-coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
-*/
+ * coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
+ */
 static void getSingleCoordinate(MVert *points, int count, float coord[3])
 {
 	int i;
@@ -828,9 +828,9 @@ static void getSingleCoordinate(MVert *points, int count, float coord[3])
 }
 
 /* given a plane and a start and end position,
-compute the amount of vertical distance relative to the plane and store it in dists,
-then get the horizontal and vertical change and store them in changes
-*/
+ * compute the amount of vertical distance relative to the plane and store it in dists,
+ * then get the horizontal and vertical change and store them in changes
+ */
 static void getVerticalAndHorizontalChange(const float norm[3], float d, const float coord[3],
                                            const float start[3], float distToStart,
                                            float *end, float (*changes)[2], float *dists, int index)
@@ -865,21 +865,21 @@ static void dm_deform_clear(DerivedMesh *dm, Object *ob)
 	}
 }
 
-// recalculate the deformation
+/* recalculate the deformation */
 static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob)
 {
 	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 }
 
 /* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to
-distToBe distance away from the provided plane strength can change distToBe so that it moves
-towards distToBe by that percentage cp changes how much the weights are adjusted
-to check the distance
-
-index is the index of the vertex being moved
-norm and d are the plane's properties for the equation: ax + by + cz + d = 0
-coord is a point on the plane
-*/
+ * distToBe distance away from the provided plane strength can change distToBe so that it moves
+ * towards distToBe by that percentage cp changes how much the weights are adjusted
+ * to check the distance
+ *
+ * index is the index of the vertex being moved
+ * norm and d are the plane's properties for the equation: ax + by + cz + d = 0
+ * coord is a point on the plane
+ */
 static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float norm[3],
                                           float coord[3], float d, float distToBe, float strength, float cp)
 {
@@ -1049,7 +1049,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 }
 
 /* this is used to try to smooth a surface by only adjusting the nonzero weights of a vertex 
-but it could be used to raise or lower an existing 'bump.' */
+ * but it could be used to raise or lower an existing 'bump.' */
 static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength, float cp)
 {
 	int i;
@@ -2115,8 +2115,8 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 
 	/* flags */
 	/* redo operator will fail in this case because vertex groups aren't stored
-	   in local edit mode stack and toggling "all" property will lead to
-	   all groups deleted without way to restore them (see [#29527], sergey) */
+	 * in local edit mode stack and toggling "all" property will lead to
+	 * all groups deleted without way to restore them (see [#29527], sergey) */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
@@ -2150,8 +2150,8 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 
 	/* flags */
 	/* redo operator will fail in this case because vertex group assignment
-	   isn't stored in local edit mode stack and toggling "new" property will
-	   lead to creating plenty of new veretx groups (see [#29527], sergey) */
+	 * isn't stored in local edit mode stack and toggling "new" property will
+	 * lead to creating plenty of new veretx groups (see [#29527], sergey) */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
@@ -2192,8 +2192,8 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 
 	/* flags */
 	/* redo operator will fail in this case because vertex groups ssignment
-	   isn't stored in local edit mode stack and toggling "all" property will lead to
-	   removing vertices from all groups (see [#29527], sergey) */
+	 * isn't stored in local edit mode stack and toggling "all" property will lead to
+	 * removing vertices from all groups (see [#29527], sergey) */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
@@ -2733,8 +2733,8 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-/*creates the name_array parameter for vgroup_do_remap, call this before fiddling
-  with the order of vgroups then call vgroup_do_remap after*/
+/* creates the name_array parameter for vgroup_do_remap, call this before fiddling
+ * with the order of vgroups then call vgroup_do_remap after*/
 static char *vgroup_init_remap(Object *ob)
 {
 	bDeformGroup *def;

@@ -119,7 +119,7 @@ static Object *edit_object_property_get(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "object", ob_name);
 
 	/* if ob_name is valid try to find the object with this name
-	otherwise gets the active object */
+	 * otherwise gets the active object */
 	if (BLI_strnlen(ob_name, MAX_NAME) > 0)
 		ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
 	else
@@ -406,8 +406,8 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 
 	make_unique_prop_names(C, cont->name);
 	/* set the controller state mask from the current object state.
-	 A controller is always in a single state, so select the lowest bit set
-	 from the object state */
+	 * A controller is always in a single state, so select the lowest bit set
+	 * from the object state */
 	for (bit=0; bit<OB_MAX_STATES; bit++) {
 		if (ob->state & (1<<bit))
 			break;

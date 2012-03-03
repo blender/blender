@@ -95,13 +95,12 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	index = CustomData_get_layer_index(data, type);
 
 	/* ok, deleting a non-active layer needs to preserve the active layer indices.
-	  to do this, we store a pointer to the .data member of both layer and the active layer,
-	  (to detect if we're deleting the active layer or not), then use the active
-	  layer data pointer to find where the active layer has ended up.
-
-	  
-	  this is necessary because the deletion functions only support deleting the active
-	  layer. */
+	 * to do this, we store a pointer to the .data member of both layer and the active layer,
+	 * (to detect if we're deleting the active layer or not), then use the active
+	 * layer data pointer to find where the active layer has ended up.
+	 *
+	 * this is necessary because the deletion functions only support deleting the active
+	 * layer. */
 	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
 	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;
 	clonelayerdata = data->layers[CustomData_get_clone_layer_index(data, type)].data;
@@ -691,8 +690,11 @@ static int sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
-	/*if(me->msticky)
-		return OPERATOR_CANCELLED;*/
+	/* why is this commented out? */
+#if 0
+	if(me->msticky)
+		return OPERATOR_CANCELLED;
+#endif
 
 	RE_make_sticky(scene, v3d);
 
@@ -772,7 +774,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
-	   contain the normal of the poly the face was tesselated from. */
+	 * contain the normal of the poly the face was tesselated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
 	mesh_calc_normals_mapping(
@@ -987,7 +989,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
-/*
+#if 0
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
 	if(mesh->edit_btmesh) {
@@ -1002,7 +1004,7 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 	if(faces)
 		mesh_add_faces(mesh, faces);
 }
-*/
+#endif
 
 void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
 {

@@ -817,7 +817,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			return AGRP_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -905,7 +905,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return FCURVE_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -2450,7 +2450,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */

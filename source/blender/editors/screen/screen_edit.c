@@ -524,8 +524,8 @@ int area_getorientation(ScrArea *sa, ScrArea *sb)
 }
 
 /* Helper function to join 2 areas, it has a return value, 0=failed 1=success
-* 	used by the split, join operators
-*/
+ * 	used by the split, join operators
+ */
 int screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2) 
 {
 	int dir;
@@ -1401,8 +1401,8 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 	
 		
 	/* screen can only be in use by one window at a time, so as
-	   long as we are able to find a screen that is unused, we
-	   can safely assume ours is not in use anywhere an delete it */
+	 * long as we are able to find a screen that is unused, we
+	 * can safely assume ours is not in use anywhere an delete it */
 
 	for(newsc= sc->id.prev; newsc; newsc=newsc->id.prev)
 		if(!ed_screen_used(wm, newsc))
@@ -1600,8 +1600,8 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 
 	if(sa) {
 		/* ensure we don't have a button active anymore, can crash when
-		   switching screens with tooltip open because region and tooltip
-		   are no longer in the same screen */
+		 * switching screens with tooltip open because region and tooltip
+		 * are no longer in the same screen */
 		for(ar=sa->regionbase.first; ar; ar=ar->next)
 			uiFreeBlocks(C, &ar->uiblocks);
 		
@@ -1651,10 +1651,11 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		oldscreen= win->screen;
 
 		/* nothing wrong with having only 1 area, as far as I can see...
-		// is there only 1 area?
+		 * is there only 1 area? */
+#if 0
 		if(oldscreen->areabase.first==oldscreen->areabase.last)
 			return NULL;
-		*/
+#endif
 
 		oldscreen->full = SCREENFULL;
 		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "full");
@@ -1670,7 +1671,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		ED_area_newspace(C, newa, SPACE_INFO);
 
 		/* use random area when we have no active one, e.g. when the
-		   mouse is outside of the window and we open a file browser */
+		 * mouse is outside of the window and we open a file browser */
 		if(!sa)
 			sa= oldscreen->areabase.first;
 

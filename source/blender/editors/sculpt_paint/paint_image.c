@@ -478,9 +478,9 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 
 		if(ima && ibuf && strcmp(tile->ibufname, ibuf->name)!=0) {
 			/* current ImBuf filename was changed, probably current frame
-			   was changed when paiting on image sequence, rather than storing
-			   full image user (which isn't so obvious, btw) try to find ImBuf with
-			   matched file name in list of already loaded images */
+			 * was changed when paiting on image sequence, rather than storing
+			 * full image user (which isn't so obvious, btw) try to find ImBuf with
+			 * matched file name in list of already loaded images */
 
 			ibuf= BLI_findstring(&ima->ibufs, tile->ibufname, offsetof(ImBuf, name));
 		}
@@ -810,7 +810,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
  *  0	: no occlusion
  * -1	: no occlusion but 2D intersection is true (avoid testing the other half of a quad)
  *  1	: occluded
-	2	: occluded with w[3] weights set (need to know in some cases) */
+ *  2	: occluded with w[3] weights set (need to know in some cases) */
 
 static int project_paint_occlude_ptv(float pt[3], float v1[4], float v2[4], float v3[4], float w[3], int is_ortho)
 {
@@ -1810,10 +1810,11 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	/* Would normally to a simple intersection test, however we know the bounds of these 2 already intersect 
 	 * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
 	 * this is even less work then an intersection test
-	 * 
+	 */
+#if 0
 	if (BLI_in_rctf(bucket_bounds, cent[0], cent[1]))
 		return 1;
-	 */
+#endif
 	
 	if ( (bucket_bounds->xmin <= cent[0] && bucket_bounds->xmax >= cent[0]) ||
 	     (bucket_bounds->ymin <= cent[1] && bucket_bounds->ymax >= cent[1]) )
@@ -2199,51 +2200,51 @@ static void project_bucket_clip_face(
 #endif
 }
 
-	/*
-# This script creates faces in a blender scene from printed data above.
-
-project_ls = [
-...(output from above block)...
-]
- 
-from Blender import Scene, Mesh, Window, sys, Mathutils
-
-import bpy
-
-V = Mathutils.Vector
-
-def main():
-	sce = bpy.data.scenes.active
-	
-	for item in project_ls:
-		bb = item[0]
-		uv = item[1]
-		poly = item[2]
-		
-		me = bpy.data.meshes.new()
-		ob = sce.objects.new(me)
-		
-		me.verts.extend([V(bb[0]).resize3D(), V(bb[1]).resize3D(), V(bb[2]).resize3D(), V(bb[3]).resize3D()])
-		me.faces.extend([(0,1,2,3),])
-		me.verts.extend([V(uv[0]).resize3D(), V(uv[1]).resize3D(), V(uv[2]).resize3D()])
-		me.faces.extend([(4,5,6),])
-		
-		vs = [V(p).resize3D() for p in poly]
-		print len(vs)
-		l = len(me.verts)
-		me.verts.extend(vs)
-		
-		i = l
-		while i < len(me.verts):
-			ii = i+1
-			if ii==len(me.verts):
-				ii = l
-			me.edges.extend([i, ii])
-			i+=1
-
-if __name__ == '__main__':
-	main()
- */	
+/*
+ * # This script creates faces in a blender scene from printed data above.
+ *
+ * project_ls = [
+ * ...(output from above block)...
+ * ]
+ *
+ * from Blender import Scene, Mesh, Window, sys, Mathutils
+ *
+ * import bpy
+ *
+ * V = Mathutils.Vector
+ *
+ * def main():
+ *     sce = bpy.data.scenes.active
+ *     
+ *     for item in project_ls:
+ *         bb = item[0]
+ *         uv = item[1]
+ *         poly = item[2]
+ *         
+ *         me = bpy.data.meshes.new()
+ *         ob = sce.objects.new(me)
+ *         
+ *         me.verts.extend([V(bb[0]).xyz, V(bb[1]).xyz, V(bb[2]).xyz, V(bb[3]).xyz])
+ *         me.faces.extend([(0,1,2,3),])
+ *         me.verts.extend([V(uv[0]).xyz, V(uv[1]).xyz, V(uv[2]).xyz])
+ *         me.faces.extend([(4,5,6),])
+ *         
+ *         vs = [V(p).xyz for p in poly]
+ *         print len(vs)
+ *         l = len(me.verts)
+ *         me.verts.extend(vs)
+ *         
+ *         i = l
+ *         while i < len(me.verts):
+ *             ii = i+1
+ *             if ii==len(me.verts):
+ *                 ii = l
+ *             me.edges.extend([i, ii])
+ *             i+=1
+ * 
+ * if __name__ == '__main__':
+ *     main()
+ */
 
 
 #undef ISECT_1
@@ -2341,12 +2342,12 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	yhalfpx = (0.5f+   (PROJ_GEOM_TOLERANCE/4.0f)   ) / ibuf_yf;
 	
 	/* Note about (PROJ_GEOM_TOLERANCE/x) above...
-	  Needed to add this offset since UV coords are often quads aligned to pixels.
-	  In this case pixels can be exactly between 2 triangles causing nasty
-	  artifacts.
-	  
-	  This workaround can be removed and painting will still work on most cases
-	  but since the first thing most people try is painting onto a quad- better make it work.
+	 * Needed to add this offset since UV coords are often quads aligned to pixels.
+	 * In this case pixels can be exactly between 2 triangles causing nasty
+	 * artifacts.
+	 * 
+	 * This workaround can be removed and painting will still work on most cases
+	 * but since the first thing most people try is painting onto a quad- better make it work.
 	 */
 
 
@@ -2396,11 +2397,11 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 		);
 
 		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
-		/*
+#if 0
 		if (uv_clip_tot>6) {
 			printf("this should never happen! %d\n", uv_clip_tot);
-		}*/
-		
+		}
+#endif
 
 		if (pixel_bounds_array(uv_clip, &bounds_px, ibuf->x, ibuf->y, uv_clip_tot)) {
 
@@ -2602,10 +2603,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										 * getting the screen_px_from_*** wont work because our actual location
 										 * is not relevent, since we are outside the face, Use VecLerpf to find
 										 * our location on the side of the face's UV */
-										/*
+#if 0
 										if (is_ortho)	screen_px_from_ortho(ps, uv, v1co, v2co, v3co, uv1co, uv2co, uv3co, pixelScreenCo);
 										else					screen_px_from_persp(ps, uv, v1co, v2co, v3co, uv1co, uv2co, uv3co, pixelScreenCo);
-										*/
+#endif
 										
 										/* Since this is a seam we need to work out where on the line this pixel is */
 										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
@@ -3022,11 +3023,11 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm_mvert= MEM_dupallocN(ps->dm_mvert);
 		ps->dm_mface= MEM_dupallocN(ps->dm_mface);
 		/* looks like these are ok for now.*/
-		/*
+#if 0
 		ps->dm_mtface= MEM_dupallocN(ps->dm_mtface);
 		ps->dm_mtface_clone= MEM_dupallocN(ps->dm_mtface_clone);
 		ps->dm_mtface_stencil= MEM_dupallocN(ps->dm_mtface_stencil);
-		 */
+#endif
 	}
 	
 	ps->viewDir[0] = 0.0f;
@@ -3509,11 +3510,11 @@ static void project_paint_end(ProjPaintState *ps)
 		if(ps->dm_mvert) MEM_freeN(ps->dm_mvert);
 		if(ps->dm_mface) MEM_freeN(ps->dm_mface);
 		/* looks like these dont need copying */
-		/*
+#if 0
 		if(ps->dm_mtface) MEM_freeN(ps->dm_mtface);
 		if(ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
 		if(ps->dm_mtface_stencil) MEM_freeN(ps->dm_mtface_stencil);
-		*/
+#endif
 	}
 
 	if(ps->dm_release)
@@ -3678,8 +3679,8 @@ typedef struct ProjectHandle {
 static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
-	   are not equivalent (>>8 is /256), and the former results in rounding
-	   errors that can turn colors black fast after repeated blending */
+	 * are not equivalent (>>8 is /256), and the former results in rounding
+	 * errors that can turn colors black fast after repeated blending */
 	const int mfac= 255-fac;
 
 	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
@@ -3700,8 +3701,8 @@ static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2,
 static void blend_color_mix_accum(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
-	   are not equivalent (>>8 is /256), and the former results in rounding
-	   errors that can turn colors black fast after repeated blending */
+	 * are not equivalent (>>8 is /256), and the former results in rounding
+	 * errors that can turn colors black fast after repeated blending */
 	const int mfac= 255-fac;
 	const int alpha= cp1[3] + ((fac * cp2[3]) / 255);
 
@@ -4312,7 +4313,7 @@ static int imapaint_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, 
 	if (srcy < 0) srcy += sbuf->y;
 
 	/* clip width of blending area to destination imbuf, to avoid writing the
-	   same pixel twice */
+	 * same pixel twice */
 	origw = w = (width > dbuf->x)? dbuf->x: width;
 	origh = h = (height > dbuf->y)? dbuf->y: height;
 
@@ -4348,7 +4349,7 @@ static void imapaint_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 {
 	/* note: allocImbuf returns zero'd memory, so regions outside image will
-	   have zero alpha, and hence not be blended onto the image */
+	 * have zero alpha, and hence not be blended onto the image */
 	int w=ibufb->x, h=ibufb->y, destx=0, desty=0, srcx=pos[0], srcy=pos[1];
 	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);
 
@@ -4816,7 +4817,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	op->customdata= pop;
 	
 	/* XXX: Soften tool does not support projection painting atm, so just disable
-	        projection for this brush */
+	 *      projection for this brush */
 	if(brush->imagepaint_tool == PAINT_TOOL_SOFTEN) {
 		settings->imapaint.flag |= IMAGEPAINT_PROJECT_DISABLE;
 		pop->restore_projection = 1;
@@ -5032,13 +5033,13 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		pop->starttime= time;
 
 		/* special exception here for too high pressure values on first touch in
-		   windows for some tablets, then we just skip first touch ..  */
+		 * windows for some tablets, then we just skip first touch ..  */
 		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 
 		/* This can be removed once fixed properly in
-		 brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
-		 at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
+		 * brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
+		 * at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available */
 		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 	
@@ -5220,10 +5221,10 @@ static void toggle_paint_cursor(bContext *C, int enable)
 }
 
 /* enable the paint cursor if it isn't already.
-
-   purpose is to make sure the paint cursor is shown if paint
-   mode is enabled in the image editor. the paint poll will
-   ensure that the cursor is hidden when not in paint mode */
+ *
+ * purpose is to make sure the paint cursor is shown if paint
+ * mode is enabled in the image editor. the paint poll will
+ * ensure that the cursor is hidden when not in paint mode */
 void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 {
 	ImagePaintSettings *imapaint = &settings->imapaint;

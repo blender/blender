@@ -1514,7 +1514,7 @@ void ui_set_but_val(uiBut *but, double value)
 			/* gcc 3.2.1 seems to have problems 
 			 * casting a double like 32772.0 to
 			 * a short so we cast to an int, then 
-			 to a short */
+			 * to a short */
 			int gcckludge;
 			gcckludge = (int) floor(value+0.5);
 			value= (short)gcckludge;
@@ -2515,13 +2515,13 @@ void ui_block_do_align(uiBlock *block)
 	}
 }
 
-/*
- * ui_def_but is the function that draws many button types
-
+/**
+ * \brief ui_def_but is the function that draws many button types
+ *
  * for float buttons:
- *   "a1" Click Step (how much to change the value each click)
- *   "a2" Number of decimal point values to display. 0 defaults to 3 (0.000)
- *        1,2,3, and a maximum of 4, all greater values will be clamped to 4.
+ * - \a a1 Click Step (how much to change the value each click)
+ * - \a a2 Number of decimal point values to display. 0 defaults to 3 (0.000)
+ *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
 {

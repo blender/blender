@@ -110,7 +110,7 @@ void glaRasterPosSafe2f		(float x, float y, float known_good_x, float known_good
 	 * coordinates for would be clipped. The routine respects the
 	 * glPixelZoom values, pixel unpacking parameters are _not_ 
 	 * respected.
-
+	 *
 	 * \attention This routine makes many assumptions: the rect data
 	 * is expected to be in RGBA unsigned byte format, the coordinate
 	 * (0.375, 0.375) is assumed to be within the view frustum, and the 
@@ -131,7 +131,7 @@ void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int 
 	 * cards, and also avoids problems with the raster position being
 	 * clipped when offscreen. The routine respects the glPixelZoom values, 
 	 * pixel unpacking parameters are _not_ respected.
-
+	 *
 	 * \attention This routine makes many assumptions: the rect data
 	 * is expected to be in RGBA byte or float format, and the 
 	 * modelview and projection matrices are assumed to define a 

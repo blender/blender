@@ -249,7 +249,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	/* gatheravailable texture users in context. runs on every draw of
-	   properties editor, before the buttons are created. */
+	 * properties editor, before the buttons are created. */
 	ButsContextTexture *ct= sbuts->texuser;
 	Scene *scene= CTX_data_scene(C);
 
@@ -295,7 +295,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 			ButsTextureUser *user;
 
 			/* detect change of active texture node in same node tree, in that
-			   case we also automatically switch to the other node */
+			 * case we also automatically switch to the other node */
 			for(user=ct->users.first; user; user=user->next) {
 				if(user->ntree == ct->user->ntree && user->node != ct->user->node) {
 					if(user->node->flag & NODE_ACTIVE_TEXTURE) {
@@ -371,8 +371,8 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 {
 	/* texture user selection dropdown menu. the available users have been
-	   gathered before drawing in ButsContextTexture, we merely need to
-	   display the current item. */
+	 * gathered before drawing in ButsContextTexture, we merely need to
+	 * display the current item. */
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
 	ButsContextTexture *ct= (sbuts)? sbuts->texuser: NULL;
 	uiBlock *block = uiLayoutGetBlock(layout);

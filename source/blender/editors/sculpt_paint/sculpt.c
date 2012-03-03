@@ -101,7 +101,7 @@ void ED_sculpt_force_update(bContext *C)
 }
 
 /* Sculpt mode handles multires differently from regular meshes, but only if
-   it's the last modifier on the stack and it is not on the first level */
+ * it's the last modifier on the stack and it is not on the first level */
 struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 {
 	Mesh *me= (Mesh*)ob->data;
@@ -178,10 +178,10 @@ typedef enum StrokeFlags {
 } StrokeFlags;
 
 /* Cache stroke properties. Used because
-   RNA property lookup isn't particularly fast.
-
-   For descriptions of these settings, check the operator properties.
-*/
+ * RNA property lookup isn't particularly fast.
+ *
+ * For descriptions of these settings, check the operator properties.
+ */
 typedef struct StrokeCache {
 	/* Invariants */
 	float initial_radius;
@@ -222,7 +222,7 @@ typedef struct StrokeCache {
 	float old_grab_location[3], orig_grab_location[3];
 
 	int symmetry; /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
-		1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
+	               * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
 	int mirror_symmetry_pass; /* the symmetry pass we are currently on between 0 and 7*/
 	float true_view_normal[3];
 	float view_normal[3];
@@ -270,11 +270,11 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	}
 
 	/* expand redraw rect with redraw rect from previous step to
-	   prevent partial-redraw issues caused by fast strokes. This is
-	   needed here (not in sculpt_flush_update) as it was before
-	   because redraw rectangle should be the same in both of
-	   optimized PBVH draw function and 3d view redraw (if not -- some
-	   mesh parts could disapper from screen (sergey) */
+	 * prevent partial-redraw issues caused by fast strokes. This is
+	 * needed here (not in sculpt_flush_update) as it was before
+	 * because redraw rectangle should be the same in both of
+	 * optimized PBVH draw function and 3d view redraw (if not -- some
+	 * mesh parts could disapper from screen (sergey) */
 	ss = ob->sculpt;
 	if(ss->cache) {
 		if(!BLI_rcti_is_empty(&ss->cache->previous_r))
@@ -539,8 +539,8 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache* cache)
 }
 
 /* Return modified brush strength. Includes the direction of the brush, positive
-   values pull vertices, negative values push. Uses tablet pressure and a
-   special multiplier found experimentally to scale the strength factor. */
+ * values pull vertices, negative values push. Uses tablet pressure and a
+ * special multiplier found experimentally to scale the strength factor. */
 static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 {
 	const Scene *scene = cache->vc->scene;
@@ -555,7 +555,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
 	/* spacing is integer percentage of radius, divide by 50 to get
-	   normalized diameter */
+	 * normalized diameter */
 	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN &&
 						  brush->flag & BRUSH_SPACE &&
 						  !(brush->flag & BRUSH_ANCHORED) &&
@@ -642,7 +642,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		float jnk;
 
 		/* Get strength by feeding the vertex 
-		   location directly into a texture */
+		 * location directly into a texture */
 		externtex(mtex, point, &avg,
 			  &jnk, &jnk, &jnk, &jnk, 0);
 	}
@@ -653,9 +653,9 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		float radius;
 
 		/* if the active area is being applied for symmetry, flip it
-		   across the symmetry axis and rotate it back to the orignal
-		   position in order to project it. This insures that the 
-		   brush texture will be oriented correctly. */
+		 * across the symmetry axis and rotate it back to the orignal
+		 * position in order to project it. This insures that the 
+		 * brush texture will be oriented correctly. */
 
 		flip_coord(symm_point, point, ss->cache->mirror_symmetry_pass);
 
@@ -677,8 +677,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 			x = point_2d[0] + ss->cache->vc->ar->winrct.xmin;
 			y = point_2d[1] + ss->cache->vc->ar->winrct.ymin;
 		}
-		else /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED),
-		        leave the coordinates relative to the screen */
+		else /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) */
+			 /* leave the coordinates relative to the screen */
 		{
 			radius = brush_size(ss->cache->vc->scene, br); // use unadjusted size for tiled mode
 		
@@ -698,8 +698,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		y *= ss->cache->vc->ar->winy / radius;
 
 		/* it is probably worth optimizing for those cases where 
-		   the texture is not rotated by skipping the calls to
-		   atan2, sqrtf, sin, and cos. */
+		 * the texture is not rotated by skipping the calls to
+		 * atan2, sqrtf, sin, and cos. */
 		if (rotation > 0.001f || rotation < -0.001f) {
 			const float angle    = atan2f(y, x) + rotation;
 			const float flen     = sqrtf(x*x + y*y);
@@ -850,7 +850,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 }
 
 /* This initializes the faces to be moved for this sculpt for draw/layer/flatten; then it
- finds average normal for all active vertices - note that this is called once for each mirroring direction */
+ * finds average normal for all active vertices - note that this is called once for each mirroring direction */
 static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
@@ -900,8 +900,8 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
 }
 
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
-   a smoothed location for vert. Skips corner vertices (used by only one
-   polygon.) */
+ * a smoothed location for vert. Skips corner vertices (used by only one
+ * polygon.) */
 static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 {
 	const int ncount = BLI_countlist(&ss->pmap[vert]);
@@ -1677,7 +1677,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 }
 
 /* this calculates flatten center and area normal together, 
-amortizing the memory bandwidth and loop overhead to calculate both at the same time */
+ * amortizing the memory bandwidth and loop overhead to calculate both at the same time */
 static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 												PBVHNode **nodes, int totnode,
 												float an[3], float fc[3])
@@ -2471,7 +2471,7 @@ static void sculpt_update_keyblock(Object *ob)
 	float (*vertCos)[3];
 
 	/* Keyblock update happens after hadning deformation caused by modifiers,
-	   so ss->orig_cos would be updated with new stroke */
+	 * so ss->orig_cos would be updated with new stroke */
 	if(ss->orig_cos) vertCos = ss->orig_cos;
 	else vertCos = BLI_pbvh_get_vertCos(ss->pbvh);
 
@@ -2491,7 +2491,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 
 	if(ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
 		/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
-		   propagate needed deformation to original base */
+		 * propagate needed deformation to original base */
 
 		int n, totnode;
 		Mesh *me= (Mesh*)ob->data;
@@ -2526,8 +2526,8 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		MEM_freeN(nodes);
 
 		/* Modifiers could depend on mesh normals, so we should update them/
-		   Note, then if sculpting happens on locked key, normals should be re-calculated
-		   after applying coords from keyblock on base mesh */
+		 * Note, then if sculpting happens on locked key, normals should be re-calculated
+		 * after applying coords from keyblock on base mesh */
 		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 	} else if (ss->kb)
 		sculpt_update_keyblock(ob);
@@ -2551,7 +2551,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 //}
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
-   calculate multiple modifications to the mesh when symmetry is enabled. */
+ * calculate multiple modifications to the mesh when symmetry is enabled. */
 static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 								const char axis, const float angle,
 								const float UNUSED(feather))
@@ -2602,8 +2602,8 @@ static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush,
 }
 
 /* noise texture gives different values for the same input coord; this
-   can tear a multires mesh during sculpting so do a stitch in this
-   case */
+ * can tear a multires mesh during sculpting so do a stitch in this
+ * case */
 static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
@@ -2789,8 +2789,9 @@ static const char *sculpt_tool_name(Sculpt *sd)
 	}
 }
 
-/**** Operator for applying a stroke (various attributes including mouse path)
-	  using the current brush. ****/
+/**
+ * Operator for applying a stroke (various attributes including mouse path)
+ * using the current brush. */
 
 static void sculpt_cache_free(StrokeCache *cache)
 {
@@ -2867,7 +2868,7 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
 
 	/* not very nice, but with current events system implementation
-	   we can't handle brush appearance inversion hotkey separately (sergey) */
+	 * we can't handle brush appearance inversion hotkey separately (sergey) */
 	if(cache->invert) brush->flag |= BRUSH_INVERTED;
 	else brush->flag &= ~BRUSH_INVERTED;
 
@@ -3040,10 +3041,10 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	RNA_float_get_array(ptr, "mouse", cache->mouse);
 
 	/* XXX: Use preassure value from first brush step for brushes which don't
-	        support strokes (grab, thumb). They depends on initial state and
-	        brush coord/pressure/etc.
-	        It's more an events design issue, which doesn't split coordinate/pressure/angle
-	        changing events. We should avoid this after events system re-design */
+	 *      support strokes (grab, thumb). They depends on initial state and
+	 *      brush coord/pressure/etc.
+	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
+	 *      changing events. We should avoid this after events system re-design */
 	if(paint_space_stroke_enabled(brush) || cache->first_time)
 		cache->pressure = RNA_float_get(ptr, "pressure");
 
@@ -3203,8 +3204,8 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
 }
 
 /* Do a raycast in the tree to find the 3d brush location
-   (This allows us to ignore the GL depth buffer)
-   Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
+ * (This allows us to ignore the GL depth buffer)
+ * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
 int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2])
 {
@@ -3263,8 +3264,8 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 		ntreeTexBeginExecTree(mtex->tex->nodetree, 1); /* has internal flag to detect it only does it once */
 
 	/* TODO: Shouldn't really have to do this at the start of every
-	   stroke, but sculpt would need some sort of notification when
-	   changes are made to the texture. */
+	 * stroke, but sculpt would need some sort of notification when
+	 * changes are made to the texture. */
 	sculpt_update_tex(scene, sd, ss);
 }
 
@@ -3375,7 +3376,7 @@ static void sculpt_flush_update(bContext *C)
 }
 
 /* Returns whether the mouse/stylus is over the mesh (1)
-   or over the background (0) */
+ * or over the background (0) */
 static int over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float y)
 {
 	float mouse[2], co[3];
@@ -3404,9 +3405,9 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 
 #ifdef _OPENMP
 		/* If using OpenMP then create a number of threads two times the
-		   number of processor cores.
-		   Justification: Empirically I've found that two threads per
-		   processor gives higher throughput. */
+		 * number of processor cores.
+		 * Justification: Empirically I've found that two threads per
+		 * processor gives higher throughput. */
 		if (sd->flags & SCULPT_USE_OPENMP) {
 			int num_procs;
 

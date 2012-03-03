@@ -186,7 +186,7 @@ static int *get_indexarray(Mesh *me)
 
 
 /* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
-   so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
+ * so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
 
 static unsigned int rgba_to_mcol(float r, float g, float b, float a)
 {
@@ -573,8 +573,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	DAG_id_tag_update(&me->id, 0);
 }
 
-/* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator
-
+/* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator */
+#if 0
 void vpaint_dogamma(Scene *scene)
 {
 	VPaint *vp= scene->toolsettings->vpaint;
@@ -614,7 +614,7 @@ void vpaint_dogamma(Scene *scene)
 		cp+= 4;
 	}
 }
- */
+#endif
 
 BM_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 {
@@ -725,7 +725,7 @@ BM_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fa
 	cp=  (char *)&col;
 	
 	/* See if are lighter, if so mix, else dont do anything.
-	if the paint col is darker then the original, then ignore */
+	 * if the paint col is darker then the original, then ignore */
 	if (cp1[1]+cp1[2]+cp1[3] > cp2[1]+cp2[2]+cp2[3])
 		return col1;
 	
@@ -753,7 +753,7 @@ BM_INLINE unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac
 	cp=  (char *)&col;
 	
 	/* See if were darker, if so mix, else dont do anything.
-	if the paint col is brighter then the original, then ignore */
+	 * if the paint col is brighter then the original, then ignore */
 	if (cp1[1]+cp1[2]+cp1[3] < cp2[1]+cp2[2]+cp2[3])
 		return col1;
 	
@@ -826,7 +826,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	int a, tot=0, index;
 	
 	/* brecht: disabled this because it obviously failes for
-	   brushes with size > 64, why is this here? */
+	 * brushes with size > 64, why is this here? */
 	/*if(size>64.0) size= 64.0;*/
 	
 	ibuf= view3d_read_backbuf(vc, x-size, y-size, x+size, y+size);
@@ -1302,8 +1302,8 @@ static void do_weight_paint_normalize_all_active(MDeformVert *dvert, const int d
 }
 
 /*
-See if the current deform vertex has a locked group
-*/
+ * See if the current deform vertex has a locked group
+ */
 static char has_locked_group(MDeformVert *dvert, const int defbase_tot,
                              const char *bone_groups, const char *lock_flags)
 {
@@ -1993,10 +1993,10 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 	
 	
 	/* Weightpaint works by overriding colors in mesh,
-		* so need to make sure we recalc on enter and
-		* exit (exit needs doing regardless because we
-				* should redeform).
-		*/
+	 * so need to make sure we recalc on enter and
+	 * exit (exit needs doing regardless because we
+	 * should redeform).
+	 */
 	DAG_id_tag_update(&me->id, 0);
 	
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -2605,23 +2605,22 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 /* ********************** vertex paint operator ******************* */
 
 /* Implementation notes:
-
-Operator->invoke()
-  - validate context (add mcol)
-  - create customdata storage
-  - call paint once (mouse click)
-  - add modal handler 
-
-Operator->modal()
-  - for every mousemove, apply vertex paint
-  - exit on mouse release, free customdata
-	(return OPERATOR_FINISHED also removes handler and operator)
-
-For future:
-  - implement a stroke event (or mousemove with past positons)
-  - revise whether op->customdata should be added in object, in set_vpaint
-
-*/
+ *
+ * Operator->invoke()
+ * - validate context (add mcol)
+ * - create customdata storage
+ * - call paint once (mouse click)
+ * - add modal handler 
+ *
+ * Operator->modal()
+ * - for every mousemove, apply vertex paint
+ * - exit on mouse release, free customdata
+ *   (return OPERATOR_FINISHED also removes handler and operator)
+ *
+ * For future:
+ * - implement a stroke event (or mousemove with past positons)
+ * - revise whether op->customdata should be added in object, in set_vpaint
+ */
 
 typedef struct polyfacemap_e {
 	struct polyfacemap_e *next, *prev;

@@ -835,9 +835,9 @@ typedef struct TexMatCallback {
 static void tex_mat_set_material_cb(void *UNUSED(userData), int mat_nr, void *attribs)
 {
 	/* all we have to do here is simply enable the GLSL material, but note
-	   that the GLSL code will give different result depending on the drawtype,
-	   in texture draw mode it will output the active texture node, in material
-	   draw mode it will show the full material. */
+	 * that the GLSL code will give different result depending on the drawtype,
+	 * in texture draw mode it will output the active texture node, in material
+	 * draw mode it will show the full material. */
 	GPU_enable_material(mat_nr, attribs);
 }
 

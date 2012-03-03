@@ -1057,7 +1057,7 @@ static void spotvolume(float lvec[3], float vvec[3], const float inp)
 		plane[1]= 1.0f;
 
 	/* now we've got two equations: one of a cone and one of a plane, but we have
-	three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
+	 * three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
 
 	/* rotate around cross product vector of (0,0,1) and plane normal, dot product degrees */
 	/* according definition, we derive cross product is (plane[1],-plane[0],0), en cos = plane[2]);*/
@@ -1339,8 +1339,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		if (la->type==LA_SPOT) {
 			float spotblcirc = fabs(z)*(1 - pow(la->spotblend, 2));
 			/* hide line if it is zero size or overlaps with outer border,
-			   previously it adjusted to always to show it but that seems
-			   confusing because it doesn't show the actual blend size */
+			 * previously it adjusted to always to show it but that seems
+			 * confusing because it doesn't show the actual blend size */
 			if (spotblcirc != 0 && spotblcirc != fabsf(z))
 				circ(0.0, 0.0, spotblcirc);
 		}
@@ -1543,8 +1543,8 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
 		/* current ogl matrix is translated in camera space, bundles should
-		   be rendered in world space, so camera matrix should be "removed"
-		   from current ogl matrix */
+		 * be rendered in world space, so camera matrix should be "removed"
+		 * from current ogl matrix */
 		invert_m4_m4(imat, base->object->obmat);
 
 		glMultMatrixf(imat);
@@ -2819,7 +2819,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 	if (me->drawflag & ME_DRAWEXTRA_FACEAREA) {
 		/* would be nice to use BM_face_area_calc, but that is for 2d faces
-		so instead add up tessalation triangle areas */
+		 * so instead add up tessalation triangle areas */
 		BMFace *f;
 		int n;
 
@@ -2996,10 +2996,13 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	if (em->bm->selected.last) {
 		BMEditSelection *ese= em->bm->selected.last;
 		/* face is handeled above */
-		/*if (ese->type == BM_FACE ) {
+#if 0
+		if (ese->type == BM_FACE ) {
 			efa_act = (BMFace *)ese->data;
 		}
-		else */ if ( ese->htype == BM_EDGE ) {
+		else 
+#endif
+		if ( ese->htype == BM_EDGE ) {
 			eed_act = (BMEdge *)ese->ele;
 		}
 		else if ( ese->htype == BM_VERT ) {
@@ -3170,7 +3173,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 		glDepthMask(0);
 		
 		/* if transparent, we cannot draw the edges for solid select... edges have no material info.
-		   drawFacesSolid() doesn't draw the transparent faces */
+		 * drawFacesSolid() doesn't draw the transparent faces */
 		if (ob->dtx & OB_DRAWTRANSP) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
 			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
@@ -4597,13 +4600,15 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 			glEnable(GL_COLOR_MATERIAL);
 		}
-		/*else {
+#if 0
+		else {
 			glDisableClientState(GL_NORMAL_ARRAY);
 
 			glDisable(GL_COLOR_MATERIAL);
 			glDisable(GL_LIGHTING);
 			UI_ThemeColor(TH_WIRE);
-		}*/
+		}
+#endif
 
 		if (totchild && (part->draw&PART_DRAW_PARENT)==0)
 			totpart=0;
@@ -5479,8 +5484,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
-	/*	direction vectors for 3d curve paths
-		when at its lowest, dont render normals */
+	/* direction vectors for 3d curve paths
+	 * when at its lowest, dont render normals */
 	if (cu->flag & CU_3D && ts->normalsize > 0.0015f && (cu->drawflag & CU_HIDE_NORMALS)==0) {
 
 		UI_ThemeColor(TH_WIRE);
@@ -6766,7 +6771,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		// draw collision objects
 		if ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
 		{
-			/*SmokeCollSettings *scs = smd->coll;
+#if 0
+			SmokeCollSettings *scs = smd->coll;
 			if (scs->points)
 			{
 				size_t i;
@@ -6795,7 +6801,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if (col) cpack(col);
 				
 			}
-			*/
+#endif
 		}
 
 		// only draw domains
@@ -7014,8 +7020,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				
 				if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
 					/* special case for object solver and follow track constraints because they don't fill
-					   constraint targets properly (design limitation -- scene is needed for their target
-					   but it can't be accessed from get_targets callvack) */
+					 * constraint targets properly (design limitation -- scene is needed for their target
+					 * but it can't be accessed from get_targets callvack) */
 
 					Object *camob= NULL;
 

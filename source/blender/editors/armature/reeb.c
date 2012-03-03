@@ -3479,9 +3479,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 	
 	MEM_freeN(data);
 
-	/*no need to load the editmesh back into the object, just
-	  free it (avoids ngon conversion issues too going back the
-	           other way)*/
+	/* no need to load the editmesh back into the object, just
+	 * free it (avoids ngon conversion issues too going back the other way) */
 	free_editMesh(em);
 	MEM_freeN(em);
 	

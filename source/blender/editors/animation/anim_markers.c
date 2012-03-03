@@ -597,29 +597,28 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
 /* ************************** transform markers *************************** */
 
-
 /* operator state vars used:  
-	frs: delta movement
-
-functions:
-
-	init()   check selection, add customdata with old values and some lookups
-
-	apply()  do the actual movement
-
-	exit()	cleanup, send notifier
-
-	cancel() to escape from modal
-
-callbacks:
-
-	exec()	calls init, apply, exit 
-
-	invoke() calls init, adds modal handler
-
-	modal()	accept modal events while doing it, ends with apply and exit, or cancel
-
-*/
+ *     frs: delta movement
+ * 
+ * functions:
+ * 
+ *     init()   check selection, add customdata with old values and some lookups
+ * 
+ *     apply()  do the actual movement
+ * 
+ *     exit()    cleanup, send notifier
+ * 
+ *     cancel() to escape from modal
+ * 
+ * callbacks:
+ * 
+ *     exec()    calls init, apply, exit 
+ * 
+ *     invoke() calls init, adds modal handler
+ * 
+ *     modal()    accept modal events while doing it, ends with apply and exit, or cancel
+ * 
+ */
 
 typedef struct MarkerMove {
 	SpaceLink *slink;
@@ -905,23 +904,21 @@ static void MARKER_OT_move(wmOperatorType *ot)
 
 /* ************************** duplicate markers *************************** */
 
-/* operator state vars used:  
-	frs: delta movement
-
-functions:
-
-	apply()  do the actual duplicate
-
-callbacks:
-
-	exec()	calls apply, move_exec
-
-	invoke() calls apply, move_invoke
-
-	modal()	uses move_modal
-
-*/
-
+/* operator state vars used:
+ *     frs: delta movement
+ *
+ * functions:
+ *
+ *     apply()  do the actual duplicate
+ *
+ * callbacks:
+ *
+ *     exec()    calls apply, move_exec
+ *
+ *     invoke() calls apply, move_invoke
+ *
+ *     modal()    uses move_modal
+ */
 
 /* duplicate selected TimeMarkers */
 static void ed_marker_duplicate_apply(bContext *C)
@@ -1125,23 +1122,23 @@ static void MARKER_OT_select(wmOperatorType *ot)
 /* *************************** border select markers **************** */
 
 /* operator state vars used: (added by default WM callbacks)   
-	xmin, ymin     
-	xmax, ymax     
-
-customdata: the wmGesture pointer, with subwindow
-
-callbacks:
-
-	exec()	has to be filled in by user
-
-	invoke() default WM function
-			adds modal handler
-
-	modal()	default WM function 
-			accept modal events while doing it, calls exec(), handles ESC and border drawing
-
-	poll()	has to be filled in by user for context
-*/
+ * xmin, ymin
+ * xmax, ymax
+ *
+ * customdata: the wmGesture pointer, with subwindow
+ *
+ * callbacks:
+ *
+ * 	exec()	has to be filled in by user
+ *
+ * 	invoke() default WM function
+ * 			adds modal handler
+ *
+ * 	modal()	default WM function 
+ * 			accept modal events while doing it, calls exec(), handles ESC and border drawing
+ *
+ * 	poll()	has to be filled in by user for context
+ */
 
 static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 {

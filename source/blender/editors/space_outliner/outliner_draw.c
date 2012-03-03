@@ -127,11 +127,13 @@ static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int start
 	TreeElement *te= lb->first;
 	while(te) {
 		TreeStoreElem *tselem= TREESTORE(te);
-			// XXX fixme... (currently, we're using a fixed length of 100)!
-		/*if(te->xend) {
+		// XXX fixme... (currently, we're using a fixed length of 100)!
+#if 0
+		if(te->xend) {
 			if(te->xend > *w)
 				*w = te->xend;
-		}*/
+		}
+#endif
 		if(startx+100 > *w)
 			*w = startx+100;
 

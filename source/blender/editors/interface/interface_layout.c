@@ -536,9 +536,11 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	uiBlockSetCurLayout(block, sub);
 
 	if(name[0]) {
-		/* XXX UI_GetStringWidth is not accurate
-		labelw= UI_GetStringWidth(name);
-		CLAMP(labelw, w/4, 3*w/4);*/
+		/* XXX UI_GetStringWidth is not accurate */
+#if 0
+		labelw = UI_GetStringWidth(name);
+		CLAMP(labelw, w/4, 3*w/4);
+#endif
 		labelw= w/3;
 		uiDefBut(block, LABEL, 0, name, x, y, labelw, h, NULL, 0.0, 0.0, 0, 0, "");
 		w= w-labelw;

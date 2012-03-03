@@ -383,7 +383,7 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	index2 = uvfinal_map[element2 - state->element_map->buf];
 
 	/* the idea here is to take the directions of the edges and find the rotation between final and initial
-	* direction. This, using inner and outer vector products, gives the angle. Directions are differences so... */
+	 * direction. This, using inner and outer vector products, gives the angle. Directions are differences so... */
 	uv1[0] = luv2->uv[0] - luv1->uv[0];
 	uv1[1] = luv2->uv[1] - luv1->uv[1];
 

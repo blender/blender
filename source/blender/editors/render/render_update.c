@@ -76,7 +76,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	ARegion *ar;
 
 	/* don't do this render engine update if we're updating the scene from
-	   other threads doing e.g. rendering or baking jobs */
+	 * other threads doing e.g. rendering or baking jobs */
 	if(!BLI_thread_is_main())
 		return;
 

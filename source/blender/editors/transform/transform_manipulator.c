@@ -316,8 +316,8 @@ int calc_manipulator_stats(const bContext *C)
 				BMIter iter;
 
 				/* do vertices/edges/faces for center depending on selection
-				   mode. note we can't use just vertex selection flag because
-				   it is not flush down on changes */
+				 * mode. note we can't use just vertex selection flag because
+				 * it is not flush down on changes */
 				if(ts->selectmode & SCE_SELECT_VERTEX) {
 					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 						if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -654,12 +654,12 @@ static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 
 
 /* radring = radius of donut rings
-   radhole = radius hole
-   start = starting segment (based on nrings)
-   end   = end segment
-   nsides = amount of points in ring
-   nrigns = amount of rings
-*/
+ * radhole = radius hole
+ * start = starting segment (based on nrings)
+ * end   = end segment
+ * nsides = amount of points in ring
+ * nrigns = amount of rings
+ */
 static void partial_donut(float radring, float radhole, int start, int end, int nsides, int nrings)
 {
 	float theta, phi, theta1;
@@ -749,10 +749,10 @@ static char axisBlendAngle(float angle)
 }
 
 /* three colors can be set;
-   grey for ghosting
-   moving: in transform theme color
-   else the red/green/blue
-*/
+ * grey for ghosting
+ * moving: in transform theme color
+ * else the red/green/blue
+ */
 static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned char alpha)
 {
 	unsigned char col[4]= {0};

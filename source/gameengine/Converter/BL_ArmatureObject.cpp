@@ -120,8 +120,10 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		}
 
 		// fails to link, props are not used in the BGE yet.
-		/* if(pchan->prop)
-			pchan->prop= IDP_CopyProperty(pchan->prop); */
+#if 0
+		if(pchan->prop)
+			pchan->prop= IDP_CopyProperty(pchan->prop);
+#endif
 		pchan->prop= NULL;
 	}
 
@@ -546,11 +548,11 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
 		
 	if (!*pose) {
-		/*	probably not to good of an idea to
-			duplicate everying, but it clears up 
-			a crash and memory leakage when 
-			&BL_ActionActuator::m_pose is freed
-		*/
+		/* probably not to good of an idea to
+		 * duplicate everying, but it clears up 
+		 * a crash and memory leakage when 
+		 * &BL_ActionActuator::m_pose is freed
+		 */
 		game_copy_pose(pose, m_pose, 0);
 	}
 	else {

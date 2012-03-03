@@ -86,8 +86,8 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	float cos[3][3], (*cagecos)[3] = NULL;
 	int i;
 
-	/*when initializing cage verts, we only want the first cage coordinate for each vertex,
-	  so that e.g. mirror or array use original vertex coordiantes and not mirrored or duplicate*/
+	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
+	 * so that e.g. mirror or array use original vertex coordiantes and not mirrored or duplicate */
 	BLI_smallhash_init(&shash);
 	
 	BMEdit_RecalcTessellation(em);
@@ -381,8 +381,8 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	scale_point(co1, co2, 0.99);
 	scale_point(co3, co2, 0.99);
 	
-	/*ok, idea is to generate rays going from the camera origin to the 
-	  three points on the edge (v1, mid, v2)*/
+	/* ok, idea is to generate rays going from the camera origin to the 
+	 * three points on the edge (v1, mid, v2)*/
 	sub_v3_v3v3(dir1, origin, co1);
 	sub_v3_v3v3(dir2, origin, co2);
 	sub_v3_v3v3(dir3, origin, co3);
@@ -395,8 +395,8 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	mul_v3_fl(dir2, epsilon);
 	mul_v3_fl(dir3, epsilon);
 	
-	/*offset coordinates slightly along view vectors, to avoid
-	  hitting the faces that own the edge.*/
+	/* offset coordinates slightly along view vectors, to avoid
+	 * hitting the faces that own the edge.*/
 	add_v3_v3v3(co1, co1, dir1);
 	add_v3_v3v3(co2, co2, dir2);
 	add_v3_v3v3(co3, co3, dir3);

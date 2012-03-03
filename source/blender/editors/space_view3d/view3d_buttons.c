@@ -1310,7 +1310,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	if (ob==NULL) return;
 
 	/* make sure we got storage */
-	/*
+#if 0
 	if (v3d->properties_storage==NULL)
 		v3d->properties_storage= MEM_callocN(sizeof(TransformProperties), "TransformProperties");
 	tfp= v3d->properties_storage;
@@ -1324,7 +1324,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 			uiBlockEndAlign(block);
 		}
 	}
-	*/
+#endif
 
 	lim= 10000.0f * MAX2(1.0f, v3d->grid);
 

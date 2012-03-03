@@ -144,7 +144,7 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const int
 
 	if (rect) {
 		/* sample rect to increase changes of selecting, so that when clicking
-		   on an edge in the backbuf, we can still select a face */
+		 * on an edge in the backbuf, we can still select a face */
 
 		int dist;
 		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totpoly+1, &dist,0,NULL, NULL);
@@ -332,10 +332,10 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 
 	if (mode==0 || mode==1) {
 		// XXX - Causes glitches, not sure why
-		/*
+#if 0
 		if (!facesel_face_pick(C, me, mval, &index, 1))
 			return;
-		*/
+#endif
 	}
 
 	select_linked_tfaces_with_seams(mode, me, index);

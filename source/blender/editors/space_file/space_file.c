@@ -221,7 +221,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 				}
 			} else {
 				/* stop any running thumbnail jobs if we're not 
-				 displaying them - speedup for NFS */
+				 * displaying them - speedup for NFS */
 				thumbnails_stop(sfile->files, C);
 			}
 			filelist_filter(sfile->files);

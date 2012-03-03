@@ -576,10 +576,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 
 		/* XXX: tree management normally happens from draw_outliner(), but when
-		        you're clicking to fast on Delete object from context menu in
-		        outliner several mouse events can be handled in one cycle without
-		        handling notifiers/redraw which leads to deleting the same object twice.
-		        cleanup tree here to prevent such cases. */
+		 *      you're clicking to fast on Delete object from context menu in
+		 *      outliner several mouse events can be handled in one cycle without
+		 *      handling notifiers/redraw which leads to deleting the same object twice.
+		 *      cleanup tree here to prevent such cases. */
 		outliner_cleanup_tree(soops);
 
 		DAG_scene_sort(bmain, scene);

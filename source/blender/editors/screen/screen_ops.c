@@ -452,26 +452,25 @@ int ED_operator_editmball(bContext *C)
 /* *************************** action zone operator ************************** */
 
 /* operator state vars used:  
- none
- 
- functions:
- 
- apply() set actionzone event
- 
- exit()	free customdata
- 
- callbacks:
- 
- exec()	never used
- 
- invoke() check if in zone  
- add customdata, put mouseco and area in it
- add modal handler
- 
- modal()	accept modal events while doing it
- call apply() with gesture info, active window, nonactive window
- call exit() and remove handler when LMB confirm
- 
+ * none
+ * 
+ * functions:
+ * 
+ * apply() set actionzone event
+ * 
+ * exit()	free customdata
+ * 
+ * callbacks:
+ * 
+ * exec()	never used
+ * 
+ * invoke() check if in zone  
+ * add customdata, put mouseco and area in it
+ * add modal handler
+ * 
+ * modal()	accept modal events while doing it
+ * call apply() with gesture info, active window, nonactive window
+ * call exit() and remove handler when LMB confirm
  */
 
 typedef struct sActionzoneData {
@@ -664,24 +663,23 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 /* ************** swap area operator *********************************** */
 
 /* operator state vars used:  
- sa1		start area
- sa2		area to swap with
- 
- functions:
- 
- init()   set custom data for operator, based on actionzone event custom data
- 
- cancel()	cancel the operator
- 
- exit()	cleanup, send notifier
- 
- callbacks:
- 
- invoke() gets called on shift+lmb drag in actionzone
- call init(), add handler
- 
- modal()  accept modal events while doing it
- 
+ * sa1		start area
+ * sa2		area to swap with
+ * 
+ * functions:
+ * 
+ * init()   set custom data for operator, based on actionzone event custom data
+ * 
+ * cancel()	cancel the operator
+ * 
+ * exit()	cleanup, send notifier
+ * 
+ * callbacks:
+ * 
+ * invoke() gets called on shift+lmb drag in actionzone
+ * call init(), add handler
+ * 
+ * modal()  accept modal events while doing it
  */
 
 typedef struct sAreaSwapData {
@@ -850,32 +848,31 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 /* ************** move area edge operator *********************************** */
 
 /* operator state vars used:  
- x, y   			mouse coord near edge
- delta            movement of edge
- 
- functions:
- 
- init()   set default property values, find edge based on mouse coords, test
- if the edge can be moved, select edges, calculate min and max movement
- 
- apply()	apply delta on selection
- 
- exit()	cleanup, send notifier
- 
- cancel() cancel moving
- 
- callbacks:
- 
- exec()   execute without any user interaction, based on properties
- call init(), apply(), exit()
- 
- invoke() gets called on mouse click near edge
- call init(), add handler
- 
- modal()  accept modal events while doing it
- call apply() with delta motion
- call exit() and remove handler
- 
+ * x, y   			mouse coord near edge
+ * delta            movement of edge
+ * 
+ * functions:
+ * 
+ * init()   set default property values, find edge based on mouse coords, test
+ * if the edge can be moved, select edges, calculate min and max movement
+ * 
+ * apply()	apply delta on selection
+ * 
+ * exit()	cleanup, send notifier
+ * 
+ * cancel() cancel moving
+ * 
+ * callbacks:
+ * 
+ * exec()   execute without any user interaction, based on properties
+ * call init(), apply(), exit()
+ * 
+ * invoke() gets called on mouse click near edge
+ * call init(), add handler
+ * 
+ * modal()  accept modal events while doing it
+ * call apply() with delta motion
+ * call exit() and remove handler
  */
 
 typedef struct sAreaMoveData {
@@ -1107,38 +1104,37 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 /* ************** split area operator *********************************** */
 
 /* 
- operator state vars:  
- fac              spit point
- dir              direction 'v' or 'h'
- 
- operator customdata:
- area   			pointer to (active) area
- x, y			last used mouse pos
- (more, see below)
- 
- functions:
- 
- init()   set default property values, find area based on context
- 
- apply()	split area based on state vars
- 
- exit()	cleanup, send notifier
- 
- cancel() remove duplicated area
- 
- callbacks:
- 
- exec()   execute without any user interaction, based on state vars
- call init(), apply(), exit()
- 
- invoke() gets called on mouse click in action-widget
- call init(), add modal handler
- call apply() with initial motion
- 
- modal()  accept modal events while doing it
- call move-areas code with delta motion
- call exit() or cancel() and remove handler
- 
+ * operator state vars:  
+ * fac              spit point
+ * dir              direction 'v' or 'h'
+ * 
+ * operator customdata:
+ * area   			pointer to (active) area
+ * x, y			last used mouse pos
+ * (more, see below)
+ * 
+ * functions:
+ * 
+ * init()   set default property values, find area based on context
+ * 
+ * apply()	split area based on state vars
+ * 
+ * exit()	cleanup, send notifier
+ * 
+ * cancel() remove duplicated area
+ * 
+ * callbacks:
+ * 
+ * exec()   execute without any user interaction, based on state vars
+ * call init(), apply(), exit()
+ * 
+ * invoke() gets called on mouse click in action-widget
+ * call init(), add modal handler
+ * call apply() with initial motion
+ * 
+ * modal()  accept modal events while doing it
+ * call move-areas code with delta motion
+ * call exit() or cancel() and remove handler
  */
 
 #define SPLIT_STARTED	1
@@ -2080,31 +2076,30 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 /* ************** join area operator ********************************************** */
 
 /* operator state vars used:  
- x1, y1     mouse coord in first area, which will disappear
- x2, y2     mouse coord in 2nd area, which will become joined
- 
- functions:
- 
- init()   find edge based on state vars 
- test if the edge divides two areas, 
- store active and nonactive area,
- 
- apply()  do the actual join
- 
- exit()	cleanup, send notifier
- 
- callbacks:
- 
- exec()	calls init, apply, exit 
- 
- invoke() sets mouse coords in x,y
- call init()
- add modal handler
- 
- modal()	accept modal events while doing it
- call apply() with active window and nonactive window
- call exit() and remove handler when LMB confirm
- 
+ * x1, y1     mouse coord in first area, which will disappear
+ * x2, y2     mouse coord in 2nd area, which will become joined
+ * 
+ * functions:
+ * 
+ * init()   find edge based on state vars 
+ * test if the edge divides two areas, 
+ * store active and nonactive area,
+ * 
+ * apply()  do the actual join
+ * 
+ * exit()	cleanup, send notifier
+ * 
+ * callbacks:
+ * 
+ * exec()	calls init, apply, exit 
+ * 
+ * invoke() sets mouse coords in x,y
+ * call init()
+ * add modal handler
+ * 
+ * modal()	accept modal events while doing it
+ * call apply() with active window and nonactive window
+ * call exit() and remove handler when LMB confirm
  */
 
 typedef struct sAreaJoinData
@@ -2282,8 +2277,8 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 					} 
 					else {
 						/* we are not bordering on the previously selected area 
-						 we check if area has common border with the one marked for removal
-						 in this case we can swap areas.
+						 * we check if area has common border with the one marked for removal
+						 * in this case we can swap areas.
 						 */
 						dir = area_getorientation(sa, jd->sa2);
 						if (dir >= 0) {
@@ -2867,10 +2862,10 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 	else if(regiontype==RGN_TYPE_UI) {
 		if(spacetype==SPACE_CLIP) {
 			/* Track Preview button is on Properties Editor in SpaceClip,
-			   and it's very common case when users want it be refreshing
-			   during playback, so asking people to enable special option
-			   for this is a bit ticky, so add exception here for refreshing
-			   Properties Editor for SpaceClip always */
+			 * and it's very common case when users want it be refreshing
+			 * during playback, so asking people to enable special option
+			 * for this is a bit ticky, so add exception here for refreshing
+			 * Properties Editor for SpaceClip always */
 			return 1;
 		}
 
@@ -3127,22 +3122,22 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 /* ************** border select operator (template) ***************************** */
 
 /* operator state vars used: (added by default WM callbacks)   
- xmin, ymin     
- xmax, ymax     
- 
- customdata: the wmGesture pointer
- 
- callbacks:
- 
- exec()	has to be filled in by user
- 
- invoke() default WM function
- adds modal handler
- 
- modal()	default WM function 
- accept modal events while doing it, calls exec(), handles ESC and border drawing
- 
- poll()	has to be filled in by user for context
+ * xmin, ymin     
+ * xmax, ymax     
+ * 
+ * customdata: the wmGesture pointer
+ * 
+ * callbacks:
+ * 
+ * exec()	has to be filled in by user
+ * 
+ * invoke() default WM function
+ * adds modal handler
+ * 
+ * modal()	default WM function 
+ * accept modal events while doing it, calls exec(), handles ESC and border drawing
+ * 
+ * poll()	has to be filled in by user for context
  */
 #if 0
 static int border_select_do(bContext *C, wmOperator *op)

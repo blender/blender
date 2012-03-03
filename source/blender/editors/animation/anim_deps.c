@@ -81,8 +81,8 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 		
 	if (fcu && fcu->rna_path) {
 		/* if we have an fcurve, call the update for the property we
-		   are editing, this is then expected to do the proper redraws
-		   and depsgraph updates  */
+		 * are editing, this is then expected to do the proper redraws
+		 * and depsgraph updates  */
 		PointerRNA id_ptr, ptr;
 		PropertyRNA *prop;
 		
@@ -93,7 +93,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	}
 	else {
 		/* in other case we do standard depsgaph update, ideally
-		   we'd be calling property update functions here too ... */
+		 * we'd be calling property update functions here too ... */
 		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }

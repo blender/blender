@@ -363,8 +363,8 @@ void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y)
 }
 
 /* Shorten a string to a given width w. 
-   If front is set, shorten from the front,
-   otherwise shorten from the end. */
+ * If front is set, shorten from the front,
+ * otherwise shorten from the end. */
 float file_shorten_string(char* string, float w, int front)
 {	
 	char temp[FILE_MAX];

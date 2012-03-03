@@ -572,8 +572,8 @@ void ED_spacetype_sequencer(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* Keep as python only for now
-	sequencer_buttons_register(art);
-	*/
+	 * sequencer_buttons_register(art);
+	 */
 
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");

@@ -445,13 +445,14 @@ static int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		if (em->bm->totedgesel == 0) nr = 0;
 		
 		nr = 1;
-		/* else if (em->totedgesel == 1) nr = 3;
+#if 0
+		else if (em->totedgesel == 1) nr = 3;
 		else if (em->totfacesel == 0) nr = 3;
 		else if (em->totfacesel == 1)
 			nr = 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3");
 		else
 			nr = 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
-		*/
+#endif
 	}
 	else {
 		if (em->bm->totfacesel == 0) nr = 0;
@@ -475,11 +476,11 @@ static int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 	else {
 		
 			/* We need to force immediate calculation here because 
-			* transform may use derived objects (which are now stale).
-			*
-			* This shouldn't be necessary, derived queries should be
-			* automatically building this data if invalid. Or something.
-			*/
+			 * transform may use derived objects (which are now stale).
+			 *
+			 * This shouldn't be necessary, derived queries should be
+			 * automatically building this data if invalid. Or something.
+			 */
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		object_handle_update(scene, obedit);
 
@@ -1433,11 +1434,11 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 
 	/* original hide flushing comment (OUTDATED):
 	 * hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
-	/*  - vertex hidden, always means edge is hidden too
-		- edge hidden, always means face is hidden too
-		- face hidden, only set face hide
-		- then only flush back down what's absolute hidden
-	*/
+	/* - vertex hidden, always means edge is hidden too
+	 * - edge hidden, always means face is hidden too
+	 * - face hidden, only set face hide
+	 * - then only flush back down what's absolute hidden
+	 */
 
 }
 
@@ -1889,9 +1890,9 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-/*	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
-*/
+/* DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+ * WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+ */
 	/* we succeeded */
 	return OPERATOR_FINISHED;
 }
@@ -2277,9 +2278,9 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	EDBM_selectmode_flush(em);
 
 	/* dependencies graph and notification stuff */
-/*	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
-*/
+/* DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+ * WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+ */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
@@ -2809,8 +2810,8 @@ static int solidify_exec(bContext *C, wmOperator *op)
 	}
 
 	/* deselect only the faces in the region to be solidified (leave wire
-	   edges and loose verts selected, as there will be no corresponding
-	   geometry selected below) */
+	 * edges and loose verts selected, as there will be no corresponding
+	 * geometry selected below) */
 	BMO_slot_buffer_hflag_disable(bm, &bmop, "geom", BM_ELEM_SELECT, BM_FACE, TRUE);
 
 	/* run the solidify operator */
@@ -3945,10 +3946,10 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 }
 
 #if 0 /* UNUSED */
-/********* qsort routines.  not sure how to make these
-           work, since we aren't using linked lists for
-           geometry anymore.  might need a sortof "swap"
-           function for bmesh elements.           *********/
+/* qsort routines.  not sure how to make these
+ * work, since we aren't using linked lists for
+ * geometry anymore.  might need a sortof "swap"
+ * function for bmesh elements. */
 
 typedef struct xvertsort {
 	float x;

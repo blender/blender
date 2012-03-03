@@ -902,8 +902,8 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 		iuser.scene= sp->scene;
 		
 		/* elubie: this needs to be changed: here image is always loaded if not
-		   already there. Very expensive for large images. Need to find a way to 
-		   only get existing ibuf */
+		 * already there. Very expensive for large images. Need to find a way to 
+		 * only get existing ibuf */
 		ibuf = BKE_image_get_ibuf(ima, &iuser);
 		if(ibuf==NULL || ibuf->rect==NULL)
 			return;
@@ -931,7 +931,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 		shader_preview_startjob(customdata, stop, do_update);
 
 		/* world is rendered with alpha=0, so it wasn't displayed 
-		   this could be render option for sky to, for later */
+		 * this could be render option for sky to, for later */
 		if(idtype == ID_WO) {
 			set_alpha((char*)sp->pr_rect, sp->sizex, sp->sizey, 255);
 		}
@@ -945,7 +945,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 }
 
 /* use same function for icon & shader, so the job manager
-   does not run two of them at the same time. */
+ * does not run two of them at the same time. */
 
 static void common_preview_startjob(void *customdata, short *stop, short *do_update, float *UNUSED(progress))
 {

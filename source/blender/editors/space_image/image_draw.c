@@ -79,11 +79,11 @@
 static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
-	   ibuf->rect is zero for compositor and render results after change 
-	   convert to 32 bits always... drawing float rects isnt supported well (atis)
-	
-	   NOTE: if float buffer changes, we have to manually remove the rect
-	*/
+	 * ibuf->rect is zero for compositor and render results after change 
+	 * convert to 32 bits always... drawing float rects isnt supported well (atis)
+	 *
+	 * NOTE: if float buffer changes, we have to manually remove the rect
+	 */
 
 	if(ibuf->rect_float && (ibuf->rect==NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
 		if(color_manage) {
@@ -531,8 +531,10 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 
 		if(ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-		/*else
-			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);*/
+#if 0
+		else
+			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+#endif
 		
 		if(sima->flag & SI_USE_ALPHA)
 			glDisable(GL_BLEND);
@@ -734,7 +736,7 @@ static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, flo
 
 	if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow
-		   drawing with alpha */
+		 * drawing with alpha */
 		clonerect= get_alpha_clone_image(scene, &w, &h);
 
 		if(clonerect) {

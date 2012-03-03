@@ -466,12 +466,14 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 			ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			/*switch (wmn->data) {
+#if 0
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
+			}
+#endif
 			ED_area_tag_refresh(sa);
 			break;
 		case NC_OBJECT:

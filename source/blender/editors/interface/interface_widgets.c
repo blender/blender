@@ -62,17 +62,16 @@
 
 /* ************** widget base functions ************** */
 /*
-	 - in: roundbox codes for corner types and radius
-	 - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
- 
-	 - draw black box with alpha 0 on exact button boundbox
-	 - for ever AA step:
-		- draw the inner part for a round filled box, with color blend codes or texture coords
-		- draw outline in outline color
-		- draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
-		- draw extra decorations
-	 - draw background color box with alpha 1 on exact button boundbox
- 
+ * - in: roundbox codes for corner types and radius
+ * - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
+ *
+ * - draw black box with alpha 0 on exact button boundbox
+ * - for ever AA step:
+ *    - draw the inner part for a round filled box, with color blend codes or texture coords
+ *    - draw outline in outline color
+ *    - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
+ *    - draw extra decorations
+ * - draw background color box with alpha 1 on exact button boundbox
  */
 
 /* fill this struct with polygon info to draw AA'ed */
@@ -106,8 +105,8 @@ typedef struct uiWidgetBase {
 } uiWidgetBase;
 
 /* uiWidgetType: for time being only for visual appearance,
-   later, a handling callback can be added too 
-*/
+ * later, a handling callback can be added too 
+ */
 typedef struct uiWidgetType {
 	
 	/* pointer to theme color definition */
@@ -1227,7 +1226,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		}
 		
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accommodate it */
+		 * and offset the text label to accommodate it */
 		
 		if (but->flag & UI_HAS_ICON) {
 			widget_draw_icon(but, but->icon+but->iconadd, 1.0f, rect);
@@ -1251,16 +1250,15 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 /* *********************** widget types ************************************* */
 
 
-/*   uiWidgetStateColors
-	char inner_anim[4];
-	char inner_anim_sel[4];
-	char inner_key[4];
-	char inner_key_sel[4];
-	char inner_driven[4];
-	char inner_driven_sel[4];
-	float blend;
- 
-*/
+/* uiWidgetStateColors
+ *     char inner_anim[4];
+ *     char inner_anim_sel[4];
+ *     char inner_key[4];
+ *     char inner_key_sel[4];
+ *     char inner_driven[4];
+ *     char inner_driven_sel[4];
+ *     float blend;
+ */
 
 static struct uiWidgetStateColors wcol_state_colors= {
 	{115, 190, 76, 255},
@@ -1272,17 +1270,17 @@ static struct uiWidgetStateColors wcol_state_colors= {
 	0.5f, 0.0f
 };
 
-/*  uiWidgetColors
-	float outline[3];
-	float inner[4];
-	float inner_sel[4];
-	float item[3];
-	float text[3];
-	float text_sel[3];
-
-	short shaded;
-	float shadetop, shadedown;
-*/	
+/* uiWidgetColors
+ *     float outline[3];
+ *     float inner[4];
+ *     float inner_sel[4];
+ *     float item[3];
+ *     float text[3];
+ *     float text_sel[3];
+ *     
+ *     short shaded;
+ *     float shadetop, shadedown;
+ */
 
 static struct uiWidgetColors wcol_num= {
 	{25, 25, 25, 255},
