@@ -129,6 +129,9 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 #define FACE_TAINT 1
 
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		/**
+		 * this ends up being called twice, could add option to not to call check in
+		 * #BM_edge_rotate to get some extra speed */
 		if (BM_edge_rotate_check(bm, e)) {
 			BMFace *fa, *fb;
 			if (BM_edge_face_pair(e, &fa, &fb)) {

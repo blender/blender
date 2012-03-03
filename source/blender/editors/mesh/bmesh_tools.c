@@ -1345,51 +1345,37 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMIter iter;
 	const int do_ccw = RNA_enum_get(op->ptr, "direction") == 1;
-	int do_deselect = FALSE; /* do we deselect */
-	
-	if (!(em->bm->totfacesel == 2 || em->bm->totedgesel == 1)) {
-		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+	int tot = 0;
+
+	if (em->bm->totedgesel == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Select edges or face pairs for edge loops to rotate about");
 		return OPERATOR_CANCELLED;
 	}
 
 	/* first see if we have two adjacent faces */
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_edge_face_count(eed) == 2) {
-			if ((BM_elem_flag_test(eed->l->f, BM_ELEM_SELECT) && BM_elem_flag_test(eed->l->radial_next->f, BM_ELEM_SELECT))
-				 && !(BM_elem_flag_test(eed->l->f, BM_ELEM_HIDDEN) || BM_elem_flag_test(eed->l->radial_next->f, BM_ELEM_HIDDEN)))
-			{
-				break;
+		BM_elem_flag_disable(eed, BM_ELEM_TAG);
+		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+			BMFace *fa, *fb;
+			if (BM_edge_face_pair(eed, &fa, &fb)) {
+				/* if both faces are selected we rotate between them,
+				 * otherwise - rotate between 2 unselected - but not mixed */
+				if (BM_elem_flag_test(fa, BM_ELEM_SELECT) == BM_elem_flag_test(fb, BM_ELEM_SELECT)) {
+					BM_elem_flag_enable(eed, BM_ELEM_TAG);
+					tot++;
+				}
 			}
 		}
 	}
 	
 	/* ok, we don't have two adjacent faces, but we do have two selected ones.
 	 * that's an error condition.*/
-	if (!eed && em->bm->totfacesel == 2) {
-		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+	if (tot == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Could not find any selected edges that can be rotated");
 		return OPERATOR_CANCELLED;
 	}
-
-	if (!eed) {
-		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-				/* de-select the edge before */
-				do_deselect = TRUE;
-				break;
-			}
-		}
-	}
-
-	/* this should never happen */
-	if (!eed)
-		return OPERATOR_CANCELLED;
 	
-	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%b", eed, do_ccw);
-
-	/* avoid adding to the selection if we start off with only a selected edge,
-	 * we could also just deselect the single edge easily but use the BMO api
-	 * since it seems this is more 'correct' */
-	if (do_deselect) BMO_slot_buffer_hflag_disable(em->bm, &bmop, "edges", BM_ELEM_SELECT, BM_EDGE, TRUE);
+	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%he ccw=%b", BM_ELEM_TAG, do_ccw);
 
 	BMO_op_exec(em->bm, &bmop);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_EDGE, TRUE);

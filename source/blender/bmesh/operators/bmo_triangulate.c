@@ -138,7 +138,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				
 				if (fac1 > fac2) {
-					e = BM_edge_rotate(bm, e, 0);
+					e = BM_edge_rotate(bm, e, FALSE);
 					if (e) {
 						BMO_elem_flag_enable(bm, e, ELE_NEW);
 
