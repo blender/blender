@@ -287,6 +287,7 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 			// which constraint should we support?
 			switch (pcon->type) {
 			case CONSTRAINT_TYPE_TRACKTO:
+			case CONSTRAINT_TYPE_DAMPTRACK:
 			case CONSTRAINT_TYPE_KINEMATIC:
 			case CONSTRAINT_TYPE_ROTLIKE:
 			case CONSTRAINT_TYPE_LOCLIKE:

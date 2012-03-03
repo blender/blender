@@ -1060,7 +1060,7 @@ void BL_ConvertActuators(const char* maggiename,
 				bArmatureActuator* armAct = (bArmatureActuator*) bact->data;
 				KX_GameObject *tmpgob = converter->FindGameObject(armAct->target);
 				KX_GameObject *subgob = converter->FindGameObject(armAct->subtarget);
-				BL_ArmatureActuator* tmparmact = new BL_ArmatureActuator(gameobj, armAct->type, armAct->posechannel, armAct->constraint, tmpgob, subgob, armAct->weight);
+				BL_ArmatureActuator* tmparmact = new BL_ArmatureActuator(gameobj, armAct->type, armAct->posechannel, armAct->constraint, tmpgob, subgob, armAct->weight, armAct->influence);
 				baseact = tmparmact;
 				break;
 			}

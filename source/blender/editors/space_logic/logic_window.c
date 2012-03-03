@@ -3806,6 +3806,16 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 
 			uiItemR(layout, ptr, "weight", 0, NULL, ICON_NONE);
 			break;
+		case ACT_ARM_SETINFLUENCE:
+			if (ob->pose) {
+				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
+				
+				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
+					uiItemPointerR(layout, ptr, "constraint", &pchan_ptr, "constraints", NULL, ICON_CONSTRAINT_BONE);
+			}
+
+			uiItemR(layout, ptr, "influence", 0, NULL, ICON_NONE);
+			break;
 	}
 }
 

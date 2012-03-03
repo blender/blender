@@ -53,7 +53,8 @@ BL_ArmatureActuator::BL_ArmatureActuator(SCA_IObject* obj,
 						const char *constraintname,
 						KX_GameObject* targetobj,
 						KX_GameObject* subtargetobj,
-						float weight) :
+						float weight,
+						float influence) :
 	SCA_IActuator(obj, KX_ACT_ARMATURE),
 	m_constraint(NULL),
 	m_gametarget(targetobj),
@@ -61,6 +62,7 @@ BL_ArmatureActuator::BL_ArmatureActuator(SCA_IObject* obj,
 	m_posechannel(posechannel),
 	m_constraintname(constraintname),
 	m_weight(weight),
+	m_influence(influence),
 	m_type(type)
 {
 	if (m_gametarget)
@@ -173,6 +175,10 @@ bool BL_ArmatureActuator::Update(double curtime, bool frame)
 			if (m_constraint)
 				m_constraint->SetWeight(m_weight);
 			break;
+		case ACT_ARM_SETINFLUENCE:
+			if (m_constraint)
+				m_constraint->SetInfluence(m_influence);
+			break;
 		}
 	}
 	return result;
@@ -216,6 +222,7 @@ PyAttributeDef BL_ArmatureActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("target", BL_ArmatureActuator, pyattr_get_object, pyattr_set_object),
 	KX_PYATTRIBUTE_RW_FUNCTION("subtarget", BL_ArmatureActuator, pyattr_get_object, pyattr_set_object),
 	KX_PYATTRIBUTE_FLOAT_RW("weight",0.0f,1.0f,BL_ArmatureActuator,m_weight),
+	KX_PYATTRIBUTE_FLOAT_RW("influence",0.0f,1.0f,BL_ArmatureActuator,m_influence),
 	KX_PYATTRIBUTE_INT_RW("type",0,ACT_ARM_MAXTYPE,false,BL_ArmatureActuator,m_type),
 	{ NULL }	//Sentinel
 };

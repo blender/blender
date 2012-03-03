@@ -1887,6 +1887,7 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 		{ACT_ARM_DISABLE, "DISABLE", 0, "Disable", ""},
 		{ACT_ARM_SETTARGET, "SETTARGET", 0, "Set Target", ""},
 		{ACT_ARM_SETWEIGHT, "SETWEIGHT", 0, "Set Weight", ""},
+		{ACT_ARM_SETINFLUENCE, "SETINFLUENCE", 0, "Set Influence", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ArmatureActuator", "Actuator");
@@ -1926,6 +1927,12 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Weight of this constraint");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "influence");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Influence", "Influence of this constraint");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
