@@ -544,6 +544,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	BMEdge *e_dummy;
 	BLI_array_staticdeclare(oldfaces, 32);
 	SmallHash hash;
+	const int do_mdisp = (e->l && CustomData_has_layer(&bm->ldata, CD_MDISPS));
 
 	/* we need this for handling multire */
 	if (!r_e) {
@@ -551,7 +552,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	}
 
 	/* do we have a multires layer */
-	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l) {
+	if (do_mdisp) {
 		BMLoop *l;
 		int i;
 		
@@ -572,9 +573,8 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 
 	v2 = bmesh_edge_other_vert_get(e, v);
 	nv = bmesh_semv(bm, v, e, r_e);
-	if (nv == NULL) {
-		return NULL;
-	}
+
+	BLI_assert(nv != NULL);
 
 	sub_v3_v3v3(nv->co, v2->co, v->co);
 	madd_v3_v3v3fl(nv->co, v->co, nv->co, percent);
@@ -588,7 +588,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	BM_data_interp_face_vert_edge(bm, v2, v, nv, e, percent);
 	BM_data_interp_from_verts(bm, v, v2, nv, percent);
 
-	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l && nv) {
+	if (do_mdisp) {
 		int i, j;
 
 		/* interpolate new/changed loop data from copied old face */
@@ -645,7 +645,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 		BLI_array_free(oldfaces);
 		BLI_smallhash_release(&hash);
 	}
-	
+
 	return nv;
 }
 
@@ -724,7 +724,7 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
 		lb = BM_face_other_vert_loop(e->v2, fb, e->v1);
 
 		/* check that the next vert in both faces isnt the same
-		 * (ie - the next edge doesnt sharwe the same faces).
+		 * (ie - the next edge doesnt share the same faces).
 		 * since we can't rotate usefully in this case. */
 		if (la->v == lb->v) {
 			return FALSE;

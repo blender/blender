@@ -1225,9 +1225,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	BMVert *nv, *ov;
 	int i, edok, valence1 = 0, valence2 = 0;
 
-	if (bmesh_vert_in_edge(e, tv) == 0) {
-		return NULL;
-	}
+	BLI_assert(bmesh_vert_in_edge(e, tv) != FALSE);
+
 	ov = bmesh_edge_other_vert_get(e, tv);
 
 	/* count valence of v1 */
