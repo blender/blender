@@ -2307,14 +2307,14 @@ void BPy_BM_init_types(void)
 	BPy_BMIter_Type.tp_dealloc    = NULL;
 
 	/*
-	BPy_BMesh_Type.
-	BPy_BMVert_Type.
-	BPy_BMEdge_Type.
-	BPy_BMFace_Type.
-	BPy_BMLoop_Type.
-	BPy_BMElemSeq_Type.
-	BPy_BMIter_Type.
-	*/
+	 * BPy_BMesh_Type.
+	 * BPy_BMVert_Type.
+	 * BPy_BMEdge_Type.
+	 * BPy_BMFace_Type.
+	 * BPy_BMLoop_Type.
+	 * BPy_BMElemSeq_Type.
+	 * BPy_BMIter_Type.
+	 */
 
 	BPy_BMesh_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
 	BPy_BMVert_Type.tp_flags    = Py_TPFLAGS_DEFAULT;

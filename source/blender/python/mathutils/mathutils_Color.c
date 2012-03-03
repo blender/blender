@@ -619,7 +619,7 @@ static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 }
 
 /* -obj
-  returns the negative of this object */
+ * returns the negative of this object */
 static PyObject *Color_neg(ColorObject *self)
 {
 	float tcol[COLOR_SIZE];
@@ -848,10 +848,10 @@ PyTypeObject color_Type = {
 };
 //------------------------Color_CreatePyObject (internal)-------------
 //creates a new color object
-/*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
+ *  (i.e. it was allocated elsewhere by MEM_mallocN())
+ *   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ *  (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
 {
 	ColorObject *self;

@@ -419,16 +419,16 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 }
 
 /*****************************************************************************
-* Description: This function creates a new Python dictionary object.
-* note: dict is owned by sys.modules["__main__"] module, reference is borrowed
-* note: important we use the dict from __main__, this is what python expects
-  for 'pickle' to work as well as strings like this...
- >> foo = 10
- >> print(__import__("__main__").foo)
-*
-* note: this overwrites __main__ which gives problems with nested calles.
-* be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
-* any chance that python is in the call stack.
+ * Description: This function creates a new Python dictionary object.
+ * note: dict is owned by sys.modules["__main__"] module, reference is borrowed
+ * note: important we use the dict from __main__, this is what python expects
+ *  for 'pickle' to work as well as strings like this...
+ * >> foo = 10
+ * >> print(__import__("__main__").foo)
+ *
+ * note: this overwrites __main__ which gives problems with nested calles.
+ * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
+ * any chance that python is in the call stack.
 *****************************************************************************/
 PyObject *PyC_DefaultNameSpace(const char *filename)
 {
@@ -475,7 +475,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 
 #ifdef __APPLE__
 	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
-	 but current Python lib (release 3.1.1) doesn't handle these correctly */
+	 * but current Python lib (release 3.1.1) doesn't handle these correctly */
 	if (strchr(py_path_bundle, ':'))
 		printf("Warning : Blender application is located in a path containing : or / chars\
 			   \nThis may make python import function fail\n");
@@ -483,7 +483,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 
 #ifdef _WIN32
 	/* cmake/MSVC debug build crashes without this, why only
-	   in this case is unknown.. */
+	 * in this case is unknown.. */
 	{
 		BLI_setenv("PYTHONPATH", py_path_bundle);
 	}

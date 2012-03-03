@@ -257,7 +257,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 }
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
-  Builds on EXPP_FloatsAreEqual to test vectors */
+ * Builds on EXPP_FloatsAreEqual to test vectors */
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
 {
 	int x;

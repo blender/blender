@@ -40,8 +40,8 @@
 #define MAX_DIMENSIONS 4
 
 /* Swizzle axes get packed into a single value that is used as a closure. Each
-   axis uses SWIZZLE_BITS_PER_AXIS bits. The first bit (SWIZZLE_VALID_AXIS) is
-   used as a sentinel: if it is unset, the axis is not valid. */
+ * axis uses SWIZZLE_BITS_PER_AXIS bits. The first bit (SWIZZLE_VALID_AXIS) is
+ * used as a sentinel: if it is unset, the axis is not valid. */
 #define SWIZZLE_BITS_PER_AXIS 3
 #define SWIZZLE_VALID_AXIS 0x4
 #define SWIZZLE_AXIS       0x3
@@ -439,8 +439,6 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 	int size;
 	float *vec;
 
-	/*if (!PyArg_ParseTuple(args, "i:resize", &size))
-		return NULL;*/
 	if ((size = PyLong_AsLong(value)) == -1) {
 		return NULL;
 	}
@@ -788,8 +786,8 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 	}
 
 	/*
-		flip vector around, since vectoquat expect a vector from target to tracking object
-		and the python function expects the inverse (a vector to the target).
+	 * flip vector around, since vectoquat expect a vector from target to tracking object
+	 * and the python function expects the inverse (a vector to the target).
 	*/
 	negate_v3_v3(vec, self->vec);
 
@@ -1476,7 +1474,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 }
 
 /*------------------------obj * obj------------------------------
-  mulplication*/
+ * mulplication*/
 
 
 /* COLUMN VECTOR Multiplication (Matrix X Vector)
@@ -1643,7 +1641,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		return NULL;
 
 	/* only support vec*=float and vec*=mat
-	   vec*=vec result is a float so that wont work */
+	 *  vec*=vec result is a float so that wont work */
 	if (MatrixObject_Check(v2)) {
 /* ------ to be removed ------*/
 #if 1
@@ -1785,7 +1783,7 @@ static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
 }
 
 /* -obj
-  returns the negative of this object*/
+ * returns the negative of this object*/
 static PyObject *Vector_neg(VectorObject *self)
 {
 	float *tvec;
@@ -1801,16 +1799,16 @@ static PyObject *Vector_neg(VectorObject *self)
 /*------------------------vec_magnitude_nosqrt (internal) - for comparing only */
 static double vec_magnitude_nosqrt(float *data, int size)
 {
-	/*return (double)sqrt(dot);*/
+	/* return (double)sqrt(dot);*/
 	/* warning, line above removed because we are not using the length,
-	   rather the comparing the sizes and for this we do not need the sqrt
-	   for the actual length, the dot must be sqrt'd */
+	 * rather the comparing the sizes and for this we do not need the sqrt
+	 * for the actual length, the dot must be sqrt'd */
 	return dot_vn_vn(data, data, size);
 }
 
 
 /*------------------------tp_richcmpr
-  returns -1 execption, 0 false, 1 true */
+ * returns -1 execption, 0 false, 1 true */
 static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
 {
 	VectorObject *vecA = NULL, *vecB = NULL;
@@ -2147,7 +2145,7 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
  * - If the value is scalar, it is copied to all axes listed in the swizzle.
  * - If an axis appears more than once in the swizzle, the final occurrence is
  *   the one that determines its value.
-
+ *
  * Returns 0 on success and -1 on failure. On failure, the vector will be
  * unchanged. */
 static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure)
@@ -2719,9 +2717,9 @@ static struct PyMethodDef Vector_methods[] = {
 
 
 /* Note
- Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
- but this means for eg that
- vec*mat and mat*vec both get sent to Vector_mul and it neesd to sort out the order
+ * Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
+ * but this means for eg that
+ * (vec * mat) and (mat * vec) both get sent to Vector_mul and it neesd to sort out the order
 */
 
 PyDoc_STRVAR(vector_doc,
@@ -2809,11 +2807,11 @@ PyTypeObject vector_Type = {
 };
 
 /*------------------------Vector_CreatePyObject (internal)-------------
-  creates a new vector object
-  pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+ * creates a new vector object
+ * pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
+ * (i.e. it was allocated elsewhere by MEM_mallocN())
+ *  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ * (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTypeObject *base_type)
 {
 	VectorObject *self;

@@ -854,7 +854,7 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 }
 
 /* -obj
-  returns the negative of this object*/
+ * returns the negative of this object*/
 static PyObject *Quaternion_neg(QuaternionObject *self)
 {
 	float tquat[QUAT_SIZE];
@@ -1232,9 +1232,9 @@ PyTypeObject quaternion_Type = {
 //------------------------Quaternion_CreatePyObject (internal)-------------
 //creates a new quaternion object
 /*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+ * (i.e. it was allocated elsewhere by MEM_mallocN())
+ *  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ * (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Quaternion_CreatePyObject(float *quat, int type, PyTypeObject *base_type)
 {
 	QuaternionObject *self;

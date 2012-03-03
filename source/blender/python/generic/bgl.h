@@ -75,7 +75,7 @@ extern PyTypeObject BGL_bufferType;
 
 /*@ By golly George! It looks like fancy pants macro time!!! */
 
-/*
+#if 0 /* unused so far */
 #define int_str       "i"
 #define int_var(number)   bgl_int##number
 #define int_ref(number)   &bgl_int##number
@@ -85,7 +85,7 @@ extern PyTypeObject BGL_bufferType;
 #define float_var(number) bgl_float##number
 #define float_ref(number) &bgl_float##number
 #define float_def(number) float float_var(number)
-*/
+#endif
 
 /* TYPE_str is the string to pass to Py_ArgParse (for the format) */
 /* TYPE_var is the name to pass to the GL function */
