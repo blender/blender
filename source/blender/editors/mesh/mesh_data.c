@@ -763,6 +763,9 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 
 		/* would only be converting back again, dont bother */
 		calc_tessface = FALSE;
+
+		/* it also happens that converting the faces calculates edges, skip this */
+		calc_edges = FALSE;
 	}
 
 	if(calc_edges || (mesh->totpoly && mesh->totedge == 0))
@@ -771,7 +774,24 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	if (calc_tessface) {
 		BKE_mesh_tessface_calc(mesh);
 	}
+	else {
+		/* default state is not to have tessface's so make sure this is the case */
+		BKE_mesh_tessface_clear(mesh);
+	}
 
+	/* note on this if/else - looks like these layers are not needed
+	 * so rather then add poly-index layer and calculate normals for it
+	 * calculate normals only for the mvert's. - campbell */
+#if 1
+	mesh_calc_normals(mesh->mvert,
+	                  mesh->totvert,
+	                  mesh->mloop,
+	                  mesh->mpoly,
+	                  mesh->totloop,
+	                  mesh->totpoly, NULL);
+	(void)polyindex;
+	(void)face_nors;
+#else
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
 	 * contain the normal of the poly the face was tesselated from. */
@@ -789,6 +809,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 		mesh->totface,
 		polyindex,
 		face_nors);
+#endif
 
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
