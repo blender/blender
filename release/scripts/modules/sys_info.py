@@ -57,66 +57,66 @@ def write_sysinfo(op):
     else:
         output = bpy.data.texts.new(name=output_filename)
 
-    header = '= Blender {} System Information =\n'.format(bpy.app.version_string)
-    lilies = '{}\n\n'.format(len(header) * '=')
-    firstlilies = '{}\n'.format(len(header) * '=')
+    header = "= Blender %s System Information =\n" % bpy.app.version_string
+    lilies = "%s\n\n" % (len(header) * "=")
+    firstlilies = "%s\n" % (len(header) * "=")
     output.write(firstlilies)
     output.write(header)
     output.write(lilies)
 
     # build info
-    output.write('\nBlender:\n')
+    output.write("\nBlender:\n")
     output.write(lilies)
-    output.write('version {}, revision {}. {}\n'.format(bpy.app.version_string, bpy.app.build_revision, bpy.app.build_type))
-    output.write('build date: {}, {}\n'.format(bpy.app.build_date, bpy.app.build_time))
-    output.write('platform: {}\n'.format(bpy.app.build_platform))
-    output.write('binary path: {}\n'.format(bpy.app.binary_path))
-    output.write('build cflags: {}\n'.format(bpy.app.build_cflags))
-    output.write('build cxxflags: {}\n'.format(bpy.app.build_cxxflags))
-    output.write('build linkflags: {}\n'.format(bpy.app.build_linkflags))
-    output.write('build system: {}\n'.format(bpy.app.build_system))
+    output.write("version %s, revision %r. %r\n" % (bpy.app.version_string, bpy.app.build_revision, bpy.app.build_type))
+    output.write("build date: %r, %r\n" % (bpy.app.build_date, bpy.app.build_time))
+    output.write("platform: %r\n" % (bpy.app.build_platform))
+    output.write("binary path: %r\n" % (bpy.app.binary_path))
+    output.write("build cflags: %r\n" % (bpy.app.build_cflags))
+    output.write("build cxxflags: %r\n" % (bpy.app.build_cxxflags))
+    output.write("build linkflags: %r\n" % (bpy.app.build_linkflags))
+    output.write("build system: %r\n" % (bpy.app.build_system))
 
     # python info
-    output.write('\nPython:\n')
+    output.write("\nPython:\n")
     output.write(lilies)
-    output.write('version: {}\n'.format(sys.version))
-    output.write('paths:\n')
+    output.write("version: %s\n" % (sys.version))
+    output.write("paths:\n")
     for p in sys.path:
-        output.write('\t{}\n'.format(p))
+        output.write("\t%r\n" % (p))
 
-    output.write('\nDirectories:\n')
+    output.write("\nDirectories:\n")
     output.write(lilies)
-    output.write('scripts: {}\n'.format(bpy.utils.script_paths()))
-    output.write('user scripts: {}\n'.format(bpy.utils.user_script_path()))
-    output.write('datafiles: {}\n'.format(bpy.utils.user_resource('DATAFILES')))
-    output.write('config: {}\n'.format(bpy.utils.user_resource('CONFIG')))
-    output.write('scripts : {}\n'.format(bpy.utils.user_resource('SCRIPTS')))
-    output.write('autosave: {}\n'.format(bpy.utils.user_resource('AUTOSAVE')))
-    output.write('tempdir: {}\n'.format(bpy.app.tempdir))
+    output.write("scripts: %r\n" % (bpy.utils.script_paths()))
+    output.write("user scripts: %r\n" % (bpy.utils.user_script_path()))
+    output.write("datafiles: %r\n" % (bpy.utils.user_resource('DATAFILES')))
+    output.write("config: %r\n" % (bpy.utils.user_resource('CONFIG')))
+    output.write("scripts : %r\n" % (bpy.utils.user_resource('SCRIPTS')))
+    output.write("autosave: %r\n" % (bpy.utils.user_resource('AUTOSAVE')))
+    output.write("tempdir: %r\n" % (bpy.app.tempdir))
 
-    output.write('\nFFmpeg:\n')
+    output.write("\nFFmpeg:\n")
     output.write(lilies)
     ffmpeg = bpy.app.ffmpeg
     if ffmpeg.supported:
         for lib in ['avcodec', 'avdevice', 'avformat', 'avutil', 'swscale']:
-            output.write('{}:{}{}\n'.format(lib, " " * (10 - len(lib)),
-                         getattr(ffmpeg, lib + '_version_string')))
+            output.write("%r:%r%r\n" % (lib, " " * (10 - len(lib)),
+                         getattr(ffmpeg, lib + "_version_string")))
     else:
-        output.write('Blender was built without FFmpeg support\n')
+        output.write("Blender was built without FFmpeg support\n")
 
     if bpy.app.background:
-        output.write('\nOpenGL: missing, background mode\n')
+        output.write("\nOpenGL: missing, background mode\n")
     else:
-        output.write('\nOpenGL\n')
+        output.write("\nOpenGL\n")
         output.write(lilies)
-        output.write('renderer:\t{}\n'.format(bgl.glGetString(bgl.GL_RENDERER)))
-        output.write('vendor:\t\t{}\n'.format(bgl.glGetString(bgl.GL_VENDOR)))
-        output.write('version:\t{}\n'.format(bgl.glGetString(bgl.GL_VERSION)))
-        output.write('extensions:\n')
+        output.write("renderer:\t%r\n" % (bgl.glGetString(bgl.GL_RENDERER)))
+        output.write("vendor:\t\t%r\n" % (bgl.glGetString(bgl.GL_VENDOR)))
+        output.write("version:\t%r\n" % (bgl.glGetString(bgl.GL_VERSION)))
+        output.write("extensions:\n")
 
         glext = bgl.glGetString(bgl.GL_EXTENSIONS)
         glext = textWrap(glext, 70)
         for l in glext:
-            output.write('\t\t{}\n'.format(l))
+            output.write("\t\t%r\n" % (l))
 
     op.report({'INFO'}, "System information generated in 'system-info.txt'")

@@ -108,6 +108,8 @@ static PyObject *make_app_info(void)
 	PyStructSequence_SET_ITEM(app_info, pos++, PyLong_FromLong(flag))
 #define SetStrItem(str) \
 	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(str))
+#define SetBytesItem(str) \
+	PyStructSequence_SET_ITEM(app_info, pos++, PyBytes_FromString(str))
 #define SetObjItem(obj) \
 	PyStructSequence_SET_ITEM(app_info, pos++, obj)
 
@@ -121,27 +123,28 @@ static PyObject *make_app_info(void)
 	SetStrItem(BLI_program_path());
 	SetObjItem(PyBool_FromLong(G.background));
 
-	/* build info */
+	/* build info, use bytes since we can't assume _any_ encoding:
+	 * see patch [#30154] for issue */
 #ifdef BUILD_DATE
-	SetStrItem(build_date);
-	SetStrItem(build_time);
-	SetStrItem(build_rev);
-	SetStrItem(build_platform);
-	SetStrItem(build_type);
-	SetStrItem(build_cflags);
-	SetStrItem(build_cxxflags);
-	SetStrItem(build_linkflags);
-	SetStrItem(build_system);
+	SetBytesItem(build_date);
+	SetBytesItem(build_time);
+	SetBytesItem(build_rev);
+	SetBytesItem(build_platform);
+	SetBytesItem(build_type);
+	SetBytesItem(build_cflags);
+	SetBytesItem(build_cxxflags);
+	SetBytesItem(build_linkflags);
+	SetBytesItem(build_system);
 #else
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
-	SetStrItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
 #endif
 
 	SetObjItem(BPY_app_ffmpeg_struct());
@@ -149,6 +152,7 @@ static PyObject *make_app_info(void)
 
 #undef SetIntItem
 #undef SetStrItem
+#undef SetBytesItem
 #undef SetObjItem
 
 	if (PyErr_Occurred()) {
