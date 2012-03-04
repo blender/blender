@@ -37,6 +37,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
@@ -302,6 +303,92 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 		"Location", "Mouse location to select nearest entity", -100.0f, 100.0f);
 	RNA_def_boolean(ot->srna, "extend", 0,
 		"Extend", "Extend selection rather than clearing the existing selection");
+}
+
+/********************** border select operator *********************/
+
+typedef struct BorderSelectuserData {
+	rctf rect;
+	int change, mode, extend;
+} BorderSelectuserData;
+
+static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
+                             MovieTrackingMarker *marker, int coord, float val)
+{
+	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
+
+	if (BLI_in_rctf(&data->rect, marker->framenr, val)) {
+		int flag = 0;
+
+		if (coord == 0)
+			flag = MARKER_GRAPH_SEL_X;
+		else
+			flag = MARKER_GRAPH_SEL_Y;
+
+		if (data->mode == GESTURE_MODAL_SELECT)
+			marker->flag |= flag;
+		else
+			marker->flag &= ~flag;
+
+		data->change = TRUE;
+	}
+	else if (!data->extend) {
+		marker->flag&= ~(MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
+	}
+}
+
+static int border_select_graph_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	BorderSelectuserData userdata;
+	rcti rect;
+
+	/* get rectangle from operator */
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
+
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &userdata.rect.xmin, &userdata.rect.ymin);
+	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &userdata.rect.xmax, &userdata.rect.ymax);
+
+	userdata.change = FALSE;
+	userdata.mode = RNA_int_get(op->ptr, "gesture_mode");
+	userdata.extend = RNA_boolean_get(op->ptr, "extend");
+
+	clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, border_select_cb, NULL, NULL);
+
+	if (userdata.change) {
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void CLIP_OT_graph_select_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Border Select";
+	ot->description = "Select curve points using border selection";
+	ot->idname = "CLIP_OT_graph_select_border";
+
+	/* api callbacks */
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = border_select_graph_exec;
+	ot->modal = WM_border_select_modal;
+	ot->poll = ED_space_clip_graph_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /******************** delete curve operator ********************/

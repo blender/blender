@@ -370,6 +370,7 @@ static void clip_operatortypes(void)
 
 	/* graph editing */
 	WM_operatortype_append(CLIP_OT_graph_select);
+	WM_operatortype_append(CLIP_OT_graph_select_border);
 	WM_operatortype_append(CLIP_OT_graph_delete_curve);
 	WM_operatortype_append(CLIP_OT_graph_delete_knot);
 	WM_operatortype_append(CLIP_OT_graph_view_all);
@@ -552,6 +553,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_select_border", BKEY, KM_PRESS, 0, 0);
 
 	/* delete */
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", DELKEY, KM_PRESS, 0, 0);
