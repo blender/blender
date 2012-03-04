@@ -1639,15 +1639,18 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set)
 	}
 }
 
-static void node_link_viewer(SpaceNode *snode, bNode *tonode)
+static int node_link_viewer(const bContext *C, bNode *tonode)
 {
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
+	bNodeLink *link;
+	bNodeSocket *sock;
 
 	/* context check */
 	if(tonode==NULL || tonode->outputs.first==NULL)
-		return;
+		return OPERATOR_CANCELLED;
 	if( ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
-		return;
+		return OPERATOR_CANCELLED;
 	
 	/* get viewer */
 	for(node= snode->edittree->nodes.first; node; node= node->next)
@@ -1663,52 +1666,69 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 			}
 		}
 	}
-		
-	if(node) {
-		bNodeLink *link;
-		bNodeSocket *sock= NULL;
-
-		/* try to find an already connected socket to cycle to the next */
+	
+	sock = NULL;
+	
+	/* try to find an already connected socket to cycle to the next */
+	if (node) {
+		link = NULL;
 		for(link= snode->edittree->links.first; link; link= link->next)
 			if(link->tonode==node && link->fromnode==tonode)
 				if(link->tosock==node->inputs.first)
 					break;
-
 		if(link) {
 			/* unlink existing connection */
 			sock= link->fromsock;
 			nodeRemLink(snode->edittree, link);
-
+			
 			/* find a socket after the previously connected socket */
 			for(sock=sock->next; sock; sock= sock->next)
 				if(!nodeSocketIsHidden(sock))
 					break;
 		}
-
-		/* find a socket starting from the first socket */
-		if(!sock) {
-			for(sock= tonode->outputs.first; sock; sock= sock->next)
-				if(!nodeSocketIsHidden(sock))
-					break;
+	}
+	
+	/* find a socket starting from the first socket */
+	if(!sock) {
+		for(sock= tonode->outputs.first; sock; sock= sock->next)
+			if(!nodeSocketIsHidden(sock))
+				break;
+	}
+	
+	if(sock) {
+		/* add a new viewer if none exists yet */
+		if(!node) {
+			Main *bmain = CTX_data_main(C);
+			Scene *scene = CTX_data_scene(C);
+			bNodeTemplate ntemp;
+			
+			ntemp.type = CMP_NODE_VIEWER;
+			/* XXX location is a quick hack, just place it next to the linked socket */
+			node = node_add_node(snode, bmain, scene, &ntemp, sock->locx + 100, sock->locy);
+			if (!node)
+				return OPERATOR_CANCELLED;
+			
+			link = NULL;
 		}
-		
-		if(sock) {
+		else {
 			/* get link to viewer */
 			for(link= snode->edittree->links.first; link; link= link->next)
 				if(link->tonode==node && link->tosock==node->inputs.first)
 					break;
-			
-			if(link==NULL) {
-				nodeAddLink(snode->edittree, tonode, sock, node, node->inputs.first);
-			}
-			else {
-				link->fromnode= tonode;
-				link->fromsock= sock;
-			}
-			ntreeUpdateTree(snode->edittree);
-			snode_update(snode, node);
 		}
+		
+		if(link==NULL) {
+			nodeAddLink(snode->edittree, tonode, sock, node, node->inputs.first);
+		}
+		else {
+			link->fromnode= tonode;
+			link->fromsock= sock;
+		}
+		ntreeUpdateTree(snode->edittree);
+		snode_update(snode, node);
 	}
+	
+	return OPERATOR_FINISHED;
 }
 
 
@@ -1724,7 +1744,9 @@ static int node_active_link_viewer(bContext *C, wmOperator *UNUSED(op))
 
 	ED_preview_kill_jobs(C);
 
-	node_link_viewer(snode, node);
+	if (node_link_viewer(C, node) == OPERATOR_CANCELLED)
+		return OPERATOR_CANCELLED;
+
 	snode_notify(C, snode);
 
 	return OPERATOR_FINISHED;
@@ -1741,7 +1763,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= node_active_link_viewer;
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
