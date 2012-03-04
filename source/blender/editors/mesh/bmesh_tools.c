@@ -3450,8 +3450,9 @@ static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	int use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 
-	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_ELEM_SELECT))
+	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
@@ -3472,6 +3473,8 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "use_beauty", 1, "Beauty", "Use best triangulation division (currently quads only)");
 }
 
 static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)

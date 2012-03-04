@@ -703,55 +703,77 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 }
 
 /**
- * \brief FIND EAR
+ * \brief Find Ear
  *
  * Used by tesselator to find
  * the next triangle to 'clip off'
  * of a polygon while tessellating.
+ *
+ * \param use_beauty Currently only applies to quads, can be extended later on.
+ *
  */
-static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert)
+static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert, const int use_beauty)
 {
-	BMVert *v1, *v2, *v3;
 	BMLoop *bestear = NULL;
 
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	/* float angle, bestangle = 180.0f; */
-	int isear /*, i = 0 */;
-	
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	do {
-		isear = 1;
-		
-		v1 = l_iter->prev->v;
-		v2 = l_iter->v;
-		v3 = l_iter->next->v;
 
-		if (BM_edge_exists(v1, v3)) {
-			isear = 0;
-		}
-		else if (!goodline(verts, f, BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3), nvert)) {
-			isear = 0;
-		}
+	if (f->len == 4) {
+		BMLoop *larr[4];
+		int i = 0;
 
-		if (isear) {
-#if 0
-			/* if this code comes back, it needs to be converted to radians */
-			angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if (!bestear || ABS(angle - 45.0f) < bestangle) {
-				bestear = l;
-				bestangle = ABS(45.0f - angle);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			larr[i] = l_iter;
+			i++;
+		} while ((l_iter = l_iter->next) != l_first);
+
+		/* pick 0/1 based on best lenth */
+		bestear = larr[(((len_squared_v3v3(larr[0]->v->co, larr[2]->v->co) >
+		                  len_squared_v3v3(larr[1]->v->co, larr[3]->v->co))) != use_beauty)];
+
+	}
+	else {
+		BMVert *v1, *v2, *v3;
+
+		/* float angle, bestangle = 180.0f; */
+		int isear /*, i = 0 */;
+
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			isear = 1;
+
+			v1 = l_iter->prev->v;
+			v2 = l_iter->v;
+			v3 = l_iter->next->v;
+
+			if (BM_edge_exists(v1, v3)) {
+				isear = 0;
 			}
-			
-			if (angle > 20 && angle < 90) break;
-			if (angle < 100 && i > 5) break;
-			i += 1;
-#endif
+			else if (!goodline(verts, f, BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3), nvert)) {
+				isear = 0;
+			}
 
-			bestear = l_iter;
-			break;
-		}
-	} while ((l_iter = l_iter->next) != l_first);
+			if (isear) {
+	#if 0
+				/* if this code comes back, it needs to be converted to radians */
+				angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
+				if (!bestear || ABS(angle - 45.0f) < bestangle) {
+					bestear = l;
+					bestangle = ABS(45.0f - angle);
+				}
+
+				if (angle > 20 && angle < 90) break;
+				if (angle < 100 && i > 5) break;
+				i += 1;
+	#endif
+
+				bestear = l_iter;
+				break;
+			}
+		} while ((l_iter = l_iter->next) != l_first);
+	}
 
 	return bestear;
 }
@@ -772,7 +794,8 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const i
  * \note newedgeflag sets a flag layer flag, obviously not the header flag.
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces)
+                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces,
+                         const short use_beauty)
 {
 	int i, done, nvert, nf_i = 0;
 	BMLoop *newl, *nextloop;
@@ -806,7 +829,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	done = 0;
 	while (!done && f->len > 3) {
 		done = 1;
-		l_iter = find_ear(bm, f, projectverts, nvert);
+		l_iter = find_ear(bm, f, projectverts, nvert, use_beauty);
 		if (l_iter) {
 			done = 0;
 			/* v = l->v; */ /* UNUSED */
@@ -848,7 +871,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
 
-				/* NULL-terminat */
+				/* NULL-terminate */
 				if (newfaces) newfaces[nf_i] = NULL;
 				return;
 			}
@@ -861,7 +884,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		}
 	}
 	
-	/* NULL-terminat */
+	/* NULL-terminate */
 	if (newfaces) newfaces[nf_i] = NULL;
 }
 

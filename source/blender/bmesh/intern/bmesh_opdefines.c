@@ -676,6 +676,7 @@ static BMOpDefine bmo_triangulate_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},
 	 {BMO_OP_SLOT_MAPPING, "facemap"},
+	 {BMO_OP_SLOT_BOOL, "use_beauty"},
 	 {0} /* null-terminating sentine */},
 	bmo_triangulate_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

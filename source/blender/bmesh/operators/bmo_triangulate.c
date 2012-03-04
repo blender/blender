@@ -47,7 +47,8 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	float (*projectverts)[3] = NULL;
 	BLI_array_declare(projectverts);
 	int i, lastlen = 0 /* , count = 0 */;
-	
+	const int use_beauty = BMO_slot_bool_get(op, "use_beauty");
+
 	face = BMO_iter_new(&siter, bm, op, "faces", BM_FACE);
 	for ( ; face; face = BMO_iter_step(&siter)) {
 		if (lastlen < face->len) {
@@ -61,7 +62,7 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces);
+		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces, use_beauty);
 
 		BMO_slot_map_ptr_insert(bm, op, "facemap", face, face);
 		for (i = 0; newfaces[i]; i++) {
@@ -159,7 +160,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e;
 	BMOperator bmop;
-	ScanFillEdge *eed;
+	/* ScanFillEdge *eed; */ /* UNUSED */
 	ScanFillVert *eve, *v1, *v2;
 	ScanFillFace *efa;
 	SmallHash hash;
@@ -185,7 +186,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		
 		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
 		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
-		eed = BLI_addfilledge(v1, v2);
+		/* eed = */ BLI_addfilledge(v1, v2);
 		/* eed->tmp.p = e; */ /* UNUSED */
 	}
 	
