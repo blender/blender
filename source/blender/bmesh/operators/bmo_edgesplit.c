@@ -180,7 +180,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 
 				startl = l;
 				do {
-					l = BM_face_other_loop(l->f, l->e, v);
+					l = BM_face_other_edge_loop(l->f, l->e, v);
 					if (l == startl || BM_edge_face_count(l->e) != 2) {
 						break;
 					}
@@ -317,7 +317,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 						}
 
 						l3 = l3->radial_next;
-						l3 = BM_face_other_loop(l3->f, l3->e, v);
+						l3 = BM_face_other_edge_loop(l3->f, l3->e, v);
 					} while (l3 != l2 && !BMO_elem_flag_test(bm, l3->e, EDGE_SEAM));
 
 					if (l3 == NULL || (BMO_elem_flag_test(bm, l3->e, EDGE_SEAM) && l3->e != l->e)) {
@@ -333,7 +333,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 								}
 
 								l3 = l3->radial_next;
-								l3 = BM_face_other_loop(l3->f, l3->e, v);
+								l3 = BM_face_other_edge_loop(l3->f, l3->e, v);
 								
 								et = &etags[BM_elem_index_get(l3->e)];
 							} while (l3 != l2 && !BMO_elem_flag_test(bm, l3->e, EDGE_SEAM));

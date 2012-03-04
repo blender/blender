@@ -67,18 +67,20 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
  */
-BMLoop *BM_face_other_loop(BMFace *f, BMEdge *e, BMVert *v)
+BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	
+	/* we could loop around the face too, but turns out this uses a lot
+	 * more iterations (approx double with quads, many more with 5+ ngons) */
+	l_iter = l_first = e->l;
+
 	do {
-		if (l_iter->e == e) {
+		if (l_iter->e == e && l_iter->f == f) {
 			break;
 		}
-	} while ((l_iter = l_iter->next) != l_first);
+	} while ((l_iter = l_iter->radial_next) != l_first);
 	
 	return l_iter->v == v ? l_iter->prev : l_iter->next;
 }
@@ -88,7 +90,7 @@ BMLoop *BM_face_other_loop(BMFace *f, BMEdge *e, BMVert *v)
  *
  * Finds the other loop in a face.
  *
- * This function returns a loop in \a f that shares an edge with \v
+ * This function returns a loop in \a f that shares an edge with \a v
  * The direction is defined by \a v_prev, where the return value is
  * the loop of what would be 'v_next'
  *
@@ -99,7 +101,7 @@ BMLoop *BM_face_other_loop(BMFace *f, BMEdge *e, BMVert *v)
  *     |          |
  *     +----------+
  *     v_prev --> v
- *     ^^^^^^     ^ <-- These vert argumrnts define direction
+ *     ^^^^^^     ^ <-- These vert args define direction
  *                      in the face to check.
  *                      The faces loop direction is ignored.
  *

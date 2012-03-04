@@ -153,7 +153,7 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 			continue;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, v) {
-			BMLoop *l2 = BM_face_other_loop(l->f, l->e, v);
+			BMLoop *l2 = BM_face_other_edge_loop(l->f, l->e, v);
 			
 			/* retrieve mapped coordinates */
 			v1= mappedcos + 3*BM_elem_index_get(l->v);

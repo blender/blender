@@ -4310,7 +4310,7 @@ static BMLoop *get_next_loop(BMesh *UNUSED(bm), BMVert *v, BMLoop *l,
 
 	firstl = l;
 	do {
-		l = BM_face_other_loop(l->f, l->e, v);
+		l = BM_face_other_edge_loop(l->f, l->e, v);
 		if (l->radial_next == l)
 			return NULL;
 		
@@ -4339,12 +4339,12 @@ static BMLoop *get_next_loop(BMesh *UNUSED(bm), BMVert *v, BMLoop *l,
 			i += 1;
 		}
 
-		if (BM_face_other_loop(l->f, l->e, v)->e == nexte) {
+		if (BM_face_other_edge_loop(l->f, l->e, v)->e == nexte) {
 			if (i)
 				mul_v3_fl(a, 1.0f / (float)i);
 			
 			copy_v3_v3(vec, a);
-			return BM_face_other_loop(l->f, l->e, v);
+			return BM_face_other_edge_loop(l->f, l->e, v);
 		}
 		
 		l = l->radial_next;
@@ -4477,11 +4477,11 @@ static int createSlideVerts(TransInfo *t)
 		l1 = e->l;
 		l2 = e->l->radial_next;
 
-		l = BM_face_other_loop(l1->f, l1->e, v);
+		l = BM_face_other_edge_loop(l1->f, l1->e, v);
 		sub_v3_v3v3(vec, BM_edge_other_vert(l->e, v)->co, v->co);
 
 		if (l2 != l1) {
-			l = BM_face_other_loop(l2->f, l2->e, v);
+			l = BM_face_other_edge_loop(l2->f, l2->e, v);
 			sub_v3_v3v3(vec2, BM_edge_other_vert(l->e, v)->co, v->co);
 		} else {
 			l2 = NULL;
@@ -4498,11 +4498,11 @@ static int createSlideVerts(TransInfo *t)
 			if (l2)
 				copy_v3_v3(sv->downvec, vec2);
 
-			l = BM_face_other_loop(l1->f, l1->e, v);
+			l = BM_face_other_edge_loop(l1->f, l1->e, v);
 			sv->up = BM_edge_other_vert(l->e, v);
 
 			if (l2) {
-				l = BM_face_other_loop(l2->f, l2->e, v);
+				l = BM_face_other_edge_loop(l2->f, l2->e, v);
 				sv->down = BM_edge_other_vert(l->e, v);
 			}
 
@@ -4517,12 +4517,12 @@ static int createSlideVerts(TransInfo *t)
 				sv->v = v;
 				sv->origvert = *v;
 				
-				l = BM_face_other_loop(l1->f, l1->e, v);
+				l = BM_face_other_edge_loop(l1->f, l1->e, v);
 				sv->up = BM_edge_other_vert(l->e, v);
 				sub_v3_v3v3(sv->upvec, BM_edge_other_vert(l->e, v)->co, v->co);
 
 				if (l2) {
-					l = BM_face_other_loop(l2->f, l2->e, v);
+					l = BM_face_other_edge_loop(l2->f, l2->e, v);
 					sv->down = BM_edge_other_vert(l->e, v);
 					sub_v3_v3v3(sv->downvec, BM_edge_other_vert(l->e, v)->co, v->co);
 				}
