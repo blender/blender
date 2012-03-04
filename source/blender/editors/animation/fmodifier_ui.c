@@ -155,7 +155,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			
 			cp= data->coefficients;
 			for (i=0; (i < data->arraysize) && (cp); i++, cp++) {
-				/* To align with first line. */
+				/* To align with first line */
 				if (i)
 					uiDefBut(block, LABEL, 1, "   ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 				else
@@ -208,7 +208,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			
 			cp= data->coefficients;
 			for (i=0; (i < data->poly_order) && (cp); i++, cp+=2) {
-				/* To align with first line. */
+				/* To align with first line */
 				if (i)
 					uiDefBut(block, LABEL, 1, "   ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 				else
