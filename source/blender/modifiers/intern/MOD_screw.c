@@ -345,7 +345,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* Notice!
 		 *
 		 * Since we are only ordering the edges here it can avoid mallocing the
-		 * extra space by abusing the vert array berfore its filled with new verts.
+		 * extra space by abusing the vert array before its filled with new verts.
 		 * The new array for vert_connect must be at least sizeof(ScrewVertConnect) * totvert
 		 * and the size of our resulting meshes array is sizeof(MVert) * totvert * 3
 		 * so its safe to use the second 2 thrids of MVert the array for vert_connect,

@@ -4738,7 +4738,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 
 	if(mode == ARM_GROUPS_NAME) {
 		/* Traverse the bone list, trying to create empty vertex 
-		 * groups cooresponding to the bone.
+		 * groups corresponding to the bone.
 		 */
 		bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
 

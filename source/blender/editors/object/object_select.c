@@ -492,7 +492,7 @@ static short select_grouped_object_hooks(bContext *C, Object *ob)
 	return changed;
 }
 
-/* Select objects woth the same parent as the active (siblings),
+/* Select objects with the same parent as the active (siblings),
  * parent can be NULL also */
 static short select_grouped_siblings(bContext *C, Object *ob)
 {

@@ -269,7 +269,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 
 /*
  * Do actual bake operation. Loop through to-be-baked frames.
- * Returns 0 on failture.
+ * Returns 0 on failure.
  */
 static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surface, Object *cObject)
 {

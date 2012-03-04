@@ -2520,7 +2520,7 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each PoseChannel... */
-	// TODO: could be optimised at some point
+	// TODO: could be optimized at some point
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		short sco1[2], sco2[2], didpoint=0;
 		float vec[3];
@@ -2592,7 +2592,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each EditBone... */
-	// TODO: could be optimised at some point
+	// TODO: could be optimized at some point
 	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 		short sco1[2], sco2[2], didpoint=0;
 		float vec[3];

@@ -193,7 +193,7 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
  */
 
 /* Borderselect only selects keyframes now, as overshooting handles often get caught too,
- * which means that they may be inadvertantly moved as well. However, incl_handles overrides
+ * which means that they may be inadvertently moved as well. However, incl_handles overrides
  * this, and allow handles to be considered independently too.
  * Also, for convenience, handles should get same status as keyframe (if it was within bounds).
  */

@@ -641,7 +641,7 @@ typedef struct PanelSort {
 /* note about sorting;
  * the sortorder has a lower value for new panels being added.
  * however, that only works to insert a single panel, when more new panels get
- * added the coordinates of existing panels and the previously stored to-be-insterted
+ * added the coordinates of existing panels and the previously stored to-be-inserted
  * panels do not match for sorting */
 
 static int find_leftmost_panel(const void *a1, const void *a2)

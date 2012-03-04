@@ -114,7 +114,7 @@ class SCA_Joystick
 	void DestroyJoystickDevice(void);
 
 	/**
-	 * fills the axis mnember values 
+	 * fills the axis member values
 	 */
 	void pFillButtons(void);
 

@@ -1579,7 +1579,7 @@ KeyBlock *key_get_named_keyblock(Key *key, const char name[])
 }
 
 /* Get RNA-Path for 'value' setting of the given ShapeKey 
- * NOTE: the user needs to free the returned string once they're finishe with it
+ * NOTE: the user needs to free the returned string once they're finish with it
  */
 char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
 {

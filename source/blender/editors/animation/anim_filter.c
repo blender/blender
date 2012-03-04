@@ -1285,7 +1285,7 @@ static size_t animdata_filter_gpencil_data (ListBase *anim_data, bGPdata *gpd, i
 	return items;
 }
 
-/* Grab all Grase Pencil datablocks in file */
+/* Grab all Grease Pencil datablocks in file */
 // TODO: should this be amalgamated with the dopesheet filtering code?
 static size_t animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {

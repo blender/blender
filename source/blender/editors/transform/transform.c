@@ -5066,7 +5066,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 	char str[200];
 
 	/*
-	 * OPTIMISATION:
+	 * OPTIMIZATION:
 	 * This still recalcs transformation on mouse move
 	 * while it should only recalc on constraint change
 	 * */

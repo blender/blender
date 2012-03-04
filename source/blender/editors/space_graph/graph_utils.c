@@ -122,7 +122,7 @@ int graphop_visible_keyframes_poll (bContext *C)
 	for (ale = anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->data;
 		
-		/* visible curves for selection must fulfull the following criteria:
+		/* visible curves for selection must fulfill the following criteria:
 		 *	- it has bezier keyframes
 		 *	- F-Curve modifiers do not interfere with the result too much 
 		 *	  (i.e. the modifier-control drawing check returns false)
@@ -171,7 +171,7 @@ int graphop_editable_keyframes_poll (bContext *C)
 	for (ale = anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->data;
 		
-		/* editable curves must fulfull the following criteria:
+		/* editable curves must fulfill the following criteria:
 		 *	- it has bezier keyframes
 		 *	- it must not be protected from editing (this is already checked for with the foredit flag
 		 *	- F-Curve modifiers do not interfere with the result too much 

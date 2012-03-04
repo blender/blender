@@ -850,7 +850,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	/* UI_view2d_to_region_no_clip return integer values, this could
 	 * lead to 1px flickering when view is locked to selection during playbeck.
-	 * to avoid this flickering, calclate base point in the same way as it happens
+	 * to avoid this flickering, calculate base point in the same way as it happens
 	 * in UI_view2d_to_region_no_clip, but do it in floats here */
 
 	view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
@@ -1317,7 +1317,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 		return;
 
 	if(onlyv2d) {
-		/* if manual calibration is used then grase pencil data is already
+		/* if manual calibration is used then grease pencil data is already
 		 * drawed in draw_distortion */
 		if((sc->flag&SC_MANUAL_CALIBRATION)==0 || sc->mode!=SC_MODE_DISTORTION) {
 			ibuf= ED_space_clip_get_buffer(sc);

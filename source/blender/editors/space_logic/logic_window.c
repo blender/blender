@@ -1461,7 +1461,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			 * proper compatibility with older .blend files. */
 
 			/* Any sensor type default is 0 but the ms enum starts in 1.
-			 * Therefore the mosue sensor is initialized to 1 in sca.c */
+			 * Therefore the mouse sensor is initialized to 1 in sca.c */
 			str= "Type %t|Left button %x1|Middle button %x2|"
 				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16|Mouse over any%x32"; 
 			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, (width*0.8f)-20, 19,
@@ -4716,7 +4716,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 				
 				/* put link button to the right */
 				col = uiLayoutColumn(split, 0);
-				/* use oldskool uiButtons for links for now */
+				/* use old-school uiButtons for links for now */
 				but= uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
 			}

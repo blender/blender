@@ -375,7 +375,7 @@ enum {
 
 /* This helper function determines whether a new keyframe is needed */
 /* Cases where keyframes should not be added:
- *	1. Keyframe to be added bewteen two keyframes with similar values
+ *	1. Keyframe to be added between two keyframes with similar values
  *	2. Keyframe to be added on frame where two keyframes are already situated
  *	3. Keyframe lies at point that intersects the linear line between two keyframes
  */

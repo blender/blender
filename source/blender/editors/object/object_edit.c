@@ -453,7 +453,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		/*
 		 * The function object_data_is_libdata make a problem here, the
 		 * check for ob->proxy return 0 and let blender enter to edit mode
-		 * this causa a crash when you try leave the edit mode.
+		 * this causes a crash when you try leave the edit mode.
 		 * The problem is that i can't remove the ob->proxy check from
 		 * object_data_is_libdata that prevent the bugfix #6614, so
 		 * i add this little hack here.

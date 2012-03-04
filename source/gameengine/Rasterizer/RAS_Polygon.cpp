@@ -72,7 +72,7 @@ int RAS_Polygon::GetVertexOffsetAbs(RAS_MeshObject *mesh, int i)
 {
 	/* hack that only works because there can only ever be 2 different
 	 * GetDisplayArray's per mesh. if this uses a different display array to the first
-	 * then its incices are offset.
+	 * then its indices are offset.
 	 * if support for edges is added back this would need to be changed. */
 	RAS_DisplayArray* darray= mesh->GetPolygon(0)->GetDisplayArray();
 	

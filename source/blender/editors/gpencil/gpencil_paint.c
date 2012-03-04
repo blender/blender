@@ -578,7 +578,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	}
 	
 	/* special case for poly line -- for already added stroke during session
-	 * coordinates are getting added to stroke immediatelly to allow more
+	 * coordinates are getting added to stroke immediately to allow more
 	 * interactive behavior */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		if (p->flags & GP_PAINTFLAG_STROKEADDED)

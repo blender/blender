@@ -356,7 +356,7 @@ static float cube[8][3] = {
 	{ 1.0,  1.0, -1.0},
 };
 
-/* ----------------- OpenGL Circle Drawing - Tables for Optimised Drawing Speed ------------------ */
+/* ----------------- OpenGL Circle Drawing - Tables for Optimized Drawing Speed ------------------ */
 /* 32 values of sin function (still same result!) */
 #define CIRCLE_RESOL 32
 
@@ -750,7 +750,7 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	float verts[CIRCLE_RESOL][3];
 
 	/* using gldepthfunc guarantees that it does write z values,
-	 * but not checks for it, so centers remain visible independt order of drawing */
+	 * but not checks for it, so centers remain visible independent order of drawing */
 	if (v3d->zbuf)  glDepthFunc(GL_ALWAYS);
 	glEnable(GL_BLEND);
 	
@@ -1057,7 +1057,7 @@ static void spotvolume(float lvec[3], float vvec[3], const float inp)
 		plane[1]= 1.0f;
 
 	/* now we've got two equations: one of a cone and one of a plane, but we have
-	 * three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
+	 * three unknowns. We remove one unknown by rotating the plane to z=0 (the plane normal) */
 
 	/* rotate around cross product vector of (0,0,1) and plane normal, dot product degrees */
 	/* according definition, we derive cross product is (plane[1],-plane[0],0), en cos = plane[2]);*/
@@ -2819,7 +2819,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 	if (me->drawflag & ME_DRAWEXTRA_FACEAREA) {
 		/* would be nice to use BM_face_area_calc, but that is for 2d faces
-		 * so instead add up tessalation triangle areas */
+		 * so instead add up tessellationf triangle areas */
 		BMFace *f;
 		int n;
 

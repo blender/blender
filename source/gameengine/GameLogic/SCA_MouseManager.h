@@ -60,7 +60,7 @@ public:
 
 	/**
 	 * Checks whether a mouse button is depressed. Ignores requests on non-
-	 * mouse related evenst. Can also flag mouse movement.
+	 * mouse related events. Can also flag mouse movement.
 	 */
 	bool IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
 	virtual void 	NextFrame();	

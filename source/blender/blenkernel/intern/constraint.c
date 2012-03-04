@@ -1910,7 +1910,7 @@ static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 
 	mat4_to_size(obsize, cob->matrix);
 	
-	/* calculate normalising scale factor for non-essential values */
+	/* calculate normalizing scale factor for non-essential values */
 	if (obsize[data->flag] != 0) 
 		fac = sqrtf(volume / obsize[data->flag]) / obsize[data->flag];
 	

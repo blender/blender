@@ -2905,7 +2905,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_TIMECURSOR);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
-	/* show markers pathes */
+	/* show markers paths */
 	prop= RNA_def_property(srna, "show_track_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TRACK_PATH);
 	RNA_def_property_ui_text(prop, "Show Track Path", "Show path of how track moves");

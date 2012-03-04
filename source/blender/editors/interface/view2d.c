@@ -981,7 +981,7 @@ void UI_view2d_view_ortho(View2D *v2d)
 	float xofs, yofs;
 	
 	/* pixel offsets (-0.375f) are needed to get 1:1 correspondence with pixels for smooth UI drawing, 
-	 * but only applied where requsted
+	 * but only applied where requested
 	 */
 	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
 	 * pixel rounding is effectively random due to float inaccuracy */
@@ -1020,7 +1020,7 @@ void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, short xaxis)
 	float xofs, yofs;
 	
 	/* pixel offsets (-0.375f) are needed to get 1:1 correspondence with pixels for smooth UI drawing, 
-	 * but only applied where requsted
+	 * but only applied where requested
 	 */
 	/* XXX temp (ton) */
 	xofs= 0.0f; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;

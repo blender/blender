@@ -116,7 +116,7 @@ void glaRasterPosSafe2f		(float x, float y, float known_good_x, float known_good
 	 * (0.375, 0.375) is assumed to be within the view frustum, and the 
 	 * modelview and projection matrices are assumed to define a 
 	 * 1-to-1 mapping to screen space.
-	 * \attention Furthmore, in the case of zoomed or unpixel aligned
+	 * \attention Furthermore, in the case of zoomed or unpixel aligned
 	 * images extending outside the view frustum, but still within the 
 	 * window, some portion of the image may be visible left and/or
 	 * below of the given \a x and \a y coordinates. It is recommended

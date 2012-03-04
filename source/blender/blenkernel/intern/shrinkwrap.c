@@ -86,7 +86,7 @@
 typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *co, float *normal);
 
 /* get derived mesh */
-//TODO is anyfunction that does this? returning the derivedFinal witouth we caring if its in edit mode or not?
+//TODO is anyfunction that does this? returning the derivedFinal without we caring if its in edit mode or not?
 DerivedMesh *object_get_derived_final(Object *ob)
 {
 	Mesh *me= ob->data;

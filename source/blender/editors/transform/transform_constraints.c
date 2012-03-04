@@ -1041,7 +1041,7 @@ int getConstraintSpaceDimension(TransInfo *t)
 
 	return n;
 /*
- * Someone willing to do it criptically could do the following instead:
+ * Someone willing to do it cryptically could do the following instead:
  *
  * return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
  *

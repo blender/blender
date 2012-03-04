@@ -66,7 +66,7 @@
  * "Header", or "Listview" or "Toolbar". Properties of Style definitions 
  * are:
  *
- * - default collumn properties, internal spacing, aligning, min/max width
+ * - default column properties, internal spacing, aligning, min/max width
  * - button alignment rules (for groups)
  * - label placement rules
  * - internal labeling or external labeling default

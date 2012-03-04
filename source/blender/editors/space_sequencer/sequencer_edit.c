@@ -2913,7 +2913,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* can someone explain the logic behind only allowing to increse this,
+	/* can someone explain the logic behind only allowing to increase this,
 	 * copied from 2.4x - campbell */
 	if (get_sequence_effect_num_inputs(seq->type) <
 		get_sequence_effect_num_inputs(new_type)

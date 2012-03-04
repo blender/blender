@@ -1177,7 +1177,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 		case IPO_CYCLX: /* cyclic extrapolation + offset */
 		{
 			/* Add a new FModifier (Cyclic) instead of setting extend value 
-			 * as that's the new equivilant of that option. 
+			 * as that's the new equivalent of that option.
 			 */
 			FModifier *fcm= add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
 			FMod_Cycles *data= (FMod_Cycles *)fcm->data;

@@ -745,7 +745,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 		grid->t_index = MEM_callocN(sizeof(int) * sData->total_points, "Surface Grid Target Ids");
 		temp_t_index = MEM_callocN(sizeof(int) * sData->total_points, "Temp Surface Grid Target Ids");
 
-		/* in case of an allocation failture abort here */
+		/* in case of an allocation failure abort here */
 		if (!grid->bounds || !grid->s_pos || !grid->s_num || !grid->t_index || !temp_s_num || !temp_t_index)
 			error = 1;
 

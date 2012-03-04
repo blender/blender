@@ -3038,7 +3038,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				 * to cancel changes made to this button, but changing state to EXIT also makes no button active for
 				 * a while which leads to triggering operator when doing fast scrolling mouse wheel.
 				 * using post activate stuff from button allows to make button be active again after checking for all
-				 * all that mouse leave and cancel stuff, so wuick scrool wouldnt't be an issue anumore.
+				 * all that mouse leave and cancel stuff, so quick scroll wouldnt't be an issue anymore.
 				 * same goes for scrolling wheel in another direction below (sergey)
 				 */
 				data->postbut= but;

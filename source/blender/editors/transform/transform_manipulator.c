@@ -653,14 +653,14 @@ static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 }
 
 
-/* radring = radius of donut rings
+/* radring = radius of doughnut rings
  * radhole = radius hole
  * start = starting segment (based on nrings)
  * end   = end segment
  * nsides = amount of points in ring
  * nrigns = amount of rings
  */
-static void partial_donut(float radring, float radhole, int start, int end, int nsides, int nrings)
+static void partial_doughnut(float radring, float radhole, int start, int end, int nsides, int nrings)
 {
 	float theta, phi, theta1;
 	float cos_theta, sin_theta;
@@ -1024,7 +1024,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			preOrthoFront(ortho, rv3d->twmat, 2);
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor(v3d, 'Z', colcode, 255);
-			partial_donut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
+			partial_doughnut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
 			postOrtho(ortho);
 		}
 		/* X circle */
@@ -1033,7 +1033,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			manipulator_setcolor(v3d, 'X', colcode, 255);
-			partial_donut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
+			partial_doughnut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 			postOrtho(ortho);
 		}
@@ -1043,7 +1043,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor(v3d, 'Y', colcode, 255);
-			partial_donut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
+			partial_doughnut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			postOrtho(ortho);
 		}
@@ -1060,7 +1060,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor(v3d, 'Z', colcode, 255);
 
-			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
+			partial_doughnut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 			postOrtho(ortho);
@@ -1075,7 +1075,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			glRotatef(90.0, 0.0, 0.0, 1.0);
-			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
+			partial_doughnut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 			postOrtho(ortho);
@@ -1090,7 +1090,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 			glRotatef(90.0, 0.0, 0.0, 1.0);
-			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
+			partial_doughnut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 			postOrtho(ortho);

@@ -198,7 +198,7 @@ static void sphere_do(
 	* tiny optimization: the code is separated (with parts repeated)
 	 * in two possible cases:
 	* with or w/o a vgroup. With lots of if's in the code below,
-	* further optimizations are possible, if needed */
+	* further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
 		MDeformVert *dv= dvert;
 		float fac_orig = fac;
@@ -396,7 +396,7 @@ static void cuboid_do(
 	* tiny optimization: the code is separated (with parts repeated)
 	 * in two possible cases:
 	* with or w/o a vgroup. With lots of if's in the code below,
-	* further optimizations are possible, if needed */
+	* further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
 		float fac_orig = fac;
 		for (i = 0; i < numVerts; i++) {

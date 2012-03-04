@@ -730,7 +730,7 @@ int BLI_path_abs(char *path, const char *basepath)
 
 /*
  * Should only be done with command line paths.
- * this is NOT somthing blenders internal paths support like the // prefix
+ * this is NOT something blenders internal paths support like the // prefix
  */
 int BLI_path_cwd(char *path)
 {

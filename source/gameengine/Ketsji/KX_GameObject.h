@@ -155,7 +155,7 @@ public:
 	);
 
 	/**
-	 * Compute an OpenGl compatable 4x4 matrix. Has the
+	 * Compute an OpenGl compatible 4x4 matrix. Has the
 	 * side effect of storing the result internally. The
 	 * memory for the matrix remains the property of this class.
 	 */ 

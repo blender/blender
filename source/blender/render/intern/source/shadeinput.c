@@ -294,7 +294,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	}
 }
 
-/* note, facenr declared volatile due to over-eager -O2 optimizations
+/* note, facenr declared volatile due to over-eager -O2 optimization's
  * on cygwin (particularly -frerun-cse-after-loop)
  */
 

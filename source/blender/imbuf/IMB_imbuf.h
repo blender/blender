@@ -52,7 +52,7 @@
  * - File I/O must be done externally. The module uses FILE*'s to
  *   direct input/output.
  * - Platform dependency is limited. Some minor patches for
- *   amiga and Irix are present. A 'posix-compliancy-patch'
+ *   amiga and Irix are present. A 'posix-compliance-patch'
  *   provides the interface to windows.
  *
  * \section dependencies Dependencies

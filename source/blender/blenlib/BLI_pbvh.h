@@ -159,7 +159,7 @@ typedef struct PBVHVertexIter {
 	int *vert_indices;
 
 	/* result: these are all computed in the macro, but we assume
-	 * that compiler optimizations will skip the ones we don't use */
+	 * that compiler optimization's will skip the ones we don't use */
 	struct MVert *mvert;
 	float *co;
 	short *no;

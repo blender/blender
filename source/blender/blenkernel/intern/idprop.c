@@ -379,7 +379,7 @@ void IDP_ConcatString(IDProperty *str1, IDProperty *append)
 	int newlen;
 
 	/* since ->len for strings includes the NULL byte, we have to subtract one or
-	 * we'll get an extra null byte after each concatination operation.*/
+	 * we'll get an extra null byte after each concatenation operation.*/
 	newlen = str1->len + append->len - 1;
 	IDP_ResizeArray(str1, newlen);
 	strcat(str1->data.pointer, append->data.pointer);

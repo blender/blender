@@ -1114,7 +1114,7 @@ void armature_mat_world_to_pose(Object *ob, float inmat[][4], float outmat[][4])
 	mult_m4_m4m4(outmat, inmat, obmat);
 }
 
-/* Convert Wolrd-Space Location to Pose-Space Location
+/* Convert World-Space Location to Pose-Space Location
  * NOTE: this cannot be used to convert to pose-space location of the supplied
  *       pose-channel into its local space (i.e. 'visual'-keyframing) */
 void armature_loc_world_to_pose(Object *ob, const float inloc[3], float outloc[3])
@@ -1901,7 +1901,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		 * proportion of the total length that each bone occupies
 		 */
 		for (i = 0; i < segcount; i++) {
-			/* 'head' joints, travelling towards the root of the chain
+			/* 'head' joints, traveling towards the root of the chain
 			 *  - 2 methods; the one chosen depends on whether we've got usable lengths
 			 */
 			if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
@@ -2078,14 +2078,14 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		float raxis[3], rangle;
 
 		/* compute the raw rotation matrix from the bone's current matrix by extracting only the
-		 * orientation-relevant axes, and normalising them
+		 * orientation-relevant axes, and normalizing them
 		 */
 		copy_v3_v3(rmat[0], pchan->pose_mat[0]);
 		copy_v3_v3(rmat[1], pchan->pose_mat[1]);
 		copy_v3_v3(rmat[2], pchan->pose_mat[2]);
 		normalize_m3(rmat);
 
-		/* also, normalise the orientation imposed by the bone, now that we've extracted the scale factor */
+		/* also, normalize the orientation imposed by the bone, now that we've extracted the scale factor */
 		normalize_v3(splineVec);
 
 		/* calculate smallest axis-angle rotation necessary for getting from the
@@ -2255,7 +2255,7 @@ void pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
 		/* quats are normalised before use to eliminate scaling issues */
 		float quat[4];
 
-		/* NOTE: we now don't normalise the stored values anymore, since this was kindof evil in some cases
+		/* NOTE: we now don't normalize the stored values anymore, since this was kindof evil in some cases
 		 * but if this proves to be too problematic, switch back to the old system of operating directly on
 		 * the stored copy
 		 */

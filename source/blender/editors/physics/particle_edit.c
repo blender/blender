@@ -191,7 +191,7 @@ ParticleEditSettings *PE_settings(Scene *scene)
 	return scene->toolsettings ? &scene->toolsettings->particle : NULL;
 }
 
-/* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set
+/* always gets at least the first particlesystem even if PSYS_CURRENT flag is not set
  *
  * note: this function runs on poll, therefor it can runs many times a second
  * keep it fast! */

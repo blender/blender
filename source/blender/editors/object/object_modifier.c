@@ -450,7 +450,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 	 * It should be ridiculously easy to extract the original verts that we want
 	 * and form the shape data.  We can probably use the CD KEYINDEX layer (or
 	 * whatever I ended up calling it, too tired to check now), though this would
-	 * by necassity have to make some potentially ugly assumptions about the order
+	 * by necessity have to make some potentially ugly assumptions about the order
 	 * of the mesh data :-/  you can probably assume in 99% of cases that the first
 	 * element of a given index is the original, and any subsequent duplicates are
 	 * copies/interpolates, but that's an assumption that would need to be tested

@@ -1659,7 +1659,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			y= -y;
 	}
 	else {
-		/* for now, allow scrolling in both directions (since layouts are optimised for vertical,
+		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
 		 * they often don't fit in horizontal layout)
 		 */
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);

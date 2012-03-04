@@ -155,8 +155,8 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 	float inp;
 	short cox = 0, coy = 0, coz = 0;
 	
-	/* up varieeren heeft geen zin, is eigenlijk helemaal geen up!
-	 * zie VecUpMat3old
+	/* up range has no meaning, is not really up!
+	 * see: VecUpMat3old
 	 */
 
 	if(axis==0) {

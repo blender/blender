@@ -284,7 +284,7 @@ static inline int lc_to_ms_I(int x, int y, int z, int *n)
 
 /* *** multiple scattering approximation *** */
 
-/* get the total amount of light energy in the light cache. used to normalise after multiple scattering */
+/* get the total amount of light energy in the light cache. used to normalize after multiple scattering */
 static float total_ss_energy(Render *re, int do_test_break, VolumePrecache *vp)
 {
 	int x, y, z;

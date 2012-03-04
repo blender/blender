@@ -844,7 +844,7 @@ static int calculate_structlens(int firststruct)
 			structpoin= structs[a];
 			structtype= structpoin[0];
 
-			/* length unkown yet */
+			/* length unknown yet */
 			if(typelens[structtype]==0) {
 				printf("  %s\n", types[structtype]);
 			}

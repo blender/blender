@@ -1277,7 +1277,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 
 	MEM_freeN(element_sum);
 
-	/* For hair, sort by origindex (allows optimizations in rendering), */
+	/* For hair, sort by origindex (allows optimization's in rendering), */
 	/* however with virtual parents the children need to be in random order. */
 	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0f)) {
 		COMPARE_ORIG_INDEX = NULL;

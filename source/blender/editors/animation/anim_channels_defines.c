@@ -2399,7 +2399,7 @@ static bAnimChannelType ACF_GPD =
 
 /* GPencil Layer ------------------------------------------- */
 
-/* name for grase pencil layer entries */
+/* name for grease pencil layer entries */
 static void acf_gpl_name(bAnimListElem *ale, char *name)
 {
 	bGPDlayer *gpl = (bGPDlayer *)ale->data;

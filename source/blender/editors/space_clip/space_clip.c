@@ -724,7 +724,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	MovieClip *clip= ED_space_clip(sc);
 
-	/* if trcking is in progress, we should sunchronize framenr from clipuser
+	/* if tracking is in progress, we should sunchronize framenr from clipuser
 	 * so latest tracked frame would be shown */
 	if(clip && clip->tracking_context)
 		BKE_tracking_sync_user(&sc->user, clip->tracking_context);

@@ -456,7 +456,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 		prec= (but->hardmax < 10.001f) ? 3 : 2;
 	}
 
-	/* check on the number of decimal places neede to display
+	/* check on the number of decimal places need to display
 	 * the number, this is so 0.00001 is not displayed as 0.00,
 	 * _but_, this is only for small values si 10.0001 will not get
 	 * the same treatment */
@@ -2373,7 +2373,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 		}
 	}
 
-	/* rows==0: 1 row, cols==0: 1 collumn */
+	/* rows==0: 1 row, cols==0: 1 column */
 	
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	for(but=first, prev=NULL; but && but->alignnr == nr; prev=but, but=but->next) {

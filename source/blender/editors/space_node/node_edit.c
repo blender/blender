@@ -1972,7 +1972,7 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree, bNode *node, bNodeSocke
 	return NULL;
 }
 
-/* this is a bit complicated, but designed to prioritise finding 
+/* this is a bit complicated, but designed to prioritize finding
  * sockets of higher types, such as image, first */
 static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, int replace)
 {

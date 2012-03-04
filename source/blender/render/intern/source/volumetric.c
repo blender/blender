@@ -365,7 +365,7 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 	const float normalize = 0.25f; // = 1.f/4.f = M_PI/(4.f*M_PI)
 	
 	/* normalization constant is 1/4 rather than 1/4pi, since
-	 * Blender's shading system doesn't normalise for
+	 * Blender's shading system doesn't normalize for
 	 * energy conservation - eg. multiplying by pdf ( 1/pi for a lambert brdf ).
 	 * This means that lambert surfaces in Blender are pi times brighter than they 'should be'
 	 * and therefore, with correct energy conservation, volumes will darker than other solid objects,

@@ -184,7 +184,7 @@ typedef struct FlyInfo {
 
 	/* relative view axis locking - xlock, zlock
 	 * 0) disabled
-	 * 1) enabled but not checking because mouse hasnt moved outside the margin since locking was checked an not needed
+	 * 1) enabled but not checking because mouse hasn't moved outside the margin since locking was checked an not needed
 	 *    when the mouse moves, locking is set to 2 so checks are done.
 	 * 2) mouse moved and checking needed, if no view altering is donem its changed back to 1 */
 	short xlock, zlock;
@@ -583,7 +583,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				/* implement WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather than stopping, game like motion */
-				else if (fly->axis==2) fly->speed += fly->grid; /* increse like mousewheel if were already
+				else if (fly->axis==2) fly->speed += fly->grid; /* increase like mousewheel if were already
 				                                                 * moving in that difection*/
 				fly->axis= 2;
 				break;

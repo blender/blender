@@ -549,7 +549,7 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 		
 	if (!*pose) {
 		/* probably not to good of an idea to
-		 * duplicate everying, but it clears up 
+		 * duplicate everything, but it clears up 
 		 * a crash and memory leakage when 
 		 * &BL_ActionActuator::m_pose is freed
 		 */

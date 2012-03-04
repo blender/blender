@@ -274,7 +274,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	 * needed here (not in sculpt_flush_update) as it was before
 	 * because redraw rectangle should be the same in both of
 	 * optimized PBVH draw function and 3d view redraw (if not -- some
-	 * mesh parts could disapper from screen (sergey) */
+	 * mesh parts could disappear from screen (sergey) */
 	ss = ob->sculpt;
 	if(ss->cache) {
 		if(!BLI_rcti_is_empty(&ss->cache->previous_r))

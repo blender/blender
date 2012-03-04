@@ -701,7 +701,7 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 		type= RNA_enum_get(op->ptr, "type");
 
 		/* when invoking an effect strip which uses inputs,
-		 * skip initialzing the channel from the mouse.
+		 * skip initializing the channel from the mouse.
 		 * Instead leave the property unset so exec() initializes it to be
 		 * above the strips its applied to. */
 		if(get_sequence_effect_num_inputs(type) != 0) {

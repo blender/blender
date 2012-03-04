@@ -1327,7 +1327,7 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 
 	tmj->lastfra= tmj->sfra;
 
-	/* XXX: silly to store this, but this data is needed to update scene and movieclip
+	/* XXX: silly to store this, but this data is needed to update scene and movie-clip
 	 *      frame numbers when tracking is finished. This introduces better feedback for artists.
 	 *      Maybe there's another way to solve this problem, but can't think better way atm.
 	 *      Anyway, this way isn't more unstable as animation rendering animation

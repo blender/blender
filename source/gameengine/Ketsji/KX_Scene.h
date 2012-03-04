@@ -176,7 +176,7 @@ protected:
 	STR_String	m_sceneName;
 	
 	/**
-	 * stores the worldsettings for a scene
+	 * stores the world-settings for a scene
 	 */
 	KX_WorldInfo* m_worldinfo;
 

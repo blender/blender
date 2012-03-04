@@ -1379,7 +1379,7 @@ void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, 
 /* calculate influence of strip based for given frame based on blendin/out values */
 static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 {
-	/* sanity checks - normalise the blendin/out values? */
+	/* sanity checks - normalize the blendin/out values? */
 	strip->blendin= fabsf(strip->blendin);
 	strip->blendout= fabsf(strip->blendout);
 	

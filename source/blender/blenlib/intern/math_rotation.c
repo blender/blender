@@ -711,7 +711,7 @@ void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 {
 	float nor[3], nsi[3], co, si, ico;
 	
-	/* normalise the axis first (to remove unwanted scaling) */
+	/* normalize the axis first (to remove unwanted scaling) */
 	if(normalize_v3_v3(nor, axis) == 0.0f) {
 		unit_m3(mat);
 		return;
@@ -1421,7 +1421,7 @@ void eulO_to_gimbal_axis(float gmat[][3], const float eul[3], const short order)
  * \author Ladislav Kavan, kavanl@cs.tcd.ie
  *
  * Changes for Blender:
- * - renaming, style changes and optimizations
+ * - renaming, style changes and optimization's
  * - added support for scaling
  */
 

@@ -175,7 +175,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		/* low-pass filtered time response, if the damp time is unequal to 0.     */
 
 		/* Having to retrieve location/rotation and setting it afterwards may not */
-		/* be efficient enough... Somthing to look at later.                      */
+		/* be efficient enough... Something to look at later.                     */
 		KX_GameObject  *obj = (KX_GameObject*) GetParent();
 		MT_Point3    position = obj->NodeGetWorldPosition();
 		MT_Point3    newposition;

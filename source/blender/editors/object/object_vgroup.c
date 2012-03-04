@@ -1604,7 +1604,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			goto cleanup;
 		}
 
-		/* unlike editmesh we know that by only looping over the first hald of
+		/* unlike editmesh we know that by only looping over the first half of
 		 * the 'u' indices it will cover all points except the middle which is
 		 * ok in this case */
 		pntsu_half= lt->pntsu / 2;
@@ -2151,7 +2151,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	/* flags */
 	/* redo operator will fail in this case because vertex group assignment
 	 * isn't stored in local edit mode stack and toggling "new" property will
-	 * lead to creating plenty of new veretx groups (see [#29527], sergey) */
+	 * lead to creating plenty of new vertex groups (see [#29527], sergey) */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
@@ -2191,7 +2191,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->exec= vertex_group_remove_from_exec;
 
 	/* flags */
-	/* redo operator will fail in this case because vertex groups ssignment
+	/* redo operator will fail in this case because vertex groups assignment
 	 * isn't stored in local edit mode stack and toggling "all" property will lead to
 	 * removing vertices from all groups (see [#29527], sergey) */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;

@@ -1113,7 +1113,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	scroll->ymin= 4;
 	scroll->ymax= 4+pix_available;
 	
-	/* when resizing a vieport with the bar at the bottom to a greater height more blank lines will be added */
+	/* when resizing a view-port with the bar at the bottom to a greater height more blank lines will be added */
 	if(ltexth + blank_lines < st->top + st->viewlines) {
 		blank_lines = st->top + st->viewlines - ltexth;
 	}

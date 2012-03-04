@@ -170,7 +170,7 @@ public:
 	) = 0;
 
 	/**
-	 * Set the visible vieport 
+	 * Set the visible view-port 
 	 */
 
 	virtual

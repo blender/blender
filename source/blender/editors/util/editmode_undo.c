@@ -126,7 +126,7 @@ void undo_editmode_push(bContext *C, const char *name,
 	int nr;
 	uintptr_t memused, totmem, maxmem;
 
-	/* at first here was code to prevent an "original" key to be insterted twice
+	/* at first here was code to prevent an "original" key to be inserted twice
 	 * this was giving conflicts for example when mesh changed due to keys or apply */
 	
 	/* remove all undos after (also when curundo==NULL) */

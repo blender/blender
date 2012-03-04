@@ -3542,10 +3542,10 @@ int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], cons
 }
 
 /**
- * Gets the view trasnformation from a camera
+ * Gets the view transformation from a camera
  * currently dosnt take camzoom into account
  *
- * The dist is not modified for this function, if NULL its assimed zero
+ * The dist is not modified for this function, if NULL its assumed zero
  */
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 {

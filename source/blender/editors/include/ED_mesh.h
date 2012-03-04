@@ -263,16 +263,6 @@ void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum
 void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 
-/**
- * findnearestvert
- * 
- * dist (in/out): minimal distance to the nearest and at the end, actual distance
- * sel: selection bias
- * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
- * 		if 0, unselected vertice are given the bias
- * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
- */
-
 struct BMVert *EDBM_findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
 struct BMEdge *EDBM_findnearestedge(struct ViewContext *vc, int *dist);
 struct BMFace *EDBM_findnearestface(struct ViewContext *vc, int *dist);

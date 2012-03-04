@@ -2864,7 +2864,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 			/* Track Preview button is on Properties Editor in SpaceClip,
 			 * and it's very common case when users want it be refreshing
 			 * during playback, so asking people to enable special option
-			 * for this is a bit ticky, so add exception here for refreshing
+			 * for this is a bit tricky, so add exception here for refreshing
 			 * Properties Editor for SpaceClip always */
 			return 1;
 		}

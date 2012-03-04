@@ -1985,7 +1985,7 @@ static void rename_anim_channels (bAnimContext *ac, int channel_index)
 		if (acf->name_prop(ale, &ptr, &prop)) {
 			/* actually showing the rename textfield is done on redraw,
 			 * so here we just store the index of this channel in the 
-			 * dopesheet data, which will get utilised when drawing the
+			 * dopesheet data, which will get utilized when drawing the
 			 * channel...
 			 *
 			 * +1 factor is for backwards compat issues

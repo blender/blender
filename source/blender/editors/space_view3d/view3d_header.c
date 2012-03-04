@@ -130,7 +130,7 @@ static void handle_view3d_lock(bContext *C)
 			scene->layact= v3d->layact;
 			scene->camera= v3d->camera;
 
-			/* not through notifiery, listener don't have context
+			/* not through notifier, listener don't have context
 			 * and non-open screens or spaces need to be updated too */
 			BKE_screen_view3d_main_sync(&bmain->screen, scene);
 			

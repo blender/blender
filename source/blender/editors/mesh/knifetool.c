@@ -1569,7 +1569,7 @@ static int knife_update_active(knifetool_opdata *kcd)
 	/* if no hits are found this would normally default to (0,0,0) so instead
 	 * get a point at the mouse ray closest to the previous point.
 	 * Note that drawing lines in `free-space` isn't properly supported
-	 * but theres no guarantee (0,0,0) has any geometry either - campell */
+	 * but theres no guarantee (0,0,0) has any geometry either - campbell */
 	if (kcd->curvert == NULL && kcd->curedge == NULL) {
 			float origin[3], ray[3], co[3];
 

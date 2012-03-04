@@ -2286,7 +2286,7 @@ void flushTransNodes(TransInfo *t)
 
 /* *** SEQUENCE EDITOR *** */
 
-/* commented _only_ because the meta may have animaion data which
+/* commented _only_ because the meta may have animation data which
  * needs moving too [#28158] */
 
 #define SEQ_TX_NESTED_METAS
@@ -2404,7 +2404,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 
 	/* uv coords are scaled by aspects. this is needed for rotations and
-	 * proportional editing to be consistent with the stretchted uv coords
+	 * proportional editing to be consistent with the stretched uv coords
 	 * that are displayed. this also means that for display and numinput,
 	 * and when the the uv coords are flushed, these are converted each time */
 	td2d->loc[0] = uv[0]*aspx;
@@ -3175,7 +3175,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		
-		/* convert current-frame to action-time (slightly less accurate, espcially under
+		/* convert current-frame to action-time (slightly less accurate, especially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
 		if (adt)
@@ -3231,7 +3231,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			
-			/* convert current-frame to action-time (slightly less accurate, espcially under
+			/* convert current-frame to action-time (slightly less accurate, especially under
 			 * higher scaling ratios, but is faster than converting all points)
 			 */
 			if (adt)
@@ -3402,7 +3402,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
-		/* convert current-frame to action-time (slightly less accurate, espcially under
+		/* convert current-frame to action-time (slightly less accurate, especially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
 		if (adt)
@@ -3493,7 +3493,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		FCurve *fcu= (FCurve *)ale->key_data;
 		short intvals= (fcu->flag & FCURVE_INT_VALUES);
 		
-		/* convert current-frame to action-time (slightly less accurate, espcially under
+		/* convert current-frame to action-time (slightly less accurate, especially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
 		if (adt)

@@ -1126,7 +1126,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	}
 	else /* if (gesture_mode == GESTURE_MODAL_OUT) */ {
 		/* zoom out:
-		 *	- the current 'cur' rect coordinates are going to end upwhere the 'rect' ones are, 
+		 *	- the current 'cur' rect coordinates are going to end up where the 'rect' ones are,
 		 *	  but the 'cur' rect coordinates will need to be adjusted to take in more of the view
 		 *	- calculate zoom factor, and adjust using center-point
 		 */

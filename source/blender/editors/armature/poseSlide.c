@@ -939,7 +939,7 @@ static float pose_propagate_get_boneHoldEndFrame (Object *ob, tPChanFCurveLink *
 	LinkData *ld;
 	float endFrame = startFrame;
 	
-	/* set up optimised data-structures for searching for relevant keyframes + holds */
+	/* set up optimized data-structures for searching for relevant keyframes + holds */
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	

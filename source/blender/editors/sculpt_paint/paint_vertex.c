@@ -825,7 +825,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	struct ImBuf *ibuf;
 	int a, tot=0, index;
 	
-	/* brecht: disabled this because it obviously failes for
+	/* brecht: disabled this because it obviously fails for
 	 * brushes with size > 64, why is this here? */
 	/*if(size>64.0) size= 64.0;*/
 	

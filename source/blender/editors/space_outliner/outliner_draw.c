@@ -894,7 +894,7 @@ struct DrawIconArg {
 
 static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 {
-	/* restrict collumn clip... it has been coded by simply overdrawing, doesnt work for buttons */
+	/* restrict column clip... it has been coded by simply overdrawing, doesnt work for buttons */
 	if(arg->x >= arg->xmax) {
 		glEnable(GL_BLEND);
 		UI_icon_draw_aspect(arg->x, arg->y, icon, 1.0f, arg->alpha);

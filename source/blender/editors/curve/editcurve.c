@@ -1116,9 +1116,9 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 		nu_index++;
 	}
 
-	/* remove pathes for removed control points
+	/* remove paths for removed control points
 	 * need this to make further step with copying non-cv related curves copying
-	 * not touching cv's f-cruves */
+	 * not touching cv's f-curves */
 	for(fcu= orig_curves->first; fcu; fcu= next) {
 		next= fcu->next;
 
@@ -1261,7 +1261,7 @@ void make_editNurb(Object *obedit)
 		if(actkey)
 			editnurb->shapenr= obedit->shapenr;
 
-		/* animation could be added in editmode even if teher was no animdata i
+		/* animation could be added in editmode even if there was no animdata i
 		 * object mode hence we always need CVs index be created */
 		init_editNurb_keyIndex(editnurb, &cu->nurb);
 	}
@@ -1416,7 +1416,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 {
 	/* return u!=-1:     1 row in u-direction selected. U has value between 0-pntsv 
-	 * return v!=-1: 1 collumn in v-direction selected. V has value between 0-pntsu 
+	 * return v!=-1: 1 column in v-direction selected. V has value between 0-pntsu
 	 */
 	BPoint *bp;
 	int a, b, sel;
@@ -1772,7 +1772,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 					nu->pntsv++;
 					nurbs_knot_calc_v(nu);
 				}
-				else if(v==0 || v== nu->pntsu-1) {	    /* collumn in v-direction selected */
+				else if(v==0 || v== nu->pntsu-1) {	    /* column in v-direction selected */
 					ok= 1;
 					bpn = newbp =
 						(BPoint*) MEM_mallocN((nu->pntsu + 1) * nu->pntsv * sizeof(BPoint), "extrudeNurb1");
@@ -3778,7 +3778,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 		return;
 	}
 	
-	/* ok, now nu1 has the rightmost collumn and nu2 the leftmost collumn selected */
+	/* ok, now nu1 has the rightmost column and nu2 the leftmost column selected */
 	/* maybe we need a 'v' flip of nu2? */
 	
 	bp1= nu1->bp+nu1->pntsu-1;

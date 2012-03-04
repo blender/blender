@@ -393,7 +393,7 @@ void KX_KetsjiEngine::RenderDome()
 }
 
 /**
- * Ketsji Init(), Initializes datastructures and converts data from
+ * Ketsji Init(), Initializes data-structures and converts data from
  * Blender into Ketsji native (realtime) format also sets up the
  * graphics context
  */
