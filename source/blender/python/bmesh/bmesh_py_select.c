@@ -65,7 +65,7 @@ static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void *UNUSE
 }
 
 static PyGetSetDef bpy_bmeditselseq_getseters[] = {
-    {(char *)"active", (getter)bpy_bmeditselseq_active_get, (setter)NULL, (char *)bpy_bmeditselseq_active_doc, (void *)BM_VERTS_OF_MESH},
+    {(char *)"active", (getter)bpy_bmeditselseq_active_get, (setter)NULL, (char *)bpy_bmeditselseq_active_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -228,21 +228,21 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 }
 
 static PySequenceMethods bpy_bmeditselseq_as_sequence = {
-    (lenfunc)bpy_bmeditselseq_length,                  /* sq_length */
+    (lenfunc)bpy_bmeditselseq_length,            /* sq_length */
     NULL,                                        /* sq_concat */
     NULL,                                        /* sq_repeat */
-    (ssizeargfunc)bpy_bmeditselseq_subscript_int,      /* sq_item */ /* Only set this so PySequence_Check() returns True */
+    (ssizeargfunc)bpy_bmeditselseq_subscript_int,/* sq_item */ /* Only set this so PySequence_Check() returns True */
     NULL,                                        /* sq_slice */
     (ssizeobjargproc)NULL,                       /* sq_ass_item */
     NULL,                                        /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmeditselseq_contains,             /* sq_contains */
+    (objobjproc)bpy_bmeditselseq_contains,       /* sq_contains */
     (binaryfunc) NULL,                           /* sq_inplace_concat */
     (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
 };
 
 static PyMappingMethods bpy_bmeditselseq_as_mapping = {
-    (lenfunc)bpy_bmeditselseq_length,                  /* mp_length */
-    (binaryfunc)bpy_bmeditselseq_subscript,            /* mp_subscript */
+    (lenfunc)bpy_bmeditselseq_length,            /* mp_length */
+    (binaryfunc)bpy_bmeditselseq_subscript,      /* mp_subscript */
     (objobjargproc)NULL,                         /* mp_ass_subscript */
 };
 

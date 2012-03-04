@@ -839,6 +839,10 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
 		                                       &vert_seq_len, &BPy_BMVert_Type,
 		                                       TRUE, TRUE, "BMVert.copy_from_vert_interp(...)");
 
+		if (vert_array == NULL) {
+			return NULL;
+		}
+
 		BM_data_interp_from_verts(bm, vert_array[0], vert_array[1], self->v, CLAMPIS(fac, 0.0f, 1.0f));
 
 		PyMem_FREE(vert_array);
@@ -1279,6 +1283,10 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 		                                       &vert_seq_len, &BPy_BMVert_Type,
 		                                       TRUE, TRUE, "edges.new(...)");
 
+		if (vert_array == NULL) {
+			return NULL;
+		}
+		
 		if (BM_edge_exists(vert_array[0], vert_array[1])) {
 			PyErr_SetString(PyExc_ValueError,
 			                "edges.new(): this edge exists");
@@ -1341,6 +1349,10 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 3, PY_SSIZE_T_MAX,
 		                                       &vert_seq_len, &BPy_BMVert_Type,
 		                                       TRUE, TRUE, "faces.new(...)");
+
+		if (vert_array == NULL) {
+			return NULL;
+		}
 
 		/* check if the face exists */
 		if (BM_face_exists(bm, vert_array, vert_seq_len, NULL)) {
@@ -2600,7 +2612,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 
 			if (Py_TYPE(item) != type) {
 				PyErr_Format(PyExc_TypeError,
-				             "%s: expected '%.200', not '%.200s'",
+				             "%s: expected '%.200s', not '%.200s'",
 				             error_prefix, type->tp_name, Py_TYPE(item)->tp_name);
 				goto err_cleanup;
 			}
