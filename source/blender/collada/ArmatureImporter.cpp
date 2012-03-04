@@ -410,12 +410,16 @@ void ArmatureImporter::create_armature_bones( )
 	std::vector<COLLADAFW::Node*>::iterator ri;
 	//if there is an armature created for root_joint next root_joint
 	for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
-			if ( get_armature_for_joint(*ri) != NULL ) continue;
+		if ( get_armature_for_joint(*ri) != NULL ) continue;
 		
 		//add armature object for current joint
 		//Object *ob_arm = add_object(scene, OB_ARMATURE);
 
 		Object *ob_arm = joint_parent_map[(*ri)->getUniqueId()];
+
+		if (!ob_arm)
+			continue;
+
 		//ob_arm->type = OB_ARMATURE;
 		ED_armature_to_edit(ob_arm);
 
@@ -423,24 +427,24 @@ void ArmatureImporter::create_armature_bones( )
 
 		// create unskinned bones
 		/*
-		   TODO:
-		   check if bones have already been created for a given joint
+		  TODO:
+		  check if bones have already been created for a given joint
 		*/
 		leaf_bone_length = FLT_MAX;
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, ob_arm);
 
 		fix_leaf_bones();
 
-	// exit armature edit mode
+		// exit armature edit mode
 	
-	unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
+		unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
-	ED_armature_from_edit(ob_arm);
+		ED_armature_from_edit(ob_arm);
 
-	set_pose(ob_arm , *ri, NULL, NULL ); 
+		set_pose(ob_arm , *ri, NULL, NULL ); 
 
-	ED_armature_edit_free(ob_arm);
-	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
+		ED_armature_edit_free(ob_arm);
+		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
 	}
 
 	
