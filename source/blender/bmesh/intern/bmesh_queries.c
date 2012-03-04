@@ -67,7 +67,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
  */
-BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
+BMLoop *BM_face_other_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -92,9 +92,20 @@ BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
  * The direction is defined by \a v_prev, where the return value is
  * the loop of what would be 'v_next'
  *
+ *
+ *     +----------+ <-- return the face loop of this vertex.
+ *     |          |
+ *     |    f     |
+ *     |          |
+ *     +----------+
+ *     v_prev --> v
+ *     ^^^^^^     ^ <-- These vert argumrnts define direction
+ *                      in the face to check.
+ *                      The faces loop direction is ignored.
+ *
  * \note \a v_prev and \a v _implicitly_ define an edge.
  */
-BMLoop *BM_face_other_vert_loop(BMVert *v_prev, BMFace *f, BMVert *v)
+BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
 {
 	BMIter liter;
 	BMLoop *l_iter;

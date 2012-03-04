@@ -720,8 +720,8 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
 	if (BM_edge_face_pair(e, &fa, &fb)) {
 		BMLoop *la, *lb;
 
-		la = BM_face_other_vert_loop(e->v2, fa, e->v1);
-		lb = BM_face_other_vert_loop(e->v2, fb, e->v1);
+		la = BM_face_other_vert_loop(fa, e->v2, e->v1);
+		lb = BM_face_other_vert_loop(fb, e->v2, e->v1);
 
 		/* check that the next vert in both faces isnt the same
 		 * (ie - the next edge doesnt share the same faces).
@@ -731,8 +731,8 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
 		}
 
 		/* mirror of the check above but in the opposite direction */
-		la = BM_face_other_vert_loop(e->v1, fa, e->v2);
-		lb = BM_face_other_vert_loop(e->v1, fb, e->v2);
+		la = BM_face_other_vert_loop(fa, e->v1, e->v2);
+		lb = BM_face_other_vert_loop(fb, e->v1, e->v2);
 
 		if (la->v == lb->v) {
 			return FALSE;

@@ -2398,12 +2398,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else if (BM_edge_face_count(e2) == 2) {
 			l = e2->l;
-			e = BM_face_other_loop(e2, l->f, v)->e;
+			e = BM_face_other_loop(l->f, e2, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
 			BM_elem_select_set(bm, e, TRUE);
 			
 			l = e2->l->radial_next;
-			e = BM_face_other_loop(e2, l->f, v)->e;
+			e = BM_face_other_loop(l->f, e2, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
 			BM_elem_select_set(bm, e, TRUE);
 		}
@@ -2423,9 +2423,9 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			
 			if (i == 1 && e2->l) {
-				l = BM_face_other_loop(e2, e2->l->f, v);
+				l = BM_face_other_loop(e2->l->f, e2, v);
 				l = l->radial_next;
-				l = BM_face_other_loop(l->e, l->f, v);
+				l = BM_face_other_loop(l->f, l->e, v);
 
 				if (l) {
 					BM_elem_select_set(bm, l->e, TRUE);
