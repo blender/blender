@@ -461,6 +461,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_view_all", FKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "fit_view", TRUE);
+
 	WM_keymap_add_item(keymap, "CLIP_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
 	/* jump to special frame */

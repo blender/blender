@@ -649,12 +649,14 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 
 /********************** view all operator *********************/
 
-static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_all_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc;
 	ARegion *ar;
 	int w, h, width, height;
 	float aspx, aspy;
+	int fit_view= RNA_boolean_get(op->ptr, "fit_view");
+	float zoomx, zoomy;
 
 	/* retrieve state */
 	sc= CTX_wm_space_clip(C);
@@ -670,16 +672,25 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	width= ar->winrct.xmax - ar->winrct.xmin + 1;
 	height= ar->winrct.ymax - ar->winrct.ymin + 1;
 
-	if((w >= width || h >= height) && (width > 0 && height > 0)) {
-		float zoomx, zoomy;
+	if(fit_view) {
+		const int margin = 5; /* margin from border */
 
-		/* find the zoom value that will fit the image in the image space */
-		zoomx= (float)width/w;
-		zoomy= (float)height/h;
-		sclip_zoom_set(sc, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)), NULL);
+		zoomx= (float)width / (w + 2*margin);
+		zoomy= (float)height / (h + 2*margin);
+
+		sclip_zoom_set(sc, ar, MIN2(zoomx, zoomy), NULL);
 	}
-	else
-		sclip_zoom_set(sc, ar, 1.0f, NULL);
+	else {
+		if((w >= width || h >= height) && (width > 0 && height > 0)) {
+			zoomx= (float)width/w;
+			zoomy= (float)height/h;
+
+			/* find the zoom value that will fit the image in the image space */
+			sclip_zoom_set(sc, ar, 1.0f/power_of_2(1/MIN2(zoomx, zoomy)), NULL);
+		}
+		else
+			sclip_zoom_set(sc, ar, 1.0f, NULL);
+	}
 
 	sc->xof= sc->yof= 0.0f;
 
@@ -697,6 +708,9 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_all_exec;
 	ot->poll= ED_space_clip_poll;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
 }
 
 /********************** view selected operator *********************/
