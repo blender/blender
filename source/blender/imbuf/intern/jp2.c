@@ -329,7 +329,7 @@ static int initialise_4K_poc(opj_poc_t *POC, int numres)
 
 static void cinema_parameters(opj_cparameters_t *parameters)
 {
-	parameters->tile_size_on = false;
+	parameters->tile_size_on = FALSE;
 	parameters->cp_tdx=1;
 	parameters->cp_tdy=1;
 	

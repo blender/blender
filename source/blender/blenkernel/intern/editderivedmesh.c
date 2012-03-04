@@ -191,7 +191,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 
 		else {
 			ScanFillVert *v, *lastv=NULL, *firstv=NULL;
-			ScanFillEdge *e;
+			/* ScanFillEdge *e; */ /* UNUSED */
 			ScanFillFace *efa;
 			int totfilltri;
 
@@ -206,7 +206,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 				v->tmp.p = l;
 
 				if (lastv) {
-					e = BLI_addfilledge(lastv, v);
+					/* e = */ BLI_addfilledge(lastv, v);
 				}
 
 				lastv = v;
