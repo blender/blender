@@ -60,14 +60,19 @@ static PyObject *bpy_bm_from_mesh(PyObject *UNUSED(self), PyObject *value)
 {
 	Mesh *me = PyC_RNA_AsPointer(value, "Mesh");
 
-	/* temp! */
-	if (!me->edit_btmesh) {
-		PyErr_SetString(PyExc_ValueError,
-		                "Mesh is not in editmode");
+	if (me) {
+		/* temp! */
+		if (!me->edit_btmesh) {
+			PyErr_SetString(PyExc_ValueError,
+							"Mesh is not in editmode");
+			return NULL;
+		}
+
+		return BPy_BMesh_CreatePyObject(me->edit_btmesh->bm);
+	}
+	else {
 		return NULL;
 	}
-
-	return BPy_BMesh_CreatePyObject(me->edit_btmesh->bm);
 }
 
 static struct PyMethodDef BPy_BM_methods[] = {
