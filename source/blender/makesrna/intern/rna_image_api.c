@@ -82,15 +82,15 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		}
 		else {
 			/* temp swap out the color */
-			const unsigned char imb_planes_back= ibuf->planes;
-			const float dither_back= ibuf->dither; 
-			ibuf->planes= scene->r.im_format.planes;
-			ibuf->dither= scene->r.dither_intensity;
+			const unsigned char imb_planes_back = ibuf->planes;
+			const float dither_back = ibuf->dither; 
+			ibuf->planes = scene->r.im_format.planes;
+			ibuf->dither = scene->r.dither_intensity;
 			if (!BKE_write_ibuf(ibuf, path, &scene->r.im_format)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
-			ibuf->planes= imb_planes_back;
-			ibuf->dither= dither_back;
+			ibuf->planes = imb_planes_back;
+			ibuf->dither = dither_back;
 		}
 
 		BKE_image_release_ibuf(image, lock);
@@ -101,22 +101,22 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 
 static void rna_Image_save(Image *image, ReportList *reports)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
-	if(ibuf) {
+	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
+	if (ibuf) {
 		char filename[FILE_MAX];
 		BLI_strncpy(filename, image->name, sizeof(filename));
 		BLI_path_abs(filename, G.main->name);
 
-		if(image->packedfile) {
+		if (image->packedfile) {
 			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
 				BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could saved packed file to \"%s\"", image->id.name+2, image->name);
 			}
 		}
 		else if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
-			image->type= IMA_TYPE_IMAGE;
+			image->type = IMA_TYPE_IMAGE;
 
-			if(image->source==IMA_SRC_GENERATED)
-				image->source= IMA_SRC_FILE;
+			if (image->source == IMA_SRC_GENERATED)
+				image->source = IMA_SRC_FILE;
 
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
@@ -137,11 +137,11 @@ static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 		BKE_reportf(reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG");
 	}
 	else {
-		if(as_png) {
+		if (as_png) {
 			BKE_image_memorypack(image);
 		}
 		else {
-			image->packedfile= newPackedFile(reports, image->name, ID_BLEND_PATH(G.main, &image->id));
+			image->packedfile = newPackedFile(reports, image->name, ID_BLEND_PATH(G.main, &image->id));
 		}
 	}
 }
@@ -151,7 +151,7 @@ static void rna_Image_unpack(Image *image, ReportList *reports, int method)
 	if (!image->packedfile) {
 		BKE_report(reports, RPT_ERROR, "Image not packed");
 	}
-	else if (image->source==IMA_SRC_SEQUENCE || image->source==IMA_SRC_MOVIE) {
+	else if (image->source == IMA_SRC_SEQUENCE || image->source == IMA_SRC_MOVIE) {
 		BKE_report(reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
 		return;
 	}
@@ -168,9 +168,9 @@ static void rna_Image_reload(Image *image)
 
 static void rna_Image_update(Image *image, ReportList *reports)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
 
-	if(ibuf == NULL) {
+	if (ibuf == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
 		return;
 	}
@@ -184,12 +184,12 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 	unsigned int *bind = &image->bindcode;
 	int error = GL_NO_ERROR;
 
-	if(*bind)
+	if (*bind)
 		return error;
 
-	ibuf= BKE_image_get_ibuf(image, NULL);
+	ibuf = BKE_image_get_ibuf(image, NULL);
 
-	if(ibuf == NULL || ibuf->rect == NULL ) {
+	if (ibuf == NULL || ibuf->rect == NULL ) {
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
 		return (int)GL_INVALID_OPERATION;
 	}
@@ -234,35 +234,35 @@ void RNA_api_image(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "save_render", "rna_Image_save_render");
+	func = RNA_def_function(srna, "save_render", "rna_Image_save_render");
 	RNA_def_function_ui_description(func, "Save image to a specific path using a scenes render settings");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_string_file_path(func, "filepath", "", 0, "", "Save path");
+	parm = RNA_def_string_file_path(func, "filepath", "", 0, "", "Save path");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from");
 
-	func= RNA_def_function(srna, "save", "rna_Image_save");
+	func = RNA_def_function(srna, "save", "rna_Image_save");
 	RNA_def_function_ui_description(func, "Save image to its source path");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	func= RNA_def_function(srna, "pack", "rna_Image_pack");
+	func = RNA_def_function(srna, "pack", "rna_Image_pack");
 	RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_boolean(func, "as_png", 0, "as_png", "Pack the image as PNG (needed for generated/dirty images)");
 
-	func= RNA_def_function(srna, "unpack", "rna_Image_unpack");
+	func = RNA_def_function(srna, "unpack", "rna_Image_unpack");
 	RNA_def_function_ui_description(func, "Save an image packed in the .blend file to disk");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_enum(func, "method", unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
 
-	func= RNA_def_function(srna, "reload", "rna_Image_reload");
+	func = RNA_def_function(srna, "reload", "rna_Image_reload");
 	RNA_def_function_ui_description(func, "Reload the image from its source path");
 
-	func= RNA_def_function(srna, "update", "rna_Image_update");
+	func = RNA_def_function(srna, "update", "rna_Image_update");
 	RNA_def_function_ui_description(func, "Update the display image from the floating point buffer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	func= RNA_def_function(srna, "gl_load", "rna_Image_gl_load");
+	func = RNA_def_function(srna, "gl_load", "rna_Image_gl_load");
 	RNA_def_function_ui_description(func, "Load the image into OpenGL graphics memory");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_int(func, "filter", GL_LINEAR_MIPMAP_NEAREST, -INT_MAX, INT_MAX, "Filter",
@@ -270,10 +270,10 @@ void RNA_api_image(StructRNA *srna)
 	RNA_def_int(func, "mag", GL_LINEAR, -INT_MAX, INT_MAX, "Magnification",
 	            "The texture magnification function", -INT_MAX, INT_MAX);
 	/* return value */
-	parm= RNA_def_int(func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
+	parm = RNA_def_int(func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "gl_free", "rna_Image_gl_free");
+	func = RNA_def_function(srna, "gl_free", "rna_Image_gl_free");
 	RNA_def_function_ui_description(func, "Free the image from OpenGL graphics memory");
 
 	/* TODO, pack/unpack, maybe should be generic functions? */

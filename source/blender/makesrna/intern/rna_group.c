@@ -45,7 +45,7 @@
 
 static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal= iter->internal;
+	ListBaseIterator *internal = iter->internal;
 
 	/* we are actually iterating a GroupObject list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject*)internal->link)->ob);
@@ -53,7 +53,7 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 
 static void rna_Group_objects_link(Group *group, bContext *C, ReportList *reports, Object *object)
 {
-	if(!add_to_group(group, object, CTX_data_scene(C), NULL)) {
+	if (!add_to_group(group, object, CTX_data_scene(C), NULL)) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\"", object->id.name+2, group->id.name+2);
 		return;
 	}
@@ -63,7 +63,7 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
 {
-	if(!rem_from_group(group, object, CTX_data_scene(C), NULL)) {
+	if (!rem_from_group(group, object, CTX_data_scene(C), NULL)) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\"", object->id.name+2, group->id.name+2);
 		return;
 	}
@@ -77,30 +77,30 @@ static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *repo
 static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-//	PropertyRNA *prop;
+/*	PropertyRNA *prop; */
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
 	
 	RNA_def_property_srna(cprop, "GroupObjects");
-	srna= RNA_def_struct(brna, "GroupObjects", NULL);
+	srna = RNA_def_struct(brna, "GroupObjects", NULL);
 	RNA_def_struct_sdna(srna, "Group");
 	RNA_def_struct_ui_text(srna, "Group Objects", "Collection of group objects");
 
 	/* add object */
-	func= RNA_def_function(srna, "link", "rna_Group_objects_link");
+	func = RNA_def_function(srna, "link", "rna_Group_objects_link");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add this object to a group");
 	/* object to add */
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add");
+	parm = RNA_def_pointer(func, "object", "Object", "", "Object to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* remove object */
-	func= RNA_def_function(srna, "unlink", "rna_Group_objects_unlink");
+	func = RNA_def_function(srna, "unlink", "rna_Group_objects_unlink");
 	RNA_def_function_ui_description(func, "Remove this object to a group");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	/* object to remove */
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove");
+	parm = RNA_def_pointer(func, "object", "Object", "", "Object to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
@@ -110,23 +110,23 @@ void RNA_def_group(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Group", "ID");
+	srna = RNA_def_struct(brna, "Group", "ID");
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT); /* this is done on save/load in readfile.c, removed if no objects are in the group */
 
-	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
 	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing as DupliGroup");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 
-	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER);
+	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this group is instanced as a dupli");
 
 
-	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
+	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects");

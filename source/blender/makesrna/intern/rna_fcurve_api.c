@@ -49,8 +49,8 @@
 
 void RNA_api_drivers(StructRNA *srna)
 {
-//	FunctionRNA *func;
-//	PropertyRNA *parm;
+/*	FunctionRNA *func; */
+/*	PropertyRNA *parm; */
 }
 
 #endif

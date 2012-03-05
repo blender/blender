@@ -44,27 +44,27 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "TimelineMarker", NULL);
+	srna = RNA_def_struct(brna, "TimelineMarker", NULL);
 	RNA_def_struct_sdna(srna, "TimeMarker");
 	RNA_def_struct_ui_text(srna, "Marker", "Marker for noting points in the timeline");
 
 	/* String values */
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);
 
-	prop= RNA_def_property(srna, "frame", PROP_INT, PROP_TIME);
+	prop = RNA_def_property(srna, "frame", PROP_INT, PROP_TIME);
 	RNA_def_property_ui_text(prop, "Frame", "The frame on which the timeline marker appears");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);
 
-	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1 /*SELECT*/);
 	RNA_def_property_ui_text(prop, "Select", "Marker selection state");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);
 
 #ifdef DURIAN_CAMERA_SWITCH
-	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Camera", "Camera this timeline sets to active");

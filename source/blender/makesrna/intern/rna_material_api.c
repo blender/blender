@@ -44,8 +44,8 @@
 
 void RNA_api_material(StructRNA *srna)
 {
-	// FunctionRNA *func;
-	// PropertyRNA *parm;
+	/* FunctionRNA *func; */
+	/* PropertyRNA *parm; */
 }
 
 #endif

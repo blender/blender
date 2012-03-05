@@ -44,7 +44,7 @@
 
 void rna_EditBone_align_roll(EditBone *ebo, float no[3])
 {
-	ebo->roll= ED_rollBoneToVector(ebo, no, FALSE);
+	ebo->roll = ED_rollBoneToVector(ebo, no, FALSE);
 }
 
 float rna_Bone_do_envelope(Bone *bone, float *vec)
@@ -60,10 +60,10 @@ void RNA_api_armature_edit_bone(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "align_roll", "rna_EditBone_align_roll");
+	func = RNA_def_function(srna, "align_roll", "rna_EditBone_align_roll");
 	RNA_def_function_ui_description(func, "Align the bone to a localspace roll so the Z axis "
 	                                "points in the direction of the vector given");
-	parm= RNA_def_float_vector(func, "vector", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+	parm = RNA_def_float_vector(func, "vector", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
@@ -72,13 +72,13 @@ void RNA_api_bone(StructRNA *srna)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 
-	func= RNA_def_function(srna, "evaluate_envelope", "rna_Bone_do_envelope");
+	func = RNA_def_function(srna, "evaluate_envelope", "rna_Bone_do_envelope");
 	RNA_def_function_ui_description(func, "Calculate bone envelope at given point");
-	parm= RNA_def_float_vector_xyz(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "Point",
+	parm = RNA_def_float_vector_xyz(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "Point",
 	                               "Position in 3d space to evaluate", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
-	parm= RNA_def_float(func, "factor", 0, -FLT_MAX, FLT_MAX, "Factor", "Envelope factor", -FLT_MAX, FLT_MAX);
+	parm = RNA_def_float(func, "factor", 0, -FLT_MAX, FLT_MAX, "Factor", "Envelope factor", -FLT_MAX, FLT_MAX);
 	RNA_def_function_return(func, parm);
 }
 

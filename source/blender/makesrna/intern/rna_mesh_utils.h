@@ -39,7 +39,7 @@
 																								\
 	static int rna_##collection_name##_check(CollectionPropertyIterator *iter, void *data) \
 	{																							\
-		CustomDataLayer *layer= (CustomDataLayer*)data;							\
+		CustomDataLayer *layer = (CustomDataLayer*)data;							\
 		return (layer->type != layer_type);											\
 	}																							\
 																								\
@@ -57,11 +57,11 @@
 																								\
 	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max) \
 	{																							\
-		CustomData *data= rna_mesh_##customdata_type(ptr);						\
+		CustomData *data = rna_mesh_##customdata_type(ptr);						\
 																								\
-		*min= 0;																				\
-		*max= data ? CustomData_number_of_layers(data, layer_type) - 1 : 0;		\
-		*max= MAX2(0, *max);																\
+		*min = 0;																				\
+		*max = data ? CustomData_number_of_layers(data, layer_type) - 1 : 0;		\
+		*max = MAX2(0, *max);																\
 	}
 
 /* Define the accessors for special CustomDataLayers in the collection
@@ -71,8 +71,8 @@
 	static PointerRNA rna_Mesh_##collection_name##_##active_type##_get(PointerRNA *ptr) \
 	{																							\
 		CustomData *data = rna_mesh_##customdata_type(ptr);					\
-		int index= CustomData_get_##active_type##_layer_index(data, layer_type); \
-		CustomDataLayer *cdl= (index == -1)? NULL: &data->layers[index];	\
+		int index = CustomData_get_##active_type##_layer_index(data, layer_type); \
+		CustomDataLayer *cdl = (index == -1)? NULL: &data->layers[index];	\
 																								\
 		return rna_pointer_inherit_refine(ptr, &RNA_##layer_rna_type, cdl); \
 	}																							\
@@ -84,8 +84,8 @@
 		CustomDataLayer *cdl;															\
 		int a;																				\
 																								\
-		for(cdl=data->layers, a=0; a<data->totlayer; cdl++, a++) {			\
-			if(value.data == cdl) {														\
+		for (cdl = data->layers, a = 0; a<data->totlayer; cdl++, a++) {			\
+			if (value.data == cdl) {														\
 				CustomData_set_layer_##active_type##_index(data, layer_type, a); \
 				mesh_update_customdata_pointers(me, TRUE);								\
 				return;																		\
