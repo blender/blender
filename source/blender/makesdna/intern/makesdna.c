@@ -229,7 +229,15 @@ static int add_type(const char *str, int len)
 	int nr;
 	char *cp;
 	
-	if(str[0]==0) return -1;
+	/* first do validity check */
+	if(str[0]==0) {
+		return -1;
+	}
+	else if (strchr(str, '*')) {
+		/* note: this is valid C syntax but we can't parse, complain!
+		 * 'struct SomeStruct* somevar;' <-- correct but we cant handle right now. */
+		return -1;
+	}
 	
 	/* search through type array */
 	for(nr=0; nr<nr_types; nr++) {
@@ -572,8 +580,12 @@ static int convert_include(char *filename)
 				/* we've got a struct name when... */
 				if( strncmp(md1-7, "struct", 6)==0 ) {
 
-					
-					strct= add_type(md1, 0);
+					strct = add_type(md1, 0);
+					if (strct == -1) {
+						printf("File '%s' contains struct we cant parse \"%s\"\n", filename, md1);
+						return 1;
+					}
+
 					structpoin= add_struct(strct);
 					sp= structpoin+2;
 
@@ -601,6 +613,10 @@ static int convert_include(char *filename)
 							
 							/* we've got a type! */
 							type= add_type(md1, 0);
+							if (type == -1) {
+								printf("File '%s' contains struct we can't parse \"%s\"\n", filename, md1);
+								return 1;
+							}
 
 							if (debugSDNA > 1) printf("\t|\t|\tfound type %s (", md1);
 
