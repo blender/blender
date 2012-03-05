@@ -604,93 +604,6 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 	glShadeModel(GL_FLAT);
 }
 
-static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	int a, glmode;
-	unsigned char *cp1, *cp2;
-	MVert *mvert = cddm->mvert;
-	MFace *mface = cddm->mface;
-
-	cp1 = col1;
-	if(col2) {
-		cp2 = col2;
-	} else {
-		cp2 = NULL;
-		useTwoSided = 0;
-	}
-
-	/* there's a conflict here... twosided colors versus culling...? */
-	/* defined by history, only texture faces have culling option */
-	/* we need that as mesh option builtin, next to double sided lighting */
-	if(col2) {
-		glEnable(GL_CULL_FACE);
-	}
-
-	cdDM_update_normals_from_pbvh(dm);
-
-	if( GPU_buffer_legacy(dm) ) {
-		DEBUG_VBO( "Using legacy code. cdDM_drawFacesColored\n" );
-		glShadeModel(GL_SMOOTH);
-		glBegin(glmode = GL_QUADS);
-		for(a = 0; a < dm->numTessFaceData; a++, mface++, cp1 += 16) {
-			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
-
-			if(new_glmode != glmode) {
-				glEnd();
-				glBegin(glmode = new_glmode);
-			}
-				
-			glColor3ubv(cp1+0);
-			glVertex3fv(mvert[mface->v1].co);
-			glColor3ubv(cp1+4);
-			glVertex3fv(mvert[mface->v2].co);
-			glColor3ubv(cp1+8);
-			glVertex3fv(mvert[mface->v3].co);
-			if(mface->v4) {
-				glColor3ubv(cp1+12);
-				glVertex3fv(mvert[mface->v4].co);
-			}
-				
-			if(useTwoSided) {
-				glColor3ubv(cp2+8);
-				glVertex3fv(mvert[mface->v3].co );
-				glColor3ubv(cp2+4);
-				glVertex3fv(mvert[mface->v2].co );
-				glColor3ubv(cp2+0);
-				glVertex3fv(mvert[mface->v1].co );
-				if(mface->v4) {
-					glColor3ubv(cp2+12);
-					glVertex3fv(mvert[mface->v4].co );
-				}
-			}
-			if(col2) cp2 += 16;
-		}
-		glEnd();
-	}
-	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		GPU_color4_upload(dm,cp1);
-		GPU_vertex_setup(dm);
-		GPU_color_setup(dm);
-		if( !GPU_buffer_legacy(dm) ) {
-			glShadeModel(GL_SMOOTH);
-			glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->tot_triangle_point);
-
-			if( useTwoSided ) {
-				GPU_color4_upload(dm,cp2);
-				GPU_color_setup(dm);
-				glCullFace(GL_FRONT);
-				glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->tot_triangle_point);
-				glCullFace(GL_BACK);
-			}
-		}
-		GPU_buffer_unbind();
-	}
-
-	glShadeModel(GL_FLAT);
-	glDisable(GL_CULL_FACE);
-}
-
 static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 			   int (*drawParamsMapped)(void *userData, int index),
@@ -1691,7 +1604,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->drawMappedEdges = cdDM_drawMappedEdges;
 
 	dm->drawFacesSolid = cdDM_drawFacesSolid;
-	dm->drawFacesColored = cdDM_drawFacesColored;
 	dm->drawFacesTex = cdDM_drawFacesTex;
 	dm->drawFacesGLSL = cdDM_drawFacesGLSL;
 	dm->drawMappedFaces = cdDM_drawMappedFaces;

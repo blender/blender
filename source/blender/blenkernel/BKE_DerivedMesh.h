@@ -302,14 +302,6 @@ struct DerivedMesh {
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
 						   int fast, int (*setMaterial)(int, void *attribs));
 
-	/* Draw all faces
-	 *  o If useTwoSided, draw front and back using col arrays
-	 *  o col1,col2 are arrays of length numFace*4 of 4 component colors
-	 *    in ABGR format, and should be passed as per-face vertex color.
-	 */
-	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided,
-							 unsigned char *col1, unsigned char *col2);
-
 	/* Draw all faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */

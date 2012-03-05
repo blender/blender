@@ -1920,75 +1920,6 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm, void (*setMaterial)(void *
 #undef PASSATTRIB
 }
 
-
-static void ccgDM_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), unsigned char *col1, unsigned char *col2)
-{
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-	CCGSubSurf *ss = ccgdm->ss;
-	int gridSize = ccgSubSurf_getGridSize(ss);
-	unsigned char *cp1, *cp2;
-	int useTwoSide=1, i, totface;
-
-	ccgdm_pbvh_update(ccgdm);
-
-	cp1= col1;
-	if(col2) {
-		cp2= col2;
-	} else {
-		cp2= NULL;
-		useTwoSide= 0;
-	}
-
-	glShadeModel(GL_SMOOTH);
-
-	if(col2) {
-		glEnable(GL_CULL_FACE);
-	}
-
-	glBegin(GL_QUADS);
-	totface = ccgSubSurf_getNumFaces(ss);
-	for(i = 0; i < totface; i++) {
-		CCGFace *f = ccgdm->faceMap[i].face;
-		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
-
-		for (S=0; S<numVerts; S++) {
-			DMGridData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
-			for (y=0; y<gridSize-1; y++) {
-				for (x=0; x<gridSize-1; x++) {
-					float *a = faceGridData[(y+0)*gridSize + x].co;
-					float *b = faceGridData[(y+0)*gridSize + x + 1].co;
-					float *c = faceGridData[(y+1)*gridSize + x + 1].co;
-					float *d = faceGridData[(y+1)*gridSize + x].co;
-
-					glColor3ub(cp1[3], cp1[2], cp1[1]);
-					glVertex3fv(d);
-					glColor3ub(cp1[7], cp1[6], cp1[5]);
-					glVertex3fv(c);
-					glColor3ub(cp1[11], cp1[10], cp1[9]);
-					glVertex3fv(b);
-					glColor3ub(cp1[15], cp1[14], cp1[13]);
-					glVertex3fv(a);
-
-					if (useTwoSide) {
-						glColor3ub(cp2[15], cp2[14], cp2[13]);
-						glVertex3fv(a);
-						glColor3ub(cp2[11], cp2[10], cp2[9]);
-						glVertex3fv(b);
-						glColor3ub(cp2[7], cp2[6], cp2[5]);
-						glVertex3fv(c);
-						glColor3ub(cp2[3], cp2[2], cp2[1]);
-						glVertex3fv(d);
-					}
-
-					if (cp2) cp2+=16;
-					cp1+=16;
-				}
-			}
-		}
-	}
-	glEnd();
-}
-
 static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 	int (*drawParamsMapped)(void *userData, int index),
@@ -2978,7 +2909,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.drawEdges = ccgDM_drawEdges;
 	ccgdm->dm.drawLooseEdges = ccgDM_drawLooseEdges;
 	ccgdm->dm.drawFacesSolid = ccgDM_drawFacesSolid;
-	ccgdm->dm.drawFacesColored = ccgDM_drawFacesColored;
 	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;
 	ccgdm->dm.drawFacesGLSL = ccgDM_drawFacesGLSL;
 	ccgdm->dm.drawMappedFaces = ccgDM_drawMappedFaces;

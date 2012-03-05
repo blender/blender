@@ -1170,18 +1170,6 @@ void GPU_color3_upload(DerivedMesh *dm, unsigned char *data)
 						  GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color3);
 }
 
-/* this is used only in cdDM_drawFacesColored, which I think is no
-   longer used, so can probably remove this --nicholas */
-void GPU_color4_upload(DerivedMesh *UNUSED(dm), unsigned char *UNUSED(data))
-{
-	/*if(dm->drawObject == 0)
-		dm->drawObject = GPU_drawobject_new(dm);
-	GPU_buffer_free(dm->drawObject->colors);
-	dm->drawObject->colors = gpu_buffer_setup(dm, dm->drawObject, 3,
-						  sizeof(char)*3*dm->drawObject->tot_triangle_point,
-						  GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color4);*/
-}
-
 void GPU_color_switch(int mode)
 {
 	if(mode) {
