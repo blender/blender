@@ -234,34 +234,17 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		if(ibuf->rect_float) {
 			float *from;
 
-			if(ibuf->profile == IB_PROFILE_LINEAR_RGB) {
-				for (int i = ibuf->y-1; i >= 0; i--)
-				{
-					from= ibuf->rect_float + channels*i*width;
+			for (int i = ibuf->y-1; i >= 0; i--)
+			{
+				from= ibuf->rect_float + channels*i*width;
 
-					for (int j = ibuf->x; j > 0; j--)
-					{
-						to->r = from[0];
-						to->g = from[1];
-						to->b = from[2];
-						to->a = (channels >= 4)? from[3]: 1.0f;
-						to++; from += 4;
-					}
-				}
-			}
-			else {
-				for (int i = ibuf->y-1; i >= 0; i--)
+				for (int j = ibuf->x; j > 0; j--)
 				{
-					from= ibuf->rect_float + channels*i*width;
-
-					for (int j = ibuf->x; j > 0; j--)
-					{
-						to->r = srgb_to_linearrgb(from[0]);
-						to->g = srgb_to_linearrgb(from[1]);
-						to->b = srgb_to_linearrgb(from[2]);
-						to->a = (channels >= 4)? from[3]: 1.0f;
-						to++; from += 4;
-					}
+					to->r = from[0];
+					to->g = from[1];
+					to->b = from[2];
+					to->a = (channels >= 4)? from[3]: 1.0f;
+					to++; from += 4;
 				}
 			}
 		}
