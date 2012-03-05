@@ -227,6 +227,8 @@ typedef struct TFace {
 #define USE_BMESH_SAVE_AS_COMPAT
 #define USE_BMESH_SAVE_WITHOUT_MFACE
 
+/* enable this to calculate mpoly normal layer and face origindex mapping */
+// #define USE_BMESH_MPOLY_NORMALS
 
 /* enable this so meshes get tessfaces calculated by default */
 // #define USE_TESSFACE_DEFAULT

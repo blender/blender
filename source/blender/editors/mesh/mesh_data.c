@@ -782,33 +782,24 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	/* note on this if/else - looks like these layers are not needed
 	 * so rather then add poly-index layer and calculate normals for it
 	 * calculate normals only for the mvert's. - campbell */
-#if 1
-	mesh_calc_normals(mesh->mvert,
-	                  mesh->totvert,
-	                  mesh->mloop,
-	                  mesh->mpoly,
-	                  mesh->totloop,
-	                  mesh->totpoly, NULL);
-	(void)polyindex;
-	(void)face_nors;
-#else
+#ifdef USE_BMESH_MPOLY_NORMALS
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
 	 * contain the normal of the poly the face was tesselated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
-	mesh_calc_normals_mapping(
-		mesh->mvert,
-		mesh->totvert,
-		mesh->mloop,
-		mesh->mpoly,
-		mesh->totloop,
-		mesh->totpoly,
-		NULL /* polyNors_r */,
-		mesh->mface,
-		mesh->totface,
-		polyindex,
-		face_nors);
+	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                             mesh->mloop, mesh->mpoly,
+	                             mesh->totloop, mesh->totpoly,
+	                             NULL /* polyNors_r */,
+	                             mesh->mface, mesh->totface,
+	                             polyindex, face_nors, FALSE);
+#else
+	mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                  NULL);
+	(void)polyindex;
+	(void)face_nors;
 #endif
 
 	DAG_id_tag_update(&mesh->id, 0);
@@ -1121,5 +1112,13 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_calc_normals(Mesh *mesh)
 {
-	mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+#ifdef USE_BMESH_MPOLY_NORMALS
+	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                             mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                             NULL, NULL, 0, NULL, NULL, FALSE);
+#else
+	mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                  NULL);
+#endif
 }
