@@ -122,7 +122,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 {
 	EdgeTag *et;
 	BMIter iter;
-	BMLoop *l, *startl;
+	BMLoop *l, *l_start, *l_prev;
 	BMEdge *e;
 	BMVert *v;
 	int i, ok;
@@ -177,17 +177,19 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				 * possible l->e is not et->newe1 or et->newe2. So always clear
 				 * the flag on l->e as well, to prevent infinite looping. */
 				BMO_elem_flag_disable(bm, l->e, EDGE_SEAM);
+				l_start = l;
 
-				startl = l;
 				do {
+					/* l_prev checks stops us from looping over the same edge forever [#30459] */
+					l_prev = l;
 					l = BM_face_other_edge_loop(l->f, l->e, v);
-					if (l == startl || BM_edge_face_count(l->e) != 2) {
+					if (l == l_start || BM_edge_face_count(l->e) != 2) {
 						break;
 					}
 					l = l->radial_next;
-				} while (l != startl && !BMO_elem_flag_test(bm, l->e, EDGE_SEAM));
+				} while (l != l_start && l != l_prev && !BMO_elem_flag_test(bm, l->e, EDGE_SEAM));
 				
-				if (l == startl || !BMO_elem_flag_test(bm, l->e, EDGE_SEAM)) {
+				if (l == l_start || !BMO_elem_flag_test(bm, l->e, EDGE_SEAM)) {
 					break;
 				}
 

@@ -88,8 +88,13 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BM_elem_flag_test(e, BM_ELEM_SMOOTH)) {
-				BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			/* check for 2 or more edge users */
+			if ((e->l) &&
+			    (e->l->next != e->l))
+			{
+				if (!BM_elem_flag_test(e, BM_ELEM_SMOOTH)) {
+					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+				}
 			}
 		}
 	}
