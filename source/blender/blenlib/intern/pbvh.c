@@ -402,29 +402,33 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
-static void build_leaf(PBVH *bvh, int node_index, const BBC *prim_bbc,
-					   int offset, int count)
+static void update_vb(PBVH *bvh, PBVHNode *node, BBC *prim_bbc,
+					  int offset, int count)
 {
 	int i;
+	
+	BB_reset(&node->vb);
+	for(i = offset + count - 1; i >= offset; --i) {
+		BB_expand_with_bb(&node->vb, (BB*)(&prim_bbc[bvh->prim_indices[i]]));
+	}
+	node->orig_vb = node->vb;
+}
 
+static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
+					   int offset, int count)
+{
 	bvh->nodes[node_index].flag |= PBVH_Leaf;
 
 	bvh->nodes[node_index].prim_indices = bvh->prim_indices + offset;
 	bvh->nodes[node_index].totprim = count;
 
 	/* Still need vb for searches */
-	BB_reset(&bvh->nodes[node_index].vb);
-	for(i = offset + count - 1; i >= offset; --i) {
-		BB_expand_with_bb(&bvh->nodes[node_index].vb,
-						  (BB*)(prim_bbc +
-								bvh->prim_indices[i]));
-	}
+	update_vb(bvh, &bvh->nodes[node_index], prim_bbc, offset, count);
 		
 	if(bvh->faces)
 		build_mesh_leaf_node(bvh, bvh->nodes + node_index);
 	else
 		build_grids_leaf_node(bvh, bvh->nodes + node_index);
-	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
 }
 
 /* Recursively build a node in the tree
@@ -451,16 +455,11 @@ static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 	}
 
 	/* Add two child nodes */
-	BB_reset(&bvh->nodes[node_index].vb);
 	bvh->nodes[node_index].children_offset = bvh->totnode;
 	grow_nodes(bvh, bvh->totnode + 2);
 
 	/* Update parent node bounding box */
-	for(i = offset + count - 1; i >= offset; --i) {
-		BB_expand_with_bb(&bvh->nodes[node_index].vb,
-				  (BB*)(prim_bbc + bvh->prim_indices[i]));
-	}
-	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
+	update_vb(bvh, &bvh->nodes[node_index], prim_bbc, offset, count);
 
 	/* Find axis with widest range of primitive centroids */
 	if(!cb) {
