@@ -4889,6 +4889,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				}
 				EDBM_automerge(t->scene, t->obedit, 1);
 			}
+#if 0
+			/* BMESH_TODO: simply nothing to cancel from here, but when interpolation of
+			 * some custom layers would be added this code would eb needed
+			 * some details are in comments in projectSVData (sergey) */
 			else {
 				if (t->mode == TFM_EDGE_SLIDE) {
 					SlideData *sld = t->customData;
@@ -4897,6 +4901,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					projectSVData(t, FALSE);
 				}
 			}
+#endif
 		}
 	}
 	

@@ -4721,7 +4721,10 @@ void projectSVData(TransInfo *t, int final)
 						continue;  /* shouldn't happen, but protection */
 				}
 				
-				BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, FALSE);
+				/* do not run interpolation of all layers for now because it's not actually what you'll always expect
+				 * and layers like shapekeys shouldn't be interpolated from here because oherwise they'll
+				 * propagate to basis keys and will propagate twice to related keys (sergey) */
+				// BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, FALSE);
 
 				if (final) {
 					BM_loop_interp_multires(em->bm, l2, copyf);	
@@ -4855,7 +4858,10 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		}
 	}
 	
-	projectSVData(t, 0);
+	/* BMESH_TODO: simply not all layers should be interpolated from there
+	 * but it's quite complicated to set this up with current API.
+	 * details are in comments in projectSVData function */
+	// projectSVData(t, 0);
 	
 	return 1;
 }
