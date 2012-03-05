@@ -20,24 +20,27 @@
 
 # <pep8 compliant>
 
-script_help_msg = """
+SCRIPT_HELP_MSG = """
 
 API dump in RST files
 ---------------------
   Run this script from blenders root path once you have compiled blender
 
-    ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
+    ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/
   providing ./blender.bin is or links to the blender executable
 
-  To choose sphinx-in directory use the -o option, putting the path  after '--'.
-  Example:
-  ./cmake/bin/blender -b -P ./blender/doc/python_api/sphinx_doc_gen.py -- -o ./python_api
+  To choose sphinx-in directory:
+    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- -o ../python_api
+
+  For quick builds:
+    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- -q
 
 Sphinx: HTML generation
 -----------------------
-  Generate html docs by running...
+  After you have built doc/python_api/sphinx-in (see above),
+  generate html docs by running:
 
     cd doc/python_api
     sphinx-build sphinx-in sphinx-out
@@ -46,19 +49,20 @@ Sphinx: HTML generation
 
 Sphinx: PDF generation
 ----------------------
-  After you have built doc/python_api/sphinx-in (see above), run:
+  After you have built doc/python_api/sphinx-in (see above),
+  generate the pdf doc by running:
 
     sphinx-build -b latex doc/python_api/sphinx-in doc/python_api/sphinx-out
     cd doc/python_api/sphinx-out
     make
-    
+
 """
 
 try:
     import bpy  # blender module
 except:
-    print("\nError, this script must run from inside blender")
-    print(script_help_msg)
+    print("\nERROR: this script must run from inside Blender")
+    print(SCRIPT_HELP_MSG)
     import sys
     sys.exit()
 
@@ -73,19 +77,58 @@ import shutil
 from platform import platform
 PLATFORM = platform().split('-')[0].lower()    # 'linux', 'darwin', 'windows'
 
-# this script dir
+
+def handle_args():
+    '''
+    Get the args passed to Blender after "--", ignored by Blender
+    '''
+
+    import argparse
+
+    # When --help is given, print the usage text
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        usage=SCRIPT_HELP_MSG
+    )
+
+    parser.add_argument("-o", "--output",
+                        dest="output_dir",
+                        type=str,
+                        help="Path of the API docs (optional)",
+                        required=False)
+
+    parser.add_argument("-f", "--fullrebuild",
+                        dest="full_rebuild",
+                        default=False,
+                        action='store_true',
+                        help="Rewrite all rst files in sphinx-in/ (optional)",
+                        required=False)
+
+    parser.add_argument("-t", "--testbuild",
+                        dest="test_build",
+                        default=False,
+                        action='store_true',
+                        help="Build only a small part of the API (optional)",
+                        required=False)
+
+    argv = []
+    if "--" in sys.argv:
+        argv = sys.argv[sys.argv.index("--") + 1:]  # get all args after "--"
+
+    return parser.parse_args(argv)
+
+SCRIPT_ARGS = handle_args()
 SCRIPT_DIR = os.path.dirname(__file__)
 
-# examples
-EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
-EXAMPLE_SET = set()
-EXAMPLE_SET_USED = set()
-
-#rst files dir
-RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
+# for quick rebuilds
+"""
+rm -rf /b/doc/python_api/sphinx-* && \
+./blender.bin --background -noaudio --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
+sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
+"""
 
 # Switch for quick testing
-if 1:
+if not SCRIPT_ARGS.test_build:
     # full build
     EXCLUDE_INFO_DOCS = False
     EXCLUDE_MODULES = ()
@@ -123,13 +166,19 @@ else:
     FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
     FILTER_BPY_OPS = ("import.scene", )  # allow
 
-    # for quick rebuilds
-    """
-rm -rf /b/doc/python_api/sphinx-* && \
-./blender.bin --background -noaudio --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
-sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
+try:
+    __import__("aud")
+except ImportError:
+    print("Warning: Built without 'aud' module, docs incomplete...")
+    EXCLUDE_MODULES = EXCLUDE_MODULES + ("aud", )
 
-    """
+# examples
+EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
+EXAMPLE_SET = set()
+EXAMPLE_SET_USED = set()
+
+#rst files dir
+RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 
 # extra info, not api reference docs
 # stored in ./rst/info_*
@@ -147,16 +196,8 @@ RNA_BLACKLIST = {
     "UserPreferencesSystem": {"language", },
     }
 
-
 # -----------------------------------------------------------------------------
 # configure compile time options
-
-try:
-    __import__("aud")
-except ImportError:
-    print("Warning: Built without 'aud' module, docs incomplete...")
-    EXCLUDE_MODULES = EXCLUDE_MODULES + ("aud", )
-
 
 # lame, python wont give some access
 ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
@@ -166,7 +207,6 @@ from types import MemberDescriptorType
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
-_BPY_FULL_REBUILD = False
 
 if _BPY_PROP_COLLECTION_FAKE:
     _BPY_PROP_COLLECTION_ID = ":class:`%s`" % _BPY_PROP_COLLECTION_FAKE
@@ -1442,51 +1482,19 @@ def rna2sphinx(BASEPATH):
     file.close()
 
 
-def handle_args():
-    '''
-    get the args passed to blender after "--", all of which are ignored by blender
-    
-    we can give the path of sphinx-in after '--', using for example:
-    ./cmake/bin/blender -b -P ./blender/doc/python_api/sphinx_doc_gen.py -- ./python_api
-    '''
-    
-    import argparse  # to parse options for us and print a nice help message
-    
-    # When --help or no args are given, print the usage text
-    parser = argparse.ArgumentParser(
-                                     formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     usage=script_help_msg)
-    
-    # output dir for apidocs 
-    parser.add_argument("-o", "--output",
-                        dest="output_dir",
-                        type=str,
-                        required=False,
-                        help="Path of API docs directory (optional)")
-            
-    argv = []
-    if "--" in sys.argv:
-        argv = sys.argv[sys.argv.index("--") + 1:]  # get all args after "--"
-    
-    return parser.parse_args(argv)
-
-
 def main():
-    
-    args = handle_args()
-    
-    # output dirs
-    if args.output_dir:
-        output_dir = args.output_dir
-        if not os.path.exists(args.output_dir):
-            os.mkdir(args.output_dir)
+
+    # output dir
+    if SCRIPT_ARGS.output_dir:
+        output_dir = SCRIPT_ARGS.output_dir
+        if not os.path.exists(SCRIPT_ARGS.output_dir):
+            os.mkdir(SCRIPT_ARGS.output_dir)
     else:
         output_dir = SCRIPT_DIR
 
+    # sphinx dirs
     sphinx_in_dir = os.path.join(output_dir, "sphinx-in")
     sphinx_out_dir = os.path.join(output_dir, "sphinx-out")
-
-    # only for partial updates
     sphinx_in_tmp_dir = sphinx_in_dir + "-tmp"
     if not os.path.exists(sphinx_in_dir):
         os.mkdir(sphinx_in_dir)
@@ -1496,7 +1504,7 @@ def main():
             EXAMPLE_SET.add(os.path.splitext(f)[0])
 
     # only for full updates
-    if _BPY_FULL_REBUILD:
+    if SCRIPT_ARGS.full_rebuild:
         shutil.rmtree(sphinx_in_dir, True)
         shutil.rmtree(sphinx_out_dir, True)
     else:
@@ -1505,7 +1513,7 @@ def main():
 
     rna2sphinx(sphinx_in_tmp_dir)
 
-    if not _BPY_FULL_REBUILD:
+    if not SCRIPT_ARGS.full_rebuild:
         import filecmp
 
         # now move changed files from 'sphinx_in_tmp_dir' --> 'sphinx_in_dir'
