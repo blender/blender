@@ -40,6 +40,8 @@ void BM_face_kill(BMesh *bm, BMFace *f);
 void BM_edge_kill(BMesh *bm, BMEdge *e);
 void BM_vert_kill(BMesh *bm, BMVert *v);
 
+int  BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
+
 int  bmesh_loop_reverse(BMesh *bm, BMFace *f);
 
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);

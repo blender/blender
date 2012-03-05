@@ -53,8 +53,23 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
 
 int     BM_face_validate(BMesh *bm, BMFace *face, FILE *err);
 
+void    BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
+                                   BMLoop **r_l1, BMLoop **r_l2);
 int     BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e);
-BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw);
+int     BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
+                                        BMLoop *l1, BMLoop *l2);
+int     BM_edge_rotate_check_beauty(BMesh *bm, BMEdge *e,
+                                    BMLoop *l1, BMLoop *l2);
+BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_flag);
+
+/* flags for BM_edge_rotate */
+enum {
+	BM_EDGEROT_CHECK_EXISTS     = (1 << 0), /* disallow to rotate when the new edge matches an existing one */
+	BM_EDGEROT_CHECK_SPLICE     = (1 << 1), /* overrides existing check, if the edge already, rotate and merge them */
+	BM_EDGEROT_CHECK_DEGENERATE = (1 << 2), /* disallow creating bow-tie, concave or zero area faces */
+	BM_EDGEROT_CHECK_BEAUTY     = (1 << 3)  /* disallow to rotate into ugly topology */
+};
+
 
 BMVert *BM_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv);
 

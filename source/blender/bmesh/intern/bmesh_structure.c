@@ -201,15 +201,13 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 	dl1->next = dl1->prev = NULL;
 }
 
-/*
- *			bmesh_disk_edge_next
+/**
+ * \brief Next Disk Edge
  *
  *	Find the next edge in a disk cycle
  *
- *  Returns -
- *	Pointer to the next edge in the disk cycle for the vertex v.
+ *	\return Pointer to the next edge in the disk cycle for the vertex v.
  */
-
 BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v)
 {
 	if (v == e->v1)
@@ -451,6 +449,27 @@ BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v)
 		}
 	} while ((l_iter = l_iter->radial_next) != l);
 	return l;
+}
+
+/* NOTE: this function has not been used or tested - so take care but it should work ok,
+ * I wrote it for some tool that ended up not using it, however this seems like a reasonable
+ * thing to be able to find the loop between a vertex and a face so keeping - campbell */
+/**
+ * \brief Radial Find a Vertex Loop in Face
+ *
+ * Finds the loop used which uses \a v in face loop \a l
+ */
+BMLoop *bmesh_radial_faceloop_find_vert(BMFace *f, BMVert *v) /* name is a bit awkward */
+{
+	BMLoop *l_iter, *l_first;
+	if (v->e && (l_iter = l_first = v->e->l)) {
+		do {
+			if (l_iter->v == v && l_iter->f == f) {
+				return l_iter;
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+	return NULL;
 }
 
 int bmesh_radial_length(BMLoop *l)

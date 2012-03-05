@@ -124,6 +124,10 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e, *e2;
 	int ccw = BMO_slot_bool_get(op, "ccw");
+	int is_single = BMO_slot_buffer_count(bm, op, "edges") == 1;
+	short check_flag = is_single ?
+	            BM_EDGEROT_CHECK_EXISTS :
+	            BM_EDGEROT_CHECK_EXISTS | BM_EDGEROT_CHECK_DEGENERATE;
 
 #define EDGE_OUT   1
 #define FACE_TAINT 1
@@ -141,9 +145,12 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 				    BMO_elem_flag_test(bm, fb, FACE_TAINT) == FALSE)
 				{
 
-					if (!(e2 = BM_edge_rotate(bm, e, ccw))) {
+					if (!(e2 = BM_edge_rotate(bm, e, ccw, check_flag))) {
+#if 0
 						BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
 						return;
+#endif
+						continue;
 					}
 
 					BMO_elem_flag_enable(bm, e2, EDGE_OUT);

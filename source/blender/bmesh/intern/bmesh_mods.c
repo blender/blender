@@ -708,6 +708,50 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 	return ret;
 }
 
+
+/**
+ * Calculate the 2 loops which _would_ make up the newly rotated Edge
+ * but don't actually change anything.
+ *
+ * Use this to further inspect if the loops to be connected have issues:
+ *
+ * Examples:
+ * - the newly formed edge already exists
+ * - the new face would be degenerate (zero area / concav /  bow-tie)
+ * - may want to measure if the new edge gives improved results topology.
+ *   over the old one, as with beauty fill.
+ *
+ * \note #BM_edge_rotate_check must have already run.
+ */
+void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
+                         BMLoop **r_l1, BMLoop **r_l2)
+{
+	BMVert *v1, *v2;
+	BMFace *fa, *fb;
+
+	/* this should have already run */
+	BLI_assert(BM_edge_rotate_check(bm, e) == TRUE);
+
+	/* we know this will work */
+	BM_edge_face_pair(e, &fa, &fb);
+
+	/* so we can use ccw variable correctly,
+	 * otherwise we could use the egdes verts direct */
+	BM_edge_ordered_verts(e, &v1, &v2);
+
+	/* we could swap the verts _or_ the faces, swapping faces
+	 * gives more pradictable resuts since that way the next vert
+	 * just sitches from face fa / fb */
+	if (ccw) {
+		SWAP(BMFace *, fa, fb);
+	}
+
+
+
+	*r_l1 = BM_face_other_vert_loop(fb, v2, v1);
+	*r_l2 = BM_face_other_vert_loop(fa, v1, v2);
+}
+
 /**
  * \brief Check if Rotate Edge is OK
  *
@@ -746,6 +790,115 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
 }
 
 /**
+ * \brief Check if Edge Rotate Gives Degenerate Faces
+ *
+ * Check 2 cases
+ * 1) does the newly forms edge form a flipped face (compare with previous cross product)
+ * 2) does the newly formed edge caise a zero area corner (or close enough to be almost zero)
+ *
+ * \param l1,l2 are the loops of the proposed verts to rotate too and should
+ * be the result of calling #BM_edge_rotate_calc
+ */
+int BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
+                                    BMLoop *l1, BMLoop *l2)
+{
+	/* note: for these vars 'old' just means initial edge state. */
+
+	float ed_dir_old[3]; /* edge vector */
+	float ed_dir_new[3]; /* edge vector */
+	float ed_dir_new_flip[3]; /* edge vector */
+
+	float ed_dir_v1_old[3];
+	float ed_dir_v2_old[3];
+
+	float ed_dir_v1_new[3];
+	float ed_dir_v2_new[3];
+
+	float cross_old[3];
+	float cross_new[3];
+
+	/* original verts - these will be in the edge 'e' */
+	BMVert *v1_old, *v2_old;
+
+	/* verts from the loops passed */
+
+	BMVert *v1, *v2;
+	/* these are the opposite verts - the verts that _would_ be used if 'ccw' was inverted*/
+	BMVert *v1_alt, *v2_alt;
+
+	/* this should have already run */
+	BLI_assert(BM_edge_rotate_check(bm, e) == TRUE);
+
+	BM_edge_ordered_verts(e, &v1_old, &v2_old);
+
+	v1 = l1->v;
+	v2 = l2->v;
+
+	/* get the next vert along */
+	v1_alt = BM_face_other_vert_loop(l1->f, v1_old, v1)->v;
+	v2_alt = BM_face_other_vert_loop(l2->f, v2_old, v2)->v;
+
+	/* normalize all so comparisons are scale independent */
+
+	BLI_assert(BM_edge_exists(v1_old, v1));
+	BLI_assert(BM_edge_exists(v1, v1_alt));
+
+	BLI_assert(BM_edge_exists(v2_old, v2));
+	BLI_assert(BM_edge_exists(v2, v2_alt));
+
+	/* old and new edge vecs */
+	sub_v3_v3v3(ed_dir_old, v1_old->co, v2_old->co);
+	sub_v3_v3v3(ed_dir_new, v1->co, v2->co);
+	normalize_v3(ed_dir_old);
+	normalize_v3(ed_dir_new);
+
+	/* old edge corner vecs */
+	sub_v3_v3v3(ed_dir_v1_old, v1_old->co, v1->co);
+	sub_v3_v3v3(ed_dir_v2_old, v2_old->co, v2->co);
+	normalize_v3(ed_dir_v1_old);
+	normalize_v3(ed_dir_v2_old);
+
+	/* old edge corner vecs */
+	sub_v3_v3v3(ed_dir_v1_new, v1->co, v1_alt->co);
+	sub_v3_v3v3(ed_dir_v2_new, v2->co, v2_alt->co);
+	normalize_v3(ed_dir_v1_new);
+	normalize_v3(ed_dir_v2_new);
+
+	/* compare */
+	cross_v3_v3v3(cross_old, ed_dir_old, ed_dir_v1_old);
+	cross_v3_v3v3(cross_new, ed_dir_new, ed_dir_v1_new);
+	if (dot_v3v3(cross_old, cross_new) < 0.0f) { /* does this flip? */
+		return FALSE;
+	}
+	cross_v3_v3v3(cross_old, ed_dir_old, ed_dir_v2_old);
+	cross_v3_v3v3(cross_new, ed_dir_new, ed_dir_v2_new);
+	if (dot_v3v3(cross_old, cross_new) < 0.0f) { /* does this flip? */
+		return FALSE;
+	}
+
+	negate_v3_v3(ed_dir_new_flip, ed_dir_new);
+
+	/* result is zero area corner */
+	if ((dot_v3v3(ed_dir_new,      ed_dir_v1_new) > 0.999f) ||
+	    (dot_v3v3(ed_dir_new_flip, ed_dir_v2_new) > 0.999f))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+int BM_edge_rotate_check_beauty(BMesh *UNUSED(bm), BMEdge *e,
+                                BMLoop *l1, BMLoop *l2)
+{
+	/* Stupid check for now:
+	 * Could compare angles of surrounding edges
+	 * before & after, but this is OK.*/
+	return (len_squared_v3v3(e->v1->co, e->v2->co) >
+	        len_squared_v3v3(l1->v->co, l2->v->co));
+}
+
+/**
  * \brief Rotate Edge
  *
  * Spins an edge topologically,
@@ -756,44 +909,76 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
  *
  * \note This works by dissolving the edge then re-creating it,
  * so the returned edge won't have the same pointer address as the original one.
+ *
+ * \see header definition for \a check_flag enum.
  */
-BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, int ccw)
+BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_flag)
 {
 	BMVert *v1, *v2;
-	BMLoop *l, *l1, *l2, *nl;
+	BMLoop *l1, *l2, *nl;
 	BMFace *f;
-	BMIter liter;
+	BMEdge *e_splice = NULL;
 
 	if (!BM_edge_rotate_check(bm, e)) {
 		return NULL;
 	}
 
-	v1 = e->v1;
-	v2 = e->v2;
+	BM_edge_rotate_calc(bm, e, ccw, &l1, &l2);
 
-	f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
+	/* the loops will be freed so assign verts */
+	v1 = l1->v;
+	v2 = l2->v;
 
-	if (f == NULL)
+
+
+	/* --------------------------------------- */
+	/* Checking Code - make sure we can rotate */
+
+	if (check_flag & BM_EDGEROT_CHECK_BEAUTY) {
+		if (!BM_edge_rotate_check_beauty(bm, e, l1, l2)) {
+			return NULL;
+		}
+	}
+
+	/* check before applying */
+	if (check_flag & BM_EDGEROT_CHECK_SPLICE) {
+		e_splice = BM_edge_exists(v1, v2);
+	}
+	else if (check_flag & BM_EDGEROT_CHECK_EXISTS) {
+		if (BM_edge_exists(v1, v2)) {
+			return NULL;
+		}
+	}
+
+	/* slowest, check last */
+	if (check_flag & BM_EDGEROT_CHECK_DEGENERATE) {
+		if (!BM_edge_rotate_check_degenerate(bm, e, l1, l2)) {
+			return NULL;
+		}
+	}
+	/* Done Checking */
+	/* ------------- */
+
+
+
+	/* rotate the edge */
+	f = BM_faces_join_pair(bm, l1->f, l2->f, e);
+
+	if (f == NULL) {
+		return NULL;
+	}
+
+	/* note, this assumes joining the faces _didnt_ also remove the verts.
+	 * the #BM_edge_rotate_check will ensure this, but its possibly corrupt state or future edits
+	 * break this */
+
+	if (!BM_face_split(bm, f, v1, v2, &nl, NULL))
 		return NULL;
 
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-		if (l->v == v1)
-			l1 = l;
-		else if (l->v == v2)
-			l2 = l;
+	/* replace existing edge (kill e_splice) */
+	if (e_splice) {
+		BM_edge_splice(bm, e_splice, nl->e);
 	}
-	
-	if (ccw) {
-		l1 = l1->prev;
-		l2 = l2->prev;
-	}
-	else {
-		l1 = l1->next;
-		l2 = l2->next;
-	}
-
-	if (!BM_face_split(bm, f, l1->v, l2->v, &nl, NULL))
-		return NULL;
 
 	return nl->e;
 }

@@ -291,7 +291,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args
 
 	bm = py_edge->bm;
 
-	e_new = BM_edge_rotate(bm, py_edge->e, do_ccw);
+	e_new = BM_edge_rotate(bm, py_edge->e, do_ccw, 0); /* BMESH_TODO - expose to API */
 
 	if (e_new) {
 		return BPy_BMEdge_CreatePyObject(bm, e_new);

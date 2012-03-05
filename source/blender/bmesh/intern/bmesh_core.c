@@ -41,7 +41,7 @@
  * TESTING ONLY! */
 // #define USE_DEBUG_INDEX_MEMCHECK
 
-static int bm_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
+int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
 #define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)               \
@@ -1523,7 +1523,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 			if (check_edge_double) {
 				if (e_splice) {
 					/* removes e_splice */
-					bm_edge_splice(bm, e_splice, oe);
+					BM_edge_splice(bm, e_splice, oe);
 				}
 			}
 
@@ -1845,7 +1845,7 @@ static int bm_vert_cut(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
  *
  * \note Edges must already have the same vertices.
  */
-static int bm_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
+int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
 {
 	BMLoop *l;
 
