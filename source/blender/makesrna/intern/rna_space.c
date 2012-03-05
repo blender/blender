@@ -191,25 +191,31 @@ static ScrArea *rna_area_from_space(PointerRNA *ptr)
 	return NULL;
 }
 
-static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **sa_r, ARegion **ar_r)
+static void area_region_from_regiondata(bScreen *sc, void *regiondata, ScrArea **r_sa, ARegion **r_ar)
 {
-	bScreen *sc = (bScreen*)ptr->id.data;
 	ScrArea *sa;
 	ARegion *ar;
-	void *regiondata= ptr->data;
 
-	*sa_r= NULL;
-	*ar_r= NULL;
+	*r_sa= NULL;
+	*r_ar= NULL;
 
 	for(sa=sc->areabase.first; sa; sa=sa->next) {
 		for(ar=sa->regionbase.first; ar; ar=ar->next) {
 			if(ar->regiondata == regiondata) {
-				*sa_r= sa;
-				*ar_r= ar;
+				*r_sa= sa;
+				*r_ar= ar;
 				return;
 			}
 		}
 	}
+}
+
+static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_sa, ARegion **r_ar)
+{
+	bScreen *sc = (bScreen*)ptr->id.data;
+	void *regiondata = ptr->data;
+
+	area_region_from_regiondata(sc, regiondata, r_sa, r_ar);
 }
 
 static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
@@ -450,6 +456,25 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
 	negate_v3_v3(rv3d->ofs, values);
 	ED_view3d_from_m4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+}
+
+/* api call */
+void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
+{
+	bScreen *sc = (bScreen *)id;
+
+	ScrArea *sa;
+	ARegion *ar;
+
+	area_region_from_regiondata(sc, rv3d, &sa, &ar);
+
+	if (sa && ar && sa->spacetype == SPACE_VIEW3D) {
+		View3D *v3d;
+
+		v3d = (View3D *)sa->spacedata.first;
+
+		ED_view3d_update_viewmat(sc->scene, v3d, ar, NULL, NULL);
+	}
 }
 
 static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
@@ -1714,6 +1739,15 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Camera Offset", "View shift in camera view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	/* until we have real api call */
+	{
+		FunctionRNA *func;
+
+		func = RNA_def_function(srna, "update", "rna_RegionView3D_update");
+		RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+		RNA_def_function_ui_description(func, "Recalculate the view matrices");
+	}
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)

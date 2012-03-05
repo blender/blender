@@ -2330,22 +2330,22 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 	return mask;
 }
 
-static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
 {
-	RegionView3D *rv3d= ar->regiondata;
+	RegionView3D *rv3d = ar->regiondata;
 
 	/* setup window matrices */
 	if (winmat)
 		copy_m4_m4(rv3d->winmat, winmat);
 	else
 		setwinmatrixview3d(ar, v3d, NULL); /* NULL= no pickrect */
-	
+
 	/* setup view matrix */
 	if (viewmat)
 		copy_m4_m4(rv3d->viewmat, viewmat);
 	else
 		setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
-	
+
 	/* update utilitity matrices */
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
@@ -2365,12 +2365,19 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 		v2[0]= rv3d->persmat[0][1];
 		v2[1]= rv3d->persmat[1][1];
 		v2[2]= rv3d->persmat[2][1];
-		
+
 		len1= 1.0f / len_v3(v1);
 		len2= 1.0f / len_v3(v2);
 
 		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
 	}
+}
+
+static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	ED_view3d_update_viewmat(scene, v3d, ar, viewmat, winmat);
 
 	/* set for opengl */
 	glMatrixMode(GL_PROJECTION);
