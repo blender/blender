@@ -280,20 +280,6 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 	}
 }
 
-static void check_partitioning(int *prim_indices, int lo, int hi, int axis,
-				   float mid, BBC *prim_bbc, int index_of_2nd_partition)
-{
-	int i;
-	for(i = lo; i <= hi; ++i) {
-		const float c = prim_bbc[prim_indices[i]].bcentroid[axis];
-
-		if((i < index_of_2nd_partition && c > mid) ||
-		   (i > index_of_2nd_partition && c < mid)) {
-			printf("fail\n");
-		}
-	}
-}
-
 static void grow_nodes(PBVH *bvh, int totnode)
 {
 	if(totnode > bvh->node_mem_count) {
@@ -464,35 +450,34 @@ static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 		return;
 	}
 
+	/* Add two child nodes */
 	BB_reset(&bvh->nodes[node_index].vb);
 	bvh->nodes[node_index].children_offset = bvh->totnode;
 	grow_nodes(bvh, bvh->totnode + 2);
 
+	/* Update parent node bounding box */
+	for(i = offset + count - 1; i >= offset; --i) {
+		BB_expand_with_bb(&bvh->nodes[node_index].vb,
+				  (BB*)(prim_bbc + bvh->prim_indices[i]));
+	}
+	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
+
+	/* Find axis with widest range of primitive centroids */
 	if(!cb) {
 		cb = &cb_backing;
 		BB_reset(cb);
 		for(i = offset + count - 1; i >= offset; --i)
 			BB_expand(cb, prim_bbc[bvh->prim_indices[i]].bcentroid);
 	}
-
 	axis = BB_widest_axis(cb);
 
-	for(i = offset + count - 1; i >= offset; --i) {
-		BB_expand_with_bb(&bvh->nodes[node_index].vb,
-				  (BB*)(prim_bbc + bvh->prim_indices[i]));
-	}
-
-	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
-
+	/* Partition primitives along that axis */
 	end = partition_indices(bvh->prim_indices, offset, offset + count - 1,
 	                        axis,
 	                        (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
 	                        prim_bbc);
-	check_partitioning(bvh->prim_indices, offset, offset + count - 1,
-	                   axis,
-	                   (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-	                   prim_bbc, end);
 
+	/* Build children */
 	build_sub(bvh, bvh->nodes[node_index].children_offset, NULL,
 		  prim_bbc, offset, end - offset);
 	build_sub(bvh, bvh->nodes[node_index].children_offset + 1, NULL,
