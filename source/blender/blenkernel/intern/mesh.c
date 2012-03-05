@@ -474,6 +474,7 @@ Mesh *copy_mesh(Mesh *me)
 	MTFace *tface;
 	MTexPoly *txface;
 	int a, i;
+	const int do_tessface = ((me->totface != 0) && (me->totpoly == 0)); /* only do tessface if we have no polys */
 	
 	men= copy_libblock(&me->id);
 	
@@ -485,10 +486,16 @@ Mesh *copy_mesh(Mesh *me)
 
 	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
 	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
-	CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
 	CustomData_copy(&me->ldata, &men->ldata, CD_MASK_MESH, CD_DUPLICATE, men->totloop);
 	CustomData_copy(&me->pdata, &men->pdata, CD_MASK_MESH, CD_DUPLICATE, men->totpoly);
-	mesh_update_customdata_pointers(men, TRUE);
+	if (do_tessface) {
+		CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
+	}
+	else {
+		BKE_mesh_tessface_clear(men);
+	}
+
+	mesh_update_customdata_pointers(men, do_tessface);
 
 	/* ensure indirect linked data becomes lib-extern */
 	for (i=0; i<me->fdata.totlayer; i++) {
