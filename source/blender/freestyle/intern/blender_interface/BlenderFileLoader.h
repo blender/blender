@@ -66,6 +66,8 @@ public:
 
 protected:
 	void insertShapeNode(ObjectInstanceRen *obi, int id);
+	int testDegenerateTriangle(float v1[3], float v2[3], float v3[3]);
+	bool testEdgeRotation(float v1[3], float v2[3], float v3[3], float v4[3]);
 	int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
 	void clipLine(float v1[3], float v2[3], float c[3], float z);
 	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
@@ -75,6 +77,11 @@ protected:
 		float n1[3], float n2[3], float n3[3], bool fm, bool em1, bool em2, bool em3);
 
 protected:
+	struct detri_t {
+		unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
+		Vec3r v;
+		unsigned n;
+	};
 	Render* _re;
 	SceneRenderLayer* _srl;
 	NodeGroup* _Scene;

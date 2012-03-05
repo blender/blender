@@ -238,11 +238,42 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 	*ls->pm++ = marks;
 }
 
-struct detri_t {
-	unsigned viA, viB, viP; // 0 <= viA, viB, viP < viSize
-	Vec3r v;
-	unsigned n;
-};
+// With A, B and P indicating the three vertices of a given triangle, returns:
+// 1 if points A and B are in the same position in the 3D space;
+// 2 if the distance between point P and line segment AB is zero; and
+// zero otherwise.
+int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3[3])
+{
+	//float area = area_tri_v3(v1, v2, v3);
+	//bool verbose = (area < 1e-6);
+
+	if (equals_v3v3(v1, v2) || equals_v3v3(v2, v3) || equals_v3v3(v1, v3)) {
+		//if (verbose) printf("BlenderFileLoader::testDegenerateTriangle = 1\n");
+		return 1;
+	}
+	if (dist_to_line_segment_v3(v1, v2, v3) < 1e-6 ||
+		dist_to_line_segment_v3(v2, v1, v3) < 1e-6 ||
+		dist_to_line_segment_v3(v3, v1, v2) < 1e-6) {
+		//if (verbose) printf("BlenderFileLoader::testDegenerateTriangle = 2\n");
+		return 2;
+	}
+	//if (verbose) printf("BlenderFileLoader::testDegenerateTriangle = 0\n");
+	return 0;
+}
+
+// Checks if edge rotation (if necessary) can prevent the given quad from
+// being decomposed into a degenerate triangle
+bool BlenderFileLoader::testEdgeRotation(float v1[3], float v2[3], float v3[3], float v4[3])
+{
+	if (testDegenerateTriangle(v1, v2, v3) == 2 || testDegenerateTriangle(v1, v3, v4) == 2) {
+		if (testDegenerateTriangle(v1, v2, v4) == 2 || testDegenerateTriangle(v2, v3, v4) == 2) {
+			//printf("BlenderFileLoader::testEdgeRotation: edge rotation is unsuccessful.\n");
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
 
 void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 {
@@ -279,9 +310,14 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 //		print_v3("v2", v2);
 //		print_v3("v3", v3);
 //		if (vlr->v4) print_v3("v4", v4);
-		numFaces += countClippedFaces(v1, v2, v3, clip_1);
-		if (vlr->v4)
-			numFaces += countClippedFaces(v1, v3, v4, clip_2);
+		if (!vlr->v4 || !testEdgeRotation(v1, v2, v3, v4)) {
+			numFaces += countClippedFaces(v1, v2, v3, clip_1);
+			if (vlr->v4)
+				numFaces += countClippedFaces(v1, v3, v4, clip_2);
+		} else {
+			numFaces += countClippedFaces(v1, v2, v4, clip_1);
+			numFaces += countClippedFaces(v2, v3, v4, clip_2);
+		}
 	}
 	if (wire_material)
 		printf("Warning: Object %s has wire materials (ignored)\n", name);
@@ -372,8 +408,17 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			}
 
 			unsigned numTris_1, numTris_2;
-			numTris_1 = countClippedFaces(v1, v2, v3, clip_1);
-			numTris_2 = (vlr->v4) ? countClippedFaces(v1, v3, v4, clip_2) : 0;
+			bool edge_rotation;
+			if (!vlr->v4 || !testEdgeRotation(v1, v2, v3, v4)) {
+				numTris_1 = countClippedFaces(v1, v2, v3, clip_1);
+				numTris_2 = (!vlr->v4) ? 0 : countClippedFaces(v1, v3, v4, clip_2);
+				edge_rotation = false;
+			} else {
+				numTris_1 = countClippedFaces(v1, v2, v4, clip_1);
+				numTris_2 = countClippedFaces(v2, v3, v4, clip_2);
+				edge_rotation = true;
+				printf("BlenderFileLoader::insertShapeNode: edge rotation is performed.\n");
+			}
 			if (numTris_1 == 0 && numTris_2 == 0)
 				continue;
 			bool fm, em1, em2, em3, em4;
@@ -430,8 +475,12 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			bool edgeMarks[5]; // edgeMarks[i] is for the edge between i-th and (i+1)-th vertices
 
 			if (numTris_1 > 0) {
-				clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3,
-					edgeMarks, em1, em2, (!vlr->v4) ? em3 : false, clip_1);
+				if (!edge_rotation)
+					clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3,
+						edgeMarks, em1, em2, (!vlr->v4) ? em3 : false, clip_1);
+				else
+					clipTriangle(numTris_1, triCoords, v1, v2, v4, triNormals, n1, n2, n4,
+						edgeMarks, em1, false, em4, clip_1);
 				for (i = 0; i < numTris_1; i++) {
 					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
 						triNormals[0], triNormals[i+1], triNormals[i+2],
@@ -442,8 +491,12 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			}
 
 			if (numTris_2 > 0) {
-				clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4,
-					edgeMarks, false, em3, em4, clip_2);
+				if (!edge_rotation)
+					clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4,
+						edgeMarks, false, em3, em4, clip_2);
+				else
+					clipTriangle(numTris_2, triCoords, v2, v3, v4, triNormals, n2, n3, n4,
+						edgeMarks, em2, em3, false, clip_2);
 				for (i = 0; i < numTris_2; i++) {
 					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
 						triNormals[0], triNormals[i+1], triNormals[i+2],
