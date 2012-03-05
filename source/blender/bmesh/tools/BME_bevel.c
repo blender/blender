@@ -965,7 +965,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 	/* get rid of beveled edge */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if(BMO_elem_flag_test(bm, e, BME_BEVEL_BEVEL) && BMO_elem_flag_test(bm, e, BME_BEVEL_ORIG)) {
-			BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
+			BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
 		}
 	}
 

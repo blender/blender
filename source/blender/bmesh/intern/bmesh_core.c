@@ -858,6 +858,8 @@ static int disk_is_flagged(BMVert *v, int flag)
  * Joins a collected group of faces into one. Only restriction on
  * the input data is that the faces must be connected to each other.
  *
+ * \param do_clear Remove the edges and verts shared by faces when joining.
+ *
  * \return The newly created combine BMFace.
  *
  * \note If a pair of faces share multiple edges,
@@ -866,7 +868,8 @@ static int disk_is_flagged(BMVert *v, int flag)
  * \note this is a generic, flexible join faces function,
  * almost everything uses this, including #BM_faces_join_pair
  */
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface,
+                      const short do_del)
 {
 	BMFace *f, *newf;
 #ifdef USE_BMESH_HOLES
@@ -955,7 +958,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 
 	}
 
-	/* create region fac */
+	/* create region face */
 	newf = BM_face_create_ngon(bm, v1, v2, edges, tote, FALSE);
 	if (!newf || BMO_error_occurred(bm)) {
 		if (!BMO_error_occurred(bm))
@@ -1020,12 +1023,14 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 	}
 
 	/* delete old geometr */
-	for (i = 0; i < BLI_array_count(deledges); i++) {
-		BM_edge_kill(bm, deledges[i]);
-	}
+	if (do_del) {
+		for (i = 0; i < BLI_array_count(deledges); i++) {
+			BM_edge_kill(bm, deledges[i]);
+		}
 
-	for (i = 0; i < BLI_array_count(delverts); i++) {
-		BM_vert_kill(bm, delverts[i]);
+		for (i = 0; i < BLI_array_count(delverts); i++) {
+			BM_vert_kill(bm, delverts[i]);
+		}
 	}
 	
 	BLI_array_free(edges);
@@ -1034,6 +1039,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 
 	BM_CHECK_ELEMENT(bm, newf);
 	return newf;
+
 error:
 	bm_elements_systag_disable(bm, faces, totface, _FLAG_JF);
 	BLI_array_free(edges);

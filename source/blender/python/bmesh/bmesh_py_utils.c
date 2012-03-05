@@ -406,7 +406,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 
 	/* Go ahead and join the face!
 	 * --------------------------- */
-	f_new = BM_faces_join(bm, face_array, (int)face_seq_len);
+	f_new = BM_faces_join(bm, face_array, (int)face_seq_len, TRUE); /* BMESH_TODO, make optional */
 
 	if (f_new) {
 		return BPy_BMFace_CreatePyObject(bm, f_new);

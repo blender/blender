@@ -144,7 +144,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		while (faces[tot])
 			tot++;
 		
-		f = BM_faces_join(bm, faces, tot);
+		f = BM_faces_join(bm, faces, tot, TRUE);
 		if (!f) {
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED,
 			                "Could not create merged face");
@@ -198,17 +198,16 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, **verts = NULL;
 	BLI_array_declare(verts);
 	BMEdge *e;
-	/* BMFace *f; */
+	BMFace *fa, *fb;
 	int i;
 
+
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
-		if (BM_edge_face_count(e) == 2) {
+		if (BM_edge_face_pair(e, &fa, &fb)) {
 			BMO_elem_flag_enable(bm, e->v1, VERT_MARK);
 			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 
-			BM_faces_join_pair(bm, e->l->f,
-			                   e->l->radial_next->f,
-			                   e);
+			BM_faces_join_pair(bm, fa, fb, e, TRUE);
 		}
 	}
 
@@ -256,13 +255,12 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_ITER(e, &eiter, bm, op, "edges", BM_EDGE) {
-		const int edge_face_count = BM_edge_face_count(e);
-		if (edge_face_count == 2) {
+		BMFace *fa, *fb;
+
+		if (BM_edge_face_pair(e, &fa, &fb)) {
 
 			/* join faces */
-			BM_faces_join_pair(bm, e->l->f,
-			                   e->l->radial_next->f,
-			                   e);
+			BM_faces_join_pair(bm, fa, fb, e, TRUE);
 		}
 	}
 
@@ -517,7 +515,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 			if (BM_edge_face_angle(bm, e) < angle_limit) {
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,
-				                                e); /* join faces */
+				                                e, TRUE); /* join faces */
 
 				/* there may be some errors, we dont mind, just move on */
 				if (nf == NULL) {
