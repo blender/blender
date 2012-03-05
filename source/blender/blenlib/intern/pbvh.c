@@ -416,6 +416,31 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
+static void build_leaf(PBVH *bvh, int node_index, const BBC *prim_bbc,
+					   int offset, int count)
+{
+	int i;
+
+	bvh->nodes[node_index].flag |= PBVH_Leaf;
+
+	bvh->nodes[node_index].prim_indices = bvh->prim_indices + offset;
+	bvh->nodes[node_index].totprim = count;
+
+	/* Still need vb for searches */
+	BB_reset(&bvh->nodes[node_index].vb);
+	for(i = offset + count - 1; i >= offset; --i) {
+		BB_expand_with_bb(&bvh->nodes[node_index].vb,
+						  (BB*)(prim_bbc +
+								bvh->prim_indices[i]));
+	}
+		
+	if(bvh->faces)
+		build_mesh_leaf_node(bvh, bvh->nodes + node_index);
+	else
+		build_grids_leaf_node(bvh, bvh->nodes + node_index);
+	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
+}
+
 /* Recursively build a node in the tree
  *
  * vb is the voxel box around all of the primitives contained in
@@ -434,41 +459,20 @@ static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 	BB cb_backing;
 
 	/* Decide whether this is a leaf or not */
-	// XXX adapt leaf limit for grids
 	if(count <= bvh->leaf_limit) {
-		bvh->nodes[node_index].flag |= PBVH_Leaf;
-
-		bvh->nodes[node_index].prim_indices = bvh->prim_indices + offset;
-		bvh->nodes[node_index].totprim = count;
-
-		/* Still need vb for searches */
-		BB_reset(&bvh->nodes[node_index].vb);
-		for(i = offset + count - 1; i >= offset; --i) {
-			BB_expand_with_bb(&bvh->nodes[node_index].vb,
-					  (BB*)(prim_bbc +
-						bvh->prim_indices[i]));
-		}
-		
-		if(bvh->faces)
-			build_mesh_leaf_node(bvh, bvh->nodes + node_index);
-		else
-			build_grids_leaf_node(bvh, bvh->nodes + node_index);
-		bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
-
-		/* Done with this subtree */
+		build_leaf(bvh, node_index, prim_bbc, offset, count);
 		return;
 	}
-	else {
-		BB_reset(&bvh->nodes[node_index].vb);
-		bvh->nodes[node_index].children_offset = bvh->totnode;
-		grow_nodes(bvh, bvh->totnode + 2);
 
-		if(!cb) {
-			cb = &cb_backing;
-			BB_reset(cb);
-			for(i = offset + count - 1; i >= offset; --i)
-				BB_expand(cb, prim_bbc[bvh->prim_indices[i]].bcentroid);
-		}
+	BB_reset(&bvh->nodes[node_index].vb);
+	bvh->nodes[node_index].children_offset = bvh->totnode;
+	grow_nodes(bvh, bvh->totnode + 2);
+
+	if(!cb) {
+		cb = &cb_backing;
+		BB_reset(cb);
+		for(i = offset + count - 1; i >= offset; --i)
+			BB_expand(cb, prim_bbc[bvh->prim_indices[i]].bcentroid);
 	}
 
 	axis = BB_widest_axis(cb);
