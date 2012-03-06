@@ -31,6 +31,7 @@
  *  \ingroup bke
  */
 
+struct DMFaceFlags;
 struct DMGridAdjacency;
 struct DMGridData;
 struct DerivedMesh;
@@ -75,7 +76,7 @@ typedef struct CCGDerivedMesh {
 			int startFace; struct CCGFace *face;} *faceMap;
 
 	short *edgeFlags;
-	char *faceFlags;
+	struct DMFaceFlags *faceFlags;
 
 	int *reverseFaceMap;
 
