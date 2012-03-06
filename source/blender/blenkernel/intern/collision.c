@@ -2543,8 +2543,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 							ret = 1;
 							ret2 += ret;
 						}
-						else
-						{
+						else {
 							// check for approximated time collisions
 						}
 					}

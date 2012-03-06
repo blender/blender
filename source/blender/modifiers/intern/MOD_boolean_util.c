@@ -586,9 +586,11 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	mat= (Material**)MEM_mallocN(sizeof(Material*)*maxmat, "NewBooleanMeshMat");
 	
 	/* put some checks in for nice user feedback */
-	if (dm == NULL || dm_select == NULL) return 0;
-	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select))
-	{
+	if (dm == NULL || dm_select == NULL) {
+		return 0;
+	}
+
+	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) {
 		MEM_freeN(mat);
 		return -1;
 	}

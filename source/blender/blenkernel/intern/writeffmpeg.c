@@ -627,8 +627,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	if((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
 		audio_input_samples = audio_outbuf_size * 8 / c->bits_per_coded_sample / c->channels;
-	else
-	{
+	else {
 		audio_input_samples = c->frame_size;
 		if(c->frame_size * c->channels * sizeof(int16_t) * 4 > audio_outbuf_size)
 			audio_outbuf_size = c->frame_size * c->channels * sizeof(int16_t) * 4;
@@ -994,8 +993,7 @@ void end_ffmpeg(void)
 	}*/
 
 #ifdef WITH_AUDASPACE
-	if(audio_mixdown_device)
-	{
+	if (audio_mixdown_device) {
 		AUD_closeReadDevice(audio_mixdown_device);
 		audio_mixdown_device = 0;
 	}

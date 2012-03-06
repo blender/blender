@@ -981,8 +981,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	}
 
 	/* FOR DEBUG */
-	if (debugSDNA > 1)
-	{
+	if (debugSDNA > 1) {
 		int a,b;
 /*  		short *elem; */
 		short num_types;

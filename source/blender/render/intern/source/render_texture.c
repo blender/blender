@@ -1965,10 +1965,10 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
 		rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, texres);
 
-		if(shi->obr->ob->derivedFinal)
-		{
+		if(shi->obr->ob->derivedFinal) {
 			auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
 		}
+
 		{
 			float fVirtDim = sqrtf(fabsf((float) (dimx*dimy)*mtex->size[0]*mtex->size[1]));
 			auto_bump /= MAX2(fVirtDim, FLT_EPSILON);

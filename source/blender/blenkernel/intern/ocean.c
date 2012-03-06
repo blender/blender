@@ -435,8 +435,7 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
 			ocr->disp[0] = INTERP(oc->_disp_x);
 			ocr->disp[2] = INTERP(oc->_disp_z);
 		}
-		else
-		{
+		else {
 			ocr->disp[0] = 0.0;
 			ocr->disp[2] = 0.0;
 		}
@@ -479,8 +478,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
 		ocr->disp[0] = oc->_disp_x[i*oc->_N+j];
 		ocr->disp[2] = oc->_disp_z[i*oc->_N+j];
 	}
-	else
-	{
+	else {
 		ocr->disp[0] = 0.0f;
 		ocr->disp[2] = 0.0f;
 	}

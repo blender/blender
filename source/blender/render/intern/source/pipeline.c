@@ -453,8 +453,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
 
 	/* Until use_border is made compatible with save_buffers/full_sample, render without the later instead of not rendering at all.*/
-	if(re->r.mode & R_BORDER) 
-	{
+	if (re->r.mode & R_BORDER) {
 		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
 	}
 

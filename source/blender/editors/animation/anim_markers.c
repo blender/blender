@@ -83,10 +83,10 @@ static ListBase *context_get_markers(Scene *scene, ScrArea *sa)
 			/* local markers can only be shown when there's only a single active action to grab them from 
 			 * 	- flag only takes effect when there's an action, otherwise it can get too confusing?
 			 */
-			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) 
-			{
-				if (saction->flag & SACTION_POSEMARKERS_SHOW)
+			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) {
+				if (saction->flag & SACTION_POSEMARKERS_SHOW) {
 					return &saction->action->markers;
+				}
 			}
 		}
 	}
@@ -851,8 +851,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		float vec[3];
 		char str_tx[256];
 		
-		if (handleNumInput(&mm->num, evt))
-		{
+		if (handleNumInput(&mm->num, evt)) {
 			applyNumInput(&mm->num, vec);
 			outputNumInput(&mm->num, str_tx);
 			

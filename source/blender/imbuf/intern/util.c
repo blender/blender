@@ -215,12 +215,10 @@ static int isqtime (const char *name)
 
 void silence_log_ffmpeg(int quiet)
 {
-	if (quiet)
-	{
+	if (quiet) {
 		av_log_set_level(AV_LOG_QUIET);
 	}
-	else
-	{
+	else {
 		av_log_set_level(AV_LOG_DEBUG);
 	}
 }

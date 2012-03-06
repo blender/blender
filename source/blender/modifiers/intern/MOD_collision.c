@@ -207,12 +207,10 @@ static void deformVerts(ModifierData *md, Object *ob,
 				}
 				
 				/* happens on file load (ONLY when i decomment changes in readfile.c) */
-				if(!collmd->bvhtree)
-				{
+				if (!collmd->bvhtree) {
 					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
-				else
-				{
+				else {
 					// recalc static bounding boxes
 					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
@@ -225,14 +223,11 @@ static void deformVerts(ModifierData *md, Object *ob,
 			}
 			
 		}
-		else if(current_time < collmd->time_xnew)
-		{	
+		else if(current_time < collmd->time_xnew) {
 			freeData((ModifierData *)collmd);
 		}
-		else
-		{
-			if(numverts != collmd->numverts)
-			{
+		else {
+			if (numverts != collmd->numverts) {
 				freeData((ModifierData *)collmd);
 			}
 		}

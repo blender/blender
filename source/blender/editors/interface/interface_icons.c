@@ -1015,8 +1015,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 
 static void ui_id_preview_image_render_size(bContext *C, ID *id, PreviewImage *pi, int size)
 {
-	if ((pi->changed[size] ||!pi->rect[size])) /* changed only ever set by dynamic icons */
-	{
+	if ((pi->changed[size] ||!pi->rect[size])) { /* changed only ever set by dynamic icons */
 		/* create the rect if necessary */
 		icon_set_image(C, id, pi, size);
 

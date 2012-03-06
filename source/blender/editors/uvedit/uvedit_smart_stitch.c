@@ -185,8 +185,7 @@ static StitchPreviewer * stitch_preview_init(void)
 /* destructor...yeah this should be C++ :) */
 static void stitch_preview_delete(void)
 {
-	if(_stitch_preview)
-	{
+	if(_stitch_preview) {
 		if(_stitch_preview->preview_polys){
 			MEM_freeN(_stitch_preview->preview_polys);
 			_stitch_preview->preview_polys = NULL;
@@ -507,8 +506,7 @@ static void stitch_set_face_preview_buffer_position(BMFace *efa, StitchPreviewer
 {
 	int index = BM_elem_index_get(efa);
 
-	if(preview_position[index].data_position == STITCH_NO_PREVIEW)
-	{
+	if(preview_position[index].data_position == STITCH_NO_PREVIEW) {
 		preview_position[index].data_position = preview->preview_uvs*2;
 		preview_position[index].polycount_position = preview->num_polys++;
 		preview->preview_uvs += efa->len;
@@ -1294,8 +1292,7 @@ static void stitch_select(bContext *C, Scene *scene, wmEvent *event, StitchState
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 	uv_find_nearest_vert(scene, ima, stitch_state->em, co, NULL, &hit);
 
-	if(hit.efa)
-	{
+	if (hit.efa) {
 		/* Add vertex to selection, deselect all common uv's of vert other
 		 * than selected and update the preview. This behavior was decided so that
 		 * you can do stuff like deselect the opposite stitchable vertex and the initial still gets deselected */

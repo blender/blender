@@ -1359,11 +1359,12 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
 					ps->maxvalue, 0, MAX_NAME, 0, 0, "check for max value");
 			}
-			else if(ps->type == SENS_PROP_CHANGED);
-			else
-			{
+			else if(ps->type == SENS_PROP_CHANGED) {
+				/* pass */
+			}
+			else {
 				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-92,width-60, 19,
-					ps->value, 0, MAX_NAME, 0, 0, "check for value");
+				         ps->value, 0, MAX_NAME, 0, 0, "check for value");
 			}
 			
 			yco-= ysize;
@@ -1511,14 +1512,12 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				&raySens->mode, 0.0, 0.0, 0, 0,
 				"Toggle collision on material or property");
 			
-			if (raySens->mode & SENS_COLLISION_MATERIAL)
-			{
+			if (raySens->mode & SENS_COLLISION_MATERIAL) {
 				uiDefBut(block, TEX, 1, "Material:", xco + 10 + 0.20 * (width-20), yco-44, 0.8*(width-20), 19,
 					&raySens->matname, 0, MAX_NAME, 0, 0,
 					"Only look for Objects with this material");
 			}
-			else
-			{
+			else {
 				uiDefBut(block, TEX, 1, "Property:", xco + 10 + 0.20 * (width-20), yco-44, 0.8*(width-20), 19,
 					&raySens->propname, 0, MAX_NAME, 0, 0,
 					"Only look for Objects with this property");
@@ -1878,12 +1877,10 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			wval = (width-100)/3;
 			if (oa->type == ACT_OBJECT_NORMAL)
 			{
-				if ( ob->gameflag & OB_DYNAMIC )
-				{
+				if (ob->gameflag & OB_DYNAMIC) {
 					ysize= 175;
 				}
-				else
-				{
+				else {
 					ysize= 72;
 				}
 
@@ -2031,12 +2028,10 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &aa->end_reset, 0.0, 0.0, 0, 0, "Restore last frame when switching on/off, otherwise play from the start each time");
 			
 			
-			if(aa->type == ACT_ACTION_FROM_PROP)
-			{
+			if(aa->type == ACT_ACTION_FROM_PROP) {
 				uiDefBut(block, TEX, 0, "Prop: ",xco+10, yco-44, width-20, 19, aa->name, 0.0, MAX_NAME, 0, 0, "Use this property to define the Action position");
 			}
-			else
-			{
+			else {
 				uiDefButF(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 1.0, MAXFRAMEF, 0, 0, "Start frame");
 				uiDefButF(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 1.0, MAXFRAMEF, 0, 0, "End frame");
 			}
@@ -2048,8 +2043,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
-			if(aa->type == ACT_ACTION_MOTION)
-			{
+			if (aa->type == ACT_ACTION_MOTION) {
 				uiDefButF(block, NUM, 0, "Cycle: ",xco+30, yco-84, (width-60)/2, 19, &aa->stridelength, 0.0, 2500.0, 0, 0, "Distance covered by a single cycle of the action");
 			}
 #endif
@@ -2185,8 +2179,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					          12.0, 0, 0, "Sets the pitch of this sound");
 					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
 					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
-					if(sa->flag & ACT_SND_3D_SOUND)
-					{
+					if(sa->flag & ACT_SND_3D_SOUND) {
 						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
 						          &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0,
 						          "The minimum gain of the sound, no matter how far it is away");
@@ -2395,14 +2388,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &coa->flag, 0.0, 0.0, 0, 0, "Set object axis along (local axis) or parallel (global axis) to the normal at hit position");
 			uiDefButBitS(block, TOG, ACT_CONST_MATERIAL, B_REDR, "M/P", xco+10, yco-84, 40, 19,
 					 &coa->flag, 0.0, 0.0, 0, 0, "Detect material instead of property");
-			if (coa->flag & ACT_CONST_MATERIAL)
-			{
+			if (coa->flag & ACT_CONST_MATERIAL) {
 				uiDefBut(block, TEX, 1, "Material:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detects only Objects with this material");
 			}
-			else
-			{
+			else {
 				uiDefBut(block, TEX, 1, "Property:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detect only Objects with this property");
@@ -2454,14 +2445,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &coa->flag, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
 			uiDefButBitS(block, TOG, ACT_CONST_MATERIAL, B_REDR, "M/P", xco+10, yco-84, 40, 19,
 					 &coa->flag, 0.0, 0.0, 0, 0, "Detect material instead of property");
-			if (coa->flag & ACT_CONST_MATERIAL)
-			{
+			if (coa->flag & ACT_CONST_MATERIAL) {
 				uiDefBut(block, TEX, 1, "Material:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detects only Objects with this material");
 			}
-			else
-			{
+			else {
 				uiDefBut(block, TEX, 1, "Property:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detect only Objects with this property");
@@ -2548,9 +2537,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		  break; 
 	case ACT_GAME:
 		{
-			gma = act->data; 
-			if (gma->type == ACT_GAME_LOAD)
-			{
+			gma = act->data;
+			if (gma->type == ACT_GAME_LOAD) {
 				//ysize = 68;
 				ysize = 48;
 				glRects(xco, yco-ysize, xco+width, yco); 
@@ -2807,15 +2795,14 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			&ma->bodyType, 0.0, 0.0, 0, 0,
 			"Toggle message type: either Text or a PropertyName");
 
-		if (ma->bodyType == ACT_MESG_MESG)
-		{
+		if (ma->bodyType == ACT_MESG_MESG) {
 			/* line 3: Message Body */
 			uiDefBut(block, TEX, 1, "Body: ",
 			(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
 			&ma->body, 0, MAX_NAME, 0, 0,
 			"Optional message body Text");
-		} else
-		{
+		}
+		else {
 			/* line 3: Property body (set by property) */
 			uiDefBut(block, TEX, 1, "Propname: ",
 			(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
@@ -2829,8 +2816,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		tdfa = act->data;
 
 		ysize = 50;
-		if(tdfa->type == ACT_2DFILTER_CUSTOMFILTER)
-		{
+		if (tdfa->type == ACT_2DFILTER_CUSTOMFILTER) {
 			ysize +=20;
 		}
 		glRects( xco, yco-ysize, xco+width, yco ); 
@@ -2839,13 +2825,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		switch(tdfa->type)
 		{
 			case ACT_2DFILTER_MOTIONBLUR:
-				if(!tdfa->flag)
-				{
+				if (!tdfa->flag) {
 					uiDefButS(block, TOG, B_REDR, "D",	xco+30,yco-44,19, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Disable Motion Blur");
 					uiDefButF(block, NUM, B_REDR, "Value:", xco+52,yco-44,width-82,19,&tdfa->float_arg,0.0,1.0,0.0,0.0,"Set motion blur value");
 				}
-				else
-				{
+				else {
 					uiDefButS(block, TOG, B_REDR, "Disabled",	xco+30,yco-44,width-60, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Enable Motion Blur");
 				}
 				break;
@@ -4187,11 +4171,11 @@ static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 		case ACT_PROP_COPY:
 			row = uiLayoutRow(layout, 0);
 			uiItemR(row, ptr, "object", 0, NULL, ICON_NONE);
-			if(ob_from){
+			if (ob_from) {
 				RNA_pointer_create((ID *)ob_from, &RNA_GameObjectSettings, ob_from, &obj_settings_ptr);
 				uiItemPointerR(row, ptr, "object_property", &obj_settings_ptr, "properties", NULL, ICON_NONE);
-			}else
-			{
+			}
+			else {
 				sub= uiLayoutRow(row, 0);
 				uiLayoutSetActive(sub, 0);
 				uiItemR(sub, ptr, "object_property", 0, NULL, ICON_NONE);
@@ -4325,8 +4309,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	uiLayout *row, *col;
 
 	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
-	if (!RNA_pointer_get(ptr, "sound").data)
-	{
+	if (!RNA_pointer_get(ptr, "sound").data) {
 		uiItemL(layout, "Select a sound from the list or load a new one", ICON_NONE);
 		return;
 	}
@@ -4402,21 +4385,18 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(col, ptr, "facing", 0, NULL, 0);
 	col = uiLayoutColumn(row, 0);
 	uiItemR(col, ptr, "facing_axis", 0, NULL, 0);
-	if (!RNA_boolean_get(ptr, "facing"))
-	{
+	if (!RNA_boolean_get(ptr, "facing")) {
 		uiLayoutSetActive(col, 0);
 	}
 	col = uiLayoutColumn(row, 0);
 	uiItemR(col, ptr, "normal_up", 0, NULL, 0);
-	if (!RNA_pointer_get(ptr, "navmesh").data)
-	{
+	if (!RNA_pointer_get(ptr, "navmesh").data) {
 		uiLayoutSetActive(col, 0);
 	}
 
 	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "self_terminated", 0, NULL, 0);
-	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING)
-	{
+	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING) {
 		uiItemR(row, ptr, "update_period", 0, NULL, 0);	
 		row = uiLayoutRow(layout, 0);
 	}
@@ -5040,8 +5020,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
-					if(sens->flag & SENS_SHOW)
-					{
+					if (sens->flag & SENS_SHOW) {
 						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, UI_UNIT_Y, &sens->type, 0, 0, 0, 0, "Sensor type");
 						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens->name, 0, MAX_NAME, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);

@@ -426,8 +426,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 		if(col->ob == eff->ob)
 			continue;
 		
-		if(collmd->bvhtree)
-		{
+		if (collmd->bvhtree) {
 			BVHTreeRayHit hit;
 			
 			hit.index = -1;

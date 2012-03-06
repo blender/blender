@@ -514,8 +514,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	if (event->val==KM_PRESS) {
 		float value;
 		
-		if (handleNumInput(&lcd->num, event))
-		{
+		if (handleNumInput(&lcd->num, event)) {
 			applyNumInput(&lcd->num, &value);
 			
 			cuts= CLAMPIS(value, 1, 32);

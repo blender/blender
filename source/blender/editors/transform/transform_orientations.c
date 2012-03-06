@@ -276,12 +276,10 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts = NULL;
 
-	if (overwrite)
-	{
+	if (overwrite) {
 		ts = findOrientationName(transform_spaces, name);
 	}
-	else
-	{
+	else {
 		uniqueOrientationName(transform_spaces, name);
 	}
 
@@ -537,8 +535,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		break;
 		
 	case V3D_MANIP_VIEW:
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
+		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
 			RegionView3D *rv3d = t->ar->regiondata;
 			float mat[3][3];
 
@@ -547,8 +544,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			normalize_m3(mat);
 			copy_m3_m3(t->spacemtx, mat);
 		}
-		else
-		{
+		else {
 			unit_m3(t->spacemtx);
 		}
 		break;
@@ -609,10 +605,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						break;
 				}
 			}
-			else
-			{
-				if (em->bm->totfacesel >= 1)
-				{
+			else {
+				if (em->bm->totfacesel >= 1) {
 					BMFace *efa;
 					BMIter iter;
 
@@ -752,18 +746,14 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					while(a--)
 					{
 						/* exception */
-						if ( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT )
-						{
+						if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {
 							sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
 						}
-						else
-						{
-							if(bezt->f1)
-							{
+						else {
+							if (bezt->f1) {
 								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[1]);
 							}
-							if(bezt->f2)
-							{
+							if (bezt->f2) {
 								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
 							}
 							if(bezt->f3)
@@ -792,12 +782,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			for (ml = editelems.first; ml; ml = ml->next)
 			{
 				if (ml->flag & SELECT) {
-					if (ml_sel == NULL)
-					{
+					if (ml_sel == NULL) {
 						ml_sel = ml;
 					}
-					else
-					{
+					else {
 						ml_sel = NULL;
 						break;
 					}
@@ -845,21 +833,18 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			normalize_v3(normal);
 			normalize_v3(plane);
 
-			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0)
-			{
+			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0) {
 				result = ORIENTATION_EDGE;
 			}
 
 		}
 
 		/* Vectors from edges don't need the special transpose inverse multiplication */
-		if (result == ORIENTATION_EDGE)
-		{
+		if (result == ORIENTATION_EDGE) {
 			mul_mat3_m4_v3(ob->obmat, normal);
 			mul_mat3_m4_v3(ob->obmat, plane);
 		}
-		else
-		{
+		else {
 			mul_m3_v3(mat, normal);
 			mul_m3_v3(mat, plane);
 		}
@@ -933,33 +918,28 @@ void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[]
 	switch (type)
 	{
 		case ORIENTATION_NORMAL:
-			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0)
-			{
+			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
 				type = ORIENTATION_NONE;
 			}
 			break;
 		case ORIENTATION_VERT:
-			if (createSpaceNormal(orientation_mat, normal) == 0)
-			{
+			if (createSpaceNormal(orientation_mat, normal) == 0) {
 				type = ORIENTATION_NONE;
 			}
 			break;
 		case ORIENTATION_EDGE:
-			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0)
-			{
+			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
 				type = ORIENTATION_NONE;
 			}
 			break;
 		case ORIENTATION_FACE:
-			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0)
-			{
+			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
 				type = ORIENTATION_NONE;
 			}
 			break;
 	}
 
-	if (type == ORIENTATION_NONE)
-	{
+	if (type == ORIENTATION_NONE) {
 		unit_m3(orientation_mat);
 	}
 }

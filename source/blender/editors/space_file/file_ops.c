@@ -215,8 +215,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	if (sel.first != sel.last) select = 0;
 
 	/* Do we have a valid selection and are we actually selecting */
-	if ( (sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE)) )
-	{
+	if ((sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE))) {
 		/* Check last selection, if selected, act on the file or dir */
 		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
 			retval = file_select_do(C, sel.last);
@@ -1171,9 +1170,8 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
-	if(sfile->params) {
-		if (file_select_match(sfile, sfile->params->file))
-		{
+	if (sfile->params) {
+		if (file_select_match(sfile, sfile->params->file)) {
 			sfile->params->file[0] = '\0';
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}

@@ -91,8 +91,8 @@ void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
 static void rna_Controller_type_set(struct PointerRNA *ptr, int value)
 {
 	bController *cont = (bController *)ptr->data;
-	if (value != cont->type)
-	{
+
+	if (value != cont->type) {
 		cont->type = value;
 		init_controller(cont);
 	}
@@ -104,8 +104,7 @@ static void rna_Controller_mode_set(struct PointerRNA *ptr, int value)
 	bPythonCont *pycon = (bPythonCont *)cont->data;
 
 	/* if mode changed and previous mode were Script */
-	if (value != pycon->mode && pycon->mode == CONT_PY_SCRIPT)
-	{
+	if (value != pycon->mode && pycon->mode == CONT_PY_SCRIPT) {
 		/* clear script to avoid it to get linked with the controller */
 		pycon->text = NULL;
 	}

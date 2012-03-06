@@ -543,11 +543,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		}
 		
 		// check if we are last non-visible particle system
-		for(tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next) {
-			if(tpsys->part)
-			{
-				if(ELEM(tpsys->part->ren_as,PART_DRAW_OB,PART_DRAW_GR))
-				{
+		for (tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next) {
+			if (tpsys->part) {
+				if (ELEM(tpsys->part->ren_as,PART_DRAW_OB,PART_DRAW_GR)) {
 					nr++;
 					break;
 				}
@@ -3487,16 +3485,14 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 		return;
 
 	/* clear all other appearances of this pointer (like on smoke flow modifier) */
-	if((md = modifiers_findByType(ob, eModifierType_Smoke)))
-	{
+	if ((md = modifiers_findByType(ob, eModifierType_Smoke))) {
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		if((smd->type == MOD_SMOKE_TYPE_FLOW) && smd->flow && smd->flow->psys)
 			if(smd->flow->psys == psys)
 				smd->flow->psys = NULL;
 	}
 
-	if((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
-	{
+	if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint))) {
 		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 		if(pmd->brush && pmd->brush->psys)
 			if(pmd->brush->psys == psys)

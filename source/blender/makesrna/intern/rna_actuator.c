@@ -124,8 +124,8 @@ void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
 static void rna_Actuator_type_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
-	if (value != act->type)
-	{
+
+	if (value != act->type) {
 		act->type = value;
 		init_actuator(act);
 	}
@@ -135,8 +135,8 @@ static void rna_ConstraintActuator_type_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
-	if (value != ca->type)
-	{
+
+	if (value != ca->type) {
 		ca->type = value;
 		switch (ca->type) {
 		case ACT_CONST_TYPE_ORI:
@@ -364,8 +364,7 @@ static void rna_ObjectActuator_type_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bObjectActuator *oa = act->data;
-	if (value != oa->type)
-	{
+	if (value != oa->type) {
 		oa->type = value;
 		switch (oa->type) {
 		case ACT_OBJECT_NORMAL:

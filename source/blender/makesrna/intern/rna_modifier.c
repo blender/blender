@@ -272,8 +272,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 			if (ob->type == OB_MESH && !psys) {
 				/* add particle system */
 				psmd = (ParticleSystemModifierData *)object_add_particle_system(scene, ob, NULL);
-				if (psmd)
-				{
+				if (psmd) {
 					psys = psmd->psys;
 					part = psys->part;
 					part->lifetime = 1.0f;

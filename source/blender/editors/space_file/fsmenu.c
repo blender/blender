@@ -334,8 +334,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 				continue;
 			
 			FSRefMakePath(&dir, path, FILE_MAX);
-			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net"))
-			{ /* /net and /home are meaningless on OSX, home folders are stored in /Users */
+			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net")) {
+				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
 			}
 		}

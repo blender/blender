@@ -1038,8 +1038,7 @@ static size_t animfilter_act_group (bAnimContext *ac, ListBase *anim_data, bDope
 			 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
 			 * all its sub-curves to be shown
 			 */
-			if ( !(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
-			{
+			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE)) {
 				/* group must be editable for its children to be editable (if we care about this) */
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					/* get first F-Curve which can be used here */

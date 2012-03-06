@@ -278,8 +278,7 @@ static GLenum gpu_get_mipmap_filter(int mag)
 /* Anisotropic filtering settings */
 void GPU_set_anisotropic(float value)
 {
-	if (GTS.anisotropic != value)
-	{
+	if (GTS.anisotropic != value) {
 		GPU_free_images();
 
 		/* Clamp value to the maximum value the graphics card supports */
@@ -875,8 +874,7 @@ int GPU_update_image_time(Image *ima, double time)
 
 void GPU_free_smoke(SmokeModifierData *smd)
 {
-	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
-	{
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
 		if(smd->domain->tex)
 			GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
@@ -1301,8 +1299,7 @@ void GPU_end_object_materials(void)
 	GMS.alphablend= NULL;
 
 	/* resetting the texture matrix after the glScale needed for tiled textures */
-	if(GTS.tilemode)
-	{
+	if(GTS.tilemode) {
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);

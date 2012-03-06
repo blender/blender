@@ -468,8 +468,7 @@ void BLI_path_rel(char *file, const char *relfile)
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
 
-	if (lslash) 
-	{	
+	if (lslash) {
 		/* find the prefix of the filename that is equal for both filenames.
 		 * This is replaced by the two slashes at the beginning */
 		char *p= temp;
@@ -838,8 +837,7 @@ const char *BLI_getDefaultDocumentFolder(void)
 		 */
 		hResult = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentfolder);
 		
-		if (hResult == S_OK)
-		{
+		if (hResult == S_OK) {
 			if (BLI_is_dir(documentfolder)) return documentfolder;
 		}
 		

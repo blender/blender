@@ -1006,14 +1006,12 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, const int mval[2], 
 				/* handles - only do them if they're visible */
 				if (fcurve_handle_sel_check(sipo, bezt1) && (fcu->totvert > 1)) {
 					/* first handle only visible if previous segment had handles */
-					if ( (!prevbezt && (bezt1->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) )
-					{
+					if ((!prevbezt && (bezt1->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ))) {
 						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_LEFT, mval);
 					}
 					
 					/* second handle only visible if this segment is bezier */
-					if (bezt1->ipo == BEZT_IPO_BEZ) 
-					{
+					if (bezt1->ipo == BEZT_IPO_BEZ) {
 						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_RIGHT, mval);
 					}
 				}

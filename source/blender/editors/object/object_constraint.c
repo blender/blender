@@ -391,8 +391,7 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 				/* if the number of points does not match the amount required by the chain length,
 				 * free the points array and request a rebind...
 				 */
-				if ((data->points == NULL) || (data->numpoints != data->chainlen+1))
-				{
+				if ((data->points == NULL) || (data->numpoints != data->chainlen+1)) {
 					/* free the points array */
 					if (data->points) {
 						MEM_freeN(data->points);

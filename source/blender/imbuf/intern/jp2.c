@@ -146,7 +146,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	/* decode the stream and fill the image structure */
 	image = opj_decode(dinfo, cio);
 	
-	if(!image) {
+	if (!image) {
 		fprintf(stderr, "ERROR -> j2k_to_image: failed to decode image!\n");
 		opj_destroy_decompress(dinfo);
 		opj_cio_close(cio);
@@ -157,8 +157,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	opj_cio_close(cio);
 
 
-	if((image->numcomps * image->x1 * image->y1) == 0)
-	{
+	if((image->numcomps * image->x1 * image->y1) == 0) {
 		fprintf(stderr,"\nError: invalid raw image parameters\n");
 		return NULL;
 	}

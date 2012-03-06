@@ -721,8 +721,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			copy_m4_m4(tmat, rv3d->viewmat);
 			invert_m4_m4(imat, tmat);
 		}
-		else
-		{
+		else {
 			unit_m4(tmat);
 			unit_m4(imat);
 		}

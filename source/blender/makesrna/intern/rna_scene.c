@@ -1247,8 +1247,7 @@ static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
 		scene->audio.flag &= ~AUDIO_SYNC;
 		scene->flag |= SCE_FRAME_DROP;
 	}
-	else
-	{
+	else {
 		scene->audio.flag &= ~AUDIO_SYNC;
 		scene->flag &= ~SCE_FRAME_DROP;
 	}

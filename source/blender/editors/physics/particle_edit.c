@@ -252,9 +252,8 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 				break;
 			}
 		}
-		else if(pset->edittype == PE_TYPE_SOFTBODY && pid->type == PTCACHE_TYPE_SOFTBODY) {
-			if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
-			{
+		else if (pset->edittype == PE_TYPE_SOFTBODY && pid->type == PTCACHE_TYPE_SOFTBODY) {
+			if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit) {
 				pset->flag |= PE_FADE_TIME;
 				// NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
 				PE_create_particle_edit(scene, ob, pid->cache, NULL);
@@ -262,9 +261,8 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 			edit = pid->cache->edit;
 			break;
 		}
-		else if(pset->edittype == PE_TYPE_CLOTH && pid->type == PTCACHE_TYPE_CLOTH) {
-			if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
-			{
+		else if (pset->edittype == PE_TYPE_CLOTH && pid->type == PTCACHE_TYPE_CLOTH) {
+			if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit) {
 				pset->flag |= PE_FADE_TIME;
 				// NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
 				PE_create_particle_edit(scene, ob, pid->cache, NULL);
@@ -3632,10 +3630,10 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				PE_update_object(scene, ob, 1);
 		}
 
-		if(edit->psys)
+		if (edit->psys) {
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-		else
-		{
+		}
+		else {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		}

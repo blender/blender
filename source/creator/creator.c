@@ -569,8 +569,7 @@ static int set_engine(int argc, const char **argv, void *data)
 
 		return 1;
 	}
-	else
-	{
+	else {
 		printf("\nEngine not specified, give 'help' for a list of available engines.\n");
 		return 0;
 	}
@@ -649,31 +648,28 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 	(void)data;
 #endif
 
-/**
-gameengine parameters are automaticly put into system
--g [paramname = value]
--g [boolparamname]
-example:
--g novertexarrays
--g maxvertexarraysize = 512
-*/
+	/**
+	 * gameengine parameters are automaticly put into system
+	 * -g [paramname = value]
+	 * -g [boolparamname]
+	 * example:
+	 * -g novertexarrays
+	 * -g maxvertexarraysize = 512
+	 */
 
-	if(argc >= 1)
-	{
+	if (argc >= 1) {
 		const char *paramname = argv[a];
 		/* check for single value versus assignment */
-		if (a+1 < argc && (*(argv[a+1]) == '='))
-		{
+		if (a+1 < argc && (*(argv[a+1]) == '=')) {
 			a++;
-			if (a+1 < argc)
-			{
+			if (a+1 < argc) {
 				a++;
 				/* assignment */
 #ifdef WITH_GAMEENGINE
 				SYS_WriteCommandLineString(syshandle,paramname,argv[a]);
 #endif
-			}  else
-			{
+			}
+			else {
 				printf("error: argument assignment (%s) without value.\n",paramname);
 				return 0;
 			}
@@ -684,8 +680,7 @@ example:
 			SYS_WriteCommandLineInt(syshandle,argv[a],1);
 #endif
 			/* doMipMap */
-			if (!strcmp(argv[a],"nomipmap"))
-			{
+			if (!strcmp(argv[a],"nomipmap")) {
 				GPU_set_mipmap(0); //doMipMap = 0;
 			}
 			/* linearMipMap */
@@ -755,7 +750,8 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		RE_SetReports(re, &reports);
 		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 		RE_SetReports(re, NULL);
-	} else {
+	}
+	else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
 	return 0;
@@ -1257,11 +1253,10 @@ int main(int argc, const char **argv)
 	return 0; /* keep blender in background mode running */
 #endif
 
-	if(G.background) {
+	if (G.background) {
 		/* actually incorrect, but works for now (ton) */
 		WM_exit(C);
 	}
-
 	else {
 		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC))
 		{

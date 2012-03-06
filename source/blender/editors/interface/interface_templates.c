@@ -774,8 +774,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		}
 
 		if (ob->type==OB_MESH) {
-			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex))
-			{
+			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) {
 				/* -- convert to rna ? */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
 						TIP_("Apply modifier to editing cage during Editmode"));

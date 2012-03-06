@@ -957,8 +957,7 @@ int isect_sweeping_sphere_tri_v3(
 			return 0;
 		}
 	}
-	else
-	{
+	else {
 		float t0=(-a+radius)/nordotv;
 		float t1=(-a-radius)/nordotv;
 
@@ -1279,13 +1278,11 @@ int isect_line_line_strict_v3(const float v1[3], const float v2[3], const float 
 
 			return 1; /* intersection found */
 		}
-		else
-		{
+		else {
 			return 0;
 		}
 	}
-	else
-	{
+	else {
 		return 0;
 	}
 } 

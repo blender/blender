@@ -109,21 +109,16 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
-	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
-	{
-		if(smd->domain->fluid_group)
-		{
+	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+		if (smd->domain->fluid_group) {
 			GroupObject *go = NULL;
 			
-			for(go = smd->domain->fluid_group->gobject.first; go; go = go->next) 
-			{
-				if(go->ob)
-				{
+			for (go = smd->domain->fluid_group->gobject.first; go; go = go->next) {
+				if (go->ob) {
 					SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
 					
 					// check for initialized smoke object
-					if(smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)))
-					{
+					if (smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll))) {
 						DagNode *curNode = dag_get_node(forest, go->ob);
 						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
 					}
@@ -133,11 +128,10 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		else {
 			Base *base = scene->base.first;
 
-			for(; base; base = base->next) {
+			for ( ; base; base = base->next) {
 				SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(base->object, eModifierType_Smoke);
 
-				if(smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)))
-				{
+				if (smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll))) {
 					DagNode *curNode = dag_get_node(forest, base->object);
 					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
 				}

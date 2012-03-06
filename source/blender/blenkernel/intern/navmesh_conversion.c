@@ -248,8 +248,7 @@ int buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 				//move to next edge					
 				edge = (edge+1)%3;
 			}
-			else
-			{
+			else {
 				//move to next tri
 				int twinedge = -1;
 				for (k=0; k<3; k++)

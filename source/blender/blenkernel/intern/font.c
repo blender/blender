@@ -165,8 +165,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 				pf= vfont->packedfile;
 				
 				// We need to copy a tmp font to memory unless it is already there
-				if(!tmpfnt)
-				{
+				if(!tmpfnt) {
 					tpf= MEM_callocN(sizeof(*tpf), "PackedFile");
 					tpf->data= MEM_mallocN(pf->size, "packFile");
 					tpf->size= pf->size;
@@ -178,11 +177,11 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 					tmpfnt->vfont= vfont;
 					BLI_addtail(&ttfdata, tmpfnt);
 				}
-			} else {
+			}
+			else {
 				pf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
-				
-				if(!tmpfnt)
-				{
+
+				if (!tmpfnt) {
 					tpf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 					
 					// Add temporary packed file to globals
@@ -257,8 +256,7 @@ VFont *load_vfont(Main *bmain, const char *name)
 			}
 			
 			// Do not add FO_BUILTIN_NAME to temporary listbase
-			if(strcmp(filename, FO_BUILTIN_NAME))
-			{
+			if (strcmp(filename, FO_BUILTIN_NAME)) {
 				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 				tmpfnt->pf= tpf;
 				tmpfnt->vfont= vfont;

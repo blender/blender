@@ -775,8 +775,7 @@ static void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *o
 		//tree= NULL;
 	}
 	
-	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE))
-	{
+	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE)) {
 		/* this should be before the filtering */
 		multiple_scattering_diffusion(re, obi->volume_precache, ma);
 	}

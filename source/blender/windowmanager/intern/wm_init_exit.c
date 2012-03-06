@@ -271,8 +271,7 @@ int WM_init_game(bContext *C)
 			ar->winx = ar->winrct.xmax + 1;
 			ar->winy = ar->winrct.ymax + 1;
 		}
-		else
-		{
+		else {
 			GHOST_RectangleHandle rect = GHOST_GetClientBounds(win->ghostwin);
 			ar->winrct.ymax = GHOST_GetHeightRectangle(rect);
 			ar->winrct.xmax = GHOST_GetWidthRectangle(rect);
@@ -287,8 +286,7 @@ int WM_init_game(bContext *C)
 
 		return 1;
 	}
-	else
-	{
+	else {
 		ReportTimerInfo *rti;
 
 		BKE_report(&wm->reports, RPT_ERROR, "No valid 3D View found. Game auto start is not possible.");

@@ -319,13 +319,11 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 	GroupObject *go;
 	Scene *scene= CTX_data_scene(C);
 
-	if (gob->dup_group != NULL)
-	{
+	if (gob->dup_group != NULL) {
 		go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "object"));
 		ob= go->ob;
 	}
-	else
-	{
+	else {
 		ob= gob;
 		gob = NULL;
 	}
@@ -598,8 +596,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				
 				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
 				// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
-				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
-				{
+				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 					ModifierData *md;
 					
 					switch (partype) {

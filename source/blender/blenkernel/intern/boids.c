@@ -250,8 +250,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 	}
 
 	//check boids in own system
-	if(acbr->options & BRULE_ACOLL_WITH_BOIDS)
-	{
+	if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
 		neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, acbr->look_ahead * len_v3(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
 		if(neighbors > 1) for(n=1; n<neighbors; n++) {
 			copy_v3_v3(co1, pa->prev_state.co);

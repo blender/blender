@@ -663,8 +663,8 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 	
-		/* normalize vertex normals */
-	for(a=0; a<obr->totvert; a++) {
+	/* normalize vertex normals */
+	for (a=0; a<obr->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(obr, a);
 		normalize_v3(ver->n);
 		if(do_tangent) {
@@ -680,8 +680,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 
-	if(do_nmap_tangent!=0)
-	{
+	if (do_nmap_tangent != 0) {
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
 		SMikkTSpaceInterface sInterface;
@@ -2649,25 +2648,25 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			add_v3_v3(vlr->v4->n, vlr1->n);
 		}
 	}
+
 	/* last vertex is an extra case: 
-		
-		^	()----()----()----()
-		|	|     |     ||     |
-		u	|     |(0,n)||(0,0)|
-		|     |     ||     |
-		()====()====[]====()
-		|     |     ||     |
-		|     |(m,n)||(m,0)|
-		|     |     ||     |
-		()----()----()----()
-		v ->
-		
-		vertex [] is no longer shared, therefore distribute
-		normals of the surrounding faces to all of the duplicates of []
-		*/
-	
-	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
-	{
+	 *
+	 *     ^     ()----()----()----()
+	 *     |     |     |     ||     |
+	 *     u     |     |(0,n)||(0,0)|
+	 *     |     |     ||     |
+	 *     ()====()====[]====()
+	 *     |     |     ||     |
+	 *     |     |(m,n)||(m,0)|
+	 *     |     |     ||     |
+	 *     ()----()----()----()
+	 *     v ->
+	 *  
+	 *  vertex [] is no longer shared, therefore distribute
+	 *  normals of the surrounding faces to all of the duplicates of []
+	 */
+
+	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U)) {
 		vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
 		vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0,0));  /* (0,0) */
 		add_v3_v3v3(n1, vlr->n, vlr1->n);
@@ -3476,8 +3475,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										for(vindex=0; vindex<nr_verts; vindex++)
 											mc[vindex]=mcol[a*4+rev_tab[vindex]];
 									}
-									else if(layer->type == CD_TANGENT && mtng < 1)
-									{
+									else if (layer->type == CD_TANGENT && mtng < 1) {
 										if(need_nmap_tangent!=0)
 										{
 											const float * tangent = (const float *) layer->data;
@@ -5479,8 +5477,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		for(j=0;j<3;j++) fsvec[j] = velarray[a].vel[j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */
-		if((fsvec[0] == 0.0f) && (fsvec[1] == 0.0f) && (fsvec[2] == 0.0f))
-		{
+		if ((fsvec[0] == 0.0f) && (fsvec[1] == 0.0f) && (fsvec[2] == 0.0f)) {
 			fsvec[0] = avgvel[0];
 			fsvec[1] = avgvel[1];
 			fsvec[2] = avgvel[2];

@@ -171,8 +171,7 @@ static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x
 	 * x2 the end x value, same for y1 and y2
 	 * stepsize is width of a pixel.
 	 */
-	if(seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)
-	{
+	if(seq->flag & SEQ_AUDIO_DRAW_WAVEFORM) {
 		int i, j, pos;
 		int length = floor((x2-x1)/stepsize)+1;
 		float ymid = (y1+y2)/2;

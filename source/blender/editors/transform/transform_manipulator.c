@@ -202,8 +202,7 @@ static int test_rotmode_euler(short rotmode)
 int gimbal_axis(Object *ob, float gmat[][3])
 {
 	if (ob) {
-		if(ob->mode & OB_MODE_POSE)
-		{
+		if (ob->mode & OB_MODE_POSE) {
 			bPoseChannel *pchan= get_active_posechannel(ob);
 
 			if(pchan) {
@@ -222,8 +221,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 				/* apply bone transformation */
 				mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
 
-				if (pchan->parent)
-				{
+				if (pchan->parent) {
 					float parent_mat[3][3];
 
 					copy_m3_m4(parent_mat, pchan->parent->pose_mat);
@@ -233,8 +231,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 					copy_m3_m4(obmat, ob->obmat);
 					mul_m3_m3m3(gmat, obmat, mat);
 				}
-				else
-				{
+				else {
 					/* needed if object transformation isn't identity */
 					copy_m3_m4(obmat, ob->obmat);
 					mul_m3_m3m3(gmat, obmat, tmat);
@@ -255,8 +252,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 				return 0;
 			}
 
-			if (ob->parent)
-			{
+			if (ob->parent) {
 				float parent_mat[3][3];
 				copy_m3_m4(parent_mat, ob->parent->obmat);
 				normalize_m3(parent_mat);

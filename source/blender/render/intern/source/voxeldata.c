@@ -228,8 +228,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 	ob= vd->object;
 	
 	/* draw code for smoke */
-	if( (md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke)) )
-	{
+	if ((md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke))) {
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 
 		

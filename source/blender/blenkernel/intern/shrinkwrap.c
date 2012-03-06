@@ -236,8 +236,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 
 		hit_tmp.dist *= mat4_to_scale( ((SpaceTransform*)transf)->local2target );
 	}
-	else
-	{
+	else {
 		co = vert;
 		no = dir;
 	}
@@ -303,8 +302,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	{
 		if(calc->vert == NULL) return;
 	}
-	else
-	{
+	else {
 		//The code supports any axis that is a combination of X,Y,Z
 		//although currently UI only allows to set the 3 different axis
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) proj_axis[0] = 1.0f;
@@ -355,8 +353,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 					copy_v3_v3(tmp_no, proj_axis);
 				}
 			}
-			else
-			{
+			else {
 				copy_v3_v3(tmp_co, co);
 				copy_v3_v3(tmp_no, proj_axis);
 			}
@@ -439,12 +436,10 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		if(weight == 0.0f) continue;
 
 		//Convert the vertex to tree coordinates
-		if(calc->vert)
-		{
+		if(calc->vert) {
 			copy_v3_v3(tmp_co, calc->vert[i].co);
 		}
-		else
-		{
+		else {
 			copy_v3_v3(tmp_co, co);
 		}
 		space_transform_apply(&calc->local2target, tmp_co);
@@ -469,8 +464,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 				//Make the vertex stay on the front side of the face
 				madd_v3_v3v3fl(tmp_co, nearest.co, nearest.no, calc->keepDist);
 			}
-			else
-			{
+			else {
 				//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
 				float dist = sasqrt( nearest.dist );
 				if(dist > FLT_EPSILON)

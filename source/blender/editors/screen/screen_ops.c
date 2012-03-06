@@ -2907,10 +2907,13 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		else if (sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
 		else sync= (scene->flag & SCE_FRAME_DROP);
 		
-		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE) && finite(time = sound_sync_scene(scene)))
-			scene->r.cfra = (double)time * FPS + 0.5;
-		else
+		if ((scene->audio.flag & AUDIO_SYNC) &&
+		    (sad->flag & ANIMPLAY_FLAG_REVERSE) == FALSE &&
+		    finite(time = sound_sync_scene(scene)))
 		{
+			scene->r.cfra = (double)time * FPS + 0.5;
+		}
+		else {
 			if (sync) {
 				int step = floor(wt->duration * FPS);
 				/* skip frames */

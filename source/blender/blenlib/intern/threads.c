@@ -464,12 +464,10 @@ ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep
 	
 	worker = MEM_callocN(sizeof(ThreadedWorker), "threadedworker");
 	
-	if (tot > RE_MAX_THREAD)
-	{
+	if (tot > RE_MAX_THREAD) {
 		tot = RE_MAX_THREAD;
 	}
-	else if (tot < 1)
-	{
+	else if (tot < 1) {
 		tot= 1;
 	}
 	
@@ -498,25 +496,20 @@ void BLI_insert_work(ThreadedWorker *worker, void *param)
 	WorkParam *p = MEM_callocN(sizeof(WorkParam), "workparam");
 	int index;
 	
-	if (BLI_available_threads(&worker->threadbase) == 0)
-	{
+	if (BLI_available_threads(&worker->threadbase) == 0) {
 		index = worker->total;
-		while(index == worker->total)
-		{
+		while(index == worker->total) {
 			PIL_sleep_ms(worker->sleep_time);
 			
-			for (index = 0; index < worker->total; index++)
-			{
-				if (worker->busy[index] == 0)
-				{
+			for (index = 0; index < worker->total; index++) {
+				if (worker->busy[index] == 0) {
 					BLI_remove_thread_index(&worker->threadbase, index);
 					break;
 				}
 			}
 		}
 	}
-	else
-	{
+	else {
 		index = BLI_available_thread_index(&worker->threadbase);
 	}
 	

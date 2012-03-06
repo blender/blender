@@ -196,8 +196,8 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	filelist_setfilter_types(sfile->files, params->filter_glob);
-	if (filelist_empty(sfile->files))
-	{
+
+	if (filelist_empty(sfile->files)) {
 		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
 		if(params->sort!=FILE_SORT_NONE) {

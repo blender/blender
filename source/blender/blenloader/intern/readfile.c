@@ -10818,8 +10818,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						sAct->sound3D.min_gain = sound->min_gain;
 						sAct->sound3D.rolloff_factor = sound->attenuation;
 					}
-					else
-					{
+					else {
 						sAct->sound3D.reference_distance = 1.0f;
 						sAct->volume = 1.0f;
 						sAct->sound3D.max_gain = 1.0f;

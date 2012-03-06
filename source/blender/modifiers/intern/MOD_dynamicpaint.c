@@ -119,15 +119,13 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
 	/* add relation from canvases to all brush objects */
-	if(pmd && pmd->canvas)
-	{
+	if (pmd && pmd->canvas) {
 		Base *base = scene->base.first;
 
-		for(; base; base = base->next) {
+		for (; base; base = base->next) {
 			DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)modifiers_findByType(base->object, eModifierType_DynamicPaint);
 
-			if(pmd2 && pmd2->brush && ob!=base->object)
-			{
+			if (pmd2 && pmd2->brush && ob!=base->object) {
 				DagNode *brushNode = dag_get_node(forest, base->object);
 				dag_add_relation(forest, brushNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Dynamic Paint Brush");
 			}

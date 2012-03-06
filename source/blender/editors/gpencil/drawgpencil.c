@@ -189,8 +189,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short dfl
 				glVertex2fv(co);
 			glEnd();
 		}
-		else 
-		{
+		else {
 			/* draw filled circle as is done in circf (but without the matrix push/pops which screwed things up) */
 			GLUquadricObj *qobj = gluNewQuadric(); 
 			
@@ -289,8 +288,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 	/* tessellation code - draw stroke as series of connected quads with connection
 	 * edges rotated to minimise shrinking artifacts, and rounded endcaps
 	 */
-	else 
-	{ 
+	else {
 		bGPDspoint *pt1, *pt2;
 		float pm[2];
 		int i;
@@ -384,8 +382,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 				mt[1]= mb[1] * pthick;
 				athick= len_v2(mt);
 				dfac= pthick - (athick * 2);
-				if ( ((athick * 2.0f) < pthick) && (IS_EQF(athick, pthick)==0) )
-				{
+
+				if (((athick * 2.0f) < pthick) && (IS_EQF(athick, pthick)==0)) {
 					mt[0] += (mb[0] * dfac);
 					mt[1] += (mb[1] * dfac);
 				}	

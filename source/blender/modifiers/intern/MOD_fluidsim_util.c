@@ -506,12 +506,10 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	// load vertex velocities, if they exist...
 	// TODO? use generate flag as loading flag as well?
 	// warning, needs original .bobj.gz mesh loading filename
-	if(displaymode==3)
-	{
+	if (displaymode==3) {
 		fluidsim_read_vel_cache(fluidmd, dm, targetFile);
 	}
-	else
-	{
+	else {
 		if(fss->meshVelocities)
 			MEM_freeN(fss->meshVelocities);
 
@@ -548,8 +546,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 	// clmd->sim_parms->timescale= timescale;
 
 	// support reversing of baked fluid frames here
-	if((fss->flag & OB_FLUIDSIM_REVERSE) && (fss->lastgoodframe >= 0))
-	{
+	if ((fss->flag & OB_FLUIDSIM_REVERSE) && (fss->lastgoodframe >= 0)) {
 		framenr = fss->lastgoodframe - framenr + 1;
 		CLAMP(framenr, 1, fss->lastgoodframe);
 	}

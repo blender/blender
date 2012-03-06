@@ -335,10 +335,11 @@ cineonGetRowBytes(CineonFile* cineon, unsigned short* row, int y) {
 
 	longsRead = logimage_fread(cineon->lineBuffer, 4, cineon->lineBufferLength, cineon);
 	if (longsRead != cineon->lineBufferLength) {
-		if (verbose) 
-	{	d_printf("Couldn't read line %d length %d\n", y, cineon->lineBufferLength * 4);
-		perror("cineonGetRowBytes");
-	}
+		if (verbose) {
+			d_printf("Couldn't read line %d length %d\n", y, cineon->lineBufferLength * 4);
+			perror("cineonGetRowBytes");
+		}
+
 		return 1;
 	}
 

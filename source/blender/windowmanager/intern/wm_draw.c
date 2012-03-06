@@ -576,8 +576,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	else {
 		win->drawdata= MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");
 
-		if(!wm_triple_gen_textures(win, win->drawdata))
-		{
+		if(!wm_triple_gen_textures(win, win->drawdata)) {
 			wm_draw_triple_fail(C, win);
 			return;
 		}

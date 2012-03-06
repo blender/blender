@@ -194,8 +194,7 @@ static void gp_get_3d_reference (tGPsdata *p, float vec[3])
 	
 	/* the reference point used depends on the owner... */
 #if 0 // XXX: disabled for now, since we can't draw relative to the owner yet
-	if (p->ownerPtr.type == &RNA_Object) 
-	{
+	if (p->ownerPtr.type == &RNA_Object) {
 		Object *ob= (Object *)p->ownerPtr.data;
 		
 		/* active Object 
@@ -517,10 +516,8 @@ static void gp_stroke_simplify (tGPsdata *p)
 		pressure += old_points[offs].pressure * sfac; \
 	}
 	
-	for (i = 0, j = 0; i < num_points; i++)
-	{
-		if (i - j == 3)
-		{
+	for (i = 0, j = 0; i < num_points; i++) {
+		if (i - j == 3) {
 			float co[2], pressure;
 			int mco[2];
 			
@@ -1855,8 +1852,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	/* handle mode-specific events */
 	if (p->status == GP_STATUS_PAINTING) {
 		/* handle painting mouse-movements? */
-		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) 
-		{
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
 			/* handle drawing event */
 			//printf("\t\tGP - add point\n");
 			gpencil_draw_apply_event(op, event);

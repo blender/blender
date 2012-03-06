@@ -934,8 +934,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER|OB_SENSOR|OB_NAVMESH);
 
 		/* assume triangle mesh, if no bounds chosen for soft body */
-		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_TRIANGLE_MESH))
-		{
+		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_TRIANGLE_MESH)) {
 			ob->boundtype = OB_BOUND_TRIANGLE_MESH;
 		}
 		/* create a BulletSoftBody structure if not already existing */

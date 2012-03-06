@@ -75,8 +75,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	DerivedMesh *result=NULL;
 	
 	/* check for alloc failing */
-	if(!clmd->sim_parms || !clmd->coll_parms)
-	{
+	if (!clmd->sim_parms || !clmd->coll_parms) {
 		initData(md);
 
 		if(!clmd->sim_parms || !clmd->coll_parms)
@@ -101,24 +100,18 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	dm->release(dm);
 }
 
-static void updateDepgraph(
-					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
-	  DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
 	
 	Base *base;
 	
-	if(clmd)
-	{
-		for(base = scene->base.first; base; base= base->next) 
-		{
+	if(clmd) {
+		for(base = scene->base.first; base; base= base->next) {
 			Object *ob1= base->object;
-			if(ob1 != ob)
-			{
+			if (ob1 != ob) {
 				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
-				if(coll_clmd)
-				{
+				if (coll_clmd) {
 					DagNode *curNode = dag_get_node(forest, ob1);
 					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Cloth Collision");
 				}
@@ -175,8 +168,7 @@ static void freeData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
 	
-	if (clmd) 
-	{
+	if (clmd) {
 		if(G.rt > 0)
 			printf("clothModifier_freeData\n");
 		

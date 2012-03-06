@@ -182,10 +182,8 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 	if (cmp == NULL) return;
 	if (listbase == NULL) return;
 
-	if (listbase->first != listbase->last)
-	{
-		for( previous = listbase->first, current = previous->next; current; current = next )
-		{
+	if (listbase->first != listbase->last) {
+		for (previous = listbase->first, current = previous->next; current; current = next) {
 			next = current->next;
 			previous = current->prev;
 			

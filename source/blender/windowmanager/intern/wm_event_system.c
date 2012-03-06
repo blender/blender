@@ -690,8 +690,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 					break;
 
 				/* skip invalid properties */
-				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0)
-				{
+				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0) {
 					wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
 					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
 					wmOperator *opm= wm_operator_create(wm, otm, &someptr, NULL);
@@ -2486,8 +2485,7 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 	data->ry = s * ghost->ry;
 	data->rz = s * ghost->rz;
 
-	if (U.ndof_flag & NDOF_ZOOM_UPDOWN)
-		{
+	if (U.ndof_flag & NDOF_ZOOM_UPDOWN) {
 		/* rotate so Y is where Z was */
 		data->ty = s * ghost->tz;
 		data->tz = s * ghost->ty;
@@ -2502,8 +2500,7 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 		data->rz = s * ghost->ry;
 #endif
 		}
-	else
-		{
+	else {
 		data->ty = s * ghost->ty;
 		data->tz = s * ghost->tz;
 		}

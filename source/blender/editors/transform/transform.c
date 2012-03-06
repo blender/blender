@@ -1827,8 +1827,7 @@ int transformEnd(bContext *C, TransInfo *t)
 			exit_code = OPERATOR_CANCELLED;
 			restoreTransObjects(t);	// calls recalcData()
 		}
-		else
-		{
+		else {
 			exit_code = OPERATOR_FINISHED;
 		}
 
@@ -2447,8 +2446,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
 		}
-		else
-		{
+		else {
 			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
 			t->customData = NULL;
 		}
@@ -2732,8 +2730,7 @@ int Resize(TransInfo *t, const int mval[2])
 	{
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
-	else
-	{
+	else {
 		ratio = t->values[0];
 	}
 	
@@ -3451,10 +3448,8 @@ static void applyTranslation(TransInfo *t, float vec[3])
 			continue;
 		
 		/* handle snapping rotation before doing the translation */
-		if (usingSnappingNormal(t))
-		{
-			if (validSnappingNormal(t))
-			{
+		if (usingSnappingNormal(t)) {
+			if (validSnappingNormal(t)) {
 				float *original_normal = td->axismtx[2];
 				float axis[3];
 				float quat[4];
@@ -3470,8 +3465,7 @@ static void applyTranslation(TransInfo *t, float vec[3])
 				
 				ElementRotation(t, td, mat, V3D_LOCAL);
 			}
-			else
-			{
+			else {
 				float mat[3][3];
 				
 				unit_m3(mat);
@@ -4174,12 +4168,10 @@ int BoneSize(TransInfo *t, const int mval[2])
 	
 	// TRANSFORM_FIX_ME MOVE TO MOUSE INPUT
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0)
-	{
+	if ((t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
-	else
-	{
+	else {
 		ratio = t->values[0];
 	}
 	
@@ -5103,8 +5095,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 
 		ED_area_headerprint(t->sa, str);
 	}
-	else
-	{
+	else {
 		size[0] = size[1] = size[2] = 1;
 
 		size_to_mat3( mat,size);

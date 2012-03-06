@@ -1543,11 +1543,10 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		
 		unode= sculpt_undo_push_node(ob, nodes[n]);
 		origco=unode->co;
-		if(!unode->layer_disp)
-			{
-				#pragma omp critical 
-				unode->layer_disp= MEM_callocN(sizeof(float)*unode->totvert, "layer disp");
-			}
+		if (!unode->layer_disp) {
+			#pragma omp critical 
+			unode->layer_disp= MEM_callocN(sizeof(float)*unode->totvert, "layer disp");
+		}
 
 		layer_disp= unode->layer_disp;
 

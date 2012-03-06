@@ -4193,8 +4193,7 @@ static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut 
 			if(che > G.charmax)
 				che = 0;
 
-			if(G.obedit)
-			{
+			if(G.obedit) {
 				do_textedit(0,0,che);
 			}
 
@@ -4227,10 +4226,8 @@ static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut 
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if(ELEM(event->type, WHEELDOWNMOUSE, PAGEDOWNKEY)) {
-			for(but= block->buttons.first; but; but= but->next)
-			{
-				if(but->type == CHARTAB)
-				{
+			for(but= block->buttons.first; but; but= but->next) {
+				if(but->type == CHARTAB) {
 					G.charstart = G.charstart + (12*6);
 					if(G.charstart > (0xffff - 12*6))
 						G.charstart = 0xffff - (12*6);

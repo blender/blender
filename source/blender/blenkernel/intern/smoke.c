@@ -211,8 +211,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 				smd->domain->res[1] = (int)(size[1] * scale + 0.5);
 				smd->domain->res[2] = (int)(size[2] * scale + 0.5);
 			}
-			else
-			{
+			else {
 				scale = res / size[2];
 				smd->domain->dx = size[2] / res;
 				smd->domain->res[2] = res;
@@ -220,8 +219,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 				smd->domain->res[1] = (int)(size[1] * scale + 0.5);
 			}
 		}
-		else
-		{
+		else {
 			if(size[1] > size[2])
 			{
 				scale = res / size[1];
@@ -230,8 +228,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 				smd->domain->res[0] = (int)(size[0] * scale + 0.5);
 				smd->domain->res[2] = (int)(size[2] * scale + 0.5);
 			}
-			else
-			{
+			else {
 				scale = res / size[2];
 				smd->domain->dx = size[2] / res;
 				smd->domain->res[2] = res;
@@ -378,8 +375,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 				sub_v3_v3v3(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
 				sub_v3_v3v3(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
 			}
-			else
-			{
+			else {
 				sub_v3_v3v3(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
 				sub_v3_v3v3(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
 			}
@@ -410,8 +406,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 						copy_v3_v3(p2, mvert[ mface[i].v3 ].co);
 						copy_v3_v3(p3, mvert[ mface[i].v4 ].co);
 					}
-					else
-					{
+					else {
 						copy_v3_v3(p2, mvert[ mface[i].v2 ].co);
 						copy_v3_v3(p3, mvert[ mface[i].v3 ].co);
 					}
@@ -1073,8 +1068,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
 									continue;
 							}
-							else
-							{
+							else {
 								/* handle child particle */
 								ChildParticle *cpa = &psys->child[p - totpart];
 					
@@ -1272,8 +1266,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 
 										
 				}							
-				else							
-				{								
+				else {								
 					/*								
 					for()								
 					{									
@@ -1630,14 +1623,12 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 	sub_v3_v3v3(tmp, pos, p0);
 	mul_v3_fl(tmp, 1.0 / dx);
 
-	if(correct)
-	{
+	if (correct) {
 		cell[0] = MIN2(res[0] - 1, MAX2(0, (int)floor(tmp[0])));
 		cell[1] = MIN2(res[1] - 1, MAX2(0, (int)floor(tmp[1])));
 		cell[2] = MIN2(res[2] - 1, MAX2(0, (int)floor(tmp[2])));
 	}
-	else
-	{
+	else {
 		cell[0] = (int)floor(tmp[0]);
 		cell[1] = (int)floor(tmp[1]);
 		cell[2] = (int)floor(tmp[2]);
@@ -1687,8 +1678,7 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 					// we're ouside
 					get_cell(p0, res, dx, pos, cell, 1);
 				}
-				else
-				{
+				else {
 					// we're inside
 					get_cell(p0, res, dx, light, cell, 1);
 				}

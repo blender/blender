@@ -74,8 +74,7 @@ static void simpleDeform_taper(const float factor, const float dcut[3], float *c
 	co[1] = y + y*scale;
 	co[2] = z;
 
-	if(dcut)
-	{
+	if (dcut) {
 		co[0] += dcut[0];
 		co[1] += dcut[1];
 		co[2] += dcut[2];
@@ -93,9 +92,7 @@ static void simpleDeform_stretch(const float factor, const float dcut[3], float 
 	co[1] = y*scale;
 	co[2] = z*(1.0f+factor);
 
-
-	if(dcut)
-	{
+	if (dcut) {
 		co[0] += dcut[0];
 		co[1] += dcut[1];
 		co[2] += dcut[2];
@@ -115,8 +112,7 @@ static void simpleDeform_twist(const float factor, const float *dcut, float *co)
 	co[1] = x*sint + y*cost;
 	co[2] = z;
 
-	if(dcut)
-	{
+	if(dcut) {
 		co[0] += dcut[0];
 		co[1] += dcut[1];
 		co[2] += dcut[2];
@@ -132,16 +128,13 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 	sint = sin(theta);
 	cost = cos(theta);
 
-	if(fabsf(factor) > 1e-7f)
-	{
+	if (fabsf(factor) > 1e-7f) {
 		co[0] = -(y-1.0f/factor)*sint;
 		co[1] =  (y-1.0f/factor)*cost + 1.0f/factor;
 		co[2] = z;
 	}
 
-
-	if(dcut)
-	{
+	if (dcut) {
 		co[0] += cost*dcut[0];
 		co[1] += sint*dcut[0];
 		co[2] += dcut[2];
@@ -176,12 +169,10 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	{
 		transf = &tmp_transf;
 
-		if(smd->originOpts & MOD_SIMPLEDEFORM_ORIGIN_LOCAL)
-		{
+		if (smd->originOpts & MOD_SIMPLEDEFORM_ORIGIN_LOCAL) {
 			space_transform_from_matrixs(transf, ob->obmat, smd->origin->obmat);
 		}
-		else
-		{
+		else {
 			copy_m4_m4(transf->local2target, smd->origin->obmat);
 			invert_m4_m4(transf->target2local, transf->local2target);
 		}
@@ -230,17 +221,17 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	{
 		float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
 
-		if(weight != 0.0f)
-		{
+		if (weight != 0.0f) {
 			float co[3], dcut[3] = {0.0f, 0.0f, 0.0f};
 
-			if(transf) space_transform_apply(transf, vertexCos[i]);
+			if(transf) {
+				space_transform_apply(transf, vertexCos[i]);
+			}
 
 			copy_v3_v3(co, vertexCos[i]);
 
-			//Apply axis limits
-			if(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) //Bend mode shoulnt have any lock axis
-			{
+			/* Apply axis limits */
+			if(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) { /* Bend mode shoulnt have any lock axis */
 				if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) axis_limit(0, lock_axis, co, dcut);
 				if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) axis_limit(1, lock_axis, co, dcut);
 			}

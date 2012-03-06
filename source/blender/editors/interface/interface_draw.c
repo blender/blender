@@ -557,24 +557,21 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 			// Set the font to be either unicode or FO_BUILTIN_NAME	
 			wstr[0] = cs;
-			if(strcmp(G.selfont->name, FO_BUILTIN_NAME))
-			{
+			if (strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
 				BLI_strncpy_wchar_as_utf8((char *)ustr, (wchar_t *)wstr, sizeof(ustr));
 			}
-			else
-			{
-				if(G.ui_international == TRUE)
-				{
+			else {
+				if (G.ui_international == TRUE) {
 					BLI_strncpy_wchar_as_utf8((char *)ustr, (wchar_t *)wstr, sizeof(ustr));
 				}
-				else
-				{
+				else {
 					ustr[0] = cs;
 					ustr[1] = 0;
 				}
 			}
 
-			if((G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) || (G.selfont && !strcmp(G.selfont->name, FO_BUILTIN_NAME) && G.ui_international == TRUE))
+			if ((G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) ||
+			    (G.selfont && !strcmp(G.selfont->name, FO_BUILTIN_NAME) && G.ui_international == TRUE))
 			{
 				float wid;
 				float llx, lly, llz, urx, ury, urz;
@@ -595,8 +592,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 				ui_rasterpos_safe(px, py, but->aspect);
 				FTF_DrawString((char *) ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 			}
-			else
-			{
+			else {
 				ui_rasterpos_safe(sx + butw/2, sy + buth/2, but->aspect);
 				UI_DrawString(but->font, (char *) ustr, 0);
 			}

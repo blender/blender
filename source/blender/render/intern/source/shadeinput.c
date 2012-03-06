@@ -213,15 +213,15 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	shr->z= -shi->co[2];
 	
 	/* RAYHITS */
-/*
-	if(1 || shi->passflag & SCE_PASS_RAYHITS)
-	{
+#if 0
+	if(1 || shi->passflag & SCE_PASS_RAYHITS) {
 		shr->rayhits[0] = (float)shi->raycounter.faces.test;
 		shr->rayhits[1] = (float)shi->raycounter.bb.hit;
 		shr->rayhits[2] = 0.0;
 		shr->rayhits[3] = 1.0;
 	}
- */
+#endif
+
 	RE_RC_MERGE(&re_rc_counter[shi->thread], &shi->raycounter);
 }
 
@@ -821,8 +821,7 @@ void shade_input_set_normals(ShadeInput *shi)
 		
 		normalize_v3(shi->vn);
 	}
-	else
-	{
+	else {
 		copy_v3_v3(shi->vn, shi->facenor);
 		copy_v3_v3(shi->nmapnorm, shi->vn);
 	}
@@ -855,8 +854,7 @@ void shade_input_set_vertex_normals(ShadeInput *shi)
 		
 		normalize_v3(shi->vn);
 	}
-	else
-	{
+	else {
 		copy_v3_v3(shi->vn, shi->facenor);
 		copy_v3_v3(shi->nmapnorm, shi->vn);
 	}
@@ -970,8 +968,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				// keeping tangents normalized at vertex level
 				// corresponds better to how it's done in game engines
-				if(obi->flag & R_TRANSFORMED)
-				{
+				if (obi->flag & R_TRANSFORMED) {
 					mul_mat3_m4_v3(obi->mat, c0); normalize_v3(c0);
 					mul_mat3_m4_v3(obi->mat, c1); normalize_v3(c1);
 					mul_mat3_m4_v3(obi->mat, c2); normalize_v3(c2);

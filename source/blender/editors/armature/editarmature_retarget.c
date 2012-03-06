@@ -2901,12 +2901,10 @@ void BIF_retargetArc(bContext *C, ReebArc *earc, RigGraph *template_rigg)
 	char *num_string = scene->toolsettings->skgen_num_string;
 	int free_template = 0;
 	
-	if (template_rigg)
-	{
-		ob = template_rigg->ob; 	
+	if (template_rigg) {
+		ob = template_rigg->ob;
 	}
-	else
-	{
+	else {
 		free_template = 1;
 		ob = obedit;
 		template_rigg = armatureSelectedToGraph(C, ob, ob->data);

@@ -3389,8 +3389,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	ntemp.type = -1;
 
 	/* check input variables */
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
-	{
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
 		RNA_string_get(op->ptr, "filepath", path);
 

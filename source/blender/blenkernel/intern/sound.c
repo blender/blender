@@ -628,19 +628,16 @@ void sound_seek_scene(struct Main *bmain, struct Scene *scene)
 		AUD_resume(scene->sound_scene_handle);
 		if (scene->sound_scrub_handle && AUD_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
 			AUD_seek(scene->sound_scrub_handle, 0);
-		else
-		{
+		else {
 			if (scene->sound_scrub_handle)
 				AUD_stop(scene->sound_scrub_handle);
 			scene->sound_scrub_handle = AUD_pauseAfter(scene->sound_scene_handle, 1 / FPS);
 		}
 	}
-	else
-	{
+	else {
 		if (scene->audio.flag & AUDIO_SYNC)
 			AUD_seekSequencer(scene->sound_scene_handle, CFRA / FPS);
-		else
-		{
+		else {
 			if (status == AUD_STATUS_PLAYING)
 				AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 		}
@@ -731,14 +728,12 @@ void sound_update_scene(struct Scene* scene)
 							{
 								if (speaker->sound)
 									AUD_moveSequence(strip->speaker_handle, strip->start / FPS, -1, 0);
-								else
-								{
+								else {
 									AUD_removeSequence(scene->sound_scene, strip->speaker_handle);
 									strip->speaker_handle = NULL;
 								}
 							}
-							else
-							{
+							else {
 								if (speaker->sound)
 								{
 									strip->speaker_handle = AUD_addSequence(scene->sound_scene, speaker->sound->playback_handle, strip->start / FPS, -1, 0);

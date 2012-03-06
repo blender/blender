@@ -2600,8 +2600,7 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
-	if ( (acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting)) ) 
-	{
+	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
 		short negflag, ptrsize;
 		int flag;
@@ -2678,8 +2677,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
-	if ( (acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting)) ) 
-	{
+	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
 		short negflag, ptrsize;
 		int flag;
@@ -2831,8 +2829,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		UI_DrawString(offset, ytext, name);
 		
 		/* draw red underline if channel is disabled */
-		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) 
-		{
+		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
 			// FIXME: replace hardcoded color here, and check on extents!
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glLineWidth(2.0);

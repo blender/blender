@@ -813,20 +813,20 @@ void free_renderdata_tables(Render *re)
 	int a=0;
 	
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		if(obr->vertnodes) {
+		if (obr->vertnodes) {
 			free_renderdata_vertnodes(obr->vertnodes);
 			obr->vertnodes= NULL;
 			obr->vertnodeslen= 0;
 		}
 
-		if(obr->vlaknodes) {
+		if (obr->vlaknodes) {
 			free_renderdata_vlaknodes(obr->vlaknodes);
 			obr->vlaknodes= NULL;
 			obr->vlaknodeslen= 0;
 			obr->totvlak= 0;
 		}
 
-		if(obr->bloha) {
+		if (obr->bloha) {
 			for(a=0; obr->bloha[a]; a++)
 				MEM_freeN(obr->bloha[a]);
 
@@ -835,7 +835,7 @@ void free_renderdata_tables(Render *re)
 			obr->blohalen= 0;
 		}
 
-		if(obr->strandnodes) {
+		if (obr->strandnodes) {
 			free_renderdata_strandnodes(obr->strandnodes);
 			obr->strandnodes= NULL;
 			obr->strandnodeslen= 0;
@@ -848,23 +848,23 @@ void free_renderdata_tables(Render *re)
 			MEM_freeN(strandbuf);
 		}
 
-		if(obr->mtface)
+		if (obr->mtface)
 			MEM_freeN(obr->mtface);
-		if(obr->mcol)
+
+		if (obr->mcol)
 			MEM_freeN(obr->mcol);
 			
-		if(obr->rayfaces)
-		{
+		if (obr->rayfaces) {
 			MEM_freeN(obr->rayfaces);
 			obr->rayfaces = NULL;
 		}
-		if(obr->rayprimitives)
-		{
+
+		if (obr->rayprimitives) {
 			MEM_freeN(obr->rayprimitives);
 			obr->rayprimitives = NULL;
 		}
-		if(obr->raytree)
-		{
+
+		if (obr->raytree) {
 			RE_rayobject_free(obr->raytree);
 			obr->raytree = NULL;
 		}

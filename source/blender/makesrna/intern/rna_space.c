@@ -255,8 +255,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, P
 		ts = transform_spaces->first;
 	}
 
-	if (ts)
-	{
+	if (ts) {
 		RNA_enum_item_add_separator(&item, &totitem);
 
 		for (; ts; ts = ts->next) {

@@ -339,8 +339,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	// printf("i: %d\n", i);
 	// printf("point %f, %f, %f\n", cv[i][0], cv[i][1], cv[i][2]);
 
-	if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program"))
-	{
+	if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program")) {
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		glGenProgramsARB(1, &prog);
 
@@ -406,12 +405,9 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 			copy_v3_v3(p0, points);
 
 			// sort points to get a convex polygon
-			for (i = 1; i < numpoints - 1; i++)
-			{
-				for (j = i + 1; j < numpoints; j++)
-				{
-					if (!convex(p0, viewnormal, &points[j * 3], &points[i * 3]))
-					{
+			for (i = 1; i < numpoints - 1; i++) {
+				for (j = i + 1; j < numpoints; j++) {
+					if (!convex(p0, viewnormal, &points[j * 3], &points[i * 3])) {
 						float tmp2[3];
 						copy_v3_v3(tmp2, &points[j * 3]);
 						copy_v3_v3(&points[j * 3], &points[i * 3]);
@@ -441,8 +437,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 		GPU_texture_unbind(tex_shadow);
 	GPU_texture_unbind(tex);
 
-	if (GLEW_ARB_fragment_program)
-	{
+	if (GLEW_ARB_fragment_program) {
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 		glDeleteProgramsARB(1, &prog);
 	}
@@ -450,10 +445,11 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 
 	MEM_freeN(points);
 
-	if (!gl_blend)
+	if (!gl_blend) {
 		glDisable(GL_BLEND);
-	if (gl_depth)
-	{
+	}
+
+	if (gl_depth) {
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);	
 	}

@@ -2460,14 +2460,12 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 	MFace * mface = dm->getTessFaceArray(dm);
 	MTFace * mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
 
-	if(mtface)
-	{
+	if(mtface) {
 		double dsum = 0.0;
 		int nr_accumulated = 0;
 		int f;
 
-		for ( f=0; f<totface; f++ )
-		{
+		for ( f=0; f < totface; f++ ) {
 			{
 				float * verts[4], * tex_coords[4];
 				const int nr_verts = mface[f].v4!=0 ? 4 : 3;
@@ -2490,32 +2488,33 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 				}
 
 				// verify last vertex as well if this is a quad
-				if ( is_degenerate==0 && nr_verts==4 )
-				{
-					if(	equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
-						equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]) )
+				if (is_degenerate == 0 && nr_verts == 4) {
+					if (equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
+					    equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]) )
 					{
 						is_degenerate = 1;
 					}
 
 					// verify the winding is consistent
-					if ( is_degenerate==0 )
-					{
+					if (is_degenerate == 0) {
 						float prev_edge[2];
 						int is_signed = 0;
 						sub_v2_v2v2(prev_edge, tex_coords[0], tex_coords[3]);
 
 						i = 0;
-						while ( is_degenerate==0 && i<4 )
-						{
+						while (is_degenerate == 0 && i < 4) {
 							float cur_edge[2], signed_area;
 							sub_v2_v2v2(cur_edge, tex_coords[(i+1)&0x3], tex_coords[i]);
 							signed_area = prev_edge[0]*cur_edge[1] - prev_edge[1]*cur_edge[0];
-							if ( i==0 ) is_signed = signed_area<0.0f ? 1 : 0;
-							else if((is_signed!=0)!=(signed_area<0.0f)) is_degenerate=1;
 
-							if ( is_degenerate==0 )
-							{
+							if (i == 0 ) {
+								is_signed = (signed_area < 0.0f) ? 1 : 0;
+							}
+							else if((is_signed != 0) != (signed_area < 0.0f)) {
+								is_degenerate = 1;
+							}
+
+							if (is_degenerate == 0) {
 								copy_v2_v2(prev_edge, cur_edge);
 								++i;
 							}
@@ -2524,13 +2523,11 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 				}
 
 				// proceed if not a degenerate face
-				if ( is_degenerate==0 )
-				{
+				if (is_degenerate == 0) {
 					int nr_tris_to_pile=0;
 					// quads split at shortest diagonal
 					int offs = 0;		// initial triangulation is 0,1,2 and 0, 2, 3
-					if ( nr_verts==4 )
-					{
+					if (nr_verts == 4) {
 						float pos_len_diag0, pos_len_diag1;
 						float vtmp[3];
 						sub_v3_v3v3(vtmp, verts[2], verts[0]);
@@ -2538,10 +2535,10 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						sub_v3_v3v3(vtmp, verts[3], verts[1]);
 						pos_len_diag1 = dot_v3v3(vtmp, vtmp);
 
-						if(pos_len_diag1<pos_len_diag0)
+						if(pos_len_diag1<pos_len_diag0) {
 							offs=1;		// alter split
-						else if(pos_len_diag0==pos_len_diag1)		// do UV check instead
-						{
+						}
+						else if(pos_len_diag0==pos_len_diag1) { /* do UV check instead */
 							float tex_len_diag0, tex_len_diag1;
 
 							sub_v2_v2v2(vtmp, tex_coords[2], tex_coords[0]);
@@ -2549,15 +2546,13 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 							sub_v2_v2v2(vtmp, tex_coords[3], tex_coords[1]);
 							tex_len_diag1 = dot_v2v2(vtmp, vtmp);
 
-							if(tex_len_diag1<tex_len_diag0)
-							{
-								offs=1;		// alter split
+							if (tex_len_diag1<tex_len_diag0) {
+								offs=1; /* alter split */
 							}
 						}
 					}
 					nr_tris_to_pile = nr_verts - 2;
-					if ( nr_tris_to_pile==1 || nr_tris_to_pile==2 )
-					{
+					if (nr_tris_to_pile==1 || nr_tris_to_pile==2) {
 						const int indices[] = {offs+0, offs+1, offs+2, offs+0, offs+2, (offs+3)&0x3 };
 						int t;
 						for ( t=0; t<nr_tris_to_pile; t++ )
@@ -2598,8 +2593,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 			dm->auto_bump_scale = use_as_render_bump_scale;
 		}
 	}
-	else
-	{
+	else {
 		dm->auto_bump_scale = 1.0f;
 	}
 }

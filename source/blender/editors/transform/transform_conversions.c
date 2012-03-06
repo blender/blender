@@ -721,8 +721,7 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
 		{
 			bone->flag |= BONE_TRANSFORM_CHILD;
 		}
-		else
-		{
+		else {
 			bone->flag &= ~BONE_TRANSFORM;
 		}
 
@@ -1132,8 +1131,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
-			else
-			{
+			else {
 				if (ebo->flag & BONE_TIPSEL)
 					t->total++;
 				if (ebo->flag & BONE_ROOTSEL)
@@ -1201,8 +1199,7 @@ static void createTransArmatureVerts(TransInfo *t)
 						td->val= &ebo->dist;
 						td->ival= ebo->dist;
 					}
-					else
-					{
+					else {
 						// abusive storage of scale in the loc pointer :)
 						td->loc= &ebo->xwidth;
 						copy_v3_v3(td->iloc, td->loc);
@@ -1243,8 +1240,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					td++;
 				}
 			}
-			else
-			{
+			else {
 				if (ebo->flag & BONE_TIPSEL)
 				{
 					copy_v3_v3(td->iloc, ebo->tail);

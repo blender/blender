@@ -177,8 +177,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
 {
 	my_src_ptr src;
 
-	if (cinfo->src == NULL)
-	{	/* first time for this JPEG object? */
+	if (cinfo->src == NULL) { /* first time for this JPEG object? */
 		cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)
 			((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
 	}

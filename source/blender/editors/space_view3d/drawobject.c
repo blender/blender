@@ -4493,8 +4493,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					drawn = 1;
 				}
 			}
-			else
-			{
+			else {
 				state.time=cfra;
 				if (psys_get_particle_state(&sim,a,&state,0)) {
 					float pixsize;
@@ -6769,12 +6768,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 
 		// draw collision objects
-		if ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
-		{
+		if ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll) {
 #if 0
 			SmokeCollSettings *scs = smd->coll;
-			if (scs->points)
-			{
+			if (scs->points) {
 				size_t i;
 
 				glLoadMatrixf(rv3d->viewmat);
@@ -6805,8 +6802,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 
 		// only draw domains
-		if (smd->domain && smd->domain->fluid)
-		{
+		if (smd->domain && smd->domain->fluid) {
 			if (CFRA < smd->domain->point_cache[0]->startframe)
 				; /* don't show smoke before simulation starts, this could be made an option in the future */
 			else if (!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
@@ -6842,8 +6838,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					float tmp[3];
 					int index = smoke_get_index(x, smd->domain->res[0], y, smd->domain->res[1], z);
 
-					if (density[index] > FLT_EPSILON)
-					{
+					if (density[index] > FLT_EPSILON) {
 						float color[3];
 						copy_v3_v3(tmp, smd->domain->p0);
 						tmp[0] += smd->domain->dx * x + smd->domain->dx * 0.5;
@@ -6864,8 +6859,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if (col) cpack(col);
 #endif
 			}
-			else if (smd->domain->wt && (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
-			{
+			else if (smd->domain->wt && (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 1);
 				draw_volume(ar, smd->domain->tex,
@@ -6878,12 +6872,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-
 		bConstraint *con;
-		for (con=ob->constraints.first; con; con= con->next)
-		{
-			if (con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT)
-			{
+
+		for (con=ob->constraints.first; con; con= con->next) {
+			if (con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint*)con->data;
 				if (data->flag&CONSTRAINT_DRAW_PIVOT)
 					drawRBpivot(data);
@@ -6907,7 +6899,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			if (dtx & OB_BOUNDBOX) {
 				draw_bounding_volume(scene, ob, ob->boundtype);
 			}
-			if (dtx & OB_TEXSPACE) drawtexspace(ob);
+			if (dtx & OB_TEXSPACE) {
+				drawtexspace(ob);
+			}
 			if (dtx & OB_DRAWNAME) {
 				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 				/* but, we also dont draw names for sets or duplicators */
@@ -6922,13 +6916,16 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				}
 			}
 			/*if (dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
-			if ((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(scene, rv3d, ob);
+			if ((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) {
+				drawWireExtra(scene, rv3d, ob);
+			}
 		}
 	}
 
 	if (dt<=OB_SOLID && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		if ((ob->gameflag & OB_DYNAMIC) ||
-			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
+		    ((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE)))
+		{
 			float imat[4][4], vec[3]= {0.0f, 0.0f, 0.0f};
 
 			invert_m4_m4(imat, rv3d->viewmatob);
@@ -6945,11 +6942,16 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	glLoadMatrixf(rv3d->viewmat);
 
-	if (zbufoff) glDisable(GL_DEPTH_TEST);
+	if (zbufoff) {
+		glDisable(GL_DEPTH_TEST);
+	}
 
-	if (warning_recursive) return;
-	if (base->flag & OB_FROMDUPLI) return;
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) return;
+	if ((warning_recursive) ||
+	    (base->flag & OB_FROMDUPLI) ||
+	    (v3d->flag2 & V3D_RENDER_OVERRIDE))
+	{
+		return;
+	}
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if (!is_obact || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {

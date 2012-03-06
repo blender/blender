@@ -99,8 +99,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 	err= FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 	
 	// If loading succeeded, convert the FT glyph to the internal format
-	if(!err)
-	{
+	if(!err) {
 		int *npoints;
 		int *onpoints;
 		
@@ -162,9 +161,8 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 				if(k == 0) m = l;
 					
 				//virtual conic on-curve points
-				if(k < npoints[j] - 1 )
-				{
-					if( ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
+				if (k < npoints[j] - 1) {
+					if (ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
 						dx = (ftoutline.points[l].x + ftoutline.points[l+1].x)* scale / 2.0f;
 						dy = (ftoutline.points[l].y + ftoutline.points[l+1].y)* scale / 2.0f;
 
@@ -291,8 +289,7 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	if(!tf) return FALSE;
 	
 	// Load the font to memory
-	if(tf->pf)
-	{
+	if (tf->pf) {
 		err= FT_New_Memory_Face( library,
 			tf->pf->data,
 			tf->pf->size,
@@ -369,17 +366,14 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	lcode= charcode= FT_Get_First_Char(face, &glyph_index);
 
 	// No charmap found from the ttf so we need to figure it out
-	if(glyph_index == 0)
-	{
+	if (glyph_index == 0) {
 		FT_CharMap  found = NULL;
 		FT_CharMap  charmap;
 		int n;
 
-		for ( n = 0; n < face->num_charmaps; n++ )
-		{
+		for (n = 0; n < face->num_charmaps; n++) {
 			charmap = face->charmaps[n];
-			if (charmap->encoding == FT_ENCODING_APPLE_ROMAN)
-			{
+			if (charmap->encoding == FT_ENCODING_APPLE_ROMAN) {
 				found = charmap;
 				break;
 			}

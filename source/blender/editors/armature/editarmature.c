@@ -2533,8 +2533,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 	curBone->temp = eBone;
 	eBone->temp = curBone;
 	
-	if (name != NULL)
-	{
+	if (name != NULL) {
 		BLI_strncpy(eBone->name, name, sizeof(eBone->name));
 	}
 
@@ -5557,8 +5556,7 @@ void transform_armature_mirror_update(Object *obedit)
 					eboflip->roll= -ebo->roll;
 					
 					/* Also move connected parent, in case parent's name isn't mirrored properly */
-					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
-					{
+					if (eboflip->parent && eboflip->flag & BONE_CONNECTED) {
 						EditBone *parent = eboflip->parent;
 						copy_v3_v3(parent->tail, eboflip->head);
 						parent->rad_tail = ebo->rad_head;
@@ -5589,8 +5587,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 	bArmature *arm= obedit->data;
 	EditBone *lastBone = NULL;
 	
-	if (scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
-	{
+	if (scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE) {
 		ReebArcIterator arc_iter;
 		BArcIterator *iter = (BArcIterator*)&arc_iter;
 		float *previous = NULL, *current = NULL;
@@ -5624,8 +5621,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 			len1 = normalize_v3(vec1);
 			len2 = normalize_v3(vec2);
 
-			if (len1 > 0.0f && len2 > 0.0f && dot_v3v3(vec1, vec2) < angleLimit)
-			{
+			if (len1 > 0.0f && len2 > 0.0f && dot_v3v3(vec1, vec2) < angleLimit) {
 				copy_v3_v3(parent->tail, previous);
 
 				child = ED_armature_edit_bone_add(arm, "Bone");
@@ -5641,8 +5637,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		/* If the bone wasn't subdivided, delete it and return NULL
 		 * to let subsequent subdivision methods do their thing. 
 		 * */
-		if (parent == root)
-		{
+		if (parent == root) {
 			if(parent==arm->act_edbone) arm->act_edbone= NULL;
 			ED_armature_edit_bone_remove(arm, parent);
 			parent = NULL;
@@ -5658,8 +5653,7 @@ EditBone * test_subdivideByCorrelation(Scene *scene, Object *obedit, ReebArc *ar
 {
 	EditBone *lastBone = NULL;
 
-	if (scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
-	{
+	if (scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION) {
 		float invmat[4][4]= MAT4_UNITY;
 		float tmat[3][3]= MAT3_UNITY;
 		ReebArcIterator arc_iter;
@@ -5682,19 +5676,16 @@ float arcLengthRatio(ReebArc *arc)
 	
 	arcLength = len_v3v3(arc->head->p, arc->tail->p);
 	
-	if (arc->bcount > 0)
-	{
+	if (arc->bcount > 0) {
 		/* Add the embedding */
-		for ( i = 1; i < arc->bcount; i++)
-		{
+		for ( i = 1; i < arc->bcount; i++) {
 			embedLength += len_v3v3(arc->buckets[i - 1].p, arc->buckets[i].p);
 		}
 		/* Add head and tail -> embedding vectors */
 		embedLength += len_v3v3(arc->head->p, arc->buckets[0].p);
 		embedLength += len_v3v3(arc->tail->p, arc->buckets[arc->bcount - 1].p);
 	}
-	else
-	{
+	else {
 		embedLength = arcLength;
 	}
 	
@@ -5734,8 +5725,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	src = scene->basact->object;
 	
-	if (obedit != NULL)
-	{
+	if (obedit != NULL) {
 		ED_armature_from_edit(obedit);
 		ED_armature_edit_free(obedit);
 	}
@@ -5772,32 +5762,28 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		 * Finally, the arc direction is stored in its flag: 1 (low -> high), -1 (high -> low)
 		 */
 
-		/* if arc is a symmetry axis, internal bones go up the tree */		
-		if (arc->symmetry_level == 1 && arc->tail->degree != 1)
-		{
+		/* if arc is a symmetry axis, internal bones go up the tree */
+		if (arc->symmetry_level == 1 && arc->tail->degree != 1) {
 			head = arc->tail;
 			tail = arc->head;
 			
 			arc->flag = -1; /* mark arc direction */
 		}
 		/* Bones point AWAY from the symmetry axis */
-		else if (arc->head->symmetry_level == 1)
-		{
+		else if (arc->head->symmetry_level == 1) {
 			head = arc->head;
 			tail = arc->tail;
 			
 			arc->flag = 1; /* mark arc direction */
 		}
-		else if (arc->tail->symmetry_level == 1)
-		{
+		else if (arc->tail->symmetry_level == 1) {
 			head = arc->tail;
 			tail = arc->head;
 			
 			arc->flag = -1; /* mark arc direction */
 		}
 		/* otherwise, always go from low weight to high weight */
-		else
-		{
+		else {
 			head = arc->head;
 			tail = arc->tail;
 			
@@ -5805,10 +5791,8 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		}
 		
 		/* Loop over subdivision methods */	
-		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++)
-		{
-			switch(scene->toolsettings->skgen_subdivisions[i])
-			{
+		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++) {
+			switch(scene->toolsettings->skgen_subdivisions[i]) {
 				case SKGEN_SUB_LENGTH:
 					lastBone = test_subdivideByLength(scene, obedit, arc, head, tail);
 					break;
@@ -5821,8 +5805,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 			}
 		}
 	
-		if (lastBone == NULL)
-		{
+		if (lastBone == NULL) {
 			EditBone	*bone;
 			bone = ED_armature_edit_bone_add(obedit->data, "Bone");
 			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
@@ -5843,20 +5826,18 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		ReebArc *incomingArc = NULL;
 		int i;
 
-		for (i = 0; i < node->degree; i++)
-		{
+		for (i = 0; i < node->degree; i++) {
 			arc = (ReebArc*)node->arcs[i];
 
 			/* if arc is incoming into the node */
-			if ((arc->head == node && arc->flag == -1) || (arc->tail == node && arc->flag == 1))
+			if ((arc->head == node && arc->flag == -1) ||
+			    (arc->tail == node && arc->flag ==  1))
 			{
-				if (incomingArc == NULL)
-				{
+				if (incomingArc == NULL) {
 					incomingArc = arc;
 					/* loop further to make sure there's only one incoming arc */
 				}
-				else
-				{
+				else {
 					/* skip this node if more than one incomingArc */
 					incomingArc = NULL;
 					break; /* No need to look further, we are skipping already */
@@ -5864,8 +5845,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 			}
 		}
 
-		if (incomingArc != NULL)
-		{
+		if (incomingArc != NULL) {
 			EditBone *parentBone = BLI_ghash_lookup(arcBoneMap, incomingArc);
 
 			/* Look for outgoing arcs and parent their bones */
@@ -5874,8 +5854,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 				arc = node->arcs[i];
 
 				/* if arc is outgoing from the node */
-				if ((arc->head == node && arc->flag == 1) || (arc->tail == node && arc->flag == -1))
-				{
+				if ((arc->head == node && arc->flag == 1) || (arc->tail == node && arc->flag == -1)) {
 					EditBone *childBone = BLI_ghash_lookup(arcBoneMap, arc);
 
 					/* find the root bone */

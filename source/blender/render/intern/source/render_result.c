@@ -217,8 +217,7 @@ static const char *get_pass_name(int passtype, int channel)
 		if(channel==-1) return "Mist";
 		return "Mist.Z";
 	}
-	if(passtype == SCE_PASS_RAYHITS)
-	{
+	if(passtype == SCE_PASS_RAYHITS) {
 		if(channel==-1) return "Rayhits";
 		if(channel==0) return "Rayhits.R";
 		if(channel==1) return "Rayhits.G";

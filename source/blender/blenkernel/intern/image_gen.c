@@ -202,12 +202,9 @@ static void checker_board_color_tint(unsigned char *rect, float *rect_float, int
 	int x, y;
 	float blend_half= blend * 0.5f;
 
-	for(y= 0; y < height; y++)
-	{
-		for(x= 0; x < width; x++)
-		{
-			if( ( (y/size)%2 == 1 && (x/size)%2 == 1 ) || ( (y/size)%2 == 0 && (x/size)%2 == 0 ) )
-			{
+	for (y= 0; y < height; y++) {
+		for (x= 0; x < width; x++) {
+			if (((y / size) % 2 == 1 && (x / size) % 2 == 1 ) || ( (y / size) % 2 == 0 && (x / size) % 2 == 0 )) {
 				if (rect) {
 					rect[0]= (char)BLEND_CHAR(rect[0], blend);
 					rect[1]= (char)BLEND_CHAR(rect[1], blend);
@@ -251,12 +248,9 @@ static void checker_board_color_tint(unsigned char *rect, float *rect_float, int
 static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int width, int height, float blend)
 {
 	int x, y;
-	for(y= 0; y < height; y++)
-	{
-		for(x= 0; x < width; x++)
-		{
-			if( ((y % 32) == 0) || ((x % 32) == 0)  || x == 0 )
-			{
+	for(y= 0; y < height; y++) {
+		for(x= 0; x < width; x++) {
+			if (((y % 32) == 0) || ((x % 32) == 0)  || x == 0) {
 				if (rect) {
 					rect[0]= BLEND_CHAR(rect[0], blend);
 					rect[1]= BLEND_CHAR(rect[1], blend);
