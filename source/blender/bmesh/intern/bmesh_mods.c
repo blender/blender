@@ -314,7 +314,7 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
  * \param f the original face
  * \param v1, v2 vertices which define the split edge, must be different
  * \param r_l pointer which will receive the BMLoop for the split edge in the new face
- * \param example Face used to initialize settings
+ * \param example Edge used for attributes of splitting edge, if non-NULL
  *
  * \return Pointer to the newly created face representing one side of the split
  * if the split is successful (and the original original face will be the
@@ -366,6 +366,75 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 #endif
 		}
 	}
+
+	return nf;
+}
+
+/**
+ * \brief Face Split with intermediate points
+ *
+ * Like BM_face_split, but with an edge split by \a n intermediate points with given coordinates.
+ *
+ * \param bm The bmesh
+ * \param f the original face
+ * \param v1, v2 vertices which define the split edge, must be different
+ * \param co Array of coordinates for intermediate points
+ * \param n Length of \a cos (must be > 0)
+ * \param r_l pointer which will receive the BMLoop for the first split edge (from \a v1) in the new face
+ * \param example Edge used for attributes of splitting edge, if non-NULL
+ *
+ * \return Pointer to the newly created face representing one side of the split
+ * if the split is successful (and the original original face will be the
+ * other side). NULL if the split fails.
+ */
+BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[][3], int n,
+                        BMLoop **r_l, BMEdge *example)
+{
+	BMFace *nf, *of;
+	BMLoop *l_dummy;
+	BMEdge *e, *newe;
+	BMVert *newv;
+	int i, j;
+
+	BLI_assert(v1 != v2);
+
+	of = BM_face_copy(bm, f, TRUE, TRUE);
+
+	if (!r_l)
+		r_l = &l_dummy;
+	
+#ifdef USE_BMESH_HOLES
+	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example);
+#else
+	nf = bmesh_sfme(bm, f, v1, v2, r_l, example);
+#endif
+	/* bmesh_sfme returns in r_l a Loop for nf going from v1 to v2.
+	 * The radial_next is for f and goes from v2 to v1  */
+
+	if (nf) {
+		e = (*r_l)->e;
+		for (i = 0; i < n; i++) {
+			newv = bmesh_semv(bm, v2, e, &newe);
+			BLI_assert(newv != NULL);
+			/* bmesh_semv returns in newe the edge going from newv to tv */
+			copy_v3_v3(newv->co, cos[i]);
+
+			/* interpolate the loop data for the loops with v==newv, using orig face */
+			for (j = 0; j < 2; j++) {
+				BMEdge *e_iter = (j==0)? e : newe;
+				BMLoop *l_iter = e_iter->l;
+				do {
+					if (l_iter->v == newv) {
+						/* this interpolates both loop and vertex data */
+						BM_loop_interp_from_face(bm, l_iter, of, TRUE, TRUE);
+					}
+				} while ((l_iter = l_iter->radial_next) != e_iter->l);
+			}
+			e = newe;
+		}
+	}
+
+	BM_face_verts_kill(bm, of);
 
 	return nf;
 }
@@ -534,7 +603,10 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
  * \brief Edge Split
  *
  * Splits an edge. \a v should be one of the vertices in \a e and defines
- * the direction of the splitting operation for interpolation purposes.
+ * the "from" end of the splitting operation: the new vertex will be
+ * \a percent of the way from \a v to the other end.
+ * The newly created edge is attached to \a v and is returned in \a r_e.
+ * The original edge \a e will be the other half of the split.
  *
  * \return The new vert
  */

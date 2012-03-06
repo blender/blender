@@ -1216,11 +1216,16 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  * \brief Split Edge Make Vert (SEMV)
  *
  * Takes \a e edge and splits it into two, creating a new vert.
+ * \a tv should be one end of \a e : the newly created edge
+ * will be attached to that end and is returned in \a r_e.
  *
  * \par Examples:
  *
- *     Before: OV---------TV
- *     After:  OV----NV---TV
+ *                     E
+ *     Before: OV-------------TV
+ *
+ *                 E       RE
+ *     After:  OV------NV-----TV
  *
  * \return The newly created BMVert pointer.
  */
@@ -1235,10 +1240,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 
 	ov = bmesh_edge_other_vert_get(e, tv);
 
-	/* count valence of v1 */
 	valence1 = bmesh_disk_count(ov);
 
-	/* count valence of v2 */
 	valence2 = bmesh_disk_count(tv);
 
 	nv = BM_vert_create(bm, tv->co, tv);
@@ -1247,7 +1250,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	bmesh_disk_edge_remove(ne, tv);
 	bmesh_disk_edge_remove(ne, nv);
 
-	/* remove e from v2's disk cycle */
+	/* remove e from tv's disk cycle */
 	bmesh_disk_edge_remove(e, tv);
 
 	/* swap out tv for nv in e */

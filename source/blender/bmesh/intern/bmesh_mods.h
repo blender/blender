@@ -42,6 +42,11 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f,
                       BMVert *v1, BMVert *v2,
                       BMLoop **r_l, BMEdge *example);
 
+BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
+                      BMVert *v1, BMVert *v2,
+                      float cos[][3], int n,
+                      BMLoop **r_l, BMEdge *example);
+
 BMEdge* BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
                                const short join_faces, const short kill_degenerate_faces);
 BMEdge* BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
