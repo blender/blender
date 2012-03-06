@@ -452,6 +452,19 @@ void free_dverts(MDeformVert *dvert, int totvert)
 	MEM_freeN (dvert);
 }
 
+static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
+{
+	if (free_customdata)
+		CustomData_free(&mesh->fdata, mesh->totface);
+
+	mesh->mface = NULL;
+	mesh->mtface = NULL;
+	mesh->mcol = NULL;
+	mesh->totface = 0;
+
+	memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+}
+
 Mesh *add_mesh(const char *name)
 {
 	Mesh *me;
@@ -492,7 +505,7 @@ Mesh *copy_mesh(Mesh *me)
 		CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
 	}
 	else {
-		BKE_mesh_tessface_clear(men);
+		mesh_tessface_clear_intern(men, FALSE);
 	}
 
 	mesh_update_customdata_pointers(men, do_tessface);
@@ -2971,12 +2984,5 @@ void BKE_mesh_tessface_ensure(Mesh *mesh)
 
 void BKE_mesh_tessface_clear(Mesh *mesh)
 {
-	CustomData_free(&mesh->fdata, mesh->totface);
-
-	mesh->mface = NULL;
-	mesh->mtface = NULL;
-	mesh->mcol = NULL;
-	mesh->totface = 0;
-
-	memset(&mesh->fdata, 0, sizeof(&mesh->fdata));
+	mesh_tessface_clear_intern(mesh, TRUE);
 }
