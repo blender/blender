@@ -1575,7 +1575,7 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 
 	if(planes) {
 		BLI_pbvh_search_callback(bvh, BLI_pbvh_node_planes_contain_AABB,
-				planes, BLI_pbvh_node_draw, NULL);
+				planes, BLI_pbvh_node_draw, setMaterial);
 	}
 	else {
 		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, setMaterial);
