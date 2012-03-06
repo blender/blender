@@ -697,12 +697,12 @@ static void knife_add_cut(knifetool_opdata *kcd)
 			if (len_v3v3(kcd->vertcage, lh->realhit) < FLT_EPSILON * 80)
 				continue;
 			
-			if (kcd->prev_is_space || kcd->is_space) {
-				kcd->prev_is_space = kcd->is_space = 0;
+			if (kcd->prev_is_space) {
+				kcd->prev_is_space = 0;
 				copy_v3_v3(kcd->prevco, lh->hit);
 				copy_v3_v3(kcd->prevcage, lh->cagehit);
 				kcd->prevedge = lh->kfe;
-				kcd->curbmface = lh->f;
+				kcd->prevbmface = lh->f;
 				continue;
 			}			
 			
@@ -716,14 +716,23 @@ static void knife_add_cut(knifetool_opdata *kcd)
 			knife_add_single_cut(kcd);
 		}
 		
-		kcd->curbmface = oldkcd.curbmface;
-		kcd->curvert = oldkcd.curvert;
-		kcd->curedge = oldkcd.curedge;
-		kcd->is_space = oldkcd.is_space;
-		copy_v3_v3(kcd->vertco, oldkcd.vertco);
-		copy_v3_v3(kcd->vertcage, oldkcd.vertcage);
-		
-		knife_add_single_cut(kcd);
+		if (oldkcd.is_space) {
+			kcd->prevbmface = oldkcd.curbmface;
+			kcd->prevvert = oldkcd.curvert;
+			kcd->prevedge = oldkcd.curedge;
+			copy_v3_v3(kcd->prevco, oldkcd.vertco);
+			copy_v3_v3(kcd->prevcage, oldkcd.vertcage);
+			kcd->prev_is_space = oldkcd.is_space;
+		} else {
+			kcd->curbmface = oldkcd.curbmface;
+			kcd->curvert = oldkcd.curvert;
+			kcd->curedge = oldkcd.curedge;
+			kcd->is_space = oldkcd.is_space;
+			copy_v3_v3(kcd->vertco, oldkcd.vertco);
+			copy_v3_v3(kcd->vertcage, oldkcd.vertcage);
+			
+			knife_add_single_cut(kcd);
+		}
 		
 		MEM_freeN(kcd->linehits);
 		kcd->linehits = NULL;
