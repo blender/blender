@@ -466,9 +466,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
-
-	ar->do_draw= 0;
-	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
 	
@@ -488,6 +485,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
+
+	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 
