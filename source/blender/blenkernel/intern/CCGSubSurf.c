@@ -2857,7 +2857,7 @@ float ccgSubSurf_getEdgeCrease(CCGEdge *e)
 
 /* Face accessors */
 
-CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGSubSurf *UNUSED(ss), CCGFace *f)
+CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGFace *f)
 {
 	return f->fHDL;
 }
@@ -2880,7 +2880,7 @@ int ccgSubSurf_getFaceNumVerts(CCGFace *f)
 {
 	return f->numVerts;
 }
-CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *UNUSED(ss), CCGFace *f, int index)
+CCGVert *ccgSubSurf_getFaceVert(CCGFace *f, int index)
 {
 	if (index<0 || index>=f->numVerts) {
 		return NULL;
@@ -2889,7 +2889,7 @@ CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *UNUSED(ss), CCGFace *f, int index)
 		return FACE_getVerts(f)[index];
 	}
 }
-CCGEdge *ccgSubSurf_getFaceEdge(CCGSubSurf *UNUSED(ss), CCGFace *f, int index)
+CCGEdge *ccgSubSurf_getFaceEdge(CCGFace *f, int index)
 {
 	if (index<0 || index>=f->numVerts) {
 		return NULL;

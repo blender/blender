@@ -116,10 +116,10 @@ void*		ccgSubSurf_getEdgeData				(CCGSubSurf *ss, CCGEdge *e, int x);
 void*		ccgSubSurf_getEdgeLevelData			(CCGSubSurf *ss, CCGEdge *e, int x, int level);
 
 CCGFace*	ccgSubSurf_getFace					(CCGSubSurf *ss, CCGFaceHDL f);
-CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGSubSurf *ss, CCGFace *f);
+CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGFace *f);
 int			ccgSubSurf_getFaceNumVerts			(CCGFace *f);
-CCGVert*	ccgSubSurf_getFaceVert				(CCGSubSurf *ss, CCGFace *f, int index);
-CCGEdge*	ccgSubSurf_getFaceEdge				(CCGSubSurf *ss, CCGFace *f, int index);
+CCGVert*	ccgSubSurf_getFaceVert				(CCGFace *f, int index);
+CCGEdge*	ccgSubSurf_getFaceEdge				(CCGFace *f, int index);
 int			ccgSubSurf_getFaceEdgeIndex			(CCGFace *f, CCGEdge *e);
 
 int			ccgSubSurf_getFaceAge				(CCGSubSurf *ss, CCGFace *f);
