@@ -93,7 +93,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	MEM_freeN(medge);
 
 	/*do faces*/
-	/* mpoly = mp = dm->getPolyArray(dm); */ /* UNUSED */
+	mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l;
