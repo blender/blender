@@ -2593,8 +2593,11 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		/* camera's matrix is used to orient reconstructed stuff,
 		   so it should happen tracking-related constraints recalculation
 		   when camera is changing (sergey) */
-		if(sce->camera && &sce->camera->id == id && object_get_movieclip(sce, sce->camera, 1)) {
-			dag_id_flush_update(sce, &sce->clip->id);
+		if(sce->camera && &sce->camera->id == id) {
+			MovieClip *clip = object_get_movieclip(sce, sce->camera, 1);
+
+			if(clip)
+				dag_id_flush_update(sce, clip);
 		}
 
 		/* update editors */
