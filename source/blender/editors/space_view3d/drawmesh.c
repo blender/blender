@@ -571,7 +571,8 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 			ME_MTEXFACE_CPY(&mtf, tpoly);
 		}
 
-		return draw_tface__set_draw_legacy(&mtf, data->has_mcol, matnr);
+		return draw_tface__set_draw_legacy(data->has_mtface ? &mtf : NULL,
+										   data->has_mcol, matnr);
 	}
 }
 

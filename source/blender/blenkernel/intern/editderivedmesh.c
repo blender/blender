@@ -789,14 +789,13 @@ static void emDM_drawFacesTex_common(
 	float (*vertexNos)[3]= bmdm->vertexNos;
 	BMFace *efa;
 	MLoopUV *luv[3], dummyluv = {{0}};
-	MLoopCol *lcol[3], dummylcol = {0};
+	MLoopCol *lcol[3] = {NULL}, dummylcol = {0};
 	int i, has_vcol = CustomData_has_layer(&bm->ldata, CD_MLOOPCOL);
 	int has_uv = CustomData_has_layer(&bm->pdata, CD_MTEXPOLY);
 
 	(void) compareDrawOptions;
 
 	luv[0] = luv[1] = luv[2] = &dummyluv;
-	lcol[0] = lcol[1] = lcol[2] = &dummylcol;
 
 	dummylcol.a = dummylcol.r = dummylcol.g = dummylcol.b = 255;
 
@@ -838,32 +837,38 @@ static void emDM_drawFacesTex_common(
 					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
 
 					glTexCoord2fv(luv[0]->uv);
-					glColor3ub(lcol[0]->b, lcol[0]->g, lcol[0]->r);
+					if (lcol[0])
+						glColor3ub(lcol[0]->b, lcol[0]->g, lcol[0]->r);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[0]->v)]);
 
 					glTexCoord2fv(luv[1]->uv);
-					glColor3ub(lcol[1]->b, lcol[1]->g, lcol[1]->r);
+					if (lcol[1])
+						glColor3ub(lcol[1]->b, lcol[1]->g, lcol[1]->r);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[1]->v)]);
 
 					glTexCoord2fv(luv[2]->uv);
-					glColor3ub(lcol[2]->b, lcol[2]->g, lcol[2]->r);
+					if (lcol[2])
+						glColor3ub(lcol[2]->b, lcol[2]->g, lcol[2]->r);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[2]->v)]);
 				}
 				else {
 					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
 
 					glTexCoord2fv(luv[0]->uv);
-					glColor3ub(lcol[0]->b, lcol[0]->g, lcol[0]->r);
+					if (lcol[0])
+						glColor3ub(lcol[0]->b, lcol[0]->g, lcol[0]->r);
 					glNormal3fv(vertexNos[BM_elem_index_get(ls[0]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[0]->v)]);
 
 					glTexCoord2fv(luv[1]->uv);
-					glColor3ub(lcol[1]->b, lcol[1]->g, lcol[1]->r);
+					if (lcol[1])
+						glColor3ub(lcol[1]->b, lcol[1]->g, lcol[1]->r);
 					glNormal3fv(vertexNos[BM_elem_index_get(ls[1]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[1]->v)]);
 
 					glTexCoord2fv(luv[2]->uv);
-					glColor3ub(lcol[2]->b, lcol[2]->g, lcol[2]->r);
+					if (lcol[2])
+						glColor3ub(lcol[2]->b, lcol[2]->g, lcol[2]->r);
 					glNormal3fv(vertexNos[BM_elem_index_get(ls[2]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[2]->v)]);
 				}
@@ -907,21 +912,18 @@ static void emDM_drawFacesTex_common(
 						glTexCoord2fv(luv[0]->uv);
 					if (lcol[0])
 						glColor3ub(lcol[0]->b, lcol[0]->g, lcol[0]->r);
-					else glColor3ub(0, 0, 0);
 					glVertex3fv(ls[0]->v->co);
 
 					if (luv[1])
 						glTexCoord2fv(luv[1]->uv);
 					if (lcol[1])
 						glColor3ub(lcol[1]->b, lcol[1]->g, lcol[1]->r);
-					else glColor3ub(0, 0, 0);
 					glVertex3fv(ls[1]->v->co);
 
 					if (luv[2])
 						glTexCoord2fv(luv[2]->uv);
 					if (lcol[2])
 						glColor3ub(lcol[2]->b, lcol[2]->g, lcol[2]->r);
-					else glColor3ub(0, 0, 0);
 					glVertex3fv(ls[2]->v->co);
 				}
 				else {
@@ -931,7 +933,6 @@ static void emDM_drawFacesTex_common(
 						glTexCoord2fv(luv[0]->uv);
 					if (lcol[0])
 						glColor3ub(lcol[0]->b, lcol[0]->g, lcol[0]->r);
-					else glColor3ub(0, 0, 0);
 					glNormal3fv(ls[0]->v->no);
 					glVertex3fv(ls[0]->v->co);
 
@@ -939,7 +940,6 @@ static void emDM_drawFacesTex_common(
 						glTexCoord2fv(luv[1]->uv);
 					if (lcol[1])
 						glColor3ub(lcol[1]->b, lcol[1]->g, lcol[1]->r);
-					else glColor3ub(0, 0, 0);
 					glNormal3fv(ls[1]->v->no);
 					glVertex3fv(ls[1]->v->co);
 
@@ -947,7 +947,6 @@ static void emDM_drawFacesTex_common(
 						glTexCoord2fv(luv[2]->uv);
 					if (lcol[2])
 						glColor3ub(lcol[2]->b, lcol[2]->g, lcol[2]->r);
-					else glColor3ub(0, 0, 0);
 					glNormal3fv(ls[2]->v->no);
 					glVertex3fv(ls[2]->v->co);
 				}
