@@ -525,10 +525,6 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		if(dm->numTessFaceData) {
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-			/* should be per face */
-			if(!setMaterial(mface->mat_nr+1, NULL))
-				return;
-
 			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors, setMaterial);
 			glShadeModel(GL_FLAT);
 		}
