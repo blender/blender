@@ -44,8 +44,7 @@ int  BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
 
 int  bmesh_loop_reverse(BMesh *bm, BMFace *f);
 
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface,
-                      const short do_del);
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);
 
 /* EULER API - For modifying structure */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1,
@@ -53,7 +52,8 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1,
 #ifdef USE_BMESH_HOLES
                           ListBase *holes,
 #endif
-                          BMEdge *example
+                          BMEdge *example,
+                          const short nodouble
                           );
 
 BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e);

@@ -363,7 +363,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 
 	f_new = BM_face_split(bm, py_face->f,
 	                      py_vert_a->v, py_vert_b->v,
-	                      &l_new, py_edge_example ? py_edge_example->e : NULL);
+	                      &l_new, py_edge_example ? py_edge_example->e : NULL, FALSE); /* BMESH_TODO, make arg */
 
 	if (f_new && l_new) {
 		PyObject *ret = PyTuple_New(2);
@@ -406,7 +406,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 
 	/* Go ahead and join the face!
 	 * --------------------------- */
-	f_new = BM_faces_join(bm, face_array, (int)face_seq_len, TRUE); /* BMESH_TODO, make optional */
+	f_new = BM_faces_join(bm, face_array, (int)face_seq_len);
 
 	if (f_new) {
 		return BPy_BMFace_CreatePyObject(bm, f_new);

@@ -835,7 +835,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			/* v = l->v; */ /* UNUSED */
 			f = BM_face_split(bm, l_iter->f, l_iter->prev->v,
 			                  l_iter->next->v,
-			                  &newl, NULL);
+			                  &newl, NULL, TRUE);
 
 			if (UNLIKELY(!f)) {
 				fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
@@ -867,7 +867,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		while (l_iter->f->len > 3) {
 			nextloop = l_iter->next->next;
 			f = BM_face_split(bm, l_iter->f, l_iter->v, nextloop->v,
-			                  &newl, NULL);
+			                  &newl, NULL, TRUE);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
 

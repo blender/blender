@@ -133,7 +133,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		 * increasing valence to four.  this may be hackish. .  */
 		BMLoop *loop = e->l;
 		if (loop->v == v) loop = loop->next;
-		if (!BM_face_split(bm, loop->f, v, loop->v, NULL, NULL))
+		if (!BM_face_split(bm, loop->f, v, loop->v, NULL, NULL, FALSE))
 			return FALSE;
 
 		if (!BM_disk_dissolve(bm, v)) {
@@ -153,7 +153,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
-		if (f != f2 && !BM_faces_join_pair(bm, f, f2, e, TRUE)) {
+		if (f != f2 && !BM_faces_join_pair(bm, f, f2, e)) {
 			return FALSE;
 		}
 
@@ -170,7 +170,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 				f = NULL;
 				len = bmesh_radial_length(e->l);
 				if (len == 2 && (e != baseedge) && (e != keepedge)) {
-					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
+					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
 					/* return if couldn't join faces in manifold
 					 * conditions */
 					//!disabled for testing why bad things happen
@@ -200,7 +200,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 
 		if (f != f2) {
 			/* join two remaining face */
-			if (!BM_faces_join_pair(bm, f, f2, e, TRUE)) {
+			if (!BM_faces_join_pair(bm, f, f2, e)) {
 				return FALSE;
 			}
 		}
@@ -224,8 +224,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
  *
  * \return pointer to the combined face
  */
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e,
-                           const short do_del)
+BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *l1, *l2;
 	BMEdge *jed = NULL;
@@ -261,7 +260,7 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e,
 		bmesh_loop_reverse(bm, f2);
 	}
 
-	f1 = BM_faces_join(bm, faces, 2, do_del);
+	f1 = BM_faces_join(bm, faces, 2);
 	
 	return f1;
 }
@@ -292,7 +291,7 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 			if (v_iter == v2) {
 				BMLoop *nl;
 
-				f_iter = BM_face_split(bm, f_iter, v1, v2, &nl, NULL);
+				f_iter = BM_face_split(bm, f_iter, v1, v2, &nl, NULL, FALSE);
 
 				if (r_f) {
 					*r_f = f_iter;
@@ -319,12 +318,14 @@ BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
  * \param v1, v2 vertices which define the split edge, must be different
  * \param r_l pointer which will receive the BMLoop for the split edge in the new face
  * \param example Edge used for attributes of splitting edge, if non-NULL
+ * \param nodouble Use an existing edge if found
  *
  * \return Pointer to the newly created face representing one side of the split
  * if the split is successful (and the original original face will be the
  * other side). NULL if the split fails.
  */
-BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l, BMEdge *example)
+BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l,
+                      BMEdge *example, const short nodouble)
 {
 	const int has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMFace *nf, *of;
@@ -337,9 +338,9 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 	}
 	
 #ifdef USE_BMESH_HOLES
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example);
+	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example, nodouble);
 #else
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, example);
+	nf = bmesh_sfme(bm, f, v1, v2, r_l, example, nodouble);
 #endif
 	
 	if (nf) {
@@ -408,9 +409,9 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
 		r_l = &l_dummy;
 	
 #ifdef USE_BMESH_HOLES
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example);
+	nf = bmesh_sfme(bm, f, v1, v2, r_l, NULL, example, FALSE);
 #else
-	nf = bmesh_sfme(bm, f, v1, v2, r_l, example);
+	nf = bmesh_sfme(bm, f, v1, v2, r_l, example, FALSE);
 #endif
 	/* bmesh_sfme returns in r_l a Loop for nf going from v1 to v2.
 	 * The radial_next is for f and goes from v2 to v1  */
@@ -522,10 +523,10 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 		}
 
 		if (BLI_array_count(faces) >= 2) {
-			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_count(faces), TRUE);
+			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_count(faces));
 			if (f2) {
 				BMLoop *nl = NULL;
-				if (BM_face_split(bm, f2, tv, tv2, &nl, NULL)) {
+				if (BM_face_split(bm, f2, tv, tv2, &nl, NULL, FALSE)) {
 					ne = nl->e;
 				}
 			}
@@ -995,9 +996,9 @@ int BM_edge_rotate_check_beauty(BMesh *UNUSED(bm), BMEdge *e,
 BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_flag)
 {
 	BMVert *v1, *v2;
-	BMLoop *l1, *l2, *nl;
+	BMLoop *l1, *l2;
 	BMFace *f;
-	BMEdge *e_splice = NULL;
+	BMEdge *e_new = NULL;
 
 	if (!BM_edge_rotate_check(bm, e)) {
 		return NULL;
@@ -1021,10 +1022,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	}
 
 	/* check before applying */
-	if (check_flag & BM_EDGEROT_CHECK_SPLICE) {
-		e_splice = BM_edge_exists(v1, v2);
-	}
-	else if (check_flag & BM_EDGEROT_CHECK_EXISTS) {
+	if (check_flag & BM_EDGEROT_CHECK_EXISTS) {
 		if (BM_edge_exists(v1, v2)) {
 			return NULL;
 		}
@@ -1044,8 +1042,12 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	/* --------------- */
 	/* Rotate The Edge */
 
+	/* first create the new edge, this is so we can copy the customdata from the old one
+	 * if splice if disabled, always add in a new edge even if theres one there. */
+	e_new = BM_edge_create(bm, v1, v2, e, (check_flag & BM_EDGEROT_CHECK_SPLICE)!=0);
+
 	/* don't delete the edge, manually remove the egde after so we can copy its attributes */
-	f = BM_faces_join_pair(bm, l1->f, l2->f, e, FALSE);
+	f = BM_faces_join_pair(bm, l1->f, l2->f, NULL);
 
 	if (f == NULL) {
 		return NULL;
@@ -1054,19 +1056,11 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	/* note, this assumes joining the faces _didnt_ also remove the verts.
 	 * the #BM_edge_rotate_check will ensure this, but its possibly corrupt state or future edits
 	 * break this */
-
-	if (!BM_face_split(bm, f, v1, v2, &nl, e))
+	if (!BM_face_split(bm, f, v1, v2, NULL, NULL, TRUE)) {
 		return NULL;
-
-	/* edge has done its job as an example, now remove */
-	BM_edge_kill(bm, e);
-
-	/* replace existing edge (kill e_splice) */
-	if (e_splice) {
-		BM_edge_splice(bm, e_splice, nl->e);
 	}
 
-	return nl->e;
+	return e_new;
 }
 
 /**

@@ -860,8 +860,6 @@ static int disk_is_flagged(BMVert *v, int flag)
  * Joins a collected group of faces into one. Only restriction on
  * the input data is that the faces must be connected to each other.
  *
- * \param do_clear Remove the edges and verts shared by faces when joining.
- *
  * \return The newly created combine BMFace.
  *
  * \note If a pair of faces share multiple edges,
@@ -870,8 +868,7 @@ static int disk_is_flagged(BMVert *v, int flag)
  * \note this is a generic, flexible join faces function,
  * almost everything uses this, including #BM_faces_join_pair
  */
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface,
-                      const short do_del)
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface)
 {
 	BMFace *f, *newf;
 #ifdef USE_BMESH_HOLES
@@ -1025,14 +1022,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface,
 	}
 
 	/* delete old geometr */
-	if (do_del) {
-		for (i = 0; i < BLI_array_count(deledges); i++) {
-			BM_edge_kill(bm, deledges[i]);
-		}
+	for (i = 0; i < BLI_array_count(deledges); i++) {
+		BM_edge_kill(bm, deledges[i]);
+	}
 
-		for (i = 0; i < BLI_array_count(delverts); i++) {
-			BM_vert_kill(bm, delverts[i]);
-		}
+	for (i = 0; i < BLI_array_count(delverts); i++) {
+		BM_vert_kill(bm, delverts[i]);
 	}
 	
 	BLI_array_free(edges);
@@ -1114,7 +1109,8 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 #ifdef USE_BMESH_HOLES
                    ListBase *holes,
 #endif
-                   BMEdge *example
+                   BMEdge *example,
+                   const short nodouble
                    )
 {
 #ifdef USE_BMESH_HOLES
@@ -1139,7 +1135,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_edge_create(bm, v1, v2, example, FALSE);
+	e = BM_edge_create(bm, v1, v2, example, nodouble);
 
 	f2 = bm_face_create__sfme(bm, f);
 	f1loop = bm_loop_create(bm, v2, e, f, v2loop);

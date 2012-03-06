@@ -85,7 +85,7 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 	}
 
 	if (curf) {
-		face = BM_face_split(bm, curf, v1, v2, &nl, NULL);
+		face = BM_face_split(bm, curf, v1, v2, &nl, NULL, FALSE);
 		
 		if (r_nf) *r_nf = face;
 		return nl ? nl->e : NULL;
@@ -954,7 +954,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 			for (j = 0; j < BLI_array_count(splits) / 2; j++) {
 				if (splits[j * 2]) {
 					/* BMFace *nf = */ /* UNUSED */
-					BM_face_split(bmesh, face, splits[j * 2]->v, splits[j * 2 + 1]->v, &nl, NULL);
+					BM_face_split(bmesh, face, splits[j * 2]->v, splits[j * 2 + 1]->v, &nl, NULL, FALSE);
 				}
 			}
 

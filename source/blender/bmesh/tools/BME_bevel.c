@@ -544,14 +544,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		se = l->next->e;
 		jf = NULL;
 		if (kl->v == kv) {
-			BM_face_split(bm, kl->f, kl->prev->v, kl->next->v, &nl, kl->prev->e);
+			BM_face_split(bm, kl->f, kl->prev->v, kl->next->v, &nl, kl->prev->e, FALSE);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->prev->radial_next->f, kl->f, kl->prev->e);
 			BM_vert_collapse_edge(bm, ke, kv, FALSE);
 		}
 		else {
-			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e);
+			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e, FALSE);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->next->radial_next->f, kl->f, kl->next->e);
@@ -590,14 +590,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 		se = l->e;
 		jf = NULL;
 		if (kl->v == kv) {
-			BM_face_split(bm, kl->f, kl->prev->v, kl->next->v, &nl, kl->prev->e);
+			BM_face_split(bm, kl->f, kl->prev->v, kl->next->v, &nl, kl->prev->e, FALSE);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->prev->radial_next->f, kl->f, kl->prev->e);
 			BM_vert_collapse_edge(bm, ke, kv, FALSE);
 		}
 		else {
-			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e);
+			BM_face_split(bm, kl->f, kl->next->next->v, kl->v, &nl, kl->next->e, FALSE);
 			ke = kl->e;
 			/* BMESH-TODO: jfke doesn't handle customdata */
 			jf = bmesh_jfke(bm, kl->next->radial_next->f, kl->f, kl->next->e);
@@ -612,7 +612,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 	}
 
 	if (!BMO_elem_flag_test(bm, v1, BME_BEVEL_NONMAN) || !BMO_elem_flag_test(bm, v2, BME_BEVEL_NONMAN)) {
-		BM_face_split(bm, f, v2, v1, &l, e);
+		BM_face_split(bm, f, v2, v1, &l, e, FALSE);
 		BMO_elem_flag_enable(bm, l->e, BME_BEVEL_BEVEL);
 		l = l->radial_next;
 	}
@@ -640,7 +640,7 @@ static BMLoop *BME_bevel_vert(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 	l = l->next->next;
 
 	/* "cut off" this corner */
-	f = BM_face_split(bm, l->f, v2, v1, NULL, l->e);
+	f = BM_face_split(bm, l->f, v2, v1, NULL, l->e, FALSE);
 
 	return l;
 }
@@ -965,7 +965,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 	/* get rid of beveled edge */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if(BMO_elem_flag_test(bm, e, BME_BEVEL_BEVEL) && BMO_elem_flag_test(bm, e, BME_BEVEL_ORIG)) {
-			BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
+			BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e);
 		}
 	}
 
@@ -979,9 +979,9 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 				if(l->v != v) l = l->next;
 				if(l2->v != v) l2 = l2->next;
 				if(l->f->len > 3)
-					BM_face_split(bm, l->f, l->next->v, l->prev->v, &l, l->e); /* clip this corner off */
+					BM_face_split(bm, l->f, l->next->v, l->prev->v, &l, l->e, FALSE); /* clip this corner off */
 				if(l2->f->len > 3)
-					BM_face_split(bm, l2->f, l2->next->v, l2->prev->v, &l, l2->e); /* clip this corner off */
+					BM_face_split(bm, l2->f, l2->next->v, l2->prev->v, &l, l2->e, FALSE); /* clip this corner off */
 				curedge = bmesh_disk_edge_next(curedge, v);
 			} while(curedge != v->e);
 			BME_Bevel_Dissolve_Disk(bm, v);

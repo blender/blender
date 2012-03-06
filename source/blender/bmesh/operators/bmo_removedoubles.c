@@ -55,7 +55,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 
 	if (split && doub != v2) {
 		BMLoop *nl;
-		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL);
+		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, FALSE);
 
 		remdoubles_splitface(f, bm, op);
 		remdoubles_splitface(f2, bm, op);
