@@ -2248,7 +2248,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 	object_apply_mat4(ob, mat, 0, 0);
 }
 
-static int set_floor_exec(bContext *C, wmOperator *op)
+static int set_plane_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -2261,6 +2261,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	Object *camera= get_camera_with_movieclip(scene, clip);
 	int tot= 0;
 	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3]= {0.0f, 0.0f, 0.0f};
+	int plane= RNA_enum_get(op->ptr, "plane");
 	float rot[4][4]={{0.0f, 0.0f, -1.0f, 0.0f},
 	                 {0.0f, 1.0f, 0.0f, 0.0f},
 	                 {1.0f, 0.0f, 0.0f, 0.0f},
@@ -2308,9 +2309,16 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	/* construct ortho-normal basis */
 	unit_m4(mat);
 
-	cross_v3_v3v3(mat[0], vec[1], vec[2]);
-	copy_v3_v3(mat[1], vec[1]);
-	cross_v3_v3v3(mat[2], mat[0], mat[1]);
+	if (plane == 0) { /* floor */
+		cross_v3_v3v3(mat[0], vec[1], vec[2]);
+		copy_v3_v3(mat[1], vec[1]);
+		cross_v3_v3v3(mat[2], mat[0], mat[1]);
+	}
+	else if (plane == 1) { /* wall */
+		cross_v3_v3v3(mat[2], vec[1], vec[2]);
+		copy_v3_v3(mat[1], vec[1]);
+		cross_v3_v3v3(mat[0], mat[1], mat[2]);
+	}
 
 	normalize_v3(mat[0]);
 	normalize_v3(mat[1]);
@@ -2352,19 +2360,28 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_set_floor(wmOperatorType *ot)
+void CLIP_OT_set_plane(wmOperatorType *ot)
 {
+	static EnumPropertyItem plane_items[] = {
+			{0, "FLOOR", 0, "Floor", "Set floor plane"},
+			{1, "WALL", 0, "Wall", "Set wall plane"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
-	ot->name= "Set Floor";
-	ot->description= "Set floor based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
-	ot->idname= "CLIP_OT_set_floor";
+	ot->name= "Set Plane";
+	ot->description= "Set plane based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
+	ot->idname= "CLIP_OT_set_plane";
 
 	/* api callbacks */
-	ot->exec= set_floor_exec;
+	ot->exec= set_plane_exec;
 	ot->poll= set_orientation_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "plane", plane_items, 0, "Plane", "Plane to be sued for orientation");
 }
 
 /********************** set axis operator *********************/

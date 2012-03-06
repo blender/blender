@@ -347,7 +347,7 @@ static void clip_operatortypes(void)
 
 	/* orientation */
 	WM_operatortype_append(CLIP_OT_set_origin);
-	WM_operatortype_append(CLIP_OT_set_floor);
+	WM_operatortype_append(CLIP_OT_set_plane);
 	WM_operatortype_append(CLIP_OT_set_axis);
 	WM_operatortype_append(CLIP_OT_set_scale);
 	WM_operatortype_append(CLIP_OT_set_solution_scale);

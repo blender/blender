@@ -298,7 +298,11 @@ class CLIP_PT_tools_orientation(Panel):
         settings = sc.clip.tracking.settings
 
         col = layout.column(align=True)
-        col.operator("clip.set_floor")
+        row = col.row()
+        props = row.operator("clip.set_plane", text="Floor")
+        props.plane = 'FLOOR'
+        props = row.operator("clip.set_plane", text="Wall")
+        props.plane = 'WALL'
         col.operator("clip.set_origin")
 
         row = col.row()
