@@ -223,7 +223,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 	BMFace *f, *f2;
 	BMLoop *l, *l2, *l3;
 	BMLoop *l_next, *l_prev;
-	BMEdge *e, *e2;
+	BMEdge *e;
 	BMVert *v, *v2;
 
 	/* face/vert aligned vert array */
@@ -235,24 +235,33 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 	int i, j;
 
 	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_SEAM, BM_EDGE);
-	
-	/* single marked edges unconnected to any other marked edges
-	 * are illegal, go through and unmark them */
-	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		for (i = 0; i < 2; i++) {
-			BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
-				if (e != e2 && BMO_elem_flag_test(bm, e2, EDGE_SEAM)) {
-					break;
-				}
-			}
-			if (e2) {
-				break;
+
+	/* untag edges not connected to other tagged edges */
+	{
+		unsigned char *vtouch;
+
+		BM_mesh_elem_index_ensure(bm, BM_VERT);
+
+		vtouch = MEM_callocN(sizeof(char) * bm->totvert, __func__);
+
+		/* single marked edges unconnected to any other marked edges
+		 * are illegal, go through and unmark them */
+		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+			/* lame, but we dont want the count to exceed 255,
+			 * so just count to 2, its all we need */
+			unsigned char *c;
+			c = &vtouch[BM_elem_index_get(e->v1)]; if (*c < 2) (*c)++;
+			c = &vtouch[BM_elem_index_get(e->v2)]; if (*c < 2) (*c)++;
+		}
+		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+			if (vtouch[BM_elem_index_get(e->v1)] == 1 &&
+			    vtouch[BM_elem_index_get(e->v2)] == 1)
+			{
+				BMO_elem_flag_disable(bm, e, EDGE_SEAM);
 			}
 		}
 
-		if (!e2) {
-			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
-		}
+		MEM_freeN(vtouch);
 	}
 
 	etags = MEM_callocN(sizeof(EdgeTag) * bm->totedge, "EdgeTag");
