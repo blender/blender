@@ -312,7 +312,9 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 					}
 				}
 
-				if (deselect) BM_vert_select_set(bm, verts[i], FALSE);
+                if (deselect) {
+                    BM_vert_select_set(bm, verts[i], FALSE);
+                }
 			}
 		}
 		else {
@@ -366,8 +368,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 					break;
 			}
 
-			if (!f2)
-			{
+			if (!f2) {
 				BM_elem_select_set(bm, l->e, FALSE);
 			}
 		}

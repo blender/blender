@@ -2597,7 +2597,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 			MovieClip *clip = object_get_movieclip(sce, sce->camera, 1);
 
 			if(clip)
-				dag_id_flush_update(sce, clip);
+				dag_id_flush_update(sce, &clip->id);
 		}
 
 		/* update editors */

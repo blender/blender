@@ -88,7 +88,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	int *vertMap, *edgeMap, *faceMap;
 	float frac;
 	MPoly *mpoly_dst;
-	MLoop *ml_dst, *ml_src, *mloop_dst;
+	MLoop *ml_dst, *ml_src /*, *mloop_dst */;
 	GHashIterator *hashIter;
 	/* maps vert indices in old mesh to indices in new mesh */
 	GHash *vertHash = BLI_ghash_new(BLI_ghashutil_inthash,
@@ -261,7 +261,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	}
 
 	mpoly_dst = CDDM_get_polys(result);
-	mloop_dst = ml_dst = CDDM_get_loops(result);
+	/* mloop_dst = */ ml_dst = CDDM_get_loops(result);
 	
 	/* copy the faces across, remapping indices */
 	k = 0;

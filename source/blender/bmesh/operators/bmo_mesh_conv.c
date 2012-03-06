@@ -151,7 +151,9 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		v->head.hflag = BM_vert_flag_from_mflag(mvert->flag);
 
 		/* this is necessary for selection counts to work properl */
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) BM_vert_select_set(bm, v, TRUE);
+        if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+            BM_vert_select_set(bm, v, TRUE);
+        }
 
 		normal_short_to_float_v3(v->no, mvert->no);
 
