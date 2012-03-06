@@ -38,7 +38,6 @@
 
 /**
  *	MISC utility functions.
- *
  */
 
 int bmesh_vert_in_edge(BMEdge *e, BMVert *v)

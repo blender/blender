@@ -63,9 +63,20 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
 }
 
 /**
- * \brief BMESH OTHER EDGE IN FACE SHARING A VERTEX
+ * \brief Other Loop in Face Sharing an Edge
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
+ *
+ *     +----------+
+ *     |          |
+ *     |    f     |
+ *     |          |
+ *     +----------+ <-- return the face loop of this vertex.
+ *     v --> e
+ *     ^     ^ <------- These vert args define direction
+ *                      in the face to check.
+ *                      The faces loop direction is ignored.
+ *
  */
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
@@ -86,7 +97,7 @@ BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 }
 
 /**
- * \brief BMESH NEXT LOOP IN FACE SHARING A VERTEX
+ * \brief Other Loop in Face Sharing a Vertex
  *
  * Finds the other loop in a face.
  *

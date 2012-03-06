@@ -44,15 +44,21 @@
  *
  * Turns the face region surrounding a manifold vertex into a single polygon.
  *
+ * \par Example:
+ *
+ *              +---------+             +---------+
+ *              |  \   /  |             |         |
+ *     Before:  |    v    |      After: |         |
+ *              |  /   \  |             |         |
+ *              +---------+             +---------+
+ *
+ *
+ * This function can also collapse edges too
+ * in cases when it cant merge into faces.
  *
  * \par Example:
  *
- *              |=========|             |=========|
- *              |  \   /  |             |         |
- *     Before:  |    V    |      After: |         |
- *              |  /   \  |             |         |
- *              |=========|             |=========|
- *
+ *     Before:  +----v----+      After: +---------+
  *
  * \note dissolves vert, in more situations then BM_disk_dissolve
  * (e.g. if the vert is part of a wire edge, etc).
@@ -218,7 +224,6 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
  *
  * \return pointer to the combined face
  */
-
 BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e,
                            const short do_del)
 {
@@ -274,7 +279,6 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e,
  *
  * \return The newly created edge.
  */
-
 BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f)
 {
 	BMIter fiter;
@@ -562,7 +566,6 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
  *
  * \return The New Edge
  */
-
 BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
                               const short kill_degenerate_faces)
 {
@@ -722,7 +725,9 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	return nv;
 }
 
-/* split an edge multiple times evenly */
+/**
+ * \brief Split an edge multiple times evenly
+ */
 BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 {
 	int i;
@@ -736,7 +741,9 @@ BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts)
 	return nv;
 }
 
-/* checks if a face is valid in the data structure */
+/**
+ * Checks if a face is valid in the data structure
+ */
 int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
 {
 	BMIter iter;
@@ -1062,7 +1069,9 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	return nl->e;
 }
 
-/* Rip a single face from a vertex fan */
+/**
+ * \brief Rip a single face from a vertex fan
+ */
 BMVert *BM_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
 {
 	return bmesh_urmv(bm, sf, sv);

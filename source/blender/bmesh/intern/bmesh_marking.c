@@ -757,14 +757,27 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 		BM_select_history_clear(bm);
 	}
 
-	for (i = 0; i < 3; i++) {
-		if (htype & iter_types[i]) {
+	if (htype == (BM_VERT | BM_EDGE | BM_FACE) && (hflag == BM_ELEM_SELECT)) {
+		/* fast path for deselect all, avoid topology loops
+		 * since we know all will be de-selected anyway. */
+		for (i = 0; i < 3; i++) {
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
-				if (hflag & BM_ELEM_SELECT) {
-					BM_elem_select_set(bm, ele, FALSE);
+				BM_elem_flag_disable(ele, BM_ELEM_SELECT);
+			}
+		}
+		bm->totvertsel = bm->totedgesel = bm->totfacesel = 0;
+	}
+	else {
+		for (i = 0; i < 3; i++) {
+			if (htype & iter_types[i]) {
+				ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
+				for ( ; ele; ele = BM_iter_step(&iter)) {
+					if (hflag & BM_ELEM_SELECT) {
+						BM_elem_select_set(bm, ele, FALSE);
+					}
+					BM_elem_flag_disable(ele, hflag);
 				}
-				BM_elem_flag_disable(ele, hflag);
 			}
 		}
 	}
@@ -782,6 +795,10 @@ void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
 	if (hflag & BM_ELEM_SELECT) {
 		BM_select_history_clear(bm);
 	}
+
+	/* note, better not attempt a fast path for selection as done with de-select
+	 * because hidden geometry and different selection modes can give different results,
+	 * we could ofcourse check for no hiddent faces and then use quicker method but its not worth it. */
 
 	for (i = 0; i < 3; i++) {
 		if (htype & iter_types[i]) {
