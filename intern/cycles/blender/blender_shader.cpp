@@ -517,6 +517,9 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 			/* add proxy converter nodes for inputs and outputs */
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
+			if (!b_group_ntree)
+				continue;
+
 			BL::Node::inputs_iterator b_input;
 			BL::Node::outputs_iterator b_output;
 			

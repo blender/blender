@@ -277,8 +277,12 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 		bNode *node = sock->link->fromnode;
 		char node_name[UI_MAX_NAME_STR];
 
-		if(node->type == NODE_GROUP)
-			BLI_strncpy(node_name, node->id->name+2, UI_MAX_NAME_STR);
+		if(node->type == NODE_GROUP) {
+			if (node->id)
+				BLI_strncpy(node_name, node->id->name+2, UI_MAX_NAME_STR);
+			else
+				BLI_strncpy(node_name, "Group", UI_MAX_NAME_STR);
+		}
 		else
 			BLI_strncpy(node_name, node->typeinfo->name, UI_MAX_NAME_STR);
 
