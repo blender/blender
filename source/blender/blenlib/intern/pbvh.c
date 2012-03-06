@@ -136,6 +136,7 @@ struct PBVH {
 	DMGridData **grids;
 	DMGridAdjacency *gridadj;
 	void **gridfaces;
+	const DMFlagMat *grid_flag_mats;
 	int totgrid;
 	int gridsize;
 
@@ -261,6 +262,17 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 //	BB_expand(&node->vb, co);
 //}
 
+static int face_materials_match(const MFace *f1, const MFace *f2)
+{
+	return ((f1->flag & ME_SMOOTH) == (f2->flag & ME_SMOOTH) &&
+			(f1->mat_nr == f2->mat_nr));
+}
+
+static int grid_materials_match(const DMFlagMat *f1, const DMFlagMat *f2)
+{
+	return ((f1->flag & ME_SMOOTH) == (f2->flag & ME_SMOOTH) &&
+			(f1->mat_nr == f2->mat_nr));
+}
 
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
@@ -276,6 +288,38 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 			return i;
 		
 		SWAP(int, prim_indices[i], prim_indices[j]);
+		i++;
+	}
+}
+
+/* Returns the index of the first element on the right of the partition */
+static int partition_indices_material(PBVH *bvh, int lo, int hi)
+{
+	const MFace *faces = bvh->faces;
+	const DMFlagMat *flagmats = bvh->grid_flag_mats;
+	const int *indices = bvh->prim_indices;
+	const void *first;
+	int i=lo, j=hi;
+
+	if(bvh->faces)
+		first = &faces[bvh->prim_indices[lo]];
+	else
+		first = &flagmats[bvh->prim_indices[lo]];
+
+	for(;;) {
+		if(bvh->faces) {
+			for(; face_materials_match(first, &faces[indices[i]]); i++);
+			for(; !face_materials_match(first, &faces[indices[j]]); j--);
+		}
+		else {
+			for(; grid_materials_match(first, &flagmats[indices[i]]); i++);
+			for(; !grid_materials_match(first, &flagmats[indices[j]]); j--);
+		}
+		
+		if(!(i < j))
+			return i;
+
+		SWAP(int, bvh->prim_indices[i], bvh->prim_indices[j]);
 		i++;
 	}
 }
@@ -431,6 +475,38 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
 		build_grids_leaf_node(bvh, bvh->nodes + node_index);
 }
 
+/* Return zero if all primitives in the node can be drawn with the
+   same material (including flat/smooth shading), non-zerootherwise */
+int leaf_needs_material_split(PBVH *bvh, int offset, int count)
+{
+	int i, prim;
+
+	if(count <= 1)
+		return 0;
+
+	if(bvh->faces) {
+		const MFace *first = &bvh->faces[bvh->prim_indices[offset]];
+
+		for(i = offset + count - 1; i > offset; --i) {
+			prim = bvh->prim_indices[i];
+			if(!face_materials_match(first, &bvh->faces[prim]))
+				return 1;
+		}
+	}
+	else {
+		const DMFlagMat *first = &bvh->grid_flag_mats[bvh->prim_indices[offset]];
+
+		for(i = offset + count - 1; i > offset; --i) {
+			prim = bvh->prim_indices[i];
+			if(!grid_materials_match(first, &bvh->grid_flag_mats[prim]))
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
+
 /* Recursively build a node in the tree
  *
  * vb is the voxel box around all of the primitives contained in
@@ -443,15 +519,18 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
  */
 
 static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
-		   int offset, int count)
+					  int offset, int count)
 {
-	int i, axis, end;
+	int i, axis, end, below_leaf_limit;
 	BB cb_backing;
 
 	/* Decide whether this is a leaf or not */
-	if(count <= bvh->leaf_limit) {
-		build_leaf(bvh, node_index, prim_bbc, offset, count);
-		return;
+	below_leaf_limit = count <= bvh->leaf_limit;
+	if(below_leaf_limit) {
+		if(!leaf_needs_material_split(bvh, offset, count)) {
+			build_leaf(bvh, node_index, prim_bbc, offset, count);
+			return;
+		}
 	}
 
 	/* Add two child nodes */
@@ -461,26 +540,33 @@ static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 	/* Update parent node bounding box */
 	update_vb(bvh, &bvh->nodes[node_index], prim_bbc, offset, count);
 
-	/* Find axis with widest range of primitive centroids */
-	if(!cb) {
-		cb = &cb_backing;
-		BB_reset(cb);
-		for(i = offset + count - 1; i >= offset; --i)
-			BB_expand(cb, prim_bbc[bvh->prim_indices[i]].bcentroid);
-	}
-	axis = BB_widest_axis(cb);
+	if(!below_leaf_limit) {
+		/* Find axis with widest range of primitive centroids */
+		if(!cb) {
+			cb = &cb_backing;
+			BB_reset(cb);
+			for(i = offset + count - 1; i >= offset; --i)
+				BB_expand(cb, prim_bbc[bvh->prim_indices[i]].bcentroid);
+		}
+		axis = BB_widest_axis(cb);
 
-	/* Partition primitives along that axis */
-	end = partition_indices(bvh->prim_indices, offset, offset + count - 1,
-	                        axis,
-	                        (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-	                        prim_bbc);
+		/* Partition primitives along that axis */
+		end = partition_indices(bvh->prim_indices,
+								offset, offset + count - 1,
+								axis,
+								(cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+								prim_bbc);
+	}
+	else {
+		/* Partition primitives by material */
+		end = partition_indices_material(bvh, offset, offset + count - 1);
+	}
 
 	/* Build children */
 	build_sub(bvh, bvh->nodes[node_index].children_offset, NULL,
-		  prim_bbc, offset, end - offset);
+			  prim_bbc, offset, end - offset);
 	build_sub(bvh, bvh->nodes[node_index].children_offset + 1, NULL,
-		  prim_bbc, end, offset + count - end);
+			  prim_bbc, end, offset + count - end);
 }
 
 static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
@@ -550,7 +636,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 
 /* Do a full rebuild with on Grids data structure */
 void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj,
-	int totgrid, int gridsize, void **gridfaces)
+	int totgrid, int gridsize, void **gridfaces, DMFlagMat *flagmats)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
@@ -559,6 +645,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 	bvh->grids= grids;
 	bvh->gridadj= gridadj;
 	bvh->gridfaces= gridfaces;
+	bvh->grid_flag_mats= flagmats;
 	bvh->totgrid= totgrid;
 	bvh->gridsize= gridsize;
 	bvh->leaf_limit = MAX2(LEAF_LIMIT/((gridsize-1)*(gridsize-1)), 1);
@@ -1027,7 +1114,7 @@ static void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes,
 	}
 }
 
-static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, int smooth)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 {
 	PBVHNode *node;
 	int n;
@@ -1040,18 +1127,17 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, i
 			if(bvh->grids) {
 				GPU_update_grid_buffers(node->draw_buffers,
 						   bvh->grids,
+						   bvh->grid_flag_mats,
 						   node->prim_indices,
 						   node->totprim,
-						   bvh->gridsize,
-						   smooth);
+						   bvh->gridsize);
 			}
 			else {
 				GPU_update_mesh_buffers(node->draw_buffers,
 						   bvh->verts,
 						   node->vert_indices,
 						   node->uniq_verts +
-						   node->face_verts,
-		                   smooth);
+						   node->face_verts);
 			}
 
 			node->flag &= ~PBVH_UpdateDrawBuffers;
@@ -1420,7 +1506,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 
 //#include <GL/glew.h>
 
-void BLI_pbvh_node_draw(PBVHNode *node, void *UNUSED(data))
+void BLI_pbvh_node_draw(PBVHNode *node, void *setMaterial)
 {
 #if 0
 	/* XXX: Just some quick code to show leaf nodes in different colors */
@@ -1438,7 +1524,7 @@ void BLI_pbvh_node_draw(PBVHNode *node, void *UNUSED(data))
 
 	glColor3f(1, 0, 0);
 #endif
-	GPU_draw_buffers(node->draw_buffers);
+	GPU_draw_buffers(node->draw_buffers, setMaterial);
 }
 
 /* Adapted from:
@@ -1473,7 +1559,8 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	return 1;
 }
 
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth)
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
+				   int (*setMaterial)(int, void *attribs))
 {
 	PBVHNode **nodes;
 	int totnode;
@@ -1482,7 +1569,7 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smo
 		&nodes, &totnode);
 
 	pbvh_update_normals(bvh, nodes, totnode, face_nors);
-	pbvh_update_draw_buffers(bvh, nodes, totnode, smooth);
+	pbvh_update_draw_buffers(bvh, nodes, totnode);
 
 	if(nodes) MEM_freeN(nodes);
 
@@ -1491,7 +1578,7 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smo
 				planes, BLI_pbvh_node_draw, NULL);
 	}
 	else {
-		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, NULL);
+		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, setMaterial);
 	}
 }
 

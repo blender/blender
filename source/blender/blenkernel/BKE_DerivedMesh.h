@@ -112,6 +112,12 @@ typedef struct DMGridAdjacency {
 	int rotation[4];
 } DMGridAdjacency;
 
+/* keep in sync with MFace/MPoly types */
+typedef struct DMFlagMat {
+	short mat_nr;
+	char flag;
+} DMFlagMat;
+
 typedef enum DerivedMeshType {
 	DM_TYPE_CDDM,
 	DM_TYPE_EDITBMESH,
@@ -218,6 +224,8 @@ struct DerivedMesh {
 	DMGridData **(*getGridData)(DerivedMesh *dm);
 	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
 	int *(*getGridOffset)(DerivedMesh *dm);
+	DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
+	
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new

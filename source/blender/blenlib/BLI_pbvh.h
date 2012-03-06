@@ -26,13 +26,14 @@
  *  \brief A BVH for high poly meshes.
  */
 
-struct MFace;
-struct MVert;
+struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
+struct ListBase;
+struct MFace;
+struct MVert;
 struct PBVH;
 struct PBVHNode;
-struct ListBase;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -56,7 +57,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
 			int totface, int totvert);
 void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
 	struct DMGridAdjacency *gridadj, int totgrid,
-	int gridsize, void **gridfaces);
+	int gridsize, void **gridfaces, struct DMFlagMat *flagmats);
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -85,7 +86,8 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data);
 int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth);
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
+				   int (*setMaterial)(int, void *attribs));
 
 /* Node Access */
 

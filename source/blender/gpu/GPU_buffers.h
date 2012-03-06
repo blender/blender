@@ -40,6 +40,7 @@
 #endif
 
 struct DerivedMesh;
+struct DMFlagMat;
 struct DMGridData;
 struct GHash;
 struct DMGridData;
@@ -161,14 +162,15 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 			struct MFace *mface, int *face_indices, int totface);
 
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
-			int *vert_indices, int totvert, int smooth);
+			int *vert_indices, int totvert);
 
 GPU_Buffers *GPU_build_grid_buffers(int totgrid, int gridsize);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
-	int *grid_indices, int totgrid, int gridsize, int smooth);
+							 const struct DMFlagMat *grid_flag_mats,
+							 int *grid_indices, int totgrid, int gridsize);
 
-void GPU_draw_buffers(GPU_Buffers *buffers);
+void GPU_draw_buffers(GPU_Buffers *buffers, int (*setMaterial)(int, void *attribs));
 
 void GPU_free_buffers(GPU_Buffers *buffers);
 

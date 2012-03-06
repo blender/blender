@@ -529,8 +529,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			if(!setMaterial(mface->mat_nr+1, NULL))
 				return;
 
-			glShadeModel((mface->flag & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
-			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors, (mface->flag & ME_SMOOTH));
+			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors, setMaterial);
 			glShadeModel(GL_FLAT);
 		}
 
