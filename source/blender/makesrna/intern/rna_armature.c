@@ -234,15 +234,23 @@ static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
 static void rna_Armature_ghost_start_frame_set(PointerRNA *ptr, int value)
 {
 	bArmature *data = (bArmature*)ptr->data;
-	CLAMP(value, 1, data->ghostef);
+	CLAMP(value, 1, (int)(MAXFRAMEF/2));
 	data->ghostsf = value;
+
+	if (data->ghostsf >= data->ghostef) {
+		data->ghostef = MIN2(data->ghostsf + 1, (int)(MAXFRAMEF/2));
+	}
 }
 
 static void rna_Armature_ghost_end_frame_set(PointerRNA *ptr, int value)
 {
 	bArmature *data = (bArmature*)ptr->data;
-	CLAMP(value, data->ghostsf, (int)(MAXFRAMEF/2));
+	CLAMP(value, 1, (int)(MAXFRAMEF/2));
 	data->ghostef = value;
+
+	if (data->ghostsf >= data->ghostef) {
+		data->ghostsf = MAX2(data->ghostef - 1, 1);
+	}
 }
 /* XXX depreceated... old armature only animviz */
 

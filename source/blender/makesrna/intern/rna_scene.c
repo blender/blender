@@ -466,15 +466,23 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *data = (Scene*)ptr->data;
 	/* MINFRAME not MINAFRAME, since some output formats can't taken negative frames */
-	CLAMP(value, MINFRAME, data->r.efra); 
+	CLAMP(value, MINFRAME, MAXFRAME);
 	data->r.sfra = value;
+
+	if (data->r.sfra >= data->r.efra) {
+		data->r.efra = MIN2(data->r.sfra + 1, MAXFRAME);
+	}
 }
 
 static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *data = (Scene*)ptr->data;
-	CLAMP(value, data->r.sfra, MAXFRAME);
+	CLAMP(value, MINFRAME, MAXFRAME);
 	data->r.efra = value;
+
+	if (data->r.sfra >= data->r.efra) {
+		data->r.sfra = MAX2(data->r.efra - 1, MINFRAME);
+	}
 }
 
 static void rna_Scene_use_preview_range_set(PointerRNA *ptr, int value)
