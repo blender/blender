@@ -228,11 +228,13 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 		
 		rad = count_edge_faces(bm, e);
 		
-		if (rad < 2)
+		if (rad < 2) {
 			starte = e;
-		else
+		}
+		else {
 			continue;
-		
+		}
+
 		/* do two passes, going forward then backwar */
 		for (i = 0; i < 2; i++) {
 			BLI_smallhash_init(hash);

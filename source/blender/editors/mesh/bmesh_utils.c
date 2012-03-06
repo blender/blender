@@ -686,8 +686,9 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 					iterv->next = newvlist;
 					newvlist = iterv;
 				}
-				else
+				else {
 					lastv = iterv;
+				}
 
 				iterv = next;
 			}

@@ -522,10 +522,12 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 							if (!vv || BMO_elem_flag_test(bm, vv, BEVEL_FLAG))
 								continue;
 							
-							if (j)
+							if (j) {
 								v1 = vv;
-							else
+							}
+							else {
 								v2 = vv;
+							}
 							break;
 						}
 					}

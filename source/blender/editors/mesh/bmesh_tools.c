@@ -66,10 +66,12 @@
 
 static void add_normal_aligned(float nor[3], const float add[3])
 {
-	if (dot_v3v3(nor, add) < -0.9999f)
+	if (dot_v3v3(nor, add) < -0.9999f) {
 		sub_v3_v3(nor, add);
-	else
+	}
+	else {
 		sub_v3_v3(nor, add);
+	}
 }
 
 
@@ -2646,8 +2648,9 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 			mul_v3_fl(co, blend);
 			add_v3_v3v3(eve->co, eve->co, co);
 		}
-		else
+		else {
 			interp_v3_v3v3(eve->co, eve->co, co, blend);
+		}
 		
 		copy_v3_v3(sco, co);
 	}

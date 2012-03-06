@@ -697,10 +697,12 @@ static void *bmw_EdgeringWalker_yield(BMWalker *walker)
 		return NULL;
 	}
 
-	if (lwalk->l)
+	if (lwalk->l) {
 		return lwalk->l->e;
-	else
+	}
+	else {
 		return lwalk->wireedge;
+	}
 }
 
 static void *bmw_EdgeringWalker_step(BMWalker *walker)

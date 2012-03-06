@@ -335,10 +335,12 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y
 	if (data->dist > 3) {
 		int temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->select) {
-			if (data->strict == 1)
+			if (data->strict == 1) {
 				return;
-			else
+			}
+			else {
 				temp += 5;
+			}
 		}
 
 		if (temp < data->dist) {

@@ -144,10 +144,12 @@ static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const 
 
 	bm->totloop++;
 
-	if (example)
+	if (example) {
 		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->head.data, &l->head.data);
-	else
+	}
+	else {
 		CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
+	}
 
 	return l;
 }
