@@ -179,7 +179,6 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(scene, "layers", text="Scene")
         col.label(text="Material:")
         col.prop(rl, "material_override", text="")
-        col.prop(rl, "use_zmask");
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
