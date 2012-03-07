@@ -558,10 +558,10 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
 	if (ob->type == OB_MESH && ob->data) {
 		me = (Mesh*)ob->data;
 
-		for (a = 0; a<me->fdata.totlayer; a++) {
-			layer = &me->fdata.layers[a];
+		for (a = 0; a<me->pdata.totlayer; a++) {
+			layer = &me->pdata.layers[a];
 
-			if (layer->type == CD_MTFACE && strcmp(layer->name, value) == 0) {
+			if (layer->type == CD_MTEXPOLY && strcmp(layer->name, value) == 0) {
 				BLI_strncpy(result, value, maxlen);
 				return;
 			}
