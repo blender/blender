@@ -421,7 +421,12 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		/* important to do before NULL'ing the context */
 		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
-		CTX_wm_window_set(C, NULL); /* exits queues */
+		if (!G.background) {
+			/* in background mode this makes it hard to load
+			 * a blend file and do anything since the screen
+			 * won't be set to a valid value again */
+			CTX_wm_window_set(C, NULL); /* exits queues */
+		}
 
 #if 0
 		/* gives popups on windows but not linux, bug in report API
