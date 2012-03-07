@@ -2522,7 +2522,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		dist = FLT_MAX;
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-		        /* disable by default, re-enable winner at end */
+				/* disable by default, re-enable winner at end */
 				BM_elem_select_set(bm, v, FALSE);
 
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
