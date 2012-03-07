@@ -2482,7 +2482,7 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 
 	/* Draw faces with color set based on selection
 	 * return 2 for the active face so it renders with stipple enabled */
-static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
+static int draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 {
 	drawDMFacesSel_userData * data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
@@ -2965,7 +2965,7 @@ static void draw_em_indices(BMEditMesh *em)
 	}
 }
 
-static int draw_em_fancy__setFaceOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+static int draw_em_fancy__setFaceOpts(void *userData, int index)
 {
 	BMFace *efa = EDBM_get_face_for_index(userData, index);
 
@@ -3189,12 +3189,6 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 	}
 }
 
-static int wpaint__setSolidDrawOptions(void *UNUSED(userData), int UNUSED(index), int *drawSmooth_r)
-{
-	*drawSmooth_r = 1;
-	return 1;
-}
-
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
@@ -3283,7 +3277,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* weight paint in solid mode, special case. focus on making the weights clear
 			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mpoly, 1);
+			dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, me->mpoly,
+								DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
 		
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
@@ -3336,7 +3331,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL, 1);
+				dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL, DM_DRAW_USE_COLORS);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -3411,7 +3406,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mpoly, 1);
+				dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, me->mpoly,
+									DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -3419,10 +3415,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 			else if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)) {
 				if (me->mloopcol)
-					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, NULL, 1);
+					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
+										DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
 				else {
 					glColor3f(1.0f, 1.0f, 1.0f);
-					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, NULL, 0);
+					dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL,
+										DM_DRAW_ALWAYS_SMOOTH);
 				}
 			}
 		}
@@ -7147,7 +7145,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, ptrs);
 }		
 
-static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
+static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
 {
 	BMFace *efa = EDBM_get_face_for_index(((void**)userData)[0], index);
 	
@@ -7198,13 +7196,13 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }
 
-static int bbs_mesh_solid__setDrawOpts(void *UNUSED(userData), int index, int *UNUSED(drawSmooth_r))
+static int bbs_mesh_solid__setDrawOpts(void *UNUSED(userData), int index)
 {
 	WM_set_framebuffer_index_color(index+1);
 	return 1;
 }
 
-static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index)
 {
 	Mesh *me = userData;
 
@@ -7218,7 +7216,7 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 }
 
 // must have called WM_set_framebuffer_index_color beforehand
-static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index)
 {
 	Mesh *me = userData;
 

@@ -796,16 +796,17 @@ static void cdDM_drawFacesTex(DerivedMesh *dm,
 }
 
 static void cdDM_drawMappedFaces(DerivedMesh *dm,
-			DMSetDrawOptionsShading setDrawOptions,
+			DMSetDrawOptions setDrawOptions,
 			DMSetMaterial setMaterial,
 			DMCompareDrawOptions compareDrawOptions,
-			void *userData, int useColors)
+			void *userData, DMDrawFlag flag)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
 	MFace *mf = cddm->mface;
 	MCol *mc;
 	float *nors= DM_get_tessface_data_layer(dm, CD_NORMAL);
+	int useColors = flag & DM_DRAW_USE_COLORS;
 	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
 	mc = DM_get_tessface_data_layer(dm, CD_ID_MCOL);
@@ -821,7 +822,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	if( GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
 		for(i = 0; i < dm->numTessFaceData; i++, mf++) {
-			int drawSmooth = (mf->flag & ME_SMOOTH);
+			int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mf->flag & ME_SMOOTH);
 			int draw= 1;
 
 			orig= (index==NULL) ? i : *index++;
@@ -829,7 +830,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 			if(orig == ORIGINDEX_NONE)
 				draw= setMaterial(mf->mat_nr + 1, NULL);
 			else if (setDrawOptions != NULL)
-				draw= setDrawOptions(userData, orig, &drawSmooth);
+				draw= setDrawOptions(userData, orig);
 
 			if(draw) {
 				unsigned char *cp = NULL;
@@ -914,7 +915,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					//int actualFace = dm->drawObject->triangle_to_mface[i];
 					int actualFace = next_actualFace;
 					MFace *mface= mf + actualFace;
-					int drawSmooth= (mface->flag & ME_SMOOTH);
+					/*int drawSmooth= (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mface->flag & ME_SMOOTH);*/ /* UNUSED */
 					int draw = 1;
 					int flush = 0;
 
@@ -926,7 +927,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					if(orig == ORIGINDEX_NONE)
 						draw= setMaterial(mface->mat_nr + 1, NULL);
 					else if (setDrawOptions != NULL)
-						draw= setDrawOptions(userData, orig, &drawSmooth);
+						draw= setDrawOptions(userData, orig);
 	
 					/* Goal is to draw as long of a contiguous triangle
 					   array as possible, so draw when we hit either an

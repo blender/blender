@@ -130,7 +130,11 @@ typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_inde
 typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
 typedef int (*DMSetDrawOptions)(void *userData, int index);
 typedef int (*DMSetDrawOptionsTex)(struct MTFace *tface, int has_vcol, int matnr);
-typedef int (*DMSetDrawOptionsShading)(void *userData, int index, int *drawSmooth_r);
+
+typedef enum DMDrawFlag {
+	DM_DRAW_USE_COLORS = 1,
+	DM_DRAW_ALWAYS_SMOOTH = 2
+} DMDrawFlag;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
@@ -346,10 +350,11 @@ struct DerivedMesh {
 	 * smooth shaded.
 	 */
 	void (*drawMappedFaces)(DerivedMesh *dm,
-							DMSetDrawOptionsShading setDrawOptions,
+							DMSetDrawOptions setDrawOptions,
 							DMSetMaterial setMaterial,
 							DMCompareDrawOptions compareDrawOptions,
-							void *userData, int useColors);
+							void *userData,
+							DMDrawFlag flag);
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.

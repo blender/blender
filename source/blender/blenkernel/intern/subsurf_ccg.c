@@ -2111,16 +2111,17 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm,
-			DMSetDrawOptionsShading setDrawOptions,
+			DMSetDrawOptions setDrawOptions,
 			DMSetMaterial setMaterial,
 			DMCompareDrawOptions compareDrawOptions,
-			void *userData, int useColors)
+			void *userData, DMDrawFlag flag)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	MCol *mcol= NULL;
 	int i, gridSize = ccgSubSurf_getGridSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
+	int useColors = flag & DM_DRAW_USE_COLORS;
 	int gridFaces = gridSize - 1, totface;
 
 	/* currently unused -- each original face is handled separately */
@@ -2142,7 +2143,8 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 
 		origIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 
-		if(faceFlags) drawSmooth = (faceFlags[origIndex].flag & ME_SMOOTH);
+		if(flag & DM_DRAW_ALWAYS_SMOOTH) drawSmooth = 1;
+		else if(faceFlags) drawSmooth = (faceFlags[origIndex].flag & ME_SMOOTH);
 		else drawSmooth = 1;
 
 		if(mcol) {
@@ -2156,7 +2158,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 			if(index == ORIGINDEX_NONE)
 				draw= setMaterial(faceFlags ? faceFlags[origIndex].mat_nr + 1: 1, NULL); /* XXX, no faceFlags no material */
 			else if (setDrawOptions)
-				draw= setDrawOptions(userData, index, &drawSmooth);
+				draw= setDrawOptions(userData, index);
 
 			if (draw) {
 				if (draw==2) {

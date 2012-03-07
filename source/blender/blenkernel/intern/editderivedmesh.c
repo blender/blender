@@ -579,10 +579,11 @@ static void emDM_foreachMappedFaceCenter(
 
 static void emDM_drawMappedFaces(
 		DerivedMesh *dm,
-		DMSetDrawOptionsShading setDrawOptions,
+		DMSetDrawOptions setDrawOptions,
 		DMSetMaterial setMaterial,
 		DMCompareDrawOptions compareDrawOptions,
-		void *userData, int UNUSED(useColors))
+		void *userData,
+		DMDrawFlag flag)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMFace *efa;
@@ -615,9 +616,9 @@ static void emDM_drawMappedFaces(
 			int drawSmooth;
 
 			efa = l[0]->f;
-			drawSmooth= BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
+			drawSmooth= (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
 
-			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_elem_index_get(efa), &drawSmooth);
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_elem_index_get(efa));
 			if (draw) {
 				const GLenum poly_type= GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 				if (draw==2) { /* enabled with stipple */
@@ -687,9 +688,9 @@ static void emDM_drawMappedFaces(
 			int drawSmooth;
 
 			efa = l[0]->f;
-			drawSmooth= BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
+			drawSmooth= (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
 
-			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_elem_index_get(efa), &drawSmooth);
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_elem_index_get(efa));
 			if (draw) {
 				const GLenum poly_type= GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 				if (draw==2) { /* enabled with stipple */
