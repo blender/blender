@@ -34,7 +34,9 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string_cursor_utf8.h"
+#include "BLI_string.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
@@ -115,43 +117,20 @@ static ConsoleLine * console_history_find(SpaceConsole *sc, const char *str, Con
 static int console_line_cursor_set(ConsoleLine *cl, int cursor)
 {
 	int cursor_new;
-	
-	if(cursor < 0)				cursor_new= 0;
-	else if(cursor > cl->len)	cursor_new= cl->len;
-	else						cursor_new= cursor;
-	
-	if(cursor_new == cl->cursor)
-		return 0;
-	
-	cl->cursor= cursor_new;
-	return 1;
-}
 
-static char cursor_char(ConsoleLine *cl)
-{
-	/* assume cursor is clamped */
-	return cl->line[cl->cursor];
-}
-
-static char cursor_char_prev(ConsoleLine *cl)
-{
-	/* assume cursor is clamped */
-	if(cl->cursor <= 0)
-		return '\0';
-
-	return cl->line[cl->cursor-1];
+	if      (cursor < 0)        cursor_new = 0;
+	else if (cursor > cl->len)  cursor_new = cl->len;
+	else                        cursor_new = cursor;
+	
+	if (cursor_new == cl->cursor) {
+		return FALSE;
+	}
+	
+	cl->cursor = cursor_new;
+	return TRUE;
 }
 
 #if 0 // XXX unused 
-static char cursor_char_next(ConsoleLine *cl)
-{
-	/* assume cursor is clamped */
-	if(cl->cursor + 1 >= cl->len)
-		return '\0';
-
-	return cl->line[cl->cursor+1];
-}
-
 static void console_lb_debug__internal(ListBase *lb)
 {
 	ConsoleLine *cl;
@@ -297,50 +276,53 @@ static int console_move_exec(bContext *C, wmOperator *op)
 	
 	int type= RNA_enum_get(op->ptr, "type");
 	int done= 0;
+	short pos;
 	
 	switch(type) {
 	case LINE_BEGIN:
-		done= console_line_cursor_set(ci, 0);
+			pos = ci->cursor;
+			BLI_str_cursor_step_utf8(ci->line, ci->len,
+			                         &pos, STRCUR_DIR_PREV,
+			                         STRCUR_JUMP_ALL);
+			done = console_line_cursor_set(ci, pos);
 		break;
 	case LINE_END:
-		done= console_line_cursor_set(ci, INT_MAX);
+			pos = ci->cursor;
+			BLI_str_cursor_step_utf8(ci->line, ci->len,
+			                         &pos, STRCUR_DIR_NEXT,
+			                         STRCUR_JUMP_ALL);
+			done = console_line_cursor_set(ci, pos);
 		break;
 	case PREV_CHAR:
-		done= console_line_cursor_set(ci, ci->cursor-1);
+			pos = ci->cursor;
+			BLI_str_cursor_step_utf8(ci->line, ci->len,
+			                         &pos, STRCUR_DIR_PREV,
+			                         STRCUR_JUMP_NONE);
+			done = console_line_cursor_set(ci, pos);
 		break;
 	case NEXT_CHAR:
-		done= console_line_cursor_set(ci, ci->cursor+1);
+			pos = ci->cursor;
+			BLI_str_cursor_step_utf8(ci->line, ci->len,
+			                         &pos, STRCUR_DIR_NEXT,
+			                         STRCUR_JUMP_NONE);
+			done = console_line_cursor_set(ci, pos);
 		break;
 
 	/* - if the character is a delimiter then skip delimiters (including white space)
 	 * - when jump over the word */
 	case PREV_WORD:
-		while(text_check_delim(cursor_char_prev(ci)))
-			if(console_line_cursor_set(ci, ci->cursor-1)==FALSE)
-				break;
-
-		while(text_check_delim(cursor_char_prev(ci))==FALSE)
-			if(console_line_cursor_set(ci, ci->cursor-1)==FALSE)
-				break;
-
-		/* This isnt used for NEXT_WORD because when going back
-		 * its more useful to have the cursor directly after a word then whitespace */
-		while(text_check_whitespace(cursor_char_prev(ci))==TRUE)
-			if(console_line_cursor_set(ci, ci->cursor-1)==FALSE)
-				break;
-
-		done= 1; /* assume changed */
+		pos = ci->cursor;
+		BLI_str_cursor_step_utf8(ci->line, ci->len,
+		                         &pos, STRCUR_DIR_PREV,
+		                         STRCUR_JUMP_DELIM);
+		done = console_line_cursor_set(ci, pos);
 		break;
 	case NEXT_WORD:
-		while(text_check_delim(cursor_char(ci))==TRUE)
-			if (console_line_cursor_set(ci, ci->cursor+1)==FALSE)
-				break;
-
-		while(text_check_delim(cursor_char(ci))==FALSE)
-			if (console_line_cursor_set(ci, ci->cursor+1)==FALSE)
-				break;
-
-		done= 1; /* assume changed */
+		pos = ci->cursor;
+		BLI_str_cursor_step_utf8(ci->line, ci->len,
+		                         &pos, STRCUR_DIR_NEXT,
+		                         STRCUR_JUMP_DELIM);
+		done = console_line_cursor_set(ci, pos);
 		break;
 	}
 	

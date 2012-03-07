@@ -48,6 +48,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_string_cursor_utf8.h"
 
 #include "PIL_time.h"
 
@@ -107,23 +108,6 @@ typedef enum uiHandleButtonState {
 	BUTTON_STATE_WAIT_DRAG,
 	BUTTON_STATE_EXIT
 } uiHandleButtonState;
-
-typedef enum uiButtonJumpType {
-	BUTTON_EDIT_JUMP_NONE,
-	BUTTON_EDIT_JUMP_DELIM,
-	BUTTON_EDIT_JUMP_ALL
-} uiButtonJumpType;
-
-typedef enum uiButtonDelimType {
-	BUTTON_DELIM_NONE,
-	BUTTON_DELIM_ALPHA,
-	BUTTON_DELIM_PUNCT,
-	BUTTON_DELIM_BRACE,
-	BUTTON_DELIM_OPERATOR,
-	BUTTON_DELIM_QUOTE,
-	BUTTON_DELIM_WHITESPACE,
-	BUTTON_DELIM_OTHER
-} uiButtonDelimType;
 
 typedef struct uiHandleButtonData {
 	wmWindowManager *wm;
@@ -1238,139 +1222,6 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 /* ************* in-button text selection/editing ************* */
 
-/* return 1 if char ch is special character, otherwise return 0 */
-static uiButtonDelimType test_special_char(const char ch)
-{
-	if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
-		return BUTTON_DELIM_ALPHA;
-	}
-
-	switch(ch) {
-		case ',':
-		case '.':
-			return BUTTON_DELIM_PUNCT;
-
-		case '{':
-		case '}':
-		case '[':
-		case ']':
-		case '(':
-		case ')':
-			return BUTTON_DELIM_BRACE;
-
-		case '+':
-		case '-':
-		case '=':
-		case '~':
-		case '%':
-		case '/':
-		case '<':
-		case '>':
-		case '^':
-		case '*':
-		case '&':
-			return BUTTON_DELIM_OPERATOR;
-
-		case '\'':
-		case '\"': // " - an extra closing one for Aligorith's text editor
-			return BUTTON_DELIM_QUOTE;
-
-		case ' ':
-			return BUTTON_DELIM_WHITESPACE;
-
-		case '\\':
-		case '!':
-		case '@':
-		case '#':
-		case '$':
-		case ':':
-		case ';':
-		case '?':
-		case '_':
-			return BUTTON_DELIM_OTHER;
-
-		default:
-			break;
-	}
-	return BUTTON_DELIM_NONE;
-}
-
-static int ui_textedit_step_next_utf8(const char *str, size_t maxlen, short *pos)
-{
-	const char *str_end= str + (maxlen + 1);
-	const char *str_pos= str + (*pos);
-	const char *str_next= BLI_str_find_next_char_utf8(str_pos, str_end);
-	if (str_next) {
-		(*pos) += (str_next - str_pos);
-		if((*pos) > maxlen) (*pos)= maxlen;
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-static int ui_textedit_step_prev_utf8(const char *str, size_t UNUSED(maxlen), short *pos)
-{
-	if((*pos) > 0) {
-		const char *str_pos= str + (*pos);
-		const char *str_prev= BLI_str_find_prev_char_utf8(str, str_pos);
-		if (str_prev) {
-			(*pos) -= (str_pos - str_prev);
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}
-
-static void ui_textedit_step_utf8(const char *str, size_t maxlen,
-                                  short *pos, const char direction,
-                                  uiButtonJumpType jump)
-{
-	const short pos_prev= *pos;
-
-	if (direction) { /* right */
-		ui_textedit_step_next_utf8(str, maxlen, pos);
-
-		if (jump != BUTTON_EDIT_JUMP_NONE) {
-			const uiButtonDelimType is_special= (*pos) < maxlen ? test_special_char(str[(*pos)]) : BUTTON_DELIM_NONE;
-			/* jump between special characters (/,\,_,-, etc.),
-			 * look at function test_special_char() for complete
-			 * list of special character, ctr -> */
-			while ((*pos) < maxlen) {
-				if (ui_textedit_step_next_utf8(str, maxlen, pos)) {
-					if ((jump != BUTTON_EDIT_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
-				}
-				else {
-					break; /* unlikely but just incase */
-				}
-			}
-		}
-	}
-	else { /* left */
-		ui_textedit_step_prev_utf8(str, maxlen, pos);
-
-		if(jump != BUTTON_EDIT_JUMP_NONE) {
-			const uiButtonDelimType is_special= (*pos) > 1 ? test_special_char(str[(*pos) - 1]) : BUTTON_DELIM_NONE;
-			/* jump between special characters (/,\,_,-, etc.),
-			 * look at function test_special_char() for complete
-			 * list of special character, ctr -> */
-			while ((*pos) > 0) {
-				if (ui_textedit_step_prev_utf8(str, maxlen, pos)) {
-					if ((jump != BUTTON_EDIT_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
-				}
-				else {
-					break;
-				}
-			}
-
-			/* left only: compensate for index/change in direction */
-			if (((*pos) != 0) && ABS(pos_prev - (*pos)) >= 1) {
-				ui_textedit_step_next_utf8(str, maxlen, pos);
-			}
-		}
-	}
-}
 
 static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 {
@@ -1419,7 +1270,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		origstr[but->ofs] = 0;
 		
 		while (i > 0) {
-			if (ui_textedit_step_prev_utf8(origstr, but->ofs, &i)) {
+			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
 				if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25f) break;	// 0.25 == scale factor for less sensitivity
 			}
 			else {
@@ -1438,7 +1289,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		/* XXX does not take zoom level into account */
 		while (startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
-			if (ui_textedit_step_prev_utf8(origstr, but->ofs, &but->pos)) {
+			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &but->pos)) {
 				origstr[but->pos+but->ofs] = 0;
 			}
 			else {
@@ -1515,7 +1366,7 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 	return ui_textedit_type_buf(but, data, buf, 1);
 }
 
-static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, uiButtonJumpType jump)
+static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, strCursorJumpDirection direction, int select, strCursorJumpType jump)
 {
 	const char *str= data->str;
 	const int len= strlen(str);
@@ -1526,7 +1377,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 
 	/* special case, quit selection and set cursor */
 	if (has_sel && !select) {
-		if (jump == BUTTON_EDIT_JUMP_ALL) {
+		if (jump == STRCUR_JUMP_ALL) {
 			but->selsta = but->selend= but->pos = direction ? len : 0;
 		}
 		else {
@@ -1540,7 +1391,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 		data->selextend = 0;
 	}
 	else {
-		ui_textedit_step_utf8(str, len, &but->pos, direction, jump);
+		BLI_str_cursor_step_utf8(str, len, &but->pos, direction, jump);
 
 		if(select) {
 			/* existing selection */
@@ -1589,14 +1440,14 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 	}
 }
 
-static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int direction, uiButtonJumpType jump)
+static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int direction, strCursorJumpType jump)
 {
 	char *str= data->str;
 	const int len= strlen(str);
 
 	int changed= 0;
 
-	if(jump == BUTTON_EDIT_JUMP_ALL) {
+	if (jump == STRCUR_JUMP_ALL) {
 		if(len) changed=1;
 		str[0]= '\0';
 		but->pos= 0;
@@ -1608,7 +1459,7 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 		else if (but->pos>=0 && but->pos<len) {
 			short pos= but->pos;
 			int step;
-			ui_textedit_step_utf8(str, len, &pos, direction, jump);
+			BLI_str_cursor_step_utf8(str, len, &pos, direction, jump);
 			step= pos - but->pos;
 			memmove(&str[but->pos], &str[but->pos + step], (len + 1) - but->pos);
 			changed= 1;
@@ -1623,7 +1474,7 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 				short pos= but->pos;
 				int step;
 
-				ui_textedit_step_utf8(str, len, &pos, direction, jump);
+				BLI_str_cursor_step_utf8(str, len, &pos, direction, jump);
 				step= but->pos - pos;
 				memmove(&str[but->pos - step], &str[but->pos], (len + 1) - but->pos);
 				but->pos -= step;
@@ -1915,11 +1766,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				break;
 			case RIGHTARROWKEY:
-				ui_textedit_move(but, data, 1, event->shift, event->ctrl ? BUTTON_EDIT_JUMP_DELIM : BUTTON_EDIT_JUMP_NONE);
+				ui_textedit_move(but, data, STRCUR_DIR_NEXT, event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case LEFTARROWKEY:
-				ui_textedit_move(but, data, 0, event->shift, event->ctrl ? BUTTON_EDIT_JUMP_DELIM : BUTTON_EDIT_JUMP_NONE);
+				ui_textedit_move(but, data, STRCUR_DIR_PREV, event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case DOWNARROWKEY:
@@ -1929,7 +1780,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				/* pass on purposedly */
 			case ENDKEY:
-				ui_textedit_move(but, data, 1, event->shift, BUTTON_EDIT_JUMP_ALL);
+				ui_textedit_move(but, data, STRCUR_DIR_NEXT, event->shift, STRCUR_JUMP_ALL);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case UPARROWKEY:
@@ -1939,7 +1790,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				/* pass on purposedly */
 			case HOMEKEY:
-				ui_textedit_move(but, data, 0, event->shift, BUTTON_EDIT_JUMP_ALL);
+				ui_textedit_move(but, data, STRCUR_DIR_PREV, event->shift, STRCUR_JUMP_ALL);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case PADENTER:
@@ -1948,12 +1799,12 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case DELKEY:
-				changed= ui_textedit_delete(but, data, 1, event->ctrl ? BUTTON_EDIT_JUMP_DELIM : BUTTON_EDIT_JUMP_NONE);
+				changed= ui_textedit_delete(but, data, 1, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 
 			case BACKSPACEKEY:
-				changed= ui_textedit_delete(but, data, 0, event->shift ? BUTTON_EDIT_JUMP_ALL :  (event->ctrl ? BUTTON_EDIT_JUMP_DELIM : BUTTON_EDIT_JUMP_NONE));
+				changed= ui_textedit_delete(but, data, 0, event->shift ? STRCUR_JUMP_ALL :  (event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE));
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 				

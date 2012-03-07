@@ -29,7 +29,7 @@
  *  \ingroup bke
  */
 
-
+#include <stdlib.h> /* abort */
 #include <string.h> /* strstr */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,7 +38,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_constraint_types.h"
@@ -731,14 +735,6 @@ static void txt_make_dirty (Text *text)
 #endif
 }
 
-/* 0:whitespace, 1:punct, 2:alphanumeric */
-static short txt_char_type(unsigned int ch)
-{
-	if (iswspace(ch)) return 0;
-	if (iswalpha(ch) || iswdigit(ch)) return 2;
-	return 1;
-}
-
 /****************************/
 /* Cursor utility functions */
 /****************************/
@@ -957,32 +953,32 @@ void txt_move_right(Text *text, short sel)
 void txt_jump_left(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, count, i;
+	int *charp, oldc, oldflags, i;
 	unsigned char oldu;
+	short pos;
 
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
 
+	oldflags = text->flags;
+	text->flags &= ~TXT_TABSTOSPACES;
+
 	oldl= *linep;
 	oldc= *charp;
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	count= 0;
-	for (i=0; i<3; i++) {
-		if (count < 2) {
-			while (*charp>0) {
-				char *sym= BLI_str_prev_char_utf8((*linep)->line + *charp);
-				if (txt_char_type(BLI_str_utf8_as_unicode(sym))==i) {
-					txt_move_left(text, sel);
-					count++;
-				} else break;
-			}
-		}
+	pos = *charp;
+	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
+	                         &pos, STRCUR_DIR_PREV,
+	                         STRCUR_JUMP_DELIM);
+	for (i = *charp; i > pos; i--) {
+		txt_move_left(text, sel);
 	}
-	if (count==0) txt_move_left(text, sel);
+
+	text->flags = oldflags;
 
 	undoing= oldu;
 	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
@@ -991,32 +987,32 @@ void txt_jump_left(Text *text, short sel)
 void txt_jump_right(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, count, i;
+	int *charp, oldc, oldflags, i;
 	unsigned char oldu;
+	short pos;
 
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
 
+	oldflags = text->flags;
+	text->flags &= ~TXT_TABSTOSPACES;
+
 	oldl= *linep;
 	oldc= *charp;
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	count= 0;
-	for (i=0; i<3; i++) {
-		if (count < 2) {
-			while (*charp<(*linep)->len) {
-				char *sym= (*linep)->line + *charp;
-				if (txt_char_type(BLI_str_utf8_as_unicode(sym))==i) {
-					txt_move_right(text, sel);
-					count++;
-				} else break;
-			}
-		}
+	pos = *charp;
+	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
+	                         &pos, STRCUR_DIR_NEXT,
+	                         STRCUR_JUMP_DELIM);
+	for (i = *charp; i < pos; i++) {
+		txt_move_right(text, sel);
 	}
-	if (count==0) txt_move_right(text, sel);
+
+	text->flags = oldflags;
 
 	undoing= oldu;
 	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
