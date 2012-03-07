@@ -1329,37 +1329,35 @@ static void ui_textedit_step_utf8(const char *str, size_t maxlen,
 {
 	const short pos_prev= *pos;
 
-	if(direction) { /* right*/
-		if(jump != BUTTON_EDIT_JUMP_NONE) {
+	if (direction) { /* right */
+		ui_textedit_step_next_utf8(str, maxlen, pos);
+
+		if (jump != BUTTON_EDIT_JUMP_NONE) {
 			const uiButtonDelimType is_special= (*pos) < maxlen ? test_special_char(str[(*pos)]) : BUTTON_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function test_special_char() for complete
 			 * list of special character, ctr -> */
-			while((*pos) < maxlen) {
+			while ((*pos) < maxlen) {
 				if (ui_textedit_step_next_utf8(str, maxlen, pos)) {
-					if((jump != BUTTON_EDIT_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
+					if ((jump != BUTTON_EDIT_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
 				}
 				else {
 					break; /* unlikely but just incase */
 				}
 			}
 		}
-		else {
-			ui_textedit_step_next_utf8(str, maxlen, pos);
-		}
 	}
 	else { /* left */
+		ui_textedit_step_prev_utf8(str, maxlen, pos);
+
 		if(jump != BUTTON_EDIT_JUMP_NONE) {
 			const uiButtonDelimType is_special= (*pos) > 1 ? test_special_char(str[(*pos) - 1]) : BUTTON_DELIM_NONE;
-			/* left only: compensate for index/change in direction */
-			ui_textedit_step_prev_utf8(str, maxlen, pos);
-
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function test_special_char() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) > 0) {
 				if (ui_textedit_step_prev_utf8(str, maxlen, pos)) {
-					if((jump != BUTTON_EDIT_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
+					if ((jump != BUTTON_EDIT_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
 				}
 				else {
 					break;
@@ -1367,12 +1365,9 @@ static void ui_textedit_step_utf8(const char *str, size_t maxlen,
 			}
 
 			/* left only: compensate for index/change in direction */
-			if(((*pos) != 0) && ABS(pos_prev - (*pos)) > 1) {
+			if (((*pos) != 0) && ABS(pos_prev - (*pos)) >= 1) {
 				ui_textedit_step_next_utf8(str, maxlen, pos);
 			}
-		}
-		else {
-			ui_textedit_step_prev_utf8(str, maxlen, pos);
 		}
 	}
 }
