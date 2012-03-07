@@ -1265,7 +1265,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	
 	/* mouse dragged outside the widget to the left */
 	if (x < startx && but->ofs > 0) {	
-		short i= but->ofs;
+		int i = but->ofs;
 
 		origstr[but->ofs] = 0;
 		
@@ -1288,9 +1288,11 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		
 		/* XXX does not take zoom level into account */
 		while (startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
+			int pos_i = but->pos;
 			if (but->pos <= 0) break;
-			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &but->pos)) {
-				origstr[but->pos+but->ofs] = 0;
+			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &pos_i)) {
+				but->pos = pos_i;
+				origstr[but->pos + but->ofs] = 0;
 			}
 			else {
 				break; /* unlikely but possible */
@@ -1391,7 +1393,9 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, strCursorJump
 		data->selextend = 0;
 	}
 	else {
-		BLI_str_cursor_step_utf8(str, len, &but->pos, direction, jump);
+		int pos_i = but->pos;
+		BLI_str_cursor_step_utf8(str, len, &pos_i, direction, jump);
+		but->pos = pos_i;
 
 		if(select) {
 			/* existing selection */
@@ -1457,10 +1461,10 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 			changed= ui_textedit_delete_selection(but, data);
 		}
 		else if (but->pos>=0 && but->pos<len) {
-			short pos= but->pos;
+			int pos = but->pos;
 			int step;
 			BLI_str_cursor_step_utf8(str, len, &pos, direction, jump);
-			step= pos - but->pos;
+			step = pos - but->pos;
 			memmove(&str[but->pos], &str[but->pos + step], (len + 1) - but->pos);
 			changed= 1;
 		}
@@ -1471,7 +1475,7 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 				changed= ui_textedit_delete_selection(but, data);
 			}
 			else if(but->pos>0) {
-				short pos= but->pos;
+				int pos = but->pos;
 				int step;
 
 				BLI_str_cursor_step_utf8(str, len, &pos, direction, jump);

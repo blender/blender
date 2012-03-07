@@ -30,17 +30,6 @@
  *  \ingroup bli
  */
 
-typedef enum strCursorDelimType {
-	STRCUR_DELIM_NONE,
-	STRCUR_DELIM_ALPHA,
-	STRCUR_DELIM_PUNCT,
-	STRCUR_DELIM_BRACE,
-	STRCUR_DELIM_OPERATOR,
-	STRCUR_DELIM_QUOTE,
-	STRCUR_DELIM_WHITESPACE,
-	STRCUR_DELIM_OTHER
-} strCursorDelimType;
-
 typedef enum strCursorJumpType {
 	STRCUR_JUMP_NONE,
 	STRCUR_JUMP_DELIM,
@@ -52,11 +41,11 @@ typedef enum strCursorJumpDirection {
 	STRCUR_DIR_NEXT
 } strCursorJumpDirection;
 
-int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, short *pos);
-int BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, short *pos);
+int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos);
+int BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, int *pos);
 
 void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
-                              short *pos, strCursorJumpDirection direction,
+                              int *pos, strCursorJumpDirection direction,
                               strCursorJumpType jump);
 
 #endif /* __BLI_STRING_CURSOR_UTF8_H__ */

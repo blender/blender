@@ -36,6 +36,16 @@
 
 #include "BLI_string_cursor_utf8.h" /* own include */
 
+typedef enum strCursorDelimType {
+	STRCUR_DELIM_NONE,
+	STRCUR_DELIM_ALPHA,
+	STRCUR_DELIM_PUNCT,
+	STRCUR_DELIM_BRACE,
+	STRCUR_DELIM_OPERATOR,
+	STRCUR_DELIM_QUOTE,
+	STRCUR_DELIM_WHITESPACE,
+	STRCUR_DELIM_OTHER
+} strCursorDelimType;
 
 /* return 1 if char ch is special character, otherwise return 0 */
 static strCursorDelimType test_special_char(const char ch)
@@ -100,7 +110,7 @@ static strCursorDelimType test_special_char(const char ch)
 	return STRCUR_DELIM_NONE;
 }
 
-int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, short *pos)
+int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 {
 	const char *str_end= str + (maxlen + 1);
 	const char *str_pos= str + (*pos);
@@ -114,7 +124,7 @@ int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, short *pos)
 	return FALSE;
 }
 
-int BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), short *pos)
+int BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *pos)
 {
 	if((*pos) > 0) {
 		const char *str_pos= str + (*pos);
@@ -129,7 +139,7 @@ int BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), short 
 }
 
 void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
-                              short *pos, strCursorJumpDirection direction,
+                              int *pos, strCursorJumpDirection direction,
                               strCursorJumpType jump)
 {
 	const short pos_prev= *pos;

@@ -276,9 +276,9 @@ static int console_move_exec(bContext *C, wmOperator *op)
 	
 	int type= RNA_enum_get(op->ptr, "type");
 	int done= 0;
-	short pos;
+	int pos;
 	
-	switch(type) {
+	switch (type) {
 	case LINE_BEGIN:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,

@@ -955,7 +955,7 @@ void txt_jump_left(Text *text, short sel)
 	TextLine **linep, *oldl;
 	int *charp, oldc, oldflags, i;
 	unsigned char oldu;
-	short pos;
+	int pos;
 
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
@@ -989,7 +989,7 @@ void txt_jump_right(Text *text, short sel)
 	TextLine **linep, *oldl;
 	int *charp, oldc, oldflags, i;
 	unsigned char oldu;
-	short pos;
+	int pos;
 
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
