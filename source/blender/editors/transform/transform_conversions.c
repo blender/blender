@@ -717,7 +717,9 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
 		{
 			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
 		}
-		else if (bone->flag & BONE_TRANSFORM && (mode == TFM_ROTATION || mode == TFM_TRACKBALL) && around == V3D_LOCAL)
+		else if ((bone->flag & BONE_TRANSFORM) &&
+		         (mode == TFM_ROTATION || mode == TFM_TRACKBALL) &&
+		         (around == V3D_LOCAL))
 		{
 			bone->flag |= BONE_TRANSFORM_CHILD;
 		}
@@ -1126,8 +1128,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
-			else if (t->mode==TFM_BONE_ROLL)
-			{
+			else if (t->mode==TFM_BONE_ROLL) {
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
@@ -1190,8 +1191,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 
 			}
-			else if (t->mode==TFM_BONESIZE)
-			{
+			else if (t->mode==TFM_BONESIZE) {
 				if (ebo->flag & BONE_SELECTED) {
 					if(arm->drawtype==ARM_ENVELOPE)
 					{
@@ -1223,8 +1223,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					td++;
 				}
 			}
-			else if (t->mode==TFM_BONE_ROLL)
-			{
+			else if (t->mode==TFM_BONE_ROLL) {
 				if (ebo->flag & BONE_SELECTED)
 				{
 					td->loc= NULL;

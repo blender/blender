@@ -574,15 +574,13 @@ void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 			stk->selected = 0;
 		}
 	}
-	else if (mode == 0)
-	{
+	else if (mode == 0) {
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
 		{
 			stk->selected = 1;
 		}
 	}
-	else if (mode == 1)
-	{
+	else if (mode == 1) {
 		int selected = 1;
 
 		for (stk = sketch->strokes.first; stk; stk = stk->next)

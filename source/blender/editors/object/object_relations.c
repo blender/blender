@@ -586,8 +586,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			if (partype == PAR_PATH_CONST) {
 				/* don't do anything here, since this is not technically "parenting" */
 			}
-			else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm))
-			{
+			else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm)) {
 				/* partype is now set to PAROBJECT so that invisible 'virtual' modifiers don't need to be created
 				 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
 				 */

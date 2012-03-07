@@ -176,8 +176,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				
 				collmd->time_x = collmd->time_xnew = current_time;
 			}
-			else if(numverts == collmd->numverts)
-			{
+			else if(numverts == collmd->numverts) {
 				// put positions to old positions
 				tempVert = collmd->x;
 				collmd->x = collmd->xnew;
@@ -186,8 +185,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				
 				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
 				
-				for ( i = 0; i < numverts; i++ )
-				{
+				for (i = 0; i < numverts; i++) {
 					// we save global positions
 					mul_m4_v3( ob->obmat, collmd->xnew[i].co );
 				}
@@ -196,10 +194,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
-				if(collmd->bvhtree) 
-				{
-					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree))
-					{
+				if(collmd->bvhtree) {
+					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree)) {
 						BLI_bvhtree_free(collmd->bvhtree);
 						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 					}
@@ -217,8 +213,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				
 				collmd->time_xnew = current_time;
 			}
-			else if(numverts != collmd->numverts)
-			{
+			else if(numverts != collmd->numverts) {
 				freeData((ModifierData *)collmd);
 			}
 			

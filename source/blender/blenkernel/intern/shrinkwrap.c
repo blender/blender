@@ -502,12 +502,10 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 	//DeformVertex
 	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
-	if(dm)
-	{
+	if(dm) {
 		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 	}
-	else if(calc.ob->type == OB_LATTICE)
-	{
+	else if (calc.ob->type == OB_LATTICE) {
 		calc.dvert = lattice_get_deform_verts(calc.ob);
 	}
 
@@ -562,8 +560,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	}
 
 	//Projecting target defined - lets work!
-	if(calc.target)
-	{
+	if (calc.target) {
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:

@@ -433,8 +433,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 			hit.dist = len + FLT_EPSILON;
 			
 			// check if the way is blocked
-			if(BLI_bvhtree_ray_cast(collmd->bvhtree, point->loc, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0)
-			{
+			if (BLI_bvhtree_ray_cast(collmd->bvhtree, point->loc, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0) {
 				absorption= col->ob->pd->absorption;
 
 				// visibility is only between 0 and 1, calculated from 1-absorption

@@ -684,8 +684,7 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 				GPU_set_mipmap(0); //doMipMap = 0;
 			}
 			/* linearMipMap */
-			if (!strcmp(argv[a],"linearmipmap"))
-			{
+			if (!strcmp(argv[a],"linearmipmap")) {
 				GPU_set_linear_mipmap(1); //linearMipMap = 1;
 			}
 
@@ -1258,13 +1257,13 @@ int main(int argc, const char **argv)
 		WM_exit(C);
 	}
 	else {
-		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC))
-		{
+		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC)) {
 			if(WM_init_game(C))
 				return 0;
 		}
-		else if(!G.file_loaded)
+		else if(!G.file_loaded) {
 			WM_init_splash(C);
+		}
 	}
 
 	WM_main(C);

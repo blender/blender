@@ -165,8 +165,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	smd->limit[0] = MIN2(smd->limit[0], smd->limit[1]);			//Upper limit >= than lower limit
 
 	//Calculate matrixs do convert between coordinate spaces
-	if(smd->origin)
-	{
+	if(smd->origin) {
 		transf = &tmp_transf;
 
 		if (smd->originOpts & MOD_SIMPLEDEFORM_ORIGIN_LOCAL) {

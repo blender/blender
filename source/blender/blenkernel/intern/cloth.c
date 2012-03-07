@@ -826,8 +826,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		cloth = clmd->clothObject;
 		clmd->clothObject->edgehash = NULL;
 	}
-	else if ( !clmd->clothObject )
-	{
+	else if (!clmd->clothObject) {
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject." );
 		return 0;
 	}

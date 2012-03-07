@@ -1307,8 +1307,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 		}
 	}
-	else if(s->type & CLOTH_SPRING_TYPE_GOAL)
-	{
+	else if (s->type & CLOTH_SPRING_TYPE_GOAL) {
 		float tvect[3];
 		
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;

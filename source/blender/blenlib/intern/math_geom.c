@@ -808,8 +808,7 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 	if (u > 1) du = u - 1;
 	if (v < 0) dv = v;
 	if (v > 1) dv = v - 1;
-	if (u > 0 && v > 0 && u + v > 1)
-	{
+	if (u > 0 && v > 0 && u + v > 1) {
 		float t = u + v - 1;
 		du = u - t/2;
 		dv = v - t/2;
@@ -818,8 +817,7 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 	mul_v3_fl(e1, du);
 	mul_v3_fl(e2, dv);
 	
-	if (dot_v3v3(e1, e1) + dot_v3v3(e2, e2) > threshold * threshold)
-	{
+	if (dot_v3v3(e1, e1) + dot_v3v3(e2, e2) > threshold * threshold) {
 		return 0;
 	}
 
@@ -895,8 +893,7 @@ static int getLowestRoot(const float a, const float b, const float c, const floa
 	float determinant = b*b - 4.0f*a*c;
 
 	// If determinant is negative it means no solutions.
-	if (determinant >= 0.0f)
-	{
+	if (determinant >= 0.0f) {
 		// calculate the two roots: (if determinant == 0 then
 		// x1==x2 but lets disregard that slight optimization)
 		float sqrtD = (float)sqrt(determinant);
@@ -908,16 +905,14 @@ static int getLowestRoot(const float a, const float b, const float c, const floa
 			SWAP(float, r1, r2);
 
 		// Get lowest root:
-		if (r1 > 0.0f && r1 < maxR)
-		{
+		if (r1 > 0.0f && r1 < maxR) {
 			*root = r1;
 			return 1;
 		}
 
 		// It is possible that we want x2 - this can happen
 		// if x1 < 0
-		if (r2 > 0.0f && r2 < maxR)
-		{
+		if (r2 > 0.0f && r2 < maxR) {
 			*root = r2;
 			return 1;
 		}
@@ -951,8 +946,7 @@ int isect_sweeping_sphere_tri_v3(
 	a=dot_v3v3(p1,nor)-dot_v3v3(v0,nor);
 	nordotv=dot_v3v3(nor,vel);
 
-	if (fabsf(nordotv) < 0.000001f)
-	{
+	if (fabsf(nordotv) < 0.000001f) {
 		if(fabsf(a) >= radius) {
 			return 0;
 		}
@@ -992,8 +986,7 @@ int isect_sweeping_sphere_tri_v3(
 		z=x+y-(a*c-b*b);
 
 
-		if(z <= 0.0f && (x >= 0.0f && y >= 0.0f))
-		{
+		if (z <= 0.0f && (x >= 0.0f && y >= 0.0f)) {
 		//(((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y))) & 0x80000000) {
 			*r_lambda=t0;
 			copy_v3_v3(ipoint,point);
@@ -1012,8 +1005,7 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*dot_v3v3(vel,temp);
 	c=dot_v3v3(temp,temp)-radius2;
 
-	if(getLowestRoot(a, b, c, *r_lambda, r_lambda))
-	{
+	if(getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
 		copy_v3_v3(ipoint,v0);
 		found_by_sweep=1;
 	}
@@ -1023,8 +1015,7 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*dot_v3v3(vel,temp);
 	c=dot_v3v3(temp,temp)-radius2;
 
-	if(getLowestRoot(a, b, c, *r_lambda, r_lambda))
-	{
+	if (getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
 		copy_v3_v3(ipoint,v1);
 		found_by_sweep=1;
 	}
@@ -1034,8 +1025,7 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*dot_v3v3(vel,temp);
 	c=dot_v3v3(temp,temp)-radius2;
 
-	if(getLowestRoot(a, b, c, *r_lambda, r_lambda))
-	{
+	if(getLowestRoot(a, b, c, *r_lambda, r_lambda)) {
 		copy_v3_v3(ipoint,v2);
 		found_by_sweep=1;
 	}
@@ -1055,12 +1045,10 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*(elen2*dot_v3v3(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-dot_v3v3(bv,bv))+edotbv*edotbv;
 
-	if(getLowestRoot(a, b, c, *r_lambda, &newLambda))
-	{
+	if (getLowestRoot(a, b, c, *r_lambda, &newLambda)) {
 		e=(edotv*newLambda-edotbv)/elen2;
 
-		if(e >= 0.0f && e <= 1.0f)
-		{
+		if (e >= 0.0f && e <= 1.0f) {
 			*r_lambda = newLambda;
 			copy_v3_v3(ipoint,e1);
 			mul_v3_fl(ipoint,e);
@@ -1079,12 +1067,10 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*(elen2*dot_v3v3(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-dot_v3v3(bv,bv))+edotbv*edotbv;
 
-	if(getLowestRoot(a, b, c, *r_lambda, &newLambda))
-	{
+	if (getLowestRoot(a, b, c, *r_lambda, &newLambda)) {
 		e=(edotv*newLambda-edotbv)/elen2;
 
-		if(e >= 0.0f && e <= 1.0f)
-		{
+		if (e >= 0.0f && e <= 1.0f) {
 			*r_lambda = newLambda;
 			copy_v3_v3(ipoint,e2);
 			mul_v3_fl(ipoint,e);
@@ -1108,12 +1094,10 @@ int isect_sweeping_sphere_tri_v3(
 	b=2.0f*(elen2*dot_v3v3(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-dot_v3v3(bv,bv))+edotbv*edotbv;
 
-	if(getLowestRoot(a, b, c, *r_lambda, &newLambda))
-	{
+	if (getLowestRoot(a, b, c, *r_lambda, &newLambda)) {
 		e=(edotv*newLambda-edotbv)/elen2;
 
-		if(e >= 0.0f && e <= 1.0f)
-		{
+		if (e >= 0.0f && e <= 1.0f) {
 			*r_lambda = newLambda;
 			copy_v3_v3(ipoint,e3);
 			mul_v3_fl(ipoint,e);
@@ -2543,8 +2527,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 	if (lrot) unit_m3(lrot);
 	if (lscale) unit_m3(lscale);
 	/* do com for both clouds */
-	if (pos && rpos && (list_size > 0)) /* paranoya check */
-	{
+	if (pos && rpos && (list_size > 0)) { /* paranoya check */
 		/* do com for both clouds */
 		for(a=0; a<list_size; a++) {
 			if (weight) {

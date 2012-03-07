@@ -4360,16 +4360,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					smd->domain->point_cache[1] = NULL;
 				}
 			}
-			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
-			{
+			else if (smd->type==MOD_SMOKE_TYPE_FLOW) {
 				smd->domain = NULL;
 				smd->coll = NULL;
 				smd->flow = newdataadr(fd, smd->flow);
 				smd->flow->smd = smd;
 				smd->flow->psys = newdataadr(fd, smd->flow->psys);
 			}
-			else if(smd->type==MOD_SMOKE_TYPE_COLL)
-			{
+			else if (smd->type==MOD_SMOKE_TYPE_COLL) {
 				smd->flow = NULL;
 				smd->domain = NULL;
 				smd->coll = newdataadr(fd, smd->coll);
@@ -12217,8 +12215,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 
 						}
-						else if((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow)
-						{
+						else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
 							smd->flow->vel_multi = 1.0f;
 						}
 
@@ -12968,10 +12965,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* sigh, this dscale vs dsize version patching was not done right, fix for fix,
 	 * this intentionally checks an exact subversion, also note this was never in a release,
 	 * at some point this could be removed. */
-	else if (main->versionfile == 260 && main->subversionfile == 6)
-	{
+	else if (main->versionfile == 260 && main->subversionfile == 6) {
 		Object *ob;
-		for (ob= main->object.first; ob; ob= ob->id.next) {
+		for (ob = main->object.first; ob; ob= ob->id.next) {
 			if (is_zero_v3(ob->dscale)) {
 				fill_vn_fl(ob->dscale, 3, 1.0f);
 			}

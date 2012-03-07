@@ -4889,16 +4889,14 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 	}
 
 	/* surfaces operations that use adjacency data */
-	if (sData->adj_data && bData->bNeighs)
-	{
+	if (sData->adj_data && bData->bNeighs) {
 		/* wave type surface simulation step */
 		if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
 			dynamicPaint_doWaveStep(surface, timescale);
 		}
 
 		/* paint surface effects */
-		if (surface->effect && surface->type == MOD_DPAINT_SURFACE_T_PAINT)
-		{
+		if (surface->effect && surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			int steps = 1, s;
 			PaintPoint *prevPoint;
 			float *force = NULL;

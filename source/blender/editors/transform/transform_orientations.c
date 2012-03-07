@@ -122,8 +122,7 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name
 		ts = createObjectSpace(C, reports, name, overwrite);
 	}
 	
-	if (use && ts != NULL)
-	{
+	if (use && ts != NULL) {
 		BIF_selectTransformOrientation(C, ts);
 	}
 }
@@ -144,8 +143,7 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 	normalize_m3(mat);
 
 	/* use object name if no name is given */
-	if (name[0] == 0)
-	{
+	if (name[0] == 0) {
 		strncpy(name, ob->id.name+2, MAX_ID_NAME-2);
 	}
 
@@ -164,8 +162,7 @@ TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *na
 		return NULL;
 	}
 
-	if (name[0] == 0)
-	{
+	if (name[0] == 0) {
 		strcpy(name, "Bone");
 	}
 
@@ -188,8 +185,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 				return NULL;
 			}
 	
-			if (name[0] == 0)
-			{
+			if (name[0] == 0) {
 				strcpy(name, "Vertex");
 			}
 			break;
@@ -199,8 +195,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 				return NULL;
 			}
 	
-			if (name[0] == 0)
-			{
+			if (name[0] == 0) {
 				strcpy(name, "Edge");
 			}
 			break;
@@ -210,8 +205,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 				return NULL;
 			}
 	
-			if (name[0] == 0)
-			{
+			if (name[0] == 0) {
 				strcpy(name, "Face");
 			}
 			break;
@@ -254,8 +248,7 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 	}
 	
 	/* preempt zero length tangent from causing trouble */
-	if (tangent[0] == 0 && tangent[1] == 0 && tangent[2] == 0)
-	{
+	if (tangent[0] == 0 && tangent[1] == 0 && tangent[2] == 0) {
 		tangent[2] = 1;
 	}
 
@@ -284,8 +277,7 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 	}
 
 	/* if not, create a new one */
-	if (ts == NULL)
-	{
+	if (ts == NULL) {
 		ts = MEM_callocN(sizeof(TransformOrientation), "UserTransSpace from matrix");
 		BLI_addtail(transform_spaces, ts);
 		strncpy(ts->name, name, sizeof(ts->name));
@@ -566,8 +558,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	normal[0] = normal[1] = normal[2] = 0;
 	plane[0] = plane[1] = plane[2] = 0;
 
-	if(obedit)
-	{
+	if (obedit) {
 		float imat[3][3], mat[3][3];
 		
 		/* we need the transpose of the inverse for a normal... */
@@ -578,8 +569,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 		ob= obedit;
 
-		if(ob->type==OB_MESH)
-		{
+		if (ob->type==OB_MESH) {
 			Mesh *me= ob->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
@@ -587,8 +577,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
-			if (activeOnly && EDBM_get_actSelection(em, &ese))
-			{
+			if (activeOnly && EDBM_get_actSelection(em, &ese)) {
 				EDBM_editselection_normal(normal, &ese);
 				EDBM_editselection_plane(em, plane, &ese);
 				
@@ -622,8 +611,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					
 					result = ORIENTATION_FACE;
 				}
-				else if (em->bm->totvertsel == 3)
-				{
+				else if (em->bm->totvertsel == 3) {
 					BMVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
 					BMIter iter;
 					float cotangent[3];
@@ -648,8 +636,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 
 					/* if there's an edge available, use that for the tangent */
-					if (em->bm->totedgesel >= 1)
-					{
+					if (em->bm->totedgesel >= 1) {
 						BMEdge *eed = NULL;
 						BMIter iter;
 						
@@ -663,8 +650,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 					result = ORIENTATION_FACE;
 				}
-				else if (em->bm->totedgesel == 1)
-				{
+				else if (em->bm->totedgesel == 1) {
 					BMEdge *eed = NULL;
 					BMIter iter;
 					
@@ -679,8 +665,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (em->bm->totvertsel == 2)
-				{
+				else if (em->bm->totvertsel == 2) {
 					BMVert *v1 = NULL, *v2 = NULL;
 					BMIter iter;
 
@@ -701,8 +686,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (em->bm->totvertsel == 1)
-				{
+				else if (em->bm->totvertsel == 1) {
 					BMIter iter;
 
 					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -713,8 +697,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					}
 					result = ORIENTATION_VERT;
 				}
-				else if (em->bm->totvertsel > 3)
-				{
+				else if (em->bm->totvertsel > 3) {
 					BMIter iter;
 					normal[0] = normal[1] = normal[2] = 0.0f;
 
@@ -728,19 +711,16 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 		} /* end editmesh */
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF)
-		{
+		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
 			Curve *cu= obedit->data;
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
 			ListBase *nurbs= curve_editnurbs(cu);
 
-			for (nu = nurbs->first; nu; nu = nu->next)
-			{
+			for (nu = nurbs->first; nu; nu = nu->next) {
 				/* only bezier has a normal */
-				if(nu->type == CU_BEZIER)
-				{
+				if (nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--)
@@ -756,8 +736,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							if (bezt->f2) {
 								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
 							}
-							if(bezt->f3)
-							{
+							if (bezt->f3) {
 								sub_v3_v3v3(normal, bezt->vec[1], bezt->vec[2]);
 							}
 						}
@@ -766,21 +745,18 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 			
-			if (normal[0] != 0 || normal[1] != 0 || normal[2] != 0)
-			{
+			if (normal[0] != 0 || normal[1] != 0 || normal[2] != 0) {
 				result = ORIENTATION_NORMAL;
 			}
 		}
-		else if(obedit->type==OB_MBALL)
-		{
+		else if(obedit->type==OB_MBALL){
 #if 0 // XXX
 			/* editmball.c */
 			extern ListBase editelems;  /* go away ! */
 			MetaElem *ml, *ml_sel = NULL;
 	
 			/* loop and check that only one element is selected */	
-			for (ml = editelems.first; ml; ml = ml->next)
-			{
+			for (ml = editelems.first; ml; ml = ml->next) {
 				if (ml->flag & SELECT) {
 					if (ml_sel == NULL) {
 						ml_sel = ml;
@@ -792,8 +768,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 			
-			if (ml_sel)
-			{	
+			if (ml_sel) {	
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
@@ -808,16 +783,13 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 #endif
 			
 		}
-		else if (obedit->type == OB_ARMATURE)
-		{
+		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;
 			EditBone *ebone;
 			
 			for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-				if (arm->layer & ebone->layer)
-				{
-					if (ebone->flag & BONE_SELECTED)
-					{
+				if (arm->layer & ebone->layer) {
+					if (ebone->flag & BONE_SELECTED) {
 						float tmat[3][3];
 						float vec[3];
 						sub_v3_v3v3(vec, ebone->tail, ebone->head);
@@ -849,8 +821,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			mul_m3_v3(mat, plane);
 		}
 	}
-	else if(ob && (ob->mode & OB_MODE_POSE))
-	{
+	else if(ob && (ob->mode & OB_MODE_POSE)) {
 		bArmature *arm= ob->data;
 		bPoseChannel *pchan;
 		int totsel;
@@ -879,8 +850,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			result = ORIENTATION_EDGE;
 		}
 	}
-	else if(ob && (ob->mode & (OB_MODE_ALL_PAINT|OB_MODE_PARTICLE_EDIT)))
-	{
+	else if(ob && (ob->mode & (OB_MODE_ALL_PAINT|OB_MODE_PARTICLE_EDIT))) {
+		/* pass */
 	}
 	else {
 		/* we need the one selected object, if its not active */

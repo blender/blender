@@ -96,8 +96,7 @@ void RegisterBlendExtension(void)
 
 	// root is HKLM by default
 	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
-	if (lresult != ERROR_SUCCESS)
-	{
+	if (lresult != ERROR_SUCCESS) {
 		// try HKCU on failure
 		usr_mode = TRUE;
 		lresult = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
@@ -161,8 +160,7 @@ void RegisterBlendExtension(void)
 
 	RegCloseKey(root);
 	printf("success (%s)\n",usr_mode ? "user" : "system");
-	if (!G.background)
-	{
+	if (!G.background) {
 		sprintf(MBox,"File extension registered for %s.",usr_mode ? "the current user. To register for all users, run as an administrator" : "all users");
 		MessageBox(0,MBox,"Blender",MB_OK|MB_ICONINFORMATION);
 	}

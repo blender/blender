@@ -6803,10 +6803,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		// only draw domains
 		if (smd->domain && smd->domain->fluid) {
-			if (CFRA < smd->domain->point_cache[0]->startframe)
-				; /* don't show smoke before simulation starts, this could be made an option in the future */
-			else if (!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
-			{
+			if (CFRA < smd->domain->point_cache[0]->startframe) {
+				/* don't show smoke before simulation starts, this could be made an option in the future */
+			}
+			else if (!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 // #if 0
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 0);

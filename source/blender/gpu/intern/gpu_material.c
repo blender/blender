@@ -1053,23 +1053,21 @@ static void do_material_tex(GPUShadeInput *shi)
 						if(mtex->norfac < 0.0f)
 							GPU_link(mat, "mtex_negate_texnormal", tnor, &tnor);
 
-						if(mtex->normapspace == MTEX_NSPACE_TANGENT)
-						{
-							if(iFirstTimeNMap!=0)
-							{
+						if (mtex->normapspace == MTEX_NSPACE_TANGENT) {
+							if (iFirstTimeNMap != 0) {
 								// use unnormalized normal (this is how we bake it - closer to gamedev)
 								GPUNodeLink *vNegNorm;
 								GPU_link(mat, "vec_math_negate", GPU_builtin(GPU_VIEW_NORMAL), &vNegNorm);
 								GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), vNegNorm, tnor, &newnor);
 								iFirstTimeNMap = 0;
 							}
-							else	// otherwise use accumulated perturbations
-							{
+							else { /* otherwise use accumulated perturbations */
 								GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), shi->vn, tnor, &newnor);
 							}
 						}
-						else
+						else {
 							newnor = tnor;
+						}
 						
 						norfac = minf(fabsf(mtex->norfac), 1.0f);
 						
@@ -1085,7 +1083,8 @@ static void do_material_tex(GPUShadeInput *shi)
 							GPU_link(mat, "mtex_blend_normal", tnorfac, shi->vn, newnor, &shi->vn);
 						}
 						
-					} else if( (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP)) || found_deriv_map) {
+					}
+					else if( (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP)) || found_deriv_map) {
 						/* ntap bumpmap image */
 						int iBumpSpace;
 						float ima_x, ima_y;
@@ -1120,8 +1119,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						// to inverting the bump map. Should this ever change
 						// this negate must be removed.
 						norfac = -hScale * mtex->norfac;
-						if(found_deriv_map)
-						{
+						if (found_deriv_map) {
 							float fVirtDim = sqrtf(fabsf(ima_x*mtex->size[0]*ima_y*mtex->size[1]));
 							norfac /= MAX2(fVirtDim, FLT_EPSILON);
 						}

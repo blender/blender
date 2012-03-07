@@ -198,8 +198,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			if(v3d->zbuf)
 				glEnable(GL_DEPTH_TEST);
 		}
-		else if (t->spacetype==SPACE_IMAGE)
-		{
+		else if (t->spacetype==SPACE_IMAGE) {
 			/* This will not draw, and Im nor sure why - campbell */
 #if 0
 			float xuser_asp, yuser_asp;
@@ -288,8 +287,7 @@ void applyProject(TransInfo *t)
 				Object *ob = t->obedit?t->obedit:t->poseobj;
 				mul_m4_v3(ob->obmat, iloc);
 			}
-			else if (t->flag & T_OBJECT)
-			{
+			else if (t->flag & T_OBJECT) {
 				td->ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				object_handle_update(t->scene, td->ob);
 				copy_v3_v3(iloc, td->ob->obmat[3]);
@@ -327,8 +325,7 @@ void applySnapping(TransInfo *t, float *vec)
 	
 		t->tsnap.applySnap(t, vec);
 	}
-	else if ((t->tsnap.mode != SCE_SNAP_MODE_INCREMENT) && activeSnap(t))
-	{
+	else if ((t->tsnap.mode != SCE_SNAP_MODE_INCREMENT) && activeSnap(t)) {
 		double current = PIL_check_seconds_timer();
 		
 		// Time base quirky code to go around findnearest slowness
@@ -478,10 +475,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		}
 	}
 	/* use scene defaults only when transform is modal */
-	else if (t->flag & T_MODAL)
-	{
-		if(ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE))
-		{
+	else if (t->flag & T_MODAL) {
+		if(ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
 			if (ts->snap_flag & SCE_SNAP) {
 				t->modifiers |= MOD_SNAP;
 			}
@@ -895,8 +890,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			t->tsnap.status &= ~POINT_INIT;
 		}
 	}
-	else if (t->spacetype == SPACE_IMAGE && t->obedit != NULL && t->obedit->type==OB_MESH)
-	{	/* same as above but for UV's */
+	else if (t->spacetype == SPACE_IMAGE && t->obedit != NULL && t->obedit->type==OB_MESH) {
 		/* same as above but for UV's */
 		Image *ima= ED_space_image(t->sa->spacedata.first);
 		float aspx, aspy, co[2];
@@ -1306,8 +1300,7 @@ static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm
 			}
 		}
 	}
-	else if (ob->pose && ob->pose->chanbase.first)
-	{
+	else if (ob->pose && ob->pose->chanbase.first) {
 		bPoseChannel *pchan;
 		Bone *bone;
 		
@@ -1630,8 +1623,7 @@ static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, flo
 
 		dm->release(dm);
 	}
-	else if (ob->type == OB_ARMATURE)
-	{
+	else if (ob->type == OB_ARMATURE) {
 		retval = snapArmature(ts->snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist, r_depth);
 	}
 	
@@ -1648,8 +1640,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 	
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
-	if (mode == SNAP_ALL && obedit)
-	{
+	if (mode == SNAP_ALL && obedit) {
 		Object *ob = obedit;
 
 		retval |= snapObject(scene, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist, &depth);
@@ -1661,8 +1652,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 	 * To solve that problem, we do it first as an exception. 
 	 * */
 	base= BASACT;
-	if(base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT)
-	{
+	if (base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT) {
 		Object *ob = base->object;
 		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist, &depth);
 	}
@@ -1676,8 +1666,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 		{
 			Object *ob = base->object;
 			
-			if (ob->transflag & OB_DUPLI)
-			{
+			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(scene, ob);
 				
@@ -1720,12 +1709,10 @@ static int cmpPeel(void *arg1, void *arg2)
 	DepthPeel *p2 = arg2;
 	int val = 0;
 	
-	if (p1->depth < p2->depth)
-	{
+	if (p1->depth < p2->depth) {
 		val = -1;
 	}
-	else if (p1->depth > p2->depth)
-	{
+	else if (p1->depth > p2->depth) {
 		val = 1;
 	}
 	
@@ -1739,13 +1726,11 @@ static void removeDoublesPeel(ListBase *depth_peels)
 	for (peel = depth_peels->first; peel; peel = peel->next)
 	{
 		DepthPeel *next_peel = peel->next;
-		
-		if (next_peel && ABS(peel->depth - next_peel->depth) < 0.0015f)
-		{
+
+		if (next_peel && ABS(peel->depth - next_peel->depth) < 0.0015f) {
 			peel->next = next_peel->next;
 			
-			if (next_peel->next)
-			{
+			if (next_peel->next) {
 				next_peel->next->prev = peel;
 			}
 			
@@ -1841,8 +1826,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 					addDepthPeel(depth_peels, new_depth, location, normal, ob);
 				}
 		
-				if (f->v4 && result == 0)
-				{
+				if (f->v4 && result == 0) {
 					result = isect_ray_tri_threshold_v3(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL, 0.001);
 					
 					if (result) {
@@ -1886,12 +1870,11 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 	
 	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
-	for ( base = scene->base.first; base != NULL; base = base->next ) {
+	for (base = scene->base.first; base != NULL; base = base->next) {
 		if ( BASE_SELECTABLE(v3d, base) ) {
 			Object *ob = base->object;
 			
-			if (ob->transflag & OB_DUPLI)
-			{
+			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(scene, ob);
 				

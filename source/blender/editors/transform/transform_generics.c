@@ -1098,21 +1098,18 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 
 	}
-	else if(t->spacetype==SPACE_IMAGE)
-	{
+	else if(t->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima = sa->spacedata.first;
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = sima->around;
 	}
-	else if(t->spacetype==SPACE_NODE)
-	{
+	else if(t->spacetype==SPACE_NODE) {
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = V3D_CENTER;
 	}
-	else if(t->spacetype==SPACE_IPO) 
-	{
+	else if(t->spacetype==SPACE_IPO) {
 		SpaceIpo *sipo= sa->spacedata.first;
 		t->view = &ar->v2d;
 		t->around = sipo->around;
@@ -1151,8 +1148,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 	}
 	// Need stuff to take it from edit mesh or whatnot here
-	else if (t->spacetype == SPACE_VIEW3D)
-	{
+	else if (t->spacetype == SPACE_VIEW3D) {
 		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X))
 		{
 			t->flag |= T_MIRROR;
@@ -1552,8 +1548,7 @@ void calculateCenter(TransInfo *t)
 		{
 			Scene *scene = t->scene;
 			Object *ob= OBACT;
-			if(ob)
-			{
+			if (ob) {
 				copy_v3_v3(t->center, ob->obmat[3]);
 				projectIntView(t, t->center, t->center2d);
 			}
@@ -1564,23 +1559,19 @@ void calculateCenter(TransInfo *t)
 	
 	/* setting constraint center */
 	copy_v3_v3(t->con.center, t->center);
-	if(t->flag & (T_EDIT|T_POSE))
-	{
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		mul_m4_v3(ob->obmat, t->con.center);
 	}
 	
 	/* for panning from cameraview */
-	if(t->flag & T_OBJECT)
-	{
-		if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
+	if (t->flag & T_OBJECT) {
+		if (t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;
 			RegionView3D *rv3d = t->ar->regiondata;
 			
-			if(v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
-			{
+			if (v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB) {
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */
 				copy_v3_v3(axis, t->viewinv[2]);
@@ -1603,8 +1594,7 @@ void calculateCenter(TransInfo *t)
 		}
 	}
 	
-	if(t->spacetype==SPACE_VIEW3D)
-	{
+	if (t->spacetype==SPACE_VIEW3D) {
 		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d_delta() */
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
@@ -1632,8 +1622,7 @@ void calculatePropRatio(TransInfo *t)
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
 			}
-			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f)
-			{
+			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f) {
 				td->flag |= TD_SKIP;
 				td->factor = 0.0f;
 				restoreElement(td);

@@ -80,16 +80,13 @@ static void constraintAutoValues(TransInfo *t, float vec[3])
 	{
 		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
-		if ((mode & CON_AXIS0) == 0)
-		{
+		if ((mode & CON_AXIS0) == 0) {
 			vec[0] = nval;
 		}
-		if ((mode & CON_AXIS1) == 0)
-		{
+		if ((mode & CON_AXIS1) == 0) {
 			vec[1] = nval;
 		}
-		if ((mode & CON_AXIS2) == 0)
-		{
+		if ((mode & CON_AXIS2) == 0) {
 			vec[2] = nval;
 		}
 	}
@@ -165,8 +162,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 	}
 
 	/* autovalues is operator param, use that directly but not if snapping is forced */
-	if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0)
-	{
+	if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0) {
 		mul_v3_m3v3(vec, t->con.imtx, t->auto_values);
 		constraintAutoValues(t, vec);
 		/* inverse transformation at the end */
@@ -716,8 +712,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		UI_ThemeColor(TH_GRID);
 
-		if(t->spacetype == SPACE_VIEW3D && rv3d != NULL)
-		{
+		if(t->spacetype == SPACE_VIEW3D && rv3d != NULL) {
 			copy_m4_m4(tmat, rv3d->viewmat);
 			invert_m4_m4(imat, tmat);
 		}
@@ -730,12 +725,10 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		copy_v3_v3(center, t->center);
 
-		if((t->spacetype == SPACE_VIEW3D) && t->obedit)
-		{
+		if((t->spacetype == SPACE_VIEW3D) && t->obedit) {
 			mul_m4_v3(t->obedit->obmat, center); /* because t->center is in local space */
 		}
-		else if(t->spacetype == SPACE_IMAGE)
-		{
+		else if(t->spacetype == SPACE_IMAGE) {
 			float aspx, aspy;
 
 			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);

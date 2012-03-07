@@ -316,13 +316,11 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_NLA) {
 		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	}
-	else if(t->spacetype == SPACE_NODE)
-	{
+	else if(t->spacetype == SPACE_NODE) {
 		//ED_area_tag_redraw(t->sa);
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 	}
-	else if(t->spacetype == SPACE_SEQ)
-	{
+	else if(t->spacetype == SPACE_SEQ) {
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL);
 	}
 	else if (t->spacetype==SPACE_IMAGE) {
@@ -1519,8 +1517,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	{
 		t->launch_event = RIGHTMOUSE;
 	}
-	else if (t->launch_event == EVT_TWEAK_L)
-	{
+	else if (t->launch_event == EVT_TWEAK_L) {
 		t->launch_event = LEFTMOUSE;
 	}
 

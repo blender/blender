@@ -2473,8 +2473,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 
 				verts[0]=mvert[mface[f].v1].co; verts[1]=mvert[mface[f].v2].co; verts[2]=mvert[mface[f].v3].co;
 				tex_coords[0]=mtface[f].uv[0]; tex_coords[1]=mtface[f].uv[1]; tex_coords[2]=mtface[f].uv[2];
-				if(nr_verts==4)
-				{
+				if (nr_verts==4) {
 					verts[3]=mvert[mface[f].v4].co;
 					tex_coords[3]=mtface[f].uv[3];
 				}
@@ -2567,8 +2566,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 							sub_v2_v2v2(edge_t1, tex_coords[indices[t*3+2]], tex_coords[indices[t*3+0]]);
 
 							f2x_area_uv = fabsf(edge_t0[0]*edge_t1[1] - edge_t0[1]*edge_t1[0]);
-							if ( f2x_area_uv>FLT_EPSILON )
-							{
+							if (f2x_area_uv>FLT_EPSILON) {
 								float norm[3], v0[3], v1[3], f2x_surf_area, fsurf_ratio;
 								sub_v3_v3v3(v0, p1, p0);
 								sub_v3_v3v3(v1, p2, p0);

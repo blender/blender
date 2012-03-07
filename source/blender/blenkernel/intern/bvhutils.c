@@ -67,8 +67,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 	normal_tri_v3(plane_normal, v0, v1, v2);
 
 	madd_v3_v3v3fl(p1, ray->origin, ray->direction, m_dist);
-	if(isect_sweeping_sphere_tri_v3(ray->origin, p1, radius, v0, v1, v2, &idist, hit_point))
-	{
+	if (isect_sweeping_sphere_tri_v3(ray->origin, p1, radius, v0, v1, v2, &idist, hit_point)) {
 		return idist * m_dist;
 	}
 
@@ -111,23 +110,17 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 	S = A01 * B1 - A11 * B0;
 	T = A01 * B0 - A00 * B1;
 
-	if ( S + T <= Det )
-	{
-		if ( S < 0.0f )
-		{
-			if ( T < 0.0f )  // Region 4
-			{
-				if ( B0 < 0.0f )
-				{
+	if (S + T <= Det) {
+		if (S < 0.0f) {
+			if (T < 0.0f) { /* Region 4 */
+				if (B0 < 0.0f) {
 					T = 0.0f;
-					if ( -B0 >= A00 )
-					{
+					if (-B0 >= A00) {
 						S = 1.0f;
 						sqrDist = A00 + 2.0f * B0 + C;
 						lv = 1;
 					}
-					else
-					{
+					else {
 						if(fabsf(A00) > FLT_EPSILON)
 							S = -B0/A00;
 						else
@@ -136,23 +129,19 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 						le = 0;
 					}
 				}
-				else
-				{
+				else {
 					S = 0.0f;
-					if ( B1 >= 0.0f )
-					{
+					if (B1 >= 0.0f) {
 						T = 0.0f;
 						sqrDist = C;
 						lv = 0;
 					}
-					else if ( -B1 >= A11 )
-					{
+					else if (-B1 >= A11) {
 						T = 1.0f;
 						sqrDist = A11 + 2.0f * B1 + C;
 						lv = 2;
 					}
-					else
-					{
+					else {
 						if(fabsf(A11) > FLT_EPSILON)
 							T = -B1 / A11;
 						else
@@ -162,23 +151,19 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 					}
 				}
 			}
-			else  // Region 3
-			{
+			else { /* Region 3 */
 				S = 0.0f;
-				if ( B1 >= 0.0f )
-				{
+				if (B1 >= 0.0f) {
 					T = 0.0f;
 					sqrDist = C;
 					lv = 0;
 				}
-				else if ( -B1 >= A11 )
-				{
+				else if (-B1 >= A11) {
 					T = 1.0f;
 					sqrDist = A11 + 2.0f * B1 + C;
 					lv = 2;
 				}
-				else
-				{
+				else {
 					if(fabsf(A11) > FLT_EPSILON)
 						T = -B1 / A11;
 					else
@@ -188,24 +173,20 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 				}
 			}
 		}
-		else if ( T < 0.0f )  // Region 5
-		{
+		else if (T < 0.0f) { /* Region 5 */
 			T = 0.0f;
-			if ( B0 >= 0.0f )
-			{
+			if (B0 >= 0.0f) {
 				S = 0.0f;
 				sqrDist = C;
 				lv = 0;
 			}
-			else if ( -B0 >= A00 )
-			{
+			else if (-B0 >= A00) {
 				S = 1.0f;
 				sqrDist = A00 + 2.0f * B0 + C;
 				lv = 1;
 			}
-			else
-			{
-				if(fabsf(A00) > FLT_EPSILON)
+			else {
+				if (fabsf(A00) > FLT_EPSILON)
 					S = -B0 / A00;
 				else
 					S = 0.0f;
@@ -213,8 +194,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 				le = 0;
 			}
 		}
-		else  // Region 0
-		{
+		else { /* Region 0 */
 			// Minimum at interior lv
 			float invDet;
 			if(fabsf(Det) > FLT_EPSILON)
@@ -224,57 +204,48 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 			S *= invDet;
 			T *= invDet;
 			sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0) +
-					T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+			          T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
 		}
 	}
-	else
-	{
+	else {
 		float tmp0, tmp1, numer, denom;
 
-		if ( S < 0.0f )  // Region 2
-		{
+		if (S < 0.0f) { /* Region 2 */
 			tmp0 = A01 + B0;
 			tmp1 = A11 + B1;
-			if ( tmp1 > tmp0 )
-			{
+			if ( tmp1 > tmp0 ) {
 				numer = tmp1 - tmp0;
 				denom = A00 - 2.0f * A01 + A11;
-				if ( numer >= denom )
-				{
+				if ( numer >= denom ) {
 					S = 1.0f;
 					T = 0.0f;
 					sqrDist = A00 + 2.0f * B0 + C;
 					lv = 1;
 				}
-				else
-				{
+				else {
 					if(fabsf(denom) > FLT_EPSILON)
 						S = numer / denom;
 					else
 						S = 0.0f;
 					T = 1.0f - S;
 					sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0 ) +
-							T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+					          T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
 					le = 2;
 				}
 			}
-			else
-			{
+			else {
 				S = 0.0f;
-				if ( tmp1 <= 0.0f )
-				{
+				if ( tmp1 <= 0.0f ) {
 					T = 1.0f;
 					sqrDist = A11 + 2.0f * B1 + C;
 					lv = 2;
 				}
-				else if ( B1 >= 0.0f )
-				{
+				else if (B1 >= 0.0f) {
 					T = 0.0f;
 					sqrDist = C;
 					lv = 0;
 				}
-				else
-				{
+				else {
 					if(fabsf(A11) > FLT_EPSILON)
 						T = -B1 / A11;
 					else
@@ -284,50 +255,42 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 				}
 			}
 		}
-		else if ( T < 0.0f )  // Region 6
-		{
+		else if (T < 0.0f) { /* Region 6 */
 			tmp0 = A01 + B1;
 			tmp1 = A00 + B0;
-			if ( tmp1 > tmp0 )
-			{
+			if ( tmp1 > tmp0 ) {
 				numer = tmp1 - tmp0;
 				denom = A00 - 2.0f * A01 + A11;
-				if ( numer >= denom )
-				{
+				if ( numer >= denom ) {
 					T = 1.0f;
 					S = 0.0f;
 					sqrDist = A11 + 2.0f * B1 + C;
 					lv = 2;
 				}
-				else
-				{
+				else {
 					if(fabsf(denom) > FLT_EPSILON)
 						T = numer / denom;
 					else
 						T = 0.0f;
 					S = 1.0f - T;
 					sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0 ) +
-							T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+					          T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
 					le = 2;
 				}
 			}
-			else
-			{
+			else {
 				T = 0.0f;
-				if ( tmp1 <= 0.0f )
-				{
+				if (tmp1 <= 0.0f) {
 					S = 1.0f;
 					sqrDist = A00 + 2.0f * B0 + C;
 					lv = 1;
 				}
-				else if ( B0 >= 0.0f )
-				{
+				else if (B0 >= 0.0f) {
 					S = 0.0f;
 					sqrDist = C;
 					lv = 0;
 				}
-				else
-				{
+				else {
 					if(fabsf(A00) > FLT_EPSILON)
 						S = -B0 / A00;
 					else
@@ -337,35 +300,30 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 				}
 			}
 		}
-		else  // Region 1
-		{
+		else { /* Region 1 */
 			numer = A11 + B1 - A01 - B0;
-			if ( numer <= 0.0f )
-			{
+			if ( numer <= 0.0f ) {
 				S = 0.0f;
 				T = 1.0f;
 				sqrDist = A11 + 2.0f * B1 + C;
 				lv = 2;
 			}
-			else
-			{
+			else {
 				denom = A00 - 2.0f * A01 + A11;
-				if ( numer >= denom )
-				{
+				if ( numer >= denom ) {
 					S = 1.0f;
 					T = 0.0f;
 					sqrDist = A00 + 2.0f * B0 + C;
 					lv = 1;
 				}
-				else
-				{
+				else {
 					if(fabsf(denom) > FLT_EPSILON)
 						S = numer / denom;
 					else
 						S = 0.0f;
 					T = 1.0f - S;
 					sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0 ) +
-							T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+					          T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
 					le = 2;
 				}
 			}
@@ -421,8 +379,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 		int vertex, edge;
 		
 		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
-		if(dist < nearest->dist)
-		{
+		if (dist < nearest->dist) {
 			nearest->index = index;
 			nearest->dist = dist;
 			copy_v3_v3(nearest->co, nearest_tmp);
@@ -459,8 +416,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 		else
 			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
 
-		if(dist >= 0 && dist < hit->dist)
-		{
+		if (dist >= 0 && dist < hit->dist) {
 			hit->index = index;
 			hit->dist = dist;
 			madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
@@ -491,8 +447,7 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float co[3
 	closest_to_line_segment_v3(nearest_tmp, co, t0, t1);
 	dist = len_squared_v3v3(nearest_tmp, co);
 	
-	if(dist < nearest->dist)
-	{
+	if (dist < nearest->dist) {
 		nearest->index = index;
 		nearest->dist = dist;
 		copy_v3_v3(nearest->co, nearest_tmp);
@@ -510,20 +465,18 @@ BVHTree* bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_VERTICES);
 
 	//Not in cache
-	if(tree == NULL)
-	{
+	if(tree == NULL) {
 		int i;
 		int numVerts= mesh->getNumVerts(mesh);
 		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
 
-		if(vert != NULL)
-		{
+		if (vert != NULL) {
 			tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
 
-			if(tree != NULL)
-			{
-				for(i = 0; i < numVerts; i++)
+			if (tree != NULL) {
+				for (i = 0; i < numVerts; i++) {
 					BLI_bvhtree_insert(tree, i, vert[i].co, 1);
+				}
 
 				BLI_bvhtree_balance(tree);
 
@@ -533,8 +486,7 @@ BVHTree* bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			}
 		}
 	}
-	else
-	{
+	else {
 //		printf("BVHTree is already build, using cached tree\n");
 	}
 
@@ -543,8 +495,7 @@ BVHTree* bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
-	if(data->tree)
-	{
+	if (data->tree) {
 		data->cached = TRUE;
 
 		//a NULL nearest callback works fine
@@ -568,8 +519,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_FACES);
 
 	//Not in cache
-	if(tree == NULL)
-	{
+	if (tree == NULL) {
 		int i;
 		int numFaces= mesh->getNumTessFaces(mesh);
 
@@ -580,12 +530,10 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 		 * if not caller should use DM_ensure_tessface() */
 		BLI_assert(!(numFaces == 0 && mesh->getNumPolys(mesh) != 0));
 
-		if(numFaces != 0)
-		{
+		if(numFaces != 0) {
 			/* Create a bvh-tree of the given target */
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
-			if(tree != NULL)
-			{
+			if (tree != NULL) {
 				BMEditMesh *em= data->em_evil;
 				if(em) {
 					/* data->em_evil is only set for snapping, and only for the mesh of the object
@@ -633,8 +581,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 							}
 						}
 
-						if (insert)
-						{
+						if (insert) {
 							/* No reason found to block hit-testing the triangle for snap,
 							 * so insert it now.*/
 							float co[4][3];
@@ -671,8 +618,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			}
 		}
 	}
-	else
-	{
+	else {
 //		printf("BVHTree is already build, using cached tree\n");
 	}
 
@@ -681,8 +627,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
-	if(data->tree)
-	{
+	if(data->tree) {
 		data->cached = TRUE;
 
 		data->nearest_callback = mesh_faces_nearest_point;
@@ -711,14 +656,11 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
 		MEdge *edge = mesh->getEdgeDataArray(mesh, CD_MEDGE);
 
-		if(vert != NULL && edge != NULL)
-		{
+		if (vert != NULL && edge != NULL) {
 			/* Create a bvh-tree of the given target */
 			tree = BLI_bvhtree_new(numEdges, epsilon, tree_type, axis);
-			if(tree != NULL)
-			{
-				for(i = 0; i < numEdges; i++)
-				{
+			if (tree != NULL) {
+				for (i = 0; i < numEdges; i++) {
 					float co[4][3];
 					copy_v3_v3(co[0], vert[ edge[i].v1 ].co);
 					copy_v3_v3(co[1], vert[ edge[i].v2 ].co);
@@ -743,8 +685,7 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
-	if(data->tree)
-	{
+	if(data->tree) {
 		data->cached = TRUE;
 
 		data->nearest_callback = mesh_edges_nearest_point;
@@ -763,8 +704,7 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 // Frees data allocated by a call to bvhtree_from_mesh_*.
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
-	if(data->tree)
-	{
+	if(data->tree) {
 		if(!data->cached)
 			BLI_bvhtree_free(data->tree);
 
@@ -786,8 +726,7 @@ static void bvhcacheitem_set_if_match(void *_cached, void *_search)
 	BVHCacheItem * cached = (BVHCacheItem *)_cached;
 	BVHCacheItem * search = (BVHCacheItem *)_search;
 
-	if(search->type == cached->type)
-	{
+	if(search->type == cached->type) {
 		search->tree = cached->tree;		
 	}
 } 

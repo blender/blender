@@ -3476,8 +3476,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 											mc[vindex]=mcol[a*4+rev_tab[vindex]];
 									}
 									else if (layer->type == CD_TANGENT && mtng < 1) {
-										if(need_nmap_tangent!=0)
-										{
+										if (need_nmap_tangent != 0) {
 											const float * tangent = (const float *) layer->data;
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
 											for(vindex=0; vindex<nr_verts; vindex++)
