@@ -46,9 +46,7 @@
  * There is a facility to get verbose output from sdna. Search for
  * \ref debugSDNA. This int can be set to 0 (no output) to some int. Higher
  * numbers give more output.
- * */
-
-#define DNA_VERSION_DATE "FIXME-DNA_VERSION_DATE"
+ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -927,7 +925,6 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	if (debugSDNA > -1) {
 		fflush(stdout);
 		printf("Running makesdna at debug level %d\n", debugSDNA);
-		printf("\tProgram version: %s\n", DNA_VERSION_DATE);
 	}
 		
 	/* the longest known struct is 50k, so we assume 100k is sufficent! */

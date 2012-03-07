@@ -40,8 +40,6 @@
 
 #include "rna_internal.h"
 
-#define RNA_VERSION_DATE "FIXME-RNA_VERSION_DATE"
-
 #ifdef _WIN32
 #  ifndef snprintf
 #    define snprintf _snprintf
@@ -2953,7 +2951,7 @@ int main(int argc, char **argv)
 		return_status = 1;
 	}
 	else {
-		fprintf(stderr, "Running makesrna, program versions %s\n",  RNA_VERSION_DATE);
+		fprintf(stderr, "Running makesrna");
 		makesrna_path = argv[0];
 		return_status = rna_preprocess(argv[1]);
 	}
