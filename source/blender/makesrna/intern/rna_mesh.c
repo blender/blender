@@ -61,6 +61,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
+#include "BKE_report.h"
 
 #include "ED_mesh.h" /* XXX Bad level call */
 
@@ -833,7 +834,7 @@ static int rna_Mesh_string_layers_length(PointerRNA *ptr)
 	return CustomData_number_of_layers(rna_mesh_pdata(ptr), CD_PROP_STR);
 }
 
-static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
+static void rna_TexturePoly_image_set(PointerRNA *ptr, PointerRNA value)
 {
 	MTexPoly *tf = (MTexPoly*)ptr->data;
 	ID *id = value.data;
@@ -847,7 +848,26 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 			id_lib_extern(id);
 	}
 
-	tf->tpage = (struct Image*)id;
+	tf->tpage = (struct Image *)id;
+}
+
+/* while this is supposed to be readonly,
+ * keep it to support importers that only make tessfaces */
+static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
+{
+	MTFace *tf = (MTFace*)ptr->data;
+	ID *id = value.data;
+
+	if (id) {
+		/* special exception here, individual faces don't count
+		 * as reference, but we do ensure the refcount is not zero */
+		if(id->us == 0)
+			id_us_plus(id);
+		else
+			id_lib_extern(id);
+	}
+
+	tf->tpage = (struct Image *)id;
 }
 
 static void rna_Mesh_auto_smooth_angle_set(PointerRNA *ptr, float value)
@@ -1216,6 +1236,38 @@ static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, c
 	}
 
 	RNA_pointer_create(&me->id, &RNA_MeshTexturePolyLayer, cdl, &ptr);
+	return ptr;
+}
+
+/* while this is supposed to be readonly,
+ * keep it to support importers that only make tessfaces */
+
+static PointerRNA rna_Mesh_uv_tessface_texture_new(struct Mesh *me, struct bContext *C, ReportList *reports,
+                                                   const char *name)
+{
+	PointerRNA ptr;
+	CustomData *fdata;
+	CustomDataLayer *cdl= NULL;
+	int index;
+
+	if (me->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add tessface uv's in editmode");
+		return PointerRNA_NULL;
+	}
+
+	if (me->mpoly) {
+		BKE_report(reports, RPT_ERROR, "Can't add tessface uv's when MPoly's exist");
+		return PointerRNA_NULL;
+	}
+
+	index = ED_mesh_uv_texture_add(C, me, name, FALSE);
+
+	if(index != -1) {
+		fdata= rna_mesh_fdata_helper(me);
+		cdl= &fdata->layers[CustomData_get_layer_index_n(fdata, CD_MTFACE, index)];
+	}
+
+	RNA_pointer_create(&me->id, &RNA_MeshTextureFaceLayer, cdl, &ptr);
 	return ptr;
 }
 
@@ -1605,6 +1657,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -1712,7 +1765,7 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_TexturePoly_image_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
@@ -2304,13 +2357,23 @@ static void rna_def_tessface_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	/* FunctionRNA *func; */
-	/* PropertyRNA *parm; */
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "TessfaceUVTextures");
 	srna = RNA_def_struct(brna, "TessfaceUVTextures", NULL);
 	RNA_def_struct_sdna(srna, "Mesh");
 	RNA_def_struct_ui_text(srna, "UV Maps", "Collection of UV maps for tessellated faces");
+
+	/* eventually deprecate this */
+	func= RNA_def_function(srna, "new", "rna_Mesh_uv_tessface_texture_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Add a UV tessface-texture layer to Mesh (only for meshes with no polygons)");
+	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
+	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_function_return(func, parm);
+
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");

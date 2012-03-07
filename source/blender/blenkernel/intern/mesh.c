@@ -1904,6 +1904,12 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 	int numTex, numCol;
 	int i, j, totloop;
 
+	/* just incase some of these layers are filled in (can happen with python created meshes) */
+	CustomData_free(&mesh->ldata, mesh->totloop);
+	CustomData_free(&mesh->pdata, mesh->totpoly);
+	memset(&mesh->ldata, 0, sizeof(mesh->ldata));
+	memset(&mesh->pdata, 0, sizeof(mesh->pdata));
+
 	mesh->totpoly = mesh->totface;
 	mesh->mpoly = MEM_callocN(sizeof(MPoly)*mesh->totpoly, "mpoly converted");
 	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_ASSIGN, mesh->mpoly, mesh->totpoly);
