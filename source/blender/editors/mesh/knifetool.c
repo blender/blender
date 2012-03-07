@@ -177,7 +177,7 @@ static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
 
 static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco[3])
 {
-	ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
+	ED_view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
 }
 
 static ListBase *knife_empty_list(knifetool_opdata *kcd)

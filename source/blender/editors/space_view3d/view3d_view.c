@@ -770,18 +770,18 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 }
 
 /* use view3d_get_object_project_mat to get projecting mat */
-void ED_view3d_project_float(const ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
+void ED_view3d_project_float_v2(const ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
 {
 	float vec4[4];
 	
-	adr[0]= IS_CLIPPED;
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
+	/* adr[0]= IS_CLIPPED; */ /* always overwritten */
 	
 	mul_m4_v4(mat, vec4);
 	
-	if ( vec4[3]>FLT_EPSILON ) {
-		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];	
+	if (vec4[3] > FLT_EPSILON) {
+		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];
 		adr[1] = (float)(ar->winy/2.0f)+(ar->winy/2.0f)*vec4[1]/vec4[3];
 	}
 	else {
@@ -790,17 +790,17 @@ void ED_view3d_project_float(const ARegion *ar, const float vec[3], float adr[2]
 }
 
 /* use view3d_get_object_project_mat to get projecting mat */
-void ED_view3d_project_float_v3(ARegion *ar, const float vec[3], float *adr, float mat[4][4])
+void ED_view3d_project_float_v3(ARegion *ar, const float vec[3], float adr[3], float mat[4][4])
 {
 	float vec4[4];
 	
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
-	adr[0]= IS_CLIPPED;
+	/* adr[0]= IS_CLIPPED; */ /* always overwritten */
 	
 	mul_m4_v4(mat, vec4);
 	
-	if ( vec4[3]>FLT_EPSILON ) {
+	if (vec4[3] > FLT_EPSILON) {
 		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];	
 		adr[1] = (float)(ar->winy/2.0f)+(ar->winy/2.0f)*vec4[1]/vec4[3];
 		adr[2] = vec4[2]/vec4[3];

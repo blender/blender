@@ -97,8 +97,7 @@ int paint_convert_bb_to_rect(rcti *rect,
 				vec[1] = j ? bb_min[1] : bb_max[1];
 				vec[2] = k ? bb_min[2] : bb_max[2];
 				/* convert corner to screen space */
-				ED_view3d_project_float(ar, vec, proj,
-										projection_mat);
+				ED_view3d_project_float_v2(ar, vec, proj, projection_mat);
 				/* expand 2D rectangle */
 				rect->xmin = MIN2(rect->xmin, proj[0]);
 				rect->xmax = MAX2(rect->xmax, proj[0]);

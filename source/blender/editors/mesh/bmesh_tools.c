@@ -2319,8 +2319,8 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 {
 	float vec1[3], vec2[3], mvalf[2];
 
-	ED_view3d_project_float(ar, co1, vec1, mat);
-	ED_view3d_project_float(ar, co2, vec2, mat);
+	ED_view3d_project_float_v2(ar, co1, vec1, mat);
+	ED_view3d_project_float_v2(ar, co2, vec2, mat);
 	mvalf[0] = (float)mval[0];
 	mvalf[1] = (float)mval[1];
 
@@ -2345,7 +2345,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMOIter siter;
 	BMIter iter, eiter;
 	BMLoop *l;
-	BMEdge *e, *e2, *closest = NULL;
+	BMEdge *e, *e2;
 	BMVert *v, *ripvert = NULL;
 	int side = 0, i, singlesel = FALSE;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
@@ -2469,7 +2469,10 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	for (i = 0; i < 2; i++) {
 		BMO_ITER(e, &siter, bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
-			float cent[3] = {0, 0, 0}, mid[3], vec[3];
+			float cent[3] = {0, 0, 0}, mid[3];
+			float vec[3];
+			BMVert *v1_other;
+			BMVert *v2_other;
 
 #ifdef USE_BVH_VISIBILITY
 			if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
@@ -2481,7 +2484,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			 * for each edge: calculate face center, then made a vector
 			 * from edge midpoint to face center.  offset edge midpoint
 			 * by a small amount along this vector. */
-			BM_face_center_mean_calc(bm, e->l->f, cent);
+
+			/* rather then the face center, get the middle of
+			 * both edge verts connected to this one */
+			v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
+			v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
+			mid_v3_v3v3(cent, v1_other->co, v2_other->co);
 
 			mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 			sub_v3_v3v3(vec, cent, mid);
@@ -2490,13 +2498,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			add_v3_v3v3(mid, mid, vec);
 
 			/* We have our comparison point, now project it */
-			ED_view3d_project_float(ar, mid, mid, projectMat);
+			ED_view3d_project_float_v2(ar, mid, mid, projectMat);
 
 			d = len_squared_v2v2(fmval, mid);
 
 			if (d < dist) {
 				side = i;
-				closest = e;
 				dist = d;
 			}
 		}
