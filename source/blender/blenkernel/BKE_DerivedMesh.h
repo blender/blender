@@ -124,6 +124,14 @@ typedef enum DerivedMeshType {
 	DM_TYPE_CCGDM
 } DerivedMeshType;
 
+/* Drawing callback types */
+typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
+typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
+typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
+typedef int (*DMSetDrawOptions)(void *userData, int index);
+typedef int (*DMSetDrawOptionsTex)(struct MTFace *tface, int has_vcol, int matnr);
+typedef int (*DMSetDrawOptionsShading)(void *userData, int index, int *drawSmooth_r);
+
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
@@ -308,25 +316,21 @@ struct DerivedMesh {
 	 * Also called for *final* editmode DerivedMeshes
 	 */
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
-						   int fast, int (*setMaterial)(int, void *attribs));
+						   int fast, DMSetMaterial setMaterial);
 
 	/* Draw all faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawFacesTex)(DerivedMesh *dm,
-	                     int (*setDrawOptions)(struct MTFace *tface,
-	                     int has_vcol, int matnr),
-						int (*compareDrawOptions)(void *userData,
-							 int cur_index,
-							 int next_index),
-						void *userData);
+	                     DMSetDrawOptionsTex setDrawOptions,
+						 DMCompareDrawOptions compareDrawOptions,
+						 void *userData);
 
 	/* Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
 	 *  o Only if setMaterial returns true
 	 */
-	void (*drawFacesGLSL)(DerivedMesh *dm,
-		int (*setMaterial)(int, void *attribs));
+	void (*drawFacesGLSL)(DerivedMesh *dm, DMSetMaterial setMaterial);
 
 	/* Draw mapped faces (no color, or texture)
 	 *  o Only if !setDrawOptions or
@@ -342,23 +346,17 @@ struct DerivedMesh {
 	 * smooth shaded.
 	 */
 	void (*drawMappedFaces)(DerivedMesh *dm,
-							int (*setDrawOptions)(void *userData, int index,
-												  int *drawSmooth_r),
-							int (*setMaterial)(int, void *attribs),
-							int (*compareDrawOptions)(void *userData,
-							                          int cur_index,
-							                          int next_index),
+							DMSetDrawOptionsShading setDrawOptions,
+							DMSetMaterial setMaterial,
+							DMCompareDrawOptions compareDrawOptions,
 							void *userData, int useColors);
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
-							   int (*setDrawOptions)(void *userData,
-													 int index),
-							   int (*compareDrawOptions)(void *userData,
-							                             int cur_index,
-							                             int next_index),
+							   DMSetDrawOptions setDrawOptions,
+							   DMCompareDrawOptions compareDrawOptions,
 							   void *userData);
 
 	/* Draw mapped faces with GLSL materials
@@ -367,8 +365,8 @@ struct DerivedMesh {
 	 *  o Only if setMaterial and setDrawOptions return true
 	 */
 	void (*drawMappedFacesGLSL)(DerivedMesh *dm,
-		int (*setMaterial)(int, void *attribs),
-		int (*setDrawOptions)(void *userData, int index),
+		DMSetMaterial setMaterial,
+		DMSetDrawOptions setDrawOptions,
 		void *userData);
 
 	/* Draw mapped edges as lines
@@ -376,7 +374,7 @@ struct DerivedMesh {
 	 *    returns true
 	 */
 	void (*drawMappedEdges)(DerivedMesh *dm,
-							int (*setDrawOptions)(void *userData, int index),
+							DMSetDrawOptions setDrawOptions,
 							void *userData);
 
 	/* Draw mapped edges as lines with interpolation values
@@ -387,11 +385,8 @@ struct DerivedMesh {
 	 * NOTE: This routine is optional!
 	 */
 	void (*drawMappedEdgesInterp)(DerivedMesh *dm, 
-								  int (*setDrawOptions)(void *userData,
-														int index), 
-								  void (*setDrawInterpOptions)(void *userData,
-															   int index,
-															   float t),
+								  DMSetDrawOptions setDrawOptions,
+								  DMSetDrawInterpOptions setDrawInterpOptions,
 								  void *userData);
 
 	/* Draw all faces with materials

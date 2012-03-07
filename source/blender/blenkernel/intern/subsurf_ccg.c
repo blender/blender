@@ -1534,7 +1534,7 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 }
 
 	/* Only used by non-editmesh types */
-static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)[4], int fast, int (*setMaterial)(int, void *attribs))
+static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)[4], int fast, DMSetMaterial setMaterial)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1624,8 +1624,8 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 
 	/* Only used by non-editmesh types */
 static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
-			int (*setMaterial)(int, void *attribs),
-			int (*setDrawOptions)(void *userData, int index),
+			DMSetMaterial setMaterial,
+			DMSetDrawOptions setDrawOptions,
 			void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -1764,7 +1764,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 #undef PASSATTRIB
 }
 
-static void ccgDM_drawFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
+static void ccgDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
@@ -1916,9 +1916,9 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm, void (*setMaterial)(void *
 }
 
 static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
-	int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
-	int (*drawParamsMapped)(void *userData, int index),
-	int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+	DMSetDrawOptionsTex drawParams,
+	DMSetDrawOptions drawParamsMapped,
+	DMCompareDrawOptions compareDrawOptions,
 	void *userData) 
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -2062,16 +2062,16 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 }
 
 static void ccgDM_drawFacesTex(DerivedMesh *dm,
-			   int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr),
-			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   DMSetDrawOptionsTex setDrawOptions,
+			   DMCompareDrawOptions compareDrawOptions,
 			   void *userData)
 {
 	ccgDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
 static void ccgDM_drawMappedFacesTex(DerivedMesh *dm,
-    int (*setDrawOptions)(void *userData, int index),
-    int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+    DMSetDrawOptions setDrawOptions,
+    DMCompareDrawOptions compareDrawOptions,
     void *userData)
 {
 	ccgDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
@@ -2111,9 +2111,9 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm,
-			int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
-			int (*setMaterial)(int, void *attribs),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			DMSetDrawOptionsShading setDrawOptions,
+			DMSetMaterial setMaterial,
+			DMCompareDrawOptions compareDrawOptions,
 			void *userData, int useColors)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -2237,7 +2237,9 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 	}
 }
 
-static void ccgDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void ccgDM_drawMappedEdges(DerivedMesh *dm,
+								  DMSetDrawOptions setDrawOptions,
+								  void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -2269,7 +2271,10 @@ static void ccgDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *u
 	ccgEdgeIterator_free(ei);
 }
 
-static void ccgDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void (*setDrawInterpOptions)(void *userData, int index, float t), void *userData)
+static void ccgDM_drawMappedEdgesInterp(DerivedMesh *dm,
+										DMSetDrawOptions setDrawOptions,
+										DMSetDrawInterpOptions setDrawInterpOptions,
+										void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;

@@ -1613,7 +1613,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 	}
 }
 
-void GPU_draw_buffers(GPU_Buffers *buffers, int (*setMaterial)(int, void *attribs))
+void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 {
 	int smooth = 0;
 

@@ -170,7 +170,7 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
 							 const struct DMFlagMat *grid_flag_mats,
 							 int *grid_indices, int totgrid, int gridsize);
 
-void GPU_draw_buffers(GPU_Buffers *buffers, int (*setMaterial)(int, void *attribs));
+void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
 
 void GPU_free_buffers(GPU_Buffers *buffers);
 

@@ -505,7 +505,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 
 static void cdDM_drawFacesSolid(DerivedMesh *dm,
 				float (*partial_redraw_planes)[4],
-				int UNUSED(fast), int (*setMaterial)(int, void *attribs))
+				int UNUSED(fast), DMSetMaterial setMaterial)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;
@@ -600,9 +600,9 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 }
 
 static void cdDM_drawFacesTex_common(DerivedMesh *dm,
-			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
-			   int (*drawParamsMapped)(void *userData, int index),
-			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   DMSetDrawOptionsTex drawParams,
+			   DMSetDrawOptions drawParamsMapped,
+			   DMCompareDrawOptions compareDrawOptions,
 			   void *userData) 
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -788,17 +788,17 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 }
 
 static void cdDM_drawFacesTex(DerivedMesh *dm,
-			   int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr),
-			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   DMSetDrawOptionsTex setDrawOptions,
+			   DMCompareDrawOptions compareDrawOptions,
 			   void *userData)
 {
 	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
 static void cdDM_drawMappedFaces(DerivedMesh *dm,
-			int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
-			int (*setMaterial)(int, void *attribs),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			DMSetDrawOptionsShading setDrawOptions,
+			DMSetMaterial setMaterial,
+			DMCompareDrawOptions compareDrawOptions,
 			void *userData, int useColors)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -961,8 +961,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 }
 
 static void cdDM_drawMappedFacesTex(DerivedMesh *dm,
-			   int (*setDrawOptions)(void *userData, int index),
-			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   DMSetDrawOptions setDrawOptions,
+			   DMCompareDrawOptions compareDrawOptions,
 			   void *userData)
 {
 	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
@@ -1013,8 +1013,8 @@ static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int 
 }
 
 static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
-			   int (*setMaterial)(int, void *attribs),
-			   int (*setDrawOptions)(void *userData, int index),
+			   DMSetMaterial setMaterial,
+			   DMSetDrawOptions setDrawOptions,
 			   void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -1302,7 +1302,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	glShadeModel(GL_FLAT);
 }
 
-static void cdDM_drawFacesGLSL(DerivedMesh *dm,int (*setMaterial)(int, void *attribs))
+static void cdDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
@@ -1386,7 +1386,7 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	glShadeModel(GL_FLAT);
 }
 
-static void cdDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void cdDM_drawMappedEdges(DerivedMesh *dm, DMSetDrawOptions setDrawOptions, void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *vert = cddm->mvert;

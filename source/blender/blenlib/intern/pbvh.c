@@ -1560,7 +1560,7 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 }
 
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-				   int (*setMaterial)(int, void *attribs))
+				   DMSetMaterial setMaterial)
 {
 	PBVHNode **nodes;
 	int totnode;

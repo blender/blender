@@ -399,7 +399,7 @@ static void emDM_foreachMappedEdge(
 
 static void emDM_drawMappedEdges(
 		DerivedMesh *dm,
-		int (*setDrawOptions)(void *userData, int index),
+		DMSetDrawOptions setDrawOptions,
 		void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -443,8 +443,8 @@ static void emDM_drawEdges(
 
 static void emDM_drawMappedEdgesInterp(
 		DerivedMesh *dm,
-		int (*setDrawOptions)(void *userData, int index),
-		void (*setDrawInterpOptions)(void *userData, int index, float t),
+		DMSetDrawOptions setDrawOptions,
+		DMSetDrawInterpOptions setDrawInterpOptions,
 		void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -579,9 +579,9 @@ static void emDM_foreachMappedFaceCenter(
 
 static void emDM_drawMappedFaces(
 		DerivedMesh *dm,
-		int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
-		int (*setMaterial)(int, void *attribs),
-		int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+		DMSetDrawOptionsShading setDrawOptions,
+		DMSetMaterial setMaterial,
+		DMCompareDrawOptions compareDrawOptions,
 		void *userData, int UNUSED(useColors))
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -777,9 +777,9 @@ static void bmdm_get_tri_tex(BMesh *bm, BMLoop **ls, MLoopUV *luv[3], MLoopCol *
 
 static void emDM_drawFacesTex_common(
 		DerivedMesh *dm,
-		int (*drawParams)(MTFace *tface, int has_vcol, int matnr),
-		int (*drawParamsMapped)(void *userData, int index),
-		int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+		DMSetDrawOptionsTex drawParams,
+		DMSetDrawOptions drawParamsMapped,
+		DMCompareDrawOptions compareDrawOptions,
 		void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -960,8 +960,8 @@ static void emDM_drawFacesTex_common(
 
 static void emDM_drawFacesTex(
 		DerivedMesh *dm,
-		int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr),
-		int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+		DMSetDrawOptionsTex setDrawOptions,
+		DMCompareDrawOptions compareDrawOptions,
 		void *userData)
 {
 	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
@@ -969,8 +969,8 @@ static void emDM_drawFacesTex(
 
 static void emDM_drawMappedFacesTex(
 		DerivedMesh *dm,
-		int (*setDrawOptions)(void *userData, int index),
-		int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+		DMSetDrawOptions setDrawOptions,
+		DMCompareDrawOptions compareDrawOptions,
 		void *userData)
 {
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
@@ -978,8 +978,8 @@ static void emDM_drawMappedFacesTex(
 
 static void emDM_drawMappedFacesGLSL(
 		DerivedMesh *dm,
-		int (*setMaterial)(int, void *attribs),
-		int (*setDrawOptions)(void *userData, int index),
+		DMSetMaterial setMaterial,
+		DMSetDrawOptions setDrawOptions,
 		void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
