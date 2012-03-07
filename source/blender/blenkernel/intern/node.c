@@ -1447,6 +1447,24 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, in
 	}
 }
 
+/* only updates node->level for detecting cycles links */
+static void ntree_update_node_level(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	/* first clear tag */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		node->done= 0;
+	}
+	
+	/* recursive check */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->done==0) {
+			node->level= node_get_deplist_recurs(node, NULL);
+		}
+	}
+}
+
 static void ntree_update_link_pointers(bNodeTree *ntree)
 {
 	bNode *node;
@@ -1524,39 +1542,33 @@ void ntreeUpdateTree(bNodeTree *ntree)
 {
 	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
 	bNode *node;
-	bNode **deplist;
-	int totnodes, n;
 	
-	ntree_update_link_pointers(ntree);
+	/* set the bNodeSocket->link pointers */
+	if (ntree->update & NTREE_UPDATE_LINKS)
+		ntree_update_link_pointers(ntree);
 	
-	/* also updates the node level! */
-	ntreeGetDependencyList(ntree, &deplist, &totnodes);
+	/* update the node level from link dependencies */
+	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES))
+		ntree_update_node_level(ntree);
 	
-	if (deplist) {
-		/* update individual nodes */
-		for (n=0; n < totnodes; ++n) {
-			node = deplist[n];
-			
-			/* node tree update tags override individual node update flags */
-			if ((node->update & NODE_UPDATE) || (ntree->update & NTREE_UPDATE)) {
-				if (ntreetype->update_node)
-					ntreetype->update_node(ntree, node);
-				else if (node->typeinfo->updatefunc)
-					node->typeinfo->updatefunc(ntree, node);
-			}
-			/* clear update flag */
-			node->update = 0;
+	/* update individual nodes */
+	for (node=ntree->nodes.first; node; node=node->next) {
+		/* node tree update tags override individual node update flags */
+		if ((node->update & NODE_UPDATE) || (ntree->update & NTREE_UPDATE)) {
+			if (ntreetype->update_node)
+				ntreetype->update_node(ntree, node);
+			else if (node->typeinfo->updatefunc)
+				node->typeinfo->updatefunc(ntree, node);
 		}
-		
-		MEM_freeN(deplist);
+		/* clear update flag */
+		node->update = 0;
 	}
 	
-	/* general tree updates */
-	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES)) {
+	/* check link validity */
+	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES))
 		ntree_validate_links(ntree);
-	}
 	
-	/* update tree */
+	/* generic tree update callback */
 	if (ntreetype->update)
 		ntreetype->update(ntree);
 	else {
