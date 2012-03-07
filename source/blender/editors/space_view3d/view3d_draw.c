@@ -2252,7 +2252,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat);
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype= drawtype;
@@ -2387,13 +2387,15 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 }
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                              int winx, int winy, float viewmat[][4], float winmat[][4])
+                              int winx, int winy, float viewmat[][4], float winmat[][4],
+                              int draw_background)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
 	rcti brect;
+	ImBuf *bg_ibuf = NULL;
 
 	glPushMatrix();
 
@@ -2421,19 +2423,66 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
 
-	/* set background color, fallback on the view background color */
-	if (scene->world) {
-		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-		else
-			copy_v3_v3(backcol, &scene->world->horr);
-		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+	/* if scene has got active clip, use it for render backdrop */
+	if (draw_background && scene->clip && rv3d->persp==RV3D_CAMOB && v3d->camera) {
+		MovieClipUser user = {0};
+
+		BKE_movieclip_user_set_frame(&user, CFRA);
+		bg_ibuf = BKE_movieclip_get_ibuf(scene->clip, &user);
 	}
-	else {
-		UI_ThemeClearColor(TH_BACK);	
+
+	if (!bg_ibuf) {
+		/* set background color, fallback on the view background color
+		 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
+		if (scene->world) {
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+			else
+				copy_v3_v3(backcol, &scene->world->horr);
+			glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+		}
+		else {
+			UI_ThemeClearColor(TH_BACK);
+		}
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	if (bg_ibuf) {
+		unsigned char *pixels, *cp, *dst_cp;
+		int i;
+
+		if (bg_ibuf->rect_float && !bg_ibuf->rect)
+			IMB_rect_from_float(bg_ibuf);
+
+		dst_cp = pixels = MEM_callocN(4*sizeof(unsigned char)*bg_ibuf->x*bg_ibuf->y, "draw offscreen clip pixels");
+		cp = bg_ibuf->rect;
+		for (i = 0; i < bg_ibuf->x*bg_ibuf->y; i++, cp += 4, dst_cp += 4) {
+			dst_cp[0] = cp[0];
+			dst_cp[1] = cp[1];
+			dst_cp[2] = cp[2];
+			dst_cp[3] = 255;
+		}
+
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		ED_region_pixelspace(ar);
+
+		glPixelZoom((float)winx / bg_ibuf->x, (float)winy / bg_ibuf->y);
+		glaDrawPixelsTex(0, 0, bg_ibuf->x, bg_ibuf->y, GL_UNSIGNED_BYTE, pixels);
+
+		glPixelZoom(1.0, 1.0);
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+
+		IMB_freeImBuf(bg_ibuf);
+		MEM_freeN(pixels);
+	}
 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
@@ -2520,7 +2569,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* utility func for ED_view3d_draw_offscreen */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
-                                      int sizex, int sizey, unsigned int flag, char err_out[256])
+                                      int sizex, int sizey, unsigned int flag, int draw_background, char err_out[256])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
@@ -2545,10 +2594,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		camera_params_compute_matrix(&params);
 
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
 	}
 	else {
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background);
 	}
 
 	/* read in pixels & stamp */
@@ -2576,7 +2625,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
-                                             unsigned int flag, int drawtype, char err_out[256])
+                                             unsigned int flag, int drawtype, int draw_background, char err_out[256])
 {
 	View3D v3d= {NULL};
 	ARegion ar= {NULL};
@@ -2615,7 +2664,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag, err_out);
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag, draw_background, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
