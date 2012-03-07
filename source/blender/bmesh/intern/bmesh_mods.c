@@ -417,6 +417,9 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
 	 * The radial_next is for f and goes from v2 to v1  */
 
 	if (nf) {
+		BM_elem_attrs_copy(bm, bm, f, nf);
+		copy_v3_v3(nf->no, f->no);
+
 		e = (*r_l)->e;
 		for (i = 0; i < n; i++) {
 			newv = bmesh_semv(bm, v2, e, &newe);
