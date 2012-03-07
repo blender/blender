@@ -2456,7 +2456,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 			IMB_rect_from_float(bg_ibuf);
 
 		dst_cp = pixels = MEM_callocN(4*sizeof(unsigned char)*bg_ibuf->x*bg_ibuf->y, "draw offscreen clip pixels");
-		cp = bg_ibuf->rect;
+		cp = (unsigned char *)bg_ibuf->rect;
 		for (i = 0; i < bg_ibuf->x*bg_ibuf->y; i++, cp += 4, dst_cp += 4) {
 			dst_cp[0] = cp[0];
 			dst_cp[1] = cp[1];

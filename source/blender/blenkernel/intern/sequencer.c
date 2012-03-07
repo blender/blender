@@ -2044,7 +2044,8 @@ static ImBuf * seq_render_scene_strip_impl(
 
 		/* opengl offscreen render */
 		scene_update_for_newframe(context.bmain, scene, scene->lay);
-		ibuf= sequencer_view3d_cb(scene, camera, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type, err_out);
+		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
+		                           IB_rect, context.scene->r.seq_prev_type, FALSE, err_out);
 		if(ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip_impl failed to get opengl buffer: %s\n", err_out);
 		}

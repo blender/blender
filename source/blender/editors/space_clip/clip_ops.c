@@ -898,14 +898,12 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	Scene *scene=pj->scene;
 	MovieClip *clip= pj->clip;
 	struct MovieDistortion *distortion= NULL;
-	short tc_flag, size_flag, quality;
+	short size_flag;
 	int cfra, sfra= SFRA, efra= EFRA;
 	int build_sizes[4], build_count= 0;
 	int build_undistort_sizes[4], build_undistort_count= 0;
 
-	tc_flag= clip->proxy.build_tc_flag;
 	size_flag= clip->proxy.build_size_flag;
-	quality= clip->proxy.quality;
 
 	build_count= proxy_bitflag_to_array(size_flag, build_sizes, 0);
 	build_undistort_count= proxy_bitflag_to_array(size_flag, build_undistort_sizes, 1);

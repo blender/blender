@@ -830,10 +830,11 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
 		SWAP(BMFace *, fa, fb);
 	}
 
-
-
 	*r_l1 = BM_face_other_vert_loop(fb, v2, v1);
 	*r_l2 = BM_face_other_vert_loop(fa, v1, v2);
+
+	/* when assert isnt used */
+	(void)bm;
 }
 
 /**
@@ -970,6 +971,9 @@ int BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
 	}
 
 	return TRUE;
+
+	/* when assert isnt used */
+	(void)bm;
 }
 
 int BM_edge_rotate_check_beauty(BMesh *UNUSED(bm), BMEdge *e,
