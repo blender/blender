@@ -2341,7 +2341,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 	BMOIter siter;
-	BMIter iter, eiter;
+	BMIter iter, eiter, liter;
 	BMLoop *l;
 	BMEdge *e, *e2;
 	BMVert *v, *ripvert = NULL;
@@ -2512,6 +2512,8 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (singlesel) {
 		BMVert *v_best = NULL;
+		float l_prev_co[3], l_next_co[3], l_corner_co[3];
+		float scale;
 
 		/* not good enough! - original vert may not be attached to the closest edge */
 #if 0
@@ -2525,8 +2527,20 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				/* disable by default, re-enable winner at end */
 				BM_elem_select_set(bm, v, FALSE);
 
-				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-					d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+				BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+					/* calculate a point in the face, rather then calculate the middle,
+					 * make a vector pointing between the 2 edges attached to this loop */
+					sub_v3_v3v3(l_prev_co, l->prev->v->co, l->v->co);
+					sub_v3_v3v3(l_next_co, l->next->v->co, l->v->co);
+
+					scale = normalize_v3(l_prev_co) + normalize_v3(l_next_co);
+					mul_v3_fl(l_prev_co, scale);
+					mul_v3_fl(l_next_co, scale);
+
+					add_v3_v3v3(l_corner_co, l_prev_co, l_next_co);
+					add_v3_v3(l_corner_co, l->v->co);
+
+					d = mesh_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval);
 					if (d < dist) {
 						v_best = v;
 						dist = d;
