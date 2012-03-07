@@ -2315,14 +2315,12 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 /********************** Rip Operator *************************/
 
 /* helper to find edge for edge_rip */
-static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const int mval[2])
+static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const float mvalf[2])
 {
-	float vec1[3], vec2[3], mvalf[2];
+	float vec1[3], vec2[3];
 
 	ED_view3d_project_float_v2(ar, co1, vec1, mat);
 	ED_view3d_project_float_v2(ar, co2, vec2, mat);
-	mvalf[0] = (float)mval[0];
-	mvalf[1] = (float)mval[1];
 
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
@@ -2398,7 +2396,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* find closest edge to mouse cursor */
 		e2 = NULL;
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, event->mval);
+			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
 			if (d < dist) {
 				dist = d;
 				e2 = e;
@@ -2471,6 +2469,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		BMO_ITER(e, &siter, bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
 			float cent[3] = {0, 0, 0}, mid[3];
 			float vec[3];
+			float fmval_tweak[3];
 			BMVert *v1_other;
 			BMVert *v2_other;
 
@@ -2490,17 +2489,15 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
 			v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
 			mid_v3_v3v3(cent, v1_other->co, v2_other->co);
-
 			mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 			sub_v3_v3v3(vec, cent, mid);
 			normalize_v3(vec);
 			mul_v3_fl(vec, 0.01f);
-			add_v3_v3v3(mid, mid, vec);
 
-			/* We have our comparison point, now project it */
-			ED_view3d_project_float_v2(ar, mid, mid, projectMat);
+			/* ratrher then adding to both verts, subtract from the mouse */
+			sub_v2_v2v2(fmval_tweak, fmval, vec);
 
-			d = len_squared_v2v2(fmval, mid);
+			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval_tweak);
 
 			if (d < dist) {
 				side = i;
