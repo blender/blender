@@ -3883,6 +3883,8 @@ static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 			select = 1;
 		}else if (type == 2 && efa->len > numverts) {
 			select = 1;
+		}else if (type == 3 && efa->len != numverts) {
+			select = 1;
 		}
 
 		if (select) {
@@ -3902,6 +3904,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	    {0, "LESS", 0, "Less Than", ""},
 	    {1, "EQUAL", 0, "Equal To", ""},
 	    {2, "GREATER", 0, "Greater Than", ""},
+	    {3, "NOTEQUAL", 0, "Not Equal To", ""},
 	    {0, NULL, 0, NULL, NULL}
 	};
 
