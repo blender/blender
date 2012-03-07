@@ -665,14 +665,14 @@ DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(tessface_vertex_color, fdata, CD_M
 static void rna_MeshColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(CD_MCOL), me->totloop, 0, NULL);
+	CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+	rna_iterator_array_begin(iter, layer->data, sizeof(CD_MCOL), me->totface, 0, NULL);
 }
 
 static int rna_MeshColorLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
-	return me->totloop;
+	return me->totface;
 }
 
 static int rna_MeshColorLayer_active_render_get(PointerRNA *ptr)
