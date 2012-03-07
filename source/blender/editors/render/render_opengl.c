@@ -316,6 +316,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->sizey= sizey;
 	oglrender->bmain= CTX_data_main(C);
 	oglrender->scene= scene;
+	oglrender->cfrao= scene->r.cfra;
 
 	oglrender->write_still= is_write_still && !is_animation;
 
