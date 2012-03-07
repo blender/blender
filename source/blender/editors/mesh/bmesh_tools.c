@@ -2510,11 +2510,40 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMBVH_FreeBVH(bvhtree);
 #endif
 
-	/* de-select one of the sides */
-	BMO_slot_buffer_hflag_disable(bm, &bmop, side ? "edgeout1" : "edgeout2", BM_ELEM_SELECT, BM_EDGE, TRUE);
+	if (singlesel) {
+		BMVert *v_best = NULL;
 
-	if (ripvert) {
+		/* not good enough! - original vert may not be attached to the closest edge */
+#if 0
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 		BM_elem_select_set(bm, ripvert, TRUE);
+#else
+
+		dist = FLT_MAX;
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+		        /* disable by default, re-enable winner at end */
+				BM_elem_select_set(bm, v, FALSE);
+
+				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+					d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+					if (d < dist) {
+						v_best = v;
+						dist = d;
+					}
+				}
+			}
+		}
+
+		if (v_best) {
+			BM_elem_select_set(bm, v_best, TRUE);
+		}
+#endif
+
+	}
+	else {
+		/* de-select one of the sides */
+		BMO_slot_buffer_hflag_disable(bm, &bmop, side ? "edgeout1" : "edgeout2", BM_ELEM_SELECT, BM_EDGE, TRUE);
 	}
 
 	EDBM_selectmode_flush(em);
