@@ -263,7 +263,12 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         col = split.column()
 
         col.label("Aperture:")
-        col.prop(ccam, "aperture_size", text="Size")
+        sub = col.column(align=True)
+        sub.prop(ccam, "aperture_type", text="")
+        if ccam.aperture_type == 'RADIUS':
+            sub.prop(ccam, "aperture_size", text="Size")
+        elif ccam.aperture_type == 'FSTOP':
+            sub.prop(ccam, "aperture_fstop", text="Number")
 
         sub = col.column(align=True)
         sub.prop(ccam, "aperture_blades", text="Blades")

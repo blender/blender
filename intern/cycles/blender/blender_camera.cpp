@@ -98,7 +98,18 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 		bcam->ortho_scale = b_camera.ortho_scale();
 
 		bcam->lens = b_camera.lens();
-		bcam->aperturesize = RNA_float_get(&ccamera, "aperture_size");
+
+		/* allow f/stop number to change aperture_size but still
+		   give manual control over aperture radius */
+		int aperture_type = RNA_enum_get(&ccamera, "aperture_type");
+
+		if(aperture_type == 1) {
+			float fstop = RNA_float_get(&ccamera, "aperture_fstop");
+			bcam->aperturesize = (bcam->lens*1e-3f)/(2.0f*max(fstop, 1e-5f));
+		}
+		else
+			bcam->aperturesize = RNA_float_get(&ccamera, "aperture_size");
+
 		bcam->apertureblades = RNA_int_get(&ccamera, "aperture_blades");
 		bcam->aperturerotation = RNA_float_get(&ccamera, "aperture_rotation");
 		bcam->focaldistance = blender_camera_focal_distance(b_ob, b_camera);

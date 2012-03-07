@@ -49,3 +49,9 @@ filter_types = (
     ("BOX", "Box", "Box filter"),
     ("GAUSSIAN", "Gaussian", "Gaussian filter"),
     )
+
+aperture_types = (
+    ("RADIUS", "Radius", "Directly change the size of the aperture"),
+    ("FSTOP", "F/stop", "Change the size of the aperture by f/stops"),
+    )
+
