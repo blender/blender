@@ -220,39 +220,39 @@ float BM_face_area_calc(BMesh *bm, BMFace *f)
 /**
  * computes center of face in 3d.  uses center of bounding box.
  */
-void BM_face_center_bounds_calc(BMesh *bm, BMFace *f, float r_cent[3])
+void BM_face_center_bounds_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
 {
-	BMIter iter;
-	BMLoop *l;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 	float min[3], max[3];
-	int i;
 
 	INIT_MINMAX(min, max);
-	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (i = 0; l; l = BM_iter_step(&iter), i++) {
-		DO_MINMAX(l->v->co, min, max);
-	}
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		DO_MINMAX(l_iter->v->co, min, max);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	mid_v3_v3v3(r_cent, min, max);
 }
 
 /**
- * computes the centroid of a face, using the mean average
+ * computes the center of a face, using the mean average
  */
-void BM_face_center_mean_calc(BMesh *bm, BMFace *f, float r_cent[3])
+void BM_face_center_mean_calc(BMesh *UNUSED(bm), BMFace *f, float r_cent[3])
 {
-	BMIter iter;
-	BMLoop *l;
-	int i;
+	BMLoop *l_iter;
+	BMLoop *l_first;
 
 	zero_v3(r_cent);
 
-	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (i = 0; l; l = BM_iter_step(&iter), i++) {
-		add_v3_v3(r_cent, l->v->co);
-	}
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		add_v3_v3(r_cent, l_iter->v->co);
+	} while ((l_iter = l_iter->next) != l_first);
 
-	if (f->len) mul_v3_fl(r_cent, 1.0f / (float)f->len);
+	if (f->len)
+		mul_v3_fl(r_cent, 1.0f / (float) f->len);
 }
 
 /**
@@ -291,11 +291,6 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		avgn[2] = 1.0f;
 	}
 	else {
-		/* XXX, why is this being divided and _then_ normalized
-		 * division could be removed? - campbell */
-		avgn[0] /= nverts;
-		avgn[1] /= nverts;
-		avgn[2] /= nverts;
 		normalize_v3(avgn);
 	}
 	

@@ -2327,25 +2327,39 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
+/* #define USE_BVH_VISIBILITY */
+
 /* based on mouse cursor position, it defines how is being ripped */
 static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
+#ifdef USE_BVH_VISIBILITY
+	BMBVHTree *bvhtree;
 	View3D *v3d = CTX_wm_view3d(C);
+#endif
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
-	BMBVHTree *bvhtree;
 	BMOIter siter;
-	BMIter iter, eiter, liter;
+	BMIter iter, eiter;
 	BMLoop *l;
 	BMEdge *e, *e2, *closest = NULL;
 	BMVert *v, *ripvert = NULL;
-	int side = 0, i, singlesel = 0;
+	int side = 0, i, singlesel = FALSE;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX, d;
+
+	/* note on selection:
+	 * When calling edge split we operate on tagged edges rather then selected
+	 * this is important because the edges to operate on are extended by one,
+	 * but the selection is left alone.
+	 *
+	 * After calling edge split - the duplicated edges have the same selection state as the
+	 * original, so all we do is de-select the far side from the mouse and we have a
+	 * useful selection for grabbing.
+	 */
 
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
@@ -2358,12 +2372,18 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 * closest edge around that vert to mouse cursor,
 	 * then rip two adjacent edges in the vert fan. */
 	if (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0) {
-		singlesel = 1;
+		BMEditSelection ese;
+		singlesel = TRUE;
 
-		/* find selected vert */
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT))
-				break;
+		/* find selected vert - same some time and check history first */
+		if (EDBM_get_actSelection(em, &ese) && ese.htype == BM_VERT) {
+			v = (BMVert *)ese.ele;
+		}
+		else {
+			BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT))
+					break;
+			}
 		}
 
 		/* this should be impossible, but sanity checks are a good thing */
@@ -2402,12 +2422,10 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			l = e2->l;
 			e = BM_face_other_edge_loop(l->f, e2, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
-			BM_elem_select_set(bm, e, TRUE);
 			
 			l = e2->l->radial_next;
 			e = BM_face_other_edge_loop(l->f, e2, v)->e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
-			BM_elem_select_set(bm, e, TRUE);
 		}
 
 		dist = FLT_MAX;
@@ -2418,7 +2436,9 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			e2 = NULL;
 			i = 0;
 			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				/* important to check selection rather then tag here
+				 * else we get feedback loop */
+				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 					e2 = e;
 					i++;
 				}
@@ -2430,37 +2450,38 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				l = BM_face_other_edge_loop(l->f, l->e, v);
 
 				if (l) {
-					BM_elem_select_set(bm, l->e, TRUE);
+					BM_elem_flag_enable(l->e, BM_ELEM_TAG);
 				}
 			}
 		}
 	}
 
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he", BM_ELEM_SELECT)) {
+	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he", BM_ELEM_TAG)) {
 		return OPERATOR_CANCELLED;
 	}
 	
 	BMO_op_exec(bm, &bmop);
 
+#ifdef USE_BVH_VISIBILITY
 	/* build bvh tree for edge visibility tests */
 	bvhtree = BMBVH_NewBVH(em, 0, NULL, NULL);
+#endif
 
 	for (i = 0; i < 2; i++) {
 		BMO_ITER(e, &siter, bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
 			float cent[3] = {0, 0, 0}, mid[3], vec[3];
 
+#ifdef USE_BVH_VISIBILITY
 			if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
 				continue;
+#endif
 
 			/* method for calculating distance:
 			 *
 			 * for each edge: calculate face center, then made a vector
 			 * from edge midpoint to face center.  offset edge midpoint
 			 * by a small amount along this vector. */
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, e->l->f) {
-				add_v3_v3(cent, l->v->co);
-			}
-			mul_v3_fl(cent, 1.0f/(float)e->l->f->len);
+			BM_face_center_mean_calc(bm, e->l->f, cent);
 
 			mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 			sub_v3_v3v3(vec, cent, mid);
@@ -2468,7 +2489,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mul_v3_fl(vec, 0.01f);
 			add_v3_v3v3(mid, mid, vec);
 
-			/* yay we have our comparison point, now project it */
+			/* We have our comparison point, now project it */
 			ED_view3d_project_float(ar, mid, mid, projectMat);
 
 			d = len_squared_v2v2(fmval, mid);
@@ -2480,34 +2501,13 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 	}
-	
+
+#ifdef USE_BVH_VISIBILITY
 	BMBVH_FreeBVH(bvhtree);
+#endif
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, &bmop, side?"edgeout2":"edgeout1", BM_ELEM_SELECT, BM_EDGE, TRUE);
-
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
-	}
-
-	/* constrict edge selection again */
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		e2 = NULL;
-		i = 0;
-		BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-				e2 = e;
-				i++;
-			}
-		}
-		
-		if (i == 1) {
-			if (singlesel)
-				BM_elem_select_set(bm, v, FALSE);
-			else
-				BM_elem_select_set(bm, e2, FALSE);
-		}
-	}
+	/* de-select one of the sides */
+	BMO_slot_buffer_hflag_disable(bm, &bmop, side ? "edgeout1" : "edgeout2", BM_ELEM_SELECT, BM_EDGE, TRUE);
 
 	if (ripvert) {
 		BM_elem_select_set(bm, ripvert, TRUE);
@@ -2962,7 +2962,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 		}
 	}
 	
-	/* now check for edge interesect (may produce vertex intersection as well)*/
+	/* now check for edge intersect (may produce vertex intersection as well) */
 	for (i = 0; i < len; i++) {
 		if (i > 0) {
 			x11 = x12;
