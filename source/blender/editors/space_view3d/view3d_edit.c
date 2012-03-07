@@ -1633,7 +1633,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	if (delta < 0) {
 		/* this min and max is also in viewmove() */
 		if (use_cam_zoom) {
-			rv3d->camzoom-= 10;
+			rv3d->camzoom -= 10.0f;
 			if (rv3d->camzoom < RV3D_CAMZOOM_MIN) rv3d->camzoom= RV3D_CAMZOOM_MIN;
 		}
 		else if (rv3d->dist < 10.0f * v3d->far) {
@@ -1642,7 +1642,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (use_cam_zoom) {
-			rv3d->camzoom+= 10;
+			rv3d->camzoom += 10.0f;
 			if (rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom= RV3D_CAMZOOM_MAX;
 		}
 		else if (rv3d->dist> 0.001f * v3d->grid) {

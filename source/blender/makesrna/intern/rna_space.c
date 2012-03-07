@@ -1728,9 +1728,10 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance", "Distance to the view location");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "view_camera_zoom", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "camzoom");
+	prop = RNA_def_property(srna, "view_camera_zoom", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "camzoom");
 	RNA_def_property_ui_text(prop, "Camera Zoom", "Zoom factor in camera view");
+	RNA_def_property_range(prop, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "view_camera_offset", PROP_FLOAT, PROP_NONE);
