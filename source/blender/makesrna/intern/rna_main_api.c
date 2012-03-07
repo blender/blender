@@ -131,7 +131,7 @@ void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struc
 	}
 
 	if (CTX_wm_screen(C)->scene == scene)
-		ED_screen_set_scene(C, newscene);
+		ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
 	unlink_scene(bmain, scene, newscene);
 }

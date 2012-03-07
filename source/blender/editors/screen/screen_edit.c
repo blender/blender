@@ -1424,16 +1424,19 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 }
 
 /* only call outside of area/region loops */
-void ED_screen_set_scene(bContext *C, Scene *scene)
+void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 {
 	Main *bmain= CTX_data_main(C);
 	bScreen *sc;
-	bScreen *curscreen= CTX_wm_screen(C);
+
+	if(screen == NULL)
+		return;
 	
-	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+	if(ed_screen_used(CTX_wm_manager(C), screen))
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 
 	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
-		if((U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
+		if((U.flag & USER_SCENEGLOBAL) || sc==screen) {
 			
 			if(scene != sc->scene) {
 				/* all areas endlocalview */
@@ -1452,7 +1455,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	
 	/* are there cameras in the views that are not in the scene? */
 	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
-		if( (U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
+		if( (U.flag & USER_SCENEGLOBAL) || sc==screen) {
 			ScrArea *sa= sc->areabase.first;
 			while(sa) {
 				SpaceLink *sl= sa->spacedata.first;
@@ -1489,7 +1492,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	set_scene_bg(bmain, scene);
 	
 	ED_render_engine_changed(bmain);
-	ED_update_for_newframe(bmain, scene, curscreen, 1);
+	ED_update_for_newframe(bmain, scene, screen, 1);
 	
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -1509,7 +1512,7 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 	else
 		return;
 
-	ED_screen_set_scene(C, newscene);
+	ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
 	unlink_scene(bmain, scene, newscene);
 }

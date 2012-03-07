@@ -3326,7 +3326,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	ED_screen_set_scene(C, newscene);
+	ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
 	

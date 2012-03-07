@@ -72,7 +72,7 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 
 	/* exception: must use context so notifier gets to the right window  */
 	if (sc->newscene) {
-		ED_screen_set_scene(C, sc->newscene);
+		ED_screen_set_scene(C, sc, sc->newscene);
 		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
 
 		if (G.f & G_DEBUG)
