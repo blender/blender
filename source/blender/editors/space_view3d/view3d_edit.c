@@ -356,7 +356,7 @@ typedef struct ViewOpsData {
 	float viewquat[4]; /* working copy of rv3d->viewquat */
 	float trackvec[3];
 	float mousevec[3]; /* dolly only */
-	float reverse, dist0;
+	float reverse, dist0, camzoom0;
 	float grid, far;
 	short axis_snap; /* view rotate only */
 
@@ -416,6 +416,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
 
 	vod->dist0= rv3d->dist;
+	vod->camzoom0= rv3d->camzoom;
 	copy_qt_qt(vod->viewquat, rv3d->viewquat);
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
 	vod->origx= vod->oldx= event->x;
@@ -1468,7 +1469,17 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom, const short zoom_invert)
 {
 	float zfac=1.0;
+	short use_cam_zoom;
 
+	use_cam_zoom = (vod->rv3d->persp==RV3D_CAMOB) && !(vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d));
+
+	if (use_cam_zoom) {
+		float delta;
+		delta = (x - vod->origx + y - vod->origy) / 10.0f;
+		vod->rv3d->camzoom = vod->camzoom0 - delta;
+
+		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+	}
 	if (viewzoom==USER_ZOOM_CONT) {
 		double time= PIL_check_seconds_timer();
 		float time_step= (float)(time - vod->timer_lastdraw);
@@ -1516,12 +1527,20 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 			SWAP(float, len1, len2);
 		}
 		
-		zfac = vod->dist0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->dist;
+		if (use_cam_zoom) {
+			zfac = vod->camzoom0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->camzoom;
+			zfac = 0;
+		}
+		else {
+			zfac = vod->dist0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->dist;
+		}
 	}
 
-	if (zfac != 1.0f && zfac*vod->rv3d->dist > 0.001f * vod->grid &&
-			zfac * vod->rv3d->dist < 10.0f * vod->far)
-		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+	if (!use_cam_zoom) {
+		if (zfac != 1.0f && zfac*vod->rv3d->dist > 0.001f * vod->grid &&
+				zfac * vod->rv3d->dist < 10.0f * vod->far)
+			view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+	}
 
 	/* these limits were in old code too */
 	if (vod->rv3d->dist<0.001f * vod->grid) vod->rv3d->dist= 0.001f * vod->grid;
