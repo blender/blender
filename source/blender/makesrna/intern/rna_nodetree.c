@@ -1264,8 +1264,8 @@ static void def_sh_tex_sky(StructRNA *srna)
 static void def_sh_tex_environment(StructRNA *srna)
 {
 	static const EnumPropertyItem prop_color_space_items[] = {
-		{SHD_COLORSPACE_SRGB, "SRGB", 0, "sRGB", "Image is in sRGB color space"},
-		{SHD_COLORSPACE_LINEAR, "LINEAR", 0, "Linear", "Image is in scene linear color space"},
+		{SHD_COLORSPACE_COLOR, "COLOR", 0, "Color", "Image contains color data, and will be converted to linear color for rendering"},
+		{SHD_COLORSPACE_NONE, "NONE", 0, "Non-Color Data", "Image contains non-color data, for example a displacement or normal map, and will not be converted"},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;
@@ -1289,8 +1289,8 @@ static void def_sh_tex_environment(StructRNA *srna)
 static void def_sh_tex_image(StructRNA *srna)
 {
 	static const EnumPropertyItem prop_color_space_items[] = {
-		{SHD_COLORSPACE_LINEAR, "LINEAR", 0, "Linear", "Image is in scene linear color space"},
-		{SHD_COLORSPACE_SRGB, "SRGB", 0, "sRGB", "Image is in sRGB color space"},
+		{SHD_COLORSPACE_COLOR, "COLOR", 0, "Color", "Image contains color data, and will be converted to linear color for rendering"},
+		{SHD_COLORSPACE_NONE, "NONE", 0, "Non-Color Data", "Image contains non-color data, for example a displacement or normal map, and will not be converted"},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;

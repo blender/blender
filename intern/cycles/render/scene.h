@@ -92,7 +92,8 @@ public:
 	device_vector<uint> sobol_directions;
 
 	/* images */
-	device_vector<uchar4> tex_image[TEX_IMAGE_MAX];
+	device_vector<uchar4> tex_image[TEX_NUM_IMAGES];
+	device_vector<float4> tex_float_image[TEX_NUM_FLOAT_IMAGES];
 
 	KernelData data;
 };

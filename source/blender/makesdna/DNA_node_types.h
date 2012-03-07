@@ -582,8 +582,8 @@ typedef struct TexNodeOutput {
 #define SHD_WAVE_TRI	2
 
 /* image/environment texture */
-#define SHD_COLORSPACE_LINEAR	0
-#define SHD_COLORSPACE_SRGB		1
+#define SHD_COLORSPACE_NONE		0
+#define SHD_COLORSPACE_COLOR	1
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

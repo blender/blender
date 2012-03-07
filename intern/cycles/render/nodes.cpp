@@ -93,8 +93,8 @@ static ShaderEnum color_space_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Linear", 0);
-	enm.insert("sRGB", 1);
+	enm.insert("None", 0);
+	enm.insert("Color", 1);
 
 	return enm;
 }
@@ -106,8 +106,9 @@ ImageTextureNode::ImageTextureNode()
 {
 	image_manager = NULL;
 	slot = -1;
+	is_float = false;
 	filename = "";
-	color_space = ustring("sRGB");
+	color_space = ustring("Color");
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -125,6 +126,7 @@ ShaderNode *ImageTextureNode::clone() const
 	ImageTextureNode *node = new ImageTextureNode(*this);
 	node->image_manager = NULL;
 	node->slot = -1;
+	node->is_float = false;
 	return node;
 }
 
@@ -136,7 +138,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(slot == -1)
-		slot = image_manager->add_image(filename);
+		slot = image_manager->add_image(filename, is_float);
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
@@ -144,6 +146,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(alpha_out);
 
 	if(slot != -1) {
+		int srgb = (is_float || color_space != "Color")? 0: 1;
 		compiler.stack_assign(vector_in);
 
 		if(!tex_mapping.skip())
@@ -155,7 +158,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 				vector_in->stack_offset,
 				color_out->stack_offset,
 				alpha_out->stack_offset,
-				color_space_enum[color_space]));
+				srgb));
 	}
 	else {
 		/* image not found */
@@ -171,7 +174,10 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 void ImageTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
-	compiler.parameter("color_space", color_space.c_str());
+	if(is_float || color_space != "Color")
+		compiler.parameter("color_space", "Linear");
+	else
+		compiler.parameter("color_space", "sRGB");
 	compiler.add(this, "node_image_texture");
 }
 
@@ -184,8 +190,9 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 {
 	image_manager = NULL;
 	slot = -1;
+	is_float = false;
 	filename = "";
-	color_space = ustring("sRGB");
+	color_space = ustring("Color");
 
 	add_input("Vector", SHADER_SOCKET_VECTOR, ShaderInput::POSITION);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -203,6 +210,7 @@ ShaderNode *EnvironmentTextureNode::clone() const
 	EnvironmentTextureNode *node = new EnvironmentTextureNode(*this);
 	node->image_manager = NULL;
 	node->slot = -1;
+	node->is_float = false;
 	return node;
 }
 
@@ -214,7 +222,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(slot == -1)
-		slot = image_manager->add_image(filename);
+		slot = image_manager->add_image(filename, is_float);
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
@@ -222,6 +230,8 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(alpha_out);
 
 	if(slot != -1) {
+		int srgb = (is_float || color_space != "Color")? 0: 1;
+
 		compiler.stack_assign(vector_in);
 
 		if(!tex_mapping.skip())
@@ -233,7 +243,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 				vector_in->stack_offset,
 				color_out->stack_offset,
 				alpha_out->stack_offset,
-				color_space_enum[color_space]));
+				srgb));
 	}
 	else {
 		/* image not found */
@@ -249,7 +259,10 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
-	compiler.parameter("color_space", color_space.c_str());
+	if(is_float || color_space != "Color")
+		compiler.parameter("color_space", "Linear");
+	else
+		compiler.parameter("color_space", "sRGB");
 	compiler.add(this, "node_environment_texture");
 }
 
