@@ -2797,8 +2797,8 @@ static void navmesh_drawColored(DerivedMesh *dm)
 }
 
 static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
-			int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			DMSetDrawOptionsTex setDrawOptions,
+			DMCompareDrawOptions compareDrawOptions,
 			void *userData)
 {
 	(void) setDrawOptions;
@@ -2810,7 +2810,7 @@ static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
 
 static void navmesh_DM_drawFacesSolid(DerivedMesh *dm,
                                       float (*partial_redraw_planes)[4],
-                                      int UNUSED(fast), int (*setMaterial)(int, void *attribs))
+                                      int UNUSED(fast), DMSetMaterial setMaterial)
 {
 	(void) partial_redraw_planes;
 	(void) setMaterial;
