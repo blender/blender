@@ -77,7 +77,7 @@ import shutil
 from platform import platform
 PLATFORM = platform().split('-')[0].lower()    # 'linux', 'darwin', 'windows'
 
-SCRIPT_DIR = os.path.dirname(__file__)
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def handle_args():
@@ -88,7 +88,7 @@ def handle_args():
 
     # When --help is given, print the usage text
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=argparse.RawTextHelpFormatter,
         usage=SCRIPT_HELP_MSG
     )
 
@@ -100,11 +100,36 @@ def handle_args():
                         help="Path of the API docs (default=<script dir>)",
                         required=False)
 
-    parser.add_argument("-T", "--sphinxtheme",
+    parser.add_argument("-B", "--sphinx-build",
+                        dest="sphinx_build",
+                        default=False,
+                        action='store_true',
+                        help="Run sphinx-build SPHINX_IN SPHINX_OUT (default=False)",
+                        required=False)
+
+    parser.add_argument("-N", "--sphinx-named-output",
+                        dest="sphinx_named_output",
+                        default=False,
+                        action='store_true',
+                        help="Add the theme name to the html dir name (default=False)",
+                        required=False)
+
+    parser.add_argument("-T", "--sphinx-theme",
                         dest="sphinx_theme",
                         type=str,
                         default='default',
-                        help="Sphinx theme (default='default')",
+                        help=
+                        # see SPHINX_THEMES below
+                        "Sphinx theme (default='default')\n"
+                        "Available themes\n"
+                        "----------------\n"
+                        "(Blender Foundation) blender-org\n"    # naiad
+                        "(Sphinx) agogo, basic, epub, haiku, nature, "
+                        "scrolls, sphinxdoc, traditional\n",
+#                        choices=['naiad', 'blender-org'] +      # bf
+#                                ['agogo', 'basic', 'epub',
+#                                 'haiku', 'nature', 'scrolls',
+#                                 'sphinxdoc', 'traditional'],   # sphinx
                         required=False)
 
     parser.add_argument("-f", "--fullrebuild",
@@ -225,26 +250,33 @@ RNA_BLACKLIST = {
 
 # -------------------------------SPHINX-----------------------------------------
 
-def sphinx_dirs():
-    '''
-    Directories where we write rst files for Sphinx
-    '''
-    if not os.path.exists(ARGS.output_dir):
-        os.mkdir(ARGS.output_dir)
+SPHINX_THEMES = {'bf': ['blender-org'], # , 'naiad',
+                 'sphinx': ['agogo',
+                            'basic',
+                            'default',
+                            'epub',
+                            'haiku',
+                            'nature',
+                            'scrolls',
+                            'sphinxdoc',
+                            'traditional']}
 
-    sphinx_in = os.path.join(ARGS.output_dir, "sphinx-in")
-    sphinx_out = os.path.join(ARGS.output_dir, "sphinx-out")
-    sphinx_in_tmp = sphinx_in + "-tmp"
-    if not os.path.exists(sphinx_in):
-        os.mkdir(sphinx_in)
+available_themes = SPHINX_THEMES['bf'] + SPHINX_THEMES['sphinx']
+if ARGS.sphinx_theme not in available_themes:
+    print ("Please choose a theme among: %s" % ', '.join(available_themes))
+    sys.exit()
 
-    return sphinx_in, sphinx_in_tmp, sphinx_out
+SPHINX_IN = os.path.join(ARGS.output_dir, "sphinx-in")
+SPHINX_IN_TMP = SPHINX_IN + "-tmp"
+SPHINX_OUT = os.path.join(ARGS.output_dir, "sphinx-out")
+if ARGS.sphinx_named_output:
+    SPHINX_OUT += "_%s" % ARGS.sphinx_theme
 
-SPHINX_THEME = ARGS.sphinx_theme
-SPHINX_IN, SPHINX_IN_TMP, SPHINX_OUT = sphinx_dirs()
-if SPHINX_THEME != 'default':
-    SPHINX_THEME_PATH = os.path.join(ARGS.output_dir, SPHINX_THEME)
-SPHINX_THEME_PATH_SVN = os.path.join(SCRIPT_DIR, SPHINX_THEME)
+if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+    SPHINX_THEME_DIR = os.path.join(ARGS.output_dir, ARGS.sphinx_theme)
+    SPHINX_THEME_SVN_DIR = os.path.join(SCRIPT_DIR, ARGS.sphinx_theme)
+
+# ------------------------------------------------------------------------------
 
 # configure compile time options
 
@@ -258,7 +290,7 @@ version_strings = [str(v) for v in bpy.app.version]
 BLENDER_VERSION_DOTS = ".".join(version_strings)    # '2.62.1'
 if bpy.app.build_revision != b"Unknown":
     # converting bytes to strings, due to #30154
-    BLENDER_VERSION_DOTS += " r" + str(bpy.app.build_revision, 'utf_8')  # '2.62.1 r44584'
+    BLENDER_VERSION_DOTS += " r" + str(bpy.app.build_revision, 'utf_8')    # '2.62.1 r44584'
 
 BLENDER_VERSION_PDF = "_".join(version_strings)    # '2_62_1'
 if bpy.app.version_cycle == "release":
@@ -292,10 +324,13 @@ def undocumented_message(module_name, type_name, identifier):
         preloadtitle = '%s.%s' % (module_name, identifier)
     else:
         preloadtitle = '%s.%s.%s' % (module_name, type_name, identifier)
-    message = "Undocumented (`contribute "\
-        "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute"\
-        "?action=edit&section=new&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message"\
-        "&preloadtitle=%s>`_)\n\n" % preloadtitle
+    message =   "Undocumented (`contribute "\
+                "<http://wiki.blender.org/index.php/"\
+                "Dev:2.5/Py/API/Generating_API_Reference/Contribute/Howto-message"\
+                "?action=edit"\
+                "&section=new"\
+                "&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message"\
+                "&preloadtitle=%s>`_)\n\n" % preloadtitle
     return message
 
 
@@ -1228,12 +1263,13 @@ def write_sphinx_conf_py(basepath):
     fw("version = '%s - API'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s - API'\n" % BLENDER_VERSION_DOTS)
 
-    if SPHINX_THEME != 'default':
-        fw("html_theme = '%s'\n" % SPHINX_THEME)  # 'blender-org', 'naiad'
-        fw("html_theme_path = ['../']\n")         # XXX?
+    if ARGS.sphinx_theme != 'default':
+        fw("html_theme = '%s'\n" % ARGS.sphinx_theme)
 
+    if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+        fw("html_theme_path = ['../']\n")
         # copied with the theme, exclude else we get an error [#28873]
-        fw("html_favicon = 'favicon.ico'\n")    # in <theme/>static/
+        fw("html_favicon = 'favicon.ico'\n")    # in <theme>/static/
 
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
@@ -1565,6 +1601,11 @@ def align_sphinx_in_to_sphinx_in_tmp():
 
 def main():
 
+    # dirs preparation
+    for dir_path in [ARGS.output_dir, SPHINX_IN]:
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+
     # dump the api in rst files
     if ARGS.full_rebuild:
         # only for full updates
@@ -1580,12 +1621,6 @@ def main():
         rna2sphinx(SPHINX_IN_TMP)
         align_sphinx_in_to_sphinx_in_tmp()
 
-    # copy the theme in the output directory
-    if SPHINX_THEME != 'default' and not os.path.exists(SPHINX_THEME_PATH):
-        shutil.copytree(SPHINX_THEME_PATH_SVN,
-                        SPHINX_THEME_PATH,
-                        copy_function=shutil.copy)
-
     # report which example files weren't used
     EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
     if EXAMPLE_SET_UNUSED:
@@ -1593,6 +1628,20 @@ def main():
         for f in EXAMPLE_SET_UNUSED:
             print("    %s.py" % f)
         print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
+
+    # eventually, copy the theme in the output directory
+    if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+        if not os.path.exists(SPHINX_THEME_DIR):
+            shutil.copytree(SPHINX_THEME_SVN_DIR,
+                            SPHINX_THEME_DIR,
+                            copy_function=shutil.copy)
+
+    # eventually, build the docs
+    if ARGS.sphinx_build:
+        import subprocess
+        sphinx_build_command = "sphinx-build %s %s" % (SPHINX_IN, SPHINX_OUT)
+        print ('\n%s\n' % sphinx_build_command)
+        subprocess.call(sphinx_build_command, shell=True)
 
     sys.exit()
 
