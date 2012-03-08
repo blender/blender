@@ -702,8 +702,7 @@ static void vgroup_normalize(Object *ob)
 	int i, dvert_tot=0;
 	const int def_nr= ob->actdef-1;
 
-	Mesh *me = ob->data;
-	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1103,8 +1102,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	int i, dvert_tot=0;
 	const int def_nr= ob->actdef-1;
 
-	Mesh *me = ob->data;
-	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1139,8 +1137,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	int i, dvert_tot=0;
 	const int def_nr= ob->actdef-1;
 
-	Mesh *me = ob->data;
-	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	if (lock_active && !BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1212,9 +1209,7 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 	MDeformVert *dv, **dvert_array=NULL;
 	int i, dvert_tot=0;
 	const int def_nr= ob->actdef-1;
-	
-	Mesh *me = ob->data;
-	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1346,9 +1341,7 @@ static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 	MDeformVert *dv, **dvert_array=NULL;
 	int i, dvert_tot=0;
 	const int def_nr= ob->actdef-1;
-	
-	Mesh *me = ob->data;
-	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1383,10 +1376,8 @@ static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 static void vgroup_clean_all(Object *ob, const float epsilon, const int keep_single)
 {
 	MDeformVert **dvert_array=NULL;
-	int i, dvert_tot=0;
-	
-	Mesh *me = ob->data;
-	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	int i, dvert_tot = 0;
+	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -1559,7 +1550,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			/* object mode / weight paint */
 			MVert *mv, *mv_mirr;
 			int vidx, vidx_mirr;
-			const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+			const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 			if (me->dvert == NULL) {
 				goto cleanup;
