@@ -54,7 +54,7 @@ def extend(obj, operator, EXTEND_MODE):
 
         def face_edge_vs(vi):
             vlen = len(vi)
-            return [(vi[i], vi[(i+1) % vlen]) for i in range(vlen)]
+            return [(vi[i], vi[(i + 1) % vlen]) for i in range(vlen)]
 
         vidx_source = face_source.vertices
         vidx_target = face_target.vertices

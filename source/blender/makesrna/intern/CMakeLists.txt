@@ -280,6 +280,7 @@ set(SRC
 	rna_internal.h
 	rna_internal_types.h
 	rna_nodetree_types.h
+	rna_mesh_utils.h
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}")

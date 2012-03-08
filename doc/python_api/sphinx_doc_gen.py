@@ -79,6 +79,7 @@ PLATFORM = platform().split('-')[0].lower()    # 'linux', 'darwin', 'windows'
 
 SCRIPT_DIR = os.path.dirname(__file__)
 
+
 def handle_args():
     '''
     Parse the args passed to Blender after "--", ignored by Blender
@@ -127,7 +128,6 @@ def handle_args():
                         help="Write the rst file of the bpy module (default=False)",
                         required=False)
 
-    
     # parse only the args passed after '--'
     argv = []
     if "--" in sys.argv:
@@ -227,7 +227,7 @@ RNA_BLACKLIST = {
 
 def sphinx_dirs():
     '''
-    Directories where we write rst files for Sphinx 
+    Directories where we write rst files for Sphinx
     '''
     if not os.path.exists(ARGS.output_dir):
         os.mkdir(ARGS.output_dir)
@@ -237,7 +237,7 @@ def sphinx_dirs():
     sphinx_in_tmp = sphinx_in + "-tmp"
     if not os.path.exists(sphinx_in):
         os.mkdir(sphinx_in)
-    
+
     return sphinx_in, sphinx_in_tmp, sphinx_out
 
 SPHINX_THEME = ARGS.sphinx_theme
@@ -258,7 +258,7 @@ version_strings = [str(v) for v in bpy.app.version]
 BLENDER_VERSION_DOTS = ".".join(version_strings)    # '2.62.1'
 if bpy.app.build_revision != b"Unknown":
     # converting bytes to strings, due to #30154
-    BLENDER_VERSION_DOTS += " r" + str(bpy.app.build_revision, 'utf_8') # '2.62.1 r44584'
+    BLENDER_VERSION_DOTS += " r" + str(bpy.app.build_revision, 'utf_8')  # '2.62.1 r44584'
 
 BLENDER_VERSION_PDF = "_".join(version_strings)    # '2_62_1'
 if bpy.app.version_cycle == "release":
@@ -1203,9 +1203,9 @@ def pyrna2sphinx(basepath):
                     else:
                         url_base = API_BASEURL
 
-                    fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0], 
-                                                           url_base, 
-                                                           location[0], 
+                    fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0],
+                                                           url_base,
+                                                           location[0],
                                                            location[1]))
 
             file.close()
@@ -1221,7 +1221,7 @@ def write_sphinx_conf_py(basepath):
     filepath = os.path.join(basepath, "conf.py")
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
-    
+
     fw("project = 'Blender'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
@@ -1238,7 +1238,7 @@ def write_sphinx_conf_py(basepath):
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("\n")
-    
+
     # needed for latex, pdf gen
     fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
     fw("latex_paper_size = 'a4paper'\n")
@@ -1283,26 +1283,26 @@ def write_rst_contents(basepath):
     fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
-    
+
     app_modules = [
         "bpy.context",  # note: not actually a module
         "bpy.data",     # note: not actually a module
         "bpy.ops",
         "bpy.types",
-        
+
         # py modules
         "bpy.utils",
         "bpy.path",
         "bpy.app",
         "bpy.app.handlers",
-        
+
         # C modules
         "bpy.props"
     ]
     for mod in app_modules:
         if mod not in EXCLUDE_MODULES:
             fw("   %s\n\n" % mod)
- 
+
     fw("==================\n")
     fw("Standalone Modules\n")
     fw("==================\n")
@@ -1475,12 +1475,12 @@ def write_rst_importable_modules(basepath):
 
 
 def copy_handwritten_rsts(basepath):
-    
+
     # info docs
     if not EXCLUDE_INFO_DOCS:
         for info, info_desc in INFO_DOCS:
             shutil.copy2(os.path.join(RST_DIR, info), basepath)
-    
+
     # TODO put this docs in blender's code and use import as per modules above
     handwritten_modules = [
         "bge.types",
@@ -1522,13 +1522,13 @@ def rna2sphinx(basepath):
             pycontext2sphinx(basepath)
 
     # internal modules
-    write_rst_bpy(basepath)                 # bpy, disabled by default    
+    write_rst_bpy(basepath)                 # bpy, disabled by default
     write_rst_types_index(basepath)         # bpy.types
     write_rst_ops_index(basepath)           # bpy.ops
     pyrna2sphinx(basepath)                  # bpy.types.* and bpy.ops.*
     write_rst_data(basepath)                # bpy.data
     write_rst_importable_modules(basepath)
-    
+
     # copy the other rsts
     copy_handwritten_rsts(basepath)
 

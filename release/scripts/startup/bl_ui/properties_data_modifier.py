@@ -126,7 +126,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
         split.prop(md, "use_even_offset")
         split.prop(md, "use_distance_offset")
-        # -- end 
+        # -- end
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)

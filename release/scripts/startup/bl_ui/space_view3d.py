@@ -527,10 +527,10 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_by_number_vertices", text = "By Number of Verts")
+        layout.operator("mesh.select_by_number_vertices", text="By Number of Verts")
         if context.scene.tool_settings.mesh_select_mode[2] == False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_loose_verts", text = "Loose Verts/Edges")
+        layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
         layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()
@@ -1032,7 +1032,7 @@ class VIEW3D_MT_object_game(Menu):
 
         layout.operator("object.game_property_clear")
 
-        
+
 # ********** Brush menu **********
 class VIEW3D_MT_brush(Menu):
     bl_label = "Brush"

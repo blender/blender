@@ -489,6 +489,7 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
 
+
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "world"
@@ -506,6 +507,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 
         world = context.world
         panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+
 
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
@@ -529,6 +531,7 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
         split.prop(light, "ao_factor", text="Factor")
         split.prop(light, "distance", text="Distance")
 
+
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "world"
@@ -550,6 +553,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = cworld.sample_as_light
         row.prop(cworld, "sample_map_resolution")
+
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"

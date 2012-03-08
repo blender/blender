@@ -1562,7 +1562,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	for (track= tracksbase->first; track; track= track->next) {
 		int selected= TRACK_SELECTED(track);
 
-		if ((draw_selected && !selected) || (draw_selected && !selected))
+		if (draw_selected && !selected)
 			continue;
 
 		if ((track->flag&TRACK_HAS_BUNDLE)==0)

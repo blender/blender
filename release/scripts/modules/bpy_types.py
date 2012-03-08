@@ -446,6 +446,7 @@ class MeshFace(StructRNA):
                     ord_ind(verts[3], verts[0]),
                     )
 
+
 class MeshPolygon(StructRNA):
     __slots__ = ()
 
@@ -453,13 +454,14 @@ class MeshPolygon(StructRNA):
     def edge_keys(self):
         verts = self.vertices[:]
         vlen = len(self.vertices)
-        return [ord_ind(verts[i], verts[(i+1) % vlen]) for i in range(vlen)]
+        return [ord_ind(verts[i], verts[(i + 1) % vlen]) for i in range(vlen)]
 
     @property
     def loops(self):
         start = self.loop_start
         end = start + self.loop_total
         return range(start, end)
+
 
 class Text(bpy_types.ID):
     __slots__ = ()

@@ -103,6 +103,7 @@ set(SRC
 	BLI_dynlib.h
 	BLI_dynstr.h
 	BLI_edgehash.h
+	BLI_editVert.h
 	BLI_fileops.h
 	BLI_fileops_types.h
 	BLI_fnmatch.h
