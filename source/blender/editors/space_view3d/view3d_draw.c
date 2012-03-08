@@ -225,21 +225,21 @@ int ED_view3d_clipping_test(RegionView3D *rv3d, const float vec[3], const int is
 /* ********* end custom clipping *********** */
 
 
-static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, float dx)
+static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y, double dx)
 {	
-	float verts[2][2];
+	double verts[2][2];
 
 	x+= (wx); 
 	y+= (wy);
 
 	/* set fixed 'Y' */
 	verts[0][1]= 0.0f;
-	verts[1][1]= (float)ar->winy;
+	verts[1][1]= (double)ar->winy;
 
 	/* iter over 'X' */
-	verts[0][0] = verts[1][0] = x-dx*floorf(x/dx);
+	verts[0][0] = verts[1][0] = x-dx*floor(x/dx);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, verts);
+	glVertexPointer(2, GL_DOUBLE, 0, verts);
 
 	while (verts[0][0] < ar->winx) {
 		glDrawArrays(GL_LINES, 0, 2);
@@ -248,10 +248,10 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 	/* set fixed 'X' */
 	verts[0][0]= 0.0f;
-	verts[1][0]= (float)ar->winx;
+	verts[1][0]= (double)ar->winx;
 
 	/* iter over 'Y' */
-	verts[0][1]= verts[1][1]= y-dx*floorf(y/dx);
+	verts[0][1]= verts[1][1]= y-dx*floor(y/dx);
 	while (verts[0][1] < ar->winy) {
 		glDrawArrays(GL_LINES, 0, 2);
 		verts[0][1] = verts[1][1] = verts[0][1] + dx;
@@ -266,16 +266,13 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 {
 	/* extern short bgpicmode; */
 	RegionView3D *rv3d= ar->regiondata;
-	float wx, wy, x, y, fw, fx, fy, dx;
-	float vec4[4];
+	double wx, wy, x, y, fw, fx, fy, dx;
+	double vec4[4];
 	unsigned char col[3], col2[3];
 
-	vec4[0]=vec4[1]=vec4[2]=0.0; 
-	vec4[3]= 1.0;
-	mul_m4_v4(rv3d->persmat, vec4);
-	fx= vec4[0]; 
-	fy= vec4[1]; 
-	fw= vec4[3];
+	fx= rv3d->persmat[3][0];
+	fy= rv3d->persmat[3][1];
+	fw= rv3d->persmat[3][3];
 
 	wx= (ar->winx/2.0);	/* because of rounding errors, grid at wrong location */
 	wy= (ar->winy/2.0);
@@ -287,7 +284,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
-	mul_m4_v4(rv3d->persmat, vec4);
+	mul_m4_v4d(rv3d->persmat, vec4);
 	fx= vec4[0]; 
 	fy= vec4[1]; 
 	fw= vec4[3];
@@ -305,7 +302,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		 * items are less useful when dealing with units */
 		void *usys;
 		int len, i;
-		float dx_scalar;
+		double dx_scalar;
 		float blend_fac;
 
 		bUnit_GetSystem(&usys, &len, unit->system, B_UNIT_LENGTH);
@@ -313,7 +310,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		if (usys) {
 			i= len;
 			while (i--) {
-				float scalar= bUnit_GetScaler(usys, i);
+				double scalar= bUnit_GetScaler(usys, i);
 
 				dx_scalar = dx * scalar / unit->scale_length;
 				if (dx_scalar < (GRID_MIN_PX*2))

@@ -373,6 +373,25 @@ void mul_m4_v4(float mat[4][4], float r[4])
 	mul_v4_m4v4(r, mat, r);
 }
 
+void mul_v4d_m4v4d(double r[4], float mat[4][4], double v[4])
+{
+	double x, y, z;
+
+	x= v[0];
+	y= v[1];
+	z= v[2];
+
+	r[0]= x*(double)mat[0][0] + y*(double)mat[1][0] + z*(double)mat[2][0] + (double)mat[3][0]*v[3];
+	r[1]= x*(double)mat[0][1] + y*(double)mat[1][1] + z*(double)mat[2][1] + (double)mat[3][1]*v[3];
+	r[2]= x*(double)mat[0][2] + y*(double)mat[1][2] + z*(double)mat[2][2] + (double)mat[3][2]*v[3];
+	r[3]= x*(double)mat[0][3] + y*(double)mat[1][3] + z*(double)mat[2][3] + (double)mat[3][3]*v[3];
+}
+
+void mul_m4_v4d(float mat[4][4], double r[4])
+{
+	mul_v4d_m4v4d(r, mat, r);
+}
+
 void mul_v3_m3v3(float r[3], float M[3][3], float a[3])
 {
 	r[0]= M[0][0]*a[0] + M[1][0]*a[1] + M[2][0]*a[2];
