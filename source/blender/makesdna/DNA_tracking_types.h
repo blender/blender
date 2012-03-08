@@ -218,6 +218,7 @@ enum {
 #define MARKER_TRACKED	(1<<1)
 #define MARKER_GRAPH_SEL_X (1<<2)
 #define MARKER_GRAPH_SEL_Y (1<<3)
+#define MARKER_GRAPH_SEL	(MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y)
 
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)

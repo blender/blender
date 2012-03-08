@@ -59,10 +59,12 @@ void ED_clip_graph_center_current_frame(struct Scene *scene, struct ARegion *ar)
 
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
 void CLIP_OT_graph_select_border(struct wmOperatorType *ot);
+void CLIP_OT_graph_select_all_markers(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_curve(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_knot(struct wmOperatorType *ot);
 void CLIP_OT_graph_view_all(struct wmOperatorType *ot);
 void CLIP_OT_graph_center_current_frame(struct wmOperatorType *ot);
+void CLIP_OT_graph_disable_markers(struct wmOperatorType *ot);
 
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
