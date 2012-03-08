@@ -587,12 +587,12 @@ static void rna_def_scopes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Waveform Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Scopes_update");
 
-	prop = RNA_def_property(srna, "waveform_alpha", PROP_FLOAT, PROP_PERCENTAGE);
+	prop = RNA_def_property(srna, "waveform_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, "Scopes", "wavefrm_alpha");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Waveform Opacity", "Opacity of the points");
 
-	prop = RNA_def_property(srna, "vectorscope_alpha", PROP_FLOAT, PROP_PERCENTAGE);
+	prop = RNA_def_property(srna, "vectorscope_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, "Scopes", "vecscope_alpha");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
