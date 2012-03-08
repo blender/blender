@@ -86,7 +86,7 @@ def add_object_align_init(context, operator):
     return location * rotation
 
 
-def object_data_add(context, obdata, operator=None):
+def object_data_add(context, obdata, operator=None, use_active_layer=True):
     """
     Add an object using the view context and preference to to initialize the
     location, rotation and layer.
@@ -111,7 +111,17 @@ def object_data_add(context, obdata, operator=None):
     base = scene.objects.link(obj_new)
     base.select = True
 
+    v3d = None
     if context.space_data and context.space_data.type == 'VIEW_3D':
+        v3d = context.space_data
+
+    if use_active_layer:
+        if v3d.local_view:
+            base.layers_from_view(context.space_data)
+            base.layers[scene.active_layer] = True
+        else:
+            base.layers = [True if i == scene.active_layer else False for i in range(len(scene.layers))]
+    if v3d:
         base.layers_from_view(context.space_data)
 
     obj_new.matrix_world = add_object_align_init(context, operator)

@@ -414,6 +414,13 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	scene->lay = ED_view3d_scene_layer_set(scene->lay, values, &scene->layact);
 }
 
+static int rna_Scene_active_layer_get(PointerRNA *ptr)
+{
+	Scene *scene = (Scene*)ptr->data;
+
+	return (int)log2f(scene->layact);
+}
+
 static void rna_Scene_view3d_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene = (Scene*)ptr->data;
@@ -4097,7 +4104,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 	RNA_def_property_ui_text(prop, "Layers", "Layers visible when rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
-	
+
+	/* active layer */
+	prop = RNA_def_property(srna, "active_layer", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE|PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_Scene_active_layer_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Layer", "Active scene layer index");
+
 	/* Frame Range Stuff */
 	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
