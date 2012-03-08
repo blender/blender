@@ -195,7 +195,9 @@ void draw_motion_path_instance(Scene *scene,
 	
 	/* Draw big green dot where the current frame is */
 	// NOTE: only do this when drawing keyframes for now... 
-	if (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) {
+	if ((avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) &&
+		(sfra < CFRA) && (CFRA <= efra))
+	{
 		UI_ThemeColor(TH_CFRAME);
 		glPointSize(6.0f);
 		
