@@ -411,14 +411,6 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
 
-	/* clean-up */
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
-
 	/* mode */
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", SC_MODE_RECONSTRUCTION);
@@ -546,6 +538,17 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 
+	/* clean-up */
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
+	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
+	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
+	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+
 	/* ******** Hotkeys avalaible for preview region only ******** */
 
 	keymap= WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
@@ -574,6 +577,17 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_time_cursor");
+
+	/* clean-up */
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
+	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
+	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
+	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }
