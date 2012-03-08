@@ -431,6 +431,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
 	tringselOpData *lcd= op->customdata;
+	int show_cuts = 0;
 
 	view3d_operator_needs_opengl(C);
 
@@ -477,6 +478,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			cuts++;
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, cuts);
+			show_cuts = TRUE;
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -489,6 +491,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			cuts=MAX2(cuts-1,1);
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, cuts);
+			show_cuts = TRUE;
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -517,13 +520,20 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 		if (handleNumInput(&lcd->num, event)) {
 			applyNumInput(&lcd->num, &value);
 			
-			cuts= CLAMPIS(value, 1, 32);
+			cuts= CLAMPIS(value, 1, 130);
 			
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, cuts);
+			show_cuts = TRUE;
 			
 			ED_region_tag_redraw(lcd->ar);
 		}
+	}
+	
+	if (show_cuts) {
+		char buf[64];
+		BLI_snprintf(buf, sizeof(buf), "Number of Cuts: %d", cuts);
+		ED_area_headerprint(CTX_wm_area(C), buf);
 	}
 	
 	/* keep going until the user confirms */
