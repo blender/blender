@@ -239,7 +239,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 )
         cls.aperture_fstop = FloatProperty(
                 name="Aperture F/stop",
-                description="F/stop ratio (lower numbers equals more bokeh while higher numbers equals less bokeh)",
+                description="F/stop ratio (lower numbers give more depth of field, higher numbers give a sharper image)",
                 min=0.0, soft_min=0.1, soft_max=64.0,
                 default=5.6,
                 step=10,
