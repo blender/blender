@@ -289,9 +289,9 @@ static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 {
 	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
-	} else if(lcd->edges) {
-		if (lcd->edges)
-			MEM_freeN(lcd->edges);
+	}
+	else if (lcd->edges) {
+		MEM_freeN(lcd->edges);
 		lcd->edges = NULL;
 		lcd->totedge = 0;
 	}

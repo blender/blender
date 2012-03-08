@@ -567,9 +567,7 @@ static void expand_local_mesh(Mesh *me)
 				for (a=0; a<me->totpoly; a++, txface++) {
 					/* special case: ima always local immediately */
 					if (txface->tpage) {
-						if (txface->tpage) {
-							id_lib_extern((ID *)txface->tpage);
-						}
+						id_lib_extern((ID *)txface->tpage);
 					}
 				}
 			}
@@ -582,9 +580,7 @@ static void expand_local_mesh(Mesh *me)
 				for (a=0; a<me->totface; a++, tface++) {
 					/* special case: ima always local immediately */
 					if (tface->tpage) {
-						if (tface->tpage) {
-							id_lib_extern((ID *)tface->tpage);
-						}
+						id_lib_extern((ID *)tface->tpage);
 					}
 				}
 			}

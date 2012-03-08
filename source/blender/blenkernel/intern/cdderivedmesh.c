@@ -2224,7 +2224,6 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	
 	/*find-replace merged vertices with target vertices*/	
 	ml = cddm->mloop;
-	c = 0;
 	for (i=0; i<totloop; i++, ml++) {
 		if (vtargetmap[ml->v] != -1) {
 			ml->v = vtargetmap[ml->v];

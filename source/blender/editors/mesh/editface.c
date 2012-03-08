@@ -576,10 +576,9 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 
 	selar= MEM_callocN(me->totpoly+1, "selar");
 
-	if (extend == 0 && select)
+	if (extend == 0 && select) {
 		paintface_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
 
-	if (extend == 0 && select) {
 		mface= me->mpoly;
 		for(a=1; a<=me->totpoly; a++, mface++) {
 			if((mface->flag & ME_HIDE) == 0)

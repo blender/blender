@@ -299,7 +299,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_mat4_get(op, "mat", mat);
 
 	phid = 2.0f * (float)M_PI / tot;
-	phi = 0.25f * (float)M_PI;
+	/* phi = 0.25f * (float)M_PI; */ /* UNUSED */
 
 	/* one segment first */
 	phi = 0;
