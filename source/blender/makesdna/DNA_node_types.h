@@ -475,7 +475,7 @@ typedef struct NodeTexChecker {
 
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
-	int color_space, pad;
+	int color_space, projection;
 } NodeTexEnvironment;
 
 typedef struct NodeTexGradient {
@@ -584,6 +584,10 @@ typedef struct TexNodeOutput {
 /* image/environment texture */
 #define SHD_COLORSPACE_NONE		0
 #define SHD_COLORSPACE_COLOR	1
+
+/* environment texture */
+#define SHD_PROJ_EQUIRECTANGULAR	0
+#define SHD_PROJ_MIRROR_BALL		1
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

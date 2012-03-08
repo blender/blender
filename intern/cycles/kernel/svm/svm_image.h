@@ -171,11 +171,20 @@ __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float 
 {
 	uint id = node.y;
 	uint co_offset, out_offset, alpha_offset, srgb;
+	uint projection = node.w;
 
 	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
-	float2 uv = direction_to_equirectangular(co);
+	float2 uv;
+
+	co = normalize(co);
+	
+	if(projection == 0)
+		uv = direction_to_equirectangular(co);
+	else
+		uv = direction_to_mirrorball(co);
+
 	float4 f = svm_image_texture(kg, id, uv.x, uv.y);
 	float3 r = make_float3(f.x, f.y, f.z);
 

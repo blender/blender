@@ -1268,6 +1268,11 @@ static void def_sh_tex_environment(StructRNA *srna)
 		{SHD_COLORSPACE_NONE, "NONE", 0, "Non-Color Data", "Image contains non-color data, for example a displacement or normal map, and will not be converted"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static const EnumPropertyItem prop_projection_items[] = {
+		{SHD_PROJ_EQUIRECTANGULAR, "EQUIRECTANGULAR", 0, "Equirectangular", "Equirectangular or latitude-longitude projection"},
+		{SHD_PROJ_MIRROR_BALL, "MIRROR_BALL", 0, "Mirror Ball", "Projection from an orthographic photo of a mirror ball"},
+		{0, NULL, 0, NULL, NULL}};
+	
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -1277,13 +1282,19 @@ static void def_sh_tex_environment(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_update");
 
-	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
+	RNA_def_struct_sdna_from(srna, "NodeTexEnvironment", "storage");
 	def_sh_tex(srna);
 
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_color_space_items);
 	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "projection", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_projection_items);
+	RNA_def_property_ui_text(prop, "Projection", "Projection of the input image");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
 }
 
 static void def_sh_tex_image(StructRNA *srna)

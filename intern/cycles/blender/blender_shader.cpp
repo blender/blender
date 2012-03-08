@@ -332,6 +332,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			if(b_image)
 				env->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
+			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
 			node = env;
 			break;
