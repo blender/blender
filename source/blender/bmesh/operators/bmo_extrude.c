@@ -27,7 +27,7 @@
 
 #include "bmesh.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 enum {
 	EXT_INPUT   = 1,

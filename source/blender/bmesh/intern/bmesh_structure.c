@@ -32,7 +32,7 @@
  */
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 #include <stdlib.h>
 

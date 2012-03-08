@@ -41,7 +41,7 @@
 
 #include "ED_mesh.h"
 
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
 BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};

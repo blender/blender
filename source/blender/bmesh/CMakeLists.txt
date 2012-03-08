@@ -26,40 +26,11 @@
 
 set(INC 
 	.
-	intern
-	operators
-	../avi
-	../blenfont
 	../blenkernel
 	../blenlib
-	../blenloader
 	../editors/include
-	../editors/mesh
-	../gpu
-	../ikplugin
-	../imbuf
 	../makesdna
-	../makesrna
-	../modifiers
-	../nodes
-	../render/extern/include
-	../../../extern/glew/include
-	../../../intern/audaspace/intern
-	../../../intern/bsp/extern
-	../../../intern/decimation/extern
-	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
-	../../../intern/iksolver/extern
-	../../../intern/memutil
-	../../../intern/mikktspace
-	../../../intern/opennl/extern
-	../../../intern/smoke/extern
-	# XXX - BAD LEVEL CALL WM_api.h
-	../../../source/blender/windowmanager
-)
-
-set(INC_SYS
-	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -120,22 +91,6 @@ set(SRC
 	bmesh_error.h
 	bmesh_operator_api.h
 )
-
-add_definitions(-DGLEW_STATIC)
-
-if(WITH_LZO)
-	add_definitions(-DWITH_LZO)
-	list(APPEND INC_SYS
-		../../../extern/lzo/minilzo
-	)
-endif()
-
-if(WITH_LZMA)
-	add_definitions(-DWITH_LZMA)
-	list(APPEND INC_SYS
-		../../../extern/lzma
-	)
-endif()
 
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")

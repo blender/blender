@@ -41,7 +41,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 #define SELECT 1
 

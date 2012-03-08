@@ -35,7 +35,7 @@
 #include "BLI_array.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */

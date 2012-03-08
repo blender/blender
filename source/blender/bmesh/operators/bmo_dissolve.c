@@ -26,9 +26,9 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define FACE_MARK	1
 #define FACE_ORIG	2

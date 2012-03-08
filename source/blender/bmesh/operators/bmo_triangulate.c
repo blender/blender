@@ -28,9 +28,9 @@
 #include "BLI_smallhash.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define EDGE_NEW	1
 #define FACE_NEW	1

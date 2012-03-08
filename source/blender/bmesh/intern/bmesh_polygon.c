@@ -41,7 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /**
  * \brief TEST EDGE SIDE and POINT IN TRIANGLE

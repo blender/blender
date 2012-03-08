@@ -30,7 +30,7 @@
 
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
 	'\0',

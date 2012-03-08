@@ -82,9 +82,9 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static void rna_Screen_redraw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	bScreen *screen = (bScreen*)ptr->data;
+	bScreen *screen = (bScreen *)ptr->data;
 
 	/* the settings for this are currently only available from a menu in the TimeLine, hence refresh=SPACE_TIME */
 	ED_screen_animation_timer_update(screen, screen->redraws_flag, SPACE_TIME);

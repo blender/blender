@@ -34,9 +34,9 @@
 #include "ED_mesh.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #include "bmo_subdivide.h" /* own include */
 

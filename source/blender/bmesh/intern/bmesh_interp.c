@@ -43,7 +43,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /**
  * \brief Data, Interp From Verts

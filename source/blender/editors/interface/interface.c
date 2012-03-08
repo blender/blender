@@ -1745,8 +1745,11 @@ int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double 
 
 #else /* WITH_PYTHON */
 
-	value= atof(str);
+	*value = atof(str);
 	ok = TRUE;
+
+	(void)C;
+	(void)but;
 
 #endif /* WITH_PYTHON */
 

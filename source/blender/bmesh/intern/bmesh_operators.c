@@ -37,7 +37,7 @@
 #include "BLI_array.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);

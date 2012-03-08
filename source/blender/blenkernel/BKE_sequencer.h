@@ -101,8 +101,14 @@ int seq_cmp_render_data(const SeqRenderData * a, const SeqRenderData * b);
 unsigned int seq_hash_render_data(const SeqRenderData * a);
 
 /* Wipe effect */
-enum {DO_SINGLE_WIPE, DO_DOUBLE_WIPE, DO_BOX_WIPE, DO_CROSS_WIPE,
-	DO_IRIS_WIPE,DO_CLOCK_WIPE};
+enum {
+	DO_SINGLE_WIPE,
+	DO_DOUBLE_WIPE,
+	DO_BOX_WIPE,
+	DO_CROSS_WIPE,
+	DO_IRIS_WIPE,
+	DO_CLOCK_WIPE
+};
 
 
 struct SeqEffectHandle {

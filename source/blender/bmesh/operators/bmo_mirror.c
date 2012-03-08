@@ -30,7 +30,7 @@
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define ELE_NEW		1
 

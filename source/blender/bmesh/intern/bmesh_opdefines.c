@@ -55,7 +55,7 @@
  */
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* ok, I'm going to write a little docgen script. so all
  * bmop comments must conform to the following template/rules:

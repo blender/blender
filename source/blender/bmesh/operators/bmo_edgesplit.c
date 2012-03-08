@@ -28,7 +28,7 @@
 
 #include "bmesh.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 typedef struct EdgeTag {
 	BMVert *newv1, *newv2;

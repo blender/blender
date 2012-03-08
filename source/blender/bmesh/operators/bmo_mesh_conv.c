@@ -20,6 +20,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/operators/bmesh_mesh_conv.c
+ *  \ingroup bmesh
+ *
+ * This file contains functions
+ * for converting a Mesh
+ * into a Bmesh, and back again.
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -39,18 +47,9 @@
 #include "BLI_array.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
-
-/*
- * MESH CONV.C
- *
- * This file contains functions
- * for converting a Mesh
- * into a Bmesh, and back again.
- *
- */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
