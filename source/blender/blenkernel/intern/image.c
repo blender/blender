@@ -531,13 +531,13 @@ Image *BKE_add_image_file(const char *name)
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
 			BLI_path_abs(strtest, G.main->name);
 			
-			if( strcmp(strtest, str)==0 ) {
+			if (BLI_path_cmp(strtest, str)==0) {
 				if(ima->anim==NULL || ima->id.us==0) {
 					BLI_strncpy(ima->name, name, sizeof(ima->name));	/* for stringcode */
 					ima->id.us++;										/* officially should not, it doesn't link here! */
 					if(ima->ok==0)
 						ima->ok= IMA_OK;
-			/* RETURN! */
+					/* RETURN! */
 					return ima;
 				}
 			}

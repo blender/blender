@@ -42,6 +42,9 @@ op_blacklist = (
     "wm.doc_view",
     "wm.path_open",
     "help.operator_cheat_sheet",
+    "wm.keyconfig_test",     # just annoying - but harmless
+    "wm.memory_statistics",  # another annoying one
+    # "mesh.vertex_color_remove",  #crashes! fixme
     )
 
 

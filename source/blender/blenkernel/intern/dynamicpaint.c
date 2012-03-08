@@ -313,8 +313,8 @@ static int surface_duplicateOutputExists(void *arg, const char *name)
 	for(; surface; surface=surface->next) {
 		if (surface!=t_surface && surface->type==t_surface->type &&
 			surface->format==t_surface->format) {
-			if (surface->output_name[0]!='\0' && !strcmp(name, surface->output_name)) return 1;
-			if (surface->output_name2[0]!='\0' && !strcmp(name, surface->output_name2)) return 1;
+			if (surface->output_name[0]!='\0' && !BLI_path_cmp(name, surface->output_name)) return 1;
+			if (surface->output_name2[0]!='\0' && !BLI_path_cmp(name, surface->output_name2)) return 1;
 		}
 	}
 	return 0;
