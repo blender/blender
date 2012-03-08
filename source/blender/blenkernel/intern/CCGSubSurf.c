@@ -732,7 +732,7 @@ static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, 
 	no[1] = b_dZ * a_cX - b_dX * a_cZ;
 	no[2] = b_dX * a_cY - b_dY * a_cX;
 
-	length = sqrt(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+	length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 	if (length > EPSILON) {
 		float invLength = 1.f/length;
@@ -1419,7 +1419,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			NormAdd(no, FACE_getIFNo(f, lvl, _face_getVertIndex(f,v), gridSize - 1, gridSize - 1));
 		}
 
-		length = sqrt(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+		length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 		if (length > EPSILON) {
 			float invLength = 1.0f/length;
@@ -1477,7 +1477,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
 					float *no = FACE_getIFNo(f, lvl, S, x, y);
-					float length = sqrt(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+					float length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 					if (length > EPSILON) {
 						float invLength = 1.0f/length;
