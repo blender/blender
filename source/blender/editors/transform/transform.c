@@ -136,15 +136,13 @@ static void convertViewVec2D(View2D *v2d, float vec[3], int dx, int dy)
 	vec[2]= 0.0f;
 }
 
-void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
+void convertViewVec(TransInfo *t, float vec[3], int dx, int dy)
 {
-	if(t->spacetype==SPACE_VIEW3D) {
-		if(t->ar->regiontype == RGN_TYPE_WINDOW) {
-			float mval_f[2];
-			mval_f[0]= dx;
-			mval_f[1]= dy;
-			ED_view3d_win_to_delta(t->ar, mval_f, vec);
-		}
+	if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
+		float mval_f[2];
+		mval_f[0] = dx;
+		mval_f[1] = dy;
+		ED_view3d_win_to_delta(t->ar, mval_f, vec);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy;
@@ -171,6 +169,10 @@ void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
 		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		vec[2]= 0.0f;
+	}
+	else {
+		printf("%s: called in an invalid context\n", __func__);
+		zero_v3(vec);
 	}
 }
 

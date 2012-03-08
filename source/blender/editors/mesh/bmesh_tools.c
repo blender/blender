@@ -2711,12 +2711,14 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = (obedit) ? obedit->data : NULL;
-	BMEditMesh *em = (me) ? me->edit_btmesh : NULL;
+	BMEditMesh *em;
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
-	if (obedit && obedit->type == OB_MESH && CustomData_has_layer(&em->bm->vdata, CD_SHAPEKEY)) {
+	if ((obedit && obedit->type == OB_MESH) &&
+	    (em = BMEdit_FromObject(obedit)) &&
+	    CustomData_has_layer(&em->bm->vdata, CD_SHAPEKEY))
+	{
 		EnumPropertyItem tmp = {0, "", 0, "", ""};
 		int a;
 
