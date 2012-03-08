@@ -124,12 +124,23 @@ typedef enum DerivedMeshType {
 	DM_TYPE_CCGDM
 } DerivedMeshType;
 
+typedef enum DMDrawOption {
+	/* the element is hidden or otherwise non-drawable */
+	DM_DRAW_OPTION_SKIP = 0,
+	/* normal drawing */
+	DM_DRAW_OPTION_NORMAL = 1,
+	/* draw, but don't set the color from mcol */
+	DM_DRAW_OPTION_NO_MCOL = 2,
+	/* used in drawMappedFaces, use GL stipple for the face */
+	DM_DRAW_OPTION_STIPPLE = 3,
+} DMDrawOption;
+
 /* Drawing callback types */
 typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
 typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
 typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
-typedef int (*DMSetDrawOptions)(void *userData, int index);
-typedef int (*DMSetDrawOptionsTex)(struct MTFace *tface, int has_vcol, int matnr);
+typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
+typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, int has_vcol, int matnr);
 
 typedef enum DMDrawFlag {
 	DM_DRAW_USE_COLORS = 1,

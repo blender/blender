@@ -1689,7 +1689,8 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 		}
 
-		if(!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) && !setDrawOptions(userData, origIndex))) {
+		if(!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) &&
+					   (setDrawOptions(userData, origIndex) == DM_DRAW_OPTION_SKIP))) {
 			a += gridFaces*gridFaces*numVerts;
 			continue;
 		}
@@ -1926,7 +1927,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	MCol *mcol = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
-	int i, totface, flag, gridSize = ccgSubSurf_getGridSize(ss);
+	DMDrawOption draw_option;
+	int i, totface, gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 
 	(void) compareDrawOptions;
@@ -1958,14 +1960,14 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		}
 
 		if(drawParams)
-			flag = drawParams(tf, (mcol != NULL), mat_nr);
+			draw_option = drawParams(tf, (mcol != NULL), mat_nr);
 		else if (index != ORIGINDEX_NONE)
-			flag= (drawParamsMapped)? drawParamsMapped(userData, index): 1;
+			draw_option= (drawParamsMapped)? drawParamsMapped(userData, index): DM_DRAW_OPTION_NORMAL;
 		else
-			flag= GPU_enable_material(mat_nr, NULL) ? 1:0;
+			draw_option= GPU_enable_material(mat_nr, NULL) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
 
 
-		if (flag == 0) { /* flag 0 == the face is hidden or invisible */
+		if (draw_option == DM_DRAW_OPTION_SKIP) {
 			if(tf) tf += gridFaces*gridFaces*numVerts;
 			if(mcol) mcol += gridFaces*gridFaces*numVerts*4;
 			continue;
@@ -1973,7 +1975,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 		/* flag 1 == use vertex colors */
 		if(mcol) {
-			if(flag==1) cp= (unsigned char*)mcol;
+			if(draw_option != DM_DRAW_OPTION_NO_MCOL)
+				cp= (unsigned char*)mcol;
 			mcol += gridFaces*gridFaces*numVerts*4;
 		}
 
@@ -2153,15 +2156,15 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 		}
 
 		{
-			int draw= 1;
+			DMDrawOption draw_option= DM_DRAW_OPTION_NORMAL;
 
 			if(index == ORIGINDEX_NONE)
-				draw= setMaterial(faceFlags ? faceFlags[origIndex].mat_nr + 1: 1, NULL); /* XXX, no faceFlags no material */
+				draw_option= setMaterial(faceFlags ? faceFlags[origIndex].mat_nr + 1: 1, NULL); /* XXX, no faceFlags no material */
 			else if (setDrawOptions)
-				draw= setDrawOptions(userData, index);
+				draw_option= setDrawOptions(userData, index);
 
-			if (draw) {
-				if (draw==2) {
+			if (draw_option != DM_DRAW_OPTION_SKIP) {
+				if (draw_option == DM_DRAW_OPTION_STIPPLE) {
 					  glEnable(GL_POLYGON_STIPPLE);
 					  glPolygonStipple(stipple_quarttone);
 				}
@@ -2232,7 +2235,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 						glEnd();
 					}
 				}
-				if (draw==2)
+				if (draw_option == DM_DRAW_OPTION_STIPPLE)
 					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
@@ -2256,7 +2259,7 @@ static void ccgDM_drawMappedEdges(DerivedMesh *dm,
 		int index = ccgDM_getEdgeMapIndex(ss, e);
 
 		glBegin(GL_LINE_STRIP);
-		if (index!=-1 && (!setDrawOptions || setDrawOptions(userData, index))) {
+		if (index!=-1 && (!setDrawOptions || (setDrawOptions(userData, index) != DM_DRAW_OPTION_SKIP))) {
 			if (useAging && !(G.f&G_BACKBUFSEL)) {
 				int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
 				glColor3ub(0, ageCol>0?ageCol:0, 0);
@@ -2291,7 +2294,7 @@ static void ccgDM_drawMappedEdgesInterp(DerivedMesh *dm,
 		int index = ccgDM_getEdgeMapIndex(ss, e);
 
 		glBegin(GL_LINE_STRIP);
-		if (index!=-1 && (!setDrawOptions || setDrawOptions(userData, index))) {
+		if (index!=-1 && (!setDrawOptions || (setDrawOptions(userData, index) != DM_DRAW_OPTION_SKIP))) {
 			for (i=0; i<edgeSize; i++) {
 				setDrawInterpOptions(userData, index, (float) i/(edgeSize-1));
 

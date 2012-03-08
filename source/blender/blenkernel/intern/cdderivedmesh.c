@@ -623,26 +623,26 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		DEBUG_VBO( "Using legacy code. cdDM_drawFacesTex_common\n" );
 		for(i = 0; i < dm->numTessFaceData; i++, mf++) {
 			MVert *mvert;
-			int flag;
+			DMDrawOption draw_option;
 			unsigned char *cp = NULL;
 
 			if(drawParams) {
-				flag = drawParams(tf? &tf[i]: NULL, (mcol != NULL), mf->mat_nr);
+				draw_option = drawParams(tf? &tf[i]: NULL, (mcol != NULL), mf->mat_nr);
 			}
 			else {
 				if(index) {
 					orig = *index++;
 					if(orig == ORIGINDEX_NONE)		{ if(nors) nors += 3; continue; }
-					if(drawParamsMapped) flag = drawParamsMapped(userData, orig);
+					if(drawParamsMapped) draw_option = drawParamsMapped(userData, orig);
 					else	{ if(nors) nors += 3; continue; }
 				}
 				else
-					if(drawParamsMapped) flag = drawParamsMapped(userData, i);
+					if(drawParamsMapped) draw_option = drawParamsMapped(userData, i);
 					else	{ if(nors) nors += 3; continue; }
 			}
 			
-			if(flag != 0) {
-				if (flag==1 && mcol)
+			if(draw_option != DM_DRAW_OPTION_SKIP) {
+				if (draw_option != DM_DRAW_OPTION_NO_MCOL && mcol)
 					cp= (unsigned char*) &mcol[i*4];
 
 				if(!(mf->flag&ME_SMOOTH)) {
@@ -734,29 +734,29 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			/* lastFlag = 0; */ /* UNUSED */
 			for(i = 0; i < tottri; i++) {
 				int actualFace = next_actualFace;
-				int flag = 1;
+				DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
 				int flush = 0;
 
 				if(i != tottri-1)
 					next_actualFace= dm->drawObject->triangle_to_mface[i+1];
 
 				if(drawParams) {
-					flag = drawParams(tf? &tf[actualFace]: NULL, (mcol != NULL), mf[actualFace].mat_nr);
+					draw_option = drawParams(tf? &tf[actualFace]: NULL, (mcol != NULL), mf[actualFace].mat_nr);
 				}
 				else {
 					if(index) {
 						orig = index[actualFace];
 						if(orig == ORIGINDEX_NONE) continue;
 						if(drawParamsMapped)
-							flag = drawParamsMapped(userData, orig);
+							draw_option = drawParamsMapped(userData, orig);
 					}
 					else
 						if(drawParamsMapped)
-							flag = drawParamsMapped(userData, actualFace);
+							draw_option = drawParamsMapped(userData, actualFace);
 				}
 
 				/* flush buffer if current triangle isn't drawable or it's last triangle */
-				flush= !flag || i == tottri - 1;
+				flush= (draw_option == DM_DRAW_OPTION_SKIP) || (i == tottri - 1);
 
 				if(!flush && compareDrawOptions) {
 					/* also compare draw options and flush buffer if they're different
@@ -766,7 +766,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 
 				if(flush) {
 					int first= startFace*3;
-					int count= (i-startFace+(flag ? 1 : 0))*3; /* Add one to the length if we're drawing at the end of the array */
+					/* Add one to the length if we're drawing at the end of the array */
+					int count= (i-startFace+(draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0))*3;
 
 					if(count) {
 						if (col)
@@ -823,16 +824,16 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
 		for(i = 0; i < dm->numTessFaceData; i++, mf++) {
 			int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mf->flag & ME_SMOOTH);
-			int draw= 1;
+			DMDrawOption draw_option= DM_DRAW_OPTION_NORMAL;
 
 			orig= (index==NULL) ? i : *index++;
 			
 			if(orig == ORIGINDEX_NONE)
-				draw= setMaterial(mf->mat_nr + 1, NULL);
+				draw_option= setMaterial(mf->mat_nr + 1, NULL);
 			else if (setDrawOptions != NULL)
-				draw= setDrawOptions(userData, orig);
+				draw_option= setDrawOptions(userData, orig);
 
-			if(draw) {
+			if(draw_option != DM_DRAW_OPTION_SKIP) {
 				unsigned char *cp = NULL;
 
 				if(useColors && mc)
@@ -916,7 +917,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					int actualFace = next_actualFace;
 					MFace *mface= mf + actualFace;
 					/*int drawSmooth= (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mface->flag & ME_SMOOTH);*/ /* UNUSED */
-					int draw = 1;
+					DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
 					int flush = 0;
 
 					if(i != tottri-1)
@@ -925,16 +926,16 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					orig= (index==NULL) ? actualFace : index[actualFace];
 
 					if(orig == ORIGINDEX_NONE)
-						draw= setMaterial(mface->mat_nr + 1, NULL);
+						draw_option= setMaterial(mface->mat_nr + 1, NULL);
 					else if (setDrawOptions != NULL)
-						draw= setDrawOptions(userData, orig);
+						draw_option= setDrawOptions(userData, orig);
 	
 					/* Goal is to draw as long of a contiguous triangle
 					   array as possible, so draw when we hit either an
 					   invisible triangle or at the end of the array */
 
 					/* flush buffer if current triangle isn't drawable or it's last triangle... */
-					flush= !draw || i == tottri - 1;
+					flush= (draw_option == DM_DRAW_OPTION_SKIP) || (i == tottri - 1);
 
 					/* ... or when material setting is dissferent  */
 					flush|= mf[actualFace].mat_nr != mf[next_actualFace].mat_nr;
@@ -945,7 +946,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 
 					if(flush) {
 						int first= prevstart*3;
-						int count= (i-prevstart+(draw ? 1 : 0))*3; /* Add one to the length if we're drawing at the end of the array */
+						/* Add one to the length if we're drawing at the end of the array */
+						int count= (i-prevstart+(draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0))*3;
 
 						if(count)
 							glDrawArrays(GL_TRIANGLES, first, count);
@@ -1067,7 +1069,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					
 					/* continue */
 				}
-				else if(!setDrawOptions(userData, orig))
+				else if(setDrawOptions(userData, orig) == DM_DRAW_OPTION_SKIP)
 					continue;
 			}
 
@@ -1403,7 +1405,7 @@ static void cdDM_drawMappedEdges(DerivedMesh *dm, DMSetDrawOptions setDrawOption
 		else
 			orig = i;
 
-		if(!setDrawOptions || setDrawOptions(userData, orig)) {
+		if(!setDrawOptions || (setDrawOptions(userData, orig) != DM_DRAW_OPTION_SKIP)) {
 			glVertex3fv(vert[edge->v1].co);
 			glVertex3fv(vert[edge->v2].co);
 		}

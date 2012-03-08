@@ -2375,7 +2375,7 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_
 }
 
 	/* Draw edges with color set based on selection */
-static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed;
 	//unsigned char **cols = userData, *col;
@@ -2396,14 +2396,15 @@ static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 				col = data->baseCol;
 			}
 			/* no alpha, this is used so a transparent color can disable drawing unselected edges in editmode  */
-			if (col[3]==0) return 0;
+			if (col[3]==0)
+				return DM_DRAW_OPTION_SKIP;
 			
 			glColor4ubv(col);
 		}
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
@@ -2420,19 +2421,26 @@ static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 }
 
 	/* Draw edges */
-static int draw_dm_edges__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_edges__setDrawOptions(void *userData, int index)
 {
-	return !BM_elem_flag_test(EDBM_get_edge_for_index(userData, index), BM_ELEM_HIDDEN);
+	if (BM_elem_flag_test(EDBM_get_edge_for_index(userData, index), BM_ELEM_HIDDEN))
+		return DM_DRAW_OPTION_SKIP;
+	else
+		return DM_DRAW_OPTION_NORMAL;
 }
+
 static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm) 
 {
 	dm->drawMappedEdges(dm, draw_dm_edges__setDrawOptions, em);
 }
 
 	/* Draw edges with color interpolated based on selection */
-static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_edges_sel_interp__setDrawOptions(void *userData, int index)
 {
-	return !BM_elem_flag_test(EDBM_get_edge_for_index(((void**)userData)[0], index), BM_ELEM_HIDDEN);
+	if (BM_elem_flag_test(EDBM_get_edge_for_index(((void**)userData)[0], index), BM_ELEM_HIDDEN))
+		return DM_DRAW_OPTION_SKIP;
+	else
+		return DM_DRAW_OPTION_NORMAL;
 }
 static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
@@ -2455,11 +2463,14 @@ static void draw_dm_edges_sel_interp(BMEditMesh *em, DerivedMesh *dm, unsigned c
 }
 
 	/* Draw only seam edges */
-static int draw_dm_edges_seams__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_edges_seams__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 
-	return !BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SEAM);
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SEAM))
+		return DM_DRAW_OPTION_NORMAL;
+	else
+		return DM_DRAW_OPTION_SKIP;
 }
 
 static void draw_dm_edges_seams(BMEditMesh *em, DerivedMesh *dm)
@@ -2468,12 +2479,16 @@ static void draw_dm_edges_seams(BMEditMesh *em, DerivedMesh *dm)
 }
 
 	/* Draw only sharp edges */
-static int draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 
-	return !BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && !BM_elem_flag_test(eed, BM_ELEM_SMOOTH);
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && !BM_elem_flag_test(eed, BM_ELEM_SMOOTH))
+		return DM_DRAW_OPTION_NORMAL;
+	else
+		return DM_DRAW_OPTION_SKIP;
 }
+
 static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 {
 	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, em);
@@ -2482,28 +2497,29 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 
 	/* Draw faces with color set based on selection
 	 * return 2 for the active face so it renders with stipple enabled */
-static int draw_dm_faces_sel__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
 {
 	drawDMFacesSel_userData * data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
 	unsigned char *col;
 	
 	if (!efa)
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (efa == data->efa_act) {
 			glColor4ubv(data->cols[2]);
-			return 2; /* stipple */
+			return DM_DRAW_OPTION_STIPPLE;
 		}
 		else {
 			col = data->cols[BM_elem_flag_test(efa, BM_ELEM_SELECT)?1:0];
-			if (col[3]==0) return 0;
+			if (col[3]==0)
+				return DM_DRAW_OPTION_SKIP;
 			glColor4ubv(col);
-			return 1;
+			return DM_DRAW_OPTION_NORMAL;
 		}
 	}
-	return 0;
+	return DM_DRAW_OPTION_SKIP;
 }
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
@@ -2552,21 +2568,21 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
 
-static int draw_dm_creases__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_creases__setDrawOptions(void *userData, int index)
 {
 	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 	float *crease = eed ? (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE) : NULL;
 	
 	if (!crease)
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *crease!=0.0f) {
 		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_CREASE, *crease);
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
@@ -2576,21 +2592,21 @@ static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
 	glLineWidth(1.0);
 }
 
-static int draw_dm_bweights__setDrawOptions(void *userData, int index)
+static DMDrawOption draw_dm_bweights__setDrawOptions(void *userData, int index)
 {
 	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
 	float *bweight = (float *)CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 
 	if (!bweight)
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && *bweight!=0.0f) {
 		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, *bweight);
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
@@ -2965,23 +2981,26 @@ static void draw_em_indices(BMEditMesh *em)
 	}
 }
 
-static int draw_em_fancy__setFaceOpts(void *userData, int index)
+static DMDrawOption draw_em_fancy__setFaceOpts(void *userData, int index)
 {
 	BMFace *efa = EDBM_get_face_for_index(userData, index);
 
 	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		GPU_enable_material(efa->mat_nr+1, NULL);
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 }
 
-static int draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
+static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 {
 	BMFace *efa = EDBM_get_face_for_index(userData, index);
 
-	return !BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
+	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+		return DM_DRAW_OPTION_SKIP;
+	else
+		return DM_DRAW_OPTION_NORMAL;
 }
 
 static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
@@ -7125,7 +7144,7 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	glPointSize(1.0);
 }		
 
-static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
+static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
 	void **ptrs = userData;
 	int offset = (intptr_t) ptrs[0];
@@ -7133,10 +7152,10 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		WM_set_framebuffer_index_color(offset+index);
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
@@ -7145,7 +7164,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, ptrs);
 }		
 
-static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
+static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
 {
 	BMFace *efa = EDBM_get_face_for_index(((void**)userData)[0], index);
 	
@@ -7153,10 +7172,10 @@ static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
 		if (((void**)userData)[1]) {
 			WM_set_framebuffer_index_color(index+1);
 		}
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 
@@ -7196,35 +7215,35 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }
 
-static int bbs_mesh_solid__setDrawOpts(void *UNUSED(userData), int index)
+static DMDrawOption bbs_mesh_solid__setDrawOpts(void *UNUSED(userData), int index)
 {
 	WM_set_framebuffer_index_color(index+1);
-	return 1;
+	return DM_DRAW_OPTION_NORMAL;
 }
 
-static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index)
+static DMDrawOption bbs_mesh_solid_hide__setDrawOpts(void *userData, int index)
 {
 	Mesh *me = userData;
 
 	if (!(me->mpoly[index].flag&ME_HIDE)) {
 		WM_set_framebuffer_index_color(index+1);
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 
 // must have called WM_set_framebuffer_index_color beforehand
-static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index)
+static DMDrawOption bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index)
 {
 	Mesh *me = userData;
 
 	if (!(me->mpoly[index].flag & ME_HIDE)) {
-		return 1;
+		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 }
 static void bbs_mesh_solid(Scene *scene, Object *ob)

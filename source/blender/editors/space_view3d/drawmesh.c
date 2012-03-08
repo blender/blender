@@ -139,7 +139,7 @@ static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 }
 
 
-static int draw_mesh_face_select__setHiddenOpts(void *userData, int index)
+static DMDrawOption draw_mesh_face_select__setHiddenOpts(void *userData, int index)
 {
 	drawMeshFaceSelect_userData *data = userData;
 	Mesh *me= data->me;
@@ -147,34 +147,36 @@ static int draw_mesh_face_select__setHiddenOpts(void *userData, int index)
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	if (me->drawflag & ME_DRAWEDGES) {
-		if (me->drawflag & ME_HIDDENEDGES)
-			return 1;
+		if ((me->drawflag & ME_HIDDENEDGES) || (flags & eEdge_Visible))
+			return DM_DRAW_OPTION_NORMAL;
 		else
-			return (flags & eEdge_Visible);
+			return DM_DRAW_OPTION_SKIP;
 	}
+	else if(flags & eEdge_Select)
+		return DM_DRAW_OPTION_NORMAL;
 	else
-		return (flags & eEdge_Select);
+		return DM_DRAW_OPTION_SKIP;
 }
 
-static int draw_mesh_face_select__setSelectOpts(void *userData, int index)
+static DMDrawOption draw_mesh_face_select__setSelectOpts(void *userData, int index)
 {
 	drawMeshFaceSelect_userData *data = userData;
 	MEdge *med = &data->me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
-	return flags & eEdge_Select;
+	return (flags & eEdge_Select) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
 }
 
 /* draws unselected */
-static int draw_mesh_face_select__drawFaceOptsInv(void *userData, int index)
+static DMDrawOption draw_mesh_face_select__drawFaceOptsInv(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
 	MPoly *mface = &me->mpoly[index];
 	if (!(mface->flag&ME_HIDE) && !(mface->flag&ME_FACE_SEL))
-		return 2; /* Don't set color */
+		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	else
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 }
 
 static void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
@@ -388,22 +390,23 @@ static void draw_textured_end(void)
 	glPopMatrix();
 }
 
-static int draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
+static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 	int validtexture=0;
 
-	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
+	if (ma && (ma->game.flag & GEMAT_INVISIBLE))
+		return DM_DRAW_OPTION_SKIP;
 
 	validtexture = set_draw_settings_cached(0, tface, ma, Gtexdraw);
 
 	if (tface && validtexture) {
 		glColor3ub(0xFF, 0x00, 0xFF);
-		return 2; /* Don't set color */
+		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (ma && ma->shade_flag&MA_OBCOLOR) {
 		glColor3ubv(Gtexdraw.obcol);
-		return 2; /* Don't set color */
+		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (!has_mcol) {
 		if (tface) glColor3f(1.0, 1.0, 1.0);
@@ -417,36 +420,39 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 			}
 			else glColor3f(1.0, 1.0, 1.0);
 		}
-		return 2; /* Don't set color */
+		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else {
-		return 1; /* Set color from mcol */
+		return DM_DRAW_OPTION_NORMAL; /* Set color from mcol */
 	}
 }
 
-static int draw_mcol__set_draw_legacy(MTFace *UNUSED(tface), int has_mcol, int UNUSED(matnr))
+static DMDrawOption draw_mcol__set_draw_legacy(MTFace *UNUSED(tface), int has_mcol, int UNUSED(matnr))
 {
-	if (has_mcol) return 1;
-	else return 2;
+	if (has_mcol)
+		return DM_DRAW_OPTION_NORMAL;
+	else
+		return DM_DRAW_OPTION_NO_MCOL;
 }
 
-static int draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
+static DMDrawOption draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
 
 	if (tface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
-		return 2; /* Don't set color */
+		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (tface && tface->mode&TF_OBCOL) {
-		return 2; /* Don't set color */
+		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (!has_mcol) {
-		return 1; /* Don't set color */
+		/* XXX: this return value looks wrong (and doesn't match comment) */
+		return DM_DRAW_OPTION_NORMAL; /* Don't set color */
 	}
 	else {
-		return 1; /* Set color from mcol */
+		return DM_DRAW_OPTION_NORMAL; /* Set color from mcol */
 	}
 }
 static void add_tface_color_layer(DerivedMesh *dm)
@@ -528,7 +534,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 	CustomData_add_layer( &dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData );
 }
 
-static int draw_tface_mapped__set_draw(void *userData, int index)
+static DMDrawOption draw_tface_mapped__set_draw(void *userData, int index)
 {
 	Mesh *me = (Mesh *)userData;
 
@@ -538,7 +544,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	BLI_assert(index >= 0 && index < me->totpoly);
 
 	if (mpoly->flag & ME_HIDE) {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 	else {
 		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[index] : NULL;
@@ -553,14 +559,14 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	}
 }
 
-static int draw_em_tf_mapped__set_draw(void *userData, int index)
+static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int index)
 {
 	drawEMTFMapped_userData *data = userData;
 	BMEditMesh *em = data->em;
 	BMFace *efa= EDBM_get_face_for_index(em, index);
 
 	if (efa==NULL || BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		return 0;
+		return DM_DRAW_OPTION_SKIP;
 	}
 	else {
 		MTFace mtf= {{{0}}};
@@ -576,27 +582,28 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	}
 }
 
-static int wpaint__setSolidDrawOptions_material(void *userData, int index)
+static DMDrawOption wpaint__setSolidDrawOptions_material(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
 	if (me->mat && me->mpoly) {
 		Material *ma= me->mat[me->mpoly[index].mat_nr];
 		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
-			return 0;
+			return DM_DRAW_OPTION_SKIP;
 		}
 	}
 
-	return 1;
+	return DM_DRAW_OPTION_NORMAL;
 }
 
 /* when face select is on, use face hidden flag */
-static int wpaint__setSolidDrawOptions_facemask(void *userData, int index)
+static DMDrawOption wpaint__setSolidDrawOptions_facemask(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 	MPoly *mp = &me->mpoly[index];
-	if (mp->flag & ME_HIDE) return 0;
-	return 1;
+	if (mp->flag & ME_HIDE)
+		return DM_DRAW_OPTION_SKIP;
+	return DM_DRAW_OPTION_NORMAL;
 }
 
 static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
