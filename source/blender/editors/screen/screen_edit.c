@@ -1742,7 +1742,14 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
 		
 		sad->ar= CTX_wm_region(C);
-		sad->sfra = scene->r.cfra;
+		/* if startframe is larger than current frame, we put currentframe on startframe.
+		   note: first frame then is not drawn! (ton) */
+		if(scene->r.sfra > scene->r.cfra) {
+			sad->sfra= scene->r.cfra;
+			scene->r.cfra= scene->r.sfra;
+		}
+		else
+			sad->sfra = scene->r.cfra;
 		sad->redraws= redraws;
 		sad->refresh= refresh;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;
