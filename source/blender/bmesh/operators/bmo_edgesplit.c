@@ -33,18 +33,21 @@
 typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 	BMEdge *newe1, *newe2;
-	int tag;
 } EdgeTag;
 
 /* (EDGE_DEL == FACE_DEL) - this must be the case */
-#define EDGE_DEL	1
-#define EDGE_SEAM	2
-#define EDGE_MARK	4
-#define EDGE_RET1	8
-#define EDGE_RET2	16
+enum {
+	EDGE_DEL   = 1,
+	EDGE_SEAM  = 2,
+	EDGE_MARK  = 4,
+	EDGE_RET1  = 8,
+	EDGE_RET2  = 16
+};
 
-#define FACE_DEL	1
-#define FACE_NEW	2
+enum {
+	FACE_DEL  = EDGE_DEL,
+	FACE_NEW  = 2
+};
 
 static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **f_verts, BMEdge **edges_tmp)
 {
@@ -133,8 +136,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			if (!BMO_elem_flag_test(bm, e, EDGE_SEAM))
 				continue;
 
-			et = &etags[BM_elem_index_get(e)];
-			if (!et->tag && e->l) {
+			if (e->l) {
 				break;
 			}
 		}
@@ -215,11 +217,61 @@ BM_INLINE void bm_edge_tag_vert_set(EdgeTag *et, BMVert *v, BMLoop *l, BMVert *v
 	}
 }
 
+/**
+ * Remove the EDGE_SEAM flag for edges we cant split
+ *
+ * un-tag edges not connected to other tagged edges,
+ * unless they are on a boundry
+ */
+static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMIter iter;
+	BMEdge *e;
+
+	unsigned char *vtouch;
+	unsigned char *vt;
+
+	BM_mesh_elem_index_ensure(bm, BM_VERT);
+
+	vtouch = MEM_callocN(sizeof(char) * bm->totvert, __func__);
+
+	/* tag all boundry verts so as not to untag an edge which is inbetween only 2 faces [] */
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_edge_is_boundary(e)) {
+			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
+			vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
+
+			/* while the boundry verts need to be tagged,
+			 * the edge its self can't be split */
+			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
+		}
+	}
+
+	/* single marked edges unconnected to any other marked edges
+	 * are illegal, go through and unmark them */
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		/* lame, but we dont want the count to exceed 255,
+		 * so just count to 2, its all we need */
+		unsigned char *vt;
+		vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
+		vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
+	}
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		if (vtouch[BM_elem_index_get(e->v1)] == 1 &&
+		    vtouch[BM_elem_index_get(e->v2)] == 1)
+		{
+			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
+		}
+	}
+
+	MEM_freeN(vtouch);
+}
+
 void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 {
 	EdgeTag *etags, *et; /* edge aligned array of tags */
 	BMIter iter, liter;
-	BMOIter siter;
 	BMFace *f, *f2;
 	BMLoop *l, *l2, *l3;
 	BMLoop *l_next, *l_prev;
@@ -236,42 +288,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_SEAM, BM_EDGE);
 
-	/* untag edges not connected to other tagged edges */
-	{
-		unsigned char *vtouch;
-		unsigned char *vt;
-
-		BM_mesh_elem_index_ensure(bm, BM_VERT);
-
-		vtouch = MEM_callocN(sizeof(char) * bm->totvert, __func__);
-
-		/* tag all boundry verts so as not to untag an edge which is inbetween only 2 faces [] */
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_edge_is_boundary(e)) {
-				vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
-				vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
-			}
-		}
-
-		/* single marked edges unconnected to any other marked edges
-		 * are illegal, go through and unmark them */
-		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-			/* lame, but we dont want the count to exceed 255,
-			 * so just count to 2, its all we need */
-			unsigned char *vt;
-			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
-			vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
-		}
-		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-			if (vtouch[BM_elem_index_get(e->v1)] == 1 &&
-			    vtouch[BM_elem_index_get(e->v2)] == 1)
-			{
-				BMO_elem_flag_disable(bm, e, EDGE_SEAM);
-			}
-		}
-
-		MEM_freeN(vtouch);
-	}
+	bm_edgesplit_validate_seams(bm, op);
 
 	etags = MEM_callocN(sizeof(EdgeTag) * bm->totedge, "EdgeTag");
 
