@@ -557,6 +557,29 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 }
 
 /**
+ * \brief Radial Find a Vertex Loop in Face
+ *
+ * Finds the loop used which uses \a v in face loop \a l
+ *
+ * \note currenly this just uses simple loop in future may be speeded up
+ * using radial vars
+ */
+BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
+{
+	BMLoop *l_first;
+	BMLoop *l_iter;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (l_iter->v == v) {
+			return l_iter;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return NULL;
+}
+
+/**
  * Returns the verts of an edge as used in a face
  * if used in a face at all, otherwise just assign as used in the edge.
  *

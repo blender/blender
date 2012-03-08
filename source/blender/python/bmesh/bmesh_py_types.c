@@ -961,7 +961,7 @@ static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 	BPY_BM_CHECK_OBJ(value);
 
 	if (self->bm != value->bm) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "BMEdge.other_vert(vert): vert is from another mesh");
 		return NULL;
 	}
@@ -2625,7 +2625,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 			/* trick so we can ensure all items have the same mesh,
 			 * and allows us to pass the 'bm' as NULL. */
 			else if (do_bm_check && (bm  && bm != item->bm)) {
-				PyErr_Format(PyExc_TypeError,
+				PyErr_Format(PyExc_ValueError,
 				             "%s: %d %s is from another mesh",
 				             error_prefix, i, type->tp_name);
 				goto err_cleanup;

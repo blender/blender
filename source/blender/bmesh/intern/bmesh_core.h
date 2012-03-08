@@ -60,5 +60,6 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e);
 BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_splice);
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv);
+BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl);
 
 #endif /* __BMESH_CORE_H__ */

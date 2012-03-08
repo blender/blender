@@ -417,6 +417,68 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 }
 
 
+PyDoc_STRVAR(bpy_bm_utils_face_vert_rip_doc,
+".. method:: face_vert_rip(face, vert)\n"
+"\n"
+"   Rip a vertex in a face away and add a new vertex.\n"
+"\n"
+"   :arg face: The face to rip.\n"
+"   :type face: :class:`BMFace`\n"
+"   :arg vert: A vertex in the face to rip.\n"
+"   :type vert: :class:`BMVert`\n"
+"   :return vert: The newly created vertex or None of failure.\n"
+"   :rtype vert: :class:`BMVert`\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      This is the same as loop_rip, and has only been added for convenience.\n"
+);
+static PyObject *bpy_bm_utils_face_vert_rip(PyObject *UNUSED(self), PyObject *args)
+{
+	BPy_BMFace *py_face;
+	BPy_BMVert *py_vert;
+
+	BMesh *bm;
+	BMLoop *l;
+	BMVert *v_new;
+
+	if (!PyArg_ParseTuple(args, "O!O!:face_vert_rip",
+	                      &BPy_BMFace_Type, &py_face,
+	                      &BPy_BMVert_Type, &py_vert))
+	{
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(py_face);
+	BPY_BM_CHECK_OBJ(py_vert);
+
+	bm = py_face->bm;
+
+	if (bm != py_vert->bm) {
+		PyErr_SetString(PyExc_ValueError,
+		                "mesh elements are from different meshes");
+		return NULL;
+	}
+
+	l = BM_face_vert_share_loop(py_face->f, py_vert->v);
+
+	if (l == NULL) {
+		PyErr_SetString(PyExc_ValueError,
+		                "vertex not found in face");
+		return NULL;
+	}
+
+	v_new = BM_face_loop_rip(bm, l);
+
+	if (v_new != l->v) {
+		return BPy_BMVert_CreatePyObject(bm, v_new);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+
 PyDoc_STRVAR(bpy_bm_utils_face_flip_doc,
 ".. method:: face_flip(faces)\n"
 "\n"
@@ -442,6 +504,44 @@ static PyObject *bpy_bm_utils_face_flip(PyObject *UNUSED(self), BPy_BMFace *valu
 }
 
 
+
+PyDoc_STRVAR(bpy_bm_utils_loop_rip_doc,
+".. method:: loop_rip(loop)\n"
+"\n"
+"   Rip a vertex in a face away and add a new vertex.\n"
+"\n"
+"   :arg loop: The to rip.\n"
+"   :type loop: :class:`BMFace`\n"
+"   :return vert: The newly created vertex or None of failure.\n"
+"   :rtype vert: :class:`BMVert`\n"
+);
+static PyObject *bpy_bm_utils_loop_rip(PyObject *UNUSED(self), BPy_BMLoop *value)
+{
+	BMesh *bm;
+	BMVert *v_new;
+
+	if (!BPy_BMLoop_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "loop_rip(loop): BMLoop expected, not '%.200s'",
+		             Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	bm = value->bm;
+
+	v_new = BM_face_loop_rip(bm, value->l);
+
+	if (v_new != value->l->v) {
+		return BPy_BMVert_CreatePyObject(bm, v_new);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+
 static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_collapse_edge",  (PyCFunction)bpy_bm_utils_vert_collapse_edge,  METH_VARARGS, bpy_bm_utils_vert_collapse_edge_doc},
     {"vert_collapse_faces", (PyCFunction)bpy_bm_utils_vert_collapse_faces, METH_VARARGS, bpy_bm_utils_vert_collapse_faces_doc},
@@ -450,7 +550,9 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
     {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
     {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_O,       bpy_bm_utils_face_join_doc},
+    {"face_vert_rip",       (PyCFunction)bpy_bm_utils_face_vert_rip,       METH_VARARGS, bpy_bm_utils_face_vert_rip_doc},
     {"face_flip",           (PyCFunction)bpy_bm_utils_face_flip,           METH_O,       bpy_bm_utils_face_flip_doc},
+    {"loop_rip",            (PyCFunction)bpy_bm_utils_loop_rip,            METH_O,       bpy_bm_utils_loop_rip_doc},
     {NULL, NULL, 0, NULL}
 };
 

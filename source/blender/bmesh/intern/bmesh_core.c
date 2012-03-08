@@ -1930,7 +1930,7 @@ static int bm_edge_cut(BMesh *bm, BMEdge *e, BMLoop *cutl)
  *
  * \return The newly created BMVert
  */
-static BMVert *bm_urmv_loop(BMesh *bm, BMLoop *sl)
+BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 {
 	BMVert **vtar;
 	int len, i;
@@ -2007,20 +2007,6 @@ static BMVert *bm_urmv_loop(BMesh *bm, BMLoop *sl)
  */
 BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
 {
-	BMLoop *l_first;
-	BMLoop *l_iter;
-
-	l_iter = l_first = BM_FACE_FIRST_LOOP(sf);
-	do {
-		if (l_iter->v == sv) {
-			break;
-		}
-	} while ((l_iter = l_iter->next) != l_first);
-
-	if (l_iter->v != sv) {
-		/* sv is not part of sf */
-		return NULL;
-	}
-
-	return bm_urmv_loop(bm, l_iter);
+	BMLoop *l = BM_face_vert_share_loop(sf, sv);
+	return bmesh_urmv_loop(bm, l);
 }

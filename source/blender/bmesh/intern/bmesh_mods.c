@@ -1073,7 +1073,17 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 /**
  * \brief Rip a single face from a vertex fan
  */
-BMVert *BM_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
+BMVert *BM_face_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
 {
 	return bmesh_urmv(bm, sf, sv);
+}
+
+/**
+ * \brief Rip a single face from a vertex fan
+ *
+ * \note same as #BM_face_vert_rip but faster (avoids a loop lookup)
+ */
+BMVert *BM_face_loop_rip(BMesh *bm, BMLoop *sl)
+{
+	return bmesh_urmv_loop(bm, sl);
 }
