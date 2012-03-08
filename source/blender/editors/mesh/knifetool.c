@@ -2753,7 +2753,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	keymap = WM_modalkeymap_add(keyconf, "Knife Tool Modal Map", modal_items);
 	
 	/* items for modal map */
-	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_ADD_CUT);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
