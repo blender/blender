@@ -544,7 +544,7 @@ short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 				/* add to buffer */
 				newbuf= MEM_callocN(sizeof(BezTriple)*(aci->totvert+1), "copybuf beztriple");
 				
-				/* assume that since we are just resizing the array, just copy all existing data across */
+				/* assume that since we are just re-sizing the array, just copy all existing data across */
 				if (aci->bezt)
 					memcpy(newbuf, aci->bezt, sizeof(BezTriple)*(aci->totvert));
 				

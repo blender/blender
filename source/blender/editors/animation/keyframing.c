@@ -1193,7 +1193,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 	
 	/* if prompting or no active Keying Set, show the menu */
 	if ((scene->active_keyingset == 0) || RNA_boolean_get(op->ptr, "always_prompt")) {
-		/* call the menu, which will call this operator again, hence the cancelled */
+		/* call the menu, which will call this operator again, hence the canceled */
 		ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keyframe_insert_menu");
 		return OPERATOR_CANCELLED;
 	}

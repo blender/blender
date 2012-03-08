@@ -239,7 +239,7 @@ static void pose_slide_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
 	switch (pso->mode) {
 		case POSESLIDE_PUSH: /* make the current pose more pronounced */
 		{
-			/* perform a weighted average here, favouring the middle pose 
+			/* perform a weighted average here, favoring the middle pose
 			 *	- numerator should be larger than denominator to 'expand' the result
 			 *	- perform this weighting a number of times given by the percentage...
 			 */
@@ -253,7 +253,7 @@ static void pose_slide_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
 			
 		case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
 		{
-			/* perform a weighted average here, favouring the middle pose 
+			/* perform a weighted average here, favoring the middle pose
 			 *	- numerator should be smaller than denominator to 'relax' the result
 			 *	- perform this weighting a number of times given by the percentage...
 			 */
@@ -660,14 +660,14 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			/* clean up temp data */
 			pose_slide_exit(op);
 			
-			/* cancelled! */
+			/* canceled! */
 			return OPERATOR_CANCELLED;
 		}
 			
 		case MOUSEMOVE: /* calculate new position */
 		{
 			/* calculate percentage based on position of mouse (we only use x-axis for now.
-			 * since this is more conveninent for users to do), and store new percentage value 
+			 * since this is more convenient for users to do), and store new percentage value
 			 */
 			pso->percentage= (evt->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
 			RNA_float_set(op->ptr, "percentage", pso->percentage);

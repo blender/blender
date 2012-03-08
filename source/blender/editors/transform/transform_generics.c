@@ -469,7 +469,7 @@ static void recalcData_nla(TransInfo *t)
 		if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
 			ANIM_id_update(t->scene, tdn->id);
 		
-		/* if cancelling transform, just write the values without validating, then move on */
+		/* if canceling transform, just write the values without validating, then move on */
 		if (t->state == TRANS_CANCEL) {
 			/* clear the values by directly overwriting the originals, but also need to restore
 			 * endpoints of neighboring transition-strips

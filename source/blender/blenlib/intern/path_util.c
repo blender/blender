@@ -264,7 +264,7 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
  * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
  *	len: maximum length of string (to prevent overflows, etc.)
  *	defname: the name that should be used by default if none is specified already
- *	delim: the character which acts as a delimeter between parts of the name
+ *	delim: the character which acts as a delimiter between parts of the name
  */
 static int uniquename_find_dupe(ListBase *list, void *vlink, const char *name, short name_offs)
 {

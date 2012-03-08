@@ -136,7 +136,7 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 	wmKeyMap *keymap;
 	ListBase *lb;
 
-	const float prev_y_min= ar->v2d.cur.ymin; /* so resizing keeps the cursor visible */
+	const float prev_y_min= ar->v2d.cur.ymin; /* so re-sizing keeps the cursor visible */
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 

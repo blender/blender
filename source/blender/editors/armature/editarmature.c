@@ -3811,7 +3811,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
 		 * - since the active one (and/or its mirror) will also be selected, we also need 
-		 * 	to check that we are not trying to opearate on them, since such an operation 
+		 * 	to check that we are not trying to operate on them, since such an operation
 		 *	would cause errors
 		 */
 		
@@ -4158,7 +4158,7 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
 	
 	/* if the bone being aligned has connected descendants they must be moved
 	 * according to their parent new position, otherwise they would be left
-	 * in an unconsistent state: connected but away from the parent*/
+	 * in an inconsistent state: connected but away from the parent*/
 	fix_editbone_connected_children(edbo, selbone);
 	return;
 }
@@ -4207,7 +4207,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
 		 * - since the active one (and/or its mirror) will also be selected, we also need 
-		 *   to check that we are not trying to opearate on them, since such an operation 
+		 *   to check that we are not trying to operate on them, since such an operation
 		 *   would cause errors
 		 */
 		

@@ -890,7 +890,7 @@ static void setNearestAxis3d(TransInfo *t)
 	/* we need to correct axis length for the current zoomlevel of view,
 	 * this to prevent projected values to be clipped behind the camera
 	 * and to overflow the short integers.
-	 * The formula used is a bit stupid, just a simplification of the substraction
+	 * The formula used is a bit stupid, just a simplification of the subtraction
 	 * of two 2D points 30 pixels apart (that's the last factor in the formula) after
 	 * projecting them with window_to_3d_delta and then get the length of that vector.
 	 */

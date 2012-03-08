@@ -2819,7 +2819,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 	if (me->drawflag & ME_DRAWEXTRA_FACEAREA) {
 		/* would be nice to use BM_face_area_calc, but that is for 2d faces
-		 * so instead add up tessellationf triangle areas */
+		 * so instead add up tessellation triangle areas */
 		BMFace *f;
 		int n;
 
@@ -3451,7 +3451,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	if (draw_wire != OBDRAW_WIRE_OFF) {
 
-		/* When using wireframe object traw in particle edit mode
+		/* When using wireframe object draw in particle edit mode
 		 * the mesh gets in the way of seeing the particles, fade the wire color
 		 * with the background. */
 		if (is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {

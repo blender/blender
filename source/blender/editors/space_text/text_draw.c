@@ -959,7 +959,7 @@ void text_drawcache_tag_update(SpaceText *st, int full)
 			}
 
 			/* quick cache recalculation is also used in delete operator,
-			 * which could merge lines which are adjusent to current selection lines
+			 * which could merge lines which are adjacent to current selection lines
 			 * expand recalculate area to this lines */
 			if(drawcache->valid_head>0) drawcache->valid_head--;
 			if(drawcache->valid_tail>0) drawcache->valid_tail--;
@@ -1113,7 +1113,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	scroll->ymin= 4;
 	scroll->ymax= 4+pix_available;
 	
-	/* when resizing a view-port with the bar at the bottom to a greater height more blank lines will be added */
+	/* when re-sizing a view-port with the bar at the bottom to a greater height more blank lines will be added */
 	if(ltexth + blank_lines < st->top + st->viewlines) {
 		blank_lines = st->top + st->viewlines - ltexth;
 	}

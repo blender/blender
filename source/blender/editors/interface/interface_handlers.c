@@ -2888,7 +2888,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				 * to cancel changes made to this button, but changing state to EXIT also makes no button active for
 				 * a while which leads to triggering operator when doing fast scrolling mouse wheel.
 				 * using post activate stuff from button allows to make button be active again after checking for all
-				 * all that mouse leave and cancel stuff, so quick scroll wouldnt't be an issue anymore.
+				 * all that mouse leave and cancel stuff, so quick scroll wouldn't be an issue anymore.
 				 * same goes for scrolling wheel in another direction below (sergey)
 				 */
 				data->postbut= but;
@@ -2963,7 +2963,7 @@ static int ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, i
 	/* if mouse moves outside of sphere, it does negative normal */
 
 	/* note that both data->vec and data->origvec should be normalized
-	 * else we'll get a hamrless but annoying jump when first clicking */
+	 * else we'll get a harmless but annoying jump when first clicking */
 
 	fp= data->origvec;
 	rad= (but->x2 - but->x1);

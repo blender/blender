@@ -49,7 +49,7 @@ extern "C" {
  
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 
-/* The __intXX are built-in types of the visual complier! So we don't
+/* The __intXX are built-in types of the visual compiler! So we don't
  * need to include anything else here. */
 
 

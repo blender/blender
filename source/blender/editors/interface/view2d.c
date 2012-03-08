@@ -1105,7 +1105,7 @@ static void step_to_grid(float *step, int *power, int unit)
 	}
 }
 
-/* Intialise settings necessary for drawing gridlines in a 2d-view 
+/* Initialize settings necessary for drawing gridlines in a 2d-view
  *	- Currently, will return pointer to View2DGrid struct that needs to 
  *	  be freed with UI_view2d_grid_free()
  *	- Is used for scrollbar drawing too (for units drawing)

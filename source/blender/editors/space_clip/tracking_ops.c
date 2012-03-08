@@ -1493,7 +1493,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
-	 * with fixed FPS. To deal with editor refresh we have to syncronize
+	 * with fixed FPS. To deal with editor refresh we have to synchronize
 	 * tracks from job and tracks in clip. Do this in timer callback
 	 * to prevent threading conflicts. */
 	if(tmj->delay>0) WM_jobs_timer(steve, tmj->delay/1000.0f, NC_MOVIECLIP|NA_EVALUATED, 0);
@@ -1627,7 +1627,7 @@ static void solve_camera_freejob(void *scv)
 	if(!solved)
 		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
-		BKE_reportf(scj->reports, RPT_INFO, "Average reprojection error %.3f", tracking->reconstruction.error);
+		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error %.3f", tracking->reconstruction.error);
 
 	/* set currently solved clip as active for scene */
 	if(scene->clip)
@@ -3472,7 +3472,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Effect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
-	RNA_def_float(ot->srna, "error", 0.0f, 0.0f, FLT_MAX, "Reprojection Error", "Effect on tracks with have got larger reprojection error", 0.0f, 100.0f);
+	RNA_def_float(ot->srna, "error", 0.0f, 0.0f, FLT_MAX, "Reprojection Error", "Effect on tracks with have got larger re-projection error", 0.0f, 100.0f);
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }
 

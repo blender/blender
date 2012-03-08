@@ -578,12 +578,12 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Tracked Frames", "Effect on tracks which are tracked less than the specified amount of frames");
 
-	/* reprojection error */
+	/* re-projection error */
 	prop = RNA_def_property(srna, "clean_error", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "clean_error");
 	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Reprojection Error", "Effect on tracks which have a larger reprojection error");
+	RNA_def_property_ui_text(prop, "Reprojection Error", "Effect on tracks which have a larger re-projection error");
 
 	/* cleanup action */
 	prop = RNA_def_property(srna, "clean_action", PROP_ENUM, PROP_NONE);

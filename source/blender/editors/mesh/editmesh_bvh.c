@@ -87,7 +87,7 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 	int i;
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
-	 * so that e.g. mirror or array use original vertex coordiantes and not mirrored or duplicate */
+	 * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
 	BLI_smallhash_init(&shash);
 	
 	BMEdit_RecalcTessellation(em);

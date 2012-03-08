@@ -2958,7 +2958,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 		 *
 		 * is an invariant for a single NURB curve. Raising the degree
 		 * of the NURB is done elsewhere; the degree is assumed
-		 * constant during this opration. Degree is a property shared
+		 * constant during this operation. Degree is a property shared
 		 * by all controlpoints in a curve (even though it is stored
 		 * per control point - this can be misleading).
 		 * Adding a knot is done by searching for the place in the

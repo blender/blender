@@ -2601,7 +2601,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										
 										/* We need to find the closest point along the face edge,
 										 * getting the screen_px_from_*** wont work because our actual location
-										 * is not relevent, since we are outside the face, Use VecLerpf to find
+										 * is not relevant, since we are outside the face, Use VecLerpf to find
 										 * our location on the side of the face's UV */
 #if 0
 										if (is_ortho)	screen_px_from_ortho(ps, uv, v1co, v2co, v3co, uv1co, uv2co, uv3co, pixelScreenCo);
@@ -3053,7 +3053,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			ps->is_ortho= project_paint_view_clip(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend);
 		}
 		else {
-			/* reprojection */
+			/* re-projection */
 			float winmat[4][4];
 			float vmat[4][4];
 
@@ -3178,7 +3178,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		CLAMP(ps->screenMax[1], (float)(-diameter), (float)(ps->winy + diameter));
 #endif
 	}
-	else { /* reprojection, use bounds */
+	else { /* re-projection, use bounds */
 		ps->screenMin[0]= 0;
 		ps->screenMax[0]= (float)(ps->winx);
 
@@ -5751,7 +5751,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
 	if(image) {
 		/* now for the trickyness. store the view projection here!
-		 * reprojection will reuse this */
+		 * re-projection will reuse this */
 		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D *rv3d= CTX_wm_region_view3d(C);
 

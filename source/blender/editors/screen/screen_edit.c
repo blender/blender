@@ -649,7 +649,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		
 		/* make sure it fits! */
 		for(sv= sc->vertbase.first; sv; sv= sv->next) {
-			/* FIXME, this resizing logic is no good when resizing the window + redrawing [#24428]
+			/* FIXME, this re-sizing logic is no good when re-sizing the window + redrawing [#24428]
 			 * need some way to store these as floats internally and re-apply from there. */
 			tempf= ((float)sv->vec.x)*facx;
 			sv->vec.x= (short)(tempf+0.5f);

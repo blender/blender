@@ -59,7 +59,7 @@ typedef struct CustomDataExternal {
 } CustomDataExternal;
 
 /** structure which stores custom element data associated with mesh elements
- * (vertices, edges or faces). The custom data is organised into a series of
+ * (vertices, edges or faces). The custom data is organized into a series of
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */

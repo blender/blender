@@ -4859,7 +4859,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 {
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
-	int cancelled= (t->state == TRANS_CANCEL);
+	int canceled= (t->state == TRANS_CANCEL);
 	short duplicate= (t->mode == TFM_TIME_DUPLICATE);
 	
 	/* early out when nothing happened */
@@ -4868,12 +4868,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
-			if (cancelled==0) {
+			if (canceled==0) {
 				/* we need to delete the temporary faces before automerging */
 				if(t->mode == TFM_EDGE_SLIDE){
 					SlideData *sld = t->customData;
 
-					/* handle multires reprojection, done
+					/* handle multires re-projection, done
 					 * on transform completion since it's
 					 * really slow -joeedh */
 					projectSVData(t, TRUE);
@@ -4908,7 +4908,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		/* marker transform, not especially nice but we may want to move markers
 		 * at the same time as keyframes in the dope sheet. */
-		if ((sseq->flag & SEQ_MARKER_TRANS) && (cancelled == 0)) {
+		if ((sseq->flag & SEQ_MARKER_TRANS) && (canceled == 0)) {
 			/* cant use , TFM_TIME_EXTEND
 			 * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
 
@@ -4926,7 +4926,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		SpaceNode *snode= (SpaceNode *)t->sa->spacedata.first;
 		ED_node_update_hierarchy(C, snode->edittree);
 		
-		if(cancelled == 0)
+		if(canceled == 0)
 			ED_node_link_insert(t->sa);
 		
 		/* clear link line */
@@ -4968,11 +4968,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				
 				/* 3 cases here for curve cleanups:
 				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
-				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
-				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 				 */
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-					 ((cancelled == 0) || (duplicate)) )
+					 ((canceled == 0) || (duplicate)) )
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
@@ -4999,11 +4999,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			
 			/* 3 cases here for curve cleanups:
 			 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
-			 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
-			 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+			 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
+			 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 			 */
 			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-				 ((cancelled == 0) || (duplicate)) )
+				 ((canceled == 0) || (duplicate)) )
 			{
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
@@ -5012,11 +5012,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* remove duplicate frames and also make sure points are in order! */
 				/* 3 cases here for curve cleanups:
 				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
-				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
-				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 				 */
 			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-				 ((cancelled == 0) || (duplicate)) )
+				 ((canceled == 0) || (duplicate)) )
 			{
 				bGPdata *gpd;
 				
@@ -5032,7 +5032,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		/* marker transform, not especially nice but we may want to move markers
 		 * at the same time as keyframes in the dope sheet. 
 		 */
-		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
+		if ((saction->flag & SACTION_MARKERS_MOVE) && (canceled == 0)) {
 			if (t->mode == TFM_TIME_TRANSLATE) {
 #if 0
 				if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
@@ -5081,11 +5081,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				
 				/* 3 cases here for curve cleanups:
 				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
-				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
-				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
 				 */
 				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
-					 ((cancelled == 0) || (duplicate)) )
+					 ((canceled == 0) || (duplicate)) )
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
@@ -5106,7 +5106,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		 * Note: if the refresh is really needed after cancel then some way
 		 *       has to be added to not update handle types (see bug 22289).
 		 */
-		if(!cancelled)
+		if(!canceled)
 			ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->spacetype == SPACE_NLA) {
@@ -5167,11 +5167,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 
 		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
-		if (!cancelled && (t->mode != TFM_DUMMY))
+		if (!canceled && (t->mode != TFM_DUMMY))
 			count_set_pose_transflags(&t->mode, t->around, ob);
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
-		if (!cancelled && t->mode==TFM_TRANSLATION)
+		if (!canceled && t->mode==TFM_TRANSLATION)
 			targetless_ik= apply_targetless_ik(ob);
 		else {
 			/* not forget to clear the auto flag */
@@ -5184,8 +5184,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
 
-		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
-		if (!cancelled && (t->mode != TFM_DUMMY)) {
+		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
+		if (!canceled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
@@ -5239,7 +5239,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 			/* Set autokey if necessary */
-			if (!cancelled) {
+			if (!canceled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
 				
 				/* only calculate paths if there are paths to be recalculated */

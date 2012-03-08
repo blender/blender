@@ -1755,11 +1755,11 @@ void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_
 static void ui_warp_pointer(int x, int y)
 {
 	/* XXX 2.50 which function to use for this? */
-	/* OSX has very poor mousewarp support, it sends events;
+	/* OSX has very poor mouse-warp support, it sends events;
 	 * this causes a menu being pressed immediately ... */
-	#ifndef __APPLE__
+#  ifndef __APPLE__
 	warp_pointer(x, y);
-	#endif
+#  endif
 }
 #endif
 

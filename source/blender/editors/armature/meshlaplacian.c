@@ -832,7 +832,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 /* investigate:
  * - transpose R in orthogonal
  * - flipped normals and per face adding
- * - move cancelling to transform, make origco pointer
+ * - move canceling to transform, make origco pointer
  */
 
 static LaplacianSystem *RigidDeformSystem = NULL;

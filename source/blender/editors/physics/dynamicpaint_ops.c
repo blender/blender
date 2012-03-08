@@ -396,7 +396,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 			BLI_snprintf(result_str, sizeof(result_str), "Bake Failed: %s", canvas->error);
 			BKE_report(op->reports, RPT_ERROR, result_str);
 		}
-		else {	/* User cancelled the bake */
+		else {	/* User canceled the bake */
 			BLI_strncpy(result_str, "Baking Cancelled!", sizeof(result_str));
 			BKE_report(op->reports, RPT_WARNING, result_str);
 		}

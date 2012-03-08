@@ -1365,7 +1365,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					handler->op= NULL;
 				}
 
-				/* remove modal handler, operator itself should have been cancelled and freed */
+				/* remove modal handler, operator itself should have been canceled and freed */
 				if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
 					WM_cursor_ungrab(CTX_wm_window(C));
 
@@ -2337,7 +2337,7 @@ void WM_event_add_mousemove(bContext *C)
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
 	/* if the release-confirm userpref setting is enabled, 
-	 * tweak events can be cancelled when mouse is released
+	 * tweak events can be canceled when mouse is released
 	 */
 	if (U.flag & USER_RELEASECONFIRM) {
 		/* option on, so can exit with km-release */

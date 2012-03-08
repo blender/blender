@@ -3387,7 +3387,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	case ESCKEY:
 	case RIGHTMOUSE:
-		/* cancelled; restore original value */
+		/* canceled; restore original value */
 		radial_control_set_value(rc, rc->initial_value);
 		ret = OPERATOR_CANCELLED;
 		break;

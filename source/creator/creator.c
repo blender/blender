@@ -649,7 +649,7 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 #endif
 
 	/**
-	 * gameengine parameters are automaticly put into system
+	 * gameengine parameters are automatically put into system
 	 * -g [paramname = value]
 	 * -g [boolparamname]
 	 * example:

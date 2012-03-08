@@ -669,7 +669,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 	return found;
 }
 
-/* needed for temporarily rename buttons, such as in outliner or fileselect,
+/* needed for temporarily rename buttons, such as in outliner or file-select,
  * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
 int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
@@ -764,7 +764,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 						}
 
 						if(pass==0) {
-							/* Skip to next delimeter on first pass (be picky) */
+							/* Skip to next delimiter on first pass (be picky) */
 							while(isalpha(*str_pt))
 								str_pt++;
 
@@ -1878,7 +1878,7 @@ static double soft_range_round_down(double value, double max)
 
 void ui_set_but_soft_range(uiBut *but, double value)
 {
-	/* ideally we would not limit this but practially, its more then
+	/* ideally we would not limit this but practically, its more then
 	 * enough worst case is very long vectors wont use a smart soft-range
 	 * which isnt so bad. */
 

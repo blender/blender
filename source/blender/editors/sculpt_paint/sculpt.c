@@ -653,7 +653,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		float radius;
 
 		/* if the active area is being applied for symmetry, flip it
-		 * across the symmetry axis and rotate it back to the orignal
+		 * across the symmetry axis and rotate it back to the original
 		 * position in order to project it. This insures that the 
 		 * brush texture will be oriented correctly. */
 

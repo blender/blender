@@ -2621,7 +2621,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
 	if (PySequence_Fast_GET_SIZE(value) != stop-start) {
 		Py_DECREF(value);
 		PyErr_SetString(PyExc_TypeError,
-		                "bpy_prop_array[slice] = value: resizing bpy_struct arrays isn't supported");
+		                "bpy_prop_array[slice] = value: re-sizing bpy_struct arrays isn't supported");
 		return -1;
 	}
 

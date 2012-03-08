@@ -458,7 +458,7 @@ static void action_refresh(const bContext *C, ScrArea *sa)
 	}
 	
 	/* region updates? */
-	// XXX resizing y-extents of tot should go here?
+	// XXX re-sizing y-extents of tot should go here?
 }
 
 /* only called once, from space/spacetypes.c */

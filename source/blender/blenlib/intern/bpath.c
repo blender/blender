@@ -609,7 +609,7 @@ int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_sr
 	}
 
 	/* Make referenced file absolute. This would be a side-effect of
-	 * BLI_cleanup_file, but we do it explicitely so we know if it changed. */
+	 * BLI_cleanup_file, but we do it explicitly so we know if it changed. */
 	BLI_strncpy(filepath, path_src, FILE_MAX);
 	if (BLI_path_abs(filepath, base_old)) {
 		/* Path was relative and is now absolute. Remap.

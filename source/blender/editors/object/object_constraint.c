@@ -1500,7 +1500,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		/* get the target objects, adding them as need be */
 		if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, 1)) {
 			/* method of setting target depends on the type of target we've got 
-			 *	- by default, just set the first target (distinction here is only for multiple-targetted constraints)
+			 *	- by default, just set the first target (distinction here is only for multiple-targeted constraints)
 			 */
 			if (tar_pchan)
 				set_constraint_nth_target(con, tar_ob, tar_pchan->name, 0);

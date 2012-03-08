@@ -1524,7 +1524,7 @@ static int point_in_slice(const float p[3], const float v1[3], const float l1[3]
 	 * what is a slice ?
 	 * some maths:
 	 * a line including l1,l2 and a point not on the line 
-	 * define a subset of R3 delimeted by planes parallel to the line and orthogonal 
+	 * define a subset of R3 delimited by planes parallel to the line and orthogonal
 	 * to the (point --> line) distance vector,one plane on the line one on the point, 
 	 * the room inside usually is rather small compared to R3 though still infinte
 	 * useful for restricting (speeding up) searches 

@@ -686,7 +686,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 			glVertex3f(x-tdx, y-tdy, 0);
 		glEnd();
 
-		/* search resizing triangle */
+		/* search re-sizing triangle */
 		x= track->search_max[0];
 		y= track->search_min[1];
 
@@ -730,7 +730,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 			glVertex3f(x-tdx, y-tdy, 0);
 		glEnd();
 
-		/* pattern resizing triangle */
+		/* pattern re-sizing triangle */
 		x= track->pat_max[0];
 		y= track->pat_min[1];
 

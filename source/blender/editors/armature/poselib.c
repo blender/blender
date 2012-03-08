@@ -1473,7 +1473,7 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 	/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 	pose->flag |= POSE_DO_UNLOCK;
 	
-	/* clear pose if cancelled */
+	/* clear pose if canceled */
 	if (pld->state == PL_PREVIEW_CANCEL) {
 		poselib_backup_restore(pld);
 		

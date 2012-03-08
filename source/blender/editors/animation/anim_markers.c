@@ -751,7 +751,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			return OPERATOR_CANCELLED;
 		
 		case RIGHTMOUSE:
-			/* press = user manually demands transform to be cancelled */
+			/* press = user manually demands transform to be canceled */
 			if (evt->val == KM_PRESS) {
 				ed_marker_move_cancel(C, op);
 				return OPERATOR_CANCELLED;

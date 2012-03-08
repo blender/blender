@@ -617,7 +617,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_SHOULD_ZOOM    (1 << 4)
 #define NDOF_SHOULD_ROTATE  (1 << 5)
 /* orbit navigation modes
- * only two options, so it's sort of a hyrbrid bool/enum
+ * only two options, so it's sort of a hybrid bool/enum
  * if ((U.ndof_flag & NDOF_ORBIT_MODE) == NDOF_OM_OBJECT)... */
 /*
 #define NDOF_ORBIT_MODE     (1 << 6)
