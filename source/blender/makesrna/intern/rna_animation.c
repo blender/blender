@@ -194,7 +194,8 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 		return NULL;
 	
 	if (strlen(identifier) >= sizeof(dummyksi.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "Registering keying set info class: '%s' is too long, maximum length is %d", identifier, (int)sizeof(dummyksi.idname));
+		BKE_reportf(reports, RPT_ERROR, "Registering keying set info class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummyksi.idname));
 		return NULL;
 	}
 	
@@ -473,6 +474,13 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
 
 /* --- */
 
+/* To avoid repeating it twice! */
+#define KEYINGSET_IDNAME_DOC "If this is set, the Keying Set gets a custom ID, otherwise it takes " \
+                             "the name of the class used to define the Keying Set (for example, "   \
+                             "if the class name is \"BUILTIN_KSI_location\", and bl_idname is not " \
+                             "set by the script, then bl_idname = \"BUILTIN_KSI_location\")"
+
+
 static void rna_def_keyingset_info(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -489,17 +497,23 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	/* Properties --------------------- */
 	
 	RNA_define_verify_sdna(0); /* not in sdna */
-		
+	
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "idname");
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
-		
-	/* Name */
-	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
+	RNA_def_property_ui_text(prop, "ID Name", KEYINGSET_IDNAME_DOC);
+	
+	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_ui_text(prop, "UI Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_flag(prop, PROP_REGISTER);
+	
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	RNA_def_property_string_sdna(prop, NULL, "description");
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_ui_text(prop, "Description", "A short description of the keying set");
 	
 	rna_def_common_keying_flags(srna, 1); /* '1' arg here is to indicate that we need these to be set on registering */
 	
@@ -671,12 +685,25 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "KeyingSet", NULL);
 	RNA_def_struct_ui_text(srna, "Keying Set", "Settings that should be keyframed together");
 	
-	/* Name */
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "");
+	/* Id/Label. */
+	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "idname");
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
+	RNA_def_property_ui_text(prop, "ID Name", KEYINGSET_IDNAME_DOC);
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_RENAME, NULL);
+	
+	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "UI Name", "");
 	RNA_def_struct_ui_icon(srna, ICON_KEYINGSET);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_RENAME, NULL);
+/*	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_RENAME, NULL);*/
+	
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	RNA_def_property_string_sdna(prop, NULL, "description");
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_ui_text(prop, "Description", "A short description of the keying set");
 	
 	/* KeyingSetInfo (Type Info) for Builtin Sets only  */
 	prop = RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
@@ -705,6 +732,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_api_keyingset(srna);
 }
 
+#undef KEYINGSET_IDNAME_DOC
 /* --- */
 
 static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)

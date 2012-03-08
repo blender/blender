@@ -941,14 +941,16 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 /* Defining Tools --------------------------- */
 
 /* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
-KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, short keyingflag)
+KeyingSet *BKE_keyingset_add (ListBase *list, const char idname[], const char name[], short flag, short keyingflag)
 {
 	KeyingSet *ks;
 	
 	/* allocate new KeyingSet */
 	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-	BLI_strncpy(ks->name, name ? name : "KeyingSet", sizeof(ks->name));
+	BLI_strncpy(ks->idname, idname ? idname : name ? name : "KeyingSet", sizeof(ks->idname));
+
+	BLI_strncpy(ks->name, name ? name : idname ? idname : "Keying Set", sizeof(ks->name));
 
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
@@ -956,8 +958,11 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	/* add KeyingSet to list */
 	BLI_addtail(list, ks);
 	
-	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), sizeof(ks->name));
+	/* Make sure KeyingSet has a unique idname. */
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, idname), sizeof(ks->idname));
+	
+	/* Make sure KeyingSet has a unique label (this helps with identification). */
+	BLI_uniquename(list, ks, "Keying Set", '.', offsetof(KeyingSet, name), sizeof(ks->name));
 	
 	/* return new KeyingSet for further editing */
 	return ks;

@@ -761,7 +761,9 @@ typedef struct KeyingSet {
 	
 	ListBase paths;			/* (KS_Path) paths to keyframe to */
 	
+	char idname[64];		/* unique name (for search, etc.) */
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
+	char description[240];	/* (RNA_DYN_DESCR_MAX) short help text. */
 	char typeinfo[64];		/* name of the typeinfo data used for the relative paths */
 	
 	short flag;				/* settings for KeyingSet */

@@ -71,6 +71,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1115,7 +1116,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	if (type == 0) 
 		type= scene->active_keyingset;
 	if (type > 0)
-		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		ks= BLI_findlink(&scene->keyingsets, type-1);
 	else
 		ks= BLI_findlink(&builtin_keyingsets, -type-1);
 		
@@ -1193,8 +1194,15 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(
 	
 	/* if prompting or no active Keying Set, show the menu */
 	if ((scene->active_keyingset == 0) || RNA_boolean_get(op->ptr, "always_prompt")) {
+		uiPopupMenu *pup;
+		uiLayout *layout;
+		
 		/* call the menu, which will call this operator again, hence the canceled */
-		ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keyframe_insert_menu");
+		pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+		layout = uiPupMenuLayout(pup);
+		uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
+		uiPupMenuEnd(C, pup);
+		
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -1264,7 +1272,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	if (type == 0) 
 		type= scene->active_keyingset;
 	if (type > 0)
-		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		ks= BLI_findlink(&scene->keyingsets, type-1);
 	else
 		ks= BLI_findlink(&builtin_keyingsets, -type-1);
 	

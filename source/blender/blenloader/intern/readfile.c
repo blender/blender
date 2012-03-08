@@ -13245,6 +13245,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_versions_nodetree_multi_file_output_format_2_62_1(NULL, ntree);
 	}
 
+	/* put compatibility code here until next subversion bump */
+	{
+		{
+			/* Set new idname of keyingsets from their now "label-only" name. */
+			Scene *scene;
+			for (scene = main->scene.first; scene; scene = scene->id.next) {
+				KeyingSet *ks;
+				for (ks = scene->keyingsets.first; ks; ks = ks->next) {
+					if (!ks->idname[0])
+						BLI_strncpy(ks->idname, ks->name, sizeof(ks->idname));
+				}
+			}
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */

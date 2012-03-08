@@ -1321,12 +1321,12 @@ static void rna_TimeLine_clear(Scene *scene)
 	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
 }
 
-static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, const char name[])
+static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, const char idname[], const char name[])
 {
 	KeyingSet *ks = NULL;
 
 	/* call the API func, and set the active keyingset index */
-	ks = BKE_keyingset_add(&sce->keyingsets, name, KEYINGSET_ABSOLUTE, 0);
+	ks = BKE_keyingset_add(&sce->keyingsets, idname, name, KEYINGSET_ABSOLUTE, 0);
 	
 	if (ks) {
 		sce->active_keyingset = BLI_countlist(&sce->keyingsets);
@@ -3948,7 +3948,8 @@ static void rna_def_scene_keying_sets(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new Keying Set to Scene");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* name */
-	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
+	RNA_def_string(func, "idname", "KeyingSet", 64, "IDName", "Internal identifier of Keying Set");
+	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "User visible name of Keying Set");
 
 	/* returns the new KeyingSet */
 	parm = RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set");
