@@ -1257,10 +1257,9 @@ static void vgroup_blend(Object *ob)
 	int i, dvert_tot=0;
 	const int def_nr= ob->actdef-1;
 
-	BMEditMesh *em = BMEdit_FromObject(ob);
-	// ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	BMEditMesh *em;
 
-	if (em == NULL) {
+	if (ob->type == OB_MESH && ((em = BMEdit_FromObject(ob)) != NULL)) {
 		return;
 	}
 
@@ -1302,10 +1301,17 @@ static void vgroup_blend(Object *ob)
 				vg_users[i1]++;
 
 				/* TODO, we may want object mode blending */
-				if(em)	dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
-				else	dvert= dvert_array+i2;
+#if 0
+				if (em) {
+					dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+				}
+				else
+#endif
+				{
+					dvert= dvert_array+i2;
+				}
 
-				dw= defvert_find_index(dvert, def_nr);
+				dw = defvert_find_index(dvert, def_nr);
 
 				if(dw) {
 					vg_weights[i1] += dw->weight;
@@ -2037,7 +2043,7 @@ static int vertex_group_poll(bContext *C)
 	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
-static int UNUSED_FUNCTION(vertex_group_poll_edit)(bContext *C)
+static int vertex_group_poll_edit(bContext *C)
 {
 	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
@@ -2502,7 +2508,7 @@ void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 	ot->description= "";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
+	ot->poll= vertex_group_poll_edit; /* TODO - add object mode support */
 	ot->exec= vertex_group_blend_exec;
 
 	/* flags */

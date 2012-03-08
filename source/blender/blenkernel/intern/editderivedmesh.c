@@ -1717,5 +1717,5 @@ DerivedMesh *getEditDerivedBMesh(
 BMEditMesh *BMEdit_FromObject(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
-	return ((Mesh *)   ob->data   )->edit_btmesh;
+	return ((Mesh *)ob->data)->edit_btmesh;
 }
