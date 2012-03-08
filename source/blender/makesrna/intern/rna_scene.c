@@ -418,7 +418,7 @@ static int rna_Scene_active_layer_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene*)ptr->data;
 
-	return (int)log2f(scene->layact);
+	return (int)(log(scene->layact)/M_LN2);
 }
 
 static void rna_Scene_view3d_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)

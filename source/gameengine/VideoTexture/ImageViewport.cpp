@@ -57,7 +57,7 @@ ImageViewport::ImageViewport (void) : m_alpha(false), m_texInit(false)
 
 // destructor
 ImageViewport::~ImageViewport (void)
-{ delete m_viewportImage; }
+{ delete [] m_viewportImage; }
 
 
 // use whole viewport to capture image
