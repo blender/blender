@@ -502,7 +502,7 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -620,7 +620,7 @@ PyObject* KX_SteeringActuator::pyattr_get_steeringVec(void *self, const struct K
 	return PyObjectFrom(steeringVec);
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */
 

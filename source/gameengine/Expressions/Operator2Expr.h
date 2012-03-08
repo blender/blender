@@ -29,7 +29,7 @@ class COperator2Expr : public CExpression
 
 public:
 	virtual bool MergeExpression(CExpression* otherexpr);
-	virtual unsigned char GetExpressionID() { return COPERATOR2EXPRESSIONID;};
+	virtual unsigned char GetExpressionID() { return COPERATOR2EXPRESSIONID; }
 	virtual void BroadcastOperators(VALUE_OPERATOR op);
 	CExpression* CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks);
 	//virtual bool IsInside(float x,float y,float z,bool bBorderInclude=true);

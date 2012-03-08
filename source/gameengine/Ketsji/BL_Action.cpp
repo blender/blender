@@ -25,6 +25,7 @@
  */
 
 #include <cstdlib>
+#include <stdio.h>
 
 #include "BL_Action.h"
 #include "BL_ArmatureObject.h"

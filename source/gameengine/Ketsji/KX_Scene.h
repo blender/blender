@@ -558,10 +558,10 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	// use of DBVT tree for camera culling
-	void SetDbvtCulling(bool b) { m_dbvt_culling = b; };
-	bool GetDbvtCulling() { return m_dbvt_culling; };
-	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; };
-	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; };
+	void SetDbvtCulling(bool b) { m_dbvt_culling = b; }
+	bool GetDbvtCulling() { return m_dbvt_culling; }
+	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; }
+	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; }
 	
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 
@@ -587,7 +587,7 @@ public:
 	void Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 
-	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
+	KX_ObstacleSimulation* GetObstacleSimulation() { return m_obstacleSimulation; }
 
 #ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
@@ -628,8 +628,8 @@ public:
 	 */
 	void RunDrawingCallbacks(PyObject* cb_list);
 	
-	PyObject* GetPreDrawCB() { return m_draw_call_pre; };
-	PyObject* GetPostDrawCB() { return m_draw_call_post; };
+	PyObject* GetPreDrawCB() { return m_draw_call_pre; }
+	PyObject* GetPostDrawCB() { return m_draw_call_post; }
 #endif
 
 	/**

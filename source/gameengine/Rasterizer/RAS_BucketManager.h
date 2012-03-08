@@ -65,8 +65,8 @@ public:
 
 	/* for merging */
 	void MergeBucketManager(RAS_BucketManager *other, SCA_IScene *scene);
-	BucketList & GetSolidBuckets() {return m_SolidBuckets;};
-	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;};
+	BucketList & GetSolidBuckets() {return m_SolidBuckets;}
+	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;}
 
 	/*void PrintStats(int verbose_level) {
 		printf("\nMappings...\n");

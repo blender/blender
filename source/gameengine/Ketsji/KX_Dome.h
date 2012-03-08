@@ -112,7 +112,7 @@ public:
 	int nfacestop, nfacesbottom, nfacesleft, nfacesright, nfacesfront, nfacesback;
 	int nfacesleftback, nfacesrightback;
 
-	int GetNumberRenders(){return m_numfaces;};
+	int GetNumberRenders() { return m_numfaces; }
 
 	void RenderDome(void);
 	void RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i);

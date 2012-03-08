@@ -130,7 +130,7 @@ public:
 					bool image,
 					struct GameSettings* game);
 
-	virtual ~RAS_IPolyMaterial() {};
+	virtual ~RAS_IPolyMaterial() {}
  
 	/**
 	 * Returns the caching information for this material,
