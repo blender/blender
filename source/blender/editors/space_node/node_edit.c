@@ -2698,34 +2698,35 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 /* *********************  automatic node insert on dragging ******************* */
 
 /* assumes sockets in list */
-static bNodeSocket *socket_best_match(ListBase *sockets, int type)
+static bNodeSocket *socket_best_match(ListBase *sockets)
 {
 	bNodeSocket *sock;
+	int type, maxtype=0;
 	
-	/* first, match type */
-	for(sock= sockets->first; sock; sock= sock->next)
-		if(!nodeSocketIsHidden(sock))
-			if(type == sock->type)
+	/* find type range */
+	for (sock=sockets->first; sock; sock=sock->next)
+		maxtype = MAX2(sock->type, maxtype);
+	
+	/* try all types, starting from 'highest' (i.e. colors, vectors, values) */
+	for (type=maxtype; type >= 0; --type) {
+		for(sock= sockets->first; sock; sock= sock->next) {
+			if(!nodeSocketIsHidden(sock) && type==sock->type) {
 				return sock;
-	
-	/* then just use first unhidden socket */
-	for(sock= sockets->first; sock; sock= sock->next)
-		if(!nodeSocketIsHidden(sock))
-			return sock;
-
-	/* OK, let's unhide proper one */
-	for(sock= sockets->first; sock; sock= sock->next) {
-		if(type == sock->type) {
-			sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
-			return sock;
+			}
 		}
 	}
 	
-	/* just the first */
-	sock= sockets->first;
-	sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
+	/* no visible sockets, unhide first of highest type */
+	for (type=maxtype; type >= 0; --type) {
+		for(sock= sockets->first; sock; sock= sock->next) {
+			if(type==sock->type) {
+				sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
+				return sock;
+			}
+		}
+	}
 	
-	return sockets->first;
+	return NULL;
 }
 
 /* prevent duplicate testing code below */
@@ -2783,10 +2784,10 @@ void ED_node_link_insert(ScrArea *sa)
 		sockto= link->tosock;
 		
 		link->tonode= select;
-		link->tosock= socket_best_match(&select->inputs, link->fromsock->type);
+		link->tosock= socket_best_match(&select->inputs);
 		link->flag &= ~NODE_LINKFLAG_HILITE;
 		
-		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs, sockto->type), node, sockto);
+		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs), node, sockto);
 		ntreeUpdateTree(snode->edittree);	/* needed for pointers */
 		snode_update(snode, select);
 		ED_node_changed_update(snode->id, select);
