@@ -42,6 +42,8 @@
 
 #include <stdlib.h>
 
+#include "BLI_utildefines.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "math.h"
@@ -134,6 +136,10 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	unsigned char *dataI;
 	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF;
 
+	/* sample area entirely outside image? */
+	if (ceil(u)<0 || floor(u)>in->x-1 || ceil(v)<0 || floor(v)>in->y-1)
+		return;
+
 	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
 	i= (int)floor(u);
@@ -153,31 +159,29 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	
 	for(n= -1; n<= 2; n++){
 		x1= i+n;
-		if (x1>0 && x1 < in->x) {
-			wx = P(n-a);
-			for(m= -1; m<= 2; m++){
-				y1= j+m;
-				if (y1>0 && y1<in->y) {
-					/* normally we could do this */
-					/* w = P(n-a) * P(b-m); */
-					/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
-					w = wx * wy[m+1];
-					
-					if (outF) {
-						dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
-						outR+= dataF[0] * w;
-						outG+= dataF[1] * w;
-						outB+= dataF[2] * w;
-						outA+= dataF[3] * w;
-					}
-					if (outI) {
-						dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
-						outR+= dataI[0] * w;
-						outG+= dataI[1] * w;
-						outB+= dataI[2] * w;
-						outA+= dataI[3] * w;
-					}
-				}
+		CLAMP(x1, 0, in->x-1);
+		wx = P(n-a);
+		for(m= -1; m<= 2; m++){
+			y1= j+m;
+			CLAMP(y1, 0, in->y-1);
+			/* normally we could do this */
+			/* w = P(n-a) * P(b-m); */
+			/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
+			w = wx * wy[m+1];
+
+			if (outF) {
+				dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
+				outR+= dataF[0] * w;
+				outG+= dataF[1] * w;
+				outB+= dataF[2] * w;
+				outA+= dataF[3] * w;
+			}
+			if (outI) {
+				dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
+				outR+= dataI[0] * w;
+				outG+= dataI[1] * w;
+				outB+= dataI[2] * w;
+				outA+= dataI[3] * w;
 			}
 		}
 	}
