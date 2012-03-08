@@ -401,7 +401,7 @@ def find_node_input(node, name):
 
 
 def panel_node_draw(layout, id_data, output_type, input_name):
-    if not id_data.node_tree:
+    if not id_data.use_nodes:
         layout.prop(id_data, "use_nodes", icon='NODETREE')
         return False
 
