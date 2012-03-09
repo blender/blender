@@ -989,12 +989,13 @@ static void correct_uv_aspect(BMEditMesh *em)
 	BMFace *efa= BM_active_face_get(em->bm, TRUE);
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	float scale, aspx= 1.0f, aspy=1.0f;
 	
-	if(efa) {
-		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+	if (efa) {
+		MTexPoly *tf;
+
+		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
 	}
 	
@@ -1005,7 +1006,6 @@ static void correct_uv_aspect(BMEditMesh *em)
 		scale= aspy/aspx;
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 				continue;
 			
@@ -1019,7 +1019,6 @@ static void correct_uv_aspect(BMEditMesh *em)
 		scale= aspx/aspy;
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)||BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 				continue;
 			

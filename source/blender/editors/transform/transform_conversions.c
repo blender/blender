@@ -2484,7 +2484,6 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;
 
-		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if (!propmode && !uvedit_uv_selected(em, scene, l))
 				continue;

@@ -2303,17 +2303,14 @@ int mesh_recalcTessellation(CustomData *fdata,
 
 
 		else if (mp->totloop == 3) {
-			ml = mloop + mp->loopstart;
 			ML_TO_MF(0, 1, 2)
 			mface_index++;
 		}
 		else if (mp->totloop == 4) {
 #ifdef USE_TESSFACE_QUADS
-			ml = mloop + mp->loopstart;
 			ML_TO_MF_QUAD()
 			mface_index++;
 #else
-			ml = mloop + mp->loopstart;
 			ML_TO_MF(0, 1, 2)
 			mface_index++;
 			ML_TO_MF(0, 2, 3)
