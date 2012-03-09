@@ -453,7 +453,7 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 }
 
 /* this might have some more generic use */
-static void node_circle_draw(float x, float y, float size, char *col)
+static void node_circle_draw(float x, float y, float size, char *col, int highlight)
 {
 	/* 16 values of sin function */
 	static float si[16] = {
@@ -478,7 +478,13 @@ static void node_circle_draw(float x, float y, float size, char *col)
 		glVertex2f(x+size*si[a], y+size*co[a]);
 	glEnd();
 	
-	glColor4ub(0, 0, 0, 150);
+	if (highlight) {
+		UI_ThemeColor(TH_TEXT_HI);
+		glLineWidth(1.5f);
+	}
+	else {
+		glColor4ub(0, 0, 0, 150);
+	}
 	glEnable(GL_BLEND);
 	glEnable( GL_LINE_SMOOTH );
 	glBegin(GL_LINE_LOOP);
@@ -487,12 +493,13 @@ static void node_circle_draw(float x, float y, float size, char *col)
 	glEnd();
 	glDisable( GL_LINE_SMOOTH );
 	glDisable(GL_BLEND);
+	glLineWidth(1.0f);
 }
 
 void node_socket_circle_draw(bNodeTree *UNUSED(ntree), bNodeSocket *sock, float size)
 {
 	bNodeSocketType *stype = ntreeGetSocketType(sock->type);
-	node_circle_draw(sock->locx, sock->locy, size, stype->ui_color);
+	node_circle_draw(sock->locx, sock->locy, size, stype->ui_color, (sock->flag & SELECT));
 }
 
 /* **************  Socket callbacks *********** */
