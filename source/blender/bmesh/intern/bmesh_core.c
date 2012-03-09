@@ -41,8 +41,6 @@
  * TESTING ONLY! */
 // #define USE_DEBUG_INDEX_MEMCHECK
 
-static int bm_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep);
-
 #ifdef USE_DEBUG_INDEX_MEMCHECK
 #define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)               \
 	{                                                      \
@@ -1748,7 +1746,7 @@ static int bm_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
  *
  * \return Success
  */
-int bm_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
+int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 {
 	BMEdge **stack = NULL;
 	BLI_array_declare(stack);
@@ -1856,11 +1854,11 @@ int BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
 	for (i = 0; i < e_in_len; i++) {
 		BMEdge *e = e_in[i];
 		if (e->l && BM_vert_in_edge(e, v)) {
-			bm_edge_separate(bm, e, e->l);
+			bmesh_edge_separate(bm, e, e->l);
 		}
 	}
 
-	return bm_vert_separate(bm, v, r_vout, r_vout_len);
+	return bmesh_vert_separate(bm, v, r_vout, r_vout_len);
 }
 
 /**
@@ -1911,7 +1909,7 @@ int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
  * \note Does nothing if \a l_sep is already the only loop in the
  * edge radial.
  */
-static int bm_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
+int bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
 {
 	BMEdge *ne;
 	int radlen;
@@ -1959,8 +1957,8 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 
 	/* peel the face from the edge radials on both sides of the
 	 * loop vert, disconnecting the face from its fan */
-	bm_edge_separate(bm, sl->e, sl);
-	bm_edge_separate(bm, sl->prev->e, sl->prev);
+	bmesh_edge_separate(bm, sl->e, sl);
+	bmesh_edge_separate(bm, sl->prev->e, sl->prev);
 
 	if (bmesh_disk_count(sv) == 2) {
 		/* If there are still only two edges out of sv, then
@@ -1978,7 +1976,7 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 
 	/* Split all fans connected to the vert, duplicating it for
 	 * each fans. */
-	bm_vert_separate(bm, sv, &vtar, &len);
+	bmesh_vert_separate(bm, sv, &vtar, &len);
 
 	/* There should have been at least two fans cut apart here,
 	 * otherwise the early exit would have kicked in. */

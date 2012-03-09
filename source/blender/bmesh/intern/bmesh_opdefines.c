@@ -890,8 +890,7 @@ static BMOpDefine bmo_vertexshortestpath_def = {
 static BMOpDefine bmo_edgesplit_def = {
 	"edgesplit",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout1"}, /* old output disconnected edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout2"}, /* new output disconnected edges */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* old output disconnected edges */
 	 {0} /* null-terminating sentine */},
 	bmo_edgesplit_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

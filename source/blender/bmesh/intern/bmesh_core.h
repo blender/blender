@@ -41,6 +41,9 @@ void    BM_edge_kill(BMesh *bm, BMEdge *e);
 void    BM_vert_kill(BMesh *bm, BMVert *v);
 
 int     BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
+int     bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep);
+
+int     bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len);
 
 int     bmesh_loop_reverse(BMesh *bm, BMFace *f);
 

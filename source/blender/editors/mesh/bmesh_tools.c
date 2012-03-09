@@ -2325,17 +2325,11 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
-/* #define USE_BVH_VISIBILITY */
-
 /* based on mouse cursor position, it defines how is being ripped */
 static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
-#ifdef USE_BVH_VISIBILITY
-	BMBVHTree *bvhtree;
-	View3D *v3d = CTX_wm_view3d(C);
-#endif
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
@@ -2345,9 +2339,10 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMLoop *l;
 	BMEdge *e, *e2;
 	BMVert *v, *ripvert = NULL;
-	int side = 0, i, singlesel = FALSE;
+	int i, singlesel = FALSE;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
-	float dist = FLT_MAX, d;
+	float dist = FLT_MAX;
+	float d, d_a, d_b;
 
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
@@ -2465,44 +2460,47 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	bvhtree = BMBVH_NewBVH(em, 0, NULL, NULL);
 #endif
 
-	for (i = 0; i < 2; i++) {
-		BMO_ITER(e, &siter, bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
-			float cent[3] = {0, 0, 0}, mid[3];
-			float vec[3];
-			float fmval_tweak[3];
-			BMVert *v1_other;
-			BMVert *v2_other;
+	BMO_ITER(e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
+		float cent[3] = {0, 0, 0}, mid[3];
+		float vec[3];
+		float fmval_tweak[3];
+		BMVert *v1_other;
+		BMVert *v2_other;
 
 #ifdef USE_BVH_VISIBILITY
-			if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
-				continue;
+		if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
+			continue;
 #endif
 
-			/* method for calculating distance:
-			 *
-			 * for each edge: calculate face center, then made a vector
-			 * from edge midpoint to face center.  offset edge midpoint
-			 * by a small amount along this vector. */
+		/* method for calculating distance:
+		 *
+		 * for each edge: calculate face center, then made a vector
+		 * from edge midpoint to face center.  offset edge midpoint
+		 * by a small amount along this vector. */
 
-			/* rather then the face center, get the middle of
-			 * both edge verts connected to this one */
-			v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
-			v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
-			mid_v3_v3v3(cent, v1_other->co, v2_other->co);
-			mid_v3_v3v3(mid, e->v1->co, e->v2->co);
-			sub_v3_v3v3(vec, cent, mid);
-			normalize_v3(vec);
-			mul_v3_fl(vec, 0.01f);
+		/* rather then the face center, get the middle of
+		 * both edge verts connected to this one */
+		v1_other = BM_face_other_vert_loop(e->l->f, e->v2, e->v1)->v;
+		v2_other = BM_face_other_vert_loop(e->l->f, e->v1, e->v2)->v;
+		mid_v3_v3v3(cent, v1_other->co, v2_other->co);
+		mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 
-			/* ratrher then adding to both verts, subtract from the mouse */
-			sub_v2_v2v2(fmval_tweak, fmval, vec);
+		ED_view3d_project_float_v2(ar, cent, cent, projectMat);
+		ED_view3d_project_float_v2(ar, mid, mid, projectMat);
 
-			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval_tweak);
+		sub_v2_v2v2(vec, cent, mid);
+		normalize_v2(vec);
+		mul_v2_fl(vec, 0.1f);
 
-			if (d < dist) {
-				side = i;
-				dist = d;
-			}
+
+		/* ratrher then adding to both verts, subtract from the mouse */
+		sub_v2_v2v2(fmval_tweak, fmval, vec);
+
+		d_a = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval_tweak);
+		d_b = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+
+		if (d_a > d_b) {
+			BM_elem_select_set(bm, e, FALSE);
 		}
 	}
 
@@ -2553,11 +2551,6 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			BM_elem_select_set(bm, v_best, TRUE);
 		}
 #endif
-
-	}
-	else {
-		/* de-select one of the sides */
-		BMO_slot_buffer_hflag_disable(bm, &bmop, side ? "edgeout1" : "edgeout2", BM_ELEM_SELECT, BM_EDGE, TRUE);
 	}
 
 	EDBM_selectmode_flush(em);
