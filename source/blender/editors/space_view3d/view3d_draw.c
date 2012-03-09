@@ -1076,7 +1076,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	 * 0.0001 on the lower left the 2D border sometimes
 	 * obscures the 3D camera border */
 	/* note: with VIEW3D_CAMERA_BORDER_HACK defined this error isn't noticeable
-	 * but keep it here incase we need to remove the workaround */
+	 * but keep it here in case we need to remove the workaround */
 	x1i= (int)(x1 - 1.0001f);
 	y1i= (int)(y1 - 1.0001f);
 	x2i= (int)(x2 + (1.0f-0.0001f));

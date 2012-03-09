@@ -2745,7 +2745,7 @@ static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm)
 {
 	MultiresModifierData *mmd= ccgdm->multires.mmd;
 
-	/* both of multires and subsurm modifiers are CCG, but
+	/* both of multires and subsurf modifiers are CCG, but
 	 * grids should only be used when sculpting on multires */
 	if(!mmd)
 		return 0;

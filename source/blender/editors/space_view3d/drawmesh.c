@@ -826,7 +826,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);
 	
-	/* in editmode, the blend mode needs to be set incase it was ADD */
+	/* in editmode, the blend mode needs to be set in case it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 

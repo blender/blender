@@ -170,7 +170,7 @@ KX_GameObject::~KX_GameObject()
 	}
 #ifdef WITH_PYTHON
 	if (m_attr_dict) {
-		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weird cases */
+		PyDict_Clear(m_attr_dict); /* in case of circular refs or other weird cases */
 		/* Py_CLEAR: Py_DECREF's and NULL's */
 		Py_CLEAR(m_attr_dict);
 	}
@@ -1768,7 +1768,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 	if (val==NULL) { /* del ob["key"] */
 		int del= 0;
 		
-		/* try remove both just incase */
+		/* try remove both just in case */
 		if(attr_str)
 			del |= (self->RemoveProperty(attr_str)==true) ? 1:0;
 		

@@ -75,7 +75,7 @@
  
 /* Queue and stack operations for dag traversal 
  *
- * the queue store a list of freenodes to avoid successives alloc/dealloc
+ * the queue store a list of freenodes to avoid successive alloc/dealloc
  */
 
 DagNodeQueue * queue_create (int slots) 

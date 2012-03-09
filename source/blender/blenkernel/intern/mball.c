@@ -1829,7 +1829,7 @@ void fill_metaball_octal_node(octal_node *node, MetaElem *ml, short i)
 	}
 }
 
-/* Node is subdivided as is ilustrated on the following figure:
+/* Node is subdivided as is illustrated on the following figure:
  * 
  *      +------+------+
  *     /      /      /|

@@ -746,7 +746,7 @@ int BLI_path_cwd(char *path)
 	
 	if (wasrelative==1) {
 		char cwd[FILE_MAX]= "";
-		BLI_current_working_dir(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
+		BLI_current_working_dir(cwd, sizeof(cwd)); /* in case the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
 			printf( "Could not get the current working directory - $PWD for an unknown reason.");
@@ -1151,7 +1151,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 		ok= get_path_system(path, NULL, NULL, NULL, ver);
 		break;
 	default:
-		path[0]= '\0'; /* incase do_check is false */
+		path[0]= '\0'; /* in case do_check is false */
 		ok= FALSE;
 		BLI_assert(!"incorrect ID");
 	}

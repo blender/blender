@@ -67,7 +67,7 @@ def run_ops(operators, setup_func=None):
     for op_id, op in operators:
         if op.poll():
             print("    operator:", op_id)
-            sys.stdout.flush()  # incase of crash
+            sys.stdout.flush()  # in case of crash
 
             # disable will get blender in a bad state and crash easy!
             bpy.ops.wm.read_factory_settings()

@@ -250,7 +250,7 @@ void free_scene(Scene *sce)
 	
 	if (sce->gpd) {
 #if 0   // removed since this can be invalid memory when freeing everything
-		// since the grease pencil data is free'd before the scene.
+		// since the grease pencil data is freed before the scene.
 		// since grease pencil data is not (yet?), shared between objects
 		// its probably safe not to do this, some save and reload will free this.
 		sce->gpd->id.us--;

@@ -196,8 +196,8 @@ typedef struct FlyInfo {
 
 	/* backup values */
 	float dist_backup; /* backup the views distance since we use a zero dist for fly mode */
-	float ofs_backup[3]; /* backup the views offset incase the user cancels flying in non camera mode */
-	float rot_backup[4]; /* backup the views quat incase the user cancels flying in non camera mode.
+	float ofs_backup[3]; /* backup the views offset in case the user cancels flying in non camera mode */
+	float rot_backup[4]; /* backup the views quat in case the user cancels flying in non camera mode.
 	                      * (quat for view, eul for camera) */
 	short persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 

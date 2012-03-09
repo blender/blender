@@ -977,7 +977,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	 *   would be used for images
 	 * - MCLIP_USE_PROXY_CUSTOM_DIR is needed because proxy/timecode files might
 	 *   be stored in a different location
-	 * ignore all the rest pssible flags for now */
+	 * ignore all the rest possible flags for now */
 	context->clip_flag= clip->flag&MCLIP_TIMECODE_FLAGS;
 
 	context->user= *user;

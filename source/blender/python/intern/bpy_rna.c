@@ -121,7 +121,7 @@ int pyrna_prop_validity_check(BPy_PropertyRNA *self)
 static void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
 	self->ptr.type = NULL; /* this is checked for validity */
-	self->ptr.id.data = NULL; /* should not be needed but prevent bad pointer access, just incase */
+	self->ptr.id.data = NULL; /* should not be needed but prevent bad pointer access, just in case */
 }
 #endif
 
@@ -1284,7 +1284,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 			else {
 				const char *ptr_name = RNA_struct_name_get_alloc(ptr, NULL, 0, NULL);
 
-				/* prefer not fail silently incase of api errors, maybe disable it later */
+				/* prefer not fail silently in case of api errors, maybe disable it later */
 				printf("RNA Warning: Current value \"%d\" "
 					   "matches no enum in '%s', '%s', '%s'\n",
 					   val, RNA_struct_identifier(ptr->type),
@@ -3361,7 +3361,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
-	/* Include this incase this instance is a subtype of a python class
+	/* Include this in case this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
 	 * */
 	ret = PyList_New(0);
@@ -3498,7 +3498,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 		             name);
 		ret = NULL;
 #endif
-		/* Include this incase this instance is a subtype of a python class
+		/* Include this in case this instance is a subtype of a python class
 		 * In these instances we may want to return a function or variable provided by the subtype
 		 *
 		 * Also needed to return methods when its not a subtype
@@ -3695,7 +3695,7 @@ static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
 	PyObject *ret;
 	PointerRNA r_ptr;
 
-	/* Include this incase this instance is a subtype of a python class
+	/* Include this in case this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
 	 * */
 	ret = PyList_New(0);
@@ -7278,7 +7278,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 
 	pyrna_subtype_set_rna(py_class, srna_new); /* takes a ref to py_class */
 
-	/* old srna still references us, keep the check incase registering somehow can free it */
+	/* old srna still references us, keep the check in case registering somehow can free it */
 	if (RNA_struct_py_type_get(srna)) {
 		RNA_struct_py_type_set(srna, NULL);
 		// Py_DECREF(py_class); // should be able to do this XXX since the old rna adds a new ref.

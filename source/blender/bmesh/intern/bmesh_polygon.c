@@ -28,7 +28,7 @@
  * tessellation, etc)
  *
  * BMESH_TODO:
- *  - Add in Tesselator frontend that creates
+ *  - Add in Tessellator frontend that creates
  *    BMTriangles from copied faces
  *
  *  - Add in Function that checks for and flags
@@ -47,7 +47,7 @@
  * \brief TEST EDGE SIDE and POINT IN TRIANGLE
  *
  * Point in triangle tests stolen from scanfill.c.
- * Used for tesselator
+ * Used for tessellator
  */
 
 static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
@@ -700,12 +700,11 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 /**
  * \brief Find Ear
  *
- * Used by tesselator to find
+ * Used by tessellator to find
  * the next triangle to 'clip off'
  * of a polygon while tessellating.
  *
  * \param use_beauty Currently only applies to quads, can be extended later on.
- *
  */
 static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3], const int nvert, const int use_beauty)
 {

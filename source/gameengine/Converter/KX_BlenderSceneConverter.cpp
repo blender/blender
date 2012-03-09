@@ -1123,7 +1123,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		}
 		else {
 			
-			/* incase the mesh might be refered to later */
+			/* in case the mesh might be refered to later */
 			{
 				CTR_Map<STR_HashedString,void*> &mapStringToMeshes = scene->GetLogicManager()->GetMeshMap();
 				

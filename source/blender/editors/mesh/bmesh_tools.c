@@ -2409,7 +2409,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* rip two adjacent edges */
 		if (BM_edge_face_count(e2) == 1 || BM_vert_face_count(v) == 2) {
 			l = e2->l;
-			ripvert = BM_face_vert_rip(bm, l->f, v);
+			ripvert = BM_face_vert_separate(bm, l->f, v);
 
 			BLI_assert(ripvert);
 			if (!ripvert) {

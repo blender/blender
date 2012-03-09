@@ -162,7 +162,7 @@ public:
 	 */
 	virtual bool	SetMaterial(const RAS_IPolyMaterial& mat)=0;
 	/**
-	 * Init initialises the renderer.
+	 * Init initializes the renderer.
 	 */
 	virtual bool	Init()=0;
 	/**

@@ -409,8 +409,8 @@ int id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 				/* copy animation actions too */
 				BKE_copy_animdata_id_action(id);
 				/* us is 1 by convention, but RNA_property_pointer_set
-				 * will also incremement it, so set it to zero */
-				newid->us= 0;
+				 * will also increment it, so set it to zero */
+				newid->us = 0;
 				
 				/* assign copy */
 				RNA_id_pointer_create(newid, &idptr);

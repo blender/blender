@@ -1384,7 +1384,7 @@ static void bake_update(void *bkv)
 {
 	BakeRender *bkr= bkv;
 
-	if(bkr->sa && bkr->sa->spacetype==SPACE_IMAGE) { /* incase the user changed while baking */
+	if(bkr->sa && bkr->sa->spacetype==SPACE_IMAGE) { /* in case the user changed while baking */
 		SpaceImage *sima= bkr->sa->spacedata.first;
 		if(sima)
 			sima->image= RE_bake_shade_get_image();

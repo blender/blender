@@ -590,7 +590,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 
 
 	for (unit= usys->units; unit->name; unit++) {
-		/* incase there are multiple instances */
+		/* in case there are multiple instances */
 		while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
 			change= 1;
 	}
@@ -607,7 +607,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 				if (usys_iter) {
 					for (unit= usys_iter->units; unit->name; unit++) {
 						int ofs = 0;
-						/* incase there are multiple instances */
+						/* in case there are multiple instances */
 						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
 							change= 1;
 					}
@@ -631,7 +631,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 			unit= unit_default(usys);
 
 
-		/* add the unit prefix and re-run, use brackets incase there was an expression given */
+		/* add the unit prefix and re-run, use brackets in case there was an expression given */
 		if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
 			strncpy(str, str_tmp, len_max);
 			return bUnit_ReplaceString(str, len_max, NULL, scale_pref, system, type);

@@ -75,7 +75,7 @@
  * """
  *
  * so the first line is the "title" of the bmop.
- * subsequent line blocks seperated by blank lines
+ * subsequent line blocks separated by blank lines
  * are paragraphs.  individual descriptions of slots
  * would be extracted from comments
  * next to them, e.g.

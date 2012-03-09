@@ -111,7 +111,7 @@ void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);
  * (the function that adds new properties to groups, IDP_AddToGroup, returns 0 if a property can't
  * be added to the group, and 1 if it can) and free the property.
  * 
- * Currently the code to free ID properties is designesd to leave the actual struct
+ * Currently the code to free ID properties is designed to leave the actual struct
  * you pass it un-freed, this is needed for how the system works.  This means
  * to free an ID property, you first call IDP_FreeProperty then MEM_freeN the
  * struct.  In the future this will just be IDP_FreeProperty and the code will
@@ -153,7 +153,7 @@ IDProperty *IDP_GroupIterNext(void *vself);
 
 /**
  * Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
- * when the iterator hits the end of the list it'll automatially free itself.*/
+ * when the iterator hits the end of the list it'll automatically free itself.*/
 void IDP_FreeIterBeforeEnd(void *vself);
 
 /*-------- Main Functions --------*/

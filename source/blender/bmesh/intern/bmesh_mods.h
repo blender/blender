@@ -77,7 +77,7 @@ enum {
 };
 
 
-BMVert *BM_face_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv);
-BMVert *BM_face_loop_rip(BMesh *bm, BMLoop *sl);
+BMVert *BM_face_vert_separate(BMesh *bm, BMFace *sf, BMVert *sv);
+BMVert *BM_face_loop_separate(BMesh *bm, BMLoop *sl);
 
 #endif /* __BMESH_MODS_H__ */

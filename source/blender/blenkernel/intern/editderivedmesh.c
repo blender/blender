@@ -136,7 +136,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 	if ( (tm->looptris != NULL) &&
 	     (tm->tottri != 0) &&
 	     /* (totrti <= bm->totface * 2) would be fine for all quads,
-		  * but incase there are some ngons, still re-use the array */
+		  * but in case there are some ngons, still re-use the array */
 	     (tm->tottri <= bm->totface * 3))
 	{
 		looptris = tm->looptris;

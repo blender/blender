@@ -609,7 +609,7 @@ public:
 
 	static PyObject *GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr);
 	/* self=NULL => proxy to generic pointer detached from GE object
-	                if py_owns is true, the memory pointed by ptr will be deleted automatially with MEM_freeN 
+	                if py_owns is true, the memory pointed by ptr will be deleted automatically with MEM_freeN 
 	   self!=NULL=> proxy attached to GE object, ptr is optional and point to a struct from which attributes can be defined
 	                if py_owns is true, the object will be deleted automatically, ptr will NOT be deleted 
 					(assume object destructor takes care of it) */

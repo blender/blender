@@ -92,5 +92,5 @@ void BPY_atexit_unregister(void)
 	BLI_assert(func_bpy_atregister != NULL);
 
 	atexit_func_call("unregister", func_bpy_atregister);
-	func_bpy_atregister = NULL; /* don't really need to set but just incase */
+	func_bpy_atregister = NULL; /* don't really need to set but just in case */
 }

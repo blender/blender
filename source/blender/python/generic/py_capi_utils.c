@@ -332,7 +332,7 @@ PyObject *PyC_ExceptionBuffer(void)
 	Py_INCREF(stdout_backup); // since these were borrowed we dont want them freed when replaced.
 	Py_INCREF(stderr_backup);
 
-	PySys_SetObject("stdout", string_io); // both of these are free'd when restoring
+	PySys_SetObject("stdout", string_io); // both of these are freed when restoring
 	PySys_SetObject("stderr", string_io);
 
 	PyErr_Restore(error_type, error_value, error_traceback);

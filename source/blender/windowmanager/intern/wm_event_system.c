@@ -744,7 +744,7 @@ static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
 	wmOperator *lastop;
 
 	for(lastop= wm->operators.last; lastop; lastop= lastop->prev) {
-		/* equality check is a bit paranoid but just incase */
+		/* equality check is a bit paranoid but just in case */
 		if((op != lastop) && (op->type == (lastop->type))) {
 			break;
 		}
@@ -1701,7 +1701,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		/* XXX code this for all modal ops, and ensure free only happens here */
 		
 		/* modal ui handler can be tagged to be freed */ 
-		if(BLI_findindex(handlers, handler) != -1) { /* could be free'd already by regular modal ops */
+		if(BLI_findindex(handlers, handler) != -1) { /* could be freed already by regular modal ops */
 			if(handler->flag & WM_HANDLER_DO_FREE) {
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);

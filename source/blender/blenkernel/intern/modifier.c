@@ -415,7 +415,7 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 ModifierData *modifiers_getVirtualModifierList(Object *ob)
 {
 	/* Kinda hacky, but should be fine since we are never
-	 * reentrant and avoid free hassles.
+	 * re-entrant and avoid free hassles.
 	 */
 	static ArmatureModifierData amd;
 	static CurveModifierData cmd;

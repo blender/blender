@@ -741,7 +741,7 @@ static void copy_texture_space(Object *to, Object *ob)
 	
 }
 
-/* UNUSED, keep incase we want to copy functionality for use elsewhere */
+/* UNUSED, keep in case we want to copy functionality for use elsewhere */
 static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 {
 	Object *ob;

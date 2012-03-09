@@ -101,7 +101,7 @@ typedef struct BPy_BMElemSeq {
 	 * If this veriable is set, it will be used */
 
 	/* we hold a reference to this.
-	 * check incase the owner becomes invalid on access */
+	 * check in case the owner becomes invalid on access */
 	/* TODO - make this a GC'd object!, will function OK without this though */
 	BPy_BMElem *py_ele;
 

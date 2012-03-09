@@ -76,7 +76,7 @@ void WM_operator_free(wmOperator *op)
 
 #ifdef WITH_PYTHON
 	if(op->py_instance) {
-		/* do this first incase there are any __del__ functions or
+		/* do this first in case there are any __del__ functions or
 		 * similar that use properties */
 		BPY_DECREF(op->py_instance);
 	}

@@ -2585,7 +2585,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 				m[2][1] += va[2] * vb[1];
 				m[2][2] += va[2] * vb[2];
 
-				/* building the referenc matrix on the fly
+				/* building the reference matrix on the fly
 				 * needed to scale properly later */
 
 				mr[0][0] += va[0] * va[0];

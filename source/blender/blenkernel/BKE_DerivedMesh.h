@@ -60,7 +60,7 @@
  */
 
 /*
- * Note: This sturcture is read-only, for all practical purposes.
+ * Note: This structure is read-only, for all practical purposes.
  *       At some point in the future, we may want to consider
  *       creating a replacement structure that implements a proper
  *       abstract mesh kernel interface.  Or, we can leave this
@@ -588,7 +588,7 @@ void vDM_ColorBand_store(struct ColorBand *coba);
 
 /* Simple function to get me->totvert amount of vertices/normals,
  * correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
- * In use now by vertex/weigt paint and particles */
+ * In use now by vertex/weight paint and particles */
 float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 	/* */

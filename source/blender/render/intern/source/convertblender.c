@@ -5052,7 +5052,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	/* if no camera, viewmat should have been set! */
 	if(use_camera_view && camera) {
-		/* called before but need to call again incase of lens animation from the
+		/* called before but need to call again in case of lens animation from the
 		 * above call to scene_update_for_newframe, fixes bug. [#22702].
 		 * following calls dont depend on 'RE_SetCamera' */
 		RE_SetCamera(re, camera);

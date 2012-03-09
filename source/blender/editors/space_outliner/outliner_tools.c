@@ -391,7 +391,7 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 			gob->ob->flag |= SELECT;
 			base->flag = gob->ob->flag;
 			base->object= gob->ob;
-			id_lib_extern((ID *)gob->ob); /* incase these are from a linked group */
+			id_lib_extern((ID *)gob->ob); /* in case these are from a linked group */
 		}
 	}
 }

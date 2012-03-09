@@ -157,7 +157,7 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
 				}
 				else {
-					break; /* unlikely but just incase */
+					break; /* unlikely but just in case */
 				}
 			}
 		}

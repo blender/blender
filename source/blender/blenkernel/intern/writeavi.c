@@ -112,7 +112,7 @@ bMovieHandle *BKE_get_movie_handle(const char imtype)
 	}
 #endif
 
-	/* incase all above are disabled */
+	/* in case all above are disabled */
 	(void)imtype;
 
 	return &mh;

@@ -2227,7 +2227,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 						break;
 					}
 				}
-				/* incase there are no other selected verts */
+				/* in case there are no other selected verts */
 				end_sel = start_sel;
 				for(bezt=nu->bezt+(start_sel+1), a=start_sel+1; a<nu->pntsu; a++, bezt++) {
 					if((bezt->f2 & SELECT)==0) {
@@ -2289,7 +2289,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 						break;
 					}
 				}
-				/* incase there are no other selected verts */
+				/* in case there are no other selected verts */
 				end_sel = start_sel;
 				for(bp=nu->bp+(start_sel+1), a=start_sel+1; a<nu->pntsu; a++, bp++) {
 					if((bp->f1 & SELECT)==0) {
@@ -5160,7 +5160,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 
 /******************** select less operator *****************/
 
-/* basic method: deselect if control point doesn't have all neighbours selected */
+/* basic method: deselect if control point doesn't have all neighbors selected */
 static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -5181,7 +5181,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 				if((bp->hide==0) && (bp->f1 & SELECT)) {
 					sel= 0;
 									
-					/* check if neighbours have been selected */	
+					/* check if neighbors have been selected */	
 					/* edges of surface are an exception */	
 					if((a+1)%nu->pntsu==0) sel++;	
 					else {
@@ -5236,7 +5236,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						if(lastsel==1) sel= 1;
 						else sel= 0;
 												
-						/* check if neighbours have been selected */						
+						/* check if neighbors have been selected */						
 						/* first and last are exceptions */					
 						if(a==nu->pntsu-1) sel++; 
 						else { 

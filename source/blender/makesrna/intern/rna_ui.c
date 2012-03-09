@@ -429,7 +429,7 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 	dummymenu.type->description = _menu_descr;
 	RNA_pointer_create(NULL, &RNA_Menu, &dummymenu, &dummymtr);
 
-	/* clear incase they are left unset */
+	/* clear in case they are left unset */
 	_menu_descr[0] = '\0';
 
 	/* validate the python class */

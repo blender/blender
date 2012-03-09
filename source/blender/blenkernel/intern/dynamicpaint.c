@@ -1235,7 +1235,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 	if (!surface_usesAdjData(surface) && !force_init) return;
 
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-		/* For vertex format, neighbours are connected by edges */
+		/* For vertex format, neighbors are connected by edges */
 		neigh_points = 2*dm->getNumEdges(dm);
 	}
 	else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
@@ -3970,7 +3970,7 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		madd_v3_v3v3fl(force_proj, force, tangent, (-1.0f)*force_intersect);
 		normalize_v3(force_proj);
 
-		/* get drip factor based on force dir in relation to angle between those neighbours */
+		/* get drip factor based on force dir in relation to angle between those neighbors */
 		temp = dot_v3v3(bNeighs[closest_id[0]].dir, force_proj);
 		CLAMP(temp, -1.0f, 1.0f); /* float precision might cause values > 1.0f that return infinite */
 		closest_d[1] = acosf(temp)/neigh_diff;

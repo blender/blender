@@ -715,7 +715,7 @@ static void vgroup_normalize(Object *ob)
 
 		for(i = 0; i < dvert_tot; i++) {
 
-			/* incase its not selected */
+			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}
@@ -729,7 +729,7 @@ static void vgroup_normalize(Object *ob)
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
 				
-				/* incase its not selected */
+				/* in case its not selected */
 				if (!(dv = dvert_array[i])) {
 					continue;
 				}
@@ -738,7 +738,7 @@ static void vgroup_normalize(Object *ob)
 				if(dw) {
 					dw->weight /= weight_max;
 					
-					/* incase of division errors with very low weights */
+					/* in case of division errors with very low weights */
 					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
 			}
@@ -1113,7 +1113,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	if (dvert_array) {
 		for(i = 0; i < dvert_tot; i++) {
 
-			/* incase its not selected */
+			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}
@@ -1149,7 +1149,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 		if(lock_active) {
 
 			for(i = 0; i < dvert_tot; i++) {
-				/* incase its not selected */
+				/* in case its not selected */
 				if (!(dv = dvert_array[i])) {
 					continue;
 				}
@@ -1160,7 +1160,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 		else {
 			for(i = 0; i < dvert_tot; i++) {
 
-				/* incase its not selected */
+				/* in case its not selected */
 				if (!(dv = dvert_array[i])) {
 					continue;
 				}
@@ -1220,7 +1220,7 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 	if (dvert_array) {
 		for(i = 0; i < dvert_tot; i++) {
 
-			/* incase its not selected */
+			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}
@@ -1324,7 +1324,7 @@ static void vgroup_blend(Object *ob)
 				dw= defvert_verify_index(dvert, def_nr);
 				dw->weight= vg_weights[i] / (float)vg_users[i];
 
-				/* incase of division errors */
+				/* in case of division errors */
 				CLAMP(dw->weight, 0.0f, 1.0f);
 			}
 
@@ -1353,7 +1353,7 @@ static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 		/* only the active group */
 		for(i = 0; i < dvert_tot; i++) {
 
-			/* incase its not selected */
+			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}
@@ -1388,7 +1388,7 @@ static void vgroup_clean_all(Object *ob, const float epsilon, const int keep_sin
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
 
-			/* incase its not selected */
+			/* in case its not selected */
 			if (!(dv = dvert_array[i])) {
 				continue;
 			}

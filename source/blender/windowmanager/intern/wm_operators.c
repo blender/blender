@@ -469,7 +469,7 @@ void WM_operator_py_idname(char *to, const char *from)
 		BLI_strncpy(to+(ofs+1), sep+4, OP_MAX_TYPENAME);
 	}
 	else {
-		/* should not happen but support just incase */
+		/* should not happen but support just in case */
 		BLI_strncpy(to, from, OP_MAX_TYPENAME);
 	}
 }
@@ -490,7 +490,7 @@ void WM_operator_bl_idname(char *to, const char *from)
 			BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
 		}
 		else {
-			/* should not happen but support just incase */
+			/* should not happen but support just in case */
 			BLI_strncpy(to, from, OP_MAX_TYPENAME);
 		}
 	}
@@ -666,7 +666,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 	if(properties) {
 		IDP_FreeProperty(properties);
 		MEM_freeN(properties);
-		ptr->data= NULL; /* just incase */
+		ptr->data= NULL; /* just in case */
 	}
 }
 

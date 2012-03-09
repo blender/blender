@@ -576,7 +576,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 	/* Current method just takes the average location of all the points in the
 	 * VertexGroup, and uses that as the location value of the targets. Where 
 	 * possible, the orientation will also be calculated, by calculating an
-	 * 'average' vertex normal, and deriving the rotaation from that.
+	 * 'average' vertex normal, and deriving the rotation from that.
 	 *
 	 * NOTE: EditMode is not currently supported, and will most likely remain that
 	 *		way as constraints can only really affect things on object/bone level.
@@ -3637,7 +3637,7 @@ static void damptrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* find the (unit) direction that the axis we're interested in currently points 
 		 *	- mul_mat3_m4_v3() only takes the 3x3 (rotation+scaling) components of the 4x4 matrix 
-		 *	- the normalisation step at the end should take care of any unwanted scaling
+		 *	- the normalization step at the end should take care of any unwanted scaling
 		 *	  left over in the 3x3 matrix we used
 		 */
 		copy_v3_v3(obvec, track_dir_vecs[data->trackflag]);
@@ -4398,7 +4398,7 @@ void remove_constraints_type (ListBase *list, short type, short last_only)
 
 /* ......... */
 
-/* Creates a new constraint, initialises its data, and returns it */
+/* Creates a new constraint, initializes its data, and returns it */
 static bConstraint *add_new_constraint_internal (const char *name, short type)
 {
 	bConstraint *con= MEM_callocN(sizeof(bConstraint), "Constraint");

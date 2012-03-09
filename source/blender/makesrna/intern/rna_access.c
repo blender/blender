@@ -213,7 +213,7 @@ void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
 	{
 		StructRNA *base;
 		PointerRNA t_ptr;
-		*r_ptr = *ptr; /* initialize as the same incase cant recast */
+		*r_ptr = *ptr; /* initialize as the same in case cant recast */
 
 		for (base = ptr->type->base; base; base = base->base) {
 			t_ptr = rna_pointer_inherit_refine(ptr, base, ptr->data);
@@ -1624,7 +1624,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == 0);
 
-	/* just incase other values are passed */
+	/* just in case other values are passed */
 	if (value) value = 1;
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {

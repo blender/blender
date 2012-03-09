@@ -370,7 +370,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
 		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 	}
 	
-	// get_pose_channel accounts for NULL pose, run on both incase one exists but
+	// get_pose_channel accounts for NULL pose, run on both in case one exists but
 	// the channel doesnt
 	if(		!(pchan=get_pose_channel(m_userpose, string)) &&
 			!(pchan=get_pose_channel(m_pose, string))  )

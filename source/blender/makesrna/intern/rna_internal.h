@@ -338,7 +338,7 @@ PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, struct List
 typedef struct ArrayIterator {
 	char *ptr;
 	char *endptr;	/* past the last valid pointer, only for comparisons, ignores skipped values */
-	void *free_ptr; /* will be free'd if set */
+	void *free_ptr; /* will be freed if set */
 	int itemsize;
 
 	/* array length with no skip functins applied, take care not to compare against index from animsys or python indices */

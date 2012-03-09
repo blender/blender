@@ -201,7 +201,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 }
 
 
-/* from lb2 to lb1, lb1 is supposed to be free'd */
+/* from lb2 to lb1, lb1 is supposed to be freed */
 static void region_copylist(SpaceType *st, ListBase *lb1, ListBase *lb2)
 {
 	ARegion *ar;

@@ -230,7 +230,7 @@ wmOperator *WM_operator_last_redo(const struct bContext *C);
 #define WM_FILESEL_FILES		(1 << 4)
 
 
-		/* operator as a python command (resultuing string must be free'd) */
+		/* operator as a python command (resultuing string must be freed) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);

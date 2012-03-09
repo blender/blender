@@ -257,7 +257,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 }
 
 /* release a GPUBuffer; does not free the actual buffer or its data,
-   but rather moves it to the pool of recently-free'd buffers for
+   but rather moves it to the pool of recently-freed buffers for
    possible re-use*/
 void GPU_buffer_free(GPUBuffer *buffer)
 {

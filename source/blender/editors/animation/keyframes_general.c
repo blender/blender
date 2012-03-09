@@ -574,7 +574,7 @@ short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 	if (ELEM(NULL, animcopybuf.first, animcopybuf.last))
 		return -1;
 
-	/* incase 'relative' paste method is used */
+	/* in case 'relative' paste method is used */
 	animcopy_cfra= CFRA;
 
 	/* everything went fine */

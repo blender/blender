@@ -706,7 +706,7 @@ void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const s
 	quat_to_axis_angle(axis, angle,q);
 }
 
-/* axis angle to 3x3 matrix - safer version (normalisation of axis performed) */
+/* axis angle to 3x3 matrix - safer version (normalization of axis performed) */
 void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 {
 	float nor[3], nsi[3], co, si, ico;
@@ -737,7 +737,7 @@ void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 	mat[2][2] = ((nor[2] * nor[2]) * ico) + co;
 }
 
-/* axis angle to 4x4 matrix - safer version (normalisation of axis performed) */
+/* axis angle to 4x4 matrix - safer version (normalization of axis performed) */
 void axis_angle_to_mat4(float mat[4][4], const float axis[3], const float angle)
 {
 	float tmat[3][3];

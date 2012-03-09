@@ -100,7 +100,7 @@ typedef void (*DLRBT_NUpdate_FP)(void *node, void *data);
 /* Create a new tree, and initialize as necessary */
 DLRBT_Tree *BLI_dlrbTree_new(void);
 
-/* Initialises some given trees */
+/* Initializes some given trees */
 void BLI_dlrbTree_init(DLRBT_Tree *tree);
 
 /* Free some tree */

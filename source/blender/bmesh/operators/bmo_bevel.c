@@ -552,7 +552,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				/* set edge lengths of cross edges as the average of the cross edges they're based o */
 				if (has_elens) {
 					/* angle happens not to be used. why? - not sure it just isnt - campbell.
-					 * leave this in incase we need to use it later */
+					 * leave this in in case we need to use it later */
 #if 0
 					float ang;
 #endif

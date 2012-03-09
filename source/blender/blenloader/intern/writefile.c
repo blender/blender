@@ -2895,7 +2895,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		BLI_split_dir_part(filepath, dir1, sizeof(dir1));
 		BLI_split_dir_part(mainvar->name, dir2, sizeof(dir2));
 
-		/* just incase there is some subtle difference */
+		/* just in case there is some subtle difference */
 		BLI_cleanup_dir(mainvar->name, dir1);
 		BLI_cleanup_dir(mainvar->name, dir2);
 

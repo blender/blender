@@ -621,7 +621,7 @@ static void wm_keymap_diff_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap *
 
 /* name id's are for storing general or multiple keymaps, 
    space/region ids are same as DNA_space_types.h */
-/* gets free'd in wm.c */
+/* gets freed in wm.c */
 
 wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid)
 {

@@ -437,7 +437,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 		if (re->test_break(re->tbh)) break;
 	}
 	
-	/* normalisation factor to conserve energy */
+	/* normalization factor to conserve energy */
 	energy_ms = total_ms_energy(re, do_test_break, sr, sg, sb, n);
 	fac *= (energy_ss / energy_ms);
 	

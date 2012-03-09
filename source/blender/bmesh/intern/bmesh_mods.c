@@ -581,7 +581,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
 	/* Collapse between 2 edges */
 
 	/* in this case we want to keep all faces and not join them,
-	 * rather just get rid of the veretex - see bug [#28645] */
+	 * rather just get rid of the vertex - see bug [#28645] */
 	BMVert *tv  = bmesh_edge_other_vert_get(ke, kv);
 	if (tv) {
 		BMEdge *e2 = bmesh_disk_edge_next(ke, kv);
@@ -1073,7 +1073,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 /**
  * \brief Rip a single face from a vertex fan
  */
-BMVert *BM_face_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
+BMVert *BM_face_vert_separate(BMesh *bm, BMFace *sf, BMVert *sv)
 {
 	return bmesh_urmv(bm, sf, sv);
 }
@@ -1081,9 +1081,9 @@ BMVert *BM_face_vert_rip(BMesh *bm, BMFace *sf, BMVert *sv)
 /**
  * \brief Rip a single face from a vertex fan
  *
- * \note same as #BM_face_vert_rip but faster (avoids a loop lookup)
+ * \note same as #BM_face_vert_separate but faster (avoids a loop lookup)
  */
-BMVert *BM_face_loop_rip(BMesh *bm, BMLoop *sl)
+BMVert *BM_face_loop_separate(BMesh *bm, BMLoop *sl)
 {
 	return bmesh_urmv_loop(bm, sl);
 }

@@ -362,7 +362,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 
 	ob->id.us--;
 
-	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
+	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
 	DAG_scene_sort(G.main, scene);
 	DAG_ids_flush_update(G.main, 0);
 

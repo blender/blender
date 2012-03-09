@@ -1006,7 +1006,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
-	/* clear incase they are left unset */
+	/* clear in case they are left unset */
 	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = '\0';
 
 	/* validate the python class */

@@ -1011,7 +1011,7 @@ void filelist_from_library(struct FileList* filelist)
 	idcode= groupname_to_code(group);
 
 	/* memory for strings is passed into filelist[i].relname
-	 * and free'd in freefilelist */
+	 * and freed in freefilelist */
 	if (idcode) {
 		previews= BLO_blendhandle_get_previews(filelist->libfiledata, idcode, &nprevs);
 		names= BLO_blendhandle_get_datablock_names(filelist->libfiledata, idcode, &nnames);

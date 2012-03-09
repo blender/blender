@@ -651,7 +651,7 @@ static float mg_distNoiseTex(Tex *tex, float *texvec, TexResult *texres)
 static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 {
 	int rv = TEX_INT;
-	float da[4], pa[12];	/* distance and point coordinate arrays of 4 nearest neighbours */
+	float da[4], pa[12];	/* distance and point coordinate arrays of 4 nearest neighbors */
 	float aw1 = fabs(tex->vn_w1);
 	float aw2 = fabs(tex->vn_w2);
 	float aw3 = fabs(tex->vn_w3);

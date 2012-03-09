@@ -284,7 +284,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 					eBone->flag &= ~BONE_ROOTSEL;
 				}
 
-				/* probably not selected but just incase */
+				/* probably not selected but just in case */
 				eBone->flag &= ~BONE_TIPSEL;
 			}
 		}

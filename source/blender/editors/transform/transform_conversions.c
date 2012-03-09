@@ -1421,7 +1421,7 @@ static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struc
 	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
 	hdata->ih1 = bezt->h1;
 	hdata->h1 = &bezt->h1;
-	hdata->ih2 = bezt->h2; /* incase the second is not selected */
+	hdata->ih2 = bezt->h2; /* in case the second is not selected */
 	hdata->h2 = &bezt->h2;
 	return hdata;
 }

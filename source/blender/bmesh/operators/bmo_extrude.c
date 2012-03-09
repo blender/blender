@@ -495,7 +495,7 @@ static void calc_solidify_normals(BMesh *bm)
 			}
 			else {
 				/* can't do anything useful here!
-				 * Set the face index for a vert incase it gets a zero normal */
+				 * Set the face index for a vert in case it gets a zero normal */
 				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
 				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 				continue;

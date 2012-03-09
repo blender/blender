@@ -1206,7 +1206,7 @@ void init_userdef_do_versions(void)
 		U.pad_rot_angle= 15;
 
 	/* signal for derivedmesh to use colorband */
-	/* run incase this was on and is now off in the user prefs [#28096] */
+	/* run in case this was on and is now off in the user prefs [#28096] */
 	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);
 
 	if (bmain->versionfile <= 191) {

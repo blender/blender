@@ -405,7 +405,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				/*
 				 * A little paranoid, but the file maybe
 				 * is broken... and a "extra" check is better
-				 * that a segfaul ;)
+				 * then segfault ;)
 				 */
 				if (!key) {
 					MEM_freeN(str);

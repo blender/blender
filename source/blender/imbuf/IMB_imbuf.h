@@ -63,7 +63,7 @@
  *     management.
  * - \ref blenlib module
  *     blenlib handles guarded memory management in blender-style.
- *     BLI_winstuff.h makes a few windows specific behaviours
+ *     BLI_winstuff.h makes a few windows specific behaviors
  *     posix-compliant.
  */
 

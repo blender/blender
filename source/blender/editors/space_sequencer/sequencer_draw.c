@@ -830,7 +830,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 		break;
 	case SEQ_DRAW_IMG_WAVEFORM:
-		if ((sseq->flag & SEQ_DRAW_COLOR_SEPERATED) != 0) {
+		if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
 			scope = make_sep_waveform_view_from_ibuf(ibuf);
 		} else {
 			scope = make_waveform_view_from_ibuf(ibuf);

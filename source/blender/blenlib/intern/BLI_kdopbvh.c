@@ -718,7 +718,7 @@ static void split_leafs(BVHNode **leafs_array, int *nth, int partitions, int spl
  *
  * This function creates an implicit tree on branches_array, the leafs are given on the leafs_array.
  *
- * The tree is built per depth levels. First branchs at depth 1.. then branches at depth 2.. etc..
+ * The tree is built per depth levels. First branches at depth 1.. then branches at depth 2.. etc..
  * The reason is that we can build level N+1 from level N without any data dependencies.. thus it allows
  * to use multithread building.
  *

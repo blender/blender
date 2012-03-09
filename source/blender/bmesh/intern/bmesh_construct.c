@@ -667,7 +667,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, FALSE);
 		if (!f2)
 			continue;
-		/* use totface incase adding some faces fails */
+		/* use totface in case adding some faces fails */
 		BM_elem_index_set(f2, (bm_new->totface - 1)); /* set_inline */
 
 		ftable[i] = f2;

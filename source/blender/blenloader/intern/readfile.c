@@ -952,7 +952,7 @@ static FileData *filedata_new(void)
 	fd->gzfiledes = NULL;
 
 		/* XXX, this doesn't need to be done all the time,
-		 * but it keeps us reentrant,  remove once we have
+		 * but it keeps us re-entrant,  remove once we have
 		 * a lib that provides a nice lock. - zr
 		 */
 	fd->memsdna = DNA_sdna_from_data(DNAstr,  DNAlen,  0);
@@ -4257,7 +4257,7 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->siktree.first= pchan->siktree.last= NULL;
 		
-		/* incase this value changes in future, clamp else we get undefined behavior */
+		/* in case this value changes in future, clamp else we get undefined behavior */
 		CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 	}
 	pose->ikdata = NULL;
@@ -4711,7 +4711,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 			/* Do conversion here because if we have loaded
 			 * a hook we need to make sure it gets converted
-			 * and free'd, regardless of version.
+			 * and freed, regardless of version.
 			 */
 		copy_v3_v3(hmd->cent, hook->cent);
 		hmd->falloff = hook->falloff;
@@ -4736,7 +4736,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
 	link_list(fd, &ob->pc_ids);
 
-	/* incase this value changes in future, clamp else we get undefined behavior */
+	/* in case this value changes in future, clamp else we get undefined behavior */
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
 	if(ob->sculpt) {

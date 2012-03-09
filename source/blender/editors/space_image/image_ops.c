@@ -1059,7 +1059,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* sanitize all settings */
 
-		/* unlikely but just incase */
+		/* unlikely but just in case */
 		if (ELEM3(simopts->im_format.planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
 			simopts->im_format.planes= R_IMF_PLANES_RGBA;
 		}
@@ -1229,7 +1229,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
 	save_image_options_defaults(&simopts);
 
-	/* just incase to initialize values,
+	/* just in case to initialize values,
 	 * these should be set on invoke or by the caller. */
 	save_image_options_init(&simopts, sima, CTX_data_scene(C), 0);
 

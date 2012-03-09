@@ -102,7 +102,7 @@ MINLINE float interpf(float target, float origin, float fac)
 
 /* useful to calculate an even width shell, by taking the angle between 2 planes.
  * The return value is a scale on the offset.
- * no angle between planes is 1.0, as the angle between the 2 planes approches 180d
+ * no angle between planes is 1.0, as the angle between the 2 planes approaches 180d
  * the distance gets very high, 180d would be inf, but this case isn't valid */
 MINLINE float shell_angle_to_dist(const float angle)
 {

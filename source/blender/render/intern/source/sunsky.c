@@ -20,6 +20,10 @@
 
 /** \file blender/render/intern/source/sunsky.c
  *  \ingroup render
+ *
+ * This feature comes from Preetham paper on "A Practical Analytic Model for Daylight"
+ * and example code from Brian Smits, another author of that paper in
+ * http://www.cs.utah.edu/vissim/papers/sunsky/code/
  */
 
 
@@ -129,7 +133,7 @@ static float PerezFunction(struct SunSky *sunsky, const float *lam, float theta,
  * InitSunSky:
  * this function compute some sun,sky parameters according to input parameters and also initiate some other sun, sky parameters
  * parameters:
- * sunSky, is a structure that contains informtion about sun, sky and atmosphere, in this function, most of its values initiated
+ * sunSky, is a structure that contains information about sun, sky and atmosphere, in this function, most of its values initiated
  * turb, is atmosphere turbidity
  * toSun, contains sun direction
  * horizon_brighness, controls the brightness of the horizon colors
@@ -345,7 +349,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 
 /**
  * InitAtmosphere:
- * this function intiate sunSky structure with user input parameters.
+ * this function initiate sunSky structure with user input parameters.
  * parameters:
  * sunSky, contains information about sun, and in this function some atmosphere parameters will initiated
  * sun_intens, shows sun intensity value

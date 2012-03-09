@@ -2714,7 +2714,7 @@ static void project_paint_bucket_bounds(const ProjPaintState *ps, const float mi
 	bucketMax[0] = (int)((int)(((float)(max[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) + 1.5f);
 	bucketMax[1] = (int)((int)(((float)(max[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) + 1.5f);
 	
-	/* incase the rect is outside the mesh 2d bounds */
+	/* in case the rect is outside the mesh 2d bounds */
 	CLAMP(bucketMin[0], 0, ps->buckets_x);
 	CLAMP(bucketMin[1], 0, ps->buckets_y);
 	

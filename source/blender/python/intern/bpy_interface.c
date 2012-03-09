@@ -77,7 +77,7 @@
 
 /* for internal use, when starting and ending python scripts */
 
-/* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
+/* in case a python script triggers another python call, stop bpy_context_clear from invalidating */
 static int py_call_level = 0;
 BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 

@@ -1143,7 +1143,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 				 * still work out ok */
 				object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
 
-				/* to set ob_dst->orig and incase theres any other discrepicies */
+				/* to set ob_dst->orig and in case theres any other discrepicies */
 				DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 			}
 		}

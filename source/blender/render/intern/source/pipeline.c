@@ -2008,7 +2008,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 
 		if(write_still && !G.afbreek) {
 			if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-				/* operator checks this but incase its called from elsewhere */
+				/* operator checks this but in case its called from elsewhere */
 				printf("Error: cant write single images with a movie format!\n");
 			}
 			else {

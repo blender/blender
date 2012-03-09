@@ -1262,7 +1262,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	/*
 	 * Arrays are now filled as follows:
 	 *
-	 *	nedges[n] = sum of the # of edges incident to all vertices numbered 0 thru n - 1
+	 *	nedges[n] = sum of the # of edges incident to all vertices numbered 0 through n - 1
 	 *	edges[edges[n]..edges[n - 1]] = the indices of of the edges incident to vertex n
 	 *
 	 * As the search continues, prevedge[n] will be the previous edge on the shortest

@@ -210,7 +210,7 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 	
 	gs->name = "";
 	gs->hasinput= ns->hasinput && ns->data;
-	/* XXX Commented out the ns->data check here, as it seems it’s not alwas set,
+	/* XXX Commented out the ns->data check here, as it seems it's not alwas set,
 	 *     even though there *is* a valid connection/output... But that might need
 	 *     further investigation.
 	 */

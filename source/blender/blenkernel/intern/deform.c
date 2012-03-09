@@ -169,7 +169,7 @@ void defvert_remap(MDeformVert *dvert, int *map, const int map_len)
 		if (dw->def_nr < map_len) {
 			dw->def_nr= map[dw->def_nr];
 
-			/* just incase */
+			/* just in case */
 			BLI_assert(dw->def_nr >= 0);
 		}
 	}
@@ -197,7 +197,7 @@ void defvert_normalize(MDeformVert *dvert)
 			for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
 				dw->weight *= scalar;
 
-				/* incase of division errors with very low weights */
+				/* in case of division errors with very low weights */
 				CLAMP(dw->weight, 0.0f, 1.0f);
 			}
 		}
@@ -231,14 +231,14 @@ void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
 		}
 
 		if (tot_weight > 0.0f) {
-			/* paranoid, should be 1.0 but incase of float error clamp anyway */
+			/* paranoid, should be 1.0 but in case of float error clamp anyway */
 
 			float scalar= (1.0f / tot_weight) * lock_iweight;
 			for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
 				if(dw != dw_lock) {
 					dw->weight *= scalar;
 
-					/* incase of division errors with very low weights */
+					/* in case of division errors with very low weights */
 					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
 			}
@@ -316,7 +316,7 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 		for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
 			if (map[i] == -1) { /* may be calculated previously */
 
-				/* incase no valid value is found, use this */
+				/* in case no valid value is found, use this */
 				if (use_default)
 					map[i]= i;
 

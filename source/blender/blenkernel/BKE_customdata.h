@@ -59,7 +59,7 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
 
-/* initialises a CustomData object with the same layer setup as source and
+/* initializes a CustomData object with the same layer setup as source and
  * memory space for totelem elements. mask must be an array of length
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
@@ -92,7 +92,7 @@ void CustomData_data_dominmax(int type, void *data, void *min, void *max);
 void CustomData_data_multiply(int type, void *data, float fac);
 void CustomData_data_add(int type, void *data1, void *data2);
 
-/* initialises a CustomData object with the same layer setup as source.
+/* initializes a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
  * if a layer should be copied or not. alloctype must be one of the above. */
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,

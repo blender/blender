@@ -273,7 +273,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 			BM_elem_index_set(l, mpoly->loopstart + j); /* set_loop */
 		}
 
-		/* Copy Custom Dat */
+		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
 	}
 
