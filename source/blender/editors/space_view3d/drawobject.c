@@ -3187,7 +3187,9 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 {
 	
-	if (v3d->transp==0) {	// not when we draw the transparent pass
+	if ((v3d->transp == FALSE) &&  /* not when we draw the transparent pass */
+	    (ob->mode & OB_MODE_ALL_PAINT) == FALSE) /* not when painting (its distracting) - campbell */
+	{
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 		glDepthMask(0);
 		

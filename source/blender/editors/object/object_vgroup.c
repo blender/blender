@@ -1254,7 +1254,7 @@ static void vgroup_blend(Object *ob)
 
 	BMEditMesh *em;
 
-	if (ob->type == OB_MESH && ((em = BMEdit_FromObject(ob)) != NULL)) {
+	if (ob->type != OB_MESH || ((em = BMEdit_FromObject(ob)) == NULL)) {
 		return;
 	}
 
