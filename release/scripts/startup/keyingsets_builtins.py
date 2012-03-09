@@ -50,7 +50,7 @@ ANIM_KS_WHOLE_CHARACTER_ID = "Whole Character"
 
 # Location
 class BUILTIN_KSI_Location(KeyingSetInfo):
-    """Insert a keyframe on each of the three location channels"""
+    """Insert a keyframe on each of the location channels"""
     bl_idname = ANIM_KS_LOCATION_ID
     bl_label = "Location"
 
@@ -139,7 +139,7 @@ class BUILTIN_KSI_LocScale(KeyingSetInfo):
 # LocRotScale
 class BUILTIN_KSI_LocRotScale(KeyingSetInfo):
     """
-    Insert a keyframe on each of the location, rotation and scale channels
+    Insert a keyframe on each of the location, rotation, and scale channels
     """
     bl_idname = ANIM_KS_LOC_ROT_SCALE_ID
     bl_label = "LocRotScale"
@@ -185,7 +185,7 @@ class BUILTIN_KSI_RotScale(KeyingSetInfo):
 class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
     """
     Insert a keyframe on each of the location channels, taking into account
-    constraints and relationships effects
+    effects of constraints and relationships
     """
     bl_label = "Visual Location"
 
@@ -205,7 +205,7 @@ class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
 class BUILTIN_KSI_VisualRot(KeyingSetInfo):
     """
     Insert a keyframe on each of the rotation channels, taking into account
-    constraints and relationships effects
+    effects of constraints and relationships
     """
     bl_label = "Visual Rotation"
 
@@ -224,8 +224,8 @@ class BUILTIN_KSI_VisualRot(KeyingSetInfo):
 # VisualLocRot
 class BUILTIN_KSI_VisualLocRot(KeyingSetInfo):
     """
-    Insert a keyframe on each of the location and rotation channels),
-    taking into account constraints and relationships effects
+    Insert a keyframe on each of the location and rotation channels,
+    taking into account effects of constraints and relationships
     """
     bl_label = "Visual LocRot"
 
