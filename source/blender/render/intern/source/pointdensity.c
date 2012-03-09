@@ -346,9 +346,9 @@ static void accum_density(void *userdata, int index, float squared_dist)
 	float density = 0.0f;
 	
 	if (pdr->point_data_used & POINT_DATA_VEL) {
-		pdr->vec[0] += pdr->point_data[index*3 + 0]; //* density;
-		pdr->vec[1] += pdr->point_data[index*3 + 1]; //* density;
-		pdr->vec[2] += pdr->point_data[index*3 + 2]; //* density;
+		pdr->vec[0] += pdr->point_data[index*3 + 0]; // * density;
+		pdr->vec[1] += pdr->point_data[index*3 + 1]; // * density;
+		pdr->vec[2] += pdr->point_data[index*3 + 2]; // * density;
 	}
 	if (pdr->point_data_used & POINT_DATA_LIFE) {
 		*pdr->age += pdr->point_data[pdr->offset + index]; // * density;
@@ -515,9 +515,9 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	
 	return retval;
 	
-	/*
+#if 0
 	if (texres->nor!=NULL) {
 		texres->nor[0] = texres->nor[1] = texres->nor[2] = 0.0f;
 	}
-	*/
+#endif
 }

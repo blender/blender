@@ -701,9 +701,9 @@ static int wm_draw_update_test_window(wmWindow *win)
 static int wm_automatic_draw_method(wmWindow *win)
 {
 	/* Ideally all cards would work well with triple buffer, since if it works
-	   well gives the least redraws and is considerably faster at partial redraw
-	   for sculpting or drawing overlapping menus. For typically lower end cards
-	   copy to texture is slow though and so we use overlap instead there. */
+	 * well gives the least redraws and is considerably faster at partial redraw
+	 * for sculpting or drawing overlapping menus. For typically lower end cards
+	 * copy to texture is slow though and so we use overlap instead there. */
 
 	if(win->drawmethod == USER_DRAW_AUTOMATIC) {
 		/* ATI opensource driver is known to be very slow at this */

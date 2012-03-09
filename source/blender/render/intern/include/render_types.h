@@ -131,8 +131,8 @@ struct Render
 	/* a list of RenderResults, for fullsample */
 	ListBase fullresult;	
 	/* read/write mutex, all internal code that writes to re->result must use a
-	   write lock, all external code must use a read lock. internal code is assumed
-	   to not conflict with writes, so no lock used for that */
+	 * write lock, all external code must use a read lock. internal code is assumed
+	 * to not conflict with writes, so no lock used for that */
 	ThreadRWMutex resultmutex;
 	
 	/* window size, display rect, viewplane */
@@ -149,7 +149,7 @@ struct Render
 	/* real maximum amount of xparts/yparts after correction for minimum */
 	int xparts, yparts;
 	/* real maximum size of parts after correction for minimum 
-	   partx*xparts can be larger than rectx, in that case last part is smaller */
+	 * partx*xparts can be larger than rectx, in that case last part is smaller */
 	int partx, party;
 	
 	/* values for viewing */
@@ -229,8 +229,8 @@ struct Render
 	ListBase volume_precache_parts;
 
 	/* arena for allocating data for use during render, for
-		* example dynamic TFaces to go in the VlakRen structure.
-		*/
+	 * example dynamic TFaces to go in the VlakRen structure.
+	 */
 	struct MemArena *memArena;
 	
 	/* callbacks */

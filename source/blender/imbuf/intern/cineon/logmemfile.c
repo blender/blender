@@ -68,8 +68,8 @@ int logimage_fread(void *buffer, unsigned int size, unsigned int count, void *lo
 	if (file->file) return fread(buffer, size, count, file->file);
 	else { /*we're reading from memory*/
 		int i;
-		/*we convert ot uchar just on the off chance some platform can't handle
-		  pointer arithmetic with type (void*). */
+		/* we convert ot uchar just on the off chance some platform can't handle
+		 * pointer arithmetic with type (void*). */
 		unsigned char *buf = (unsigned char *) buffer; 
 		
 		for (i=0; i<count; i++) {

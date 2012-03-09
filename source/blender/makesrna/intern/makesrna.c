@@ -1559,12 +1559,14 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDe
 			break;
 		}
 		case PROP_COLLECTION: {
-			/*CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;
+#if 0
+			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;
 
 			if(cprop->type)
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (const char*)cprop->type, srna->identifier, prop->identifier);
 			else
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier, prop->identifier);*/
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier, prop->identifier);
+#endif
 			break;
 		}
 	}
@@ -2529,9 +2531,11 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	PropertyDefRNA *dp;
 	FunctionDefRNA *dfunc;
 	
-	fprintf(f, "\n/* Automatically generated struct definitions for the Data API.\n"
-				 "   Do not edit manually, changes will be overwritten.           */\n\n"
-				  "#define RNA_RUNTIME\n\n");
+	fprintf(f,
+	        "\n"
+	        "/* Automatically generated struct definitions for the Data API.\n"
+	        " * Do not edit manually, changes will be overwritten.           */\n\n"
+	        "#define RNA_RUNTIME\n\n");
 
 	fprintf(f, "#include <float.h>\n");
 	fprintf(f, "#include <stdio.h>\n");
@@ -2606,8 +2610,9 @@ static void rna_generate_header(BlenderRNA *brna, FILE *f)
 	fprintf(f, "\n#ifndef __RNA_BLENDER_H__\n");
 	fprintf(f, "#define __RNA_BLENDER_H__\n\n");
 
-	fprintf(f, "/* Automatically generated function declarations for the Data API.\n"
-				 "   Do not edit manually, changes will be overwritten.              */\n\n");
+	fprintf(f,
+	        "/* Automatically generated function declarations for the Data API.\n"
+	        " * Do not edit manually, changes will be overwritten.              */\n\n");
 
 	fprintf(f, "#include \"RNA_types.h\"\n\n");
 
@@ -2768,8 +2773,9 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "\n#ifndef __RNA_BLENDER_CPP_H__\n");
 	fprintf(f, "#define __RNA_BLENDER_CPP_H__\n\n");
 
-	fprintf(f, "/* Automatically generated classes for the Data API.\n"
-				 "   Do not edit manually, changes will be overwritten. */\n\n");
+	fprintf(f,
+	        "/* Automatically generated classes for the Data API.\n"
+	        " * Do not edit manually, changes will be overwritten. */\n\n");
 	
 	fprintf(f, "#include \"RNA_blender.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");

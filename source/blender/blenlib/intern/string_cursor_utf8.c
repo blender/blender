@@ -25,8 +25,8 @@
  */
 
 /** \file blender/blenlib/intern/string_cursor_utf8.c
-  *  \ingroup bli
-  */
+ *  \ingroup bli
+ */
 
 #include <stdio.h>
 #include <stdlib.h>

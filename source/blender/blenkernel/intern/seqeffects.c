@@ -119,8 +119,8 @@ static struct ImBuf * prepare_effect_imbufs(
 }
 
 /* **********************************************************************
-   PLUGINS
-   ********************************************************************** */
+ * PLUGINS
+ * ********************************************************************** */
 
 static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 {
@@ -288,8 +288,8 @@ static struct ImBuf * do_plugin_effect(
 	char *cp;
 	int float_rendering;
 	int use_temp_bufs = 0; /* Are needed since blur.c (and maybe some other
-				  old plugins) do very bad stuff
-				  with imbuf-internals */
+	                        * old plugins) do very bad stuff
+	                        * with imbuf-internals */
 
 	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
 	int x = context.rectx;
@@ -394,8 +394,8 @@ static void free_plugin(struct Sequence * seq)
 }
 
 /* **********************************************************************
-   ALPHA OVER
-   ********************************************************************** */
+ * ALPHA OVER
+ * ********************************************************************** */
 
 static void init_alpha_over_or_under(Sequence * seq)
 {
@@ -558,8 +558,8 @@ static struct ImBuf * do_alphaover_effect(
 
 
 /* **********************************************************************
-   ALPHA UNDER
-   ********************************************************************** */
+ * ALPHA UNDER
+ * ********************************************************************** */
 
 static void do_alphaunder_effect_byte(
 	float facf0, float facf1, int x, int y, char *rect1, 
@@ -730,8 +730,8 @@ static struct ImBuf* do_alphaunder_effect(
 
 
 /* **********************************************************************
-   CROSS
-   ********************************************************************** */
+ * CROSS
+ * ********************************************************************** */
 
 static void do_cross_effect_byte(float facf0, float facf1, int x, int y, 
 			  char *rect1, char *rect2, 
@@ -855,8 +855,8 @@ static struct ImBuf* do_cross_effect(
 
 
 /* **********************************************************************
-   GAMMA CROSS
-   ********************************************************************** */
+ * GAMMA CROSS
+ * ********************************************************************** */
 
 /* copied code from initrender.c */
 static unsigned short gamtab[65536];
@@ -1124,8 +1124,8 @@ static struct ImBuf * do_gammacross_effect(
 
 
 /* **********************************************************************
-   ADD
-   ********************************************************************** */
+ * ADD
+ * ********************************************************************** */
 
 static void do_add_effect_byte(float facf0, float facf1, int x, int y, 
 				   unsigned char *rect1, unsigned char *rect2, 
@@ -1240,8 +1240,8 @@ static struct ImBuf * do_add_effect(SeqRenderData context,
 
 
 /* **********************************************************************
-   SUB
-   ********************************************************************** */
+ * SUB
+ * ********************************************************************** */
 
 static void do_sub_effect_byte(float facf0, float facf1, 
 				   int x, int y, 
@@ -1355,8 +1355,8 @@ static struct ImBuf * do_sub_effect(
 }
 
 /* **********************************************************************
-   DROP
-   ********************************************************************** */
+ * DROP
+ * ********************************************************************** */
 
 /* Must be > 0 or add precopy, etc to the function */
 #define XOFF	8
@@ -1444,8 +1444,8 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y,
 }
 
 /* **********************************************************************
-   MUL
-   ********************************************************************** */
+ * MUL
+ * ********************************************************************** */
 
 static void do_mul_effect_byte(float facf0, float facf1, int x, int y, 
 				   unsigned char *rect1, unsigned char *rect2, 
@@ -1464,7 +1464,7 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 
 	/* formula:
 	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+axaux= c*px + py*s ;//+centx
-			yaux= -s*px + c*py;//+centy
+	 *		yaux= -s*px + c*py;//+centy
 	 */
 
 	while(y--) {
@@ -1569,8 +1569,8 @@ static struct ImBuf * do_mul_effect(
 }
 
 /* **********************************************************************
-   WIPE
-   ********************************************************************** */
+ * WIPE
+ * ********************************************************************** */
 
 typedef struct WipeZone {
 	float angle;
@@ -1616,9 +1616,8 @@ static float check_zone(WipeZone *wipezone, int x, int y,
 	Sequence *seq, float facf0) 
 {
 	float posx, posy,hyp,hyp2,angle,hwidth,b1,b2,b3,pointdist;
-/*some future stuff
-float hyp3,hyp4,b4,b5	   
-*/
+	/* some future stuff */
+	// float hyp3,hyp4,b4,b5
 	float temp1,temp2,temp3,temp4; //some placeholder variables
 	int xo = wipezone->xo;
 	int yo = wipezone->yo;
@@ -1714,12 +1713,12 @@ float hyp3,hyp4,b4,b5
 			if(!wipe->forward)output = 1-output;
 		break;
 		case DO_CLOCK_WIPE:
-			  /*
-				  temp1: angle of effect center in rads
-				  temp2: angle of line through (halfx,halfy) and (x,y) in rads
-				  temp3: angle of low side of blur
-				  temp4: angle of high side of blur
-			  */
+			/*
+			 *  temp1: angle of effect center in rads
+			 *  temp2: angle of line through (halfx,halfy) and (x,y) in rads
+			 *  temp3: angle of low side of blur
+			 *  temp4: angle of high side of blur
+			 */
 			output = 1.0f - facf0;
 			widthf = wipe->edgeWidth*2.0f*(float)M_PI;
 			temp1 = 2.0f * (float)M_PI * facf0;
@@ -2002,8 +2001,8 @@ static struct ImBuf * do_wipe_effect(
 	return out;
 }
 /* **********************************************************************
-   TRANSFORM
-   ********************************************************************** */
+ * TRANSFORM
+ * ********************************************************************** */
 static void init_transform_effect(Sequence *seq)
 {
 	TransformVars *transform;
@@ -2140,8 +2139,8 @@ static struct ImBuf * do_transform_effect(
 
 
 /* **********************************************************************
-   GLOW
-   ********************************************************************** */
+ * GLOW
+ * ********************************************************************** */
 
 static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 				 float blur,
@@ -2667,8 +2666,8 @@ static struct ImBuf * do_glow_effect(
 }
 
 /* **********************************************************************
-   SOLID COLOR
-   ********************************************************************** */
+ * SOLID COLOR
+ * ********************************************************************** */
 
 static void init_solid_color(Sequence *seq)
 {
@@ -2786,8 +2785,8 @@ static struct ImBuf * do_solid_color(
 }
 
 /* **********************************************************************
-   MULTICAM
-   ********************************************************************** */
+ * MULTICAM
+ * ********************************************************************** */
 
 /* no effect inputs for multicam, we use give_ibuf_seq */
 static int num_inputs_multicam(void)
@@ -2840,8 +2839,8 @@ static struct ImBuf * do_multicam(
 }
 
 /* **********************************************************************
-   ADJUSTMENT
-   ********************************************************************** */
+ * ADJUSTMENT
+ * ********************************************************************** */
 
 /* no effect inputs for adjustment, we use give_ibuf_seq */
 static int num_inputs_adjustment(void)
@@ -2871,10 +2870,10 @@ static struct ImBuf * do_adjustment_impl(SeqRenderData context, Sequence * seq,
 	}
 
 	/* found nothing? so let's work the way up the metastrip stack, so
-	   that it is possible to group a bunch of adjustment strips into
-	   a metastrip and have that work on everything below the metastrip
-	*/
-	   
+	 *  that it is possible to group a bunch of adjustment strips into
+	 *  a metastrip and have that work on everything below the metastrip
+	 */
+
 	if (!i) {
 		Sequence * meta;
 
@@ -2917,8 +2916,8 @@ static struct ImBuf * do_adjustment(
 }
 
 /* **********************************************************************
-   SPEED
-   ********************************************************************** */
+ * SPEED
+ * ********************************************************************** */
 static void init_speed_effect(Sequence *seq)
 {
 	SpeedControlVars * v;
@@ -3010,8 +3009,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	}
 	if (	(seq->seq1 == NULL) ||
 	        (seq->len < 1)
-	) { /* make coverity happy and check for (CID 598)
-						 input strip ... */
+	) { /* make coverity happy and check for (CID 598) input strip ... */
 		return;
 	}
 

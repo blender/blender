@@ -66,30 +66,31 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
-#define VECADDISFAC(v1,v3,fac) {*(v1)+= *(v3)*(fac); *(v1+1)+= *(v3+1)*(fac); *(v1+2)+= *(v3+2)*(fac);}
-
-
-
 /* Shade Sample order:
+ *
+ * - shade_samples_fill_with_ps()
+ *     - for each sample
+ *         - shade_input_set_triangle()  <- if prev sample-face is same, use shade_input_copy_triangle()
+ *         - if vlr
+ *             - shade_input_set_viewco()    <- not for ray or bake
+ *             - shade_input_set_uv()        <- not for ray or bake
+ *             - shade_input_set_normals()
+ * - shade_samples()
+ *     - if AO
+ *         - shade_samples_do_AO()
+ *     - if shading happens
+ *         - for each sample
+ *             - shade_input_set_shade_texco()
+ *             - shade_samples_do_shade()
+ * - OSA: distribute sample result with filter masking
+ *
+ */
 
-- shade_samples_fill_with_ps()
-	- for each sample
-		- shade_input_set_triangle()  <- if prev sample-face is same, use shade_input_copy_triangle()
-		- if vlr
-			- shade_input_set_viewco()    <- not for ray or bake
-			- shade_input_set_uv()        <- not for ray or bake
-			- shade_input_set_normals()
-- shade_samples()
-	- if AO
-		- shade_samples_do_AO()
-	- if shading happens
-		- for each sample
-			- shade_input_set_shade_texco()
-			- shade_samples_do_shade()
-- OSA: distribute sample result with filter masking
-
-	*/
+#define VECADDISFAC(v1,v3,fac)  {   \
+	*(v1 + 0) += *(v3 + 0) * (fac); \
+	*(v1 + 1) += *(v3 + 1) * (fac); \
+	*(v1 + 2) += *(v3 + 2) * (fac); \
+}
 
 /* initialize material variables in shadeinput, 
  * doing inverse gamma correction where applicable */
@@ -926,7 +927,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		}
 		else {
 			/* qdn: flat faces have tangents too,
-			   could pick either one, using average here */
+			 * could pick either one, using average here */
 			tl= 1.0f/3.0f;
 			tu= -1.0f/3.0f;
 			tv= -1.0f/3.0f;
@@ -1310,9 +1311,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				}
 			}
 		}
-	} /* else {
-	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
-	*/
+	}
+	/* else {
+	 * Note! For raytracing winco is not set,
+	 * important because thus means all shader input's need to have their variables set to zero
+	 * else un-initialized values are used
+	 */
 	if (shi->do_manage) {
 		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);

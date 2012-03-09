@@ -115,8 +115,7 @@ static void initData(ModifierData *md)
 {
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 
-	/* default to 30-degree split angle, sharpness from both angle & flag
-	*/
+	/* default to 30-degree split angle, sharpness from both angle & flag */
 	emd->split_angle = 30;
 	emd->flags = MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG;
 }

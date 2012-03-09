@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined FILTERSOURCE_H
+#ifndef FILTERSOURCE_H
 #define FILTERSOURCE_H
 
 #include "Common.h"

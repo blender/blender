@@ -70,7 +70,7 @@ static struct PyModuleDef gpumodule = {
 	"gpu",     /* name of module */
 	M_gpu_doc, /* module documentation */
 	-1,        /* size of per-interpreter state of the module,
-				  or -1 if the module keeps state in global variables. */
+	            *  or -1 if the module keeps state in global variables. */
    NULL, NULL, NULL, NULL, NULL
 };
 

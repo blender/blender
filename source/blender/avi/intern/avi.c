@@ -197,13 +197,12 @@ AviError AVI_print_error (AviError in_error)
 
 	return in_error;
 }
-/*
+#if 0
 void AVI_set_debug (int mode)
 {
 	AVI_DEBUG= mode;
 }
-*/
-/*
+
 int AVI_is_avi (char *name)
 {
 	FILE *fp;
@@ -224,7 +223,7 @@ int AVI_is_avi (char *name)
 	fclose(fp);
 	return ret;
 }
-*/
+#endif
 
 int AVI_is_avi (const char *name)
 {
@@ -659,7 +658,7 @@ void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream)
 	void *buffer;
 
 	/* Retrieve the record number of the desired frame in the index 
-		If a chunk has Size 0 we need to rewind to previous frame */
+	 * If a chunk has Size 0 we need to rewind to previous frame */
 	while(rewind && frame > -1) {
 		i=0;
 		cur_frame=-1;
@@ -798,13 +797,13 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 		movie->streams[i].sh.bottom = 0;
 
 		if (movie->streams[i].sh.Type == FCC("vids")) {	
-/*
+#if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader) 
 										+ sizeof(AviMJPEGUnknown),"moviestreamformatL");
 				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown);
 			} else {
-*/
+#endif
 			movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader),  "moviestreamformatS");
 			movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader);
 

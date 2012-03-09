@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined VIDEOBASE_H
+#ifndef VIDEOBASE_H
 #define VIDEOBASE_H
 
 

@@ -595,8 +595,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
 				/* note that this relation actually runs in the wrong direction, the problem
-				   is that dupli system all have this (due to parenting), and the render
-				   engine instancing assumes particular ordering of objects in list */
+				 * is that dupli system all have this (due to parenting), and the render
+				 * engine instancing assumes particular ordering of objects in list */
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualisation");
 				if(part->dup_ob->type == OB_MBALL)
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Object Visualisation");
@@ -756,8 +756,8 @@ struct DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	}
 	
 	/* Now all relations were built, but we need to solve 1 exceptional case;
-	   When objects have multiple "parents" (for example parent + constraint working on same object)
-	   the relation type has to be synced. One of the parents can change, and should give same event to child */
+	 * When objects have multiple "parents" (for example parent + constraint working on same object)
+	 * the relation type has to be synced. One of the parents can change, and should give same event to child */
 	
 	/* nodes were callocced, so we can use node->color for temporal storage */
 	for(node = sce->theDag->DagNode.first; node; node= node->next) {
@@ -1159,9 +1159,8 @@ void graph_bfs(void)
 			}
 			set_node_xy(node, node->BFS_dist*DEPSX*2, pos[node->BFS_dist]*DEPSY*2);
 			node->color = DAG_BLACK;
-			/*
-			fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);
-			*/
+
+			// fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);
 		}
 	}
 	queue_delete(nqueue);
@@ -1185,8 +1184,8 @@ int pre_and_post_source_BFS(DagForest *dag, short mask, DagNode *source, graph_a
 	/* fprintf(stderr,"starting BFS \n ------------\n"); */	
 	
 	/* Init
-		* dagnode.first is always the root (scene)
-		*/
+	 * dagnode.first is always the root (scene)
+	 */
 	node = dag->DagNode.first;
 	nqueue = queue_create(DAGQUEUEALLOC);
 	while(node) {
@@ -1220,9 +1219,8 @@ int pre_and_post_source_BFS(DagForest *dag, short mask, DagNode *source, graph_a
 			}
 			post_func(node->ob,data);
 			node->color = DAG_BLACK;
-			/*
-			fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);
-			*/
+
+			// fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);
 		}
 	}
 	queue_delete(nqueue);
@@ -1303,7 +1301,7 @@ DagNodeQueue * graph_dfs(void)
 						;
 						/* already processed node but we may want later to change distance either to shorter to longer.
 						 * DFS_dist is the first encounter  
-						*/
+						 */
 						/*if (node->DFS_dist >= itA->node->DFS_dist)
 							itA->node->DFS_dist = node->DFS_dist + 1;
 
@@ -1337,9 +1335,8 @@ DagNodeQueue * graph_dfs(void)
 				}
 				set_node_xy(node, node->DFS_dist*DEPSX*2, pos[node->DFS_dist]*DEPSY*2);
 				
-				/*
-				fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm );
-				*/
+				// fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm );
+
 				push_stack(retqueue,node);
 				
 			}
@@ -1376,8 +1373,8 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 	nqueue = queue_create(DAGQUEUEALLOC);
 	
 	/* Init
-		* dagnode.first is always the root (scene)
-		*/
+	 * dagnode.first is always the root (scene)
+	 */
 	node = dag->DagNode.first;
 	while(node) {
 		node->color = DAG_WHITE;
@@ -1652,7 +1649,7 @@ void graph_print_adj_list(void)
 /* ************************ API *********************** */
 
 /* mechanism to allow editors to be informed of depsgraph updates,
-   to do their own updates based on changes... */
+ * to do their own updates based on changes... */
 static void (*EditorsUpdateIDCb)(Main *bmain, ID *id)= NULL;
 static void (*EditorsUpdateSceneCb)(Main *bmain, Scene *scene, int updated)= NULL;
 
@@ -2363,7 +2360,7 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 	wmWindow *win;
 
 	/* only one scene supported currently, making more scenes work
-	   correctly requires changes beyond just the dependency graph */
+	 * correctly requires changes beyond just the dependency graph */
 
 	*sce= NULL;
 	*lay= 0;
@@ -2383,8 +2380,8 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 		if(*sce) *lay= (*sce)->lay;
 
 		/* XXX for background mode, we should get the scene
-		   from somewhere, for the -S option, but it's in
-		   the context, how to get it here? */
+		 * from somewhere, for the -S option, but it's in
+		 * the context, how to get it here? */
 	}
 }
 
@@ -2414,9 +2411,9 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 	if(scene && scene->theDag) {
 		Scene *sce_iter;
 		/* derivedmeshes and displists are not saved to file so need to be
-		   remade, tag them so they get remade in the scene update loop,
-		   note armature poses or object matrices are preserved and do not
-		   require updates, so we skip those */
+		 * remade, tag them so they get remade in the scene update loop,
+		 * note armature poses or object matrices are preserved and do not
+		 * require updates, so we skip those */
 		dag_scene_flush_layers(scene, lay);
 
 		for(SETLOOPER(scene, sce_iter, base)) {
@@ -2471,7 +2468,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 	short idtype;
 
 	/* here we flush a few things before actual scene wide flush, mostly
-	   due to only objects and not other datablocks being in the depsgraph */
+	 * due to only objects and not other datablocks being in the depsgraph */
 
 	/* set flags & pointcache for object */
 	if(GS(id->name) == ID_OB) {
@@ -2591,8 +2588,8 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		}
 
 		/* camera's matrix is used to orient reconstructed stuff,
-		   so it should happen tracking-related constraints recalculation
-		   when camera is changing (sergey) */
+		 * so it should happen tracking-related constraints recalculation
+		 * when camera is changing (sergey) */
 		if(sce->camera && &sce->camera->id == id) {
 			MovieClip *clip = object_get_movieclip(sce, sce->camera, 1);
 
@@ -2625,7 +2622,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 		ID *id = lb->first;
 
 		/* we tag based on first ID type character to avoid 
-		   looping over all ID's in case there are no tags */
+		 * looping over all ID's in case there are no tags */
 		if(id && bmain->id_tag_update[id->name[0]]) {
 			for(; id; id=id->next) {
 				if(id->flag & (LIB_ID_RECALC|LIB_ID_RECALC_DATA)) {
@@ -2654,7 +2651,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 		ID *id = lb->first;
 
 		/* we tag based on first ID type character to avoid 
-		   looping over all ID's in case there are no tags */
+		 * looping over all ID's in case there are no tags */
 		if(id && bmain->id_tag_update[id->name[0]]) {
 			updated= 1;
 			break;
@@ -2677,7 +2674,7 @@ void DAG_ids_clear_recalc(Main *bmain)
 		ID *id = lb->first;
 
 		/* we tag based on first ID type character to avoid 
-		   looping over all ID's in case there are no tags */
+		 * looping over all ID's in case there are no tags */
 		if(id && bmain->id_tag_update[id->name[0]]) {
 			for(; id; id=id->next)
 				if(id->flag & (LIB_ID_RECALC|LIB_ID_RECALC_DATA))

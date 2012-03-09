@@ -124,8 +124,8 @@ int seq_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), vo
 }
 
 /* **********************************************************************
-   alloc / free functions
-   ********************************************************************** */
+ * alloc / free functions
+ * ********************************************************************** */
 
 
 
@@ -281,8 +281,8 @@ void seq_free_editing(Scene *scene)
 }
 
 /* **********************************************************************
-   * sequencer pipeline functions
-   ********************************************************************** */
+ * sequencer pipeline functions
+ * ********************************************************************** */
 
 SeqRenderData seq_new_render_data(
 	struct Main * bmain, struct Scene * scene,
@@ -456,13 +456,13 @@ void seq_end(SeqIterator *iter)
 }
 
 /*
-  **********************************************************************
-  * build_seqar
-  **********************************************************************
-  * Build a complete array of _all_ sequencies (including those
-  * in metastrips!)
-  **********************************************************************
-*/
+ * **********************************************************************
+ * build_seqar
+ * *********************************************************************
+ * Build a complete array of _all_ sequencies (including those
+ * in metastrips!)
+ * *********************************************************************
+ */
 
 static void do_seq_count_cb(ListBase *seqbase, int *totseq,
 				int (*test_func)(Sequence * seq))
@@ -1048,11 +1048,11 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 {
 	StripElem *se= seq->strip->stripdata;
 
-	if(seq->type == SEQ_IMAGE) { /* only 
-					IMAGE strips use the whole array,
-					MOVIE strips use only 
-					the first element, all other strips
-					don't use this... */
+	if(seq->type == SEQ_IMAGE) { /* only
+		                          * IMAGE strips use the whole array,
+		                          * MOVIE strips use only
+		                          * the first element, all other strips
+		                          * don't use this... */
 		int nr = (int) give_stripelem_index(seq, cfra);
 
 		if (nr == -1 || se == NULL) return NULL;
@@ -1137,8 +1137,8 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 
 
 /* **********************************************************************
-   proxy management
-   ********************************************************************** */
+ * proxy management
+ * ********************************************************************** */
 
 typedef struct SeqIndexBuildContext {
 	struct IndexBuildContext *index_context;
@@ -1214,12 +1214,12 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, int render_size, char *
 	}
 
 	/* MOVIE tracks (only exception: custom files) are now handled 
-	   internally by ImBuf module for various reasons: proper time code 
-	   support, quicker index build, using one file instead 
-	   of a full directory of jpeg files, etc. Trying to support old
-	   and new method at once could lead to funny effects, if people
-	   have both, a directory full of jpeg files and proxy avis, so
-	   sorry folks, please rebuild your proxies... */
+	 * internally by ImBuf module for various reasons: proper time code
+	 * support, quicker index build, using one file instead
+	 * of a full directory of jpeg files, etc. Trying to support old
+	 * and new method at once could lead to funny effects, if people
+	 * have both, a directory full of jpeg files and proxy avis, so
+	 * sorry folks, please rebuild your proxies... */
 
 	if (seq->flag & (SEQ_USE_PROXY_CUSTOM_DIR|SEQ_USE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
@@ -1339,7 +1339,7 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	}
 
 	/* depth = 32 is intentionally left in, otherwise ALPHA channels
-	   won't work... */
+	 * won't work... */
 	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
 
@@ -1465,8 +1465,8 @@ void seq_proxy_rebuild_finish(SeqIndexBuildContext *context, short stop)
 }
 
 /* **********************************************************************
-   color balance 
-   ********************************************************************** */
+ * color balance
+ * ********************************************************************** */
 
 static StripColorBalance calc_cb(StripColorBalance * cb_)
 {
@@ -1628,23 +1628,22 @@ static void color_balance(Sequence * seq, ImBuf* ibuf, float mul)
 }
 
 /*
-  input preprocessing for SEQ_IMAGE, SEQ_MOVIE and SEQ_SCENE
-
-  Do all the things you can't really do afterwards using sequence effects
-  (read: before rescaling to render resolution has been done)
-
-  Order is important!
-
-  - Deinterlace
-  - Crop and transform in image source coordinate space
-  - Flip X + Flip Y (could be done afterwards, backward compatibility)
-  - Promote image to float data (affects pipeline operations afterwards)
-  - Color balance (is most efficient in the byte -> float 
-	(future: half -> float should also work fine!)
-	case, if done on load, since we can use lookup tables)
-  - Premultiply
-
-*/
+ *  input preprocessing for SEQ_IMAGE, SEQ_MOVIE and SEQ_SCENE
+ *
+ *  Do all the things you can't really do afterwards using sequence effects
+ *  (read: before rescaling to render resolution has been done)
+ *
+ *  Order is important!
+ *
+ *  - Deinterlace
+ *  - Crop and transform in image source coordinate space
+ *  - Flip X + Flip Y (could be done afterwards, backward compatibility)
+ *  - Promote image to float data (affects pipeline operations afterwards)
+ *  - Color balance (is most efficient in the byte -> float
+ *    (future: half -> float should also work fine!)
+ *    case, if done on load, since we can use lookup tables)
+ *  - Premultiply
+ */
 
 int input_have_to_preprocess(
 	SeqRenderData UNUSED(context), Sequence * seq, float UNUSED(cfra))
@@ -1824,8 +1823,8 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence * seq, float nr,
 {
 	if (nr == 0 || nr == seq->len - 1) {
 		/* we have to store a copy, since the passed ibuf
-		   could be preprocessed afterwards (thereby silently
-		   changing the cached image... */
+		 * could be preprocessed afterwards (thereby silently
+		 * changing the cached image... */
 		ibuf = IMB_dupImBuf(ibuf);
 
 		if (nr == 0) {
@@ -1845,8 +1844,8 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence * seq, float nr,
 }
 
 /* **********************************************************************
-   strip rendering functions
-   ********************************************************************** */
+ * strip rendering functions
+ * ********************************************************************** */
 
 static ImBuf* seq_render_strip_stack( 
 	SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
@@ -1964,35 +1963,35 @@ static ImBuf * seq_render_scene_strip_impl(
 	ListBase oldmarkers;
 	
 	/* Old info:
-	   Hack! This function can be called from do_render_seq(), in that case
-	   the seq->scene can already have a Render initialized with same name,
-	   so we have to use a default name. (compositor uses scene name to
-	   find render).
-	   However, when called from within the UI (image preview in sequencer)
-	   we do want to use scene Render, that way the render result is defined
-	   for display in render/imagewindow
-	   
-	   Hmm, don't see, why we can't do that all the time,
-	   and since G.rendering is uhm, gone... (Peter)
-	*/
+	 * Hack! This function can be called from do_render_seq(), in that case
+	 * the seq->scene can already have a Render initialized with same name,
+	 * so we have to use a default name. (compositor uses scene name to
+	 * find render).
+	 * However, when called from within the UI (image preview in sequencer)
+	 * we do want to use scene Render, that way the render result is defined
+	 * for display in render/imagewindow
+	 *
+	 * Hmm, don't see, why we can't do that all the time,
+	 * and since G.rendering is uhm, gone... (Peter)
+	 */
 
 	/* New info:
-	   Using the same name for the renders works just fine as the do_render_seq()
-	   render is not used while the scene strips are rendered.
-	   
-	   However rendering from UI (through sequencer_preview_area_draw) can crash in
-	   very many cases since other renders (material preview, an actual render etc.)
-	   can be started while this sequence preview render is running. The only proper
-	   solution is to make the sequencer preview render a proper job, which can be
-	   stopped when needed. This would also give a nice progress bar for the preview
-	   space so that users know there's something happening.
-
-	   As a result the active scene now only uses OpenGL rendering for the sequencer
-	   preview. This is far from nice, but is the only way to prevent crashes at this
-	   time. 
-
-	   -jahka
-	*/
+	 * Using the same name for the renders works just fine as the do_render_seq()
+	 * render is not used while the scene strips are rendered.
+	 *
+	 * However rendering from UI (through sequencer_preview_area_draw) can crash in
+	 * very many cases since other renders (material preview, an actual render etc.)
+	 * can be started while this sequence preview render is running. The only proper
+	 * solution is to make the sequencer preview render a proper job, which can be
+	 * stopped when needed. This would also give a nice progress bar for the preview
+	 * space so that users know there's something happening.
+	 *
+	 * As a result the active scene now only uses OpenGL rendering for the sequencer
+	 * preview. This is far from nice, but is the only way to prevent crashes at this
+	 * time.
+	 *
+	 * -jahka
+	 */
 
 	int rendering = G.rendering;
 	int doseq;
@@ -2120,7 +2119,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 	ibuf = seq_stripelem_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
 	/* currently, we cache preprocessed images in SEQ_STRIPELEM_IBUF,
-	   but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
+	 * but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
 	if (ibuf)
 		use_preprocess = FALSE;
 
@@ -2263,15 +2262,15 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 }
 
 /* **********************************************************************
-   strip stack rendering functions
-   ********************************************************************** */
+ * strip stack rendering functions
+ * ********************************************************************** */
 
 static int seq_must_swap_input_in_blend_mode(Sequence * seq)
 {
 	int swap_input = FALSE;
 
 	/* bad hack, to fix crazy input ordering of 
-	   those two effects */
+	 * those two effects */
 
 	if (ELEM3(seq->blend_mode, SEQ_ALPHAOVER, SEQ_ALPHAUNDER, SEQ_OVERDROP)) {
 		swap_input = TRUE;
@@ -2808,13 +2807,13 @@ void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage,
 	if (check_mem_usage) {
 		/* Let the cache limitor take care of this (schlaile) */
 		/* While render let's keep all memory available for render 
-		   (ton)
-		   At least if free memory is tight...
-		   This can make a big difference in encoding speed
-		   (it is around 4 times(!) faster, if we do not waste time
-		   on freeing _all_ buffers every time on long timelines...)
-		   (schlaile)
-		*/
+		 * (ton)
+		 * At least if free memory is tight...
+		 * This can make a big difference in encoding speed
+		 * (it is around 4 times(!) faster, if we do not waste time
+		 * on freeing _all_ buffers every time on long timelines...)
+		 * (schlaile)
+		 */
 	
 		uintptr_t mem_in_use;
 		uintptr_t mmap_in_use;
@@ -2905,11 +2904,11 @@ void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_ch
 }
 
 /* seq funcs's for transforming internally
- notice the difference between start/end and left/right.
-
- left and right are the bounds at which the sequence is rendered,
-start and end are from the start and fixed length of the sequence.
-*/
+ * notice the difference between start/end and left/right.
+ *
+ * left and right are the bounds at which the sequence is rendered,
+ * start and end are from the start and fixed length of the sequence.
+ */
 int seq_tx_get_start(Sequence *seq)
 {
 	return seq->start;
@@ -2962,7 +2961,7 @@ void seq_tx_set_final_right(Sequence *seq, int val)
 }
 
 /* used so we can do a quick check for single image seq
-   since they work a bit differently to normal image seq's (during transform) */
+ * since they work a bit differently to normal image seq's (during transform) */
 int seq_single_check(Sequence *seq)
 {
 	return (seq->len==1 && (

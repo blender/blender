@@ -74,7 +74,7 @@ class SCA_Joystick
 
 	/**
 	 * max # of buttons avail
-	*/
+	 */
 	
 	int 			m_axismax;
 	int 			m_buttonmax;

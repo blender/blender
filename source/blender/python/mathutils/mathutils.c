@@ -163,7 +163,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 #endif
 	{
 		PyObject *value_fast = NULL;
-		//*array = NULL;
+		// *array = NULL;
 
 		/* non list/tuple cases */
 		if (!(value_fast = PySequence_Fast(value, error_prefix))) {

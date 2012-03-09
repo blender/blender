@@ -263,7 +263,7 @@
 /* BLI_assert(), default only to print
  * for aborting need to define WITH_ASSERT_ABORT
  */
-#if !defined NDEBUG
+#ifndef NDEBUG
 #  ifdef WITH_ASSERT_ABORT
 #    define _BLI_DUMMY_ABORT abort
 #  else

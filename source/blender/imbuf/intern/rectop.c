@@ -47,8 +47,8 @@
 static void blend_color_mix(char *cp, char *cp1, char *cp2, int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
-	   are not equivalent (>>8 is /256), and the former results in rounding
-	   errors that can turn colors black fast after repeated blending */
+	 * are not equivalent (>>8 is /256), and the former results in rounding
+	 * errors that can turn colors black fast after repeated blending */
 	int mfac= 255-fac;
 
 	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
@@ -93,7 +93,7 @@ static void blend_color_mul(char *cp, char *cp1, char *cp2, int fac)
 static void blend_color_lighten(char *cp, char *cp1, char *cp2, int fac)
 {
 	/* See if are lighter, if so mix, else dont do anything.
-	if the paint col is darker then the original, then ignore */
+	 * if the paint col is darker then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
 		cp[1]= cp1[1];
@@ -106,7 +106,7 @@ static void blend_color_lighten(char *cp, char *cp1, char *cp2, int fac)
 static void blend_color_darken(char *cp, char *cp1, char *cp2, int fac)
 {
 	/* See if were darker, if so mix, else dont do anything.
-	if the paint col is brighter then the original, then ignore */
+	 * if the paint col is brighter then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
 		cp[1]= cp1[1];
@@ -202,7 +202,7 @@ static void blend_color_mul_float(float *cp, float *cp1, float *cp2, float fac)
 static void blend_color_lighten_float(float *cp, float *cp1, float *cp2, float fac)
 {
 	/* See if are lighter, if so mix, else dont do anything.
-	if the pafloat col is darker then the original, then ignore */
+	 * if the pafloat col is darker then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
 		cp[1]= cp1[1];
@@ -215,7 +215,7 @@ static void blend_color_lighten_float(float *cp, float *cp1, float *cp2, float f
 static void blend_color_darken_float(float *cp, float *cp1, float *cp2, float fac)
 {
 	/* See if were darker, if so mix, else dont do anything.
-	if the pafloat col is brighter then the original, then ignore */
+	 * if the pafloat col is brighter then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
 		cp[1]= cp1[1];

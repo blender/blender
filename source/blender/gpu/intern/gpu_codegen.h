@@ -61,10 +61,10 @@ typedef struct GPUFunction {
 GPUFunction *GPU_lookup_function(const char *name);
 
 /* Pass Generation
-   - Takes a list of nodes and a desired output, and makes a pass. This
-	 will take ownership of the nodes and free them early if unused or
-	 at the end if used.
-*/
+ *  - Takes a list of nodes and a desired output, and makes a pass. This
+ *    will take ownership of the nodes and free them early if unused or
+ *    at the end if used.
+ */
 
 typedef enum GPUDataSource {
 	GPU_SOURCE_VEC_UNIFORM,

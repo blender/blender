@@ -192,8 +192,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			}
 		}
 
-		/* get the set of edges that will be in the new mesh
-		*/
+		/* get the set of edges that will be in the new mesh */
 		for (i = 0; i < numEdges_dst; i++) {
 			j = BLI_ghash_size(edgeHash);
 			

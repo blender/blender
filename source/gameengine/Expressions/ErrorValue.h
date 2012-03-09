@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _ERRORVALUE_H
+#ifndef _ERRORVALUE_H
 #define _ERRORVALUE_H
 
 #include "Value.h"

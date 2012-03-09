@@ -30,12 +30,12 @@
  */
 
 /* ----------------------------------------------------------------------
-  Radiance High Dynamic Range image file IO
-  For description and code for reading/writing of radiance hdr files 
-	by Greg Ward, refer to:
-  http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
-----------------------------------------------------------------------
-*/
+ * Radiance High Dynamic Range image file IO
+ * For description and code for reading/writing of radiance hdr files
+ * by Greg Ward, refer to:
+ * http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
+ * ----------------------------------------------------------------------
+ */
 
 #ifdef WIN32
 #  include <io.h>

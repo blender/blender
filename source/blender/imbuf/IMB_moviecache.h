@@ -36,8 +36,8 @@
 #include "BLI_ghash.h"
 
 /* Cache system for movie data - now supports stoting ImBufs only
-   Supposed to provide unified cache system for movie clips, sequencer and
-   other movie-related areas */
+ * Supposed to provide unified cache system for movie clips, sequencer and
+ * other movie-related areas */
 
 struct ImBuf;
 struct MovieCache;

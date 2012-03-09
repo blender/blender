@@ -1348,7 +1348,7 @@ int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float 
 
 	if(tex->use_nodes && tex->nodetree) {
 		/* stupid exception here .. but we have to pass shi and mtex to
-		   textures nodes for 2d mapping and color management for images */
+		 * textures nodes for 2d mapping and color management for images */
 		return ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, shi->osatex, shi->thread,
 			tex, mtex->which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, shi, mtex);
 	}
@@ -2064,8 +2064,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	texres->nor = nvec;
 
 	/* replaced newbump with code based on listing 1 and 2 of
-		[Mik10] Mikkelsen M. S.: Bump Mapping Unparametrized Surfaces on the GPU.
-		-> http://jbit.net/~sparky/sfgrad_bump/mm_sfgrad_bump.pdf */
+	 * [Mik10] Mikkelsen M. S.: Bump Mapping Unparametrized Surfaces on the GPU.
+	 * -> http://jbit.net/~sparky/sfgrad_bump/mm_sfgrad_bump.pdf */
 
 	if( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
 		iBumpSpace = 1;
@@ -2494,7 +2494,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 						found_nmapping = 1;
 						
 						/* qdn: for normalmaps, to invert the normalmap vector,
-						   it is better to negate x & y instead of subtracting the vector as was done before */
+						 * it is better to negate x & y instead of subtracting the vector as was done before */
 						if (norfac < 0.0f) {
 							texres.nor[0] = -texres.nor[0];
 							texres.nor[1] = -texres.nor[1];
@@ -3508,7 +3508,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 }
 
 /* A modified part of shadeinput.c -> shade_input_set_uv()
-*  Used for sampling UV mapped texture color */
+ *  Used for sampling UV mapped texture color */
 static void textured_face_generate_uv(float *uv, float *normal, float *hit, float *v1, float *v2, float *v3)
 {
 
@@ -3647,15 +3647,15 @@ void RE_free_sample_material(Material *mat)
 
 
 /*
-*	Get material diffuse color and alpha (including linked textures) in given coordinates
-*	
-*	color,alpha : input/output color values
-*	volume_co : sample coordinate in global space. used by volumetric materials
-*	surface_co : sample surface coordinate in global space. used by "surface" materials
-*	face_index : surface face index
-*	hit_quad : whether point is on second "half" of a quad
-*	orcoDm : orco state derived mesh
-*/
+ *	Get material diffuse color and alpha (including linked textures) in given coordinates
+ *
+ *	color,alpha : input/output color values
+ *	volume_co : sample coordinate in global space. used by volumetric materials
+ *	surface_co : sample surface coordinate in global space. used by "surface" materials
+ *	face_index : surface face index
+ *	hit_quad : whether point is on second "half" of a quad
+ *	orcoDm : orco state derived mesh
+ */
 void RE_sample_material_color(Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3], int face_index, short hit_quad, DerivedMesh *orcoDm, Object *ob)
 {
 	MFace *mface;

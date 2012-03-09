@@ -3800,18 +3800,18 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 
 /* void SB_estimate_transform */
 /* input   Object *ob out (says any object that can do SB like mesh,lattice,curve )
-   output  float lloc[3],float lrot[3][3],float lscale[3][3]
-   that is:
-   a precise position vector denoting the motion of the center of mass
-   give a rotation/scale matrix using averaging method, that's why estimate and not calculate
-   see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
-   our advantage here we know the identity of the vertex
-   there are others methods giving other results.
-   lloc,lrot,lscale are allowed to be NULL, just in case you don't need it.
-   should be pretty useful for pythoneers :)
-   not! velocity .. 2nd order stuff
-   vcloud_estimate_transform see
-   */
+ * output  float lloc[3],float lrot[3][3],float lscale[3][3]
+ * that is:
+ * a precise position vector denoting the motion of the center of mass
+ * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
+ * see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
+ * our advantage here we know the identity of the vertex
+ * there are others methods giving other results.
+ * lloc,lrot,lscale are allowed to be NULL, just in case you don't need it.
+ * should be pretty useful for pythoneers :)
+ * not! velocity .. 2nd order stuff
+ * vcloud_estimate_transform see
+ */
 
 void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3])
 {

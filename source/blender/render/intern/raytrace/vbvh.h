@@ -65,14 +65,17 @@ inline static void bvh_node_push_childs(Node *node, Isect *UNUSED(isec), Node **
 	{
 		while(child)
 		{
-			//Skips BB tests on primitives
-/*
-			if(is_leaf(child->child))
+			/* Skips BB tests on primitives */
+#if 0
+			if(is_leaf(child->child)) {
 				stack[stack_pos++] = child->child;
+			}
 			else
-*/
+#endif
+			{
 				stack[stack_pos++] = child;
-				
+			}
+
 			child = child->sibling;
 		}
 	}
@@ -197,7 +200,7 @@ struct BuildBinaryVBVH
 	}
 };
 
-/*
+#if 0
 template<class Tree,class OldNode>
 struct Reorganize_VBVH
 {
@@ -242,4 +245,4 @@ struct Reorganize_VBVH
 		return node;
 	}	
 };
-*/
+#endif

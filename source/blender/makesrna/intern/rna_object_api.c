@@ -104,8 +104,8 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu = tmpobj->data = copy_curve( (Curve *) ob->data );
 
 		/* temporarily set edit so we get updates from edit mode, but
-		   also because for text datablocks copying it while in edit
-		   mode gives invalid data structures */
+		 * also because for text datablocks copying it while in edit
+		 * mode gives invalid data structures */
 		copycu->editfont = tmpcu->editfont;
 		copycu->editnurb = tmpcu->editnurb;
 
@@ -279,8 +279,8 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 
 		if (level == 0 && enable) {
 			/* this is to make sure we get render level duplis in groups:
-			* the derivedmesh must be created before init_render_mesh,
-			* since object_duplilist does dupliparticles before that */
+			 * the derivedmesh must be created before init_render_mesh,
+			 * since object_duplilist does dupliparticles before that */
 			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 

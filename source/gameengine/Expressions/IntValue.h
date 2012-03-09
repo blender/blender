@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _INTVALUE_H
+#ifndef _INTVALUE_H
 #define _INTVALUE_H
 
 

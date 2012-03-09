@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined IMAGEBUFF_H
+#ifndef IMAGEBUFF_H
 #define IMAGEBUFF_H
 
 

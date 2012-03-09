@@ -78,8 +78,8 @@ typedef struct MovieClip {
 
 	struct MovieTracking tracking;		/* data for SfM tracking */
 	void *tracking_context;				/* context of tracking job
-										   used to synchronize data like framenumber
-										   in SpaceClip clip user */
+										 * used to synchronize data like framenumber
+										 * in SpaceClip clip user */
 
 	struct MovieClipProxy proxy;		/* proxy to clip data */
 	int flag, pad;

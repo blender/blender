@@ -179,7 +179,7 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	int mode = 0;
 
 	/* check the origin of the Paint struct to see which paint
-	   mode to select from */
+	 * mode to select from */
 
 	if (ptr->data == &ts->imapaint)
 		mode = OB_MODE_TEXTURE_PAINT;

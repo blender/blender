@@ -111,14 +111,14 @@ void TransformBase::decompose(float mat[][4], float *loc, float eul[3], float qu
 }
 
 /**
-Translation map.
-Used to translate every COLLADA id to a valid id, no matter what "wrong" letters may be
-included. Look at the IDREF XSD declaration for more.
-Follows strictly the COLLADA XSD declaration which explicitly allows non-english chars,
-like special chars (e.g. micro sign), umlauts and so on.
-The COLLADA spec also allows additional chars for member access ('.'), these
-must obviously be removed too, otherwise they would be heavily misinterpreted.
-*/
+ * Translation map.
+ * Used to translate every COLLADA id to a valid id, no matter what "wrong" letters may be
+ * included. Look at the IDREF XSD declaration for more.
+ * Follows strictly the COLLADA XSD declaration which explicitly allows non-english chars,
+ * like special chars (e.g. micro sign), umlauts and so on.
+ * The COLLADA spec also allows additional chars for member access ('.'), these
+ * must obviously be removed too, otherwise they would be heavily misinterpreted.
+ */
 const unsigned char translate_start_name_map[256] = {
 95,  95,  95,  95,  95,  95,  95,  95,  95,
 95,  95,  95,  95,  95,  95,  95,  95,

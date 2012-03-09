@@ -40,13 +40,13 @@
 #include "imbuf.h"
 
 /* We use a two level cache here. A per-thread cache with limited number of
-   tiles. This can be accessed without locking and so is hoped to lead to most
-   tile access being lock-free. The global cache is shared between all threads
-   and requires slow locking to access, and contains all tiles.
-   
-   The per-thread cache should be big enough that one might hope to not fall
-   back to the global cache every pixel, but not to big to keep too many tiles
-   locked and using memory. */
+ * tiles. This can be accessed without locking and so is hoped to lead to most
+ * tile access being lock-free. The global cache is shared between all threads
+ * and requires slow locking to access, and contains all tiles.
+ *
+ * The per-thread cache should be big enough that one might hope to not fall
+ * back to the global cache every pixel, but not to big to keep too many tiles
+ * locked and using memory. */
 
 #define IB_THREAD_CACHE_SIZE	100
 
@@ -207,7 +207,7 @@ void imb_tile_cache_init(void)
 	BLI_mutex_init(&GLOBAL_CACHE.mutex);
 
 	/* initialize for one thread, for places that access textures
-	   outside of rendering (displace modifier, painting, ..) */
+	 * outside of rendering (displace modifier, painting, ..) */
 	IMB_tile_cache_params(0, 0);
 
 	GLOBAL_CACHE.initialized = 1;
@@ -286,8 +286,8 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf, int tx, int ty, ImGl
 	
 	if(gtile) {
 		/* found tile. however it may be in the process of being loaded
-		   by another thread, in that case we do stupid busy loop waiting
-		   for the other thread to load the tile */
+		 * by another thread, in that case we do stupid busy loop waiting
+		 * for the other thread to load the tile */
 		gtile->refcount++;
 
 		BLI_mutex_unlock(&GLOBAL_CACHE.mutex);
@@ -428,7 +428,7 @@ void IMB_tiles_to_rect(ImBuf *ibuf)
 		for(ty=0; ty<mipbuf->ytiles; ty++) {
 			for(tx=0; tx<mipbuf->xtiles; tx++) {
 				/* acquire tile through cache, this assumes cache is initialized,
-				   which it is always now but it's a weak assumption ... */
+				 * which it is always now but it's a weak assumption ... */
 				gtile= imb_global_cache_get_tile(mipbuf, tx, ty, NULL);
 
 				/* setup pointers */

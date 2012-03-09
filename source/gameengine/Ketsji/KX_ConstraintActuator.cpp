@@ -147,8 +147,8 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* resu
 	return true;
 }
 
-/* this function is used to pre-filter the object before casting the ray on them.
-   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+/* This function is used to pre-filter the object before casting the ray on them.
+ * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
 bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo* client)
 {

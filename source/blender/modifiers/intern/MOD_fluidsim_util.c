@@ -131,11 +131,11 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->cpsQuality = 10.0; // 1.0 / 10.0 => means 0.1 width
 		
 		/*
-		BAD TODO: this is done in buttons_object.c in the moment 
-		Mesh *mesh = ob->data;
-		// calculate bounding box
-		fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);	
-		*/
+		 * BAD TODO: this is done in buttons_object.c in the moment
+		 * Mesh *mesh = ob->data;
+		 * // calculate bounding box
+		 * fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);
+		 */
 		
 		fss->meshVelocities = NULL;
 		

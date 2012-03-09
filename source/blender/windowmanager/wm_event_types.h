@@ -78,8 +78,8 @@
 
 
 /* NDOF (from SpaceNavigator & friends)
-   These should be kept in sync with GHOST_NDOFManager.h
-   Ordering matters, exact values do not. */
+ * These should be kept in sync with GHOST_NDOFManager.h
+ * Ordering matters, exact values do not. */
 
 #define NDOF_MOTION 400
 

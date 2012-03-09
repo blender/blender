@@ -30,9 +30,9 @@ const STR_String CBoolValue::sFalseString = "FALSE";
 
 CBoolValue::CBoolValue()
 /*
-pre: false
-effect: constructs a new CBoolValue
-*/
+ * pre: false
+ * effect: constructs a new CBoolValue
+ */
 {
 	trace("Bool constructor error");
 }

@@ -55,7 +55,7 @@ public:
 	              bool bFindMaterial,
 	              const STR_String& touchedpropname,
 	              PHY_IPhysicsController*	ctrl);
-/*
+#if 0
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
 			class KX_GameObject* gameobj,
@@ -64,7 +64,7 @@ public:
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
 			class KX_Scene* scene);
-*/
+#endif
 	virtual ~KX_NearSensor(); 
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();

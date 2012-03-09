@@ -199,7 +199,7 @@ typedef struct bTwoDFilterActuator {
 	/* Tells what type of 2D Filter */
 	short type;
 	/* (flag == 0) means 2D filter is activate and
-	   (flag != 0) means 2D filter is inactive */
+	 * (flag != 0) means 2D filter is inactive */
 	short flag;
 	int   int_arg;
 	/* a float argument */

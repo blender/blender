@@ -24,11 +24,11 @@ struct EnvMap;
 // --
 
 /** max units
-	this will default to users available units
-	to build with more available, just increment this value
-	although the more you add the slower the search time will be.
-	we will go for eight, which should be enough
-*/
+ * this will default to users available units
+ * to build with more available, just increment this value
+ * although the more you add the slower the search time will be.
+ * we will go for eight, which should be enough
+ */
 #define MAXTEX			8	//match in RAS_TexVert & RAS_OpenGLRasterizer
 
 // different mapping modes

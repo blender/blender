@@ -461,7 +461,7 @@ void WM_operator_py_idname(char *to, const char *from)
 		int ofs= (sep-from);
 		
 		/* note, we use ascii tolower instead of system tolower, because the
-		   latter depends on the locale, and can lead to idname mistmatch */
+		 * latter depends on the locale, and can lead to idname mistmatch */
 		memcpy(to, from, sizeof(char)*ofs);
 		BLI_ascii_strtolower(to, ofs);
 
@@ -1228,10 +1228,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 static void wm_block_splash_refreshmenu (bContext *UNUSED(C), void *UNUSED(arg_block), void *UNUSED(arg))
 {
 	/* ugh, causes crashes in other buttons, disabling for now until 
-	 * a better fix
+	 * a better fix */
+#if 0
 	uiPupBlockClose(C, arg_block);
 	uiPupBlock(C, wm_block_create_splash, NULL);
-	  */
+#endif
 }
 
 static int wm_resource_check_prev(void)
@@ -1672,9 +1673,9 @@ int wm_link_append_poll(bContext *C)
 {
 	if(WM_operator_winactive(C)) {
 		/* linking changes active object which is pretty useful in general,
-		   but which totally confuses edit mode (i.e. it becoming not so obvious
-		   to leave from edit mode and inwalid tools in toolbar might be displayed)
-		   so disable link/append when in edit mode (sergey) */
+		 * but which totally confuses edit mode (i.e. it becoming not so obvious
+		 * to leave from edit mode and inwalid tools in toolbar might be displayed)
+		 * so disable link/append when in edit mode (sergey) */
 		if(CTX_data_edit_object(C))
 			return 0;
 
@@ -2272,10 +2273,10 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 
 /* ************ default paint cursors, draw always around cursor *********** */
 /*
- - returns handler to free 
- - poll(bContext): returns 1 if draw should happen
- - draw(bContext): drawing callback for paint cursor
-*/
+ * - returns handler to free
+ * - poll(bContext): returns 1 if draw should happen
+ * - draw(bContext): drawing callback for paint cursor
+ */
 
 void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
 				   wmPaintCursorDraw draw, void *customdata)
@@ -2312,11 +2313,11 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
 /* **************** Border gesture *************** */
 
 /* Border gesture has two types:
-   1) WM_GESTURE_CROSS_RECT: starts a cross, on mouse click it changes to border 
-   2) WM_GESTURE_RECT: starts immediate as a border, on mouse click or release it ends
-
-   It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
-*/
+ * 1) WM_GESTURE_CROSS_RECT: starts a cross, on mouse click it changes to border
+ * 2) WM_GESTURE_RECT: starts immediate as a border, on mouse click or release it ends
+ *
+ * It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
+ */
 
 static int border_apply_rect(wmOperator *op)
 {
@@ -2726,7 +2727,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 				y = (event->y - sy - lasso[1]);
 				
 				/* make a simple distance check to get a smoother lasso
-				   add only when at least 2 pixels between this and previous location */
+				 * add only when at least 2 pixels between this and previous location */
 				if((x*x+y*y) > 4) {
 					lasso += 2;
 					lasso[0] = event->x - sx;
@@ -3112,8 +3113,8 @@ typedef enum {
 } RCPropFlags;
 
 /* attempt to retrieve the rna pointer/property from an rna path;
-   returns 0 for failure, 1 for success, and also 1 if property is not
-   set */
+ * returns 0 for failure, 1 for success, and also 1 if property is not
+ * set */
 static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 				   const char *name, PointerRNA *r_ptr,
 				   PropertyRNA **r_prop, int req_length, RCPropFlags flags)
@@ -3326,8 +3327,8 @@ static int radial_control_cancel(bContext *C, wmOperator *op)
 	wm->paintcursors = rc->orig_paintcursors;
 
 	/* not sure if this is a good notifier to use;
-	   intended purpose is to update the UI so that the
-	   new value is displayed in sliders/numfields */
+	 * intended purpose is to update the UI so that the
+	 * new value is displayed in sliders/numfields */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	glDeleteTextures(1, &rc->gltex);

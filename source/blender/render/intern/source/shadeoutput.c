@@ -326,7 +326,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		*intens= c*( (1.0-a)+(1.0-b) );
 
 		/* WATCH IT: do not clip a,b en c at 1.0, this gives nasty little overflows
-			at the edges (especially with narrow halos) */
+		 * at the edges (especially with narrow halos) */
 		if(*intens<=0.0f) return;
 
 		/* soft area */
@@ -1765,8 +1765,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shade_one_light(lar, shi, shr, passflag);
 		}
 
-		/*this check is to prevent only shadow lamps from producing negative
-		  colors.*/
+		/* this check is to prevent only shadow lamps from producing negative
+		 * colors.*/
 		if (shr->spec[0] < 0) shr->spec[0] = 0;
 		if (shr->spec[1] < 0) shr->spec[1] = 0;
 		if (shr->spec[2] < 0) shr->spec[2] = 0;

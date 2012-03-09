@@ -162,7 +162,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 	BPY_driver_reset();
 	BPY_app_handlers_reset(FALSE); /* causes addon callbacks to be freed [#28068],
-	                           * but this is actually what we want. */
+	                                * but this is actually what we want. */
 	BPY_modules_load_user(C);
 #else
 	(void)argc; /* unused */
@@ -192,10 +192,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	WM_read_history();
 
 	/* allow a path of "", this is what happens when making a new file */
-	/*
+#if 0
 	if(G.main->name[0] == 0)
 		BLI_make_file_string("/", G.main->name, BLI_getDefaultDocumentFolder(), "untitled.blend");
-	*/
+#endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
 }

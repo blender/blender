@@ -672,9 +672,10 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	i = is;
 	GPU_link(mat, "shade_visifac", i, visifac, shi->refl, &i);
 
-
-	/*if(ma->mode & MA_TANGENT_VN)
-		GPU_link(mat, "shade_tangent_v_spec", GPU_attribute(CD_TANGENT, ""), &vn);*/
+#if 0
+	if(ma->mode & MA_TANGENT_VN)
+		GPU_link(mat, "shade_tangent_v_spec", GPU_attribute(CD_TANGENT, ""), &vn);
+#endif
 
 	/* this replaces if(i > 0.0) conditional until that is supported */
 	// done in shade_visifac now, GPU_link(mat, "mtex_value_clamp_positive", i, &i);
@@ -1461,8 +1462,8 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 	GPU_material_construct_end(mat);
 
 	/* note that even if building the shader fails in some way, we still keep
-	   it to avoid trying to compile again and again, and simple do not use
-	   the actual shader on drawing */
+	 * it to avoid trying to compile again and again, and simple do not use
+	 * the actual shader on drawing */
 
 	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
 	link->data = mat;

@@ -429,7 +429,7 @@ PyObject *PyC_UnicodeFromByte(const char *str)
  * note: this overwrites __main__ which gives problems with nested calles.
  * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
  * any chance that python is in the call stack.
-*****************************************************************************/
+ ****************************************************************************/
 PyObject *PyC_DefaultNameSpace(const char *filename)
 {
 	PyInterpreterState *interp= PyThreadState_GET()->interp;

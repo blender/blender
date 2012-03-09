@@ -295,8 +295,8 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		lar= go->lampren;
 		
 		/* removed here some horrible code of someone in NaN who tried to fix
-		   prototypes... just solved by introducing a correct cmat[3][3] instead
-		   of using smat. this works, check square spots in reflections  (ton) */
+		 * prototypes... just solved by introducing a correct cmat[3][3] instead
+		 * of using smat. this works, check square spots in reflections  (ton) */
 		copy_m3_m3(cmat, lar->imat); 
 		mul_m3_m3m3(lar->imat, cmat, imat); 
 
@@ -330,12 +330,12 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	int a;
 	
 	/* invert notlay, so if face is in multiple layers it will still be visible,
-	   unless all 'notlay' bits match the face bits.
-	   face: 0110
-	   not:  0100
-	   ~not: 1011
-	   now (face & ~not) is true
-	*/
+	 * unless all 'notlay' bits match the face bits.
+	 * face: 0110
+	 * not:  0100
+	 * ~not: 1011
+	 * now (face & ~not) is true
+	 */
 	
 	notlay= ~notlay;
 	

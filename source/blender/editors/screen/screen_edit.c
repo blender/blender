@@ -1743,7 +1743,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 		
 		sad->ar= CTX_wm_region(C);
 		/* if startframe is larger than current frame, we put currentframe on startframe.
-		   note: first frame then is not drawn! (ton) */
+		 * note: first frame then is not drawn! (ton) */
 		if(scene->r.sfra > scene->r.cfra) {
 			sad->sfra= scene->r.cfra;
 			scene->r.cfra= scene->r.sfra;

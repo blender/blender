@@ -54,15 +54,14 @@ typedef struct IDProperty {
 	char type, subtype;
 	short flag;
 	char name[64];	/* MAX_IDPROP_NAME */
-	int saved; /*saved is used to indicate if this struct has been saved yet.
-				seemed like a good idea as a pad var was needed anyway :)*/
+	int saved; /* saved is used to indicate if this struct has been saved yet.
+	            * seemed like a good idea as a pad var was needed anyway :)*/
 	IDPropertyData data;	/* note, alignment for 64 bits */
 	int len; /* array length, also (this is important!) string length + 1.
 	          * the idea is to be able to reuse array realloc functions on strings.*/
 	/* totallen is total length of allocated array/string, including a buffer.
 	 * Note that the buffering is mild; the code comes from python's list implementation.*/
-	int totallen; /*strings and arrays are both buffered, though the buffer isn't
-					saved.*/
+	int totallen; /*strings and arrays are both buffered, though the buffer isn't saved.*/
 } IDProperty;
 
 #define MAX_IDPROP_NAME	64

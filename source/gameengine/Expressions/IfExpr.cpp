@@ -31,11 +31,11 @@ CIfExpr::CIfExpr()
 
 
 
-CIfExpr::CIfExpr(CExpression *guard, CExpression *e1, CExpression *e2)
 /*
-pre:
-effect: constructs an CifExpr-object corresponding to IF(guard, e1, e2)
-*/
+ * pre:
+ * effect: constructs an CifExpr-object corresponding to IF(guard, e1, e2)
+ */
+CIfExpr::CIfExpr(CExpression *guard, CExpression *e1, CExpression *e2)
 {
 	m_guard = guard;
 	m_e1 = e1;
@@ -44,11 +44,11 @@ effect: constructs an CifExpr-object corresponding to IF(guard, e1, e2)
 
 
 
-CIfExpr::~CIfExpr()
 /*
-pre:
-effect: dereferences the object
-*/
+ * pre:
+ * effect: dereferences the object
+ */
+CIfExpr::~CIfExpr()
 {
 	if (m_guard)
 		m_guard->Release();
@@ -62,13 +62,13 @@ effect: dereferences the object
 
 
 
+/**
+ * pre:
+ * ret: a new object containing the value of m_e1 if m_guard is a boolean TRUE
+ *      a new object containing the value of m_e2 if m_guard is a boolean FALSE
+ *      an new errorvalue if m_guard is not a boolean
+ */
 CValue* CIfExpr::Calculate()
-/*
-pre:
-ret: a new object containing the value of m_e1 if m_guard is a boolean TRUE
-	 a new object containing the value of m_e2 if m_guard is a boolean FALSE
-	 an new errorvalue if m_guard is not a boolean
-*/
 {
 	CValue *guardval;
 	guardval = m_guard->Calculate();

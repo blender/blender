@@ -1447,7 +1447,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 	if (is_rna) {
 		if (prop->update) {
 			/* ideally no context would be needed for update, but there's some
-			   parts of the code that need it still, so we have this exception */
+			 * parts of the code that need it still, so we have this exception */
 			if (prop->flag & PROP_CONTEXT_UPDATE) {
 				if (C) {
 					if (prop->flag & PROP_CONTEXT_PROPERTY_UPDATE) {
@@ -2521,7 +2521,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else if (prop->flag & PROP_IDPROPERTY) {
 		/* XXX temporary hack to add it automatically, reading should
-		   never do any write ops, to ensure thread safety etc .. */
+		 * never do any write ops, to ensure thread safety etc .. */
 		RNA_property_pointer_add(ptr, prop);
 		return RNA_property_pointer_get(ptr, prop);
 	}

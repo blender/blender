@@ -33,7 +33,7 @@
 
 
 /**
-* add 1 pixel to into filtered three lines 
+ * add 1 pixel to into filtered three lines
  * (float vecs to float vec)
  */
 void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w);

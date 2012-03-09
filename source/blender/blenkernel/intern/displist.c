@@ -613,10 +613,10 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
 }
 
 /* taper rules:
-  - only 1 curve
-  - first point left, last point right
-  - based on subdivided points in original curve, not on points in taper curve (still)
-*/
+ * - only 1 curve
+ * - first point left, last point right
+ * - based on subdivided points in original curve, not on points in taper curve (still)
+ */
 float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 {
 	DispList *dl;
@@ -710,8 +710,8 @@ static ModifierData *curve_get_tesselate_point(Scene *scene, Object *ob, int for
 			preTesselatePoint = md;
 
 			/* this modifiers are moving point of tessellation automatically
-			   (some of them even can't be applied on tesselated curve), set flag
-			   for incformation button in modifier's header */
+			 * (some of them even can't be applied on tesselated curve), set flag
+			 * for incformation button in modifier's header */
 			md->mode |= eModifierMode_ApplyOnSpline;
 		} else if(md->mode&eModifierMode_ApplyOnSpline) {
 			preTesselatePoint = md;
@@ -746,9 +746,9 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 
 		if(keyVerts) {
 			/* split coords from key data, the latter also includes
-			   tilts, which is passed through in the modifier stack.
-			   this is also the reason curves do not use a virtual
-			   shape key modifier yet. */
+			 * tilts, which is passed through in the modifier stack.
+			 * this is also the reason curves do not use a virtual
+			 * shape key modifier yet. */
 			deformedVerts= curve_getKeyVertexCos(cu, nurb, keyVerts);
 			originalVerts= MEM_dupallocN(deformedVerts);
 		}
@@ -1168,8 +1168,8 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	}
 
 	/* make copy of 'undeformed" displist for texture space calculation
-	   actually, it's not totally undeformed -- pre-tessellation modifiers are
-	   already applied, thats how it worked for years, so keep for compatibility (sergey) */
+	 * actually, it's not totally undeformed -- pre-tessellation modifiers are
+	 * already applied, thats how it worked for years, so keep for compatibility (sergey) */
 	copy_displist(&cu->disp, dispbase);
 
 	if (!forRender) {
@@ -1394,8 +1394,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
 		/* make copy of 'undeformed" displist for texture space calculation
-		   actually, it's not totally undeformed -- pre-tessellation modifiers are
-		   already applied, thats how it worked for years, so keep for compatibility (sergey) */
+		 * actually, it's not totally undeformed -- pre-tessellation modifiers are
+		 * already applied, thats how it worked for years, so keep for compatibility (sergey) */
 		copy_displist(&cu->disp, dispbase);
 
 		if (!forRender) {
@@ -1416,8 +1416,8 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 	ListBase *dispbase;
 
 	/* The same check for duplis as in do_makeDispListCurveTypes.
-	   Happens when curve used for constraint/bevel was converted to mesh.
-	   check there is still needed for render displist and orco displists. */
+	 * Happens when curve used for constraint/bevel was converted to mesh.
+	 * check there is still needed for render displist and orco displists. */
 	if(!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 
 	freedisplist(&(ob->disp));

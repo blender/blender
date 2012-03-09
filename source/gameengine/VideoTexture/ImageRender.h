@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined IMAGERENDER_H
+#ifndef IMAGERENDER_H
 #define IMAGERENDER_H
 
 

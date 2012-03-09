@@ -186,7 +186,7 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 	mat[coz][2]= vec[2];
 	if (Kx_Normalize((float *)mat[coz]) == 0.f) {
 		/* this is a very abnormal situation: the camera has reach the object center exactly
-		   We will choose a completely arbitrary direction */
+		 * We will choose a completely arbitrary direction */
 		mat[coz][0] = 1.0f;
 		mat[coz][1] = 0.0f;
 		mat[coz][2] = 0.0f;
@@ -239,9 +239,9 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	/* CONSTRAINT 6: again: fixed height relative to floor below actor        */
 	/* CONSTRAINT 7: track to floor below actor                               */
 	/* CONSTRAINT 8: look a little bit left or right, depending on how the
-
-	   character is looking (horizontal x)
- */
+	 *
+	 * character is looking (horizontal x)
+	 */
 
 	/* ...and then set the camera position. Since we assume the parent of    */
 	/* this actuator is always a camera, just set the parent position and    */

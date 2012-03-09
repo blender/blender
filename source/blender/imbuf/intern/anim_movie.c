@@ -61,7 +61,7 @@
 #endif
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
-							BLI_countlist BLI_stringdec */
+                          * BLI_countlist BLI_stringdec */
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
@@ -603,10 +603,10 @@ static int startffmpeg(struct anim * anim)
 }
 
 /* postprocess the image in anim->pFrame and do color conversion
-   and deinterlacing stuff.
-
-   Output is anim->last_frame
-*/
+ * and deinterlacing stuff.
+ *
+ * Output is anim->last_frame
+ */
 
 static void ffmpeg_postprocess(struct anim * anim)
 {
@@ -621,7 +621,7 @@ static void ffmpeg_postprocess(struct anim * anim)
 	}
 
 	/* This means the data wasnt read properly, 
-	   this check stops crashing */
+	 * this check stops crashing */
 	if (input->data[0]==0 && input->data[1]==0 
 	    && input->data[2]==0 && input->data[3]==0){
 		fprintf(stderr, "ffmpeg_fetchibuf: "

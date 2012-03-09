@@ -85,7 +85,7 @@ static unsigned short useprefsize= 0;
 /* ******** win open & close ************ */
 
 /* XXX this one should correctly check for apple top header...
- done for Cocoa : returns window contents (and not frame) max size*/
+ * done for Cocoa : returns window contents (and not frame) max size*/
 void wm_get_screensize(int *width_r, int *height_r)
 {
 	unsigned int uiwidth;
@@ -141,7 +141,7 @@ static void wm_ghostwindow_destroy(wmWindow *win)
 }
 
 /* including window itself, C can be NULL. 
-   ED_screen_exit should have been called */
+ * ED_screen_exit should have been called */
 void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
 	wmTimer *wt, *wtnext;
@@ -290,8 +290,8 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 			GHOST_SetTitle(win->ghostwin, "Blender");
 
 		/* Informs GHOST of unsaved changes, to set window modified visual indicator (MAC OS X)
-		 and to give hint of unsaved changes for a user warning mechanism
-		 in case of OS application terminate request (e.g. OS Shortcut Alt+F4, Cmd+Q, (...), or session end) */
+		 * and to give hint of unsaved changes for a user warning mechanism
+		 * in case of OS application terminate request (e.g. OS Shortcut Alt+F4, Cmd+Q, (...), or session end) */
 		GHOST_SetWindowModifiedState(win->ghostwin, (GHOST_TUns8)!wm->file_saved);
 		
 #if defined(__APPLE__) && !defined(GHOST_COCOA)
@@ -326,7 +326,7 @@ static void wm_window_add_ghostwindow(bContext *C, const char *title, wmWindow *
 	}
 #endif
 	/* Disable AA for now, as GL_SELECT (used for border, lasso, ... select)
-	 doesn't work well when AA is initialized, even if not used. */
+	 * doesn't work well when AA is initialized, even if not used. */
 	ghostwin= GHOST_CreateWindow(g_system, title, 
 								 win->posx, posy, win->sizex, win->sizey, 
 								 initial_state, 
@@ -450,7 +450,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 }
 
 /* uses screen->temp tag to define what to do, currently it limits
-   to only one "temp" window for render out, preferences, filewindow, etc */
+ * to only one "temp" window for render out, preferences, filewindow, etc */
 /* type is #define in WM_api.h */
 
 void WM_window_open_temp(bContext *C, rcti *position, int type)
@@ -777,7 +777,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				if (path) {
 					/* operator needs a valid window in context, ensures
-					 it is correctly set */
+					 * it is correctly set */
 					oldWindow = CTX_wm_window(C);
 					CTX_wm_window_set(C, win);
 					
@@ -860,11 +860,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 
 
 /* This timer system only gives maximum 1 timer event per redraw cycle,
-   to prevent queues to get overloaded. 
-   Timer handlers should check for delta to decide if they just
-   update, or follow real time.
-   Timer handlers can also set duration to match frames passed
-*/
+ * to prevent queues to get overloaded.
+ * Timer handlers should check for delta to decide if they just
+ * update, or follow real time.
+ * Timer handlers can also set duration to match frames passed
+ */
 static int wm_window_timer(const bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -931,8 +931,8 @@ void wm_window_testbreak(void)
 	double curtime= PIL_check_seconds_timer();
 	
 	/* only check for breaks every 50 milliseconds
-		* if we get called more often.
-		*/
+	 * if we get called more often.
+	 */
 	if ((curtime-ltime)>.05) {
 		int hasevent= GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
 		

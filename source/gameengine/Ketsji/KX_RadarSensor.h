@@ -36,8 +36,8 @@
 #include "MT_Point3.h"
 
 /**
-* Radar 'cone' sensor. Very similar to a near-sensor, but instead of a sphere, a cone is used.
-*/
+ * Radar 'cone' sensor. Very similar to a near-sensor, but instead of a sphere, a cone is used.
+ */
 class KX_RadarSensor : public KX_NearSensor
 {
  protected:

@@ -42,13 +42,13 @@ typedef struct ImMetaData {
 	int len;
 } ImMetaData;
 
-/** The metadata is a list of key/value pairs (both char*) that can me 
-	saved in the header of several image formats.
-	Apart from some common keys like 
-	'Software' and 'Description' (png standard) we'll use keys within the 
-	Blender namespace, so should be called 'Blender::StampInfo' or 'Blender::FrameNum'
-	etc... 
-*/
+/** The metadata is a list of key/value pairs (both char*) that can me
+ * saved in the header of several image formats.
+ * Apart from some common keys like
+ * 'Software' and 'Description' (png standard) we'll use keys within the
+ * Blender namespace, so should be called 'Blender::StampInfo' or 'Blender::FrameNum'
+ * etc...
+ */
 
 
 /* free blender ImMetaData struct */
@@ -58,7 +58,7 @@ void IMB_metadata_free(struct ImBuf* img);
  *  \param img - the ImBuf that contains the image data
  *  \param key - the key of the field
  *  \param value - the data in the field, first one found with key is returned, 
-				  memory has to be allocated by user.
+ *                 memory has to be allocated by user.
  *  \param len - length of value buffer allocated by user.
  *  \return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
  */

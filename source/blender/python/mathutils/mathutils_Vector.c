@@ -788,7 +788,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 	/*
 	 * flip vector around, since vectoquat expect a vector from target to tracking object
 	 * and the python function expects the inverse (a vector to the target).
-	*/
+	 */
 	negate_v3_v3(vec, self->vec);
 
 	vec_to_quat(quat, vec, track, up);
@@ -2720,7 +2720,7 @@ static struct PyMethodDef Vector_methods[] = {
  * Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
  * but this means for eg that
  * (vec * mat) and (mat * vec) both get sent to Vector_mul and it neesd to sort out the order
-*/
+ */
 
 PyDoc_STRVAR(vector_doc,
 "This object gives access to Vectors in Blender."

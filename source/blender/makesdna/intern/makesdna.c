@@ -146,9 +146,9 @@ static char **types, *typedata;		/* at address types[a] is string a */
 static short *typelens;				/* at typelens[a] is de length of type a */
 static short *alphalens;			/* contains sizes as they are calculated on the DEC Alpha (64 bits), infact any 64bit system */
 static short **structs, *structdata;/* at sp= structs[a] is the first address of a struct definition
-                                       sp[0] is type number
-                                       sp[1] is amount of elements
-                                       sp[2] sp[3] is typenr,  namenr (etc) */
+                                     * sp[0] is type number
+                                     * sp[1] is amount of elements
+                                     * sp[2] sp[3] is typenr,  namenr (etc) */
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:
@@ -289,9 +289,9 @@ static int add_name(const char *str)
 
 	if (str[0] == '(' && str[1] == '*') {
 		/* we handle function pointer and special array cases here, e.g.
-		   void (*function)(...) and float (*array)[..]. the array case
-		   name is still converted to (array*)() though because it is that
-		   way in old dna too, and works correct with elementsize() */
+		 * void (*function)(...) and float (*array)[..]. the array case
+		 * name is still converted to (array*)() though because it is that
+		 * way in old dna too, and works correct with elementsize() */
 		int isfuncptr = (strchr(str+1, '(')) != NULL;
 
 		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
@@ -539,8 +539,8 @@ static void *read_file_data(char *filename, int *len_r)
 static int convert_include(char *filename)
 {
 	/* read include file, skip structs with a '#' before it.
-	   store all data in temporal arrays.
-	*/
+	 * store all data in temporal arrays.
+	 */
 	int filelen, count, overslaan, slen, type, name, strct;
 	short *structpoin, *sp;
 	char *maindata, *mainend, *md, *md1;

@@ -773,27 +773,27 @@ static void q_scale_float(float* in, float* out, int in_width,
 	}
 }
 
-/* q_scale_linear_interpolation (derived from ppmqscale, http://libdv.sf.net)
-
-   q stands for quick _and_ quality :)
-
-   only handles common cases when we either
-
-   scale  both, x and y or
-   shrink both, x and y
-
-   but that is pretty fast:
-   * does only blit once instead of two passes like the old code
-	 (fewer cache misses)
-   * uses fixed point integer arithmetic for byte buffers
-   * doesn't branch in tight loops
-
-   Should be comparable in speed to the ImBuf ..._fast functions at least 
-   for byte-buffers.
-
-   NOTE: disabled, due to inacceptable inaccuracy and quality loss, see bug #18609 (ton)
-
-*/
+/**
+ * q_scale_linear_interpolation (derived from ppmqscale, http://libdv.sf.net)
+ *
+ * q stands for quick _and_ quality :)
+ *
+ * only handles common cases when we either
+ *
+ * scale  both, x and y or
+ * shrink both, x and y
+ *
+ * but that is pretty fast:
+ * - does only blit once instead of two passes like the old code
+ *   (fewer cache misses)
+ * - uses fixed point integer arithmetic for byte buffers
+ * - doesn't branch in tight loops
+ *
+ * Should be comparable in speed to the ImBuf ..._fast functions at least
+ * for byte-buffers.
+ *
+ * NOTE: disabled, due to inacceptable inaccuracy and quality loss, see bug #18609 (ton)
+ */
 static int q_scale_linear_interpolation(
 	struct ImBuf *ibuf, int newx, int newy)
 {
@@ -1473,7 +1473,7 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, unsigned int newx, unsigned in
 	if (newx == ibuf->x && newy == ibuf->y) { return ibuf; }
 
 	/* scaleup / scaledown functions below change ibuf->x and ibuf->y
-	   so we first scale the Z-buffer (if any) */
+	 * so we first scale the Z-buffer (if any) */
 	scalefast_Z_ImBuf(ibuf, newx, newy);
 
 	/* try to scale common cases in a fast way */

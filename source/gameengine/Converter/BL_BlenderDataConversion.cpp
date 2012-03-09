@@ -1071,15 +1071,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 					 * "Texture Face/Singletexture" we can then think about it */
 
 					/* Texture Face mode ignores texture but requires "Face Textures to be True "*/
-					/**
+#if 0
 					if ((ma->mode &MA_FACETEXTURE)==0 && (ma->game.flag &GEMAT_TEXT)==0) {
 						bima = NULL;
 						imastr = "";
 						alpha_blend = GEMAT_SOLID;	 
 					}
-					else
+					else {
 						alpha_blend = ma->game.alpha_blend;
-					*/
+					}
+#endif
 				}
 				/* check for tface tex to fallback on */
 				else {

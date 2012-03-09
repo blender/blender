@@ -1574,8 +1574,8 @@ void KX_Scene::LogicEndFrame()
 
 
 /**
-  * UpdateParents: SceneGraph transformation update.
-  */
+ * UpdateParents: SceneGraph transformation update.
+ */
 void KX_Scene::UpdateParents(double curtime)
 {
 	// we use the SG dynamic list

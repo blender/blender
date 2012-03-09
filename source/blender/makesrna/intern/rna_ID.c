@@ -262,11 +262,13 @@ ID *rna_ID_copy(ID *id)
 static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 {
 	/* XXX, new function for this! */
-	/*if (ob->type == OB_FONT) {
+#if 0
+	if (ob->type == OB_FONT) {
 		Curve *cu = ob->data;
 		freedisplist(&cu->disp);
 		BKE_text_to_curve(sce, ob, CU_LEFT);
-	}*/
+	}
+#endif
 
 	if (flag == 0) {
 		/* pass */
@@ -281,12 +283,14 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 			}
 			break;
 		/* Could add particle updates later */
-/*		case ID_PA:
+#if 0
+		case ID_PA:
 			if(flag & ~(OB_RECALC_ALL|PSYS_RECALC)) {
 				BKE_report(reports, RPT_ERROR, "'refresh' incompatible with ParticleSettings ID type");
 				return;
 			}
-			break; */
+			break;
+#endif
 		default:
 			BKE_report(reports, RPT_ERROR, "This ID type is not compatible with any 'refresh' options");
 			return;

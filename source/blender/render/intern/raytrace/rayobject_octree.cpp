@@ -29,7 +29,7 @@
 
 
 /* IMPORTANT NOTE: this code must be independent of any other render code
-   to use it outside the renderer! */
+ * to use it outside the renderer! */
 
 #include <math.h>
 #include <string.h>
@@ -805,9 +805,9 @@ static int cliptest(float p, float q, float *u1, float *u2)
 }
 
 /* extensive coherence checks/storage cancels out the benefit of it, and gives errors... we
-   need better methods, sample code commented out below (ton) */
+ * need better methods, sample code commented out below (ton) */
  
-/*
+#if 0
 
 in top: static int coh_nodes[16*16*16][6];
 in makeoctree: memset(coh_nodes, 0, sizeof(coh_nodes));
@@ -832,7 +832,7 @@ static int do_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, i
 	return 0;
 }
 
-*/
+#endif
 
 /* return 1: found valid intersection */
 /* starts with is->orig.face */
@@ -986,7 +986,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 		vec2[2]= oz1;
 		
 		/* this loop has been constructed to make sure the first and last node of ray
-		   are always included, even when ddalabda==1.0f or larger */
+		 * are always included, even when ddalabda==1.0f or larger */
 
 		while(TRUE) {
 
@@ -1013,7 +1013,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 			labdao= ddalabda;
 			
 			/* traversing ocree nodes need careful detection of smallest values, with proper
-			   exceptions for equal labdas */
+			 * exceptions for equal labdas */
 			eqval= (labdax==labday);
 			if(labday==labdaz) eqval += 2;
 			if(labdax==labdaz) eqval += 4;

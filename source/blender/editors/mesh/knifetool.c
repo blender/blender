@@ -2411,7 +2411,7 @@ static void knife_make_face_cuts(knifetool_opdata *kcd, BMFace *f, ListBase *kfe
 		if (find_hole_chains(kcd, hole, f, &chain, &sidechain)) {
 			/* chain goes across f and sidechain comes back
 			 * from the second last vertex to the second vertex.
-			  */
+			 */
 			knife_make_chain_cut(kcd, f, chain, &fnew);
 			kfe = ((Ref *)sidechain->first)->ref;
 			if (knife_edge_in_face(kcd, kfe, f)) {

@@ -106,8 +106,8 @@ MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *
 }
 
 /* used for applying scale on mdisps layer and syncing subdivide levels when joining objects
-   use_first - return first multires modifier if all multires'es are disabled
-*/
+ * use_first - return first multires modifier if all multires'es are disabled
+ */
 MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, int use_first)
 {
 	ModifierData *md;
@@ -128,7 +128,7 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, int use_fi
 
 	if (!mmd && use_first) {
 		/* active multires have not been found
-		   try to use first one */
+		 * try to use first one */
 		return firstmmd;
 	}
 
@@ -491,7 +491,7 @@ static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl
 
 
 /* assumes no is normalized; return value's sign is negative if v is on
-   the other side of the plane */
+ * the other side of the plane */
 static float v3_dist_from_plane(float v[3], float center[3], float no[3])
 {
 	float s[3];
@@ -572,7 +572,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 			float no[3];
 
 			/* set up poly, loops, and coords in order to call
-			   mesh_calc_poly_normal_coords() */
+			 * mesh_calc_poly_normal_coords() */
 			fake_poly.totloop = p->totloop;
 			fake_poly.loopstart = 0;
 			fake_loops = MEM_mallocN(sizeof(MLoop) * p->totloop, "fake_loops");
@@ -813,20 +813,20 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 					switch(op) {
 					case APPLY_DISPLACEMENTS:
 						/* Convert displacement to object space
-						   and add to grid points */
+						 * and add to grid points */
 						mul_v3_m3v3(disp, mat, data);
 						add_v3_v3v3(co, sco, disp);
 						break;
 					case CALC_DISPLACEMENTS:
 						/* Calculate displacement between new and old
-						   grid points and convert to tangent space */
+						 * grid points and convert to tangent space */
 						sub_v3_v3v3(disp, co, sco);
 						invert_m3(mat);
 						mul_v3_m3v3(data, mat, disp);
 						break;
 					case ADD_DISPLACEMENTS:
 						/* Convert subdivided displacements to tangent
-						   space and add to the original displacements */
+						 * space and add to the original displacements */
 						invert_m3(mat);
 						mul_v3_m3v3(d, mat, co);
 						add_v3_v3(data, d);
@@ -1138,7 +1138,7 @@ DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int loca
 }
 
 /**** Old Multires code ****
-***************************/
+ ***************************/
 
 /* Adapted from sculptmode.c */
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v)
@@ -1669,7 +1669,7 @@ static void multires_load_old_vcols(Mesh *me)
 		return;
 
 	/* older multires format never supported multiple vcol layers,
-	   so we can assume the active vcol layer is the correct one */
+	 * so we can assume the active vcol layer is the correct one */
 	if (!(mcol = CustomData_get_layer(&me->fdata, CD_MCOL)))
 		return;
 	
@@ -1776,9 +1776,9 @@ static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 
 	if (!mmd) {
 		/* object could have MDISP even when there is no multires modifier
-		   this could lead to troubles due to i've got no idea how mdisp could be
-		   upsampled correct without modifier data.
-		   just remove mdisps if no multires present (nazgul) */
+		 * this could lead to troubles due to i've got no idea how mdisp could be
+		 * upsampled correct without modifier data.
+		 * just remove mdisps if no multires present (nazgul) */
 
 		Mesh *me= (Mesh*)ob->data;
 

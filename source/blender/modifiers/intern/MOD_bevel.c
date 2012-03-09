@@ -173,12 +173,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
 
-	/*if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
+#if 0
+	if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
 		defgrp_index = defgroup_name_index(ob, bmd->defgrp_name);
 		if (defgrp_index < 0) {
 			options &= ~BME_BEVEL_VWEIGHT;
 		}
-	}*/
+	}
+#endif
 
 	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);

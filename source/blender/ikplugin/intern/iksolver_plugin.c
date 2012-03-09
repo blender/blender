@@ -230,7 +230,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 
 
 /* called from within the core where_is_pose loop, all animsystems and constraints
-were executed & assigned. Now as last we do an IK pass */
+ * were executed & assigned. Now as last we do an IK pass */
 static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 {
 	float R_parmat[3][3], identity[3][3];
@@ -349,8 +349,8 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 	pchan= tree->pchan[0];
 	if (pchan->parent)
 		/* transform goal by parent mat, so this rotation is not part of the
-		   segment's basis. otherwise rotation limits do not work on the
-		   local transform of the segment itself. */
+		 * segment's basis. otherwise rotation limits do not work on the
+		 * local transform of the segment itself. */
 		copy_m4_m4(rootmat, pchan->parent->pose_mat);
 	else
 		unit_m4(rootmat);
@@ -539,7 +539,7 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 		execute_posetree(scene, ob, tree);
 		
 		/* 6. apply the differences to the channels, 
-			  we need to calculate the original differences first */
+		 *    we need to calculate the original differences first */
 		for(a=0; a<tree->totchannel; a++) {
 			make_dmats(tree->pchan[a]);
 		}

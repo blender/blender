@@ -540,7 +540,7 @@ static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
 	wmWindow *win = (wmWindow*)ptr->data;
 
 	/* exception: can't set screens inside of area/region handers, and must
-	   use context so notifier gets to the right window */
+	 * use context so notifier gets to the right window */
 	if (win->newscreen) {
 		WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, win->newscreen);
 		win->newscreen = NULL;

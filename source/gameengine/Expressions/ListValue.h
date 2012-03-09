@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _LISTVALUE_H
+#ifndef _LISTVALUE_H
 #define _LISTVALUE_H
 
 #include "Value.h"

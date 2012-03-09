@@ -421,7 +421,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	}
 	
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
-	   we set them here in case they are missing */
+	 * we set them here in case they are missing */
 	if(!CustomData_has_layer(&tmp.vdata, CD_MVERT))
 		CustomData_add_layer(&tmp.vdata, CD_MVERT, CD_ASSIGN, dm->dupVertArray(dm), totvert);
 	if(!CustomData_has_layer(&tmp.edata, CD_MEDGE))
@@ -454,9 +454,9 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	CustomData_free(&me->ldata, me->totloop);
 	CustomData_free(&me->pdata, me->totpoly);
 
-	/*  ok, this should now use new CD shapekey data,
-	    which shouuld be fed through the modifier 
-		stack*/
+	/* ok, this should now use new CD shapekey data,
+	 * which shouuld be fed through the modifier
+	 * stack*/
 	if(tmp.totvert != me->totvert && !did_shapekeys && me->key) {
 		printf("YEEK! this should be recoded! Shape key loss!!!\n");
 		if(tmp.key) tmp.key->id.us--;
@@ -787,7 +787,7 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 	}
 	else if(layer == CD_CLOTH_ORCO) {
 		/* apply shape key for cloth, this should really be solved
-		   by a more flexible customdata system, but not simple */
+		 * by a more flexible customdata system, but not simple */
 		if(!em) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 			KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
@@ -2636,8 +2636,9 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
 				attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
 			}
-			/* BMESH ONLY, may need to get this working?, otherwise remove */
-			/* else {
+			/* BMESH_TODO - BMESH ONLY, may need to get this working?, otherwise remove */
+#if 0
+			else {
 				int player;
 				CustomData *pdata = dm->getPolyDataLayout(dm);
 				
@@ -2657,7 +2658,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					
 				}
 			}
-			*/
+#endif
 		}
 		else if(gattribs->layer[b].type == CD_MCOL) {
 			/* vertex colors */
@@ -2756,13 +2757,14 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	if (!polygonIdx)
 		return;
 
-	/*
+#if 0
 	//UI_ThemeColor(TH_WIRE);
 	glDisable(GL_LIGHTING);
 	glLineWidth(2.0);
 	dm->drawEdges(dm, 0, 1);
 	glLineWidth(1.0);
-	glEnable(GL_LIGHTING);*/
+	glEnable(GL_LIGHTING);
+#endif
 
 	glDisable(GL_LIGHTING);
 	/*  if(GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */

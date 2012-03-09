@@ -185,18 +185,17 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 
 typedef enum IMB_Timecode_Type {
 	IMB_TC_NONE       = 0, /* don't use timecode files at all */
-	IMB_TC_RECORD_RUN = 1, /* use images in the order as they are recorded 
-				  (currently, this is the only one implemented
-				  and is a sane default)
-			       */
+
+	IMB_TC_RECORD_RUN = 1, /* use images in the order as they are recorded
+	                        * (currently, this is the only one implemented
+	                        * and is a sane default) */
+
 	IMB_TC_FREE_RUN   = 2, /* use global timestamp written by recording
-				  device (prosumer camcorders e.g. can do
-				  that) */
-	IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4, 
-                               /* interpolate a global timestamp using the
-				  record date and time written by recording
-				  device (*every* consumer camcorder can do
-				  that :) )*/
+                            * device (prosumer camcorders e.g. can do that) */
+	IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4, /* interpolate a global timestamp using the
+	                                            * record date and time written by recording
+	                                            * device (*every* consumer camcorder can do
+	                                            * that :) )*/
 	IMB_TC_RECORD_RUN_NO_GAPS = 8,
 	IMB_TC_MAX_SLOT   = 4
 } IMB_Timecode_Type;
@@ -367,8 +366,8 @@ void IMB_interlace(struct ImBuf *ibuf);
 
 /* create char buffer, color corrected if necessary, for ImBufs that lack one */ 
 void IMB_rect_from_float(struct ImBuf *ibuf);
-/* create char buffer for part of the image, color corrected if necessary,
-   Changed part will be stored in buffer. This is expected to be used for texture painting updates */ 
+/* Create char buffer for part of the image, color corrected if necessary,
+ * Changed part will be stored in buffer. This is expected to be used for texture painting updates */
 void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */

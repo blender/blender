@@ -49,7 +49,7 @@
 #include "math.h"
 
 /* This define should be relocated to a global header some where  Kent Mein 
-I stole it from util.h in the plugins api */
+ * I stole it from util.h in the plugins api */
 #define MAX2(x,y)                ( (x)>(y) ? (x) : (y) )
 
 /* Only this one is used liberally here, and in imbuf */
@@ -100,16 +100,15 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 }
 
 /**************************************************************************
-*                            INTERPOLATIONS 
-*
-* Reference and docs:
-* http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
-***************************************************************************/
+ *                            INTERPOLATIONS
+ *
+ * Reference and docs:
+ * http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
+ ***************************************************************************/
 
-/* BICUBIC Interpolation functions */
-/*  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
-*/
-/* function assumes out to be zero'ed, only does RGBA */
+/* BICUBIC Interpolation functions
+ *  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
+ * function assumes out to be zero'ed, only does RGBA */
 
 static float P(float k)
 {

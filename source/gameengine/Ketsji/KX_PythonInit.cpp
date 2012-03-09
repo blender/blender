@@ -2025,7 +2025,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	PyObject* item;
 
 	/* Use existing module where possible
-  * be careful not to init any runtime vars after this */
+	 * be careful not to init any runtime vars after this */
 	m = PyImport_ImportModule( "Rasterizer" );
 	if(m) {
 		Py_DECREF(m);

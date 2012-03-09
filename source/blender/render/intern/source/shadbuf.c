@@ -59,8 +59,7 @@
 #include "shading.h"
 #include "zbuf.h"
 
-/* XXX, could be better implemented... this is for endian issues
-*/
+/* XXX, could be better implemented... this is for endian issues */
 #ifdef __BIG_ENDIAN__
 #  define RCOMP	3
 #  define GCOMP	2
@@ -185,17 +184,19 @@ static int verg_deepsample(const void *poin1, const void *poin2)
 static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 {
 	/* uses doubles to avoid overflows and other numerical issues,
-	   could be improved */
+	 * could be improved */
 	DeepSample *ds, *newds;
 	float v;
 	double slope, slopemin, slopemax, min, max, div, newmin, newmax;
 	int a, first, z, newtot= 0;
 
-	/*if(print) {
+#if 0
+	if(print) {
 		for(a=0, ds=dsample; a<tot; a++, ds++)
 			printf("%lf,%f ", ds->z/(double)0x7FFFFFFF, ds->v);
 		printf("\n");
-	}*/
+	}
+#endif
 
 	/* read from and write into same array */
 	ds= dsample;
@@ -212,7 +213,7 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 			//dz= ds->z - newds->z;
 			if(ds->z == newds->z) {
 				/* still in same z position, simply check
-				   visibility difference against epsilon */
+				 * visibility difference against epsilon */
 				if(!(fabs(newds->v - ds->v) <= epsilon)) {
 					break;
 				}
@@ -274,11 +275,13 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 	if(newtot == 0 || (newds->v != (newds-1)->v))
 		newtot++;
 
-	/*if(print) {
+#if 0
+	if(print) {
 		for(a=0, ds=dsample; a<newtot; a++, ds++)
 			printf("%lf,%f ", ds->z/(double)0x7FFFFFFF, ds->v);
 		printf("\n");
-	}*/
+	}
+#endif
 
 	return newtot;
 }
@@ -769,7 +772,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 		shb->size= 1024;
 	
 	/* matrices and window: in winmat the transformation is being put,
-		transforming from observer view to lamp view, including lamp window matrix */
+	 * transforming from observer view to lamp view, including lamp window matrix */
 	
 	angle= saacos(lar->spotsi);
 	temp= 0.5f*shb->size*cos(angle)/sin(angle);
@@ -1134,7 +1137,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, const float co[3], const float dxc
 	shadowbuf_project_co(&xs1, &ys1, &zs1, shb, co);
 
 	/* clip z coordinate, z is projected so that (-1.0, 1.0) matches
-	   (clipstart, clipend), so we can do this simple test */
+	 * (clipstart, clipend), so we can do this simple test */
 	if(zs1>=1.0f)
 		return 0.0f;
 	else if(zs1<= -1.0f)
@@ -1151,7 +1154,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, const float co[3], const float dxc
 	if(mat_bias!=0.0f) biasf= shb->bias*mat_bias;
 	else biasf= shb->bias;
 	/* with inp==1.0, bias is half the size. correction value was 1.1, giving errors 
-	   on cube edges, with one side being almost frontal lighted (ton)  */
+	 * on cube edges, with one side being almost frontal lighted (ton)  */
 	bias= (1.5f-inp*inp)*biasf;
 	
 	/* in case of no filtering we can do things simpler */
@@ -1416,12 +1419,12 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 /* ********** storage of all view samples in a raster of lists ***** */
 
 /* based on several articles describing this method, like:
-The Irregular Z-Buffer and its Application to Shadow Mapping
-Gregory S. Johnson - William R. Mark - Christopher A. Burns 
-and
-Alias-Free Shadow Maps
-Timo Aila and Samuli Laine
-*/
+ * The Irregular Z-Buffer and its Application to Shadow Mapping
+ * Gregory S. Johnson - William R. Mark - Christopher A. Burns
+ * and
+ * Alias-Free Shadow Maps
+ * Timo Aila and Samuli Laine
+ */
 
 /* bsp structure (actually kd tree) */
 

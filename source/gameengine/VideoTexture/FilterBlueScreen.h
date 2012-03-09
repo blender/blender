@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined FILTERBLUESCREEN_H
+#ifndef FILTERBLUESCREEN_H
 #define FILTERBLUESCREEN_H
 
 #include "Common.h"

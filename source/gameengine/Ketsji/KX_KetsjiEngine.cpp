@@ -599,9 +599,9 @@ else
 			KX_Scene* scene = *sceneit;
 	
 			/* Suspension holds the physics and logic processing for an
-			* entire scene. Objects can be suspended individually, and
-			* the settings for that preceed the logic and physics
-			* update. */
+			 * entire scene. Objects can be suspended individually, and
+			 * the settings for that preceed the logic and physics
+			 * update. */
 			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
 
 			m_sceneconverter->resetNoneDynamicObjectToIpo();//this is for none dynamic objects with ipo
@@ -1340,8 +1340,8 @@ void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
 }
 
 /*
-To run once per scene
-*/
+ * To run once per scene
+ */
 void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	// We need to first make sure our viewport is correct (enabling multiple viewports can mess this up)

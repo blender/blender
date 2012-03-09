@@ -96,7 +96,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	}
 	else if(sculpting) {
 		/* would be created on the fly too, just nicer this
-		   way on first stroke after e.g. switching levels */
+		 * way on first stroke after e.g. switching levels */
 		ss->pbvh= result->getPBVH(ob, result);
 	}
 

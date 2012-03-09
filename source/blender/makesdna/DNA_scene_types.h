@@ -614,7 +614,7 @@ typedef struct GameData {
 	/*
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
-	*/
+	 */
 	int flag;
 	short mode, matmode;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
@@ -837,11 +837,12 @@ typedef struct TransformOrientation {
 } TransformOrientation;
 
 /* *************************************************************** */
-/* Unified Paint Settings */
+/* Unified Paint Settings
+ */
 
 /* These settings can override the equivalent fields in the active
-   Brush for any paint mode; the flag field controls whether these
-   values are used */
+ * Brush for any paint mode; the flag field controls whether these
+ * values are used */
 typedef struct UnifiedPaintSettings {
 	/* unified radius of brush in pixels */
 	int size;
@@ -861,12 +862,12 @@ typedef enum {
 	UNIFIED_PAINT_ALPHA = (1<<1),
 
 	/* only used if unified size is enabled, mirros the brush flags
-	   BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
+	 * BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
 	UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1<<2),
 	UNIFIED_PAINT_BRUSH_SIZE_PRESSURE   = (1<<3),
 
 	/* only used if unified alpha is enabled, mirrors the brush flag
-	   BRUSH_ALPHA_PRESSURE */
+	 * BRUSH_ALPHA_PRESSURE */
 	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1<<4)
 } UnifiedPaintSettingsFlags;
 
@@ -995,7 +996,7 @@ typedef struct ToolSettings {
 	int uv_sculpt_tool;
 	int uv_relax_method;
 	/* XXX: these sculpt_paint_* fields are deprecated, use the
-	   unified_paint_settings field instead! */
+	 * unified_paint_settings field instead! */
 	short sculpt_paint_settings DNA_DEPRECATED;	short pad1;
 	int sculpt_paint_unified_size DNA_DEPRECATED;
 	float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;

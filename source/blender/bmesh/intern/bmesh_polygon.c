@@ -103,16 +103,16 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		}
 #endif
 		/* newell's method
-
-		so thats?:
-		(a[1] - b[1]) * (a[2] + b[2]);
-		a[1] * b[2] - b[1] * a[2] - b[1] * b[2] + a[1] * a[2]
-
-		odd.  half of that is the cross product. . .what's the
-		other half?
-
-		also could be like a[1] * (b[2] + a[2]) - b[1] * (a[2] - b[2])
-		*/
+		 *
+		 * so thats?:
+		 * (a[1] - b[1]) * (a[2] + b[2]);
+		 * a[1] * b[2] - b[1] * a[2] - b[1] * b[2] + a[1] * a[2]
+		 *
+		 * odd.  half of that is the cross product. . .what's the
+		 * other half?
+		 *
+		 * also could be like a[1] * (b[2] + a[2]) - b[1] * (a[2] - b[2])
+		 */
 
 		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
 		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
@@ -126,12 +126,12 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 #if 0
 	l = len_v3(n);
 	/* fast square root, newton/babylonian method:
-	l2 = l * 0.1;
-
-	l2 = (l / l2 + l2) * 0.5;
-	l2 = (l / l2 + l2) * 0.5;
-	l2 = (l / l2 + l2) * 0.5;
-	*/
+	 * l2 = l * 0.1;
+	 *
+	 * l2 = (l / l2 + l2) * 0.5;
+	 * l2 = (l / l2 + l2) * 0.5;
+	 * l2 = (l / l2 + l2) * 0.5;
+	 */
 
 	if (l == 0.0) {
 		normal[0] = 0.0f;

@@ -464,7 +464,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	
 	if (objprop->m_dyna && !objprop->m_angular_rigidbody)
 	{
-		/*
+#if 0
 		//setting the inertia could achieve similar results to constraint the up
 		//but it is prone to instability, so use special 'Angular' constraint
 		btVector3 inertia = physicscontroller->GetRigidBody()->getInvInertiaDiagLocal();
@@ -473,7 +473,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 		physicscontroller->GetRigidBody()->setInvInertiaDiagLocal(inertia);
 		physicscontroller->GetRigidBody()->updateInertiaTensor();
-		*/
+#endif
 
 		//env->createConstraint(physicscontroller,0,PHY_ANGULAR_CONSTRAINT,0,0,0,0,0,1);
 	

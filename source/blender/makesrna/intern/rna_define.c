@@ -2694,7 +2694,7 @@ int rna_parameter_size(PropertyRNA *parm)
 }
 
 /* this function returns the size of the memory allocated for the parameter,
-   useful for instance for memory alignment or for storing additional information */
+ * useful for instance for memory alignment or for storing additional information */
 int rna_parameter_size_alloc(PropertyRNA *parm)
 {
 	int size = rna_parameter_size(parm);

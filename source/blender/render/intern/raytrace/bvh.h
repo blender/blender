@@ -267,7 +267,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_load_ps(bb2+4), _mm_load_ps(bb3+4), _MM_SHUFFLE(1,0,1,0) );
 			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2,0,2,0) );
 			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3,1,3,1) );
-/*			
+#if 0
 			for(int i=0; i<4; i++)
 			{
 				Node *t = stack[stack_pos+i];
@@ -282,7 +282,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 				bb[4*5] = t->bb[5];
 				t_node[i] = t->child;
 			}
-*/
+#endif
 			RE_RC_COUNT(isec->raycounter->simd_bb.test);
 			int res = test_bb_group4( t_bb, isec );
 
@@ -333,7 +333,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 /*
  * recursively transverse a BVH looking for a rayhit using system stack
  */
-/*
+#if 0
 template<class Node>
 static int bvh_node_raycast(Node *node, Isect *isec)
 {
@@ -378,7 +378,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 	}
 	return hit;
 }
-*/
+#endif
 
 template<class Node,class HintObject>
 void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)

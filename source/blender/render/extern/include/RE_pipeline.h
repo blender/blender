@@ -58,12 +58,12 @@ struct EnvMap;
 typedef struct Render Render;
 
 /* Render Result usage:
-
-- render engine allocates/frees and delivers raw floating point rects
-- right now it's full rects, but might become tiles or file 
-- the display client has to allocate display rects, sort out what to display, 
-  and how it's converted
-*/
+ *
+ * - render engine allocates/frees and delivers raw floating point rects
+ * - right now it's full rects, but might become tiles or file
+ * - the display client has to allocate display rects, sort out what to display,
+ *   and how it's converted
+ */
 
 typedef struct RenderPass {
 	struct RenderPass *next, *prev;

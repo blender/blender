@@ -58,14 +58,14 @@
 
 /* wmSubWindow stored in wmWindow... but not exposed outside this C file */
 /* it seems a bit redundant (area regions can store it too, but we keep it
-   because we can store all kind of future opengl fanciness here */
+ * because we can store all kind of future opengl fanciness here */
 
 /* we use indices and array because:
-   - index has safety, no pointers from this C file hanging around
-   - fast lookups of indices with array, list would give overhead
-   - old code used it this way...
-   - keep option open to have 2 screens using same window
-*/
+ * - index has safety, no pointers from this C file hanging around
+ * - fast lookups of indices with array, list would give overhead
+ * - old code used it this way...
+ * - keep option open to have 2 screens using same window
+ */
 
 typedef struct wmSubWindow {
 	struct wmSubWindow *next, *prev;
@@ -207,17 +207,17 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		swin->winrct= *winrct;
 		
 		/* CRITICAL, this clamping ensures that
-			* the viewport never goes outside the screen
-			* edges (assuming the x, y coords aren't
-					 * outside). This caused a hardware lock
-			* on Matrox cards if it happens.
-			* 
-			* Really Blender should never _ever_ try
-			* to do such a thing, but just to be safe
-			* clamp it anyway (or fix the bScreen
-			* scaling routine, and be damn sure you
-			* fixed it). - zr  (2001!)
-			*/
+		 * the viewport never goes outside the screen
+		 * edges (assuming the x, y coords aren't
+		 *        outside). This caused a hardware lock
+		 * on Matrox cards if it happens.
+		 *
+		 * Really Blender should never _ever_ try
+		 * to do such a thing, but just to be safe
+		 * clamp it anyway (or fix the bScreen
+		 * scaling routine, and be damn sure you
+		 * fixed it). - zr  (2001!)
+		 */
 		
 		if (swin->winrct.xmax > win->sizex)
 			swin->winrct.xmax= win->sizex;

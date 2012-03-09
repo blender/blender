@@ -62,20 +62,20 @@ typedef struct GPUBufferMaterial {
 } GPUBufferMaterial;
 
 /* meshes are split up by material since changing materials requires
-   GL state changes that can't occur in the middle of drawing an
-   array.
-
-   some simplifying assumptions are made:
-   * all quads are treated as two triangles.
-   * no vertex sharing is used; each triangle gets its own copy of the
-     vertices it uses (this makes it easy to deal with a vertex used
-     by faces with different properties, such as smooth/solid shading,
-     different MCols, etc.)
-
-   to avoid confusion between the original MVert vertices and the
-   arrays of OpenGL vertices, the latter are referred to here and in
-   the source as `points'. similarly, the OpenGL triangles generated
-   for MFaces are referred to as triangles rather than faces.
+ * GL state changes that can't occur in the middle of drawing an
+ * array.
+ *
+ * some simplifying assumptions are made:
+ * - all quads are treated as two triangles.
+ * - no vertex sharing is used; each triangle gets its own copy of the
+ *   vertices it uses (this makes it easy to deal with a vertex used
+ *   by faces with different properties, such as smooth/solid shading,
+ *   different MCols, etc.)
+ *
+ * to avoid confusion between the original MVert vertices and the
+ * arrays of OpenGL vertices, the latter are referred to here and in
+ * the source as `points'. similarly, the OpenGL triangles generated
+ * for MFaces are referred to as triangles rather than faces.
  */
 typedef struct GPUDrawObject {
 	GPUBuffer *points;
@@ -107,7 +107,7 @@ typedef struct GPUDrawObject {
 	int totedge;
 
 	/* if there was a failure allocating some buffer, use old
-	   rendering code */
+	 * rendering code */
 	int legacy;
 } GPUDrawObject;
 

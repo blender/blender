@@ -333,7 +333,7 @@ static void InterpCSGFace(
 }
 
 /* Iterate over the CSG Output Descriptors and create a new DerivedMesh
-   from them */
+ * from them */
 static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	CSG_FaceIteratorDescriptor *face_it,
 	CSG_VertexIteratorDescriptor *vertex_it,

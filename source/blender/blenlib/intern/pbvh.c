@@ -476,7 +476,7 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
 }
 
 /* Return zero if all primitives in the node can be drawn with the
-   same material (including flat/smooth shading), non-zerootherwise */
+ * same material (including flat/smooth shading), non-zerootherwise */
 int leaf_needs_material_split(PBVH *bvh, int offset, int count)
 {
 	int i, prim;

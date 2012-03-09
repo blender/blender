@@ -126,7 +126,7 @@
 /* ------------------------------------------------------------------------- */
 
 /* Stuff for stars. This sits here because it uses gl-things. Part of
-this code may move down to the converter.  */
+ * this code may move down to the converter.  */
 /* ------------------------------------------------------------------------- */
 /* this is a bad beast, since it is misused by the 3d view drawing as well. */
 
@@ -149,10 +149,10 @@ static HaloRen *initstar(Render *re, ObjectRen *obr, float *vec, float hasize)
 }
 
 /* there must be a 'fixed' amount of stars generated between
-*         near and far
-* all stars must by preference lie on the far and solely
-*        differ in clarity/color
-*/
+ *         near and far
+ * all stars must by preference lie on the far and solely
+ *        differ in clarity/color
+ */
 
 void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 				   void (*vertexfunc)(float*),  void (*termfunc)(void))
@@ -199,10 +199,10 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	else unit_m4(mat);
 	
 	/* BOUNDING BOX CALCULATION
-		* bbox goes from z = loc_near_var | loc_far_var,
-		* x = -z | +z,
-		* y = -z | +z
-		*/
+	 * bbox goes from z = loc_near_var | loc_far_var,
+	 * x = -z | +z,
+	 * y = -z | +z
+	 */
 
 	camera= re ? RE_GetCamera(re) : scene->camera;
 
@@ -250,9 +250,9 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 					mul_m4_v3(re->viewmat, vec);
 					
 					/* in vec are global coordinates
-					* calculate distance to camera
-					* and using that, define the alpha
-					*/
+					 * calculate distance to camera
+					 * and using that, define the alpha
+					 */
 					
 					{
 						float tx, ty, tz;
@@ -321,7 +321,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 
 /* ------------------------------------------------------------------------- */
 /* tool functions/defines for ad hoc simplification and possible future 
-   cleanup      */
+ * cleanup      */
 /* ------------------------------------------------------------------------- */
 
 #define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
@@ -514,8 +514,8 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 
 
 /****************************************************************
-************ tangent space generation interface *****************
-****************************************************************/
+ ************ tangent space generation interface ****************
+ ****************************************************************/
 
 typedef struct
 {
@@ -608,7 +608,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 	}
 
 		/* calculate cos of angles and point-masses, use as weight factor to
-		   add face normal to vertex */
+		 * add face normal to vertex */
 	for(a=0; a<obr->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if(vlr->flag & ME_SMOOTH) {
@@ -2316,7 +2316,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
 	
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
-		different material... */
+	 * different material... */
 	vr->flag |= 1;
 	
 	/* Pass sample back so displace_face can decide which way to split the quad */
@@ -2334,7 +2334,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	ShadeInput shi;
 
 	/* Warning, This is not that nice, and possibly a bit slow,
-	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+	 * however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
 	memset(&shi, 0, sizeof(ShadeInput)); 
 	/* end warning! - Campbell */
 	
@@ -4054,8 +4054,8 @@ static void set_phong_threshold(ObjectRen *obr)
 	int tot=0, i;
 	
 	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
-	   are taken into account. This threshold is meant to work on smooth geometry, not
-	   for extreme cases (ton) */
+	 * are taken into account. This threshold is meant to work on smooth geometry, not
+	 / for extreme cases (ton) */
 	
 	for(i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
@@ -4094,7 +4094,7 @@ static void set_phong_threshold(ObjectRen *obr)
 }
 
 /* per face check if all samples should be taken.
-   if raytrace or multisample, do always for raytraced material, or when material full_osa set */
+ * if raytrace or multisample, do always for raytraced material, or when material full_osa set */
 static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 {
 	VlakRen *vlr;

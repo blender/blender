@@ -1,8 +1,4 @@
-/** \file blender/imbuf/intern/openexr/openexr_api.cpp
- *  \ingroup openexr
- */
 /*
-*
  * ***** BEGIN GPLLICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +23,10 @@
  * Contributor(s): Austin Benesh, Ton Roosendaal (float, half, speedup, cleanup...).
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/imbuf/intern/openexr/openexr_api.cpp
+ *  \ingroup openexr
  */
 
 #include <stdlib.h>
@@ -384,11 +384,11 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 /* ********************* Nicer API, MultiLayer and with Tile file support ************************************ */
 
 /* naming rules:
-   - parse name from right to left
-   - last character is channel ID, 1 char like 'A' 'R' 'G' 'B' 'X' 'Y' 'Z' 'W' 'U' 'V'
-   - separated with a dot; the Pass name (like "Depth", "Color", "Diffuse" or "Combined")
-   - separated with a dot: the Layer name (like "Lamp1" or "Walls" or "Characters")
-*/
+ * - parse name from right to left
+ * - last character is channel ID, 1 char like 'A' 'R' 'G' 'B' 'X' 'Y' 'Z' 'W' 'U' 'V'
+ * - separated with a dot; the Pass name (like "Depth", "Color", "Diffuse" or "Combined")
+ * - separated with a dot: the Layer name (like "Lamp1" or "Walls" or "Characters")
+ */
 
 static ListBase exrhandles= {NULL, NULL};
 

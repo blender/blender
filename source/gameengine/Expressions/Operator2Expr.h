@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _OPERATOR2EXPR_H
+#ifndef _OPERATOR2EXPR_H
 #define _OPERATOR2EXPR_H
 
 

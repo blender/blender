@@ -79,7 +79,7 @@ typedef struct {
 	DerivedMesh dm;
 
 	/* these point to data in the DerivedMesh custom data layers,
-	   they are only here for efficiency and convenience **/
+	 * they are only here for efficiency and convenience **/
 	MVert *mvert;
 	MEdge *medge;
 	MFace *mface;
@@ -237,13 +237,13 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 	int deformed= 0;
 
 	/* active modifiers means extra deformation, which can't be handled correct
-	   on bith of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
-	   stuff and show final DerivedMesh so user would see actual object shape */
+	 * on bith of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
+	 * stuff and show final DerivedMesh so user would see actual object shape */
 	deformed|= ob->sculpt->modifiers_active;
 
 	/* as in case with modifiers, we can't synchronize deformation made against
-	   PBVH and non-locked keyblock, so also use PBVH only for brushes and
-	   final DM to give final result to user */
+	 * PBVH and non-locked keyblock, so also use PBVH only for brushes and
+	 * final DM to give final result to user */
 	deformed|= ob->sculpt->kb && (ob->shapeflag&OB_SHAPE_LOCK) == 0;
 
 	if(deformed)
@@ -269,8 +269,8 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	}
 
 	/* always build pbvh from original mesh, and only use it for drawing if
-	   this derivedmesh is just original mesh. it's the multires subsurf dm
-	   that this is actually for, to support a pbvh on a modified mesh */
+	 * this derivedmesh is just original mesh. it's the multires subsurf dm
+	 * that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
 		SculptSession *ss= ob->sculpt;
 		Mesh *me= ob->data;
@@ -297,7 +297,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 }
 
 /* update vertex normals so that drawing smooth faces works during sculpt
-   TODO: proper fix is to support the pbvh in all drawing modes */
+ * TODO: proper fix is to support the pbvh in all drawing modes */
 static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -760,7 +760,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 
 				if(!flush && compareDrawOptions) {
 					/* also compare draw options and flush buffer if they're different
-					   need for face selection highlight in edit mode */
+					 * need for face selection highlight in edit mode */
 					flush|= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 				}
 
@@ -840,7 +840,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					cp = (unsigned char *)&mc[i * 4];
 
 				/* no need to set shading mode to flat because
-				*  normals are already used to change shading */
+				 *  normals are already used to change shading */
 				glShadeModel(GL_SMOOTH);
 				glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
 
@@ -931,8 +931,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 						draw_option= setDrawOptions(userData, orig);
 	
 					/* Goal is to draw as long of a contiguous triangle
-					   array as possible, so draw when we hit either an
-					   invisible triangle or at the end of the array */
+					 * array as possible, so draw when we hit either an
+					 * invisible triangle or at the end of the array */
 
 					/* flush buffer if current triangle isn't drawable or it's last triangle... */
 					flush= (draw_option == DM_DRAW_OPTION_SKIP) || (i == tottri - 1);
@@ -1517,7 +1517,7 @@ void CDDM_recalc_tessellation_ex(DerivedMesh *dm, const int do_face_nor_cpy)
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	/* Tessellation recreated faceData, and the active layer indices need to get re-propagated
-	   from loops and polys to faces */
+	 * from loops and polys to faces */
 	CustomData_bmesh_update_active_layers(&dm->faceData, &dm->polyData, &dm->loopData);
 }
 
@@ -1826,8 +1826,8 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 	mask = use_mdisps ? CD_MASK_DERIVEDMESH|CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
 	
-	/*don't process shapekeys, we only feed them through the modifier stack as needed,
-	  e.g. for applying modifiers or the like*/
+	/* don't process shapekeys, we only feed them through the modifier stack as needed,
+	 * e.g. for applying modifiers or the like*/
 	mask &= ~CD_MASK_SHAPEKEY;
 	CustomData_merge(&bm->vdata, &dm->vertData, mask,
 	                 CD_CALLOC, dm->numVertData);
@@ -1992,7 +1992,7 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	/* any callers that need tessface data can calculate it - campbell */
 #if 0
 	/* BMESH_TODO: Find out why this is necessary (or else find a way to remove
-	   it). If it is necessary, add a comment explaining why. */
+	 * it). If it is necessary, add a comment explaining why. */
 	CDDM_recalc_tessellation((DerivedMesh *)cddm);
 #endif
 

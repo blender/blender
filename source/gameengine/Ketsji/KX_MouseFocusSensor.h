@@ -120,7 +120,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
  private:
 	/**
 	 * The focus mode. 1 for handling focus, 0 for not handling, 2 for focus on any object
-	*/
+	 */
 	int	m_focusmode;
 
 	/**

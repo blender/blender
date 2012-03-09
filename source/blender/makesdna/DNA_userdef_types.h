@@ -619,11 +619,11 @@ extern UserDef U; /* from blenkernel blender.c */
 /* orbit navigation modes
  * only two options, so it's sort of a hybrid bool/enum
  * if ((U.ndof_flag & NDOF_ORBIT_MODE) == NDOF_OM_OBJECT)... */
-/*
-#define NDOF_ORBIT_MODE     (1 << 6)
-#define NDOF_OM_TARGETCAMERA 0
-#define NDOF_OM_OBJECT      NDOF_ORBIT_MODE
-*/
+
+// #define NDOF_ORBIT_MODE     (1 << 6)
+// #define NDOF_OM_TARGETCAMERA 0
+// #define NDOF_OM_OBJECT      NDOF_ORBIT_MODE
+
 /* actually... users probably don't care about what the mode
  * is called, just that it feels right */
 /* zoom is up/down if this flag is set (otherwise forward/backward) */

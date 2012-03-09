@@ -168,9 +168,9 @@ void initPyTypes(void)
 {
 	
 /*
-	initPyObjectPlusType(BL_ActionActuator::Parents);
-	.....
-*/
+ * initPyObjectPlusType(BL_ActionActuator::Parents);
+ * .....
+ */
 
 	/* For now just do PyType_Ready */
 	PyObject *mod= PyModule_New("GameTypes");

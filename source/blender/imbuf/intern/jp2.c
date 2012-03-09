@@ -68,24 +68,24 @@ int imb_is_a_jp2(unsigned char *buf)
 
 
 /**
-sample error callback expecting a FILE* client object
-*/
+ * sample error callback expecting a FILE* client object
+ */
 static void error_callback(const char *msg, void *client_data)
 {
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[ERROR] %s", msg);
 }
 /**
-sample warning callback expecting a FILE* client object
-*/
+ * sample warning callback expecting a FILE* client object
+ */
 static void warning_callback(const char *msg, void *client_data)
 {
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[WARNING] %s", msg);
 }
 /**
-sample debug callback expecting no client object
-*/
+ * sample debug callback expecting no client object
+ */
 static void info_callback(const char *msg, void *client_data)
 {
 	(void)client_data;
@@ -292,11 +292,11 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 
 
 /*
-2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3x12 bits per pixel, XYZ color space
-
-	* In 2K, for Scope (2.39:1) presentation 2048x858 pixels of the imager is used
-	* In 2K, for Flat (1.85:1) presentation 1998x1080 pixels of the imager is used
-*/
+ * 2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3x12 bits per pixel, XYZ color space
+ *
+ * - In 2K, for Scope (2.39:1) presentation 2048x858 pixels of the imager is used
+ * - In 2K, for Flat (1.85:1) presentation 1998x1080 pixels of the imager is used
+ */
 
 /* ****************************** COPIED FROM image_to_j2k.c */
 
@@ -679,9 +679,9 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 	(void)flags; /* unused */
 	
 	/*
-	configure the event callbacks (not required)
-	setting of each callback is optionnal
-	*/
+	 * configure the event callbacks (not required)
+	 * setting of each callback is optionnal
+	 */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
 	event_mgr.error_handler = error_callback;
 	event_mgr.warning_handler = warning_callback;
@@ -692,7 +692,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 	
 	/* compression ratio */
 	/* invert range, from 10-100, 100-1
-	* where jpeg see's 1 and highest quality (lossless) and 100 is very low quality*/
+	 * where jpeg see's 1 and highest quality (lossless) and 100 is very low quality*/
 	parameters.tcp_rates[0]= ((100-quality)/90.0f*99.0f) + 1;
 
 	

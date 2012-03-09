@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _FLOATVALUE_H
+#ifndef _FLOATVALUE_H
 #define _FLOATVALUE_H
 
 #include "Value.h"

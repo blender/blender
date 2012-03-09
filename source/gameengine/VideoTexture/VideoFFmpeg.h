@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined VIDEOFFMPEG_H
+#ifndef VIDEOFFMPEG_H
 #define VIDEOFFMPEG_H
 
 #ifdef WITH_FFMPEG

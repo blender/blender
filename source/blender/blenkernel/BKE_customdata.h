@@ -69,7 +69,7 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 #define CD_DEFAULT   2  /* allocate and set to default */
 #define CD_REFERENCE 3  /* use data pointers, set layer flag NOFREE */
 #define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
-						   has same number of elements */
+                         * has same number of elements */
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 

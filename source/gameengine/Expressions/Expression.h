@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _EXPRESSION_H
+#ifndef _EXPRESSION_H
 #define _EXPRESSION_H
 
 #include "Value.h"

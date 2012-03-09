@@ -39,7 +39,7 @@ extern "C" {
   
 #include <stdio.h>
   
-  /**
+/**
  * Test presence of OpenEXR file.
  * \param mem pointer to loaded OpenEXR bitstream
  */

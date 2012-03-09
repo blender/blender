@@ -25,7 +25,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined EXCEPTION_H
+#ifndef EXCEPTION_H
 #define EXCEPTION_H
 
 #include <exception>

@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _EMPTYVALUE_H
+#ifndef _EMPTYVALUE_H
 #define _EMPTYVALUE_H
 
 #include "Value.h"

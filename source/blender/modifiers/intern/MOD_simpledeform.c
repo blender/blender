@@ -315,7 +315,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	CustomDataMask dataMask = requiredDataMask(ob, md);
 
 	/* we implement requiredDataMask but thats not really useful since
-	   mesh_calc_modifiers pass a NULL derivedData */
+	 * mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
 		dm= get_dm(ob, NULL, dm, NULL, 0);
 
@@ -335,7 +335,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 	CustomDataMask dataMask = requiredDataMask(ob, md);
 
 	/* we implement requiredDataMask but thats not really useful since
-	   mesh_calc_modifiers pass a NULL derivedData */
+	 * mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
 		dm= get_dm(ob, editData, dm, NULL, 0);
 

@@ -65,68 +65,67 @@
 #include "BPY_extern.h"
 #endif
 
-/***************/ /*
-
-How Texts should work
---
-A text should relate to a file as follows -
-(Text *)->name should be the place where the 
-	file will or has been saved.
-	
-(Text *)->flags has the following bits
-	TXT_ISDIRTY - should always be set if the file in mem. differs from
-					the file on disk, or if there is no file on disk.
-	TXT_ISMEM - should always be set if the Text has not been mapped to
-					a file, in which case (Text *)->name may be NULL or garbage.			
-	TXT_ISEXT - should always be set if the Text is not to be written into
-					the .blend
-	TXT_ISSCRIPT - should be set if the user has designated the text
-					as a script. (NEW: this was unused, but now it is needed by
-					space handler script links (see header_view3d.c, for example)
-
-->>> see also: /makesdna/DNA_text_types.h
-
-Display
---
-The st->top determines at what line the top of the text is displayed.
-If the user moves the cursor the st containing that cursor should
-be popped ... other st's retain their own top location.
-
-Markers
---
-The mrk->flags define the behavior and relationships between markers. The
-upper two bytes are used to hold a group ID, the lower two are normal flags. If
-TMARK_EDITALL is set the group ID defines which other markers should be edited.
-
-The mrk->clr field is used to visually group markers where the flags may not
-match. A template system, for example, may allow editing of repeating tokens
-(in one group) but include other marked positions (in another group) all in the
-same template with the same color.
-
-Undo
---
-Undo/Redo works by storing
-events in a queue, and a pointer
-to the current position in the
-queue...
-
-Events are stored using an
-arbitrary op-code system
-to keep track of
-a) the two cursors (normal and selected)
-b) input (visible and control (ie backspace))
-
-input data is stored as its
-ASCII value, the opcodes are
-then selected to not conflict.
-
-opcodes with data in between are
-written at the beginning and end
-of the data to allow undo and redo
-to simply check the code at the current
-undo position
-
-*/ /***************/
+/*
+ * How Texts should work
+ * --
+ * A text should relate to a file as follows -
+ * (Text *)->name should be the place where the
+ *     file will or has been saved.
+ *
+ * (Text *)->flags has the following bits
+ *     TXT_ISDIRTY - should always be set if the file in mem. differs from
+ *                     the file on disk, or if there is no file on disk.
+ *     TXT_ISMEM - should always be set if the Text has not been mapped to
+ *                     a file, in which case (Text *)->name may be NULL or garbage.
+ *     TXT_ISEXT - should always be set if the Text is not to be written into
+ *                     the .blend
+ *     TXT_ISSCRIPT - should be set if the user has designated the text
+ *                     as a script. (NEW: this was unused, but now it is needed by
+ *                     space handler script links (see header_view3d.c, for example)
+ *
+ * ->>> see also: /makesdna/DNA_text_types.h
+ *
+ * Display
+ * --
+ * The st->top determines at what line the top of the text is displayed.
+ * If the user moves the cursor the st containing that cursor should
+ * be popped ... other st's retain their own top location.
+ *
+ * Markers
+ * --
+ * The mrk->flags define the behavior and relationships between markers. The
+ * upper two bytes are used to hold a group ID, the lower two are normal flags. If
+ * TMARK_EDITALL is set the group ID defines which other markers should be edited.
+ *
+ * The mrk->clr field is used to visually group markers where the flags may not
+ * match. A template system, for example, may allow editing of repeating tokens
+ * (in one group) but include other marked positions (in another group) all in the
+ * same template with the same color.
+ *
+ * Undo
+ * --
+ * Undo/Redo works by storing
+ * events in a queue, and a pointer
+ * to the current position in the
+ * queue...
+ *
+ * Events are stored using an
+ * arbitrary op-code system
+ * to keep track of
+ * a) the two cursors (normal and selected)
+ * b) input (visible and control (ie backspace))
+ *
+ * input data is stored as its
+ * ASCII value, the opcodes are
+ * then selected to not conflict.
+ *
+ * opcodes with data in between are
+ * written at the beginning and end
+ * of the data to allow undo and redo
+ * to simply check the code at the current
+ * undo position
+ *
+ */
 
 /***/
 

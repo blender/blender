@@ -494,11 +494,13 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Handle 2 Location", "");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
-	/* appears to be unused currently
+	/* appears to be unused currently */
+#if 0
 	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_tilt_get", "rna_ShapeKeyBezierPoint_tilt_set", NULL);
 	RNA_def_property_ui_text(prop, "Tilt", "");
-	RNA_def_property_update(prop, 0, "rna_Key_update_data"); */
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
+#endif
 }
 
 static void rna_def_keyblock(BlenderRNA *brna)

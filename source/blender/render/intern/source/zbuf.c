@@ -244,7 +244,7 @@ int testclip(const float v[4])
 	short c=0;
 	
 	/* if we set clip flags, the clipping should be at least larger than epsilon. 
-	   prevents issues with vertices lying exact on borders */
+	 * prevents issues with vertices lying exact on borders */
 	abs4= fabsf(v[3]) + FLT_EPSILON;
 	
 	if( v[0] < -abs4) c+=1;
@@ -851,8 +851,8 @@ static int clipline(float v1[4], float v2[4])	/* return 0: do not draw */
 	dw= v2[3]-v1[3];
 	
 	/* this 1.01 is for clipping x and y just a tinsy larger. that way it is
-		filled in with zbufwire correctly when rendering in parts. otherwise
-		you see line endings at edges... */
+	 * filled in with zbufwire correctly when rendering in parts. otherwise
+	 * you see line endings at edges... */
 	
 	if(cliptestf(-dz, -dw, v1[3], v1[2], &u1,&u2)) {
 		if(cliptestf(dz, -dw, v1[3], -v1[2], &u1,&u2)) {
@@ -1591,8 +1591,7 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
 /**
  * (clip pyramid)
  * Sets labda: flag, and parametrize the clipping of vertices in
- * viewspace coordinates. labda = -1 means no clipping, labda in [0,
-	 * 1] means a clipping.
+ * viewspace coordinates. labda = -1 means no clipping, labda in [0, 1] means a clipping.
  * Note: uses globals.
  * \param v1 start coordinate s
  * \param v2 target coordinate t

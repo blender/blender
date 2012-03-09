@@ -160,8 +160,8 @@ protected:
 	// Used to deregister objects that are deleted
 	class KX_BlenderSceneConverter*		m_sceneConverter;
 	/**
-	* physics engine abstraction
-	*/
+	 * physics engine abstraction
+	 */
 	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
@@ -582,8 +582,8 @@ public:
 	void SetNodeTree(SG_Tree* root);
 
 	/**
-	* 2D Filters
-	*/
+	 * 2D Filters
+	 */
 	void Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 

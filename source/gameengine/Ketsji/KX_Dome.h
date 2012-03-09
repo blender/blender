@@ -26,8 +26,8 @@ Developed as part of a Research and Development project for SAT - La Soci�t�
  *  \ingroup ketsji
  */
 
-#if !defined KX_DOME_H
-#define KX_DOME_H
+#ifndef __KX_DOME_H__
+#define __KX_DOME_H__
 
 #include "KX_Scene.h"
 #include "KX_Camera.h"
@@ -196,5 +196,4 @@ public:
 #endif
 };
 
-#endif
-
+#endif /* __KX_DOME_H__ */

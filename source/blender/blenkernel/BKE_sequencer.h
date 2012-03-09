@@ -118,11 +118,11 @@ struct SeqEffectHandle {
 	void (*init_plugin)(struct Sequence *seq, const char *fname);
 	
 	/* number of input strips needed 
-		(called directly after construction) */
+	 * (called directly after construction) */
 	int (*num_inputs)(void);
 	
 	/* load is called first time after readblenfile in
-		get_sequence_effect automatically */
+	 * get_sequence_effect automatically */
 	void (*load)(struct Sequence *seq);
 	
 	/* duplicate */
@@ -132,9 +132,9 @@ struct SeqEffectHandle {
 	void (*free)(struct Sequence *seq);
 	
 	/* returns: -1: no input needed,
-	0: no early out, 
-	1: out = ibuf1, 
-	2: out = ibuf2 */
+	 * 0: no early out,
+	 * 1: out = ibuf1,
+	 * 2: out = ibuf2 */
 	int (*early_out)(struct Sequence *seq, float facf0, float facf1); 
 	
 	/* stores the y-range of the effect IPO */
@@ -146,9 +146,9 @@ struct SeqEffectHandle {
                                 float * facf0, float * facf1);
 	
 	/* execute the effect
-           sequence effects are only required to either support
-           float-rects or byte-rects 
-           (mixed cases are handled one layer up...) */
+	 * sequence effects are only required to either support
+	 * float-rects or byte-rects
+	 * (mixed cases are handled one layer up...) */
 	
 	struct ImBuf* (*execute)(
 		SeqRenderData context,
@@ -161,10 +161,10 @@ struct SeqEffectHandle {
 /* ********************* prototypes *************** */
 
 /* **********************************************************************
-   * sequence.c
-
-   * sequencer render functions
-   ********************************************************************** */
+ * sequence.c
+ *
+ * sequencer render functions
+ * ********************************************************************** */
 
 struct ImBuf *give_ibuf_seq(SeqRenderData context, float cfra, int chanshown);
 struct ImBuf *give_ibuf_seq_threaded(SeqRenderData context, float cfra, int chanshown);
@@ -209,10 +209,10 @@ void seq_proxy_rebuild_finish(struct SeqIndexBuildContext *context, short stop);
 
 
 /* **********************************************************************
-   seqcache.c
-
-   Sequencer memory cache management functions
-   ********************************************************************** */
+ * seqcache.c
+ *
+ * Sequencer memory cache management functions
+ * ********************************************************************** */
 
 typedef enum {
 	SEQ_STRIPELEM_IBUF,
@@ -230,20 +230,20 @@ struct ImBuf * seq_stripelem_cache_get(
 	float cfra, seq_stripelem_ibuf_t type);
 
 /* passed ImBuf is properly refed, so ownership is *not* 
-   transfered to the cache.
-   you can pass the same ImBuf multiple times to the cache without problems.
-*/
+ * transfered to the cache.
+ * you can pass the same ImBuf multiple times to the cache without problems.
+ */
    
 void seq_stripelem_cache_put(
 	SeqRenderData context, struct Sequence * seq, 
 	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * nval);
 
 /* **********************************************************************
-   seqeffects.c 
-
-   Sequencer effect strip managment functions
-   **********************************************************************
-*/
+ * seqeffects.c
+ *
+ * Sequencer effect strip managment functions
+ *  **********************************************************************
+ */
 
 /* intern */
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);
@@ -255,9 +255,9 @@ int get_sequence_effect_num_inputs(int seq_type);
 
 
 /* **********************************************************************
-   Sequencer editing functions
-   **********************************************************************
-*/
+ * Sequencer editing functions
+ * **********************************************************************
+ */
    
 /* for transform but also could use elsewhere */
 int seq_tx_get_start(struct Sequence *seq);

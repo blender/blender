@@ -68,8 +68,8 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
 
 
 /*
-*	Surfaces
-*/
+ *	Surfaces
+ */
 
 static void rna_DynamicPaint_redoModifier(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -102,7 +102,7 @@ static void rna_DynamicPaintSurface_changePreview(Main *bmain, Scene *scene, Poi
 	DynamicPaintSurface *surface = act_surface->canvas->surfaces.first;
 
 	/* since only one color surface can show preview at time
-	*  disable preview on other surfaces*/
+	 *  disable preview on other surfaces*/
 	for (; surface; surface = surface->next) {
 		if (surface != act_surface)
 			surface->flags &= ~MOD_DPAINT_PREVIEW;
@@ -316,7 +316,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 			{0, NULL, 0, NULL, NULL}};
 
 	/*  Effect type
-	*   Only used by ui to view per effect settings */
+	 *   Only used by ui to view per effect settings */
 	static EnumPropertyItem prop_dynamicpaint_effecttype[] = {
 			{1, "SPREAD", 0, "Spread", ""},
 			{2, "DRIP", 0, "Drip", ""},
@@ -383,8 +383,8 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 
 
 	/*
-	*   Paint, wet and displace
-	*/
+	 *   Paint, wet and displace
+	 */
 
 	prop = RNA_def_property(srna, "use_dissolve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DISSOLVE);
@@ -406,8 +406,8 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dry Speed", "Approximately in how many frames should drying happen");
 	
 	/*
-	*   Simulation settings
-	*/
+	 *   Simulation settings
+	 */
 	prop = RNA_def_property(srna, "image_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 16.0, 4096.0);
@@ -462,8 +462,8 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
 	/*
-	*	Initial Color
-	*/
+	 *	Initial Color
+	 */
 
 	prop = RNA_def_property(srna, "init_color_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -487,8 +487,8 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
 	/*
-	*   Effect Settings
-	*/
+	 *   Effect Settings
+	 */
 	prop = RNA_def_property(srna, "effect_ui", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_effecttype);
@@ -562,8 +562,8 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Acceleration", "How much surface acceleration affects dripping");
 
 	/*
-	*   Output settings
-	*/
+	 *   Output settings
+	 */
 	prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_MULALPHA);
@@ -691,8 +691,8 @@ static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_DynamicPaintCanvasSettings_path");
 
 	/*
-	*	Surface Slots
-	*/
+	 *	Surface Slots
+	 */
 	prop = RNA_def_property(srna, "canvas_surfaces", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_DynamicPaint_surfaces_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
@@ -739,8 +739,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_DynamicPaintBrushSettings_path");
 
 	/*
-	*   Paint
-	*/
+	 *   Paint
+	 */
 	prop = RNA_def_property(srna, "paint_color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
@@ -878,8 +878,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	
 
 	/*
-	*   Particle
-	*/
+	 *   Particle
+	 */
 	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "psys");
 	RNA_def_property_struct_type(prop, "ParticleSystem");
@@ -909,8 +909,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	
 
 	/*
-	* Color ramps
-	*/
+	 * Color ramps
+	 */
 	prop = RNA_def_property(srna, "paint_ramp", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "paint_ramp");
 	RNA_def_property_struct_type(prop, "ColorRamp");

@@ -16,7 +16,7 @@
  *  \ingroup expressions
  */
 
-#if !defined _BOOLVALUE_H
+#ifndef _BOOLVALUE_H
 #define _BOOLVALUE_H
 
 #include "Value.h"

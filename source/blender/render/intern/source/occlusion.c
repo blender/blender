@@ -235,9 +235,9 @@ static void occ_build_shade(Render *re, OcclusionTree *tree)
 /* ------------------------- Spherical Harmonics --------------------------- */
 
 /* Use 2nd order SH => 9 coefficients, stored in this order:
-   0 = (0,0),
-   1 = (1,-1), 2 = (1,0), 3 = (1,1),
-   4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
+ * 0 = (0,0),
+ * 1 = (1,-1), 2 = (1,0), 3 = (1,1),
+ * 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
 
 static void sh_copy(float *shresult, float *sh)
 {
@@ -263,7 +263,7 @@ static void sh_add(float *shresult, float *sh1, float *sh2)
 static void sh_from_disc(float *n, float area, float *shresult)
 {
 	/* See formula (3) in:
-	   "An Efficient Representation for Irradiance Environment Maps" */
+	 * "An Efficient Representation for Irradiance Environment Maps" */
 	float sh[9], x, y, z;
 
 	x= n[0];
@@ -289,7 +289,7 @@ static void sh_from_disc(float *n, float area, float *shresult)
 static float sh_eval(float *sh, float *v)
 {
 	/* See formula (13) in:
-	   "An Efficient Representation for Irradiance Environment Maps" */
+	 * "An Efficient Representation for Irradiance Environment Maps" */
 	static const float c1 = 0.429043f, c2 = 0.511664f, c3 = 0.743125f;
 	static const float c4 = 0.886227f, c5 = 0.247708f;
 	float x, y, z, sum;
@@ -1307,12 +1307,14 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 
 	if(occ) *occ= resultocc;
 	if(rad) copy_v3_v3(rad, resultrad);
-	/*if(rad && exclude) {
+#if 0
+	if(rad && exclude) {
 		int a;
 		for(a=0; a<tree->totface; a++)
 			if((tree->face[a].obi == exclude->obi && tree->face[a].facenr == exclude->facenr))
 				copy_v3_v3(rad, tree->rad[a]);
-	}*/
+	}
+#endif
 	if(bentn) normalize_v3(bentn);
 }
 

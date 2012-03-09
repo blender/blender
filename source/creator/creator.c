@@ -491,9 +491,9 @@ static int no_joystick(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	SYS_SystemHandle *syshandle = data;
 
 	/**
-		don't initialize joysticks if user doesn't want to use joysticks
-		failed joystick initialization delays over 5 seconds, before game engine start
-	*/
+	 * don't initialize joysticks if user doesn't want to use joysticks
+	 * failed joystick initialization delays over 5 seconds, before game engine start
+	 */
 	SYS_WriteCommandLineInt(*syshandle, "nojoystick",1);
 	if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 #endif
@@ -932,8 +932,8 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	if (G.background) {
 		int retval = BKE_read_file(C, filename, NULL);
 
-		/*we successfully loaded a blend file, get sure that
-		pointcache works */
+		/* we successfully loaded a blend file, get sure that
+		 * pointcache works */
 		if (retval != BKE_READ_FILE_FAIL) {
 			wmWindowManager *wm= CTX_wm_manager(C);
 
@@ -971,7 +971,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	//				BKE_write_undo("original");	/* save current state */
 	} else {
 		/* we are not running in background mode here, but start blender in UI mode with
-		   a file - this should do everything a 'load file' does */
+		 * a file - this should do everything a 'load file' does */
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
 		WM_read_file(C, filename, &reports);
@@ -1200,7 +1200,7 @@ int main(int argc, const char **argv)
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 
 	/* Initialiaze ffmpeg if built in, also needed for bg mode if videos are
-	   rendered via ffmpeg */
+	 * rendered via ffmpeg */
 	sound_init_once();
 	
 	init_def_material();
@@ -1267,13 +1267,6 @@ int main(int argc, const char **argv)
 	}
 
 	WM_main(C);
-
-
-	/*XXX if (scr_init==0) {
-		main_init_screen();
-	}
-	
-	screenmain();*/ /* main display loop */
 
 	return 0;
 } /* end of int main(argc,argv)	*/

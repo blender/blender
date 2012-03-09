@@ -124,7 +124,7 @@ static void smoothModifier_do(
 	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
 	/* NOTICE: this can be optimized a little bit by moving the
-	* if (dvert) out of the loop, if needed */
+	 * if (dvert) out of the loop, if needed */
 	for (j = 0; j < smd->repeat; j++) {
 		for (i = 0; i < numDMEdges; i++) {
 			float fvec[3];

@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined IMAGEVIEWPORT_H
+#ifndef IMAGEVIEWPORT_H
 #define IMAGEVIEWPORT_H
 
 

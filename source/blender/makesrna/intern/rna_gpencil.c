@@ -253,13 +253,13 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 
 	/* expose as layers.active */
-	/*
+#if 0
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ACTIVE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencilLayer_active_set");
 	RNA_def_property_ui_text(prop, "Active", "Set active layer for editing");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
-	*/
+#endif
 
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SELECT);

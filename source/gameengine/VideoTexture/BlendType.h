@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#if !defined BLENDTYPE_H
+#ifndef BLENDTYPE_H
 #define BLENDTYPE_H
 
 

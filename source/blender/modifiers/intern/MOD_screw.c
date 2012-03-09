@@ -543,19 +543,22 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 								ed_loop_flip= 0;
 							}
 
-						}/* else {
+						}
+#if 0
+						else {
 							printf("No Connected ___\n");
-						}*/
+						}
+#endif
 
 						/*printf("flip direction %i\n", ed_loop_flip);*/
 
 
 						/* switch the flip option if set
 						 * note: flip is now done at face level so copying vgroup slizes is easier */
-						/*						
+#if 0
 						if (do_flip)
 							ed_loop_flip= !ed_loop_flip;
-						*/
+#endif
 
 						if (angle < 0.0f)
 							ed_loop_flip= !ed_loop_flip;

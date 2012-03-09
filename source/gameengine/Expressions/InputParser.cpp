@@ -579,12 +579,12 @@ CExpression* CParser::ProcessText
 	}
 	
 	ch = text[0];
-	/*if (ch != '=') {
-	expr = new CConstExpr(new CStringValue(text));
-	*dependent = deplist;
-	return expr;
-	} else 
-	*/
+	/* if (ch != '=') {
+	 * expr = new CConstExpr(new CStringValue(text));
+	 * *dependent = deplist;
+	 * return expr;
+	 * } else
+	 */
 	//	NextCh();
 	NextSym();
 	expr = Expr();

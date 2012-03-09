@@ -238,7 +238,7 @@ typedef struct bNodeTree {
 	
 	int type, init;					/* set init on fileread */
 	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always 
-									   will increase this counter */
+									 * will increase this counter */
 	int flag;
 	int update;						/* update flags */
 	

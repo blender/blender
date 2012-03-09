@@ -154,8 +154,8 @@ static void sphere_do(
 	ctrl_ob = cmd->object;
 
 	/* spherify's center is {0, 0, 0} (the ob's own center in its local
-	* space), by default, but if the user defined a control object,
-	* we use its location, transformed to ob's local space */
+	 * space), by default, but if the user defined a control object,
+	 * we use its location, transformed to ob's local space */
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
@@ -171,11 +171,11 @@ static void sphere_do(
 
 	/* 1) (flag was checked in the "if (ctrl_ob)" block above) */
 	/* 2) cmd->radius > 0.0f: only the vertices within this radius from
-	* the center of the effect should be deformed */
+	 * the center of the effect should be deformed */
 	if (cmd->radius > FLT_EPSILON) has_radius = 1;
 
 	/* 3) if we were given a vertex group name,
-	* only those vertices should be affected */
+	 * only those vertices should be affected */
 	modifier_get_vgroup(ob, dm, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if(flag & MOD_CAST_SIZE_FROM_RADIUS) {
@@ -195,10 +195,10 @@ static void sphere_do(
 	}
 
 	/* ready to apply the effect, one vertex at a time;
-	* tiny optimization: the code is separated (with parts repeated)
+	 * tiny optimization: the code is separated (with parts repeated)
 	 * in two possible cases:
-	* with or w/o a vgroup. With lots of if's in the code below,
-	* further optimization's are possible, if needed */
+	 * with or w/o a vgroup. With lots of if's in the code below,
+	 * further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
 		MDeformVert *dv= dvert;
 		float fac_orig = fac;
@@ -321,11 +321,11 @@ static void cuboid_do(
 
 	/* 1) (flag was checked in the "if (ctrl_ob)" block above) */
 	/* 2) cmd->radius > 0.0f: only the vertices within this radius from
-	* the center of the effect should be deformed */
+	 * the center of the effect should be deformed */
 	if (cmd->radius > FLT_EPSILON) has_radius = 1;
 
 	/* 3) if we were given a vertex group name,
-	* only those vertices should be affected */
+	 * only those vertices should be affected */
 	modifier_get_vgroup(ob, dm, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (ctrl_ob) {
@@ -352,12 +352,12 @@ static void cuboid_do(
 	} else {
 		/* get bound box */
 		/* We can't use the object's bound box because other modifiers
-		* may have changed the vertex data. */
+		 * may have changed the vertex data. */
 		INIT_MINMAX(min, max);
 
 		/* Cast's center is the ob's own center in its local space,
-		* by default, but if the user defined a control object, we use
-		* its location, transformed to ob's local space. */
+		 * by default, but if the user defined a control object, we use
+		 * its location, transformed to ob's local space. */
 		if (ctrl_ob) {
 			float vec[3];
 
@@ -393,10 +393,10 @@ static void cuboid_do(
 	bb[4][2] = bb[5][2] = bb[6][2] = bb[7][2] = max[2];
 
 	/* ready to apply the effect, one vertex at a time;
-	* tiny optimization: the code is separated (with parts repeated)
+	 * tiny optimization: the code is separated (with parts repeated)
 	 * in two possible cases:
-	* with or w/o a vgroup. With lots of if's in the code below,
-	* further optimization's are possible, if needed */
+	 * with or w/o a vgroup. With lots of if's in the code below,
+	 * further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
 		float fac_orig = fac;
 		for (i = 0; i < numVerts; i++) {
@@ -434,10 +434,10 @@ static void cuboid_do(
 			/* The algo used to project the vertices to their
 			 * bounding box (bb) is pretty simple:
 			 * for each vertex v:
-			* 1) find in which octant v is in;
-			* 2) find which outer "wall" of that octant is closer to v;
-			* 3) calculate factor (var fbb) to project v to that wall;
-			* 4) project. */
+			 * 1) find in which octant v is in;
+			 * 2) find which outer "wall" of that octant is closer to v;
+			 * 3) calculate factor (var fbb) to project v to that wall;
+			 * 4) project. */
 
 			/* find in which octant this vertex is in */
 			octant = 0;
@@ -471,7 +471,7 @@ static void cuboid_do(
 				continue;
 
 			/* finally, this is the factor we wanted, to project the vertex
-			* to its bounding box (bb) */
+			 * to its bounding box (bb) */
 			fbb = apex[coord] / tmp_co[coord];
 
 			/* calculate the new vertex position */

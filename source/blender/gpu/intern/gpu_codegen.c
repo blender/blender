@@ -72,8 +72,8 @@ static const char* GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
  * These are stored in a hash for lookup when creating a material. */
 
 static GHash *FUNCTION_HASH= NULL;
-/*static char *FUNCTION_PROTOTYPES= NULL;
-static GPUShader *FUNCTION_LIB= NULL;*/
+/* static char *FUNCTION_PROTOTYPES= NULL;
+ * static GPUShader *FUNCTION_LIB= NULL;*/
 
 static int gpu_str_prefix(const char *str, const char *prefix)
 {

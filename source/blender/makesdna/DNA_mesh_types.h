@@ -77,8 +77,8 @@ typedef struct Mesh {
 	struct MLoopCol *mloopcol;
 /* END BMESH ONLY */
 
-	/*mface stores the tessellation (triangulation) of the mesh,
-	  real faces are now stored in nface.*/
+	/* mface stores the tessellation (triangulation) of the mesh,
+	 * real faces are now stored in nface.*/
 	struct MFace *mface;	/* array of mesh object mode faces for tessellation */
 	struct MTFace *mtface;	/* store tessellation face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
@@ -87,7 +87,7 @@ typedef struct Mesh {
 	struct MDeformVert *dvert;	/* deformgroup vertices */
 
 	/* array of colors for the tesselated faces, must be number of tesselated
-	   faces * 4 in length */
+	 * faces * 4 in length */
 	struct MCol *mcol;		
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
@@ -193,27 +193,6 @@ typedef struct TFace {
 
 /* debug only option */
 #define ME_DRAWEXTRA_INDICES (1 << 13)
-
-/* old global flags:
-#define G_DRAWEDGES		(1 << 18)
-#define G_DRAWFACES		(1 <<  7)
-#define G_DRAWNORMALS	(1 <<  6)
-#define G_DRAW_VNORMALS	(1 << 14)
-
-#define G_ALLEDGES		(1 << 11)
-#define G_HIDDENEDGES   (1 << 21)
-
-#define G_DRAWCREASES	(1 << 19)
-#define G_DRAWSEAMS     (1 << 20)
-#define G_DRAWSHARP     (1 << 28)
-#define G_DRAWBWEIGHTS	(1 << 31)
-
-#define G_DRAW_EDGELEN  (1 << 22) 
-#define G_DRAW_FACEAREA (1 << 23)
-#define G_DRAW_EDGEANG  (1 << 24)
-*/
-
-
 
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0

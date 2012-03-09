@@ -142,7 +142,8 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			ShadeInput shi;
 			
 			/* Warning, This is not that nice, and possibly a bit slow,
-			however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+			 * however some variables were not initialized properly in, unless using shade_input_initialize(...),
+			 * we need to do a memset */
 			memset(&shi, 0, sizeof(ShadeInput)); 
 			/* end warning! - Campbell */
 			
@@ -593,17 +594,17 @@ void shadeSunView(float col_r[3], const float view[3])
 
 
 /*
-  Stuff the sky color into the collector.
+ * Stuff the sky color into the collector.
  */
 void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 {
 	float view[3], dxyview[2];
 
 	/*
-	  The rules for sky:
-	  1. Draw an image, if a background image was provided. Stop
-	  2. get texture and color blend, and combine these.
-	*/
+	 * The rules for sky:
+	 * 1. Draw an image, if a background image was provided. Stop
+	 * 2. get texture and color blend, and combine these.
+	 */
 
 	float fac;
 

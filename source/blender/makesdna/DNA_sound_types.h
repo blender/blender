@@ -75,8 +75,8 @@ typedef struct bSound {
 	int flags;
 	int pad;
 
-/**	currently	int type;
-	struct bSound *child_sound;*/
+//	currently	int type;
+//	struct bSound *child_sound;*/
 
 	/**
 	 * The audaspace handle for cache.
@@ -94,17 +94,19 @@ typedef struct bSound {
 	 */
 	void *playback_handle;
 
-/**	XXX unused currently	// SOUND_TYPE_LIMITER
-	float start, end;*/
+//	XXX unused currently	// SOUND_TYPE_LIMITER
+//	float start, end;*/
 } bSound;
 
-/* XXX unused currently
+/* XXX unused currently */
+#if 0
 typedef enum eSound_Type {
 	SOUND_TYPE_INVALID = -1,
 	SOUND_TYPE_FILE = 0,
 	SOUND_TYPE_BUFFER,
 	SOUND_TYPE_LIMITER
-} eSound_Type;*/
+} eSound_Type;
+#endif
 
 /* spacesound->flag */
 #define SND_DRAWFRAMES	1
