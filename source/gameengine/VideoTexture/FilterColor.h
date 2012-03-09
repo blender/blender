@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#ifndef FILTERCOLOR_H
-#define FILTERCOLOR_H
+#ifndef __FILTERCOLOR_H__
+#define __FILTERCOLOR_H__
 
 #include "Common.h"
 

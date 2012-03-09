@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#ifndef _EMPTYVALUE_H
-#define _EMPTYVALUE_H
+#ifndef __EMPTYVALUE_H__
+#define __EMPTYVALUE_H__
 
 #include "Value.h"
 
@@ -47,5 +47,5 @@ public:
 #endif
 };
 
-#endif // !defined _EMPTYVALUE_H
+#endif // !defined __EMPTYVALUE_H__
 

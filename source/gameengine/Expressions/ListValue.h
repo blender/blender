@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#ifndef _LISTVALUE_H
-#define _LISTVALUE_H
+#ifndef __LISTVALUE_H__
+#define __LISTVALUE_H__
 
 #include "Value.h"
 
@@ -87,5 +87,5 @@ private:
 	bool	m_bReleaseContents;
 };
 
-#endif // !defined _LISTVALUE_H
+#endif // !defined __LISTVALUE_H__
 

@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#ifndef PYTYPELIST_H
-#define PYTYPELIST_H
+#ifndef __PYTYPELIST_H__
+#define __PYTYPELIST_H__
 
 #include "Common.h"
 

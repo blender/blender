@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#ifndef _OPERATOR2EXPR_H
-#define _OPERATOR2EXPR_H
+#ifndef __OPERATOR2EXPR_H__
+#define __OPERATOR2EXPR_H__
 
 
 #include "Expression.h"
@@ -64,5 +64,5 @@ public:
 #endif
 };
 
-#endif // !defined _OPERATOR2EXPR_H
+#endif // !defined __OPERATOR2EXPR_H__
 

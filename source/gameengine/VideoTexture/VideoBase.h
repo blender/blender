@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#ifndef VIDEOBASE_H
-#define VIDEOBASE_H
+#ifndef __VIDEOBASE_H__
+#define __VIDEOBASE_H__
 
 
 #include <PyObjectPlus.h>

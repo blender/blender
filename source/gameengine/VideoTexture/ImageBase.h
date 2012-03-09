@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#ifndef IMAGEBASE_H
-#define IMAGEBASE_H
+#ifndef __IMAGEBASE_H__
+#define __IMAGEBASE_H__
 
 #include "Common.h"
 

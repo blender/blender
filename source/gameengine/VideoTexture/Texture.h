@@ -24,8 +24,8 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
  
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef __TEXTURE_H__
+#define __TEXTURE_H__
 
 #include <PyObjectPlus.h>
 #include <structmember.h>

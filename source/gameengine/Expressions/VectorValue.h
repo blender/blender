@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#ifndef _VECTORVALUE_H
-#define _VECTORVALUE_H
+#ifndef __VECTORVALUE_H__
+#define __VECTORVALUE_H__
 
 #include "Value.h"
 
@@ -92,5 +92,5 @@ public:
 #endif
 };
 
-#endif // !defined _VECTORVALUE_H
+#endif // !defined __VECTORVALUE_H__
 

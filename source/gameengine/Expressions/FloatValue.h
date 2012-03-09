@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#ifndef _FLOATVALUE_H
-#define _FLOATVALUE_H
+#ifndef __FLOATVALUE_H__
+#define __FLOATVALUE_H__
 
 #include "Value.h"
 
@@ -56,5 +56,5 @@ public:
 #endif
 };
 
-#endif // !defined _FLOATVALUE_H
+#endif // !defined __FLOATVALUE_H__
 
