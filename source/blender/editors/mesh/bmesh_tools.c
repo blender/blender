@@ -2342,7 +2342,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int i, singlesel = FALSE;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX;
-	float d, d_a, d_b;
+	float d;
 
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
@@ -2455,22 +2455,15 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	BMO_op_exec(bm, &bmop);
 
-#ifdef USE_BVH_VISIBILITY
-	/* build bvh tree for edge visibility tests */
-	bvhtree = BMBVH_NewBVH(em, 0, NULL, NULL);
-#endif
-
 	BMO_ITER(e, &siter, bm, &bmop, "edgeout", BM_EDGE) {
 		float cent[3] = {0, 0, 0}, mid[3];
-		float vec[3];
-		float fmval_tweak[3];
+
+		float vec[2];
+		float fmval_tweak[2];
+		float e_v1_co[2], e_v2_co[2];
+
 		BMVert *v1_other;
 		BMVert *v2_other;
-
-#ifdef USE_BVH_VISIBILITY
-		if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
-			continue;
-#endif
 
 		/* method for calculating distance:
 		 *
@@ -2488,25 +2481,22 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ED_view3d_project_float_v2(ar, cent, cent, projectMat);
 		ED_view3d_project_float_v2(ar, mid, mid, projectMat);
 
+		ED_view3d_project_float_v2(ar, e->v1->co, e_v1_co, projectMat);
+		ED_view3d_project_float_v2(ar, e->v2->co, e_v2_co, projectMat);
+
 		sub_v2_v2v2(vec, cent, mid);
 		normalize_v2(vec);
-		mul_v2_fl(vec, 0.1f);
+		mul_v2_fl(vec, 0.01f);
 
-
-		/* ratrher then adding to both verts, subtract from the mouse */
+		/* rather then adding to both verts, subtract from the mouse */
 		sub_v2_v2v2(fmval_tweak, fmval, vec);
 
-		d_a = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval_tweak);
-		d_b = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
-
-		if (d_a > d_b) {
+		if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
+		    dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
+		{
 			BM_elem_select_set(bm, e, FALSE);
 		}
 	}
-
-#ifdef USE_BVH_VISIBILITY
-	BMBVH_FreeBVH(bvhtree);
-#endif
 
 	if (singlesel) {
 		BMVert *v_best = NULL;
