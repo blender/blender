@@ -2749,7 +2749,7 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float aspect, float lo
 	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
 
 	/* compose transformation matrix */
-	mul_serie_m4(mat, amat, lmat, cmat, rmat, smat, icmat, iamat, NULL);
+	mul_serie_m4(mat, lmat, cmat, amat, rmat, iamat, smat, icmat, NULL);
 }
 
 MovieDistortion *BKE_tracking_distortion_create(void)

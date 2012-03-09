@@ -1170,7 +1170,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Grouped";
-	ot->description= "Joint Selected Tracks";
+	ot->description= "Select all tracks from specified group";
 	ot->idname= "CLIP_OT_select_grouped";
 
 	/* api callbacks */
@@ -2973,6 +2973,9 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 
 		if(TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
 			BKE_tracking_join_tracks(act_track, track);
+
+			if(tracking->stabilization.rot_track == track)
+				tracking->stabilization.rot_track= act_track;
 
 			BKE_tracking_free_track(track);
 			BLI_freelinkN(tracksbase, track);
