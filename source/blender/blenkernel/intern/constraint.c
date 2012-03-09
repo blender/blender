@@ -3507,8 +3507,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) no[1] = 1.0f;
 					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) no[2] = 1.0f;
 					
-					if(INPR(no,no) < FLT_EPSILON)
-					{
+					if (dot_v3v3(no, no) < FLT_EPSILON) {
 						fail = TRUE;
 						break;
 					}

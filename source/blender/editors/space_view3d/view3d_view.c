@@ -546,10 +546,10 @@ void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, co
 		ys= (val==0||val==1)?rect->ymin:rect->ymax;
 
 		gluUnProject(xs, ys, 0.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
-		VECCOPY(bb->vec[val], p);
+		copy_v3fl_v3db(bb->vec[val], p);
 
 		gluUnProject(xs, ys, 1.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
-		VECCOPY(bb->vec[4+val], p);
+		copy_v3fl_v3db(bb->vec[4 + val], p);
 	}
 
 	/* verify if we have negative scale. doing the transform before cross
@@ -762,8 +762,9 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 {
 	double ux, uy, uz;
 
-		gluUnProject(x,y,z, mats->modelview, mats->projection,
-			 (GLint *)mats->viewport, &ux, &uy, &uz );
+	gluUnProject(x,y,z, mats->modelview, mats->projection,
+	             (GLint *)mats->viewport, &ux, &uy, &uz);
+
 	out[0] = ux;
 	out[1] = uy;
 	out[2] = uz;

@@ -68,7 +68,7 @@ static void node_shader_exec_normal(void *UNUSED(data), bNode *node, bNodeStack 
 	
 	copy_v3_v3(out[0]->vec, ((bNodeSocketValueVector*)sock->default_value)->value);
 	/* render normals point inside... the widget points outside */
-	out[1]->vec[0]= -INPR(out[0]->vec, vec);
+	out[1]->vec[0]= -dot_v3v3(out[0]->vec, vec);
 }
 
 static int gpu_shader_normal(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

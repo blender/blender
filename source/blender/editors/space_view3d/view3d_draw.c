@@ -177,7 +177,7 @@ void ED_view3d_clipping_set(RegionView3D *rv3d)
 	unsigned int a;
 
 	for (a = 0; a < tot; a++) {
-		QUATCOPY(plane, rv3d->clip[a]);
+		copy_v4db_v4fl(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0 + a, plane);
 		glEnable(GL_CLIP_PLANE0 + a);
 	}

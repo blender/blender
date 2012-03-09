@@ -2370,7 +2370,7 @@ void psys_find_parents(ParticleSimulationData *sim)
 	BLI_kdtree_free(tree);
 }
 
-static void get_strand_normal(Material *ma, float *surfnor, float surfdist, float *nor)
+static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
 {
 	float cross[3], nstrand[3], vnor[3], blend;
 
@@ -2381,7 +2381,7 @@ static void get_strand_normal(Material *ma, float *surfnor, float surfdist, floa
 		cross_v3_v3v3(cross, surfnor, nor);
 		cross_v3_v3v3(nstrand, nor, cross);
 
-		blend= INPR(nstrand, surfnor);
+		blend = dot_v3v3(nstrand, surfnor);
 		CLAMP(blend, 0.0f, 1.0f);
 
 		interp_v3_v3v3(vnor, nstrand, surfnor, blend);

@@ -70,6 +70,14 @@ MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
 MINLINE void copy_v2_v2_int(int r[2], const int a[2]);
 MINLINE void copy_v3_v3_int(int r[3], const int a[3]);
 MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
+/* double -> float */
+MINLINE void copy_v2fl_v2db(float r[2], const double a[2]);
+MINLINE void copy_v3fl_v3db(float r[3], const double a[3]);
+MINLINE void copy_v4fl_v4db(float r[4], const double a[4]);
+/* float -> double */
+MINLINE void copy_v2db_v2fl(double r[2], const float a[2]);
+MINLINE void copy_v3db_v3fl(double r[3], const float a[3]);
+MINLINE void copy_v4db_v4fl(double r[4], const float a[4]);
 
 /********************************* Arithmetic ********************************/
 

@@ -5481,8 +5481,8 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d,
 
 	td->flag = 0;
 	td->loc = td2d->loc;
-	VECCOPY(td->center, td->loc);
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->center, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -5627,8 +5627,8 @@ static void markerToTransCurveDataInit(TransData *td, TransData2D *td2d, TransDa
 
 	td->flag = 0;
 	td->loc = td2d->loc;
-	VECCOPY(td->center, td->loc);
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->center, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;

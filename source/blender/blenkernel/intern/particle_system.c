@@ -2411,7 +2411,7 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
 		mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
 	} else {
 		sphdata->element_size = MAXFLOAT;
-		VECCOPY(sphdata->flow, flow);
+		copy_v3_v3(sphdata->flow, flow);
 	}
 }
 static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, float *UNUSED(impulse))

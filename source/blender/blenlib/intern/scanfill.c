@@ -832,7 +832,7 @@ int BLI_edgefill(short mat_nr)
 			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
 			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
 			
-			if (INPR(vec1, vec1) < INPR(vec2, vec2)) {
+			if (dot_v3v3(vec1, vec1) < dot_v3v3(vec2, vec2)) {
 				addfillface(eve, eve->next, eve->next->next);
 				addfillface(eve->next->next, eve->next->next->next, eve);
 			} else{

@@ -164,6 +164,51 @@ MINLINE void copy_v4_v4_int(int r[4], const int a[4])
 	r[3]= a[3];
 }
 
+/* double -> float */
+MINLINE void copy_v2fl_v2db(float r[2], const double a[2])
+{
+	r[0] = (float)a[0];
+	r[1] = (float)a[1];
+}
+
+MINLINE void copy_v3fl_v3db(float r[3], const double a[3])
+{
+	r[0] = (float)a[0];
+	r[1] = (float)a[1];
+	r[2] = (float)a[2];
+}
+
+MINLINE void copy_v4fl_v4db(float r[4], const double a[4])
+{
+	r[0] = (float)a[0];
+	r[1] = (float)a[1];
+	r[2] = (float)a[2];
+	r[3] = (float)a[3];
+}
+
+/* float -> double */
+MINLINE void copy_v2db_v2fl(double r[2], const float a[2])
+{
+	r[0] = (double)a[0];
+	r[1] = (double)a[1];
+}
+
+MINLINE void copy_v3db_v3fl(double r[3], const float a[3])
+{
+	r[0] = (double)a[0];
+	r[1] = (double)a[1];
+	r[2] = (double)a[2];
+}
+
+MINLINE void copy_v4db_v4fl(double r[4], const float a[4])
+{
+	r[0] = (double)a[0];
+	r[1] = (double)a[1];
+	r[2] = (double)a[2];
+	r[3] = (double)a[3];
+}
+
+
 MINLINE void swap_v2_v2(float a[2], float b[2])
 {
 	SWAP(float, a[0], b[0]);

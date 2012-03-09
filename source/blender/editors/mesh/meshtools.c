@@ -357,7 +357,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 								/* copy this mesh's shapekey to the destination shapekey (need to transform first) */
 								fp2= ((float *)(okb->data));
 								for(a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
-									VECCOPY(fp1, fp2);
+									copy_v3_v3(fp1, fp2);
 									mul_m4_v3(cmat, fp1);
 								}
 							}
@@ -365,7 +365,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 								/* copy this mesh's vertex coordinates to the destination shapekey */
 								mv= mvert;
 								for(a=0; a < me->totvert; a++, fp1+=3, mv++) {
-									VECCOPY(fp1, mv->co);
+									copy_v3_v3(fp1, mv->co);
 								}
 							}
 						}
@@ -387,14 +387,14 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 								/* copy this mesh's shapekey to the destination shapekey */
 								fp2= ((float *)(okb->data));
 								for(a=0; a < me->totvert; a++, fp1+=3, fp2+=3) {
-									VECCOPY(fp1, fp2);
+									copy_v3_v3(fp1, fp2);
 								}
 							}
 							else {
 								/* copy base-coordinates to the destination shapekey */
 								mv= mvert;
 								for(a=0; a < me->totvert; a++, fp1+=3, mv++) {
-									VECCOPY(fp1, mv->co);
+									copy_v3_v3(fp1, mv->co);
 								}
 							}
 						}
@@ -813,7 +813,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 		}
 		
 		/* for quick unit coordinate calculus */
-		VECCOPY(MeshOctree.offs, min);
+		copy_v3_v3(MeshOctree.offs, min);
 		MeshOctree.offs[0]-= MOC_THRESH;		/* we offset it 1 threshold unit extra */
 		MeshOctree.offs[1]-= MOC_THRESH;
 		MeshOctree.offs[2]-= MOC_THRESH;

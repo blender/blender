@@ -2622,9 +2622,9 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 		v2 = mvert + loopstart[(i+1)%mpoly->totloop].v;
 		v3 = mvert + loopstart[(i+2)%mpoly->totloop].v;
 		
-		VECCOPY(u, v1->co);
-		VECCOPY(v, v2->co);
-		VECCOPY(w, v3->co);
+		copy_v3db_v3fl(u, v1->co);
+		copy_v3db_v3fl(v, v2->co);
+		copy_v3db_v3fl(w, v3->co);
 
 		/*this fixes some weird numerical error*/
 		if (i==0) {
@@ -2712,9 +2712,9 @@ static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
 		v2 = (const float *)(vertex_coords + loopstart[(i+1)%mpoly->totloop].v);
 		v3 = (const float *)(vertex_coords + loopstart[(i+2)%mpoly->totloop].v);
 
-		VECCOPY(u, v1);
-		VECCOPY(v, v2);
-		VECCOPY(w, v3);
+		copy_v3db_v3fl(u, v1);
+		copy_v3db_v3fl(v, v2);
+		copy_v3db_v3fl(w, v3);
 
 		/*this fixes some weird numerical error*/
 		if (i==0) {

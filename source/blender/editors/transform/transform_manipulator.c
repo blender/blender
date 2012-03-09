@@ -879,7 +879,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
-		VECCOPY(plane, rv3d->viewinv[2]); /* float -> double */
+		copy_v3db_v3fl(plane, rv3d->viewinv[2]);
 		plane[3]= -0.02f*size; // clip just a bit more
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
