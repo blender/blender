@@ -73,6 +73,13 @@
 
 /************************ poll ***************************/
 
+
+BM_INLINE int text_pixel_x_to_index(SpaceText *st, const int x)
+{
+	/* add half the char width so mouse cursor selection is inbetween letters */
+	return (x + (st->cwidth / 2)) / st->cwidth;
+}
+
 static int text_new_poll(bContext *UNUSED(C))
 {
 	return 1;
@@ -2530,7 +2537,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 	else x-= TXT_OFFSET;
 
 	if(x<0) x= 0;
-	x = (x/st->cwidth) + st->left;
+	x = text_pixel_x_to_index(st, x) + st->left;
 	
 	if(st->wordwrap) {
 		text_cursor_set_to_pos_wrapped(st, ar, x, y, sel);

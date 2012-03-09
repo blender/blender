@@ -1282,13 +1282,33 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	/* mouse inside the widget */
 	else if (x >= startx) {
+		int pos_i;
+
+		/* keep track of previous distance from the cursor to the char */
+		float cdist, cdist_prev = 0.0f;
+		short pos_prev;
+
 		const float aspect_sqrt= sqrtf(but->block->aspect);
 		
-		but->pos= strlen(origstr)-but->ofs;
-		
-		/* XXX does not take zoom level into account */
-		while (startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
-			int pos_i = but->pos;
+		but->pos = pos_prev = strlen(origstr) - but->ofs;
+
+		while (TRUE) {
+			/* XXX does not take zoom level into account */
+			cdist = startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr + but->ofs);
+
+			/* check if position is found */
+			if (cdist < x) {
+				/* check is previous location was infact closer */
+				if (((float)x - cdist) > (cdist_prev - (float)x)) {
+					but->pos = pos_prev;
+				}
+				break;
+			}
+			cdist_prev = cdist;
+			pos_prev   = but->pos;
+			/* done with tricky distance checks */
+
+			pos_i = but->pos;
 			if (but->pos <= 0) break;
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &pos_i)) {
 				but->pos = pos_i;
@@ -1580,6 +1600,8 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 
 static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
+	int len;
+
 	if(data->str) {
 		MEM_freeN(data->str);
 		data->str= NULL;
@@ -1594,15 +1616,18 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 		ui_convert_to_unit_alt_name(but, data->str, data->maxlen);
 	}
 
-	data->origstr= BLI_strdup(data->str);
-	data->selextend= 0;
-	data->selstartx= 0;
+	/* won't change from now on */
+	len = strlen(data->str);
+
+	data->origstr = BLI_strdupn(data->str, len);
+	data->selextend = 0;
+	data->selstartx = 0;
 
 	/* set cursor pos to the end of the text */
-	but->editstr= data->str;
-	but->pos= strlen(data->str);
-	but->selsta= 0;
-	but->selend= strlen(data->str);
+	but->editstr = data->str;
+	but->pos = len;
+	but->selsta = 0;
+	but->selend = len;
 
 	/* optional searchbox */
 	if(but->type==SEARCH_MENU) {

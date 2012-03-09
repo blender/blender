@@ -120,9 +120,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		f->mat_nr = mp->mat_nr;
 
 		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
-		k = mp->loopstart;
 
-		for (j = 0; l; l = BM_iter_step(&liter), k++) {
+		for (k = mp->loopstart; l; l = BM_iter_step(&liter), k++) {
 			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data);
 		}
 
