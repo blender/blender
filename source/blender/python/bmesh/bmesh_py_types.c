@@ -2309,6 +2309,7 @@ void BPy_BM_init_types(void)
 
 	/* only 1 iteratir so far */
 	BPy_BMIter_Type.tp_iternext = (iternextfunc)bpy_bmiter_next;
+	BPy_BMIter_Type.tp_iter     = PyObject_SelfIter;
 
 	BPy_BMesh_Type.tp_dealloc     = (destructor)bpy_bmesh_dealloc;
 	BPy_BMVert_Type.tp_dealloc    = (destructor)bpy_bmvert_dealloc;
@@ -2672,4 +2673,16 @@ err_cleanup:
 		PyMem_FREE(alloc);
 		return NULL;
 	}
+}
+
+
+PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len)
+{
+	Py_ssize_t i;
+	PyObject *ret = PyTuple_New(elem_len);
+	for (i = 0; i < elem_len; i++) {
+		PyTuple_SET_ITEM(ret, i, BPy_BMElem_CreatePyObject(bm, elem[i]));
+	}
+
+	return ret;
 }

@@ -33,18 +33,20 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example);
 BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble);
 BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble);
 
-void BM_face_edges_kill(BMesh *bm, BMFace *f);
-void BM_face_verts_kill(BMesh *bm, BMFace *f);
+void    BM_face_edges_kill(BMesh *bm, BMFace *f);
+void    BM_face_verts_kill(BMesh *bm, BMFace *f);
 
-void BM_face_kill(BMesh *bm, BMFace *f);
-void BM_edge_kill(BMesh *bm, BMEdge *e);
-void BM_vert_kill(BMesh *bm, BMVert *v);
+void    BM_face_kill(BMesh *bm, BMFace *f);
+void    BM_edge_kill(BMesh *bm, BMEdge *e);
+void    BM_vert_kill(BMesh *bm, BMVert *v);
 
-int  BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
+int     BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget);
 
-int  bmesh_loop_reverse(BMesh *bm, BMFace *f);
+int     bmesh_loop_reverse(BMesh *bm, BMFace *f);
 
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface);
+int     BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+                         BMEdge **e_in, int e_in_len);
 
 /* EULER API - For modifying structure */
 BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1,

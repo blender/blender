@@ -1324,12 +1324,6 @@ PyTypeObject BPy_IDArray_Type = {
 
 /*********** ID Property Group iterator ********/
 
-static PyObject *IDGroup_Iter_iterself(PyObject *self)
-{
-	Py_XINCREF(self);
-	return self;
-}
-
 static PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
 {
 	return PyUnicode_FromFormat("(ID Property Group Iter \"%s\")", self->group->prop->name);
@@ -1412,7 +1406,7 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	IDGroup_Iter_iterself,              /* getiterfunc tp_iter; */
+	PyObject_SelfIter,                  /* getiterfunc tp_iter; */
 	(iternextfunc) BPy_Group_Iter_Next, /* iternextfunc tp_iternext; */
 };
 
