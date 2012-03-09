@@ -2451,8 +2451,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 	*scale= (stab->scale-1.0f)*stab->scaleinf+1.0f;
 	*angle= 0.0f;
 
-	loc[0]= (firstmedian[0]-median[0])*width;
-	loc[1]= (firstmedian[1]-median[1])*height;
+	loc[0]= (firstmedian[0]-median[0])*width*(*scale);
+	loc[1]= (firstmedian[1]-median[1])*height*(*scale);
 
 	mul_v2_fl(loc, stab->locinf);
 
@@ -2492,7 +2492,7 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 
 	if(stabilization_median_point(tracking, 1, firstmedian)) {
 		int sfra= INT_MAX, efra= INT_MIN, cfra;
-		float delta[2]= {0.0f, 0.0f}, scalex= 1.0f, scaley= 1.0f;
+		float scalex= 1.0f, scaley= 1.0f;
 		MovieTrackingTrack *track;
 
 		stab->scale= 1.0f;
@@ -2509,59 +2509,45 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 		}
 
 		for(cfra=sfra; cfra<=efra; cfra++) {
-			float median[2], near[2];
+			float median[2];
 			float loc[2], scale, angle;
+			int i;
+			float mat[4][4];
+			float points[4][2]={{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
 
 			stabilization_median_point(tracking, cfra, median);
 
 			calculate_stabdata(tracking, cfra, width, height, firstmedian, median,
 						loc, &scale, &angle);
 
-			if(angle==0.0f) {
-				loc[0]= fabsf(loc[0]);
-				loc[1]= fabsf(loc[1]);
+			BKE_tracking_stabdata_to_mat4(width, height, aspect, loc, scale, angle, mat);
 
-				delta[0]= MAX2(delta[0], loc[0]);
-				delta[1]= MAX2(delta[1], loc[1]);
+			for(i= 0; i<4; i++) {
+				int j;
+				float a[3]= {0.0f, 0.0f, 0.0f}, b[3]= {0.0f, 0.0f, 0.0f};
 
-				near[0]= MIN2(median[0], 1.0f-median[0]);
-				near[1]= MIN2(median[1], 1.0f-median[1]);
-				near[0]= MAX2(near[0], 0.05f);
-				near[1]= MAX2(near[1], 0.05f);
+				copy_v3_v3(a, points[i]);
+				copy_v3_v3(b, points[(i+1)%4]);
 
-				scalex= 1.0f+delta[0]/(near[0]*width);
-				scaley= 1.0f+delta[1]/(near[1]*height);
-			} else {
-				int i;
-				float mat[4][4];
-				float points[4][2]={{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
+				mul_m4_v3(mat, a);
+				mul_m4_v3(mat, b);
 
-				BKE_tracking_stabdata_to_mat4(width, height, aspect, loc, scale, angle, mat);
+				for(j= 0; j<4; j++) {
+					float point[3]= {points[j][0], points[j][1], 0.0f};
+					float v1[3], v2[3];
 
-				for(i= 0; i<4; i++) {
-					int j;
-					float a[3]= {0.0f, 0.0f, 0.0f}, b[3]= {0.0f, 0.0f, 0.0f};
+					sub_v3_v3v3(v1, b, a);
+					sub_v3_v3v3(v2, point, a);
 
-					copy_v3_v3(a, points[i]);
-					copy_v3_v3(b, points[(i+1)%4]);
+					if(cross_v2v2(v1, v2) >= 0.0f) {
+						float dist= dist_to_line_v2(point, a, b), cur_scale;
 
-					mul_m4_v3(mat, a);
-					mul_m4_v3(mat, b);
-
-					for(j= 0; j<4; j++) {
-						float point[3]= {points[j][0], points[j][1], 0.0f};
-						float v1[3], v2[3];
-
-						sub_v3_v3v3(v1, b, a);
-						sub_v3_v3v3(v2, point, a);
-
-						if(cross_v2v2(v1, v2) >= 0.0f) {
-							float dist= dist_to_line_v2(point, a, b);
-							if(i%2==0) {
-								scalex= MAX2(scalex, (width+2*dist)/width);
-							} else {
-								scaley= MAX2(scaley, (height+2*dist)/height);
-							}
+						if(i%2==0) {
+							cur_scale= 0.5f * (float)width / (0.5f * (float)width - dist);
+							scalex= MAX2(scalex, cur_scale);
+						} else {
+							cur_scale= 0.5f * (float)height / (0.5f * (float)height - dist);
+							scaley= MAX2(scaley, cur_scale);
 						}
 					}
 				}
