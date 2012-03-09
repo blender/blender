@@ -76,12 +76,11 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code * */
 
-#define RS_GET_EDGE_LINK(e, v, e_data)  (                                     \
-	(v) == ((BMEdge *)(e))->v1 ?                                              \
-			&(((EdgeData *)(e_data))->v1_disk_link) :                         \
-			&(((EdgeData *)(e_data))->v2_disk_link)                           \
-	)
-
+BM_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
+{
+	return 	v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
+	                                 &(((EdgeData *)e_data)->v2_disk_link) ;
+}
 
 static int rotsys_append_edge(BMEdge *e, BMVert *v,
                               EdgeData *edata, VertData *vdata)
@@ -90,7 +89,7 @@ static int rotsys_append_edge(BMEdge *e, BMVert *v,
 	VertData *vd = &vdata[BM_elem_index_get(v)];
 	
 	if (!vd->e) {
-		Link *e1 = (Link *)RS_GET_EDGE_LINK(e, v, ed);
+		Link *e1 = (Link *)rs_edge_link_get(e, v, ed);
 
 		vd->e = e;
 		e1->next = e1->prev = (Link *)e;
@@ -99,9 +98,9 @@ static int rotsys_append_edge(BMEdge *e, BMVert *v,
 		BMDiskLink *dl1, *dl2, *dl3;
 		EdgeData *ved = &edata[BM_elem_index_get(vd->e)];
 
-		dl1 = RS_GET_EDGE_LINK(e, v, ed);
-		dl2 = RS_GET_EDGE_LINK(vd->e, v, ved);
-		dl3 = dl2->prev ? RS_GET_EDGE_LINK(dl2->prev, v, &edata[BM_elem_index_get(dl2->prev)]) : NULL;
+		dl1 = rs_edge_link_get(e, v, ed);
+		dl2 = rs_edge_link_get(vd->e, v, ved);
+		dl3 = dl2->prev ? rs_edge_link_get(dl2->prev, v, &edata[BM_elem_index_get(dl2->prev)]) : NULL;
 
 		dl1->next = vd->e;
 		dl1->prev = dl2->prev;
@@ -122,14 +121,14 @@ static void UNUSED_FUNCTION(rotsys_remove_edge)(BMEdge *e, BMVert *v,
 	VertData *vd = vdata + BM_elem_index_get(v);
 	BMDiskLink *e1, *e2;
 
-	e1 = RS_GET_EDGE_LINK(e, v, ed);
+	e1 = rs_edge_link_get(e, v, ed);
 	if (e1->prev) {
-		e2 = RS_GET_EDGE_LINK(e1->prev, v, ed);
+		e2 = rs_edge_link_get(e1->prev, v, ed);
 		e2->next = e1->next;
 	}
 
 	if (e1->next) {
-		e2 = RS_GET_EDGE_LINK(e1->next, v, ed);
+		e2 = rs_edge_link_get(e1->next, v, ed);
 		e2->prev = e1->prev;
 	}
 
@@ -859,6 +858,16 @@ static int count_edge_faces(BMesh *bm, BMEdge *e)
 	return i;
 }
 
+BM_INLINE void vote_on_winding(BMEdge *edge, EPathNode *node, unsigned int winding[2])
+{
+	BMVert *test_v1, *test_v2;
+	/* we want to use the reverse winding to the existing order */
+	BM_edge_ordered_verts(edge, &test_v2, &test_v1);
+
+	/* edges vote on which winding wins out */
+	winding[(test_v1 == node->v)]++;
+}
+
 void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter;
@@ -971,12 +980,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			
 			/* check on the winding */
 			if (e->l) {
-				BMVert *test_v1, *test_v2;
-				/* we want to use the reverse winding to the existing order */
-				BM_edge_ordered_verts(edge, &test_v2, &test_v1);
-
-				/* edges vote on which winding wins out */
-				winding[(test_v1 == node->v)]++;
+				vote_on_winding(e, node, winding);
 			}
 
 			edata[BM_elem_index_get(e)].ftag++;
@@ -986,6 +990,10 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			BLI_array_append(verts, node->v);
 		}
 		
+		if (edge->l) {
+			vote_on_winding(edge, path->nodes.last, winding);
+		}
+
 		BLI_array_growone(edges);
 		edges[i++] = edge;
 		edata[BM_elem_index_get(edge)].ftag++;
@@ -1010,7 +1018,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 			/* if these are even it doesnt really matter what to do,
 			 * with consistent geometry one will be zero, the choice is clear */
-			if (winding[0] > winding[1]) {
+			if (winding[0] < winding[1]) {
 				v1 = verts[0];
 				v2 = verts[1];
 			}
@@ -1240,7 +1248,10 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges2);
 }
 
-/* this is essentially new fke */
+/* This is what runs when pressing the F key
+ * doing the best thing here isnt always easy create vs dissolve, its nice to support
+ * but it it _really_ gives issues we might have to not call dissolve. - campbell
+ */
 void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator op2;

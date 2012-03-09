@@ -583,7 +583,7 @@ static int linecrossesf(const float v1[2], const float v2[2], const float v3[2],
 	
 	/* do an interval test on the x and y axe */
 	/* first do x axi */
-#define T FLT_EPSILON * 15
+#define T (FLT_EPSILON * 15)
 	if ( ABS(v1[1] - v2[1]) < T &&
 	     ABS(v3[1] - v4[1]) < T &&
 	     ABS(v1[1] - v3[1]) < T)
