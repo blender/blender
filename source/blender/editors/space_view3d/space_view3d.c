@@ -333,10 +333,6 @@ static void view3d_free(SpaceLink *sl)
 {
 	View3D *vd= (View3D *) sl;
 
-	BGpic *bgpic;
-	for (bgpic= vd->bgpicbase.first; bgpic; bgpic= bgpic->next) {
-		if (bgpic->ima) bgpic->ima->id.us--;
-	}
 	BLI_freelistN(&vd->bgpicbase);
 
 	if (vd->localvd) MEM_freeN(vd->localvd);
@@ -355,7 +351,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 {
 	View3D *v3do= (View3D *)sl;
 	View3D *v3dn= MEM_dupallocN(sl);
-	BGpic *bgpic;
 	
 	/* clear or remove stuff from old */
 	
@@ -374,9 +369,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	/* copy or clear inside new stuff */
 
 	BLI_duplicatelist(&v3dn->bgpicbase, &v3do->bgpicbase);
-	for (bgpic= v3dn->bgpicbase.first; bgpic; bgpic= bgpic->next)
-		if (bgpic->ima)
-			bgpic->ima->id.us++;
 
 	v3dn->properties_storage= NULL;
 	

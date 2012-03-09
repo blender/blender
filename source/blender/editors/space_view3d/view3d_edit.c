@@ -3648,12 +3648,6 @@ void ED_view3D_background_image_remove(View3D *v3d, BGpic *bgpic)
 {
 	BLI_remlink(&v3d->bgpicbase, bgpic);
 
-	if (bgpic->ima)
-		id_us_min(&bgpic->ima->id);
-
-	if (bgpic->clip)
-		id_us_min(&bgpic->clip->id);
-
 	MEM_freeN(bgpic);
 }
 
