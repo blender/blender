@@ -233,13 +233,13 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
         cls.aperture_type = EnumProperty(
                 name="Aperture Type",
-                description="Use f/stop number or aperture radius",
+                description="Use F/stop number or aperture radius",
                 items=enums.aperture_types,
                 default='RADIUS',
                 )
         cls.aperture_fstop = FloatProperty(
                 name="Aperture F/stop",
-                description="F/stop ratio (lower numbers give more depth of field, higher numbers give a sharper image)",
+                description="F/stop ratio (lower numbers give more defocus, higher numbers give a sharper image)",
                 min=0.0, soft_min=0.1, soft_max=64.0,
                 default=5.6,
                 step=10,
@@ -247,7 +247,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 )
         cls.aperture_size = FloatProperty(
                 name="Aperture Size",
-                description="Radius of the aperture for depth of field",
+                description="Radius of the aperture for depth of field (higher values give more defocus)",
                 min=0.0, soft_max=10.0,
                 default=0.0,
                 step=1,
