@@ -3750,18 +3750,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
-			
-			/*put .disps into cellalloc system*/
-			if (mdisps[i].disps) {
-				float *disp2;
-				
-				disp2 = MEM_mallocN(MEM_allocN_len(mdisps[i].disps), "cellalloc .disps copy");
-				memcpy(disp2, mdisps[i].disps, MEM_allocN_len(mdisps[i].disps));
-				
-				MEM_freeN(mdisps[i].disps);
-				mdisps[i].disps = (float (*)[3])disp2;
-			}
-			
+
 			if( (fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps) ) {
 				/* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
 				/* this does swap for data written at write_mdisps() - readfile.c */
