@@ -2487,12 +2487,14 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 	float aspect= tracking->camera.pixel_aspect;
 
+	printf("\n%s\n", __func__);
+
 	if(stab->ok)
 		return stab->scale;
 
 	if(stabilization_median_point(tracking, 1, firstmedian)) {
 		int sfra= INT_MAX, efra= INT_MIN, cfra;
-		float scalex= 1.0f, scaley= 1.0f;
+		float scale= 1.0f;
 		MovieTrackingTrack *track;
 
 		stab->scale= 1.0f;
@@ -2510,17 +2512,23 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 
 		for(cfra=sfra; cfra<=efra; cfra++) {
 			float median[2];
-			float loc[2], scale, angle;
+			float loc[2], angle, tmp_scale;
 			int i;
 			float mat[4][4];
 			float points[4][2]={{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
+			float si, co;
+
+			if(cfra != 208)
+				continue;
 
 			stabilization_median_point(tracking, cfra, median);
 
-			calculate_stabdata(tracking, cfra, width, height, firstmedian, median,
-						loc, &scale, &angle);
+			calculate_stabdata(tracking, cfra, width, height, firstmedian, median, loc, &tmp_scale, &angle);
 
-			BKE_tracking_stabdata_to_mat4(width, height, aspect, loc, scale, angle, mat);
+			BKE_tracking_stabdata_to_mat4(width, height, aspect, loc, 1.0f, angle, mat);
+
+			si = sin(angle);
+			co = cos(angle);
 
 			for(i= 0; i<4; i++) {
 				int j;
@@ -2540,21 +2548,48 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 					sub_v3_v3v3(v2, point, a);
 
 					if(cross_v2v2(v1, v2) >= 0.0f) {
-						float dist= dist_to_line_v2(point, a, b), cur_scale;
+						const float rotDx[4][2] = {{1.0f, 0.0f}, {0.0f, -1.0f}, {-1.0f, 0.0f}, {0.0f, 1.0f}};
+						const float rotDy[4][2] = {{0.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, -1.0f}, {-1.0f, 0.0f}};
 
-						if(i%2==0) {
-							cur_scale= 0.5f * (float)width / (0.5f * (float)width - dist);
-							scalex= MAX2(scalex, cur_scale);
-						} else {
-							cur_scale= 0.5f * (float)height / (0.5f * (float)height - dist);
-							scaley= MAX2(scaley, cur_scale);
+						float dx = loc[0] * rotDx[j][0] + loc[1] * rotDx[j][1],
+						      dy = loc[0] * rotDy[j][0] + loc[1] * rotDy[j][1];
+
+						float w, h, E, F, G, H, I, J, K, S;
+
+						if(j % 2) {
+							w = (float)height / 2.0f;
+							h = (float)width / 2.0f;
 						}
+						else {
+							w = (float)width / 2.0f;
+							h = (float)height / 2.0f;
+						}
+
+						E = -w*co + h*si;
+						F = -h*co - w*si;
+
+						if ((i % 2) == (j % 2)) {
+							G = -w*co - h*si;
+							H = h*co - w*si;
+						}
+						else {
+							G = w*co + h*si;
+							H = -h*co + w*si;
+						}
+
+						I = F - H;
+						J = G - E;
+						K = G*F - E*H;
+
+						S = (-w*I - h*J) / (dx*I + dy*J + K);
+
+						scale = MAX2(scale, S);
 					}
 				}
 			}
 		}
 
-		stab->scale= MAX2(scalex, scaley);
+		stab->scale= scale;
 
 		if(stab->maxscale>0.0f)
 			stab->scale= MIN2(stab->scale, stab->maxscale);
