@@ -373,9 +373,6 @@ typedef struct BMOIter {
 
 void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slotname);
 
-/* restrictmask restricts the iteration to certain element types
- * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
- * over an element buffer (not a mapping).*/
 void *BMO_iter_new(BMOIter *iter, BMesh *bm, BMOperator *op,
                    const char *slotname, const char restrictmask);
 void *BMO_iter_step(BMOIter *iter);

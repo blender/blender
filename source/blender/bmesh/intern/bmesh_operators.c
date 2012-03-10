@@ -1042,6 +1042,12 @@ void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slotname)
 	return slot->data.buf ? *(void **)slot->data.buf : NULL;
 }
 
+/**
+ * \brief New Iterator
+ *
+ * \param restrictmask restricts the iteration to certain element types
+ * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
+ * over an element buffer (not a mapping). */
 void *BMO_iter_new(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
                    const char *slotname, const char restrictmask)
 {

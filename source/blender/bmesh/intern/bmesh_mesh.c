@@ -213,24 +213,8 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	BMIter faces;
 	BMIter loops;
 	BMIter edges;
-	unsigned int maxlength = 0;
 	int index;
-	float (*projectverts)[3];
 	float (*edgevec)[3];
-
-	/* first, find out the largest face in mesh */
-	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		if (skip_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN))
-			continue;
-
-		if (f->len > maxlength) maxlength = f->len;
-	}
-	
-	/* make sure we actually have something to do */
-	if (maxlength < 3) return;
-
-	/* allocate projectverts array */
-	projectverts = MEM_callocN(sizeof(float) * maxlength * 3, "BM normal computation array");
 	
 	/* calculate all face normals */
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
@@ -241,7 +225,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 			continue;
 #endif
 
-		bmesh_face_normal_update(bm, f, f->no, projectverts);
+		bmesh_face_normal_update(bm, f, f->no);
 	}
 	
 	/* Zero out vertex normals */
@@ -314,7 +298,6 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 	}
 	
 	MEM_freeN(edgevec);
-	MEM_freeN(projectverts);
 }
 
 /*
