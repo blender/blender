@@ -1099,6 +1099,8 @@ elseif(APPLE)
 	if(${XCODE_VERSION} LESS 4.3)
 		SET(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${CMAKE_OSX_DEPLOYMENT_TARGET}.sdk CACHE PATH "" FORCE )
 	else()
+		# note: i don't use xcode-select path on purpose, cause also /Applications/Xcode.app would be allowed
+		# absolute pathes are more foolproof here !
 		SET(OSX_SYSROOT_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform)
 		SET(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${CMAKE_OSX_DEPLOYMENT_TARGET}.sdk)
 		SET(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
