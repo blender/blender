@@ -582,35 +582,68 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 
 				/* implement WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
-				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather than stopping, game like motion */
-				else if (fly->axis==2) fly->speed += fly->grid; /* increase like mousewheel if were already
-				                                                 * moving in that difection*/
-				fly->axis= 2;
+				if (fly->axis == 2 && fly->speed < 0.0f) { /* reverse direction stops, tap again to continue */
+					fly->axis = -1;
+				}
+				else {
+					if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather than stopping, game like motion */
+					else if (fly->axis==2) fly->speed += fly->grid; /* increase like mousewheel if were already
+				                                                     * moving in that difection*/
+					fly->axis= 2;
+				}
 				break;
 			case FLY_MODAL_DIR_BACKWARD:
-				if (fly->speed > 0.0f) fly->speed= -fly->speed;
-				else if (fly->axis==2) fly->speed -= fly->grid;
-				fly->axis= 2;
+				if (fly->axis == 2 && fly->speed > 0.0f) { /* reverse direction stops, tap again to continue */
+					fly->axis = -1;
+				}
+				else {
+					if (fly->speed > 0.0f) fly->speed= -fly->speed;
+					else if (fly->axis==2) fly->speed -= fly->grid;
+
+					fly->axis= 2;
+				}
 				break;
 			case FLY_MODAL_DIR_LEFT:
-				if (fly->speed < 0.0f) fly->speed= -fly->speed;
-				else if (fly->axis==0) fly->speed += fly->grid;
-				fly->axis= 0;
+				if (fly->axis == 0 && fly->speed < 0.0f) { /* reverse direction stops, tap again to continue */
+					fly->axis = -1;
+				}
+				else {
+					if (fly->speed < 0.0f) fly->speed= -fly->speed;
+					else if (fly->axis==0) fly->speed += fly->grid;
+
+					fly->axis= 0;
+				}
 				break;
 			case FLY_MODAL_DIR_RIGHT:
-				if (fly->speed > 0.0f) fly->speed= -fly->speed;
-				else if (fly->axis==0) fly->speed -= fly->grid;
-				fly->axis= 0;
+				if (fly->axis == 0 && fly->speed > 0.0f) { /* reverse direction stops, tap again to continue */
+					fly->axis = -1;
+				}
+				else {
+					if (fly->speed > 0.0f) fly->speed= -fly->speed;
+					else if (fly->axis==0) fly->speed -= fly->grid;
+
+					fly->axis= 0;
+				}
 				break;
 			case FLY_MODAL_DIR_DOWN:
-				if (fly->speed < 0.0f) fly->speed= -fly->speed;
-				else if (fly->axis==1) fly->speed += fly->grid;
-				fly->axis= 1;
+				if (fly->axis == 1 && fly->speed < 0.0f) { /* reverse direction stops, tap again to continue */
+					fly->axis = -1;
+				}
+				else {
+					if (fly->speed < 0.0f) fly->speed= -fly->speed;
+					else if (fly->axis==1) fly->speed += fly->grid;
+					fly->axis= 1;
+				}
 				break;
 			case FLY_MODAL_DIR_UP:
-				if (fly->speed > 0.0f) fly->speed= -fly->speed;
-				else if (fly->axis==1) fly->speed -= fly->grid;
-				fly->axis= 1;
+				if (fly->axis == 1 && fly->speed > 0.0f) { /* reverse direction stops, tap again to continue */
+					fly->axis = -1;
+				}
+				else {
+					if (fly->speed > 0.0f) fly->speed= -fly->speed;
+					else if (fly->axis==1) fly->speed -= fly->grid;
+					fly->axis= 1;
+				}
 				break;
 
 			case FLY_MODAL_AXIS_LOCK_X:
@@ -932,7 +965,10 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					}
 				}
 
-
+				if (fly->axis == -1) {
+					/* pause */
+					zero_v3(dvec_tmp);
+				}
 				if (!fly->use_freelook) {
 					/* Normal operation */
 					/* define dvec, view direction vector */
