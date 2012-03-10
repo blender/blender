@@ -65,6 +65,8 @@ set(SRC
 	intern/bmesh_marking.h
 	intern/bmesh_mesh.c
 	intern/bmesh_mesh.h
+	intern/bmesh_mesh_conv.c
+	intern/bmesh_mesh_conv.h	
 	intern/bmesh_mods.c
 	intern/bmesh_mods.h
 	intern/bmesh_opdefines.c

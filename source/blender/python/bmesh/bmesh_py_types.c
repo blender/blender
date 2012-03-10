@@ -2062,6 +2062,10 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 		bm->py_handle = NULL;
 	}
 
+	if (self->py_owns) {
+		BM_mesh_free(bm);
+	}
+
 	PyObject_DEL(self);
 }
 

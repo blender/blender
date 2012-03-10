@@ -40,12 +40,35 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_tessmesh.h"
+#include "BKE_depsgraph.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "../generic/py_capi_utils.h"
 
 #include "bmesh_py_api.h" /* own include */
+
+
+
+PyDoc_STRVAR(bpy_bm_new_doc,
+".. method:: new()\n"
+"\n"
+"   :return: Retyrn a new, empty mesh.\n"
+"   :rtype: :class:`BMesh`\n"
+);
+
+static PyObject *bpy_bm_new(PyObject *UNUSED(self))
+{
+	BPy_BMesh *py_bmesh;
+	BMesh *bm;
+
+	bm = BM_mesh_create(NULL, &bm_mesh_allocsize_default);
+
+	py_bmesh = (BPy_BMesh *)BPy_BMesh_CreatePyObject(bm);
+	py_bmesh->py_owns = TRUE;
+	return (PyObject *)py_bmesh;
+}
 
 PyDoc_STRVAR(bpy_bm_from_mesh_doc,
 ".. method:: from_mesh(mesh)\n"
@@ -58,26 +81,78 @@ PyDoc_STRVAR(bpy_bm_from_mesh_doc,
 
 static PyObject *bpy_bm_from_mesh(PyObject *UNUSED(self), PyObject *value)
 {
+	BPy_BMesh *py_bmesh;
+	BMesh *bm;
 	Mesh *me = PyC_RNA_AsPointer(value, "Mesh");
+	int py_owns;
 
-	if (me) {
-		/* temp! */
-		if (!me->edit_btmesh) {
-			PyErr_SetString(PyExc_ValueError,
-							"Mesh is not in editmode");
-			return NULL;
-		}
-
-		return BPy_BMesh_CreatePyObject(me->edit_btmesh->bm);
-	}
-	else {
+	if (me == NULL) {
 		return NULL;
 	}
+
+	/* temp! */
+	if (!me->edit_btmesh) {
+		bm = BM_mesh_create(NULL, &bm_mesh_allocsize_default);
+		BM_mesh_to_bmesh(bm, me, 0, 0); /* BMESH_TODO add args */
+		py_owns = TRUE;
+	}
+	else {
+		bm = me->edit_btmesh->bm;
+		py_owns = FALSE;
+	}
+
+	py_bmesh = (BPy_BMesh *)BPy_BMesh_CreatePyObject(bm);
+	py_bmesh->py_owns = py_owns;
+	return (PyObject *)py_bmesh;
+}
+
+PyDoc_STRVAR(bpy_bm_to_mesh_doc,
+".. method:: to_mesh(mesh, bmesh)\n"
+"\n"
+"   Return a BMesh from this mesh, currently the mesh must already be in editmode.\n"
+"\n"
+"   :return: the BMesh assosiated with this mesh.\n"
+"   :rtype: :class:`bmesh.types.BMesh`\n"
+);
+
+static PyObject *bpy_bm_to_mesh(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject  *py_mesh;
+	BPy_BMesh *py_bmesh;
+	Mesh  *me;
+	BMesh *bm;
+
+	if (!PyArg_ParseTuple(args, "OO!:to_mesh", &py_mesh, &BPy_BMesh_Type, &py_bmesh) ||
+	    !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
+	{
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(py_bmesh);
+
+	if (me->edit_btmesh) {
+		PyErr_Format(PyExc_ValueError,
+		             "to_mesh(): Mesh '%s' is in editmode", me->id.name + 2);
+		return NULL;
+	}
+
+	bm = py_bmesh->bm;
+
+	BM_mesh_from_bmesh(bm, me, FALSE);
+
+	/* we could have the user do this but if they forget blender can easy crash
+	 * since the references arrays for the objects derived meshes are now invalid */
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+
+	Py_RETURN_NONE;
 }
 
 static struct PyMethodDef BPy_BM_methods[] = {
-	{"from_mesh", (PyCFunction)bpy_bm_from_mesh, METH_O, bpy_bm_from_mesh_doc},
-	{NULL, NULL, 0, NULL}
+    /* THESE NAMES MAY CHANGE! */
+    {"new",       (PyCFunction)bpy_bm_new,       METH_NOARGS,  bpy_bm_new_doc},
+    {"from_mesh", (PyCFunction)bpy_bm_from_mesh, METH_O,       bpy_bm_from_mesh_doc},
+    {"to_mesh",   (PyCFunction)bpy_bm_to_mesh,   METH_VARARGS, bpy_bm_to_mesh_doc},
+    {NULL, NULL, 0, NULL}
 };
 
 PyDoc_STRVAR(BPy_BM_doc,
