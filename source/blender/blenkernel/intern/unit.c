@@ -35,7 +35,6 @@
 #include "BLI_string.h"
 #include "BLI_winstuff.h"
 
-
 #define TEMP_STR_SIZE 256
 
 #define SEP_CHR		'#'
@@ -76,15 +75,15 @@
 /* define a single unit */
 typedef struct bUnitDef {
 	const char *name;
-	const char *name_plural;	/* abused a bit for the display name */
-	const char *name_short;	/* this is used for display*/
-	const char *name_alt;		/* keyboard-friendly ASCII-only version of name_short, can be NULL */
-						/* if name_short has non-ASCII chars, name_alt should be present */
-	
-	const char *name_display;		/* can be NULL */
+	const char *name_plural; /* abused a bit for the display name */
+	const char *name_short; /* this is used for display*/
+	const char *name_alt; /* keyboard-friendly ASCII-only version of name_short, can be NULL */
+	/* if name_short has non-ASCII chars, name_alt should be present */
+
+	const char *name_display; /* can be NULL */
 
 	double scalar;
-	double bias;		/* not used yet, needed for converting temperature */
+	double bias; /* not used yet, needed for converting temperature */
 	int flag;
 } bUnitDef;
 
@@ -94,18 +93,14 @@ typedef struct bUnitDef {
 /* define a single unit */
 typedef struct bUnitCollection {
 	struct bUnitDef *units;
-	int base_unit;				/* basic unit index (when user doesn't specify unit explicitly) */
-	int flag;					/* options for this system */
-	int length;					/* to quickly find the last item */
+	int base_unit; /* basic unit index (when user doesn't specify unit explicitly) */
+	int flag; /* options for this system */
+	int length; /* to quickly find the last item */
 } bUnitCollection;
 
 /* Dummy */
-static struct bUnitDef buDummyDef[] = {
-	{"",	NULL, "",	NULL, NULL, 1.0, 0.0},
-	{NULL,	NULL, NULL,	NULL, NULL, 0.0, 0.0}
-};
+static struct bUnitDef buDummyDef[] = { {"", NULL, "", NULL, NULL, 1.0, 0.0}, {NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}};
 static struct bUnitCollection buDummyCollecton = {buDummyDef, 0, 0, sizeof(buDummyDef)};
-
 
 /* Lengths */
 static struct bUnitDef buMetricLenDef[] = {
@@ -292,85 +287,83 @@ static bUnitDef *unit_default(bUnitCollection *usys)
 static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *unit_start, int suppress)
 {
 	bUnitDef *unit;
-	double value_abs= value>0.0?value:-value;
+	double value_abs = value > 0.0 ? value : -value;
 
-	for (unit= unit_start ? unit_start:usys->units; unit->name; unit++) {
+	for (unit = unit_start ? unit_start : usys->units; unit->name; unit++) {
 
 		if (suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
 			continue;
 
 		/* scale down scalar so 1cm doesnt convert to 10mm because of float error */
-		if (value_abs >= unit->scalar*(1.0-EPS))
+		if (value_abs >= unit->scalar * (1.0 - EPS))
 			return unit;
 	}
 
 	return unit_default(usys);
 }
 
-
-
 /* convert into 2 units and 2 values for "2ft, 3inch" syntax */
-static void unit_dual_convert(double value, bUnitCollection *usys,
-		bUnitDef **unit_a, bUnitDef **unit_b, double *value_a, double *value_b)
+static void unit_dual_convert(double value, bUnitCollection *usys, bUnitDef **unit_a, bUnitDef **unit_b,
+                              double *value_a, double *value_b)
 {
-	bUnitDef *unit= unit_best_fit(value, usys, NULL, 1);
+	bUnitDef *unit = unit_best_fit(value, usys, NULL, 1);
 
-	*value_a=  (value < 0.0 ? ceil:floor)(value/unit->scalar) * unit->scalar;
-	*value_b= value - (*value_a);
+	*value_a = (value < 0.0 ? ceil : floor)(value / unit->scalar) * unit->scalar;
+	*value_b = value - (*value_a);
 
-	*unit_a=	unit;
-	*unit_b=	unit_best_fit(*value_b, usys, *unit_a, 1);
+	*unit_a = unit;
+	*unit_b = unit_best_fit(*value_b, usys, *unit_a, 1);
 }
 
 static int unit_as_string(char *str, int len_max, double value, int prec, bUnitCollection *usys,
-		/* non exposed options */
-		bUnitDef *unit, char pad)
+                          /* non exposed options */
+                          bUnitDef *unit, char pad)
 {
 	double value_conv;
 	int len, i;
-	
+
 	if (unit) {
 		/* use unit without finding the best one */
 	}
 	else if (value == 0.0) {
 		/* use the default units since there is no way to convert */
-		unit= unit_default(usys);
+		unit = unit_default(usys);
 	}
 	else {
-		unit= unit_best_fit(value, usys, NULL, 1);
+		unit = unit_best_fit(value, usys, NULL, 1);
 	}
 
-	value_conv= value/unit->scalar;
+	value_conv = value / unit->scalar;
 
 	/* Convert to a string */
 	{
-		len= BLI_snprintf(str, len_max, "%.*f", prec, value_conv);
+		len = BLI_snprintf(str, len_max, "%.*f", prec, value_conv);
 
 		if (len >= len_max)
-			len= len_max;
+			len = len_max;
 	}
-	
+
 	/* Add unit prefix and strip zeros */
 
 	/* replace trailing zero's with spaces
 	 * so the number is less complicated but allignment in a button wont
 	 * jump about while dragging */
-	i= len-1;
+	i = len - 1;
 
-	while(i>0 && str[i]=='0') { /* 4.300 -> 4.3 */
-		str[i--]= pad;
+	while (i > 0 && str[i] == '0') { /* 4.300 -> 4.3 */
+		str[i--] = pad;
 	}
 
-	if (i>0 && str[i]=='.') { /* 10. -> 10 */
-		str[i--]= pad;
+	if (i > 0 && str[i] == '.') { /* 10. -> 10 */
+		str[i--] = pad;
 	}
-	
+
 	/* Now add the suffix */
-	if (i<len_max) {
-		int j=0;
+	if (i < len_max) {
+		int j = 0;
 		i++;
-		while(unit->name_short[j] && (i < len_max)) {
-			str[i++]= unit->name_short[j++];
+		while (unit->name_short[j] && (i < len_max)) {
+			str[i++] = unit->name_short[j++];
 		}
 
 		if (pad) {
@@ -378,64 +371,62 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 			 * the unit name only used padded chars,
 			 * In that case add padding for the name. */
 
-			while(i<=len+j && (i < len_max)) {
-				str[i++]= pad;
+			while (i <= len + j && (i < len_max)) {
+				str[i++] = pad;
 			}
 		}
 	}
 
 	/* terminate no matter whats done with padding above */
 	if (i >= len_max)
-		i= len_max-1;
+		i = len_max - 1;
 
 	str[i] = '\0';
 	return i;
 }
-
 
 /* Used for drawing number buttons, try keep fast */
 void bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
-	if (usys==NULL || usys->units[0].name==NULL)
-		usys= &buDummyCollecton;
-   
+	if (usys == NULL || usys->units[0].name == NULL)
+		usys = &buDummyCollecton;
+
 	/* split output makes sense only for length, mass and time */
-	if (split && (type==B_UNIT_LENGTH || type==B_UNIT_MASS || type==B_UNIT_TIME)) {
+	if (split && (type == B_UNIT_LENGTH || type == B_UNIT_MASS || type == B_UNIT_TIME)) {
 		bUnitDef *unit_a, *unit_b;
 		double value_a, value_b;
 
-		unit_dual_convert(value, usys,		&unit_a, &unit_b, &value_a, &value_b);
+		unit_dual_convert(value, usys, &unit_a, &unit_b, &value_a, &value_b);
 
 		/* check the 2 is a smaller unit */
 		if (unit_b > unit_a) {
-			int i= unit_as_string(str, len_max, value_a, prec, usys,  unit_a, '\0');
+			int i = unit_as_string(str, len_max, value_a, prec, usys, unit_a, '\0');
 
 			/* is there enough space for at least 1 char of the next unit? */
-			if (i+2 < len_max) {
-				str[i++]= ' ';
+			if (i + 2 < len_max) {
+				str[i++] = ' ';
 
 				/* use low precision since this is a smaller unit */
-				unit_as_string(str+i, len_max-i, value_b, prec?1:0, usys,  unit_b, '\0');
+				unit_as_string(str + i, len_max - i, value_b, prec ? 1 : 0, usys, unit_b, '\0');
 			}
 			return;
 		}
 	}
 
-	unit_as_string(str, len_max, value, prec, usys,    NULL, pad?' ':'\0');
+	unit_as_string(str, len_max, value, prec, usys, NULL, pad ? ' ' : '\0');
 }
-
 
 static const char *unit_find_str(const char *str, const char *substr)
 {
 	const char *str_found;
 
 	if (substr && substr[0] != '\0') {
-		str_found= strstr(str, substr);
+		str_found = strstr(str, substr);
 		if (str_found) {
 			/* previous char cannot be a letter */
-			if (str_found == str || isalpha(*(str_found-1))==0) {
+			if (str_found == str || isalpha(*(str_found-1)) == 0) {
 				/* next char cannot be alphanum */
 				int len_name = strlen(substr);
 
@@ -462,60 +453,60 @@ static const char *unit_find_str(const char *str, const char *substr)
 /* not too strict, (- = * /) are most common  */
 static int ch_is_op(char op)
 {
-	switch(op) {
-	case '+':
-	case '-':
-	case '*':
-	case '/':
-	case '|':
-	case '&':
-	case '~':
-	case '<':
-	case '>':
-	case '^':
-	case '!':
-	case '=':
-	case '%':
-		return 1;
-	default:
-		return 0;
+	switch (op) {
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '|':
+		case '&':
+		case '~':
+		case '<':
+		case '>':
+		case '^':
+		case '!':
+		case '=':
+		case '%':
+			return 1;
+		default:
+			return 0;
 	}
 }
 
-static int unit_scale_str(char *str, int len_max, char *str_tmp,
-                          double scale_pref, bUnitDef *unit, const char *replace_str)
+static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit,
+                          const char *replace_str)
 {
 	char *str_found;
 
-	if ((len_max>0) && (str_found= (char *)unit_find_str(str, replace_str))) {
+	if ((len_max > 0) && (str_found = (char *)unit_find_str(str, replace_str))) {
 		/* XXX - investigate, does not respect len_max properly  */
 
 		int len, len_num, len_name, len_move, found_ofs;
 
-		found_ofs = (int)(str_found-str);
+		found_ofs = (int)(str_found - str);
 
-		len= strlen(str);
+		len = strlen(str);
 
 		len_name = strlen(replace_str);
-		len_move= (len - (found_ofs+len_name)) + 1; /* 1+ to copy the string terminator */
-		len_num= BLI_snprintf(str_tmp, TEMP_STR_SIZE, "*%g"SEP_STR, unit->scalar/scale_pref); /* # removed later */
+		len_move = (len - (found_ofs + len_name)) + 1; /* 1+ to copy the string terminator */
+		len_num = BLI_snprintf(str_tmp, TEMP_STR_SIZE, "*%g"SEP_STR, unit->scalar / scale_pref); /* # removed later */
 
 		if (len_num > len_max)
-			len_num= len_max;
+			len_num = len_max;
 
-		if (found_ofs+len_num+len_move > len_max) {
+		if (found_ofs + len_num + len_move > len_max) {
 			/* can't move the whole string, move just as much as will fit */
-			len_move -= (found_ofs+len_num+len_move) - len_max;
+			len_move -= (found_ofs + len_num + len_move) - len_max;
 		}
 
-		if (len_move>0) {
+		if (len_move > 0) {
 			/* resize the last part of the string */
-			memmove(str_found+len_num, str_found+len_name, len_move); /* may grow or shrink the string */
+			memmove(str_found + len_num, str_found + len_name, len_move); /* may grow or shrink the string */
 		}
 
-		if (found_ofs+len_num > len_max) {
+		if (found_ofs + len_num > len_max) {
 			/* not even the number will fit into the string, only copy part of it */
-			len_num -= (found_ofs+len_num) - len_max;
+			len_num -= (found_ofs + len_num) - len_max;
 		}
 
 		if (len_num > 0) {
@@ -525,28 +516,28 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp,
 
 		/* since the null terminator wont be moved if the stringlen_max
 		 * was not long enough to fit everything in it */
-		str[len_max-1]= '\0';
+		str[len_max - 1] = '\0';
 		return found_ofs + len_num;
 	}
 	return 0;
 }
 
 static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit)
-{	
-	int ofs= 0;
-	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name_short);
-	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name_plural);
-	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name_alt);
-	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name);
+{
+	int ofs = 0;
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_short);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_plural);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_alt);
+	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name);
 	return ofs;
 }
 
 static int unit_find(const char *str, bUnitDef *unit)
 {
-	if (unit_find_str(str, unit->name_short))	return 1;
-	if (unit_find_str(str, unit->name_plural))	return 1;
-	if (unit_find_str(str, unit->name_alt))		return 1;
-	if (unit_find_str(str, unit->name))			return 1;
+	if (unit_find_str(str, unit->name_short))   return 1;
+	if (unit_find_str(str, unit->name_plural))  return 1;
+	if (unit_find_str(str, unit->name_alt))     return 1;
+	if (unit_find_str(str, unit->name))         return 1;
 
 	return 0;
 }
@@ -554,11 +545,11 @@ static int unit_find(const char *str, bUnitDef *unit)
 /* make a copy of the string that replaces the units with numbers
  * this is used before parsing
  * This is only used when evaluating user input and can afford to be a bit slower
- * 
+ *
  * This is to be used before python evaluation so..
  * 10.1km -> 10.1*1000.0
  * ...will be resolved by python.
- * 
+ *
  * values will be split by a comma's
  * 5'2" -> 5'0.0254, 2*0.3048
  *
@@ -572,64 +563,61 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 
 	bUnitDef *unit;
 	char str_tmp[TEMP_STR_SIZE];
-	int change= 0;
+	int change = 0;
 
-	if (usys==NULL || usys->units[0].name==NULL) {
+	if (usys == NULL || usys->units[0].name == NULL) {
 		return 0;
 	}
-	
 
-	{	/* make lowercase */
+	{ /* make lowercase */
 		int i;
-		char *ch= str;
+		char *ch = str;
 
-		for (i=0; (i>=len_max || *ch=='\0'); i++, ch++)
-			if ((*ch>='A') && (*ch<='Z'))
-				*ch += ('a'-'A');
+		for (i = 0; (i >= len_max || *ch == '\0'); i++, ch++)
+			if ((*ch >= 'A') && (*ch <= 'Z'))
+				*ch += ('a' - 'A');
 	}
 
-
-	for (unit= usys->units; unit->name; unit++) {
+	for (unit = usys->units; unit->name; unit++) {
 		/* in case there are multiple instances */
-		while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
-			change= 1;
+		while (unit_replace(str, len_max, str_tmp, scale_pref, unit))
+			change = 1;
 	}
-	unit= NULL;
+	unit = NULL;
 
 	{
 		/* try other unit systems now, so we can evaluate imperial when metric is set for eg. */
 		bUnitCollection *usys_iter;
 		int system_iter;
 
-		for (system_iter= 0; system_iter<UNIT_SYSTEM_TOT; system_iter++) {
+		for (system_iter = 0; system_iter < UNIT_SYSTEM_TOT; system_iter++) {
 			if (system_iter != system) {
-				usys_iter= unit_get_system(system_iter, type);
+				usys_iter = unit_get_system(system_iter, type);
 				if (usys_iter) {
-					for (unit= usys_iter->units; unit->name; unit++) {
+					for (unit = usys_iter->units; unit->name; unit++) {
 						int ofs = 0;
 						/* in case there are multiple instances */
-						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
-							change= 1;
+						while ((ofs = unit_replace(str + ofs, len_max - ofs, str_tmp, scale_pref, unit)))
+							change = 1;
 					}
 				}
 			}
 		}
 	}
-	unit= NULL;
-	
-	if (change==0) {
+	unit = NULL;
+
+	if (change == 0) {
 		/* no units given so infer a unit from the previous string or default */
 		if (str_prev) {
 			/* see which units the original value had */
-			for (unit= usys->units; unit->name; unit++) {
+			for (unit = usys->units; unit->name; unit++) {
 				if (unit_find(str_prev, unit))
 					break;
 			}
 		}
 
-		if (unit==NULL || unit->name == NULL)
-			unit= unit_default(usys);
-
+		if (unit == NULL || unit->name == NULL)
+			unit = unit_default(usys);
 
 		/* add the unit prefix and re-run, use brackets in case there was an expression given */
 		if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
@@ -650,29 +638,29 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	 *
 	 * */
 	{
-		char *str_found= str;
-		char *ch= str;
+		char *str_found = str;
+		char *ch = str;
 
-		while((str_found= strchr(str_found, SEP_CHR))) {
+		while ((str_found = strchr(str_found, SEP_CHR))) {
 
-			int op_found= 0;
+			int op_found = 0;
 			/* any operators after this?*/
-			for (ch= str_found+1; *ch!='\0'; ch++) {
+			for (ch = str_found + 1; *ch != '\0'; ch++) {
 
-				if (*ch==' ' || *ch=='\t') {
+				if (*ch == ' ' || *ch == '\t') {
 					/* do nothing */
 				}
-				else if (ch_is_op(*ch) || *ch==',') { /* found an op, no need to insert a ,*/
-					op_found= 1;
+				else if (ch_is_op(*ch) || *ch == ',') { /* found an op, no need to insert a ,*/
+					op_found = 1;
 					break;
 				}
 				else { /* found a non-op character */
-					op_found= 0;
+					op_found = 0;
 					break;
 				}
 			}
 
-			*str_found++ = op_found ? ' ':',';
+			*str_found++ = op_found ? ' ' : ',';
 		}
 	}
 
@@ -685,33 +673,33 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 	bUnitCollection *usys = unit_get_system(system, type);
 
 	bUnitDef *unit;
-	bUnitDef *unit_def= unit_default(usys);
+	bUnitDef *unit_def = unit_default(usys);
 
 	/* find and substitute all units */
-	for (unit= usys->units; unit->name; unit++) {
+	for (unit = usys->units; unit->name; unit++) {
 		if (len_max > 0 && (unit->name_alt || unit == unit_def)) {
-			const char *found= unit_find_str(orig_str, unit->name_short);
+			const char *found = unit_find_str(orig_str, unit->name_short);
 			if (found) {
-				int offset= (int)(found - orig_str);
-				int len_name= 0;
+				int offset = (int)(found - orig_str);
+				int len_name = 0;
 
 				/* copy everything before the unit */
-				offset= (offset<len_max? offset: len_max);
+				offset = (offset < len_max ? offset : len_max);
 				strncpy(str, orig_str, offset);
 
-				str+= offset;
-				orig_str+= offset + strlen(unit->name_short);
-				len_max-= offset;
+				str += offset;
+				orig_str += offset + strlen(unit->name_short);
+				len_max -= offset;
 
 				/* print the alt_name */
 				if (unit->name_alt)
-					len_name= BLI_snprintf(str, len_max, "%s", unit->name_alt);
+					len_name = BLI_snprintf(str, len_max, "%s", unit->name_alt);
 				else
-					len_name= 0;
+					len_name = 0;
 
-				len_name= (len_name<len_max? len_name: len_max);
-				str+= len_name;
-				len_max-= len_name;
+				len_name = (len_name < len_max ? len_name : len_max);
+				str += len_name;
+				len_max -= len_name;
 			}
 		}
 	}
@@ -725,11 +713,11 @@ double bUnit_ClosestScalar(double value, int system, int type)
 	bUnitCollection *usys = unit_get_system(system, type);
 	bUnitDef *unit;
 
-	if (usys==NULL)
+	if (usys == NULL)
 		return -1;
 
-	unit= unit_best_fit(value, usys, NULL, 1);
-	if (unit==NULL)
+	unit = unit_best_fit(value, usys, NULL, 1);
+	if (unit == NULL)
 		return -1;
 
 	return unit->scalar;
@@ -747,18 +735,17 @@ int bUnit_IsValid(int system, int type)
 	return !(system < 0 || system > UNIT_SYSTEM_TOT || type < 0 || type > B_UNIT_TYPE_TOT);
 }
 
-
 void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
-	*usys_pt= usys;
+	*usys_pt = usys;
 
-	if (usys==NULL) {
-		*len= 0;
+	if (usys == NULL) {
+		*len = 0;
 		return;
 	}
 
-	*len= usys->length;
+	*len = usys->length;
 }
 
 int bUnit_GetBaseUnit(void *usys_pt)
