@@ -249,19 +249,46 @@ if(APPLE)
 		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
 		FORCE)
 	endif()
-	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE STRING
-		"Choose the minimum OSX version required: 10.4 or 10.5"
-		FORCE)
+	
+	execute_process(COMMAND uname -r OUTPUT_VARIABLE MAC_SYS) # check for actual system-version
+	if (${MAC_SYS} MATCHES 11)
+		set(OSX_SYSTEM 10.7)
+	elseif(${MAC_SYS} MATCHES 10)
+		set(OSX_SYSTEM 10.6)
+	elseif(${MAC_SYS} MATCHES 9)
+		set(OSX_SYSTEM 10.5)
+	else()
+		set(OSX_SYSTEM unsupported)
 	endif()
+	message(STATUS "Detected system-version: " ${OSX_SYSTEM})
+	
+	if(${OSX_SYSTEM} GREATER 10.6)
+			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "" FORCE) # 10.7 does not have 10.5sdk !!!
+	else()
+			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.5" CACHE STRING "" FORCE) # 10.5 is our minimum target
+	endif()
+
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
 			# Override the default compiler selection because Blender only compiles with gcc
 			set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
 			message(STATUS "Setting compiler to: " ${CMAKE_XCODE_ATTRIBUTE_GCC_VERSION})
+			
+			##### workaround for actual official cmake incompatibility with xcode 4.3 #####	
+			if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
+				message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
+			endif()
+			##### end workaround for actual official cmake incompatibility with xcode 4.3 #####	
+			
 		endif()
+	else() # unix makefile generator does not fill XCODE_VERSION var, so we get it with a command
+		execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERS_BUILDNR )
+		STRING(SUBSTRING ${XCODE_VERS_BUILDNR} 6 3 XCODE_VERSION) # truncate away build-nr
 	endif()
+	
+	message(STATUS "Detected Xcode-version: " ${XCODE_VERSION})
+	
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -1065,10 +1092,18 @@ elseif(WIN32)
 
 elseif(APPLE)
 
-	if (${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5")
-		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE)
+	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5" OR ${CMAKE_OSX_DEPLOYMENT_TARGET} STRGREATER "10.5")
+		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE) # valid also for 10.6/10.7
 	endif()
 
+	if(${XCODE_VERSION} LESS 4.3)
+		SET(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${CMAKE_OSX_DEPLOYMENT_TARGET}.sdk CACHE PATH "" FORCE )
+	else()
+		SET(OSX_SYSROOT_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform)
+		SET(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${CMAKE_OSX_DEPLOYMENT_TARGET}.sdk)
+		SET(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
+	endif()	
+	
 	if(WITH_LIBS10.5)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
 	else()
