@@ -1177,20 +1177,6 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	}
 }
 
-static void vgroup_transfer_weight_all(bContext *C)
-{
-	/* for each vertex group {vgroup_transfer_weight()} */
-	printf("Not implemented yet!");
-}
-
-static void vgroup_transfer_weight(bContext *C)
-{
-    printf("Not implemented yet!");
-
-
-
-}
-
 static void vgroup_lock_all(Object *ob, int action)
 {
 	bDeformGroup *dg;
@@ -2264,6 +2250,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/*Adds a copy of selected vertex group on source object to source object*/
 static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
@@ -2379,60 +2366,6 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active",
 	                "Keep the values of the active group while normalizing others");
-}
-
-static int vertex_group_transfer_weight_all_exec(const bContext *C, wmOperator *op)
-{
-    Object *ob= CTX_data_active_object(C);
-	vgroup_transfer_weight_all(C);
-
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-
-	return OPERATOR_FINISHED;
-}
-
-/* Transfers all vertex groups and weight from active object to targets*/
-void OBJECT_OT_vertex_group_transfer_weight_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Transfer Weight All";
-	ot->idname= "OBJECT_OT_vertex_group_transfer_weight_all";
-
-	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_transfer_weight_all_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int vertex_group_transfer_weight_exec(const bContext *C, wmOperator *op)
-{
-    Object *ob= CTX_data_active_object(C);
-	vgroup_transfer_weight(C);
-
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-
-	return OPERATOR_FINISHED;
-}
-
-/* Transfers one vertex group with weight from active object to target*/
-void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Transfer Weight";
-	ot->idname= "OBJECT_OT_vertex_group_transfer_weight";
-
-	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_transfer_weight_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_fix_exec(bContext *C, wmOperator *op)
@@ -2719,7 +2652,6 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2730,6 +2662,73 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_copy_to_selected_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* Transfers all vertex groups and weight from active object to targets*/
+static void vgroup_copy_weight_all(const bContext *C, wmOperator *op)
+{
+	/* for each vertex group {vgroup_copy_weight(sourceGroup, targetGroup)} */
+	printf("Not implemented yet! \n");
+}
+
+static int vertex_group_transfer_weight_all_exec(const bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	vertex_group_copy_to_selected_exec(C, op);
+	vgroup_copy_weight_all(C, op);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_transfer_weight_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Transfer Weight All";
+	ot->idname= "OBJECT_OT_vertex_group_transfer_weight_all";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_transfer_weight_all_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* Transfers one vertex group with weight from active object to target*/
+static void vgroup_copy_weight(/*source vertex group*/ /*target vertex group*/)
+{
+	printf("Not implemented yet! \n");
+}
+
+static int vertex_group_transfer_weight_exec(const bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	/*vertex_group_copy_to_selected_exec(C,op); ----- must be implemented!*/
+	vgroup_copy_weight();
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Transfer Weight";
+	ot->idname= "OBJECT_OT_vertex_group_transfer_weight";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_transfer_weight_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
