@@ -2056,7 +2056,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
 		{2, "TIMELINE", ICON_TIME, "Timeline", ""},
 		{3, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
-		{4, "DOPESHEET_EDITOR", ICON_ACTION, "Dopesheet", ""},
+		{4, "DOPESHEET_EDITOR", ICON_ACTION, "DopeSheet", ""},
 		{5, "NLA_EDITOR", ICON_NLA, "NLA Editor", ""},
 		{6, "IMAGE_EDITOR", ICON_IMAGE_COL, "UV/Image Editor", ""},
 		{7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequence Editor", ""},
