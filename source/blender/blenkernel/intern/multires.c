@@ -269,15 +269,14 @@ static int get_levels_from_disps(Object *ob)
 	mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
 	for (i = 0; i < me->totpoly; ++i) {
-		int S = me->mpoly[i].totloop;
-		
 		md = mdisp + me->mpoly[i].loopstart;
+
 		for (j=0; j<me->mpoly[i].totloop; j++, md++) {
 			if (md->totdisp == 0) continue;
 	
 			while (1) {
 				int side = (1 << (totlvl-1)) + 1;
-				int lvl_totdisp = side*side*S;
+				int lvl_totdisp = side*side;
 				if (md->totdisp == lvl_totdisp)
 					break;
 				else if (md->totdisp < lvl_totdisp)
