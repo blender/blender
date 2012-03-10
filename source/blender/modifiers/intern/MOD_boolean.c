@@ -133,8 +133,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		DerivedMesh *result;
 
 		/* when one of objects is empty (has got no faces) we could speed up
-		   calculation a bit returning one of objects' derived meshes (or empty one)
-		   Returning mesh is depended on modifieier's operation (sergey) */
+		 * calculation a bit returning one of objects' derived meshes (or empty one)
+		 * Returning mesh is depended on modifieier's operation (sergey) */
 		result = get_quick_derivedMesh(derivedData, dm, bmd->operation);
 
 		if(result == NULL) {
@@ -151,7 +151,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		/* if new mesh returned, return it; otherwise there was
-		* an error, so delete the modifier object */
+		 * an error, so delete the modifier object */
 		if(result)
 			return result;
 		else

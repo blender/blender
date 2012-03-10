@@ -487,7 +487,7 @@ static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 
 /* ------------------------------------------------------------------------- */
 /* EditSource Utility funcs and operator,
- * note, this includes itility functions and button matching checks */
+ * note, this includes utility functions and button matching checks */
 
 struct uiEditSourceStore {
 	uiBut but_orig;

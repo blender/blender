@@ -49,7 +49,7 @@ inline int hint_test_bb(HintBB *obj, float *Nmin, float *Nmax)
 	else
 		return HINT_ACCEPT;
 }
-/*
+#if 0
 struct HintFrustum
 {
 	float co[3];
@@ -69,7 +69,6 @@ inline int hint_test_bb(HintFrustum &obj, float *Nmin, float *Nmax)
 	
 	return HINT_ACCEPT;
 }
-*/
-
 #endif
 
+#endif /* __RAYOBJECT_HINT_H__ */

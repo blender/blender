@@ -221,12 +221,10 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Execute / cancel buttons. */
 	if(loadbutton) {
 		
-		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
-			max_x - loadbutton, line1_y, loadbutton, btn_h, 
-			params->title);
+		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, IFACE_(params->title),
+			max_x - loadbutton, line1_y, loadbutton, btn_h, TIP_(params->title));
 		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, IFACE_("Cancel"),
-			max_x - loadbutton, line2_y, loadbutton, btn_h, 
-			TIP_("Cancel"));
+			max_x - loadbutton, line2_y, loadbutton, btn_h, TIP_("Cancel"));
 	}
 	
 	uiEndBlock(C, block);

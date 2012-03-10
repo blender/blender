@@ -133,8 +133,8 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	}
 }
 
-/*given two opposite edges in a face, finds the ordering of their vertices so
-  that cut preview lines won't cross each other*/
+/* given two opposite edges in a face, finds the ordering of their vertices so
+ * that cut preview lines won't cross each other*/
 static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
                                 BMVert *lastv1, BMVert *v[2][2])
 {
@@ -161,7 +161,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 		return;
 	}
 	
-	l2 = BM_face_other_loop(l->e, l->f, eed->v1);
+	l2 = BM_face_other_edge_loop(l->f, l->e, eed->v1);
 	rev = (l2 == l->prev);
 	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
 		l2 = rev ? l2->prev : l2->next;
@@ -289,9 +289,9 @@ static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 {
 	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
-	} else if(lcd->edges) {
-		if (lcd->edges)
-			MEM_freeN(lcd->edges);
+	}
+	else if (lcd->edges) {
+		MEM_freeN(lcd->edges);
 		lcd->edges = NULL;
 		lcd->totedge = 0;
 	}
@@ -431,6 +431,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
 	tringselOpData *lcd= op->customdata;
+	int show_cuts = 0;
 
 	view3d_operator_needs_opengl(C);
 
@@ -477,6 +478,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			cuts++;
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, cuts);
+			show_cuts = TRUE;
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -489,6 +491,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			cuts=MAX2(cuts-1,1);
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, cuts);
+			show_cuts = TRUE;
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -514,17 +517,23 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	if (event->val==KM_PRESS) {
 		float value;
 		
-		if (handleNumInput(&lcd->num, event))
-		{
+		if (handleNumInput(&lcd->num, event)) {
 			applyNumInput(&lcd->num, &value);
 			
-			cuts= CLAMPIS(value, 1, 32);
+			cuts= CLAMPIS(value, 1, 130);
 			
 			RNA_int_set(op->ptr,"number_cuts",cuts);
 			ringsel_find_edge(lcd, cuts);
+			show_cuts = TRUE;
 			
 			ED_region_tag_redraw(lcd->ar);
 		}
+	}
+	
+	if (show_cuts) {
+		char buf[64];
+		BLI_snprintf(buf, sizeof(buf), "Number of Cuts: %d", cuts);
+		ED_area_headerprint(CTX_wm_area(C), buf);
 	}
 	
 	/* keep going until the user confirms */

@@ -136,7 +136,7 @@ typedef struct Material {
 	short diff_shader, spec_shader;
 	float roughness, refrac;
 	/* XXX param[4] needs review and improvement (shader system as whole anyway)
-	   This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
+	 * This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
 	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
 	float rms;
 	float darkness;

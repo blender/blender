@@ -1280,8 +1280,8 @@ static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, u
 static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, float length)
 {
 	
-	/*	Draw a 3d octahedral bone, we use normalized space based on length,
-		for glDisplayLists */
+	/* Draw a 3d octahedral bone, we use normalized space based on length,
+	 * for glDisplayLists */
 	
 	glScalef(length, length, length);
 
@@ -1980,7 +1980,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			
 			unsigned char col[4];
 			float col_f[4];
-			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
+			glGetFloatv(GL_CURRENT_COLOR, col_f); /* in case this is not set below */
 			rgb_float_to_uchar(col, col_f);
 			col[3]= 255;
 			

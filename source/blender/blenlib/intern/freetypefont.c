@@ -99,8 +99,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 	err= FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 	
 	// If loading succeeded, convert the FT glyph to the internal format
-	if(!err)
-	{
+	if(!err) {
 		int *npoints;
 		int *onpoints;
 		
@@ -162,9 +161,8 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 				if(k == 0) m = l;
 					
 				//virtual conic on-curve points
-				if(k < npoints[j] - 1 )
-				{
-					if( ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
+				if (k < npoints[j] - 1) {
+					if (ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
 						dx = (ftoutline.points[l].x + ftoutline.points[l+1].x)* scale / 2.0f;
 						dy = (ftoutline.points[l].y + ftoutline.points[l+1].y)* scale / 2.0f;
 
@@ -291,8 +289,7 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	if(!tf) return FALSE;
 	
 	// Load the font to memory
-	if(tf->pf)
-	{
+	if (tf->pf) {
 		err= FT_New_Memory_Face( library,
 			tf->pf->data,
 			tf->pf->size,
@@ -322,13 +319,13 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	const char *fontname;
 	VFontData *vfd;
 
-/*
+#if 0
 	FT_CharMap  found = 0;
 	FT_CharMap  charmap;
 	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
 	int         n;
-*/
+#endif
 
 	// load the freetype font
 	err = FT_New_Memory_Face( library,
@@ -338,7 +335,8 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 						&face );
 
 	if(err) return NULL;
-/*
+
+#if 0
 	for ( n = 0; n < face->num_charmaps; n++ )
 	{
 		charmap = face->charmaps[n];
@@ -355,7 +353,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	// now, select the charmap for the face object
 	err = FT_Set_Charmap( face, found );
 	if ( err ) { return NULL; }
-*/
+#endif
 
 	// allocate blender font
 	vfd= MEM_callocN(sizeof(*vfd), "FTVFontData");
@@ -368,17 +366,14 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	lcode= charcode= FT_Get_First_Char(face, &glyph_index);
 
 	// No charmap found from the ttf so we need to figure it out
-	if(glyph_index == 0)
-	{
+	if (glyph_index == 0) {
 		FT_CharMap  found = NULL;
 		FT_CharMap  charmap;
 		int n;
 
-		for ( n = 0; n < face->num_charmaps; n++ )
-		{
+		for (n = 0; n < face->num_charmaps; n++) {
 			charmap = face->charmaps[n];
-			if (charmap->encoding == FT_ENCODING_APPLE_ROMAN)
-			{
+			if (charmap->encoding == FT_ENCODING_APPLE_ROMAN) {
 				found = charmap;
 				break;
 			}
@@ -416,13 +411,13 @@ static int check_freetypefont(PackedFile * pf)
 	FT_Face			face;
 	FT_GlyphSlot	glyph;
 	FT_UInt			glyph_index;
-/*
+#if 0
 	FT_CharMap  charmap;
 	FT_CharMap  found;
 	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
 	int         n;
-*/
+#endif
 	int success = 0;
 
 	err = FT_New_Memory_Face( library,
@@ -435,24 +430,23 @@ static int check_freetypefont(PackedFile * pf)
 		//XXX error("This is not a valid font");
 	}
 	else {
-/*
-		for ( n = 0; n < face->num_charmaps; n++ )
-		{
-		  charmap = face->charmaps[n];
-		  if ( charmap->platform_id == my_platform_id &&
-			   charmap->encoding_id == my_encoding_id )
-		  {
-			found = charmap;
-			break;
-		  }
+
+#if 0
+		for ( n = 0; n < face->num_charmaps; n++) {
+			charmap = face->charmaps[n];
+			if (charmap->platform_id == my_platform_id && charmap->encoding_id == my_encoding_id) {
+				found = charmap;
+				break;
+			}
 		}
 
-		if ( !found ) { return 0; }
+		if (!found ) { return 0; }
 
 		// now, select the charmap for the face object 
 		err = FT_Set_Charmap( face, found );
 		if ( err ) { return 0; }
-*/
+#endif
+
 		glyph_index = FT_Get_Char_Index( face, 'A' );
 		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 		if(err) success = 0;

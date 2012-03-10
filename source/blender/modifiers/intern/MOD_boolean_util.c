@@ -333,7 +333,7 @@ static void InterpCSGFace(
 }
 
 /* Iterate over the CSG Output Descriptors and create a new DerivedMesh
-   from them */
+ * from them */
 static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	CSG_FaceIteratorDescriptor *face_it,
 	CSG_VertexIteratorDescriptor *vertex_it,
@@ -586,9 +586,11 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	mat= (Material**)MEM_mallocN(sizeof(Material*)*maxmat, "NewBooleanMeshMat");
 	
 	/* put some checks in for nice user feedback */
-	if (dm == NULL || dm_select == NULL) return 0;
-	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select))
-	{
+	if (dm == NULL || dm_select == NULL) {
+		return 0;
+	}
+
+	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) {
 		MEM_freeN(mat);
 		return -1;
 	}

@@ -134,7 +134,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		em= me->edit_btmesh;
 
 		/* derivedMesh might be needed for solving parenting,
-		   so re-create it here */
+		 * so re-create it here */
 		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
 
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -319,13 +319,11 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 	GroupObject *go;
 	Scene *scene= CTX_data_scene(C);
 
-	if (gob->dup_group != NULL)
-	{
+	if (gob->dup_group != NULL) {
 		go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "object"));
 		ob= go->ob;
 	}
-	else
-	{
+	else {
 		ob= gob;
 		gob = NULL;
 	}
@@ -588,8 +586,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			if (partype == PAR_PATH_CONST) {
 				/* don't do anything here, since this is not technically "parenting" */
 			}
-			else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm))
-			{
+			else if (ELEM(partype, PAR_CURVE, PAR_LATTICE) || (pararm)) {
 				/* partype is now set to PAROBJECT so that invisible 'virtual' modifiers don't need to be created
 				 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
 				 */
@@ -598,8 +595,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				
 				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
 				// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
-				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
-				{
+				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 					ModifierData *md;
 					
 					switch (partype) {

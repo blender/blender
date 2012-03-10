@@ -111,7 +111,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	}
 	
 	/* particles only need this if they are after a non deform modifier, and
-	* the modifier stack will only create them in that case. */
+	 * the modifier stack will only create them in that case. */
 	dataMask |= CD_MASK_ORIGSPACE_MLOOP|CD_MASK_ORIGINDEX;
 
 	dataMask |= CD_MASK_ORCO;

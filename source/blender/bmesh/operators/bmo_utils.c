@@ -32,7 +32,7 @@
 
 #include "bmesh.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 /*
  * UTILS.C
@@ -124,17 +124,50 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e, *e2;
 	int ccw = BMO_slot_bool_get(op, "ccw");
+	int is_single = BMO_slot_buffer_count(bm, op, "edges") == 1;
+	short check_flag = is_single ?
+	            BM_EDGEROT_CHECK_EXISTS :
+	            BM_EDGEROT_CHECK_EXISTS | BM_EDGEROT_CHECK_DEGENERATE;
+
+#define EDGE_OUT   1
+#define FACE_TAINT 1
 
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		if (!(e2 = BM_edge_rotate(bm, e, ccw))) {
-			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
-			return;
-		}
+		/**
+		 * this ends up being called twice, could add option to not to call check in
+		 * #BM_edge_rotate to get some extra speed */
+		if (BM_edge_rotate_check(bm, e)) {
+			BMFace *fa, *fb;
+			if (BM_edge_face_pair(e, &fa, &fb)) {
 
-		BMO_elem_flag_enable(bm, e2, 1);
+				/* check we're untouched */
+				if (BMO_elem_flag_test(bm, fa, FACE_TAINT) == FALSE &&
+				    BMO_elem_flag_test(bm, fb, FACE_TAINT) == FALSE)
+				{
+
+					if (!(e2 = BM_edge_rotate(bm, e, ccw, check_flag))) {
+#if 0
+						BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
+						return;
+#endif
+						continue;
+					}
+
+					BMO_elem_flag_enable(bm, e2, EDGE_OUT);
+
+					/* dont touch again */
+					BMO_elem_flag_enable(bm, fa, FACE_TAINT);
+					BMO_elem_flag_enable(bm, fb, FACE_TAINT);
+				}
+			}
+		}
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", 1, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
+
+#undef EDGE_OUT
+#undef FACE_TAINT
+
 }
 
 #define SEL_FLAG	1
@@ -525,12 +558,12 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	num_total = BM_mesh_elem_count(bm, BM_FACE);
 
 	/*
-	** The first thing to do is to iterate through all the the selected items and mark them since
-	** they will be in the selection anyway.
-	** This will increase performance, (especially when the number of originaly selected faces is high)
-	** so the overall complexity will be less than $O(mn)$ where is the total number of selected faces,
-	** and n is the total number of faces
-	*/
+	 * The first thing to do is to iterate through all the the selected items and mark them since
+	 * they will be in the selection anyway.
+	 * This will increase performance, (especially when the number of originaly selected faces is high)
+	 * so the overall complexity will be less than $O(mn)$ where is the total number of selected faces,
+	 * and n is the total number of faces
+	 */
 	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
 		if (!BMO_elem_flag_test(bm, fs, FACE_MARK)) {	/* is this really needed ? */
 			BMO_elem_flag_enable(bm, fs, FACE_MARK);
@@ -553,9 +586,9 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*
-	** Save us some computation burden: In case of perimeter/area/coplanar selection we compute
-	** only once.
-	*/
+	 * Save us some computation burden: In case of perimeter/area/coplanar selection we compute
+	 * only once.
+	 */
 	if (type == SIMFACE_PERIMETER || type == SIMFACE_AREA || type == SIMFACE_COPLANAR || type == SIMFACE_IMAGE) {
 		for (i = 0; i < num_total; i++) {
 			switch (type) {
@@ -663,9 +696,9 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_flag(bm, op, "faceout", FACE_MARK, BM_FACE);
 }
 
-/******************************************************************************
-** Similar Edges
-**************************************************************************** */
+/**************************************************************************** *
+ * Similar Edges
+ **************************************************************************** */
 #define EDGE_MARK	1
 
 /*
@@ -867,9 +900,9 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_flag(bm, op, "edgeout", EDGE_MARK, BM_EDGE);
 }
 
-/******************************************************************************
-** Similar Vertices
-**************************************************************************** */
+/**************************************************************************** *
+ * Similar Vertices
+ **************************************************************************** */
 #define VERT_MARK	1
 
 typedef struct SimSel_VertExt {
@@ -983,9 +1016,9 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_flag(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
-/******************************************************************************
-** Cycle UVs for a face
-**************************************************************************** */
+/**************************************************************************** *
+ * Cycle UVs for a face
+ **************************************************************************** */
 
 void bmo_face_rotateuvs_exec(BMesh *bm, BMOperator *op)
 {
@@ -1050,9 +1083,9 @@ void bmo_face_rotateuvs_exec(BMesh *bm, BMOperator *op)
 
 }
 
-/******************************************************************************
-** Reverse UVs for a face
-**************************************************************************** */
+/**************************************************************************** *
+ * Reverse UVs for a face
+ **************************************************************************** */
 
 void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 {
@@ -1093,9 +1126,9 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(uvs);
 }
 
-/******************************************************************************
-** Cycle colors for a face
-**************************************************************************** */
+/**************************************************************************** *
+ * Cycle colors for a face
+ **************************************************************************** */
 
 void bmo_rotatecolors_exec(BMesh *bm, BMOperator *op)
 {
@@ -1159,9 +1192,9 @@ void bmo_rotatecolors_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-/******************************************************************************
-** Reverse colors for a face
-**************************************************************************** */
+/*************************************************************************** *
+ * Reverse colors for a face
+ *************************************************************************** */
 
 void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 {
@@ -1201,9 +1234,9 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 }
 
 
-/******************************************************************************
-** shortest vertex path select
-**************************************************************************** */
+/*************************************************************************** *
+ * shortest vertex path select
+ *************************************************************************** */
 
 typedef struct ElemNode {
 	BMVert *v;	/* vertex */
@@ -1250,8 +1283,8 @@ void bmo_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	bm->elem_index_dirty &= ~BM_VERT;
 
 	/*
-	** we now have everything we need, start Dijkstra path finding algorithm
-	*/
+	 * we now have everything we need, start Dijkstra path finding algorithm
+	 */
 
 	/* set the distance/weight of the start vertex to 0 */
 	vert_list[BM_elem_index_get(sv)].weight = 0.0f;

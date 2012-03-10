@@ -73,6 +73,13 @@
 
 /************************ poll ***************************/
 
+
+BM_INLINE int text_pixel_x_to_index(SpaceText *st, const int x)
+{
+	/* add half the char width so mouse cursor selection is inbetween letters */
+	return (x + (st->cwidth / 2)) / st->cwidth;
+}
+
 static int text_new_poll(bContext *UNUSED(C))
 {
 	return 1;
@@ -1132,8 +1139,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 		tmp = tmp->next;
 	}
 	
-	if(type == TO_TABS) // Converting to tabs
-	{	//start over from the beginning
+	if (type == TO_TABS) { // Converting to tabs
+		//start over from the beginning
 		tmp = text->lines.first;
 		
 		while(tmp) {
@@ -1775,10 +1782,10 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 }
 
 /* Moves the cursor vertically by the specified number of lines.
- If the destination line is shorter than the current cursor position, the
- cursor will be positioned at the end of this line.
-
- This is to replace screen_skip for PageUp/Down operations.
+ * If the destination line is shorter than the current cursor position, the
+ * cursor will be positioned at the end of this line.
+ *
+ * This is to replace screen_skip for PageUp/Down operations.
  */
 static void cursor_skip(SpaceText* st, ARegion *ar, Text *text, int lines, int sel)
 {
@@ -2243,9 +2250,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll";
-	/*don't really see the difference between this and
-	  scroll_bar. Both do basically the same thing (aside 
-	  from keymaps).*/
+	/* don't really see the difference between this and
+	 * scroll_bar. Both do basically the same thing (aside 
+	 * from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
 	ot->description= "Scroll text screen";
 	
@@ -2337,9 +2344,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scrollbar";
-	/*don't really see the difference between this and
-	  scroll. Both do basically the same thing (aside 
-	  from keymaps).*/
+	/* don't really see the difference between this and
+	 * scroll. Both do basically the same thing (aside 
+	 * from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
 	ot->description= "Scroll text screen";
 	
@@ -2530,7 +2537,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 	else x-= TXT_OFFSET;
 
 	if(x<0) x= 0;
-	x = (x/st->cwidth) + st->left;
+	x = text_pixel_x_to_index(st, x) + st->left;
 	
 	if(st->wordwrap) {
 		text_cursor_set_to_pos_wrapped(st, ar, x, y, sel);
@@ -3103,9 +3110,9 @@ static EnumPropertyItem resolution_items[]= {
 	{0, NULL, 0, NULL, NULL}};
 
 /* returns 0 if file on disk is the same or Text is in memory only
-   returns 1 if file has been modified on disk since last local edit
-   returns 2 if file on disk has been deleted
-   -1 is returned if an error occurs */
+ * returns 1 if file has been modified on disk since last local edit
+ * returns 2 if file on disk has been deleted
+ * -1 is returned if an error occurs */
 
 int text_file_modified(Text *text)
 {

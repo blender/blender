@@ -123,7 +123,7 @@ void ED_base_object_activate(bContext *C, Base *base)
 static int objects_selectable_poll(bContext *C)
 {
 	/* we don't check for linked scenes here, selection is
-	   still allowed then for inspection of scene */
+	 * still allowed then for inspection of scene */
 	Object *obact= CTX_data_active_object(C);
 
 	if(CTX_data_edit_object(C))
@@ -492,7 +492,7 @@ static short select_grouped_object_hooks(bContext *C, Object *ob)
 	return changed;
 }
 
-/* Select objects woth the same parent as the active (siblings),
+/* Select objects with the same parent as the active (siblings),
  * parent can be NULL also */
 static short select_grouped_siblings(bContext *C, Object *ob)
 {

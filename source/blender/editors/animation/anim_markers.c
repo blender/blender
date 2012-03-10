@@ -83,10 +83,10 @@ static ListBase *context_get_markers(Scene *scene, ScrArea *sa)
 			/* local markers can only be shown when there's only a single active action to grab them from 
 			 * 	- flag only takes effect when there's an action, otherwise it can get too confusing?
 			 */
-			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) 
-			{
-				if (saction->flag & SACTION_POSEMARKERS_SHOW)
+			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) {
+				if (saction->flag & SACTION_POSEMARKERS_SHOW) {
 					return &saction->action->markers;
+				}
 			}
 		}
 	}
@@ -597,29 +597,28 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
 /* ************************** transform markers *************************** */
 
-
 /* operator state vars used:  
-	frs: delta movement
-
-functions:
-
-	init()   check selection, add customdata with old values and some lookups
-
-	apply()  do the actual movement
-
-	exit()	cleanup, send notifier
-
-	cancel() to escape from modal
-
-callbacks:
-
-	exec()	calls init, apply, exit 
-
-	invoke() calls init, adds modal handler
-
-	modal()	accept modal events while doing it, ends with apply and exit, or cancel
-
-*/
+ *     frs: delta movement
+ * 
+ * functions:
+ * 
+ *     init()   check selection, add customdata with old values and some lookups
+ * 
+ *     apply()  do the actual movement
+ * 
+ *     exit()    cleanup, send notifier
+ * 
+ *     cancel() to escape from modal
+ * 
+ * callbacks:
+ * 
+ *     exec()    calls init, apply, exit 
+ * 
+ *     invoke() calls init, adds modal handler
+ * 
+ *     modal()    accept modal events while doing it, ends with apply and exit, or cancel
+ * 
+ */
 
 typedef struct MarkerMove {
 	SpaceLink *slink;
@@ -752,7 +751,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			return OPERATOR_CANCELLED;
 		
 		case RIGHTMOUSE:
-			/* press = user manually demands transform to be cancelled */
+			/* press = user manually demands transform to be canceled */
 			if (evt->val == KM_PRESS) {
 				ed_marker_move_cancel(C, op);
 				return OPERATOR_CANCELLED;
@@ -852,8 +851,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		float vec[3];
 		char str_tx[256];
 		
-		if (handleNumInput(&mm->num, evt))
-		{
+		if (handleNumInput(&mm->num, evt)) {
 			applyNumInput(&mm->num, vec);
 			outputNumInput(&mm->num, str_tx);
 			
@@ -905,23 +903,21 @@ static void MARKER_OT_move(wmOperatorType *ot)
 
 /* ************************** duplicate markers *************************** */
 
-/* operator state vars used:  
-	frs: delta movement
-
-functions:
-
-	apply()  do the actual duplicate
-
-callbacks:
-
-	exec()	calls apply, move_exec
-
-	invoke() calls apply, move_invoke
-
-	modal()	uses move_modal
-
-*/
-
+/* operator state vars used:
+ *     frs: delta movement
+ *
+ * functions:
+ *
+ *     apply()  do the actual duplicate
+ *
+ * callbacks:
+ *
+ *     exec()    calls apply, move_exec
+ *
+ *     invoke() calls apply, move_invoke
+ *
+ *     modal()    uses move_modal
+ */
 
 /* duplicate selected TimeMarkers */
 static void ed_marker_duplicate_apply(bContext *C)
@@ -1125,23 +1121,23 @@ static void MARKER_OT_select(wmOperatorType *ot)
 /* *************************** border select markers **************** */
 
 /* operator state vars used: (added by default WM callbacks)   
-	xmin, ymin     
-	xmax, ymax     
-
-customdata: the wmGesture pointer, with subwindow
-
-callbacks:
-
-	exec()	has to be filled in by user
-
-	invoke() default WM function
-			adds modal handler
-
-	modal()	default WM function 
-			accept modal events while doing it, calls exec(), handles ESC and border drawing
-
-	poll()	has to be filled in by user for context
-*/
+ * xmin, ymin
+ * xmax, ymax
+ *
+ * customdata: the wmGesture pointer, with subwindow
+ *
+ * callbacks:
+ *
+ * 	exec()	has to be filled in by user
+ *
+ * 	invoke() default WM function
+ * 			adds modal handler
+ *
+ * 	modal()	default WM function 
+ * 			accept modal events while doing it, calls exec(), handles ESC and border drawing
+ *
+ * 	poll()	has to be filled in by user for context
+ */
 
 static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 {

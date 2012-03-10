@@ -61,13 +61,11 @@ static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, fl
 	* (http://visca.com/ffactory/archives/5-99/msg00021.html)
 	* Extracted of OpenCV demhist.c
 	*/
-	if( contrast > 0 )
-{
+	if (contrast > 0) {
 		a = 1.0f / a;
 		b = a * (brightness - delta);
 	}
-	else
-	{
+	else {
 		delta *= -1;
 		b = a * (brightness + delta);
 	}

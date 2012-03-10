@@ -69,13 +69,13 @@ protected:
 
 	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
 
-/*
+#if 0 // WHY COMMENTED? - campbell
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
 	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_FontObject"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
-*/
+#endif
 
 #ifdef WITH_PYTHON
 	static PyObject*	pyattr_get_text(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

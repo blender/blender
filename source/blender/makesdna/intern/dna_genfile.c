@@ -51,90 +51,90 @@
 
 
 /* gcc 4.1 on mingw was complaining that __int64 was already defined
-actually is saw the line below as typedef long long long long... 
-Anyhow, since its already defined, its safe to do an ifndef here- Campbell */
+ * actually is saw the line below as typedef long long long long...
+ * Anyhow, since its already defined, its safe to do an ifndef here- Campbell */
 #ifdef FREE_WINDOWS
-#ifndef __int64
+#  ifndef __int64
 typedef long long __int64;
-#endif
+#  endif
 #endif
 
 /*
  * - please note: no builtin security to detect input of double structs
  * - if you want a struct not to be in DNA file: add two hash marks above it (#<enter>#<enter>)
-
-Structure DNA data is added to each blender file and to each executable, this to detect
-in .blend files new veriables in structs, changed array sizes, etc. It's also used for
-converting endian and pointer size (32-64 bits)
-As an extra, Python uses a call to detect run-time the contents of a blender struct.
-
-Create a structDNA: only needed when one of the input include (.h) files change.
-File Syntax:
-	SDNA (4 bytes) (magic number)
-	NAME (4 bytes)
-	<nr> (4 bytes) amount of names (int)
-	<string> 
-	<string>
-	...
-	...
-	TYPE (4 bytes)
-	<nr> amount of types (int)
-	<string>
-	<string>
-	...
-	...
-	TLEN (4 bytes)
-	<len> (short) the lengths of types
-	<len>
-	...
-	...
-	STRC (4 bytes)
-	<nr> amount of structs (int)
-	<typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
-	
-!!Remember to read/write integer and short aligned!!
-
- While writing a file, the names of a struct is indicated with a type number,
- to be found with: type= findstruct_nr(SDNA *, char *)
- The value of 'type' corresponds with the the index within the structs array
-
- For the moment: the complete DNA file is included in a .blend file. For
- the future we can think of smarter methods, like only included the used
- structs. Only needed to keep a file short though...
-
-ALLOWED AND TESTED CHANGES IN STRUCTS:
- - type change (a char to float will be divided by 255)
- - location within a struct (everthing can be randomly mixed up)
- - struct within struct (within struct etc), this is recursive
- - adding new elements, will be default initialized zero
- - remving elements
- - change of array sizes
- - change of a pointer type: when the name doesn't change the contents is copied
-
-NOT YET:
- - array (vec[3]) to float struct (vec3f)
-
-DONE:
- - endian compatibility
- - pointer conversion (32-64 bits)
-
-IMPORTANT:
- - do not use #defines in structs for array lengths, this cannot be read by the dna functions
- - do not use uint, but unsigned int instead, ushort and ulong are allowed
- - only use a long in Blender if you want this to be the size of a pointer. so it is
-   32 bits or 64 bits, dependent at the cpu architecture
- - chars are always unsigned
- - aligment of variables has to be done in such a way, that any system does
-   not create 'padding' (gaps) in structures. So make sure that:
-   - short: 2 aligned
-   - int: 4 aligned
-   - float: 4 aligned
-   - double: 8 aligned
-   - long: 8 aligned
-   - struct: 8 aligned
- - the sdna functions have several error prints builtin, always check blender running from a console.
- 
-*/
+ *
+ * Structure DNA data is added to each blender file and to each executable, this to detect
+ * in .blend files new veriables in structs, changed array sizes, etc. It's also used for
+ * converting endian and pointer size (32-64 bits)
+ * As an extra, Python uses a call to detect run-time the contents of a blender struct.
+ *
+ * Create a structDNA: only needed when one of the input include (.h) files change.
+ * File Syntax:
+ *     SDNA (4 bytes) (magic number)
+ *     NAME (4 bytes)
+ *     <nr> (4 bytes) amount of names (int)
+ *     <string>
+ *     <string>
+ *     ...
+ *     ...
+ *     TYPE (4 bytes)
+ *     <nr> amount of types (int)
+ *     <string>
+ *     <string>
+ *     ...
+ *     ...
+ *     TLEN (4 bytes)
+ *     <len> (short) the lengths of types
+ *     <len>
+ *     ...
+ *     ...
+ *     STRC (4 bytes)
+ *     <nr> amount of structs (int)
+ *     <typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
+ *
+ * !!Remember to read/write integer and short aligned!!
+ *
+ *  While writing a file, the names of a struct is indicated with a type number,
+ *  to be found with: type= findstruct_nr(SDNA *, char *)
+ *  The value of 'type' corresponds with the the index within the structs array
+ *
+ *  For the moment: the complete DNA file is included in a .blend file. For
+ *  the future we can think of smarter methods, like only included the used
+ *  structs. Only needed to keep a file short though...
+ *
+ * ALLOWED AND TESTED CHANGES IN STRUCTS:
+ *  - type change (a char to float will be divided by 255)
+ *  - location within a struct (everthing can be randomly mixed up)
+ *  - struct within struct (within struct etc), this is recursive
+ *  - adding new elements, will be default initialized zero
+ *  - remving elements
+ *  - change of array sizes
+ *  - change of a pointer type: when the name doesn't change the contents is copied
+ *
+ * NOT YET:
+ *  - array (vec[3]) to float struct (vec3f)
+ *
+ * DONE:
+ *  - endian compatibility
+ *  - pointer conversion (32-64 bits)
+ *
+ * IMPORTANT:
+ *  - do not use #defines in structs for array lengths, this cannot be read by the dna functions
+ *  - do not use uint, but unsigned int instead, ushort and ulong are allowed
+ *  - only use a long in Blender if you want this to be the size of a pointer. so it is
+ *    32 bits or 64 bits, dependent at the cpu architecture
+ *  - chars are always unsigned
+ *  - aligment of variables has to be done in such a way, that any system does
+ *    not create 'padding' (gaps) in structures. So make sure that:
+ *    - short: 2 aligned
+ *    - int: 4 aligned
+ *    - float: 4 aligned
+ *    - double: 8 aligned
+ *    - long: 8 aligned
+ *    - struct: 8 aligned
+ *  - the sdna functions have several error prints builtin, always check blender running from a console.
+ *
+ */
 
 /* local */
 static int le_int(int temp);
@@ -351,8 +351,8 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			sdna->names[nr]= cp;
 
 			/* "float gravity [3]" was parsed wrong giving both "gravity" and
-			   "[3]"  members. we rename "[3]", and later set the type of
-			   "gravity" to "void" so the offsets work out correct */
+			 * "[3]"  members. we rename "[3]", and later set the type of
+			 * "gravity" to "void" so the offsets work out correct */
 			if(*cp == '[' && strcmp(cp, "[3]")==0) {
 				if(nr && strcmp(sdna->names[nr-1], "Cvi") == 0) {
 					sdna->names[nr]= "gravity[3]";
@@ -644,14 +644,14 @@ char *DNA_struct_get_compareflags(SDNA *sdna, SDNA *newsdna)
 		if(compflags[a]==2) recurs_test_compflags(sdna, compflags, a);
 	}
 	
-/*
+#if 0
 	for(a=0; a<sdna->nr_structs; a++) {
 		if(compflags[a]==2) {
 			spold= sdna->structs[a];
 			printf("changed: %s\n", sdna->types[ spold[0] ]);
 		}
 	}
-*/
+#endif
 
 	return compflags;
 }
@@ -843,14 +843,14 @@ static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna,
                              char *type, const char *name, char *curdata, short *old, char *olddata)
 {
 	/* rules: test for NAME:
-			- name equal:
-				- cast type
-			- name partially equal (array differs)
-				- type equal: memcpy
-				- types casten
-	   (nzc 2-4-2001 I want the 'unsigned' bit to be parsed as well. Where
-	   can I force this?)
-	*/	
+	 * 		- name equal:
+	 * 			- cast type
+	 * 		- name partially equal (array differs)
+	 * 			- type equal: memcpy
+	 * 			- types casten
+	 * (nzc 2-4-2001 I want the 'unsigned' bit to be parsed as well. Where
+	 * can I force this?)
+	 */
 	int a, elemcount, len, array, oldsize, cursize, mul;
 	char *otype;
 	const char *oname, *cp;

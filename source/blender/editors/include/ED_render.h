@@ -67,12 +67,12 @@ typedef struct RenderInfo {
 #define PR_ROTATED			8
 
 /* Render the preview
-
-pr_method:
-- PR_BUTS_RENDER: preview is rendered for buttons window
-- PR_ICON_RENDER: preview is rendered for icons. hopefully fast enough for at least 32x32 
-- PR_NODE_RENDER: preview is rendered for node editor.
-*/
+ *
+ * pr_method:
+ * - PR_BUTS_RENDER: preview is rendered for buttons window
+ * - PR_ICON_RENDER: preview is rendered for icons. hopefully fast enough for at least 32x32
+ * - PR_NODE_RENDER: preview is rendered for node editor
+ */
 
 #define PR_BUTS_RENDER	0
 #define PR_ICON_RENDER	1

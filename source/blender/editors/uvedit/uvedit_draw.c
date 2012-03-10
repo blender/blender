@@ -661,12 +661,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 					}
 					glEnd();
 
-					/*glBegin(GL_LINE_STRIP);
+#if 0
+					glBegin(GL_LINE_STRIP);
 						luv = CustomData_bmesh_get(&em->bm->ldata, efa->lbase->head.data, CD_MLOOPUV);
 						glVertex2fv(luv->uv);
 						luv = CustomData_bmesh_get(&em->bm->ldata, efa->lbase->next->head.data, CD_MLOOPUV);
 						glVertex2fv(luv->uv);
-					glEnd();*/
+					glEnd();
+#endif
 
 					setlinestyle(0);
 				}
@@ -900,8 +902,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			index += stitch_preview->uvs_per_polygon[i];
 		}
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		/*UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);*/
+#if 0
+		UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
+		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris*3);
+#endif
 		glDisable(GL_BLEND);
 
 		/* draw vert preview */

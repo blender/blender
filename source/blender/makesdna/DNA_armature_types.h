@@ -36,13 +36,13 @@
 struct AnimData;
 
 /* this system works on different transformation space levels;
-
-1) Bone Space;		with each Bone having own (0,0,0) origin
-2) Armature Space;  the rest position, in Object space, Bones Spaces are applied hierarchical
-3) Pose Space;		the animation position, in Object space
-4) World Space;		Object matrix applied to Pose or Armature space
-
-*/
+ *
+ * 1) Bone Space;      with each Bone having own (0,0,0) origin
+ * 2) Armature Space;  the rest position, in Object space, Bones Spaces are applied hierarchical
+ * 3) Pose Space;      the animation position, in Object space
+ * 4) World Space;     Object matrix applied to Pose or Armature space
+ *
+ */
 
 typedef struct Bone {
 	struct Bone		*next, *prev;	/*	Next/prev elements within this list	*/

@@ -127,8 +127,8 @@ public:
 	// for the scripting... needs a FactoryManager later (if we would have time... ;)
 	void	RegisterMeshName(const STR_String& meshname,void* mesh);
 	void	UnregisterMeshName(const STR_String& meshname,void* mesh);
-	CTR_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; };
-	CTR_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; };
+	CTR_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; }
+	CTR_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; }
 	
 	void	RegisterActionName(const STR_String& actname,void* action);
 

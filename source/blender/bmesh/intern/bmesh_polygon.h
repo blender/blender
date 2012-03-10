@@ -43,7 +43,8 @@ void  BM_face_normal_flip(BMesh *bm, BMFace *f);
 int   BM_face_point_inside_test(BMesh *bm, BMFace *f, const float co[3]);
 
 void  BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                         const short newedge_oflag, const short newface_oflag, BMFace **newfaces);
+                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces,
+                          const short use_beauty);
 
 void  BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
 

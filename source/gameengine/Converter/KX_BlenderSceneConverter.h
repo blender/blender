@@ -143,7 +143,7 @@ public:
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
 
-//	struct Main* GetMain() { return m_maggie; };
+//	struct Main* GetMain() { return m_maggie; }
 	struct Main*		  GetMainDynamicPath(const char *path);
 	vector<struct Main*> &GetMainDynamic();
 	

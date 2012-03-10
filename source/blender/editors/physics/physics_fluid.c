@@ -860,8 +860,7 @@ static void fluidsim_delete_until_lastframe(FluidsimSettings *fss, const char *r
 
 		curFrame++;
 
-		if((exists = BLI_exists(targetFile)))
-		{
+		if ((exists = BLI_exists(targetFile))) {
 			BLI_delete(targetFile, 0, 0);
 			BLI_delete(targetFileVel, 0, 0);
 			BLI_delete(previewFile, 0, 0);

@@ -64,6 +64,7 @@ int     bmesh_radial_face_find(BMEdge *e, BMFace *f);
 int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_vert(BMFace *f, BMVert *v);
 int     bmesh_radial_validate(int radlen, BMLoop *l);
 
 /* EDGE UTILITIES */

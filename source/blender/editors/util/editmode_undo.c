@@ -59,25 +59,23 @@
 
 /* ***************** generic editmode undo system ********************* */
 /*
+ * Add this in your local code:
+ *
+ * void undo_editmode_push(bContext *C, const char *name, 
+ * 		void * (*getdata)(bContext *C),     // use context to retrieve current editdata
+ * 		void (*freedata)(void *), 			// pointer to function freeing data
+ * 		void (*to_editmode)(void *, void *),        // data to editmode conversion
+ * 		void * (*from_editmode)(void *))      // editmode to data conversion
+ * 		int  (*validate_undo)(void *, void *))      // check if undo data is still valid
+ *
+ *
+ * Further exported for UI is:
+ *
+ * void undo_editmode_step(bContext *C, int step);	 // undo and redo
+ * void undo_editmode_clear(void)				// free & clear all data
+ * void undo_editmode_menu(void)				// history menu
+ */
 
-Add this in your local code:
-
-void undo_editmode_push(bContext *C, const char *name, 
-		void * (*getdata)(bContext *C),     // use context to retrieve current editdata
-		void (*freedata)(void *), 			// pointer to function freeing data
-		void (*to_editmode)(void *, void *),        // data to editmode conversion
-		void * (*from_editmode)(void *))      // editmode to data conversion
-		int  (*validate_undo)(void *, void *))      // check if undo data is still valid
-
-
-Further exported for UI is:
-
-void undo_editmode_step(bContext *C, int step);	 // undo and redo
-void undo_editmode_clear(void)				// free & clear all data
-void undo_editmode_menu(void)				// history menu
-
-
-*/
 /* ********************************************************************* */
 
 /* ****** XXX ***** */
@@ -128,8 +126,8 @@ void undo_editmode_push(bContext *C, const char *name,
 	int nr;
 	uintptr_t memused, totmem, maxmem;
 
-	/* at first here was code to prevent an "original" key to be insterted twice
-	   this was giving conflicts for example when mesh changed due to keys or apply */
+	/* at first here was code to prevent an "original" key to be inserted twice
+	 * this was giving conflicts for example when mesh changed due to keys or apply */
 	
 	/* remove all undos after (also when curundo==NULL) */
 	while(undobase.last != curundo) {

@@ -77,11 +77,11 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	
 	/* we don't want to overwrite any referenced layers */
 
-	/*
-	Doesn't work here!
+	/* Doesn't work here! */
+#if 0
 	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, numVerts);
 	cddm->mvert = mv;
-	*/
+#endif
 
 	face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 	if(!face_nors) {

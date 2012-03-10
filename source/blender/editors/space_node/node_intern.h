@@ -82,6 +82,8 @@ void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
 void node_deselect_all(struct SpaceNode *snode);
+void node_deselect_all_input_sockets(struct SpaceNode *snode, int deselect_nodes);
+void node_deselect_all_output_sockets(struct SpaceNode *snode, int deselect_nodes);
 int node_select_same_type(struct SpaceNode *snode);
 int node_select_same_type_np(struct SpaceNode *snode, int dir);
 void node_select_single(struct bContext *C, struct bNode *node);
@@ -118,6 +120,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
 int node_has_hidden_sockets(bNode *node, short flag);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
+int node_find_indicated_socket(struct SpaceNode *snode, struct bNode **nodep, struct bNodeSocket **sockp, int in_out);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);

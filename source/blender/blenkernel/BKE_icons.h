@@ -33,8 +33,8 @@
  */
 
 /*
- Resizable Icons for Blender
-*/
+ * Resizable Icons for Blender
+ */
 
 typedef void (*DrawInfoFreeFP) (void *drawinfo);
 

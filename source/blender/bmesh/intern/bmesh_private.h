@@ -65,10 +65,9 @@ int bmesh_disk_count(BMVert *v);
 #define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))
 #define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->oflags[0].pflag &   (f))
 
-void bmesh_face_normal_update(BMesh *bm, BMFace *f, float no[3],
-                              float (*projectverts)[3]);
+void bmesh_face_normal_update(BMesh *bm, BMFace *f, float no[3]);
 void bmesh_face_normal_update_vertex_cos(BMesh *bm, BMFace *f, float no[3],
-                                         float (*projectverts)[3], float (*vertexCos)[3]);
+                                         float (*vertexCos)[3]);
 
 void compute_poly_plane(float (*verts)[3], int nverts);
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);

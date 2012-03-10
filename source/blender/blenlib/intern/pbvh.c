@@ -63,52 +63,52 @@ struct PBVHNode {
 	BB orig_vb;
 
 	/* For internal nodes, the offset of the children in the PBVH
-	   'nodes' array. */
+	 * 'nodes' array. */
 	int children_offset;
 
 	/* Pointer into the PBVH prim_indices array and the number of
-	   primitives used by this leaf node.
-
-	   Used for leaf nodes in both mesh- and multires-based PBVHs.
-	*/
+	 * primitives used by this leaf node.
+	 *
+	 * Used for leaf nodes in both mesh- and multires-based PBVHs.
+	 */
 	int *prim_indices;
 	unsigned int totprim;
 
 	/* Array of indices into the mesh's MVert array. Contains the
-	   indices of all vertices used by faces that are within this
-	   node's bounding box.
-
-	   Note that a vertex might be used by a multiple faces, and
-	   these faces might be in different leaf nodes. Such a vertex
-	   will appear in the vert_indices array of each of those leaf
-	   nodes.
-
-	   In order to support cases where you want access to multiple
-	   nodes' vertices without duplication, the vert_indices array
-	   is ordered such that the first part of the array, up to
-	   index 'uniq_verts', contains "unique" vertex indices. These
-	   vertices might not be truly unique to this node, but if
-	   they appear in another node's vert_indices array, they will
-	   be above that node's 'uniq_verts' value.
-
-	   Used for leaf nodes in a mesh-based PBVH (not multires.)
-	*/
+	 * indices of all vertices used by faces that are within this
+	 * node's bounding box.
+	 *
+	 * Note that a vertex might be used by a multiple faces, and
+	 * these faces might be in different leaf nodes. Such a vertex
+	 * will appear in the vert_indices array of each of those leaf
+	 * nodes.
+	 *
+	 * In order to support cases where you want access to multiple
+	 * nodes' vertices without duplication, the vert_indices array
+	 * is ordered such that the first part of the array, up to
+	 * index 'uniq_verts', contains "unique" vertex indices. These
+	 * vertices might not be truly unique to this node, but if
+	 * they appear in another node's vert_indices array, they will
+	 * be above that node's 'uniq_verts' value.
+	 *
+	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
+	 */
 	int *vert_indices;
 	unsigned int uniq_verts, face_verts;
 
 	/* An array mapping face corners into the vert_indices
-	   array. The array is sized to match 'totprim', and each of
-	   the face's corners gets an index into the vert_indices
-	   array, in the same order as the corners in the original
-	   MFace. The fourth value should not be used if the original
-	   face is a triangle.
-
-	   Used for leaf nodes in a mesh-based PBVH (not multires.)
-	*/
+	 * array. The array is sized to match 'totprim', and each of
+	 * the face's corners gets an index into the vert_indices
+	 * array, in the same order as the corners in the original
+	 * MFace. The fourth value should not be used if the original
+	 * face is a triangle.
+	 *
+	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
+	 */
 	int (*face_vert_indices)[4];
 
 	/* Indicates whether this node is a leaf or not; also used for
-	   marking various updates that need to be applied. */
+	 * marking various updates that need to be applied. */
 	PBVHNodeFlags flag : 8;
 
 	/* Used for raycasting: how close bb is to the ray point. */
@@ -136,11 +136,12 @@ struct PBVH {
 	DMGridData **grids;
 	DMGridAdjacency *gridadj;
 	void **gridfaces;
+	const DMFlagMat *grid_flag_mats;
 	int totgrid;
 	int gridsize;
 
 	/* Only used during BVH build and update,
-	   don't need to remain valid after */
+	 * don't need to remain valid after */
 	BLI_bitmap vert_bitmap;
 
 #ifdef PERFCNTRS
@@ -261,6 +262,17 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 //	BB_expand(&node->vb, co);
 //}
 
+static int face_materials_match(const MFace *f1, const MFace *f2)
+{
+	return ((f1->flag & ME_SMOOTH) == (f2->flag & ME_SMOOTH) &&
+			(f1->mat_nr == f2->mat_nr));
+}
+
+static int grid_materials_match(const DMFlagMat *f1, const DMFlagMat *f2)
+{
+	return ((f1->flag & ME_SMOOTH) == (f2->flag & ME_SMOOTH) &&
+			(f1->mat_nr == f2->mat_nr));
+}
 
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
@@ -280,17 +292,35 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 	}
 }
 
-static void check_partitioning(int *prim_indices, int lo, int hi, int axis,
-				   float mid, BBC *prim_bbc, int index_of_2nd_partition)
+/* Returns the index of the first element on the right of the partition */
+static int partition_indices_material(PBVH *bvh, int lo, int hi)
 {
-	int i;
-	for(i = lo; i <= hi; ++i) {
-		const float c = prim_bbc[prim_indices[i]].bcentroid[axis];
+	const MFace *faces = bvh->faces;
+	const DMFlagMat *flagmats = bvh->grid_flag_mats;
+	const int *indices = bvh->prim_indices;
+	const void *first;
+	int i=lo, j=hi;
 
-		if((i < index_of_2nd_partition && c > mid) ||
-		   (i > index_of_2nd_partition && c < mid)) {
-			printf("fail\n");
+	if(bvh->faces)
+		first = &faces[bvh->prim_indices[lo]];
+	else
+		first = &flagmats[bvh->prim_indices[lo]];
+
+	for(;;) {
+		if(bvh->faces) {
+			for(; face_materials_match(first, &faces[indices[i]]); i++);
+			for(; !face_materials_match(first, &faces[indices[j]]); j--);
 		}
+		else {
+			for(; grid_materials_match(first, &flagmats[indices[i]]); i++);
+			for(; !grid_materials_match(first, &flagmats[indices[j]]); j--);
+		}
+		
+		if(!(i < j))
+			return i;
+
+		SWAP(int, bvh->prim_indices[i], bvh->prim_indices[j]);
+		i++;
 	}
 }
 
@@ -311,7 +341,7 @@ static void grow_nodes(PBVH *bvh, int totnode)
 }
 
 /* Add a vertex to the map, with a positive value for unique vertices and
-   a negative value for additional vertices */
+ * a negative value for additional vertices */
 static int map_insert_vert(PBVH *bvh, GHash *map,
 				unsigned int *face_verts,
 				unsigned int *uniq_verts, int vertex)
@@ -416,83 +446,127 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
+static void update_vb(PBVH *bvh, PBVHNode *node, BBC *prim_bbc,
+					  int offset, int count)
+{
+	int i;
+	
+	BB_reset(&node->vb);
+	for(i = offset + count - 1; i >= offset; --i) {
+		BB_expand_with_bb(&node->vb, (BB*)(&prim_bbc[bvh->prim_indices[i]]));
+	}
+	node->orig_vb = node->vb;
+}
+
+static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
+					   int offset, int count)
+{
+	bvh->nodes[node_index].flag |= PBVH_Leaf;
+
+	bvh->nodes[node_index].prim_indices = bvh->prim_indices + offset;
+	bvh->nodes[node_index].totprim = count;
+
+	/* Still need vb for searches */
+	update_vb(bvh, &bvh->nodes[node_index], prim_bbc, offset, count);
+		
+	if(bvh->faces)
+		build_mesh_leaf_node(bvh, bvh->nodes + node_index);
+	else
+		build_grids_leaf_node(bvh, bvh->nodes + node_index);
+}
+
+/* Return zero if all primitives in the node can be drawn with the
+ * same material (including flat/smooth shading), non-zerootherwise */
+int leaf_needs_material_split(PBVH *bvh, int offset, int count)
+{
+	int i, prim;
+
+	if(count <= 1)
+		return 0;
+
+	if(bvh->faces) {
+		const MFace *first = &bvh->faces[bvh->prim_indices[offset]];
+
+		for(i = offset + count - 1; i > offset; --i) {
+			prim = bvh->prim_indices[i];
+			if(!face_materials_match(first, &bvh->faces[prim]))
+				return 1;
+		}
+	}
+	else {
+		const DMFlagMat *first = &bvh->grid_flag_mats[bvh->prim_indices[offset]];
+
+		for(i = offset + count - 1; i > offset; --i) {
+			prim = bvh->prim_indices[i];
+			if(!grid_materials_match(first, &bvh->grid_flag_mats[prim]))
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
+
 /* Recursively build a node in the tree
-
-   vb is the voxel box around all of the primitives contained in
-   this node.
-
-   cb is the bounding box around all the centroids of the primitives
-   contained in this node
-
-   offset and start indicate a range in the array of primitive indices
-*/
+ *
+ * vb is the voxel box around all of the primitives contained in
+ * this node.
+ *
+ * cb is the bounding box around all the centroids of the primitives
+ * contained in this node
+ *
+ * offset and start indicate a range in the array of primitive indices
+ */
 
 static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
-		   int offset, int count)
+					  int offset, int count)
 {
-	int i, axis, end;
+	int i, axis, end, below_leaf_limit;
 	BB cb_backing;
 
 	/* Decide whether this is a leaf or not */
-	// XXX adapt leaf limit for grids
-	if(count <= bvh->leaf_limit) {
-		bvh->nodes[node_index].flag |= PBVH_Leaf;
-
-		bvh->nodes[node_index].prim_indices = bvh->prim_indices + offset;
-		bvh->nodes[node_index].totprim = count;
-
-		/* Still need vb for searches */
-		BB_reset(&bvh->nodes[node_index].vb);
-		for(i = offset + count - 1; i >= offset; --i) {
-			BB_expand_with_bb(&bvh->nodes[node_index].vb,
-					  (BB*)(prim_bbc +
-						bvh->prim_indices[i]));
+	below_leaf_limit = count <= bvh->leaf_limit;
+	if(below_leaf_limit) {
+		if(!leaf_needs_material_split(bvh, offset, count)) {
+			build_leaf(bvh, node_index, prim_bbc, offset, count);
+			return;
 		}
-		
-		if(bvh->faces)
-			build_mesh_leaf_node(bvh, bvh->nodes + node_index);
-		else
-			build_grids_leaf_node(bvh, bvh->nodes + node_index);
-		bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
-
-		/* Done with this subtree */
-		return;
 	}
-	else {
-		BB_reset(&bvh->nodes[node_index].vb);
-		bvh->nodes[node_index].children_offset = bvh->totnode;
-		grow_nodes(bvh, bvh->totnode + 2);
 
+	/* Add two child nodes */
+	bvh->nodes[node_index].children_offset = bvh->totnode;
+	grow_nodes(bvh, bvh->totnode + 2);
+
+	/* Update parent node bounding box */
+	update_vb(bvh, &bvh->nodes[node_index], prim_bbc, offset, count);
+
+	if(!below_leaf_limit) {
+		/* Find axis with widest range of primitive centroids */
 		if(!cb) {
 			cb = &cb_backing;
 			BB_reset(cb);
 			for(i = offset + count - 1; i >= offset; --i)
 				BB_expand(cb, prim_bbc[bvh->prim_indices[i]].bcentroid);
 		}
+		axis = BB_widest_axis(cb);
+
+		/* Partition primitives along that axis */
+		end = partition_indices(bvh->prim_indices,
+								offset, offset + count - 1,
+								axis,
+								(cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+								prim_bbc);
+	}
+	else {
+		/* Partition primitives by material */
+		end = partition_indices_material(bvh, offset, offset + count - 1);
 	}
 
-	axis = BB_widest_axis(cb);
-
-	for(i = offset + count - 1; i >= offset; --i) {
-		BB_expand_with_bb(&bvh->nodes[node_index].vb,
-				  (BB*)(prim_bbc + bvh->prim_indices[i]));
-	}
-
-	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
-
-	end = partition_indices(bvh->prim_indices, offset, offset + count - 1,
-	                        axis,
-	                        (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-	                        prim_bbc);
-	check_partitioning(bvh->prim_indices, offset, offset + count - 1,
-	                   axis,
-	                   (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-	                   prim_bbc, end);
-
+	/* Build children */
 	build_sub(bvh, bvh->nodes[node_index].children_offset, NULL,
-		  prim_bbc, offset, end - offset);
+			  prim_bbc, offset, end - offset);
 	build_sub(bvh, bvh->nodes[node_index].children_offset + 1, NULL,
-		  prim_bbc, end, offset + count - end);
+			  prim_bbc, end, offset + count - end);
 }
 
 static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
@@ -562,7 +636,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 
 /* Do a full rebuild with on Grids data structure */
 void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj,
-	int totgrid, int gridsize, void **gridfaces)
+	int totgrid, int gridsize, void **gridfaces, DMFlagMat *flagmats)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
@@ -571,6 +645,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 	bvh->grids= grids;
 	bvh->gridadj= gridadj;
 	bvh->gridfaces= gridfaces;
+	bvh->grid_flag_mats= flagmats;
 	bvh->totgrid= totgrid;
 	bvh->gridsize= gridsize;
 	bvh->leaf_limit = MAX2(LEAF_LIMIT/((gridsize-1)*(gridsize-1)), 1);
@@ -689,7 +764,7 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 	int revisiting;
 
 	/* purpose here is to traverse tree, visiting child nodes before their
-	   parents, this order is necessary for e.g. computing bounding boxes */
+	 * parents, this order is necessary for e.g. computing bounding boxes */
 
 	while(iter->stacksize) {
 		/* pop node */
@@ -925,18 +1000,18 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 		return;
 
 	/* could be per node to save some memory, but also means
-	   we have to store for each vertex which node it is in */
+	 * we have to store for each vertex which node it is in */
 	vnor= MEM_callocN(sizeof(float)*3*bvh->totvert, "bvh temp vnors");
 
-	/* subtle assumptions:
-	   - We know that for all edited vertices, the nodes with faces
-		 adjacent to these vertices have been marked with PBVH_UpdateNormals.
-		 This is true because if the vertex is inside the brush radius, the
-		 bounding box of it's adjacent faces will be as well.
-	   - However this is only true for the vertices that have actually been
-		 edited, not for all vertices in the nodes marked for update, so we
-		 can only update vertices marked with ME_VERT_PBVH_UPDATE.
-	*/
+    /* subtle assumptions:
+     * - We know that for all edited vertices, the nodes with faces
+     *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
+     *   This is true because if the vertex is inside the brush radius, the
+     *   bounding box of it's adjacent faces will be as well.
+     * - However this is only true for the vertices that have actually been
+     *   edited, not for all vertices in the nodes marked for update, so we
+     *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
+     */
 
 	#pragma omp parallel for private(n) schedule(static)
 	for(n = 0; n < totnode; n++) {
@@ -966,7 +1041,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 					if(bvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
 						/* this seems like it could be very slow but profile
-						   does not show this, so just leave it for now? */
+						 * does not show this, so just leave it for now? */
 						#pragma omp atomic
 						vnor[v][0] += fn[0];
 						#pragma omp atomic
@@ -1039,7 +1114,7 @@ static void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes,
 	}
 }
 
-static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, int smooth)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 {
 	PBVHNode *node;
 	int n;
@@ -1052,18 +1127,17 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, i
 			if(bvh->grids) {
 				GPU_update_grid_buffers(node->draw_buffers,
 						   bvh->grids,
+						   bvh->grid_flag_mats,
 						   node->prim_indices,
 						   node->totprim,
-						   bvh->gridsize,
-						   smooth);
+						   bvh->gridsize);
 			}
 			else {
 				GPU_update_mesh_buffers(node->draw_buffers,
 						   bvh->verts,
 						   node->vert_indices,
 						   node->uniq_verts +
-						   node->face_verts,
-		                   smooth);
+						   node->face_verts);
 			}
 
 			node->flag &= ~PBVH_UpdateDrawBuffers;
@@ -1432,7 +1506,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 
 //#include <GL/glew.h>
 
-void BLI_pbvh_node_draw(PBVHNode *node, void *UNUSED(data))
+void BLI_pbvh_node_draw(PBVHNode *node, void *setMaterial)
 {
 #if 0
 	/* XXX: Just some quick code to show leaf nodes in different colors */
@@ -1450,14 +1524,14 @@ void BLI_pbvh_node_draw(PBVHNode *node, void *UNUSED(data))
 
 	glColor3f(1, 0, 0);
 #endif
-	GPU_draw_buffers(node->draw_buffers);
+	GPU_draw_buffers(node->draw_buffers, setMaterial);
 }
 
 /* Adapted from:
-   http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
-   Returns true if the AABB is at least partially within the frustum
-   (ok, not a real frustum), false otherwise.
-*/
+ * http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
+ * Returns true if the AABB is at least partially within the frustum
+ * (ok, not a real frustum), false otherwise.
+ */
 int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 {
 	float (*planes)[4] = data;
@@ -1485,7 +1559,8 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	return 1;
 }
 
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth)
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
+				   DMSetMaterial setMaterial)
 {
 	PBVHNode **nodes;
 	int totnode;
@@ -1494,16 +1569,16 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smo
 		&nodes, &totnode);
 
 	pbvh_update_normals(bvh, nodes, totnode, face_nors);
-	pbvh_update_draw_buffers(bvh, nodes, totnode, smooth);
+	pbvh_update_draw_buffers(bvh, nodes, totnode);
 
 	if(nodes) MEM_freeN(nodes);
 
 	if(planes) {
 		BLI_pbvh_search_callback(bvh, BLI_pbvh_node_planes_contain_AABB,
-				planes, BLI_pbvh_node_draw, NULL);
+				planes, BLI_pbvh_node_draw, setMaterial);
 	}
 	else {
-		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, NULL);
+		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, setMaterial);
 	}
 }
 

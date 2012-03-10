@@ -79,9 +79,9 @@ MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[
 }
 
 /* predivide versions to work on associated/premultipled alpha. if this should
-   be done or not depends on the background the image will be composited over,
-   ideally you would never do color space conversion on an image with alpha
-   because it is ill defined */
+ * be done or not depends on the background the image will be composited over,
+ * ideally you would never do color space conversion on an image with alpha
+ * because it is ill defined */
 
 MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4])
 {

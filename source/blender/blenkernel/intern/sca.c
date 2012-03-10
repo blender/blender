@@ -395,6 +395,7 @@ void init_actuator(bActuator *act)
 	bRandomActuator *ra;
 	bSoundActuator *sa;
 	bSteeringActuator *sta;
+	bArmatureActuator *arma;
 	
 	if(act->data) MEM_freeN(act->data);
 	act->data= NULL;
@@ -468,6 +469,8 @@ void init_actuator(bActuator *act)
 		break;
 	case ACT_ARMATURE:
 		act->data = MEM_callocN(sizeof( bArmatureActuator ), "armature act");
+		arma = act->data;
+		arma->influence = 1.f;
 		break;
 	case ACT_STEERING:
 		act->data = MEM_callocN(sizeof( bSteeringActuator), "steering act");

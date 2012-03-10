@@ -176,10 +176,10 @@ struct uiBut {
 	struct bContextStore *context;
 
 	/* not ysed yet, was used in 2.4x for ui_draw_pulldown_round & friends */
-	/*
+#if 0
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
-	*/
+#endif
 
 	uiButCompleteFunc autocomplete_func;
 	void *autofunc_arg;

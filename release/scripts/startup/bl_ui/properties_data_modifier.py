@@ -25,6 +25,7 @@ class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
+    bl_options = {'HIDE_HEADER'}
 
 
 class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
@@ -126,7 +127,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
         split.prop(md, "use_even_offset")
         split.prop(md, "use_distance_offset")
-        # -- end 
+        # -- end
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)

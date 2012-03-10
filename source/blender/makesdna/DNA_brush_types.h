@@ -131,7 +131,7 @@ typedef struct Brush {
 #define BRUSH_FRONTFACE (1<<27)
 #define BRUSH_CUSTOM_ICON (1<<28)
 
-/* temporary flag which sets up autmatically for correct
+/* temporary flag which sets up automatically for correct
  * brush drawing when inverted modal operator is running */
 #define BRUSH_INVERTED (1<<29)
 

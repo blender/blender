@@ -63,12 +63,13 @@ protected:
 	// Never used, I think...
 //	void MoveTo(const MT_Point3& movevec)
 //	{
-		/*MT_Transform camtrans;
+#if 0
+		MT_Transform camtrans;
 		camtrans.invert(m_trans1);
 		MT_Matrix3x3 camorient = camtrans.getBasis();
 		camtrans.translate(camorient.inverse()*movevec);
 		m_trans1.invert(camtrans);
-		*/
+#endif
 //	}
 
 	/**
@@ -185,8 +186,8 @@ public:
 	bool				hasValidProjectionMatrix() const;
 	
 	/** Sets the validity of the projection matrix.  Call this if you change camera
-	    data (eg lens, near plane, far plane) and require the projection matrix to be
-	    recalculated.
+	 *  data (eg lens, near plane, far plane) and require the projection matrix to be
+	 *  recalculated.
 	 */
 	void				InvalidateProjectionMatrix(bool valid = false);
 	

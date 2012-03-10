@@ -158,11 +158,11 @@ void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 {
 	/*
-	 Keep a copy of constant lists submitted for rendering,
-		this guards against (replicated)new...delete every frame,
-		and we can reuse lists!
-		:: sorted by mesh slot
-	*/
+	 * Keep a copy of constant lists submitted for rendering,
+	 * this guards against (replicated)new...delete every frame,
+	 * and we can reuse lists!
+	 * :: sorted by mesh slot
+	 */
 	RAS_ListSlot* localSlot = (RAS_ListSlot*)ms.m_DisplayList;
 	if(!localSlot) {
 		if (ms.m_pDerivedMesh) {

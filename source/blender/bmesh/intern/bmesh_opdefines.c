@@ -55,7 +55,7 @@
  */
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* ok, I'm going to write a little docgen script. so all
  * bmop comments must conform to the following template/rules:
@@ -75,7 +75,7 @@
  * """
  *
  * so the first line is the "title" of the bmop.
- * subsequent line blocks seperated by blank lines
+ * subsequent line blocks separated by blank lines
  * are paragraphs.  individual descriptions of slots
  * would be extracted from comments
  * next to them, e.g.
@@ -676,6 +676,7 @@ static BMOpDefine bmo_triangulate_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},
 	 {BMO_OP_SLOT_MAPPING, "facemap"},
+	 {BMO_OP_SLOT_BOOL, "use_beauty"},
 	 {0} /* null-terminating sentine */},
 	bmo_triangulate_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -889,8 +890,7 @@ static BMOpDefine bmo_vertexshortestpath_def = {
 static BMOpDefine bmo_edgesplit_def = {
 	"edgesplit",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout1"}, /* old output disconnected edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout2"}, /* new output disconnected edges */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* old output disconnected edges */
 	 {0} /* null-terminating sentine */},
 	bmo_edgesplit_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

@@ -31,7 +31,7 @@
 
 #include "bmesh.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 /*
  * JOIN_TRIANGLES.C
@@ -251,13 +251,10 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		if (BM_edge_face_count(e) != 2) {
+		if (!BM_edge_face_pair(e, &f1, &f2)) {
 			BMO_elem_flag_disable(bm, e, EDGE_MARK);
 			continue;
 		}
-
-		f1 = e->l->f;
-		f2 = e->l->radial_next->f;
 
 		if (f1->len != 3 || f2->len != 3) {
 			BMO_elem_flag_disable(bm, e, EDGE_MARK);
@@ -332,9 +329,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
 			continue;
 
-		f1 = e->l->f;
-		f2 = e->l->radial_next->f;
 
+		BM_edge_face_pair(e, &f1, &f2); /* checked above */
 		BM_faces_join_pair(bm, f1, f2, e);
 	}
 

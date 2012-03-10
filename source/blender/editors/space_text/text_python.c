@@ -355,9 +355,10 @@ static short UNUSED_FUNCTION(do_texttools)(SpaceText *st, char ascii, unsigned s
 		}
 	}
 
-	if(draw)
-		{}; // XXX redraw_alltext();
-	
+	if (draw) {
+		// XXX redraw_alltext();
+	}
+
 	return swallow;
 }
 
@@ -540,8 +541,9 @@ static short UNUSED_FUNCTION(do_textmarkers)(SpaceText *st, char ascii, unsigned
 		}
 	}
 	
-	if(draw)
-		{}; // XXX redraw_alltext();
+	if (draw) {
+		// XXX redraw_alltext();
+	}
 	
 	return swallow;
 }

@@ -145,7 +145,7 @@ void ED_spacetypes_init(void)
 
 /* called in wm.c */
 /* keymap definitions are registered only once per WM initialize, usually on file read,
-   using the keymap the actual areas/regions add the handlers */
+ * using the keymap the actual areas/regions add the handlers */
 void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
 	const ListBase *spacetypes;

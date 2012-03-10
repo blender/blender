@@ -49,11 +49,11 @@ public:
 	virtual ~KX_ISceneConverter () {};
 
 	/*
-	scenename: name of the scene to be converted,
-		if the scenename is empty, convert the 'default' scene (whatever this means)
-	destinationscene: pass an empty scene, everything goes into this
-	dictobj: python dictionary (for pythoncontrollers)
-	*/
+	 * scenename: name of the scene to be converted,
+	 * if the scenename is empty, convert the 'default' scene (whatever this means)
+	 * destinationscene: pass an empty scene, everything goes into this
+	 * dictobj: python dictionary (for pythoncontrollers)
+	 */
 	virtual void ConvertScene(
 		class KX_Scene* destinationscene,
 		class RAS_IRenderTools* rendertools, 

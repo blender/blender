@@ -332,6 +332,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			if(b_image)
 				env->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
+			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
 			node = env;
 			break;
@@ -517,6 +518,9 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 			/* add proxy converter nodes for inputs and outputs */
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
+			if (!b_group_ntree)
+				continue;
+
 			BL::Node::inputs_iterator b_input;
 			BL::Node::outputs_iterator b_output;
 			

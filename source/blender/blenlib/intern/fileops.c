@@ -60,9 +60,9 @@
 
 
 /* gzip the file in from and write it to "to". 
- return -1 if zlib fails, -2 if the originating file does not exist
- note: will remove the "from" file
-  */
+ * return -1 if zlib fails, -2 if the originating file does not exist
+ * note: will remove the "from" file
+ */
 int BLI_file_gzip(const char *from, const char *to)
 {
 	char buffer[10240];
@@ -106,8 +106,8 @@ int BLI_file_gzip(const char *from, const char *to)
 }
 
 /* gzip the file in from_file and write it to memery to_mem, at most size bytes.
-   return the unziped size
-  */
+ * return the unziped size
+ */
 char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 {
 	gzFile gzfile;

@@ -118,7 +118,7 @@ static void object_clear_rot(Object *ob)
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
 					ob->quat[3]= ob->dquat[3]= 0.0f;
 					
-				// TODO: does this quat need normalising now?
+				// TODO: does this quat need normalizing now?
 			}
 			else {
 				/* the flag may have been set for the other modes, so just ignore the extra flag... */
@@ -815,8 +815,10 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				bArmature *arm = ob->data;
 
 				if(ID_REAL_USERS(arm) > 1) {
-					/*BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
-					return;*/
+#if 0
+					BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
+					return;
+#endif
 					tot_multiuser_arm_error++;
 				}
 				else {

@@ -127,7 +127,7 @@
 /* ------------------------------------------------------------------------- */
 
 /* Stuff for stars. This sits here because it uses gl-things. Part of
-this code may move down to the converter.  */
+ * this code may move down to the converter.  */
 /* ------------------------------------------------------------------------- */
 /* this is a bad beast, since it is misused by the 3d view drawing as well. */
 
@@ -150,10 +150,10 @@ static HaloRen *initstar(Render *re, ObjectRen *obr, float *vec, float hasize)
 }
 
 /* there must be a 'fixed' amount of stars generated between
-*         near and far
-* all stars must by preference lie on the far and solely
-*        differ in clarity/color
-*/
+ *         near and far
+ * all stars must by preference lie on the far and solely
+ *        differ in clarity/color
+ */
 
 void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 				   void (*vertexfunc)(float*),  void (*termfunc)(void))
@@ -200,10 +200,10 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	else unit_m4(mat);
 	
 	/* BOUNDING BOX CALCULATION
-		* bbox goes from z = loc_near_var | loc_far_var,
-		* x = -z | +z,
-		* y = -z | +z
-		*/
+	 * bbox goes from z = loc_near_var | loc_far_var,
+	 * x = -z | +z,
+	 * y = -z | +z
+	 */
 
 	camera= re ? RE_GetCamera(re) : scene->camera;
 
@@ -251,9 +251,9 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 					mul_m4_v3(re->viewmat, vec);
 					
 					/* in vec are global coordinates
-					* calculate distance to camera
-					* and using that, define the alpha
-					*/
+					 * calculate distance to camera
+					 * and using that, define the alpha
+					 */
 					
 					{
 						float tx, ty, tz;
@@ -322,7 +322,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 
 /* ------------------------------------------------------------------------- */
 /* tool functions/defines for ad hoc simplification and possible future 
-   cleanup      */
+ * cleanup      */
 /* ------------------------------------------------------------------------- */
 
 #define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
@@ -515,8 +515,8 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 
 
 /****************************************************************
-************ tangent space generation interface *****************
-****************************************************************/
+ ************ tangent space generation interface ****************
+ ****************************************************************/
 
 typedef struct
 {
@@ -609,7 +609,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 	}
 
 		/* calculate cos of angles and point-masses, use as weight factor to
-		   add face normal to vertex */
+		 * add face normal to vertex */
 	for(a=0; a<obr->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if(vlr->flag & ME_SMOOTH) {
@@ -664,8 +664,8 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 	
-		/* normalize vertex normals */
-	for(a=0; a<obr->totvert; a++) {
+	/* normalize vertex normals */
+	for (a=0; a<obr->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(obr, a);
 		normalize_v3(ver->n);
 		if(do_tangent) {
@@ -681,8 +681,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 
-	if(do_nmap_tangent!=0)
-	{
+	if (do_nmap_tangent != 0) {
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
 		SMikkTSpaceInterface sInterface;
@@ -2318,7 +2317,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
 	
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
-		different material... */
+	 * different material... */
 	vr->flag |= 1;
 	
 	/* Pass sample back so displace_face can decide which way to split the quad */
@@ -2336,7 +2335,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	ShadeInput shi;
 
 	/* Warning, This is not that nice, and possibly a bit slow,
-	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+	 * however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
 	memset(&shi, 0, sizeof(ShadeInput)); 
 	/* end warning! - Campbell */
 	
@@ -2650,25 +2649,25 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			add_v3_v3(vlr->v4->n, vlr1->n);
 		}
 	}
+
 	/* last vertex is an extra case: 
-		
-		^	()----()----()----()
-		|	|     |     ||     |
-		u	|     |(0,n)||(0,0)|
-		|     |     ||     |
-		()====()====[]====()
-		|     |     ||     |
-		|     |(m,n)||(m,0)|
-		|     |     ||     |
-		()----()----()----()
-		v ->
-		
-		vertex [] is no longer shared, therefore distribute
-		normals of the surrounding faces to all of the duplicates of []
-		*/
-	
-	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
-	{
+	 *
+	 *     ^     ()----()----()----()
+	 *     |     |     |     ||     |
+	 *     u     |     |(0,n)||(0,0)|
+	 *     |     |     ||     |
+	 *     ()====()====[]====()
+	 *     |     |     ||     |
+	 *     |     |(m,n)||(m,0)|
+	 *     |     |     ||     |
+	 *     ()----()----()----()
+	 *     v ->
+	 *  
+	 *  vertex [] is no longer shared, therefore distribute
+	 *  normals of the surrounding faces to all of the duplicates of []
+	 */
+
+	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U)) {
 		vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
 		vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0,0));  /* (0,0) */
 		add_v3_v3v3(n1, vlr->n, vlr1->n);
@@ -3517,10 +3516,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										for(vindex=0; vindex<nr_verts; vindex++)
 											mc[vindex]=mcol[a*4+rev_tab[vindex]];
 									}
-									else if(layer->type == CD_TANGENT && mtng < 1)
-									{
-										if(need_nmap_tangent!=0)
-										{
+									else if (layer->type == CD_TANGENT && mtng < 1) {
+										if (need_nmap_tangent != 0) {
 											const float * tangent = (const float *) layer->data;
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
 											for(vindex=0; vindex<nr_verts; vindex++)
@@ -4101,8 +4098,8 @@ static void set_phong_threshold(ObjectRen *obr)
 	int tot=0, i;
 	
 	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
-	   are taken into account. This threshold is meant to work on smooth geometry, not
-	   for extreme cases (ton) */
+	 * are taken into account. This threshold is meant to work on smooth geometry, not
+	 / for extreme cases (ton) */
 	
 	for(i=0; i<obr->totvlak; i++) {
 		vlr= RE_findOrAddVlak(obr, i);
@@ -4141,7 +4138,7 @@ static void set_phong_threshold(ObjectRen *obr)
 }
 
 /* per face check if all samples should be taken.
-   if raytrace or multisample, do always for raytraced material, or when material full_osa set */
+ * if raytrace or multisample, do always for raytraced material, or when material full_osa set */
 static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 {
 	VlakRen *vlr;
@@ -5116,7 +5113,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	/* if no camera, viewmat should have been set! */
 	if(use_camera_view && camera) {
-		/* called before but need to call again incase of lens animation from the
+		/* called before but need to call again in case of lens animation from the
 		 * above call to scene_update_for_newframe, fixes bug. [#22702].
 		 * following calls dont depend on 'RE_SetCamera' */
 		RE_SetCamera(re, camera);
@@ -5540,8 +5537,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		for(j=0;j<3;j++) fsvec[j] = velarray[a].vel[j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */
-		if((fsvec[0] == 0.0f) && (fsvec[1] == 0.0f) && (fsvec[2] == 0.0f))
-		{
+		if ((fsvec[0] == 0.0f) && (fsvec[1] == 0.0f) && (fsvec[2] == 0.0f)) {
 			fsvec[0] = avgvel[0];
 			fsvec[1] = avgvel[1];
 			fsvec[2] = avgvel[2];

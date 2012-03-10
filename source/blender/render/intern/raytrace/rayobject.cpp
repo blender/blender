@@ -45,10 +45,10 @@
 #include "render_types.h"
 
 /* RayFace
-
-   note we force always inline here, because compiler refuses to otherwise
-   because function is too long. Since this is code that is called billions
-   of times we really do want to inline. */
+ *
+ * note we force always inline here, because compiler refuses to otherwise
+ * because function is too long. Since this is code that is called billions
+ * of times we really do want to inline. */
 
 MALWAYS_INLINE RayObject* rayface_from_coords(RayFace *rayface, void *ob, void *face,
                                               float *v1, float *v2, float *v3, float *v4)
@@ -283,7 +283,7 @@ MALWAYS_INLINE int isec_tri_quad_neighbour(float start[3], float dir[3], RayFace
 }
 
 /* RayFace intersection with checks and neighbor verifaction included,
-   Isect is modified if the face is hit. */
+ * Isect is modified if the face is hit. */
 
 MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 {
@@ -321,7 +321,7 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 	if(ok) {
 	
 		/* when a shadow ray leaves a face, it can be little outside the edges
-		   of it, causing intersection to be detected in its neighbor face */
+		 * of it, causing intersection to be detected in its neighbor face */
 		if(is->skip & RE_SKIP_VLR_NEIGHBOUR)
 		{
 			if(dist < 0.1f && is->orig.ob == face->ob)
@@ -330,8 +330,8 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 				VlakRen * b = (VlakRen*)face->face;
 
 				/* so there's a shared edge or vertex, let's intersect ray with
-				   face itself, if that's true we can safely return 1, otherwise
-				   we assume the intersection is invalid, 0 */
+				 * face itself, if that's true we can safely return 1, otherwise
+				 * we assume the intersection is invalid, 0 */
 				if(a->v1==b->v1 || a->v2==b->v1 || a->v3==b->v1 || a->v4==b->v1
 				|| a->v1==b->v2 || a->v2==b->v2 || a->v3==b->v2 || a->v4==b->v2
 				|| a->v1==b->v3 || a->v2==b->v3 || a->v3==b->v3 || a->v4==b->v3

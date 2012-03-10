@@ -105,10 +105,10 @@ typedef bool  (*SG_RescheduleUpdateCallback)(
 /**
  * SG_Callbacks hold 2 call backs to the outside world.
  * The first is meant to be called when objects are replicated.
- * And allows the outside world to syncronise external objects
+ * And allows the outside world to synchronize external objects
  * with replicated nodes and their children.
- * The second is called when a node is detroyed and again
- * is their for synconisation purposes
+ * The second is called when a node is destroyed and again
+ * is their for synchronization purposes
  * These callbacks may both be NULL. 
  * The efficacy of this approach has not been proved some 
  * alternatives might be to perform all replication and destruction
@@ -226,9 +226,9 @@ public:
 	/**
 	 * Get the client object associated with this
 	 * node. This interface allows you to associate
-	 * arbitray external objects with this node. They are
+	 * arbitrary external objects with this node. They are
 	 * passed to the callback functions when they are 
-	 * activated so you can syncronise these external objects
+	 * activated so you can synchronize these external objects
 	 * upon replication and destruction
 	 * This may be NULL.
 	 */
@@ -246,7 +246,7 @@ public:
 	/**
 	 * Set the client object for this node. This is just a 
 	 * pointer to an object allocated that should exist for 
-	 * the duration of the lifetime of this object, or untill
+	 * the duration of the lifetime of this object, or until
 	 * this function is called again.
 	 */
 	

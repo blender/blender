@@ -96,30 +96,30 @@ int         mesh_mirrtopo_table(struct Object *ob, char mode);
 
 /* bmeshutils.c */
 
-/*
- [note: I've decided to use ideasman's code for non-editmode stuff, but since
-  it has a big "not for editmode!" disclaimer, I'm going to keep what I have here
-  - joeedh]
-  
- x-mirror editing api.  usage:
-  
-  EDBM_CacheMirrorVerts(em);
-  ...
-  ...
-  BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-     mirrorv = EDBM_GetMirrorVert(em, v);
-  }
-  ...
-  ...
-  EDBM_EndMirrorCache(em);
- 
-  note: why do we only allow x axis mirror editing?
-  */
+/**
+ * [note: I've decided to use ideasman's code for non-editmode stuff, but since
+ *  it has a big "not for editmode!" disclaimer, I'm going to keep what I have here
+ *  - joeedh]
+ *  
+ * x-mirror editing api.  usage:
+ *  
+ *  EDBM_CacheMirrorVerts(em);
+ *  ...
+ *  ...
+ *  BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+ *     mirrorv = EDBM_GetMirrorVert(em, v);
+ *  }
+ *  ...
+ *  ...
+ *  EDBM_EndMirrorCache(em);
+ *
+ * \note why do we only allow x axis mirror editing?
+ */
 void EDBM_CacheMirrorVerts(struct BMEditMesh *em, const short use_select); /* note, replaces EM_cache_x_mirror_vert in trunk */
 
-/*retrieves mirrored cache vert, or NULL if there isn't one.
-  note: calling this without ensuring the mirror cache state
-  is bad.*/
+/* retrieves mirrored cache vert, or NULL if there isn't one.
+ * note: calling this without ensuring the mirror cache state
+ * is bad.*/
 struct BMVert *EDBM_GetMirrorVert(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_ClearMirrorVert(struct BMEditMesh *em, struct BMVert *v);
 void EDBM_EndMirrorCache(struct BMEditMesh *em);
@@ -262,16 +262,6 @@ int						ED_vgroup_object_is_edit_mode(struct Object *ob);
 void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
-
-/**
- * findnearestvert
- * 
- * dist (in/out): minimal distance to the nearest and at the end, actual distance
- * sel: selection bias
- * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
- * 		if 0, unselected vertice are given the bias
- * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
- */
 
 struct BMVert *EDBM_findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
 struct BMEdge *EDBM_findnearestedge(struct ViewContext *vc, int *dist);

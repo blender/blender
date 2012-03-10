@@ -59,9 +59,8 @@ static void initData(ModifierData *md)
 static void freeData(ModifierData *md)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
-	
-	if (surmd)
-	{
+
+	if (surmd) {
 		if(surmd->bvhtree) {
 			free_bvhtree_from_mesh(surmd->bvhtree);
 			MEM_freeN(surmd->bvhtree);
@@ -102,14 +101,12 @@ static void deformVerts(ModifierData *md, Object *ob,
 	if(derivedData) surmd->dm = CDDM_copy(derivedData);
 	else surmd->dm = get_dm(ob, NULL, NULL, NULL, 0);
 	
-	if(!ob->pd)
-	{
+	if (!ob->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");
 		return;
 	}
-	
-	if(surmd->dm)
-	{
+
+	if(surmd->dm) {
 		unsigned int numverts = 0, i = 0;
 		int init = 0;
 		float *vec;

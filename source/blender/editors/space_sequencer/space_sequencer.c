@@ -572,8 +572,8 @@ void ED_spacetype_sequencer(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* Keep as python only for now
-	sequencer_buttons_register(art);
-	*/
+	 * sequencer_buttons_register(art);
+	 */
 
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
@@ -591,7 +591,7 @@ void ED_spacetype_sequencer(void)
 
 	/* set the sequencer callback when not in background mode */
 	if(G.background==0) {
-		sequencer_view3d_cb= ED_view3d_draw_offscreen_imbuf_simple;
+		sequencer_view3d_cb = ED_view3d_draw_offscreen_imbuf_simple;
 	}
 }
 

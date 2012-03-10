@@ -315,9 +315,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					} while (fidx--);
 				}
 			} else {
-				/* multiple projectors, select the closest to face normal
-				* direction
-				*/
+				/* multiple projectors, select the closest to face normal direction */
 				float face_no[3];
 				int j;
 				Projector *best_projector;
@@ -327,8 +325,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				mesh_calc_poly_normal_coords(mp, mloop + mp->loopstart, (const float (*)[3])coords, face_no);
 
 				/* find the projector which the face points at most directly
-				* (projector normal with largest dot product is best)
-				*/
+				 * (projector normal with largest dot product is best)
+				 */
 				best_dot = dot_v3v3(projectors[0].normal, face_no);
 				best_projector = &projectors[0];
 

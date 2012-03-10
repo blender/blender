@@ -56,14 +56,14 @@
 /* Extensions support */
 
 /* extensions used:
-	- texture border clamp: 1.3 core
-	- fragement shader: 2.0 core
-	- framebuffer object: ext specification
-	- multitexture 1.3 core
-	- arb non power of two: 2.0 core
-	- pixel buffer objects? 2.1 core
-	- arb draw buffers? 2.0 core
-*/
+ * - texture border clamp: 1.3 core
+ * - fragement shader: 2.0 core
+ * - framebuffer object: ext specification
+ * - multitexture 1.3 core
+ * - arb non power of two: 2.0 core
+ * - pixel buffer objects? 2.1 core
+ * - arb draw buffers? 2.0 core
+ */
 
 static struct GPUGlobal {
 	GLint maxtextures;
@@ -183,12 +183,12 @@ void GPU_extensions_init(void)
 	 * really needed to prevent different unexpected behaviors like with intel gme965 card (sergey) */
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
-	GG.os = GPU_OS_UNIX;
 #ifdef _WIN32
 	GG.os = GPU_OS_WIN;
-#endif
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 	GG.os = GPU_OS_MAC;
+#else
+	GG.os = GPU_OS_UNIX;
 #endif
 }
 
@@ -850,7 +850,7 @@ struct GPUOffScreen {
 	GPUTexture *depth;
 
 	/* requested width/height, may be smaller than actual texture size due
-	   to missing non-power of two support, so we compensate for that */
+	 * to missing non-power of two support, so we compensate for that */
 	int w, h;
 };
 
@@ -1021,8 +1021,10 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPU
 		}
 	}
 
-	/*if(lib && lib->lib)
-		glAttachObjectARB(shader->object, lib->lib);*/
+#if 0
+	if(lib && lib->lib)
+		glAttachObjectARB(shader->object, lib->lib);
+#endif
 
 	glLinkProgramARB(shader->object);
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);

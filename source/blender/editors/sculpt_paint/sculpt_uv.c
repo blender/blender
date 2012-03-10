@@ -414,8 +414,7 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	if (data->timer) {
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), data->timer);
 	}
-	if (data->elementMap)
-	{
+	if (data->elementMap) {
 		EDBM_free_uv_element_map(data->elementMap);
 	}
 	if (data->uv) {

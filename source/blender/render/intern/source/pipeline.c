@@ -89,31 +89,30 @@
 #include "pixelblending.h"
 #include "zbuf.h"
 
-
 /* render flow
-
-1) Initialize state
-- state data, tables
-- movie/image file init
-- everything that doesn't change during animation
-
-2) Initialize data
-- camera, world, matrices
-- make render verts, faces, halos, strands
-- everything can change per frame/field
-
-3) Render Processor
-- multiple layers
-- tiles, rect, baking
-- layers/tiles optionally to disk or directly in Render Result
-
-4) Composite Render Result
-- also read external files etc
-
-5) Image Files
-- save file or append in movie
-
-*/
+ *
+ * 1) Initialize state
+ * - state data, tables
+ * - movie/image file init
+ * - everything that doesn't change during animation
+ *
+ * 2) Initialize data
+ * - camera, world, matrices
+ * - make render verts, faces, halos, strands
+ * - everything can change per frame/field
+ *
+ * 3) Render Processor
+ * - multiple layers
+ * - tiles, rect, baking
+ * - layers/tiles optionally to disk or directly in Render Result
+ *
+ * 4) Composite Render Result
+ * - also read external files etc
+ *
+ * 5) Image Files
+ * - save file or append in movie
+ *
+ */
 
 
 /* ********* globals ******** */
@@ -456,8 +455,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
 
 	/* Until use_border is made compatible with save_buffers/full_sample, render without the later instead of not rendering at all.*/
-	if(re->r.mode & R_BORDER) 
-	{
+	if (re->r.mode & R_BORDER) {
 		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
 	}
 
@@ -1252,8 +1250,8 @@ static void do_render_fields_blur_3d(Render *re)
 
 
 /* within context of current Render *re, render another scene.
-   it uses current render image size and disprect, but doesn't execute composite
-*/
+ * it uses current render image size and disprect, but doesn't execute composite
+ */
 static void render_scene(Render *re, Scene *sce, int cfra)
 {
 	Render *resc= RE_NewRender(sce->id.name);
@@ -1721,7 +1719,7 @@ static void do_render_seq(Render * re)
 
 	if((re->r.mode & R_BORDER) && (re->r.mode & R_CROP)==0) {
 		/* if border rendering is used and cropping is disabled, final buffer should
-		    be as large as the whole frame */
+		 * be as large as the whole frame */
 		context = seq_new_render_data(re->main, re->scene,
 					      re->winx, re->winy,
 					      100);
@@ -1996,7 +1994,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	rcti disprect;
 	
 	/* r.xsch and r.ysch has the actual view window size
-		r.border is the clipping rect */
+	 * r.border is the clipping rect */
 	
 	/* calculate actual render result and display size */
 	winx= (scene->r.size*scene->r.xsch)/100;
@@ -2034,7 +2032,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	 * Disabled completely for now,
 	 * can be later set as render profile option
 	 * and default for background render.
-	*/
+	 */
 	if(0) {
 		/* make sure dynamics are up to date */
 		update_physics_cache(re, scene, anim_init);
@@ -2083,7 +2081,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		
 		if(write_still && !G.afbreek) {
 			if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-				/* operator checks this but incase its called from elsewhere */
+				/* operator checks this but in case its called from elsewhere */
 				printf("Error: cant write single images with a movie format!\n");
 			}
 			else {

@@ -102,10 +102,10 @@ typedef struct LayerTypeInfo {
 	void (*swap)(void *data, const int *corner_indices);
 
 	/* a function to set a layer's data to default values. if NULL, the
-	   default is assumed to be all zeros */
+	 * default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
 
-    /* functions necessary for geometry collapse*/
+	/* functions necessary for geometry collapse*/
 	int (*equal)(void *data1, void *data2);
 	void (*multiply)(void *data, float fac);
 	void (*initminmax)(void *min, void *max);
@@ -171,6 +171,13 @@ static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
 		*ptr = NULL;
 	}
 }
+
+#ifndef WITH_PYTHON
+void bpy_bm_generic_invalidate(void *UNUSED(self))
+{
+	/* dummy */
+}
+#endif
 
 static void layerFree_bmesh_elem_py_ptr(void *data, int count, int size)
 {
@@ -450,7 +457,7 @@ static void layerSwap_mdisps(void *data, const int *ci)
 
 		if(corners!=nverts) {
 			/* happens when face changed vertex count in edit mode
-			   if it happened, just forgot displacement */
+			 * if it happened, just forgot displacement */
 
 			MEM_freeN(s->disps);
 			s->totdisp= (s->totdisp/corners)*nverts;
@@ -1481,7 +1488,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	void *newlayerdata = NULL;
 
 	/* Passing a layerdata to copy from with an alloctype that won't copy is
-	   most likely a bug */
+	 * most likely a bug */
 	BLI_assert(!layerdata ||
 	           (alloctype == CD_ASSIGN) ||
 	           (alloctype == CD_DUPLICATE) ||
@@ -1810,9 +1817,11 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 			dest_offset = dest_index * typeInfo->size;
 			
 			if (!src_data || !dest_data) {
-				printf("%s: warning null data for %s type (%p --> %p), skipping\n",
-				       __func__, layerType_getName(source->layers[src_i].type),
-				       (void *)src_data, (void *)dest_data);
+                if (src_data != NULL && dest_data != NULL) {
+                    printf("%s: warning null data for %s type (%p --> %p), skipping\n",
+                           __func__, layerType_getName(source->layers[src_i].type),
+                           (void *)src_data, (void *)dest_data);
+                }
 				continue;
 			}
 			
@@ -2307,8 +2316,8 @@ int CustomData_layer_has_math(struct CustomData *data, int layern)
 	return 0;
 }
 
-/*copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
-  another, while not overwriting anything else (e.g. flags)*/
+/* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
+ * another, while not overwriting anything else (e.g. flags)*/
 void CustomData_data_copy_value(int type, void *source, void *dest)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -2626,8 +2635,8 @@ void CustomData_validate_layer_name(const CustomData *data, int type, char *name
 
 	if(index < 0) {
 		/* either no layer was specified, or the layer we want has been
-		* deleted, so assign the active layer to name
-		*/
+		 * deleted, so assign the active layer to name
+		 */
 		index = CustomData_get_active_layer_index(data, type);
 		strcpy(outname, data->layers[index].name);
 	}

@@ -1123,7 +1123,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		}
 		else {
 			
-			/* incase the mesh might be refered to later */
+			/* in case the mesh might be refered to later */
 			{
 				CTR_Map<STR_HashedString,void*> &mapStringToMeshes = scene->GetLogicManager()->GetMeshMap();
 				
@@ -1214,7 +1214,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 
 	// delete the entities of this scene
 	/* TODO - */
-	/*
+#if 0
 	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator worldit;
 	size = m_worldinfos.size();
 	for (i=0, worldit=m_worldinfos.begin(); i<size; ) {
@@ -1227,7 +1227,8 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			i++;
 			worldit++;
 		}
-	}*/
+	}
+#endif
 
 
 	/* Worlds dont reference original blender data so we need to make a set from them */

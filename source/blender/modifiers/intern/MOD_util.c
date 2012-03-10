@@ -65,9 +65,9 @@ void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	result_type = multitex_ext_safe(texture, tex_co, texres);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
-	* intensity, so calculate one (formula from do_material_tex).
-	* if the texture didn't give an RGB value, copy the intensity across
-	*/
+	 * intensity, so calculate one (formula from do_material_tex).
+	 * if the texture didn't give an RGB value, copy the intensity across
+	 */
 	if(result_type & TEX_RGB)
 		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
 				+ 0.2f * texres->tb);

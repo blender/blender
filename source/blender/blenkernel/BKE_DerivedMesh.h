@@ -29,38 +29,38 @@
 #define __BKE_DERIVEDMESH_H__
 
 /*
-  Basic design of the DerivedMesh system:
+ * Basic design of the DerivedMesh system:
+ *
+ * DerivedMesh is a common set of interfaces for mesh systems.
+ *
+ * There are three main mesh data structures in Blender: Mesh, CDDM, and BMesh.
+ * These, and a few others, all implement DerivedMesh interfaces, 
+ * which contains unified drawing interfaces, a few utility interfaces, 
+ * and a bunch of read-only interfaces intended mostly for conversion from 
+ * one format to another.
+ *
+ * All Mesh structures in blender make use of CustomData, which is used to store
+ * per-element attributes and interpolate them (e.g. uvs, vcols, vgroups, etc).
+ * 
+ * Mesh is the "serialized" structure, used for storing object-mode mesh data
+ * and also for saving stuff to disk.  It's interfaces are also what DerivedMesh
+ * uses to communicate with.
+ * 
+ * CDDM is a little mesh library, that uses Mesh data structures in the backend.
+ * It's mostly used for modifiers, and has the advantages of not taking much
+ * resources.
+ *
+ * BMesh is a full-on brep, used for editmode, some modifiers, etc.  It's much
+ * more capable (if memory-intensive) then CDDM.
+ *
+ * DerivedMesh is somewhat hackish.  Many places assumes that a DerivedMesh is
+ * a CDDM (most of the time by simply copying it and converting it to one).
+ * CDDM is the original structure for modifiers, but has since been superseded
+ * by BMesh, at least for the foreseeable future.
+ */
 
-  DerivedMesh is a common set of interfaces for mesh systems.
-
-  There are three main mesh data structures in Blender: Mesh, CDDM, and BMesh.
-  These, and a few others, all implement DerivedMesh interfaces, 
-  which contains unified drawing interfaces, a few utility interfaces, 
-  and a bunch of read-only interfaces intended mostly for conversion from 
-  one format to another.
-
-  All Mesh structures in blender make use of CustomData, which is used to store
-  per-element attributes and interpolate them (e.g. uvs, vcols, vgroups, etc).
-  
-  Mesh is the "serialized" structure, used for storing object-mode mesh data
-  and also for saving stuff to disk.  It's interfaces are also what DerivedMesh
-  uses to communicate with.
-  
-  CDDM is a little mesh library, that uses Mesh data structures in the backend.
-  It's mostly used for modifiers, and has the advantages of not taking much
-  resources.
-
-  BMesh is a full-on brep, used for editmode, some modifiers, etc.  It's much
-  more capable (if memory-intensive) then CDDM.
-
-  DerivedMesh is somewhat hackish.  Many places assumes that a DerivedMesh is
-  a CDDM (most of the time by simply copying it and converting it to one).
-  CDDM is the original structure for modifiers, but has since been superseded
-  by BMesh, at least for the foreseeable future.
-*/
-
-/* 
- * Note: This sturcture is read-only, for all practical purposes.
+/*
+ * Note: This structure is read-only, for all practical purposes.
  *       At some point in the future, we may want to consider
  *       creating a replacement structure that implements a proper
  *       abstract mesh kernel interface.  Or, we can leave this
@@ -98,9 +98,9 @@ struct PBVH;
 #define SUB_ELEMS_FACE 50
 
 /*
-Note: all mface interfaces now officially operate on tesselated data.
-      Also, the mface origindex layer indexes mpolys, not mfaces.
-*/
+ * Note: all mface interfaces now officially operate on tesselated data.
+ *       Also, the mface origindex layer indexes mpolys, not mfaces.
+ */
 
 typedef struct DMGridData {
 	float co[3];
@@ -112,11 +112,40 @@ typedef struct DMGridAdjacency {
 	int rotation[4];
 } DMGridAdjacency;
 
+/* keep in sync with MFace/MPoly types */
+typedef struct DMFlagMat {
+	short mat_nr;
+	char flag;
+} DMFlagMat;
+
 typedef enum DerivedMeshType {
 	DM_TYPE_CDDM,
 	DM_TYPE_EDITBMESH,
 	DM_TYPE_CCGDM
 } DerivedMeshType;
+
+typedef enum DMDrawOption {
+	/* the element is hidden or otherwise non-drawable */
+	DM_DRAW_OPTION_SKIP = 0,
+	/* normal drawing */
+	DM_DRAW_OPTION_NORMAL = 1,
+	/* draw, but don't set the color from mcol */
+	DM_DRAW_OPTION_NO_MCOL = 2,
+	/* used in drawMappedFaces, use GL stipple for the face */
+	DM_DRAW_OPTION_STIPPLE = 3,
+} DMDrawOption;
+
+/* Drawing callback types */
+typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
+typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
+typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
+typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
+typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, int has_vcol, int matnr);
+
+typedef enum DMDrawFlag {
+	DM_DRAW_USE_COLORS = 1,
+	DM_DRAW_ALWAYS_SMOOTH = 2
+} DMDrawFlag;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
@@ -199,8 +228,8 @@ struct DerivedMesh {
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
 	void *(*getTessFaceDataArray)(DerivedMesh *dm, int type);
 	
-	/*retrieves the base CustomData structures for 
-	  verts/edges/tessfaces/loops/facdes*/
+	/* retrieves the base CustomData structures for 
+	 * verts/edges/tessfaces/loops/facdes*/
 	CustomData *(*getVertDataLayout)(DerivedMesh *dm);
 	CustomData *(*getEdgeDataLayout)(DerivedMesh *dm);
 	CustomData *(*getTessFaceDataLayout)(DerivedMesh *dm);
@@ -218,6 +247,8 @@ struct DerivedMesh {
 	DMGridData **(*getGridData)(DerivedMesh *dm);
 	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
 	int *(*getGridOffset)(DerivedMesh *dm);
+	DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
+	
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new
@@ -300,33 +331,21 @@ struct DerivedMesh {
 	 * Also called for *final* editmode DerivedMeshes
 	 */
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
-						   int fast, int (*setMaterial)(int, void *attribs));
-
-	/* Draw all faces
-	 *  o If useTwoSided, draw front and back using col arrays
-	 *  o col1,col2 are arrays of length numFace*4 of 4 component colors
-	 *    in ABGR format, and should be passed as per-face vertex color.
-	 */
-	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided,
-							 unsigned char *col1, unsigned char *col2);
+						   int fast, DMSetMaterial setMaterial);
 
 	/* Draw all faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawFacesTex)(DerivedMesh *dm,
-	                     int (*setDrawOptions)(struct MTFace *tface,
-	                     int has_vcol, int matnr),
-						int (*compareDrawOptions)(void *userData,
-							 int cur_index,
-							 int next_index),
-						void *userData);
+	                     DMSetDrawOptionsTex setDrawOptions,
+						 DMCompareDrawOptions compareDrawOptions,
+						 void *userData);
 
 	/* Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
 	 *  o Only if setMaterial returns true
 	 */
-	void (*drawFacesGLSL)(DerivedMesh *dm,
-		int (*setMaterial)(int, void *attribs));
+	void (*drawFacesGLSL)(DerivedMesh *dm, DMSetMaterial setMaterial);
 
 	/* Draw mapped faces (no color, or texture)
 	 *  o Only if !setDrawOptions or
@@ -342,23 +361,18 @@ struct DerivedMesh {
 	 * smooth shaded.
 	 */
 	void (*drawMappedFaces)(DerivedMesh *dm,
-							int (*setDrawOptions)(void *userData, int index,
-												  int *drawSmooth_r),
-							int (*setMaterial)(int, void *attribs),
-							int (*compareDrawOptions)(void *userData,
-							                          int cur_index,
-							                          int next_index),
-							void *userData, int useColors);
+							DMSetDrawOptions setDrawOptions,
+							DMSetMaterial setMaterial,
+							DMCompareDrawOptions compareDrawOptions,
+							void *userData,
+							DMDrawFlag flag);
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
-							   int (*setDrawOptions)(void *userData,
-													 int index),
-							   int (*compareDrawOptions)(void *userData,
-							                             int cur_index,
-							                             int next_index),
+							   DMSetDrawOptions setDrawOptions,
+							   DMCompareDrawOptions compareDrawOptions,
 							   void *userData);
 
 	/* Draw mapped faces with GLSL materials
@@ -367,8 +381,8 @@ struct DerivedMesh {
 	 *  o Only if setMaterial and setDrawOptions return true
 	 */
 	void (*drawMappedFacesGLSL)(DerivedMesh *dm,
-		int (*setMaterial)(int, void *attribs),
-		int (*setDrawOptions)(void *userData, int index),
+		DMSetMaterial setMaterial,
+		DMSetDrawOptions setDrawOptions,
 		void *userData);
 
 	/* Draw mapped edges as lines
@@ -376,7 +390,7 @@ struct DerivedMesh {
 	 *    returns true
 	 */
 	void (*drawMappedEdges)(DerivedMesh *dm,
-							int (*setDrawOptions)(void *userData, int index),
+							DMSetDrawOptions setDrawOptions,
 							void *userData);
 
 	/* Draw mapped edges as lines with interpolation values
@@ -387,11 +401,8 @@ struct DerivedMesh {
 	 * NOTE: This routine is optional!
 	 */
 	void (*drawMappedEdgesInterp)(DerivedMesh *dm, 
-								  int (*setDrawOptions)(void *userData,
-														int index), 
-								  void (*setDrawInterpOptions)(void *userData,
-															   int index,
-															   float t),
+								  DMSetDrawOptions setDrawOptions,
+								  DMSetDrawInterpOptions setDrawInterpOptions,
 								  void *userData);
 
 	/* Draw all faces with materials
@@ -576,8 +587,8 @@ void DM_interp_poly_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 void vDM_ColorBand_store(struct ColorBand *coba);
 
 /* Simple function to get me->totvert amount of vertices/normals,
-   correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
-   In use now by vertex/weigt paint and particles */
+ * correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
+ * In use now by vertex/weight paint and particles */
 float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 	/* */
@@ -625,7 +636,7 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *
 	CustomDataMask dataMask, int build_shapekey_layers);
 
 /* returns an array of deform matrices for crazyspace correction, and the
-   number of modifiers left */
+ * number of modifiers left */
 int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct BMEditMesh *em,
 									   float (**deformmats)[3][3], float (**deformcos)[3]);
 

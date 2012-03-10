@@ -839,6 +839,10 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
 		                                       &vert_seq_len, &BPy_BMVert_Type,
 		                                       TRUE, TRUE, "BMVert.copy_from_vert_interp(...)");
 
+		if (vert_array == NULL) {
+			return NULL;
+		}
+
 		BM_data_interp_from_verts(bm, vert_array[0], vert_array[1], self->v, CLAMPIS(fac, 0.0f, 1.0f));
 
 		PyMem_FREE(vert_array);
@@ -957,7 +961,7 @@ static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 	BPY_BM_CHECK_OBJ(value);
 
 	if (self->bm != value->bm) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "BMEdge.other_vert(vert): vert is from another mesh");
 		return NULL;
 	}
@@ -1279,6 +1283,10 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 		                                       &vert_seq_len, &BPy_BMVert_Type,
 		                                       TRUE, TRUE, "edges.new(...)");
 
+		if (vert_array == NULL) {
+			return NULL;
+		}
+		
 		if (BM_edge_exists(vert_array[0], vert_array[1])) {
 			PyErr_SetString(PyExc_ValueError,
 			                "edges.new(): this edge exists");
@@ -1341,6 +1349,10 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 3, PY_SSIZE_T_MAX,
 		                                       &vert_seq_len, &BPy_BMVert_Type,
 		                                       TRUE, TRUE, "faces.new(...)");
+
+		if (vert_array == NULL) {
+			return NULL;
+		}
 
 		/* check if the face exists */
 		if (BM_face_exists(bm, vert_array, vert_seq_len, NULL)) {
@@ -1564,7 +1576,7 @@ static PyObject *bpy_bmedgeseq_get(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
-		if ((e=BM_edge_exists(vert_array[0], vert_array[1]))) {
+		if ((e = BM_edge_exists(vert_array[0], vert_array[1]))) {
 			ret = BPy_BMEdge_CreatePyObject(bm, e);
 		}
 		else {
@@ -2050,6 +2062,10 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 		bm->py_handle = NULL;
 	}
 
+	if (self->py_owns) {
+		BM_mesh_free(bm);
+	}
+
 	PyObject_DEL(self);
 }
 
@@ -2297,6 +2313,7 @@ void BPy_BM_init_types(void)
 
 	/* only 1 iteratir so far */
 	BPy_BMIter_Type.tp_iternext = (iternextfunc)bpy_bmiter_next;
+	BPy_BMIter_Type.tp_iter     = PyObject_SelfIter;
 
 	BPy_BMesh_Type.tp_dealloc     = (destructor)bpy_bmesh_dealloc;
 	BPy_BMVert_Type.tp_dealloc    = (destructor)bpy_bmvert_dealloc;
@@ -2307,14 +2324,14 @@ void BPy_BM_init_types(void)
 	BPy_BMIter_Type.tp_dealloc    = NULL;
 
 	/*
-	BPy_BMesh_Type.
-	BPy_BMVert_Type.
-	BPy_BMEdge_Type.
-	BPy_BMFace_Type.
-	BPy_BMLoop_Type.
-	BPy_BMElemSeq_Type.
-	BPy_BMIter_Type.
-	*/
+	 * BPy_BMesh_Type.
+	 * BPy_BMVert_Type.
+	 * BPy_BMEdge_Type.
+	 * BPy_BMFace_Type.
+	 * BPy_BMLoop_Type.
+	 * BPy_BMElemSeq_Type.
+	 * BPy_BMIter_Type.
+	 */
 
 	BPy_BMesh_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
 	BPy_BMVert_Type.tp_flags    = Py_TPFLAGS_DEFAULT;
@@ -2572,7 +2589,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 	PyObject *seq_fast;
 	*r_size = 0;
 
-	if (!(seq_fast=PySequence_Fast(seq, error_prefix))) {
+	if (!(seq_fast = PySequence_Fast(seq, error_prefix))) {
 		return NULL;
 	}
 	else {
@@ -2600,7 +2617,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 
 			if (Py_TYPE(item) != type) {
 				PyErr_Format(PyExc_TypeError,
-				             "%s: expected '%.200', not '%.200s'",
+				             "%s: expected '%.200s', not '%.200s'",
 				             error_prefix, type->tp_name, Py_TYPE(item)->tp_name);
 				goto err_cleanup;
 			}
@@ -2613,7 +2630,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 			/* trick so we can ensure all items have the same mesh,
 			 * and allows us to pass the 'bm' as NULL. */
 			else if (do_bm_check && (bm  && bm != item->bm)) {
-				PyErr_Format(PyExc_TypeError,
+				PyErr_Format(PyExc_ValueError,
 				             "%s: %d %s is from another mesh",
 				             error_prefix, i, type->tp_name);
 				goto err_cleanup;
@@ -2660,4 +2677,16 @@ err_cleanup:
 		PyMem_FREE(alloc);
 		return NULL;
 	}
+}
+
+
+PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len)
+{
+	Py_ssize_t i;
+	PyObject *ret = PyTuple_New(elem_len);
+	for (i = 0; i < elem_len; i++) {
+		PyTuple_SET_ITEM(ret, i, BPy_BMElem_CreatePyObject(bm, elem[i]));
+	}
+
+	return ret;
 }

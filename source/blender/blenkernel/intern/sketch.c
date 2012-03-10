@@ -258,8 +258,7 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 		float delta = (float)i / (float)total;
 		float *p = stk->points[start + 1 + i].p;
 
-		VECCOPY(p, delta_p);
-		mul_v3_fl(p, delta);
+		mul_v3_v3fl(p, delta_p, delta);
 		add_v3_v3(p, p_start);
 	}
 }
@@ -333,7 +332,7 @@ void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 		sub_v3_v3v3(distance, p, stk->points[start].p);
 		project_v3_v3v3(distance, distance, normal);
 
-		VECCOPY(offset, normal);
+		copy_v3_v3(offset, normal);
 		mul_v3_fl(offset, d);
 
 		sub_v3_v3(p, distance);
@@ -574,15 +573,13 @@ void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 			stk->selected = 0;
 		}
 	}
-	else if (mode == 0)
-	{
+	else if (mode == 0) {
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
 		{
 			stk->selected = 1;
 		}
 	}
-	else if (mode == 1)
-	{
+	else if (mode == 1) {
 		int selected = 1;
 
 		for (stk = sketch->strokes.first; stk; stk = stk->next)

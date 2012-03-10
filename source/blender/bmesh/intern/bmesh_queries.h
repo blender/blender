@@ -37,8 +37,10 @@ int     BM_edge_in_face(BMFace *f, BMEdge *e);
 int     BM_vert_in_edge(BMEdge *e, BMVert *v);
 int     BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
 
+int     BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb);
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v);
-BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v);
+BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v);
+BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v);
 
 int     BM_vert_edge_count(BMVert *v);
 int     BM_edge_face_count(BMEdge *e);
@@ -70,6 +72,7 @@ int     BM_edge_share_face_count(BMEdge *e1, BMEdge *e2);
 int     BM_edge_share_vert_count(BMEdge *e1, BMEdge *e2);
 
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2);
+BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v);
 
 void    BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2);
 

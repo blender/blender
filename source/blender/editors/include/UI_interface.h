@@ -178,11 +178,11 @@ typedef struct uiLayout uiLayout;
 #define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_ICON_FAC)
 
 /* Button types, bits stored in 1 value... and a short even!
-- bits 0-4:  bitnr (0-31)
-- bits 5-7:  pointer type
-- bit  8:    for 'bit'
-- bit  9-15: button type (now 6 bits, 64 types)
-*/
+ * - bits 0-4:  bitnr (0-31)
+ * - bits 5-7:  pointer type
+ * - bit  8:    for 'bit'
+ * - bit  9-15: button type (now 6 bits, 64 types)
+ * */
 
 #define CHA	32
 #define SHO	64

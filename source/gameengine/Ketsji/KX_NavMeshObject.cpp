@@ -620,7 +620,7 @@ void KX_NavMeshObject::DrawPath(const float *path, int pathLen, const MT_Vector3
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 //----------------------------------------------------------------------------
 //Python
 
@@ -718,4 +718,4 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_NavMeshObject, rebuild,
 	Py_RETURN_NONE;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

@@ -28,9 +28,9 @@
 #include "BLI_smallhash.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define EDGE_NEW	1
 #define FACE_NEW	1
@@ -47,7 +47,8 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	float (*projectverts)[3] = NULL;
 	BLI_array_declare(projectverts);
 	int i, lastlen = 0 /* , count = 0 */;
-	
+	const int use_beauty = BMO_slot_bool_get(op, "use_beauty");
+
 	face = BMO_iter_new(&siter, bm, op, "faces", BM_FACE);
 	for ( ; face; face = BMO_iter_step(&siter)) {
 		if (lastlen < face->len) {
@@ -61,7 +62,7 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces);
+		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces, use_beauty);
 
 		BMO_slot_map_ptr_insert(bm, op, "facemap", face, face);
 		for (i = 0; newfaces[i]; i++) {
@@ -118,8 +119,8 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 			if (is_quad_convex_v3(v1->co, v2->co, v3->co, v4->co)) {
 				float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 				/* testing rule:
-				* the area divided by the total edge lengths
-				*/
+				 * the area divided by the total edge lengths
+				 */
 				len1 = len_v3v3(v1->co, v2->co);
 				len2 = len_v3v3(v2->co, v3->co);
 				len3 = len_v3v3(v3->co, v4->co);
@@ -138,7 +139,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				
 				if (fac1 > fac2) {
-					e = BM_edge_rotate(bm, e, 0);
+					e = BM_edge_rotate(bm, e, FALSE, BM_EDGEROT_CHECK_EXISTS);
 					if (e) {
 						BMO_elem_flag_enable(bm, e, ELE_NEW);
 
@@ -159,7 +160,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e;
 	BMOperator bmop;
-	ScanFillEdge *eed;
+	/* ScanFillEdge *eed; */ /* UNUSED */
 	ScanFillVert *eve, *v1, *v2;
 	ScanFillFace *efa;
 	SmallHash hash;
@@ -185,7 +186,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		
 		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
 		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
-		eed = BLI_addfilledge(v1, v2);
+		/* eed = */ BLI_addfilledge(v1, v2);
 		/* eed->tmp.p = e; */ /* UNUSED */
 	}
 	

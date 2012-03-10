@@ -94,8 +94,7 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 	if (size>ma->cursize) {
 		unsigned char *tmp;
 		
-		if(size > ma->bufsize - (ma->align - 1))
-		{
+		if(size > ma->bufsize - (ma->align - 1)) {
 			ma->cursize = PADUP(size+1, ma->align);
 		}
 		else ma->cursize = ma->bufsize;

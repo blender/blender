@@ -85,12 +85,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *result = NULL;
 	
 	/* check for alloc failing */
-	if(!fluidmd->fss)
-	{
+	if(!fluidmd->fss) {
 		initData(md);
 		
-		if(!fluidmd->fss)
+		if (!fluidmd->fss) {
 			return dm;
+		}
 	}
 
 	result= fluidsimModifier_do(fluidmd, md->scene, ob, dm, useRenderParams, isFinalCalc);
@@ -105,20 +105,15 @@ static void updateDepgraph(
 	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
 	Base *base;
 
-	if(fluidmd && fluidmd->fss)
-	{
-		if(fluidmd->fss->type == OB_FLUIDSIM_DOMAIN)
-		{
-			for(base = scene->base.first; base; base= base->next) 
-			{
+	if(fluidmd && fluidmd->fss) {
+		if(fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
+			for(base = scene->base.first; base; base= base->next) {
 				Object *ob1= base->object;
-				if(ob1 != ob)
-				{
+				if(ob1 != ob) {
 					FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
 					
 					// only put dependancies from NON-DOMAIN fluids in here
-					if(fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type!=OB_FLUIDSIM_DOMAIN))
-					{
+					if(fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type!=OB_FLUIDSIM_DOMAIN)) {
 						DagNode *curNode = dag_get_node(forest, ob1);
 						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Fluidsim Object");
 					}

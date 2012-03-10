@@ -691,10 +691,10 @@ PyTypeObject euler_Type = {
 };
 //------------------------Euler_CreatePyObject (internal)-------------
 //creates a new euler object
-/*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
+ * (i.e. it was allocated elsewhere by MEM_mallocN())
+ * pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ * (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Euler_CreatePyObject(float *eul, short order, int type, PyTypeObject *base_type)
 {
 	EulerObject *self;

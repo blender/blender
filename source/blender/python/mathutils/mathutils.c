@@ -163,7 +163,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 #endif
 	{
 		PyObject *value_fast = NULL;
-		//*array = NULL;
+		// *array = NULL;
 
 		/* non list/tuple cases */
 		if (!(value_fast = PySequence_Fast(value, error_prefix))) {
@@ -257,7 +257,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 }
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
-  Builds on EXPP_FloatsAreEqual to test vectors */
+ * Builds on EXPP_FloatsAreEqual to test vectors */
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
 {
 	int x;

@@ -911,9 +911,9 @@ void make_local_texture(Tex *tex)
 	int a, is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if(tex->id.lib==NULL) return;
 
@@ -1157,8 +1157,8 @@ Tex *give_current_material_texture(Material *ma)
 	
 	if(ma && ma->use_nodes && ma->nodetree) {
 		/* first check texture, then material, this works together
-		   with a hack that clears the active ID flag for textures on
-		   making a material node active */
+		 * with a hack that clears the active ID flag for textures on
+		 * making a material node active */
 		node= nodeGetActiveID(ma->nodetree, ID_TE);
 
 		if(node) {

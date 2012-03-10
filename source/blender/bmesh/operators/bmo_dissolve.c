@@ -26,9 +26,9 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
-#include "bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.h" /* own include */
 
 #define FACE_MARK	1
 #define FACE_ORIG	2
@@ -198,17 +198,16 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, **verts = NULL;
 	BLI_array_declare(verts);
 	BMEdge *e;
-	/* BMFace *f; */
+	BMFace *fa, *fb;
 	int i;
 
+
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
-		if (BM_edge_face_count(e) == 2) {
+		if (BM_edge_face_pair(e, &fa, &fb)) {
 			BMO_elem_flag_enable(bm, e->v1, VERT_MARK);
 			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 
-			BM_faces_join_pair(bm, e->l->f,
-			                   e->l->radial_next->f,
-			                   e);
+			BM_faces_join_pair(bm, fa, fb, e);
 		}
 	}
 
@@ -256,13 +255,12 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_ITER(e, &eiter, bm, op, "edges", BM_EDGE) {
-		const int edge_face_count = BM_edge_face_count(e);
-		if (edge_face_count == 2) {
+		BMFace *fa, *fb;
+
+		if (BM_edge_face_pair(e, &fa, &fb)) {
 
 			/* join faces */
-			BM_faces_join_pair(bm, e->l->f,
-			                   e->l->radial_next->f,
-			                   e);
+			BM_faces_join_pair(bm, fa, fb, e);
 		}
 	}
 

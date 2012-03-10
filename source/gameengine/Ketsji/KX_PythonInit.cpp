@@ -1736,11 +1736,11 @@ static void backupPySysObjects(void)
 	PyObject *sys_mods= PySys_GetObject("modules"); /* should never fail */
 	
 	/* paths */
-	Py_XDECREF(gp_OrigPythonSysPath); /* just incase its set */
+	Py_XDECREF(gp_OrigPythonSysPath); /* just in case its set */
 	gp_OrigPythonSysPath = PyList_GetSlice(sys_path, 0, INT_MAX); /* copy the list */
 	
 	/* modules */
-	Py_XDECREF(gp_OrigPythonSysModules); /* just incase its set */
+	Py_XDECREF(gp_OrigPythonSysModules); /* just in case its set */
 	gp_OrigPythonSysModules = PyDict_Copy(sys_mods); /* copy the list */
 	
 }
@@ -2025,7 +2025,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	PyObject* item;
 
 	/* Use existing module where possible
-  * be careful not to init any runtime vars after this */
+	 * be careful not to init any runtime vars after this */
 	m = PyImport_ImportModule( "Rasterizer" );
 	if(m) {
 		Py_DECREF(m);
@@ -2093,7 +2093,7 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 		}
 	}
 	
-	PyErr_Clear(); // incase there was an error clearing
+	PyErr_Clear(); // in case there was an error clearing
 	Py_DECREF(mod);
 	if (!ret)	PyErr_SetString(PyExc_ValueError, "GameKeys.EventToString(int): expected a valid int keyboard event");
 	else		Py_INCREF(ret);

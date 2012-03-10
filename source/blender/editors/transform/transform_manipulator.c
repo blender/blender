@@ -202,8 +202,7 @@ static int test_rotmode_euler(short rotmode)
 int gimbal_axis(Object *ob, float gmat[][3])
 {
 	if (ob) {
-		if(ob->mode & OB_MODE_POSE)
-		{
+		if (ob->mode & OB_MODE_POSE) {
 			bPoseChannel *pchan= get_active_posechannel(ob);
 
 			if(pchan) {
@@ -222,8 +221,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 				/* apply bone transformation */
 				mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
 
-				if (pchan->parent)
-				{
+				if (pchan->parent) {
 					float parent_mat[3][3];
 
 					copy_m3_m4(parent_mat, pchan->parent->pose_mat);
@@ -233,8 +231,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 					copy_m3_m4(obmat, ob->obmat);
 					mul_m3_m3m3(gmat, obmat, mat);
 				}
-				else
-				{
+				else {
 					/* needed if object transformation isn't identity */
 					copy_m3_m4(obmat, ob->obmat);
 					mul_m3_m3m3(gmat, obmat, tmat);
@@ -255,8 +252,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 				return 0;
 			}
 
-			if (ob->parent)
-			{
+			if (ob->parent) {
 				float parent_mat[3][3];
 				copy_m3_m4(parent_mat, ob->parent->obmat);
 				normalize_m3(parent_mat);
@@ -316,8 +312,8 @@ int calc_manipulator_stats(const bContext *C)
 				BMIter iter;
 
 				/* do vertices/edges/faces for center depending on selection
-				   mode. note we can't use just vertex selection flag because
-				   it is not flush down on changes */
+				 * mode. note we can't use just vertex selection flag because
+				 * it is not flush down on changes */
 				if(ts->selectmode & SCE_SELECT_VERTEX) {
 					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 						if(!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -653,14 +649,14 @@ static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 }
 
 
-/* radring = radius of donut rings
-   radhole = radius hole
-   start = starting segment (based on nrings)
-   end   = end segment
-   nsides = amount of points in ring
-   nrigns = amount of rings
-*/
-static void partial_donut(float radring, float radhole, int start, int end, int nsides, int nrings)
+/* radring = radius of doughnut rings
+ * radhole = radius hole
+ * start = starting segment (based on nrings)
+ * end   = end segment
+ * nsides = amount of points in ring
+ * nrigns = amount of rings
+ */
+static void partial_doughnut(float radring, float radhole, int start, int end, int nsides, int nrings)
 {
 	float theta, phi, theta1;
 	float cos_theta, sin_theta;
@@ -749,10 +745,10 @@ static char axisBlendAngle(float angle)
 }
 
 /* three colors can be set;
-   grey for ghosting
-   moving: in transform theme color
-   else the red/green/blue
-*/
+ * grey for ghosting
+ * moving: in transform theme color
+ * else the red/green/blue
+ */
 static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned char alpha)
 {
 	unsigned char col[4]= {0};
@@ -883,7 +879,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
-		VECCOPY(plane, rv3d->viewinv[2]); /* float -> double */
+		copy_v3db_v3fl(plane, rv3d->viewinv[2]);
 		plane[3]= -0.02f*size; // clip just a bit more
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
@@ -1024,7 +1020,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			preOrthoFront(ortho, rv3d->twmat, 2);
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor(v3d, 'Z', colcode, 255);
-			partial_donut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
+			partial_doughnut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
 			postOrtho(ortho);
 		}
 		/* X circle */
@@ -1033,7 +1029,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			manipulator_setcolor(v3d, 'X', colcode, 255);
-			partial_donut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
+			partial_doughnut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 			postOrtho(ortho);
 		}
@@ -1043,7 +1039,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor(v3d, 'Y', colcode, 255);
-			partial_donut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
+			partial_doughnut(cusize/4.0f, 1.0f, 0, 48, 8, 48);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			postOrtho(ortho);
 		}
@@ -1060,7 +1056,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor(v3d, 'Z', colcode, 255);
 
-			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
+			partial_doughnut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 			postOrtho(ortho);
@@ -1075,7 +1071,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			glRotatef(90.0, 0.0, 0.0, 1.0);
-			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
+			partial_doughnut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 			postOrtho(ortho);
@@ -1090,7 +1086,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 			glRotatef(90.0, 0.0, 0.0, 1.0);
-			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
+			partial_doughnut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 			postOrtho(ortho);

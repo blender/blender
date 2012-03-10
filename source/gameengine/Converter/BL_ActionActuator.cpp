@@ -370,7 +370,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
 		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 	}
 	
-	// get_pose_channel accounts for NULL pose, run on both incase one exists but
+	// get_pose_channel accounts for NULL pose, run on both in case one exists but
 	// the channel doesnt
 	if(		!(pchan=get_pose_channel(m_userpose, string)) &&
 			!(pchan=get_pose_channel(m_pose, string))  )
@@ -401,12 +401,12 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
 	PyTuple_SET_ITEM(ret, 2, list);
 
 	return ret;
-/*
+#if 0
 	return Py_BuildValue("([fff][fff][ffff])",
 		pchan->loc[0], pchan->loc[1], pchan->loc[2],
 		pchan->size[0], pchan->size[1], pchan->size[2],
 		pchan->quat[0], pchan->quat[1], pchan->quat[2], pchan->quat[3] );
-*/
+#endif
 }
 
 /*     setChannel                                                         */

@@ -29,7 +29,7 @@
 typedef unsigned int* BLI_bitmap;
 
 /* warning: the bitmap does not keep track of its own size or check
-   for out-of-bounds access */
+ * for out-of-bounds access */
 
 /* internal use */
 /* 2^5 = 32 (bits) */
@@ -46,7 +46,7 @@ typedef unsigned int* BLI_bitmap;
 	(BLI_BITMAP_NUM_BLOCKS(_tot) * sizeof(unsigned int))
 
 /* allocate memory for a bitmap with '_tot' bits; free
-   with MEM_freeN() */
+ *  with MEM_freeN() */
 #define BLI_BITMAP_NEW(_tot, _alloc_string) \
 	((BLI_bitmap)MEM_callocN(BLI_BITMAP_SIZE(_tot), \
 							 _alloc_string))

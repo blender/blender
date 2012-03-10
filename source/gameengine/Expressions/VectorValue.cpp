@@ -87,12 +87,12 @@ CVectorValue::~CVectorValue()
 
 }
 
+/**
+ * pre: the type of val is dtype
+ * ret: a new object containing the result of applying operator op to val and
+ * this object
+ */
 CValue* CVectorValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val)
-/*
-pre: the type of val is dtype
-ret: a new object containing the result of applying operator op to val and
-this object
-*/
 {
 	CValue *ret = NULL;
 	
@@ -210,10 +210,9 @@ CValue* CVectorValue::GetReplica()
 	return replica;
 };
 
-/*void CVectorValue::Transform(rcMatrix4x4 mat)
+#if 0
+void CVectorValue::Transform(rcMatrix4x4 mat)
 {
 	m_transformedvec = mat*m_vec;
 }
-*/
-
-
+#endif

@@ -732,7 +732,7 @@ static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, 
 	no[1] = b_dZ * a_cX - b_dX * a_cZ;
 	no[2] = b_dX * a_cY - b_dY * a_cX;
 
-	length = sqrt(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+	length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 	if (length > EPSILON) {
 		float invLength = 1.f/length;
@@ -1419,7 +1419,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			NormAdd(no, FACE_getIFNo(f, lvl, _face_getVertIndex(f,v), gridSize - 1, gridSize - 1));
 		}
 
-		length = sqrt(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+		length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 		if (length > EPSILON) {
 			float invLength = 1.0f/length;
@@ -1477,7 +1477,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
 					float *no = FACE_getIFNo(f, lvl, S, x, y);
-					float length = sqrt(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+					float length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
 
 					if (length > EPSILON) {
 						float invLength = 1.0f/length;
@@ -2468,7 +2468,7 @@ CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, 
 }
 
 /* stitch together face grids, averaging coordinates at edges
-   and vertices, for multires displacements */
+ * and vertices, for multires displacements */
 CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
 	CCGVert **effectedV;
@@ -2634,8 +2634,8 @@ CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **effectedF, int numEf
 }
 
 /* compute subdivision levels from a given starting point, used by
-   multires subdivide/propagate, by filling in coordinates at a
-   certain level, and then subdividing that up to the highest level */
+ * multires subdivide/propagate, by filling in coordinates at a
+ * certain level, and then subdividing that up to the highest level */
 CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
 	CCGVert **effectedV;
@@ -2857,7 +2857,7 @@ float ccgSubSurf_getEdgeCrease(CCGEdge *e)
 
 /* Face accessors */
 
-CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGSubSurf *UNUSED(ss), CCGFace *f)
+CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGFace *f)
 {
 	return f->fHDL;
 }
@@ -2880,7 +2880,7 @@ int ccgSubSurf_getFaceNumVerts(CCGFace *f)
 {
 	return f->numVerts;
 }
-CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *UNUSED(ss), CCGFace *f, int index)
+CCGVert *ccgSubSurf_getFaceVert(CCGFace *f, int index)
 {
 	if (index<0 || index>=f->numVerts) {
 		return NULL;
@@ -2889,7 +2889,7 @@ CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *UNUSED(ss), CCGFace *f, int index)
 		return FACE_getVerts(f)[index];
 	}
 }
-CCGEdge *ccgSubSurf_getFaceEdge(CCGSubSurf *UNUSED(ss), CCGFace *f, int index)
+CCGEdge *ccgSubSurf_getFaceEdge(CCGFace *f, int index)
 {
 	if (index<0 || index>=f->numVerts) {
 		return NULL;

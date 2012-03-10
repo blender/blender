@@ -39,6 +39,8 @@
 
 #include "DNA_anim_types.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
@@ -264,7 +266,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	sizeof(FMod_Generator), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */
 	FMI_REQUIRES_NOTHING, /* requirements */
-	"Generator", /* name */
+	N_("Generator"), /* name */
 	"FMod_Generator", /* struct name */
 	fcm_generator_free, /* free data */
 	fcm_generator_copy, /* copy data */
@@ -386,7 +388,7 @@ static FModifierTypeInfo FMI_FN_GENERATOR = {
 	sizeof(FMod_FunctionGenerator), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */
 	FMI_REQUIRES_NOTHING, /* requirements */
-	"Built-In Function", /* name */
+	N_("Built-In Function"), /* name */
 	"FMod_FunctionGenerator", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -493,7 +495,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	sizeof(FMod_Envelope), /* size */
 	FMI_TYPE_REPLACE_VALUES, /* action type */
 	0, /* requirements */
-	"Envelope", /* name */
+	N_("Envelope"), /* name */
 	"FMod_Envelope", /* struct name */
 	fcm_envelope_free, /* free data */
 	fcm_envelope_copy, /* copy data */
@@ -690,7 +692,7 @@ static FModifierTypeInfo FMI_CYCLES = {
 	sizeof(FMod_Cycles), /* size */
 	FMI_TYPE_EXTRAPOLATION, /* action type */
 	FMI_REQUIRES_ORIGINAL_DATA, /* requirements */
-	"Cycles", /* name */
+	N_("Cycles"), /* name */
 	"FMod_Cycles", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -748,7 +750,7 @@ static FModifierTypeInfo FMI_NOISE = {
 	sizeof(FMod_Noise), /* size */
 	FMI_TYPE_REPLACE_VALUES, /* action type */
 	0, /* requirements */
-	"Noise", /* name */
+	N_("Noise"), /* name */
 	"FMod_Noise", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -766,7 +768,7 @@ static FModifierTypeInfo FMI_FILTER = {
 	sizeof(FMod_Filter), /* size */
 	FMI_TYPE_REPLACE_VALUES, /* action type */
 	0, /* requirements */
-	"Filter", /* name */
+	N_("Filter"), /* name */
 	"FMod_Filter", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -822,7 +824,7 @@ static FModifierTypeInfo FMI_PYTHON = {
 	sizeof(FMod_Python), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */
 	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
-	"Python", /* name */
+	N_("Python"), /* name */
 	"FMod_Python", /* struct name */
 	fcm_python_free, /* free data */
 	fcm_python_copy, /* copy data */
@@ -865,7 +867,7 @@ static FModifierTypeInfo FMI_LIMITS = {
 	sizeof(FMod_Limits), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
 	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
-	"Limits", /* name */
+	N_("Limits"), /* name */
 	"FMod_Limits", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
@@ -918,7 +920,7 @@ static FModifierTypeInfo FMI_STEPPED = {
 	sizeof(FMod_Limits), /* size */
 	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
 	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
-	"Stepped", /* name */
+	N_("Stepped"), /* name */
 	"FMod_Stepped", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */

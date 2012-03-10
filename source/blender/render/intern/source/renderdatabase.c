@@ -91,10 +91,10 @@
 /* ------------------------------------------------------------------------- */
 
 /* More dynamic allocation of options for render vertices and faces, so we dont
-   have to reserve this space inside vertices.
-   Important; vertices and faces, should have been created already (to get tables
-   checked) that's a reason why the calls demand VertRen/VlakRen * as arg, not
-   the index */
+ * have to reserve this space inside vertices.
+ * Important; vertices and faces, should have been created already (to get tables
+ * checked) that's a reason why the calls demand VertRen/VlakRen * as arg, not
+ * the index */
 
 /* NOTE! the hardcoded table size 256 is used still in code for going quickly over vertices/faces */
 
@@ -460,7 +460,7 @@ void RE_vlakren_get_normal(Render *UNUSED(re), ObjectInstanceRen *obi, VlakRen *
 void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 {
 	/* CustomData layer names are stored per object here, because the
-	   DerivedMesh which stores the layers is freed */
+	 * DerivedMesh which stores the layers is freed */
 	
 	CustomDataLayer *layer;
 	int numtf = 0, numcol = 0, i, mtfn, mcn;
@@ -813,20 +813,20 @@ void free_renderdata_tables(Render *re)
 	int a=0;
 	
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		if(obr->vertnodes) {
+		if (obr->vertnodes) {
 			free_renderdata_vertnodes(obr->vertnodes);
 			obr->vertnodes= NULL;
 			obr->vertnodeslen= 0;
 		}
 
-		if(obr->vlaknodes) {
+		if (obr->vlaknodes) {
 			free_renderdata_vlaknodes(obr->vlaknodes);
 			obr->vlaknodes= NULL;
 			obr->vlaknodeslen= 0;
 			obr->totvlak= 0;
 		}
 
-		if(obr->bloha) {
+		if (obr->bloha) {
 			for(a=0; obr->bloha[a]; a++)
 				MEM_freeN(obr->bloha[a]);
 
@@ -835,7 +835,7 @@ void free_renderdata_tables(Render *re)
 			obr->blohalen= 0;
 		}
 
-		if(obr->strandnodes) {
+		if (obr->strandnodes) {
 			free_renderdata_strandnodes(obr->strandnodes);
 			obr->strandnodes= NULL;
 			obr->strandnodeslen= 0;
@@ -848,23 +848,23 @@ void free_renderdata_tables(Render *re)
 			MEM_freeN(strandbuf);
 		}
 
-		if(obr->mtface)
+		if (obr->mtface)
 			MEM_freeN(obr->mtface);
-		if(obr->mcol)
+
+		if (obr->mcol)
 			MEM_freeN(obr->mcol);
 			
-		if(obr->rayfaces)
-		{
+		if (obr->rayfaces) {
 			MEM_freeN(obr->rayfaces);
 			obr->rayfaces = NULL;
 		}
-		if(obr->rayprimitives)
-		{
+
+		if (obr->rayprimitives) {
 			MEM_freeN(obr->rayprimitives);
 			obr->rayprimitives = NULL;
 		}
-		if(obr->raytree)
-		{
+
+		if (obr->raytree) {
 			RE_rayobject_free(obr->raytree);
 			obr->raytree = NULL;
 		}
@@ -1223,15 +1223,15 @@ static int panotestclip(Render *re, int do_pano, float *v)
 	return c;
 }
 
-/*
-  This adds the hcs coordinates to vertices. It iterates over all
-  vertices, halos and faces. After the conversion, we clip in hcs.
-
-  Elsewhere, all primites are converted to vertices. 
-  Called in 
-  - envmapping (envmap.c)
-  - shadow buffering (shadbuf.c)
-*/
+/**
+ * This adds the hcs coordinates to vertices. It iterates over all
+ * vertices, halos and faces. After the conversion, we clip in hcs.
+ *
+ * Elsewhere, all primites are converted to vertices.
+ * Called in
+ * - envmapping (envmap.c)
+ * - shadow buffering (shadbuf.c)
+ */
 
 void project_renderdata(Render *re, void (*projectfunc)(const float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
 {

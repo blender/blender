@@ -201,16 +201,18 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //static int size_threshold = 16;
 /*
-* Common methods for all algorithms
-*/
-/*static int floor_lg(int a)
+ * Common methods for all algorithms
+ */
+#if 0
+static int floor_lg(int a)
 {
 	return (int)(floor(log(a)/log(2)));
-}*/
+}
+#endif
 
 /*
-* Insertion sort algorithm
-*/
+ * Insertion sort algorithm
+ */
 static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
 {
 	int i,j;
@@ -244,8 +246,8 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 }
 
 /*
-* Heapsort algorithm
-*/
+ * Heapsort algorithm
+ */
 #if 0
 static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 {
@@ -310,8 +312,8 @@ static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis) //
 
 #if 0
 /*
-* Quicksort algorithm modified for Introsort
-*/
+ * Quicksort algorithm modified for Introsort
+ */
 static void bvh_introsort_loop (BVHNode **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
@@ -716,8 +718,8 @@ static void split_leafs(BVHNode **leafs_array, int *nth, int partitions, int spl
  *
  * This function creates an implicit tree on branches_array, the leafs are given on the leafs_array.
  *
- * The tree is built per depth levels. First branchs at depth 1.. then branches at depth 2.. etc..
- * The reason is that we can build level N+1 from level N witouth any data dependencies.. thus it allows
+ * The tree is built per depth levels. First branches at depth 1.. then branches at depth 2.. etc..
+ * The reason is that we can build level N+1 from level N without any data dependencies.. thus it allows
  * to use multithread building.
  *
  * To archieve this is necessary to find how much leafs are accessible from a certain branch, BVHBuildHelper
@@ -764,8 +766,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 
 		//Loop all branches on this level
 #pragma omp parallel for private(j) schedule(static)
-		for(j = i; j < end_j; j++)
-		{
+		for(j = i; j < end_j; j++) {
 			int k;
 			const int parent_level_index= j-i;
 			BVHNode* parent = branches_array + j;
@@ -789,8 +790,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 			//Split_leafs takes care of that "sort" problem.
 			nth_positions[        0] = parent_leafs_begin;
 			nth_positions[tree_type] = parent_leafs_end;
-			for(k = 1; k < tree_type; k++)
-			{
+			for (k = 1; k < tree_type; k++) {
 				int child_index = j * tree_type + tree_offset + k;
 				int child_level_index = child_index - first_of_next_level; //child level index
 				nth_positions[k] = implicit_leafs_index(&data, depth+1, child_level_index);
@@ -801,26 +801,24 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 
 			//Setup children and totnode counters
 			//Not really needed but currently most of BVH code relies on having an explicit children structure
-			for(k = 0; k < tree_type; k++)
-			{
+			for (k = 0; k < tree_type; k++) {
 				int child_index = j * tree_type + tree_offset + k;
 				int child_level_index = child_index - first_of_next_level; //child level index
 
 				int child_leafs_begin = implicit_leafs_index(&data, depth+1, child_level_index);
 				int child_leafs_end   = implicit_leafs_index(&data, depth+1, child_level_index+1);
 
-				if(child_leafs_end - child_leafs_begin > 1)
-				{
+				if (child_leafs_end - child_leafs_begin > 1) {
 					parent->children[k] = branches_array + child_index;
 					parent->children[k]->parent = parent;
 				}
-				else if(child_leafs_end - child_leafs_begin == 1)
-				{
+				else if (child_leafs_end - child_leafs_begin == 1) {
 					parent->children[k] = leafs_array[ child_leafs_begin ];
 					parent->children[k]->parent = parent;
 				}
-				else
+				else {
 					break;
+				}
 
 				parent->totnode = k+1;
 			}
@@ -851,39 +849,32 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	//this bug would show up when casting a ray aligned with a kdop-axis and with an edge of 2 faces
 	epsilon = MAX2(FLT_EPSILON, epsilon);
 	
-	if(tree)
-	{
+	if(tree) {
 		tree->epsilon = epsilon;
 		tree->tree_type = tree_type; 
 		tree->axis = axis;
 		
-		if(axis == 26)
-		{
+		if (axis == 26) {
 			tree->start_axis = 0;
 			tree->stop_axis = 13;
 		}
-		else if(axis == 18)
-		{
+		else if (axis == 18) {
 			tree->start_axis = 7;
 			tree->stop_axis = 13;
 		}
-		else if(axis == 14)
-		{
+		else if (axis == 14) {
 			tree->start_axis = 0;
 			tree->stop_axis = 7;
 		}
-		else if(axis == 8) // AABB
-		{
+		else if (axis == 8) { /* AABB */
 			tree->start_axis = 0;
 			tree->stop_axis = 4;
 		}
-		else if(axis == 6) // OBB
-		{
+		else if (axis == 6) { /* OBB */
 			tree->start_axis = 0;
 			tree->stop_axis = 3;
 		}
-		else
-		{
+		else {
 			MEM_freeN(tree);
 			return NULL;
 		}
@@ -1210,7 +1201,7 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 			nearest[i] = proj[i]; 
 	}
 
-/*
+#if 0
 	//nearest on a general hull
 	copy_v3_v3(nearest, data->co);
 	for(i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv+=2)
@@ -1219,16 +1210,15 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 		float dl = bv[0] - proj;
 		float du = bv[1] - proj;
 
-		if(dl > 0)
-		{
+		if(dl > 0) {
 			madd_v3_v3fl(nearest, KDOP_AXES[i], dl);
 		}
-		else if(du < 0)
-		{
+		else if(du < 0) {
 			madd_v3_v3fl(nearest, KDOP_AXES[i], du);
 		}
 	}
-*/
+#endif
+
 	return len_squared_v3v3(proj, nearest);
 }
 
@@ -1498,7 +1488,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 
 	//ray-bv is really fast.. and simple tests revealed its worth to test it
 	//before calling the ray-primitive functions
-	/* XXX: temporary solution for particles untill fast_ray_nearest_hit supports ray.radius */
+	/* XXX: temporary solution for particles until fast_ray_nearest_hit supports ray.radius */
 	float dist = (data->ray.radius > 0.0f) ? ray_nearest_hit(data, node->bv) : fast_ray_nearest_hit(data, node);
 	if(dist >= data->hit.dist) return;
 

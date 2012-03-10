@@ -332,11 +332,11 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
 void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 {
 	/* use for building derived mesh mapping info:
-
-	   node: the allocated links - total derived mesh element count 
-	   nodearray: the array of nodes aligned with the base mesh's elements, so
-				  each original elements can reference its derived elements
-	*/
+	 *
+	 * node: the allocated links - total derived mesh element count 
+	 * nodearray: the array of nodes aligned with the base mesh's elements, so
+	 *            each original elements can reference its derived elements
+	 */
 	Mesh *me= (Mesh*)ob->data;
 	PARTICLE_P;
 	
@@ -398,7 +398,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 	else {
 		/* TODO PARTICLE, make the following line unnecessary, each function
 		 * should know to use the num or num_dmcache, set the num_dmcache to
-		 * an invalid value, just incase */
+		 * an invalid value, just in case */
 		
 		LOOP_PARTICLES
 			pa->num_dmcache = -1;
@@ -1277,7 +1277,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 
 	MEM_freeN(element_sum);
 
-	/* For hair, sort by origindex (allows optimizations in rendering), */
+	/* For hair, sort by origindex (allows optimization's in rendering), */
 	/* however with virtual parents the children need to be in random order. */
 	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0f)) {
 		COMPARE_ORIG_INDEX = NULL;
@@ -2213,19 +2213,19 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 }
 
 /*********************************************************************************************************
-                    SPH fluid physics 
-
- In theory, there could be unlimited implementation of SPH simulators
-
- This code uses in some parts adapted algorithms from the pseudo code as outlined in the Research paper:
-
- Titled: Particle-based Viscoelastic Fluid Simulation.
- Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
- Website: http://www.iro.umontreal.ca/labs/infographie/papers/Clavet-2005-PVFS/
-
- Presented at Siggraph, (2005)
-
-***********************************************************************************************************/
+ *                    SPH fluid physics 
+ *
+ * In theory, there could be unlimited implementation of SPH simulators
+ *
+ * This code uses in some parts adapted algorithms from the pseudo code as outlined in the Research paper:
+ *
+ * Titled: Particle-based Viscoelastic Fluid Simulation.
+ * Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
+ * Website: http://www.iro.umontreal.ca/labs/infographie/papers/Clavet-2005-PVFS/
+ *
+ * Presented at Siggraph, (2005)
+ *
+ * ********************************************************************************************************/
 #define PSYS_FLUID_SPRINGS_INITIAL_SIZE 256
 static ParticleSpring *sph_spring_add(ParticleSystem *psys, ParticleSpring *spring)
 {
@@ -2343,8 +2343,8 @@ typedef struct SPHData {
 	float mass;
 	EdgeHash *eh;
 	float *gravity;
-	/* Average distance to neighbours (other particles in the support domain),
-	   for calculating the Courant number (adaptive time step). */
+	/* Average distance to neighbors (other particles in the support domain),
+	 * for calculating the Courant number (adaptive time step). */
 	int pass;
 	float element_size;
 	float flow[3];
@@ -2411,7 +2411,7 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
 		mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
 	} else {
 		sphdata->element_size = MAXFLOAT;
-		VECCOPY(sphdata->flow, flow);
+		copy_v3_v3(sphdata->flow, flow);
 	}
 }
 static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, float *UNUSED(impulse))
@@ -3234,9 +3234,9 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 				sub_v3_v3v3(v1_tan, v0_tan, vc_tan);
 						
 				/* The resulting velocity is a weighted average of particle cm & surface
-					* velocity. This weight (related to particle's moment of inertia) could
-					* be made a parameter for angular <-> linear conversion.
-					*/
+				 * velocity. This weight (related to particle's moment of inertia) could
+				 * be made a parameter for angular <-> linear conversion.
+				 */
 				madd_v3_v3fl(v1_tan, vr_tan, -0.4);
 				mul_v3_fl(v1_tan, 1.0f/1.4f); /* 1/(1+0.4) */
 
@@ -3699,17 +3699,17 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 }
 
 /* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
-   condition. */
+ * condition. */
 #define MIN_TIMESTEP 1.0f / 101.0f
-/* Tolerance of 1.5 means the last subframe neither favours growing nor
-   shrinking (e.g if it were 1.3, the last subframe would tend to be too
-   small). */
+/* Tolerance of 1.5 means the last subframe neither favors growing nor
+ * shrinking (e.g if it were 1.3, the last subframe would tend to be too
+ * small). */
 #define TIMESTEP_EXPANSION_TOLERANCE 1.5f
 
 /* Calculate the speed of the particle relative to the local scale of the
-   simulation. This should be called once per particle during a simulation
-   step, after the velocity has been updated. element_size defines the scale of
-   the simulation, and is typically the distance to neighbourning particles. */
+ * simulation. This should be called once per particle during a simulation
+ * step, after the velocity has been updated. element_size defines the scale of
+ * the simulation, and is typically the distance to neighbourning particles. */
 void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	float dtime, SPHData *sphdata)
 {

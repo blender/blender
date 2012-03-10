@@ -265,14 +265,12 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 			if(is_raytraceable_vlr(re, vlr))
 			{
-				if(  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
-				{
+				if ((re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS)) {
 					RE_rayobject_add( raytree, RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr ) );
 					vlakprimitive++;
 				}
-				else
-				{
-					RE_rayface_from_vlak( face, obi, vlr );				
+				else {
+					RE_rayface_from_vlak(face, obi, vlr);
 					RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
 					face++;
 				}
@@ -336,12 +334,10 @@ static void makeraytree_single(Render *re)
 		ObjectRen *obr = obi->obr;
 		obs++;
 		
-		if(has_special_rayobject(re, obi))
-		{
+		if (has_special_rayobject(re, obi)) {
 			special++;
 		}
-		else
-		{
+		else {
 			int v;
 			for(v=0;v<obr->totvlak;v++)
 			{
@@ -365,8 +361,7 @@ static void makeraytree_single(Render *re)
 	{
 		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");
 	}
-	else
-	{
+	else {
 		face = re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
 	}
 	
@@ -376,8 +371,7 @@ static void makeraytree_single(Render *re)
 		if(test_break(re))
 			break;
 
-		if(has_special_rayobject(re, obi))
-		{
+		if (has_special_rayobject(re, obi)) {
 			RayObject *obj = makeraytree_object(re, obi);
 
 			if(test_break(re))
@@ -386,8 +380,7 @@ static void makeraytree_single(Render *re)
 			if (obj)
 				RE_rayobject_add( re->raytree, obj );
 		}
-		else
-		{
+		else {
 			int v;
 			ObjectRen *obr = obi->obr;
 			
@@ -399,16 +392,13 @@ static void makeraytree_single(Render *re)
 			for(v=0;v<obr->totvlak;v++)
 			{
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-				if(is_raytraceable_vlr(re, vlr))
-				{
-					if( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
-					{
+				if (is_raytraceable_vlr(re, vlr)) {
+					if ((re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS)) {
 						RayObject *obj = RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr );
 						RE_rayobject_add( raytree, obj );
 						vlakprimitive++;
 					}
-					else
-					{
+					else {
 						RE_rayface_from_vlak(face, obi, vlr);
 						if((obi->flag & R_TRANSFORMED))
 						{
@@ -445,21 +435,19 @@ void makeraytree(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 
 	/* disable options not yet supported by octree,
-	   they might actually never be supported (unless people really need it) */
+	 * they might actually never be supported (unless people really need it) */
 	if(re->r.raytrace_structure == R_RAYSTRUCTURE_OCTREE)
 		re->r.raytrace_options &= ~( R_RAYTRACE_USE_INSTANCES | R_RAYTRACE_USE_LOCAL_COORDS);
 
 	makeraytree_single(re);
 
-	if(test_break(re))
-	{
+	if (test_break(re)) {
 		freeraytree(re);
 
 		re->i.infostr= "Raytree building canceled";
 		re->stats_draw(re->sdh, &re->i);
 	}
-	else
-	{
+	else {
 		//Calculate raytree max_size
 		//This is ONLY needed to kept a bogus behavior of SUN and HEMI lights
 		INIT_MINMAX(min, max);
@@ -1616,7 +1604,7 @@ static void addAlphaLight(float shadfac[4], const float col[3], float alpha, flo
 static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int traflag, float col[4])
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
-	   if it has col[3]>0.0f  continue. so exit when alpha is full */
+	 * if it has col[3]>0.0f  continue. so exit when alpha is full */
 	const float initial_dist = is->dist;
 
 	if(RE_rayobject_raycast(R.raytree, is)) {
@@ -1721,7 +1709,7 @@ static int UNUSED_FUNCTION(ray_trace_shadow_rad)(ShadeInput *ship, ShadeResult *
 			float fac;
 			
 			/* Warning, This is not that nice, and possibly a bit slow for every ray,
-			however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+			 * however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
 			memset(&shi, 0, sizeof(ShadeInput)); 
 			/* end warning! - Campbell */
 			
@@ -2087,7 +2075,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 	if(resol>32) resol= 32;
 
 	/* get sphere samples. for faces we get the same samples for sample x/y values,
-	   for strand render we always require a new sampler because x/y are not set */
+	 * for strand render we always require a new sampler because x/y are not set */
 	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys, shi->strand != NULL);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much

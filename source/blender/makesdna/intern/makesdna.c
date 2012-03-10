@@ -46,9 +46,7 @@
  * There is a facility to get verbose output from sdna. Search for
  * \ref debugSDNA. This int can be set to 0 (no output) to some int. Higher
  * numbers give more output.
- * */
-
-#define DNA_VERSION_DATE "FIXME-DNA_VERSION_DATE"
+ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -150,9 +148,9 @@ static char **types, *typedata;		/* at address types[a] is string a */
 static short *typelens;				/* at typelens[a] is de length of type a */
 static short *alphalens;			/* contains sizes as they are calculated on the DEC Alpha (64 bits), infact any 64bit system */
 static short **structs, *structdata;/* at sp= structs[a] is the first address of a struct definition
-                                       sp[0] is type number
-                                       sp[1] is amount of elements
-                                       sp[2] sp[3] is typenr,  namenr (etc) */
+                                     * sp[0] is type number
+                                     * sp[1] is amount of elements
+                                     * sp[2] sp[3] is typenr,  namenr (etc) */
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:
@@ -231,7 +229,15 @@ static int add_type(const char *str, int len)
 	int nr;
 	char *cp;
 	
-	if(str[0]==0) return -1;
+	/* first do validity check */
+	if(str[0]==0) {
+		return -1;
+	}
+	else if (strchr(str, '*')) {
+		/* note: this is valid C syntax but we can't parse, complain!
+		 * 'struct SomeStruct* somevar;' <-- correct but we cant handle right now. */
+		return -1;
+	}
 	
 	/* search through type array */
 	for(nr=0; nr<nr_types; nr++) {
@@ -285,9 +291,9 @@ static int add_name(const char *str)
 
 	if (str[0] == '(' && str[1] == '*') {
 		/* we handle function pointer and special array cases here, e.g.
-		   void (*function)(...) and float (*array)[..]. the array case
-		   name is still converted to (array*)() though because it is that
-		   way in old dna too, and works correct with elementsize() */
+		 * void (*function)(...) and float (*array)[..]. the array case
+		 * name is still converted to (array*)() though because it is that
+		 * way in old dna too, and works correct with elementsize() */
 		int isfuncptr = (strchr(str+1, '(')) != NULL;
 
 		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
@@ -535,8 +541,8 @@ static void *read_file_data(char *filename, int *len_r)
 static int convert_include(char *filename)
 {
 	/* read include file, skip structs with a '#' before it.
-	   store all data in temporal arrays.
-	*/
+	 * store all data in temporal arrays.
+	 */
 	int filelen, count, overslaan, slen, type, name, strct;
 	short *structpoin, *sp;
 	char *maindata, *mainend, *md, *md1;
@@ -574,8 +580,12 @@ static int convert_include(char *filename)
 				/* we've got a struct name when... */
 				if( strncmp(md1-7, "struct", 6)==0 ) {
 
-					
-					strct= add_type(md1, 0);
+					strct = add_type(md1, 0);
+					if (strct == -1) {
+						printf("File '%s' contains struct we cant parse \"%s\"\n", filename, md1);
+						return 1;
+					}
+
 					structpoin= add_struct(strct);
 					sp= structpoin+2;
 
@@ -603,6 +613,10 @@ static int convert_include(char *filename)
 							
 							/* we've got a type! */
 							type= add_type(md1, 0);
+							if (type == -1) {
+								printf("File '%s' contains struct we can't parse \"%s\"\n", filename, md1);
+								return 1;
+							}
 
 							if (debugSDNA > 1) printf("\t|\t|\tfound type %s (", md1);
 
@@ -846,7 +860,7 @@ static int calculate_structlens(int firststruct)
 			structpoin= structs[a];
 			structtype= structpoin[0];
 
-			/* length unkown yet */
+			/* length unknown yet */
 			if(typelens[structtype]==0) {
 				printf("  %s\n", types[structtype]);
 			}
@@ -913,7 +927,6 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	if (debugSDNA > -1) {
 		fflush(stdout);
 		printf("Running makesdna at debug level %d\n", debugSDNA);
-		printf("\tProgram version: %s\n", DNA_VERSION_DATE);
 	}
 		
 	/* the longest known struct is 50k, so we assume 100k is sufficent! */
@@ -967,8 +980,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	}
 
 	/* FOR DEBUG */
-	if (debugSDNA > 1)
-	{
+	if (debugSDNA > 1) {
 		int a,b;
 /*  		short *elem; */
 		short num_types;

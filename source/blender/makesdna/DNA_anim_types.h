@@ -528,7 +528,7 @@ typedef struct AnimMapPair {
 
 /* Retargetting Information for Actions 
  *
- * This should only be used if it is strictly necessary (i.e. user will need to explictly 
+ * This should only be used if it is strictly necessary (i.e. user will need to explicitly 
  * add this when they find that some channels do not match, or motion is not going to right 
  * places). When executing an action, this will be checked to see if it provides any useful
  * remaps for the given paths.
@@ -661,7 +661,7 @@ typedef enum eNlaStrip_Type {
 
 /* NLA Track (nlt)
  *
- * A track groups a bunch of 'strips', which should form a continous set of 
+ * A track groups a bunch of 'strips', which should form a continuous set of 
  * motion, on top of which other such groups can be layered. This should allow
  * for animators to work in a non-destructive manner, layering tweaks, etc. over
  * 'rough' blocks of their work.
@@ -761,7 +761,9 @@ typedef struct KeyingSet {
 	
 	ListBase paths;			/* (KS_Path) paths to keyframe to */
 	
+	char idname[64];		/* unique name (for search, etc.) */
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
+	char description[240];	/* (RNA_DYN_DESCR_MAX) short help text. */
 	char typeinfo[64];		/* name of the typeinfo data used for the relative paths */
 	
 	short flag;				/* settings for KeyingSet */

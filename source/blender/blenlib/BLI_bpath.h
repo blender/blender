@@ -40,7 +40,7 @@ struct Main;
 struct ReportList;
 
 /* Function that does something with an ID's file path. Should return 1 if the
-   path has changed, and in that case, should write the result to pathOut. */
+ * path has changed, and in that case, should write the result to pathOut. */
 typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
 void bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);

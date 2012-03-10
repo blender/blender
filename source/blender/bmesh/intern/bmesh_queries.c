@@ -37,7 +37,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 #define BM_OVERLAP (1 << 13)
 
@@ -63,24 +63,92 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
 }
 
 /**
- * \brief BMESH OTHER EDGE IN FACE SHARING A VERTEX
+ * \brief Other Loop in Face Sharing an Edge
  *
- * Finds the other loop that shares 'v' with 'e's loop in 'f'.
+ * Finds the other loop that shares \a v with \a e loop in \a f.
+ *
+ *     +----------+
+ *     |          |
+ *     |    f     |
+ *     |          |
+ *     +----------+ <-- return the face loop of this vertex.
+ *     v --> e
+ *     ^     ^ <------- These vert args define direction
+ *                      in the face to check.
+ *                      The faces loop direction is ignored.
+ *
  */
-BMLoop *BM_face_other_loop(BMEdge *e, BMFace *f, BMVert *v)
+BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	
+	/* we could loop around the face too, but turns out this uses a lot
+	 * more iterations (approx double with quads, many more with 5+ ngons) */
+	l_iter = l_first = e->l;
+
 	do {
-		if (l_iter->e == e) {
+		if (l_iter->e == e && l_iter->f == f) {
 			break;
 		}
-	} while ((l_iter = l_iter->next) != l_first);
+	} while ((l_iter = l_iter->radial_next) != l_first);
 	
 	return l_iter->v == v ? l_iter->prev : l_iter->next;
+}
+
+/**
+ * \brief Other Loop in Face Sharing a Vertex
+ *
+ * Finds the other loop in a face.
+ *
+ * This function returns a loop in \a f that shares an edge with \a v
+ * The direction is defined by \a v_prev, where the return value is
+ * the loop of what would be 'v_next'
+ *
+ *
+ *     +----------+ <-- return the face loop of this vertex.
+ *     |          |
+ *     |    f     |
+ *     |          |
+ *     +----------+
+ *     v_prev --> v
+ *     ^^^^^^     ^ <-- These vert args define direction
+ *                      in the face to check.
+ *                      The faces loop direction is ignored.
+ *
+ * \note \a v_prev and \a v _implicitly_ define an edge.
+ */
+BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
+{
+	BMIter liter;
+	BMLoop *l_iter;
+
+	BLI_assert(BM_edge_exists(v_prev, v) != NULL);
+
+	BM_ITER(l_iter, &liter, NULL, BM_LOOPS_OF_VERT, v) {
+		if (l_iter->f == f) {
+			break;
+		}
+	}
+
+	if (l_iter) {
+		if (l_iter->prev->v == v_prev) {
+			return l_iter->next;
+		}
+		else if (l_iter->next->v == v_prev) {
+			return l_iter->prev;
+		}
+		else {
+			/* invalid args */
+			BLI_assert(0);
+			return NULL;
+		}
+	}
+	else {
+		/* invalid args */
+		BLI_assert(0);
+		return NULL;
+	}
 }
 
 /**
@@ -188,6 +256,31 @@ int BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 {
 	return bmesh_edge_other_vert_get(e, v);
+}
+
+/**
+ * Utility function, since enough times we have an edge
+ * and want to access 2 connected faces.
+ *
+ * \return TRUE when only 2 faces are found.
+ */
+int BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb)
+{
+	BMLoop *la, *lb;
+
+	if ((la = e->l) &&
+	    (lb = la->radial_next) &&
+	    (lb->radial_next == la))
+	{
+		*r_fa = la->f;
+		*r_fb = lb->f;
+		return TRUE;
+	}
+	else {
+		*r_fa = NULL;
+		*r_fb = NULL;
+		return FALSE;
+	}
 }
 
 /**
@@ -461,6 +554,29 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 	else {
 		return NULL;
 	}
+}
+
+/**
+ * \brief Radial Find a Vertex Loop in Face
+ *
+ * Finds the loop used which uses \a v in face loop \a l
+ *
+ * \note currenly this just uses simple loop in future may be speeded up
+ * using radial vars
+ */
+BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
+{
+	BMLoop *l_first;
+	BMLoop *l_iter;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (l_iter->v == v) {
+			return l_iter;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return NULL;
 }
 
 /**

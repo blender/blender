@@ -111,8 +111,8 @@ void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 /* paint_utils.c */
 
 /* Convert the object-space axis-aligned bounding box (expressed as
-   its minimum and maximum corners) into a screen-space rectangle,
-   returns zero if the result is empty */
+ * its minimum and maximum corners) into a screen-space rectangle,
+ * returns zero if the result is empty */
 int paint_convert_bb_to_rect(struct rcti *rect,
 							 const float bb_min[3],
 							 const float bb_max[3],
@@ -121,8 +121,8 @@ int paint_convert_bb_to_rect(struct rcti *rect,
 							 struct Object *ob);
 
 /* Get four planes in object-space that describe the projection of
-   screen_rect from screen into object-space (essentially converting a
-   2D screens-space bounding box into four 3D planes) */
+ * screen_rect from screen into object-space (essentially converting a
+ * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
 							  const struct ARegion *ar,
 							  struct RegionView3D *rv3d,

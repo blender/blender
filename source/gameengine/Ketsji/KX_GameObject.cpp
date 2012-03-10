@@ -170,7 +170,7 @@ KX_GameObject::~KX_GameObject()
 	}
 #ifdef WITH_PYTHON
 	if (m_attr_dict) {
-		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weird cases */
+		PyDict_Clear(m_attr_dict); /* in case of circular refs or other weird cases */
 		/* Py_CLEAR: Py_DECREF's and NULL's */
 		Py_CLEAR(m_attr_dict);
 	}
@@ -540,8 +540,8 @@ void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 
 
 /**
-GetOpenGL Matrix, returns an OpenGL 'compatible' matrix
-*/
+ * GetOpenGL Matrix, returns an OpenGL 'compatible' matrix
+ */
 double*	KX_GameObject::GetOpenGLMatrix()
 {
 	// todo: optimize and only update if necessary
@@ -1768,7 +1768,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 	if (val==NULL) { /* del ob["key"] */
 		int del= 0;
 		
-		/* try remove both just incase */
+		/* try remove both just in case */
 		if(attr_str)
 			del |= (self->RemoveProperty(attr_str)==true) ? 1:0;
 		
@@ -2901,7 +2901,7 @@ bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void
 }
 
 /* this function is used to pre-filter the object before casting the ray on them.
-   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
 bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo* client)
 {

@@ -122,12 +122,12 @@
 
 static void write_history(void);
 
-/* To be able to read files without windows closing, opening, moving 
-   we try to prepare for worst case:
-   - active window gets active screen from file 
-   - restoring the screens from non-active windows 
-   Best case is all screens match, in that case they get assigned to proper window  
-*/
+/* To be able to read files without windows closing, opening, moving
+ * we try to prepare for worst case:
+ * - active window gets active screen from file
+ * - restoring the screens from non-active windows
+ * Best case is all screens match, in that case they get assigned to proper window
+ */
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
 	wmWindowManager *wm;
@@ -175,11 +175,11 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 }
 
 /* match old WM with new, 4 cases:
-  1- no current wm, no read wm: make new default
-  2- no current wm, but read wm: that's OK, do nothing
-  3- current wm, but not in file: try match screen names
-  4- current wm, and wm in file: try match ghostwin 
-*/
+ * 1- no current wm, no read wm: make new default
+ * 2- no current wm, but read wm: that's OK, do nothing
+ * 3- current wm, but not in file: try match screen names
+ * 4- current wm, and wm in file: try match ghostwin
+ */
 
 static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 {
@@ -334,13 +334,13 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 			}
 			else {
 				//XXX waitcursor(1);
-				/*
+#if 0			/* historic stuff - no longer used */
 				if(is_foo_format(name)) {
 					read_foo(name);
 					retval= BKE_READ_EXOTIC_OK_OTHER;
 				}
 				else
-				 */
+#endif
 				{
 					retval= BKE_READ_EXOTIC_FAIL_FORMAT;
 				}
@@ -424,7 +424,12 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		/* important to do before NULL'ing the context */
 		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
-		CTX_wm_window_set(C, NULL); /* exits queues */
+		if (!G.background) {
+			/* in background mode this makes it hard to load
+			 * a blend file and do anything since the screen
+			 * won't be set to a valid value again */
+			CTX_wm_window_set(C, NULL); /* exits queues */
+		}
 
 #if 0
 		/* gives popups on windows but not linux, bug in report API
@@ -674,7 +679,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	/* gets scaled to BLEN_THUMB_SIZE */
 	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera,
 	                                            BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
-	                                            IB_rect, OB_SOLID, err_out);
+	                                            IB_rect, OB_SOLID, FALSE, err_out);
 
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);

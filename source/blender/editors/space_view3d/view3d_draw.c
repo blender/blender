@@ -177,7 +177,7 @@ void ED_view3d_clipping_set(RegionView3D *rv3d)
 	unsigned int a;
 
 	for (a = 0; a < tot; a++) {
-		QUATCOPY(plane, rv3d->clip[a]);
+		copy_v4db_v4fl(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0 + a, plane);
 		glEnable(GL_CLIP_PLANE0 + a);
 	}
@@ -225,21 +225,21 @@ int ED_view3d_clipping_test(RegionView3D *rv3d, const float vec[3], const int is
 /* ********* end custom clipping *********** */
 
 
-static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, float dx)
+static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y, double dx)
 {	
-	float verts[2][2];
+	double verts[2][2];
 
 	x+= (wx); 
 	y+= (wy);
 
 	/* set fixed 'Y' */
 	verts[0][1]= 0.0f;
-	verts[1][1]= (float)ar->winy;
+	verts[1][1]= (double)ar->winy;
 
 	/* iter over 'X' */
-	verts[0][0] = verts[1][0] = x-dx*floorf(x/dx);
+	verts[0][0] = verts[1][0] = x-dx*floor(x/dx);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, verts);
+	glVertexPointer(2, GL_DOUBLE, 0, verts);
 
 	while (verts[0][0] < ar->winx) {
 		glDrawArrays(GL_LINES, 0, 2);
@@ -248,10 +248,10 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 	/* set fixed 'X' */
 	verts[0][0]= 0.0f;
-	verts[1][0]= (float)ar->winx;
+	verts[1][0]= (double)ar->winx;
 
 	/* iter over 'Y' */
-	verts[0][1]= verts[1][1]= y-dx*floorf(y/dx);
+	verts[0][1]= verts[1][1]= y-dx*floor(y/dx);
 	while (verts[0][1] < ar->winy) {
 		glDrawArrays(GL_LINES, 0, 2);
 		verts[0][1] = verts[1][1] = verts[0][1] + dx;
@@ -266,16 +266,13 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 {
 	/* extern short bgpicmode; */
 	RegionView3D *rv3d= ar->regiondata;
-	float wx, wy, x, y, fw, fx, fy, dx;
-	float vec4[4];
+	double wx, wy, x, y, fw, fx, fy, dx;
+	double vec4[4];
 	unsigned char col[3], col2[3];
 
-	vec4[0]=vec4[1]=vec4[2]=0.0; 
-	vec4[3]= 1.0;
-	mul_m4_v4(rv3d->persmat, vec4);
-	fx= vec4[0]; 
-	fy= vec4[1]; 
-	fw= vec4[3];
+	fx= rv3d->persmat[3][0];
+	fy= rv3d->persmat[3][1];
+	fw= rv3d->persmat[3][3];
 
 	wx= (ar->winx/2.0);	/* because of rounding errors, grid at wrong location */
 	wy= (ar->winy/2.0);
@@ -287,7 +284,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
-	mul_m4_v4(rv3d->persmat, vec4);
+	mul_m4_v4d(rv3d->persmat, vec4);
 	fx= vec4[0]; 
 	fy= vec4[1]; 
 	fw= vec4[3];
@@ -305,7 +302,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		 * items are less useful when dealing with units */
 		void *usys;
 		int len, i;
-		float dx_scalar;
+		double dx_scalar;
 		float blend_fac;
 
 		bUnit_GetSystem(&usys, &len, unit->system, B_UNIT_LENGTH);
@@ -313,7 +310,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		if (usys) {
 			i= len;
 			while (i--) {
-				float scalar= bUnit_GetScaler(usys, i);
+				double scalar= bUnit_GetScaler(usys, i);
 
 				dx_scalar = dx * scalar / unit->scale_length;
 				if (dx_scalar < (GRID_MIN_PX*2))
@@ -841,8 +838,8 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 }
 
 /* draw info beside axes in bottom left-corner: 
-* 	framenum, object name, bone name (if available), marker name (if available)
-*/
+ * framenum, object name, bone name (if available), marker name (if available)
+ */
 static void draw_selected_name(Scene *scene, Object *ob)
 {
 	char info[256], *markern;
@@ -1079,7 +1076,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	 * 0.0001 on the lower left the 2D border sometimes
 	 * obscures the 3D camera border */
 	/* note: with VIEW3D_CAMERA_BORDER_HACK defined this error isn't noticeable
-	 * but keep it here incase we need to remove the workaround */
+	 * but keep it here in case we need to remove the workaround */
 	x1i= (int)(x1 - 1.0001f);
 	y1i= (int)(y1 - 1.0001f);
 	x2i= (int)(x2 + (1.0f-0.0001f));
@@ -1225,7 +1222,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we
-			   assume and square sensor and only use sensor_x */
+			 * assume and square sensor and only use sensor_x */
 			float sizex= scene->r.xsch*scene->r.xasp;
 			float sizey= scene->r.ysch*scene->r.yasp;
 			int sensor_fit = camera_sensor_fit(ca->sensor_fit, sizex, sizey);
@@ -1562,8 +1559,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				ibuf= BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
 
 				/* working with ibuf from image and clip has got different workflow now.
-				   ibuf acquired from clip is referenced by cache system and should
-				   be dereferenced after usage. */
+				 * ibuf acquired from clip is referenced by cache system and should
+				 * be dereferenced after usage. */
 				freeibuf= ibuf;
 			}
 
@@ -1603,7 +1600,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				asp= ( (float)ibuf->y)/(float)ibuf->x;
 
 				vec[0] = vec[1] = vec[2] = 0.0;
-				ED_view3d_project_float(ar, vec, sco, rv3d->persmat);
+				ED_view3d_project_float_v2(ar, vec, sco, rv3d->persmat);
 				cx = sco[0];
 				cy = sco[1];
 
@@ -1764,9 +1761,9 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, int c
 /* *********************** */
 
 /*
-	In most cases call draw_dupli_objects,
-	draw_dupli_objects_color was added because when drawing set dupli's
-	we need to force the color
+ * In most cases call draw_dupli_objects,
+ * draw_dupli_objects_color was added because when drawing set dupli's
+ * we need to force the color
  */
 
 #if 0
@@ -1895,7 +1892,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base)
 {
 	/* define the color here so draw_dupli_objects_color can be called
-	* from the set loop */
+	 * from the set loop */
 	
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
 	/* debug */
@@ -2225,7 +2222,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	}
 	
 	/* render shadows after updating all lamps, nested object_duplilist
-		* don't work correct since it's replacing object matrices */
+	 * don't work correct since it's replacing object matrices */
 	for (shadow=shadows.first; shadow; shadow=shadow->next) {
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];
@@ -2252,7 +2249,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat);
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype= drawtype;
@@ -2330,22 +2327,22 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 	return mask;
 }
 
-static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
 {
-	RegionView3D *rv3d= ar->regiondata;
+	RegionView3D *rv3d = ar->regiondata;
 
 	/* setup window matrices */
 	if (winmat)
 		copy_m4_m4(rv3d->winmat, winmat);
 	else
 		setwinmatrixview3d(ar, v3d, NULL); /* NULL= no pickrect */
-	
+
 	/* setup view matrix */
 	if (viewmat)
 		copy_m4_m4(rv3d->viewmat, viewmat);
 	else
 		setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
-	
+
 	/* update utilitity matrices */
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
@@ -2365,12 +2362,19 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 		v2[0]= rv3d->persmat[0][1];
 		v2[1]= rv3d->persmat[1][1];
 		v2[2]= rv3d->persmat[2][1];
-		
+
 		len1= 1.0f / len_v3(v1);
 		len2= 1.0f / len_v3(v2);
 
 		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
 	}
+}
+
+static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	ED_view3d_update_viewmat(scene, v3d, ar, viewmat, winmat);
 
 	/* set for opengl */
 	glMatrixMode(GL_PROJECTION);
@@ -2380,13 +2384,15 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 }
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                              int winx, int winy, float viewmat[][4], float winmat[][4])
+                              int winx, int winy, float viewmat[][4], float winmat[][4],
+                              int draw_background)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
 	rcti brect;
+	ImBuf *bg_ibuf = NULL;
 
 	glPushMatrix();
 
@@ -2414,19 +2420,66 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
 
-	/* set background color, fallback on the view background color */
-	if (scene->world) {
-		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-		else
-			copy_v3_v3(backcol, &scene->world->horr);
-		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+	/* if scene has got active clip, use it for render backdrop */
+	if (draw_background && scene->clip && rv3d->persp==RV3D_CAMOB && v3d->camera) {
+		MovieClipUser user = {0};
+
+		BKE_movieclip_user_set_frame(&user, CFRA);
+		bg_ibuf = BKE_movieclip_get_ibuf(scene->clip, &user);
 	}
-	else {
-		UI_ThemeClearColor(TH_BACK);	
+
+	if (!bg_ibuf) {
+		/* set background color, fallback on the view background color
+		 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
+		if (scene->world) {
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+			else
+				copy_v3_v3(backcol, &scene->world->horr);
+			glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+		}
+		else {
+			UI_ThemeClearColor(TH_BACK);
+		}
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	if (bg_ibuf) {
+		unsigned char *pixels, *cp, *dst_cp;
+		int i;
+
+		if (bg_ibuf->rect_float && !bg_ibuf->rect)
+			IMB_rect_from_float(bg_ibuf);
+
+		dst_cp = pixels = MEM_callocN(4*sizeof(unsigned char)*bg_ibuf->x*bg_ibuf->y, "draw offscreen clip pixels");
+		cp = (unsigned char *)bg_ibuf->rect;
+		for (i = 0; i < bg_ibuf->x*bg_ibuf->y; i++, cp += 4, dst_cp += 4) {
+			dst_cp[0] = cp[0];
+			dst_cp[1] = cp[1];
+			dst_cp[2] = cp[2];
+			dst_cp[3] = 255;
+		}
+
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		ED_region_pixelspace(ar);
+
+		glPixelZoom((float)winx / bg_ibuf->x, (float)winy / bg_ibuf->y);
+		glaDrawPixelsTex(0, 0, bg_ibuf->x, bg_ibuf->y, GL_UNSIGNED_BYTE, pixels);
+
+		glPixelZoom(1.0, 1.0);
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+
+		IMB_freeImBuf(bg_ibuf);
+		MEM_freeN(pixels);
+	}
 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
@@ -2513,7 +2566,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* utility func for ED_view3d_draw_offscreen */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
-                                      int sizex, int sizey, unsigned int flag, char err_out[256])
+                                      int sizex, int sizey, unsigned int flag, int draw_background, char err_out[256])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
@@ -2538,10 +2591,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		camera_params_compute_matrix(&params);
 
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
 	}
 	else {
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background);
 	}
 
 	/* read in pixels & stamp */
@@ -2569,7 +2622,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
-                                             unsigned int flag, int drawtype, char err_out[256])
+                                             unsigned int flag, int drawtype, int draw_background, char err_out[256])
 {
 	View3D v3d= {NULL};
 	ARegion ar= {NULL};
@@ -2608,7 +2661,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag, err_out);
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag, draw_background, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
@@ -2753,9 +2806,11 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		v3d->zbuf= FALSE;
 
 	/* enables anti-aliasing for 3D view drawing */
-	/*if (!(U.gameflags & USER_DISABLE_AA))
-		glEnable(GL_MULTISAMPLE_ARB);*/
-	
+#if 0
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
+#endif
+
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
 
@@ -2868,10 +2923,12 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		ED_view3d_clipping_disable();
 	
 	BIF_draw_manipulator(C);
-	
+
+#if 0
 	/* Disable back anti-aliasing */
-	/*if (!(U.gameflags & USER_DISABLE_AA))
-		glDisable(GL_MULTISAMPLE_ARB);*/
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+#endif
 
 	if (v3d->zbuf) {
 		v3d->zbuf= FALSE;

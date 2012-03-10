@@ -292,8 +292,7 @@ static void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu, shor
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
-	if (do_handles)
-	{
+	if (do_handles) {
 		set_fcurve_vertex_color(fcu, 0);
 		draw_fcurve_vertices_handles(fcu, sipo, v2d, 0, sel_handle_only);
 		
@@ -327,8 +326,7 @@ static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 	{
 		return 0;
 	} 
-	else 
-	{
+	else {
 		return 1;
 	}
 }
@@ -368,8 +366,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				fp= bezt->vec[0];
 				
 				/* only draw first handle if previous segment had handles */
-				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
-				{
+				if ((!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ))) {
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
 					col[3]= drawFCurveFade(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
@@ -378,8 +375,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 				}
 				
 				/* only draw second handle if this segment is bezier */
-				if (bezt->ipo == BEZT_IPO_BEZ) 
-				{
+				if (bezt->ipo == BEZT_IPO_BEZ) {
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3]= drawFCurveFade(fcu) * 255;
 					glColor4ubv((GLubyte *)col);

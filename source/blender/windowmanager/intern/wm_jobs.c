@@ -58,29 +58,29 @@
 /* ********************** Threaded Jobs Manager ****************************** */
 
 /*
-Add new job
-- register in WM
-- configure callbacks
-
-Start or re-run job
-- if job running
-  - signal job to end
-  - add timer notifier to verify when it has ended, to start it
-- else
-  - start job
-  - add timer notifier to handle progress
-
-Stop job
-  - signal job to end
-	on end, job will tag itself as sleeping
-
-Remove job
-- signal job to end
-	on end, job will remove itself
-
-When job is done:
-- it puts timer to sleep (or removes?)
-
+ * Add new job
+ * - register in WM
+ * - configure callbacks
+ *
+ * Start or re-run job
+ * - if job running
+ *   - signal job to end
+ *   - add timer notifier to verify when it has ended, to start it
+ * - else
+ *   - start job
+ *   - add timer notifier to handle progress
+ *
+ * Stop job
+ *   - signal job to end
+ * 	on end, job will tag itself as sleeping
+ *
+ * Remove job
+ * - signal job to end
+ * 	on end, job will remove itself
+ *
+ * When job is done:
+ * - it puts timer to sleep (or removes?)
+ *
  */
  
 struct wmJob {
@@ -150,7 +150,7 @@ static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const char *name)
 
 /* returns current or adds new job, but doesnt run it */
 /* every owner only gets a single job, adding a new one will stop running stop and 
-   when stopped it starts the new one */
+ * when stopped it starts the new one */
 wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag)
 {
 	wmJob *steve= wm_job_find(wm, owner, name);

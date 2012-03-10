@@ -64,6 +64,7 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
+	bool is_float;
 	string filename;
 	ustring color_space;
 
@@ -78,10 +79,13 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
+	bool is_float;
 	string filename;
 	ustring color_space;
+	ustring projection;
 
 	static ShaderEnum color_space_enum;
+	static ShaderEnum projection_enum;
 };
 
 class SkyTextureNode : public TextureNode {

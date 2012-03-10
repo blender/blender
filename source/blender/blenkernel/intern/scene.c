@@ -253,7 +253,7 @@ void free_scene(Scene *sce)
 	
 	if (sce->gpd) {
 #if 0   // removed since this can be invalid memory when freeing everything
-		// since the grease pencil data is free'd before the scene.
+		// since the grease pencil data is freed before the scene.
 		// since grease pencil data is not (yet?), shared between objects
 		// its probably safe not to do this, some save and reload will free this.
 		sce->gpd->id.us--;
@@ -726,8 +726,8 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 				if (fase!=F_DUPLI) {
 					if ( (*base)->object->transflag & OB_DUPLI) {
 						/* groups cannot be duplicated for mballs yet, 
-						this enters eternal loop because of 
-						makeDispListMBall getting called inside of group_duplilist */
+						 * this enters eternal loop because of 
+						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
 							duplilist= object_duplilist((*scene), (*base)->object);
 							
@@ -764,10 +764,12 @@ int next_object(Scene **scene, int val, Base **base, Object **ob)
 			}
 		}
 	}
-	
-	/* if (ob && *ob) {
+
+#if 0
+	if (ob && *ob) {
 		printf("Scene: '%s', '%s'\n", (*scene)->id.name+2, (*ob)->id.name+2);
-	} */
+	}
+#endif
 
 	/* reset recursion test */
 	in_next_object= 0;
@@ -843,7 +845,7 @@ char *scene_find_marker_name(Scene *scene, int frame)
 }
 
 /* return the current marker for this frame,
-we can have more then 1 marker per frame, this just returns the first :/ */
+ * we can have more then 1 marker per frame, this just returns the first :/ */
 char *scene_find_last_marker_name(Scene *scene, int frame)
 {
 	TimeMarker *marker, *best_marker = NULL;
@@ -980,7 +982,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	scene->customdata_mask= scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
-	   dependencies on sets, but not the other way around. */
+	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
 	
@@ -1016,10 +1018,10 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
-	   by depgraph or manual, no layer check here, gets correct flushed
-
-	   in the future this should handle updates for all datablocks, not
-	   only objects and scenes. - brecht */
+	 * by depgraph or manual, no layer check here, gets correct flushed
+	 *
+	 * in the future this should handle updates for all datablocks, not
+	 * only objects and scenes. - brecht */
 	scene_update_tagged_recursive(bmain, scene, scene);
 
 	/* extra call here to recalc scene animation (for sequencer) */
@@ -1064,8 +1066,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	}
 
 	/* flush recalc flags to dependencies, if we were only changing a frame
-	   this would not be necessary, but if a user or a script has modified
-	   some datablock before scene_update_tagged was called, we need the flush */
+	 * this would not be necessary, but if a user or a script has modified
+	 * some datablock before scene_update_tagged was called, we need the flush */
 	DAG_ids_flush_tagged(bmain);
 
 	/* Following 2 functions are recursive

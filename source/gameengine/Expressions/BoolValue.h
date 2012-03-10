@@ -16,8 +16,8 @@
  *  \ingroup expressions
  */
 
-#if !defined _BOOLVALUE_H
-#define _BOOLVALUE_H
+#ifndef __BOOLVALUE_H__
+#define __BOOLVALUE_H__
 
 #include "Value.h"
 
@@ -64,5 +64,5 @@ public:
 #endif
 };
 
-#endif // !defined _BOOLVALUE_H
+#endif // !defined __BOOLVALUE_H__
 

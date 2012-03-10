@@ -75,7 +75,7 @@ void multires_stitch_grids(struct Object *);
 enum {
 	MULTIRES_SPACE_TANGENT,
 	MULTIRES_SPACE_OBJECT,
-	MULTIRES_SPACE_ABSOLUTE,
+	MULTIRES_SPACE_ABSOLUTE
 };
 void multires_set_space(struct DerivedMesh *dm, struct Object *ob, int from, int to);
 

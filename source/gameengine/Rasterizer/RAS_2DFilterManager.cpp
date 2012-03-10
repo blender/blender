@@ -356,11 +356,11 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 void RAS_2DFilterManager::UpdateCanvasTextureCoord(unsigned int * viewport)
 {
 	/*
-	This function update canvascoord[].
-	These parameters are used to create texcoord[1]
-	That way we can access the texcoord relative to the canvas:
-	(0.0,0.0) bottom left, (1.0,1.0) top right, (0.5,0.5) center
-	*/
+	 * This function update canvascoord[].
+	 * These parameters are used to create texcoord[1]
+	 * That way we can access the texcoord relative to the canvas:
+	 * (0.0,0.0) bottom left, (1.0,1.0) top right, (0.5,0.5) center
+	 */
 	canvascoord[0] = (GLfloat) viewport[0] / viewport[2];
 	canvascoord[0] *= -1;
 	canvascoord[1] = (GLfloat) (texturewidth - viewport[0]) / viewport[2];

@@ -362,8 +362,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			float co[3];
 
 			if (BMO_elem_flag_test(bm, l->e, BEVEL_FLAG)) {
-				if (BMO_elem_flag_test(bm, l->prev->e, BEVEL_FLAG))
-				{
+				if (BMO_elem_flag_test(bm, l->prev->e, BEVEL_FLAG)) {
 					tag = tags + BM_elem_index_get(l);
 					calc_corner_co(bm, l, fac, co, do_dist, do_even);
 					tag->newv = BM_vert_create(bm, co, l->v);
@@ -522,10 +521,12 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 							if (!vv || BMO_elem_flag_test(bm, vv, BEVEL_FLAG))
 								continue;
 							
-							if (j)
+							if (j) {
 								v1 = vv;
-							else
+							}
+							else {
 								v2 = vv;
+							}
 							break;
 						}
 					}
@@ -551,7 +552,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				/* set edge lengths of cross edges as the average of the cross edges they're based o */
 				if (has_elens) {
 					/* angle happens not to be used. why? - not sure it just isnt - campbell.
-					 * leave this in incase we need to use it later */
+					 * leave this in in case we need to use it later */
 #if 0
 					float ang;
 #endif

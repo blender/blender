@@ -155,7 +155,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 /* ****************************** render invoking ***************** */
 
 /* set callbacks, exported to sequence render too.
- Only call in foreground (UI) renders. */
+ * Only call in foreground (UI) renders. */
 
 static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **scene, SceneRenderLayer **srl)
 {
@@ -221,9 +221,9 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	BKE_image_backup_render(scene, ima);
 
 	/* cleanup sequencer caches before starting user triggered render.
-	   otherwise, invalidated cache entries can make their way into
-	   the output rendering. We can't put that into RE_BlenderFrame,
-	   since sequence rendering can call that recursively... (peter) */
+	 * otherwise, invalidated cache entries can make their way into
+	 * the output rendering. We can't put that into RE_BlenderFrame,
+	 * since sequence rendering can call that recursively... (peter) */
 	seq_stripelem_cache_cleanup();
 
 	RE_SetReports(re, op->reports);
@@ -517,9 +517,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	multires_force_render_update(CTX_data_active_object(C));
 
 	/* cleanup sequencer caches before starting user triggered render.
-	   otherwise, invalidated cache entries can make their way into
-	   the output rendering. We can't put that into RE_BlenderFrame,
-	   since sequence rendering can call that recursively... (peter) */
+	 * otherwise, invalidated cache entries can make their way into
+	 * the output rendering. We can't put that into RE_BlenderFrame,
+	 * since sequence rendering can call that recursively... (peter) */
 	seq_stripelem_cache_cleanup();
 
 	/* get editmode results */
@@ -586,8 +586,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
 
 	/* we set G.rendering here already instead of only in the job, this ensure
-	   main loop or other scene updates are disabled in time, since they may
-	   have started before the job thread */
+	 * main loop or other scene updates are disabled in time, since they may
+	 * have started before the job thread */
 	G.rendering = 1;
 
 	/* add modal handler for ESC */

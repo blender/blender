@@ -127,11 +127,13 @@ static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int start
 	TreeElement *te= lb->first;
 	while(te) {
 		TreeStoreElem *tselem= TREESTORE(te);
-			// XXX fixme... (currently, we're using a fixed length of 100)!
-		/*if(te->xend) {
+		// XXX fixme... (currently, we're using a fixed length of 100)!
+#if 0
+		if(te->xend) {
 			if(te->xend > *w)
 				*w = te->xend;
-		}*/
+		}
+#endif
 		if(startx+100 > *w)
 			*w = startx+100;
 
@@ -892,7 +894,7 @@ struct DrawIconArg {
 
 static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 {
-	/* restrict collumn clip... it has been coded by simply overdrawing, doesnt work for buttons */
+	/* restrict column clip... it has been coded by simply overdrawing, doesnt work for buttons */
 	if(arg->x >= arg->xmax) {
 		glEnable(GL_BLEND);
 		UI_icon_draw_aspect(arg->x, arg->y, icon, 1.0f, arg->alpha);

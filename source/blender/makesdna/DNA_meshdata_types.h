@@ -75,8 +75,8 @@ typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
-/*new face structure, replaces MFace, which is now
-  only used for storing tessellations.*/
+/* new face structure, replaces MFace, which is now
+ * only used for storing tessellations.*/
 typedef struct MPoly {
 	/* offset into loop array and number of loops in the face */
 	int loopstart;
@@ -85,8 +85,8 @@ typedef struct MPoly {
 	char flag, pad;
 } MPoly;
 
-/*the e here is because we want to move away from
-  relying on edge hashes.*/
+/* the e here is because we want to move away from
+ * relying on edge hashes.*/
 typedef struct MLoop {
 	unsigned int v; /*vertex index*/
 	unsigned int e; /*edge index*/

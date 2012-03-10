@@ -69,8 +69,10 @@ static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack
 {
 	GPUNodeLink *outlink;
 
-	/*if(in[1].hasinput)
-		GPU_material_enable_alpha(mat);*/
+#if 0
+	if(in[1].hasinput)
+		GPU_material_enable_alpha(mat);
+#endif
 
 	GPU_stack_link(mat, "output_node", in, out, &outlink);
 	GPU_material_output_link(mat, outlink);

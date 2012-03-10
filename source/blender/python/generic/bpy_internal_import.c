@@ -244,7 +244,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	if (newmodule)
 		return newmodule;
 	
-	PyErr_Fetch(&exception, &err, &tb);	/* get the python error incase we cant import as blender text either */
+	PyErr_Fetch(&exception, &err, &tb);	/* get the python error in case we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
 	newmodule = bpy_text_import_name(name, &found);

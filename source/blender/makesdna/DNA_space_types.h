@@ -215,10 +215,10 @@ typedef struct SpaceFile {
 	ListBase *folders_next; /* holds the list of next directories (pushed from previous) to show */
 
 	/* operator that is invoking fileselect 
-	   op->exec() will be called on the 'Load' button.
-	   if operator provides op->cancel(), then this will be invoked
-	   on the cancel button.
-	*/
+	 * op->exec() will be called on the 'Load' button.
+	 * if operator provides op->cancel(), then this will be invoked
+	 * on the cancel button.
+	 */
 	struct wmOperator *op; 
 
 	struct wmTimer *smoothscroll_timer;
@@ -516,8 +516,8 @@ typedef struct SpaceClip {
 	/* current stabilization data */
 	float loc[2], scale, angle;	/* pre-composed stabilization data */
 	int pad;
-	float stabmat[4][4], unistabmat[4][4];		/* current stabilization matrix and the same matrix in unified space,
-												   defined when drawing and used for mouse position calculation */
+	float stabmat[4][4], unistabmat[4][4];  /* current stabilization matrix and the same matrix in unified space,
+	                                         * defined when drawing and used for mouse position calculation */
 
 	/* movie postprocessing */
 	int postproc_flag;
@@ -866,7 +866,7 @@ enum {
 /* sseq->flag */
 #define SEQ_DRAWFRAMES   1
 #define SEQ_MARKER_TRANS 2
-#define SEQ_DRAW_COLOR_SEPERATED     4
+#define SEQ_DRAW_COLOR_SEPARATED     4
 #define SEQ_DRAW_SAFE_MARGINS        8
 #define SEQ_DRAW_GPENCIL			16
 #define SEQ_NO_DRAW_CFRANUM			32

@@ -65,17 +65,17 @@
 #include "RNA_access.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
-
-  - Pose is the local (object level) component of armature. The current
-	object pose is saved in files, and (will be) is presorted for dependency
-  - Actions have fewer (or other) channels, and write data to a Pose
-  - Currently ob->pose data is controlled in where_is_pose only. The (recalc)
-	event system takes care of calling that
-  - The NLA system (here too) uses Poses as interpolation format for Actions
-  - Therefore we assume poses to be static, and duplicates of poses have channels in
-	same order, for quick interpolation reasons
-
-  ****************************** (ton) ************************************ */
+ *
+ * - Pose is the local (object level) component of armature. The current
+ *   object pose is saved in files, and (will be) is presorted for dependency
+ * - Actions have fewer (or other) channels, and write data to a Pose
+ * - Currently ob->pose data is controlled in where_is_pose only. The (recalc)
+ *   event system takes care of calling that
+ * - The NLA system (here too) uses Poses as interpolation format for Actions
+ * - Therefore we assume poses to be static, and duplicates of poses have channels in
+ *   same order, for quick interpolation reasons
+ *
+ * ****************************** (ton) ************************************ */
 
 /* ***************** Library data level operations on action ************** */
 
@@ -1214,23 +1214,22 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 }
 
 
-/* 
-
-bone matching diagram, strips A and B
-
-				 .------------------------.
-				 |         A              |
-				 '------------------------'
-				 .          .             b2
-				 .          .-------------v----------.
-				 .      	|         B   .          |
-				 .          '------------------------'
-				 .          .             .
-				 .          .             .
-offset:          .    0     .    A-B      .  A-b2+B     
-				 .          .             .
-
-*/
+/*
+ * bone matching diagram, strips A and B
+ * 
+ *                  .------------------------.
+ *                  |         A              |
+ *                  '------------------------'
+ *                  .          .             b2
+ *                  .          .-------------v----------.
+ *                  .          |         B   .          |
+ *                  .          '------------------------'
+ *                  .          .             .
+ *                  .          .             .
+ * offset:          .    0     .    A-B      .  A-b2+B
+ *                  .          .             .
+ *
+ * */
 
 
 static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, float srcweight, short mode)
@@ -1294,8 +1293,8 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 }
 
 /* added "sizecorr" here, to allow armatures to be scaled and still have striding.
-   Only works for uniform scaling. In general I'd advise against scaling armatures ever though! (ton)
-*/
+ * Only works for uniform scaling. In general I'd advise against scaling armatures ever though! (ton)
+ */
 static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
 	bAction *act= strip->act;

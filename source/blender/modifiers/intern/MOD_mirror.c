@@ -128,7 +128,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		invert_m4_m4(tmp, mmd->mirror_ob->obmat);
 		mult_m4_m4m4(tmp, tmp, ob->obmat);
 
-		/* itmp is the reverse transform back to origin-relative coordiantes */
+		/* itmp is the reverse transform back to origin-relative coordinates */
 		invert_m4_m4(itmp, tmp);
 
 		/* combine matrices to get a single matrix that translates coordinates into

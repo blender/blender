@@ -613,7 +613,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	
 	/* flags */
 	/* this operator removes modifier which isn't stored in local undo stack,
-	   so redoing it from redo panel gives totally weird results  */
+	 * so redoing it from redo panel gives totally weird results  */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
@@ -802,7 +802,7 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	
 	/* flags */
 	/* this operator changes data stored in modifier which doesn't get pushed to undo stack,
-	   so redoing it from redo panel gives totally weird results  */
+	 * so redoing it from redo panel gives totally weird results  */
 	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */

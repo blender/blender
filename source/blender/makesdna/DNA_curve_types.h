@@ -92,16 +92,16 @@ typedef struct BevPoint {
  */
 /* note: alfa location in struct is abused by Key system */
 /* vec in BezTriple looks like this:
-	vec[0][0]=x location of handle 1
-	vec[0][1]=y location of handle 1
-	vec[0][2]=z location of handle 1 (not used for FCurve Points(2d))
-	vec[1][0]=x location of control point
-	vec[1][1]=y location of control point
-	vec[1][2]=z location of control point
-	vec[2][0]=x location of handle 2
-	vec[2][1]=y location of handle 2
-	vec[2][2]=z location of handle 2 (not used for FCurve Points(2d))
-*/
+ * - vec[0][0]=x location of handle 1
+ * - vec[0][1]=y location of handle 1
+ * - vec[0][2]=z location of handle 1 (not used for FCurve Points(2d))
+ * - vec[1][0]=x location of control point
+ * - vec[1][1]=y location of control point
+ * - vec[1][2]=z location of control point
+ * - vec[2][0]=x location of handle 2
+ * - vec[2][1]=y location of handle 2
+ * - vec[2][2]=z location of handle 2 (not used for FCurve Points(2d))
+ */
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */

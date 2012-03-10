@@ -199,7 +199,7 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 		base->ptr = NULL;
 		if (ret->ref)
 			ret->ref->m_proxy= NULL;
-		/* 'base' may be free'd after this func finished but not necessarily
+		/* 'base' may be freed after this func finished but not necessarily
 		 * there is no reference to the BGE data now so it will throw an error on access */
 		Py_DECREF(base);
 		if (ret->ref) {

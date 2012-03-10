@@ -141,17 +141,17 @@ bool BL_ModifierDeformer::HasArmatureDeformer(Object *ob)
 // return a deformed mesh that supports mapping (with a valid CD_ORIGINDEX layer)
 struct DerivedMesh* BL_ModifierDeformer::GetPhysicsMesh()
 {
-	// we need to compute the deformed mesh taking into account the current
-	// shape and skin deformers, we cannot just call mesh_create_derived_physics()
-	// because that would use the m_transvers already deformed previously by BL_ModifierDeformer::Update(),
-	// so restart from scratch by forcing a full update the shape/skin deformers 
-	// (will do nothing if there is no such deformer)
+	/* we need to compute the deformed mesh taking into account the current
+	 * shape and skin deformers, we cannot just call mesh_create_derived_physics()
+	 * because that would use the m_transvers already deformed previously by BL_ModifierDeformer::Update(),
+	 * so restart from scratch by forcing a full update the shape/skin deformers 
+	 * (will do nothing if there is no such deformer) */
 	BL_ShapeDeformer::ForceUpdate();
 	BL_ShapeDeformer::Update();
 	// now apply the modifiers but without those that don't support mapping
 	Object* blendobj = m_gameobj->GetBlendObject();
 	/* hack: the modifiers require that the mesh is attached to the object
-	   It may not be the case here because of replace mesh actuator */
+	 * It may not be the case here because of replace mesh actuator */
 	Mesh *oldmesh = (Mesh*)blendobj->data;
 	blendobj->data = m_bmesh;
 	DerivedMesh *dm = mesh_create_derived_physics(m_scene, blendobj, m_transverts, CD_MASK_MESH);
@@ -172,7 +172,7 @@ bool BL_ModifierDeformer::Update(void)
 			/* execute the modifiers */
 			Object* blendobj = m_gameobj->GetBlendObject();
 			/* hack: the modifiers require that the mesh is attached to the object
-			   It may not be the case here because of replace mesh actuator */
+			 * It may not be the case here because of replace mesh actuator */
 			Mesh *oldmesh = (Mesh*)blendobj->data;
 			blendobj->data = m_bmesh;
 			/* execute the modifiers */		

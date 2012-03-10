@@ -27,8 +27,8 @@
  */
 
  /** \file blender/blenlib/intern/string_utf8.c
- *  \ingroup bli
- */
+  *  \ingroup bli
+  */
 
 #include <string.h>
 #include <wchar.h>
@@ -41,9 +41,9 @@
  * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044 - campbell */
 
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
-
-   length is in bytes, since without knowing whether the string is valid
-   it's hard to know how many characters there are! */
+ *
+ * length is in bytes, since without knowing whether the string is valid
+ * it's hard to know how many characters there are! */
 
 static const char trailingBytesForUTF8[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -101,7 +101,7 @@ int BLI_utf8_invalid_byte(const char *str, int length)
 			break;
 
 			/* Check for leading 0xfe or 0xff,
-			   and then for 1111 1100, xx00 00xx */
+			 * and then for 1111 1100, xx00 00xx */
 		case 5:
 			if (c == 0xfe || c == 0xff ||
 				(c == 0xfc && (*p & 0x3c) == 0)) goto utf8_error;

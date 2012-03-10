@@ -56,32 +56,32 @@ struct wmOperator;
 typedef struct EditBone
 {
 	struct EditBone *next, *prev;
-	struct IDProperty 		*prop;			/* User-Defined Properties on this Bone */
-	struct EditBone *parent;/*	Editbones have a one-way link  (i.e. children refer
-									to parents.  This is converted to a two-way link for
-									normal bones when leaving editmode.	*/
-	void	*temp;			/*	Used to store temporary data */
+	struct IDProperty *prop;/* User-Defined Properties on this Bone */
+	struct EditBone *parent;/* Editbones have a one-way link  (i.e. children refer
+	                         * to parents.  This is converted to a two-way link for
+	                         * normal bones when leaving editmode. */
+	void    *temp;          /* Used to store temporary data */
 
-	char	name[64];		/* MAX_NAME */
-	float	roll;			/*	Roll along axis.  We'll ultimately use the axis/angle method
-								for determining the transformation matrix of the bone.  The axis
-								is tail-head while roll provides the angle. Refer to Graphics
-								Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
+	char    name[64];       /* MAX_NAME */
+	float   roll;           /* Roll along axis.  We'll ultimately use the axis/angle method
+	                         * for determining the transformation matrix of the bone.  The axis
+	                         * is tail-head while roll provides the angle. Refer to Graphics
+	                         * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
 
-	float	head[3];			/*	Orientation and length is implicit during editing */
-	float	tail[3];	
-							/*	All joints are considered to have zero rotation with respect to
-							their parents.	Therefore any rotations specified during the
-							animation are automatically relative to the bones' rest positions*/
+	float	head[3];        /* Orientation and length is implicit during editing */
+	float	tail[3];
+	                        /* All joints are considered to have zero rotation with respect to
+	                         * their parents.	Therefore any rotations specified during the
+	                         * animation are automatically relative to the bones' rest positions*/
 	int		flag;
 	int		layer;
 	
 	float dist, weight;
-	float xwidth, length, zwidth;	/* put them in order! transform uses this as scale */
+	float xwidth, length, zwidth;  /* put them in order! transform uses this as scale */
 	float ease1, ease2;
 	float rad_head, rad_tail;
 	
-	float oldlength;				/* for envelope scaling */
+	float oldlength;        /* for envelope scaling */
 	
 	short segments;
 } EditBone;

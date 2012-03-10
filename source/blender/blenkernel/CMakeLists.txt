@@ -86,8 +86,8 @@ set(SRC
 	intern/depsgraph.c
 	intern/displist.c
 	intern/dynamicpaint.c
-	intern/effect.c
 	intern/editderivedmesh.c
+	intern/effect.c
 	intern/fcurve.c
 	intern/fluidsim.c
 	intern/fmodifier.c
@@ -116,8 +116,8 @@ set(SRC
 	intern/multires.c
 	intern/nla.c
 	intern/node.c
-	intern/ocean.c
 	intern/object.c
+	intern/ocean.c
 	intern/packedFile.c
 	intern/paint.c
 	intern/particle.c
@@ -203,8 +203,8 @@ set(SRC
 	BKE_multires.h
 	BKE_nla.h
 	BKE_node.h
-	BKE_ocean.h
 	BKE_object.h
+	BKE_ocean.h
 	BKE_packedFile.h
 	BKE_paint.h
 	BKE_particle.h
@@ -236,8 +236,8 @@ set(SRC
 	BKE_writeffmpeg.h
 	BKE_writeframeserver.h
 	depsgraph_private.h
-	intern/CCGSubSurf.h
 	nla_private.h
+	intern/CCGSubSurf.h
 )
 
 add_definitions(-DGLEW_STATIC)

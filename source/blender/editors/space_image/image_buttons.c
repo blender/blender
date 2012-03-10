@@ -212,10 +212,10 @@ static void image_panel_curves(const bContext *C, Panel *pa)
 
 #if 0
 /* 0: disable preview 
-   otherwise refresh preview
- 
-   XXX if you put this back, also check XXX in image_main_area_draw() */
-*/
+ * otherwise refresh preview
+ *
+ * XXX if you put this back, also check XXX in image_main_area_draw() */
+ */
 void image_preview_event(int event)
 {
 	int exec= 0;
@@ -602,12 +602,12 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNAUpdateCb *cb= (RNAUpdateCb*)arg_cb;
 
 	/* ideally this would be done by RNA itself, but there we have
-	   no image user available, so we just update this flag here */
+	 * no image user available, so we just update this flag here */
 	cb->iuser->ok= 1;
 
 	/* we call update here on the pointer property, this way the
-	   owner of the image pointer can still define it's own update
-	   and notifier */
+	 * owner of the image pointer can still define it's own update
+	 * and notifier */
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 

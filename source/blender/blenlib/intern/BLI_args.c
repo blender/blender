@@ -237,8 +237,7 @@ void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
 {
 	bArgument *a = lookUp(ba, arg, -1, -1);
 
-	if (a)
-	{
+	if (a) {
 		bArgDoc *d = a->doc;
 
 		internalDocPrint(d);
@@ -251,10 +250,8 @@ void BLI_argsPrintOtherDoc(struct bArgs *ba)
 {
 	bArgDoc *d;
 
-	for( d = ba->docs.first; d; d = d->next)
-	{
-		if (d->done == 0)
-		{
+	for (d = ba->docs.first; d; d = d->next) {
+		if (d->done == 0) {
 			internalDocPrint(d);
 		}
 	}

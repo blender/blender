@@ -179,7 +179,6 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         col.prop(scene, "layers", text="Scene")
         col.label(text="Material:")
         col.prop(rl, "material_override", text="")
-        col.prop(rl, "use_zmask");
 
         col = split.column()
         col.prop(rl, "layers", text="Layer")
@@ -264,7 +263,12 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         col = split.column()
 
         col.label("Aperture:")
-        col.prop(ccam, "aperture_size", text="Size")
+        sub = col.column(align=True)
+        sub.prop(ccam, "aperture_type", text="")
+        if ccam.aperture_type == 'RADIUS':
+            sub.prop(ccam, "aperture_size", text="Size")
+        elif ccam.aperture_type == 'FSTOP':
+            sub.prop(ccam, "aperture_fstop", text="Number")
 
         sub = col.column(align=True)
         sub.prop(ccam, "aperture_blades", text="Blades")
@@ -397,7 +401,7 @@ def find_node_input(node, name):
 
 
 def panel_node_draw(layout, id_data, output_type, input_name):
-    if not id_data.node_tree:
+    if not id_data.use_nodes:
         layout.prop(id_data, "use_nodes", icon='NODETREE')
         return False
 
@@ -485,6 +489,7 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
 
+
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "world"
@@ -502,6 +507,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 
         world = context.world
         panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+
 
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
@@ -525,6 +531,7 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
         split.prop(light, "ao_factor", text="Factor")
         split.prop(light, "distance", text="Distance")
 
+
 class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "world"
@@ -546,6 +553,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = cworld.sample_as_light
         row.prop(cworld, "sample_map_resolution")
+
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"

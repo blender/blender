@@ -135,19 +135,20 @@ static int vol_get_bounds(ShadeInput *shi, const float co[3], const float vec[3]
 		isect->skip = RE_SKIP_VLR_NEIGHBOUR;
 		isect->orig.face = (void*)shi->vlr;
 		isect->orig.ob = (void*)shi->obi;
-	} else { // if (intersect_type == VOL_BOUNDS_SS) {
+	}
+	else { // if (intersect_type == VOL_BOUNDS_SS) {
 		isect->skip= 0;
 		isect->orig.face= NULL;
 		isect->orig.ob = NULL;
 	}
 	
-	if(RE_rayobject_raycast(R.raytree, isect))
-	{
+	if(RE_rayobject_raycast(R.raytree, isect)) {
 		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
 		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
 		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
 		return 1;
-	} else {
+	}
+	else {
 		return 0;
 	}
 }
@@ -365,7 +366,7 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 	const float normalize = 0.25f; // = 1.f/4.f = M_PI/(4.f*M_PI)
 	
 	/* normalization constant is 1/4 rather than 1/4pi, since
-	 * Blender's shading system doesn't normalise for
+	 * Blender's shading system doesn't normalize for
 	 * energy conservation - eg. multiplying by pdf ( 1/pi for a lambert brdf ).
 	 * This means that lambert surfaces in Blender are pi times brighter than they 'should be'
 	 * and therefore, with correct energy conservation, volumes will darker than other solid objects,
@@ -382,8 +383,8 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 		return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
 	}
 	
-	/*
-	 * not used, but here for reference:
+	/* not used, but here for reference: */
+#if 0
 	switch (phasefunc_type) {
 		case MA_VOL_PH_MIEHAZY:
 			return normalize * (0.5f + 4.5f * powf(0.5 * (1.f + costheta), 8.f));
@@ -403,7 +404,7 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 		default:
 			return normalize * 1.f;
 	}
-	*/
+#endif
 }
 
 /* Compute transmittance = e^(-attenuation) */
@@ -492,8 +493,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 	if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADOWED) {
 		mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));
 	}
-	else if (ELEM3(shi->mat->vol.shade_type, MA_VOL_SHADE_SHADED, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE))
-	{
+	else if (ELEM3(shi->mat->vol.shade_type, MA_VOL_SHADE_SHADED, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE)) {
 		Isect is;
 		
 		if (shi->mat->vol.shadeflag & MA_VOL_RECV_EXT_SHADOW) {
@@ -568,15 +568,15 @@ void vol_get_scattering(ShadeInput *shi, float scatter_col[3], const float co[3]
 
 	
 /*
-The main volumetric integrator, using an emission/absorption/scattering model.
-
-Incoming radiance = 
-
-outgoing radiance from behind surface * beam transmittance/attenuation
-+ added radiance from all points along the ray due to participating media
-	--> radiance for each segment = 
-		(radiance added by scattering + radiance added by emission) * beam transmittance/attenuation
-*/
+ * The main volumetric integrator, using an emission/absorption/scattering model.
+ *
+ * Incoming radiance =
+ *
+ * outgoing radiance from behind surface * beam transmittance/attenuation
+ * + added radiance from all points along the ray due to participating media
+ *     --> radiance for each segment =
+ *         (radiance added by scattering + radiance added by emission) * beam transmittance/attenuation
+ */
 
 /* For ease of use, I've also introduced a 'reflection' and 'reflection color' parameter, which isn't 
  * physically correct. This works as an RGB tint/gain on out-scattered light, but doesn't affect the light 
@@ -667,12 +667,12 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		int render_this=0;
 		
 		/* don't render the backfaces of ztransp volume materials.
-		 
+		 *
 		 * volume shading renders the internal volume from between the
 		 * ' view intersection of the solid volume to the
 		 * intersection on the other side, as part of the shading of
 		 * the front face.
-		 
+		 *
 		 * Because ztransp renders both front and back faces independently
 		 * this will double up, so here we prevent rendering the backface as well, 
 		 * which would otherwise render the volume in between the camera and the backface
@@ -686,8 +686,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	}
 	
 
-	if (inside_volume == VOL_SHADE_INSIDE)
-	{
+	if (inside_volume == VOL_SHADE_INSIDE) {
 		startco = shi->camera_co;
 		endco = shi->co;
 		
@@ -706,8 +705,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	}
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH))
-	{
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
 		VlakRen *vlr = (VlakRen *)is.hit.face;
 		
 		startco = shi->co;

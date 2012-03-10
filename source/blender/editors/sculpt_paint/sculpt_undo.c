@@ -182,7 +182,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			continue;
 
 		/* check if undo data matches current data well enough to
-		   continue */
+		 * continue */
 		if(unode->maxvert) {
 			if(ss->totvert != unode->maxvert)
 				continue;
@@ -203,8 +203,8 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	if(update) {
 		int tag_update= 0;
 		/* we update all nodes still, should be more clever, but also
-		   needs to work correct when exiting/entering sculpt mode and
-		   the nodes get recreated, though in that case it could do all */
+		 * needs to work correct when exiting/entering sculpt mode and
+		 * the nodes get recreated, though in that case it could do all */
 		BLI_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, NULL);
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 

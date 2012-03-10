@@ -469,7 +469,7 @@ static void recalcData_nla(TransInfo *t)
 		if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
 			ANIM_id_update(t->scene, tdn->id);
 		
-		/* if cancelling transform, just write the values without validating, then move on */
+		/* if canceling transform, just write the values without validating, then move on */
 		if (t->state == TRANS_CANCEL) {
 			/* clear the values by directly overwriting the originals, but also need to restore
 			 * endpoints of neighboring transition-strips
@@ -512,7 +512,7 @@ static void recalcData_nla(TransInfo *t)
 			if ((pExceeded && nExceeded) || (iter == 4) ) {
 				/* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
 				 *	- simply crop strip to fit within the bounds of the strips bounding it
-				 *	- if there were no neighbours, clear the transforms (make it default to the strip's current values)
+				 *	- if there were no neighbors, clear the transforms (make it default to the strip's current values)
 				 */
 				if (strip->prev && strip->next) {
 					tdn->h1[0]= strip->prev->end;
@@ -797,8 +797,7 @@ static void recalcData_view3d(TransInfo *t)
 							rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
 							mul_qt_v3(qrot, up_axis);
 						}
-						else
-						{
+						else {
 							mul_m3_v3(t->mat, up_axis);
 						}
 						
@@ -811,8 +810,7 @@ static void recalcData_view3d(TransInfo *t)
 				transform_armature_mirror_update(t->obedit);
 			
 		}
-		else
-		{
+		else {
 			if(t->state != TRANS_CANCEL) {
 				applyProject(t);
 			}
@@ -993,8 +991,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		copy_v2_v2_int(t->imval, event->mval);
 		t->event_type = event->type;
 	}
-	else
-	{
+	else {
 		t->imval[0] = 0;
 		t->imval[1] = 0;
 	}
@@ -1074,8 +1071,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 				t->current_orientation = V3D_MANIP_GLOBAL;
 			}
 		}
-		else
-		{
+		else {
 			t->current_orientation = v3d->twmode;
 		}
 
@@ -1102,27 +1098,23 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 
 	}
-	else if(t->spacetype==SPACE_IMAGE)
-	{
+	else if(t->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima = sa->spacedata.first;
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = sima->around;
 	}
-	else if(t->spacetype==SPACE_NODE)
-	{
+	else if(t->spacetype==SPACE_NODE) {
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = V3D_CENTER;
 	}
-	else if(t->spacetype==SPACE_IPO) 
-	{
+	else if(t->spacetype==SPACE_IPO) {
 		SpaceIpo *sipo= sa->spacedata.first;
 		t->view = &ar->v2d;
 		t->around = sipo->around;
 	}
-	else
-	{
+	else {
 		if(ar) {
 			// XXX for now, get View2D  from the active region
 			t->view = &ar->v2d;
@@ -1141,10 +1133,8 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			t->flag |= T_RELEASE_CONFIRM;
 		}
 	}
-	else
-	{
-		if (U.flag & USER_RELEASECONFIRM)
-		{
+	else {
+		if (U.flag & USER_RELEASECONFIRM) {
 			t->flag |= T_RELEASE_CONFIRM;
 		}
 	}
@@ -1158,8 +1148,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 	}
 	// Need stuff to take it from edit mesh or whatnot here
-	else if (t->spacetype == SPACE_VIEW3D)
-	{
+	else if (t->spacetype == SPACE_VIEW3D) {
 		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X))
 		{
 			t->flag |= T_MIRROR;
@@ -1181,22 +1170,18 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 				break;
 			}
 		}
-		else
-		{
+		else {
 			/* use settings from scene only if modal */
-			if (t->flag & T_MODAL)
-			{
-				if ((t->options & CTX_NO_PET) == 0)
-				{
-					if (t->obedit && ts->proportional != PROP_EDIT_OFF)
-					{
+			if (t->flag & T_MODAL) {
+				if ((t->options & CTX_NO_PET) == 0) {
+					if (t->obedit && ts->proportional != PROP_EDIT_OFF) {
 						t->flag |= T_PROP_EDIT;
 
-						if(ts->proportional == PROP_EDIT_CONNECTED)
+						if (ts->proportional == PROP_EDIT_CONNECTED) {
 							t->flag |= T_PROP_CONNECTED;
+						}
 					}
-					else if (t->obedit == NULL && ts->proportional_objects)
-					{
+					else if (t->obedit == NULL && ts->proportional_objects) {
 						t->flag |= T_PROP_EDIT;
 					}
 				}
@@ -1207,8 +1192,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			t->prop_size = RNA_float_get(op->ptr, "proportional_size");
 		}
-		else
-		{
+		else {
 			t->prop_size = ts->proportional_size;
 		}
 		
@@ -1224,8 +1208,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			t->prop_mode = RNA_enum_get(op->ptr, "proportional_edit_falloff");
 		}
-		else
-		{
+		else {
 			t->prop_mode = ts->prop_mode;
 		}
 	}
@@ -1467,9 +1450,9 @@ void calculateCenterMedian(TransInfo *t)
 		}
 		else {
 			/*
-			   All the selected elements are at the head of the array
-			   which means we can stop when it finds unselected data
-			*/
+			 * All the selected elements are at the head of the array
+			 * which means we can stop when it finds unselected data
+			 */
 			break;
 		}
 	}
@@ -1493,9 +1476,9 @@ void calculateCenterBound(TransInfo *t)
 			}
 			else {
 				/*
-				   All the selected elements are at the head of the array
-				   which means we can stop when it finds unselected data
-				*/
+				 * All the selected elements are at the head of the array
+				 * which means we can stop when it finds unselected data
+				 */
 				break;
 			}
 		}
@@ -1565,8 +1548,7 @@ void calculateCenter(TransInfo *t)
 		{
 			Scene *scene = t->scene;
 			Object *ob= OBACT;
-			if(ob)
-			{
+			if (ob) {
 				copy_v3_v3(t->center, ob->obmat[3]);
 				projectIntView(t, t->center, t->center2d);
 			}
@@ -1577,23 +1559,19 @@ void calculateCenter(TransInfo *t)
 	
 	/* setting constraint center */
 	copy_v3_v3(t->con.center, t->center);
-	if(t->flag & (T_EDIT|T_POSE))
-	{
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		mul_m4_v3(ob->obmat, t->con.center);
 	}
 	
 	/* for panning from cameraview */
-	if(t->flag & T_OBJECT)
-	{
-		if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
+	if (t->flag & T_OBJECT) {
+		if (t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;
 			RegionView3D *rv3d = t->ar->regiondata;
 			
-			if(v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB)
-			{
+			if (v3d->camera == OBACT && rv3d->persp==RV3D_CAMOB) {
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */
 				copy_v3_v3(axis, t->viewinv[2]);
@@ -1616,8 +1594,7 @@ void calculateCenter(TransInfo *t)
 		}
 	}
 	
-	if(t->spacetype==SPACE_VIEW3D)
-	{
+	if (t->spacetype==SPACE_VIEW3D) {
 		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d_delta() */
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
@@ -1645,8 +1622,7 @@ void calculatePropRatio(TransInfo *t)
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
 			}
-			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f)
-			{
+			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f) {
 				td->flag |= TD_SKIP;
 				td->factor = 0.0f;
 				restoreElement(td);
@@ -1657,9 +1633,9 @@ void calculatePropRatio(TransInfo *t)
 					(connected == 0 &&
 						td->rdist > t->prop_size)) {
 				/*
-				   The elements are sorted according to their dist member in the array,
-				   that means we can stop when it finds one element outside of the propsize.
-				*/
+				 * The elements are sorted according to their dist member in the array,
+				 * that means we can stop when it finds one element outside of the propsize.
+				 */
 				td->flag |= TD_NOACTION;
 				td->factor = 0.0f;
 				restoreElement(td);

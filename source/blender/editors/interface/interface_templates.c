@@ -775,8 +775,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		}
 
 		if (ob->type==OB_MESH) {
-			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex))
-			{
+			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) {
 				/* -- convert to rna ? */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
 						TIP_("Apply modifier to editing cage during Editmode"));
@@ -798,12 +797,12 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			/* some modifiers could work with pre-tesselated curves only */
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tesselated button, so users could have
-				   message for this modifiers */
+				 * message for this modifiers */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
 						TIP_("This modifier could be applied on splines' points only"));
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			} else if (mti->type != eModifierTypeType_Constructive) {
-				/* constructive modifiers tesselates curve before applying */
+				/* constructive modifiers tessellates curve before applying */
 				uiItemR(row, &ptr, "use_apply_on_spline", 0, "", ICON_NONE);
 			}
 		}
@@ -1252,8 +1251,8 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNAUpdateCb *cb= (RNAUpdateCb*)arg_cb;
 
 	/* we call update here on the pointer property, this way the
-	   owner of the curve mapping can still define it's own update
-	   and notifier, even if the CurveMapping struct is shared. */
+	 * owner of the curve mapping can still define it's own update
+	 * and notifier, even if the CurveMapping struct is shared. */
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
@@ -1314,7 +1313,7 @@ static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
 	ColorBand *coba= coba_v;
 
 	/* sneaky update here, we need to sort the colorband points to be in order,
-	   however the RNA pointer then is wrong, so we update it */
+	 * however the RNA pointer then is wrong, so we update it */
 	colorband_update_sort(coba);
 	bt->rnapoin.data = coba->data + coba->cur;
 }
@@ -1946,7 +1945,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 	}
 
 	if(lock_luminosity) {
-		float color[4]; /* incase of alpha */
+		float color[4]; /* in case of alpha */
 		but->flag |= UI_BUT_VEC_SIZE_LOCK;
 		RNA_property_float_get_array(ptr, prop, color);
 		but->a2= len_v3(color);
@@ -2248,11 +2247,11 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	 *     integer = IntProperty()
 	 *     string  = StringProperty()
 	 * 
-	 *     # A string of all identifiers (colon-separated) which property’s controls should be
+	 *     # A string of all identifiers (colon-separated) which property's controls should be
 	 *     # displayed in a template_list.
 	 *     template_list_controls = StringProperty(default="integer:bool:string", options={"HIDDEN"})
 	 *
-	 * … you’ll get a numfield for the integer prop, a check box for the bool prop, and a textfield
+	 * ... you'll get a numfield for the integer prop, a check box for the bool prop, and a textfield
 	 * for the string prop, after the name of each item of the collection.
 	 */
 	else if (prop_list_id) {
@@ -2261,9 +2260,9 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		/* XXX: Check, as sometimes we get an itemptr looking like
 		 *      {id = {data = 0x0}, type = 0x0, data = 0x0}
-		 *      which would obviously produce a sigsev… */
+		 *      which would obviously produce a sigsev... */
 		if (itemptr->type) {
-			/* If the special property is set for the item, and it is a collection… */
+			/* If the special property is set for the item, and it is a collection... */
 			PropertyRNA *prop_list= RNA_struct_find_property(itemptr, prop_list_id);
 
 			if(prop_list && RNA_property_type(prop_list) == PROP_STRING) {
@@ -2733,7 +2732,7 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 		template_keymap_item_properties(layout, NULL, &propptr);
 
 		/* attach callbacks to compensate for missing properties update,
-		   we don't know which keymap (item) is being modified there */
+		 * we don't know which keymap (item) is being modified there */
 		for(; but; but=but->next)
 			uiButSetFunc(but, keymap_item_modified, ptr->data, NULL);
 	}

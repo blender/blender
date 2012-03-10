@@ -105,8 +105,8 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	RE_rayobject_merge_bb(o, bb, bb+3);
 
 	/* skip objects with invalid bounding boxes, nan causes DO_MINMAX
-	   to do nothing, so we get these invalid values. this shouldn't
-	   happen usually, but bugs earlier in the pipeline can cause it. */
+	 * to do nothing, so we get these invalid values. this shouldn't
+	 * happen usually, but bugs earlier in the pipeline can cause it. */
 	if(bb[0] > bb[3] || bb[1] > bb[4] || bb[2] > bb[5])
 		return;
 	/* skip objects with inf bounding boxes */
@@ -115,7 +115,7 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	if(!finite(bb[3]) || !finite(bb[4]) || !finite(bb[5]))
 		return;
 	/* skip objects with zero bounding box, they are of no use, and
-	   will give problems in rtbuild_heuristic_object_split later */
+	 * will give problems in rtbuild_heuristic_object_split later */
 	if(bb[0] == bb[3] && bb[1] == bb[4] && bb[2] == bb[5])
 		return;
 	
@@ -205,7 +205,7 @@ void rtbuild_merge_bb(RTBuilder *b, float *min, float *max)
 	DO_MAX(b->bb+3, max);
 }
 
-/*
+#if 0
 int rtbuild_get_largest_axis(RTBuilder *b)
 {
 	rtbuild_calc_bb(b);
@@ -269,13 +269,13 @@ int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
 	int axis = rtbuild_get_largest_axis(b);
 	return rtbuild_mean_split(b, nchilds, axis);
 }
-*/
+#endif
 
 /*
  * "separators" is an array of dim NCHILDS-1
  * and indicates where to cut the childs
  */
-/*
+#if 0
 int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
 {
 	int size = rtbuild_size(b);
@@ -318,7 +318,7 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
 		
 	return rtbuild_median_split(b, separators, nchilds, la);
 }
-*/
+#endif
 
 //Heuristics Object Splitter
 
@@ -454,7 +454,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
  * PARTITION code / used on mean-split
  * basicly this a std::nth_element (like on C++ STL algorithm)
  */
-/*
+#if 0
 static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 {
 	int i;
@@ -469,7 +469,7 @@ static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 		if(split_axis == 2)	std::nth_element(b, nth[i],  nth[i+1], nth[partitions], obj_bb_compare<RTBuilder::Object,2>);
 	}
 }
-*/
+#endif
 
 /*
  * Bounding Box utils

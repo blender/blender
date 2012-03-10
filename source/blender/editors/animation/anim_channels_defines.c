@@ -818,7 +818,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			return AGRP_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -906,7 +906,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return FCURVE_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -2477,7 +2477,7 @@ static bAnimChannelType ACF_GPD =
 
 /* GPencil Layer ------------------------------------------- */
 
-/* name for grase pencil layer entries */
+/* name for grease pencil layer entries */
 static void acf_gpl_name(bAnimListElem *ale, char *name)
 {
 	bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -2528,7 +2528,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			//*neg= 1; - if we change this to edtiability
+			// *neg= 1; - if we change this to edtiability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */
@@ -2679,8 +2679,7 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
-	if ( (acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting)) ) 
-	{
+	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
 		short negflag, ptrsize;
 		int flag;
@@ -2757,8 +2756,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
-	if ( (acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting)) ) 
-	{
+	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
 		short negflag, ptrsize;
 		int flag;
@@ -2910,8 +2908,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		UI_DrawString(offset, ytext, name);
 		
 		/* draw red underline if channel is disabled */
-		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) 
-		{
+		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
 			// FIXME: replace hardcoded color here, and check on extents!
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glLineWidth(2.0);

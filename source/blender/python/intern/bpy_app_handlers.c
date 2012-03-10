@@ -68,11 +68,11 @@ static PyStructSequence_Desc app_cb_info_desc = {
 	(sizeof(app_cb_info_fields) / sizeof(PyStructSequence_Field)) - 1
 };
 
-/*
-#if (BLI_CB_EVT_TOT != ((sizeof(app_cb_info_fields)/sizeof(PyStructSequence_Field))))
-#  error "Callbacks are out of sync"
+#if 0
+#  if (BLI_CB_EVT_TOT != ((sizeof(app_cb_info_fields)/sizeof(PyStructSequence_Field))))
+#    error "Callbacks are out of sync"
+#  endif
 #endif
-*/
 
 /* --------------------------------------------------------------------------*/
 /* permanent tagging code */

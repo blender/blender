@@ -154,7 +154,7 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	BLI_stringdec(name, head, tail, &numlen);
 
 	/* movieclips always points to first image from sequence,
-	   autoguess offset for now. could be something smarter in the future */
+	 * autoguess offset for now. could be something smarter in the future */
 	offset= sequence_guess_offset(clip->name, strlen(head), numlen);
 
 	if (numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
@@ -396,9 +396,9 @@ static MovieClip *movieclip_alloc(const char *name)
 }
 
 /* checks if image was already loaded, then returns same image
-   otherwise creates new.
-   does not load ibuf itself
-   pass on optional frame for #name images */
+ * otherwise creates new.
+ * does not load ibuf itself
+ * pass on optional frame for #name images */
 MovieClip *BKE_add_movieclip_file(const char *name)
 {
 	MovieClip *clip;
@@ -484,7 +484,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	ImBuf *undistibuf;
 
 	/* XXX: because of #27997 do not use float buffers to undistort,
-	        otherwise, undistorted proxy can be darker than it should */
+	 *      otherwise, undistorted proxy can be darker than it should */
 	imb_freerectfloatImBuf(ibuf);
 
 	if(distortion)
@@ -640,7 +640,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 	int framenr= user->framenr, need_postprocess= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
-	   can't happen from concurent threads that's why we use lock here */
+	 * can't happen from concurent threads that's why we use lock here */
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */

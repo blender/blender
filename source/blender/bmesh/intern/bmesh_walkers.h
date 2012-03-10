@@ -30,8 +30,8 @@
 #include "BLI_ghash.h"
 
 /*
-  NOTE: do NOT modify topology while walking a mesh!
-*/
+ * NOTE: do NOT modify topology while walking a mesh!
+ */
 
 typedef enum {
 	BMW_DEPTH_FIRST,
@@ -85,25 +85,25 @@ void *BMW_walk(BMWalker *walker);
 void  BMW_reset(BMWalker *walker);
 
 /*
-example of usage, walking over an island of tool flagged faces:
-
-BMWalker walker;
-BMFace *f;
-
-BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
-f = BMW_begin(&walker, some_start_face);
-for (; f; f = BMW_step(&walker))
-{
-	//do something with f
-}
-BMW_end(&walker);
-*/
+ * example of usage, walking over an island of tool flagged faces:
+ *
+ * BMWalker walker;
+ * BMFace *f;
+ *
+ * BMW_init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
+ * f = BMW_begin(&walker, some_start_face);
+ * for (; f; f = BMW_step(&walker))
+ * {
+ *     //do something with f
+ * }
+ * BMW_end(&walker);
+ */
 
 enum {
 	/* walk over connected geometry.  can restrict to a search flag,
 	 * or not, it's optional.
 	 *
-	 * takes a vert as an arugment, and spits out edges, restrict flag acts
+	 * takes a vert as an argument, and spits out edges, restrict flag acts
 	 * on the edges as well. */
 	BMW_SHELL,
 	/*walk over an edge loop.  search flag doesn't do anything.*/

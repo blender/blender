@@ -96,8 +96,7 @@ void RegisterBlendExtension(void)
 
 	// root is HKLM by default
 	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
-	if (lresult != ERROR_SUCCESS)
-	{
+	if (lresult != ERROR_SUCCESS) {
 		// try HKCU on failure
 		usr_mode = TRUE;
 		lresult = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
@@ -161,8 +160,7 @@ void RegisterBlendExtension(void)
 
 	RegCloseKey(root);
 	printf("success (%s)\n",usr_mode ? "user" : "system");
-	if (!G.background)
-	{
+	if (!G.background) {
 		sprintf(MBox,"File extension registered for %s.",usr_mode ? "the current user. To register for all users, run as an administrator" : "all users");
 		MessageBox(0,MBox,"Blender",MB_OK|MB_ICONINFORMATION);
 	}
@@ -227,8 +225,8 @@ void get_default_root(char* root)
 	char str[MAX_PATH+1];
 	
 	/* the default drive to resolve a directory without a specified drive 
-	   should be the Windows installation drive, since this was what the OS
-	   assumes. */
+	 * should be the Windows installation drive, since this was what the OS
+	 * assumes. */
 	if (GetWindowsDirectory(str,MAX_PATH+1)) {
 		root[0] = str[0];
 		root[1] = ':';
@@ -236,7 +234,7 @@ void get_default_root(char* root)
 		root[3] = '\0';
 	} else {		
 		/* if GetWindowsDirectory fails, something has probably gone wrong, 
-		   we are trying the blender install dir though */
+		 * we are trying the blender install dir though */
 		if (GetModuleFileName(NULL,str,MAX_PATH+1)) {
 			printf("Error! Could not get the Windows Directory - Defaulting to Blender installation Dir!");
 			root[0] = str[0];

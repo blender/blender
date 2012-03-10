@@ -352,8 +352,7 @@ NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
 	 * otherwise default to length of 10 frames
 	 */
 #ifdef WITH_AUDASPACE
-	if (speaker->sound) 
-	{
+	if (speaker->sound) {
 		AUD_SoundInfo info = AUD_getInfo(speaker->sound->playback_handle);
 		
 		strip->end = (float)ceil((double)info.length * FPS);
@@ -1395,8 +1394,7 @@ static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 	 *	  is directly followed/preceeded by another strip, forming an 
 	 *	  'island' of continuous strips
 	 */
-	if ( (ps || ns) && ((nls->prev == NULL) || IS_EQF(nls->prev->end, nls->start)==0) )
-	{
+	if ((ps || ns) && ((nls->prev == NULL) || IS_EQF(nls->prev->end, nls->start)==0)) {
 		/* start overlaps - pick the largest overlap */
 		if ( ((ps && ns) && (*ps > *ns)) || (ps) )
 			nls->blendin= *ps - nls->start;
@@ -1406,8 +1404,7 @@ static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 	else /* no overlap allowed/needed */
 		nls->blendin= 0.0f;
 		
-	if ( (pe || ne) && ((nls->next == NULL) || IS_EQF(nls->next->start, nls->end)==0) )
-	{
+	if ((pe || ne) && ((nls->next == NULL) || IS_EQF(nls->next->start, nls->end)==0)) {
 		/* end overlaps - pick the largest overlap */
 		if ( ((pe && ne) && (*pe > *ne)) || (pe) )
 			nls->blendout= nls->end - *pe;

@@ -100,10 +100,10 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont, const char *ident
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-	/*
-PropertyRNA *RNA_def_float_dynamic_array(StructOrFunctionRNA *cont, const char *identifier, float hardmin, float hardmax,
-	const char *ui_name, const char *ui_description, float softmin, float softmax, unsigned int dimension, unsigned short dim_size[]);
-	*/
+
+//PropertyRNA *RNA_def_float_dynamic_array(StructOrFunctionRNA *cont, const char *identifier, float hardmin, float hardmax,
+//	const char *ui_name, const char *ui_description, float softmin, float softmax, unsigned int dimension, unsigned short dim_size[]);
+
 PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax,
 	const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_factor(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax,

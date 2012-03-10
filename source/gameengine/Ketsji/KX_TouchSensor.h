@@ -68,7 +68,7 @@ protected:
 
 	// Use with m_bTouchPulse to detect changes
 	int						m_bLastCount;		/* size of m_colliders last tick */
-	uint_ptr				m_bColliderHash;	/* hash collision objects pointers to trigger incase one object collides and another takes its place */
+	uint_ptr				m_bColliderHash;	/* hash collision objects pointers to trigger in case one object collides and another takes its place */
 	uint_ptr				m_bLastColliderHash;
 
 	SCA_IObject*		    m_hitObject;

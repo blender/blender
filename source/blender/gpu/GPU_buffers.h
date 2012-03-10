@@ -40,6 +40,7 @@
 #endif
 
 struct DerivedMesh;
+struct DMFlagMat;
 struct DMGridData;
 struct GHash;
 struct DMGridData;
@@ -61,20 +62,20 @@ typedef struct GPUBufferMaterial {
 } GPUBufferMaterial;
 
 /* meshes are split up by material since changing materials requires
-   GL state changes that can't occur in the middle of drawing an
-   array.
-
-   some simplifying assumptions are made:
-   * all quads are treated as two triangles.
-   * no vertex sharing is used; each triangle gets its own copy of the
-     vertices it uses (this makes it easy to deal with a vertex used
-     by faces with different properties, such as smooth/solid shading,
-     different MCols, etc.)
-
-   to avoid confusion between the original MVert vertices and the
-   arrays of OpenGL vertices, the latter are referred to here and in
-   the source as `points'. similarly, the OpenGL triangles generated
-   for MFaces are referred to as triangles rather than faces.
+ * GL state changes that can't occur in the middle of drawing an
+ * array.
+ *
+ * some simplifying assumptions are made:
+ * - all quads are treated as two triangles.
+ * - no vertex sharing is used; each triangle gets its own copy of the
+ *   vertices it uses (this makes it easy to deal with a vertex used
+ *   by faces with different properties, such as smooth/solid shading,
+ *   different MCols, etc.)
+ *
+ * to avoid confusion between the original MVert vertices and the
+ * arrays of OpenGL vertices, the latter are referred to here and in
+ * the source as `points'. similarly, the OpenGL triangles generated
+ * for MFaces are referred to as triangles rather than faces.
  */
 typedef struct GPUDrawObject {
 	GPUBuffer *points;
@@ -106,7 +107,7 @@ typedef struct GPUDrawObject {
 	int totedge;
 
 	/* if there was a failure allocating some buffer, use old
-	   rendering code */
+	 * rendering code */
 	int legacy;
 } GPUDrawObject;
 
@@ -142,8 +143,6 @@ void GPU_buffer_unlock( GPUBuffer *buffer );
 
 /* upload three unsigned chars, representing RGB colors, for each vertex. Resets dm->drawObject->colType to -1 */
 void GPU_color3_upload( struct DerivedMesh *dm, unsigned char *data );
-/* upload four unsigned chars, representing RGBA colors, for each vertex. Resets dm->drawObject->colType to -1 */
-void GPU_color4_upload( struct DerivedMesh *dm, unsigned char *data );
 /* switch color rendering on=1/off=0 */
 void GPU_color_switch( int mode );
 
@@ -163,14 +162,15 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 			struct MFace *mface, int *face_indices, int totface);
 
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
-			int *vert_indices, int totvert, int smooth);
+			int *vert_indices, int totvert);
 
 GPU_Buffers *GPU_build_grid_buffers(int totgrid, int gridsize);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
-	int *grid_indices, int totgrid, int gridsize, int smooth);
+							 const struct DMFlagMat *grid_flag_mats,
+							 int *grid_indices, int totgrid, int gridsize);
 
-void GPU_draw_buffers(GPU_Buffers *buffers);
+void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
 
 void GPU_free_buffers(GPU_Buffers *buffers);
 

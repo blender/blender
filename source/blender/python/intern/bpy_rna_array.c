@@ -50,17 +50,17 @@ typedef void (*RNA_SetArrayFunc)(PointerRNA *, PropertyRNA *, const char *);
 typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *);
 
 /*
-  arr[3][4][5]
-	  0  1  2  <- dimension index
-*/
+ * arr[3][4][5]
+ *     0  1  2  <- dimension index
+ */
 
 /*
-  arr[2] = x
-
-  py_to_array_index(arraydim=0, arrayoffset=0, index=2)
-	validate_array(lvalue_dim=0)
-	... make real index ...
-*/
+ *  arr[2] = x
+ *
+ *  py_to_array_index(arraydim=0, arrayoffset=0, index=2)
+ *      validate_array(lvalue_dim=0)
+ *      ... make real index ...
+ */
 
 /* arr[3] = x, self->arraydim is 0, lvalue_dim is 1 */
 /* Ensures that a python sequence has expected number of items/sub-items and items are of desired type. */
@@ -101,8 +101,8 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			 * dim = 0 */
 			else if (PySequence_Size(item) != dimsize[dim + 1]) {
 				/* BLI_snprintf(error_str, error_str_size,
-				                "sequences of dimension %d should contain %d items",
-				                (int)dim + 1, (int)dimsize[dim + 1]); */
+				 *              "sequences of dimension %d should contain %d items",
+				 *              (int)dim + 1, (int)dimsize[dim + 1]); */
 				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items",
 				             error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
 				ok = 0;
@@ -205,8 +205,8 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 			/* length is flexible */
 			if (!RNA_property_dynamic_array_set_length(ptr, prop, tot)) {
 				/* BLI_snprintf(error_str, error_str_size,
-				                "%s.%s: array length cannot be changed to %d",
-				                RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
+				 *              "%s.%s: array length cannot be changed to %d",
+				 *              RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
 				PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d",
 				             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
 				return -1;
@@ -232,18 +232,18 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 			len = 1;
 
 			/* arr[3][4][5]
-
-			   arr[2] = x
-			   dimsize = {4, 5}
-			   dimsize[1] = 4
-			   dimsize[2] = 5
-			   lvalue_dim = 0, totdim = 3
-
-			   arr[2][3] = x
-			   lvalue_dim = 1
-
-			   arr[2][3][4] = x
-			   lvalue_dim = 2 */
+			 *
+			 *    arr[2] = x
+			 *    dimsize = {4, 5}
+			 *    dimsize[1] = 4
+			 *    dimsize[2] = 5
+			 *    lvalue_dim = 0, totdim = 3
+			 * 
+			 *    arr[2][3] = x
+			 *    lvalue_dim = 1
+			 * 
+			 *    arr[2][3][4] = x
+			 *    lvalue_dim = 2 */
 			for (i = lvalue_dim; i < totdim; i++)
 				len *= dimsize[i];
 		}
@@ -462,12 +462,12 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop,
 	/* convert index */
 
 	/* arr[3][4][5]
-
-	   arr[2] = x
-	   lvalue_dim = 0, index = 0 + 2 * 4 * 5
-
-	   arr[2][3] = x
-	   lvalue_dim = 1, index = 40 + 3 * 5 */
+	 *
+	 *    arr[2] = x
+	 *    lvalue_dim = 0, index = 0 + 2 * 4 * 5
+	 *
+	 *    arr[2][3] = x
+	 *    lvalue_dim = 1, index = 40 + 3 * 5 */
 
 	lvalue_dim++;
 
@@ -677,12 +677,12 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 		ret->arraydim = arraydim + 1;
 
 		/* arr[3][4][5]
-
-		   x = arr[2]
-		   index = 0 + 2 * 4 * 5
-
-		   x = arr[2][3]
-		   index = offset + 3 * 5 */
+		 *
+		 *    x = arr[2]
+		 *    index = 0 + 2 * 4 * 5
+		 * 
+		 *    x = arr[2][3]
+		 *    index = offset + 3 * 5 */
 
 		for (i = arraydim + 1; i < totdim; i++)
 			index *= dimsize[i];

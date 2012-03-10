@@ -103,7 +103,7 @@ void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		for (i = 0; i < BLI_array_count(verts) / 2; i++) {
-			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL);
+			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL, FALSE);
 			f = nf;
 			
 			if (!nl || !nf) {

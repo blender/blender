@@ -40,9 +40,9 @@
 #include "IMB_filetype.h"
 
 /* some code copied from article on microsoft.com, copied
-  here for enhanced BMP support in the future
-  http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
-*/
+ * here for enhanced BMP support in the future
+ * http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
+ */
 
 typedef struct BMPINFOHEADER{
 	unsigned int	biSize;
@@ -129,10 +129,13 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 	y = LITTLE_LONG(bmi.biHeight);
 	depth = LITTLE_SHORT(bmi.biBitCount);
 
-	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
-		depth, bmi.biBitCount); */
-	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
-		depth, bmi.biBitCount); */
+#if 0
+	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y,
+	       depth, bmi.biBitCount);
+	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y,
+	       depth, bmi.biBitCount);
+#endif
+
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(x, y, depth, 0);
 	} else {

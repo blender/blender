@@ -456,7 +456,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 		prec= (but->hardmax < 10.001f) ? 3 : 2;
 	}
 
-	/* check on the number of decimal places neede to display
+	/* check on the number of decimal places need to display
 	 * the number, this is so 0.00001 is not displayed as 0.00,
 	 * _but_, this is only for small values si 10.0001 will not get
 	 * the same treatment */
@@ -669,7 +669,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 	return found;
 }
 
-/* needed for temporarily rename buttons, such as in outliner or fileselect,
+/* needed for temporarily rename buttons, such as in outliner or file-select,
  * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
 int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
@@ -764,7 +764,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 						}
 
 						if(pass==0) {
-							/* Skip to next delimeter on first pass (be picky) */
+							/* Skip to next delimiter on first pass (be picky) */
 							while(isalpha(*str_pt))
 								str_pt++;
 
@@ -1514,7 +1514,7 @@ void ui_set_but_val(uiBut *but, double value)
 			/* gcc 3.2.1 seems to have problems 
 			 * casting a double like 32772.0 to
 			 * a short so we cast to an int, then 
-			 to a short */
+			 * to a short */
 			int gcckludge;
 			gcckludge = (int) floor(value+0.5);
 			value= (short)gcckludge;
@@ -1745,8 +1745,11 @@ int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double 
 
 #else /* WITH_PYTHON */
 
-	value= atof(str);
+	*value = atof(str);
 	ok = TRUE;
+
+	(void)C;
+	(void)but;
 
 #endif /* WITH_PYTHON */
 
@@ -1875,7 +1878,7 @@ static double soft_range_round_down(double value, double max)
 
 void ui_set_but_soft_range(uiBut *but, double value)
 {
-	/* ideally we would not limit this but practially, its more then
+	/* ideally we would not limit this but practically, its more then
 	 * enough worst case is very long vectors wont use a smart soft-range
 	 * which isnt so bad. */
 
@@ -2373,7 +2376,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 		}
 	}
 
-	/* rows==0: 1 row, cols==0: 1 collumn */
+	/* rows==0: 1 row, cols==0: 1 column */
 	
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	for(but=first, prev=NULL; but && but->alignnr == nr; prev=but, but=but->next) {
@@ -2515,13 +2518,13 @@ void ui_block_do_align(uiBlock *block)
 	}
 }
 
-/*
- * ui_def_but is the function that draws many button types
-
+/**
+ * \brief ui_def_but is the function that draws many button types
+ *
  * for float buttons:
- *   "a1" Click Step (how much to change the value each click)
- *   "a2" Number of decimal point values to display. 0 defaults to 3 (0.000)
- *        1,2,3, and a maximum of 4, all greater values will be clamped to 4.
+ * - \a a1 Click Step (how much to change the value each click)
+ * - \a a2 Number of decimal point values to display. 0 defaults to 3 (0.000)
+ *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
 {

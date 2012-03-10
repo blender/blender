@@ -44,17 +44,17 @@
 
 static void rna_Controller_link(bController *cont, bSensor *sens, bActuator *act)
 {
-	if(sens)
+	if (sens)
 		link_logicbricks((void **)&cont, (void ***)&(sens->links), &sens->totlinks, sizeof(bController *));
-	if(act)
+	if (act)
 		link_logicbricks((void **)&act, (void ***)&(cont->links), &cont->totlinks, sizeof(bActuator *));
 }
 
 static void rna_Controller_unlink(bController *cont, bSensor *sens, bActuator *act)
 {
-	if(sens)
+	if (sens)
 		unlink_logicbricks((void **)&cont, (void ***)&(sens->links), &sens->totlinks);
-	if(act)
+	if (act)
 		unlink_logicbricks((void **)&act, (void ***)&(cont->links), &cont->totlinks);
 }
 
@@ -65,18 +65,18 @@ void RNA_api_controller(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "link", "rna_Controller_link");
+	func = RNA_def_function(srna, "link", "rna_Controller_link");
 	RNA_def_function_ui_description(func, "Link the controller with a sensor/actuator");
-	parm= RNA_def_pointer(func, "sensor", "Sensor", "", "Sensor to link the controller to"); 
+	parm = RNA_def_pointer(func, "sensor", "Sensor", "", "Sensor to link the controller to"); 
 	RNA_def_property_update(parm, NC_LOGIC, NULL);
-	parm= RNA_def_pointer(func, "actuator", "Actuator", "", "Actuator to link the controller to"); 
+	parm = RNA_def_pointer(func, "actuator", "Actuator", "", "Actuator to link the controller to"); 
 	RNA_def_property_update(parm, NC_LOGIC, NULL);
 
-	func= RNA_def_function(srna, "unlink", "rna_Controller_unlink");
+	func = RNA_def_function(srna, "unlink", "rna_Controller_unlink");
 	RNA_def_function_ui_description(func, "Unlink the controller from a sensor/actuator");
-	parm= RNA_def_pointer(func, "sensor", "Sensor", "", "Sensor to unlink the controller from"); 
+	parm = RNA_def_pointer(func, "sensor", "Sensor", "", "Sensor to unlink the controller from"); 
 	RNA_def_property_update(parm, NC_LOGIC, NULL);
-	parm= RNA_def_pointer(func, "actuator", "Actuator", "", "Actuator to unlink the controller from"); 
+	parm = RNA_def_pointer(func, "actuator", "Actuator", "", "Actuator to unlink the controller from"); 
 	RNA_def_property_update(parm, NC_LOGIC, NULL);
 }
 

@@ -536,9 +536,11 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	uiBlockSetCurLayout(block, sub);
 
 	if(name[0]) {
-		/* XXX UI_GetStringWidth is not accurate
-		labelw= UI_GetStringWidth(name);
-		CLAMP(labelw, w/4, 3*w/4);*/
+		/* XXX UI_GetStringWidth is not accurate */
+#if 0
+		labelw = UI_GetStringWidth(name);
+		CLAMP(labelw, w/4, 3*w/4);
+#endif
 		labelw= w/3;
 		uiDefBut(block, LABEL, 0, name, x, y, labelw, h, NULL, 0.0, 0.0, 0, 0, "");
 		w= w-labelw;
@@ -2882,8 +2884,8 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 
 		col= uiLayoutColumn(layout, 0);
 		block= uiLayoutGetBlock(col);
-		but = uiDefIconTextBut(block , BUT, 0, ICON_FILE_REFRESH, "Reset", 0, 0, 18, 20, NULL, 0.0, 0.0, 0.0, 0.0,
-		                       "Reset operator defaults");
+		but = uiDefIconTextBut(block , BUT, 0, ICON_FILE_REFRESH, IFACE_("Reset"), 0, 0, 18, 20,
+		                       NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Reset operator defaults"));
 		uiButSetFunc(but, ui_layout_operator_buts__reset_cb, op, NULL);
 	}
 

@@ -38,6 +38,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "bmesh_py_utils.h" /* own include */
 
 
@@ -196,6 +198,67 @@ static PyObject *bpy_bm_utils_vert_dissolve(PyObject *UNUSED(self), PyObject *ar
 	return PyBool_FromLong((BM_vert_dissolve(bm, py_vert->v)));
 }
 
+PyDoc_STRVAR(bpy_bm_utils_vert_separate_doc,
+".. method:: vert_separate(vert, edges)\n"
+"\n"
+"   Separate this vertex at every edge.\n"
+"\n"
+"   :arg vert: The vert to be separated.\n"
+"   :type vert: :class:`BMVert`\n"
+"   :arg edges: The edges to separated.\n"
+"   :type edges: :class:`BMEdge`\n"
+"   :return: The newly separated verts (including the vertex passed).\n"
+"   :rtype: tuple of :class:`BMVert`\n"
+);
+static PyObject *bpy_bm_utils_vert_separate(PyObject *UNUSED(self), PyObject *args)
+{
+	BPy_BMVert *py_vert;
+	PyObject *edge_seq;
+
+	BMesh *bm;
+	BMVert **elem;
+	int elem_len;
+
+	/* edges to split */
+	BMEdge **edge_array;
+	Py_ssize_t edge_array_len;
+
+	PyObject *ret;
+
+
+	if (!PyArg_ParseTuple(args, "O!O:vert_separate",
+	                      &BPy_BMVert_Type, &py_vert,
+	                      &edge_seq))
+	{
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(py_vert);
+
+	bm = py_vert->bm;
+
+	edge_array = BPy_BMElem_PySeq_As_Array(&bm, edge_seq, 0, PY_SSIZE_T_MAX,
+	                                       &edge_array_len, &BPy_BMEdge_Type,
+	                                       TRUE, TRUE, "vert_separate(...)");
+
+	if (edge_array == NULL) {
+		return NULL;
+	}
+
+	if (BM_vert_separate(bm, py_vert->v, &elem, &elem_len, edge_array, edge_array_len)) {
+		/* return collected verts */
+		ret = BPy_BMElem_Array_As_Tuple(bm, (BMHeader **)elem, elem_len);
+		MEM_freeN(elem);
+	}
+	else {
+		ret = PyTuple_New(0);
+	}
+
+	PyMem_FREE(edge_array);
+
+	return ret;
+}
+
 
 PyDoc_STRVAR(bpy_bm_utils_edge_split_doc,
 ".. method:: edge_split(edge, vert, fac)\n"
@@ -291,7 +354,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args
 
 	bm = py_edge->bm;
 
-	e_new = BM_edge_rotate(bm, py_edge->e, do_ccw);
+	e_new = BM_edge_rotate(bm, py_edge->e, do_ccw, 0); /* BMESH_TODO - expose to API */
 
 	if (e_new) {
 		return BPy_BMEdge_CreatePyObject(bm, e_new);
@@ -363,7 +426,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 
 	f_new = BM_face_split(bm, py_face->f,
 	                      py_vert_a->v, py_vert_b->v,
-	                      &l_new, py_edge_example ? py_edge_example->e : NULL);
+	                      &l_new, py_edge_example ? py_edge_example->e : NULL, FALSE); /* BMESH_TODO, make arg */
 
 	if (f_new && l_new) {
 		PyObject *ret = PyTuple_New(2);
@@ -408,8 +471,72 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 	 * --------------------------- */
 	f_new = BM_faces_join(bm, face_array, (int)face_seq_len);
 
+	PyMem_FREE(face_array);
+
 	if (f_new) {
 		return BPy_BMFace_CreatePyObject(bm, f_new);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+
+PyDoc_STRVAR(bpy_bm_utils_face_vert_separate_doc,
+".. method:: face_vert_separate(face, vert)\n"
+"\n"
+"   Rip a vertex in a face away and add a new vertex.\n"
+"\n"
+"   :arg face: The face to separate.\n"
+"   :type face: :class:`BMFace`\n"
+"   :arg vert: A vertex in the face to separate.\n"
+"   :type vert: :class:`BMVert`\n"
+"   :return vert: The newly created vertex or None of failure.\n"
+"   :rtype vert: :class:`BMVert`\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      This is the same as loop_separate, and has only been added for convenience.\n"
+);
+static PyObject *bpy_bm_utils_face_vert_separate(PyObject *UNUSED(self), PyObject *args)
+{
+	BPy_BMFace *py_face;
+	BPy_BMVert *py_vert;
+
+	BMesh *bm;
+	BMLoop *l;
+	BMVert *v_new;
+
+	if (!PyArg_ParseTuple(args, "O!O!:face_vert_separate",
+	                      &BPy_BMFace_Type, &py_face,
+	                      &BPy_BMVert_Type, &py_vert))
+	{
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(py_face);
+	BPY_BM_CHECK_OBJ(py_vert);
+
+	bm = py_face->bm;
+
+	if (bm != py_vert->bm) {
+		PyErr_SetString(PyExc_ValueError,
+		                "mesh elements are from different meshes");
+		return NULL;
+	}
+
+	l = BM_face_vert_share_loop(py_face->f, py_vert->v);
+
+	if (l == NULL) {
+		PyErr_SetString(PyExc_ValueError,
+		                "vertex not found in face");
+		return NULL;
+	}
+
+	v_new = BM_face_loop_separate(bm, l);
+
+	if (v_new != l->v) {
+		return BPy_BMVert_CreatePyObject(bm, v_new);
 	}
 	else {
 		Py_RETURN_NONE;
@@ -442,15 +569,56 @@ static PyObject *bpy_bm_utils_face_flip(PyObject *UNUSED(self), BPy_BMFace *valu
 }
 
 
+
+PyDoc_STRVAR(bpy_bm_utils_loop_separate_doc,
+".. method:: loop_separate(loop)\n"
+"\n"
+"   Rip a vertex in a face away and add a new vertex.\n"
+"\n"
+"   :arg loop: The to separate.\n"
+"   :type loop: :class:`BMFace`\n"
+"   :return vert: The newly created vertex or None of failure.\n"
+"   :rtype vert: :class:`BMVert`\n"
+);
+static PyObject *bpy_bm_utils_loop_separate(PyObject *UNUSED(self), BPy_BMLoop *value)
+{
+	BMesh *bm;
+	BMVert *v_new;
+
+	if (!BPy_BMLoop_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "loop_separate(loop): BMLoop expected, not '%.200s'",
+		             Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	bm = value->bm;
+
+	v_new = BM_face_loop_separate(bm, value->l);
+
+	if (v_new != value->l->v) {
+		return BPy_BMVert_CreatePyObject(bm, v_new);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+
 static struct PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_collapse_edge",  (PyCFunction)bpy_bm_utils_vert_collapse_edge,  METH_VARARGS, bpy_bm_utils_vert_collapse_edge_doc},
     {"vert_collapse_faces", (PyCFunction)bpy_bm_utils_vert_collapse_faces, METH_VARARGS, bpy_bm_utils_vert_collapse_faces_doc},
-    {"vert_dissolve",       (PyCFunction)bpy_bm_utils_vert_dissolve,       METH_VARARGS, bpy_bm_utils_vert_dissolve_doc},
+    {"vert_dissolve",       (PyCFunction)bpy_bm_utils_vert_dissolve,       METH_VARARGS, bpy_bm_utils_vert_dissolve_doc}, /* could use METH_O */
+    {"vert_separate",       (PyCFunction)bpy_bm_utils_vert_separate,       METH_VARARGS, bpy_bm_utils_vert_separate_doc},
     {"edge_split",          (PyCFunction)bpy_bm_utils_edge_split,          METH_VARARGS, bpy_bm_utils_edge_split_doc},
     {"edge_rotate",         (PyCFunction)bpy_bm_utils_edge_rotate,         METH_VARARGS, bpy_bm_utils_edge_rotate_doc},
     {"face_split",          (PyCFunction)bpy_bm_utils_face_split,          METH_VARARGS, bpy_bm_utils_face_split_doc},
     {"face_join",           (PyCFunction)bpy_bm_utils_face_join,           METH_O,       bpy_bm_utils_face_join_doc},
+    {"face_vert_separate",  (PyCFunction)bpy_bm_utils_face_vert_separate,  METH_VARARGS, bpy_bm_utils_face_vert_separate_doc},
     {"face_flip",           (PyCFunction)bpy_bm_utils_face_flip,           METH_O,       bpy_bm_utils_face_flip_doc},
+    {"loop_separate",       (PyCFunction)bpy_bm_utils_loop_separate,       METH_O,       bpy_bm_utils_loop_separate_doc},
     {NULL, NULL, 0, NULL}
 };
 

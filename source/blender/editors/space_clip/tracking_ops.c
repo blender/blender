@@ -334,7 +334,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 }
 
 /* corner = 0: right-bottom corner,
-   corner = 1: left-top corner */
+ * corner = 1: left-top corner */
 static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int area, float co[2], int corner, int width, int height)
 {
@@ -1170,7 +1170,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Grouped";
-	ot->description= "Joint Selected Tracks";
+	ot->description= "Select all tracks from specified group";
 	ot->idname= "CLIP_OT_select_grouped";
 
 	/* api callbacks */
@@ -1327,11 +1327,11 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 
 	tmj->lastfra= tmj->sfra;
 
-	/* XXX: silly to store this, but this data is needed to update scene and movieclip
-	        frame numbers when tracking is finished. This introduces better feedback for artists.
-	        Maybe there's another way to solve this problem, but can't think better way atm.
-	        Anyway, this way isn't more unstable as animation rendering animation
-	        which uses the same approach (except storing screen). */
+	/* XXX: silly to store this, but this data is needed to update scene and movie-clip
+	 *      frame numbers when tracking is finished. This introduces better feedback for artists.
+	 *      Maybe there's another way to solve this problem, but can't think better way atm.
+	 *      Anyway, this way isn't more unstable as animation rendering animation
+	 *      which uses the same approach (except storing screen). */
 	tmj->scene= scene;
 	tmj->main= CTX_data_main(C);
 	tmj->screen= CTX_wm_screen(C);
@@ -1348,10 +1348,10 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 	while(framenr != tmj->efra) {
 		if(tmj->delay>0) {
 			/* tracking should happen with fixed fps. Calculate time
-			   using current timer value before tracking frame and after.
-
-			   Small (and maybe unneeded optimization): do not calculate exec_time
-			   for "Fastest" tracking */
+			 * using current timer value before tracking frame and after.
+			 *
+			 * Small (and maybe unneeded optimization): do not calculate exec_time
+			 * for "Fastest" tracking */
 
 			double start_time= PIL_check_seconds_timer(), exec_time;
 
@@ -1493,9 +1493,9 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
-	   with fixed FPS. To deal with editor refresh we have to syncronize
-	   tracks from job and tracks in clip. Do this in timer callback
-	   to prevent threading conflicts. */
+	 * with fixed FPS. To deal with editor refresh we have to synchronize
+	 * tracks from job and tracks in clip. Do this in timer callback
+	 * to prevent threading conflicts. */
 	if(tmj->delay>0) WM_jobs_timer(steve, tmj->delay/1000.0f, NC_MOVIECLIP|NA_EVALUATED, 0);
 	else WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
 
@@ -1627,7 +1627,7 @@ static void solve_camera_freejob(void *scv)
 	if(!solved)
 		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
-		BKE_reportf(scj->reports, RPT_INFO, "Average reprojection error %.3f", tracking->reconstruction.error);
+		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error %.3f", tracking->reconstruction.error);
 
 	/* set currently solved clip as active for scene */
 	if(scene->clip)
@@ -1824,13 +1824,20 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track;
 	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
 	int action= RNA_enum_get(op->ptr, "action");
+	int clear_active= RNA_boolean_get(op->ptr, "clear_active");
 
-	track= tracksbase->first;
-	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track))
-			BKE_tracking_clear_path(track, sc->user.framenr, action);
+	if (clear_active) {
+		track= BKE_tracking_active_track(&clip->tracking);
+		BKE_tracking_clear_path(track, sc->user.framenr, action);
+	}
+	else {
+		track= tracksbase->first;
+		while(track) {
+			if(TRACK_VIEW_SELECTED(sc, track))
+				BKE_tracking_clear_path(track, sc->user.framenr, action);
 
-		track= track->next;
+			track= track->next;
+		}
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
@@ -1861,6 +1868,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* proeprties */
 	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
+	RNA_def_boolean(ot->srna, "clear_active", 0, "Clear Active", "Clear active track only instead of all selected tracks");
 }
 
 /********************** disable markers operator *********************/
@@ -2248,7 +2256,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 	object_apply_mat4(ob, mat, 0, 0);
 }
 
-static int set_floor_exec(bContext *C, wmOperator *op)
+static int set_plane_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -2261,6 +2269,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	Object *camera= get_camera_with_movieclip(scene, clip);
 	int tot= 0;
 	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3]= {0.0f, 0.0f, 0.0f};
+	int plane= RNA_enum_get(op->ptr, "plane");
 	float rot[4][4]={{0.0f, 0.0f, -1.0f, 0.0f},
 	                 {0.0f, 1.0f, 0.0f, 0.0f},
 	                 {1.0f, 0.0f, 0.0f, 0.0f},
@@ -2308,9 +2317,16 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	/* construct ortho-normal basis */
 	unit_m4(mat);
 
-	cross_v3_v3v3(mat[0], vec[1], vec[2]);
-	copy_v3_v3(mat[1], vec[1]);
-	cross_v3_v3v3(mat[2], mat[0], mat[1]);
+	if (plane == 0) { /* floor */
+		cross_v3_v3v3(mat[0], vec[1], vec[2]);
+		copy_v3_v3(mat[1], vec[1]);
+		cross_v3_v3v3(mat[2], mat[0], mat[1]);
+	}
+	else if (plane == 1) { /* wall */
+		cross_v3_v3v3(mat[2], vec[1], vec[2]);
+		copy_v3_v3(mat[1], vec[1]);
+		cross_v3_v3v3(mat[0], mat[1], mat[2]);
+	}
 
 	normalize_v3(mat[0]);
 	normalize_v3(mat[1]);
@@ -2352,19 +2368,28 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_set_floor(wmOperatorType *ot)
+void CLIP_OT_set_plane(wmOperatorType *ot)
 {
+	static EnumPropertyItem plane_items[] = {
+			{0, "FLOOR", 0, "Floor", "Set floor plane"},
+			{1, "WALL", 0, "Wall", "Set wall plane"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
-	ot->name= "Set Floor";
-	ot->description= "Set floor based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
-	ot->idname= "CLIP_OT_set_floor";
+	ot->name= "Set Plane";
+	ot->description= "Set plane based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
+	ot->idname= "CLIP_OT_set_plane";
 
 	/* api callbacks */
-	ot->exec= set_floor_exec;
+	ot->exec= set_plane_exec;
 	ot->poll= set_orientation_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "plane", plane_items, 0, "Plane", "Plane to be sued for orientation");
 }
 
 /********************** set axis operator *********************/
@@ -2949,6 +2974,9 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 		if(TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
 			BKE_tracking_join_tracks(act_track, track);
 
+			if(tracking->stabilization.rot_track == track)
+				tracking->stabilization.rot_track= act_track;
+
 			BKE_tracking_free_track(track);
 			BLI_freelinkN(tracksbase, track);
 		}
@@ -3332,7 +3360,7 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 				}
 				else if(markers[a].flag&MARKER_DISABLED) {
 					/* current segment which would be deleted was finished by disabled marker,
-					   so next segment should be started from disabled marker */
+					 * so next segment should be started from disabled marker */
 					start_disabled= 1;
 				}
 			}
@@ -3455,7 +3483,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Effect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
-	RNA_def_float(ot->srna, "error", 0.0f, 0.0f, FLT_MAX, "Reprojection Error", "Effect on tracks with have got larger reprojection error", 0.0f, 100.0f);
+	RNA_def_float(ot->srna, "error", 0.0f, 0.0f, FLT_MAX, "Reprojection Error", "Effect on tracks with have got larger re-projection error", 0.0f, 100.0f);
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }
 

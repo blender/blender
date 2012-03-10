@@ -545,8 +545,7 @@ void ANIM_fcurve_delete_from_animdata (bAnimContext *ac, AnimData *adt, FCurve *
 			/* XXX: there's a problem where many actions could build up in the file if multiple
 			 * full add/delete cycles are performed on the same objects, but assume that this is rare
 			 */
-		if ((adt->action->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON)==0)
-		{
+		if ((adt->action->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON)==0) {
 			id_us_min(&adt->action->id);
 			adt->action = NULL;
 		}
@@ -1989,7 +1988,7 @@ static void rename_anim_channels (bAnimContext *ac, int channel_index)
 		if (acf->name_prop(ale, &ptr, &prop)) {
 			/* actually showing the rename textfield is done on redraw,
 			 * so here we just store the index of this channel in the 
-			 * dopesheet data, which will get utilised when drawing the
+			 * dopesheet data, which will get utilized when drawing the
 			 * channel...
 			 *
 			 * +1 factor is for backwards compat issues

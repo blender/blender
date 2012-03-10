@@ -90,7 +90,7 @@ static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 }
 
 /* simple structure to hold the output: a CDDM and two counters to
-   keep track of the current elements */
+ * keep track of the current elements */
 typedef struct {
 	DerivedMesh *dm;
 	int curvert, curface;

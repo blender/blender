@@ -142,11 +142,11 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
 	
 	/* Is this me? In the ray test, there are a lot of extra checks
-	* for aliasing artefacts from self-hits. That doesn't happen
-	* here, so a simple test suffices. Or does the camera also get
-	* self-hits? (No, and the raysensor shouldn't do it either, since
-	* self-hits are excluded by setting the correct ignore-object.)
-	* Hitspots now become valid. */
+	 * for aliasing artefacts from self-hits. That doesn't happen
+	 * here, so a simple test suffices. Or does the camera also get
+	 * self-hits? (No, and the raysensor shouldn't do it either, since
+	 * self-hits are excluded by setting the correct ignore-object.)
+	 * Hitspots now become valid. */
 	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
 	if ((m_focusmode == 2) || hitKXObj == thisObj)
 	{

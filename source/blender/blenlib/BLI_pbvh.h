@@ -26,13 +26,14 @@
  *  \brief A BVH for high poly meshes.
  */
 
-struct MFace;
-struct MVert;
+struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
+struct ListBase;
+struct MFace;
+struct MVert;
 struct PBVH;
 struct PBVHNode;
-struct ListBase;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -56,12 +57,12 @@ void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
 			int totface, int totvert);
 void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
 	struct DMGridAdjacency *gridadj, int totgrid,
-	int gridsize, void **gridfaces);
+	int gridsize, void **gridfaces, struct DMFlagMat *flagmats);
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
-   * for each hit calling a callback
-   * gather nodes in an array (easy to multithread) */
+ * - for each hit calling a callback
+ * - gather nodes in an array (easy to multithread) */
 
 void BLI_pbvh_search_callback(PBVH *bvh,
 	BLI_pbvh_SearchCallback scb, void *search_data,
@@ -72,9 +73,9 @@ void BLI_pbvh_search_gather(PBVH *bvh,
 	PBVHNode ***array, int *tot);
 
 /* Raycast
-   the hit callback is called for all leaf nodes intersecting the ray;
-   it's up to the callback to find the primitive within the leaves that is
-   hit first */
+ * the hit callback is called for all leaf nodes intersecting the ray;
+ * it's up to the callback to find the primitive within the leaves that is
+ * hit first */
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       float ray_start[3], float ray_normal[3], int original);
@@ -85,7 +86,8 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data);
 int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth);
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
+				   int (*setMaterial)(int, void *attribs));
 
 /* Node Access */
 
@@ -131,8 +133,8 @@ int BLI_pbvh_isDeformed(struct PBVH *pbvh);
 /* Vertex Iterator */
 
 /* this iterator has quite a lot of code, but it's designed to:
-   - allow the compiler to eliminate dead code and variables
-   - spend most of the time in the relatively simple inner loop */
+ * - allow the compiler to eliminate dead code and variables
+ * - spend most of the time in the relatively simple inner loop */
 
 #define PBVH_ITER_ALL		0
 #define PBVH_ITER_UNIQUE	1
@@ -159,7 +161,7 @@ typedef struct PBVHVertexIter {
 	int *vert_indices;
 
 	/* result: these are all computed in the macro, but we assume
-	   that compiler optimizations will skip the ones we don't use */
+	 * that compiler optimization's will skip the ones we don't use */
 	struct MVert *mvert;
 	float *co;
 	short *no;

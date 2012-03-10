@@ -953,7 +953,7 @@ static FileData *filedata_new(void)
 	fd->gzfiledes = NULL;
 
 		/* XXX, this doesn't need to be done all the time,
-		 * but it keeps us reentrant,  remove once we have
+		 * but it keeps us re-entrant,  remove once we have
 		 * a lib that provides a nice lock. - zr
 		 */
 	fd->memsdna = DNA_sdna_from_data(DNAstr,  DNAlen,  0);
@@ -3751,18 +3751,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
-			
-			/*put .disps into cellalloc system*/
-			if (mdisps[i].disps) {
-				float *disp2;
-				
-				disp2 = MEM_mallocN(MEM_allocN_len(mdisps[i].disps), "cellalloc .disps copy");
-				memcpy(disp2, mdisps[i].disps, MEM_allocN_len(mdisps[i].disps));
-				
-				MEM_freeN(mdisps[i].disps);
-				mdisps[i].disps = (float (*)[3])disp2;
-			}
-			
+
 			if( (fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps) ) {
 				/* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
 				/* this does swap for data written at write_mdisps() - readfile.c */
@@ -4258,7 +4247,7 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->siktree.first= pchan->siktree.last= NULL;
 		
-		/* incase this value changes in future, clamp else we get undefined behavior */
+		/* in case this value changes in future, clamp else we get undefined behavior */
 		CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 	}
 	pose->ikdata = NULL;
@@ -4361,16 +4350,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					smd->domain->point_cache[1] = NULL;
 				}
 			}
-			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
-			{
+			else if (smd->type==MOD_SMOKE_TYPE_FLOW) {
 				smd->domain = NULL;
 				smd->coll = NULL;
 				smd->flow = newdataadr(fd, smd->flow);
 				smd->flow->smd = smd;
 				smd->flow->psys = newdataadr(fd, smd->flow->psys);
 			}
-			else if(smd->type==MOD_SMOKE_TYPE_COLL)
-			{
+			else if (smd->type==MOD_SMOKE_TYPE_COLL) {
 				smd->flow = NULL;
 				smd->domain = NULL;
 				smd->coll = newdataadr(fd, smd->coll);
@@ -4714,7 +4701,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 			/* Do conversion here because if we have loaded
 			 * a hook we need to make sure it gets converted
-			 * and free'd, regardless of version.
+			 * and freed, regardless of version.
 			 */
 		copy_v3_v3(hmd->cent, hook->cent);
 		hmd->falloff = hook->falloff;
@@ -4739,7 +4726,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
 	link_list(fd, &ob->pc_ids);
 
-	/* incase this value changes in future, clamp else we get undefined behavior */
+	/* in case this value changes in future, clamp else we get undefined behavior */
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
 	if(ob->sculpt) {
@@ -10278,7 +10265,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 5)) {
-		/* foreground color needs to be somthing other then black */
+		/* foreground color needs to be something other then black */
 		Scene *sce;
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
 			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;
@@ -11007,8 +10994,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						sAct->sound3D.min_gain = sound->min_gain;
 						sAct->sound3D.rolloff_factor = sound->attenuation;
 					}
-					else
-					{
+					else {
 						sAct->sound3D.reference_distance = 1.0f;
 						sAct->volume = 1.0f;
 						sAct->sound3D.max_gain = 1.0f;
@@ -12407,8 +12393,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 
 						}
-						else if((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow)
-						{
+						else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
 							smd->flow->vel_multi = 1.0f;
 						}
 
@@ -13158,10 +13143,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* sigh, this dscale vs dsize version patching was not done right, fix for fix,
 	 * this intentionally checks an exact subversion, also note this was never in a release,
 	 * at some point this could be removed. */
-	else if (main->versionfile == 260 && main->subversionfile == 6)
-	{
+	else if (main->versionfile == 260 && main->subversionfile == 6) {
 		Object *ob;
-		for (ob= main->object.first; ob; ob= ob->id.next) {
+		for (ob = main->object.first; ob; ob= ob->id.next) {
 			if (is_zero_v3(ob->dscale)) {
 				fill_vn_fl(ob->dscale, 3, 1.0f);
 			}
@@ -13439,6 +13423,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_versions_nodetree_multi_file_output_format_2_62_1(NULL, ntree);
 	}
 
+	/* put compatibility code here until next subversion bump */
+	{
+		{
+			/* Set new idname of keyingsets from their now "label-only" name. */
+			Scene *scene;
+			for (scene = main->scene.first; scene; scene = scene->id.next) {
+				KeyingSet *ks;
+				for (ks = scene->keyingsets.first; ks; ks = ks->next) {
+					if (!ks->idname[0])
+						BLI_strncpy(ks->idname, ks->name, sizeof(ks->idname));
+				}
+			}
+		}
+	}
 
 	/* default values in Freestyle settings */
 	{

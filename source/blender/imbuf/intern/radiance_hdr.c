@@ -30,12 +30,12 @@
  */
 
 /* ----------------------------------------------------------------------
-  Radiance High Dynamic Range image file IO
-  For description and code for reading/writing of radiance hdr files 
-	by Greg Ward, refer to:
-  http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
-----------------------------------------------------------------------
-*/
+ * Radiance High Dynamic Range image file IO
+ * For description and code for reading/writing of radiance hdr files
+ * by Greg Ward, refer to:
+ * http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
+ * ----------------------------------------------------------------------
+ */
 
 #ifdef WIN32
 #  include <io.h>
@@ -183,8 +183,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 	unsigned char* ptr;
 	char oriY[80], oriX[80];
 
-	if (imb_is_a_hdr((void*)mem))
-	{
+	if (imb_is_a_hdr((void *)mem)) {
 		/* find empty line, next line is resolution info */
 		for (x=1;x<size;x++) {
 			if ((mem[x-1]=='\n') && (mem[x]=='\n')) {

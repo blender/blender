@@ -55,7 +55,7 @@ public:
 	              bool bFindMaterial,
 	              const STR_String& touchedpropname,
 	              PHY_IPhysicsController*	ctrl);
-/*
+#if 0
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
 			class KX_GameObject* gameobj,
@@ -64,7 +64,7 @@ public:
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
 			class KX_Scene* scene);
-*/
+#endif
 	virtual ~KX_NearSensor(); 
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
@@ -76,7 +76,7 @@ public:
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
 						 const PHY_CollData * coll_data); 
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
-	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2) { return false; };
+	virtual bool	BroadPhaseSensorFilterCollision(void* obj1,void* obj2) { return false; }
 	virtual sensortype GetSensorType() { return ST_NEAR; }
 
 #ifdef WITH_PYTHON

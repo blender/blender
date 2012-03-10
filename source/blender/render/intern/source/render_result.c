@@ -112,7 +112,7 @@ void render_result_free_list(ListBase *lb, RenderResult *rr)
 /********************************* Names *************************************/
 
 /* NOTE: OpenEXR only supports 32 chars for layer+pass names
-   In blender we now use max 10 chars for pass, max 20 for layer */
+ * In blender we now use max 10 chars for pass, max 20 for layer */
 static const char *get_pass_name(int passtype, int channel)
 {
 	
@@ -219,8 +219,7 @@ static const char *get_pass_name(int passtype, int channel)
 		if(channel==-1) return "Mist";
 		return "Mist.Z";
 	}
-	if(passtype == SCE_PASS_RAYHITS)
-	{
+	if(passtype == SCE_PASS_RAYHITS) {
 		if(channel==-1) return "Rayhits";
 		if(channel==0) return "Rayhits.R";
 		if(channel==1) return "Rayhits.G";
@@ -1073,7 +1072,7 @@ void render_result_rect_from_ibuf(RenderResult *rr, RenderData *rd, ImBuf *ibuf)
 			rr->rectx, rr->recty, rr->rectx, rr->rectx);
 		
 		/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
-		   can hang around when sequence render has rendered a 32 bits one before */
+		 * can hang around when sequence render has rendered a 32 bits one before */
 		if(rr->rect32) {
 			MEM_freeN(rr->rect32);
 			rr->rect32= NULL;

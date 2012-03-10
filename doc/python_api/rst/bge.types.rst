@@ -4518,9 +4518,15 @@ Game Types (bge.types)
 
    .. data:: KX_ACT_ARMATURE_SETWEIGHT
 
-      Change weight of (only for IK constraint).
+      Change weight of constraint (IK only).
 
       :value: 4
+
+   .. data:: KX_ACT_ARMATURE_SETINFLUENCE
+
+      Change influence of constraint.
+
+      :value: 5
 
    .. attribute:: type
 
@@ -4565,6 +4571,12 @@ Game Types (bge.types)
       .. note::
       
          A weight of 0 disables a constraint while still updating constraint runtime values (see :class:`BL_ArmatureConstraint`)
+
+   .. attribute:: influence
+
+      The influence this actuator will set on the constraint it controls.
+
+      :type: float.
 
 .. class:: KX_ArmatureSensor(SCA_ISensor)
 

@@ -229,9 +229,9 @@ static PyObject *bpy_import_test(const char *modname)
 	return mod;
 }
 
-/*****************************************************************************
-* Description: Creates the bpy module and adds it to sys.modules for importing
-*****************************************************************************/
+/******************************************************************************
+ * Description: Creates the bpy module and adds it to sys.modules for importing
+ ******************************************************************************/
 void BPy_init_modules(void)
 {
 	extern BPy_StructRNA *bpy_context_module;

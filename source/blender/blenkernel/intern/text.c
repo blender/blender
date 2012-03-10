@@ -29,7 +29,7 @@
  *  \ingroup bke
  */
 
-
+#include <stdlib.h> /* abort */
 #include <string.h> /* strstr */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,7 +38,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_constraint_types.h"
@@ -61,68 +65,67 @@
 #include "BPY_extern.h"
 #endif
 
-/***************/ /*
-
-How Texts should work
---
-A text should relate to a file as follows -
-(Text *)->name should be the place where the 
-	file will or has been saved.
-	
-(Text *)->flags has the following bits
-	TXT_ISDIRTY - should always be set if the file in mem. differs from
-					the file on disk, or if there is no file on disk.
-	TXT_ISMEM - should always be set if the Text has not been mapped to
-					a file, in which case (Text *)->name may be NULL or garbage.			
-	TXT_ISEXT - should always be set if the Text is not to be written into
-					the .blend
-	TXT_ISSCRIPT - should be set if the user has designated the text
-					as a script. (NEW: this was unused, but now it is needed by
-					space handler script links (see header_view3d.c, for example)
-
-->>> see also: /makesdna/DNA_text_types.h
-
-Display
---
-The st->top determines at what line the top of the text is displayed.
-If the user moves the cursor the st containing that cursor should
-be popped ... other st's retain their own top location.
-
-Markers
---
-The mrk->flags define the behavior and relationships between markers. The
-upper two bytes are used to hold a group ID, the lower two are normal flags. If
-TMARK_EDITALL is set the group ID defines which other markers should be edited.
-
-The mrk->clr field is used to visually group markers where the flags may not
-match. A template system, for example, may allow editing of repeating tokens
-(in one group) but include other marked positions (in another group) all in the
-same template with the same color.
-
-Undo
---
-Undo/Redo works by storing
-events in a queue, and a pointer
-to the current position in the
-queue...
-
-Events are stored using an
-arbitrary op-code system
-to keep track of
-a) the two cursors (normal and selected)
-b) input (visible and control (ie backspace))
-
-input data is stored as its
-ASCII value, the opcodes are
-then selected to not conflict.
-
-opcodes with data in between are
-written at the beginning and end
-of the data to allow undo and redo
-to simply check the code at the current
-undo position
-
-*/ /***************/
+/*
+ * How Texts should work
+ * --
+ * A text should relate to a file as follows -
+ * (Text *)->name should be the place where the
+ *     file will or has been saved.
+ *
+ * (Text *)->flags has the following bits
+ *     TXT_ISDIRTY - should always be set if the file in mem. differs from
+ *                     the file on disk, or if there is no file on disk.
+ *     TXT_ISMEM - should always be set if the Text has not been mapped to
+ *                     a file, in which case (Text *)->name may be NULL or garbage.
+ *     TXT_ISEXT - should always be set if the Text is not to be written into
+ *                     the .blend
+ *     TXT_ISSCRIPT - should be set if the user has designated the text
+ *                     as a script. (NEW: this was unused, but now it is needed by
+ *                     space handler script links (see header_view3d.c, for example)
+ *
+ * ->>> see also: /makesdna/DNA_text_types.h
+ *
+ * Display
+ * --
+ * The st->top determines at what line the top of the text is displayed.
+ * If the user moves the cursor the st containing that cursor should
+ * be popped ... other st's retain their own top location.
+ *
+ * Markers
+ * --
+ * The mrk->flags define the behavior and relationships between markers. The
+ * upper two bytes are used to hold a group ID, the lower two are normal flags. If
+ * TMARK_EDITALL is set the group ID defines which other markers should be edited.
+ *
+ * The mrk->clr field is used to visually group markers where the flags may not
+ * match. A template system, for example, may allow editing of repeating tokens
+ * (in one group) but include other marked positions (in another group) all in the
+ * same template with the same color.
+ *
+ * Undo
+ * --
+ * Undo/Redo works by storing
+ * events in a queue, and a pointer
+ * to the current position in the
+ * queue...
+ *
+ * Events are stored using an
+ * arbitrary op-code system
+ * to keep track of
+ * a) the two cursors (normal and selected)
+ * b) input (visible and control (ie backspace))
+ *
+ * input data is stored as its
+ * ASCII value, the opcodes are
+ * then selected to not conflict.
+ *
+ * opcodes with data in between are
+ * written at the beginning and end
+ * of the data to allow undo and redo
+ * to simply check the code at the current
+ * undo position
+ *
+ */
 
 /***/
 
@@ -440,11 +443,11 @@ Text *add_text(const char *file, const char *relpath)
 	}
 
 	/* create new line in cases:
-	   - rest of line (if last line in file hasn't got \n terminator).
-	     in this case content of such line would be used to fill text line buffer
-	   - file is empty. in this case new line is needed to start editing from.
-	   - last characted in buffer is \n. in this case new line is needed to
-	     deal with newline at end of file. (see [#28087]) (sergey) */
+	 * - rest of line (if last line in file hasn't got \n terminator).
+	 *   in this case content of such line would be used to fill text line buffer
+	 * - file is empty. in this case new line is needed to start editing from.
+	 * - last characted in buffer is \n. in this case new line is needed to
+	 *   deal with newline at end of file. (see [#28087]) (sergey) */
 	if (llen!=0 || ta->nlines==0 || buffer[len-1]=='\n') {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
@@ -731,14 +734,6 @@ static void txt_make_dirty (Text *text)
 #endif
 }
 
-/* 0:whitespace, 1:punct, 2:alphanumeric */
-static short txt_char_type(unsigned int ch)
-{
-	if (iswspace(ch)) return 0;
-	if (iswalpha(ch) || iswdigit(ch)) return 2;
-	return 1;
-}
-
 /****************************/
 /* Cursor utility functions */
 /****************************/
@@ -957,32 +952,32 @@ void txt_move_right(Text *text, short sel)
 void txt_jump_left(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, count, i;
+	int *charp, oldc, oldflags, i;
 	unsigned char oldu;
+	int pos;
 
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
 
+	oldflags = text->flags;
+	text->flags &= ~TXT_TABSTOSPACES;
+
 	oldl= *linep;
 	oldc= *charp;
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	count= 0;
-	for (i=0; i<3; i++) {
-		if (count < 2) {
-			while (*charp>0) {
-				char *sym= BLI_str_prev_char_utf8((*linep)->line + *charp);
-				if (txt_char_type(BLI_str_utf8_as_unicode(sym))==i) {
-					txt_move_left(text, sel);
-					count++;
-				} else break;
-			}
-		}
+	pos = *charp;
+	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
+	                         &pos, STRCUR_DIR_PREV,
+	                         STRCUR_JUMP_DELIM);
+	for (i = *charp; i > pos; i--) {
+		txt_move_left(text, sel);
 	}
-	if (count==0) txt_move_left(text, sel);
+
+	text->flags = oldflags;
 
 	undoing= oldu;
 	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
@@ -991,32 +986,32 @@ void txt_jump_left(Text *text, short sel)
 void txt_jump_right(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, count, i;
+	int *charp, oldc, oldflags, i;
 	unsigned char oldu;
+	int pos;
 
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
 
+	oldflags = text->flags;
+	text->flags &= ~TXT_TABSTOSPACES;
+
 	oldl= *linep;
 	oldc= *charp;
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	count= 0;
-	for (i=0; i<3; i++) {
-		if (count < 2) {
-			while (*charp<(*linep)->len) {
-				char *sym= (*linep)->line + *charp;
-				if (txt_char_type(BLI_str_utf8_as_unicode(sym))==i) {
-					txt_move_right(text, sel);
-					count++;
-				} else break;
-			}
-		}
+	pos = *charp;
+	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
+	                         &pos, STRCUR_DIR_NEXT,
+	                         STRCUR_JUMP_DELIM);
+	for (i = *charp; i < pos; i++) {
+		txt_move_right(text, sel);
 	}
-	if (count==0) txt_move_right(text, sel);
+
+	text->flags = oldflags;
 
 	undoing= oldu;
 	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
@@ -3062,8 +3057,8 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, const unsign
 }
 
 /* Returns the first matching marker on the specified line between two points.
-   If the group or flags fields are non-zero the returned flag must be in the
-   specified group and have at least the specified flags set. */
+ * If the group or flags fields are non-zero the returned flag must be in the
+ * specified group and have at least the specified flags set. */
 TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3085,8 +3080,8 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 }
 
 /* Clears all markers on the specified line between two points. If the group or
-   flags fields are non-zero the returned flag must be in the specified group
-   and have at least the specified flags set. */
+ * flags fields are non-zero the returned flag must be in the specified group
+ * and have at least the specified flags set. */
 short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3111,8 +3106,8 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 }
 
 /* Clears all markers in the specified group (if given) with at least the
-   specified flags set. Useful for clearing temporary markers (group=0,
-   flags=TMARK_TEMP) */
+ * specified flags set. Useful for clearing temporary markers (group=0,
+ * flags=TMARK_TEMP) */
 short txt_clear_markers(Text *text, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3131,7 +3126,7 @@ short txt_clear_markers(Text *text, int group, int flags)
 }
 
 /* Finds the marker at the specified line and cursor position with at least the
-   specified flags set in the given group (if non-zero). */
+ * specified flags set in the given group (if non-zero). */
 TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int flags)
 {
 	TextMarker *marker;
@@ -3150,7 +3145,7 @@ TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int
 }
 
 /* Finds the previous marker in the same group. If no other is found, the same
-   marker will be returned */
+ * marker will be returned */
 TextMarker *txt_prev_marker(Text *text, TextMarker *marker)
 {
 	TextMarker *tmp= marker;
@@ -3164,7 +3159,7 @@ TextMarker *txt_prev_marker(Text *text, TextMarker *marker)
 }
 
 /* Finds the next marker in the same group. If no other is found, the same
-   marker will be returned */
+ * marker will be returned */
 TextMarker *txt_next_marker(Text *text, TextMarker *marker)
 {
 	TextMarker *tmp= marker;

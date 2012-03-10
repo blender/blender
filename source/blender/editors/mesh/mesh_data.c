@@ -95,13 +95,12 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	index = CustomData_get_layer_index(data, type);
 
 	/* ok, deleting a non-active layer needs to preserve the active layer indices.
-	  to do this, we store a pointer to the .data member of both layer and the active layer,
-	  (to detect if we're deleting the active layer or not), then use the active
-	  layer data pointer to find where the active layer has ended up.
-
-	  
-	  this is necessary because the deletion functions only support deleting the active
-	  layer. */
+	 * to do this, we store a pointer to the .data member of both layer and the active layer,
+	 * (to detect if we're deleting the active layer or not), then use the active
+	 * layer data pointer to find where the active layer has ended up.
+	 *
+	 * this is necessary because the deletion functions only support deleting the active
+	 * layer. */
 	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
 	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;
 	clonelayerdata = data->layers[CustomData_get_clone_layer_index(data, type)].data;
@@ -691,8 +690,11 @@ static int sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
-	/*if(me->msticky)
-		return OPERATOR_CANCELLED;*/
+	/* why is this commented out? */
+#if 0
+	if(me->msticky)
+		return OPERATOR_CANCELLED;
+#endif
 
 	RE_make_sticky(scene, v3d);
 
@@ -761,6 +763,9 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 
 		/* would only be converting back again, dont bother */
 		calc_tessface = FALSE;
+
+		/* it also happens that converting the faces calculates edges, skip this */
+		calc_edges = FALSE;
 	}
 
 	if(calc_edges || (mesh->totpoly && mesh->totedge == 0))
@@ -769,24 +774,33 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	if (calc_tessface) {
 		BKE_mesh_tessface_calc(mesh);
 	}
+	else {
+		/* default state is not to have tessface's so make sure this is the case */
+		BKE_mesh_tessface_clear(mesh);
+	}
 
+	/* note on this if/else - looks like these layers are not needed
+	 * so rather then add poly-index layer and calculate normals for it
+	 * calculate normals only for the mvert's. - campbell */
+#ifdef USE_BMESH_MPOLY_NORMALS
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
-	   contain the normal of the poly the face was tesselated from. */
+	 * contain the normal of the poly the face was tesselated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
-	mesh_calc_normals_mapping(
-		mesh->mvert,
-		mesh->totvert,
-		mesh->mloop,
-		mesh->mpoly,
-		mesh->totloop,
-		mesh->totpoly,
-		NULL /* polyNors_r */,
-		mesh->mface,
-		mesh->totface,
-		polyindex,
-		face_nors);
+	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                             mesh->mloop, mesh->mpoly,
+	                             mesh->totloop, mesh->totpoly,
+	                             NULL /* polyNors_r */,
+	                             mesh->mface, mesh->totface,
+	                             polyindex, face_nors, FALSE);
+#else
+	mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                  NULL);
+	(void)polyindex;
+	(void)face_nors;
+#endif
 
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
@@ -987,7 +1001,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
-/*
+#if 0
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
 	if(mesh->edit_btmesh) {
@@ -1002,7 +1016,7 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 	if(faces)
 		mesh_add_faces(mesh, faces);
 }
-*/
+#endif
 
 void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
 {
@@ -1098,5 +1112,13 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_calc_normals(Mesh *mesh)
 {
-	mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+#ifdef USE_BMESH_MPOLY_NORMALS
+	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                             mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                             NULL, NULL, 0, NULL, NULL, FALSE);
+#else
+	mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                  NULL);
+#endif
 }

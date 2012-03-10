@@ -73,8 +73,8 @@ typedef struct PaintStroke {
 	float last_mouse_position[2];
 
 	/* Set whether any stroke step has yet occurred
-	   e.g. in sculpt mode, stroke doesn't start until cursor
-	   passes over the mesh */
+	 * e.g. in sculpt mode, stroke doesn't start until cursor
+	 * passes over the mesh */
 	int stroke_started;
 	/* event that started stroke, for modal() return */
 	int event_type;
@@ -106,7 +106,7 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 }
 
 /* if this is a tablet event, return tablet pressure and set *pen_flip
-   to 1 if the eraser tool is being used, 0 otherwise */
+ * to 1 if the eraser tool is being used, 0 otherwise */
 static float event_tablet_data(wmEvent *event, int *pen_flip)
 {
 	int erasor = 0;
@@ -142,15 +142,15 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	pressure = event_tablet_data(event, &pen_flip);
 
 	/* TODO: as sculpt and other paint modes are unified, this
-	   separation will go away */
+	 * separation will go away */
 	if(stroke->vc.obact->sculpt) {
 		float delta[2];
 
 		brush_jitter_pos(scene, brush, mouse_in, mouse);
 
 		/* XXX: meh, this is round about because
-		   brush_jitter_pos isn't written in the best way to
-		   be reused here */
+		 * brush_jitter_pos isn't written in the best way to
+		 * be reused here */
 		if(brush->flag & BRUSH_JITTER_PRESSURE) {
 			sub_v2_v2v2(delta, mouse, mouse_in);
 			mul_v2_fl(delta, pressure);
@@ -196,7 +196,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 		float dx = stroke->last_mouse_position[0] - event->x, dy = stroke->last_mouse_position[1] - event->y;
 
 		/* If the mouse is moving within the radius of the last move,
-		   don't update the mouse position. This allows sharp turns. */
+		 * don't update the mouse position. This allows sharp turns. */
 		if(dx*dx + dy*dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
 			return 0;
 
@@ -208,7 +208,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 }
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
-   towards the final mouse location. */
+ * towards the final mouse location. */
 static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const float final_mouse[2])
 {
 	PaintStroke *stroke = op->customdata;

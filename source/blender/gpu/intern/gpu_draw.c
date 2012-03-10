@@ -193,9 +193,11 @@ static int is_pow2_limit(int num)
 {
 	/* take texture clamping into account */
 
-	/* XXX: texturepaint not global!
+	/* XXX: texturepaint not global! */
+#if 0
 	if (G.f & G_TEXTUREPAINT)
 		return 1;*/
+#endif
 
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return 0;
@@ -205,10 +207,12 @@ static int is_pow2_limit(int num)
 
 static int smaller_pow2_limit(int num)
 {
-	/* XXX: texturepaint not global!
+	/* XXX: texturepaint not global! */
+#if 0
 	if (G.f & G_TEXTUREPAINT)
 		return 1;*/
-	
+#endif
+
 	/* take texture clamping into account */
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return U.glreslimit;
@@ -278,8 +282,7 @@ static GLenum gpu_get_mipmap_filter(int mag)
 /* Anisotropic filtering settings */
 void GPU_set_anisotropic(float value)
 {
-	if (GTS.anisotropic != value)
-	{
+	if (GTS.anisotropic != value) {
 		GPU_free_images();
 
 		/* Clamp value to the maximum value the graphics card supports */
@@ -468,7 +471,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	if(ibuf->rect_float) {
 		if(U.use_16bit_textures) {
 			/* use high precision textures. This is relatively harmless because OpenGL gives us
-			   a high precision format only if it is available */
+			 * a high precision format only if it is available */
 			use_high_bit_depth = TRUE;
 		}
 
@@ -594,7 +597,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	}
 
 	/* scale if not a power of two. this is not strictly necessary for newer 
-	   GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures */
+	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures */
 	if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
@@ -715,9 +718,9 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 }
 
 /* these two functions are called on entering and exiting texture paint mode,
-   temporary disabling/enabling mipmapping on all images for quick texture
-   updates with glTexSubImage2D. images that didn't change don't have to be
-   re-uploaded to OpenGL */
+ * temporary disabling/enabling mipmapping on all images for quick texture
+ * updates with glTexSubImage2D. images that didn't change don't have to be
+ * re-uploaded to OpenGL */
 void GPU_paint_set_mipmap(int mipmap)
 {
 	Image* ima;
@@ -875,8 +878,7 @@ int GPU_update_image_time(Image *ima, double time)
 
 void GPU_free_smoke(SmokeModifierData *smd)
 {
-	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
-	{
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
 		if(smd->domain->tex)
 			GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
@@ -1088,10 +1090,10 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.gviewinv= rv3d->viewinv;
 
 	/* alpha pass setup. there's various cases to handle here:
-	   * object transparency on: only solid materials draw in the first pass,
-	   and only transparent in the second 'alpha' pass.
-	   * object transparency off: for glsl we draw both in a single pass, and
-	   for solid we don't use transparency at all. */
+	 * - object transparency on: only solid materials draw in the first pass,
+	 * and only transparent in the second 'alpha' pass.
+	 * - object transparency off: for glsl we draw both in a single pass, and
+	 * for solid we don't use transparency at all. */
 	GMS.use_alpha_pass = (do_alpha_after != NULL);
 	GMS.is_alpha_pass = (v3d && v3d->transp);
 	if(GMS.use_alpha_pass)
@@ -1238,7 +1240,7 @@ int GPU_enable_material(int nr, void *attribs)
 			GMS.gboundmat= mat;
 
 			/* for glsl use alpha blend mode, unless it's set to solid and
-			   we are already drawing in an alpha pass */
+			 * we are already drawing in an alpha pass */
 			if(mat->game.alpha_blend != GPU_BLEND_SOLID)
 				alphablend= mat->game.alpha_blend;
 
@@ -1301,8 +1303,7 @@ void GPU_end_object_materials(void)
 	GMS.alphablend= NULL;
 
 	/* resetting the texture matrix after the glScale needed for tiled textures */
-	if(GTS.tilemode)
-	{
+	if(GTS.tilemode) {
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
@@ -1528,8 +1529,8 @@ void GPU_state_init(void)
 	glDisable(GL_CULL_FACE);
 
 	/* calling this makes drawing very slow when AA is not set up in ghost
-	   on Linux/NVIDIA.
-	glDisable(GL_MULTISAMPLE); */
+	 * on Linux/NVIDIA. */
+	// glDisable(GL_MULTISAMPLE);
 }
 
 /* debugging aid */

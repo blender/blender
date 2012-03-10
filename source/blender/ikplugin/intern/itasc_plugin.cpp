@@ -890,33 +890,32 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 			flag |= IK_TRANSY;
 		}
 		/*
-		Logic to create the segments:
-		RX,RY,RZ = rotational joints with no length
-		RY(tip) = rotational joints with a fixed length arm = (0,length,0)
-		TY = translational joint on Y axis
-		F(pos) = fixed joint with an arm at position pos 
-		Conversion rule of the above flags:
-		-   ==> F(tip)
-		X   ==> RX(tip)
-		Y   ==> RY(tip)
-		Z   ==> RZ(tip)
-		XY  ==> RX+RY(tip)
-		XZ  ==> RX+RZ(tip)
-		YZ  ==> RZ+RY(tip)
-		XYZ ==> full spherical unless there are limits, in which case RX+RZ+RY(tip)
-		In case of stretch, tip=(0,0,0) and there is an additional TY joint
-		The frame at last of these joints represents the tail of the bone. 
-		The head is computed by a reverse translation on Y axis of the bone length
-		or in case of TY joint, by the frame at previous joint.
-		In case of separation of bones, there is an additional F(head) joint
-
-		Computing rest pose and length is complicated: the solver works in world space
-		Here is the logic:
-		rest position is computed only from bone->bone_mat.
-		bone length is computed from bone->length multiplied by the scaling factor of
-		the armature. Non-uniform scaling will give bad result!
-
-		*/
+		 * Logic to create the segments:
+		 * RX,RY,RZ = rotational joints with no length
+		 * RY(tip) = rotational joints with a fixed length arm = (0,length,0)
+		 * TY = translational joint on Y axis
+		 * F(pos) = fixed joint with an arm at position pos
+		 * Conversion rule of the above flags:
+		 * -   ==> F(tip)
+		 * X   ==> RX(tip)
+		 * Y   ==> RY(tip)
+		 * Z   ==> RZ(tip)
+		 * XY  ==> RX+RY(tip)
+		 * XZ  ==> RX+RZ(tip)
+		 * YZ  ==> RZ+RY(tip)
+		 * XYZ ==> full spherical unless there are limits, in which case RX+RZ+RY(tip)
+		 * In case of stretch, tip=(0,0,0) and there is an additional TY joint
+		 * The frame at last of these joints represents the tail of the bone.
+		 * The head is computed by a reverse translation on Y axis of the bone length
+		 * or in case of TY joint, by the frame at previous joint.
+		 * In case of separation of bones, there is an additional F(head) joint
+		 *
+		 * Computing rest pose and length is complicated: the solver works in world space
+		 * Here is the logic:
+		 * rest position is computed only from bone->bone_mat.
+		 * bone length is computed from bone->length multiplied by the scaling factor of
+		 * the armature. Non-uniform scaling will give bad result!
+		 */
 		switch (flag & (IK_XDOF|IK_YDOF|IK_ZDOF))
 		{
 		default:

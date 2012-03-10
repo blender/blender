@@ -521,7 +521,7 @@ void ANIM_OT_driver_button_add (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= add_driver_button_exec; 
-	//op->poll= ??? // TODO: need to have some animateable property to do this
+	//op->poll= ??? // TODO: need to have some animatable property to do this
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

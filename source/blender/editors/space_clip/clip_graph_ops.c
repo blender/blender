@@ -37,10 +37,12 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+#include "BKE_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -82,13 +84,13 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 
 	switch(data->action) {
 		case SEL_SELECT:
-			marker->flag|= (MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
+			marker->flag|= MARKER_GRAPH_SEL;
 			break;
 		case SEL_DESELECT:
-			marker->flag&= ~(MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
+			marker->flag&= ~MARKER_GRAPH_SEL;
 			break;
 		case SEL_INVERT:
-			marker->flag^= (MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y);
+			marker->flag^= MARKER_GRAPH_SEL;
 			break;
 	}
 }
@@ -304,6 +306,158 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 		"Extend", "Extend selection rather than clearing the existing selection");
 }
 
+/********************** border select operator *********************/
+
+typedef struct BorderSelectuserData {
+	rctf rect;
+	int change, mode, extend;
+} BorderSelectuserData;
+
+static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
+                             MovieTrackingMarker *marker, int coord, float val)
+{
+	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
+
+	if (BLI_in_rctf(&data->rect, marker->framenr, val)) {
+		int flag = 0;
+
+		if (coord == 0)
+			flag = MARKER_GRAPH_SEL_X;
+		else
+			flag = MARKER_GRAPH_SEL_Y;
+
+		if (data->mode == GESTURE_MODAL_SELECT)
+			marker->flag |= flag;
+		else
+			marker->flag &= ~flag;
+
+		data->change = TRUE;
+	}
+	else if (!data->extend) {
+		marker->flag&= ~MARKER_GRAPH_SEL;
+	}
+}
+
+static int border_select_graph_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	BorderSelectuserData userdata;
+	rcti rect;
+
+	/* get rectangle from operator */
+	rect.xmin = RNA_int_get(op->ptr, "xmin");
+	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	rect.xmax = RNA_int_get(op->ptr, "xmax");
+	rect.ymax = RNA_int_get(op->ptr, "ymax");
+
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &userdata.rect.xmin, &userdata.rect.ymin);
+	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &userdata.rect.xmax, &userdata.rect.ymax);
+
+	userdata.change = FALSE;
+	userdata.mode = RNA_int_get(op->ptr, "gesture_mode");
+	userdata.extend = RNA_boolean_get(op->ptr, "extend");
+
+	clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, border_select_cb, NULL, NULL);
+
+	if (userdata.change) {
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void CLIP_OT_graph_select_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Border Select";
+	ot->description = "Select curve points using border selection";
+	ot->idname = "CLIP_OT_graph_select_border";
+
+	/* api callbacks */
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = border_select_graph_exec;
+	ot->modal = WM_border_select_modal;
+	ot->poll = ED_space_clip_graph_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_gesture_border(ot, TRUE);
+}
+
+/********************** select all operator *********************/
+
+static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
+	MovieTrackingMarker *marker;
+	int action = RNA_enum_get(op->ptr, "action");
+	int a;
+
+	if (!act_track)
+		return OPERATOR_CANCELLED;
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+
+		for (a = 0; a < act_track->markersnr; a++) {
+			marker = &act_track->markers[a];
+
+			if (marker->flag & MARKER_GRAPH_SEL) {
+				action = SEL_DESELECT;
+				break;
+			}
+		}
+	}
+
+	for (a = 0; a < act_track->markersnr; a++) {
+		marker = &act_track->markers[a];
+
+		switch (action) {
+			case SEL_SELECT:
+				marker->flag |= MARKER_GRAPH_SEL;
+				break;
+			case SEL_DESELECT:
+				marker->flag &= ~MARKER_GRAPH_SEL;
+				break;
+			case SEL_INVERT:
+				marker->flag ^= MARKER_GRAPH_SEL;
+				break;
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select or Deselect All Markers";
+	ot->description = "Change selection of all markers of active track";
+	ot->idname = "CLIP_OT_graph_select_all_markers";
+
+	/* api callbacks */
+	ot->exec = graph_select_all_markers_exec;
+	ot->poll = ED_space_clip_graph_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
+}
+
 /******************** delete curve operator ********************/
 
 static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
@@ -352,7 +506,7 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 		while(a<act_track->markersnr) {
 			MovieTrackingMarker *marker= &act_track->markers[a];
 
-			if(marker->flag & (MARKER_GRAPH_SEL_X|MARKER_GRAPH_SEL_Y))
+			if(marker->flag & MARKER_GRAPH_SEL)
 				clip_delete_marker(C, clip, tracksbase, act_track, marker);
 			else
 				a++;
@@ -479,4 +633,64 @@ void CLIP_OT_graph_center_current_frame(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = center_current_frame_exec;
 	ot->poll = ED_space_clip_graph_poll;
+}
+
+/********************** disable markers operator *********************/
+
+static int graph_disable_markers_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
+	MovieTrackingMarker *marker;
+	int action = RNA_enum_get(op->ptr, "action");
+	int a;
+
+	if (!act_track || (act_track->flag & TRACK_LOCKED))
+		return OPERATOR_CANCELLED;
+
+	for (a = 0; a < act_track->markersnr; a++) {
+		marker = &act_track->markers[a];
+
+		if (marker->flag & MARKER_GRAPH_SEL) {
+			if (action==0)
+				marker->flag |= MARKER_DISABLED;
+			else if(action==1)
+				marker->flag &= ~MARKER_DISABLED;
+			else
+				marker->flag ^= MARKER_DISABLED;
+		}
+	}
+
+	DAG_id_tag_update(&clip->id, 0);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
+{
+	static EnumPropertyItem actions_items[] = {
+			{0, "DISABLE", 0, "Disable", "Disable selected markers"},
+			{1, "ENABLE", 0, "Enable", "Enable selected markers"},
+			{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Disable Markers";
+	ot->description = "Disable/enable selected markers";
+	ot->idname = "CLIP_OT_graph_disable_markers";
+
+	/* api callbacks */
+	ot->exec = graph_disable_markers_exec;
+	ot->poll = ED_space_clip_graph_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");
 }

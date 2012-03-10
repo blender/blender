@@ -44,16 +44,14 @@
 static void InputVector(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
 {
 	float vec[3], dvec[3];
-	if(mi->precision)
-	{
+	if (mi->precision) {
 		/* calculate the main translation and the precise one separate */
 		convertViewVec(t, dvec, (mval[0] - mi->precision_mval[0]), (mval[1] - mi->precision_mval[1]));
 		mul_v3_fl(dvec, 0.1f);
 		convertViewVec(t, vec, (mi->precision_mval[0] - t->imval[0]), (mi->precision_mval[1] - t->imval[1]));
 		add_v3_v3v3(output, vec, dvec);
 	}
-	else
-	{
+	else {
 		convertViewVec(t, output, (mval[0] - t->imval[0]), (mval[1] - t->imval[1]));
 	}
 
@@ -62,8 +60,7 @@ static void InputVector(TransInfo *t, MouseInput *mi, const int mval[2], float o
 static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 	float ratio, precise_ratio, dx, dy;
-	if(mi->precision)
-	{
+	if (mi->precision) {
 		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
 		dx = (float)(mi->center[0] - mi->precision_mval[0]);
 		dy = (float)(mi->center[1] - mi->precision_mval[1]);
@@ -75,8 +72,7 @@ static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2],
 
 		ratio = (ratio + (precise_ratio - ratio) / 10.0f) / mi->factor;
 	}
-	else
-	{
+	else {
 		dx = (float)(mi->center[0] - mval[0]);
 		dy = (float)(mi->center[1] - mval[1]);
 		ratio = (float)sqrt( dx*dx + dy*dy) / mi->factor;
@@ -101,13 +97,11 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, const int mval[2], flo
 static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 
-	if(mi->precision)
-	{
+	if (mi->precision) {
 		output[0] = ( mi->imval[1] - mi->precision_mval[1] ) + ( mi->precision_mval[1] - mval[1] ) * 0.1f;
 		output[1] = ( mi->precision_mval[0] - mi->imval[0] ) + ( mval[0] - mi->precision_mval[0] ) * 0.1f;
 	}
-	else
-	{
+	else {
 		output[0] = (float)( mi->imval[1] - mval[1] );
 		output[1] = (float)( mval[0] - mi->imval[0] );
 	}
@@ -122,8 +116,7 @@ static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const int mval[2]
 
 	pad = t->ar->winx / 10;
 
-	if (mi->precision)
-	{
+	if (mi->precision) {
 		/* deal with Shift key by adding motion / 10 to motion before shift press */
 		x = mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f;
 	}
@@ -249,9 +242,8 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	 * approximate the angle with the opposite side of the normalized triangle
 	 * This is a good approximation here since the smallest acos value seems to be around
 	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
-	 * */
-	if (dphi == 0)
-	{
+	 */
+	if (dphi == 0) {
 		double dx, dy;
 
 		dx2 /= A;
@@ -267,11 +259,12 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 	}
 
-	if(mi->precision) dphi = dphi/30.0f;
+	if (mi->precision) {
+		dphi = dphi/30.0f;
+	}
 
 	/* if no delta angle, don't update initial position */
-	if (dphi != 0)
-	{
+	if (dphi != 0) {
 		mi->imval[0] = mval[0];
 		mi->imval[1] = mval[1];
 	}
@@ -385,13 +378,11 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3])
 
 void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
 {
-	if (mi->apply != NULL)
-	{
+	if (mi->apply != NULL) {
 		mi->apply(t, mi, mval, output);
 	}
 
-	if (mi->post)
-	{
+	if (mi->post) {
 		mi->post(t, output);
 	}
 }
@@ -404,16 +395,14 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 	{
 	case LEFTSHIFTKEY:
 	case RIGHTSHIFTKEY:
-		if (event->val==KM_PRESS)
-		{
+		if (event->val == KM_PRESS) {
 			t->modifiers |= MOD_PRECISION;
 			/* shift is modifier for higher precision transform
 			 * store the mouse position where the normal movement ended */
 			copy_v2_v2_int(mi->precision_mval, event->mval);
 			mi->precision = 1;
 		}
-		else
-		{
+		else {
 			t->modifiers &= ~MOD_PRECISION;
 			mi->precision = 0;
 		}

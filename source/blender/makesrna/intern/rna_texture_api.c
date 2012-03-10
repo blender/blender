@@ -59,7 +59,7 @@ void clear_envmap(struct EnvMap *env, bContext *C)
 
 	BKE_free_envmapdata(env);
 	
-	for (tex=bmain->tex.first; tex; tex=tex->id.next)
+	for (tex = bmain->tex.first; tex; tex = tex->id.next)
 		if (tex->env == env) {
 			WM_event_add_notifier(C, NC_TEXTURE|NA_EDITED, tex);
 			break;
@@ -68,7 +68,7 @@ void clear_envmap(struct EnvMap *env, bContext *C)
 
 void texture_evaluate(struct Tex *tex, float value[3], float color_r[4])
 {
-	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	multitex_ext(tex, value, NULL, NULL, 1, &texres);
 
 	color_r[0] = texres.tr;
@@ -84,14 +84,14 @@ void RNA_api_texture(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "evaluate", "texture_evaluate");
+	func = RNA_def_function(srna, "evaluate", "texture_evaluate");
 	RNA_def_function_ui_description(func, "Evaluate the texture at the coordinates given");
 
-	parm= RNA_def_float_vector(func, "value", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "value", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* return location and normal */
-	parm= RNA_def_float_vector(func, "result", 4, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "result", 4, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
@@ -104,16 +104,16 @@ void RNA_api_environment_map(StructRNA *srna)
 
 	static const float default_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
 
-	func= RNA_def_function(srna, "clear", "clear_envmap");
+	func = RNA_def_function(srna, "clear", "clear_envmap");
 	RNA_def_function_ui_description(func, "Discard the environment map and free it from memory");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 
-	func= RNA_def_function(srna,"save", "save_envmap");
+	func = RNA_def_function(srna,"save", "save_envmap");
 	RNA_def_function_ui_description(func, "Save the environment map to disc using the scene render settings");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 
-	parm= RNA_def_string_file_name(func,"filepath","",FILE_MAX,"File path","Location of the output file");
+	parm = RNA_def_string_file_name(func,"filepath","",FILE_MAX,"File path","Location of the output file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken");

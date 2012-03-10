@@ -219,10 +219,10 @@ typedef struct PHandle {
 
 
 /* PHash
-   - special purpose hash that keeps all its elements in a single linked list.
-   - after construction, this hash is thrown away, and the list remains.
-   - removing elements is not possible efficiently.
-*/
+ * - special purpose hash that keeps all its elements in a single linked list.
+ * - after construction, this hash is thrown away, and the list remains.
+ * - removing elements is not possible efficiently.
+ */
 
 static int PHashSizes[] = {
 	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
@@ -497,7 +497,7 @@ static PBool p_intersect_line_2d(float *v1, float *v2, float *v3, float *v4, flo
 
 	if (!p_intersect_line_2d_dir(v1, dir1, v2, dir2, isect)) {
 		/* parallel - should never happen in theory for polygon kernel, but
-		   let's give a point nearby in case things go wrong */
+		 * let's give a point nearby in case things go wrong */
 		isect[0] = (v1[0] + v2[0])*0.5f;
 		isect[1] = (v1[1] + v2[1])*0.5f;
 		return P_FALSE;
@@ -1121,9 +1121,9 @@ static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys
 	PBool dir = (fac <= 0.0f);
 
 	/* the face exists check is there because of a special case: when
-	   two quads share three vertices, they can each be split into two
-	   triangles, resulting in two identical triangles. for example in
-	   suzanne's nose. */
+	 * two quads share three vertices, they can each be split into two
+	 * triangles, resulting in two identical triangles. for example in
+	 * suzanne's nose. */
 	if (dir) {
 		if (p_face_exists(handle,vkeys,0,1,2) || p_face_exists(handle,vkeys,0,2,3))
 			return !dir;
@@ -1536,8 +1536,8 @@ static void p_vert_harmonic_insert(PVert *v)
 
 	if (!p_vert_map_harmonic_weights(v)) {
 		/* do polygon kernel center insertion: this is quite slow, but should
-		   only be needed for 0.01 % of verts or so, when insert with harmonic
-		   weights fails */
+		 * only be needed for 0.01 % of verts or so, when insert with harmonic
+		 * weights fails */
 
 		int npoints = 0, i;
 		float (*points)[2];
@@ -1759,7 +1759,7 @@ static PBool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
 			return P_FALSE;
 	}
 	/* avoid merging two boundaries (oldv and keepv are on the 'other side' of
-	   the chart) */
+	 * the chart) */
 	else if (!p_vert_interior(oldv) && !p_vert_interior(keepv))
 		return P_FALSE;
 	
@@ -1870,7 +1870,7 @@ static PBool p_collapse_allowed(PEdge *edge, PEdge *pair)
 static float p_collapse_cost(PEdge *edge, PEdge *pair)
 {
 	/* based on volume and boundary optimization from:
-	  "Fast and Memory Efficient Polygonal Simplification" P. Lindstrom, G. Turk */
+	 * "Fast and Memory Efficient Polygonal Simplification" P. Lindstrom, G. Turk */
 
 	PVert *oldv, *keepv;
 	PEdge *e;
@@ -2036,7 +2036,7 @@ static void p_chart_post_collapse_flush(PChart *chart, PEdge *collapsed)
 	}
 
 	/* these are added last so they can be popped of in the right order
-	   for splitting */
+	 * for splitting */
 	for (e=collapsed; e; e=e->nextlink) {
 		e->nextlink = e->u.nextcollapse;
 		laste = e;
@@ -2098,9 +2098,9 @@ static void p_chart_post_split_flush(PChart *chart)
 static void p_chart_simplify_compute(PChart *chart)
 {
 	/* Computes a list of edge collapses / vertex splits. The collapsed
-	   simplices go in the chart->collapsed_* lists, The original and
-	   collapsed may then be view as stacks, where the next collapse/split
-	   is at the top of the respective lists. */
+	 * simplices go in the chart->collapsed_* lists, The original and
+	 * collapsed may then be view as stacks, where the next collapse/split
+	 * is at the top of the respective lists. */
 
 	Heap *heap = BLI_heap_new();
 	PVert *v, **wheelverts;
@@ -2320,7 +2320,7 @@ static float p_abf_compute_sin_product(PAbfSystem *sys, PVert *v, int aid)
 
 		if (aid == e1->u.id) {
 			/* we are computing a derivative for this angle,
-			   so we use cos and drop the other part */
+			 * so we use cos and drop the other part */
 			sin1 *= sys->cosine[e1->u.id];
 			sin2 = 0.0;
 		}
@@ -2810,7 +2810,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
 	float len1, len2;
  
 	 /* find longest series of verts split in the chart itself, these are
-	   marked during construction */
+	  * marked during construction */
 	be = outer;
 	lastbe = p_boundary_edge_prev(be);
 	do {
@@ -3406,7 +3406,7 @@ static PBool p_chart_convex_hull(PChart *chart, PVert ***verts, int *nverts, int
 static float p_rectangle_area(float *p1, float *dir, float *p2, float *p3, float *p4)
 {
 	/* given 4 points on the rectangle edges and the direction of on edge,
-	   compute the area of the rectangle */
+	 * compute the area of the rectangle */
 
 	float orthodir[2], corner1[2], corner2[2], corner3[2];
 

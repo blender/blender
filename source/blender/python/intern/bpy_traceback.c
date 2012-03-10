@@ -29,6 +29,9 @@
 #include <Python.h>
 #include <frameobject.h>
 
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+
 #include "bpy_traceback.h"
 
 static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
@@ -127,8 +130,8 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 
 			if (parse_syntax_error(value, &message, &filename, lineno, offset, &text)) {
 				/* python adds a '/', prefix, so check for both */
-				if ((strcmp(filename, filepath) == 0) ||
-					((filename[0] == '\\' || filename[0] == '/') && strcmp(filename + 1, filepath) == 0)
+				if ((BLI_path_cmp(filename, filepath) == 0) ||
+					((filename[0] == '\\' || filename[0] == '/') && BLI_path_cmp(filename + 1, filepath) == 0)
 				) {
 					/* good */
 				}
@@ -152,7 +155,7 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		{
 			PyObject *coerce;
 			const char *tb_filepath = traceback_filepath(tb, &coerce);
-			const int match = strcmp(tb_filepath, filepath) != 0;
+			const int match = BLI_path_cmp(tb_filepath, filepath) != 0;
 			Py_DECREF(coerce);
 
 			if (match) {

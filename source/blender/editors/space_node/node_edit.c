@@ -139,7 +139,7 @@ static void compo_freejob(void *cjv)
 }
 
 /* only now we copy the nodetree, so adding many jobs while
-   sliding buttons doesn't frustrate */
+ * sliding buttons doesn't frustrate */
 static void compo_initjob(void *cjv)
 {
 	CompoJob *cj= cjv;
@@ -1639,15 +1639,18 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set)
 	}
 }
 
-static void node_link_viewer(SpaceNode *snode, bNode *tonode)
+static int node_link_viewer(const bContext *C, bNode *tonode)
 {
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
+	bNodeLink *link;
+	bNodeSocket *sock;
 
 	/* context check */
 	if(tonode==NULL || tonode->outputs.first==NULL)
-		return;
+		return OPERATOR_CANCELLED;
 	if( ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
-		return;
+		return OPERATOR_CANCELLED;
 	
 	/* get viewer */
 	for(node= snode->edittree->nodes.first; node; node= node->next)
@@ -1663,52 +1666,69 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 			}
 		}
 	}
-		
-	if(node) {
-		bNodeLink *link;
-		bNodeSocket *sock= NULL;
-
-		/* try to find an already connected socket to cycle to the next */
+	
+	sock = NULL;
+	
+	/* try to find an already connected socket to cycle to the next */
+	if (node) {
+		link = NULL;
 		for(link= snode->edittree->links.first; link; link= link->next)
 			if(link->tonode==node && link->fromnode==tonode)
 				if(link->tosock==node->inputs.first)
 					break;
-
 		if(link) {
 			/* unlink existing connection */
 			sock= link->fromsock;
 			nodeRemLink(snode->edittree, link);
-
+			
 			/* find a socket after the previously connected socket */
 			for(sock=sock->next; sock; sock= sock->next)
 				if(!nodeSocketIsHidden(sock))
 					break;
 		}
-
-		/* find a socket starting from the first socket */
-		if(!sock) {
-			for(sock= tonode->outputs.first; sock; sock= sock->next)
-				if(!nodeSocketIsHidden(sock))
-					break;
+	}
+	
+	/* find a socket starting from the first socket */
+	if(!sock) {
+		for(sock= tonode->outputs.first; sock; sock= sock->next)
+			if(!nodeSocketIsHidden(sock))
+				break;
+	}
+	
+	if(sock) {
+		/* add a new viewer if none exists yet */
+		if(!node) {
+			Main *bmain = CTX_data_main(C);
+			Scene *scene = CTX_data_scene(C);
+			bNodeTemplate ntemp;
+			
+			ntemp.type = CMP_NODE_VIEWER;
+			/* XXX location is a quick hack, just place it next to the linked socket */
+			node = node_add_node(snode, bmain, scene, &ntemp, sock->locx + 100, sock->locy);
+			if (!node)
+				return OPERATOR_CANCELLED;
+			
+			link = NULL;
 		}
-		
-		if(sock) {
+		else {
 			/* get link to viewer */
 			for(link= snode->edittree->links.first; link; link= link->next)
 				if(link->tonode==node && link->tosock==node->inputs.first)
 					break;
-			
-			if(link==NULL) {
-				nodeAddLink(snode->edittree, tonode, sock, node, node->inputs.first);
-			}
-			else {
-				link->fromnode= tonode;
-				link->fromsock= sock;
-			}
-			ntreeUpdateTree(snode->edittree);
-			snode_update(snode, node);
 		}
+		
+		if(link==NULL) {
+			nodeAddLink(snode->edittree, tonode, sock, node, node->inputs.first);
+		}
+		else {
+			link->fromnode= tonode;
+			link->fromsock= sock;
+		}
+		ntreeUpdateTree(snode->edittree);
+		snode_update(snode, node);
 	}
+	
+	return OPERATOR_FINISHED;
 }
 
 
@@ -1724,7 +1744,9 @@ static int node_active_link_viewer(bContext *C, wmOperator *UNUSED(op))
 
 	ED_preview_kill_jobs(C);
 
-	node_link_viewer(snode, node);
+	if (node_link_viewer(C, node) == OPERATOR_CANCELLED)
+		return OPERATOR_CANCELLED;
+
 	snode_notify(C, snode);
 
 	return OPERATOR_FINISHED;
@@ -1741,7 +1763,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= node_active_link_viewer;
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1779,11 +1801,14 @@ static int UNUSED_FUNCTION(node_mouse_groupheader)(SpaceNode *snode)
 
 /* checks snode->mouse position, and returns found node/socket */
 /* type is SOCK_IN and/or SOCK_OUT */
-static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int in_out)
+int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int in_out)
 {
 	bNode *node;
 	bNodeSocket *sock;
 	rctf rect;
+	
+	*nodep= NULL;
+	*sockp= NULL;
 	
 	/* check if we click in a socket */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -1861,43 +1886,6 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	return 0;
 }
 
-static int node_socket_hilights(SpaceNode *snode, int in_out)
-{
-	bNode *node;
-	bNodeSocket *sock, *tsock, *socksel= NULL;
-	short redraw= 0;
-	
-	if(snode->edittree==NULL) return 0;
-	
-	/* deselect sockets */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->flag & SELECT) {
-				sock->flag &= ~SELECT;
-				redraw++;
-				socksel= sock;
-			}
-		}
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			if(sock->flag & SELECT) {
-				sock->flag &= ~SELECT;
-				redraw++;
-				socksel= sock;
-			}
-		}
-	}
-	
-	// XXX mousepos should be set here!
-	
-	if(find_indicated_socket(snode, &node, &tsock, in_out)) {
-		tsock->flag |= SELECT;
-		if(redraw==1 && tsock==socksel) redraw= 0;
-		else redraw= 1;
-	}
-	
-	return redraw;
-}
-
 static int outside_group_rect(SpaceNode *snode)
 {
 	bNode *gnode= node_tree_get_editgroup(snode->nodetree);
@@ -1944,9 +1932,17 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree, bNode *node, bNodeSocke
 {
 	bNodeSocket *sock;
 	
-	/* first try to find a socket with a matching name */
+	/* first look for selected output */
 	for (sock=node->outputs.first; sock; sock=sock->next) {
-
+		if (!socket_is_available(ntree, sock, allow_multiple))
+			continue;
+		
+		if (sock->flag & SELECT)
+			return sock;
+	}
+	
+	/* try to find a socket with a matching name */
+	for (sock=node->outputs.first; sock; sock=sock->next) {
 		if (!socket_is_available(ntree, sock, allow_multiple))
 			continue;
 
@@ -1972,7 +1968,7 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree, bNode *node, bNodeSocke
 	return NULL;
 }
 
-/* this is a bit complicated, but designed to prioritise finding 
+/* this is a bit complicated, but designed to prioritize finding
  * sockets of higher types, such as image, first */
 static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, int replace)
 {
@@ -2006,15 +2002,36 @@ static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, in
 	return NULL;
 }
 
+static int snode_autoconnect_input(SpaceNode *snode, bNode *node_fr, bNodeSocket *sock_fr, bNode *node_to, bNodeSocket *sock_to, int replace)
+{
+	bNodeTree *ntree = snode->edittree;
+	bNodeLink *link;
+	
+	/* then we can connect */
+	if (replace)
+		nodeRemSocketLinks(ntree, sock_to);
+	
+	link = nodeAddLink(ntree, node_fr, sock_fr, node_to, sock_to);
+	/* validate the new link */
+	ntreeUpdateTree(ntree);
+	if (!(link->flag & NODE_LINK_VALID)) {
+		nodeRemLink(ntree, link);
+		return 0;
+	}
+	
+	snode_update(snode, node_to);
+	return 1;
+}
+
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 {
+	bNodeTree *ntree = snode->edittree;
 	ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
 	bNodeListItem *nli;
 	bNode *node;
-	bNodeLink *link;
 	int i, numlinks=0;
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
+	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->flag & NODE_SELECT) {
 			nli = MEM_mallocN(sizeof(bNodeListItem), "temporary node list item");
 			nli->node = node;
@@ -2028,43 +2045,57 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 	for (nli=nodelist->first; nli; nli=nli->next) {
 		bNode *node_fr, *node_to;
 		bNodeSocket *sock_fr, *sock_to;
+		int has_selected_inputs = 0;
 		
 		if (nli->next == NULL) break;
 		
 		node_fr = nli->node;
 		node_to = nli->next->node;
 		
-		/* check over input sockets first */
-		for (i=0; i<BLI_countlist(&node_to->inputs); i++) {
-			
-			/* find the best guess input socket */
-			sock_to = best_socket_input(snode->edittree, node_to, i, replace);
-			if (!sock_to) continue;
-			
-			/* check for an appropriate output socket to connect from */
-			sock_fr = best_socket_output(snode->edittree, node_fr, sock_to, allow_multiple);
-			if (!sock_fr) continue;
-			
-			/* then we can connect */
-			if (replace)
-				nodeRemSocketLinks(snode->edittree, sock_to);
-			
-			link = nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
-			/* validate the new link */
-			ntreeUpdateTree(snode->edittree);
-			if (!(link->flag & NODE_LINK_VALID)) {
-				nodeRemLink(snode->edittree, link);
-				continue;
+		/* if there are selected sockets, connect those */
+		for (sock_to = node_to->inputs.first; sock_to; sock_to=sock_to->next) {
+			if (sock_to->flag & SELECT) {
+				has_selected_inputs = 1;
+				
+				if (!socket_is_available(ntree, sock_to, replace))
+					continue;
+				
+				/* check for an appropriate output socket to connect from */
+				sock_fr = best_socket_output(ntree, node_fr, sock_to, allow_multiple);
+				if (!sock_fr)
+					continue;
+	
+				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace))
+					++numlinks;
 			}
+		}
+		
+		if (!has_selected_inputs) {
+			/* no selected inputs, connect by finding suitable match */
+			int num_inputs = BLI_countlist(&node_to->inputs);
 			
-			snode_update(snode, node_to);
-			++numlinks;
-			break;
+			for (i=0; i<num_inputs; i++) {
+				
+				/* find the best guess input socket */
+				sock_to = best_socket_input(ntree, node_to, i, replace);
+				if (!sock_to)
+					continue;
+				
+				/* check for an appropriate output socket to connect from */
+				sock_fr = best_socket_output(ntree, node_fr, sock_to, allow_multiple);
+				if (!sock_fr)
+					continue;
+	
+				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
+					++numlinks;
+					break;
+				}
+			}
 		}
 	}
 	
 	if (numlinks > 0) {
-		ntreeUpdateTree(snode->edittree);
+		ntreeUpdateTree(ntree);
 	}
 	
 	BLI_freelistN(nodelist);
@@ -2126,6 +2157,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= snode->edittree;
 	bNode *node, *newnode, *lastnode;
+	bNodeSocket *sock;
 	bNodeLink *link, *newlink, *lastlink;
 	int keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
 	
@@ -2190,6 +2222,12 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			
 			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
 			newnode->flag |= NODE_SELECT;
+		
+			/* deselect old node sockets */
+			for (sock=node->inputs.first; sock; sock=sock->next)
+				sock->flag &= ~SELECT;
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				sock->flag &= ~SELECT;
 		}
 		
 		/* make sure we don't copy new nodes again! */
@@ -2284,7 +2322,10 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			
 			if(in_out==SOCK_OUT) {
-				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
+				/* only target socket becomes hilighted */
+				node_deselect_all_input_sockets(snode, 0);
+				
+				if(node_find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
 					if(nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if( link->tosock!= tsock && (!tnode || (tnode!=node && link->tonode!=tnode)) ) {
 							link->tonode= tnode;
@@ -2297,6 +2338,9 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							ntreeUpdateTree(snode->edittree);
 						}
 					}
+					
+					/* hilight target socket */
+					tsock->flag |= SELECT;
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2311,7 +2355,10 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
+				/* only target socket becomes hilighted */
+				node_deselect_all_output_sockets(snode, 0);
+				
+				if(node_find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
 					if(nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if(nodeCountSocketLinks(snode->edittree, tsock) < tsock->limit) {
 							if( link->fromsock!= tsock && (!tnode || (tnode!=node && link->fromnode!=tnode)) ) {
@@ -2326,6 +2373,9 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							}
 						}
 					}
+					
+					/* hilight target socket */
+					tsock->flag |= SELECT;
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2338,8 +2388,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 			}
-			/* hilight target sockets only */
-			node_socket_hilights(snode, in_out==SOCK_OUT?SOCK_IN:SOCK_OUT);
+			
 			ED_region_tag_redraw(ar);
 			break;
 			
@@ -2353,6 +2402,10 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* we might need to remove a link */
 				if(in_out==SOCK_OUT)
 					node_remove_extra_links(snode, link->tosock, link);
+				
+				/* deselect sockets after successful linking */
+				node_deselect_all_input_sockets(snode, 0);
+				node_deselect_all_output_sockets(snode, 0);
 				
 				/* when linking to group outputs, update the socket type */
 				/* XXX this should all be part of a generic update system */
@@ -2378,6 +2431,10 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					snode->edittree->update |= NTREE_UPDATE_GROUP_OUT | NTREE_UPDATE_LINKS;
 				}
+				
+				/* deselect sockets after successful linking */
+				node_deselect_all_input_sockets(snode, 0);
+				node_deselect_all_output_sockets(snode, 0);
 			}
 			else
 				nodeRemLink(snode->edittree, link);
@@ -2399,11 +2456,12 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 {
 	bNodeLink *link;
+	int in_out = 0;
 
 	/* output indicated? */
-	if(find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_OUT)) {
+	if(node_find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_OUT)) {
 		if(nodeCountSocketLinks(snode->edittree, nldrag->sock) < nldrag->sock->limit)
-			return SOCK_OUT;
+			in_out = SOCK_OUT;
 		else {
 			/* find if we break a link */
 			for(link= snode->edittree->links.first; link; link= link->next) {
@@ -2414,14 +2472,18 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 				nldrag->node= link->tonode;
 				nldrag->sock= link->tosock;
 				nodeRemLink(snode->edittree, link);
-				return SOCK_IN;
+				in_out = SOCK_IN;
 			}
 		}
+		
+		/* hilight source socket only */
+		node_deselect_all_output_sockets(snode, 0);
+		nldrag->sock->flag |= SELECT;
 	}
 	/* or an input? */
-	else if(find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_IN)) {
+	else if(node_find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_IN)) {
 		if(nodeCountSocketLinks(snode->edittree, nldrag->sock) < nldrag->sock->limit)
-			return SOCK_IN;
+			in_out = SOCK_IN;
 		else {
 			/* find if we break a link */
 			for(link= snode->edittree->links.first; link; link= link->next) {
@@ -2436,12 +2498,16 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 				nldrag->node= link->fromnode;
 				nldrag->sock= link->fromsock;
 				nodeRemLink(snode->edittree, link);
-				return SOCK_OUT;
+				in_out = SOCK_OUT;
 			}
 		}
+		
+		/* hilight source socket only */
+		node_deselect_all_input_sockets(snode, 0);
+		nldrag->sock->flag |= SELECT;
 	}
 	
-	return 0;
+	return in_out;
 }
 
 static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -2529,6 +2595,10 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 	ED_preview_kill_jobs(C);
 
 	snode_autoconnect(snode, 1, replace);
+
+	/* deselect sockets after linking */
+	node_deselect_all_input_sockets(snode, 0);
+	node_deselect_all_output_sockets(snode, 0);
 
 	ntreeUpdateTree(snode->edittree);
 	snode_notify(C, snode);
@@ -2676,34 +2746,35 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 /* *********************  automatic node insert on dragging ******************* */
 
 /* assumes sockets in list */
-static bNodeSocket *socket_best_match(ListBase *sockets, int type)
+static bNodeSocket *socket_best_match(ListBase *sockets)
 {
 	bNodeSocket *sock;
+	int type, maxtype=0;
 	
-	/* first, match type */
-	for(sock= sockets->first; sock; sock= sock->next)
-		if(!nodeSocketIsHidden(sock))
-			if(type == sock->type)
+	/* find type range */
+	for (sock=sockets->first; sock; sock=sock->next)
+		maxtype = MAX2(sock->type, maxtype);
+	
+	/* try all types, starting from 'highest' (i.e. colors, vectors, values) */
+	for (type=maxtype; type >= 0; --type) {
+		for(sock= sockets->first; sock; sock= sock->next) {
+			if(!nodeSocketIsHidden(sock) && type==sock->type) {
 				return sock;
-	
-	/* then just use first unhidden socket */
-	for(sock= sockets->first; sock; sock= sock->next)
-		if(!nodeSocketIsHidden(sock))
-			return sock;
-
-	/* OK, let's unhide proper one */
-	for(sock= sockets->first; sock; sock= sock->next) {
-		if(type == sock->type) {
-			sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
-			return sock;
+			}
 		}
 	}
 	
-	/* just the first */
-	sock= sockets->first;
-	sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
+	/* no visible sockets, unhide first of highest type */
+	for (type=maxtype; type >= 0; --type) {
+		for(sock= sockets->first; sock; sock= sock->next) {
+			if(type==sock->type) {
+				sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
+				return sock;
+			}
+		}
+	}
 	
-	return sockets->first;
+	return NULL;
 }
 
 /* prevent duplicate testing code below */
@@ -2761,10 +2832,10 @@ void ED_node_link_insert(ScrArea *sa)
 		sockto= link->tosock;
 		
 		link->tonode= select;
-		link->tosock= socket_best_match(&select->inputs, link->fromsock->type);
+		link->tosock= socket_best_match(&select->inputs);
 		link->flag &= ~NODE_LINKFLAG_HILITE;
 		
-		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs, sockto->type), node, sockto);
+		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs), node, sockto);
 		ntreeUpdateTree(snode->edittree);	/* needed for pointers */
 		snode_update(snode, select);
 		ED_node_changed_update(snode->id, select);
@@ -2879,7 +2950,7 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_cursor_wait(0);
 
 	/* note we are careful to send the right notifier, as otherwise the
-	   compositor would reexecute and overwrite the full sample result */
+	 * compositor would reexecute and overwrite the full sample result */
 	WM_event_add_notifier(C, NC_SCENE|ND_COMPO_RESULT, NULL);
 
 	return OPERATOR_FINISHED;
@@ -3367,8 +3438,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	ntemp.type = -1;
 
 	/* check input variables */
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
-	{
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
 		RNA_string_get(op->ptr, "filepath", path);
 
@@ -3381,8 +3451,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 	}
-	else if(RNA_struct_property_is_set(op->ptr, "name"))
-	{
+	else if(RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);

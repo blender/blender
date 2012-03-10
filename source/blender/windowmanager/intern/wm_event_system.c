@@ -537,8 +537,8 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 	op->customdata= NULL;
 
 	/* we don't want to do undo pushes for operators that are being
-	   called from operators that already do an undo push. usually
-	   this will happen for python operators that call C operators */
+	 * called from operators that already do an undo push. usually
+	 * this will happen for python operators that call C operators */
 	if(wm->op_undo_depth == 0)
 		if(op->type->flag & OPTYPE_UNDO)
 			ED_undo_push_op(C, op);
@@ -690,8 +690,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 					break;
 
 				/* skip invalid properties */
-				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0)
-				{
+				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0) {
 					wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
 					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
 					wmOperator *opm= wm_operator_create(wm, otm, &someptr, NULL);
@@ -745,7 +744,7 @@ static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
 	wmOperator *lastop;
 
 	for(lastop= wm->operators.last; lastop; lastop= lastop->prev) {
-		/* equality check is a bit paranoid but just incase */
+		/* equality check is a bit paranoid but just in case */
 		if((op != lastop) && (op->type == (lastop->type))) {
 			break;
 		}
@@ -890,9 +889,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			}
 
 			/* cancel UI handlers, typically tooltips that can hang around
-			   while dragging the view or worse, that stay there permanently
-			   after the modal operator has swallowed all events and passed
-			   none to the UI handler */
+			 * while dragging the view or worse, that stay there permanently
+			 * after the modal operator has swallowed all events and passed
+			 * none to the UI handler */
 			wm_handler_ui_cancel(C);
 		}
 		else
@@ -1028,10 +1027,10 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 }
 
 /* Similar to WM_operator_name_call called with WM_OP_EXEC_DEFAULT context.
-   - wmOperatorType is used instead of operator name since python already has the operator type
-   - poll() must be called by python before this runs.
-   - reports can be passed to this function (so python can report them as exceptions)
-*/
+ * - wmOperatorType is used instead of operator name since python already has the operator type
+ * - poll() must be called by python before this runs.
+ * - reports can be passed to this function (so python can report them as exceptions)
+ */
 int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
 	int retval= OPERATOR_CANCELLED;
@@ -1091,7 +1090,7 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
 					break;
 			if(sa==NULL) {
 				/* when changing screen layouts with running modal handlers (like render display), this
-				   is not an error to print */
+				 * is not an error to print */
 				if(handler->op==NULL)
 					printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
 			}
@@ -1366,7 +1365,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					handler->op= NULL;
 				}
 
-				/* remove modal handler, operator itself should have been cancelled and freed */
+				/* remove modal handler, operator itself should have been canceled and freed */
 				if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
 					WM_cursor_ungrab(CTX_wm_window(C));
 
@@ -1702,7 +1701,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		/* XXX code this for all modal ops, and ensure free only happens here */
 		
 		/* modal ui handler can be tagged to be freed */ 
-		if(BLI_findindex(handlers, handler) != -1) { /* could be free'd already by regular modal ops */
+		if(BLI_findindex(handlers, handler) != -1) { /* could be freed already by regular modal ops */
 			if(handler->flag & WM_HANDLER_DO_FREE) {
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
@@ -2029,7 +2028,7 @@ void wm_event_do_handlers(bContext *C)
 				}
 
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
-				   doing it on ghost queue gives errors when mousemoves go over area borders */
+				 * doing it on ghost queue gives errors when mousemoves go over area borders */
 				if(doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx= event->x;
 					win->eventstate->prevy= event->y;
@@ -2117,9 +2116,9 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 /* optional property: filetype (XXX enum?) */
 
 /* Idea is to keep a handler alive on window queue, owning the operator.
-   The filewindow can send event to make it execute, thus ensuring
-   executing happens outside of lower level queues, with UI refreshed. 
-   Should also allow multiwin solutions */
+ * The filewindow can send event to make it execute, thus ensuring
+ * executing happens outside of lower level queues, with UI refreshed.
+ * Should also allow multiwin solutions */
 
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
@@ -2338,7 +2337,7 @@ void WM_event_add_mousemove(bContext *C)
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
 	/* if the release-confirm userpref setting is enabled, 
-	 * tweak events can be cancelled when mouse is released
+	 * tweak events can be canceled when mouse is released
 	 */
 	if (U.flag & USER_RELEASECONFIRM) {
 		/* option on, so can exit with km-release */
@@ -2486,8 +2485,7 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 	data->ry = s * ghost->ry;
 	data->rz = s * ghost->rz;
 
-	if (U.ndof_flag & NDOF_ZOOM_UPDOWN)
-		{
+	if (U.ndof_flag & NDOF_ZOOM_UPDOWN) {
 		/* rotate so Y is where Z was */
 		data->ty = s * ghost->tz;
 		data->tz = s * ghost->ty;
@@ -2502,8 +2500,7 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 		data->rz = s * ghost->ry;
 #endif
 		}
-	else
-		{
+	else {
 		data->ty = s * ghost->ty;
 		data->tz = s * ghost->tz;
 		}
@@ -2585,8 +2582,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.type= MOUSEMOVE;
 
 				/* some painting operators want accurate mouse events, they can
-				   handle in between mouse move moves, others can happily ignore
-				   them for better performance */
+				 * handle in between mouse move moves, others can happily ignore
+				 * them for better performance */
 				if(lastevent && lastevent->type == MOUSEMOVE)
 					lastevent->type = INBETWEEN_MOUSEMOVE;
 
@@ -2757,14 +2754,14 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			}
 
 			/* this case happens on some systems that on holding a key pressed,
-			   generate press events without release, we still want to keep the
-			   modifier in win->eventstate, but for the press event of the same
-			   key we don't want the key modifier */
+			 * generate press events without release, we still want to keep the
+			 * modifier in win->eventstate, but for the press event of the same
+			 * key we don't want the key modifier */
 			if(event.keymodifier == event.type)
 				event.keymodifier= 0;
 			/* this case happened with an external numpad, it's not really clear
-			   why, but it's also impossible to map a key modifier to an unknwon
-			   key, so it shouldn't harm */
+			 * why, but it's also impossible to map a key modifier to an unknwon
+			 * key, so it shouldn't harm */
 			if(event.keymodifier == UNKNOWNKEY)
 				event.keymodifier= 0;
 			

@@ -1100,8 +1100,6 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 		select= 1;
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-
 		a = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			iterv1= uv_vertex_map_get(vmap, efa, a);
@@ -2348,9 +2346,11 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		vmap= EDBM_make_uv_vert_map(em, 0, 0, limit);
 		
 		/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
-		/*for(a=0, eve= em->verts.first; eve; a++, eve= eve->next)
-			eve->tmp.l = a; */
-		
+		/* BMESH_TODO - why keep this commented? - campbell */
+#if 0
+		for(a=0, eve= em->verts.first; eve; a++, eve= eve->next)
+			eve->tmp.l = a;
+#endif
 		if(vmap == NULL) {
 			return;
 		}

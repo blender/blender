@@ -1135,13 +1135,13 @@ float *make_orco_surf(Object *ob)
 	nu= cu->nurb.first;
 	while(nu) {
 		/* as we want to avoid the seam in a cyclic nurbs
-		texture wrapping, reserve extra orco data space to save these extra needed
-		vertex based UV coordinates for the meridian vertices.
-		Vertices on the 0/2pi boundary are not duplicated inside the displist but later in
-		the renderface/vert construction.
-		
-		See also convertblender.c: init_render_surf()
-		*/
+		 * texture wrapping, reserve extra orco data space to save these extra needed
+		 * vertex based UV coordinates for the meridian vertices.
+		 * Vertices on the 0/2pi boundary are not duplicated inside the displist but later in
+		 * the renderface/vert construction.
+		 *
+		 * See also convertblender.c: init_render_surf()
+		 */
 
 		resolu= cu->resolu_ren ? cu->resolu_ren : nu->resolu;
 		resolv= cu->resolv_ren ? cu->resolv_ren : nu->resolv;
@@ -1505,11 +1505,11 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
                       float *labda, float *mu, float vec[3])
 {
 	/* return:
-		-1: colliniar
-		 0: no intersection of segments
-		 1: exact intersection of segments
-		 2: cross-intersection of segments
-	*/
+	 * -1: colliniar
+	 *  0: no intersection of segments
+	 *  1: exact intersection of segments
+	 *  2: cross-intersection of segments
+	 */
 	float deler;
 
 	deler= (v1[cox]-v2[cox])*(v3[coy]-v4[coy])-(v3[cox]-v4[cox])*(v1[coy]-v2[coy]);
@@ -1572,7 +1572,7 @@ static short bevelinside(BevList *bl1,BevList *bl2)
 				/* there's a transition, calc intersection point */
 				mode= cu_isectLL(prevbevp->vec, bevp->vec, hvec1, hvec2, 0, 1, &lab, &mu, vec);
 				/* if lab==0.0 or lab==1.0 then the edge intersects exactly a transition
-					   only allow for one situation: we choose lab= 1.0
+				 * only allow for one situation: we choose lab= 1.0
 				 */
 				if(mode >= 0 && lab != 0.0f) {
 					if(vec[0]<hvec1[0]) links++;
@@ -2075,11 +2075,11 @@ static void make_bevel_list_segment_3D(BevList *bl)
 void makeBevelList(Object *ob)
 {
 	/*
-	 - convert all curves to polys, with indication of resol and flags for double-vertices
-	 - possibly; do a smart vertice removal (in case Nurb)
-	 - separate in individual blicks with BoundBox
-	 - AutoHole detection
-	*/
+	 * - convert all curves to polys, with indication of resol and flags for double-vertices
+	 * - possibly; do a smart vertice removal (in case Nurb)
+	 * - separate in individual blicks with BoundBox
+	 * - AutoHole detection
+	 */
 	Curve *cu;
 	Nurb *nu;
 	BezTriple *bezt, *prevbezt;
@@ -2701,12 +2701,12 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 void testhandlesNurb(Nurb *nu)
 {
 	/* use when something has changed with handles.
-	it treats all BezTriples with the following rules:
-	PHASE 1: do types have to be altered?
-	   Auto handles: become aligned when selection status is NOT(000 || 111)
-	   Vector handles: become 'nothing' when (one half selected AND other not)
-	PHASE 2: recalculate handles
-	*/
+	 * it treats all BezTriples with the following rules:
+	 * PHASE 1: do types have to be altered?
+	 *    Auto handles: become aligned when selection status is NOT(000 || 111)
+	 *    Vector handles: become 'nothing' when (one half selected AND other not)
+	 * PHASE 2: recalculate handles
+	 */
 	BezTriple *bezt;
 	short flag, a;
 

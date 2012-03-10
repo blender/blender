@@ -40,7 +40,7 @@
 #include "SCA_LogicManager.h"
 
 /**
- * The camera actuator does a Robbie Muller prespective for you. This is a 
+ * The camera actuator does a Robbie Muller perspective for you. This is a
  * weird set of rules that positions the camera sort of behind the object,
  * tracking, while avoiding any objects between the 'ideal' position and the
  * actor being tracked.

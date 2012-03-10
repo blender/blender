@@ -421,7 +421,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	}
 	
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
-	   we set them here in case they are missing */
+	 * we set them here in case they are missing */
 	if(!CustomData_has_layer(&tmp.vdata, CD_MVERT))
 		CustomData_add_layer(&tmp.vdata, CD_MVERT, CD_ASSIGN, dm->dupVertArray(dm), totvert);
 	if(!CustomData_has_layer(&tmp.edata, CD_MEDGE))
@@ -454,9 +454,9 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	CustomData_free(&me->ldata, me->totloop);
 	CustomData_free(&me->pdata, me->totpoly);
 
-	/*  ok, this should now use new CD shapekey data,
-	    which shouuld be fed through the modifier 
-		stack*/
+	/* ok, this should now use new CD shapekey data,
+	 * which shouuld be fed through the modifier
+	 * stack*/
 	if(tmp.totvert != me->totvert && !did_shapekeys && me->key) {
 		printf("YEEK! this should be recoded! Shape key loss!!!\n");
 		if(tmp.key) tmp.key->id.us--;
@@ -787,7 +787,7 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 	}
 	else if(layer == CD_CLOTH_ORCO) {
 		/* apply shape key for cloth, this should really be solved
-		   by a more flexible customdata system, but not simple */
+		 * by a more flexible customdata system, but not simple */
 		if(!em) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 			KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
@@ -2460,14 +2460,12 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 	MFace * mface = dm->getTessFaceArray(dm);
 	MTFace * mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
 
-	if(mtface)
-	{
+	if(mtface) {
 		double dsum = 0.0;
 		int nr_accumulated = 0;
 		int f;
 
-		for ( f=0; f<totface; f++ )
-		{
+		for ( f=0; f < totface; f++ ) {
 			{
 				float * verts[4], * tex_coords[4];
 				const int nr_verts = mface[f].v4!=0 ? 4 : 3;
@@ -2475,8 +2473,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 
 				verts[0]=mvert[mface[f].v1].co; verts[1]=mvert[mface[f].v2].co; verts[2]=mvert[mface[f].v3].co;
 				tex_coords[0]=mtface[f].uv[0]; tex_coords[1]=mtface[f].uv[1]; tex_coords[2]=mtface[f].uv[2];
-				if(nr_verts==4)
-				{
+				if (nr_verts==4) {
 					verts[3]=mvert[mface[f].v4].co;
 					tex_coords[3]=mtface[f].uv[3];
 				}
@@ -2490,32 +2487,33 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 				}
 
 				// verify last vertex as well if this is a quad
-				if ( is_degenerate==0 && nr_verts==4 )
-				{
-					if(	equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
-						equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]) )
+				if (is_degenerate == 0 && nr_verts == 4) {
+					if (equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
+					    equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]) )
 					{
 						is_degenerate = 1;
 					}
 
 					// verify the winding is consistent
-					if ( is_degenerate==0 )
-					{
+					if (is_degenerate == 0) {
 						float prev_edge[2];
 						int is_signed = 0;
 						sub_v2_v2v2(prev_edge, tex_coords[0], tex_coords[3]);
 
 						i = 0;
-						while ( is_degenerate==0 && i<4 )
-						{
+						while (is_degenerate == 0 && i < 4) {
 							float cur_edge[2], signed_area;
 							sub_v2_v2v2(cur_edge, tex_coords[(i+1)&0x3], tex_coords[i]);
 							signed_area = prev_edge[0]*cur_edge[1] - prev_edge[1]*cur_edge[0];
-							if ( i==0 ) is_signed = signed_area<0.0f ? 1 : 0;
-							else if((is_signed!=0)!=(signed_area<0.0f)) is_degenerate=1;
 
-							if ( is_degenerate==0 )
-							{
+							if (i == 0 ) {
+								is_signed = (signed_area < 0.0f) ? 1 : 0;
+							}
+							else if((is_signed != 0) != (signed_area < 0.0f)) {
+								is_degenerate = 1;
+							}
+
+							if (is_degenerate == 0) {
 								copy_v2_v2(prev_edge, cur_edge);
 								++i;
 							}
@@ -2524,13 +2522,11 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 				}
 
 				// proceed if not a degenerate face
-				if ( is_degenerate==0 )
-				{
+				if (is_degenerate == 0) {
 					int nr_tris_to_pile=0;
 					// quads split at shortest diagonal
 					int offs = 0;		// initial triangulation is 0,1,2 and 0, 2, 3
-					if ( nr_verts==4 )
-					{
+					if (nr_verts == 4) {
 						float pos_len_diag0, pos_len_diag1;
 						float vtmp[3];
 						sub_v3_v3v3(vtmp, verts[2], verts[0]);
@@ -2538,10 +2534,10 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						sub_v3_v3v3(vtmp, verts[3], verts[1]);
 						pos_len_diag1 = dot_v3v3(vtmp, vtmp);
 
-						if(pos_len_diag1<pos_len_diag0)
+						if(pos_len_diag1<pos_len_diag0) {
 							offs=1;		// alter split
-						else if(pos_len_diag0==pos_len_diag1)		// do UV check instead
-						{
+						}
+						else if(pos_len_diag0==pos_len_diag1) { /* do UV check instead */
 							float tex_len_diag0, tex_len_diag1;
 
 							sub_v2_v2v2(vtmp, tex_coords[2], tex_coords[0]);
@@ -2549,15 +2545,13 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 							sub_v2_v2v2(vtmp, tex_coords[3], tex_coords[1]);
 							tex_len_diag1 = dot_v2v2(vtmp, vtmp);
 
-							if(tex_len_diag1<tex_len_diag0)
-							{
-								offs=1;		// alter split
+							if (tex_len_diag1<tex_len_diag0) {
+								offs=1; /* alter split */
 							}
 						}
 					}
 					nr_tris_to_pile = nr_verts - 2;
-					if ( nr_tris_to_pile==1 || nr_tris_to_pile==2 )
-					{
+					if (nr_tris_to_pile==1 || nr_tris_to_pile==2) {
 						const int indices[] = {offs+0, offs+1, offs+2, offs+0, offs+2, (offs+3)&0x3 };
 						int t;
 						for ( t=0; t<nr_tris_to_pile; t++ )
@@ -2572,8 +2566,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 							sub_v2_v2v2(edge_t1, tex_coords[indices[t*3+2]], tex_coords[indices[t*3+0]]);
 
 							f2x_area_uv = fabsf(edge_t0[0]*edge_t1[1] - edge_t0[1]*edge_t1[0]);
-							if ( f2x_area_uv>FLT_EPSILON )
-							{
+							if (f2x_area_uv>FLT_EPSILON) {
 								float norm[3], v0[3], v1[3], f2x_surf_area, fsurf_ratio;
 								sub_v3_v3v3(v0, p1, p0);
 								sub_v3_v3v3(v1, p2, p0);
@@ -2598,8 +2591,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 			dm->auto_bump_scale = use_as_render_bump_scale;
 		}
 	}
-	else
-	{
+	else {
 		dm->auto_bump_scale = 1.0f;
 	}
 }
@@ -2644,8 +2636,9 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
 				attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
 			}
-			/* BMESH ONLY, may need to get this working?, otherwise remove */
-			/* else {
+			/* BMESH_TODO - BMESH ONLY, may need to get this working?, otherwise remove */
+#if 0
+			else {
 				int player;
 				CustomData *pdata = dm->getPolyDataLayout(dm);
 				
@@ -2665,7 +2658,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					
 				}
 			}
-			*/
+#endif
 		}
 		else if(gattribs->layer[b].type == CD_MCOL) {
 			/* vertex colors */
@@ -2764,13 +2757,14 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	if (!polygonIdx)
 		return;
 
-	/*
+#if 0
 	//UI_ThemeColor(TH_WIRE);
 	glDisable(GL_LIGHTING);
 	glLineWidth(2.0);
 	dm->drawEdges(dm, 0, 1);
 	glLineWidth(1.0);
-	glEnable(GL_LIGHTING);*/
+	glEnable(GL_LIGHTING);
+#endif
 
 	glDisable(GL_LIGHTING);
 	/*  if(GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
@@ -2805,8 +2799,8 @@ static void navmesh_drawColored(DerivedMesh *dm)
 }
 
 static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
-			int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			DMSetDrawOptionsTex setDrawOptions,
+			DMCompareDrawOptions compareDrawOptions,
 			void *userData)
 {
 	(void) setDrawOptions;
@@ -2818,7 +2812,7 @@ static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
 
 static void navmesh_DM_drawFacesSolid(DerivedMesh *dm,
                                       float (*partial_redraw_planes)[4],
-                                      int UNUSED(fast), int (*setMaterial)(int, void *attribs))
+                                      int UNUSED(fast), DMSetMaterial setMaterial)
 {
 	(void) partial_redraw_planes;
 	(void) setMaterial;

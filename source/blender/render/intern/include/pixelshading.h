@@ -25,14 +25,9 @@
 
 /** \file blender/render/intern/include/pixelshading.h
  *  \ingroup render
+ *
+ * These functions determine what actual color a pixel will have.
  */
-
-
-/* pixelshading.h
-*
-* These functions determine what actual color a pixel will have.
-*/
-
 
 #ifndef __PIXELSHADING_H__
 #define __PIXELSHADING_H__

@@ -82,13 +82,12 @@ void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread)
 {
 	tex_input(out, 4, in, params, thread);
 	
-	if(in->hasoutput && in->sockettype == SOCK_FLOAT)
-	{
+	if (in->hasoutput && in->sockettype == SOCK_FLOAT) {
 		out[1] = out[2] = out[0];
 		out[3] = 1;
 	}
 	
-	if(in->hasoutput && in->sockettype == SOCK_VECTOR) {
+	if (in->hasoutput && in->sockettype == SOCK_VECTOR) {
 		out[0] = out[0] * .5f + .5f;
 		out[1] = out[1] * .5f + .5f;
 		out[2] = out[2] * .5f + .5f;
@@ -148,8 +147,7 @@ void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 	bNode *node;
 	for(node= ntree->nodes.first; node; node= node->next) {
 		
-		if(node->type == TEX_NODE_TEXTURE && node->id)
-		{
+		if(node->type == TEX_NODE_TEXTURE && node->id) {
 			/* custom2 stops the node from rendering */
 			if(node->custom1) {
 				node->custom2 = 1;

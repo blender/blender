@@ -40,15 +40,15 @@
 #define ID ID_
 #include <Carbon/Carbon.h>
 
-
 /* To avoid killing small end comps, we want to allow
-blender to start maximised if all the followings are true :
-- Renderer is OpenGL capable
-- Hardware acceleration
-- VRAM > 16 Mo
+ * blender to start maximised if all the followings are true :
+ * - Renderer is OpenGL capable
+ * - Hardware acceleration
+ * - VRAM > 16 Mo
+ *
+ * We will bail out if VRAM is less than 8Mo
+ */
 
-	We will bail out if VRAM is less than 8Mo
-	*/
 /* bad global, used in wm_window.c to open windows */
 int macPrefState = 0;
 

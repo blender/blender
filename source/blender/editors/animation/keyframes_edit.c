@@ -70,7 +70,7 @@
  * which take the data they operate on, a few callbacks defining what operations to perform.
  *
  * As operators which work on keyframes usually apply the same operation on all BezTriples in 
- * every channel, the code has been optimised providing a set of functions which will get the 
+ * every channel, the code has been optimized providing a set of functions which will get the 
  * appropriate bezier-modify function to set. These functions (ANIM_editkeyframes_*) will need
  * to be called before getting any channels.
  * 
@@ -136,8 +136,8 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 				if (ked) ked->curIndex= i;
 				
 				/* Exit with return-code '1' if function returns positive
-				* This is useful if finding if some BezTriple satisfies a condition.
-				*/
+				 * This is useful if finding if some BezTriple satisfies a condition.
+				 */
 				if (key_cb(ked, bezt)) return 1;
 			}
 		}

@@ -42,7 +42,7 @@
  */
 
 #define PLUGIN_INTERN /* This tells the LIBEXPORT macro to compile with
-	dll export set on windows */
+                       * dll export set on windows */
 
 #ifdef WIN32
 #include "blenpluginapi/util.h"

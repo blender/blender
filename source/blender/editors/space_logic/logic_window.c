@@ -124,8 +124,8 @@ void make_unique_prop_names(bContext *C, char *str)
 	char **names;
 	
 	/* this function is called by a Button, and gives the current
-		* stringpointer as an argument, this is the one that can change
-		*/
+	 * stringpointer as an argument, this is the one that can change
+	 */
 	
 	idar= get_selected_and_linked_obs(C, &obcount, BUTS_SENS_SEL|BUTS_SENS_ACT|BUTS_ACT_SEL|BUTS_ACT_ACT|BUTS_CONT_SEL|BUTS_CONT_ACT);
 	
@@ -436,8 +436,8 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 				ob->scaflag |= OB_SHOWCONT;
 				BLI_addtail(&(ob->controllers), cont);
 				/* set the controller state mask from the current object state.
-				   A controller is always in a single state, so select the lowest bit set
-				   from the object state */
+				 * A controller is always in a single state, so select the lowest bit set
+				 * from the object state */
 				for (bit=0; bit<32; bit++) {
 					if (ob->state & (1<<bit))
 						break;
@@ -1187,9 +1187,9 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			
 			ts= sens->data; 
 			
-			/* uiDefBut(block, TEX, 1, "Property:",	xco,yco-22,width, 19, &ts->name, 0, MAX_NAME, 0, 0, "Only look for Objects with this property"); */
+			// uiDefBut(block, TEX, 1, "Property:",	xco,yco-22,width, 19, &ts->name, 0, MAX_NAME, 0, 0, "Only look for Objects with this property");
 			uiDefIDPoinBut(block, test_matpoin_but, ID_MA, 1, "MA:",(short)(xco + 10),(short)(yco-44), (short)(width - 20), 19, &ts->ma,  "Only look for floors with this Material"); 
-			///* uiDefButF(block, NUM, 1, "Margin:",	xco+width/2,yco-44,width/2, 19, &ts->dist, 0.0, 10.0, 100, 0, "Extra margin (distance) for larger sensitivity"); 
+			// uiDefButF(block, NUM, 1, "Margin:",	xco+width/2,yco-44,width/2, 19, &ts->dist, 0.0, 10.0, 100, 0, "Extra margin (distance) for larger sensitivity"); 
 			yco-= ysize; 
 			break; 
 		}
@@ -1359,11 +1359,12 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
 					ps->maxvalue, 0, MAX_NAME, 0, 0, "check for max value");
 			}
-			else if(ps->type == SENS_PROP_CHANGED);
-			else
-			{
+			else if(ps->type == SENS_PROP_CHANGED) {
+				/* pass */
+			}
+			else {
 				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-92,width-60, 19,
-					ps->value, 0, MAX_NAME, 0, 0, "check for value");
+				         ps->value, 0, MAX_NAME, 0, 0, "check for value");
 			}
 			
 			yco-= ysize;
@@ -1458,9 +1459,10 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			draw_default_sensor_header(sens, block, xco, yco, width);
 			
 			/* Line 2: type selection. The number are a bit mangled to get
-			* proper compatibility with older .blend files. */
+			 * proper compatibility with older .blend files. */
+
 			/* Any sensor type default is 0 but the ms enum starts in 1.
-			 * Therefore the mosue sensor is initialized to 1 in sca.c */
+			 * Therefore the mouse sensor is initialized to 1 in sca.c */
 			str= "Type %t|Left button %x1|Middle button %x2|"
 				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16|Mouse over any%x32"; 
 			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, (width*0.8f)-20, 19,
@@ -1510,14 +1512,12 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 				&raySens->mode, 0.0, 0.0, 0, 0,
 				"Toggle collision on material or property");
 			
-			if (raySens->mode & SENS_COLLISION_MATERIAL)
-			{
+			if (raySens->mode & SENS_COLLISION_MATERIAL) {
 				uiDefBut(block, TEX, 1, "Material:", xco + 10 + 0.20 * (width-20), yco-44, 0.8*(width-20), 19,
 					&raySens->matname, 0, MAX_NAME, 0, 0,
 					"Only look for Objects with this material");
 			}
-			else
-			{
+			else {
 				uiDefBut(block, TEX, 1, "Property:", xco + 10 + 0.20 * (width-20), yco-44, 0.8*(width-20), 19,
 					&raySens->propname, 0, MAX_NAME, 0, 0,
 					"Only look for Objects with this property");
@@ -1616,8 +1616,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					"Specify which button to use");
 				}
 			}
-			else if(joy->type == SENS_JOY_AXIS)
-			{
+			else if(joy->type == SENS_JOY_AXIS) {
 				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
 				&joy->axis, 1, 8.0, 100, 0,
 				"Specify which axis pair to use, 1 is useually the main direction input");
@@ -1633,8 +1632,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					"The direction of the axis, use 'All Events' to receive events on any direction");
 				}
 			}
-			else if (joy->type == SENS_JOY_HAT)
-			{
+			else if (joy->type == SENS_JOY_HAT) {
 				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
 				&joy->hat, 1, 4.0, 100, 0,
 				"Specify which hat to use");
@@ -1877,12 +1875,10 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			wval = (width-100)/3;
 			if (oa->type == ACT_OBJECT_NORMAL)
 			{
-				if ( ob->gameflag & OB_DYNAMIC )
-				{
+				if (ob->gameflag & OB_DYNAMIC) {
 					ysize= 175;
 				}
-				else
-				{
+				else {
 					ysize= 72;
 				}
 
@@ -2030,12 +2026,10 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &aa->end_reset, 0.0, 0.0, 0, 0, "Restore last frame when switching on/off, otherwise play from the start each time");
 			
 			
-			if(aa->type == ACT_ACTION_FROM_PROP)
-			{
+			if(aa->type == ACT_ACTION_FROM_PROP) {
 				uiDefBut(block, TEX, 0, "Prop: ",xco+10, yco-44, width-20, 19, aa->name, 0.0, MAX_NAME, 0, 0, "Use this property to define the Action position");
 			}
-			else
-			{
+			else {
 				uiDefButF(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 1.0, MAXFRAMEF, 0, 0, "Start frame");
 				uiDefButF(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 1.0, MAXFRAMEF, 0, 0, "End frame");
 			}
@@ -2047,8 +2041,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 
 			
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
-			if(aa->type == ACT_ACTION_MOTION)
-			{
+			if (aa->type == ACT_ACTION_MOTION) {
 				uiDefButF(block, NUM, 0, "Cycle: ",xco+30, yco-84, (width-60)/2, 19, &aa->stridelength, 0.0, 2500.0, 0, 0, "Distance covered by a single cycle of the action");
 			}
 #endif
@@ -2184,8 +2177,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					          12.0, 0, 0, "Sets the pitch of this sound");
 					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
 					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
-					if(sa->flag & ACT_SND_3D_SOUND)
-					{
+					if(sa->flag & ACT_SND_3D_SOUND) {
 						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
 						          &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0,
 						          "The minimum gain of the sound, no matter how far it is away");
@@ -2394,14 +2386,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &coa->flag, 0.0, 0.0, 0, 0, "Set object axis along (local axis) or parallel (global axis) to the normal at hit position");
 			uiDefButBitS(block, TOG, ACT_CONST_MATERIAL, B_REDR, "M/P", xco+10, yco-84, 40, 19,
 					 &coa->flag, 0.0, 0.0, 0, 0, "Detect material instead of property");
-			if (coa->flag & ACT_CONST_MATERIAL)
-			{
+			if (coa->flag & ACT_CONST_MATERIAL) {
 				uiDefBut(block, TEX, 1, "Material:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detects only Objects with this material");
 			}
-			else
-			{
+			else {
 				uiDefBut(block, TEX, 1, "Property:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detect only Objects with this property");
@@ -2453,14 +2443,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					 &coa->flag, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
 			uiDefButBitS(block, TOG, ACT_CONST_MATERIAL, B_REDR, "M/P", xco+10, yco-84, 40, 19,
 					 &coa->flag, 0.0, 0.0, 0, 0, "Detect material instead of property");
-			if (coa->flag & ACT_CONST_MATERIAL)
-			{
+			if (coa->flag & ACT_CONST_MATERIAL) {
 				uiDefBut(block, TEX, 1, "Material:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detects only Objects with this material");
 			}
-			else
-			{
+			else {
 				uiDefBut(block, TEX, 1, "Property:", xco + 50, yco-84, (width-60), 19,
 					coa->matprop, 0, MAX_NAME, 0, 0,
 					"Ray detect only Objects with this property");
@@ -2547,9 +2535,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		  break; 
 	case ACT_GAME:
 		{
-			gma = act->data; 
-			if (gma->type == ACT_GAME_LOAD)
-			{
+			gma = act->data;
+			if (gma->type == ACT_GAME_LOAD) {
 				//ysize = 68;
 				ysize = 48;
 				glRects(xco, yco-ysize, xco+width, yco); 
@@ -2557,8 +2544,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				   uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, sizeof(gma->filename), 0, 0, "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
 //				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, sizeof(gma->loadaniname), 0, 0, "Use this loadinganimation");
 			}
-/*			else if (gma->type == ACT_GAME_START)
-			{
+#if 0
+			else if (gma->type == ACT_GAME_START) {
 				ysize = 68; 
 				glRects(xco, yco-ysize, xco+width, yco); 
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -2566,8 +2553,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				   uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, sizeof(gma->filename), 0, 0, "Load this file");
 				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, sizeof(gma->loadaniname), 0, 0, "Use this loadinganimation");
 			}
-*/			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG))
-			{
+#endif
+			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG)) {
 				ysize = 28; 
 				glRects(xco, yco-ysize, xco+width, yco); 
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
@@ -2804,15 +2791,14 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			&ma->bodyType, 0.0, 0.0, 0, 0,
 			"Toggle message type: either Text or a PropertyName");
 
-		if (ma->bodyType == ACT_MESG_MESG)
-		{
+		if (ma->bodyType == ACT_MESG_MESG) {
 			/* line 3: Message Body */
 			uiDefBut(block, TEX, 1, "Body: ",
 			(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
 			&ma->body, 0, MAX_NAME, 0, 0,
 			"Optional message body Text");
-		} else
-		{
+		}
+		else {
 			/* line 3: Property body (set by property) */
 			uiDefBut(block, TEX, 1, "Propname: ",
 			(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
@@ -2826,8 +2812,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		tdfa = act->data;
 
 		ysize = 50;
-		if(tdfa->type == ACT_2DFILTER_CUSTOMFILTER)
-		{
+		if (tdfa->type == ACT_2DFILTER_CUSTOMFILTER) {
 			ysize +=20;
 		}
 		glRects( xco, yco-ysize, xco+width, yco ); 
@@ -2836,13 +2821,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		switch(tdfa->type)
 		{
 			case ACT_2DFILTER_MOTIONBLUR:
-				if(!tdfa->flag)
-				{
+				if (!tdfa->flag) {
 					uiDefButS(block, TOG, B_REDR, "D",	xco+30,yco-44,19, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Disable Motion Blur");
 					uiDefButF(block, NUM, B_REDR, "Value:", xco+52,yco-44,width-82,19,&tdfa->float_arg,0.0,1.0,0.0,0.0,"Set motion blur value");
 				}
-				else
-				{
+				else {
 					uiDefButS(block, TOG, B_REDR, "Disabled",	xco+30,yco-44,width-60, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Enable Motion Blur");
 				}
 				break;
@@ -3806,6 +3789,16 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 
 			uiItemR(layout, ptr, "weight", 0, NULL, ICON_NONE);
 			break;
+		case ACT_ARM_SETINFLUENCE:
+			if (ob->pose) {
+				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
+				
+				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
+					uiItemPointerR(layout, ptr, "constraint", &pchan_ptr, "constraints", NULL, ICON_CONSTRAINT_BONE);
+			}
+
+			uiItemR(layout, ptr, "influence", 0, NULL, ICON_NONE);
+			break;
 	}
 }
 
@@ -4174,11 +4167,11 @@ static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 		case ACT_PROP_COPY:
 			row = uiLayoutRow(layout, 0);
 			uiItemR(row, ptr, "object", 0, NULL, ICON_NONE);
-			if(ob_from){
+			if (ob_from) {
 				RNA_pointer_create((ID *)ob_from, &RNA_GameObjectSettings, ob_from, &obj_settings_ptr);
 				uiItemPointerR(row, ptr, "object_property", &obj_settings_ptr, "properties", NULL, ICON_NONE);
-			}else
-			{
+			}
+			else {
 				sub= uiLayoutRow(row, 0);
 				uiLayoutSetActive(sub, 0);
 				uiItemR(sub, ptr, "object_property", 0, NULL, ICON_NONE);
@@ -4312,8 +4305,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	uiLayout *row, *col;
 
 	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
-	if (!RNA_pointer_get(ptr, "sound").data)
-	{
+	if (!RNA_pointer_get(ptr, "sound").data) {
 		uiItemL(layout, "Select a sound from the list or load a new one", ICON_NONE);
 		return;
 	}
@@ -4389,21 +4381,18 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(col, ptr, "facing", 0, NULL, 0);
 	col = uiLayoutColumn(row, 0);
 	uiItemR(col, ptr, "facing_axis", 0, NULL, 0);
-	if (!RNA_boolean_get(ptr, "facing"))
-	{
+	if (!RNA_boolean_get(ptr, "facing")) {
 		uiLayoutSetActive(col, 0);
 	}
 	col = uiLayoutColumn(row, 0);
 	uiItemR(col, ptr, "normal_up", 0, NULL, 0);
-	if (!RNA_pointer_get(ptr, "navmesh").data)
-	{
+	if (!RNA_pointer_get(ptr, "navmesh").data) {
 		uiLayoutSetActive(col, 0);
 	}
 
 	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "self_terminated", 0, NULL, 0);
-	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING)
-	{
+	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING) {
 		uiItemR(row, ptr, "update_period", 0, NULL, 0);	
 		row = uiLayoutRow(layout, 0);
 	}
@@ -4703,7 +4692,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 				
 				/* put link button to the right */
 				col = uiLayoutColumn(split, 0);
-				/* use oldskool uiButtons for links for now */
+				/* use old-school uiButtons for links for now */
 				but= uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
 			}
@@ -4824,7 +4813,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 
 	/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that 
-	   we can determine which is actually linked/visible */
+	 * we can determine which is actually linked/visible */
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		act= ob->actuators.first;
@@ -4871,7 +4860,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		
 		/* mark all actuators linked to these controllers */
 		/* note that some of these actuators could be from objects that are not in the display list.
-		   It's ok because those actuators will not be displayed here */
+		 * It's ok because those actuators will not be displayed here */
 		cont= ob->controllers.first;
 		while(cont) {
 			for (iact=0; iact<cont->totlinks; iact++) {
@@ -5027,8 +5016,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
-					if(sens->flag & SENS_SHOW)
-					{
+					if (sens->flag & SENS_SHOW) {
 						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, UI_UNIT_Y, &sens->type, 0, 0, 0, 0, "Sensor type");
 						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens->name, 0, MAX_NAME, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);

@@ -974,7 +974,7 @@ static void free_softbody_intern(SoftBody *sb)
 ** Q: why not use 'simple' collision here like bouncing back a particle
 **   --> reverting is velocity on the face normal
 ** A: because our particles are not alone here
-**    and need to tell their neighbours exactly what happens via spring forces
+**    and need to tell their neighbors exactly what happens via spring forces
 ** unless sbObjectStep( .. ) is called on sub frame timing level
 ** BTW that also questions the use of a 'implicit' solvers on softbodies
 ** since that would only valid for 'slow' moving collision targets and dito particles
@@ -2756,7 +2756,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 								/*bjornmose:  uugh.. what an evil hack
 								violation of the 'don't touch bp->pos in here' rule
 								but works nice, like this-->
-								we predict the solution beeing out of the collider
+								we predict the solution being out of the collider
 								in heun step No1 and leave the heun step No2 adapt to it
 								so we kind of introduced a implicit solver for this case
 								*/
@@ -3289,7 +3289,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 			get_scalar_from_vertexgroup(ob, a,(short) (sb->vertgroup-1), &bp->goal);
 			/* do this always, regardless successfull read from vertex group */
-			/* this is where '2.5 every thing is animateable' goes wrong in the first place jow_go_for2_5 */
+			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
 			/* should be fixed for meshes */
@@ -3585,7 +3585,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		if (nu->bezt) {
 			/* bezier case ; this is nicly said naive; who ever wrote this part, it was not me (JOW) :) */
 			/* a: never ever make tangent handles (sub) and or (ob)ject to collision */
-			/* b: rather calculate them using some C2 (C2= continous in second derivate -> no jump in bending ) condition */
+			/* b: rather calculate them using some C2 (C2= continuous in second derivate -> no jump in bending ) condition */
 			/* not too hard to do, but needs some more code to care for;  some one may want look at it  JOW 2010/06/12*/
 			for (bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp+=3, curindex+=3) {
 				if (setgoal) {
@@ -3800,18 +3800,18 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 
 /* void SB_estimate_transform */
 /* input   Object *ob out (says any object that can do SB like mesh,lattice,curve )
-   output  float lloc[3],float lrot[3][3],float lscale[3][3]
-   that is:
-   a precise position vector denoting the motion of the center of mass
-   give a rotation/scale matrix using averaging method, that's why estimate and not calculate
-   see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
-   our advantage here we know the identity of the vertex
-   there are others methods giving other results.
-   lloc,lrot,lscale are allowed to be NULL, just in case you don't need it.
-   should be pretty useful for pythoneers :)
-   not! velocity .. 2nd order stuff
-   vcloud_estimate_transform see
-   */
+ * output  float lloc[3],float lrot[3][3],float lscale[3][3]
+ * that is:
+ * a precise position vector denoting the motion of the center of mass
+ * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
+ * see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
+ * our advantage here we know the identity of the vertex
+ * there are others methods giving other results.
+ * lloc,lrot,lscale are allowed to be NULL, just in case you don't need it.
+ * should be pretty useful for pythoneers :)
+ * not! velocity .. 2nd order stuff
+ * vcloud_estimate_transform see
+ */
 
 void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscale[3][3])
 {
@@ -3860,16 +3860,16 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
 
 		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
-		adaptive step size algo in a nutshell:
-		1.  set sheduled time step to new dtime
-		2.  try to advance the sheduled time step, beeing optimistic execute it
-		3.  check for success
-		3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so!
-		3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
-		4.  check if we did reach dtime
-		4.a nope we need to do some more at 2.
-		4.b yup we're done
-		*/
+		 * adaptive step size algo in a nutshell:
+		 * 1.  set scheduled time step to new dtime
+		 * 2.  try to advance the scheduled time step, being optimistic execute it
+		 * 3.  check for success
+		 * 3.a we 're fine continue, may be we can increase scheduled time again ?? if so, do so!
+		 * 3.b we did exceed error limit --> roll back, shorten the scheduled time and try again at 2.
+		 * 4.  check if we did reach dtime
+		 * 4.a nope we need to do some more at 2.
+		 * 4.b yup we're done
+		 */
 
 		copy_v3_v3(bp->prevpos, bp->pos);
 		copy_v3_v3(bp->prevvec, bp->vec);
@@ -3917,9 +3917,9 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	sst=PIL_check_seconds_timer();
 	/* Integration back in time is possible in theory, but pretty useless here.
-	So we refuse to do so. Since we do not know anything about 'outside' canges
-	especially colliders we refuse to go more than 10 frames.
-	*/
+	 * So we refuse to do so. Since we do not know anything about 'outside' canges
+	 * especially colliders we refuse to go more than 10 frames.
+	 */
 	if (dtime < 0 || dtime > 10.5f) return;
 
 	ccd_update_deflector_hash(scene, ob, sb->scratch->colliderhash);
@@ -3938,9 +3938,8 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		float forcetimemax = 1.0f; /* set defaults guess we shall do one frame */
 		float forcetimemin = 0.01f; /* set defaults guess 1/100 is tight enough */
 		float timedone =0.0; /* how far did we get without violating error condition */
-							 /* loops = counter for emergency brake
-							 * we don't want to lock up the system if physics fail
-		*/
+		                     /* loops = counter for emergency brake
+		                      * we don't want to lock up the system if physics fail */
 		int loops = 0;
 
 		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */

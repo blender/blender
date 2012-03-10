@@ -895,7 +895,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	int i;
 	
 	/* count the number of branches in this symmetry group
-	 * and determinte the axis of symmetry
+	 * and determinate the axis of symmetry
 	 *  */	
 	for (i = 0; i < node->degree; i++)
 	{

@@ -554,7 +554,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	}
 
 	/* detect if we are reading a tiled/mipmapped texture, in that case
-	   we don't read pixels but leave it to the cache to load tiles */
+	 * we don't read pixels but leave it to the cache to load tiles */
 	if(flags & IB_tilecache) {
 		format= NULL;
 		TIFFGetField(image, TIFFTAG_PIXAR_TEXTUREFORMAT, &format);

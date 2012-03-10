@@ -80,7 +80,7 @@ static void make_vertexcos__mapFunc(void *userData, int index, float *co, float 
 	vec+= 3*index;
 	if(!mappedData->flags[index]) {
 		/* we need coord from prototype vertex, not it clones or images,
-		   suppose they stored in the beginning of vertex array stored in DM */
+		 * suppose they stored in the beginning of vertex array stored in DM */
 		copy_v3_v3(vec, co);
 		mappedData->flags[index]= 1;
 	}
@@ -153,7 +153,7 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 			continue;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, v) {
-			BMLoop *l2 = BM_face_other_loop(l->e, l->f, v);
+			BMLoop *l2 = BM_face_other_edge_loop(l->f, l->e, v);
 			
 			/* retrieve mapped coordinates */
 			v1= mappedcos + 3*BM_elem_index_get(l->v);
@@ -334,8 +334,8 @@ int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em
 	md = modifiers_getVirtualModifierList(ob);
 
 	/* compute the deformation matrices and coordinates for the first
-	   modifiers with on cage editing that are enabled and support computing
-	   deform matrices */
+	 * modifiers with on cage editing that are enabled and support computing
+	 * deform matrices */
 	for(i = 0; md && i <= cageIndex; i++, md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -436,7 +436,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 
 	if(totleft) {
 		/* there are deformation modifier which doesn't support deformation matrices
-		   calculation. Need additional crazyspace correction */
+		 * calculation. Need additional crazyspace correction */
 
 		float (*deformedVerts)[3]= *deformcos;
 		float (*origVerts)[3]= MEM_dupallocN(deformedVerts);
@@ -452,7 +452,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 
 			if(mti->type==eModifierTypeType_OnlyDeform) {
 				/* skip leading modifiers which have been already
-				   handled in sculpt_get_first_deform_matrices */
+				 * handled in sculpt_get_first_deform_matrices */
 				if(mti->deformMatrices && !deformed)
 					continue;
 

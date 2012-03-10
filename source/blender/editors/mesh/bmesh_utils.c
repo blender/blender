@@ -277,7 +277,7 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 		MEM_freeN(me->edit_btmesh);
 	}
 
-	/* currently executing operators re-tesselates, so we can avoid doing here
+	/* currently executing operators re-tessellates, so we can avoid doing here
 	 * but at some point it may need to be added back. */
 #if 0
 	me->edit_btmesh = BMEdit_Create(bm, TRUE);
@@ -686,8 +686,9 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 					iterv->next = newvlist;
 					newvlist = iterv;
 				}
-				else
+				else {
 					lastv = iterv;
+				}
 
 				iterv = next;
 			}
@@ -960,7 +961,7 @@ void EDBM_free_uv_element_map(UvElementMap *element_map)
 }
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
- * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
+ * at the moment, last_sel is mainly useful for making sure the space image dosnt flicker */
 MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **r_act_efa, int sloppy)
 {
 	BMFace *efa = NULL;

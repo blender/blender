@@ -386,7 +386,7 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 }
 
 /* in X, out Y. 
-   X is presumed to be outside first or last */
+ * X is presumed to be outside first or last */
 static float curvemap_calc_extend(CurveMap *cuma, float x, const float first[2], const float last[2])
 {
 	if(x <= first[0]) {
@@ -454,7 +454,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	}
 	
 	/* first and last handle need correction, instead of pointing to center of next/prev, 
-		we let it point to the closest handle */
+	 * we let it point to the closest handle */
 	if(cuma->totpoint>2) {
 		float hlen, nlen, vec[3];
 		

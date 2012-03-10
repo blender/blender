@@ -822,6 +822,7 @@ class ConstraintButtonsPanel():
 class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
     bl_label = "Object Constraints"
     bl_context = "constraint"
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -846,6 +847,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
 class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
     bl_label = "Bone Constraints"
     bl_context = "bone_constraint"
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):

@@ -215,8 +215,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	if (sel.first != sel.last) select = 0;
 
 	/* Do we have a valid selection and are we actually selecting */
-	if ( (sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE)) )
-	{
+	if ((sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE))) {
 		/* Check last selection, if selected, act on the file or dir */
 		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
 			retval = file_select_do(C, sel.last);
@@ -735,7 +734,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		wmOperator *op= sfile->op;
 	
 		/* when used as a macro, for doubleclick, 
-		 to prevent closing when doubleclicking on .. item */
+		 * to prevent closing when doubleclicking on .. item */
 		if (RNA_boolean_get(exec_op->ptr, "need_active")) {
 			int i, active=0;
 			
@@ -996,8 +995,8 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 
 
 /* create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
-   The actual name is returned in 'name', 'folder' contains the complete path, including the new folder name.
-*/
+ * The actual name is returned in 'name', 'folder' contains the complete path, including the new folder name.
+ */
 static int new_folder_path(const char* parent, char *folder, char *name)
 {
 	int i = 1;
@@ -1006,8 +1005,8 @@ static int new_folder_path(const char* parent, char *folder, char *name)
 	BLI_strncpy(name, "New Folder", FILE_MAXFILE);
 	BLI_join_dirfile(folder, FILE_MAX, parent, name); /* XXX, not real length */
 	/* check whether folder with the name already exists, in this case
-	   add number to the name. Check length of generated name to avoid
-	   crazy case of huge number of folders each named 'New Folder (x)' */
+	 * add number to the name. Check length of generated name to avoid
+	 * crazy case of huge number of folders each named 'New Folder (x)' */
 	while (BLI_exists(folder) && (len<FILE_MAXFILE)) {
 		len = BLI_snprintf(name, FILE_MAXFILE, "New Folder(%d)", i);
 		BLI_join_dirfile(folder, FILE_MAX, parent, name); /* XXX, not real length */
@@ -1171,9 +1170,8 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
-	if(sfile->params) {
-		if (file_select_match(sfile, sfile->params->file))
-		{
+	if (sfile->params) {
+		if (file_select_match(sfile, sfile->params->file)) {
 			sfile->params->file[0] = '\0';
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}

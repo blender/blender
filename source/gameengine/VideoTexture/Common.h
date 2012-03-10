@@ -28,31 +28,31 @@ http://www.gnu.org/copyleft/lesser.txt.
 #define WINDOWS_LEAN_AND_MEAN
 #endif
 
-#if !defined NULL
+#ifndef NULL
 #define NULL 0
 #endif
 
-#if !defined HRESULT
+#ifndef HRESULT
 #define HRESULT long
 #endif
 
-#if !defined DWORD
+#ifndef DWORD
 #define DWORD unsigned long
 #endif
 
-#if !defined S_OK
+#ifndef S_OK
 #define S_OK ((HRESULT)0L)
 #endif
 
-#if !defined BYTE
+#ifndef BYTE
 #define BYTE unsigned char
 #endif
 
-#if !defined WIN32
+#ifndef WIN32
 #define Sleep(time) sleep(time)
 #endif
 
-#if !defined FAILED
+#ifndef FAILED
 #define FAILED(Status) ((HRESULT)(Status)<0)
 #endif
 

@@ -104,8 +104,8 @@ typedef struct tGPsdata {
 	short radius;		/* radius of influence for eraser */
 	short flags;		/* flags that can get set during runtime */
 
-	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
-						 * to region space */
+	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
+	                     * to region space */
 
 	float custom_color[4]; /* custom color for (?) */
 } tGPsdata;
@@ -194,8 +194,7 @@ static void gp_get_3d_reference (tGPsdata *p, float vec[3])
 	
 	/* the reference point used depends on the owner... */
 #if 0 // XXX: disabled for now, since we can't draw relative to the owner yet
-	if (p->ownerPtr.type == &RNA_Object) 
-	{
+	if (p->ownerPtr.type == &RNA_Object) {
 		Object *ob= (Object *)p->ownerPtr.data;
 		
 		/* active Object 
@@ -517,10 +516,8 @@ static void gp_stroke_simplify (tGPsdata *p)
 		pressure += old_points[offs].pressure * sfac; \
 	}
 	
-	for (i = 0, j = 0; i < num_points; i++)
-	{
-		if (i - j == 3)
-		{
+	for (i = 0, j = 0; i < num_points; i++) {
+		if (i - j == 3) {
 			float co[2], pressure;
 			int mco[2];
 			
@@ -578,8 +575,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	}
 	
 	/* special case for poly line -- for already added stroke during session
-	   coordinates are getting added to stroke immediatelly to allow more
-	   interactive behavior */
+	 * coordinates are getting added to stroke immediately to allow more
+	 * interactive behavior */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		if (p->flags & GP_PAINTFLAG_STROKEADDED)
 			return;
@@ -1148,7 +1145,7 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	
 	if (ED_gpencil_session_active()==0) {
 		/* initialize undo stack,
-		   also, existing undo stack would make buffer drawn */
+		 * also, existing undo stack would make buffer drawn */
 		gpencil_undo_init(p->gpd);
 	}
 	
@@ -1369,7 +1366,7 @@ static void gp_paint_strokeend (tGPsdata *p)
 static void gp_paint_cleanup (tGPsdata *p)
 {
 	/* p->gpd==NULL happens when stroke failed to initialize,
-	      for example. when GP is hidden in current space (sergey) */
+	 * for example. when GP is hidden in current space (sergey) */
 	if (p->gpd) {
 		/* finish off a stroke */
 		gp_paint_strokeend(p);
@@ -1855,8 +1852,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	/* handle mode-specific events */
 	if (p->status == GP_STATUS_PAINTING) {
 		/* handle painting mouse-movements? */
-		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) 
-		{
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
 			/* handle drawing event */
 			//printf("\t\tGP - add point\n");
 			gpencil_draw_apply_event(op, event);

@@ -41,7 +41,7 @@ class	KX_ConstraintWrapper : public PyObjectPlus
 public:
 	KX_ConstraintWrapper(PHY_ConstraintType ctype,int constraintId,class PHY_IPhysicsEnvironment* physenv);
 	virtual ~KX_ConstraintWrapper ();
-	int			getConstraintId() { return m_constraintId;};
+	int			getConstraintId() { return m_constraintId; }
 	
 #ifdef WITH_PYTHON
 	KX_PYMETHOD_NOARGS(KX_ConstraintWrapper,GetConstraintId);

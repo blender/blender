@@ -294,7 +294,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 /*
  * This thread is used to load video frame asynchronously.
  * It provides a frame caching service. 
- * The main thread is responsible for positionning the frame pointer in the
+ * The main thread is responsible for positioning the frame pointer in the
  * file correctly before calling startCache() which starts this thread.
  * The cache is organized in two layers: 1) a cache of 20-30 undecoded packets to keep
  * memory and CPU low 2) a cache of 5 decoded frames. 

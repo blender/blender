@@ -182,10 +182,8 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 	if (cmp == NULL) return;
 	if (listbase == NULL) return;
 
-	if (listbase->first != listbase->last)
-	{
-		for( previous = listbase->first, current = previous->next; current; current = next )
-		{
+	if (listbase->first != listbase->last) {
+		for (previous = listbase->first, current = previous->next; current; current = next) {
 			next = current->next;
 			previous = current->prev;
 			
@@ -332,6 +330,21 @@ void *BLI_findlink(const ListBase *listbase, int number)
 		while (link != NULL && number != 0) {
 			number--;
 			link = link->next;
+		}
+	}
+
+	return link;
+}
+
+void *BLI_rfindlink(const ListBase *listbase, int number)
+{
+	Link *link = NULL;
+
+	if (number >= 0) {
+		link = listbase->last;
+		while (link != NULL && number != 0) {
+			number--;
+			link = link->prev;
 		}
 	}
 

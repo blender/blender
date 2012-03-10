@@ -1043,7 +1043,8 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 	return noise3_perlin(vec);
 }
 
-/*static float turbulencep(float noisesize, float x, float y, float z, int nr)
+#if 0
+static float turbulencep(float noisesize, float x, float y, float z, int nr)
 {
 	float vec[3];
 
@@ -1052,7 +1053,8 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 	vec[2]= z/noisesize;
 	nr++;
 	return turbulence_perlin(vec, 1.0, (float)(1<<nr));
-}*/
+}
+#endif
 
 /******************/
 /* VORONOI/WORLEY */
@@ -1106,7 +1108,7 @@ static float dist_Minkovsky(float x, float y, float z, float e)
 
 
 /* Not 'pure' Worley, but the results are virtually the same.
-	 Returns distances in da and point coords in pa */
+ * Returns distances in da and point coords in pa */
 void voronoi(float x, float y, float z, float* da, float* pa, float me, int dtype)
 {
 	int xx, yy, zz, xi, yi, zi;
@@ -1222,7 +1224,7 @@ static float voronoi_Cr(float x, float y, float z)
 
 
 /* Signed version of all 6 of the above, just 2x-1, not really correct though (range is potentially (0, sqrt(6)).
-   Used in the musgrave functions */
+ * Used in the musgrave functions */
 static float voronoi_F1S(float x, float y, float z)
 {
 	float da[4], pa[12];
@@ -1506,9 +1508,10 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
  *    ``octaves''  is the number of frequencies in the fBm
  *    ``offset''  is the zero offset, which determines multifractality (NOT USED??)
  */
- /* this one is in fact rather confusing,
-	 * there seem to be errors in the original source code (in all three versions of proc.text&mod),
-	* I modified it to something that made sense to me, so it might be wrong... */
+
+/* this one is in fact rather confusing,
+ * there seem to be errors in the original source code (in all three versions of proc.text&mod),
+ * I modified it to something that made sense to me, so it might be wrong... */
 float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
 	float	rmd, value=1.0, pwr=1.0, pwHL=powf(lacunarity, -H);

@@ -113,7 +113,7 @@ static void fogcolor(float *colf, float *rco, float *view)
 		hor[2]= hor[2]*alpha;
 		addAlphaOverFloat(colf, hor);
 		
-		VECSUB(vec, vec, dview);
+		sub_v3_v3(vec, dview);
 	}	
 }
 #endif
@@ -173,17 +173,17 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[1]= shi->co[1]-lar->co[1];
 		p1[2]= -lar->co[2];
 		mul_m3_v3(lar->imat, p1);
-		VECCOPY(npos, p1);	// npos is double!
+		copy_v3db_v3fl(npos, p1);	// npos is double!
 		
 		/* pre-scale */
 		npos[2] *= (double)lar->sh_zfac;
 	}
 	else {
-		VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
+		copy_v3db_v3fl(npos, lar->sh_invcampos);	/* in initlamp calculated */
 	}
 	
 	/* rotate view */
-	VECCOPY(nray, shi->view);
+	copy_v3db_v3fl(nray, shi->view);
 	mul_m3_v3_double(lar->imat, nray);
 	
 	if(R.wrld.mode & WO_MIST) {
@@ -326,7 +326,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		*intens= c*( (1.0-a)+(1.0-b) );
 
 		/* WATCH IT: do not clip a,b en c at 1.0, this gives nasty little overflows
-			at the edges (especially with narrow halos) */
+		 * at the edges (especially with narrow halos) */
 		if(*intens<=0.0f) return;
 
 		/* soft area */
@@ -1771,8 +1771,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shade_one_light(lar, shi, shr, passflag);
 		}
 
-		/*this check is to prevent only shadow lamps from producing negative
-		  colors.*/
+		/* this check is to prevent only shadow lamps from producing negative
+		 * colors.*/
 		if (shr->spec[0] < 0) shr->spec[0] = 0;
 		if (shr->spec[1] < 0) shr->spec[1] = 0;
 		if (shr->spec[2] < 0) shr->spec[2] = 0;

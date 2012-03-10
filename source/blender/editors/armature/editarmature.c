@@ -179,7 +179,7 @@ EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 }
 
 /* helper function for tools to work on mirrored parts.
-   it leaves mirrored bones selected then too, which is a good indication of what happened */
+ * it leaves mirrored bones selected then too, which is a good indication of what happened */
 static void armature_select_mirrored(bArmature *arm)
 {
 	/* Select mirrored bones */
@@ -284,7 +284,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 					eBone->flag &= ~BONE_ROOTSEL;
 				}
 
-				/* probably not selected but just incase */
+				/* probably not selected but just in case */
 				eBone->flag &= ~BONE_TIPSEL;
 			}
 		}
@@ -438,8 +438,8 @@ void ED_armature_from_edit(Object *obedit)
 			newBone->prop= IDP_CopyProperty(eBone->prop);
 	}
 	
-	/*	Fix parenting in a separate pass to ensure ebone->bone connections
-		are valid at this point */
+	/* Fix parenting in a separate pass to ensure ebone->bone connections
+	 * are valid at this point */
 	for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
 		newBone= (Bone *)eBone->temp;
 		if (eBone->parent) {
@@ -1770,8 +1770,8 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 	int			sel=1;
 	
 	if(toggle==1) {
-		/*	Determine if there are any selected bones
-		And therefore whether we are selecting or deselecting */
+		/* Determine if there are any selected bones
+		 * and therefore whether we are selecting or deselecting */
 		for (eBone=arm->edbo->first;eBone;eBone=eBone->next){
 			//			if(arm->layer & eBone->layer) {
 			if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
@@ -1858,7 +1858,7 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 			ED_armature_deselect_all(obedit, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
-		   so a root selection needs to be delivered to the parent tip */
+		 * so a root selection needs to be delivered to the parent tip */
 		
 		if(selmask & BONE_SELECTED) {
 			if(nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
@@ -2375,7 +2375,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* TODO most of this code is copied from set3dcursor_invoke,
-	   it would be better to reuse code in set3dcursor_invoke */
+	 * it would be better to reuse code in set3dcursor_invoke */
 
 	/* temporarily change 3d cursor position */
 	Scene *scene;
@@ -2533,8 +2533,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 	curBone->temp = eBone;
 	eBone->temp = curBone;
 	
-	if (name != NULL)
-	{
+	if (name != NULL) {
 		BLI_strncpy(eBone->name, name, sizeof(eBone->name));
 	}
 
@@ -3605,7 +3604,7 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
 
 /* Switch Direction operator:
  * Currently, this does not use context loops, as context loops do not make it
- * easy to retrieve any hierarchial/chain relationships which are necessary for
+ * easy to retrieve any hierarchical/chain relationships which are necessary for
  * this to be done easily.
  */
 
@@ -3783,10 +3782,10 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	else if (arm->flag & ARM_MIRROR_EDIT) {
 		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
 		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 * This is useful for arm-chains, for example parenting lower arm to upper arm
 		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-		 *	then just use actbone. Useful when doing upper arm to spine.
+		 *   then just use actbone. Useful when doing upper arm to spine.
 		 */
 		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
 		if (actmirb == NULL) 
@@ -3812,7 +3811,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
 		 * - since the active one (and/or its mirror) will also be selected, we also need 
-		 * 	to check that we are not trying to opearate on them, since such an operation 
+		 * 	to check that we are not trying to operate on them, since such an operation
 		 *	would cause errors
 		 */
 		
@@ -3972,8 +3971,8 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
-		/*	Determine if there are any selected bones
-		And therefore whether we are selecting or deselecting */
+		/* Determine if there are any selected bones
+		 * And therefore whether we are selecting or deselecting */
 		if (CTX_DATA_COUNT(C, selected_bones) > 0)
 			action = SEL_DESELECT;
 	}
@@ -4158,8 +4157,8 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
 	selbone->roll = actbone->roll;
 	
 	/* if the bone being aligned has connected descendants they must be moved
-	according to their parent new position, otherwise they would be left
-	in an unconsistent state: connected but away from the parent*/
+	 * according to their parent new position, otherwise they would be left
+	 * in an inconsistent state: connected but away from the parent*/
 	fix_editbone_connected_children(edbo, selbone);
 	return;
 }
@@ -4179,10 +4178,10 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 	else if (arm->flag & ARM_MIRROR_EDIT) {
 		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
 		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 *   This is useful for arm-chains, for example parenting lower arm to upper arm
 		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-		 *	then just use actbone. Useful when doing upper arm to spine.
+		 *   then just use actbone. Useful when doing upper arm to spine.
 		 */
 		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
 		if (actmirb == NULL) 
@@ -4208,8 +4207,8 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
 		 * - since the active one (and/or its mirror) will also be selected, we also need 
-		 * 	to check that we are not trying to opearate on them, since such an operation 
-		 *	would cause errors
+		 *   to check that we are not trying to operate on them, since such an operation
+		 *   would cause errors
 		 */
 		
 		/* align selected bones to the active one */
@@ -4254,11 +4253,11 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 				int (*bone_func)(Object *, Bone *, void *)) 
 {
 	/* We want to apply the function bone_func to every bone 
-	* in an armature -- feed bone_looper the first bone and 
-	* a pointer to the bone_func and watch it go!. The int count 
-	* can be useful for counting bones with a certain property
-	* (e.g. skinnable)
-	*/
+	 * in an armature -- feed bone_looper the first bone and 
+	 * a pointer to the bone_func and watch it go!. The int count 
+	 * can be useful for counting bones with a certain property
+	 * (e.g. skinnable)
+	 */
 	int count = 0;
 	
 	if (bone) {
@@ -4269,8 +4268,8 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 		count += bone_looper(ob, bone->childbase.first, data, bone_func);
 		
 		/* try to execute bone_func for the next bone at this
-			* depth of the recursion.
-			*/
+		 * depth of the recursion.
+		 */
 		count += bone_looper(ob, bone->next, data, bone_func);
 	}
 	
@@ -4342,10 +4341,10 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 }
 
 /* test==0: deselect all
-   test==1: swap select (apply to all the opposite of current situation) 
-   test==2: only clear active tag
-   test==3: swap select (no test / inverse selection status of all independently)
-*/
+ * test==1: swap select (apply to all the opposite of current situation) 
+ * test==2: only clear active tag
+ * test==3: swap select (no test / inverse selection status of all independently)
+ */
 void ED_pose_deselectall (Object *ob, int test)
 {
 	bArmature *arm= ob->data;
@@ -4437,9 +4436,9 @@ static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
 static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
 {
 	/* This group creates a vertex group to ob that has the
-	  * same name as bone (provided the bone is skinnable). 
+	 * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
-	  */
+	 */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!defgroup_find_name(ob,bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
@@ -4688,7 +4687,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	}
 	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
 		/* is subsurf on? Lets use the verts on the limit surface then.
-		  * = same amount of vertices as mesh, but vertices  moved to the
+		 * = same amount of vertices as mesh, but vertices  moved to the
 		 * subsurfed position, like for 'optimal'. */
 		subsurf_calculate_limit_positions(mesh, verts);
 		vertsfilled = 1;
@@ -4738,7 +4737,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 
 	if(mode == ARM_GROUPS_NAME) {
 		/* Traverse the bone list, trying to create empty vertex 
-		 * groups cooresponding to the bone.
+		 * groups corresponding to the bone.
 		 */
 		bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
 
@@ -5557,8 +5556,7 @@ void transform_armature_mirror_update(Object *obedit)
 					eboflip->roll= -ebo->roll;
 					
 					/* Also move connected parent, in case parent's name isn't mirrored properly */
-					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
-					{
+					if (eboflip->parent && eboflip->flag & BONE_CONNECTED) {
 						EditBone *parent = eboflip->parent;
 						copy_v3_v3(parent->tail, eboflip->head);
 						parent->rad_tail = ebo->rad_head;
@@ -5589,8 +5587,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 	bArmature *arm= obedit->data;
 	EditBone *lastBone = NULL;
 	
-	if (scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
-	{
+	if (scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE) {
 		ReebArcIterator arc_iter;
 		BArcIterator *iter = (BArcIterator*)&arc_iter;
 		float *previous = NULL, *current = NULL;
@@ -5624,8 +5621,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 			len1 = normalize_v3(vec1);
 			len2 = normalize_v3(vec2);
 
-			if (len1 > 0.0f && len2 > 0.0f && dot_v3v3(vec1, vec2) < angleLimit)
-			{
+			if (len1 > 0.0f && len2 > 0.0f && dot_v3v3(vec1, vec2) < angleLimit) {
 				copy_v3_v3(parent->tail, previous);
 
 				child = ED_armature_edit_bone_add(arm, "Bone");
@@ -5641,8 +5637,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		/* If the bone wasn't subdivided, delete it and return NULL
 		 * to let subsequent subdivision methods do their thing. 
 		 * */
-		if (parent == root)
-		{
+		if (parent == root) {
 			if(parent==arm->act_edbone) arm->act_edbone= NULL;
 			ED_armature_edit_bone_remove(arm, parent);
 			parent = NULL;
@@ -5658,8 +5653,7 @@ EditBone * test_subdivideByCorrelation(Scene *scene, Object *obedit, ReebArc *ar
 {
 	EditBone *lastBone = NULL;
 
-	if (scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
-	{
+	if (scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION) {
 		float invmat[4][4]= MAT4_UNITY;
 		float tmat[3][3]= MAT3_UNITY;
 		ReebArcIterator arc_iter;
@@ -5682,19 +5676,16 @@ float arcLengthRatio(ReebArc *arc)
 	
 	arcLength = len_v3v3(arc->head->p, arc->tail->p);
 	
-	if (arc->bcount > 0)
-	{
+	if (arc->bcount > 0) {
 		/* Add the embedding */
-		for ( i = 1; i < arc->bcount; i++)
-		{
+		for ( i = 1; i < arc->bcount; i++) {
 			embedLength += len_v3v3(arc->buckets[i - 1].p, arc->buckets[i].p);
 		}
 		/* Add head and tail -> embedding vectors */
 		embedLength += len_v3v3(arc->head->p, arc->buckets[0].p);
 		embedLength += len_v3v3(arc->tail->p, arc->buckets[arc->bcount - 1].p);
 	}
-	else
-	{
+	else {
 		embedLength = arcLength;
 	}
 	
@@ -5734,8 +5725,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	src = scene->basact->object;
 	
-	if (obedit != NULL)
-	{
+	if (obedit != NULL) {
 		ED_armature_from_edit(obedit);
 		ED_armature_edit_free(obedit);
 	}
@@ -5772,32 +5762,28 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		 * Finally, the arc direction is stored in its flag: 1 (low -> high), -1 (high -> low)
 		 */
 
-		/* if arc is a symmetry axis, internal bones go up the tree */		
-		if (arc->symmetry_level == 1 && arc->tail->degree != 1)
-		{
+		/* if arc is a symmetry axis, internal bones go up the tree */
+		if (arc->symmetry_level == 1 && arc->tail->degree != 1) {
 			head = arc->tail;
 			tail = arc->head;
 			
 			arc->flag = -1; /* mark arc direction */
 		}
 		/* Bones point AWAY from the symmetry axis */
-		else if (arc->head->symmetry_level == 1)
-		{
+		else if (arc->head->symmetry_level == 1) {
 			head = arc->head;
 			tail = arc->tail;
 			
 			arc->flag = 1; /* mark arc direction */
 		}
-		else if (arc->tail->symmetry_level == 1)
-		{
+		else if (arc->tail->symmetry_level == 1) {
 			head = arc->tail;
 			tail = arc->head;
 			
 			arc->flag = -1; /* mark arc direction */
 		}
 		/* otherwise, always go from low weight to high weight */
-		else
-		{
+		else {
 			head = arc->head;
 			tail = arc->tail;
 			
@@ -5805,10 +5791,8 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		}
 		
 		/* Loop over subdivision methods */	
-		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++)
-		{
-			switch(scene->toolsettings->skgen_subdivisions[i])
-			{
+		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++) {
+			switch(scene->toolsettings->skgen_subdivisions[i]) {
 				case SKGEN_SUB_LENGTH:
 					lastBone = test_subdivideByLength(scene, obedit, arc, head, tail);
 					break;
@@ -5821,8 +5805,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 			}
 		}
 	
-		if (lastBone == NULL)
-		{
+		if (lastBone == NULL) {
 			EditBone	*bone;
 			bone = ED_armature_edit_bone_add(obedit->data, "Bone");
 			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
@@ -5843,20 +5826,18 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		ReebArc *incomingArc = NULL;
 		int i;
 
-		for (i = 0; i < node->degree; i++)
-		{
+		for (i = 0; i < node->degree; i++) {
 			arc = (ReebArc*)node->arcs[i];
 
 			/* if arc is incoming into the node */
-			if ((arc->head == node && arc->flag == -1) || (arc->tail == node && arc->flag == 1))
+			if ((arc->head == node && arc->flag == -1) ||
+			    (arc->tail == node && arc->flag ==  1))
 			{
-				if (incomingArc == NULL)
-				{
+				if (incomingArc == NULL) {
 					incomingArc = arc;
 					/* loop further to make sure there's only one incoming arc */
 				}
-				else
-				{
+				else {
 					/* skip this node if more than one incomingArc */
 					incomingArc = NULL;
 					break; /* No need to look further, we are skipping already */
@@ -5864,8 +5845,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 			}
 		}
 
-		if (incomingArc != NULL)
-		{
+		if (incomingArc != NULL) {
 			EditBone *parentBone = BLI_ghash_lookup(arcBoneMap, incomingArc);
 
 			/* Look for outgoing arcs and parent their bones */
@@ -5874,8 +5854,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 				arc = node->arcs[i];
 
 				/* if arc is outgoing from the node */
-				if ((arc->head == node && arc->flag == 1) || (arc->tail == node && arc->flag == -1))
-				{
+				if ((arc->head == node && arc->flag == 1) || (arc->tail == node && arc->flag == -1)) {
 					EditBone *childBone = BLI_ghash_lookup(arcBoneMap, arc);
 
 					/* find the root bone */

@@ -254,11 +254,11 @@ static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op)
 static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 {
 	/*
-	  This operator is needed to set a correct state of the sound animation
-	  System. Unfortunately there's no really correct place to call the exec
-	  function, that's why I made it an operator that's only visible in the
-	  search menu. Apart from that the bake animation operator calls it too.
-	*/
+	 * This operator is needed to set a correct state of the sound animation
+	 * System. Unfortunately there's no really correct place to call the exec
+	 * function, that's why I made it an operator that's only visible in the
+	 * search menu. Apart from that the bake animation operator calls it too.
+	 */
 
 	/* identifiers */
 	ot->name= "Update animation";
@@ -345,8 +345,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
 						 accuracy, filename, specs, container, codec, bitrate);
 
-	if(result)
-	{
+	if (result) {
 		BKE_report(op->reports, RPT_ERROR, result);
 		return OPERATOR_CANCELLED;
 	}

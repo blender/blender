@@ -100,14 +100,14 @@ float mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
                           struct MVert *mvarray, float polynormal[3]);
 
 /* Find the index of the loop in 'poly' which references vertex,
-   returns -1 if not found */
+ * returns -1 if not found */
 int poly_find_loop_from_vert(const struct MPoly *poly,
 							 const struct MLoop *loopstart,
 							 unsigned vert);
 
 /* Fill 'adj_r' with the loop indices in 'poly' adjacent to the
-   vertex. Returns the index of the loop matching vertex, or -1 if the
-   vertex is not in 'poly' */
+ * vertex. Returns the index of the loop matching vertex, or -1 if the
+ * vertex is not in 'poly' */
 int poly_get_adj_loops_from_vert(unsigned adj_r[3], const struct MPoly *poly,
 								 const struct MLoop *mloop, unsigned vert);
 
@@ -141,10 +141,10 @@ void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 void convert_mfaces_to_mpolys(struct Mesh *mesh);
 void mesh_calc_normals_tessface(struct MVert *mverts, int numVerts,struct  MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 
-/*used for unit testing; compares two meshes, checking only
-  differences we care about.  should be usable with leaf's
-  testing framework I get RNA work done, will use hackish
-  testing code for now.*/
+/* used for unit testing; compares two meshes, checking only
+ * differences we care about.  should be usable with leaf's
+ * testing framework I get RNA work done, will use hackish
+ * testing code for now.*/
 const char *mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *mesh_get_bb(struct Object *ob);

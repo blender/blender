@@ -64,8 +64,8 @@ typedef struct EditVert
 	short xs, ys; /* used to store a screenspace 2d projection of the verts */
 	
 	/* f stores selection eg. if (eve->f & SELECT) {...
-	h for hidden. if (!eve->h) {...
-	f1 and f2 can be used for temp data, clear them first*/
+	 * h for hidden. if (!eve->h) {...
+	 * f1 and f2 can be used for temp data, clear them first*/
 	unsigned char f, h, f1, f2; 
 	float bweight;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */

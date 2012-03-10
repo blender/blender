@@ -36,7 +36,7 @@
 /* experiment with more advanced exr api */
 
 /* Note: as for now openexr only supports 32 chars in channel names.
-   This api also supports max 8 channels per pass now. easy to fix! */
+ * This api also supports max 8 channels per pass now. easy to fix! */
 #define EXR_LAY_MAXNAME		19
 #define EXR_PASS_MAXNAME	11
 #define EXR_TOT_MAXNAME		32

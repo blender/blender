@@ -51,7 +51,7 @@ static void do_normal(bNode *node, float *out, float *in)
 	float *nor= ((bNodeSocketValueVector*)sock->default_value)->value;
 	
 	/* render normals point inside... the widget points outside */
-	out[0]= -INPR(nor, in);
+	out[0]= -dot_v3v3(nor, in);
 }
 
 /* generates normal, does dot product */

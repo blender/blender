@@ -44,7 +44,7 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode* node, bN
 	NodeTexImage *tex = MEM_callocN(sizeof(NodeTexImage), "NodeTexImage");
 	default_tex_mapping(&tex->base.tex_mapping);
 	default_color_mapping(&tex->base.color_mapping);
-	tex->color_space = SHD_COLORSPACE_SRGB;
+	tex->color_space = SHD_COLORSPACE_COLOR;
 
 	node->storage = tex;
 }

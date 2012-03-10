@@ -543,8 +543,8 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	}
 	
 	/* if the panel is minimized vertically:
-		* (------)
-		*/
+	 * (------)
+	 */
 	if(panel->flag & PNL_CLOSEDY) {
 		
 	}
@@ -618,7 +618,7 @@ static int get_panel_size_y(Panel *pa)
 }
 
 /* this function is needed because uiBlock and Panel itself dont
-change sizey or location when closed */
+ * change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
 {
 	if(pa->flag & PNL_CLOSEDY) return pa->ofsy+pa->sizey;
@@ -639,10 +639,10 @@ typedef struct PanelSort {
 } PanelSort;
 
 /* note about sorting;
-   the sortorder has a lower value for new panels being added.
-   however, that only works to insert a single panel, when more new panels get
-   added the coordinates of existing panels and the previously stored to-be-insterted
-   panels do not match for sorting */
+ * the sortorder has a lower value for new panels being added.
+ * however, that only works to insert a single panel, when more new panels get
+ * added the coordinates of existing panels and the previously stored to-be-inserted
+ * panels do not match for sorting */
 
 static int find_leftmost_panel(const void *a1, const void *a2)
 {
@@ -837,7 +837,7 @@ void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
 {
 	Panel *pa;
   
-	  /* set all panels as inactive, so that at the end we know
+	/* set all panels as inactive, so that at the end we know
 	 * which ones were used */
 	for(pa=ar->panels.first; pa; pa=pa->next) {
 		if(pa->runtime_flag & PNL_ACTIVE)
@@ -1150,11 +1150,14 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					}
 				}
 				else if(event->type == ESCKEY) {
-					/*XXX 2.50 if(block->handler) {
+					/*XXX 2.50*/
+#if 0
+					if(block->handler) {
 						rem_blockhandler(sa, block->handler);
 						ED_region_tag_redraw(ar);
 						retval= WM_UI_HANDLER_BREAK;
-					}*/
+					}
+#endif
 				}
 				else if(event->type==PADPLUSKEY || event->type==PADMINUS) {
 #if 0 // XXX make float panel exception?
@@ -1297,13 +1300,17 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 	ED_region_tag_redraw(ar);
 
 	/* XXX exception handling, 3d window preview panel */
-	/* if(block->drawextra==BIF_view3d_previewdraw)
-		BIF_view3d_previewrender_clear(curarea);*/
-	
+#if 0
+	if(block->drawextra==BIF_view3d_previewdraw)
+		BIF_view3d_previewrender_clear(curarea);
+#endif
+
 	/* XXX exception handling, 3d window preview panel */
-	/* if(block->drawextra==BIF_view3d_previewdraw)
+#if 0
+	if(block->drawextra==BIF_view3d_previewdraw)
 		BIF_view3d_previewrender_signal(curarea, PR_DISPRECT);
 	else if(strcmp(block->name, "image_panel_preview")==0)
-		image_preview_event(2); */
+		image_preview_event(2);
+#endif
 }
 

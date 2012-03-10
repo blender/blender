@@ -278,12 +278,11 @@ this object
 }
 
 
-
+/**
+ * pre:
+ * ret: the cInt stored in the object
+ */
 cInt CIntValue::GetInt()
-/*
-pre:
-ret: the cInt stored in the object
-*/
 {
 	return m_int;
 }

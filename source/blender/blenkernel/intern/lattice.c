@@ -459,7 +459,7 @@ void end_latt_deform(Object *ob)
 }
 
 	/* calculations is in local space of deformed object
-	   so we store in latmat transform from path coord inside object 
+	 * so we store in latmat transform from path coord inside object 
 	 */
 typedef struct {
 	float dmin[3], dmax[3];

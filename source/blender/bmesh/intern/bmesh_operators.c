@@ -37,7 +37,7 @@
 #include "BLI_array.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);
@@ -679,7 +679,7 @@ static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot
  * into a slot for an operator.
  */
 void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                         const char hflag, const char htype)
+                                const char hflag, const char htype)
 {
 	BMIter elements;
 	BMElem *ele;
@@ -1042,6 +1042,12 @@ void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slotname)
 	return slot->data.buf ? *(void **)slot->data.buf : NULL;
 }
 
+/**
+ * \brief New Iterator
+ *
+ * \param restrictmask restricts the iteration to certain element types
+ * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
+ * over an element buffer (not a mapping). */
 void *BMO_iter_new(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
                    const char *slotname, const char restrictmask)
 {

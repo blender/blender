@@ -165,8 +165,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 				pf= vfont->packedfile;
 				
 				// We need to copy a tmp font to memory unless it is already there
-				if(!tmpfnt)
-				{
+				if(!tmpfnt) {
 					tpf= MEM_callocN(sizeof(*tpf), "PackedFile");
 					tpf->data= MEM_mallocN(pf->size, "packFile");
 					tpf->size= pf->size;
@@ -178,11 +177,11 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 					tmpfnt->vfont= vfont;
 					BLI_addtail(&ttfdata, tmpfnt);
 				}
-			} else {
+			}
+			else {
 				pf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
-				
-				if(!tmpfnt)
-				{
+
+				if (!tmpfnt) {
 					tpf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 					
 					// Add temporary packed file to globals
@@ -257,8 +256,7 @@ VFont *load_vfont(Main *bmain, const char *name)
 			}
 			
 			// Do not add FO_BUILTIN_NAME to temporary listbase
-			if(strcmp(filename, FO_BUILTIN_NAME))
-			{
+			if (strcmp(filename, FO_BUILTIN_NAME)) {
 				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 				tmpfnt->pf= tpf;
 				tmpfnt->vfont= vfont;
@@ -372,7 +370,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	vfd= vfont_get_data(bmain, which_vfont(cu, info));
 	if (!vfd) return;
 
-	/*
+#if 0
 	if (cu->selend < cu->selstart) {
 		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart-2)))
 			sel= 1;
@@ -381,7 +379,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 		if ((charidx >= (cu->selstart-1)) && (charidx <= (cu->selend-1)))
 			sel= 1;
 	}
-	*/
+#endif
 
 	/* make a copy at distance ofsx,ofsy with shear*/
 	fsize= cu->fsize;
@@ -541,7 +539,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 	wchar_t *mem, *tmp, ascii;
 
 	/* renark: do calculations including the trailing '\0' of a string
-	   because the cursor can be at that location */
+	 * because the cursor can be at that location */
 
 	if(ob->type!=OB_FONT) return NULL;
 
@@ -941,7 +939,7 @@ struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int m
 
 	if(mode==FO_CURSUP || mode==FO_CURSDOWN || mode==FO_PAGEUP || mode==FO_PAGEDOWN) {
 		/* 2: curs up
-		   3: curs down */
+		 * 3: curs down */
 		ct= chartransdata+cu->pos;
 		
 		if((mode==FO_CURSUP || mode==FO_PAGEUP) && ct->linenr==0);

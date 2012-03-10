@@ -236,14 +236,14 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	/*
+#if 0
 	mval[0]= rect.xmin;
 	mval[1]= rect.ymin;
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmin, &rectf.ymin);
 	mval[0]= rect.xmax;
 	mval[1]= rect.ymax;
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
-*/
+#endif
 
 	if(!extend) {
 		for(report= reports->list.first; report; report= report->next) {

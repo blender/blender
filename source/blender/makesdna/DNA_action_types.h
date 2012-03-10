@@ -416,7 +416,7 @@ typedef enum eItasc_Solver {
 /* Groups -------------------------------------- */
 
 /* Action-Channel Group (agrp)
-
+ *
  * These are stored as a list per-Action, and are only used to 
  * group that Action's channels in an Animation Editor. 
  *

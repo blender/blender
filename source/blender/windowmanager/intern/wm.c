@@ -76,7 +76,7 @@ void WM_operator_free(wmOperator *op)
 
 #ifdef WITH_PYTHON
 	if(op->py_instance) {
-		/* do this first incase there are any __del__ functions or
+		/* do this first in case there are any __del__ functions or
 		 * similar that use properties */
 		BPY_DECREF(op->py_instance);
 	}
@@ -217,10 +217,10 @@ void WM_keymap_init(bContext *C)
 		wm->userconf= WM_keyconfig_new(wm, "Blender User");
 	
 	/* initialize only after python init is done, for keymaps that
-	   use python operators */
+	 * use python operators */
 	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
 		/* create default key config, only initialize once,
-		   it's persistent across sessions */
+		 * it's persistent across sessions */
 		if(!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
 			wm_window_keymap(wm->defaultconf);
 			ED_spacetypes_keymap(wm->defaultconf);
@@ -255,7 +255,7 @@ void WM_check(bContext *C)
 		}
 
 		/* case: no open windows at all, for old file reads */
-		wm_window_add_ghostwindows(C, wm);
+		wm_window_add_ghostwindows(wm);
 	}
 
 	/* case: fileread */

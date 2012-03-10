@@ -1,6 +1,4 @@
-
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +43,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_markers.h"
 #include "ED_transform.h" /* transform keymap */
 
 #include "sequencer_intern.h"
@@ -118,16 +117,19 @@ void sequencer_operatortypes(void)
 
 void sequencer_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
+	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
-
+	
+	/* Common items ------------------------------------------------------------------ */
+	keymap = WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
+	
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.show_overlay");
 
 	/* operators common to sequence and preview view */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
 
-	/* operators for sequence */
+	/* Strips Region --------------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
@@ -188,7 +190,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_inputs", SKEY, KM_PRESS, KM_ALT, 0);
 
 	/* multicam editing keyboard layout, switch to camera 1-10 using
-	   regular number keys */
+	 * regular number keys */
 	{
 		int keys[] = { ONEKEY, TWOKEY, THREEKEY, FOURKEY, FIVEKEY,
 		               SIXKEY, SEVENKEY, EIGHTKEY, NINEKEY, ZEROKEY };
@@ -213,7 +215,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 
 	/* 2.4x method, now use Alt for handles and select the side based on which handle was selected */
-	/*
+#if 0
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "linked_left", TRUE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
@@ -235,7 +237,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(kmi->ptr, "linked_right", TRUE);
-	 */
+#endif
 
 	/* 2.5 method, Alt and use selected handle */
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
@@ -287,7 +289,12 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "value", 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
-
+	
+	/* special markers hotkeys for anim editors: see note in definition of this function */
+	ED_marker_keymap_animedit_conflictfree(keymap);
+	
+	
+	/* Preview Region ----------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all_preview", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
@@ -307,6 +314,5 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 #endif
-
 }
 

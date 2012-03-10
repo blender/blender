@@ -32,13 +32,12 @@
  */
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 #include <stdlib.h>
 
 /**
  *	MISC utility functions.
- *
  */
 
 int bmesh_vert_in_edge(BMEdge *e, BMVert *v)
@@ -201,15 +200,13 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 	dl1->next = dl1->prev = NULL;
 }
 
-/*
- *			bmesh_disk_edge_next
+/**
+ * \brief Next Disk Edge
  *
  *	Find the next edge in a disk cycle
  *
- *  Returns -
- *	Pointer to the next edge in the disk cycle for the vertex v.
+ *	\return Pointer to the next edge in the disk cycle for the vertex v.
  */
-
 BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v)
 {
 	if (v == e->v1)

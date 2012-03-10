@@ -167,12 +167,11 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x2, float y2, float stepsize)
 {
 	/*
-	x1 is the starting x value to draw the wave,
-	x2 the end x value, same for y1 and y2
-	stepsize is width of a pixel.
-	*/
-	if(seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)
-	{
+	 * x1 is the starting x value to draw the wave,
+	 * x2 the end x value, same for y1 and y2
+	 * stepsize is width of a pixel.
+	 */
+	if(seq->flag & SEQ_AUDIO_DRAW_WAVEFORM) {
 		int i, j, pos;
 		int length = floor((x2-x1)/stepsize)+1;
 		float ymid = (y1+y2)/2;
@@ -478,7 +477,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		draw_shadedstrip(seq, col, x1, y1, (float)(seq->start), y2);
 		
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
-		* especially when the extension is very small */ 
+		 * especially when the extension is very small */ 
 		if (seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
 		else UI_GetColorPtrShade3ubv(col, col, -16);
 		
@@ -496,7 +495,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		draw_shadedstrip(seq, col, (float)(seq->start+seq->len), y1, x2, y2);
 		
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
-		* especially when the extension is very small */ 
+		 * especially when the extension is very small */ 
 		if (seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, 24);
 		else UI_GetColorPtrShade3ubv(col, col, -16);
 		
@@ -637,10 +636,10 @@ static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, floa
 }
 
 /*
-Draw a sequence strip, bounds check already made
-ARegion is currently only used to get the windows width in pixels
-so wave file sample drawing precision is zoom adjusted
-*/
+ * Draw a sequence strip, bounds check already made
+ * ARegion is currently only used to get the windows width in pixels
+ * so wave file sample drawing precision is zoom adjusted
+ */
 static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline_tint, float pixelx)
 {
 	View2D *v2d= &ar->v2d;
@@ -831,7 +830,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 		break;
 	case SEQ_DRAW_IMG_WAVEFORM:
-		if ((sseq->flag & SEQ_DRAW_COLOR_SEPERATED) != 0) {
+		if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
 			scope = make_sep_waveform_view_from_ibuf(ibuf);
 		} else {
 			scope = make_waveform_view_from_ibuf(ibuf);

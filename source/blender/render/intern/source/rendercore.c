@@ -1469,7 +1469,7 @@ static void addps_sss(void *cb_handle, int obi, int facenr, int x, int y, int z)
 	RenderPart *pa= handle->pa;
 
 	/* extra border for filter gives double samples on part edges,
-	   don't use those */
+	 * don't use those */
 	if(x<pa->crop || x>=pa->rectx-pa->crop)
 		return;
 	if(y<pa->crop || y>=pa->recty-pa->crop)
@@ -1528,9 +1528,9 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	sy = y + 0.5f;
 
 	/* we estimate the area here using shi->dxco and shi->dyco. we need to
-	   enabled shi->osatex these are filled. we compute two areas, one with
-	   the normal pointed at the camera and one with the original normal, and
-	   then clamp to avoid a too large contribution from a single pixel */
+	 * enabled shi->osatex these are filled. we compute two areas, one with
+	 * the normal pointed at the camera and one with the original normal, and
+	 * then clamp to avoid a too large contribution from a single pixel */
 	shi->osatex= 1;
 
 	copy_v3_v3(nor, shi->facenor);
@@ -1559,7 +1559,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	}
 
 	/* if nodetree, use the material that we are currently preprocessing
-	   instead of the node material */
+	 * instead of the node material */
 	if(shi->mat->nodetree && shi->mat->use_nodes)
 		shi->mat= mat;
 
@@ -2054,7 +2054,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		shade_input_set_shade_texco(shi);
 		
 		/* only do AO for a full bake (and obviously AO bakes)
-			AO for light bakes is a leftover and might not be needed */
+		 * AO for light bakes is a leftover and might not be needed */
 		if( ELEM3(bs->type, RE_BAKE_ALL, RE_BAKE_AO, RE_BAKE_LIGHT))
 			shade_samples_do_AO(ssamp);
 		

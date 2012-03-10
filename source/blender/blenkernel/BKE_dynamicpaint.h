@@ -32,7 +32,7 @@ typedef struct PaintSurfaceData {
 typedef struct PaintPoint {
 
 	/* Wet paint is handled at effect layer only
-	*  and mixed to surface when drying */
+	 * and mixed to surface when drying */
 	float e_color[3];
 	float e_alpha;
 	float wetness;

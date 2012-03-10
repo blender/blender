@@ -264,7 +264,7 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
  * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
  *	len: maximum length of string (to prevent overflows, etc.)
  *	defname: the name that should be used by default if none is specified already
- *	delim: the character which acts as a delimeter between parts of the name
+ *	delim: the character which acts as a delimiter between parts of the name
  */
 static int uniquename_find_dupe(ListBase *list, void *vlink, const char *name, short name_offs)
 {
@@ -335,7 +335,7 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	 * is the same as
 	 *   strcpy( start, eind ); 
 	 * except strcpy should not be used because there is overlap,
-	  * so use memmove's slightly more obscure syntax - Campbell
+	 * so use memmove's slightly more obscure syntax - Campbell
 	 */
 	
 #ifdef WIN32
@@ -439,7 +439,7 @@ void BLI_path_rel(char *file, const char *relfile)
 	if (BLI_strnlen(relfile, 3) > 2 && relfile[1] != ':') {
 		char* ptemp;
 		/* fix missing volume name in relative base,
-		   can happen with old recent-files.txt files */
+		 * can happen with old recent-files.txt files */
 		get_default_root(temp);
 		ptemp = &temp[2];
 		if (relfile[0] != '\\' && relfile[0] != '/') {
@@ -468,10 +468,9 @@ void BLI_path_rel(char *file, const char *relfile)
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
 
-	if (lslash) 
-	{	
+	if (lslash) {
 		/* find the prefix of the filename that is equal for both filenames.
-		   This is replaced by the two slashes at the beginning */
+		 * This is replaced by the two slashes at the beginning */
 		char *p= temp;
 		char *q= file;
 
@@ -490,8 +489,8 @@ void BLI_path_rel(char *file, const char *relfile)
 		}
 
 		/* we might have passed the slash when the beginning of a dir matches 
-		   so we rewind. Only check on the actual filename
-		*/
+		 * so we rewind. Only check on the actual filename
+		 */
 		if (*q != '/') {
 			while ( (q >= file) && (*q != '/') ) { --q; --p; }
 		} 
@@ -502,10 +501,10 @@ void BLI_path_rel(char *file, const char *relfile)
 		strcpy(res,	"//");
 
 		/* p now points to the slash that is at the beginning of the part
-		   where the path is different from the relative path. 
-		   We count the number of directories we need to go up in the
-		   hierarchy to arrive at the common 'prefix' of the path
-		*/			
+		 * where the path is different from the relative path. 
+		 * We count the number of directories we need to go up in the
+		 * hierarchy to arrive at the common 'prefix' of the path
+		 */
 		while (p && p < lslash)	{
 			if (*p == '/') 
 				strcat(res,	"../");
@@ -646,9 +645,9 @@ int BLI_path_abs(char *path, const char *basepath)
 
 	BLI_strncpy(vol, path, 3);
 	/* we are checking here if we have an absolute path that is not in the current
-	   blend file as a lib main - we are basically checking for the case that a 
-	   UNIX root '/' is passed.
-	*/
+	 * blend file as a lib main - we are basically checking for the case that a 
+	 * UNIX root '/' is passed.
+	 */
 	if (!wasrelative && (vol[1] != ':' && (vol[0] == '\0' || vol[0] == '/' || vol[0] == '\\'))) {
 		char *p = path;
 		get_default_root(tmp);
@@ -685,11 +684,11 @@ int BLI_path_abs(char *path, const char *basepath)
 	BLI_cleanup_path(NULL, base);
 	
 	/* push slashes into unix mode - strings entering this part are
-	   potentially messed up: having both back- and forward slashes.
-	   Here we push into one conform direction, and at the end we
-	   push them into the system specific dir. This ensures uniformity
-	   of paths and solving some problems (and prevent potential future
-	   ones) -jesterKing. */
+	 * potentially messed up: having both back- and forward slashes.
+	 * Here we push into one conform direction, and at the end we
+	 * push them into the system specific dir. This ensures uniformity
+	 * of paths and solving some problems (and prevent potential future
+	 * ones) -jesterKing. */
 	BLI_char_switch(tmp, '\\', '/');
 	BLI_char_switch(base, '\\', '/');	
 
@@ -716,11 +715,11 @@ int BLI_path_abs(char *path, const char *basepath)
 
 #ifdef WIN32
 	/* skip first two chars, which in case of
-	   absolute path will be drive:/blabla and
-	   in case of relpath //blabla/. So relpath
-	   // will be retained, rest will be nice and
-	   shiny win32 backward slashes :) -jesterKing
-	*/
+	 * absolute path will be drive:/blabla and
+	 * in case of relpath //blabla/. So relpath
+	 * // will be retained, rest will be nice and
+	 * shiny win32 backward slashes :) -jesterKing
+	 */
 	BLI_char_switch(path+2, '/', '\\');
 #endif
 	
@@ -730,7 +729,7 @@ int BLI_path_abs(char *path, const char *basepath)
 
 /*
  * Should only be done with command line paths.
- * this is NOT somthing blenders internal paths support like the // prefix
+ * this is NOT something blenders internal paths support like the // prefix
  */
 int BLI_path_cwd(char *path)
 {
@@ -747,18 +746,18 @@ int BLI_path_cwd(char *path)
 	
 	if (wasrelative==1) {
 		char cwd[FILE_MAX]= "";
-		BLI_current_working_dir(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
+		BLI_current_working_dir(cwd, sizeof(cwd)); /* in case the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
 			printf( "Could not get the current working directory - $PWD for an unknown reason.");
 		} else {
 			/* uses the blend path relative to cwd important for loading relative linked files.
-			*
-			* cwd should contain c:\ etc on win32 so the relbase can be NULL
-			* relbase being NULL also prevents // being misunderstood as relative to the current
-			* blend file which isnt a feature we want to use in this case since were dealing
-			* with a path from the command line, rather than from inside Blender */
-			
+			 *
+			 * cwd should contain c:\ etc on win32 so the relbase can be NULL
+			 * relbase being NULL also prevents // being misunderstood as relative to the current
+			 * blend file which isnt a feature we want to use in this case since were dealing
+			 * with a path from the command line, rather than from inside Blender */
+
 			char origpath[FILE_MAX];
 			BLI_strncpy(origpath, path, FILE_MAX);
 			
@@ -805,7 +804,7 @@ void BLI_getlastdir(const char* dir, char *last, const size_t maxlen)
 
 /* This is now only used to really get the user's default document folder */
 /* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
-   as default location to save documents */
+ * as default location to save documents */
 const char *BLI_getDefaultDocumentFolder(void)
 {
 #ifndef WIN32
@@ -838,8 +837,7 @@ const char *BLI_getDefaultDocumentFolder(void)
 		 */
 		hResult = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentfolder);
 		
-		if (hResult == S_OK)
-		{
+		if (hResult == S_OK) {
 			if (BLI_is_dir(documentfolder)) return documentfolder;
 		}
 		
@@ -1153,7 +1151,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 		ok= get_path_system(path, NULL, NULL, NULL, ver);
 		break;
 	default:
-		path[0]= '\0'; /* incase do_check is false */
+		path[0]= '\0'; /* in case do_check is false */
 		ok= FALSE;
 		BLI_assert(!"incorrect ID");
 	}
@@ -1196,8 +1194,8 @@ void BLI_setenv(const char *env, const char*val)
 
 
 /**
- Only set an env var if already not there.
- Like Unix setenv(env, val, 0);
+ * Only set an env var if already not there.
+ * Like Unix setenv(env, val, 0);
  */
 void BLI_setenv_if_new(const char *env, const char* val)
 {
@@ -1288,13 +1286,13 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 
 
 	/* we first push all slashes into unix mode, just to make sure we don't get
-	   any mess with slashes later on. -jesterKing */
+	 * any mess with slashes later on. -jesterKing */
 	/* constant strings can be passed for those parameters - don't change them - elubie */
-	/*
+#if 0
 	BLI_char_switch(relabase, '\\', '/');
 	BLI_char_switch(dir, '\\', '/');
 	BLI_char_switch(file, '\\', '/');
-	*/
+#endif
 
 	/* Resolve relative references */	
 	if (relabase && dir[0] == '/' && dir[1] == '/') {
@@ -1547,31 +1545,31 @@ char *BLI_path_basename(char *path)
 	return filename ? filename + 1 : path;
 }
 
-/*
-  Produce image export path.
-
-  Fails returning 0 if image filename is empty or if destination path
-  matches image path (i.e. both are the same file).
-
-  Trailing slash in dest_dir is optional.
-
-  Logic:
-
-  - if an image is "below" current .blend file directory, rebuild the
-	same dir structure in dest_dir
-
-  For example //textures/foo/bar.png becomes
-  [dest_dir]/textures/foo/bar.png.
-
-  - if an image is not "below" current .blend file directory,
-  disregard it's path and copy it in the same directory where 3D file
-  goes.
-
-  For example //../foo/bar.png becomes [dest_dir]/bar.png.
-
-  This logic will help ensure that all image paths are relative and
-  that a user gets his images in one place. It'll also provide
-  consistent behavior across exporters.
+/**
+ * Produce image export path.
+ *
+ * Fails returning 0 if image filename is empty or if destination path
+ * matches image path (i.e. both are the same file).
+ *
+ * Trailing slash in dest_dir is optional.
+ *
+ * Logic:
+ *
+ * - if an image is "below" current .blend file directory, rebuild the
+ * same dir structure in dest_dir
+ *
+ * For example //textures/foo/bar.png becomes
+ * [dest_dir]/textures/foo/bar.png.
+ *
+ * - if an image is not "below" current .blend file directory,
+ * disregard it's path and copy it in the same directory where 3D file
+ * goes.
+ *
+ * For example //../foo/bar.png becomes [dest_dir]/bar.png.
+ *
+ * This logic will help ensure that all image paths are relative and
+ * that a user gets his images in one place. It'll also provide
+ * consistent behavior across exporters.
  */
 int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
 {
@@ -1740,18 +1738,18 @@ static int add_win32_extension(char *name)
 	return (retval);
 }
 
-/*
-* Checks if name is a fully qualified filename to an executable.
-* If not it searches $PATH for the file. On Windows it also
-* adds the correct extension (.com .exe etc) from
-* $PATHEXT if necessary. Also on Windows it translates
-* the name to its 8.3 version to prevent problems with
-* spaces and stuff. Final result is returned in fullname.
-*
-* \param fullname The full path and full name of the executable
-* (must be FILE_MAX minimum)
-* \param name The name of the executable (usually argv[0]) to be checked
-*/
+/**
+ * Checks if name is a fully qualified filename to an executable.
+ * If not it searches $PATH for the file. On Windows it also
+ * adds the correct extension (.com .exe etc) from
+ * $PATHEXT if necessary. Also on Windows it translates
+ * the name to its 8.3 version to prevent problems with
+ * spaces and stuff. Final result is returned in fullname.
+ *
+ * \param fullname The full path and full name of the executable
+ * (must be FILE_MAX minimum)
+ * \param name The name of the executable (usually argv[0]) to be checked
+ */
 static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
 	char filename[FILE_MAX];
@@ -1849,15 +1847,15 @@ const char *BLI_program_dir(void)
 }
 
 /**
-* Gets the temp directory when blender first runs.
-* If the default path is not found, use try $TEMP
-* 
-* Also make sure the temp dir has a trailing slash
-*
-* \param fullname The full path to the temp directory
-* \param maxlen The size of the fullname buffer
-* \param userdir Directory specified in user preferences 
-*/
+ * Gets the temp directory when blender first runs.
+ * If the default path is not found, use try $TEMP
+ * 
+ * Also make sure the temp dir has a trailing slash
+ *
+ * \param fullname The full path to the temp directory
+ * \param maxlen The size of the fullname buffer
+ * \param userdir Directory specified in user preferences 
+ */
 static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 {
 	fullname[0] = '\0';

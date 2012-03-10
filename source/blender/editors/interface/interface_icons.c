@@ -607,7 +607,7 @@ static void init_iconfile_list(struct ListBase *list)
 		return;
 	
 	/* since BLI_dir_contents changes the current working directory, restore it 
-	   back to old value afterwards */
+	 * back to old value afterwards */
 	if(!BLI_current_working_dir(olddir, sizeof(olddir))) 
 		restoredir = 0;
 	totfile = BLI_dir_contents(icondir, &dir);
@@ -626,7 +626,7 @@ static void init_iconfile_list(struct ListBase *list)
 				ImBuf *bbuf= NULL;
 				/* check to see if the image is the right size, continue if not */
 				/* copying strings here should go ok, assuming that we never get back
-				   a complete path to file longer than 256 chars */
+				 * a complete path to file longer than 256 chars */
 				BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, filename);
 				bbuf= IMB_loadiffname(iconfilestr, IB_rect);
 
@@ -983,7 +983,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	
 	if(di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
-		with untransformed coordinates like the other icons */
+		 * with untransformed coordinates like the other icons */
 		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
 	else if(di->type == ICON_TYPE_TEXTURE) {
@@ -1015,8 +1015,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 
 static void ui_id_preview_image_render_size(bContext *C, ID *id, PreviewImage *pi, int size)
 {
-	if ((pi->changed[size] ||!pi->rect[size])) /* changed only ever set by dynamic icons */
-	{
+	if ((pi->changed[size] ||!pi->rect[size])) { /* changed only ever set by dynamic icons */
 		/* create the rect if necessary */
 		icon_set_image(C, id, pi, size);
 
@@ -1046,7 +1045,7 @@ static void ui_id_brush_render(bContext *C, ID *id)
 	
 	for(i = 0; i < NUM_ICON_SIZES; i++) {
 		/* check if rect needs to be created; changed
-		 only set by dynamic icons */
+		 * only set by dynamic icons */
 		if((pi->changed[i] || !pi->rect[i])) {
 			icon_set_image(C, id, pi, i);
 			pi->changed[i] = 0;
@@ -1070,8 +1069,8 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 		int tool, mode = 0;
 
 		/* XXX: this is not nice, should probably make brushes
-		   be strictly in one paint mode only to avoid
-		   checking various context stuff here */
+		 * be strictly in one paint mode only to avoid
+		 * checking various context stuff here */
 
 		if(CTX_wm_view3d(C) && ob) {
 			if(ob->mode & OB_MODE_SCULPT)

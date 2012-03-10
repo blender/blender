@@ -324,7 +324,7 @@ static PyObject * plot (PyImage * self, PyObject * args)
 	if (PyArg_ParseTuple(args, "s*hhhh|h:plot", &buffer, &width, &height, &x, &y, &mode))
 	{
 		// correct decoding, verify that buffer size is correct
-		// we need a continous memory buffer
+		// we need a continuous memory buffer
 		if (testPyBuffer(&buffer, width, height, 4))
 		{
 			getImageBuff(self)->plot((unsigned char*)buffer.buf, width, height, x, y, mode);

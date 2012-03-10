@@ -53,16 +53,16 @@
 
 #include "paint_intern.h"
 /* still needed for sculpt_stroke_get_location, should be
-   removed eventually (TODO) */
+ * removed eventually (TODO) */
 #include "sculpt_intern.h"
 
 /* TODOs:
-
-   Some of the cursor drawing code is doing non-draw stuff
-   (e.g. updating the brush rake angle). This should be cleaned up
-   still.
-
-   There is also some ugliness with sculpt-specific code.
+ *
+ * Some of the cursor drawing code is doing non-draw stuff
+ * (e.g. updating the brush rake angle). This should be cleaned up
+ * still.
+ *
+ * There is also some ugliness with sculpt-specific code.
  */
 
 typedef struct Snapshot {
@@ -220,8 +220,8 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 
 				if ((br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) || len <= 1) {
 					/* it is probably worth optimizing for those cases where 
-					   the texture is not rotated by skipping the calls to
-					   atan2, sqrtf, sin, and cos. */
+					 * the texture is not rotated by skipping the calls to
+					 * atan2, sqrtf, sin, and cos. */
 					if (br->mtex.tex && (rotation > 0.001f || rotation < -0.001f)) {
 						const float angle    = atan2f(y, x) + rotation;
 
@@ -367,7 +367,7 @@ static int sculpt_get_brush_geometry(bContext* C, ViewContext *vc,
 }
 
 /* Draw an overlay that shows what effect the brush's texture will
-   have on brush strength */
+ * have on brush strength */
 /* TODO: sculpt only for now */
 static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 				     ViewContext *vc, int x, int y)
@@ -380,7 +380,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		return;
 
 	/* save lots of GL state
-	   TODO: check on whether all of these are needed? */
+	 * TODO: check on whether all of these are needed? */
 	glPushAttrib(GL_COLOR_BUFFER_BIT|
 	             GL_CURRENT_BIT|
 	             GL_DEPTH_BUFFER_BIT|
@@ -519,20 +519,20 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		return;
 
 	/* can't use stroke vc here because this will be called during
-	   mouse over too, not just during a stroke */	   
+	 * mouse over too, not just during a stroke */
 	view3d_set_viewcontext(C, &vc);
 
 	/* TODO: as sculpt and other paint modes are unified, this
-	   special mode of drawing will go away */
+	 * special mode of drawing will go away */
 	if(vc.obact->sculpt) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		float location[3];
 		int pixel_radius, hit;
 
 		/* this is probably here so that rake takes into
-		   account the brush movements before the stroke
-		   starts, but this doesn't really belong in draw code
-		   (TODO) */
+		 * account the brush movements before the stroke
+		 * starts, but this doesn't really belong in draw code
+		 *  TODO) */
 		{
 			const float u = 0.5f;
 			const float v = 1 - u;
@@ -560,7 +560,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 		/* check if brush is subtracting, use different color then */
 		/* TODO: no way currently to know state of pen flip or
-		   invert key modifier without starting a stroke */
+		 * invert key modifier without starting a stroke */
 		if((!(brush->flag & BRUSH_INVERTED) ^
 		    !(brush->flag & BRUSH_DIR_IN)) &&
 		   ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,

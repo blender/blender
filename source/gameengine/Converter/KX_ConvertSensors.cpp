@@ -50,7 +50,7 @@
 #include "DNA_material_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_actuator_types.h" /* for SENS_ALL_KEYS ? this define is
-probably misplaced */
+                                 * probably misplaced */
 /* end of blender include block */
 
 #include "RAS_IPolygonMaterial.h"
@@ -315,9 +315,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				bMouseSensor *bmouse = (bMouseSensor *)sens->data;
 				
 				/* There are two main types of mouse sensors. If there is
-				* no focus-related behavior requested, we can make do
-				* with a basic sensor. This cuts down memory usage and
-				* gives a slight performance gain. */
+				 * no focus-related behavior requested, we can make do
+				 * with a basic sensor. This cuts down memory usage and
+				 * gives a slight performance gain. */
 				
 				SCA_MouseManager *eventmgr 
 					= (SCA_MouseManager*) logicmgr->FindEventManager(SCA_EventManager::MOUSE_EVENTMGR);

@@ -92,7 +92,7 @@ int		BLI_dynstr_get_len				(DynStr *ds);
 
 	/**
 	 * Get a DynStr's contents as a c-string.
-	 * <i> The returned c-string should be free'd
+	 * <i> The returned c-string should be freed
 	 * using MEM_freeN. </i>
 	 * 
 	 * \param ds The DynStr of interest.

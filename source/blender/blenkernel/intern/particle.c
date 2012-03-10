@@ -543,11 +543,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		}
 		
 		// check if we are last non-visible particle system
-		for(tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next) {
-			if(tpsys->part)
-			{
-				if(ELEM(tpsys->part->ren_as,PART_DRAW_OB,PART_DRAW_GR))
-				{
+		for (tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next) {
+			if (tpsys->part) {
+				if (ELEM(tpsys->part->ren_as,PART_DRAW_OB,PART_DRAW_GR)) {
 					nr++;
 					break;
 				}
@@ -2372,7 +2370,7 @@ void psys_find_parents(ParticleSimulationData *sim)
 	BLI_kdtree_free(tree);
 }
 
-static void get_strand_normal(Material *ma, float *surfnor, float surfdist, float *nor)
+static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
 {
 	float cross[3], nstrand[3], vnor[3], blend;
 
@@ -2383,7 +2381,7 @@ static void get_strand_normal(Material *ma, float *surfnor, float surfdist, floa
 		cross_v3_v3v3(cross, surfnor, nor);
 		cross_v3_v3v3(nstrand, nor, cross);
 
-		blend= INPR(nstrand, surfnor);
+		blend = dot_v3v3(nstrand, surfnor);
 		CLAMP(blend, 0.0f, 1.0f);
 
 		interp_v3_v3v3(vnor, nstrand, surfnor, blend);
@@ -2859,8 +2857,8 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 		cosangle= dot_v3v3(tangent, prev_tangent);
 
 		/* note we do the comparison on cosangle instead of
-		* angle, since floating point accuracy makes it give
-		* different results across platforms */
+		 * angle, since floating point accuracy makes it give
+		 * different results across platforms */
 		if(cosangle > 0.999999f) {
 			copy_v4_v4(key1->rot, key2->rot);
 		}
@@ -3487,16 +3485,14 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 		return;
 
 	/* clear all other appearances of this pointer (like on smoke flow modifier) */
-	if((md = modifiers_findByType(ob, eModifierType_Smoke)))
-	{
+	if ((md = modifiers_findByType(ob, eModifierType_Smoke))) {
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		if((smd->type == MOD_SMOKE_TYPE_FLOW) && smd->flow && smd->flow->psys)
 			if(smd->flow->psys == psys)
 				smd->flow->psys = NULL;
 	}
 
-	if((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
-	{
+	if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint))) {
 		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 		if(pmd->brush && pmd->brush->psys)
 			if(pmd->brush->psys == psys)
@@ -4426,7 +4422,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part, Partic
 
 		if (num >= psmd->dm->getNumTessFaces(psmd->dm)) {
 			/* happens when simplify is enabled
-				* gives invalid coords but would crash otherwise */
+			 * gives invalid coords but would crash otherwise */
 			num= DMCACHE_NOTFOUND;
 		}
 

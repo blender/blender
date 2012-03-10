@@ -148,12 +148,10 @@ void applyNumInput(NumInput *n, float *vec)
 				vec[j] = 0.0001f;
 			}
 			else {
-				if (n->inv[i])
-				{
+				if (n->inv[i]) {
 					vec[j] = 1.0f / n->val[i];
 				}
-				else
-				{
+				else {
 					vec[j] = n->val[i];
 				}
 			}

@@ -755,7 +755,7 @@ static void pose_copy_menu(Scene *scene)
 	pchanact= pchan;
 	arm= ob->data;
 
-	/* if proxy-protected bones selected, some things (such as locks + displays) shouldn't be changable, 
+	/* if proxy-protected bones selected, some things (such as locks + displays) shouldn't be changeable,
 	 * but for constraints (just add local constraints)
 	 */
 	if (pose_has_protected_selected(ob, 0)) {

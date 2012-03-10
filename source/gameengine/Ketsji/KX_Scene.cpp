@@ -1048,7 +1048,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	// in case this is a font
 	m_fonts.remove((KX_FontObject*)newobj);
 
-	/* currently does nothing, keep incase we need to Unregister something */
+	/* currently does nothing, keep in case we need to Unregister something */
 #if 0
 	if (m_sceneConverter)
 		m_sceneConverter->UnregisterGameObject(newobj);
@@ -1574,8 +1574,8 @@ void KX_Scene::LogicEndFrame()
 
 
 /**
-  * UpdateParents: SceneGraph transformation update.
-  */
+ * UpdateParents: SceneGraph transformation update.
+ */
 void KX_Scene::UpdateParents(double curtime)
 {
 	// we use the SG dynamic list

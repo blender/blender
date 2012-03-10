@@ -302,12 +302,12 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 /* 'clip' is used to know if our clip setting has changed */
 void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 {
-	ARegion *arsync= NULL;
+	ARegion *ar_sync= NULL;
 	RegionView3D *rv3d= ar->regiondata;
 	short viewlock;
 	/* this function copies flags from the first of the 3 other quadview
-	   regions to the 2 other, so it assumes this is the region whose
-	   properties are always being edited, weak */
+	 * regions to the 2 other, so it assumes this is the region whose
+	 * properties are always being edited, weak */
 	viewlock= rv3d->viewlock;
 
 	if ((viewlock & RV3D_LOCKED)==0)
@@ -326,15 +326,15 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 				rv3d->rflag &= ~RV3D_BOXCLIP;
 			}
 
-			/* use arsync so we sync with one of the aligned views below
+			/* use ar_sync so we sync with one of the aligned views below
 			 * else the view jumps on changing view settings like 'clip'
 			 * since it copies from the perspective view */
-			arsync= ar;
+			ar_sync= ar;
 		}
 	}
 
 	if (rv3d->viewlock & RV3D_BOXVIEW) {
-		view3d_boxview_copy(sa, arsync ? arsync : sa->regionbase.last);
+		view3d_boxview_copy(sa, ar_sync ? ar_sync : sa->regionbase.last);
 	}
 
 	ED_area_tag_redraw(sa);
@@ -356,7 +356,7 @@ typedef struct ViewOpsData {
 	float viewquat[4]; /* working copy of rv3d->viewquat */
 	float trackvec[3];
 	float mousevec[3]; /* dolly only */
-	float reverse, dist0;
+	float reverse, dist0, camzoom0;
 	float grid, far;
 	short axis_snap; /* view rotate only */
 
@@ -416,6 +416,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
 
 	vod->dist0= rv3d->dist;
+	vod->camzoom0= rv3d->camzoom;
 	copy_qt_qt(vod->viewquat, rv3d->viewquat);
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
 	vod->origx= vod->oldx= event->x;
@@ -445,8 +446,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 				negate_v3_v3(my_origin, rv3d->ofs);				/* ofs is flipped */
 
-				/* Set the dist value to be the distance from this 3d point */
-				/* this means youll always be able to zoom into it and panning wont go bad when dist was zero */
+				/* Set the dist value to be the distance from this 3d point
+				 * this means youll always be able to zoom into it and panning wont go bad when dist was zero */
 
 				/* remove dist value */
 				upvec[0] = upvec[1] = 0;
@@ -610,11 +611,12 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
 	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
 
-	/* disabled mode switching for now, can re-implement better, later on
+	/* disabled mode switching for now, can re-implement better, later on */
+#if 0
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
-	*/
+#endif
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_rotate");
@@ -640,16 +642,15 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		cross_v3_v3v3(q1+1, vod->trackvec, newvec);
 		normalize_v3(q1+1);
 
-		/* Allow for rotation beyond the interval
-			* [-pi, pi] */
+		/* Allow for rotation beyond the interval [-pi, pi] */
 		while (si > 1.0f)
 			si -= 2.0f;
 
 		/* This relation is used instead of
-			* phi = asin(si) so that the angle
-			* of rotation is linearly proportional
-			* to the distance that the mouse is
-			* dragged. */
+		 * - phi = asin(si) so that the angle
+		 * - of rotation is linearly proportional
+		 * - to the distance that the mouse is
+		 * - dragged. */
 		phi = si * (float)(M_PI / 2.0);
 
 		q1[0]= cos(phi);
@@ -676,8 +677,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		float m_inv[3][3];
 		float xvec[3] = {1.0f, 0.0f, 0.0f};
 		/* Sensitivity will control how fast the viewport rotates.  0.0035 was
-			obtained experimentally by looking at viewport rotation sensitivities
-			on other modeling programs. */
+		 * obtained experimentally by looking at viewport rotation sensitivities
+		 * on other modeling programs. */
 		/* Perhaps this should be a configurable user parameter. */
 		const float sensitivity = 0.0035f;
 
@@ -1254,11 +1255,12 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
-	/* disabled mode switching for now, can re-implement better, later on
+	/* disabled mode switching for now, can re-implement better, later on */
+#if 0
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
-	*/
+#endif
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
@@ -1414,11 +1416,12 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
-	/* disabled mode switching for now, can re-implement better, later on
+	/* disabled mode switching for now, can re-implement better, later on */
+#if 0
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
-	 */
+#endif
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
@@ -1466,7 +1469,17 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom, const short zoom_invert)
 {
 	float zfac=1.0;
+	short use_cam_zoom;
 
+	use_cam_zoom = (vod->rv3d->persp==RV3D_CAMOB) && !(vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d));
+
+	if (use_cam_zoom) {
+		float delta;
+		delta = (x - vod->origx + y - vod->origy) / 10.0f;
+		vod->rv3d->camzoom = vod->camzoom0 - delta;
+
+		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+	}
 	if (viewzoom==USER_ZOOM_CONT) {
 		double time= PIL_check_seconds_timer();
 		float time_step= (float)(time - vod->timer_lastdraw);
@@ -1514,12 +1527,20 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 			SWAP(float, len1, len2);
 		}
 		
-		zfac = vod->dist0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->dist;
+		if (use_cam_zoom) {
+			zfac = vod->camzoom0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->camzoom;
+			zfac = 0;
+		}
+		else {
+			zfac = vod->dist0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->dist;
+		}
 	}
 
-	if (zfac != 1.0f && zfac*vod->rv3d->dist > 0.001f * vod->grid &&
-			zfac * vod->rv3d->dist < 10.0f * vod->far)
-		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+	if (!use_cam_zoom) {
+		if (zfac != 1.0f && zfac*vod->rv3d->dist > 0.001f * vod->grid &&
+				zfac * vod->rv3d->dist < 10.0f * vod->far)
+			view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+	}
 
 	/* these limits were in old code too */
 	if (vod->rv3d->dist<0.001f * vod->grid) vod->rv3d->dist= 0.001f * vod->grid;
@@ -1612,7 +1633,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	if (delta < 0) {
 		/* this min and max is also in viewmove() */
 		if (use_cam_zoom) {
-			rv3d->camzoom-= 10;
+			rv3d->camzoom -= 10.0f;
 			if (rv3d->camzoom < RV3D_CAMZOOM_MIN) rv3d->camzoom= RV3D_CAMZOOM_MIN;
 		}
 		else if (rv3d->dist < 10.0f * v3d->far) {
@@ -1621,7 +1642,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (use_cam_zoom) {
-			rv3d->camzoom+= 10;
+			rv3d->camzoom += 10.0f;
 			if (rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom= RV3D_CAMZOOM_MAX;
 		}
 		else if (rv3d->dist> 0.001f * v3d->grid) {
@@ -1666,11 +1687,12 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
-	/* disabled mode switching for now, can re-implement better, later on
+	/* disabled mode switching for now, can re-implement better, later on */
+#if 0
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
-	 */
+#endif
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_dolly");
@@ -3538,11 +3560,12 @@ int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], cons
 	return (*depth==FLT_MAX) ? 0:1;
 }
 
-/* Gets the view trasnformation from a camera
-* currently dosnt take camzoom into account
-*
-* The dist is not modified for this function, if NULL its assimed zero
-* */
+/**
+ * Gets the view transformation from a camera
+ * currently dosnt take camzoom into account
+ *
+ * The dist is not modified for this function, if NULL its assumed zero
+ */
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 {
 	/* Offset */
@@ -3624,12 +3647,6 @@ BGpic *ED_view3D_background_image_new(View3D *v3d)
 void ED_view3D_background_image_remove(View3D *v3d, BGpic *bgpic)
 {
 	BLI_remlink(&v3d->bgpicbase, bgpic);
-
-	if (bgpic->ima)
-		id_us_min(&bgpic->ima->id);
-
-	if (bgpic->clip)
-		id_us_min(&bgpic->clip->id);
 
 	MEM_freeN(bgpic);
 }

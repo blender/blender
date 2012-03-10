@@ -367,18 +367,15 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short restore)
 {
 	/* sanity checks */
-	if (id && fcu && fcu->rna_path) 
-	{
+	if (id && fcu && fcu->rna_path) {
 		PointerRNA ptr, id_ptr;
 		PropertyRNA *prop;
 		
 		/* get RNA property that F-Curve affects */
 		RNA_id_pointer_create(id, &id_ptr);
-		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) 
-		{
+		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
 			/* rotations: radians <-> degrees? */
-			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION)
-			{
+			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
 				/* if the radians flag is not set, default to using degrees which need conversions */
 				if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
 					if (restore)

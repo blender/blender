@@ -85,12 +85,10 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
 
-	if (mmd->ob_arm) 
-	{
+	if (mmd->ob_arm) {
 		DagNode *armNode = dag_get_node(forest, mmd->ob_arm);
 		
-		dag_add_relation(forest, armNode, obNode,
-				DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mask Modifier");
+		dag_add_relation(forest, armNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mask Modifier");
 	}
 }
 
@@ -140,8 +138,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	
 	/* if mode is to use selected armature bones, aggregate the bone groups */
-	if (mmd->mode == MOD_MASK_MODE_ARM) /* --- using selected bones --- */
-	{
+	if (mmd->mode == MOD_MASK_MODE_ARM) { /* --- using selected bones --- */
 		GHash *vgroupHash;
 		Object *oba= mmd->ob_arm;
 		bPoseChannel *pchan;
@@ -156,10 +153,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		bone_select_array= MEM_mallocN(defbase_tot * sizeof(char), "mask array");
 
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++)
-		{
-			if (((pchan= get_pose_channel(oba->pose, def->name)) && pchan->bone && (pchan->bone->flag & BONE_SELECTED)))
-			{
+		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
+			pchan = get_pose_channel(oba->pose, def->name);
+			if (pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 				bone_select_array[i]= TRUE;
 				bone_select_tot++;
 			}
@@ -179,8 +175,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			BLI_ghash_insert(vgroupHash, def->name, SET_INT_IN_POINTER(i));
 		
 		/* if no bones selected, free hashes and return original mesh */
-		if (bone_select_tot == 0)
-		{
+		if (bone_select_tot == 0) {
 			BLI_ghash_free(vgroupHash, NULL, NULL);
 			MEM_freeN(bone_select_array);
 			
@@ -189,8 +184,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		
 		/* repeat the previous check, but for dverts */
 		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		if (dvert == NULL)
-		{
+		if (dvert == NULL) {
 			BLI_ghash_free(vgroupHash, NULL, NULL);
 			MEM_freeN(bone_select_array);
 			
@@ -311,8 +305,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* all verts must be available */
-		if (ok)
-		{
+		if (ok) {
 			BLI_ghash_insert(polyHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numPolys));
 			loop_mapping[numPolys] = numLoops;
 			numPolys++;

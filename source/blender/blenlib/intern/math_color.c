@@ -290,8 +290,8 @@ void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int 
 }
 
 /* we define a 'cpack' here as a (3 byte color code) number that can be expressed like 0xFFAA66 or so.
-   for that reason it is sensitive for endianness... with this function it works correctly
-*/
+ * for that reason it is sensitive for endianness... with this function it works correctly
+ */
 
 unsigned int hsv_to_cpack(float h, float s, float v)
 {
@@ -413,11 +413,11 @@ void minmax_rgb(short c[])
 }
 
 /*If the requested RGB shade contains a negative weight for
-  one of the primaries, it lies outside the color gamut 
-  accessible from the given triple of primaries.  Desaturate
-  it by adding white, equal quantities of R, G, and B, enough
-  to make RGB all positive.  The function returns 1 if the
-  components were modified, zero otherwise.*/
+ * one of the primaries, it lies outside the color gamut 
+ * accessible from the given triple of primaries.  Desaturate
+ * it by adding white, equal quantities of R, G, and B, enough
+ * to make RGB all positive.  The function returns 1 if the
+ * components were modified, zero otherwise.*/
 int constrain_rgb(float *r, float *g, float *b)
 {
 	float w;

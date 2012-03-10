@@ -372,11 +372,14 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
 	/* build a weights buffer */
 	n= 1;
-	/*k= 0;
+
+#if 0
+	k= 0;
 	for(i = -n; i <= n; i++)
 		for(j = -n; j <= n; j++)
 			weight[k++] = sqrt((float) i * i + j * j);
-			*/
+#endif
+
 	weight[0]=1; weight[1]=2; weight[2]=1;
 	weight[3]=2; weight[4]=0; weight[5]=2;
 	weight[6]=1; weight[7]=2; weight[8]=1;

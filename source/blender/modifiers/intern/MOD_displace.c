@@ -99,12 +99,10 @@ static int dependsOnTime(ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
-	if(dmd->texture)
-	{
+	if(dmd->texture) {
 		return BKE_texture_dependsOnTime(dmd->texture);
 	}
-	else
-	{
+	else {
 		return 0;
 	}
 }

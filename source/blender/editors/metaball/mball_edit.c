@@ -465,7 +465,7 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 		}
 		
 		/* When some metaelem was found, then it is necessary to select or
-		 * deselet it. */
+		 * deselect it. */
 		if(act) {
 			if(extend==0) {
 				/* Deselect all existing metaelems */

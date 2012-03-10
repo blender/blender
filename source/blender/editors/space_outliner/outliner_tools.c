@@ -391,7 +391,7 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 			gob->ob->flag |= SELECT;
 			base->flag = gob->ob->flag;
 			base->object= gob->ob;
-			id_lib_extern((ID *)gob->ob); /* incase these are from a linked group */
+			id_lib_extern((ID *)gob->ob); /* in case these are from a linked group */
 		}
 	}
 }
@@ -409,7 +409,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 				// when objects selected in other scenes... dunno if that should be allowed
 				Scene *scene_owner= (Scene *)outliner_search_back(soops, te, ID_SCE);
 				if(scene_owner && scene_act != scene_owner) {
-					ED_screen_set_scene(C, scene_owner);
+					ED_screen_set_scene(C, CTX_wm_screen(C), scene_owner);
 				}
 				/* important to use 'scene_owner' not scene_act else deleting objects can crash.
 				 * only use 'scene_act' when 'scene_owner' is NULL, which can happen when the
@@ -561,7 +561,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		Scene *sce= scene;	// to be able to delete, scenes are set...
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_select_cb);
 		if(scene != sce) {
-			ED_screen_set_scene(C, sce);
+			ED_screen_set_scene(C, CTX_wm_screen(C), sce);
 		}
 		
 		str= "Select Objects";
@@ -576,10 +576,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 
 		/* XXX: tree management normally happens from draw_outliner(), but when
-		        you're clicking to fast on Delete object from context menu in
-		        outliner several mouse events can be handled in one cycle without
-		        handling notifiers/redraw which leads to deleting the same object twice.
-		        cleanup tree here to prevent such cases. */
+		 *      you're clicking to fast on Delete object from context menu in
+		 *      outliner several mouse events can be handled in one cycle without
+		 *      handling notifiers/redraw which leads to deleting the same object twice.
+		 *      cleanup tree here to prevent such cases. */
 		outliner_cleanup_tree(soops);
 
 		DAG_scene_sort(bmain, scene);

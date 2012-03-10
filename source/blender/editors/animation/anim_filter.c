@@ -1052,8 +1052,7 @@ static size_t animfilter_act_group (bAnimContext *ac, ListBase *anim_data, bDope
 			 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
 			 * all its sub-curves to be shown
 			 */
-			if ( !(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
-			{
+			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE)) {
 				/* group must be editable for its children to be editable (if we care about this) */
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					/* get first F-Curve which can be used here */
@@ -1243,7 +1242,7 @@ static size_t animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, K
 		
 		/* loop through the channels adding ShapeKeys as appropriate */
 		for (kb= key->block.first; kb; kb= kb->next) {
-			/* skip the first one, since that's the non-animateable basis */
+			/* skip the first one, since that's the non-animatable basis */
 			// XXX maybe in future this may become handy?
 			if (kb == key->block.first) continue;
 			
@@ -1299,7 +1298,7 @@ static size_t animdata_filter_gpencil_data (ListBase *anim_data, bGPdata *gpd, i
 	return items;
 }
 
-/* Grab all Grase Pencil datablocks in file */
+/* Grab all Grease Pencil datablocks in file */
 // TODO: should this be amalgamated with the dopesheet filtering code?
 static size_t animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {

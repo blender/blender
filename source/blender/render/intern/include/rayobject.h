@@ -43,11 +43,10 @@ struct RayHint;
 struct VlakRen;
 
 /* RayObject
-
-   Can be a face/triangle, bvh tree, object instance, etc. This is the
-   public API used by the renderer, see rayobject_internal.h for the
-   internal implementation details. */
-
+ * Can be a face/triangle, bvh tree, object instance, etc. This is the
+ * public API used by the renderer, see rayobject_internal.h for the
+ * internal implementation details.
+ * */
 typedef struct RayObject RayObject;
 
 /* Intersection, see rayintersection.h */
@@ -74,8 +73,8 @@ void RE_rayobject_free(RayObject *r);
 void RE_rayobject_set_control(RayObject *r, void *data, int (*test_break)(void *data));
 
 /* RayObject representing faces, all data is locally available instead
-   of referring to some external data structure, for possibly faster
-   intersection tests. */
+ * of referring to some external data structure, for possibly faster
+ * intersection tests. */
 
 typedef struct RayFace {
 	float v1[4], v2[4], v3[4], v4[3];
@@ -89,8 +88,8 @@ typedef struct RayFace {
 RayObject* RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 
 /* RayObject representing faces directly from a given VlakRen structure. Thus
-   allowing to save memory, but making code triangle intersection dependent on
-   render structures. */
+ * allowing to save memory, but making code triangle intersection dependent on
+ * render structures. */
 
 typedef struct VlakPrimitive {
 	struct ObjectInstanceRen *ob;
@@ -104,10 +103,10 @@ RayObject* RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstance
 /* extend min/max coords so that the rayobject is inside them */
 void RE_rayobject_merge_bb(RayObject *ob, float *min, float *max);
 
-/* initializes an hint for optiming raycast where it is know that a ray will pass by the given BB often the origin point */
+/* initializes an hint for optimizing raycast where it is know that a ray will pass by the given BB often the origin point */
 void RE_rayobject_hint_bb(RayObject *r, struct RayHint *hint, float *min, float *max);
 
-/* initializes an hint for optiming raycast where it is know that a ray will be contained inside the given cone*/
+/* initializes an hint for optimizing raycast where it is know that a ray will be contained inside the given cone*/
 /* void RE_rayobject_hint_cone(RayObject *r, struct RayHint *hint, float *); */
 
 /* Internals */

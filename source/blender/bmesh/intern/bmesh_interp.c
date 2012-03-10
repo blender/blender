@@ -43,7 +43,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-#include "bmesh_private.h"
+#include "intern/bmesh_private.h"
 
 /**
  * \brief Data, Interp From Verts
@@ -283,7 +283,7 @@ static int quad_co(float *x, float *y, float v1[3], float v2[3], float v3[3], fl
 
 	normal_quad_v3(n2, projverts[0], projverts[1], projverts[2], projverts[3]);
 
-	if (INPR(n, n2) < -FLT_EPSILON) {
+	if (dot_v3v3(n, n2) < -FLT_EPSILON) {
 		return 0;
 	}
 

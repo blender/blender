@@ -106,8 +106,8 @@ BVHTree* bvhtree_from_mesh_edges(struct BVHTreeFromMesh *data, struct DerivedMes
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 
 /*
-* Math functions used by callbacks
-*/
+ * Math functions used by callbacks
+ */
 float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float v0[3], const float v1[3], const float v2[3]);
 float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3]);
 

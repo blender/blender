@@ -61,25 +61,25 @@ void RNA_api_camera(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "view_frame", "rna_camera_view_frame");
+	func = RNA_def_function(srna, "view_frame", "rna_camera_view_frame");
 	RNA_def_function_ui_description(func, "Return 4 points for the cameras frame (before object transformation)");
 
 	RNA_def_pointer(func, "scene", "Scene", "", "Scene to use for aspect calculation, when omitted 1:1 aspect is used");
 
 	/* return location and normal */
-	parm= RNA_def_float_vector(func, "result_1", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "result_1", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
-	parm= RNA_def_float_vector(func, "result_2", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "result_2", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
-	parm= RNA_def_float_vector(func, "result_3", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "result_3", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
-	parm= RNA_def_float_vector(func, "result_4", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "result_4", 3, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 }

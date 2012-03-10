@@ -66,8 +66,7 @@ static void icon_free(void *val)
 {
 	Icon* icon = val;
 
-	if (icon)
-	{
+	if (icon) {
 		if (icon->drawinfo_free) {		
 			icon->drawinfo_free(icon->drawinfo);
 		}
@@ -79,7 +78,7 @@ static void icon_free(void *val)
 }
 
 /* create an id for a new icon and make sure that ids from deleted icons get reused
-   after the integer number range is used up */
+ * after the integer number range is used up */
 static int get_next_free_id(void)
 {
 	int startId = gFirstIconId;
@@ -236,8 +235,7 @@ void BKE_icon_changed(int id)
 
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(id));
 	
-	if (icon)
-	{
+	if (icon) {
 		PreviewImage *prv = BKE_previewimg_get((ID*)icon->obj);
 
 		/* all previews changed */
@@ -302,8 +300,7 @@ void BKE_icon_set(int icon_id, struct Icon* icon)
 
 	old_icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 
-	if (old_icon)
-	{
+	if (old_icon) {
 		printf("BKE_icon_set: Internal error, icon already set: %d\n", icon_id);
 		return;
 	}

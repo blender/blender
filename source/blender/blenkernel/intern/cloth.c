@@ -288,8 +288,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, int moving)
 				
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, co_moving, (mfaces->v4 ? 4 : 3));
 			}
-			else
-			{
+			else {
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, (mfaces->v4 ? 4 : 3));
 			}
 			
@@ -332,8 +331,7 @@ void bvhselftree_update_from_cloth(ClothModifierData *clmd, int moving)
 				
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, co_moving, 1);
 			}
-			else
-			{
+			else {
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, 1);
 			}
 			
@@ -828,8 +826,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		cloth = clmd->clothObject;
 		clmd->clothObject->edgehash = NULL;
 	}
-	else if ( !clmd->clothObject )
-	{
+	else if (!clmd->clothObject) {
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject." );
 		return 0;
 	}
@@ -1096,8 +1093,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			
 			BLI_linklist_prepend ( &cloth->springs, spring );
 		}
-		else
-		{
+		else {
 			cloth_free_errorsprings(cloth, edgehash, edgelist);
 			return 0;
 		}

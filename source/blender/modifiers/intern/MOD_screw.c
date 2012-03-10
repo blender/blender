@@ -345,7 +345,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* Notice!
 		 *
 		 * Since we are only ordering the edges here it can avoid mallocing the
-		 * extra space by abusing the vert array berfore its filled with new verts.
+		 * extra space by abusing the vert array before its filled with new verts.
 		 * The new array for vert_connect must be at least sizeof(ScrewVertConnect) * totvert
 		 * and the size of our resulting meshes array is sizeof(MVert) * totvert * 3
 		 * so its safe to use the second 2 thrids of MVert the array for vert_connect,
@@ -543,19 +543,22 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 								ed_loop_flip= 0;
 							}
 
-						}/* else {
+						}
+#if 0
+						else {
 							printf("No Connected ___\n");
-						}*/
+						}
+#endif
 
 						/*printf("flip direction %i\n", ed_loop_flip);*/
 
 
 						/* switch the flip option if set
 						 * note: flip is now done at face level so copying vgroup slizes is easier */
-						/*						
+#if 0
 						if (do_flip)
 							ed_loop_flip= !ed_loop_flip;
-						*/
+#endif
 
 						if (angle < 0.0f)
 							ed_loop_flip= !ed_loop_flip;

@@ -264,7 +264,7 @@ if your unsure whether the text is upper or lower case use lower or upper string
 Use try/except Sparingly
 ------------------------
 
-The **try** statement useful to save time writing error checking code.
+The **try** statement is useful to save time writing error checking code.
 
 However **try** is significantly slower then an **if** since an exception has to be set each time, so avoid using **try** in areas of your code that execute in a loop and runs many times.
 

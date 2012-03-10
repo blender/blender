@@ -69,11 +69,11 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
  *
  * 1. jpeg - standard printing, u & v at quarter of resulution
  * 2. jvid - standaard video, u & v half resolution, frame not interlaced
-
-type 3 is unsupported as of jul 05 2000 Frank.
-
+ *
+ * type 3 is unsupported as of jul 05 2000 Frank.
+ *
  * 3. jstr - as 2, but written in 2 separate fields
-
+ *
  * 4. jmax - no scaling in the components
  */
 
@@ -142,8 +142,8 @@ static boolean fill_input_buffer(j_decompress_ptr cinfo)
 	my_src_ptr src = (my_src_ptr) cinfo->src;
 
 	/* Since we have given all we have got already
-	* we simply fake an end of file
-	*/
+	 * we simply fake an end of file
+	 */
 
 	src->pub.next_input_byte = src->terminal;
 	src->pub.bytes_in_buffer = 2;
@@ -177,8 +177,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
 {
 	my_src_ptr src;
 
-	if (cinfo->src == NULL)
-	{	/* first time for this JPEG object? */
+	if (cinfo->src == NULL) { /* first time for this JPEG object? */
 		cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)
 			((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
 	}
@@ -406,7 +405,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				/*
 				 * A little paranoid, but the file maybe
 				 * is broken... and a "extra" check is better
-				 * that a segfaul ;)
+				 * then segfault ;)
 				 */
 				if (!key) {
 					MEM_freeN(str);

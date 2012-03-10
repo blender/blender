@@ -137,13 +137,13 @@ typedef struct wmNotifier {
 } wmNotifier;
 
 
-/* 4 levels 
-
-0xFF000000; category
-0x00FF0000; data
-0x0000FF00; data subtype (unused?)
-0x000000FF; action
-*/
+/* 4 levels
+ *
+ * 0xFF000000; category
+ * 0x00FF0000; data
+ * 0x0000FF00; data subtype (unused?)
+ * 0x000000FF; action
+ */
 
 /* category */
 #define NOTE_CATEGORY		0xFF000000
@@ -449,7 +449,7 @@ typedef struct wmOperatorType {
 
 	/* for modal temporary operators, initially invoke is called. then
 	 * any further events are handled in modal. if the operation is
-	 * cancelled due to some external reason, cancel is called
+	 * canceled due to some external reason, cancel is called
 	 * - see defines below for return values */
 	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *);
 	int (*cancel)(struct bContext *, struct wmOperator *);

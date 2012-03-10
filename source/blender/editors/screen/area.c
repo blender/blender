@@ -466,9 +466,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
-
-	ar->do_draw= 0;
-	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
 	
@@ -488,6 +485,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
+
+	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 
@@ -496,9 +496,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 }
 
 /* **********************************
-   maybe silly, but let's try for now
-   to keep these tags protected
-   ********************************** */
+ * maybe silly, but let's try for now
+ * to keep these tags protected
+ * ********************************** */
 
 void ED_region_tag_redraw(ARegion *ar)
 {
@@ -658,8 +658,8 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	int tot=0;
 	
 	/* count how many actionzones with along same edge are available.
-	   This allows for adding more action zones in the future without
-	   having to worry about correct offset */
+	 * This allows for adding more action zones in the future without
+	 * having to worry about correct offset */
 	for(azt= sa->actionzones.first; azt; azt= azt->next) {
 		if(azt->edge == az->edge) tot++;
 	}
@@ -1432,7 +1432,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 
 	if(sl->next) {
 		/* workaround for case of double prevspace, render window
-		   with a file browser on top of it */
+		 * with a file browser on top of it */
 		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
 			ED_area_newspace(C, sa, sl->next->next->spacetype);
 		else
@@ -1659,7 +1659,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			y= -y;
 	}
 	else {
-		/* for now, allow scrolling in both directions (since layouts are optimised for vertical,
+		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
 		 * they often don't fit in horizontal layout)
 		 */
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);

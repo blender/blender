@@ -149,6 +149,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	/* mouse select in nodes used to be both keys, but perhaps this should be reduced? 
 	 * NOTE: mouse-clicks on left-mouse will fall through to allow transform-tweak, but also link/resize
+	 * NOTE 2: socket select is part of the node select operator, to handle overlapping cases
 	 */
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);

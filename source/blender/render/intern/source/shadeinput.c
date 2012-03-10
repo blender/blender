@@ -66,30 +66,31 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
-#define VECADDISFAC(v1,v3,fac) {*(v1)+= *(v3)*(fac); *(v1+1)+= *(v3+1)*(fac); *(v1+2)+= *(v3+2)*(fac);}
-
-
-
 /* Shade Sample order:
+ *
+ * - shade_samples_fill_with_ps()
+ *     - for each sample
+ *         - shade_input_set_triangle()  <- if prev sample-face is same, use shade_input_copy_triangle()
+ *         - if vlr
+ *             - shade_input_set_viewco()    <- not for ray or bake
+ *             - shade_input_set_uv()        <- not for ray or bake
+ *             - shade_input_set_normals()
+ * - shade_samples()
+ *     - if AO
+ *         - shade_samples_do_AO()
+ *     - if shading happens
+ *         - for each sample
+ *             - shade_input_set_shade_texco()
+ *             - shade_samples_do_shade()
+ * - OSA: distribute sample result with filter masking
+ *
+ */
 
-- shade_samples_fill_with_ps()
-	- for each sample
-		- shade_input_set_triangle()  <- if prev sample-face is same, use shade_input_copy_triangle()
-		- if vlr
-			- shade_input_set_viewco()    <- not for ray or bake
-			- shade_input_set_uv()        <- not for ray or bake
-			- shade_input_set_normals()
-- shade_samples()
-	- if AO
-		- shade_samples_do_AO()
-	- if shading happens
-		- for each sample
-			- shade_input_set_shade_texco()
-			- shade_samples_do_shade()
-- OSA: distribute sample result with filter masking
-
-	*/
+#define VECADDISFAC(v1,v3,fac)  {   \
+	*(v1 + 0) += *(v3 + 0) * (fac); \
+	*(v1 + 1) += *(v3 + 1) * (fac); \
+	*(v1 + 2) += *(v3 + 2) * (fac); \
+}
 
 /* initialize material variables in shadeinput, 
  * doing inverse gamma correction where applicable */
@@ -213,15 +214,15 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	shr->z= -shi->co[2];
 	
 	/* RAYHITS */
-/*
-	if(1 || shi->passflag & SCE_PASS_RAYHITS)
-	{
+#if 0
+	if(1 || shi->passflag & SCE_PASS_RAYHITS) {
 		shr->rayhits[0] = (float)shi->raycounter.faces.test;
 		shr->rayhits[1] = (float)shi->raycounter.bb.hit;
 		shr->rayhits[2] = 0.0;
 		shr->rayhits[3] = 1.0;
 	}
- */
+#endif
+
 	RE_RC_MERGE(&re_rc_counter[shi->thread], &shi->raycounter);
 }
 
@@ -294,7 +295,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	}
 }
 
-/* note, facenr declared volatile due to over-eager -O2 optimizations
+/* note, facenr declared volatile due to over-eager -O2 optimization's
  * on cygwin (particularly -frerun-cse-after-loop)
  */
 
@@ -821,8 +822,7 @@ void shade_input_set_normals(ShadeInput *shi)
 		
 		normalize_v3(shi->vn);
 	}
-	else
-	{
+	else {
 		copy_v3_v3(shi->vn, shi->facenor);
 		copy_v3_v3(shi->nmapnorm, shi->vn);
 	}
@@ -855,8 +855,7 @@ void shade_input_set_vertex_normals(ShadeInput *shi)
 		
 		normalize_v3(shi->vn);
 	}
-	else
-	{
+	else {
 		copy_v3_v3(shi->vn, shi->facenor);
 		copy_v3_v3(shi->nmapnorm, shi->vn);
 	}
@@ -928,7 +927,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		}
 		else {
 			/* qdn: flat faces have tangents too,
-			   could pick either one, using average here */
+			 * could pick either one, using average here */
 			tl= 1.0f/3.0f;
 			tu= -1.0f/3.0f;
 			tv= -1.0f/3.0f;
@@ -970,8 +969,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				// keeping tangents normalized at vertex level
 				// corresponds better to how it's done in game engines
-				if(obi->flag & R_TRANSFORMED)
-				{
+				if (obi->flag & R_TRANSFORMED) {
 					mul_mat3_m4_v3(obi->mat, c0); normalize_v3(c0);
 					mul_mat3_m4_v3(obi->mat, c1); normalize_v3(c1);
 					mul_mat3_m4_v3(obi->mat, c2); normalize_v3(c2);
@@ -1313,9 +1311,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				}
 			}
 		}
-	} /* else {
-	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
-	*/
+	}
+	/* else {
+	 * Note! For raytracing winco is not set,
+	 * important because thus means all shader input's need to have their variables set to zero
+	 * else un-initialized values are used
+	 */
 	if (shi->do_manage) {
 		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);

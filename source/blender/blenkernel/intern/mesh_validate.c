@@ -538,7 +538,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 
 	if (mesh->totpoly) {
 		/* second pass, iterate through all loops again and assign
-		   the newly created edges to them. */
+		 * the newly created edges to them. */
 		MPoly *mp= mesh->mpoly;
 		for(i=0; i < mesh->totpoly; i++, mp++) {
 			MLoop *l= &mesh->mloop[mp->loopstart];

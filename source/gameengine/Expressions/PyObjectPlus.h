@@ -186,7 +186,7 @@ public:                                                                       \
 #define PY_SET_ATTR_SUCCESS		 0
 
 /**
- * These macros are helpfull when embedding Python routines. The second
+ * These macros are helpful when embedding Python routines. The second
  * macro is one that also requires a documentation string
  */
 #define KX_PYMETHOD(class_name, method_name)                                   \
@@ -609,10 +609,10 @@ public:
 
 	static PyObject *GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr);
 	/* self=NULL => proxy to generic pointer detached from GE object
-	                if py_owns is true, the memory pointed by ptr will be deleted automatially with MEM_freeN 
-	   self!=NULL=> proxy attached to GE object, ptr is optional and point to a struct from which attributes can be defined
-	                if py_owns is true, the object will be deleted automatically, ptr will NOT be deleted 
-					(assume object destructor takes care of it) */
+	 *              if py_owns is true, the memory pointed by ptr will be deleted automatically with MEM_freeN
+	 * self!=NULL=> proxy attached to GE object, ptr is optional and point to a struct from which attributes can be defined
+	 *              if py_owns is true, the object will be deleted automatically, ptr will NOT be deleted
+	 *              (assume object destructor takes care of it) */
 	static PyObject *NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr, bool py_owns);
 
 	static	WarnLink*		GetDeprecationWarningLinkFirst(void);

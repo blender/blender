@@ -161,6 +161,14 @@ int SVMCompiler::stack_find_offset(ShaderSocketType type)
 	return offset;
 }
 
+void SVMCompiler::stack_clear_offset(ShaderSocketType type, int offset)
+{
+	int size = stack_size(type);
+
+	for(int i = 0; i < size; i++)
+		active_stack.users[offset + i]--;
+}
+
 void SVMCompiler::stack_backup(StackBackup& backup, set<ShaderNode*>& done)
 {
 	backup.done = done;
@@ -261,11 +269,7 @@ void SVMCompiler::stack_clear_users(ShaderNode *node, set<ShaderNode*>& done)
 					all_done = false;
 
 			if(all_done) {
-				int size = stack_size(output->type);
-
-				for(int i = 0; i < size; i++)
-					active_stack.users[output->stack_offset + i]--;
-
+				stack_clear_offset(output->type, output->stack_offset);
 				output->stack_offset = SVM_STACK_INVALID;
 
 				foreach(ShaderInput *in, output->links)
@@ -279,11 +283,7 @@ void SVMCompiler::stack_clear_temporary(ShaderNode *node)
 {
 	foreach(ShaderInput *input, node->inputs) {
 		if(!input->link && input->stack_offset != SVM_STACK_INVALID) {
-			int size = stack_size(input->type);
-
-			for(int i = 0; i < size; i++)
-				active_stack.users[input->stack_offset + i]--;
-
+			stack_clear_offset(input->type, input->stack_offset);
 			input->stack_offset = SVM_STACK_INVALID;
 		}
 	}
@@ -514,14 +514,14 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			generate_multi_closure(cl1in->link->parent, done, out1_offset);
 
 			if(fin)
-				active_stack.users[out1_offset]--;
+				stack_clear_offset(SHADER_SOCKET_FLOAT, out1_offset);
 		}
 
 		if(cl2in->link) {
 			generate_multi_closure(cl2in->link->parent, done, out2_offset);
 
 			if(fin)
-				active_stack.users[out2_offset]--;
+				stack_clear_offset(SHADER_SOCKET_FLOAT, out2_offset);
 		}
 	}
 	else {

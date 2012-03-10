@@ -1,8 +1,4 @@
-/** \file blender/imbuf/intern/openexr/openexr_stub.cpp
- *  \ingroup openexr
- */
 /*
-*
  * ***** BEGIN GPLLICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/openexr/openexr_stub.cpp
+ *  \ingroup openexr
+ */
 
 #include "openexr_api.h"
 #include "openexr_multi.h"

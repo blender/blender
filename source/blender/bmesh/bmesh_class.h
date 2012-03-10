@@ -217,7 +217,7 @@ enum {
 	BM_ELEM_HIDDEN  = (1 << 1),
 	BM_ELEM_SEAM    = (1 << 2),
 	BM_ELEM_SMOOTH  = (1 << 3), /* used for faces and edges, note from the user POV,
-                                  * this is a sharp edge when disabled */
+                                 * this is a sharp edge when disabled */
 
 	BM_ELEM_TAG     = (1 << 4), /* internal flag, used for ensuring correct normals
                                  * during multires interpolation, and any other time

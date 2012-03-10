@@ -1093,6 +1093,14 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 }
 
+
+static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+}
+
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "sun_direction", 0, "", ICON_NONE);
@@ -1225,7 +1233,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			ntype->uifunc= node_shader_buts_tex_image;
 			break;
 		case SH_NODE_TEX_ENVIRONMENT:
-			ntype->uifunc= node_shader_buts_tex_image;
+			ntype->uifunc= node_shader_buts_tex_environment;
 			break;
 		case SH_NODE_TEX_GRADIENT:
 			ntype->uifunc= node_shader_buts_tex_gradient;

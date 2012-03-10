@@ -459,7 +459,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		else
 			THRWEXCP(SceneInvalid, S_OK);
 		
-		if(scenePtr==NULL) /* incase the python proxy reference is invalid */
+		if(scenePtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(SceneInvalid, S_OK);
 		
 		// get observer pointer
@@ -471,7 +471,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		else
 			THRWEXCP(ObserverInvalid, S_OK);
 		
-		if(observerPtr==NULL) /* incase the python proxy reference is invalid */
+		if(observerPtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(ObserverInvalid, S_OK);
 
 		// get mirror pointer
@@ -481,7 +481,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		else
 			THRWEXCP(MirrorInvalid, S_OK);
 		
-		if(mirrorPtr==NULL) /* incase the python proxy reference is invalid */
+		if(mirrorPtr==NULL) /* in case the python proxy reference is invalid */
 			THRWEXCP(MirrorInvalid, S_OK);
 
 		// locate the material in the mirror

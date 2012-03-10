@@ -301,7 +301,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_posemode;
 	
 	/* set parent and add object are object-based operators, but we make them
-	   available here because it's useful to do in pose mode too */
+	 * available here because it's useful to do in pose mode too */
 	WM_keymap_add_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	

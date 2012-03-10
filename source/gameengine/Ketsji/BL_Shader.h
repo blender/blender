@@ -194,7 +194,7 @@ public:
 	bool				Ok()const;
 	unsigned int		GetProg();
 	void				SetProg(bool enable);
-	int					GetAttribute(){return mAttr;};
+	int					GetAttribute() { return mAttr; }
 
 	// -- 
 	// Apply methods : sets colected uniforms

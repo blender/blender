@@ -240,7 +240,7 @@ static wmKeyConfig *WM_keyconfig_active(wmWindowManager *wm)
 void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
 {
 	/* setting a different key configuration as active: we ensure all is
-	   updated properly before and after making the change */
+	 * updated properly before and after making the change */
 
 	WM_keyconfig_update(wm);
 
@@ -534,7 +534,7 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKe
 	/* copy new keymap from an existing one */
 	if(usermap && !(usermap->flag & KEYMAP_DIFF)) {
 		/* for compatibiltiy with old user preferences with non-diff
-		   keymaps we override the original entirely */
+		 * keymaps we override the original entirely */
 		wmKeyMapItem *kmi, *orig_kmi;
 
 		km = wm_keymap_copy(usermap);
@@ -620,8 +620,8 @@ static void wm_keymap_diff_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap *
 /* ****************** storage in WM ************ */
 
 /* name id's are for storing general or multiple keymaps, 
-   space/region ids are same as DNA_space_types.h */
-/* gets free'd in wm.c */
+ * space/region ids are same as DNA_space_types.h */
+/* gets freed in wm.c */
 
 wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid)
 {

@@ -257,8 +257,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			}
 	
 			BKE_reports_clear(reports);
-			if ((reports->flag & RPT_FREE) == 0)
-			{
+			if ((reports->flag & RPT_FREE) == 0) {
 				MEM_freeN(reports);
 			}
 		}
@@ -434,7 +433,7 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 	op = PyMem_MALLOC(sizeof(wmOperator));
 	memset(op, 0, sizeof(wmOperator));
 #endif
-	BLI_strncpy(op->idname, op->idname, sizeof(op->idname)); /* incase its needed */
+	BLI_strncpy(op->idname, op->idname, sizeof(op->idname)); /* in case its needed */
 	op->type = ot;
 
 	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr);

@@ -63,48 +63,48 @@ static void *thread_tls_data;
 #endif
 
 /* ********** basic thread control API ************ 
-
-Many thread cases have an X amount of jobs, and only an Y amount of
-threads are useful (typically amount of cpus)
-
-This code can be used to start a maximum amount of 'thread slots', which
-then can be filled in a loop with an idle timer. 
-
-A sample loop can look like this (pseudo c);
-
-	ListBase lb;
-	int maxthreads= 2;
-	int cont= 1;
-
-	BLI_init_threads(&lb, do_something_func, maxthreads);
-
-	while(cont) {
-		if(BLI_available_threads(&lb) && !(escape loop event)) {
-			// get new job (data pointer)
-			// tag job 'processed 
-			BLI_insert_thread(&lb, job);
-		}
-		else PIL_sleep_ms(50);
-		
-		// find if a job is ready, this the do_something_func() should write in job somewhere
-		cont= 0;
-		for(go over all jobs)
-			if(job is ready) {
-				if(job was not removed) {
-					BLI_remove_thread(&lb, job);
-				}
-			}
-			else cont= 1;
-		}
-		// conditions to exit loop 
-		if(if escape loop event) {
-			if(BLI_available_threadslots(&lb)==maxthreads)
-				break;
-		}
-	}
-
-	BLI_end_threads(&lb);
-
+ * 
+ * Many thread cases have an X amount of jobs, and only an Y amount of
+ * threads are useful (typically amount of cpus)
+ *
+ * This code can be used to start a maximum amount of 'thread slots', which
+ * then can be filled in a loop with an idle timer. 
+ *
+ * A sample loop can look like this (pseudo c);
+ *
+ *     ListBase lb;
+ *     int maxthreads= 2;
+ *     int cont= 1;
+ * 
+ *     BLI_init_threads(&lb, do_something_func, maxthreads);
+ * 
+ *     while(cont) {
+ *         if(BLI_available_threads(&lb) && !(escape loop event)) {
+ *             // get new job (data pointer)
+ *             // tag job 'processed 
+ *             BLI_insert_thread(&lb, job);
+ *         }
+ *         else PIL_sleep_ms(50);
+ *         
+ *         // find if a job is ready, this the do_something_func() should write in job somewhere
+ *         cont= 0;
+ *         for(go over all jobs)
+ *             if(job is ready) {
+ *                 if(job was not removed) {
+ *                     BLI_remove_thread(&lb, job);
+ *                 }
+ *             }
+ *             else cont= 1;
+ *         }
+ *         // conditions to exit loop 
+ *         if(if escape loop event) {
+ *             if(BLI_available_threadslots(&lb)==maxthreads)
+ *                 break;
+ *         }
+ *     }
+ * 
+ *     BLI_end_threads(&lb);
+ *
  ************************************************ */
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -146,8 +146,8 @@ void BLI_threadapi_init(void)
 }
 
 /* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
-   problem otherwise: scene render will kill of the mutex!
-*/
+ * problem otherwise: scene render will kill of the mutex!
+ */
 
 void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
@@ -172,8 +172,8 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 
 #if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
 		/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
-		   we copy gomp thread local storage pointer to setting it again
-		   inside the thread that we start */
+		 * we copy gomp thread local storage pointer to setting it again
+		 * inside the thread that we start */
 		thread_tls_data = pthread_getspecific(gomp_tls_key);
 #endif
 	}
@@ -213,7 +213,7 @@ static void *tslot_thread_start(void *tslot_p)
 
 #if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
 	/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
-	   set gomp thread local storage pointer which was copied beforehand */
+	 * set gomp thread local storage pointer which was copied beforehand */
 	pthread_setspecific (gomp_tls_key, thread_tls_data);
 #endif
 
@@ -464,12 +464,10 @@ ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep
 	
 	worker = MEM_callocN(sizeof(ThreadedWorker), "threadedworker");
 	
-	if (tot > RE_MAX_THREAD)
-	{
+	if (tot > RE_MAX_THREAD) {
 		tot = RE_MAX_THREAD;
 	}
-	else if (tot < 1)
-	{
+	else if (tot < 1) {
 		tot= 1;
 	}
 	
@@ -498,25 +496,20 @@ void BLI_insert_work(ThreadedWorker *worker, void *param)
 	WorkParam *p = MEM_callocN(sizeof(WorkParam), "workparam");
 	int index;
 	
-	if (BLI_available_threads(&worker->threadbase) == 0)
-	{
+	if (BLI_available_threads(&worker->threadbase) == 0) {
 		index = worker->total;
-		while(index == worker->total)
-		{
+		while(index == worker->total) {
 			PIL_sleep_ms(worker->sleep_time);
 			
-			for (index = 0; index < worker->total; index++)
-			{
-				if (worker->busy[index] == 0)
-				{
+			for (index = 0; index < worker->total; index++) {
+				if (worker->busy[index] == 0) {
 					BLI_remove_thread_index(&worker->threadbase, index);
 					break;
 				}
 			}
 		}
 	}
-	else
-	{
+	else {
 		index = BLI_available_thread_index(&worker->threadbase);
 	}
 	

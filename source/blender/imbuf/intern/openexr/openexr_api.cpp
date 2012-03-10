@@ -1,8 +1,4 @@
-/** \file blender/imbuf/intern/openexr/openexr_api.cpp
- *  \ingroup openexr
- */
 /*
-*
  * ***** BEGIN GPLLICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +23,10 @@
  * Contributor(s): Austin Benesh, Ton Roosendaal (float, half, speedup, cleanup...).
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/imbuf/intern/openexr/openexr_api.cpp
+ *  \ingroup openexr
  */
 
 #include <stdlib.h>
@@ -234,34 +234,17 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		if(ibuf->rect_float) {
 			float *from;
 
-			if(ibuf->profile == IB_PROFILE_LINEAR_RGB) {
-				for (int i = ibuf->y-1; i >= 0; i--)
-				{
-					from= ibuf->rect_float + channels*i*width;
+			for (int i = ibuf->y-1; i >= 0; i--)
+			{
+				from= ibuf->rect_float + channels*i*width;
 
-					for (int j = ibuf->x; j > 0; j--)
-					{
-						to->r = from[0];
-						to->g = from[1];
-						to->b = from[2];
-						to->a = (channels >= 4)? from[3]: 1.0f;
-						to++; from += 4;
-					}
-				}
-			}
-			else {
-				for (int i = ibuf->y-1; i >= 0; i--)
+				for (int j = ibuf->x; j > 0; j--)
 				{
-					from= ibuf->rect_float + channels*i*width;
-
-					for (int j = ibuf->x; j > 0; j--)
-					{
-						to->r = srgb_to_linearrgb(from[0]);
-						to->g = srgb_to_linearrgb(from[1]);
-						to->b = srgb_to_linearrgb(from[2]);
-						to->a = (channels >= 4)? from[3]: 1.0f;
-						to++; from += 4;
-					}
+					to->r = from[0];
+					to->g = from[1];
+					to->b = from[2];
+					to->a = (channels >= 4)? from[3]: 1.0f;
+					to++; from += 4;
 				}
 			}
 		}
@@ -401,11 +384,11 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 /* ********************* Nicer API, MultiLayer and with Tile file support ************************************ */
 
 /* naming rules:
-   - parse name from right to left
-   - last character is channel ID, 1 char like 'A' 'R' 'G' 'B' 'X' 'Y' 'Z' 'W' 'U' 'V'
-   - separated with a dot; the Pass name (like "Depth", "Color", "Diffuse" or "Combined")
-   - separated with a dot: the Layer name (like "Lamp1" or "Walls" or "Characters")
-*/
+ * - parse name from right to left
+ * - last character is channel ID, 1 char like 'A' 'R' 'G' 'B' 'X' 'Y' 'Z' 'W' 'U' 'V'
+ * - separated with a dot; the Pass name (like "Depth", "Color", "Diffuse" or "Combined")
+ * - separated with a dot: the Layer name (like "Lamp1" or "Walls" or "Characters")
+ */
 
 static ListBase exrhandles= {NULL, NULL};
 

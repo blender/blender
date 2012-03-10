@@ -391,8 +391,7 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 				/* if the number of points does not match the amount required by the chain length,
 				 * free the points array and request a rebind...
 				 */
-				if ((data->points == NULL) || (data->numpoints != data->chainlen+1))
-				{
+				if ((data->points == NULL) || (data->numpoints != data->chainlen+1)) {
 					/* free the points array */
 					if (data->points) {
 						MEM_freeN(data->points);
@@ -1501,7 +1500,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		/* get the target objects, adding them as need be */
 		if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, 1)) {
 			/* method of setting target depends on the type of target we've got 
-			 *	- by default, just set the first target (distinction here is only for multiple-targetted constraints)
+			 *	- by default, just set the first target (distinction here is only for multiple-targeted constraints)
 			 */
 			if (tar_pchan)
 				set_constraint_nth_target(con, tar_ob, tar_pchan->name, 0);

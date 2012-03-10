@@ -73,10 +73,11 @@ GLubyte stipple_halftone[128] = {
 
 
 /*  repeat this pattern
-	X000X000
-	00000000
-	00X000X0
-	00000000 */
+ *
+ *     X000X000
+ *     00000000
+ *     00X000X0
+ *     00000000 */
 
 
 GLubyte stipple_quarttone[128] = { 
@@ -148,8 +149,10 @@ void fdrawbezier(float vec[4][3])
 	glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 	glBegin(GL_LINE_STRIP);
 	while (spline_step < 1.000001f) {
-		/*if(do_shaded)
-			UI_ThemeColorBlend(th_col1, th_col2, spline_step);*/
+#if 0
+		if(do_shaded)
+			UI_ThemeColorBlend(th_col1, th_col2, spline_step);
+#endif
 		glEvalCoord1f(spline_step);
 		spline_step += dist;
 	}
@@ -201,14 +204,12 @@ void sdrawline(short x1, short y1, short x2, short y2)
 }
 
 /*
-
-	x1,y2
-	|  \
-	|   \
-	|    \
-	x1,y1-- x2,y1
-
-*/
+ *     x1,y2
+ *     |  \
+ *     |   \
+ *     |    \
+ *     x1,y1-- x2,y1
+ */
 
 static void sdrawtripoints(short x1, short y1, short x2, short y2)
 {
@@ -847,7 +848,7 @@ void bgl_get_mats(bglMats *mats)
 	glGetIntegerv(GL_VIEWPORT, (GLint *)mats->viewport);
 	
 	/* Very strange code here - it seems that certain bad values in the
-	   modelview matrix can cause gluUnProject to give bad results. */
+	 * modelview matrix can cause gluUnProject to give bad results. */
 	if(mats->modelview[0] < badvalue &&
 	   mats->modelview[0] > -badvalue)
 		mats->modelview[0]= 0;

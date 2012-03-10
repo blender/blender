@@ -326,11 +326,11 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 int BLI_natstrcmp(const char *s1, const char *s2)
 {
 	int d1= 0, d2= 0;
-	
+
 	/* if both chars are numeric, to a strtol().
-	   then increase string deltas as long they are 
-	   numeric, else do a tolower and char compare */
-	
+	 * then increase string deltas as long they are 
+	 * numeric, else do a tolower and char compare */
+
 	while(1) {
 		char c1 = tolower(s1[d1]);
 		char c2 = tolower(s2[d2]);
