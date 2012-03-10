@@ -2518,9 +2518,6 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 			float points[4][2]={{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
 			float si, co;
 
-			if(cfra != 208)
-				continue;
-
 			stabilization_median_point(tracking, cfra, median);
 
 			calculate_stabdata(tracking, cfra, width, height, firstmedian, median, loc, &tmp_scale, &angle);
