@@ -517,8 +517,6 @@ static void viewops_data_free(bContext *C, wmOperator *op)
 
 /* ************************** viewrotate **********************************/
 
-static const float thres = 0.93f; //cos(20 deg);
-
 #define COS45 0.7071068
 #define SIN45 COS45
 
@@ -2135,8 +2133,8 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	INIT_MINMAX(min, max);
 
-	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
-		/* hardcoded exception, we look for the one selected armature */
+	if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+		/* hard-coded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
 		for (base=scene->base.first; base; base= base->next) {
@@ -2681,16 +2679,20 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		/* normal operation */
 		if (rv3d->viewlock) {
 			/* only pass on if */
-			if (rv3d->view==RV3D_VIEW_FRONT && view==RV3D_VIEW_BACK);
-			else if (rv3d->view==RV3D_VIEW_BACK && view==RV3D_VIEW_FRONT);
-			else if (rv3d->view==RV3D_VIEW_RIGHT && view==RV3D_VIEW_LEFT);
-			else if (rv3d->view==RV3D_VIEW_LEFT && view==RV3D_VIEW_RIGHT);
-			else if (rv3d->view==RV3D_VIEW_BOTTOM && view==RV3D_VIEW_TOP);
-			else if (rv3d->view==RV3D_VIEW_TOP && view==RV3D_VIEW_BOTTOM);
-			else return;
+
+			/* nice confusing if-block */
+			if (!((rv3d->view == RV3D_VIEW_FRONT  && view == RV3D_VIEW_BACK)  ||
+			      (rv3d->view == RV3D_VIEW_BACK   && view == RV3D_VIEW_FRONT) ||
+			      (rv3d->view == RV3D_VIEW_RIGHT  && view == RV3D_VIEW_LEFT)  ||
+			      (rv3d->view == RV3D_VIEW_LEFT   && view == RV3D_VIEW_RIGHT) ||
+			      (rv3d->view == RV3D_VIEW_BOTTOM && view == RV3D_VIEW_TOP)   ||
+			      (rv3d->view == RV3D_VIEW_TOP    && view == RV3D_VIEW_BOTTOM)))
+			{
+				return;
+			}
 		}
 
-		rv3d->view= view;
+		rv3d->view = view;
 	}
 
 	if (rv3d->viewlock) {

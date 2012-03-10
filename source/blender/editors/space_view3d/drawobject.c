@@ -197,7 +197,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 	if (dt==OB_TEXTURE && vd->drawtype==OB_TEXTURE)
 		return 0;
 
-	if (vd->drawtype>=OB_SOLID && vd->flag2 & V3D_SOLID_TEX)
+	if ((vd->drawtype >= OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX))
 		return 0;
 
 	return 1;
@@ -3246,7 +3246,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 	if (dt==OB_BOUNDBOX) {
-		if ((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_WIRE)==0)
 			draw_bounding_volume(scene, ob, ob->boundtype);
 	}
 	else if (hasHaloMat || (totface==0 && totedge==0)) {
@@ -3498,7 +3498,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 		
-		if ((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
+		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_SOLID)==0)
 			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag & ME_ALLEDGES);
 
 		if (dt!=OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
@@ -3540,8 +3540,8 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	
 	if (obedit && ob!=obedit && ob->data==obedit->data) {
-		if (ob_get_key(ob) || ob_get_key(obedit));
-		else if (ob->modifiers.first || obedit->modifiers.first);
+		if (ob_get_key(ob) || ob_get_key(obedit)) {}
+		else if (ob->modifiers.first || obedit->modifiers.first) {}
 		else drawlinked= 1;
 	}
 	
@@ -3853,7 +3853,7 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 		GPU_end_object_materials();
 	}
 	else {
-		if ((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
+		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_SOLID)==0)
 			drawCurveDMWired (ob);
 	}
 
@@ -5407,7 +5407,9 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 								}
 							}
 							else {
-								if ( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
+								if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
+									/* pass */
+								}
 								else {
 									UI_ThemeColor(TH_NURB_ULINE);
 		
@@ -5440,7 +5442,9 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 									}
 								}
 								else {
-									if ( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
+									if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
+										/* pass */
+									}
 									else {
 										UI_ThemeColor(TH_NURB_VLINE);
 			
@@ -5504,7 +5508,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 	/* direction vectors for 3d curve paths
 	 * when at its lowest, dont render normals */
-	if (cu->flag & CU_3D && ts->normalsize > 0.0015f && (cu->drawflag & CU_HIDE_NORMALS)==0) {
+	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS)==0) {
 
 		UI_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
@@ -6620,7 +6624,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				}
 			}
 			else if (dt==OB_BOUNDBOX) {
-				if ((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE) == 0) {
+				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_WIRE) == 0) {
 					draw_bounding_volume(scene, ob, ob->boundtype);
 				}
 			}
@@ -6638,8 +6642,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt);
 			}
 			else if (dt==OB_BOUNDBOX) {
-				if ((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && (v3d->drawtype >= OB_WIRE)) == 0) {
 					draw_bounding_volume(scene, ob, ob->boundtype);
+				}
 			}
 			else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
@@ -6655,8 +6660,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			if (mb->editelems)
 				drawmball(scene, v3d, rv3d, base, dt);
 			else if (dt==OB_BOUNDBOX) {
-				if ((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && (v3d->drawtype >= OB_WIRE)) == 0) {
 					draw_bounding_volume(scene, ob, ob->boundtype);
+				}
 			}
 			else 
 				empty_object= drawmball(scene, v3d, rv3d, base, dt);
@@ -7295,7 +7301,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			bm_wireoffs= bm_solidoffs + em->bm->totedge;
 			
 			// we draw verts if vert select mode or if in transform (for snap).
-			if (ts->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) {
+			if ((ts->selectmode & SCE_SELECT_VERTEX) || (G.moving & G_TRANSFORM_EDIT)) {
 				bbs_mesh_verts(em, dm, bm_wireoffs);
 				bm_vertoffs= bm_wireoffs + em->bm->totvert;
 			}

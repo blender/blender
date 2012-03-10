@@ -404,7 +404,7 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
-	else if (ma && ma->shade_flag&MA_OBCOLOR) {
+	else if (ma && (ma->shade_flag&MA_OBCOLOR)) {
 		glColor3ubv(Gtexdraw.obcol);
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
@@ -444,7 +444,7 @@ static DMDrawOption draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 	if (tface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
-	else if (tface && tface->mode&TF_OBCOL) {
+	else if (tface && (tface->mode & TF_OBCOL)) {
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (!has_mcol) {
@@ -486,7 +486,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 				finalCol[i*4+j].r = 255;
 			}
 		}
-		else if (tface && tface->mode&TF_OBCOL) {
+		else if (tface && (tface->mode & TF_OBCOL)) {
 			for (j=0;j<4;j++) {
 				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[0]);
 				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);

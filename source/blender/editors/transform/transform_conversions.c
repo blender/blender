@@ -111,8 +111,6 @@
 
 #include "RNA_access.h"
 
-extern ListBase editelems;
-
 #include "transform.h"
 #include "bmesh.h"
 

@@ -227,9 +227,9 @@ int EDBM_mask_init_backbuf_border(ViewContext *vc, int mcords[][2], short tot, s
 	
 	/* method in use for face selecting too */
 	if (vc->obedit == NULL) {
-		if (paint_facesel_test(vc->obact));
-		else if (paint_vertsel_test(vc->obact));
-		else return 0;
+		if (!(paint_facesel_test(vc->obact) || paint_vertsel_test(vc->obact))) {
+			return 0;
+		}
 	}
 	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) {
 		return 0;
@@ -289,9 +289,9 @@ int EDBM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 	
 	/* method in use for face selecting too */
 	if (vc->obedit == NULL) {
-		if (paint_facesel_test(vc->obact));
-		else if (paint_vertsel_test(vc->obact));
-		else return 0;
+		if (!(paint_facesel_test(vc->obact) || paint_vertsel_test(vc->obact))) {
+			return 0;
+		}
 	}
 	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) return 0;
 	

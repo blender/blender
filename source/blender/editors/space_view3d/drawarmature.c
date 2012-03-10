@@ -170,10 +170,18 @@ static short set_pchan_glColor (short colCode, int boneflag, short constflag)
 			glColor3ubv(cp);
 		}
 		else {
-			if (boneflag & BONE_DRAW_ACTIVE && boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_BONE_POSE, 40);
-			else if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.15f); /* unselected active */
-			else if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_BONE_POSE);
-			else UI_ThemeColor(TH_WIRE);
+			if ((boneflag & BONE_DRAW_ACTIVE) && (boneflag & BONE_SELECTED)) {
+				UI_ThemeColorShade(TH_BONE_POSE, 40);
+			}
+			else if (boneflag & BONE_DRAW_ACTIVE) {
+				UI_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.15f); /* unselected active */
+			}
+			else if (boneflag & BONE_SELECTED) {
+				UI_ThemeColor(TH_BONE_POSE);
+			}
+			else {
+				UI_ThemeColor(TH_WIRE);
+			}
 		}
 		
 		return 1;
@@ -290,10 +298,18 @@ static short set_pchan_glColor (short colCode, int boneflag, short constflag)
 
 static void set_ebone_glColor(const unsigned int boneflag)
 {
-	if (boneflag & BONE_DRAW_ACTIVE && boneflag & BONE_SELECTED) UI_ThemeColor(TH_EDGE_SELECT);
-	else if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, 0.15f); /* unselected active */
-	else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_EDGE_SELECT, -20);
-	else UI_ThemeColor(TH_WIRE);
+	if ((boneflag & BONE_DRAW_ACTIVE) && (boneflag & BONE_SELECTED)) {
+		UI_ThemeColor(TH_EDGE_SELECT);
+	}
+	else if (boneflag & BONE_DRAW_ACTIVE) {
+		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, 0.15f); /* unselected active */
+	}
+	else if (boneflag & BONE_SELECTED) {
+		UI_ThemeColorShade(TH_EDGE_SELECT, -20);
+	}
+	else {
+		UI_ThemeColor(TH_WIRE);
+	}
 }
 
 /* *************** Armature drawing, helper calls for parts ******************* */
@@ -1749,16 +1765,21 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							                 OB_SOLID, arm->flag, flag, index, bone->length);
 						}
 					}
-					else if (arm->drawtype==ARM_LINE)
-						;	/* nothing in solid */
-					else if (arm->drawtype==ARM_WIRE)
-						; 	/* nothing in solid */
-					else if (arm->drawtype==ARM_ENVELOPE)
+					else if (arm->drawtype == ARM_LINE) {
+						/* nothing in solid */
+					}
+					else if (arm->drawtype == ARM_WIRE) {
+						/* nothing in solid */
+					}
+					else if (arm->drawtype == ARM_ENVELOPE) {
 						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
-					else if (arm->drawtype==ARM_B_BONE)
+					}
+					else if (arm->drawtype == ARM_B_BONE) {
 						draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
-					else
+					}
+					else {
 						draw_bone(OB_SOLID, arm->flag, flag, 0, index, bone->length);
+					}
 						
 					glPopMatrix();
 				}
@@ -1937,8 +1958,9 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
-					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM))
-						; // custom bone shapes should not be drawn here!
+					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+						/* custom bone shapes should not be drawn here! */
+					}
 					else if (arm->drawtype==ARM_ENVELOPE) {
 						if (dt < OB_SOLID)
 							draw_sphere_bone_wire(smat, imat, arm->flag, flag, constflag, index, pchan, NULL);
@@ -1973,7 +1995,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 		draw_pose_dofs(ob);
 
 	/* finally names and axes */
-	if (arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES) && is_outline == 0) {
+	if ((arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES)) && (is_outline == 0)) {
 		/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];

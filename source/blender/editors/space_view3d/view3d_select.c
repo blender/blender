@@ -816,12 +816,11 @@ int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	}
 
 	mvert= me->mvert;
-	for (a=1; a<=me->totvert; a++, mvert++) {
+	for (a = 1; a <= me->totvert; a++, mvert++) {
 		if (selar[a]) {
-			if (mvert->flag & ME_HIDE);
-			else {
-				if (select) mvert->flag |= SELECT;
-				else mvert->flag &= ~SELECT;
+			if ((mvert->flag & ME_HIDE) == 0) {
+				if (select) mvert->flag |=  SELECT;
+				else        mvert->flag &= ~SELECT;
 			}
 		}
 	}
@@ -1595,7 +1594,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if (BASACT && BASACT->object->mode & OB_MODE_WEIGHT_PAINT) {
+					if (BASACT && (BASACT->object->mode & OB_MODE_WEIGHT_PAINT)) {
 						/* prevent activating */
 						basact= NULL;
 					}

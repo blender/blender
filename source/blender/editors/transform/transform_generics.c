@@ -107,8 +107,6 @@
 
 #include "transform.h"
 
-extern ListBase editelems;
-
 /* ************************** Functions *************************** */
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3])

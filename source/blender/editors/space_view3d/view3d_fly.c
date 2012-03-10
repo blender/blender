@@ -185,7 +185,7 @@ typedef struct FlyInfo {
 	 * 0) disabled
 	 * 1) enabled but not checking because mouse hasn't moved outside the margin since locking was checked an not needed
 	 *    when the mouse moves, locking is set to 2 so checks are done.
-	 * 2) mouse moved and checking needed, if no view altering is donem its changed back to 1 */
+	 * 2) mouse moved and checking needed, if no view altering is done its changed back to 1 */
 	short xlock, zlock;
 	float xlock_momentum, zlock_momentum; /* nicer dynamics */
 	float grid; /* world scale 1.0 default */
@@ -525,7 +525,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				fly->time_lastdraw = PIL_check_seconds_timer();
 				break;
 			default:
-				; // should always be one of the above 3
+				break; /* should always be one of the above 3 */
 		}
 	}
 	/* handle modal keymap first */

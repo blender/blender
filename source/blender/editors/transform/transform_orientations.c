@@ -752,7 +752,6 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		else if(obedit->type==OB_MBALL){
 #if 0 // XXX
 			/* editmball.c */
-			extern ListBase editelems;  /* go away ! */
 			MetaElem *ml, *ml_sel = NULL;
 	
 			/* loop and check that only one element is selected */	

@@ -465,7 +465,7 @@ static int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 
 	if (nr < 1) return 'g';
 
-	if (nr == 1 && em->selectmode & SCE_SELECT_VERTEX)
+	if (nr == 1 && (em->selectmode & SCE_SELECT_VERTEX))
 		transmode = EDBM_Extrude_vert(obedit, em, BM_ELEM_SELECT, nor);
 	else if (nr == 1) transmode = EDBM_Extrude_edge(obedit, em, BM_ELEM_SELECT, nor);
 	else if (nr == 4) transmode = EDBM_Extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
@@ -1809,12 +1809,6 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 
 
 /********************** UV/Color Operators *************************/
-
-
-static const EnumPropertyItem axis_items[] = {
-	{OPUVC_AXIS_X, "X", 0, "X", ""},
-	{OPUVC_AXIS_Y, "Y", 0, "Y", ""},
-	{0, NULL, 0, NULL, NULL}};
 
 static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 {

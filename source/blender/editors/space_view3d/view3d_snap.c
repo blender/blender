@@ -331,7 +331,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			if (ebo->layer & arm->layer) {
 				short tipsel= (ebo->flag & BONE_TIPSEL);
 				short rootsel= (ebo->flag & BONE_ROOTSEL);
-				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL));
+				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && (ebo->parent->flag & BONE_TIPSEL)));
 				
 				if ((tipsel && rootsel) || (rootsel)) {
 					/* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),
