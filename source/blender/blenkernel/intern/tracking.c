@@ -2487,8 +2487,6 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 	float aspect= tracking->camera.pixel_aspect;
 
-	printf("\n%s\n", __func__);
-
 	if(stab->ok)
 		return stab->scale;
 
