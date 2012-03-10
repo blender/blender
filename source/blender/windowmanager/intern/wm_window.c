@@ -304,17 +304,10 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 }
 
 /* belongs to below */
-static void wm_window_add_ghostwindow(bContext *C, const char *title, wmWindow *win)
+static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
 	int scr_w, scr_h, posy;
-	GHOST_TWindowState initial_state;
-
-	/* when there is no window open uses the initial state */
-	if(!CTX_wm_window(C))
-		initial_state= initialstate;
-	else
-		initial_state= GHOST_kWindowStateNormal;
 	
 	wm_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h - win->posy - win->sizey);
@@ -329,7 +322,7 @@ static void wm_window_add_ghostwindow(bContext *C, const char *title, wmWindow *
 	 * doesn't work well when AA is initialized, even if not used. */
 	ghostwin= GHOST_CreateWindow(g_system, title, 
 								 win->posx, posy, win->sizex, win->sizey, 
-								 initial_state, 
+								 (GHOST_TWindowState)win->windowstate, 
 								 GHOST_kDrawingContextTypeOpenGL,
 								 0 /* no stereo */,
 								 0 /* no AA */);
@@ -339,7 +332,7 @@ static void wm_window_add_ghostwindow(bContext *C, const char *title, wmWindow *
 		GPU_extensions_init();
 		
 		/* set the state*/
-		GHOST_SetWindowState(ghostwin, initial_state);
+		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
 
 		win->ghostwin= ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win);	/* pointer back */
@@ -368,7 +361,7 @@ static void wm_window_add_ghostwindow(bContext *C, const char *title, wmWindow *
 /* for wmWindows without ghostwin, open these and clear */
 /* window size is read from window, if 0 it uses prefsize */
 /* called in WM_check, also inits stuff after file read */
-void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
+void wm_window_add_ghostwindows(wmWindowManager *wm)
 {
 	wmKeyMap *keymap;
 	wmWindow *win;
@@ -404,7 +397,7 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 				win->windowstate= initialstate;
 				useprefsize= 0;
 			}
-			wm_window_add_ghostwindow(C, "Blender", win);
+			wm_window_add_ghostwindow("Blender", win);
 		}
 		/* happens after fileread */
 		if(win->eventstate==NULL)
@@ -698,6 +691,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			case GHOST_kEventWindowMove: {
 				GHOST_TWindowState state;
 				state = GHOST_GetWindowState(win->ghostwin);
+				win->windowstate = state;
 
 				 /* win32: gives undefined window size when minimized */
 				if(state!=GHOST_kWindowStateMinimized) {
