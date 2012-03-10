@@ -1079,7 +1079,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 
 		mvalf[0]= dd->mval[0];
 		mvalf[1]= dd->mval[1];
-		peelObjectsContext(C, &sketch->depth_peels, mvalf);
+		peelObjectsContext(C, &sketch->depth_peels, mvalf, SNAP_ALL);
 
 		if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
 		{

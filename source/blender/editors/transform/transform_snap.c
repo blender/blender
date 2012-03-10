@@ -785,7 +785,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			
 			depth_peels.first = depth_peels.last = NULL;
 			
-			peelObjectsTransForm(t, &depth_peels, mval);
+			peelObjectsTransForm(t, &depth_peels, mval, t->tsnap.modeSelect);
 			
 //			if (LAST_SNAP_POINT_VALID)
 //			{
@@ -1862,7 +1862,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 	return retval;
 } 
 
-static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, ListBase *depth_peels, const float mval[2])
+static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, ListBase *depth_peels, const float mval[2], SnapMode mode)
 {
 	Base *base;
 	int retval = 0;
@@ -1874,6 +1874,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 		if ( BASE_SELECTABLE(v3d, base) ) {
 			Object *ob = base->object;
 			
+#if 0 //BMESH_TODO
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(scene, ob);
@@ -1883,7 +1884,6 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 					Object *dob = dupli_ob->ob;
 					
 					if (dob->type == OB_MESH) {
-#if 0 //BMESH_TODO
 						EditMesh *em;
 						DerivedMesh *dm = NULL;
 						int val;
@@ -1903,33 +1903,32 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 						retval = retval || val;
 						
 						dm->release(dm);
-#endif
 					}
 				}
 				
 				free_object_duplilist(lb);
 			}
+#endif
 			
 			if (ob->type == OB_MESH) {
-				BMEditMesh *em;
-				DerivedMesh *dm = NULL;
-				int val;
+				int val = 0;
 
-				if (ob != obedit) {
-					dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+				if (ob != obedit && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT))) {
+					DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 					
 					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+					dm->release(dm);
 				}
-				else {
-					em = BMEdit_FromObject(ob);
-					dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
+				else if (ob == obedit && mode != SNAP_NOT_OBEDIT) {
+					BMEditMesh *em = BMEdit_FromObject(ob);
+					DerivedMesh *dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 					
 					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+					dm->release(dm);
 				}
 					
 				retval = retval || val;
 				
-				dm->release(dm);
 			}
 		}
 	}
@@ -1940,17 +1939,17 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 	return retval;
 }
 
-int peelObjectsTransForm(TransInfo *t, ListBase *depth_peels, const float mval[2])
+int peelObjectsTransForm(TransInfo *t, ListBase *depth_peels, const float mval[2], SnapMode mode)
 {
-	return peelObjects(t->scene, t->view, t->ar, t->obedit, depth_peels, mval);
+	return peelObjects(t->scene, t->view, t->ar, t->obedit, depth_peels, mval, mode);
 }
 
-int peelObjectsContext(bContext *C, ListBase *depth_peels, const float mval[2])
+int peelObjectsContext(bContext *C, ListBase *depth_peels, const float mval[2], SnapMode mode)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
 
-	return peelObjects(CTX_data_scene(C), v3d, CTX_wm_region(C), CTX_data_edit_object(C), depth_peels, mval);
+	return peelObjects(CTX_data_scene(C), v3d, CTX_wm_region(C), CTX_data_edit_object(C), depth_peels, mval, mode);
 }
 
 /*================================================================*/
