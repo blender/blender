@@ -51,8 +51,8 @@
 PyDoc_STRVAR(bpy_bm_new_doc,
 ".. method:: new()\n"
 "\n"
-"   :return: Retyrn a new, empty mesh.\n"
-"   :rtype: :class:`BMesh`\n"
+"   :return: Return a new, empty BMesh.\n"
+"   :rtype: :class:`bmesh.types.BMesh`\n"
 );
 
 static PyObject *bpy_bm_new(PyObject *UNUSED(self))

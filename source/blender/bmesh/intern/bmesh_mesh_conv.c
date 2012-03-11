@@ -49,7 +49,7 @@
 #include "MEM_guardedalloc.h"
 
 /* Mesh -> BMesh */
-void BM_mesh_to_bmesh(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
+void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 {
 	MVert *mvert;
 	BLI_array_declare(verts);
@@ -421,7 +421,7 @@ BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 	}
 }
 
-void BM_mesh_from_bmesh(BMesh *bm, Mesh *me, int dotess)
+void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 {
 	MLoop *mloop;
 	MPoly *mpoly;

@@ -621,7 +621,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
 	bm = self->bm;
 
-	BM_mesh_from_bmesh(bm, me, FALSE);
+	BM_mesh_bm_to_me(bm, me, FALSE);
 
 	/* we could have the user do this but if they forget blender can easy crash
 	 * since the references arrays for the objects derived meshes are now invalid */
@@ -660,7 +660,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
 	bm = self->bm;
 
-	BM_mesh_to_bmesh(bm, me, use_shape_key, shape_key_index + 1);
+	BM_mesh_bm_from_me(bm, me, use_shape_key, shape_key_index + 1);
 
 	Py_RETURN_NONE;
 }

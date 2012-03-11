@@ -57,7 +57,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	Mesh *me = BMO_slot_ptr_get(op, "mesh");
 	int set_key = BMO_slot_bool_get(op, "set_shapekey");
 
-	BM_mesh_to_bmesh(bm, me, set_key, ob->shapenr - 1);
+	BM_mesh_bm_from_me(bm, me, set_key, ob->shapenr - 1);
 
 	if (me->key && ob->shapenr > me->key->totkey) {
 		ob->shapenr = me->key->totkey - 1;
@@ -79,5 +79,5 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
 	int dotess = !BMO_slot_bool_get(op, "notessellation");
 
-	BM_mesh_from_bmesh(bm, me, dotess);
+	BM_mesh_bm_to_me(bm, me, dotess);
 }

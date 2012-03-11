@@ -34,7 +34,7 @@
 
 struct Mesh;
 
-void BM_mesh_to_bmesh(BMesh *bm, struct Mesh *me, int set_key, int act_key_nr);
-void BM_mesh_from_bmesh(BMesh *bm, struct Mesh *me, int dotess);
+void BM_mesh_bm_from_me(BMesh *bm, struct Mesh *me, int set_key, int act_key_nr);
+void BM_mesh_bm_to_me(BMesh *bm, struct Mesh *me, int dotess);
 
 #endif /* __BMESH_MESH_CONV_H__ */

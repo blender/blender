@@ -49,11 +49,11 @@ PyDoc_STRVAR(bpy_bm_utils_vert_collapse_edge_doc,
 "   Collapse a vertex into an edge.\n"
 "\n"
 "   :arg vert: The vert that will be collapsed.\n"
-"   :type vert: :class:`BMVert`\n"
+"   :type vert: :class:`bmesh.types.BMVert`\n"
 "   :arg edge: The edge to collapse into.\n"
-"   :type edge: :class:`BMEdge`\n"
+"   :type edge: :class:`bmesh.types.BMEdge`\n"
 "   :return: The resulting edge from the collapse operation.\n"
-"   :rtype: :class:`BMEdge`\n"
+"   :rtype: :class:`bmesh.types.BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObject *args)
 {
@@ -109,13 +109,13 @@ PyDoc_STRVAR(bpy_bm_utils_vert_collapse_faces_doc,
 "   Split an edge, return the newly created data.\n"
 "\n"
 "   :arg vert: The vert that will be collapsed.\n"
-"   :type vert: :class:`BMVert`\n"
+"   :type vert: :class:`bmesh.types.BMVert`\n"
 "   :arg edge: The edge to collapse into.\n"
-"   :type edge: :class:`BMEdge`\n"
+"   :type edge: :class:`bmesh.types.BMEdge`\n"
 "   :arg fac: The factor to use when merging customdata [0 - 1].\n"
 "   :type fac: float\n"
 "   :return: The resulting edge from the collapse operation.\n"
-"   :rtype: :class:`BMEdge`\n"
+"   :rtype: :class:`bmesh.types.BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObject *args)
 {
@@ -175,7 +175,7 @@ PyDoc_STRVAR(bpy_bm_utils_vert_dissolve_doc,
 "   Dissolve this vertex (will be removed).\n"
 "\n"
 "   :arg vert: The vert to be dissolved.\n"
-"   :type vert: :class:`BMVert`\n"
+"   :type vert: :class:`bmesh.types.BMVert`\n"
 "   :return: True when the vertex dissolve is successful.\n"
 "   :rtype: boolean\n"
 );
@@ -204,11 +204,11 @@ PyDoc_STRVAR(bpy_bm_utils_vert_separate_doc,
 "   Separate this vertex at every edge.\n"
 "\n"
 "   :arg vert: The vert to be separated.\n"
-"   :type vert: :class:`BMVert`\n"
+"   :type vert: :class:`bmesh.types.BMVert`\n"
 "   :arg edges: The edges to separated.\n"
-"   :type edges: :class:`BMEdge`\n"
+"   :type edges: :class:`bmesh.types.BMEdge`\n"
 "   :return: The newly separated verts (including the vertex passed).\n"
-"   :rtype: tuple of :class:`BMVert`\n"
+"   :rtype: tuple of :class:`bmesh.types.BMVert`\n"
 );
 static PyObject *bpy_bm_utils_vert_separate(PyObject *UNUSED(self), PyObject *args)
 {
@@ -266,9 +266,9 @@ PyDoc_STRVAR(bpy_bm_utils_edge_split_doc,
 "   Split an edge, return the newly created data.\n"
 "\n"
 "   :arg edge: The edge to split.\n"
-"   :type edge: :class:`BMEdge`\n"
+"   :type edge: :class:`bmesh.types.BMEdge`\n"
 "   :arg vert: One of the verts on the edge, defines the split direction.\n"
-"   :type vert: :class:`BMVert`\n"
+"   :type vert: :class:`bmesh.types.BMVert`\n"
 "   :arg fac: The point on the edge where the new vert will be created [0 - 1].\n"
 "   :type fac: float\n"
 "   :return: The newly created (edge, vert) pair.\n"
@@ -329,11 +329,11 @@ PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
 "   If rotating the edge fails, None will be returned.\n"
 "\n"
 "   :arg edge: The edge to rotate.\n"
-"   :type edge: :class:`BMEdge`\n"
+"   :type edge: :class:`bmesh.types.BMEdge`\n"
 "   :arg ccw: When True the edge will be rotated counter clockwise.\n"
 "   :type ccw: boolean\n"
 "   :return: The newly rotated edge.\n"
-"   :rtype: :class:`BMEdge`\n"
+"   :rtype: :class:`bmesh.types.BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args)
 {
@@ -371,13 +371,13 @@ PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
 "   Split an edge, return the newly created data.\n"
 "\n"
 "   :arg face: The face to cut.\n"
-"   :type face: :class:`BMFace`\n"
+"   :type face: :class:`bmesh.types.BMFace`\n"
 "   :arg vert_a: First vertex to cut in the face (face must contain the vert).\n"
-"   :type vert_a: :class:`BMVert`\n"
+"   :type vert_a: :class:`bmesh.types.BMVert`\n"
 "   :arg vert_b: Second vertex to cut in the face (face must contain the vert).\n"
-"   :type vert_b: :class:`BMVert`\n"
+"   :type vert_b: :class:`bmesh.types.BMVert`\n"
 "   :arg edge_example: Optional edge argument, newly created edge will copy settings from this one.\n"
-"   :type edge_example: :class:`BMEdge`\n"
+"   :type edge_example: :class:`bmesh.types.BMEdge`\n"
 );
 static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args)
 {
@@ -448,9 +448,9 @@ PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
 "   Joins a sequence of faces.\n"
 "\n"
 "   :arg faces: Sequence of faces.\n"
-"   :type faces: :class:`BMFace`\n"
+"   :type faces: :class:`bmesh.types.BMFace`\n"
 "   :return: The newly created face or None on failure.\n"
-"   :rtype: :class:`BMFace`\n"
+"   :rtype: :class:`bmesh.types.BMFace`\n"
 );
 static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 {
@@ -488,11 +488,11 @@ PyDoc_STRVAR(bpy_bm_utils_face_vert_separate_doc,
 "   Rip a vertex in a face away and add a new vertex.\n"
 "\n"
 "   :arg face: The face to separate.\n"
-"   :type face: :class:`BMFace`\n"
+"   :type face: :class:`bmesh.types.BMFace`\n"
 "   :arg vert: A vertex in the face to separate.\n"
-"   :type vert: :class:`BMVert`\n"
+"   :type vert: :class:`bmesh.types.BMVert`\n"
 "   :return vert: The newly created vertex or None of failure.\n"
-"   :rtype vert: :class:`BMVert`\n"
+"   :rtype vert: :class:`bmesh.types.BMVert`\n"
 "\n"
 "   .. note::\n"
 "\n"
@@ -550,7 +550,7 @@ PyDoc_STRVAR(bpy_bm_utils_face_flip_doc,
 "   Flip the faces direction.\n"
 "\n"
 "   :arg face: Face to flip.\n"
-"   :type face: :class:`BMFace`\n"
+"   :type face: :class:`bmesh.types.BMFace`\n"
 );
 static PyObject *bpy_bm_utils_face_flip(PyObject *UNUSED(self), BPy_BMFace *value)
 {
@@ -576,9 +576,9 @@ PyDoc_STRVAR(bpy_bm_utils_loop_separate_doc,
 "   Rip a vertex in a face away and add a new vertex.\n"
 "\n"
 "   :arg loop: The to separate.\n"
-"   :type loop: :class:`BMFace`\n"
+"   :type loop: :class:`bmesh.types.BMFace`\n"
 "   :return vert: The newly created vertex or None of failure.\n"
-"   :rtype vert: :class:`BMVert`\n"
+"   :rtype vert: :class:`bmesh.types.BMVert`\n"
 );
 static PyObject *bpy_bm_utils_loop_separate(PyObject *UNUSED(self), BPy_BMLoop *value)
 {
