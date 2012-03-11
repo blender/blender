@@ -617,6 +617,65 @@ float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
 }
 
 /**
+ * \brief BM_loop_face_normal
+ *
+ * Calculate the normal at this loop corner or fallback to the face normal on straignt lines.
+ *
+ * \param bm The BMesh
+ * \param l The loop to calculate the normal at
+ * \param r_normal Resulting normal
+ */
+void BM_loop_face_normal(BMesh *UNUSED(bm), BMLoop *l, float r_normal[3])
+{
+	if (normal_tri_v3(r_normal,
+	                  l->prev->v->co,
+	                  l->v->co,
+	                  l->next->v->co) != 0.0f)
+	{
+		return;
+	}
+	else {
+		copy_v3_v3(r_normal, l->f->no);
+	}
+}
+
+/**
+ * \brief BM_loop_face_tangent
+ *
+ * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
+ * This vector always points inward into the face.
+ *
+ * \param bm The BMesh
+ * \param l The loop to calculate the tangent at
+ * \param r_tangent Resulting tangent
+ */
+void BM_loop_face_tangent(BMesh *UNUSED(bm), BMLoop *l, float r_tangent[3])
+{
+	float v_prev[3];
+	float v_next[3];
+
+	sub_v3_v3v3(v_prev, l->prev->v->co, l->v->co);
+	sub_v3_v3v3(v_next, l->v->co, l->next->v->co);
+
+	normalize_v3(v_prev);
+	normalize_v3(v_next);
+
+	if (compare_v3v3(v_prev, v_next, FLT_EPSILON) == FALSE) {
+		float dir[3];
+		float nor[3]; /* for this purpose doesnt need to be normalized */
+		add_v3_v3v3(dir, v_prev, v_next);
+		cross_v3_v3v3(nor, v_prev, v_next);
+		cross_v3_v3v3(r_tangent, dir, nor);
+	}
+	else {
+		/* prev/next are the same - compare with face normal since we dont have one */
+		cross_v3_v3v3(r_tangent, v_next, l->f->no);
+	}
+
+	normalize_v3(r_tangent);
+}
+
+/**
  * \brief BMESH EDGE/FACE ANGLE
  *
  *  Calculates the angle between two faces.

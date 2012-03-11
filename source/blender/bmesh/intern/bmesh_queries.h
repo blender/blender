@@ -54,6 +54,8 @@ int     BM_edge_is_manifold(BMesh *bm, BMEdge *e);
 int     BM_edge_is_boundary(BMEdge *e);
 
 float   BM_loop_face_angle(BMesh *bm, BMLoop *l);
+void    BM_loop_face_normal(BMesh *bm, BMLoop *l, float r_normal[3]);
+void    BM_loop_face_tangent(BMesh *bm, BMLoop *l, float r_tangent[3]);
 
 float   BM_edge_face_angle(BMesh *bm, BMEdge *e);
 float   BM_vert_edge_angle(BMesh *bm, BMVert *v);

@@ -57,14 +57,11 @@ PyDoc_STRVAR(bpy_bm_new_doc,
 
 static PyObject *bpy_bm_new(PyObject *UNUSED(self))
 {
-	BPy_BMesh *py_bmesh;
 	BMesh *bm;
 
 	bm = BM_mesh_create(NULL, &bm_mesh_allocsize_default);
 
-	py_bmesh = (BPy_BMesh *)BPy_BMesh_CreatePyObject(bm);
-	py_bmesh->py_owns = TRUE;
-	return (PyObject *)py_bmesh;
+	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_NOP);
 }
 
 PyDoc_STRVAR(bpy_bm_from_edit_mesh_doc,
@@ -77,7 +74,6 @@ PyDoc_STRVAR(bpy_bm_from_edit_mesh_doc,
 );
 static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 {
-	BPy_BMesh *py_bmesh;
 	BMesh *bm;
 	Mesh *me = PyC_RNA_AsPointer(value, "Mesh");
 
@@ -93,9 +89,7 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 
 	bm = me->edit_btmesh->bm;
 
-	py_bmesh = (BPy_BMesh *)BPy_BMesh_CreatePyObject(bm);
-	py_bmesh->py_owns = FALSE;
-	return (PyObject *)py_bmesh;
+	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
 
 static struct PyMethodDef BPy_BM_methods[] = {

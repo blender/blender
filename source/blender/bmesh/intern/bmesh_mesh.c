@@ -154,13 +154,6 @@ void BM_mesh_data_free(BMesh *bm)
 
 	BLI_freelistN(&bm->selected);
 
-	if (bm->py_handle) {
-		extern void bpy_bm_generic_invalidate(void *self);
-
-		bpy_bm_generic_invalidate(bm->py_handle);
-		bm->py_handle = NULL;
-	}
-
 	BMO_error_clear(bm);
 }
 
@@ -195,6 +188,16 @@ void BM_mesh_clear(BMesh *bm)
 void BM_mesh_free(BMesh *bm)
 {
 	BM_mesh_data_free(bm);
+
+	if (bm->py_handle) {
+		/* keep this out of 'BM_mesh_data_free' because we wan't python
+		 * to be able to clear the mesh and maintain access. */
+		extern void bpy_bm_generic_invalidate(void *self);
+
+		bpy_bm_generic_invalidate(bm->py_handle);
+		bm->py_handle = NULL;
+	}
+
 	MEM_freeN(bm);
 }
 

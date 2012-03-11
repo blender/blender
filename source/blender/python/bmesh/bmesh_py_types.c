@@ -36,6 +36,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_customdata.h"
+#include "BKE_DerivedMesh.h"
 
 #include "bmesh.h"
 
@@ -252,6 +253,15 @@ static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self)
 	return PyBool_FromLong(BPY_BM_IS_VALID(self));
 }
 
+PyDoc_STRVAR(bpy_bmesh_is_wrapped_doc,
+"True when this mesh is owned by blender (typically the editmode BMesh).\n\n:type: boolean"
+);
+static PyObject *bpy_bmesh_is_wrapped_get(BPy_BMesh *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	return PyBool_FromLong(self->flag & BPY_BMFLAG_IS_WRAPPED);
+}
 
 PyDoc_STRVAR(bpy_bmesh_select_mode_doc,
 "The selection mode, values can be {'VERT', 'EDGE', 'FACE'}, can't be assigned an empty set.\n\n:type: set"
@@ -484,7 +494,8 @@ static PyGetSetDef bpy_bmesh_getseters[] = {
     {(char *)"select_history", (getter)bpy_bmesh_select_history_get, (setter)bpy_bmesh_select_history_set, (char *)bpy_bmesh_select_history_doc, NULL},
 
     /* readonly checks */
-    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+    {(char *)"is_wrapped", (getter)bpy_bmesh_is_wrapped_get, (setter)NULL, (char *)bpy_bmesh_is_wrapped_doc, NULL}, /* as with mathutils */
+    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get,   (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -590,6 +601,76 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 /* Mesh
  * ---- */
 
+PyDoc_STRVAR(bpy_bmesh_copy_doc,
+".. method:: copy()\n"
+"\n"
+"   :return: A copy of this BMesh.\n"
+"   :rtype: :class:`BMesh`\n"
+);
+static PyObject *bpy_bmesh_copy(BPy_BMesh *self)
+{
+	BMesh *bm;
+	BMesh *bm_copy;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	bm = self->bm;
+
+	bm_copy = BM_mesh_copy(bm);
+
+	if (bm_copy) {
+		return BPy_BMesh_CreatePyObject(bm_copy, BPY_BMFLAG_NOP);
+	}
+	else {
+		PyErr_SetString(PyExc_SystemError, "Unable to copy BMesh, internal error");
+		return NULL;
+	}
+}
+
+PyDoc_STRVAR(bpy_bmesh_clear_doc,
+".. method:: clear()\n"
+"\n"
+"   Clear all mesh data.\n"
+);
+static PyObject *bpy_bmesh_clear(BPy_BMesh *self)
+{
+	BMesh *bm;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	bm = self->bm;
+
+	BM_mesh_clear(bm);
+
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmesh_free_doc,
+".. method:: free()\n"
+"\n"
+"   Explicitly free the BMesh data from memory, causing exceptions on further access.\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      The BMesh is freed automatically, typically when the script finishes executing.\n"
+"      However in some cases its hard to predict when this will be and its useful to\n"
+"      explicitly free the data.\n"
+);
+static PyObject *bpy_bmesh_free(BPy_BMesh *self)
+{
+	if (self->bm) {
+		BMesh *bm = self->bm;
+
+		if ((self->flag & BPY_BMFLAG_IS_WRAPPED) == 0) {
+			BM_mesh_free(bm);
+		}
+
+		bpy_bm_generic_invalidate((BPy_BMGeneric *)self);
+	}
+
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(bpy_bmesh_to_mesh_doc,
 ".. method:: to_mesh(mesh)\n"
 "\n"
@@ -630,6 +711,49 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+/* note: rna_Object_to_mesh() also has apply_modifiers arg that works the same way */
+PyDoc_STRVAR(bpy_bmesh_from_object_doc,
+".. method:: from_object(mesh, apply_modifiers=True)\n"
+"\n"
+"   Initialize this bmesh from existing object datablock.\n"
+"\n"
+"   :arg object: The object data to load.\n"
+"   :type object: :class:`Object`\n"
+"   :arg apply_modifiers: Use the final display mesh rather then the deformed cage.\n"
+"   :type apply_modifiers: boolean\n"
+);
+static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
+{
+	PyObject  *py_object;
+	Object  *ob;
+	BMesh *bm;
+	int apply_modifiers = TRUE;
+	DerivedMesh *dm;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O|i:from_object", &py_object, &apply_modifiers) ||
+	    !(ob = PyC_RNA_AsPointer(py_object, "Object")))
+	{
+		return NULL;
+	}
+
+	dm = apply_modifiers ? ob->derivedFinal : ob->derivedDeform;
+
+	if (dm == NULL) {
+		PyErr_Format(PyExc_ValueError,
+		             "from_object(...): Object '%s' has no usable mesh data", ob->id.name + 2);
+		return NULL;
+	}
+
+	bm = self->bm;
+
+	DM_to_bmesh_ex(dm, bm);
+
+	Py_RETURN_NONE;
+}
+
+
 PyDoc_STRVAR(bpy_bmesh_from_mesh_doc,
 ".. method:: from_mesh(mesh, use_shape_key=False, shape_key_index=0)\n"
 "\n"
@@ -651,7 +775,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 	int use_shape_key = FALSE;
 	int shape_key_index = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|ii:to_mesh", (char **)kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|ii:from_mesh", (char **)kwlist,
 	                                 &py_mesh, &use_shape_key, &shape_key_index) ||
 	    !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
 	{
@@ -1001,12 +1125,22 @@ static PyObject *bpy_bmvert_normal_update(BPy_BMVert *self)
 /* Edge
  * ---- */
 
+PyDoc_STRVAR(bpy_bmedge_calc_length_doc,
+".. method:: calc_length()\n"
+"\n"
+"   :return: The length between both verts.\n"
+"   :rtype: float\n"
+);
+static PyObject *bpy_bmedge_calc_length(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyFloat_FromDouble(len_v3v3(self->e->v1->co, self->e->v2->co));
+}
+
 PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
 ".. method:: calc_face_angle()\n"
 "\n"
-"   Return the angle between 2 connected faces.\n"
-"\n"
-"   :return: The angle between both faces in radians.\n"
+"   :return: The angle between 2 connected faces in radians.\n"
 "   :rtype: float\n"
 );
 static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
@@ -1270,21 +1404,54 @@ static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *ar
 }
 
 
-PyDoc_STRVAR(bpy_bmloop_calc_face_angle_doc,
-".. method:: calc_face_angle()\n"
+PyDoc_STRVAR(bpy_bmloop_calc_angle_doc,
+".. method:: calc_angle()\n"
 "\n"
-"   Return angle at this loops corner of the face.\n"
+"   Return the angle at this loops corner of the face.\n"
 "   This is calculated so sharper corners give lower angles.\n"
 "\n"
 "   :return: The angle in radians.\n"
 "   :rtype: float\n"
 );
-static PyObject *bpy_bmloop_calc_face_angle(BPy_BMLoop *self)
+static PyObject *bpy_bmloop_calc_angle(BPy_BMLoop *self)
 {
 	BPY_BM_CHECK_OBJ(self);
 	return PyFloat_FromDouble(BM_loop_face_angle(self->bm, self->l));
 }
 
+PyDoc_STRVAR(bpy_bmloop_calc_normal_doc,
+".. method:: calc_normal()\n"
+"\n"
+"   Return normal at this loops corner of the face.\n"
+"   Falls back to the face normal for straignt lines.\n"
+"\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmloop_calc_normal(BPy_BMLoop *self)
+{
+	float vec[3];
+	BPY_BM_CHECK_OBJ(self);
+	BM_loop_face_normal(self->bm, self->l, vec);
+	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
+}
+
+PyDoc_STRVAR(bpy_bmloop_calc_tangent_doc,
+".. method:: calc_tangent()\n"
+"\n"
+"   Return the tangent at this loops corner of the face (pointing inward into the face).\n"
+"   Falls back to the face normal for straignt lines.\n"
+"\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmloop_calc_tangent(BPy_BMLoop *self)
+{
+	float vec[3];
+	BPY_BM_CHECK_OBJ(self);
+	BM_loop_face_tangent(self->bm, self->l, vec);
+	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
+}
 
 /* Vert Seq
  * -------- */
@@ -1796,9 +1963,17 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 
 
 static struct PyMethodDef bpy_bmesh_methods[] = {
-    {"from_mesh", (PyCFunction)bpy_bmesh_from_mesh, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_mesh_doc},
-    {"to_mesh",   (PyCFunction)bpy_bmesh_to_mesh,   METH_VARARGS,                 bpy_bmesh_to_mesh_doc},
+    /* utility */
+    {"copy",  (PyCFunction)bpy_bmesh_copy,  METH_NOARGS, bpy_bmesh_copy_doc},
+    {"clear", (PyCFunction)bpy_bmesh_clear, METH_NOARGS, bpy_bmesh_clear_doc},
+    {"free",  (PyCFunction)bpy_bmesh_free,  METH_NOARGS, bpy_bmesh_free_doc},
 
+    /* conversion */
+    {"from_object", (PyCFunction)bpy_bmesh_from_object, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_object_doc},
+    {"from_mesh",   (PyCFunction)bpy_bmesh_from_mesh,   METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_mesh_doc},
+    {"to_mesh",     (PyCFunction)bpy_bmesh_to_mesh,     METH_VARARGS,                 bpy_bmesh_to_mesh_doc},
+
+    /* meshdata */
     {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
     {"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
     {"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_VARARGS, bpy_bmesh_normal_update_doc},
@@ -1827,6 +2002,7 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 
     {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
 
+    {"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS, bpy_bmedge_calc_length_doc},
     {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS, bpy_bmedge_calc_face_angle_doc},
 
     {"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
@@ -1856,7 +2032,9 @@ static struct PyMethodDef bpy_bmloop_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
     {"copy_from_face_interp", (PyCFunction)bpy_bmloop_copy_from_face_interp, METH_O, bpy_bmloop_copy_from_face_interp_doc},
 
-    {"calc_angle", (PyCFunction)bpy_bmloop_calc_face_angle, METH_NOARGS, bpy_bmloop_calc_face_angle_doc},
+    {"calc_angle",   (PyCFunction)bpy_bmloop_calc_angle,   METH_NOARGS, bpy_bmloop_calc_angle_doc},
+    {"calc_normal",  (PyCFunction)bpy_bmloop_calc_normal,  METH_NOARGS, bpy_bmloop_calc_normal_doc},
+    {"calc_tangent", (PyCFunction)bpy_bmloop_calc_tangent, METH_NOARGS, bpy_bmloop_calc_tangent_doc},
     {NULL, NULL, 0, NULL}
 };
 
@@ -2143,10 +2321,10 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 		BM_data_layer_free(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
 
 		bm->py_handle = NULL;
-	}
 
-	if (self->py_owns) {
-		BM_mesh_free(bm);
+		if ((self->flag & BPY_BMFLAG_IS_WRAPPED) == 0) {
+			BM_mesh_free(bm);
+		}
 	}
 
 	PyObject_DEL(self);
@@ -2476,7 +2654,7 @@ PyObject *BPyInit_bmesh_types(void)
 /* Utility Functions
  * ***************** */
 
-PyObject *BPy_BMesh_CreatePyObject(BMesh *bm)
+PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag)
 {
 	BPy_BMesh *self;
 
@@ -2487,6 +2665,8 @@ PyObject *BPy_BMesh_CreatePyObject(BMesh *bm)
 	else {
 		self = PyObject_New(BPy_BMesh, &BPy_BMesh_Type);
 		self->bm = bm;
+		self->flag = flag;
+
 		bm->py_handle = self; /* point back */
 
 		BM_data_layer_add(bm, &bm->vdata, CD_BM_ELEM_PYPTR);

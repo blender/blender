@@ -62,7 +62,7 @@ typedef struct BPy_BMElem {
 typedef struct BPy_BMesh {
 	PyObject_VAR_HEAD
 	struct BMesh *bm; /* keep first */
-	char py_owns; /* when set, free along with the PyObject */
+	int flag;
 } BPy_BMesh;
 
 /* element types */
@@ -120,7 +120,12 @@ void BPy_BM_init_types(void);
 
 PyObject *BPyInit_bmesh_types(void);
 
-PyObject *BPy_BMesh_CreatePyObject(BMesh *bm);
+enum {
+	BPY_BMFLAG_NOP = 0,       /* do nothing */
+	BPY_BMFLAG_IS_WRAPPED = 1 /* the mesh is owned by editmode */
+};
+
+PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag);
 PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v);
 PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e);
 PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f);
