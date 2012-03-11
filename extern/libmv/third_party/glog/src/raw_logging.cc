@@ -151,7 +151,7 @@ void RawLog__(LogSeverity severity, const char* file, int line,
   // libc (to side-step any libc interception).
   // We write just once to avoid races with other invocations of RawLog__.
   safe_write(STDERR_FILENO, buffer, strlen(buffer));
-  if (severity == FATAL)  {
+  if (severity == GLOG_FATAL)  {
     if (!sync_val_compare_and_swap(&crashed, false, true)) {
       crash_reason.filename = file;
       crash_reason.line_number = line;

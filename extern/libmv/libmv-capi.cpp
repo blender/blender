@@ -30,6 +30,7 @@
 
 #include "libmv-capi.h"
 
+#include "third_party/gflags/gflags/gflags.h"
 #include "glog/logging.h"
 #include "libmv/logging/logging.h"
 

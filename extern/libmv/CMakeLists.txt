@@ -132,9 +132,11 @@ set(SRC
 
 	third_party/fast/fast.h
 	third_party/gflags/config.h
-	third_party/gflags/gflags_completions.h
-	third_party/gflags/gflags.h
+	third_party/gflags/gflags/gflags_completions.h
+	third_party/gflags/gflags/gflags_declare.h
+	third_party/gflags/gflags/gflags.h
 	third_party/gflags/mutex.h
+	third_party/gflags/util.h
 	third_party/ldl/Include/ldl.h
 	third_party/msinttypes/inttypes.h
 	third_party/msinttypes/stdint.h

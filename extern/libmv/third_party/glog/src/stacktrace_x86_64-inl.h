@@ -33,10 +33,6 @@
 
 extern "C" {
 #include <stdlib.h> // for NULL
-#if defined(__FreeBSD__)
-/* devel/libunwind only includes _Unwind_Backtrace if this is set */
-#define _GNU_SOURCE 1
-#endif
 #include <unwind.h> // ABI defined unwinder
 }
 #include "stacktrace.h"

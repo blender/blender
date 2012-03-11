@@ -111,7 +111,7 @@ _END_GOOGLE_NAMESPACE_
 // The default is ERROR instead of FATAL so that users can see problems
 // when they run a program without having to look in another file.
 DEFINE_int32(stderrthreshold,
-             GOOGLE_NAMESPACE::ERROR,
+             GOOGLE_NAMESPACE::GLOG_ERROR,
              "log messages at or above this level are copied to stderr in "
              "addition to logfiles.  This flag obsoletes --alsologtostderr.");
 
@@ -311,8 +311,10 @@ class LogDestination {
   static const int kNetworkBytes = 1400;
 
   static const string& hostname();
- private:
 
+  static void DeleteLogDestinations();
+
+ private:
   LogDestination(LogSeverity severity, const char* base_filename);
   ~LogDestination() { }
 
@@ -503,7 +505,7 @@ inline void LogDestination::SetEmailLogging(LogSeverity min_severity,
 static void WriteToStderr(const char* message, size_t len) {
   // Avoid using cerr from this module since we may get called during
   // exit code, and cerr may be partially or fully destroyed by then.
-  write(STDERR_FILENO, message, len);
+  fwrite(message, len, 1, stderr);
 }
 
 inline void LogDestination::MaybeLogToStderr(LogSeverity severity,
@@ -605,6 +607,13 @@ inline LogDestination* LogDestination::log_destination(LogSeverity severity) {
     log_destinations_[severity] = new LogDestination(severity, NULL);
   }
   return log_destinations_[severity];
+}
+
+void LogDestination::DeleteLogDestinations() {
+  for (int severity = 0; severity < NUM_SEVERITIES; ++severity) {
+    delete log_destinations_[severity];
+    log_destinations_[severity] = NULL;
+  }
 }
 
 namespace {
@@ -719,14 +728,18 @@ bool LogFileObject::CreateLogfile(const char* time_pid_string) {
     // Make the symlink be relative (in the same dir) so that if the
     // entire log directory gets relocated the link is still valid.
     const char *linkdest = slash ? (slash + 1) : filename;
-    symlink(linkdest, linkpath.c_str());         // silently ignore failures
+    if (symlink(linkdest, linkpath.c_str()) != 0) {
+      // silently ignore failures
+    }
 
     // Make an additional link to the log file in a place specified by
     // FLAGS_log_link, if indicated
     if (!FLAGS_log_link.empty()) {
       linkpath = FLAGS_log_link + "/" + linkname;
       unlink(linkpath.c_str());                  // delete old one if it exists
-      symlink(filename, linkpath.c_str());       // silently ignore failures
+      if (symlink(filename, linkpath.c_str()) != 0) {
+        // silently ignore failures
+      }
     }
 #endif
   }
@@ -745,7 +758,8 @@ void LogFileObject::Write(bool force_flush,
     return;
   }
 
-  if (static_cast<int>(file_length_ >> 20) >= MaxLogSize()) {
+  if (static_cast<int>(file_length_ >> 20) >= MaxLogSize() ||
+      PidHasChanged()) {
     if (file_ != NULL) fclose(file_);
     file_ = NULL;
     file_length_ = bytes_since_flush_ = 0;
@@ -936,12 +950,12 @@ LogMessage::LogMessage(const char* file, int line, LogSeverity severity,
 
 LogMessage::LogMessage(const char* file, int line,
                        const CheckOpString& result) {
-  Init(file, line, FATAL, &LogMessage::SendToLog);
+  Init(file, line, GLOG_FATAL, &LogMessage::SendToLog);
   stream() << "Check failed: " << (*result.str_) << " ";
 }
 
 LogMessage::LogMessage(const char* file, int line) {
-  Init(file, line, INFO, &LogMessage::SendToLog);
+  Init(file, line, GLOG_INFO, &LogMessage::SendToLog);
 }
 
 LogMessage::LogMessage(const char* file, int line, LogSeverity severity) {
@@ -972,7 +986,7 @@ void LogMessage::Init(const char* file,
                       LogSeverity severity,
                       void (LogMessage::*send_method)()) {
   allocated_ = NULL;
-  if (severity != FATAL || !exit_on_dfatal) {
+  if (severity != GLOG_FATAL || !exit_on_dfatal) {
     allocated_ = new LogMessageData();
     data_ = allocated_;
     data_->buf_ = new char[kMaxLogMessageLen+1];
@@ -1123,7 +1137,7 @@ void ReprintFatalMessage() {
       // Also write to stderr
       WriteToStderr(fatal_message, n);
     }
-    LogDestination::LogToAllLogfiles(ERROR, fatal_time, fatal_message, n);
+    LogDestination::LogToAllLogfiles(GLOG_ERROR, fatal_time, fatal_message, n);
   }
 }
 
@@ -1181,7 +1195,7 @@ void LogMessage::SendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
   // If we log a FATAL message, flush all the log destinations, then toss
   // a signal for others to catch. We leave the logs in a state that
   // someone else can use them (as long as they flush afterwards)
-  if (data_->severity_ == FATAL && exit_on_dfatal) {
+  if (data_->severity_ == GLOG_FATAL && exit_on_dfatal) {
     if (data_->first_fatal_) {
       // Store crash information so that it is accessible from within signal
       // handlers that may be invoked later.
@@ -1212,7 +1226,9 @@ void LogMessage::SendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
     LogDestination::WaitForSinks(data_);
 
     const char* message = "*** Check failure stack trace: ***\n";
-    write(STDERR_FILENO, message, strlen(message));
+    if (write(STDERR_FILENO, message, strlen(message)) < 0) {
+      // Ignore errors.
+    }
     Fail();
   }
 }
@@ -1231,27 +1247,31 @@ void LogMessage::RecordCrashReason(
 #endif
 }
 
+#ifdef HAVE___ATTRIBUTE__
+# define ATTRIBUTE_NORETURN __attribute__((noreturn))
+#else
+# define ATTRIBUTE_NORETURN
+#endif
+
+static void logging_fail() ATTRIBUTE_NORETURN;
+
 static void logging_fail() {
-// #if defined(_DEBUG) && defined(_MSC_VER)
-// doesn't work for my laptop (sergey)
-#if 0
+#if defined(_DEBUG) && defined(_MSC_VER)
   // When debugging on windows, avoid the obnoxious dialog and make
   // it possible to continue past a LOG(FATAL) in the debugger
-  _asm int 3
+  __debugbreak();
 #else
   abort();
 #endif
 }
 
-#ifdef HAVE___ATTRIBUTE__
+typedef void (*logging_fail_func_t)() ATTRIBUTE_NORETURN;
+
 GOOGLE_GLOG_DLL_DECL
-void (*g_logging_fail_func)() __attribute__((noreturn)) = &logging_fail;
-#else
-GOOGLE_GLOG_DLL_DECL void (*g_logging_fail_func)() = &logging_fail;
-#endif
+logging_fail_func_t g_logging_fail_func = &logging_fail;
 
 void InstallFailureFunction(void (*fail_func)()) {
-  g_logging_fail_func = fail_func;
+  g_logging_fail_func = (logging_fail_func_t)fail_func;
 }
 
 void LogMessage::Fail() {
@@ -1544,7 +1564,7 @@ static void GetTempDirectories(vector<string>* list) {
     "/tmp",
   };
 
-  for (int i = 0; i < ARRAYSIZE(candidates); i++) {
+  for (size_t i = 0; i < ARRAYSIZE(candidates); i++) {
     const char *d = candidates[i];
     if (!d) continue;  // Empty env var
 
@@ -1631,9 +1651,9 @@ void TruncateLogFile(const char *path, int64 limit, int64 keep) {
       // rather scary.
       // Instead just truncate the file to something we can manage
       if (truncate(path, 0) == -1) {
-	PLOG(ERROR) << "Unable to truncate " << path;
+        PLOG(ERROR) << "Unable to truncate " << path;
       } else {
-	LOG(ERROR) << "Truncated " << path << " due to EFBIG error";
+        LOG(ERROR) << "Truncated " << path << " due to EFBIG error";
       }
     } else {
       PLOG(ERROR) << "Unable to open " << path;
@@ -1769,7 +1789,7 @@ int posix_strerror_r(int err, char *buf, size_t len) {
 }
 
 LogMessageFatal::LogMessageFatal(const char* file, int line) :
-    LogMessage(file, line, FATAL) {}
+    LogMessage(file, line, GLOG_FATAL) {}
 
 LogMessageFatal::LogMessageFatal(const char* file, int line,
                                  const CheckOpString& result) :
@@ -1778,6 +1798,17 @@ LogMessageFatal::LogMessageFatal(const char* file, int line,
 LogMessageFatal::~LogMessageFatal() {
     Flush();
     LogMessage::Fail();
+}
+
+void InitGoogleLogging(const char* argv0) {
+  glog_internal_namespace_::InitGoogleLoggingUtilities(argv0);
+}
+
+void ShutdownGoogleLogging() {
+  glog_internal_namespace_::ShutdownGoogleLoggingUtilities();
+  LogDestination::DeleteLogDestinations();
+  delete logging_directories_list;
+  logging_directories_list = NULL;
 }
 
 _END_GOOGLE_NAMESPACE_

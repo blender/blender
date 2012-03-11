@@ -1533,14 +1533,6 @@ if(MSVC10)
 	endif()
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	if(WITH_LIBMV)
-		message(WARNING "Using Clang as CXX compiler: disabling WITH_LIBMV, this feature will be missing.")
-		set(WITH_LIBMV OFF)
-	endif()
-endif()
-
-
 # ensure python header is found since detection can fail, this could happen
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.

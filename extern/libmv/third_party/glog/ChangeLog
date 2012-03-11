@@ -1,3 +1,13 @@
+2012-01-12  Google Inc. <opensource@google.com>
+
+	* google-glog: version 0.3.2
+	* Clang support.
+	* Demangler and stacktrace improvement for newer GCCs.
+	* Now fork(2) doesn't mess up log files.
+	* Make valgrind happier.
+	* Reduce warnings for more -W options.
+	* Provide a workaround for ERROR defined by windows.h.
+
 2010-06-15  Google Inc. <opensource@google.com>
 
 	* google-glog: version 0.3.1
