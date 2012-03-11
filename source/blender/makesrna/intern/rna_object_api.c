@@ -527,7 +527,7 @@ void RNA_api_object(StructRNA *srna)
 	static EnumPropertyItem mesh_dm_info_items[] = {
 		{0, "SOURCE", 0, "Source", "Source mesh"},
 		{1, "DEFORM", 0, "Deform", "Objects deform mesh"},
-	    {2, "FINAL", 0, "Final", "Objects final mesh"},
+		{2, "FINAL", 0, "Final", "Objects final mesh"},
 		{0, NULL, 0, NULL, NULL}
 	};
 #endif

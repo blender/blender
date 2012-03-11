@@ -228,7 +228,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 			continue;
 #endif
 
-		bmesh_face_normal_update(bm, f, f->no);
+		BM_face_normal_update(bm, f);
 	}
 	
 	/* Zero out vertex normals */

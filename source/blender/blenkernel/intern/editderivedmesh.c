@@ -1689,7 +1689,7 @@ DerivedMesh *getEditDerivedBMesh(
 		i = 0;
 		BM_ITER(efa, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 			BM_elem_index_set(efa, i); /* set_inline */
-			BM_face_normal_update_vcos(bm, efa, bmdm->polyNos[i], vertexCos);
+			BM_face_normal_update_vcos(bm, efa, bmdm->polyNos[i], (float const (*)[3])vertexCos);
 			i++;
 		}
 		bm->elem_index_dirty &= ~BM_FACE;
