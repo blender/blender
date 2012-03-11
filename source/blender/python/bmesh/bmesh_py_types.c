@@ -31,6 +31,10 @@
 
 #include "BLI_math.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+
+#include "BKE_depsgraph.h"
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
@@ -585,6 +589,82 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 
 /* Mesh
  * ---- */
+
+PyDoc_STRVAR(bpy_bmesh_to_mesh_doc,
+".. method:: to_mesh(mesh)\n"
+"\n"
+"   Writes this BMesh data into an existing Mesh datablock.\n"
+"\n"
+"   :arg mesh: The mesh data to write into.\n"
+"   :type mesh: :class:`Mesh`\n"
+);
+static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
+{
+	PyObject  *py_mesh;
+	Mesh  *me;
+	BMesh *bm;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "O:to_mesh", &py_mesh) ||
+	    !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
+	{
+		return NULL;
+	}
+
+	/* we could allow this but its almost certainly _not_ what script authors want */
+	if (me->edit_btmesh) {
+		PyErr_Format(PyExc_ValueError,
+		             "to_mesh(): Mesh '%s' is in editmode", me->id.name + 2);
+		return NULL;
+	}
+
+	bm = self->bm;
+
+	BM_mesh_from_bmesh(bm, me, FALSE);
+
+	/* we could have the user do this but if they forget blender can easy crash
+	 * since the references arrays for the objects derived meshes are now invalid */
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmesh_from_mesh_doc,
+".. method:: from_mesh(mesh, use_shape_key=False, shape_key_index=0)\n"
+"\n"
+"   Initialize this bmesh from existing mesh datablock.\n"
+"\n"
+"   :arg mesh: The mesh data to load.\n"
+"   :type mesh: :class:`Mesh`\n"
+"   :arg use_shape_key: Use the locations from a shape key.\n"
+"   :type use_shape_key: boolean\n"
+"   :arg shape_key_index: The shape key index to use.\n"
+"   :type shape_key_index: int\n"
+);
+static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *kw)
+{
+	static const char *kwlist[] = {"mesh", "use_shape_key", "shape_key_index", NULL};
+	BMesh *bm;
+	PyObject *py_mesh;
+	Mesh *me;
+	int use_shape_key = FALSE;
+	int shape_key_index = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|ii:to_mesh", (char **)kwlist,
+	                                 &py_mesh, &use_shape_key, &shape_key_index) ||
+	    !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
+	{
+		return NULL;
+	}
+
+	bm = self->bm;
+
+	BM_mesh_to_bmesh(bm, me, use_shape_key, shape_key_index + 1);
+
+	Py_RETURN_NONE;
+}
+
 
 PyDoc_STRVAR(bpy_bmesh_select_flush_mode_doc,
 ".. method:: select_flush_mode()\n"
@@ -1716,6 +1796,9 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 
 
 static struct PyMethodDef bpy_bmesh_methods[] = {
+    {"from_mesh", (PyCFunction)bpy_bmesh_from_mesh, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_mesh_doc},
+    {"to_mesh",   (PyCFunction)bpy_bmesh_to_mesh,   METH_VARARGS,                 bpy_bmesh_to_mesh_doc},
+
     {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
     {"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
     {"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_VARARGS, bpy_bmesh_normal_update_doc},

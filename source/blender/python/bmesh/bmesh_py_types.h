@@ -62,7 +62,7 @@ typedef struct BPy_BMElem {
 typedef struct BPy_BMesh {
 	PyObject_VAR_HEAD
 	struct BMesh *bm; /* keep first */
-	char py_owns;
+	char py_owns; /* when set, free along with the PyObject */
 } BPy_BMesh;
 
 /* element types */
