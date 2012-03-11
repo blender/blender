@@ -464,11 +464,12 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 	v = (e->v1 == lwalk->lastv) ? e->v2 : e->v1;
 
-	val = BM_vert_edge_count(v);
-
 	rlen = owalk.startrad;
 
-	if (val == 4 || val == 2 || rlen == 1) {
+	val = BM_vert_edge_count_nonwire(walker->bm, v);
+
+	/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
+	if (((val == 4 || val == 2) && rlen > 1) || (rlen == 1 && val > 2)) {
 		i = 0;
 		stopi = val / 2;
 		while (1) {
@@ -481,7 +482,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 			l2 = l->radial_next;
 
-			if (l2 == l) {
+			if (l2 == l || !l2) {
 				break;
 			}
 
