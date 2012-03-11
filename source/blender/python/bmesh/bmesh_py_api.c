@@ -59,7 +59,7 @@ static PyObject *bpy_bm_new(PyObject *UNUSED(self))
 {
 	BMesh *bm;
 
-	bm = BM_mesh_create(NULL, &bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
 	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_NOP);
 }

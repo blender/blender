@@ -4552,7 +4552,7 @@ static int createSlideVerts(TransInfo *t)
 			float vec1[3], dis2, mval[2] = {t->mval[0], t->mval[1]}, d;
 						
 			/* search cross edges for visible edge to the mouse cursor,
-             * then use the shared vertex to calculate screen vector*/
+			 * then use the shared vertex to calculate screen vector*/
 			dis2 = -1.0f;
 			for (i=0; i<2; i++) {
 				v = i?e->v1:e->v2;
@@ -4590,8 +4590,7 @@ static int createSlideVerts(TransInfo *t)
 			}
 		}
 	}
-	
-	em->bm->ob = t->obedit;
+
 	bmesh_edit_begin(em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
@@ -4779,7 +4778,6 @@ void freeSlideVerts(TransInfo *t)
 	
 	freeSlideTempFaces(sld);
 
-	sld->em->bm->ob = t->obedit;
 	bmesh_edit_end(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	BLI_smallhash_release(&sld->vhash);

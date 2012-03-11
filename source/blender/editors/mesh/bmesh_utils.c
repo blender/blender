@@ -514,7 +514,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	Mesh *obme = obdata;
 	
 	undomesh *um = MEM_callocN(sizeof(undomesh), "undo Mesh");
-	BLI_strncpy(um->obname, em->bm->ob->id.name + 2, sizeof(um->obname));
+	BLI_strncpy(um->obname, em->ob->id.name + 2, sizeof(um->obname));
 	
 	/* make sure shape keys work */
 	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
@@ -546,7 +546,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 
 	BMEdit_Free(em);
 
-	bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	BMO_op_callf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%b", &um->me, ob, FALSE);
 
 	em2 = BMEdit_Create(bm, TRUE);
@@ -572,6 +572,13 @@ static void free_undo(void *umv)
 /* and this is all the undo system needs to know */
 void undo_push_mesh(bContext *C, const char *name)
 {
+	/* em->ob gets out of date and crashes on mesh undo,
+	 * this is an easy way to ensure its OK
+	 * though we could investigate the matter further. */
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	em->ob = obedit;
+
 	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
 }
 

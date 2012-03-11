@@ -29,7 +29,7 @@
 
 struct BMAllocTemplate;
 
-BMesh *BM_mesh_create(struct Object *ob, struct BMAllocTemplate *allocsize);
+BMesh *BM_mesh_create(struct BMAllocTemplate *allocsize);
 
 void   BM_mesh_free(BMesh *bm);
 void   BM_mesh_data_free(BMesh *bm);

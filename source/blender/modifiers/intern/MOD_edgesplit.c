@@ -57,7 +57,7 @@
 
 #define EDGE_MARK	1
 
-static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob)
+static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *UNUSED(ob))
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -66,7 +66,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMEdge *e;
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
 
-	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_mesh_normals_update(bm, FALSE);

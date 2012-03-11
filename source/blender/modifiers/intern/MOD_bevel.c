@@ -105,10 +105,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
  * note: this code is very close to MOD_edgesplit.c.
  * note: if 0'd code from trunk included below.
  */
-static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
-						DerivedMesh *dm,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
+                                  DerivedMesh *dm,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -118,7 +118,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	BevelModifierData *bmd = (BevelModifierData*) md;
 	float threshold = cos((bmd->bevel_angle + 0.00001) * M_PI / 180.0);
 
-	em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_mesh_normals_update(bm, FALSE);

@@ -582,7 +582,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		int i, j;
 
 		for (ob = G.main->object.first; ob; ob = ob->id.next) {
-			if (ob->parent == bm->ob && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+			if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
 
 				if (vertMap == NULL) {
 					vertMap = bm_to_mesh_vertex_map(bm, ototvert);

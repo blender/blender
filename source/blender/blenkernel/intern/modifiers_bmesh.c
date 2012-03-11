@@ -137,7 +137,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 /* converts a cddm to a BMEditMesh.  if existing is non-NULL, the
  * new geometry will be put in there.*/
-BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
+BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, int do_tesselate)
 {
 	BMEditMesh *em = existing;
 	BMesh *bm;
@@ -146,7 +146,7 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 		bm = em->bm;
 	}
 	else {
-		bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
+		bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	}
 
 	DM_to_bmesh_ex(dm, bm);
@@ -163,11 +163,11 @@ BMEditMesh *DM_to_editbmesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing, i
 	return em;
 }
 
-BMesh *DM_to_bmesh(Object *ob, DerivedMesh *dm)
+BMesh *DM_to_bmesh(DerivedMesh *dm)
 {
 	BMesh *bm;
 
-	bm = BM_mesh_create(ob, &bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
 	DM_to_bmesh_ex(dm, bm);
 

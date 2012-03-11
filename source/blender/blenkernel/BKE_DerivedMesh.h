@@ -447,12 +447,12 @@ int DM_release(DerivedMesh *dm);
  */
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob);
 
-struct BMEditMesh *DM_to_editbmesh(struct Object *ob, struct DerivedMesh *dm,
+struct BMEditMesh *DM_to_editbmesh(struct DerivedMesh *dm,
                                    struct BMEditMesh *existing, int do_tesselate);
 
 /* conversion to bmesh only */
 void          DM_to_bmesh_ex(struct DerivedMesh *dm, struct BMesh *bm);
-struct BMesh *DM_to_bmesh(struct Object *ob, struct DerivedMesh *dm);
+struct BMesh *DM_to_bmesh(struct DerivedMesh *dm);
 
 
 /* utility function to convert a DerivedMesh to a shape key block 

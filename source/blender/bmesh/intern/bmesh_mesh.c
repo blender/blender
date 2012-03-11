@@ -71,12 +71,10 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(struct Object *ob, BMAllocTemplate *allocsize)
+BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
-
-	bm->ob = ob;
 	
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, allocsize);
@@ -164,15 +162,10 @@ void BM_mesh_data_free(BMesh *bm)
  */
 void BM_mesh_clear(BMesh *bm)
 {
-	Object *ob = bm->ob;
-	
 	/* free old mesh */
 	BM_mesh_data_free(bm);
 	memset(bm, 0, sizeof(BMesh));
-	
-	/* re-initialize mesh */
-	bm->ob = ob;
-	
+
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, &bm_mesh_allocsize_default);
 
@@ -344,11 +337,10 @@ static void bm_rationalize_normals(BMesh *bm, int undo)
 	BMO_op_finish(bm, &bmop);
 }
 
-static void UNUSED_FUNCTION(bm_mdisps_space_set)(BMesh *bm, int from, int to)
+static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		Object *ob = bm->ob;
 		BMEditMesh *em = BMEdit_Create(bm, FALSE);
 		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 		MDisps *mdisps;

@@ -194,8 +194,7 @@ typedef struct BMesh {
 	BMFace *act_face;
 
 	ListBase errorstack;
-	struct Object *ob; /* owner object */
-	
+
 	void *py_handle;
 
 	int opflag; /* current operator flag */

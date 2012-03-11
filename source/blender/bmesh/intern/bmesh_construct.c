@@ -593,7 +593,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	                             bm_old->totface};
 
 	/* allocate a bmesh */
-	bm_new = BM_mesh_create(bm_old->ob, &allocsize);
+	bm_new = BM_mesh_create(&allocsize);
 
 	CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);

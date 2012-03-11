@@ -186,11 +186,11 @@ static void bm_merge_dm_transform(BMesh* bm, DerivedMesh *dm, float mat[4][4])
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-					  Scene *scene, Object *ob, DerivedMesh *dm,
-										  int UNUSED(initFlags))
+                                          Scene *scene, Object *ob, DerivedMesh *dm,
+                                          int UNUSED(initFlags))
 {
 	DerivedMesh *result;
-	BMEditMesh *em = DM_to_editbmesh(ob, dm, NULL, FALSE);
+	BMEditMesh *em = DM_to_editbmesh(dm, NULL, FALSE);
 	BMOperator op, oldop, weldop;
 	int i, j, indexLen;
 	/* offset matrix */
