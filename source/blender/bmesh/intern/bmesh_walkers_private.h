@@ -61,7 +61,9 @@ typedef struct BMwLoopWalker {
 	BMwGenericWalker header;
 	BMEdge *cur, *start;
 	BMVert *lastv, *startv;
-	int startrad, stage2;
+	int stage2;
+	short is_boundry; /* boundry looping changes behavior */
+	short is_single;  /* single means the edge verts are only connected to 1 face */
 } BMwLoopWalker;
 
 typedef struct BMwFaceLoopWalker {

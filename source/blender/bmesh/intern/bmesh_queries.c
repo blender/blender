@@ -291,20 +291,15 @@ int BM_vert_edge_count(BMVert *v)
 	return bmesh_disk_count(v);
 }
 
-int BM_vert_edge_count_nonwire( BMesh *bm, BMVert *v)
+int BM_vert_edge_count_nonwire(BMVert *v)
 {
 	int count = 0;
 	BMIter eiter;
 	BMEdge *edge;
-	BM_ITER(edge, &eiter, bm, BM_EDGES_OF_VERT, v){
-		if (!edge) return count;
-
-		if (count >= (1 << 20)) {
-			printf(" bmesh error: infinite loop in disk cycle!\n");
-			return 0;
+	BM_ITER(edge, &eiter, NULL, BM_EDGES_OF_VERT, v){
+		if(edge->l) {
+			count++;
 		}
-
-		if(edge->l) count++;
 	}
 	return count;
 }
