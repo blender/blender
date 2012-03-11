@@ -74,7 +74,7 @@ struct BLI_mempool {
 	int flag;
 	/* keeps aligned to 16 bits */
 
-	BLI_freenode *free;	   /* free element list. Interleaved into chunk datas. */
+	BLI_freenode *free;    /* free element list. Interleaved into chunk datas. */
 	int totalloc, totused; /* total number of elements allocated in total,
 	                        * and currently in use */
 };
@@ -83,9 +83,9 @@ struct BLI_mempool {
 
 BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 {
-	BLI_mempool  *pool = NULL;
+	BLI_mempool *pool = NULL;
 	BLI_freenode *lasttail = NULL, *curnode = NULL;
-	int i,j, maxchunks;
+	int i, j, maxchunks;
 	char *addr;
 
 	/* allocate the pool structure */
@@ -113,7 +113,7 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 	pool->csize = esize * pchunk;
 	pool->chunks.first = pool->chunks.last = NULL;
 	pool->totused = 0;
-	
+
 	maxchunks = totelem / pchunk + 1;
 	if (maxchunks == 0) {
 		maxchunks = 1;
@@ -124,17 +124,17 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 		BLI_mempool_chunk *mpchunk;
 
 		if (flag & BLI_MEMPOOL_SYSMALLOC) {
-			mpchunk       = malloc(sizeof(BLI_mempool_chunk));
+			mpchunk = malloc(sizeof(BLI_mempool_chunk));
 			mpchunk->data = malloc(pool->csize);
 		}
 		else {
-			mpchunk       = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
+			mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
 			mpchunk->data = MEM_mallocN(pool->csize, "BLI Mempool Chunk Data");
 		}
 
 		mpchunk->next = mpchunk->prev = NULL;
 		BLI_addtail(&(pool->chunks), mpchunk);
-		
+
 		if (i == 0) {
 			pool->free = mpchunk->data; /* start of the list */
 			if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
@@ -304,7 +304,9 @@ void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 		BLI_mempool_iter iter;
 		void *elem;
 		BLI_mempool_iternew(pool, &iter);
-		for (elem = BLI_mempool_iterstep(&iter); index-- != 0; elem = BLI_mempool_iterstep(&iter)) { };
+		for (elem = BLI_mempool_iterstep(&iter); index-- != 0; elem = BLI_mempool_iterstep(&iter)) {
+			/* do nothing */
+		};
 		return elem;
 	}
 
@@ -317,10 +319,10 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 		fprintf(stderr, "%s: Error! you can't iterate over this mempool!\n", __func__);
 		iter->curchunk = NULL;
 		iter->curindex = 0;
-		
+
 		return;
 	}
-	
+
 	iter->pool = pool;
 	iter->curchunk = pool->chunks.first;
 	iter->curindex = 0;
@@ -332,29 +334,29 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 {
 	void *ret = NULL;
-	
+
 	if (!iter->curchunk || !iter->pool->totused) return NULL;
-	
+
 	ret = ((char *)iter->curchunk->data) + iter->pool->esize * iter->curindex;
-	
+
 	iter->curindex++;
-	
+
 	if (iter->curindex >= iter->pool->pchunk) {
 		iter->curchunk = iter->curchunk->next;
 		iter->curindex = 0;
 	}
-	
+
 	return ret;
 }
 
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 {
 	BLI_freenode *ret;
-	
+
 	do {
 		ret = bli_mempool_iternext(iter);
-	} while (ret && ret->freeword == FREEWORD);
-	
+	}while (ret && ret->freeword == FREEWORD);
+
 	return ret;
 }
 
@@ -383,7 +385,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 			iter->curchunk = iter->curchunk->next;
 		}
 	} while (ret->freeword == FREEWORD);
-	
+
 	return ret;
 }
 

@@ -477,7 +477,6 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
 	mp = me->mpoly;
-	lcol = me->mloopcol;
 	for (i=0; i<me->totpoly; i++, mp++) {
 		if (!(!selected || mp->flag & ME_FACE_SEL))
 			continue;
@@ -3062,4 +3061,3 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Method to use for assigning weights");
 }
-

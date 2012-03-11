@@ -101,7 +101,7 @@ static strCursorDelimType test_special_char(const char ch)
 		case ':':
 		case ';':
 		case '?':
-		/* case '_': */ /* special case, for python */
+			/* case '_': *//* special case, for python */
 			return STRCUR_DELIM_OTHER;
 
 		default:
@@ -112,12 +112,14 @@ static strCursorDelimType test_special_char(const char ch)
 
 int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 {
-	const char *str_end= str + (maxlen + 1);
-	const char *str_pos= str + (*pos);
-	const char *str_next= BLI_str_find_next_char_utf8(str_pos, str_end);
+	const char *str_end = str + (maxlen + 1);
+	const char *str_pos = str + (*pos);
+	const char *str_next = BLI_str_find_next_char_utf8(str_pos, str_end);
 	if (str_next) {
 		(*pos) += (str_next - str_pos);
-		if((*pos) > maxlen) (*pos)= maxlen;
+		if ((*pos) > maxlen) {
+			(*pos) = maxlen;
+		}
 		return TRUE;
 	}
 
@@ -126,9 +128,9 @@ int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 
 int BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *pos)
 {
-	if((*pos) > 0) {
-		const char *str_pos= str + (*pos);
-		const char *str_prev= BLI_str_find_prev_char_utf8(str, str_pos);
+	if ((*pos) > 0) {
+		const char *str_pos = str + (*pos);
+		const char *str_prev = BLI_str_find_prev_char_utf8(str, str_pos);
 		if (str_prev) {
 			(*pos) -= (str_pos - str_prev);
 			return TRUE;
@@ -142,19 +144,20 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
                               int *pos, strCursorJumpDirection direction,
                               strCursorJumpType jump)
 {
-	const short pos_prev= *pos;
+	const short pos_prev = *pos;
 
 	if (direction == STRCUR_DIR_NEXT) {
 		BLI_str_cursor_step_next_utf8(str, maxlen, pos);
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType is_special= (*pos) < maxlen ? test_special_char(str[(*pos)]) : STRCUR_DELIM_NONE;
+			const strCursorDelimType is_special = (*pos) < maxlen ? test_special_char(str[(*pos)]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function test_special_char() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) < maxlen) {
 				if (BLI_str_cursor_step_next_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
+					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)])))
+						break;
 				}
 				else {
 					break; /* unlikely but just in case */
@@ -165,14 +168,15 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 	else if (direction == STRCUR_DIR_PREV) {
 		BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
 
-		if(jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType is_special= (*pos) > 1 ? test_special_char(str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+		if (jump != STRCUR_JUMP_NONE) {
+			const strCursorDelimType is_special = (*pos) > 1 ? test_special_char(str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function test_special_char() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) > 0) {
 				if (BLI_str_cursor_step_prev_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)]))) break;
+					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)])))
+						break;
 				}
 				else {
 					break;
