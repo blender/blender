@@ -75,9 +75,6 @@
 /* own include */
 #include "sequencer_intern.h"
 
-static int okee(const char *UNUSED(dummy)) {return 0;}
-
-
 /* XXX */
 /* RNA Enums, used in multiple files */
 EnumPropertyItem sequencer_prop_effect_types[] = {
@@ -866,7 +863,7 @@ static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 	
 	if(ed==NULL) return;
 
-	if(okee("Touch and print selected movies")==0) return;
+	// XXX25 if(okee("Touch and print selected movies")==0) return;
 
 	WM_cursor_wait(1);
 

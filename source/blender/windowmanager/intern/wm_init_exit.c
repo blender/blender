@@ -317,9 +317,6 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-extern wchar_t *copybuf;
-extern wchar_t *copybufinfo;
-
 	// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(void); 
 extern void free_anim_drivers_copybuf(void); 
@@ -419,9 +416,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	GPU_global_buffer_pool_free();
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
-	
-//	if (copybuf) MEM_freeN(copybuf);
-//	if (copybufinfo) MEM_freeN(copybufinfo);
+
 	if (!G.background) {
 		BKE_undo_save_quit();	// saves quit.blend if global undo is on
 	}

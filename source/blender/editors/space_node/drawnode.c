@@ -79,10 +79,6 @@
 
 #include "node_intern.h"
 
-
-// XXX interface.h
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
-
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
 static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)

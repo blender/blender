@@ -319,9 +319,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	return 0;
 }
 
-
-double PIL_check_seconds_timer(void);
-
 static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	return -1;
