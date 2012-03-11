@@ -2022,6 +2022,8 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 	}
 
+	BLI_exec_cb(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+
 	/* UGLY WARNING */
 	G.rendering= 0;
 }
@@ -2238,6 +2240,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	scene->r.cfra= cfrao;
 
 	re->flag &= ~R_ANIMATION;
+
+	BLI_exec_cb(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
 	G.rendering= 0;

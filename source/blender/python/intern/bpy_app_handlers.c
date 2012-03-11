@@ -47,6 +47,8 @@ static PyStructSequence_Field app_cb_info_fields[] = {
 	{(char *)"render_pre",        (char *)"Callback list - on render (before)"},
 	{(char *)"render_post",       (char *)"Callback list - on render (after)"},
 	{(char *)"render_stats",      (char *)"Callback list - on printing render statistics"},
+	{(char *)"render_complete",   (char *)"Callback list - on completion of render job"},
+	{(char *)"render_cancel",     (char *)"Callback list - on cancelling a render job"},
 	{(char *)"load_pre",          (char *)"Callback list - on loading a new blend file (before)"},
 	{(char *)"load_post",         (char *)"Callback list - on loading a new blend file (after)"},
 	{(char *)"save_pre",          (char *)"Callback list - on saving a blend file (before)"},
