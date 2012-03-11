@@ -134,7 +134,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	
 	
 	if(res)
-		RE_rayobject_config_control( res, re );
+		RE_rayobject_config_control(res, re);
 	
 	return res;
 }

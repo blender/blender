@@ -518,7 +518,7 @@ public:
 		return m_pBlenderObject;
 	}
 
-	void SetBlenderObject( struct Object* obj)
+	void SetBlenderObject(struct Object* obj)
 	{
 		m_pBlenderObject = obj;
 	}
@@ -528,7 +528,7 @@ public:
 		return m_pBlenderGroupObject;
 	}
 
-	void SetBlenderGroupObject( struct Object* obj)
+	void SetBlenderGroupObject(struct Object* obj)
 	{
 		m_pBlenderGroupObject = obj;
 	}

@@ -167,7 +167,7 @@ static void to_hex_char(char* hexbytes, const unsigned char* bytes, int len)
 
 /** ----- end of adapted code from glib --- */
 
-static int uri_from_filename( const char *path, char *uri )
+static int uri_from_filename(const char *path, char *uri)
 {
 	char orig_uri[URI_MAX];	
 	const char* dirstart = path;

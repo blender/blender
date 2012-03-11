@@ -4089,7 +4089,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 				}
 				fileParts++;
 			}
-			gzclose( gzf );
+			gzclose(gzf);
 	
 			totpart = psys->totpart = activeParts;
 			BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);

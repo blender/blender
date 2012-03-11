@@ -50,13 +50,13 @@
 static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
                               BMVert *v3, BMVert *v4, float limit)
 {
-	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would mak */
+	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make */
 	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
 	float n1[3], n2[3], measure = 0.0f, angle1, angle2, diff;
 	float edgeVec1[3], edgeVec2[3], edgeVec3[3], edgeVec4[3];
 	float minarea, maxarea, areaA, areaB;
 
-	/* First Test: Normal differenc */
+	/* First Test: Normal difference */
 	normal_tri_v3(n1, v1->co, v2->co, v3->co);
 	normal_tri_v3(n2, v1->co, v3->co, v4->co);
 
@@ -74,7 +74,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 		return measure;
 	}
 
-	/* Second test: Colinearit */
+	/* Second test: Colinearity */
 	sub_v3_v3v3(edgeVec1, v1->co, v2->co);
 	sub_v3_v3v3(edgeVec2, v2->co, v3->co);
 	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
@@ -95,7 +95,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 		return measure;
 	}
 
-	/* Third test: Concavit */
+	/* Third test: Concavity */
 	areaA = area_tri_v3(v1->co, v2->co, v3->co) + area_tri_v3(v1->co, v3->co, v4->co);
 	areaB = area_tri_v3(v2->co, v3->co, v4->co) + area_tri_v3(v4->co, v1->co, v2->co);
 
@@ -176,7 +176,9 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 
 	/* do UV */
 	if (luv1 && douvs) {
-		if (tp1->tpage != tp2->tpage); /* do nothin */
+		if (tp1->tpage != tp2->tpage) {
+			/* do nothing */
+		}
 		else {
 			int i;
 

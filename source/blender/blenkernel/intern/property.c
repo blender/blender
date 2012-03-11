@@ -79,7 +79,7 @@ bProperty *copy_property(bProperty *prop)
 void copy_properties(ListBase *lbn, ListBase *lbo)
 {
 	bProperty *prop, *propn;
-	free_properties( lbn ); /* in case we are copying to an object with props */
+	free_properties(lbn); /* in case we are copying to an object with props */
 	prop= lbo->first;
 	while(prop) {
 		propn= copy_property(prop);

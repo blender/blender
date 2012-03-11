@@ -331,7 +331,7 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	}
 	
 	/* Note
-	 *   memmove( start, eind, strlen(eind)+1 );
+	 *   memmove(start, eind, strlen(eind) + 1);
 	 * is the same as
 	 *   strcpy( start, eind ); 
 	 * except strcpy should not be used because there is overlap,
@@ -357,18 +357,18 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 		if (a<0) {
 			break;
 		} else {
-			memmove( dir+a, eind, strlen(eind)+1 );
+			memmove(dir + a, eind, strlen(eind) + 1);
 		}
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ) {
 		eind = start + strlen("\\.\\") - 1;
-		memmove( start, eind, strlen(eind)+1 );
+		memmove(start, eind, strlen(eind) + 1);
 	}
 
 	while ( (start = strstr(dir,"\\\\" )) ) {
 		eind = start + strlen("\\\\") - 1;
-		memmove( start, eind, strlen(eind)+1 );
+		memmove(start, eind, strlen(eind) + 1);
 	}
 #else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
@@ -381,7 +381,7 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	 * this is a valid path in blender but we cant handle this the usual way below
 	 * simply strip this prefix then evaluate the path as usual. pythons os.path.normpath() does this */
 	while((strncmp(dir, "/../", 4)==0)) {
-		memmove( dir, dir + 4, strlen(dir + 4) + 1 );
+		memmove(dir, dir + 4, strlen(dir + 4) + 1);
 	}
 
 	while ( (start = strstr(dir, "/../")) ) {
@@ -393,19 +393,20 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 		}
 		if (a<0) {
 			break;
-		} else {
-			memmove( dir+a, eind, strlen(eind)+1 );
+		}
+		else {
+			memmove(dir+a, eind, strlen(eind) + 1);
 		}
 	}
 
 	while ( (start = strstr(dir,"/./")) ) {
 		eind = start + (3 - 1) /* strlen("/./") - 1 */;
-		memmove( start, eind, strlen(eind)+1 );
+		memmove(start, eind, strlen(eind) + 1);
 	}
 
 	while ( (start = strstr(dir,"//" )) ) {
 		eind = start + (2 - 1) /* strlen("//") - 1 */;
-		memmove( start, eind, strlen(eind)+1 );
+		memmove(start, eind, strlen(eind) + 1);
 	}
 #endif
 }
@@ -1479,7 +1480,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t d
 
 	if (dir) {
 		if (lslash) {
-			BLI_strncpy( dir, string, MIN2(dirlen, lslash + 1)); /* +1 to include the slash and the last char */
+			BLI_strncpy(dir, string, MIN2(dirlen, lslash + 1)); /* +1 to include the slash and the last char */
 		}
 		else {
 			dir[0] = '\0';

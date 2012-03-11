@@ -77,8 +77,6 @@
 #include "sss.h"
 #include "zbuf.h"
 
-extern Render R; // meh
-
 /* Generic Multiple Scattering API */
 
 /* Relevant papers:

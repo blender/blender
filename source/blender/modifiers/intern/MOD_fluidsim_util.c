@@ -210,7 +210,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 		gotBytes = gzread(gzf, &wri, sizeof(wri));
 	numfaces = wri;
 
-	gzclose( gzf );
+	gzclose(gzf);
 	// ------------------------------------------------
 
 	if(!numfaces || !numverts || !gotBytes)
@@ -226,7 +226,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 
 	if(!dm)
 	{
-		gzclose( gzf );
+		gzclose(gzf);
 		return NULL;
 	}
 
@@ -245,7 +245,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	{
 		if(dm)
 			dm->release(dm);
-		gzclose( gzf );
+		gzclose(gzf);
 		return NULL;
 	}
 
@@ -254,7 +254,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	{
 		if(dm)
 			dm->release(dm);
-		gzclose( gzf );
+		gzclose(gzf);
 		return NULL;
 	}
 
@@ -272,7 +272,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 		printf("Fluidsim: error in reading data from file.\n");
 		if(dm)
 			dm->release(dm);
-		gzclose( gzf );
+		gzclose(gzf);
 		MEM_freeN(normals);
 		return NULL;
 	}
@@ -299,7 +299,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 
 	}
 
-	gzclose( gzf );
+	gzclose(gzf);
 
 	CDDM_calc_edges(dm);
 

@@ -1088,7 +1088,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	
 	for( a = 1; a <= sizex; a++ ) {
 		pos = ((float)a) / (sizex-1);
-		do_colorband( coba, pos, colf );
+		do_colorband(coba, pos, colf);
 		if (but->block->color_profile != BLI_PR_NONE)
 			linearrgb_to_srgb_v3_v3(colf, colf);
 		

@@ -754,7 +754,7 @@ void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type)
 	item->type = type;
 	item->tree = tree;
 
-	BLI_linklist_prepend( cache, item );
+	BLI_linklist_prepend(cache, item);
 }
 
 

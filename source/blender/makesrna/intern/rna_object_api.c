@@ -160,17 +160,17 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			DerivedMesh *dm;
 			/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
 			CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
-												   for example, needs CD_MASK_MDEFORMVERT */
+												 * for example, needs CD_MASK_MDEFORMVERT */
 			
 			/* Write the display mesh into the dummy mesh */
 			if (render)
-				dm = mesh_create_derived_render( sce, ob, mask );
+				dm = mesh_create_derived_render(sce, ob, mask);
 			else
-				dm = mesh_create_derived_view( sce, ob, mask );
+				dm = mesh_create_derived_view(sce, ob, mask);
 			
-			tmpmesh = add_mesh( "Mesh" );
-			DM_to_mesh( dm, tmpmesh, ob );
-			dm->release( dm );
+			tmpmesh = add_mesh("Mesh");
+			DM_to_mesh(dm, tmpmesh, ob);
+			dm->release(dm);
 		}
 		
 		break;

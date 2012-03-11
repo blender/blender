@@ -600,7 +600,7 @@ void clear_text(Text *text) /* called directly from rna */
 	txt_set_undostate( 1 );
 	txt_sel_all( text );
 	txt_delete_sel(text);
-	txt_set_undostate( oldstate );
+	txt_set_undostate(oldstate);
 
 	txt_make_dirty(text);
 }
@@ -609,10 +609,10 @@ void write_text(Text *text, const char *str) /* called directly from rna */
 {
 	int oldstate;
 
-	oldstate = txt_get_undostate(  );
-	txt_insert_buf( text, str );
-	txt_move_eof( text, 0 );
-	txt_set_undostate( oldstate );
+	oldstate = txt_get_undostate();
+	txt_insert_buf(text, str);
+	txt_move_eof(text, 0);
+	txt_set_undostate(oldstate);
 
 	txt_make_dirty(text);
 }

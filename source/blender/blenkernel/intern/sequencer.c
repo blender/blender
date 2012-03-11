@@ -3755,7 +3755,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = IMB_anim_get_duration( an, IMB_TC_RECORD_RUN );
+	strip->len = seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
 	strip->us= 1;
 
 	/* we only need 1 element for MOVIE strips */

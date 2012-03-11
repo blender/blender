@@ -62,8 +62,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-extern Material defmaterial;	/* material.c */
-
 static void boundbox_displist(Object *ob);
 
 void free_disp_elem(DispList *dl)

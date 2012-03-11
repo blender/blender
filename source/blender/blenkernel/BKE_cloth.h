@@ -198,32 +198,32 @@ int cloth_bvh_objcollision (struct Object *ob, struct ClothModifierData * clmd, 
 ////////////////////////////////////////////////
 
 // needed for cloth.c
-int implicit_init ( struct Object *ob, struct ClothModifierData *clmd );
-int implicit_free ( struct ClothModifierData *clmd );
-int implicit_solver ( struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
-void implicit_set_positions ( struct ClothModifierData *clmd );
+int implicit_init (struct Object *ob, struct ClothModifierData *clmd );
+int implicit_free (struct ClothModifierData *clmd );
+int implicit_solver (struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
+void implicit_set_positions (struct ClothModifierData *clmd );
 
 /////////////////////////////////////////////////
 // cloth.c
 ////////////////////////////////////////////////
 
 // needed for modifier.c
-void cloth_free_modifier_extern ( struct ClothModifierData *clmd );
-void cloth_free_modifier ( struct ClothModifierData *clmd );
-void cloth_init ( struct ClothModifierData *clmd );
-void clothModifier_do ( struct ClothModifierData *clmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3]);
+void cloth_free_modifier_extern (struct ClothModifierData *clmd );
+void cloth_free_modifier (struct ClothModifierData *clmd );
+void cloth_init (struct ClothModifierData *clmd );
+void clothModifier_do (struct ClothModifierData *clmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3]);
 
 int cloth_uses_vgroup(struct ClothModifierData *clmd);
 
 // needed for collision.c
-void bvhtree_update_from_cloth ( struct ClothModifierData *clmd, int moving );
-void bvhselftree_update_from_cloth ( struct ClothModifierData *clmd, int moving );
+void bvhtree_update_from_cloth (struct ClothModifierData *clmd, int moving );
+void bvhselftree_update_from_cloth (struct ClothModifierData *clmd, int moving );
 
 // needed for button_object.c
-void cloth_clear_cache ( struct Object *ob, struct ClothModifierData *clmd, float framenr );
+void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float framenr );
 
 // needed for cloth.c
-int cloth_add_spring ( struct ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
+int cloth_add_spring (struct ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
 
 ////////////////////////////////////////////////
 
@@ -242,9 +242,9 @@ typedef struct
 {
 	const char		*name;
 	CM_SOLVER_ID	id;
-	int	( *init ) ( struct Object *ob, struct ClothModifierData *clmd );
-	int	( *solver ) ( struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );
-	int	( *free ) ( struct ClothModifierData *clmd );
+	int	( *init ) (struct Object *ob, struct ClothModifierData *clmd );
+	int	( *solver ) (struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );
+	int	( *free ) (struct ClothModifierData *clmd );
 }
 CM_SOLVER_DEF;
 

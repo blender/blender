@@ -94,7 +94,7 @@ const char* BLF_gettext(const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
 	if( msgid[0] )
-		return gettext( msgid );
+		return gettext(msgid);
 	return "";
 #else
 	return msgid;

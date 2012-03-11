@@ -201,7 +201,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
 	
-	/* if one flagged face is bordered by an unflagged face, then we delete
+	/* if one flagged face is bordered by an un-flagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */
 	if (!BMO_slot_bool_get(op, "alwayskeeporig")) {
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -226,13 +226,13 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			}
 
 			if ((edge_face_tot > 1) && (found == FALSE)) {
-				/* edge has a face user, that face isnt extrude input */
+				/* edge has a face user, that face isn't extrude input */
 				BMO_elem_flag_enable(bm, e, EXT_DEL);
 			}
 		}
 	}
 
-	/* calculate verts to delet */
+	/* calculate verts to delete */
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		found = FALSE;
 

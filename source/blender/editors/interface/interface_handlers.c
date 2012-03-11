@@ -1229,7 +1229,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 	int len= strlen(str);
 	int change= 0;
 	if(but->selsta != but->selend && len) {
-		memmove( str+but->selsta, str+but->selend, (len - but->selend) + 1 );
+		memmove(str + but->selsta, str + but->selend, (len - but->selend) + 1);
 		change= 1;
 	}
 	

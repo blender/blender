@@ -3610,13 +3610,13 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 					bs->v1= curindex;
 					bs->v2= curindex+1;
 					bs->springtype=SB_HANDLE;
-					bs->len= globallen( bezt->vec[0], bezt->vec[1], ob );
+					bs->len= globallen(bezt->vec[0], bezt->vec[1], ob);
 					bs++;
 
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
 					bs->springtype=SB_HANDLE;
-					bs->len= globallen( bezt->vec[1], bezt->vec[2], ob );
+					bs->len= globallen(bezt->vec[1], bezt->vec[2], ob);
 					bs++;
 				}
 			}

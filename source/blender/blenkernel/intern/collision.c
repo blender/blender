@@ -75,7 +75,7 @@ Collision modifier code start
 ***********************************/
 
 /* step is limited from 0 (frame start position) to 1 (frame end position) */
-void collision_move_object ( CollisionModifierData *collmd, float step, float prevstep )
+void collision_move_object(CollisionModifierData *collmd, float step, float prevstep)
 {
 	float tv[3] = {0, 0, 0};
 	unsigned int i = 0;

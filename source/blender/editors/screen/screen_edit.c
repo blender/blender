@@ -1845,8 +1845,8 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUS
 	{
 		Tex *tex;
 		for(tex= bmain->tex.first; tex; tex= tex->id.next)
-			if( tex->use_nodes && tex->nodetree ) {
-				ntreeTexTagAnimated( tex->nodetree );
+			if (tex->use_nodes && tex->nodetree) {
+				ntreeTexTagAnimated(tex->nodetree);
 			}
 	}
 	

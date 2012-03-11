@@ -441,14 +441,14 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 				}
 				if( prevdraw != draw ) {
 					if( prevdraw > 0 && (i-prevstart) > 0 ) {
-						GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+						GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
 					}
 					prevstart = i;
 				}
 				prevdraw = draw;
 			}
 			if( prevdraw > 0 && (i-prevstart) > 0 ) {
-				GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+				GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i-prevstart) * 2);
 			}
 		}
 		GPU_buffer_unbind();
@@ -489,14 +489,14 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 				}
 				if( prevdraw != draw ) {
 					if( prevdraw > 0 && (i-prevstart) > 0) {
-						GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+						GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
 					}
 					prevstart = i;
 				}
 				prevdraw = draw;
 			}
 			if( prevdraw > 0 && (i-prevstart) > 0 ) {
-				GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+				GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
 			}
 		}
 		GPU_buffer_unbind();
