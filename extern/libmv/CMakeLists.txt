@@ -37,6 +37,9 @@ set(INC
 set(INC_SYS
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
+	if(APPLE) # this is a momentary hack to find unwind.h in 10.6.sdk
+		${CMAKE_OSX_SYSROOT}/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin10/4.2.1/include
+	endif()
 )
 
 set(SRC
