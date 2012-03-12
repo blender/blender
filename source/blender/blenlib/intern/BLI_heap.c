@@ -54,8 +54,6 @@ struct Heap {
 	HeapNode **tree;
 };
 
-#define SWAP(type, a, b) \
-	{ type sw_ap; sw_ap = (a); (a) = (b); (b) = sw_ap; }
 #define HEAP_PARENT(i) ((i - 1) >> 1)
 #define HEAP_LEFT(i)   ((i << 1) + 1)
 #define HEAP_RIGHT(i)  ((i << 1) + 2)
