@@ -19,7 +19,7 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Joseph Eagar, Joshua Leung
+ * Contributor(s): Joseph Eagar, Joshua Leung, Howard Trickey
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -62,7 +62,6 @@
 
 /* this code here is kindof messy. . .I might need to eventually rework it - joeedh */
 
-#define MAXGROUP	30
 #define KMAXDIST	10	/* max mouse distance from edge before not detecting it */
 
 /* knifetool operator */
@@ -99,6 +98,21 @@ typedef struct BMEdgeHit {
 	BMFace *f;
 } BMEdgeHit;
 
+typedef struct KnifePosData {
+	float co[3];
+	float cage[3];
+
+	/* At most one of vert, edge, or bmface should be non-NULL,
+	 * saying whether the point is snapped to a vertex, edge, or in a face.
+	 * If none are set, this point is in space and is_space should be true. */
+	KnifeVert *vert;
+	KnifeEdge *edge;
+	BMFace *bmface;
+	int is_space;
+
+	int mval[2];  /* mouse screen position */
+} KnifePosData;
+
 /* struct for properties used while drawing */
 typedef struct knifetool_opdata {
 	ARegion *ar;		/* region that knifetool was activated in */
@@ -124,21 +138,14 @@ typedef struct knifetool_opdata {
 	float vthresh;
 	float ethresh;
 	
-	float vertco[3], vertcage[3];
-	float prevco[3], prevcage[3];
-	
 	/* used for drag-cutting */
 	BMEdgeHit *linehits;
 	int totlinehit;
 	
-	/* if curedge is NULL, attach to curvert;
-	 * if curvert is NULL, attach to curbmface,
-	 * otherwise create null vert */
-	KnifeEdge *curedge, *prevedge;
-	KnifeVert *curvert, *prevvert;
-	BMFace *curbmface, *prevbmface;
+	/* Data for mouse-position-derived data (cur) and previous click (prev) */
+	KnifePosData cur, prev;
 
-	int totkedge, totkvert, cutnr;
+	int totkedge, totkvert;
 	
 	BLI_mempool *refs;
 	
@@ -156,7 +163,6 @@ typedef struct knifetool_opdata {
 	
 	int snap_midpoints, prevmode, extend;
 	int ignore_edge_snapping, ignore_vert_snapping;
-	int prevmval[2];
 	
 	enum {
 		ANGLE_FREE,
@@ -166,7 +172,6 @@ typedef struct knifetool_opdata {
 		ANGLE_135
 	} angle_snapping;
 
-	int is_space, prev_is_space; /*1 if current cut location, vertco, isn't on the mesh */
 	float (*cagecos)[3];
 } knifetool_opdata;
 
@@ -178,6 +183,16 @@ static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
 static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco[3])
 {
 	ED_view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
+}
+
+static void knife_pos_data_clear(KnifePosData *kpd) {
+	zero_v3(kpd->co);
+	zero_v3(kpd->cage);
+	kpd->vert = NULL;
+	kpd->edge = NULL;
+	kpd->bmface = NULL;
+	kpd->mval[0] = 0;
+	kpd->mval[1] = 0;
 }
 
 static ListBase *knife_empty_list(knifetool_opdata *kcd)
@@ -280,33 +295,26 @@ static KnifeEdge *get_bm_knife_edge(knifetool_opdata *kcd, BMEdge *e)
 	return kfe;
 }
 
+/* User has just clicked for first time or first time after a restart (E key).
+ * Copy the current position data into prev. */
 static void knife_start_cut(knifetool_opdata *kcd)
 {
-	kcd->prevedge = kcd->curedge;
-	kcd->prevvert = kcd->curvert;
-	kcd->prevbmface = kcd->curbmface;
-	kcd->cutnr++;
-	kcd->prev_is_space = kcd->is_space;
-	kcd->is_space = 0;
-	kcd->prevmval[0] = kcd->vc.mval[0];
-	kcd->prevmval[1] = kcd->vc.mval[1];
+	kcd->prev = kcd->cur;
+	kcd->cur.is_space = 0; /*TODO: why do we do this? */
 
-	copy_v3_v3(kcd->prevco, kcd->vertco);
-	copy_v3_v3(kcd->prevcage, kcd->vertcage);
-
-	if (kcd->prevvert == NULL && kcd->prevedge == NULL && is_zero_v3(kcd->prevcage)) {
+	if (kcd->prev.vert == NULL && kcd->prev.edge == NULL && is_zero_v3(kcd->prev.cage)) {
 		/* Make prevcage a point on the view ray to mouse closest to a point on model: choose vertex 0 */
 		float origin[3], ray[3], co[3];
 		BMVert *v0;
 
-		knife_input_ray_cast(kcd, kcd->vc.mval, origin, ray);
+		knife_input_ray_cast(kcd, kcd->cur.mval, origin, ray);
 		add_v3_v3v3(co, origin, ray);
 		v0 = BM_vert_at_index(kcd->em->bm, 0);
 		if (v0) {
-			closest_to_line_v3(kcd->prevcage, v0->co, co, origin);
-			copy_v3_v3(kcd->prevco, kcd->prevcage);
-			copy_v3_v3(kcd->vertcage, kcd->prevcage);
-			copy_v3_v3(kcd->vertco, kcd->prevco);
+			closest_to_line_v3(kcd->prev.cage, v0->co, co, origin);
+			copy_v3_v3(kcd->prev.co, kcd->prev.cage); /*TODO: do we need this? */
+			copy_v3_v3(kcd->cur.cage, kcd->prev.cage);
+			copy_v3_v3(kcd->cur.co, kcd->prev.co);
 		}
 	}
 }
@@ -339,9 +347,9 @@ static void knife_find_basef(knifetool_opdata *kcd, KnifeEdge *kfe)
 
 		if (kfe->v1->isface || kfe->v2->isface) {
 			if (kfe->v2->isface)
-				kfe->basef = kcd->curbmface;
+				kfe->basef = kcd->cur.bmface;
 			else 
-				kfe->basef = kcd->prevbmface;
+				kfe->basef = kcd->prev.bmface;
 		}
 		else {
 			for (r1 = kfe->v1->edges.first; r1 && !kfe->basef; r1 = r1->next) {
@@ -408,48 +416,50 @@ static KnifeVert *knife_split_edge(knifetool_opdata *kcd, KnifeEdge *kfe, float 
 	return newkfe->v2;
 }
 
+/* Make a single KnifeEdge for cut from kcd->prev to kcd->cur.
+ * and move cur data to prev. */
 static void knife_add_single_cut(knifetool_opdata *kcd)
 {
 	KnifeEdge *kfe = new_knife_edge(kcd), *kfe2 = NULL, *kfe3 = NULL;
 
-	if (kcd->prevvert && kcd->prevvert == kcd->curvert)
+	if (kcd->prev.vert && kcd->prev.vert == kcd->cur.vert)
 		return;
-	if (kcd->prevedge && kcd->prevedge == kcd->curedge)
+	if (kcd->prev.edge && kcd->prev.edge == kcd->cur.edge)
 		return;
 
 	kfe->draw = 1;
 
-	if (kcd->prevvert) {
-		kfe->v1 = kcd->prevvert;
+	if (kcd->prev.vert) {
+		kfe->v1 = kcd->prev.vert;
 	}
-	else if (kcd->prevedge) {
-		kfe->v1 = knife_split_edge(kcd, kcd->prevedge, kcd->prevco, &kfe2);
+	else if (kcd->prev.edge) {
+		kfe->v1 = knife_split_edge(kcd, kcd->prev.edge, kcd->prev.co, &kfe2);
 	}
 	else {
-		kfe->v1 = new_knife_vert(kcd, kcd->prevco, kcd->prevco);
-		kfe->v1->draw = kfe->draw = !kcd->prev_is_space;
-		kfe->v1->inspace = kcd->prev_is_space;
-		kfe->draw = !kcd->prev_is_space;
+		kfe->v1 = new_knife_vert(kcd, kcd->prev.co, kcd->prev.co);
+		kfe->v1->draw = kfe->draw = !kcd->prev.is_space;
+		kfe->v1->inspace = kcd->prev.is_space;
+		kfe->draw = !kcd->prev.is_space;
 		kfe->v1->isface = 1;
 	}
 
-	if (kcd->curvert) {
-		kfe->v2 = kcd->curvert;
+	if (kcd->cur.vert) {
+		kfe->v2 = kcd->cur.vert;
 	}
-	else if (kcd->curedge) {
-		kfe->v2 = knife_split_edge(kcd, kcd->curedge, kcd->vertco, &kfe3);
-		kcd->curvert = kfe->v2;
+	else if (kcd->cur.edge) {
+		kfe->v2 = knife_split_edge(kcd, kcd->cur.edge, kcd->cur.co, &kfe3);
+		kcd->cur.vert = kfe->v2;
 	}
 	else {
-		kfe->v2 = new_knife_vert(kcd, kcd->vertco, kcd->vertco);
-		kfe->v2->draw = !kcd->is_space;
+		kfe->v2 = new_knife_vert(kcd, kcd->cur.co, kcd->cur.co);
+		kfe->v2->draw = !kcd->cur.is_space;
 		kfe->v2->isface = 1;
-		kfe->v2->inspace = kcd->is_space;
+		kfe->v2->inspace = kcd->cur.is_space;
 		
-		if (kcd->is_space)
+		if (kcd->cur.is_space)
 			kfe->draw = 0;
 
-		kcd->curvert = kfe->v2;
+		kcd->cur.vert = kfe->v2;
 	}
 
 	knife_find_basef(kcd, kfe);
@@ -460,27 +470,20 @@ static void knife_add_single_cut(knifetool_opdata *kcd)
 		knife_edge_append_face(kcd, kfe, kfe->basef);
 
 	/* sanity check to make sure we're in the right edge/face lists */
-	if (kcd->curbmface) {
-		if (!find_ref(&kfe->faces, kcd->curbmface)) {
-			knife_edge_append_face(kcd, kfe, kcd->curbmface);
+	if (kcd->cur.bmface) {
+		if (!find_ref(&kfe->faces, kcd->cur.bmface)) {
+			knife_edge_append_face(kcd, kfe, kcd->cur.bmface);
 		}
 
-		if (kcd->prevbmface && kcd->prevbmface != kcd->curbmface) {
-			if (!find_ref(&kfe->faces, kcd->prevbmface)) {
-				knife_edge_append_face(kcd, kfe, kcd->prevbmface);
+		if (kcd->prev.bmface && kcd->prev.bmface != kcd->cur.bmface) {
+			if (!find_ref(&kfe->faces, kcd->prev.bmface)) {
+				knife_edge_append_face(kcd, kfe, kcd->prev.bmface);
 			}
 		}
 	}
 
 	/* set up for next cut */
-	kcd->prevbmface = kcd->curbmface;
-	kcd->prevvert = kcd->curvert;
-	kcd->prevedge = kcd->curedge;
-	copy_v3_v3(kcd->prevco, kcd->vertco);
-	copy_v3_v3(kcd->prevcage, kcd->vertcage);
-	kcd->prev_is_space = kcd->is_space;
-	kcd->prevmval[0] = kcd->vc.mval[0];
-	kcd->prevmval[1] = kcd->vc.mval[1];
+	kcd->prev = kcd->cur;
 }
 
 static int verge_linehit(const void *vlh1, const void *vlh2)
@@ -562,26 +565,26 @@ static void knife_cut_through(knifetool_opdata *kcd)
 	qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
 	splitkfe = MEM_callocN(kcd->totlinehit * sizeof(KnifeEdge *), "knife_cut_through");
 
-	if (kcd->prevvert) {
-		if (kcd->prevvert == kcd->curvert)
+	if (kcd->prev.vert) {
+		if (kcd->prev.vert == kcd->cur.vert)
 			return;
-		firstv = kcd->prevvert;
-		knife_get_vert_faces(kcd, firstv, kcd->prevbmface, &firstfaces);
+		firstv = kcd->prev.vert;
+		knife_get_vert_faces(kcd, firstv, kcd->prev.bmface, &firstfaces);
 	}
-	else if (kcd->prevedge) {
-		if (kcd->prevedge == kcd->curedge)
+	else if (kcd->prev.edge) {
+		if (kcd->prev.edge == kcd->cur.edge)
 			return;
-		firstv = knife_split_edge(kcd, kcd->prevedge, kcd->prevco, &kfe3);
-		knife_get_edge_faces(kcd, kcd->prevedge, &firstfaces);
+		firstv = knife_split_edge(kcd, kcd->prev.edge, kcd->prev.co, &kfe3);
+		knife_get_edge_faces(kcd, kcd->prev.edge, &firstfaces);
 	}
 
-	if (kcd->curvert) {
-		lastv = kcd->curvert;
-		knife_get_vert_faces(kcd, lastv, kcd->curbmface, &lastfaces);
+	if (kcd->cur.vert) {
+		lastv = kcd->cur.vert;
+		knife_get_vert_faces(kcd, lastv, kcd->cur.bmface, &lastfaces);
 	}
-	else if (kcd->curedge) {
-		lastv = knife_split_edge(kcd, kcd->curedge, kcd->vertco, &kfe3);
-		knife_get_edge_faces(kcd, kcd->curedge, &lastfaces);
+	else if (kcd->cur.edge) {
+		lastv = knife_split_edge(kcd, kcd->cur.edge, kcd->cur.co, &kfe3);
+		knife_get_edge_faces(kcd, kcd->cur.edge, &lastfaces);
 	}
 
 	if (firstv) {
@@ -650,19 +653,15 @@ static void knife_cut_through(knifetool_opdata *kcd)
 	kcd->totlinehit = 0;
 
 	/* set up for next cut */
-	kcd->prevbmface = kcd->curbmface;
-	kcd->prevvert = kcd->curvert;
-	kcd->prevedge = kcd->curedge;
-	copy_v3_v3(kcd->prevco, kcd->vertco);
-	copy_v3_v3(kcd->prevcage, kcd->vertcage);
-	kcd->prev_is_space = kcd->is_space;
-	kcd->prevmval[0] = kcd->vc.mval[0];
-	kcd->prevmval[1] = kcd->vc.mval[1];
+	kcd->prev = kcd->cur;
 }
 
+/* User has just left-clicked after the first time.
+ * Add all knife cuts implied by line from prev to cur.
+ * If that line crossed edges then kcd->linehits will be non-NULL. */
 static void knife_add_cut(knifetool_opdata *kcd)
 {
-	knifetool_opdata oldkcd = *kcd;
+	KnifePosData savcur = kcd->cur;
 
 	if (kcd->cut_through) {
 		knife_cut_through(kcd);
@@ -687,56 +686,46 @@ static void knife_add_cut(knifetool_opdata *kcd)
 				if (firstlh->v || lastlh->v) {
 					KnifeVert *kfv = firstlh->v ? firstlh->v : lastlh->v;
 					
-					kcd->prevvert = kfv;
-					copy_v3_v3(kcd->prevco, firstlh->hit);
-					copy_v3_v3(kcd->prevcage, firstlh->cagehit);
-					kcd->prevedge = NULL;
-					kcd->prevbmface = f;
+					kcd->prev.vert = kfv;
+					copy_v3_v3(kcd->prev.co, firstlh->hit);
+					copy_v3_v3(kcd->prev.cage, firstlh->cagehit);
+					kcd->prev.edge = NULL;
+					kcd->prev.bmface = f;
+					/* TODO: should we set prev.in_space = 0 ? */
 				}
 				lastlh = firstlh = NULL;
 			}
 
-			if (len_v3v3(kcd->prevcage, lh->realhit) < FLT_EPSILON * 80)
+			if (len_v3v3(kcd->prev.cage, lh->realhit) < FLT_EPSILON * 80)
 				continue;
-			if (len_v3v3(kcd->vertcage, lh->realhit) < FLT_EPSILON * 80)
+			if (len_v3v3(kcd->cur.cage, lh->realhit) < FLT_EPSILON * 80)
 				continue;
 
-			if (kcd->prev_is_space) {
-				kcd->prev_is_space = 0;
-				copy_v3_v3(kcd->prevco, lh->hit);
-				copy_v3_v3(kcd->prevcage, lh->cagehit);
-				kcd->prevvert = NULL;
-				kcd->prevedge = lh->kfe;
-				kcd->prevbmface = lh->f;
+			if (kcd->prev.is_space) {
+				kcd->prev.is_space = 0;
+				copy_v3_v3(kcd->prev.co, lh->hit);
+				copy_v3_v3(kcd->prev.cage, lh->cagehit);
+				kcd->prev.vert = NULL;
+				kcd->prev.edge = lh->kfe;
+				kcd->prev.bmface = lh->f;
 				continue;
 			}			
 
-			kcd->is_space = 0;
-			kcd->curedge = lh->kfe;
-			kcd->curbmface = lh->f;
-			kcd->curvert = lh->v;
-			copy_v3_v3(kcd->vertco, lh->hit);
-			copy_v3_v3(kcd->vertcage, lh->cagehit);
+			kcd->cur.is_space = 0;
+			kcd->cur.edge = lh->kfe;
+			kcd->cur.bmface = lh->f;
+			kcd->cur.vert = lh->v;
+			copy_v3_v3(kcd->cur.co, lh->hit);
+			copy_v3_v3(kcd->cur.cage, lh->cagehit);
 
 			knife_add_single_cut(kcd);
 		}
 
-		if (oldkcd.is_space) {
-			kcd->prevbmface = oldkcd.curbmface;
-			kcd->prevvert = oldkcd.curvert;
-			kcd->prevedge = oldkcd.curedge;
-			copy_v3_v3(kcd->prevco, oldkcd.vertco);
-			copy_v3_v3(kcd->prevcage, oldkcd.vertcage);
-			kcd->prev_is_space = oldkcd.is_space;
+		if (savcur.is_space) {
+			kcd->prev = savcur;
 		}
 		else {
-			kcd->curbmface = oldkcd.curbmface;
-			kcd->curvert = oldkcd.curvert;
-			kcd->curedge = oldkcd.curedge;
-			kcd->is_space = oldkcd.is_space;
-			copy_v3_v3(kcd->vertco, oldkcd.vertco);
-			copy_v3_v3(kcd->vertcage, oldkcd.vertcage);
-		
+			kcd->cur = savcur;
 			knife_add_single_cut(kcd);
 		}
 
@@ -762,7 +751,7 @@ static void knifetool_draw_angle_snapping(knifetool_opdata *kcd)
 
 	/* make u the window coords of prevcage */
 	view3d_get_transformation(kcd->ar, kcd->vc.rv3d, kcd->ob, &mats);
-	gluProject(kcd->prevcage[0], kcd->prevcage[1], kcd->prevcage[2],
+	gluProject(kcd->prev.cage[0], kcd->prev.cage[1], kcd->prev.cage[2],
 	           mats.modelview, mats.projection, mats.viewport,
 	           &u[0], &u[1], &u[2]);
 
@@ -871,39 +860,39 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		glLineWidth(2.0);
 		
 		glBegin(GL_LINES);
-		glVertex3fv(kcd->prevcage);
-		glVertex3fv(kcd->vertcage);
+		glVertex3fv(kcd->prev.cage);
+		glVertex3fv(kcd->cur.cage);
 		glEnd();
 		
 		glLineWidth(1.0);
 	}
 	
-	if (kcd->curedge) {
+	if (kcd->cur.edge) {
 		glColor3f(0.5, 0.3, 0.15);
 		glLineWidth(2.0);
 		
 		glBegin(GL_LINES);
-		glVertex3fv(kcd->curedge->v1->cageco);
-		glVertex3fv(kcd->curedge->v2->cageco);
+		glVertex3fv(kcd->cur.edge->v1->cageco);
+		glVertex3fv(kcd->cur.edge->v2->cageco);
 		glEnd();
 		
 		glLineWidth(1.0);
 	}
-	else if (kcd->curvert) {
+	else if (kcd->cur.vert) {
 		glColor3f(0.8, 0.2, 0.1);
 		glPointSize(11);
 		
 		glBegin(GL_POINTS);
-		glVertex3fv(kcd->vertcage);
+		glVertex3fv(kcd->cur.cage);
 		glEnd();
 	}
 	
-	if (kcd->curbmface) {		
+	if (kcd->cur.bmface) {		
 		glColor3f(0.1, 0.8, 0.05);
 		glPointSize(9);
 		
 		glBegin(GL_POINTS);
-		glVertex3fv(kcd->vertcage);
+		glVertex3fv(kcd->cur.cage);
 		glEnd();
 	}
 	
@@ -1047,7 +1036,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 			for (ref = lst->first; ref; ref = ref->next) {
 				KnifeEdge *kfe = ref->ref;
 				
-				//if (kfe == kcd->curedge || kfe == kcd->prevedge)
+				//if (kfe == kcd->cur.edge || kfe == kcd->prev.edge)
 				//	continue;
 				
 				if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, uv)) {
@@ -1055,12 +1044,12 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 					
 					interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
 					
-					if (kcd->curvert && len_squared_v3v3(kcd->curvert->cageco, p) < depsilon_squared)
+					if (kcd->cur.vert && len_squared_v3v3(kcd->cur.vert->cageco, p) < depsilon_squared)
 						continue;
-					if (kcd->prevvert && len_squared_v3v3(kcd->prevvert->cageco, p) < depsilon_squared)
+					if (kcd->prev.vert && len_squared_v3v3(kcd->prev.vert->cageco, p) < depsilon_squared)
 						continue;
-					if ( len_squared_v3v3(kcd->prevcage, p) < depsilon_squared ||
-					     len_squared_v3v3(kcd->vertcage, p) < depsilon_squared)
+					if ( len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
+					     len_squared_v3v3(kcd->cur.cage, p) < depsilon_squared)
 					{
 						continue;
 					}
@@ -1091,8 +1080,8 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 					if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
 						BMEdgeHit hit;
 						
-						if ( len_squared_v3v3(p, kcd->vertco) < depsilon_squared ||
-						     len_squared_v3v3(p, kcd->prevco) < depsilon_squared)
+						if ( len_squared_v3v3(p, kcd->cur.co) < depsilon_squared ||
+						     len_squared_v3v3(p, kcd->prev.co) < depsilon_squared)
 						{
 							continue;
 						}
@@ -1172,8 +1161,8 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 		kcd->totlinehit = 0;
 	}
 
-	copy_v3_v3(v1, kcd->prevcage);
-	copy_v3_v3(v2, kcd->vertcage);
+	copy_v3_v3(v1, kcd->prev.cage);
+	copy_v3_v3(v2, kcd->cur.cage);
 
 	/* project screen line's 3d coordinates back into 2d */
 	knife_project_v3(kcd, v1, s1);
@@ -1359,7 +1348,7 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], flo
 	copy_v3_v3(p, co);
 	copy_v3_v3(cagep, cageco);
 	
-	kcd->curbmface = f;
+	kcd->cur.bmface = f;
 	
 	if (f) {
 		KnifeEdge *cure = NULL;
@@ -1446,7 +1435,7 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], flo
 	/* set p to co, in case we don't find anything, means a face cut */
 	copy_v3_v3(p, co);
 	copy_v3_v3(cagep, p);
-	kcd->curbmface = f;
+	kcd->cur.bmface = f;
 	
 	if (f) {
 		ListBase *lst;
@@ -1517,8 +1506,8 @@ static void knife_snap_angle(knifetool_opdata *kcd)
 	int dx, dy;
 	float w, abs_tan;
 
-	dx = kcd->vc.mval[0] - kcd->prevmval[0];
-	dy = kcd->vc.mval[1] - kcd->prevmval[1];
+	dx = kcd->vc.mval[0] - kcd->prev.mval[0];
+	dy = kcd->vc.mval[1] - kcd->prev.mval[1];
 	if (dx == 0 || dy == 0)
 		return;
 
@@ -1526,21 +1515,21 @@ static void knife_snap_angle(knifetool_opdata *kcd)
 	abs_tan = fabsf(w);
 	if (abs_tan <= 0.4142f) { /* tan(22.5 degrees) = 0.4142 */	
 		kcd->angle_snapping = ANGLE_0;
-		kcd->vc.mval[1] = kcd->prevmval[1];
+		kcd->vc.mval[1] = kcd->prev.mval[1];
 	}
 	else if (abs_tan < 2.4142f) { /* tan(67.5 degrees) = 2.4142 */
 		if (w > 0) {
 			kcd->angle_snapping = ANGLE_45;
-			kcd->vc.mval[1] = kcd->prevmval[1] + dx;
+			kcd->vc.mval[1] = kcd->prev.mval[1] + dx;
 		}
 		else {
 			kcd->angle_snapping = ANGLE_135;
-			kcd->vc.mval[1] = kcd->prevmval[1] - dx;
+			kcd->vc.mval[1] = kcd->prev.mval[1] - dx;
 		}
 	}
 	else {
 		kcd->angle_snapping = ANGLE_90;
-		kcd->vc.mval[0] = kcd->prevmval[0];
+		kcd->vc.mval[0] = kcd->prev.mval[0];
 	}
 }
 
@@ -1550,24 +1539,26 @@ static int knife_update_active(knifetool_opdata *kcd)
 	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING)
 		knife_snap_angle(kcd);
 
-	kcd->curvert = NULL; kcd->curedge = NULL; kcd->curbmface = NULL;
+	knife_pos_data_clear(&kcd->cur);
+	kcd->cur.mval[0] = kcd->vc.mval[0];
+	kcd->cur.mval[1] = kcd->vc.mval[1];
 
-	kcd->curvert = knife_find_closest_vert(kcd, kcd->vertco, kcd->vertcage, &kcd->curbmface, &kcd->is_space);
-	if (!kcd->curvert) {
-		kcd->curedge = knife_find_closest_edge(kcd, kcd->vertco, kcd->vertcage, &kcd->curbmface, &kcd->is_space);
+	kcd->cur.vert = knife_find_closest_vert(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
+	if (!kcd->cur.vert) {
+		kcd->cur.edge = knife_find_closest_edge(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
 	}
 
 	/* if no hits are found this would normally default to (0,0,0) so instead
 	 * get a point at the mouse ray closest to the previous point.
 	 * Note that drawing lines in `free-space` isn't properly supported
 	 * but theres no guarantee (0,0,0) has any geometry either - campbell */
-	if (kcd->curvert == NULL && kcd->curedge == NULL) {
+	if (kcd->cur.vert == NULL && kcd->cur.edge == NULL) {
 			float origin[3], ray[3], co[3];
 
 			knife_input_ray_cast(kcd, kcd->vc.mval, origin, ray);
 			add_v3_v3v3(co, origin, ray);
 
-			closest_to_line_v3(kcd->vertcage, kcd->prevcage, co, origin);
+			closest_to_line_v3(kcd->cur.cage, kcd->prev.cage, co, origin);
 	}
 
 	if (kcd->mode == MODE_DRAGGING) {
@@ -2719,6 +2710,9 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
 	kcd->cut_through = !(kcd->vc.v3d->flag & V3D_ZBUF_SELECT);
+
+	knife_pos_data_clear(&kcd->cur);
+	knife_pos_data_clear(&kcd->prev);
 
 	return 1;
 }
