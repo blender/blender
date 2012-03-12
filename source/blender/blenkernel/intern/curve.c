@@ -2480,7 +2480,7 @@ void makeBevelList(Object *ob)
  */
 
 /* mode: is not zero when FCurve, is 2 when forced horizontal for autohandles */
-void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
+static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode, int skip_align)
 {
 	float *p1,*p2,*p3, pt[3];
 	float dvec_a[3], dvec_b[3];
@@ -2627,6 +2627,13 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 		madd_v3_v3v3fl(p2+3, p2, dvec_b,  1.0f/3.0f);
 	}
 
+	if(skip_align) {
+		/* handles need to be updated during animation and applying stuff like hooks,
+		 * but in such situatios it's quite difficult to distinguish in which order
+		 * align handles should be aligned so skip them for now */
+		return;
+	}
+
 	len_b= len_v3v3(p2, p2+3);
 	len_a= len_v3v3(p2, p2-3);
 	if(len_a==0.0f) len_a= 1.0f;
@@ -2670,7 +2677,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	}
 }
 
-void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
+static void calchandlesNurb_intern(Nurb *nu, int skip_align)
 {
 	BezTriple *bezt, *prev, *next;
 	short a;
@@ -2685,7 +2692,7 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 	next= bezt+1;
 
 	while(a--) {
-		calchandleNurb(bezt, prev, next, 0);
+		calchandleNurb_intern(bezt, prev, next, 0, skip_align);
 		prev= bezt;
 		if(a==1) {
 			if(nu->flagu & CU_NURB_CYCLIC) next= nu->bezt;
@@ -2695,6 +2702,16 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 
 		bezt++;
 	}
+}
+
+void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
+{
+	calchandleNurb_intern(bezt, prev, next, mode, FALSE);
+}
+
+void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
+{
+	calchandlesNurb_intern(nu, FALSE);
 }
 
 
@@ -3080,6 +3097,8 @@ void curve_applyVertexCos(Curve *UNUSED(cu), ListBase *lb, float (*vertexCos)[3]
 				copy_v3_v3(bp->vec, co); co+=3;
 			}
 		}
+
+		calchandlesNurb_intern(nu, TRUE);
 	}
 }
 
