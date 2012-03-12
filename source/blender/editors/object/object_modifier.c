@@ -670,8 +670,7 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			if(mti->flags & eModifierTypeFlag_NoUserAdd)
 				continue;
 
-			if(!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
-			   (ob->type==OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
+			if(!object_support_modifier_type(ob, md_item->value))
 				continue;
 		}
 		else {

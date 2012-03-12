@@ -199,15 +199,39 @@ void object_free_modifiers(Object *ob)
 	object_free_softbody(ob);
 }
 
+int object_support_modifier_type(Object *ob, int modifier_type)
+{
+	ModifierTypeInfo *mti;
+
+	mti = modifierType_getInfo(modifier_type);
+
+	if (!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
+	     (ob->type==OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
+	{
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
 void object_link_modifiers(struct Object *ob, struct Object *from)
 {
 	ModifierData *md;
 	object_free_modifiers(ob);
 
+	if (!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+		/* only objects listed above can have modifiers and linking them to objects
+		 * which doesn't have modifiers stack is quite silly */
+		return;
+	}
+
 	for (md=from->modifiers.first; md; md=md->next) {
 		ModifierData *nmd = NULL;
 
 		if (ELEM4(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance, eModifierType_Collision)) continue;
+
+		if (!object_support_modifier_type(ob, md->type))
+			continue;
 
 		nmd = modifier_new(md->type);
 		modifier_copyData(md, nmd);
@@ -953,6 +977,11 @@ void copy_object_particlesystems(Object *obn, Object *ob)
 {
 	ParticleSystem *psys, *npsys;
 	ModifierData *md;
+
+	if (obn->type != OB_MESH) {
+		/* currently only mesh objects can have soft body */
+		return;
+	}
 
 	obn->particlesystem.first= obn->particlesystem.last= NULL;
 	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
