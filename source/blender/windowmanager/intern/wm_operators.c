@@ -2683,6 +2683,7 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 	
 	/* operator storage as path. */
 
+	RNA_collection_clear(op->ptr, "path");
 	for(i=0; i<gesture->points; i++, lasso+=2) {
 		loc[0]= lasso[0];
 		loc[1]= lasso[1];
