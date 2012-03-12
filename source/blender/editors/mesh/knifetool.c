@@ -2099,6 +2099,8 @@ static int find_hole_search(knifetool_opdata *kcd, KnifeVert *kfvfirst, KnifeVer
 		kfe = r->ref;
 		if (kfe == kfelast)
 			continue;
+		if (kfe->v1->v || kfe->v2->v)
+			continue;
 		kfv_other = NULL;
 		if (kfe->v1 == kfv)
 			kfv_other = kfe->v2;
@@ -2165,7 +2167,7 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f,
 	KnifeVert **hv;
 	KnifeEdge **he;
 	Ref *r;
-	KnifeVert *kfv;
+	KnifeVert *kfv, *kfvother;
 	KnifeEdge *kfe;
 	ListBase *chain;
 	BMVert *v;
@@ -2190,14 +2192,21 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f,
 
 	i = 0;
 	kfv = NULL;
+	kfvother = NULL;
 	for (r = hole->first; r; r = r->next) {
 		kfe = r->ref;
 		he[i] = kfe;
-		kfv = (kfv == kfe->v1)? kfe->v2 : kfe->v1;
+		if (kfvother == NULL) {
+			kfv = kfe->v1;
+		} else {
+			kfv = kfvother;
+			BLI_assert(kfv == kfe->v1 || kfv == kfe->v2);
+		}
 		hco[i] = BLI_memarena_alloc(kcd->arena, 2*sizeof(float));
 		hco[i][0] = kfv->co[ax];
 		hco[i][1] = kfv->co[ay];
 		hv[i] = kfv;
+		kfvother = (kfe->v1 == kfv) ? kfe->v2 : kfe->v1;
 		i++;
 	}
 
@@ -2213,7 +2222,7 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f,
 	/* For first diagonal (m==0), want shortest length.
 	 * For second diagonal (m==1), want max separation of index of hole
 	 * vertex from the hole vertex used in the first diagonal, and from there
-	 * want the one with shortest length. */
+	 * want the one with shortest length not to the same vertex as the first diagonal. */
 	for (m = 0; m < 2; m++) {
 		besti[m] = -1;
 		bestj[m] = -1;
@@ -2230,6 +2239,8 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f,
 				bestd = FLT_MAX;
 			}
 			for (j = 0; j < nf; j++) {
+				if (m == 1 && j == bestj[0])
+					continue;
 				d = len_squared_v2v2(hco[i], fco[j]);
 				if (d > bestd)
 					continue;
@@ -2261,6 +2272,7 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f,
 	}
 
 	if (besti[0] != -1 && besti[1] != -1) {
+		BLI_assert(besti[0] != besti[1] && bestj[0] != bestj[1]);
 		kfe = new_knife_edge(kcd);
 		kfe->v1 = get_bm_knife_vert(kcd, fv[bestj[0]]);
 		kfe->v2 = hv[besti[0]];
@@ -2291,9 +2303,13 @@ static int find_hole_chains(knifetool_opdata *kcd, ListBase *hole, BMFace *f,
 static int knife_edge_in_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f) {
 	BMesh *bm = kcd->em->bm;
 	BMVert *v1, *v2;
-	BMLoop *l1, *l2, *l, *loops[2];
+	BMLoop *l1, *l2, *l;
+	float mid[3];
 	BMIter iter;
 	int v1inside, v2inside;
+
+	if (!f)
+		return FALSE;
 
 	v1 = kfe->v1->v;
 	v2 = kfe->v2->v;
@@ -2315,11 +2331,11 @@ static int knife_edge_in_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace *f) 
 		return TRUE;
 	if (l1 && l2) {
 		/* Can have case where v1 and v2 are on shared chain between two faces.
-		 * BM_face_legal_splits does visibility and self-intersection tests. */
-		loops[0] = l1;
-		loops[1] = l2;
-		BM_face_legal_splits(bm, f, (BMLoop *(*)[2])loops, 1);
-		return (loops[0] != NULL);
+		 * BM_face_legal_splits does visibility and self-intersection tests,
+		 * but it is expensive and maybe a bit buggy, so use a simple
+		 * "is the midpoint in the face" test */
+		mid_v3_v3v3(mid, kfe->v1->co, kfe->v2->co);
+		return BM_face_point_inside_test(bm, f, mid);
 	}
 	return FALSE;
 }
@@ -2356,13 +2372,20 @@ static void knife_make_chain_cut(knifetool_opdata *kcd, BMFace *f, ListBase *cha
 		kfvprev = kfv;
 	}
 	BLI_assert(i == nco);
-	fnew = BM_face_split_n(bm, f, v1, v2, cos, nco, &lnew, NULL);
-	*newface = fnew;
+	lnew = NULL;
+	if (nco == 0) {
+		*newface = BM_face_split(bm, f, v1, v2, &lnew, NULL, TRUE);
+	} else {
+		fnew = BM_face_split_n(bm, f, v1, v2, cos, nco, &lnew, NULL);
+		*newface = fnew;
 
-	/* Now go through lnew chain matching up chain kv's and assign real v's to them */
-	for (l_iter = lnew->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
-		BLI_assert(equals_v3v3(cos[i], l_iter->v->co));
-		kverts[i]->v = l_iter->v;
+		if (fnew) {
+			/* Now go through lnew chain matching up chain kv's and assign real v's to them */
+			for (l_iter = lnew->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
+				BLI_assert(equals_v3v3(cos[i], l_iter->v->co));
+				kverts[i]->v = l_iter->v;
+			}
+		}
 	}
 
 	BLI_array_fixedstack_free(cos);
@@ -2381,6 +2404,10 @@ static void knife_make_face_cuts(knifetool_opdata *kcd, BMFace *f, ListBase *kfe
 	oldcount = BLI_countlist(kfedges);
 	while ((chain = find_chain(kcd, kfedges)) != NULL) {
 		knife_make_chain_cut(kcd, f, chain, &fnew);
+		if (!fnew) {
+			BLI_assert("!knife failed chain cut");
+			return;
+		}
 
 		/* Move kfedges to fnew_kfedges if they are now in fnew.
 		 * The chain edges were removed already */
@@ -2413,6 +2440,10 @@ static void knife_make_face_cuts(knifetool_opdata *kcd, BMFace *f, ListBase *kfe
 			 * from the second last vertex to the second vertex.
 			 */
 			knife_make_chain_cut(kcd, f, chain, &fnew);
+			if (!fnew) {
+				BLI_assert(!"knife failed hole cut");
+				return;
+			}
 			kfe = ((Ref *)sidechain->first)->ref;
 			if (knife_edge_in_face(kcd, kfe, f)) {
 				knife_make_chain_cut(kcd, f, sidechain, &fnew2);
@@ -2423,8 +2454,8 @@ static void knife_make_face_cuts(knifetool_opdata *kcd, BMFace *f, ListBase *kfe
 				fhole = fnew2;
 			}
 			else {
-				/* shouldn't happen */
-				BLI_assert(0);
+				/* shouldn't happen except in funny edge cases */
+				return;
 			}
 			BM_face_kill(bm, fhole);
 			/* Move kfedges to either fnew or fnew2 if appropriate.
