@@ -3058,10 +3058,23 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
  {
 	float nor[3], nor1[3], nor2[3], vec[4][2];
 	int axis_a, axis_b;
-	
+
 	/* define projection, do both trias apart, quad is undefined! */
+
+	/* strictly speaking this isn't necessarily convex,
+	 * but when try normals point away from eachother
+	 * we don't wan't to make that face */
+	normal_tri_v3(nor1, v2, v3, v4);
+	normal_tri_v3(nor2, v1, v2, v4);
+	if (UNLIKELY(dot_v3v3(nor1, nor2) < 0.0f)) {
+		return FALSE;
+	}
 	normal_tri_v3(nor1, v1, v2, v3);
 	normal_tri_v3(nor2, v1, v3, v4);
+	if (UNLIKELY(dot_v3v3(nor1, nor2) < 0.0f)) {
+		return FALSE;
+	}
+
 	add_v3_v3v3(nor, nor1, nor2);
 
 	axis_dominant_v3(&axis_a, &axis_b, nor);
@@ -3071,7 +3084,7 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 
 	vec[2][0]= v3[axis_a]; vec[2][1]= v3[axis_b];
 	vec[3][0]= v4[axis_a]; vec[3][1]= v4[axis_b];
-	
+
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0) ? 1 : 0;
+	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0) ? TRUE : FALSE;
 }
