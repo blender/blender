@@ -68,7 +68,7 @@ typedef struct EdgeData {
 
 typedef struct VertData {
 	BMEdge *e;
-	float no[3], offco[3], sco[3]; /* offco is vertex coordinate slightly offset randoml */
+	float no[3], offco[3], sco[3]; /* offco is vertex coordinate slightly offset randomly */
 	int tag;
 } VertData;
 
@@ -234,7 +234,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 			continue;
 		}
 
-		/* do two passes, going forward then backwar */
+		/* do two passes, going forward then backward */
 		for (i = 0; i < 2; i++) {
 			BLI_smallhash_init(hash);
 			
@@ -401,7 +401,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			normalize_v3(no);
 		}
 		
-		/* generate plane-flattened coordinate */
+		/* generate plane-flattened coordinates */
 		for (i = 0; i < totedge; i++) {
 			BMEdge *e1;
 			BMVert *v2;
@@ -749,7 +749,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 		v1 = last->v;
 		
 		if (v1 == endv) {
-			/* make sure this path loop doesn't already exist */
+			/* make sure this path loop doesn't already exists */
 			i = 0;
 			BLI_array_empty(verts);
 			for (i = 0, node = path->nodes.first; node; node = node->next, i++) {
@@ -814,7 +814,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 			continue;
 		}
 		
-		/* add path back into hea */
+		/* add path back into heap */
 		BLI_heap_insert(heap, path->weight, path);
 		
 		/* put v2 in gh ma */
@@ -1343,7 +1343,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* --- end special case support, continue as normal --- */
 
 	/* call edgenet create */
-	/* call edgenet prepare op so additional face creation cases wor */
+	/* call edgenet prepare op so additional face creation cases wore */
 	BMO_op_initf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
 	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
@@ -1352,7 +1352,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b", ELE_NEW, TRUE);
 	BMO_op_exec(bm, &op2);
 
-	/* return if edge net create did somethin */
+	/* return if edge net create did something */
 	if (BMO_slot_buffer_count(bm, &op2, "faceout")) {
 		BMO_slot_copy(&op2, op, "faceout", "faceout");
 		BMO_op_finish(bm, &op2);
@@ -1374,7 +1374,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &op2);
 
-	/* now, count how many verts we hav */
+	/* now, count how many verts we have */
 	amount = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, v, ELE_NEW)) {
@@ -1386,12 +1386,12 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (amount == 2) {
-		/* create edg */
+		/* create edge */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
 	}
 	else if (amount == 3) {
-		/* create triangl */
+		/* create triangle */
 		f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
 
 		if (f) {

@@ -527,10 +527,10 @@ static void stitch_setup_face_preview_for_uv_group(UvElement *element, StitchSta
 		island_stitch_data[element->island].addedForPreview = 1;
 	}
 
-	do{
+	do {
 		stitch_set_face_preview_buffer_position(element->face, preview, preview_position);
 		element = element->next;
-	}while(element && !element->separate);
+	} while(element && !element->separate);
 }
 
 
@@ -835,7 +835,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		if(element->flag & STITCH_STITCHABLE){
 			UvElement *element_iter = element;
 			/* propagate to coincident uvs */
-			do{
+			do {
 				BMLoop *l;
 				MLoopUV *luv;
 
@@ -862,7 +862,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 				}
 
 				element_iter = element_iter->next;
-			}while(element_iter && !element_iter->separate);
+			} while(element_iter && !element_iter->separate);
 		}
 	}
 

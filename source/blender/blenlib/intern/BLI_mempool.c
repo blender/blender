@@ -355,7 +355,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 
 	do {
 		ret = bli_mempool_iternext(iter);
-	}while (ret && ret->freeword == FREEWORD);
+	} while (ret && ret->freeword == FREEWORD);
 
 	return ret;
 }

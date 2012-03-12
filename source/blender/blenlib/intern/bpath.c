@@ -41,7 +41,7 @@
 #include <string.h>
 #include <assert.h>
 
-/* path/file handeling stuff */
+/* path/file handling stuff */
 #ifndef WIN32
 #  include <dirent.h>
 #  include <unistd.h>

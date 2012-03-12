@@ -973,7 +973,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if(BMO_elem_flag_test(bm, v, BME_BEVEL_ORIG) && BMO_elem_flag_test(bm, v, BME_BEVEL_BEVEL)) {
 			curedge = v->e;
-			do{
+			do {
 				l = curedge->l;
 				l2 = l->radial_next;
 				if(l->v != v) l = l->next;
