@@ -106,7 +106,7 @@ private:
 
 	struct RenderLayerInfo {
 		RenderLayerInfo()
-		: scene_layer(0), layer(0),
+		: scene_layer(0), layer(0), holdout_layer(0),
 		  material_override(PointerRNA_NULL)
 		{}
 
