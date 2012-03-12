@@ -3054,25 +3054,23 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 }
 
 /* evaluate if entire quad is a proper convex quad */
- int is_quad_convex_v3(const float *v1, const float *v2, const float *v3, const float *v4)
+ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
  {
 	float nor[3], nor1[3], nor2[3], vec[4][2];
 	int axis_a, axis_b;
 
 	/* define projection, do both trias apart, quad is undefined! */
 
-	/* strictly speaking this isn't necessarily convex,
-	 * but when try normals point away from eachother
-	 * we don't wan't to make that face */
-	normal_tri_v3(nor1, v2, v3, v4);
-	normal_tri_v3(nor2, v1, v2, v4);
-	if (UNLIKELY(dot_v3v3(nor1, nor2) < 0.0f)) {
-		return FALSE;
-	}
 	normal_tri_v3(nor1, v1, v2, v3);
 	normal_tri_v3(nor2, v1, v3, v4);
+
+	/* when the face is folded over as 2 tris we probably don't want to create
+	 * a quad from it, but go ahead with the intersection test since this
+	 * isn't a function for degenerate faces */
 	if (UNLIKELY(dot_v3v3(nor1, nor2) < 0.0f)) {
-		return FALSE;
+		/* flip so adding normals in the opposite direction
+		 * doesnt give a zero length vector */
+		negate_v3(nor2);
 	}
 
 	add_v3_v3v3(nor, nor1, nor2);
