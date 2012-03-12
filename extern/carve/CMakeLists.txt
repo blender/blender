@@ -35,115 +35,115 @@ set(INC_SYS
 )
 
 set(SRC
-	lib/carve.cpp
-	lib/mesh.cpp
-	lib/intersect_group.cpp
-	lib/intersect_classify_edge.cpp
-	lib/intersect_classify_group.cpp
-	lib/polyhedron.cpp
-	lib/geom3d.cpp
-	lib/polyline.cpp
-	lib/csg_collector.cpp
-	lib/triangulator.cpp
-	lib/intersect_face_division.cpp
-	lib/intersect_half_classify_group.cpp
-	lib/edge.cpp
-	lib/math.cpp
-	lib/geom2d.cpp
-	lib/tag.cpp
 	lib/intersection.cpp
-	lib/convex_hull.cpp
-	lib/csg.cpp
 	lib/intersect.cpp
-	lib/face.cpp
+	lib/triangulator.cpp
+	lib/convex_hull.cpp
+	lib/polyhedron.cpp
+	lib/polyline.cpp
 	lib/pointset.cpp
-	lib/timing.cpp
-	lib/octree.cpp
+	lib/geom2d.cpp
+	lib/math.cpp
+	lib/intersect_half_classify_group.cpp
+	lib/intersect_face_division.cpp
+	lib/tag.cpp
 	lib/aabb.cpp
+	lib/intersect_classify_group.cpp
+	lib/mesh.cpp
+	lib/timing.cpp
+	lib/geom3d.cpp
+	lib/intersect_group.cpp
+	lib/carve.cpp
+	lib/intersect_classify_edge.cpp
+	lib/csg.cpp
+	lib/face.cpp
+	lib/csg_collector.cpp
 	lib/intersect_debug.cpp
+	lib/edge.cpp
+	lib/octree.cpp
 
-	lib/intersect_classify_common.hpp
-	lib/csg_data.hpp
-	lib/csg_collector.hpp
-	lib/intersect_common.hpp
-	lib/intersect_classify_common_impl.hpp
-	lib/csg_detail.hpp
 	lib/intersect_debug.hpp
+	lib/csg_collector.hpp
+	lib/csg_data.hpp
+	lib/intersect_classify_common.hpp
+	lib/intersect_common.hpp
+	lib/csg_detail.hpp
+	lib/intersect_classify_common_impl.hpp
 
-	include/carve/polyhedron_decl.hpp
-	include/carve/geom2d.hpp
-	include/carve/exact.hpp
-	include/carve/triangulator_impl.hpp
-	include/carve/collection.hpp
-	include/carve/pointset.hpp
-	include/carve/djset.hpp
-	include/carve/kd_node.hpp
-	include/carve/polyline.hpp
-	include/carve/polyline_iter.hpp
-	include/carve/geom3d.hpp
-	include/carve/edge_decl.hpp
-	include/carve/face_decl.hpp
+	include/carve/vertex_impl.hpp
 	include/carve/aabb_impl.hpp
-	include/carve/colour.hpp
-	include/carve/pointset_iter.hpp
-	include/carve/polyline_decl.hpp
-	include/carve/rescale.hpp
-	include/carve/mesh_impl.hpp
-	include/carve/classification.hpp
-	include/carve/util.hpp
-	include/carve/triangulator.hpp
-	include/carve/polyhedron_base.hpp
-	include/carve/rtree.hpp
-	include/carve/math.hpp
-	include/carve/math_constants.hpp
-	include/carve/octree_decl.hpp
-	include/carve/input.hpp
-	include/carve/mesh_ops.hpp
-	include/carve/debug_hooks.hpp
-	include/carve/mesh_simplify.hpp
-	include/carve/interpolator.hpp
-	include/carve/poly_decl.hpp
 	include/carve/csg.hpp
+	include/carve/pointset_iter.hpp
+	include/carve/debug_hooks.hpp
 	include/carve/mesh.hpp
-	include/carve/carve.hpp
-	include/carve/gnu_cxx.h
-	include/carve/polyhedron_impl.hpp
-	include/carve/poly_impl.hpp
-	include/carve/aabb.hpp
-	include/carve/convex_hull.hpp
-	include/carve/vertex_decl.hpp
-	include/carve/win32.h
-	include/carve/edge_impl.hpp
-	include/carve/tag.hpp
-	include/carve/tree.hpp
-	include/carve/heap.hpp
-	include/carve/matrix.hpp
-	include/carve/poly.hpp
-	include/carve/vector.hpp
-	include/carve/intersection.hpp
-	include/carve/faceloop.hpp
-	include/carve/geom_impl.hpp
-	include/carve/octree_impl.hpp
-	include/carve/spacetree.hpp
-	include/carve/collection/unordered/std_impl.hpp
+	include/carve/triangulator_impl.hpp
+	include/carve/edge_decl.hpp
+	include/carve/collection/unordered.hpp
 	include/carve/collection/unordered/tr1_impl.hpp
+	include/carve/collection/unordered/fallback_impl.hpp
+	include/carve/collection/unordered/std_impl.hpp
+	include/carve/collection/unordered/vcpp_impl.hpp
 	include/carve/collection/unordered/libstdcpp_impl.hpp
 	include/carve/collection/unordered/boost_impl.hpp
-	include/carve/collection/unordered/vcpp_impl.hpp
-	include/carve/collection/unordered/fallback_impl.hpp
-	include/carve/collection/unordered.hpp
-	include/carve/face_impl.hpp
-	include/carve/pointset_impl.hpp
-	include/carve/cbrt.h
-	include/carve/vcpp_config.h
+	include/carve/convex_hull.hpp
 	include/carve/geom.hpp
-	include/carve/vertex_impl.hpp
-	include/carve/polyline_impl.hpp
-	include/carve/pointset_decl.hpp
-	include/carve/timing.hpp
-	include/carve/csg_triangulator.hpp
-	include/carve/iobj.hpp
 	include/carve/collection_types.hpp
+	include/carve/cbrt.h
+	include/carve/util.hpp
+	include/carve/iobj.hpp
+	include/carve/polyline_decl.hpp
+	include/carve/polyline_impl.hpp
+	include/carve/win32.h
+	include/carve/edge_impl.hpp
+	include/carve/carve.hpp
+	include/carve/polyline.hpp
+	include/carve/face_decl.hpp
+	include/carve/matrix.hpp
+	include/carve/classification.hpp
+	include/carve/geom_impl.hpp
+	include/carve/faceloop.hpp
+	include/carve/mesh_ops.hpp
+	include/carve/tree.hpp
+	include/carve/geom2d.hpp
+	include/carve/face_impl.hpp
+	include/carve/polyhedron_decl.hpp
+	include/carve/interpolator.hpp
+	include/carve/poly_decl.hpp
+	include/carve/mesh_impl.hpp
+	include/carve/gnu_cxx.h
+	include/carve/mesh_simplify.hpp
+	include/carve/triangulator.hpp
+	include/carve/pointset_impl.hpp
+	include/carve/rtree.hpp
+	include/carve/math_constants.hpp
+	include/carve/vector.hpp
+	include/carve/octree_impl.hpp
+	include/carve/pointset.hpp
+	include/carve/math.hpp
+	include/carve/intersection.hpp
+	include/carve/colour.hpp
+	include/carve/kd_node.hpp
+	include/carve/input.hpp
+	include/carve/geom3d.hpp
+	include/carve/exact.hpp
+	include/carve/rescale.hpp
+	include/carve/polyhedron_base.hpp
+	include/carve/heap.hpp
+	include/carve/spacetree.hpp
+	include/carve/polyhedron_impl.hpp
+	include/carve/vcpp_config.h
+	include/carve/aabb.hpp
+	include/carve/polyline_iter.hpp
+	include/carve/djset.hpp
+	include/carve/vertex_decl.hpp
+	include/carve/csg_triangulator.hpp
+	include/carve/poly.hpp
+	include/carve/timing.hpp
+	include/carve/octree_decl.hpp
+	include/carve/pointset_decl.hpp
+	include/carve/tag.hpp
+	include/carve/collection.hpp
+	include/carve/poly_impl.hpp
 )
 
 if(WITH_BOOST)

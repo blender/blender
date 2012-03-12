@@ -639,9 +639,11 @@ namespace carve {
     }
 
 
-    // XXX: not implemented yet
-    //exact_t operator+(const exact_t &a, const exact_t &b) {
-    //}
+    exact_t operator+(const exact_t &a, const exact_t &b) {
+      exact_t r;
+      sum_zeroelim(a, b, r);
+      return r;
+    }
 
 
 

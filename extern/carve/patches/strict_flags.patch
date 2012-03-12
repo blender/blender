@@ -9,30 +9,6 @@ diff -r 47dfdaff1dd5 include/carve/csg_triangulator.hpp
        }
  
        carve::mesh::MeshSet<3>::face_t *mergeQuad(edge_map_t::iterator i, edge_map_t &edge_map) {
-diff -r 47dfdaff1dd5 include/carve/exact.hpp
---- a/include/carve/exact.hpp	Thu Jan 12 15:49:04 2012 -0500
-+++ b/include/carve/exact.hpp	Fri Jan 13 03:13:32 2012 +0600
-@@ -379,7 +379,7 @@
-         prod_2_1(b, a, r);
-       }
- 
--      static inline double prod_4_1(const double *a, const double *b, double *r) {
-+      static inline void prod_4_1(const double *a, const double *b, double *r) {
-         double b_sp[2]; split(b[0], b_sp);
-         double t1[2]; prod_1_1s(a+0, b, b_sp, t1);
-         r[0] = t1[0];
-@@ -639,8 +639,9 @@
-     }
- 
- 
--    exact_t operator+(const exact_t &a, const exact_t &b) {
--    }
-+    // XXX: not implemented yet
-+    //exact_t operator+(const exact_t &a, const exact_t &b) {
-+    //}
- 
- 
- 
 diff -r 47dfdaff1dd5 src/selfintersect.cpp
 --- a/src/selfintersect.cpp	Thu Jan 12 15:49:04 2012 -0500
 +++ b/src/selfintersect.cpp	Fri Jan 13 03:13:32 2012 +0600
