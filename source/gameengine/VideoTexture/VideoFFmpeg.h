@@ -28,6 +28,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 #define __VIDEOFFMPEG_H__
 
 #ifdef WITH_FFMPEG
+#if defined(__FreeBSD__)
+/* this needs to be parsed with __cplusplus defined before included through ffmpeg_compat.h */
+#include <inttypes.h>
+#endif
 extern "C" {
 #undef __cplusplus
 #include <pthread.h>
