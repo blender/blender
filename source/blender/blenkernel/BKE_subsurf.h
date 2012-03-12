@@ -102,8 +102,6 @@ typedef struct CCGDerivedMesh {
 
 		struct Object *ob;
 		int modified;
-
-		void (*update)(DerivedMesh*);
 	} multires;
 
 	struct EdgeHash *ehash;

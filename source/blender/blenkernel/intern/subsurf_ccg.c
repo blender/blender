@@ -55,6 +55,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
@@ -2344,7 +2345,7 @@ static void ccgDM_release(DerivedMesh *dm)
 			if(!ccgdm->multires.local_mmd && BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0)
 				ccgdm->multires.mmd = NULL;
 			if(ccgdm->multires.mmd)
-				ccgdm->multires.update(dm);
+				multires_modifier_update_mdisps(dm);
 		}
 
 		if (ccgdm->ehash)

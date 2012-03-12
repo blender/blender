@@ -48,6 +48,9 @@ void multires_force_update(struct Object *ob);
 void multires_force_render_update(struct Object *ob);
 void multires_force_external_reload(struct Object *ob);
 
+/* internal, only called in subsurf_ccg.c */
+void multires_modifier_update_mdisps(struct DerivedMesh *dm);
+
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,

@@ -842,7 +842,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	}
 }
 
-static void multiresModifier_update(DerivedMesh *dm)
+void multires_modifier_update_mdisps(struct DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
 	Object *ob;
@@ -1109,7 +1109,6 @@ DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int loca
 		ccgdm->multires.lvl = lvl;
 		ccgdm->multires.totlvl = mmd->totlvl;
 		ccgdm->multires.modified = 0;
-		ccgdm->multires.update = multiresModifier_update;
 	}
 
 	numGrids = result->getNumGrids(result);
