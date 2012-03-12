@@ -76,61 +76,49 @@ void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t l
 void BLF_draw(int fontid, const char *str, size_t len);
 void BLF_draw_ascii(int fontid, const char *str, size_t len);
 
-/*
- * This function return the bounding box of the string
+/* This function return the bounding box of the string
  * and are not multiplied by the aspect.
  */
 void BLF_boundbox(int fontid, const char *str, struct rctf *box);
 
-/*
- * The next both function return the width and height
+/* The next both function return the width and height
  * of the string, using the current font and both value 
  * are multiplied by the aspect of the font.
  */
 float BLF_width(int fontid, const char *str);
 float BLF_height(int fontid, const char *str);
 
-/*
- * Return dimensions of the font without any sample text.
- */
+/* Return dimensions of the font without any sample text. */
 float BLF_height_max(int fontid);
 float BLF_width_max(int fontid);
 float BLF_descender(int fontid);
 float BLF_ascender(int fontid);
 
-/*
- * The following function return the width and height of the string, but
+/* The following function return the width and height of the string, but
  * just in one call, so avoid extra freetype2 stuff.
  */
 void BLF_width_and_height(int fontid, const char *str, float *width, float *height);
 
-/*
- * For fixed width fonts only, returns the width of a
+/* For fixed width fonts only, returns the width of a
  * character.
  */
 float BLF_fixed_width(int fontid);
 
-/*
- * and this two function return the width and height
+/* and this two function return the width and height
  * of the string, using the default font and both value
  * are multiplied by the aspect of the font.
  */
 float BLF_width_default(const char *str);
 float BLF_height_default(const char *str);
 
-/*
- * Set rotation for default font.
- */
+/* Set rotation for default font. */
 void BLF_rotation_default(float angle);
 
-/*
- * Enable/disable options to the default font.
- */
+/* Enable/disable options to the default font. */
 void BLF_enable_default(int option);
 void BLF_disable_default(int option);
 
-/*
- * By default, rotation and clipping are disable and
+/* By default, rotation and clipping are disable and
  * have to be enable/disable using BLF_enable/disable.
  */
 void BLF_rotation(int fontid, float angle);
@@ -141,39 +129,34 @@ void BLF_blur(int fontid, int size);
 void BLF_enable(int fontid, int option);
 void BLF_disable(int fontid, int option);
 
-/*
- * Shadow options, level is the blur level, can be 3, 5 or 0 and
+/* Shadow options, level is the blur level, can be 3, 5 or 0 and
  * the other argument are the rgba color.
- * Take care that shadow need to be enable using BLF_enable!!.
+ * Take care that shadow need to be enable using BLF_enable!!!
  */
 void BLF_shadow(int fontid, int level, float r, float g, float b, float a);
 
-/*
- * Set the offset for shadow text, this is the current cursor
+/* Set the offset for shadow text, this is the current cursor
  * position plus this offset, don't need call BLF_position before
  * this function, the current position is calculate only on
  * BLF_draw, so it's safe call this whenever you like.
  */
 void BLF_shadow_offset(int fontid, int x, int y);
 
-/*
- * Set the buffer, size and number of channels to draw, one thing to take care is call
+/* Set the buffer, size and number of channels to draw, one thing to take care is call
  * this function with NULL pointer when we finish, for example:
- *	BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4);
  *
- *	... set color, position and draw ...
+ *     BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4);
  *
- *	BLF_buffer(NULL, NULL, 0, 0, 0);
+ *     ... set color, position and draw ...
+ *
+ *     BLF_buffer(NULL, NULL, 0, 0, 0);
  */
 void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch);
 
-/*
- * Set the color to be used for text.
- */
+/* Set the color to be used for text. */
 void BLF_buffer_col(int fontid, float r, float g, float b, float a);
 
-/*
- * Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
+/* Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
  * it's not necessary set both buffer, NULL is valid here.
  */
 void BLF_draw_buffer(int fontid, const char *str);
@@ -200,8 +183,8 @@ void BLF_dir_free(char **dirs, int count);
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 
-// XXX, bad design
+/* XXX, bad design */
 extern int blf_mono_font;
-extern int blf_mono_font_render; // dont mess drawing with render threads.
+extern int blf_mono_font_render; /* dont mess drawing with render threads. */
 
 #endif /* __BLF_API_H__ */

@@ -47,8 +47,7 @@ const char *BLF_pgettext(const char *context, const char *message);
 
 /* blf_lang.c */
 
-/*
- * Search the path directory to the locale files, this try all
+/* Search the path directory to the locale files, this try all
  * the case for Linux, Win and Mac.
  */
 void BLF_lang_init(void);
@@ -66,7 +65,7 @@ const char *BLF_translate_do_iface(const char *msgid);
 const char *BLF_translate_do_tooltip(const char *msgid);
 
 
-/*#define _(msgid) BLF_gettext(msgid)*/
+/* #define _(msgid) BLF_gettext(msgid) */
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
 /* Those macros should be used everywhere in UI code. */
