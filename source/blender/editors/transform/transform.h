@@ -444,9 +444,9 @@ void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
-void convertViewVec(TransInfo *t, float *vec, int dx, int dy);
-void projectIntView(TransInfo *t, float *vec, int *adr);
-void projectFloatView(TransInfo *t, float *vec, float *adr);
+void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy);
+void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
+void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 
 void applyAspectRatio(TransInfo *t, float *vec);
 void removeAspectRatio(TransInfo *t, float *vec);

@@ -256,8 +256,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 
 	owalk = *iwalk;
 
-	if (iwalk->lastv == e->v1) v = e->v2;
-	else v = e->v1;
+	v = BM_edge_other_vert(e, iwalk->lastv);
 
 	if (!BM_vert_is_manifold(walker->bm, v)) {
 		BMW_reset(walker);
@@ -411,10 +410,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk = BMW_state_add(walker);
 	*lwalk = owalk;
 
-	if (lwalk->lastv == owalk.cur->v1) lwalk->lastv = owalk.cur->v2;
-	else lwalk->lastv = owalk.cur->v1;
-
-	lwalk->startv = lwalk->lastv;
+	lwalk->lastv = lwalk->startv = BM_edge_other_vert(owalk.cur, lwalk->lastv);
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 2");
@@ -625,8 +621,9 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 
 	l = l->radial_next;
 	
-	if (lwalk->nocalc)
+	if (lwalk->nocalc) {
 		return f;
+	}
 
 	if (!bmw_FaceLoopWalker_include_face(walker, l)) {
 		l = lwalk->l;

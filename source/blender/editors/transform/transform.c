@@ -136,28 +136,28 @@ static void convertViewVec2D(View2D *v2d, float vec[3], int dx, int dy)
 	vec[2]= 0.0f;
 }
 
-void convertViewVec(TransInfo *t, float vec[3], int dx, int dy)
+void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 {
 	if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
 		float mval_f[2];
 		mval_f[0] = dx;
 		mval_f[1] = dy;
-		ED_view3d_win_to_delta(t->ar, mval_f, vec);
+		ED_view3d_win_to_delta(t->ar, mval_f, r_vec);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy;
 
-		convertViewVec2D(t->view, vec, dx, dy);
+		convertViewVec2D(t->view, r_vec, dx, dy);
 
 		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-		vec[0]*= aspx;
-		vec[1]*= aspy;
+		r_vec[0] *= aspx;
+		r_vec[1] *= aspy;
 	}
 	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
-		convertViewVec2D(t->view, vec, dx, dy);
+		convertViewVec2D(t->view, r_vec, dx, dy);
 	}
 	else if(ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
-		convertViewVec2D(&t->ar->v2d, vec, dx, dy);
+		convertViewVec2D(&t->ar->v2d, r_vec, dx, dy);
 	}
 	else if(t->spacetype==SPACE_CLIP) {
 		View2D *v2d = t->view;
@@ -166,17 +166,17 @@ void convertViewVec(TransInfo *t, float vec[3], int dx, int dy)
 		divx= v2d->mask.xmax-v2d->mask.xmin;
 		divy= v2d->mask.ymax-v2d->mask.ymin;
 
-		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
-		vec[2]= 0.0f;
+		r_vec[0] = (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
+		r_vec[1] = (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
+		r_vec[2] = 0.0f;
 	}
 	else {
 		printf("%s: called in an invalid context\n", __func__);
-		zero_v3(vec);
+		zero_v3(r_vec);
 	}
 }
 
-void projectIntView(TransInfo *t, float *vec, int *adr)
+void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 {
 	if (t->spacetype==SPACE_VIEW3D) {
 		if(t->ar->regiontype == RGN_TYPE_WINDOW)
@@ -229,26 +229,31 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 	}
 }
 
-void projectFloatView(TransInfo *t, float *vec, float *adr)
+void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 {
-	if (t->spacetype==SPACE_VIEW3D) {
-		if(t->ar->regiontype == RGN_TYPE_WINDOW)
-			project_float_noclip(t->ar, vec, adr);
+	switch (t->spacetype) {
+		case SPACE_VIEW3D:
+		{
+			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+				project_float_noclip(t->ar, vec, adr);
+				return;
+			}
+			break;
+		}
+		case SPACE_IMAGE:
+		case SPACE_CLIP:
+		case SPACE_IPO:
+		case SPACE_NLA:
+		{
+			int a[2];
+			projectIntView(t, vec, a);
+			adr[0] = a[0];
+			adr[1] = a[1];
+			return;
+		}
 	}
-	else if(ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
-		int a[2];
 
-		projectIntView(t, vec, a);
-		adr[0]= a[0];
-		adr[1]= a[1];
-	}
-	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
-		int a[2];
-
-		projectIntView(t, vec, a);
-		adr[0]= a[0];
-		adr[1]= a[1];
-	}
+	zero_v2(adr);
 }
 
 void applyAspectRatio(TransInfo *t, float *vec)

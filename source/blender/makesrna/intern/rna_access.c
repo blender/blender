@@ -1430,8 +1430,12 @@ int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
 		PropertyRNA *r_prop;
 
 		RNA_id_pointer_create(ptr->id.data, &id_ptr);
-		RNA_path_resolve(&id_ptr, path, &r_ptr, &r_prop);
-		ret = (prop == r_prop);
+		if (RNA_path_resolve(&id_ptr, path, &r_ptr, &r_prop) == TRUE) {
+			ret = (prop == r_prop);
+		}
+		else {
+			ret = FALSE;
+		}
 		MEM_freeN(path);
 	}
 

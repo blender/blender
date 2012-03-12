@@ -1080,10 +1080,10 @@ void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;
-	SubDParams params;
+	SubDParams params = {0};
 	int skey;
 	
-	params.numcuts = BMO_slot_get(op, "numcuts")->data.i;
+	params.numcuts = BMO_slot_int_get(op, "numcuts");
 	params.op = op;
 	
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
