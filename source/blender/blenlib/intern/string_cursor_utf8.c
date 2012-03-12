@@ -48,19 +48,21 @@ typedef enum strCursorDelimType {
 } strCursorDelimType;
 
 /* return 1 if char ch is special character, otherwise return 0 */
-static strCursorDelimType test_special_char(const char ch)
+static strCursorDelimType test_special_char(const char *ch_utf8)
 {
-	/* TODO - use BLI_str_utf8_as_unicode rather then assuming ascii */
+	/* for full unicode support we really need to have large lookup tables to figure
+	 * out whats what in every possible char set - and python, glib both have these. */
+	unsigned int uch = BLI_str_utf8_as_unicode(ch_utf8);
 
-	if ((ch >= 'a' && ch <= 'z') ||
-	    (ch >= 'A' && ch <= 'Z') ||
-	    (ch == '_') /* not quite correct but allow for python, could become configurable */
+	if ((uch >= 'a' && uch <= 'z') ||
+	    (uch >= 'A' && uch <= 'Z') ||
+	    (uch == '_') /* not quite correct but allow for python, could become configurable */
 	    )
 	{
 		return STRCUR_DELIM_ALPHA;
 	}
 
-	switch (ch) {
+	switch (uch) {
 		case ',':
 		case '.':
 			return STRCUR_DELIM_PUNCT;
@@ -150,13 +152,13 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 		BLI_str_cursor_step_next_utf8(str, maxlen, pos);
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType is_special = (*pos) < maxlen ? test_special_char(str[(*pos)]) : STRCUR_DELIM_NONE;
+			const strCursorDelimType is_special = (*pos) < maxlen ? test_special_char(&str[*pos]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function test_special_char() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) < maxlen) {
 				if (BLI_str_cursor_step_next_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)])))
+					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(&str[*pos])))
 						break;
 				}
 				else {
@@ -169,13 +171,13 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 		BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType is_special = (*pos) > 1 ? test_special_char(str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+			const strCursorDelimType is_special = (*pos) > 1 ? test_special_char(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function test_special_char() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) > 0) {
 				if (BLI_str_cursor_step_prev_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(str[(*pos)])))
+					if ((jump != STRCUR_JUMP_ALL) && (is_special != test_special_char(&str[*pos])))
 						break;
 				}
 				else {
