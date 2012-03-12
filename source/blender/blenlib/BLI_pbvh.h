@@ -89,6 +89,14 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 				   int (*setMaterial)(int, void *attribs));
 
+/* PBVH Access */
+typedef enum {
+	PBVH_FACES,
+	PBVH_GRIDS,
+} PBVHType;
+
+PBVHType BLI_pbvh_type(const PBVH *bvh);
+
 /* Node Access */
 
 typedef enum {

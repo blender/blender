@@ -119,6 +119,8 @@ struct PBVHNode {
 };
 
 struct PBVH {
+	PBVHType type;
+
 	PBVHNode *nodes;
 	int node_mem_count, totnode;
 
@@ -601,6 +603,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 	BB cb;
 	int i, j;
 
+	bvh->type = PBVH_FACES;
 	bvh->faces = faces;
 	bvh->verts = verts;
 	bvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
@@ -642,6 +645,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 	BB cb;
 	int i, j;
 
+	bvh->type = PBVH_GRIDS;
 	bvh->grids= grids;
 	bvh->gridadj= gridadj;
 	bvh->gridfaces= gridfaces;
@@ -996,7 +1000,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	float (*vnor)[3];
 	int n;
 
-	if(bvh->grids)
+	if(bvh->type != PBVH_FACES)
 		return;
 
 	/* could be per node to save some memory, but also means
@@ -1124,20 +1128,22 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 		node= nodes[n];
 
 		if(node->flag & PBVH_UpdateDrawBuffers) {
-			if(bvh->grids) {
+			switch(bvh->type) {
+			case PBVH_GRIDS:
 				GPU_update_grid_buffers(node->draw_buffers,
 						   bvh->grids,
 						   bvh->grid_flag_mats,
 						   node->prim_indices,
 						   node->totprim,
 						   bvh->gridsize);
-			}
-			else {
+				break;
+			case PBVH_FACES:
 				GPU_update_mesh_buffers(node->draw_buffers,
 						   bvh->verts,
 						   node->vert_indices,
 						   node->uniq_verts +
 						   node->face_verts);
+				break;
 			}
 
 			node->flag &= ~PBVH_UpdateDrawBuffers;
@@ -1271,6 +1277,13 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	*gridfaces= faces;
 }
 
+/***************************** PBVH Access ***********************************/
+
+PBVHType BLI_pbvh_type(const PBVH *bvh)
+{
+	return bvh->type;
+}
+
 /***************************** Node Access ***********************************/
 
 void BLI_pbvh_node_mark_update(PBVHNode *node)
@@ -1286,34 +1299,40 @@ void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node, int **vert_indices, MVer
 
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *totvert)
 {
-	if(bvh->grids) {
-		const int tot= node->totprim*bvh->gridsize*bvh->gridsize;
+	int tot;
+	
+	switch(bvh->type) {
+	case PBVH_GRIDS:
+		tot= node->totprim*bvh->gridsize*bvh->gridsize;
 		if(totvert) *totvert= tot;
 		if(uniquevert) *uniquevert= tot;
-	}
-	else {
+		break;
+	case PBVH_FACES:
 		if(totvert) *totvert= node->uniq_verts + node->face_verts;
 		if(uniquevert) *uniquevert= node->uniq_verts;
+		break;
 	}
 }
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, DMGridData ***griddata, DMGridAdjacency **gridadj)
 {
-	if(bvh->grids) {
+	switch(bvh->type) {
+	case PBVH_GRIDS:
 		if(grid_indices) *grid_indices= node->prim_indices;
 		if(totgrid) *totgrid= node->totprim;
 		if(maxgrid) *maxgrid= bvh->totgrid;
 		if(gridsize) *gridsize= bvh->gridsize;
 		if(griddata) *griddata= bvh->grids;
 		if(gridadj) *gridadj= bvh->gridadj;
-	}
-	else {
+		break;
+	case PBVH_FACES:
 		if(grid_indices) *grid_indices= NULL;
 		if(totgrid) *totgrid= 0;
 		if(maxgrid) *maxgrid= 0;
 		if(gridsize) *gridsize= 0;
 		if(griddata) *griddata= NULL;
 		if(gridadj) *gridadj= NULL;
+		break;
 	}
 }
 
@@ -1433,13 +1452,15 @@ static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	float ray_start[3], float ray_normal[3], float *dist)
 {
-	int hit= 0;
+	MVert *vert;
+	int *faces, totface, gridsize, totgrid;
+	int i, x, y, hit= 0;
 
-	if(bvh->faces) {
-		MVert *vert = bvh->verts;
-		int *faces= node->prim_indices;
-		int totface= node->totprim;
-		int i;
+	switch(bvh->type) {
+	case PBVH_FACES:
+		vert = bvh->verts;
+		faces= node->prim_indices;
+		totface= node->totprim;
 
 		for(i = 0; i < totface; ++i) {
 			MFace *f = bvh->faces + faces[i];
@@ -1464,11 +1485,10 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 							 dist);
 			}
 		}
-	}
-	else {
-		int totgrid= node->totprim;
-		int gridsize= bvh->gridsize;
-		int i, x, y;
+		break;
+	case PBVH_GRIDS:
+		totgrid= node->totprim;
+		gridsize= bvh->gridsize;
 
 		for(i = 0; i < totgrid; ++i) {
 			DMGridData *grid= bvh->grids[node->prim_indices[i]];
@@ -1499,6 +1519,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 			if(origco)
 				origco += gridsize*gridsize;
 		}
+		break;
 	}
 
 	return hit;
