@@ -42,6 +42,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_global.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -323,6 +324,9 @@ int RE_engine_render(Render *re, int do_all)
 
 	RE_engine_free(engine);
 
+	if(BKE_reports_contain(re->reports, RPT_ERROR))
+		G.afbreek = 1;
+	
 	return 1;
 }
 
