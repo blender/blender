@@ -110,7 +110,7 @@
 #define HAVE___BUILTIN_EXPECT 1
 
 /* define if your compiler has __sync_val_compare_and_swap */
-#define HAVE___SYNC_VAL_COMPARE_AND_SWAP 1
+/* #undef HAVE___SYNC_VAL_COMPARE_AND_SWAP */
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -138,7 +138,13 @@
 #define PACKAGE_VERSION "0.3.2"
 
 /* How to access the PC from a struct ucontext */
-#define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP]
+#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
+  #define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP]
+#elif defined(_M_IX86) || defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__)
+  #define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_EIP]
+#else
+  #undef PC_FROM_UCONTEXT
+#endif
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
@@ -150,6 +156,7 @@
 /* Define to 1 if you have the ANSI C header files. */
 /* #undef STDC_HEADERS */
 
+#define STDC_HEADERS 1
 /* the namespace where STL code like vector<> is defined */
 #define STL_NAMESPACE std
 

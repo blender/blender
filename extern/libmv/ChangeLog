@@ -1,4 +1,13 @@
-commit bf0c3423ba41b90638e89a56500aeaeb120fbaf1
+commit 9fe49c32e990f28c83f2bbb1d18057aed8879af7
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Mar 12 09:36:15 2012 +0600
+
+    Code cleanup: convert line endings to Unix style (native on my platform) so it
+    wouldn't confuse other versioning systems used for project where libmv is bundled to,
+    
+    Also change mode to +x for glog's windows-related script.
+
+commit fe74ae2b53769389b0ed9d7e604c8e60be81077d
 Author: Sergey I. Sharybin <g.ulairi@gmail.com>
 Date:   Sun Mar 11 20:34:15 2012 +0600
 
@@ -9,7 +18,7 @@ Date:   Sun Mar 11 20:34:15 2012 +0600
     it's easier to move libraries around and even use libraries installed
     on the operation system.
 
-commit 3e2673282f313c5bd19720f26d769f5d240a0563
+commit 37fc726701479f2d321d6af878fa93f3176278d5
 Author: Sergey I. Sharybin <g.ulairi@gmail.com>
 Date:   Sun Mar 11 19:27:41 2012 +0600
 
@@ -480,9 +489,3 @@ Date:   Fri Aug 19 00:02:12 2011 +0200
 
     Document coordinate descent method in affine SAD matcher.
     Add heuristic to prevent high distortions.
-
-commit 75520f4bc4ccbb272a1b4149d3b8d05a90f7f896
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Aug 18 23:14:17 2011 +0200
-
-    Fix affine iteration.
