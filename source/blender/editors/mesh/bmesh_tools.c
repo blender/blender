@@ -4447,7 +4447,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMEdge *eed;
 	BMOperator bmop;
-	float factor = RNA_float_get(op->ptr, "percent"), /*, dfac */ /* UNUSED */, df, s;
+	float factor = RNA_float_get(op->ptr, "percent") /*, dfac */ /* UNUSED */, df, s;
 	int i, recursion = RNA_int_get(op->ptr, "recursion");
 	const int use_even = RNA_boolean_get(op->ptr, "use_even");
 	const int use_dist = RNA_boolean_get(op->ptr, "use_dist");
