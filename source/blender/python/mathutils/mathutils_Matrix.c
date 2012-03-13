@@ -780,7 +780,7 @@ PyDoc_STRVAR(C_Matrix_Shear_doc,
 "   :arg size: The size of the shear matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix\n"
-"      pass a pair of floats corrasponding with the *plane* axis.\n"
+"      pass a pair of floats corresponding with the *plane* axis.\n"
 "   :type factor: float or float pair\n"
 "   :return: A new shear matrix.\n"
 "   :rtype: :class:`Matrix`\n"

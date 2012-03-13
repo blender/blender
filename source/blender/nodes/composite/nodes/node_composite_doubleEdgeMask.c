@@ -998,7 +998,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
      purpose of GO for the proportion calculation.
 
      For the purposes of the minimun distance comparisons, we only check
-     the sums-of-squares against eachother, since they are in the same
+     the sums-of-squares against each other, since they are in the same
      mathematical sort-order as if we did go ahead and take square roots
 
      Loop through all gradient pixels.

@@ -108,10 +108,7 @@ PyDoc_STRVAR(BPy_BM_doc,
 "* :mod:`bmesh.types`\n"
 "\n"
 "\n"
-"Example Script\n"
-"--------------\n"
-"\n"
-".. literalinclude:: ../../../release/scripts/templates/bmesh_simple.py\n"
+".. include:: include__bmesh.rst\n"
 );
 static struct PyModuleDef BPy_BM_module_def = {
 	PyModuleDef_HEAD_INIT,

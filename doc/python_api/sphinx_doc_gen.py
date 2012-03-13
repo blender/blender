@@ -37,6 +37,7 @@ API dump in RST files
   For quick builds:
     ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- -q
 
+
 Sphinx: HTML generation
 -----------------------
   After you have built doc/python_api/sphinx-in (see above),
@@ -46,6 +47,7 @@ Sphinx: HTML generation
     sphinx-build sphinx-in sphinx-out
 
   This requires sphinx 1.0.7 to be installed.
+
 
 Sphinx: PDF generation
 ----------------------
@@ -139,11 +141,11 @@ def handle_args():
                         help="Rewrite all rst files in sphinx-in/ (default=False)",
                         required=False)
 
-    parser.add_argument("-t", "--testdump",
-                        dest="test_dump",
-                        default=False,
-                        action='store_true',
-                        help="Dumps a small part of the API (default=False)",
+    parser.add_argument("-p", "--partial",
+                        dest="partial",
+                        type=str,
+                        default="",
+                        help="Use a wildcard to only build spesific module(s)",
                         required=False)
 
     parser.add_argument("-b", "--bpy",
@@ -173,7 +175,7 @@ sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 """
 
 # Switch for quick testing so doc-builds don't take so long
-if not ARGS.test_dump:
+if not ARGS.partial:
     # full build
     FILTER_BPY_OPS = None
     FILTER_BPY_TYPES = None
@@ -181,6 +183,7 @@ if not ARGS.test_dump:
     EXCLUDE_MODULES = ()
 
 else:
+    # can manually edit this too:
     FILTER_BPY_OPS = ("import.scene", )  # allow
     FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
     EXCLUDE_INFO_DOCS = True
@@ -195,9 +198,9 @@ else:
         "bge.types",
         "bgl",
         "blf",
-        #"bmesh",
-        #"bmesh.types",
-        #"bmesh.utils",
+        "bmesh",
+        "bmesh.types",
+        "bmesh.utils",
         "bpy.app",
         "bpy.app.handlers",
         "bpy.context",
@@ -213,6 +216,22 @@ else:
         "mathutils.geometry",
         "mathutils.noise",
     )
+
+    # ------
+    # Filter
+    #
+    # TODO, support bpy.ops and bpy.types filtering
+    import fnmatch
+    m = None
+    EXCLUDE_MODULES = tuple([m for m in EXCLUDE_MODULES if not fnmatch.fnmatchcase(m, ARGS.partial)])
+    del m
+    del fnmatch
+
+    print("Partial Doc Build, Skipping: %s\n" % "\n                             ".join(sorted(EXCLUDE_MODULES)))
+
+    #
+    # done filtering
+    # --------------
 
 try:
     __import__("aud")
@@ -1527,6 +1546,9 @@ def copy_handwritten_rsts(basepath):
         "bge.constraints",
         "bgl",  # "Blender OpenGl wrapper"
         "gpu",  # "GPU Shader Module"
+
+        # includes...
+        "include__bmesh",
     ]
     for mod_name in handwritten_modules:
         if mod_name not in EXCLUDE_MODULES:

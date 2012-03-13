@@ -82,7 +82,7 @@ class GHOST_IEventConsumer;
  * <li> OSX Carbon.</li>
  * <li> Windows.</li>
  * <li> X11.</li>
- * <li> SDL1.3 (experemental).</li>
+ * <li> SDL1.3 (experimental).</li>
  * <li> NULL (headless mode).</li>
  * </ul>
  *
