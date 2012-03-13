@@ -701,15 +701,17 @@ int BM_select_history_check(BMesh *bm, const BMElem *ele)
 	return FALSE;
 }
 
-void BM_select_history_remove(BMesh *bm, BMElem *ele)
+int BM_select_history_remove(BMesh *bm, BMElem *ele)
 {
 	BMEditSelection *ese;
 	for (ese = bm->selected.first; ese; ese = ese->next) {
 		if (ese->ele == ele) {
 			BLI_freelinkN(&(bm->selected), ese);
-			break;
+			return TRUE;
 		}
 	}
+
+	return FALSE;
 }
 
 void BM_select_history_clear(BMesh *bm)

@@ -69,8 +69,65 @@ static PyGetSetDef bpy_bmeditselseq_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
+PyDoc_STRVAR(bpy_bmeditselseq_validate_doc,
+".. method:: validate()\n"
+"\n"
+"   Ensures all elements in the selection history are selected.\n"
+);
+static PyObject *bpy_bmeditselseq_validate(BPy_BMEditSelSeq *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	BM_select_history_validate(self->bm);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmeditselseq_clear_doc,
+".. method:: clear()\n"
+"\n"
+"   Empties the selection history.\n"
+);
+static PyObject *bpy_bmeditselseq_clear(BPy_BMEditSelSeq *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	BM_select_history_clear(self->bm);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpy_bmeditselseq_remove_doc,
+".. method:: remove(element)\n"
+"\n"
+"   Remove an element from the selection history.\n"
+);
+static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if ((BPy_BMVert_Check(value) ||
+	     BPy_BMEdge_Check(value) ||
+	     BPy_BMFace_Check(value)) == FALSE)
+	{
+		PyErr_Format(PyExc_TypeError,
+		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	if ((self->bm != value->bm) ||
+	    (BM_select_history_remove(self->bm, value->ele) == FALSE))
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "Element not found in selection history");
+		return NULL;
+	}
+
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef bpy_bmeditselseq_methods[] = {
-    // {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
+    {"validate", (PyCFunction)bpy_bmeditselseq_validate, METH_NOARGS, bpy_bmeditselseq_validate_doc},
+    {"clear",    (PyCFunction)bpy_bmeditselseq_clear,    METH_NOARGS, bpy_bmeditselseq_clear_doc},
+    {"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
     {NULL, NULL, 0, NULL}
 };
 
@@ -103,7 +160,7 @@ static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keyn
 	}
 	else {
 		PyErr_Format(PyExc_IndexError,
-			         "BMElemSeq[index]: index %d out of range", keynum);
+		             "BMElemSeq[index]: index %d out of range", keynum);
 		return NULL;
 	}
 }
@@ -213,15 +270,7 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 
 	value_bm_ele = (BPy_BMElem *)value;
 	if (value_bm_ele->bm == self->bm) {
-		BMEditSelection *ese_test;
-		BMElem *ele;
-
-		ele = value_bm_ele->ele;
-		for (ese_test = self->bm->selected.first; ese_test; ese_test = ese_test->next) {
-			if (ele == ese_test->ele) {
-				return 1;
-			}
-		}
+		return BM_select_history_check(self->bm, value_bm_ele->ele);
 	}
 
 	return 0;
@@ -274,7 +323,7 @@ static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
 	}
 }
 
-PyTypeObject BPy_BMEditSelSeq_Type     = {{{0}}};
+PyTypeObject BPy_BMEditSelSeq_Type  = {{{0}}};
 PyTypeObject BPy_BMEditSelIter_Type = {{{0}}};
 
 
