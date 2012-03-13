@@ -358,6 +358,11 @@ if(WITH_INSTALL_PORTABLE)
 	set(CMAKE_SKIP_BUILD_RPATH TRUE)
 endif()
 
+if(WITH_GHOST_SDL OR WITH_HEADLESS)
+    set(WITH_GHOST_XDND OFF)
+endif()
+
+
 #-----------------------------------------------------------------------------
 # Initialize un-cached vars, avoid unused warning
 
