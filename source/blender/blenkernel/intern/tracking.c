@@ -2716,6 +2716,9 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 			interpolation = bilinear_interpolation;
 		else if(filter == TRACKING_FILTER_BICUBIC)
 			interpolation = bicubic_interpolation;
+		else
+			/* fallback to default interpolation method */
+			interpolation = neareast_interpolation;
 
 		for(j=0; j<tmpibuf->y; j++) {
 			for(i=0; i<tmpibuf->x;i++) {
