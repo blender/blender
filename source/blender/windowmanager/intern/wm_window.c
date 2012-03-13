@@ -78,9 +78,20 @@
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system= NULL;
 
+typedef enum WinOverrideFlag {
+	WIN_OVERRIDE_GEOM     = (1 << 0),
+	WIN_OVERRIDE_WINSTATE = (1 << 1)
+} WinOverrideFlag;
+
 /* set by commandline */
-static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;
-static unsigned short useprefsize= 0;
+static struct WMInitStruct {
+	/* window geometry */
+	int size_x, size_y;
+	int start_x, start_y;
+
+	int windowstate;
+	WinOverrideFlag override_flag;
+} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0};
 
 /* ******** win open & close ************ */
 
@@ -370,33 +381,37 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 	 * Note that these values will be used only
 	 * when there is no startup.blend yet.
 	 */
-	if (!prefsizx) {
-		wm_get_screensize(&prefsizx, &prefsizy);
+	if (wm_init_state.size_x == 0) {
+		wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y);
 		
 #if defined(__APPLE__) && !defined(GHOST_COCOA)
 //Cocoa provides functions to get correct max window size
 		{
 			extern void wm_set_apple_prefsize(int, int);	/* wm_apple.c */
 			
-			wm_set_apple_prefsize(prefsizx, prefsizy);
+			wm_set_apple_prefsize(wm_init_state.size_x, wm_init_state.size_y);
 		}
 #else
-		prefstax= 0;
-		prefstay= 0;
+		wm_init_state.start_x = 0;
+		wm_init_state.start_y = 0;
 		
 #endif
 	}
 	
-	for(win= wm->windows.first; win; win= win->next) {
-		if(win->ghostwin==NULL) {
-			if(win->sizex==0 || useprefsize) {
-				win->posx= prefstax;
-				win->posy= prefstay;
-				win->sizex= prefsizx;
-				win->sizey= prefsizy;
-				win->windowstate= initialstate;
-				useprefsize= 0;
+	for (win= wm->windows.first; win; win= win->next) {
+		if (win->ghostwin==NULL) {
+			if ((win->sizex == 0) || (wm_init_state.override_flag & WIN_OVERRIDE_GEOM)) {
+				win->posx = wm_init_state.start_x;
+				win->posy = wm_init_state.start_y;
+				win->sizex = wm_init_state.size_x;
+				win->sizey = wm_init_state.size_y;
+				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
+
+			if (wm_init_state.override_flag & WIN_OVERRIDE_WINSTATE) {
+				win->windowstate = wm_init_state.windowstate;
+			}
+
 			wm_window_add_ghostwindow("Blender", win);
 		}
 		/* happens after fileread */
@@ -1144,22 +1159,24 @@ void wm_get_cursor_position(wmWindow *win, int *x, int *y)
 /* called whem no ghost system was initialized */
 void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 {
-	prefstax= stax;
-	prefstay= stay;
-	prefsizx= sizx;
-	prefsizy= sizy;
-	useprefsize= 1;
+	wm_init_state.start_x = stax; /* left hand pos */
+	wm_init_state.start_y = stay; /* bottom pos */
+	wm_init_state.size_x = sizx;
+	wm_init_state.size_y = sizy;
+	wm_init_state.override_flag |= WIN_OVERRIDE_GEOM;
 }
 
 /* for borderless and border windows set from command-line */
 void WM_setinitialstate_fullscreen(void)
 {
-	initialstate= GHOST_kWindowStateFullScreen;
+	wm_init_state.windowstate = GHOST_kWindowStateFullScreen;
+	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
 void WM_setinitialstate_normal(void)
 {
-	initialstate= GHOST_kWindowStateNormal;
+	wm_init_state.windowstate = GHOST_kWindowStateNormal;
+	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
 /* This function requires access to the GHOST_SystemHandle (g_system) */
