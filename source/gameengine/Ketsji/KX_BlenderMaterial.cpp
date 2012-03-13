@@ -235,8 +235,12 @@ void KX_BlenderMaterial::OnExit()
 		mTextures[i].DisableUnit();
 	}
 
-	if( mMaterial->tface ) 
-		GPU_set_tpage(mMaterial->tface, 1, mMaterial->alphablend);
+	/* used to call with 'mMaterial->tface' but this can be a freed array,
+	 * see: [#30493], so just call with NULL, this is best since it clears
+	 * the 'lastface' pointer in GPU too - campbell */
+	if (mMaterial->tface) {
+		GPU_set_tpage(NULL, 1, mMaterial->alphablend);
+	}
 }
 
 
