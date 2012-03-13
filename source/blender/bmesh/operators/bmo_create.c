@@ -1428,4 +1428,49 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_enable(bm, f, ELE_OUT);
 		}
 	}
+	else {
+		/* tricky feature for making a line/edge from selection history...
+		 *
+		 * Rather then do nothing, when 5+ verts are selected, check if they are in our history,
+		 * when this is so, we can make edges from them, but _not_ a face,
+		 * if it is the intention to make a face the user can just hit F again since there will be edges next
+		 * time around.
+		 *
+		 * if all history verts have ELE_NEW flagged and the total number of history verts == totv,
+		 * then we know the history contains all verts here and we can continue...
+		 */
+
+		BMEditSelection *ese;
+		int tot_ese_v = 0;
+
+		for (ese = bm->selected.first; ese; ese = ese->next) {
+			if (ese->htype == BM_VERT) {
+				if (BMO_elem_flag_test(bm, (BMElemF *)ese->ele, ELE_NEW)) {
+					tot_ese_v++;
+				}
+				else {
+					/* unflagged vert means we are not in sync */
+					tot_ese_v = -1;
+					break;
+				}
+			}
+		}
+
+		if (tot_ese_v == totv) {
+			BMVert *v_prev = NULL;
+			/* yes, all select-history verts are accounted for, now make edges */
+
+			for (ese = bm->selected.first; ese; ese = ese->next) {
+				if (ese->htype == BM_VERT) {
+					v = (BMVert *)ese->ele;
+					if (v_prev) {
+						e = BM_edge_create(bm, v, v_prev, NULL, TRUE);
+						BMO_elem_flag_enable(bm, e, ELE_OUT);
+					}
+					v_prev = v;
+				}
+			}
+		}
+		/* done creating edges */
+	}
 }
