@@ -396,7 +396,6 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
-	lwalk->stage2 = 0;
 	lwalk->is_boundry = BM_edge_is_boundary(e);
 	lwalk->is_single = (BM_vert_edge_count_nonwire(e->v1) == 2 &&
 	                    BM_vert_edge_count_nonwire(e->v2) == 2);
@@ -427,21 +426,18 @@ static void *bmw_LoopWalker_yield(BMWalker *walker)
 static void *bmw_LoopWalker_step(BMWalker *walker)
 {
 	BMwLoopWalker *lwalk = BMW_current_state(walker), owalk;
-	BMIter eiter;
 	BMEdge *e = lwalk->cur, *nexte = NULL;
-	BMLoop *l, *l2;
+	BMLoop *l;
 	BMVert *v;
-	int vert_edge_tot;
-	int i = 0, stopi;
-	/* int found = 0; */ /* UNUSED */
+	int i;
 
 	owalk = *lwalk;
 	BMW_state_remove(walker);
 
 	l = e->l;
 
-	/* handle wire edge case */
-	if (!l) {
+	if (!l) { /* WIRE EDGE */
+		BMIter eiter;
 
 		/* match trunk: mark all connected wire edges */
 		for (i = 0; i < 2; i++) {
@@ -459,60 +455,66 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 				}
 			}
 		}
-
-		return owalk.cur;
 	}
+	else { 	/* FACE EDGE */
+		int vert_edge_tot;
+		int stopi;
 
-	v = BM_edge_other_vert(e, lwalk->lastv);
+		v = BM_edge_other_vert(e, lwalk->lastv);
 
-	vert_edge_tot = BM_vert_edge_count_nonwire(v);
+		vert_edge_tot = BM_vert_edge_count_nonwire(v);
 
-	if (/* check if we should step, this is fairly involved */
+		if (/* check if we should step, this is fairly involved */
 
-	    /* typical loopiong over edges in the middle of a mesh */
-	    /* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
-	    ((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundry == FALSE) ||
+			/* typical loopiong over edges in the middle of a mesh */
+			/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
+			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundry == FALSE) ||
 
-	    /* walk over boundry of faces but stop at corners */
-	    (owalk.is_boundry == TRUE && owalk.is_single  == FALSE && vert_edge_tot > 2) ||
+			/* walk over boundry of faces but stop at corners */
+			(owalk.is_boundry == TRUE && owalk.is_single  == FALSE && vert_edge_tot > 2) ||
 
-	    /* initial edge was a boundry, so is this edge and vertex is only apart of this face
-	     * this lets us walk over the the boundry of an ngon which is handy */
-	    (owalk.is_boundry == TRUE && owalk.is_single == TRUE && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
-	{
-		i = 0;
-		stopi = vert_edge_tot / 2;
-		while (1) {
-			if (owalk.is_boundry == FALSE && i == stopi) break;
+			/* initial edge was a boundry, so is this edge and vertex is only apart of this face
+			 * this lets us walk over the the boundry of an ngon which is handy */
+			(owalk.is_boundry == TRUE && owalk.is_single == TRUE && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+		{
+			i = 0;
+			stopi = vert_edge_tot / 2;
+			while (1) {
+				if ((owalk.is_boundry == FALSE) && (i == stopi)) {
+					break;
+				}
 
-			l = BM_face_other_edge_loop(l->f, l->e, v);
+				l = BM_face_other_edge_loop(l->f, l->e, v);
 
-			if (!l)
-				break;
+				if (l == NULL) {
+					break;
+				}
+				else {
+					BMLoop *l_next;
 
-			l2 = l->radial_next;
+					l_next = l->radial_next;
 
-			if (l2 == l || !l2) {
-				break;
+					if ((l_next == l) || (l_next == NULL)) {
+						break;
+					}
+
+					l = l_next;
+					i++;
+				}
 			}
-
-			l = l2;
-			i += 1;
 		}
-	}
 
-	if (!l) {
-		return owalk.cur;
-	}
-
-	if (l != e->l && !BLI_ghash_haskey(walker->visithash, l->e)) {
-		if (!(owalk.is_boundry == FALSE && i != stopi)) {
-			lwalk = BMW_state_add(walker);
-			lwalk->cur = l->e;
-			lwalk->lastv = v;
-			lwalk->is_boundry = owalk.is_boundry;
-			lwalk->is_single = owalk.is_single;
-			BLI_ghash_insert(walker->visithash, l->e, NULL);
+		if (l != NULL) {
+			if (l != e->l && !BLI_ghash_haskey(walker->visithash, l->e)) {
+				if (!(owalk.is_boundry == FALSE && i != stopi)) {
+					lwalk = BMW_state_add(walker);
+					lwalk->cur = l->e;
+					lwalk->lastv = v;
+					lwalk->is_boundry = owalk.is_boundry;
+					lwalk->is_single = owalk.is_single;
+					BLI_ghash_insert(walker->visithash, l->e, NULL);
+				}
+			}
 		}
 	}
 
