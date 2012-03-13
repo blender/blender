@@ -385,11 +385,10 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	BMwLoopWalker *lwalk = NULL, owalk;
 	BMEdge *e = data;
 	BMVert *v;
-	/* int found = 1, val; */ /* UNUSED */
+	int vert_edge_count[2] = {BM_vert_edge_count_nonwire(e->v1),
+	                          BM_vert_edge_count_nonwire(e->v2)};
 
 	v = e->v1;
-
-	/* val = BM_vert_edge_count(v); */ /* UNUSED */
 
 	lwalk = BMW_state_add(walker);
 	BLI_ghash_insert(walker->visithash, e, NULL);
@@ -397,10 +396,31 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
 	lwalk->is_boundry = BM_edge_is_boundary(e);
-	lwalk->is_single = (BM_vert_edge_count_nonwire(e->v1) == 2 &&
-	                    BM_vert_edge_count_nonwire(e->v2) == 2);
+	lwalk->is_single = (vert_edge_count[0] == 2 && vert_edge_count[1] == 2);
 
-	/* rewin */
+	/* could also check that vertex*/
+	if ((lwalk->is_boundry == FALSE) &&
+	    (vert_edge_count[0] == 3 || vert_edge_count[1] == 3))
+	{
+		BMIter iter;
+		BMFace *f_iter;
+		BMFace *f_best = NULL;
+
+		BM_ITER(f_iter, &iter, walker->bm, BM_FACES_OF_EDGE, e) {
+			if (f_best == NULL || f_best->len < f_iter->len) {
+				f_best = f_iter;
+			}
+		}
+
+		/* only use hub selection for 5+ sides else this could
+		 * conflict with normal edge loop selection. */
+		lwalk->f_hub = f_best->len > 4 ? f_best : NULL;
+	}
+	else {
+		lwalk->f_hub = NULL;
+	}
+
+	/* rewind */
 	while (BMW_current_state(walker)) {
 		owalk = *((BMwLoopWalker *)BMW_current_state(walker));
 		BMW_walk(walker);
@@ -436,27 +456,29 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 	l = e->l;
 
-	if (!l) { /* WIRE EDGE */
-		BMIter eiter;
+	if (owalk.f_hub) { /* NGON EDGE */
+		int vert_edge_tot;
 
-		/* match trunk: mark all connected wire edges */
-		for (i = 0; i < 2; i++) {
-			v = i ? e->v2 : e->v1;
+		v = BM_edge_other_vert(e, lwalk->lastv);
 
-			BM_ITER(nexte, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
-				if ((nexte->l == NULL) && !BLI_ghash_haskey(walker->visithash, nexte)) {
-					lwalk = BMW_state_add(walker);
-					lwalk->cur = nexte;
-					lwalk->lastv = v;
-					lwalk->is_boundry = owalk.is_boundry;
-					lwalk->is_single = owalk.is_single;
+		vert_edge_tot = BM_vert_edge_count_nonwire(v);
 
-					BLI_ghash_insert(walker->visithash, nexte, NULL);
-				}
-			}
+		if (vert_edge_tot == 3) {
+			l = BM_face_other_vert_loop(owalk.f_hub, lwalk->lastv, v);
+			nexte = BM_edge_exists(v, l->v);
+
+			lwalk = BMW_state_add(walker);
+			lwalk->cur = nexte;
+			lwalk->lastv = v;
+
+			lwalk->is_boundry = owalk.is_boundry;
+			lwalk->is_single = owalk.is_single;
+			lwalk->f_hub = owalk.f_hub;
+
+			BLI_ghash_insert(walker->visithash, nexte, NULL);
 		}
 	}
-	else { 	/* FACE EDGE */
+	else if (l) { /* NORMAL EDGE WITH FACES */
 		int vert_edge_tot;
 		int stopi;
 
@@ -510,9 +532,34 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 					lwalk = BMW_state_add(walker);
 					lwalk->cur = l->e;
 					lwalk->lastv = v;
+
 					lwalk->is_boundry = owalk.is_boundry;
 					lwalk->is_single = owalk.is_single;
+					lwalk->f_hub = owalk.f_hub;
+
 					BLI_ghash_insert(walker->visithash, l->e, NULL);
+				}
+			}
+		}
+	}
+	else { 	/* WIRE EDGE */
+		BMIter eiter;
+
+		/* match trunk: mark all connected wire edges */
+		for (i = 0; i < 2; i++) {
+			v = i ? e->v2 : e->v1;
+
+			BM_ITER(nexte, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
+				if ((nexte->l == NULL) && !BLI_ghash_haskey(walker->visithash, nexte)) {
+					lwalk = BMW_state_add(walker);
+					lwalk->cur = nexte;
+					lwalk->lastv = v;
+
+					lwalk->is_boundry = owalk.is_boundry;
+					lwalk->is_single = owalk.is_single;
+					lwalk->f_hub = owalk.f_hub;
+
+					BLI_ghash_insert(walker->visithash, nexte, NULL);
 				}
 			}
 		}
