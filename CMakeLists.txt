@@ -292,6 +292,7 @@ if(APPLE)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
+
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
@@ -351,7 +352,14 @@ if(WITH_CYCLES OR WITH_CARVE)
 	set(WITH_BOOST ON)
 endif()
 
-TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+if(WITH_INTERNATIONAL)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
+						"This is an 'svn external', which are known not to work with bridges to other version "
+						"control systems, disabling 'WITH_INTERNATIONAL'.")
+		set(WITH_INTERNATIONAL OFF)
+	endif()
+endif()
 
 # don't store paths to libs for portable distrobution
 if(WITH_INSTALL_PORTABLE)
@@ -361,6 +369,8 @@ endif()
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
     set(WITH_GHOST_XDND OFF)
 endif()
+
+TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
 
 
 #-----------------------------------------------------------------------------
