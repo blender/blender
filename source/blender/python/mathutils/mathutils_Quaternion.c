@@ -1101,7 +1101,7 @@ static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObjec
 	}
 }
 
-/* axis vector suffers from precission errors, use this function to ensure */
+/* axis vector suffers from precision errors, use this function to ensure */
 static void quat__axis_angle_sanitize(float axis[3], float *angle)
 {
 	if (axis) {

@@ -73,6 +73,7 @@ void  closest_to_plane_v3(float r[3], const float plane_co[3], const float plane
 
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3]);
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2]);
+void  limit_dist_v3(float v1[3], float v2[3], const float dist);
 
 /******************************* Intersection ********************************/
 

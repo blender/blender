@@ -4447,7 +4447,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMEdge *eed;
 	BMOperator bmop;
-	float factor = RNA_float_get(op->ptr, "percent"), fac = factor /*, dfac */ /* UNUSED */, df, s;
+	float factor = RNA_float_get(op->ptr, "percent"), /*, dfac */ /* UNUSED */, df, s;
 	int i, recursion = RNA_int_get(op->ptr, "recursion");
 	const int use_even = RNA_boolean_get(op->ptr, "use_even");
 	const int use_dist = RNA_boolean_get(op->ptr, "use_dist");
@@ -4484,9 +4484,8 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 
 	mul_vn_fl(w, recursion, 1.0f / (float)ftot);
 
-	fac = factor;
 	for (i = 0; i < recursion; i++) {
-		fac = w[recursion - i - 1] * factor;
+		float fac = w[recursion - i - 1] * factor;
 
 		if (!EDBM_InitOpf(em, &bmop, op,
 		                  "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%b use_even=%b use_dist=%b",

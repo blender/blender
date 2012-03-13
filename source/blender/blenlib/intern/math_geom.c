@@ -1320,6 +1320,25 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
 	return(dot_v2v2(u, h)/dot_v2v2(u, u));
 }
 
+/* ensyre the distance between these points is no greater then 'dist'
+ * if it is, scale then both into the center */
+void limit_dist_v3(float v1[3], float v2[3], const float dist)
+{
+	const float dist_old = len_v3v3(v1, v2);
+
+	if (dist_old > dist) {
+		float v1_old[3];
+		float v2_old[3];
+		float fac = (dist / dist_old) * 0.5f;
+
+		copy_v3_v3(v1_old, v1);
+		copy_v3_v3(v2_old, v2);
+
+		interp_v3_v3v3(v1, v1_old, v2_old, 0.5f - fac);
+		interp_v3_v3v3(v2, v1_old, v2_old, 0.5f + fac);
+	}
+}
+
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
 void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2[2], const float v3[2], const float pt[2], float r_uv[2])
 {

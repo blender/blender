@@ -1178,6 +1178,16 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 	mul_m4_v3(kcd->ob->imat, v3);
 	mul_m4_v3(kcd->ob->imat, v4);
 
+	/* numeric error, 'v1' -> 'v2', 'v2' -> 'v4' can end up being ~2000 units apart in otho mode
+	 * (from ED_view3d_win_to_segment_clip() above)
+	 * this gives precision error in 'knife_edge_tri_isect', rather then solving properly
+	 * (which may involve using doubles everywhere!),
+	 * limit the distance between these points */
+	if (kcd->is_ortho) {
+		limit_dist_v3(v1, v3, 200.0f);
+		limit_dist_v3(v2, v4, 200.0f);
+	}
+
 	BLI_smallhash_init(ehash);
 
 	/* test two triangles of sceen line's plane */
