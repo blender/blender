@@ -352,15 +352,6 @@ if(WITH_CYCLES OR WITH_CARVE)
 	set(WITH_BOOST ON)
 endif()
 
-if(WITH_INTERNATIONAL)
-	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
-		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
-						"This is an 'svn external', which are known not to work with bridges to other version "
-						"control systems, disabling 'WITH_INTERNATIONAL'.")
-		set(WITH_INTERNATIONAL OFF)
-	endif()
-endif()
-
 # don't store paths to libs for portable distrobution
 if(WITH_INSTALL_PORTABLE)
 	set(CMAKE_SKIP_BUILD_RPATH TRUE)
@@ -372,6 +363,28 @@ endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
 
+
+#-----------------------------------------------------------------------------
+# Check for valid directories
+# ... svn extern paths can be missing because of svn-git.
+
+if(WITH_INTERNATIONAL)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
+						"This is an 'svn external', which are known not to work with bridges to other version "
+						"control systems, disabling 'WITH_INTERNATIONAL'.")
+		set(WITH_INTERNATIONAL OFF)
+	endif()
+endif()
+
+if(WITH_PYTHON)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons")
+		message(WARNING "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
+						"This is an 'svn external', which are known not to work with bridges to other version "
+						"control systems: * CONTINUING WITHOUT ADDONS *")
+		set(WITH_INTERNATIONAL OFF)
+	endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Initialize un-cached vars, avoid unused warning

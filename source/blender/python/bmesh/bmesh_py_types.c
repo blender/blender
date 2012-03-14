@@ -938,6 +938,11 @@ PyDoc_STRVAR(bpy_bm_elem_select_set_doc,
 "\n"
 "   :arg select: Select or de-select.\n"
 "   :type select: boolean\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      Currently this only flushes down, so selecting a face will select all its vertices but de-selecting a vertex "
+"      won't de-select all the faces that use it, before finishing with a mesh typically flushing is still needed.\n"
 );
 static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 {
