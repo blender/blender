@@ -119,7 +119,7 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
         v3d = context.space_data
 
     if use_active_layer:
-        if v3d.local_view:
+        if v3d and v3d.local_view:
             base.layers_from_view(context.space_data)
             base.layers[scene.active_layer] = True
         else:
