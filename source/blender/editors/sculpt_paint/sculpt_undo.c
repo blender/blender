@@ -344,8 +344,8 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,
 									  "unode->grid_hidden");
 		
 	for(i = 0; i < totgrid; i++) {
-		if(grid_hidden[i])
-			unode->grid_hidden[i] = MEM_dupallocN(grid_hidden[i]);
+		if(grid_hidden[grid_indices[i]])
+			unode->grid_hidden[i] = MEM_dupallocN(grid_hidden[grid_indices[i]]);
 		else
 			unode->grid_hidden[i] = NULL;
 	}
