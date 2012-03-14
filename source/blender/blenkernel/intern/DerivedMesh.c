@@ -1993,6 +1993,12 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
 	ob->derivedFinal->needsFree = 0;
 	ob->derivedDeform->needsFree = 0;
 	ob->lastDataMask = dataMask;
+
+	if((ob->mode & OB_MODE_SCULPT) && ob->sculpt) {
+		/* create PBVH immediately (would be created on the fly too,
+		   but this avoids waiting on first stroke) */
+		ob->sculpt->pbvh= ob->derivedFinal->getPBVH(ob, ob->derivedFinal);
+	}
 }
 
 static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, CustomDataMask dataMask)

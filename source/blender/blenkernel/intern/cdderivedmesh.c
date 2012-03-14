@@ -276,7 +276,9 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		Mesh *me= ob->data;
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
-		BLI_assert(!(me->mface == NULL && me->mpoly != NULL)); /* BMESH ONLY complain if mpoly is valid but not mface */
+
+		BKE_mesh_tessface_ensure(me);
+		
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 		                    me->totface, me->totvert);
 
