@@ -3751,6 +3751,15 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
 
+			if (mdisps[i].totdisp && !mdisps[i].level) {
+				/* this calculation is only correct for loop mdisps;
+				   if loading pre-BMesh face mdisps this will be
+				   overwritten with the correct value in
+				   bm_corners_to_loops() */
+				float gridsize = sqrtf(mdisps[i].totdisp);
+				mdisps[i].level = (int)(logf(gridsize - 1.0f) / M_LN2) + 1;
+			}
+
 			if( (fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps) ) {
 				/* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
 				/* this does swap for data written at write_mdisps() - readfile.c */

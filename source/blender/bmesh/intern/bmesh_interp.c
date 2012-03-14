@@ -426,6 +426,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, BM_FACE_FIRST_LOOP(source)->head.data, CD_MDISPS);
 		
 		mdisps->totdisp = md2->totdisp;
+		mdisps->level = md2->level;
 		if (mdisps->totdisp) {
 			mdisps->disps = MEM_callocN(sizeof(float) * 3 * mdisps->totdisp,
 			                            "mdisp->disps in bmesh_loop_intern_mdisps");

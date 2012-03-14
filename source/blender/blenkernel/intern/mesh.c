@@ -1877,6 +1877,7 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 		
 			for (i=0; i<tot; i++, disps += side*side, ld++) {
 				ld->totdisp = side*side;
+				ld->level = (int)(logf(side - 1.0f) / M_LN2) + 1;
 			
 				if (ld->disps)
 					MEM_freeN(ld->disps);

@@ -164,7 +164,7 @@ typedef struct OrigSpaceLoop {
 typedef struct MDisps {
 	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
 	int totdisp;
-	char pad[4];
+	int level;
 	float (*disps)[3];
 } MDisps;
 

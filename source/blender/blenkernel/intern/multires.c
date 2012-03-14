@@ -320,6 +320,7 @@ static void multires_set_tot_mdisps(Mesh *me, int lvl)
 	if (mdisps) {
 		for (i = 0; i < me->totloop; i++, mdisps++) {
 			mdisps->totdisp = multires_grid_tot[lvl];
+			mdisps->level = lvl;
 		}
 	}
 }
@@ -338,6 +339,7 @@ static void multires_reallocate_mdisps(int totloop, MDisps *mdisps, int lvl)
 
 		mdisps[i].disps = disps;
 		mdisps[i].totdisp = totdisp;
+		mdisps[i].level = lvl;
 	}
 }
 
@@ -426,6 +428,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 					MEM_freeN(mdisp->disps);
 					mdisp->disps = disps;
 					mdisp->totdisp = totdisp;
+					mdisp->level = lvl;
 				}
 			}
 		}
@@ -999,6 +1002,7 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 			/* when adding new faces in edit mode, need to allocate disps */
 			if (!mdisp->disps) {
 				mdisp->totdisp = gridSize*gridSize;
+				mdisp->level = totlvl;
 				mdisp->disps = MEM_callocN(sizeof(float)*3*mdisp->totdisp, "disp in multires_set_space");
 			}
 
@@ -1224,6 +1228,7 @@ static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 	MEM_freeN(mdisp->disps);
 
 	mdisp->totdisp= newtotdisp;
+	mdisp->level= newlvl;
 	mdisp->disps= disps;
 }
 
@@ -1252,6 +1257,7 @@ void multires_load_old_250(Mesh *me)
 			for (j=0; j < mf->v4 ? 4 : 3; j++, k++) {
 				mdisps2[k].disps = MEM_callocN(sizeof(float)*3*totdisp, "multires disp in conversion");			
 				mdisps2[k].totdisp = totdisp;
+				mdisps2[k].level = mdisps[i].level;
 				memcpy(mdisps2[k].disps, mdisps[i].disps + totdisp*j, totdisp);
 			}
 

@@ -371,6 +371,7 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 					
 					lmd->disps = MEM_dupallocN(mdisps->disps);
 					lmd->totdisp = mdisps->totdisp;
+					lmd->level = mdisps->level;
 				}
 				
 				mdisps++;

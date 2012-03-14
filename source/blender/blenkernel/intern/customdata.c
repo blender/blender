@@ -485,10 +485,12 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 		if(s[i].disps) {
 			d[i].disps = MEM_dupallocN(s[i].disps);
 			d[i].totdisp = s[i].totdisp;
+			d[i].level = s[i].level;
 		}
 		else {
 			d[i].disps = NULL;
 			d[i].totdisp = 0;
+			d[i].level = 0;
 		}
 		
 	}
@@ -504,6 +506,7 @@ static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 			MEM_freeN(d[i].disps);
 		d[i].disps = NULL;
 		d[i].totdisp = 0;
+		d[i].level = 0;
 	}
 }
 
