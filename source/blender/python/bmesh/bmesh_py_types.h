@@ -139,11 +139,13 @@ int  bpy_bm_generic_valid_check(BPy_BMGeneric *self);
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
 
 void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
-                                PyTypeObject *type,
+                                const char htype,
                                 const char do_unique_check, const char do_bm_check,
                                 const char *error_prefix);
 
 PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len);
+int       BPy_BMElem_CheckHType(PyTypeObject *type, const char htype);
+char     *BPy_BMElem_StringFromHType(const char htype);
 
 
 #define BPY_BM_CHECK_OBJ(obj) if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return NULL; } (void)0

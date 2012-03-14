@@ -302,12 +302,11 @@ static PyObject *bpy_bmesh_select_history_get(BPy_BMesh *self)
 	return BPy_BMEditSel_CreatePyObject(self->bm);
 }
 
-static int bpy_bmesh_select_history_set(BPy_BMesh *self, PyObject *UNUSED(value))
+static int bpy_bmesh_select_history_set(BPy_BMesh *self, PyObject *value)
 {
 	BPY_BM_CHECK_INT(self);
 
-	PyErr_SetString(PyExc_NotImplementedError, "not yet functional");
-	return -1;
+	return BPy_BMEditSel_Assign(self, value);
 }
 
 /* Vert
@@ -1045,7 +1044,7 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
 		Py_ssize_t vert_seq_len; /* always 2 */
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
-		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       &vert_seq_len, BM_VERT,
 		                                       TRUE, TRUE, "BMVert.copy_from_vert_interp(...)");
 
 		if (vert_array == NULL) {
@@ -1532,7 +1531,7 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 		}
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
-		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       &vert_seq_len, BM_VERT,
 		                                       TRUE, TRUE, "edges.new(...)");
 
 		if (vert_array == NULL) {
@@ -1599,7 +1598,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		}
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 3, PY_SSIZE_T_MAX,
-		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       &vert_seq_len, BM_VERT,
 		                                       TRUE, TRUE, "faces.new(...)");
 
 		if (vert_array == NULL) {
@@ -1821,7 +1820,7 @@ static PyObject *bpy_bmedgeseq_get(BPy_BMElemSeq *self, PyObject *args)
 		PyObject *ret = NULL;
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
-		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       &vert_seq_len, BM_VERT,
 		                                       TRUE, TRUE, "edges.get(...)");
 
 		if (vert_array == NULL) {
@@ -1863,7 +1862,7 @@ static PyObject *bpy_bmfaceseq_get(BPy_BMElemSeq *self, PyObject *args)
 		PyObject *ret = NULL;
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 1, PY_SSIZE_T_MAX,
-		                                       &vert_seq_len, &BPy_BMVert_Type,
+		                                       &vert_seq_len, BM_VERT,
 		                                       TRUE, TRUE, "faces.get(...)");
 
 		if (vert_array == NULL) {
@@ -2849,7 +2848,7 @@ void bpy_bm_generic_invalidate(BPy_BMGeneric *self)
  * The 'bm_r' value is assigned when empty, and used when set.
  */
 void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
-                                PyTypeObject *type,
+                                const char htype,
                                 const char do_unique_check, const char do_bm_check,
                                 const char *error_prefix)
 {
@@ -2883,16 +2882,16 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 		for (i = 0; i < seq_len; i++) {
 			item = (BPy_BMElem *)PySequence_Fast_GET_ITEM(seq_fast, i);
 
-			if (Py_TYPE(item) != type) {
+			if (!BPy_BMElem_CheckHType(Py_TYPE(item), htype)) {
 				PyErr_Format(PyExc_TypeError,
-				             "%s: expected '%.200s', not '%.200s'",
-				             error_prefix, type->tp_name, Py_TYPE(item)->tp_name);
+				             "%s: expected %.200s, not '%.200s'",
+				             error_prefix, BPy_BMElem_StringFromHType(htype), Py_TYPE(item)->tp_name);
 				goto err_cleanup;
 			}
 			else if (!BPY_BM_IS_VALID(item)) {
 				PyErr_Format(PyExc_TypeError,
 				             "%s: %d %s has been removed",
-				             error_prefix, i, type->tp_name);
+				             error_prefix, i, Py_TYPE(item)->tp_name);
 				goto err_cleanup;
 			}
 			/* trick so we can ensure all items have the same mesh,
@@ -2900,7 +2899,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 			else if (do_bm_check && (bm  && bm != item->bm)) {
 				PyErr_Format(PyExc_ValueError,
 				             "%s: %d %s is from another mesh",
-				             error_prefix, i, type->tp_name);
+				             error_prefix, i, BPy_BMElem_StringFromHType(htype));
 				goto err_cleanup;
 			}
 
@@ -2929,8 +2928,8 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 
 			if (ok == FALSE) {
 				PyErr_Format(PyExc_ValueError,
-				             "%s: found the same %s used multiple times",
-				             error_prefix, type->tp_name);
+				             "%s: found the same %.200s used multiple times",
+				             error_prefix, BPy_BMElem_StringFromHType(htype));
 				goto err_cleanup;
 			}
 		}
@@ -2956,5 +2955,32 @@ PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_
 		PyTuple_SET_ITEM(ret, i, BPy_BMElem_CreatePyObject(bm, elem[i]));
 	}
 
+	return ret;
+}
+
+int BPy_BMElem_CheckHType(PyTypeObject *type, const char htype)
+{
+	return (((htype & BM_VERT) && (type == &BPy_BMVert_Type)) ||
+	        ((htype & BM_EDGE) && (type == &BPy_BMEdge_Type)) ||
+	        ((htype & BM_FACE) && (type == &BPy_BMFace_Type)) ||
+	        ((htype & BM_LOOP) && (type == &BPy_BMLoop_Type)));
+}
+
+/**
+ * Use for error strings only, not thread safe,
+ *
+ * \return a sting like '(BMVert/BMEdge/BMFace/BMLoop)'
+ */
+char *BPy_BMElem_StringFromHType(const char htype)
+{
+	/* zero to ensure string is always NULL terminated */
+	static char ret[32];
+	char *ret_ptr = ret;
+	if (htype & BM_VERT) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
+	if (htype & BM_EDGE) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
+	if (htype & BM_FACE) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
+	if (htype & BM_LOOP) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
+	ret[0]   = '(';
+	*ret_ptr = ')';
 	return ret;
 }

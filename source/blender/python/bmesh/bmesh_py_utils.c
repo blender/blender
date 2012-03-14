@@ -238,7 +238,7 @@ static PyObject *bpy_bm_utils_vert_separate(PyObject *UNUSED(self), PyObject *ar
 	bm = py_vert->bm;
 
 	edge_array = BPy_BMElem_PySeq_As_Array(&bm, edge_seq, 0, PY_SSIZE_T_MAX,
-	                                       &edge_array_len, &BPy_BMEdge_Type,
+	                                       &edge_array_len, BM_EDGE,
 	                                       TRUE, TRUE, "vert_separate(...)");
 
 	if (edge_array == NULL) {
@@ -460,7 +460,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *value)
 	BMFace *f_new;
 
 	face_array = BPy_BMElem_PySeq_As_Array(&bm, value, 2, PY_SSIZE_T_MAX,
-	                                       &face_seq_len, &BPy_BMFace_Type,
+	                                       &face_seq_len, BM_FACE,
 	                                       TRUE, TRUE, "face_join(...)");
 
 	if (face_array == NULL) {

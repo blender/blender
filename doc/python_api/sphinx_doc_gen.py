@@ -94,12 +94,13 @@ def handle_args():
         usage=SCRIPT_HELP_MSG
     )
 
-    # optional arguments
+    # optional arguments    
     parser.add_argument("-o", "--output",
                         dest="output_dir",
                         type=str,
                         default=SCRIPT_DIR,
-                        help="Path of the API docs (default=<script dir>)",
+                        # XXX, THIS ISNT WORKING, EXAMPLE SCRIPTS WILL NOT BE FOUND
+                        help="Path of the API docs (default=<script dir>).",
                         required=False)
 
     parser.add_argument("-B", "--sphinx-build",

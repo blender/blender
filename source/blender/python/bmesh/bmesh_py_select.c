@@ -28,6 +28,9 @@
  *
  * This file defines the types for 'BMesh.select_history'
  * sequence and iterator.
+ *
+ * select_history is very loosely based on pytons set() type,
+ * since items can only exist once. however they do have an order.
  */
 
 #include <Python.h>
@@ -93,6 +96,37 @@ static PyObject *bpy_bmeditselseq_clear(BPy_BMEditSelSeq *self)
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpy_bmeditselseq_add_doc,
+".. method:: add(element)\n"
+"\n"
+"   Add an element to the selection history (no action taken if its already added).\n"
+);
+static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if ((BPy_BMVert_Check(value) ||
+	     BPy_BMEdge_Check(value) ||
+	     BPy_BMFace_Check(value)) == FALSE)
+	{
+		PyErr_Format(PyExc_TypeError,
+		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(value);
+
+	if (self->bm != value->bm)	{
+		PyErr_SetString(PyExc_ValueError,
+		                "Element is not from this mesh");
+		return NULL;
+	}
+
+	BM_select_history_store(self->bm, value->ele)
+
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(bpy_bmeditselseq_remove_doc,
 ".. method:: remove(element)\n"
 "\n"
@@ -127,6 +161,8 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 static struct PyMethodDef bpy_bmeditselseq_methods[] = {
     {"validate", (PyCFunction)bpy_bmeditselseq_validate, METH_NOARGS, bpy_bmeditselseq_validate_doc},
     {"clear",    (PyCFunction)bpy_bmeditselseq_clear,    METH_NOARGS, bpy_bmeditselseq_clear_doc},
+
+    {"add",      (PyCFunction)bpy_bmeditselseq_add,      METH_O,      bpy_bmeditselseq_add_doc},
     {"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
     {NULL, NULL, 0, NULL}
 };
@@ -380,4 +416,39 @@ void BPy_BM_init_select_types(void)
 
 	PyType_Ready(&BPy_BMEditSelSeq_Type);
 	PyType_Ready(&BPy_BMEditSelIter_Type);
+}
+
+
+/* utility function */
+
+/**
+ * \note doesnt actually check selection.
+ */
+int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
+{
+	BMesh *bm;
+	Py_ssize_t value_len;
+	Py_ssize_t i;
+	BMElem **value_array = NULL;
+
+	BPY_BM_CHECK_INT(self);
+
+	bm = self->bm;
+
+	value_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
+	                                        &value_len, BM_VERT | BM_EDGE | BM_FACE,
+	                                        TRUE, TRUE, "BMesh.select_history = value");
+
+	if (value_array == NULL) {
+		return -1;
+	}
+
+	BM_select_history_clear(bm);
+
+	for (i = 0; i < value_len; i++) {
+		BM_select_history_store_notest(bm, value_array[i]);
+	}
+
+	PyMem_FREE(value_array);
+	return 0;
 }

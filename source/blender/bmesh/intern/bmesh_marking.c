@@ -720,14 +720,18 @@ void BM_select_history_clear(BMesh *bm)
 	bm->selected.first = bm->selected.last = NULL;
 }
 
+void BM_select_history_store_notest(BMesh *bm, BMElem *ele)
+{
+	BMEditSelection *ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
+	ese->htype = ((BMHeader *)ele)->htype;
+	ese->ele = ele;
+	BLI_addtail(&(bm->selected), ese);
+}
+
 void BM_select_history_store(BMesh *bm, BMElem *ele)
 {
-	BMEditSelection *ese;
 	if (!BM_select_history_check(bm, ele)) {
-		ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
-		ese->htype = ((BMHeader *)ele)->htype;
-		ese->ele = ele;
-		BLI_addtail(&(bm->selected), ese);
+		BM_select_history_store_notest(bm, ele);
 	}
 }
 

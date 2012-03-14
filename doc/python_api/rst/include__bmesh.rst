@@ -33,7 +33,6 @@ For an overview of BMesh data types and how they reference each other see:
 .. todo::
 
    * add access to BMesh **walkers**
-   * add access selection history (readonly access done)
    * add a way to re-tessellate an editmode bmesh.
 
 
