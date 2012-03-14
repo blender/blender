@@ -263,9 +263,197 @@ err:
 	return NULL;
 }
 
+typedef struct AngleIndexPair {
+	float angle;
+	int index;
+} AngleIndexPair;
 
-/* bmesh_make_face_from_face(BMesh *bm, BMFace *source, BMFace *target) */
+static int angle_index_pair_cmp(const void *e1, const void *e2)
+{
+	const AngleIndexPair *p1 = e1, *p2 = e2;
+	if      (p1->angle > p2->angle) return  1;
+	else if (p1->angle < p2->angle) return -1;
+	else return 0;
+}
 
+/**
+ * Makes an NGon from an un-ordered set of verts
+ *
+ * assumes...
+ * - that verts are only once in the list.
+ * - that the verts have roughly planer bounds
+ * - that the verts are roughly circular
+ * there can be concave areas but overlapping folds from the center point will fail.
+ *
+ * a brief explanation of the method used
+ * - find the center point
+ * - find the normal of the vcloud
+ * - order the verts around the face based on their angle to the normal vector at the center point.
+ *
+ * \note Since this is a vcloud there is no direction.
+ */
+BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int nodouble)
+{
+	BMFace *f;
+
+	float totv_inv = 1.0f / (float)totv;
+	int i = 0;
+
+	float cent[3], nor[3];
+
+	float *far = NULL, *far_cross = NULL;
+
+	float far_vec[3];
+	float far_cross_vec[3];
+	float sign_vec[3]; /* work out if we are pos/neg angle */
+
+	float far_dist, far_best;
+	float far_cross_dist, far_cross_best = 0.0f;
+
+	AngleIndexPair *vang;
+
+	BMVert **vert_arr_map;
+	BMEdge **edge_arr;
+	int i_prev;
+
+	unsigned int winding[2] = {0, 0};
+
+	/* get the center point and collect vector array since we loop over these a lot */
+	zero_v3(cent);
+	for (i = 0; i < totv; ++i) {
+		madd_v3_v3fl(cent, vert_arr[i]->co, totv_inv);
+	}
+
+
+	/* find the far point from cent */
+	far_best = 0.0f;
+	for (i = 0; i < totv; ++i) {
+		far_dist = len_squared_v3v3(vert_arr[i]->co, cent);
+		if (far_dist > far_best || far == NULL) {
+			far = vert_arr[i]->co;
+			far_best = far_dist;
+		}
+	}
+
+	sub_v3_v3v3(far_vec, far, cent);
+	far_dist = len_v3(far_vec); /* real dist */
+
+	/* --- */
+
+	/* find a point 90deg about to compare with */
+	far_cross_best = 0.0f;
+	for (i = 0; i < totv; ++i) {
+
+		if (far == vert_arr[i]->co) {
+			continue;
+		}
+
+		sub_v3_v3v3(far_cross_vec, vert_arr[i]->co, cent);
+		far_cross_dist = normalize_v3(far_cross_vec);
+
+		/* more of a weight then a distance */
+		far_cross_dist = (/* first we want to have a value close to zero mapped to 1 */
+						  1.0 - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
+
+						  /* second  we multiply by the distance
+						   * so points close to the center are not preferred */
+						  far_cross_dist);
+
+		if (far_cross_dist > far_cross_best || far_cross == NULL) {
+			far_cross = vert_arr[i]->co;
+			far_cross_best = far_cross_dist;
+		}
+	}
+
+	sub_v3_v3v3(far_cross_vec, far_cross, cent);
+
+	/* --- */
+
+	/* now we have 2 vectors we can have a cross product */
+	cross_v3_v3v3(nor, far_vec, far_cross_vec);
+	normalize_v3(nor);
+	cross_v3_v3v3(sign_vec, far_vec, nor); /* this vector should match 'far_cross_vec' closely */
+
+	/* --- */
+
+	/* now calcualte every points angle around the normal (signed) */
+	vang = MEM_mallocN(sizeof(AngleIndexPair) * totv, __func__);
+
+	for (i = 0; i < totv; ++i) {
+		float co[3];
+		float proj_vec[3];
+		float angle;
+
+		/* center relative vec */
+		sub_v3_v3v3(co, vert_arr[i]->co, cent);
+
+		/* align to plane */
+		project_v3_v3v3(proj_vec, co, nor);
+		sub_v3_v3(co, proj_vec);
+
+		/* now 'co' is valid - we can compare its angle against the far vec */
+		angle = angle_v3v3(far_vec, co);
+
+		if (dot_v3v3(co, sign_vec) < 0.0f) {
+			angle = -angle;
+		}
+
+		vang[i].angle = angle;
+		vang[i].index = i;
+	}
+
+	/* sort by angle and magic! - we have our ngon */
+	qsort(vang, totv, sizeof(AngleIndexPair), angle_index_pair_cmp);
+
+	/* --- */
+
+	/* create edges and find the winding (if faces are attached to any existing edges) */
+	vert_arr_map = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
+	edge_arr = MEM_mallocN(sizeof(BMEdge **) * totv, __func__);
+
+	for (i = 0; i < totv; ++i) {
+		vert_arr_map[i] = vert_arr[vang[i].index];
+	}
+	MEM_freeN(vang);
+
+	i_prev = totv - 1;
+	for (i = 0; i < totv; ++i) {
+		edge_arr[i] = BM_edge_create(bm, vert_arr_map[i_prev], vert_arr_map[i], NULL, TRUE);
+
+		/* the edge may exist already and be attached to a face
+		 * in this case we can find the best winding to use for the new face */
+		if (edge_arr[i]->l) {
+			BMVert *test_v1, *test_v2;
+			/* we want to use the reverse winding to the existing order */
+			BM_edge_ordered_verts(edge_arr[i], &test_v2, &test_v1);
+			winding[(vert_arr_map[i_prev] == test_v2)]++;
+
+		}
+
+		i_prev = i;
+	}
+
+	/* --- */
+
+	if (winding[0] < winding[1]) {
+		winding[0] = 1;
+		winding[1] = 0;
+	}
+	else {
+		winding[0] = 0;
+		winding[1] = 1;
+	}
+
+	/* --- */
+
+	/* create the face */
+	f = BM_face_create_ngon(bm, vert_arr_map[winding[0]], vert_arr_map[winding[1]], edge_arr, totv, nodouble);
+
+	MEM_freeN(edge_arr);
+	MEM_freeN(vert_arr_map);
+
+	return f;
+}
 
 /**
  * Called by operators to remove elements that they have marked for

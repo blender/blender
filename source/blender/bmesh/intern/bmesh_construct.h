@@ -38,6 +38,8 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f);
 
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble);
 
+BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len, int nodouble);
+
 void BMO_remove_tagged_faces(BMesh *bm, const short oflag);
 void BMO_remove_tagged_edges(BMesh *bm, const short oflag);
 void BMO_remove_tagged_verts(BMesh *bm, const short oflag);

@@ -1390,45 +1390,8 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
 	}
-	else if (amount == 3) {
-		/* create triangle */
-		f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], NULL, NULL, TRUE);
+	else if (0) { /* nice feature but perhaps it should be a different tool? */
 
-		if (f) {
-			BMO_elem_flag_enable(bm, f, ELE_OUT);
-		}
-	}
-	else if (amount == 4) {
-		f = NULL;
-
-		/* the order of vertices can be anything, 6 cases to check */
-		if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[2], verts[3], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[2], verts[3], verts[1], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[2], verts[1], verts[3], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[1], verts[3], verts[2], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[3], verts[2], verts[1], NULL, TRUE);
-		}
-		else if (is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co)) {
-			f = BM_face_create_quad_tri(bm, verts[0], verts[3], verts[1], verts[2], NULL, TRUE);
-		}
-		else {
-			printf("cannot find nice quad from concave set of vertices\n");
-		}
-
-		if (f) {
-			BMO_elem_flag_enable(bm, f, ELE_OUT);
-		}
-	}
-	else {
 		/* tricky feature for making a line/edge from selection history...
 		 *
 		 * Rather then do nothing, when 5+ verts are selected, check if they are in our history,
@@ -1472,5 +1435,25 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		/* done creating edges */
+	}
+	else {
+		/* TODO, all these verts may be connected by edges.
+		 * we should check on this before assuming they are a random set of verts */
+
+		BMVert **vert_arr = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
+		int i = 0;
+
+		BMO_ITER(v, &oiter, bm, op, "geom", BM_VERT) {
+			vert_arr[i] = v;
+			i++;
+		}
+
+		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, TRUE);
+
+		if (f) {
+			BMO_elem_flag_enable(bm, f, ELE_OUT);
+		}
+
+		MEM_freeN(vert_arr);
 	}
 }
