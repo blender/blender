@@ -119,8 +119,17 @@ static MFace *dm_getTessFaceArray(DerivedMesh *dm)
 	MFace *mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	if (!mface) {
-		mface = CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL,
-			dm->getNumTessFaces(dm));
+		int numTessFaces = dm->getNumTessFaces(dm);
+		
+		if (!numTessFaces) {
+			/* Do not add layer if there's no elements in it, this leads to issues later when
+			 * this layer is needed with non-zero size, but currently CD stuff does not check
+			 * for requested layer size on creation and just returns layer which was previously
+			 * added (sergey) */
+			return NULL;
+		}
+		
+		mface = CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numTessFaces);
 		CustomData_set_layer_flag(&dm->faceData, CD_MFACE, CD_FLAG_TEMPORARY);
 		dm->copyTessFaceArray(dm, mface);
 	}
