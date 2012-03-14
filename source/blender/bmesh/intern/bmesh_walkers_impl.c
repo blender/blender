@@ -467,15 +467,17 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			l = BM_face_other_vert_loop(owalk.f_hub, lwalk->lastv, v);
 			nexte = BM_edge_exists(v, l->v);
 
-			lwalk = BMW_state_add(walker);
-			lwalk->cur = nexte;
-			lwalk->lastv = v;
+            if(!BLI_ghash_haskey(walker->visithash, nexte)){
+                lwalk = BMW_state_add(walker);
+                lwalk->cur = nexte;
+                lwalk->lastv = v;
 
-			lwalk->is_boundry = owalk.is_boundry;
-			lwalk->is_single = owalk.is_single;
-			lwalk->f_hub = owalk.f_hub;
+                lwalk->is_boundry = owalk.is_boundry;
+                lwalk->is_single = owalk.is_single;
+                lwalk->f_hub = owalk.f_hub;
 
-			BLI_ghash_insert(walker->visithash, nexte, NULL);
+                BLI_ghash_insert(walker->visithash, nexte, NULL);
+            }
 		}
 	}
 	else if (l) { /* NORMAL EDGE WITH FACES */
