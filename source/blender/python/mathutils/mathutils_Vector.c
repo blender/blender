@@ -999,8 +999,6 @@ static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	/* don't use clamped size, rule of thumb is vector sizes must match,
-	 * even though n this case 'w' is ignored */
 	if (mathutils_array_parse(tvec, 2, 2, value, "Vector.angle_signed(other), invalid 'other' arg") == -1)
 		return NULL;
 
