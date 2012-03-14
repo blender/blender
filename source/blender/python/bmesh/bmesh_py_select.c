@@ -122,7 +122,7 @@ static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 		return NULL;
 	}
 
-	BM_select_history_store(self->bm, value->ele)
+	BM_select_history_store(self->bm, value->ele);
 
 	Py_RETURN_NONE;
 }

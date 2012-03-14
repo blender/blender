@@ -920,7 +920,7 @@ PyDoc_STRVAR(Vector_angle_doc,
 "   :return: angle in radians or fallback when given\n"
 "   :rtype: float\n"
 "\n"
-"   .. note:: Zero length vectors raise an :exc:`AttributeError`.\n"
+"   .. note:: Zero length vectors raise an :exc:`ValueError`.\n"
 );
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
@@ -970,6 +970,64 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 
 	return PyFloat_FromDouble(saacos(dot / (sqrt(dot_self) * sqrt(dot_other))));
 }
+
+PyDoc_STRVAR(Vector_angle_signed_doc,
+".. function:: angle_signed(other, fallback)\n"
+"\n"
+"   Return the signed angle between two 2D vectors (clockwise is positive).\n"
+"\n"
+"   :arg other: another vector to compare the angle with\n"
+"   :type other: :class:`Vector`\n"
+"   :arg fallback: return this value when the angle cant be calculated\n"
+"      (zero length vector)\n"
+"   :type fallback: any\n"
+"   :return: angle in radians or fallback when given\n"
+"   :rtype: float\n"
+"\n"
+"   .. note:: Zero length vectors raise an :exc:`ValueError`.\n"
+);
+static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
+{
+	float tvec[2];
+
+	PyObject *value;
+	PyObject *fallback = NULL;
+
+	if (!PyArg_ParseTuple(args, "O|O:angle_signed", &value, &fallback))
+		return NULL;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	/* don't use clamped size, rule of thumb is vector sizes must match,
+	 * even though n this case 'w' is ignored */
+	if (mathutils_array_parse(tvec, 2, 2, value, "Vector.angle_signed(other), invalid 'other' arg") == -1)
+		return NULL;
+
+	if (self->size != 2) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Vector must be 2D");
+		return NULL;
+	}
+
+	if (is_zero_v2(self->vec) || is_zero_v2(tvec)) {
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "Vector.angle_signed(other): "
+			                "zero length vectors have no valid angle");
+			return NULL;
+		}
+	}
+
+
+	return PyFloat_FromDouble(angle_signed_v2v2(self->vec, tvec));
+}
+
 
 PyDoc_STRVAR(Vector_rotation_difference_doc,
 ".. function:: rotation_difference(other)\n"
@@ -2705,6 +2763,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"cross", (PyCFunction) Vector_cross, METH_O, Vector_cross_doc},
 	{"dot", (PyCFunction) Vector_dot, METH_O, Vector_dot_doc},
 	{"angle", (PyCFunction) Vector_angle, METH_VARARGS, Vector_angle_doc},
+	{"angle_signed", (PyCFunction) Vector_angle_signed, METH_VARARGS, Vector_angle_signed_doc},
 	{"rotation_difference", (PyCFunction) Vector_rotation_difference, METH_O, Vector_rotation_difference_doc},
 	{"project", (PyCFunction) Vector_project, METH_O, Vector_project_doc},
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},

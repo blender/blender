@@ -1726,31 +1726,29 @@ static float tri_signed_area(const float v1[3], const float v2[3], const float v
 	return 0.5f*((v1[i]-v2[i])*(v2[j]-v3[j]) + (v1[j]-v2[j])*(v3[i]-v2[i]));
 }
 
+/* return 1 when degenerate */
 static int barycentric_weights(const float v1[3], const float v2[3], const float v3[3], const float co[3], const float n[3], float w[3])
 {
-	float a1, a2, a3, asum;
+	float wtot;
 	int i, j;
 
 	axis_dominant_v3(&i, &j, n);
 
-	a1= tri_signed_area(v2, v3, co, i, j);
-	a2= tri_signed_area(v3, v1, co, i, j);
-	a3= tri_signed_area(v1, v2, co, i, j);
+	w[0] = tri_signed_area(v2, v3, co, i, j);
+	w[1] = tri_signed_area(v3, v1, co, i, j);
+	w[2] = tri_signed_area(v1, v2, co, i, j);
 
-	asum= a1 + a2 + a3;
+	wtot = w[0] + w[1] + w[2];
 
-	if (fabsf(asum) < FLT_EPSILON) {
+	if (fabsf(wtot) > FLT_EPSILON) {
+		mul_v3_fl(w, 1.0f / wtot);
+		return 0;
+	}
+	else {
 		/* zero area triangle */
-		w[0]= w[1]= w[2]= 1.0f/3.0f;
+		copy_v3_fl(w, 1.0f / 3.0f);
 		return 1;
 	}
-
-	asum= 1.0f/asum;
-	w[0]= a1*asum;
-	w[1]= a2*asum;
-	w[2]= a3*asum;
-
-	return 0;
 }
 
 void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float co[3])
@@ -1809,22 +1807,19 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
  * note: using area_tri_signed_v2 means locations outside the triangle are correctly weighted */
 void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
-	float wtot_inv, wtot;
+	float wtot;
 
 	w[0] = area_tri_signed_v2(v2, v3, co);
 	w[1] = area_tri_signed_v2(v3, v1, co);
 	w[2] = area_tri_signed_v2(v1, v2, co);
-	wtot = w[0]+w[1]+w[2];
+	wtot = w[0] + w[1] + w[2];
 
 	if (wtot != 0.0f) {
-		wtot_inv = 1.0f/wtot;
-
-		w[0] = w[0]*wtot_inv;
-		w[1] = w[1]*wtot_inv;
-		w[2] = w[2]*wtot_inv;
+		mul_v3_fl(w, 1.0f / wtot);
 	}
-	else /* dummy values for zero area face */
-		w[0] = w[1] = w[2] = 1.0f/3.0f;
+	else { /* dummy values for zero area face */
+		copy_v3_fl(w, 1.0f / 3.0f);
+	}
 }
 
 /* given 2 triangles in 3D space, and a point in relation to the first triangle.

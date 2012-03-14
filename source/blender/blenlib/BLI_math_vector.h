@@ -176,6 +176,7 @@ MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const flo
 /* - angle_normalized_* is faster equivalent if vectors are normalized       */
 
 float angle_v2v2(const float a[2], const float b[2]);
+float angle_signed_v2v2(const float v1[2], const float v2[2]);
 float angle_v2v2v2(const float a[2], const float b[2], const float c[2]);
 float angle_normalized_v2v2(const float a[2], const float b[2]);
 float angle_v3v3(const float a[3], const float b[3]);

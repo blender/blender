@@ -174,6 +174,12 @@ float angle_v2v2(const float v1[2], const float v2[2])
 	return angle_normalized_v2v2(vec1, vec2);
 }
 
+float angle_signed_v2v2(const float v1[2], const float v2[2])
+{
+	const float perp_dot = (v1[1] * v2[0]) - (v1[0] * v2[1]);
+	return atan2f(perp_dot, dot_v2v2(v1, v2));
+}
+
 float angle_normalized_v3v3(const float v1[3], const float v2[3])
 {
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */

@@ -625,6 +625,12 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
 
 /********************************* Comparison ********************************/
 
+
+MINLINE int is_zero_v2(const float v[3])
+{
+	return (v[0] == 0 && v[1] == 0);
+}
+
 MINLINE int is_zero_v3(const float v[3])
 {
 	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
