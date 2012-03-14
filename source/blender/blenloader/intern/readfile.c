@@ -3750,6 +3750,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
+			mdisps[i].hidden = newdataadr(fd, mdisps[i].hidden);
 
 			if (mdisps[i].totdisp && !mdisps[i].level) {
 				/* this calculation is only correct for loop mdisps;

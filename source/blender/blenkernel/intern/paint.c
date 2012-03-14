@@ -33,15 +33,17 @@
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
-
 
 #include "BKE_brush.h"
 #include "BKE_library.h"
 #include "BKE_paint.h"
+#include "BKE_subsurf.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -146,4 +148,27 @@ void copy_paint(Paint *src, Paint *tar)
 {
 	tar->brush= src->brush;
 	id_us_plus((ID *)tar->brush);
+}
+
+/* returns non-zero if any of the face's vertices
+   are hidden, zero otherwise */
+int paint_is_face_hidden(const MFace *f, const MVert *mvert)
+{
+	return ((mvert[f->v1].flag & ME_HIDE) ||
+			(mvert[f->v2].flag & ME_HIDE) ||
+			(mvert[f->v3].flag & ME_HIDE) ||
+			(f->v4 && (mvert[f->v4].flag & ME_HIDE)));
+}
+
+/* returns non-zero if any of the corners of the grid
+   face whose inner corner is at (x,y) are hidden,
+   zero otherwise */
+int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
+							  int gridsize, int x, int y)
+{
+	/* skip face if any of its corners are hidden */
+	return (BLI_BITMAP_GET(grid_hidden, y * gridsize + x) ||
+			BLI_BITMAP_GET(grid_hidden, y * gridsize + x+1) ||
+			BLI_BITMAP_GET(grid_hidden, (y+1) * gridsize + x+1) ||
+			BLI_BITMAP_GET(grid_hidden, (y+1) * gridsize + x));
 }

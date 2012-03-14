@@ -484,6 +484,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 	for(i = 0; i < count; ++i) {
 		if(s[i].disps) {
 			d[i].disps = MEM_dupallocN(s[i].disps);
+			d[i].hidden = MEM_dupallocN(s[i].hidden);
 			d[i].totdisp = s[i].totdisp;
 			d[i].level = s[i].level;
 		}
@@ -504,7 +505,10 @@ static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 	for(i = 0; i < count; ++i) {
 		if(d[i].disps)
 			MEM_freeN(d[i].disps);
+		if(d[i].hidden)
+			MEM_freeN(d[i].hidden);
 		d[i].disps = NULL;
+		d[i].hidden = NULL;
 		d[i].totdisp = 0;
 		d[i].level = 0;
 	}

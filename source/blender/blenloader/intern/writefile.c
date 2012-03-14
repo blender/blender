@@ -135,6 +135,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_movieclip_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_bpath.h"
@@ -1638,11 +1639,15 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 		int i;
 		
 		writestruct(wd, DATA, "MDisps", count, mdlist);
-		if(!external) {
-			for(i = 0; i < count; ++i) {
-				if(mdlist[i].disps)
-					writedata(wd, DATA, sizeof(float)*3*mdlist[i].totdisp, mdlist[i].disps);
+		for(i = 0; i < count; ++i) {
+			MDisps *md = &mdlist[i];
+			if(md->disps) {
+				if(!external)
+					writedata(wd, DATA, sizeof(float)*3*md->totdisp, md->disps);
 			}
+			
+			if(md->hidden)
+				writedata(wd, DATA, BLI_BITMAP_SIZE(md->totdisp), md->hidden);
 		}
 	}
 }
