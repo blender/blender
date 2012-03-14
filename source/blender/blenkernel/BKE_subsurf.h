@@ -102,6 +102,7 @@ typedef struct CCGDerivedMesh {
 	int *gridOffset;
 	struct CCGFace **gridFaces;
 	struct DMFlagMat *gridFlagMats;
+	unsigned int **gridHidden;
 
 	struct {
 		struct MultiresModifierData *mmd;

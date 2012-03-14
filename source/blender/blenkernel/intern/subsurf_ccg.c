@@ -45,6 +45,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
@@ -2357,6 +2358,14 @@ static void ccgDM_release(DerivedMesh *dm)
 		if(ccgdm->gridAdjacency) MEM_freeN(ccgdm->gridAdjacency);
 		if(ccgdm->gridOffset) MEM_freeN(ccgdm->gridOffset);
 		if(ccgdm->gridFlagMats) MEM_freeN(ccgdm->gridFlagMats);
+		if(ccgdm->gridHidden) {
+			int i, numGrids = dm->getNumGrids(dm);
+			for(i = 0; i < numGrids; i++) {
+				if(ccgdm->gridHidden[i])
+					MEM_freeN(ccgdm->gridHidden[i]);
+			}
+			MEM_freeN(ccgdm->gridHidden);
+		}
 		if(ccgdm->freeSS) ccgSubSurf_free(ccgdm->ss);
 		if(ccgdm->fmap) MEM_freeN(ccgdm->fmap);
 		if(ccgdm->fmap_mem) MEM_freeN(ccgdm->fmap_mem);
@@ -2663,6 +2672,8 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 	gridFaces = MEM_mallocN(sizeof(CCGFace*)*numGrids, "ccgdm.gridFaces");
 	gridFlagMats = MEM_mallocN(sizeof(DMFlagMat)*numGrids, "ccgdm.gridFlagMats");
 
+	ccgdm->gridHidden = MEM_callocN(sizeof(BLI_bitmap)*numGrids, "ccgdm.gridHidden");
+
 	for(gIndex = 0, index = 0; index < numFaces; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
 		int numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -2725,6 +2736,14 @@ static DMFlagMat *ccgDM_getGridFlagMats(DerivedMesh *dm)
 	
 	ccgdm_create_grids(dm);
 	return ccgdm->gridFlagMats;
+}
+
+static BLI_bitmap *ccgDM_getGridHidden(DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
+	
+	ccgdm_create_grids(dm);
+	return ccgdm->gridHidden;
 }
 
 static ListBase *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
@@ -2909,6 +2928,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getGridAdjacency = ccgDM_getGridAdjacency;
 	ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
 	ccgdm->dm.getGridFlagMats = ccgDM_getGridFlagMats;
+	ccgdm->dm.getGridHidden = ccgDM_getGridHidden;
 	ccgdm->dm.getPolyMap = ccgDM_getPolyMap;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
 

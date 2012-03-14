@@ -248,6 +248,7 @@ struct DerivedMesh {
 	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
 	int *(*getGridOffset)(DerivedMesh *dm);
 	DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
+	unsigned int **(*getGridHidden)(DerivedMesh *dm);
 	
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
