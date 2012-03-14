@@ -2889,6 +2889,33 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 	return corner;
 }
 
+/* update the hide flag for edges and faces from the corresponding
+   flag in verts */
+void mesh_flush_hidden_from_verts(const MVert *mvert,
+								  const MLoop *mloop,
+								  MEdge *medge, int totedge,
+								  MPoly *mpoly, int totpoly)
+{
+	int i, j;
+	
+	for(i = 0; i < totedge; i++) {
+		MEdge *e = &medge[i];
+		if(mvert[e->v1].flag & ME_HIDE ||
+		   mvert[e->v2].flag & ME_HIDE)
+			e->flag |= ME_HIDE;
+		else
+			e->flag &= ~ME_HIDE;
+	}
+	for(i = 0; i < totpoly; i++) {
+		MPoly *p = &mpoly[i];
+		p->flag &= ~ME_HIDE;
+		for(j = 0; j < p->totloop; j++) {
+			if(mvert[mloop[p->loopstart + j].v].flag & ME_HIDE)
+				p->flag |= ME_HIDE;
+		}
+	}
+}
+
 /* basic vertex data functions */
 int minmax_mesh(Mesh *me, float min[3], float max[3])
 {

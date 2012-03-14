@@ -111,6 +111,13 @@ int poly_find_loop_from_vert(const struct MPoly *poly,
 int poly_get_adj_loops_from_vert(unsigned adj_r[3], const struct MPoly *poly,
 								 const struct MLoop *mloop, unsigned vert);
 
+/* update the hide flag for edges and polys from the corresponding
+   flag in verts */
+void mesh_flush_hidden_from_verts(const struct MVert *mvert,
+								  const struct MLoop *mloop,
+								  struct MEdge *medge, int totedge,
+								  struct MPoly *mpoly, int totpoly);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(const char *name);
