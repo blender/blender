@@ -41,6 +41,7 @@ struct DerivedMesh;
 struct IndexNode;
 struct ListBase;
 struct Mesh;
+struct MPoly;
 struct MultiresSubsurf;
 struct Object;
 struct PBVH;
@@ -70,6 +71,11 @@ int ccg_gridsize(int level);
 /* x/y grid coordinates at 'low_level' can be multiplied by the result
    of this function to convert to grid coordinates at 'high_level' */
 int ccg_factor(int low_level, int high_level);
+
+void subsurf_copy_grid_hidden(struct DerivedMesh *dm,
+							  const struct MPoly *mpoly,
+							  struct MVert *mvert,
+							  const struct MDisps *mdisps);
 
 typedef enum MultiresModifiedFlags {
 	/* indicates the grids have been sculpted on, so MDisps

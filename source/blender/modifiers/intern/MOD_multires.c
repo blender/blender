@@ -36,12 +36,14 @@
 #include <stddef.h>
 
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
+#include "BKE_subsurf.h"
 
 #include "MOD_util.h"
 
@@ -88,7 +90,28 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		return dm;
 
 	if(useRenderParams || !isFinalCalc) {
-		DerivedMesh *cddm= CDDM_copy(result);
+		DerivedMesh *cddm;
+		
+		cddm= CDDM_copy(result);
+
+		/* copy hidden flag to vertices */
+		if(!useRenderParams) {
+			struct MDisps *mdisps;
+			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+			if(mdisps) {
+				subsurf_copy_grid_hidden(result, me->mpoly,
+										 cddm->getVertArray(cddm),
+										 mdisps);
+
+				mesh_flush_hidden_from_verts(cddm->getVertArray(cddm),
+											 cddm->getLoopArray(cddm),
+											 cddm->getEdgeArray(cddm),
+											 cddm->getNumEdges(cddm),
+											 cddm->getPolyArray(cddm),
+											 cddm->getNumPolys(cddm));
+			}
+		}
+
 		result->release(result);
 		result= cddm;
 	}

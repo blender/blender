@@ -951,6 +951,44 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	else mf->flag = ME_SMOOTH;
 }
 
+/* Translate GridHidden into the ME_HIDE flag for MVerts. Assumes
+   vertices are in the order output by ccgDM_copyFinalVertArray. */
+void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
+							  MVert *mvert, const MDisps *mdisps)
+{
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	int level = ccgSubSurf_getSubdivisionLevels(ss);
+	int gridSize = ccgSubSurf_getGridSize(ss);
+	int edgeSize = ccgSubSurf_getEdgeSize(ss);
+	int totface = ccgSubSurf_getNumFaces(ss);
+	int i, j, x, y;
+	
+	for(i = 0; i < totface; i++) {
+		CCGFace *f = ccgdm->faceMap[i].face;
+
+		for(j = 0; j < mpoly[i].totloop; j++) {
+			const MDisps *md = &mdisps[mpoly[i].loopstart + j];
+			int hidden_gridsize = ccg_gridsize(md->level);
+			int factor = ccg_factor(level, md->level);
+			
+			if(!md->hidden)
+				continue;
+			
+			for(y = 0; y < gridSize; y++) {
+				for(x = 0; x < gridSize; x++) {
+					int vndx, offset;
+					
+					vndx = getFaceIndex(ss, f, j, x, y, edgeSize, gridSize);
+					offset = (y*factor) * hidden_gridsize + (x*factor);
+					if(BLI_BITMAP_GET(md->hidden, offset))
+						mvert[vndx].flag |= ME_HIDE;
+				}
+			}
+		}
+	}
+}
+
 static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
