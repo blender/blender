@@ -42,6 +42,7 @@
 struct DerivedMesh;
 struct DMFlagMat;
 struct DMGridData;
+struct CustomData;
 struct GHash;
 struct DMGridData;
 struct GPUVertPointLink;
@@ -159,12 +160,14 @@ int GPU_buffer_legacy(struct DerivedMesh *dm );
 typedef struct GPU_Buffers GPU_Buffers;
 
 GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
-			struct MFace *mface, int *face_indices, int totface);
+			struct MFace *mface, struct MVert *mvert,
+            int *face_indices, int totface);
 
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
 			int *vert_indices, int totvert);
 
-GPU_Buffers *GPU_build_grid_buffers(int totgrid, int gridsize);
+GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
+									unsigned int **grid_hidden, int gridsize);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
 							 const struct DMFlagMat *grid_flag_mats,

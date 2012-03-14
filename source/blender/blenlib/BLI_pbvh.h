@@ -26,6 +26,8 @@
  *  \brief A BVH for high poly meshes.
  */
 
+#include "BLI_bitmap.h"
+
 struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
@@ -86,7 +88,6 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 /* Drawing */
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data);
-int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 				   int (*setMaterial)(int, void *attribs));
 
@@ -110,10 +111,15 @@ typedef enum {
 	PBVH_UpdateBB = 4,
 	PBVH_UpdateOriginalBB = 8,
 	PBVH_UpdateDrawBuffers = 16,
-	PBVH_UpdateRedraw = 32
+	PBVH_UpdateRedraw = 32,
+
+	PBVH_RebuildDrawBuffers = 64,
+	PBVH_FullyHidden = 128
 } PBVHNodeFlags;
 
 void BLI_pbvh_node_mark_update(PBVHNode *node);
+void BLI_pbvh_node_mark_rebuild_draw(PBVHNode *node);
+void BLI_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
 	int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
@@ -127,6 +133,11 @@ void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 
 float BLI_pbvh_node_get_tmin(PBVHNode* node);
+
+/* test if AABB is at least partially inside the planes' volume */
+int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
+/* test if AABB is at least partially outside the planes' volume */
+int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
 
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
@@ -148,6 +159,8 @@ int BLI_pbvh_isDeformed(struct PBVH *pbvh);
  * - allow the compiler to eliminate dead code and variables
  * - spend most of the time in the relatively simple inner loop */
 
+/* note: PBVH_ITER_ALL does not skip hidden vertices,
+   PBVH_ITER_UNIQUE does */
 #define PBVH_ITER_ALL		0
 #define PBVH_ITER_UNIQUE	1
 
@@ -163,6 +176,7 @@ typedef struct PBVHVertexIter {
 	/* grid */
 	struct DMGridData **grids;
 	struct DMGridData *grid;
+	BLI_bitmap *grid_hidden, gh;
 	int *grid_indices;
 	int totgrid;
 	int gridsize;
@@ -195,6 +209,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 			vi.width= vi.gridsize; \
 			vi.height= vi.gridsize; \
 			vi.grid= vi.grids[vi.grid_indices[vi.g]]; \
+			if(mode == PBVH_ITER_UNIQUE) \
+				vi.gh= vi.grid_hidden[vi.grid_indices[vi.g]];	\
 		} \
 		else { \
 			vi.width= vi.totvert; \
@@ -207,9 +223,15 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 					vi.co= vi.grid->co; \
 					vi.fno= vi.grid->no; \
 					vi.grid++; \
+					if(vi.gh) { \
+						if(BLI_BITMAP_GET(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
+							continue; \
+					} \
 				} \
 				else { \
 					vi.mvert= &vi.mverts[vi.vert_indices[vi.gx]]; \
+					if(mode == PBVH_ITER_UNIQUE && vi.mvert->flag & ME_HIDE) \
+						continue; \
 					vi.co= vi.mvert->co; \
 					vi.no= vi.mvert->no; \
 				} \

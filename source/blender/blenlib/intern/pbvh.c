@@ -37,6 +37,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h" /* for mesh_calc_normals */
 #include "BKE_global.h" /* for mesh_calc_normals */
+#include "BKE_paint.h"
+#include "BKE_subsurf.h"
 
 #include "GPU_buffers.h"
 
@@ -430,7 +432,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	if(!G.background) {
 		node->draw_buffers =
 			GPU_build_mesh_buffers(node->face_vert_indices,
-					bvh->faces,
+					bvh->faces, bvh->verts,
 					node->prim_indices,
 					node->totprim);
 	}
@@ -444,7 +446,8 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 {
 	if(!G.background) {
 		node->draw_buffers =
-			GPU_build_grid_buffers(node->totprim, bvh->gridsize);
+			GPU_build_grid_buffers(node->prim_indices,
+				node->totprim, bvh->grid_hidden, bvh->gridsize);
 	}
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
@@ -1129,6 +1132,24 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 	for(n = 0; n < totnode; n++) {
 		node= nodes[n];
 
+		if(node->flag & PBVH_RebuildDrawBuffers) {
+			GPU_free_buffers(node->draw_buffers);
+			if(bvh->grids) {
+				node->draw_buffers =
+					GPU_build_grid_buffers(node->prim_indices,
+						   node->totprim, bvh->grid_hidden, bvh->gridsize);
+			}
+			else {
+				node->draw_buffers =
+					GPU_build_mesh_buffers(node->face_vert_indices,
+						   bvh->faces, bvh->verts,
+						   node->prim_indices,
+						   node->totprim);
+			}
+ 
+			node->flag &= ~PBVH_RebuildDrawBuffers;
+		}
+
 		if(node->flag & PBVH_UpdateDrawBuffers) {
 			switch(bvh->type) {
 			case PBVH_GRIDS:
@@ -1299,6 +1320,21 @@ void BLI_pbvh_node_mark_update(PBVHNode *node)
 	node->flag |= PBVH_UpdateNormals|PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateDrawBuffers|PBVH_UpdateRedraw;
 }
 
+void BLI_pbvh_node_mark_rebuild_draw(PBVHNode *node)
+{
+	node->flag |= PBVH_RebuildDrawBuffers|PBVH_UpdateDrawBuffers|PBVH_UpdateRedraw;
+}
+
+void BLI_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
+{
+	BLI_assert(node->flag & PBVH_Leaf);
+	
+	if(fully_hidden)
+		node->flag |= PBVH_FullyHidden;
+	else
+		node->flag &= ~PBVH_FullyHidden;
+}
+
 void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node, int **vert_indices, MVert **verts)
 {
 	if(vert_indices) *vert_indices= node->vert_indices;
@@ -1461,8 +1497,12 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	float ray_start[3], float ray_normal[3], float *dist)
 {
 	MVert *vert;
+	BLI_bitmap gh;
 	int *faces, totface, gridsize, totgrid;
 	int i, x, y, hit= 0;
+
+	if(node->flag & PBVH_FullyHidden)
+		return 0;
 
 	switch(bvh->type) {
 	case PBVH_FACES:
@@ -1471,8 +1511,11 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 		totface= node->totprim;
 
 		for(i = 0; i < totface; ++i) {
-			MFace *f = bvh->faces + faces[i];
+			const MFace *f = bvh->faces + faces[i];
 			int *face_verts = node->face_vert_indices[i];
+
+			if(paint_is_face_hidden(f, vert))
+				continue;
 
 			if(origco) {
 				/* intersect with backuped original coordinates */
@@ -1503,8 +1546,16 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 			if (!grid)
 				continue;
 
+			gh= bvh->grid_hidden[node->prim_indices[i]];
+
 			for(y = 0; y < gridsize-1; ++y) {
 				for(x = 0; x < gridsize-1; ++x) {
+					/* check if grid face is hidden */
+					if(gh) {
+						if(paint_is_grid_face_hidden(gh, gridsize, x, y))
+							continue;
+					}
+
 					if(origco) {
 						hit |= ray_face_intersection(ray_start, ray_normal,
 									 origco[y*gridsize + x],
@@ -1553,39 +1604,65 @@ void BLI_pbvh_node_draw(PBVHNode *node, void *setMaterial)
 
 	glColor3f(1, 0, 0);
 #endif
-	GPU_draw_buffers(node->draw_buffers, setMaterial);
+
+	if(!(node->flag & PBVH_FullyHidden))
+		GPU_draw_buffers(node->draw_buffers, setMaterial);
 }
+
+typedef enum {
+	ISECT_INSIDE,
+	ISECT_OUTSIDE,
+	ISECT_INTERSECT
+} PlaneAABBIsect;
 
 /* Adapted from:
  * http://www.gamedev.net/community/forums/topic.asp?topic_id=512123
  * Returns true if the AABB is at least partially within the frustum
  * (ok, not a real frustum), false otherwise.
  */
-int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
+static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
+									   const float bb_max[3],
+									   const float (*planes)[4])
 {
-	float (*planes)[4] = data;
+	float vmin[3], vmax[3];
+	PlaneAABBIsect ret = ISECT_INSIDE;
 	int i, axis;
-	float vmin[3] /*, vmax[3]*/, bb_min[3], bb_max[3];
-
-	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
-
+	
 	for(i = 0; i < 4; ++i) { 
 		for(axis = 0; axis < 3; ++axis) {
 			if(planes[i][axis] > 0) { 
 				vmin[axis] = bb_min[axis];
-				/*vmax[axis] = bb_max[axis];*/ /*UNUSED*/
+				vmax[axis] = bb_max[axis];
 			}
 			else {
 				vmin[axis] = bb_max[axis];
-				/*vmax[axis] = bb_min[axis];*/ /*UNUSED*/
+				vmax[axis] = bb_min[axis];
 			}
 		}
 		
 		if(dot_v3v3(planes[i], vmin) + planes[i][3] > 0)
-			return 0;
+			return ISECT_OUTSIDE;
+		else if(dot_v3v3(planes[i], vmax) + planes[i][3] >= 0)
+			ret = ISECT_INTERSECT;
 	} 
 
-	return 1;
+	return ret;
+}
+
+int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
+{
+	float bb_min[3], bb_max[3];
+	
+	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
+	return test_planes_aabb(bb_min, bb_max, data) != ISECT_OUTSIDE;
+}
+
+int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
+{
+	float bb_min[3], bb_max[3];
+	
+	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
+	return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
@@ -1791,4 +1868,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 		vi->totvert= uniq_verts;
 	vi->vert_indices= vert_indices;
 	vi->mverts= verts;
+
+	vi->gh= NULL;
+	if(vi->grids && mode == PBVH_ITER_UNIQUE)
+		vi->grid_hidden= bvh->grid_hidden;
 }
