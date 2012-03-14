@@ -276,11 +276,11 @@ Report *BKE_reports_last_displayable(ReportList *reports)
 int BKE_reports_contain(ReportList *reports, ReportType level)
 {
 	Report *report;
-
-	for(report=reports->list.first; report; report=report->next)
-		if(report->type >= level)
-			return TRUE;
-	
+	if (reports != NULL) {
+		for(report=reports->list.first; report; report=report->next)
+			if(report->type >= level)
+				return TRUE;
+	}
 	return FALSE;
 }
 

@@ -267,7 +267,7 @@ if(APPLE)
 	endif()
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
-		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4)
+		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4) # AND ${XCODE_VERSION} VERSION_LESS 4.3) in the works, needs collada fix for clang and gcc 4.7
 			# Xcode 4 defaults to the Apple LLVM Compiler.
 			# Override the default compiler selection because Blender only compiles with gcc
 			set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
