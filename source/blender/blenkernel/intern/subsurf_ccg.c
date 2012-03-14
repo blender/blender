@@ -3388,4 +3388,3 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 
 	dm->release(dm);
 }
-

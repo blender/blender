@@ -31,6 +31,9 @@
  *  \ingroup bke
  */
 
+/* struct DerivedMesh is used directly */
+#include "BKE_DerivedMesh.h"
+
 struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
@@ -60,6 +63,13 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 						int isFinalCalc, int forEditMode, int inEditMode);
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3]);
+
+/* get gridsize from 'level', level must be greater than zero */
+int ccg_gridsize(int level);
+
+/* x/y grid coordinates at 'low_level' can be multiplied by the result
+   of this function to convert to grid coordinates at 'high_level' */
+int ccg_factor(int low_level, int high_level);
 
 /**************************** Internal *****************************/
 
