@@ -21,6 +21,14 @@ import bpy
 from bpy.types import Operator
 import mathutils
 
+from bpy.props import (FloatProperty,
+                       IntProperty,
+                       BoolProperty,
+                       FloatVectorProperty,
+                       )
+
+from bpy_extras import object_utils
+
 
 def add_torus(major_rad, minor_rad, major_seg, minor_seg):
     from math import cos, sin, pi
@@ -75,14 +83,8 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
     return verts, faces
 
-from bpy.props import (FloatProperty,
-                       IntProperty,
-                       BoolProperty,
-                       FloatVectorProperty,
-                       )
 
-
-class AddTorus(Operator):
+class AddTorus(Operator, object_utils.AddObjectHelper):
     '''Add a torus mesh'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
@@ -131,22 +133,7 @@ class AddTorus(Operator):
             default=0.5,
             )
 
-    # generic transform props
-    view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            )
-    location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
-    rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
-
     def execute(self, context):
-
         if self.use_abso == True:
             extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
             self.major_radius = self.abso_minor_rad + extra_helper
@@ -166,7 +153,6 @@ class AddTorus(Operator):
         mesh.faces.foreach_set("vertices_raw", faces)
         mesh.update()
 
-        from bpy_extras import object_utils
         object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}
