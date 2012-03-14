@@ -825,8 +825,8 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 		
 		/* deselect all other nodes, so we can also do grabbing of entire subtree */
 		for(node= snode->nodetree->nodes.first; node; node= node->next)
-			node->flag &= ~SELECT;
-		gnode->flag |= SELECT;
+			node_deselect(node);
+		node_select(gnode);
 	}
 	else 
 		snode->edittree= snode->nodetree;
@@ -2115,7 +2115,7 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 	if(node) {
 		node->locx= locx;
 		node->locy= locy + 60.0f;		// arbitrary.. so its visible, (0,0) is top of node
-		node->flag |= SELECT;
+		node_select(node);
 		
 		gnode= node_tree_get_editgroup(snode->nodetree);
 		if(gnode) {
@@ -2157,7 +2157,6 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= snode->edittree;
 	bNode *node, *newnode, *lastnode;
-	bNodeSocket *sock;
 	bNodeLink *link, *newlink, *lastlink;
 	int keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
 	
@@ -2220,14 +2219,9 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			/* has been set during copy above */
 			newnode = node->new_node;
 			
-			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
-			newnode->flag |= NODE_SELECT;
-		
-			/* deselect old node sockets */
-			for (sock=node->inputs.first; sock; sock=sock->next)
-				sock->flag &= ~SELECT;
-			for (sock=node->outputs.first; sock; sock=sock->next)
-				sock->flag &= ~SELECT;
+			node_deselect(node);
+			node->flag &= ~NODE_ACTIVE;
+			node_select(newnode);
 		}
 		
 		/* make sure we don't copy new nodes again! */
@@ -2340,7 +2334,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					
 					/* hilight target socket */
-					tsock->flag |= SELECT;
+					node_socket_select(tnode, tsock);
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2375,7 +2369,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					
 					/* hilight target socket */
-					tsock->flag |= SELECT;
+					node_socket_select(tnode, tsock);
 				}
 				else {
 					if (link->tonode || link->tosock) {
@@ -2478,7 +2472,7 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 		
 		/* hilight source socket only */
 		node_deselect_all_output_sockets(snode, 0);
-		nldrag->sock->flag |= SELECT;
+		node_socket_select(nldrag->node, nldrag->sock);
 	}
 	/* or an input? */
 	else if(node_find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_IN)) {
@@ -2504,7 +2498,7 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 		
 		/* hilight source socket only */
 		node_deselect_all_input_sockets(snode, 0);
-		nldrag->sock->flag |= SELECT;
+		node_socket_select(nldrag->node, nldrag->sock);
 	}
 	
 	return in_out;

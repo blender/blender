@@ -173,12 +173,12 @@ static void node_sort(bNodeTree *ntree)
 	}
 }
 
-static void node_select(bNode *node)
+void node_select(bNode *node)
 {
 	node->flag |= SELECT;
 }
 
-static void node_deselect(bNode *node)
+void node_deselect(bNode *node)
 {
 	bNodeSocket *sock;
 	
@@ -199,7 +199,7 @@ static void node_toggle(bNode *node)
 		node_select(node);
 }
 
-static void node_socket_select(bNode *node, bNodeSocket *sock)
+void node_socket_select(bNode *node, bNodeSocket *sock)
 {
 	sock->flag |= SELECT;
 	
@@ -208,7 +208,7 @@ static void node_socket_select(bNode *node, bNodeSocket *sock)
 		node->flag |= SELECT;
 }
 
-static void node_socket_deselect(bNode *node, bNodeSocket *sock, int deselect_node)
+void node_socket_deselect(bNode *node, bNodeSocket *sock, int deselect_node)
 {
 	sock->flag &= ~SELECT;
 	

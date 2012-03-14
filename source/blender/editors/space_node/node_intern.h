@@ -81,7 +81,11 @@ void node_operatortypes(void);
 void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
+void node_select(struct bNode *node);
+void node_deselect(struct bNode *node);
 void node_deselect_all(struct SpaceNode *snode);
+void node_socket_select(struct bNode *node, struct bNodeSocket *sock);
+void node_socket_deselect(struct bNode *node, struct bNodeSocket *sock, int deselect_node);
 void node_deselect_all_input_sockets(struct SpaceNode *snode, int deselect_nodes);
 void node_deselect_all_output_sockets(struct SpaceNode *snode, int deselect_nodes);
 int node_select_same_type(struct SpaceNode *snode);
