@@ -1479,7 +1479,7 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 			/* grid hidden are present, have to check each element */
 			for(y = 0; y < gridsize-1; y++) {
 				for(x = 0; x < gridsize-1; x++) {
-					if(paint_is_grid_face_hidden(gh, gridsize, x, y))
+					if(!paint_is_grid_face_hidden(gh, gridsize, x, y))
 						totquad++;
 				}
 			}
@@ -1595,7 +1595,7 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 {
 	GPU_Buffers *buffers;
 	int totquad;
-	int fully_visible_totquad = (gridsize-1) * (gridsize-1);
+	int fully_visible_totquad = (gridsize-1) * (gridsize-1) * totgrid;
 
 	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
 	buffers->grid_hidden = grid_hidden;
@@ -1609,7 +1609,7 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 		gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);
 		buffers->has_hidden = 0;
 	}
-	else if(!GLEW_ARB_vertex_buffer_object || (U.gameflags & USER_DISABLE_VBO)) {
+	else if(GLEW_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO)) {
 		/* Build new VBO */
 		glGenBuffersARB(1, &buffers->index_buf);
 		if(buffers->index_buf) {

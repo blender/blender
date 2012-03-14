@@ -528,7 +528,7 @@ void paint_partial_visibility_keys(wmKeyMap *keymap)
 	wmKeyMapItem *kmi;
 	
 	/* Partial visiblity */
-	kmi= WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", PARTIALVIS_SHOW);
 	RNA_enum_set(kmi->ptr, "area", PARTIALVIS_INSIDE);
 	kmi= WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, 0, 0);
