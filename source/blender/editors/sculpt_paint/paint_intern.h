@@ -168,5 +168,19 @@ struct ListBase *undo_paint_push_get_list(int type);
 void undo_paint_push_count_alloc(int type, int size);
 void undo_paint_push_end(int type);
 
-#endif /* __PAINT_INTERN_H__ */
+/* paint_hide.c */
 
+typedef enum {
+	PARTIALVIS_HIDE,
+	PARTIALVIS_SHOW
+} PartialVisAction;
+
+typedef enum {
+	PARTIALVIS_INSIDE,
+	PARTIALVIS_OUTSIDE,
+	PARTIALVIS_ALL
+} PartialVisArea;
+
+void PAINT_OT_hide_show(struct wmOperatorType *ot);
+
+#endif /* __PAINT_INTERN_H__ */

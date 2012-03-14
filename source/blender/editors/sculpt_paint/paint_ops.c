@@ -426,6 +426,9 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_face_select_inverse);
 	WM_operatortype_append(PAINT_OT_face_select_hide);
 	WM_operatortype_append(PAINT_OT_face_select_reveal);
+
+	/* partial visibility */
+	WM_operatortype_append(PAINT_OT_hide_show);
 }
 
 
@@ -520,6 +523,22 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 	}
 }
 
+void paint_partial_visibility_keys(wmKeyMap *keymap)
+{
+	wmKeyMapItem *kmi;
+	
+	/* Partial visiblity */
+	kmi= WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", PARTIALVIS_SHOW);
+	RNA_enum_set(kmi->ptr, "area", PARTIALVIS_INSIDE);
+	kmi= WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", PARTIALVIS_HIDE);
+	RNA_enum_set(kmi->ptr, "area", PARTIALVIS_INSIDE);
+	kmi= WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", PARTIALVIS_SHOW);
+	RNA_enum_set(kmi->ptr, "area", PARTIALVIS_ALL);
+}
+
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
@@ -533,6 +552,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL,  0)->ptr, "mode", BRUSH_STROKE_INVERT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", BRUSH_STROKE_SMOOTH);
+
+	/* Partial visibility, sculpt-only for now */
+	paint_partial_visibility_keys(keymap);
 
 	for(i=0; i<=5; i++)
 		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);

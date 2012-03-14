@@ -805,7 +805,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 		float private_an[3] = {0.0f, 0.0f, 0.0f};
 		float private_out_flip[3] = {0.0f, 0.0f, 0.0f};
 
-		unode = sculpt_undo_push_node(ob, nodes[n]);
+		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
 		if(ss->cache->original) {
@@ -1295,7 +1295,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		short (*origno)[3];
 		float (*proxy)[3];
 
-		unode=  sculpt_undo_push_node(ob, nodes[n]);
+		unode=  sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		origco= unode->co;
 		origno= unode->no;
 
@@ -1436,7 +1436,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		short (*origno)[3];
 		float (*proxy)[3];
 
-		unode=  sculpt_undo_push_node(ob, nodes[n]);
+		unode=  sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		origco= unode->co;
 		origno= unode->no;
 
@@ -1490,7 +1490,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 		short (*origno)[3];
 		float (*proxy)[3];
 
-		unode=  sculpt_undo_push_node(ob, nodes[n]);
+		unode=  sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		origco= unode->co;
 		origno= unode->no;
 
@@ -1541,7 +1541,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 		//proxy= BLI_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co;
 		
-		unode= sculpt_undo_push_node(ob, nodes[n]);
+		unode= sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		origco=unode->co;
 		if (!unode->layer_disp) {
 			#pragma omp critical 
@@ -1643,7 +1643,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		float private_fc[3] = {0.0f, 0.0f, 0.0f};
 		int private_count = 0;
 
-		unode = sculpt_undo_push_node(ob, nodes[n]);
+		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
 		if(ss->cache->original) {
@@ -1708,7 +1708,7 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 		float private_fc[3] = {0.0f, 0.0f, 0.0f};
 		int private_count = 0;
 
-		unode = sculpt_undo_push_node(ob, nodes[n]);
+		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
 		if(ss->cache->original) {
@@ -2319,7 +2319,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 	if (totnode) {
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n= 0; n < totnode; n++) {
-			sculpt_undo_push_node(ob, nodes[n]);
+			sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 			BLI_pbvh_node_mark_update(nodes[n]);
 		}
 
@@ -2432,7 +2432,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 			float (*orco)[3];
 
 			if(use_orco)
-				orco= sculpt_undo_push_node(ob, nodes[n])->co;
+				orco= sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS)->co;
 
 			BLI_pbvh_node_get_proxies(nodes[n], &proxies, &proxy_count);
 
@@ -2737,7 +2737,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 	}
 }
 
-static int sculpt_mode_poll(bContext *C)
+int sculpt_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	return ob && ob->mode & OB_MODE_SCULPT;

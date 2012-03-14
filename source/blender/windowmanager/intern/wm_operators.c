@@ -3831,6 +3831,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NLA_OT_select_border");
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_border");
+	WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show");
 	WM_modalkeymap_assign(keymap, "OUTLINER_OT_select_border");
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");

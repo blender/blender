@@ -54,6 +54,8 @@ class VIEW3D_HT_header(Header):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
                 if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
                     sub.menu("VIEW3D_MT_brush")
+                if mode_string == 'SCULPT':
+                    sub.menu("VIEW3D_MT_hide")
             else:
                 sub.menu("VIEW3D_MT_object")
 
@@ -1194,6 +1196,25 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
 
+
+class VIEW3D_MT_hide(Menu):
+    bl_label = "Hide"
+
+    def draw(self, context):
+        layout = self.layout
+
+        op = layout.operator("paint.hide_show", text="Show All")
+        op.action = 'SHOW'
+        op.area = 'ALL'
+
+        op = layout.operator("paint.hide_show", text="Hide Bounding Box")
+        op.action = 'HIDE'
+        op.area = 'INSIDE'
+
+        op = layout.operator("paint.hide_show", text="Show Bounding Box")
+        op.action = 'SHOW'
+        op.area = 'INSIDE'
+    
 
 # ********** Particle menu **********
 
