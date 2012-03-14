@@ -141,6 +141,7 @@ struct PBVH {
 	const DMFlagMat *grid_flag_mats;
 	int totgrid;
 	int gridsize;
+	BLI_bitmap *grid_hidden;
 
 	/* Only used during BVH build and update,
 	 * don't need to remain valid after */
@@ -639,7 +640,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 
 /* Do a full rebuild with on Grids data structure */
 void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj,
-	int totgrid, int gridsize, void **gridfaces, DMFlagMat *flagmats)
+	int totgrid, int gridsize, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap *grid_hidden)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
@@ -652,6 +653,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 	bvh->grid_flag_mats= flagmats;
 	bvh->totgrid= totgrid;
 	bvh->gridsize= gridsize;
+	bvh->grid_hidden= grid_hidden;
 	bvh->leaf_limit = MAX2(LEAF_LIMIT/((gridsize-1)*(gridsize-1)), 1);
 
 	BB_reset(&cb);
@@ -1282,6 +1284,12 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 PBVHType BLI_pbvh_type(const PBVH *bvh)
 {
 	return bvh->type;
+}
+
+BLI_bitmap *BLI_pbvh_grid_hidden(const PBVH *bvh)
+{
+	BLI_assert(bvh->type == PBVH_GRIDS);
+	return bvh->grid_hidden;
 }
 
 /***************************** Node Access ***********************************/

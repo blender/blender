@@ -55,6 +55,7 @@
 #include "BKE_paint.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
+#include "BKE_subsurf.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -209,7 +210,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 
 		if((mmd=sculpt_multires_active(scene, ob)))
-			multires_mark_as_modified(ob);
+			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 
 		tag_update= ((Mesh*)ob->data)->id.us > 1;
 

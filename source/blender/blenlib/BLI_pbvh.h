@@ -57,7 +57,8 @@ void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
 			int totface, int totvert);
 void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
 	struct DMGridAdjacency *gridadj, int totgrid,
-	int gridsize, void **gridfaces, struct DMFlagMat *flagmats);
+	int gridsize, void **gridfaces, struct DMFlagMat *flagmats,
+	unsigned int **grid_hidden);
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -96,6 +97,9 @@ typedef enum {
 } PBVHType;
 
 PBVHType BLI_pbvh_type(const PBVH *bvh);
+
+/* multires hidden data, only valid for type == PBVH_GRIDS */
+unsigned int **BLI_pbvh_grid_hidden(const PBVH *bvh);
 
 /* Node Access */
 

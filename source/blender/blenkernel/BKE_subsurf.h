@@ -71,6 +71,14 @@ int ccg_gridsize(int level);
    of this function to convert to grid coordinates at 'high_level' */
 int ccg_factor(int low_level, int high_level);
 
+typedef enum MultiresModifiedFlags {
+	/* indicates the grids have been sculpted on, so MDisps
+	   have to be updated */
+	MULTIRES_COORDS_MODIFIED = 1,
+	/* indicates elements have been hidden or unhidden */
+	MULTIRES_HIDDEN_MODIFIED = 2
+} MultiresModifiedFlags;
+
 /**************************** Internal *****************************/
 
 typedef struct CCGDerivedMesh {
@@ -112,7 +120,7 @@ typedef struct CCGDerivedMesh {
 		float (*orco)[3];
 
 		struct Object *ob;
-		int modified;
+		MultiresModifiedFlags modified_flags;
 	} multires;
 
 	struct EdgeHash *ehash;

@@ -64,6 +64,7 @@
 #include "BKE_report.h"
 #include "BKE_lattice.h" /* for armature_deform_verts */
 #include "BKE_node.h"
+#include "BKE_subsurf.h"
 
 #include "BIF_glutil.h"
 
@@ -3346,7 +3347,7 @@ static void sculpt_flush_update(bContext *C)
 	MultiresModifierData *mmd = ss->multires;
 
 	if(mmd)
-		multires_mark_as_modified(ob);
+		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 	if(ob->derivedFinal) /* VBO no longer valid */
 		GPU_drawobject_free(ob->derivedFinal);
 

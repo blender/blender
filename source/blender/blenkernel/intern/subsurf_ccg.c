@@ -2341,12 +2341,18 @@ static void ccgDM_release(DerivedMesh *dm)
 
 	if (DM_release(dm)) {
 		/* Before freeing, need to update the displacement map */
-		if(ccgdm->multires.modified) {
+		if(ccgdm->multires.modified_flags) {
 			/* Check that mmd still exists */
-			if(!ccgdm->multires.local_mmd && BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0)
+			if(!ccgdm->multires.local_mmd &&
+			   BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0)
 				ccgdm->multires.mmd = NULL;
-			if(ccgdm->multires.mmd)
-				multires_modifier_update_mdisps(dm);
+			
+			if(ccgdm->multires.mmd) {
+				if(ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)
+					multires_modifier_update_mdisps(dm);
+				if(ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED)
+					multires_modifier_update_hidden(dm);
+			}
 		}
 
 		if (ccgdm->ehash)
@@ -2815,7 +2821,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 
 		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
 		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
-			numGrids, gridSize, (void**)ccgdm->gridFaces, ccgdm->gridFlagMats);
+			numGrids, gridSize, (void**)ccgdm->gridFaces, ccgdm->gridFlagMats, ccgdm->gridHidden);
 	} else if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
