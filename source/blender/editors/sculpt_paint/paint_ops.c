@@ -282,6 +282,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 		paint= &toolsettings->imapaint.paint;
 		tool_offset= offsetof(Brush, imagepaint_tool);
 		tool= RNA_enum_get(op->ptr, "texture_paint_tool");
+		break;
 	default:
 		/* invalid paint mode */
 		return OPERATOR_CANCELLED;
