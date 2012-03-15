@@ -421,7 +421,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 
 		if(me->mloopcol) {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);
-			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mloopcol, me->totface, name);
+			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mcol, me->totface, name);
 		}
 		else {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
@@ -757,12 +757,13 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 {
 	int *polyindex = NULL;
 	float (*face_nors)[3];
+	int tessface_input = FALSE;
 
 	if(mesh->totface > 0 && mesh->totpoly == 0) {
 		convert_mfaces_to_mpolys(mesh);
 
 		/* would only be converting back again, dont bother */
-		calc_tessface = FALSE;
+		tessface_input = TRUE;
 
 		/* it also happens that converting the faces calculates edges, skip this */
 		calc_edges = FALSE;
@@ -772,7 +773,9 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 		BKE_mesh_calc_edges(mesh, calc_edges);
 
 	if (calc_tessface) {
-		BKE_mesh_tessface_calc(mesh);
+		if (tessface_input == FALSE) {
+			BKE_mesh_tessface_calc(mesh);
+		}
 	}
 	else {
 		/* default state is not to have tessface's so make sure this is the case */

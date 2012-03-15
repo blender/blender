@@ -666,7 +666,7 @@ static void rna_MeshColorLayer_data_begin(CollectionPropertyIterator *iter, Poin
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(CD_MCOL), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MCol) * 4, me->totface, 0, NULL);
 }
 
 static int rna_MeshColorLayer_data_length(PointerRNA *ptr)
@@ -703,7 +703,7 @@ static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, 
 {
 	Mesh *me = rna_mesh(ptr);
 	CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(CD_MLOOPCOL), me->totloop, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MLoopCol), me->totloop, 0, NULL);
 }
 
 static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
@@ -1178,6 +1178,35 @@ static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C,
 	return ptr;
 }
 
+static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bContext *C, ReportList *reports,
+                                                     const char *name)
+{
+	PointerRNA ptr;
+	CustomData *fdata;
+	CustomDataLayer *cdl= NULL;
+	int index;
+
+	if (me->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add tessface colors's in editmode");
+		return PointerRNA_NULL;
+	}
+
+	if (me->mpoly) {
+		BKE_report(reports, RPT_ERROR, "Can't add tessface colors's when MPoly's exist");
+		return PointerRNA_NULL;
+	}
+
+	index = ED_mesh_color_add(C, NULL, NULL, me, name, FALSE);
+
+	if(index != -1) {
+		fdata = rna_mesh_fdata_helper(me);
+		cdl = &fdata->layers[CustomData_get_layer_index_n(fdata, CD_MCOL, index)];
+	}
+
+	RNA_pointer_create(&me->id, &RNA_MeshColorLayer, cdl, &ptr);
+	return ptr;
+}
+
 static PointerRNA rna_Mesh_int_property_new(struct Mesh *me, struct bContext *C, const char *name)
 {
 	PointerRNA ptr;
@@ -1242,7 +1271,7 @@ static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, c
 /* while this is supposed to be readonly,
  * keep it to support importers that only make tessfaces */
 
-static PointerRNA rna_Mesh_uv_tessface_texture_new(struct Mesh *me, struct bContext *C, ReportList *reports,
+static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bContext *C, ReportList *reports,
                                                    const char *name)
 {
 	PointerRNA ptr;
@@ -1263,8 +1292,8 @@ static PointerRNA rna_Mesh_uv_tessface_texture_new(struct Mesh *me, struct bCont
 	index = ED_mesh_uv_texture_add(C, me, name, FALSE);
 
 	if(index != -1) {
-		fdata= rna_mesh_fdata_helper(me);
-		cdl= &fdata->layers[CustomData_get_layer_index_n(fdata, CD_MTFACE, index)];
+		fdata = rna_mesh_fdata_helper(me);
+		cdl = &fdata->layers[CustomData_get_layer_index_n(fdata, CD_MTFACE, index)];
 	}
 
 	RNA_pointer_create(&me->id, &RNA_MeshTextureFaceLayer, cdl, &ptr);
@@ -2192,13 +2221,22 @@ static void rna_def_tessface_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	/* FunctionRNA *func; */
-	/* PropertyRNA *parm; */
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "VertexColors");
 	srna = RNA_def_struct(brna, "VertexColors", NULL);
 	RNA_def_struct_sdna(srna, "Mesh");
 	RNA_def_struct_ui_text(srna, "Vertex Colors", "Collection of vertex colors");
+
+	/* eventually deprecate this */
+	func = RNA_def_function(srna, "new", "rna_Mesh_tessface_vertex_color_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
+	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
+	parm = RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_function_return(func, parm);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshColorLayer");
@@ -2366,7 +2404,7 @@ static void rna_def_tessface_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "UV Maps", "Collection of UV maps for tessellated faces");
 
 	/* eventually deprecate this */
-	func= RNA_def_function(srna, "new", "rna_Mesh_uv_tessface_texture_new");
+	func= RNA_def_function(srna, "new", "rna_Mesh_tessface_uv_texture_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a UV tessface-texture layer to Mesh (only for meshes with no polygons)");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
