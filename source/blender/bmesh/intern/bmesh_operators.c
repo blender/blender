@@ -785,26 +785,29 @@ void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype, char do_flush_select)
+                                  const char hflag, const char htype, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
 	int i;
+	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
+	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (!(hflag & BM_ELEM_SELECT)) {
-		do_flush_select = FALSE;
-	}
-
-	for (i = 0; i < slot->len; i++) {
-		if (!(htype & data[i]->head.htype))
+	for (i = 0; i < slot->len; i++, data++) {
+		if (!(htype & (*data)->head.htype))
 			continue;
 
 		if (do_flush_select) {
-			BM_elem_select_set(bm, data[i], TRUE);
+			BM_elem_select_set(bm, *data, TRUE);
 		}
-		BM_elem_flag_enable(data[i], hflag);
+
+		if (do_flush_hide) {
+			BM_elem_hide_set(bm, *data, FALSE);
+		}
+
+		BM_elem_flag_enable(*data, hflag);
 	}
 }
 
@@ -815,29 +818,32 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype, char do_flush_select)
+                                   const char hflag, const char htype, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
 	int i;
+	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
+	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (!(hflag & BM_ELEM_SELECT)) {
-		do_flush_select = FALSE;
-	}
-
-	for (i = 0; i < slot->len; i++) {
-		if (!(htype & data[i]->head.htype))
+	for (i = 0; i < slot->len; i++, data++) {
+		if (!(htype & (*data)->head.htype))
 			continue;
 
 		if (do_flush_select) {
-			BM_elem_select_set(bm, data[i], FALSE);
+			BM_elem_select_set(bm, *data, FALSE);
 		}
 
-		BM_elem_flag_disable(data[i], hflag);
+		if (do_flush_hide) {
+			BM_elem_hide_set(bm, *data, FALSE);
+		}
+
+		BM_elem_flag_disable(*data, hflag);
 	}
 }
+
 int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
 {
 	int count = 0;

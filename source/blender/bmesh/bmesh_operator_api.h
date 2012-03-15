@@ -303,10 +303,10 @@ void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotnam
 
 /* tool-flags all elements inside an element slot array with flag flag. */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype, char do_flush_select);
+                                  const char hflag, const char htype, const char do_flush);
 /* clears tool-flag flag from all elements inside a slot array. */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype, char do_flush_select);
+                                   const char hflag, const char htype, const char do_flush);
 
 /* puts every element of type type (which is a bitmask) with header flag
  * flag, into a slot.  note: ignores hidden elements (e.g. elements with

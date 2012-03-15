@@ -1380,8 +1380,15 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	
 	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%he ccw=%b", BM_ELEM_TAG, do_ccw);
 
+	/* avoids leaving old verts selected which can be a problem running multiple times,
+	 * since this means the edges become selected around the face which then attempt to rotate */
+	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "edges", BM_ELEM_SELECT, BM_EDGE, TRUE);
+
 	BMO_op_exec(em->bm, &bmop);
+	/* edges may rotate into hidden vertices, if this does _not_ run we get an ilogical state */
+	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "edgeout", BM_ELEM_HIDDEN, BM_EDGE, TRUE);
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_EDGE, TRUE);
+	EDBM_selectmode_flush(em);
 
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;

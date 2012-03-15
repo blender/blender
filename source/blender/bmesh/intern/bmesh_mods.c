@@ -824,7 +824,7 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
 	BM_edge_ordered_verts(e, &v1, &v2);
 
 	/* we could swap the verts _or_ the faces, swapping faces
-	 * gives more pradictable resuts since that way the next vert
+	 * gives more predictable resuts since that way the next vert
 	 * just sitches from face fa / fb */
 	if (ccw) {
 		SWAP(BMFace *, fa, fb);
@@ -1006,6 +1006,8 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	BMLoop *l1, *l2;
 	BMFace *f;
 	BMEdge *e_new = NULL;
+	char f_hflag_prev_1;
+	char f_hflag_prev_2;
 
 	if (!BM_edge_rotate_check(bm, e)) {
 		return NULL;
@@ -1016,8 +1018,6 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	/* the loops will be freed so assign verts */
 	v1 = l1->v;
 	v2 = l2->v;
-
-
 
 	/* --------------------------------------- */
 	/* Checking Code - make sure we can rotate */
@@ -1053,6 +1053,9 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	 * if splice if disabled, always add in a new edge even if theres one there. */
 	e_new = BM_edge_create(bm, v1, v2, e, (check_flag & BM_EDGEROT_CHECK_SPLICE)!=0);
 
+	f_hflag_prev_1 = l1->f->head.hflag;
+	f_hflag_prev_2 = l2->f->head.hflag;
+
 	/* don't delete the edge, manually remove the egde after so we can copy its attributes */
 	f = BM_faces_join_pair(bm, l1->f, l2->f, NULL);
 
@@ -1065,6 +1068,16 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 	 * break this */
 	if (!BM_face_split(bm, f, v1, v2, NULL, NULL, TRUE)) {
 		return NULL;
+	}
+	else {
+		/* we should reallty be able to know the faces some other way,
+		 * rather then fetching them back from the edge, but this is predictable
+		 * where using the return values from face split isnt. - campbell */
+		BMFace *fa, *fb;
+		if (BM_edge_face_pair(e_new, &fa, &fb)) {
+			fa->head.hflag = f_hflag_prev_1;
+			fb->head.hflag = f_hflag_prev_2;
+		}
 	}
 
 	return e_new;
