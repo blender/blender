@@ -1736,6 +1736,14 @@ void init_userdef_do_versions(void)
 		U.use_16bit_textures = 1;
 	}
 
+	if (bmain->versionfile < 262 || (bmain->versionfile == 262 && bmain->subversionfile < 2)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if (btheme->tui.wcol_menu_item.item[3] == 255)
+				SETCOL(btheme->tui.wcol_menu_item.item, 172, 172, 172, 128);
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;

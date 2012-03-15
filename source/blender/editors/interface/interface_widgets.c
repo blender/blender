@@ -1367,7 +1367,7 @@ static struct uiWidgetColors wcol_menu_item= {
 	{0, 0, 0, 255},
 	{0, 0, 0, 0},
 	{86, 128, 194, 255},
-	{255, 255, 255, 255},
+	{172, 172, 172, 128},
 	
 	{255, 255, 255, 255},
 	{0, 0, 0, 255},
@@ -3297,15 +3297,17 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	bg_rect = trect;
 	bg_rect.xmin = rect->xmin + PREVIEW_PAD;
 	bg_rect.ymin = rect->ymin + PREVIEW_PAD;
-	bg_rect.xmax += PREVIEW_PAD / 2;
+	bg_rect.xmax = rect->xmax - PREVIEW_PAD;
 	bg_rect.ymax += PREVIEW_PAD / 2;
 	
 	if(bg_rect.xmax > rect->xmax - PREVIEW_PAD)
 		bg_rect.xmax = rect->xmax - PREVIEW_PAD;
 
 	UI_GetThemeColor3ubv(TH_BUTBACK, bg_col);
-	glColor3ubv(bg_col);
+	glColor4ubv((unsigned char*)wt->wcol.item);
+	glEnable(GL_BLEND);
 	glRecti(bg_rect.xmin, bg_rect.ymin, bg_rect.xmax, bg_rect.ymax);
+	glDisable(GL_BLEND);
 	
 	if (state == UI_ACTIVE)
 		glColor3ubv((unsigned char*)wt->wcol.text);
