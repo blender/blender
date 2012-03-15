@@ -617,7 +617,7 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name __MACOSX -exec rm -rf {} \;'%(installdir, binary)
     commands.getoutput(cmd)
-    if env['CC'].endswith('4.6.1'): # for correct errorhandling with gcc 4.6.1 we need the gcc.dylib to link, thus distribute in app-bundle
+    if env['CC'][:-2].endswith('4.6'): # for correct errorhandling with gcc 4.6.x we need the gcc.dylib to link, thus distribute in app-bundle
         cmd = 'mkdir %s/%s.app/Contents/MacOS/lib'%(installdir, binary)
         commands.getoutput(cmd)
         instname = env['BF_CXX']
