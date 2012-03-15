@@ -500,7 +500,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         # Sculpt Mode #
 
         elif context.sculpt_object and brush:
-            tool = brush.sculpt_tool
+            capabilities = brush.sculpt_capabilities
 
             col = layout.column()
 
@@ -519,12 +519,12 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
-            if tool not in {'SNAKE_HOOK', 'GRAB', 'ROTATE'}:
+            # strength, use_strength_pressure, and use_strength_attenuation
+            if capabilities.has_strength:
                 col.separator()
-
                 row = col.row(align=True)
 
-                if brush.use_space and tool != 'SMOOTH':
+                if capabilities.has_space_attenuation:
                     if brush.use_space_attenuation:
                         row.prop(brush, "use_space_attenuation", toggle=True, text="", icon='LOCKED')
                     else:
@@ -533,33 +533,29 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 self.prop_unified_strength(row, context, brush, "strength", text="Strength")
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
-            if tool == 'ROTATE':
-                row = col.row(align=True)
-                self.prop_unified_strength(row, context, brush, "strength", text="Strength")
-                self.prop_unified_strength(row, context, brush, "use_pressure_strength")
-
-            if tool != 'SMOOTH':
+            # auto_smooth_factor and use_inverse_smooth_pressure
+            if capabilities.has_auto_smooth:
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
-            if tool in {'GRAB', 'SNAKE_HOOK'}:
+            # normal_weight
+            if capabilities.has_normal_weight:
                 col.separator()
-
                 row = col.row(align=True)
                 row.prop(brush, "normal_weight", slider=True)
 
-            if tool in {'CREASE', 'BLOB'}:
+            # crease_pinch_factor
+            if capabilities.has_pinch_factor:
                 col.separator()
-
                 row = col.row(align=True)
                 row.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")
 
-            if tool not in {'PINCH', 'INFLATE', 'SMOOTH'}:
+            # use_original_normal and sculpt_plane
+            if capabilities.has_sculpt_plane:
                 row = col.row(align=True)
-
                 col.separator()
 
                 if brush.use_original_normal:
@@ -569,8 +565,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
                 row.prop(brush, "sculpt_plane", text="")
 
-            #if tool in {'CLAY', 'CLAY_TUBES', 'FLATTEN', 'FILL', 'SCRAPE'}:
-            if tool in {'CLAY', 'FLATTEN', 'FILL', 'SCRAPE'}:
+            # plane_offset, use_offset_pressure, use_plane_trim, plane_trim
+            if capabilities.has_plane_offset:
                 row = col.row(align=True)
                 row.prop(brush, "plane_offset", slider=True)
                 row.prop(brush, "use_offset_pressure", text="")
@@ -583,24 +579,28 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row.active = brush.use_plane_trim
                 row.prop(brush, "plane_trim", slider=True, text="Distance")
 
-            if tool == 'LAYER':
+            # height
+            if capabilities.has_height:
                 row = col.row()
                 row.prop(brush, "height", slider=True, text="Height")
 
+            # use_frontface
             col.separator()
-
             row = col.row()
             row.prop(brush, "use_frontface", text="Front Faces Only")
 
+            # direction
             col.separator()
             col.row().prop(brush, "direction", expand=True)
 
-            if tool in {'DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'}:
+            # use_accumulate
+            if capabilities.has_accumulate:
                 col.separator()
 
                 col.prop(brush, "use_accumulate")
 
-            if tool == 'LAYER':
+            # use_persistent, set_persistent_base
+            if capabilities.has_persistence:
                 col.separator()
 
                 ob = context.sculpt_object
@@ -714,7 +714,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
             col = layout.column()
             col.active = tex_slot.map_mode in {'FIXED'}
             col.label(text="Angle:")
-            if not brush.use_anchor and brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'} and tex_slot.map_mode in {'FIXED'}:
+            if brush.sculpt_capabilities.has_random_texture_angle:
                 col.prop(brush, "texture_angle_source_random", text="")
             else:
                 col.prop(brush, "texture_angle_source_no_random", text="")
@@ -732,10 +732,6 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
             col = layout.column()
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
             col.prop(tex_slot, "angle", text="")
-
-            #col = layout.column()
-            #col.prop(brush, "use_random_rotation")
-            #col.active = (not brush.use_rake) and (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'}) and tex_slot.map_mode in {'FIXED'}
 
             split = layout.split()
             split.prop(tex_slot, "offset")
@@ -832,7 +828,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 row.active = brush.use_space
                 row.prop(brush, "spacing", text="Spacing")
 
-            if (brush.sculpt_tool not in {'GRAB', 'THUMB', 'SNAKE_HOOK', 'ROTATE'}) and (not brush.use_anchor) and (not brush.use_restore_mesh):
+            if brush.sculpt_capabilities.has_smooth_stroke:
                 col = layout.column()
                 col.separator()
 
@@ -843,6 +839,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
                 sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
+            if brush.sculpt_capabilities.has_jitter:
                 col.separator()
 
                 row = col.row(align=True)
@@ -869,20 +866,12 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             col.separator()
 
             col = layout.column()
-            col.active = (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'THUMB', 'ROTATE', 'SNAKE_HOOK'})
+            col.active = brush.sculpt_capabilities.has_spacing
             col.prop(brush, "use_space")
 
             row = col.row()
             row.active = brush.use_space
             row.prop(brush, "spacing", text="Spacing")
-
-            #col.prop(brush, "use_space_attenuation", text="Adaptive Strength")
-            #col.prop(brush, "use_adaptive_space", text="Adaptive Spacing")
-
-            #col.separator()
-
-            #if image_paint:
-            #    row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
@@ -989,8 +978,7 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
         col = layout.column()
 
         if context.sculpt_object and context.tool_settings.sculpt:
-            #if brush.sculpt_tool in {'DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'}:
-            if brush.sculpt_tool in {'DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'}:
+            if brush.sculpt_capabilities.has_secondary_color:
                 col.prop(brush, "cursor_color_add", text="Add Color")
                 col.prop(brush, "cursor_color_subtract", text="Subtract Color")
             else:
