@@ -57,7 +57,7 @@ void multires_modifier_update_hidden(struct DerivedMesh *dm);
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
-	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
+	int local_mmd, struct DerivedMesh*, struct Object *, int);
 
 struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
 	struct ModifierData *lastmd);

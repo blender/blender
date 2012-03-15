@@ -658,7 +658,7 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 	mmd.totlvl = totlvl;
 	mmd.simple = simple;
 
-	return multires_dm_create_from_derived(&mmd, 1, dm, ob, 0, 0);
+	return multires_dm_create_from_derived(&mmd, 1, dm, ob, 0);
 }
 
 static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int simple, int optimal, int plain_uv)
@@ -1304,8 +1304,9 @@ void multires_stitch_grids(Object *ob)
 	}
 }
 
-DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
-							int useRenderParams, int UNUSED(isFinalCalc))
+DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd,
+											 int local_mmd, DerivedMesh *dm,
+											 Object *ob, int useRenderParams)
 {
 	Mesh *me= ob->data;
 	DerivedMesh *result;
@@ -1970,7 +1971,7 @@ void multires_load_old(Object *ob, Mesh *me)
 
 	mmd->lvl = mmd->totlvl;
 	orig = CDDM_from_mesh(me, NULL);
-	dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0, 0);
+	dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0);
 					   
 	multires_load_old_dm(dm, me, mmd->totlvl+1);
 

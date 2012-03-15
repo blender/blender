@@ -84,7 +84,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		}
 	}
 
-	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
+	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams);
 
 	if(result == dm)
 		return dm;
