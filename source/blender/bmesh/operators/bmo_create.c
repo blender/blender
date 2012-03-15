@@ -524,10 +524,15 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON * 10));
 
 				normalize_v3(n1); normalize_v3(n2); normalize_v3(n3);
-				
+
+				/* this case happens often enough and probably not worth bothering users with,
+				 * maybe enable for debugging code but not for everyday use - campbell */
+#if 0
 				if (s1 || s2 || s3) {
 					fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
 				}
+#endif
+
 				if (dot_v3v3(n1, n2) < 0.0f) {
 					if (dot_v3v3(n1, n3) >= 0.0f + FLT_EPSILON * 10) {
 						SWAP(BMEdge *, edges[i], edges[(i + 1) % totedge]);
