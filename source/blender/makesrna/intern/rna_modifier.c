@@ -2137,17 +2137,17 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Angle", "Angle above which to bevel edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	/* BMESH_BRANCH ONLY */
+#ifdef USE_BM_BEVEL_OP_AS_MOD
 	prop = RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE); /* name matches solidify */
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_EVEN);
 	RNA_def_property_ui_text(prop, "Even", "Use even bevel distance correction");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	/* BMESH_BRANCH ONLY */
+
 	prop = RNA_def_property(srna, "use_distance_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_DIST);
 	RNA_def_property_ui_text(prop, "Distance", "Use the width as a distance in rather then a factor of the face size");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	/* END BMESH_BRANCH ONLY */
+#endif
 
 }
 

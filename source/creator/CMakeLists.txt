@@ -799,8 +799,8 @@ endif()
 		bf_python_mathutils
 		bf_python_bmesh
 		bf_ikplugin
-		bf_bmesh
 		bf_modifiers
+		bf_bmesh
 		bf_blenkernel
 		bf_nodes
 		bf_gpu

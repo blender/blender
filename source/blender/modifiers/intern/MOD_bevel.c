@@ -90,12 +90,12 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 #define EDGE_MARK	1
 
+#ifdef USE_BM_BEVEL_OP_AS_MOD
 
 /* BMESH_TODO
  *
  * this bevel calls the operator which is missing many of the options
  * which the bevel modifier in trunk has.
- * - width is interpreted as percent (not distance)
  * - no vertex bevel
  * - no weight bevel
  *
@@ -157,7 +157,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 }
 
 
-#if 0 /* from trunk, see note above */
+#else /* from trunk, see note above */
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						DerivedMesh *derivedData,
@@ -165,13 +165,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
-	BME_Mesh *bm;
+	BMEditMesh *em;
 
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
 
-	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
+	options = bmd->flags | bmd->val_flags | bmd->lim_flags | bmd->e_flags;
 
 #if 0
 	if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
@@ -182,12 +182,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	}
 #endif
 
-	bm = BME_derivedmesh_to_bmesh(derivedData);
-	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
-	result = BME_bmesh_to_derivedmesh(bm,derivedData);
-	BME_free_mesh(bm);
-
-	CDDM_calc_normals(result);
+	em = DM_to_editbmesh(derivedData, NULL, FALSE);
+	BME_bevel(em, bmd->value, bmd->res, options, defgrp_index, bmd->bevel_angle, NULL, FALSE);
+	BLI_assert(em->looptris == NULL);
+	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
+	BMEdit_Free(em);
+	MEM_freeN(em);
 
 	return result;
 }
