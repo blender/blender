@@ -170,6 +170,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_selected);
+	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_selected_single);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);

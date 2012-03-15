@@ -75,7 +75,7 @@
 #include "UI_resources.h"
 
 #include "object_intern.h"
-#include <stdio.h>
+#include <stdio.h> /*only for development purposes, remove*/
 
 /************************ Exported Functions **********************/
 static void vgroup_remap_update_users(Object *ob, int *map);
@@ -2250,7 +2250,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/*Adds a copy of selected vertex group on source object to source object*/
+/*Adds a copy of selected vertex group from source object to source object*/
 static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
@@ -2628,6 +2628,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/*Copy vertex groups from source to target*/ /*warning! overwrites list*/
 static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
 	Object *obact= ED_object_context(C);
@@ -2652,6 +2653,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/*Copy vertex groups from source to target*/ /*warning! overwrites list*/
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2667,31 +2669,77 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* Transfers all vertex groups and weight from active object to targets*/
+static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op)
+{
+	Object *obact= CTX_data_active_object(C);
+	int change= 0;
+	int fail= 0;
+
+	bDeformGroup *dg;
+	dg = BLI_findlink(&obact->defbase, (obact->actdef-1));
+
+	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
+	{
+		if(obact != obslc) {
+			if(ED_vgroup_add_name(obslc, dg->name)) change++;
+			else                                fail++;
+		}
+	}
+	CTX_DATA_END;
+
+	if((change == 0 && fail == 0) || fail) {
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies",
+		            change, fail);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+/*Copy a vertex group from source to targets*/
+void OBJECT_OT_vertex_group_copy_to_selected_single(wmOperatorType *ot) /*Todo: add gui in python*/
+{
+	/* identifiers */
+	ot->name= "Copy a Vertex Group to Selected";
+	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected_single";
+	ot->description= "Copy a vertex group to other selected objects with matching indices";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_copy_to_selected_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static void vgroup_copy_weight_all(const bContext *C, wmOperator *op)
 {
-	/* for each vertex group {vgroup_copy_weight(sourceGroup, targetGroup)} */
+	/* for each vertex group {defvert_copy(sourceGroup, targetGroup)} */
 	printf("Not implemented yet! \n");
 }
 
 static int vertex_group_transfer_weight_all_exec(const bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
-	vertex_group_copy_to_selected_exec(C, op);
+	Object *ob = CTX_data_active_object(C);
+
+	vertex_group_copy_to_selected_exec(C, op); /*!!!This causes all vertex groups to be copied, weight or not.*/
 	vgroup_copy_weight_all(C, op);
 
+	/*is the right stuff being updated?*/
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
 }
 
+/* Transfers all vertex groups with weight from source to targets*/
 void OBJECT_OT_vertex_group_transfer_weight_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Transfer Weight All";
 	ot->idname= "OBJECT_OT_vertex_group_transfer_weight_all";
+	ot->description= "Copy all vertex groups including weights to targets";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2701,30 +2749,33 @@ void OBJECT_OT_vertex_group_transfer_weight_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* Transfers one vertex group with weight from active object to target*/
-static void vgroup_copy_weight(/*source vertex group*/ /*target vertex group*/)
+static void vgroup_copy_weight(const bContext *C, wmOperator *op)
 {
 	printf("Not implemented yet! \n");
 }
 
 static int vertex_group_transfer_weight_exec(const bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
-	/*vertex_group_copy_to_selected_exec(C,op); ----- must be implemented!*/
-	vgroup_copy_weight();
+	Object *ob = CTX_data_active_object(C);
 
+	vertex_group_copy_to_selected_single_exec(C,op); /*!!!This will copy vertex grop, weight or not.*/
+	vgroup_copy_weight(C, op);
+
+	/*is the right stuff being updated?*/
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
 }
 
+/* Transfers one vertex group with weight from source to targets*/
 void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Transfer Weight";
 	ot->idname= "OBJECT_OT_vertex_group_transfer_weight";
+	ot->description= "Copy a vertex group including weights to targets";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
