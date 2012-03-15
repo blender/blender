@@ -755,40 +755,6 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
             sub.prop(brush, "texture_overlay_alpha", text="Alpha")
 
 
-class VIEW3D_PT_tools_brush_tool(Panel, View3DPaintPanel):
-    bl_label = "Tool"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        settings = cls.paint_settings(context)
-        return (settings and settings.brush and
-            (context.sculpt_object or context.image_paint_object or
-            context.vertex_paint_object or context.weight_paint_object))
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = self.paint_settings(context)
-        brush = settings.brush
-
-        col = layout.column(align=True)
-
-        if context.sculpt_object:
-            col.prop(brush, "sculpt_tool", expand=False, text="")
-            col.operator("brush.reset")
-        elif context.image_paint_object:
-            col.prop(brush, "image_tool", expand=False, text="")
-        elif context.vertex_paint_object or context.weight_paint_object:
-            col.prop(brush, "vertex_tool", expand=False, text="")
-
-        row = layout.row(align=True)
-        row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
-        row.prop(brush, "use_paint_vertex", text="", icon='VPAINT_HLT')
-        row.prop(brush, "use_paint_weight", text="", icon='WPAINT_HLT')
-        row.prop(brush, "use_paint_image", text="", icon='TPAINT_HLT')
-
-
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
     bl_label = "Stroke"
     bl_options = {'DEFAULT_CLOSED'}
