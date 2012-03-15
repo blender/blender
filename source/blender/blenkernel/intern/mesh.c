@@ -1016,38 +1016,131 @@ void make_edges(Mesh *me, int old)
 	mesh_strip_loose_faces(me);
 }
 
+/* We need to keep this for edge creation (for now?), and some old readfile code... */
 void mesh_strip_loose_faces(Mesh *me)
 {
-	int a,b;
+	MFace *f;
+	int a, b;
 
-	for (a=b=0; a<me->totface; a++) {
-		if (me->mface[a].v3) {
-			if (a!=b) {
-				memcpy(&me->mface[b],&me->mface[a],sizeof(me->mface[b]));
+	for (a = b = 0, f = me->mface; a < me->totface; a++, f++) {
+		if (f->v3) {
+			if (a != b) {
+				memcpy(&me->mface[b], f, sizeof(me->mface[b]));
 				CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
-				CustomData_free_elem(&me->fdata, a, 1);
 			}
 			b++;
 		}
 	}
-	me->totface = b;
+	if (a != b) {
+		CustomData_free_elem(&me->fdata, b, a - b);
+		me->totface = b;
+	}
+}
+
+/* Works on both loops and polys! */
+/* Note: It won't try to guess which loops of an invalid poly to remove!
+ *       this is the work of the caller, to mark those loops...
+ *       See e.g. BKE_mesh_validate_arrays(). */
+void mesh_strip_loose_polysloops(Mesh *me)
+{
+	MPoly *p;
+	MLoop *l;
+	int a, b;
+	/* New loops idx! */
+	int *new_idx = MEM_mallocN(sizeof(int) * me->totloop, "strip_loose_polysloops old2new idx mapping for polys.");
+
+	for (a = b = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
+		int invalid = FALSE;
+		int i = p->loopstart;
+		int stop = i + p->totloop;
+
+		if (stop > me->totloop || stop < i) {
+			invalid = TRUE;
+		}
+		else {
+			l = &me->mloop[i];
+			i = stop - i;
+			/* If one of the poly's loops is invalid, the whole poly is invalid! */
+			for (; i--; l++) {
+				if (l->e == INVALID_LOOP_EDGE_MARKER) {
+					invalid = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (p->totloop >= 3 && !invalid) {
+			if (a != b) {
+				memcpy(&me->mpoly[b], p, sizeof(me->mpoly[b]));
+				CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
+			}
+			b++;
+		}
+	}
+	if (a != b) {
+		CustomData_free_elem(&me->pdata, b, a - b);
+		me->totpoly = b;
+	}
+
+	/* And now, get rid of invalid loops. */
+	for (a = b = 0, l = me->mloop; a < me->totloop; a++, l++) {
+		if (l->e != INVALID_LOOP_EDGE_MARKER) {
+			if (a != b) {
+				memcpy(&me->mloop[b], l, sizeof(me->mloop[b]));
+				CustomData_copy_data(&me->ldata, &me->ldata, a, b, 1);
+			}
+			new_idx[a] = b;
+			b++;
+		}
+		else {
+			/* XXX Theorically, we should be able to not do this, as no remaining poly
+			 *     should use any stripped loop. But for security's sake... */
+			new_idx[a] = -a;
+		}
+	}
+	if (a != b) {
+		CustomData_free_elem(&me->ldata, b, a - b);
+		me->totloop = b;
+	}
+
+	/* And now, update polys' start loop index. */
+	/* Note: At this point, there should never be any poly using a striped loop! */
+	for (a = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
+		p->loopstart = new_idx[p->loopstart];
+	}
 }
 
 void mesh_strip_loose_edges(Mesh *me)
 {
-	int a,b;
+	MEdge *e;
+	MLoop *l;
+	int a, b;
+	unsigned int *new_idx = MEM_mallocN(sizeof(int) * me->totedge, "strip_loose_edges old2new idx mapping for loops.");
 
-	for (a=b=0; a<me->totedge; a++) {
-		if (me->medge[a].v1!=me->medge[a].v2) {
-			if (a!=b) {
-				memcpy(&me->medge[b],&me->medge[a],sizeof(me->medge[b]));
+	for (a = b = 0, e = me->medge; a < me->totedge; a++, e++) {
+		if (e->v1 != e->v2) {
+			if (a != b) {
+				memcpy(&me->medge[b], e, sizeof(me->medge[b]));
 				CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
-				CustomData_free_elem(&me->edata, a, 1);
 			}
+			new_idx[a] = b;
 			b++;
 		}
+		else {
+			new_idx[a] = INVALID_LOOP_EDGE_MARKER;
+		}
 	}
-	me->totedge = b;
+	if (a != b) {
+		CustomData_free_elem(&me->edata, b, a - b);
+		me->totedge = b;
+	}
+
+	/* And now, update loops' edge indices. */
+	/* XXX We hope no loop was pointing to a striped edge!
+	 *     Else, its e will be set to INVALID_LOOP_EDGE_MARKER :/ */
+	for (a = 0, l = me->mloop; a < me->totloop; a++, l++) {
+		l->e = new_idx[l->e];
+	}
 }
 
 void mball_to_mesh(ListBase *lb, Mesh *me)
@@ -2215,7 +2308,7 @@ int mesh_recalcTessellation(CustomData *fdata,
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int UNUSED(totloop),
                            int totpoly,
-                           /* when tessellating to recalcilate normals after
+                           /* when tessellating to recalculate normals after
                             * we can skip copying here */
                            const int do_face_nor_cpy)
 {

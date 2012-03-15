@@ -160,7 +160,8 @@ void mesh_get_texspace(struct Mesh *me, float r_loc[3], float r_rot[3], float r_
 /* if old, it converts mface->edcode to edge drawflags */
 void make_edges(struct Mesh *me, int old);
 
-void mesh_strip_loose_faces(struct Mesh *me);
+void mesh_strip_loose_faces(struct Mesh *me); /* Needed for compatibility (some old read code). */
+void mesh_strip_loose_polysloops(struct Mesh *me);
 void mesh_strip_loose_edges(struct Mesh *me);
 
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
@@ -268,11 +269,14 @@ int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */
+/* XXX Loop v/e are unsigned, so using max uint_32 value as invalid marker... */
+#define INVALID_LOOP_EDGE_MARKER 4294967295u
 int BKE_mesh_validate_arrays(
-		struct Mesh *me,
+        struct Mesh *me,
         struct MVert *mverts, unsigned int totvert,
         struct MEdge *medges, unsigned int totedge,
-        struct MFace *mfaces, unsigned int totface,
+        struct MLoop *mloops, unsigned int totloop,
+        struct MPoly *mpolys, unsigned int totpoly,
         struct MDeformVert *dverts, /* assume totvert length */
         const short do_verbose, const short do_fixes);
 int BKE_mesh_validate(struct Mesh *me, int do_verbose);
