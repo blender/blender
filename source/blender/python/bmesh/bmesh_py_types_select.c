@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_select.c
+/** \file blender/python/bmesh/bmesh_py_types_select.c
  *  \ingroup pybmesh
  *
  * This file defines the types for 'BMesh.select_history'
@@ -38,7 +38,7 @@
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
-#include "bmesh_py_select.h"
+#include "bmesh_py_types_select.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"

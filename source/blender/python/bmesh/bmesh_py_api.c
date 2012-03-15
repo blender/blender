@@ -34,8 +34,8 @@
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
+#include "bmesh_py_types_select.h"
 #include "bmesh_py_utils.h"
-#include "bmesh_py_select.h"
 
 #include "BLI_utildefines.h"
 

@@ -23,12 +23,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_select.h
+/** \file blender/python/bmesh/bmesh_py_types_select.h
  *  \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_SELECT_H__
-#define __BMESH_PY_SELECT_H__
+#ifndef __BMESH_PY_TYPES_SELECT_H__
+#define __BMESH_PY_TYPES_SELECT_H__
 
 struct BPy_BMesh;
 

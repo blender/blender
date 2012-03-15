@@ -44,8 +44,8 @@
 
 #include "../generic/py_capi_utils.h"
 
-#include "bmesh_py_select.h"
 #include "bmesh_py_types.h" /* own include */
+#include "bmesh_py_types_select.h"
 
 /* Common Flags
  * ************ */
