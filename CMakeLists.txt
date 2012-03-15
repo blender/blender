@@ -267,18 +267,18 @@ if(APPLE)
 	endif()
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
+	
+		##### workaround for actual official cmake incompatibility with xcode 4.3 #####	
+		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
+			message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
+		endif()
+		### end workaround for actual official cmake incompatibility with xcode 4.3 ###	
+		
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
 			# Override the default compiler selection because Blender only compiles with gcc up to xcode 4.2
 			set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
 			message(STATUS "Setting compiler to: " ${CMAKE_XCODE_ATTRIBUTE_GCC_VERSION})
-			
-			##### workaround for actual official cmake incompatibility with xcode 4.3 #####	
-			if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
-				message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
-			endif()
-			##### end workaround for actual official cmake incompatibility with xcode 4.3 #####	
-			
 		endif()
 	else() # unix makefile generator does not fill XCODE_VERSION var, so we get it with a command
 		execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERS_BUILDNR )
