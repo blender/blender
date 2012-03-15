@@ -578,7 +578,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Accumulate", "Accumulate stroke daubs on top of each other");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
-	prop = RNA_def_property(srna, "use_space_atten", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_space_attenuation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE_ATTEN);
 	RNA_def_property_ui_text(prop, "Use Automatic Strength Adjustment", "Automatically adjust strength to give consistent results for different spacings");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");

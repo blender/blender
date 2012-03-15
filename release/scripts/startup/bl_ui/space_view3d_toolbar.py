@@ -525,10 +525,10 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row = col.row(align=True)
 
                 if brush.use_space and tool != 'SMOOTH':
-                    if brush.use_space_atten:
-                        row.prop(brush, "use_space_atten", toggle=True, text="", icon='LOCKED')
+                    if brush.use_space_attenuation:
+                        row.prop(brush, "use_space_attenuation", toggle=True, text="", icon='LOCKED')
                     else:
-                        row.prop(brush, "use_space_atten", toggle=True, text="", icon='UNLOCKED')
+                        row.prop(brush, "use_space_attenuation", toggle=True, text="", icon='UNLOCKED')
 
                 self.prop_unified_strength(row, context, brush, "strength", text="Strength")
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")
@@ -876,7 +876,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             row.active = brush.use_space
             row.prop(brush, "spacing", text="Spacing")
 
-            #col.prop(brush, "use_space_atten", text="Adaptive Strength")
+            #col.prop(brush, "use_space_attenuation", text="Adaptive Strength")
             #col.prop(brush, "use_adaptive_space", text="Adaptive Spacing")
 
             #col.separator()
