@@ -1245,7 +1245,7 @@ void postTrans (bContext *C, TransInfo *t)
 		/* Can take over freeing t->data and data2d etc... */
 		t->customFree(t);
 	}
-	else if (t->customData) {
+	else if ((t->customData != NULL) && (t->flag & T_FREE_CUSTOMDATA)) {
 		MEM_freeN(t->customData);
 	}
 

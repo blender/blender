@@ -2454,7 +2454,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
 			t->customData = NULL;
 		}
-		
+
 		status = 1;
 	}
 	

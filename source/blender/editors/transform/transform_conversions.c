@@ -4204,9 +4204,9 @@ static void freeSeqData(TransInfo *t)
 		}
 	}
 
-	if (t->customData) {
+	if ((t->customData != NULL) && (t->flag & T_FREE_CUSTOMDATA)) {
 		MEM_freeN(t->customData);
-		t->customData= NULL;
+		t->customData = NULL;
 	}
 	if (t->data) {
 		MEM_freeN(t->data); // XXX postTrans usually does this
@@ -4281,7 +4281,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransSeq TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransSeq TransData2D");
-	tdsq = t->customData= MEM_callocN(t->total*sizeof(TransDataSeq), "TransSeq TransDataSeq");
+	tdsq = t->customData = MEM_callocN(t->total*sizeof(TransDataSeq), "TransSeq TransDataSeq");
+	t->flag |= T_FREE_CUSTOMDATA;
 
 
 
