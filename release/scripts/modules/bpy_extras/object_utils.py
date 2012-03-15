@@ -21,14 +21,14 @@
 __all__ = (
     "add_object_align_init",
     "object_data_add",
-    "object_generic_transform_prop",
+    "AddObjectHelper",
     )
 
 
 import bpy
 import mathutils
 
-from bpy.props import (BoolProperty, FloatVectorProperty)
+from bpy.props import BoolProperty, FloatVectorProperty
 
 
 def add_object_align_init(context, operator):
