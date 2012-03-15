@@ -2610,7 +2610,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_filter_text", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", TEXTFILE);
 	RNA_def_property_ui_text(prop, "Filter Text", "Show text files");
-	RNA_def_property_ui_icon(prop, ICON_FILE_BLANK, 0);
+	RNA_def_property_ui_icon(prop, ICON_FILE_TEXT, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_folder", PROP_BOOLEAN, PROP_NONE);
