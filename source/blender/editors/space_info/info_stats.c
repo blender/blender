@@ -335,7 +335,7 @@ static void stats_update(Scene *scene)
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
 	}
-	else if(ob && (ob->flag & OB_MODE_ALL_PAINT)) {
+	else if(ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		/* Sculpt and Paint Mode */
 		stats_object_paint(ob, &stats);
 	}
