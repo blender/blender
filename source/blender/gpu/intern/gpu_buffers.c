@@ -1606,7 +1606,7 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 	totquad= gpu_count_grid_quads(grid_hidden, grid_indices, totgrid, gridsize);
 
 	if(totquad == fully_visible_totquad) {
-		gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);
+		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);
 		buffers->has_hidden = 0;
 	}
 	else if(GLEW_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO)) {
