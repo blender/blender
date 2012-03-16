@@ -476,49 +476,14 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 	}
 }
 
-int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
-{
-	int a= 0, b= 0;
-	int count= 0;
-
-	while(a<src_track->markersnr || b<dst_track->markersnr) {
-		if(b>=dst_track->markersnr) {
-			a++;
-			count++;
-		}
-		else if(a>=src_track->markersnr) {
-			b++;
-			count++;
-		}
-		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr) {
-			a++;
-			count++;
-		} else if(src_track->markers[a].framenr>dst_track->markers[b].framenr) {
-			b++;
-			count++;
-		} else {
-			if((src_track->markers[a].flag&MARKER_DISABLED)==0 && (dst_track->markers[b].flag&MARKER_DISABLED)==0)
-				return 0;
-
-			a++;
-			b++;
-			count++;
-		}
-	}
-
-	return count;
-}
-
 void BKE_tracking_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
-	int i, a= 0, b= 0, tot;
+	int i= 0, a= 0, b= 0;
 	MovieTrackingMarker *markers;
 
-	tot= BKE_tracking_test_join_tracks(dst_track, src_track);
+	markers= MEM_callocN((dst_track->markersnr+src_track->markersnr)*sizeof(MovieTrackingMarker), "tmp tracking joined tracks");
 
-	markers= MEM_callocN(tot*sizeof(MovieTrackingMarker), "tracking joined tracks");
-
-	for(i= 0; i<tot; i++) {
+	while (a < src_track->markersnr || b < dst_track->markersnr) {
 		if(b>=dst_track->markersnr) {
 			markers[i]= src_track->markers[a++];
 		}
@@ -530,18 +495,34 @@ void BKE_tracking_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack 
 		} else if(src_track->markers[a].framenr>dst_track->markers[b].framenr) {
 			markers[i]= dst_track->markers[b++];
 		} else {
-			if((src_track->markers[a].flag&MARKER_DISABLED)) markers[i]= dst_track->markers[b];
-			else markers[i]= src_track->markers[a++];
+			if((src_track->markers[a].flag&MARKER_DISABLED)==0) {
+				if((dst_track->markers[b].flag&MARKER_DISABLED)==0) {
+					/* both tracks are enabled on this frame, use their average position
+					 * can be improved further if tracks will be storing tracking score */
+
+					markers[i]= dst_track->markers[b];
+					add_v2_v2(markers[i].pos, src_track->markers[a].pos);
+					mul_v2_fl(markers[i].pos, 0.5f);
+				}
+				else markers[i]= src_track->markers[a];
+			}
+			else markers[i]= dst_track->markers[b];
 
 			a++;
 			b++;
 		}
+
+		i++;
 	}
 
 	MEM_freeN(dst_track->markers);
 
-	dst_track->markers= markers;
-	dst_track->markersnr= tot;
+	dst_track->markers= MEM_callocN(i*sizeof(MovieTrackingMarker), "tracking joined tracks");
+	memcpy(dst_track->markers, markers, i*sizeof(MovieTrackingMarker));
+
+	dst_track->markersnr= i;
+
+	MEM_freeN(markers);
 }
 
 static void tracking_tracks_free(ListBase *tracks)

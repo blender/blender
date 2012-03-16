@@ -2957,18 +2957,6 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 
 	track= tracksbase->first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
-			if(!BKE_tracking_test_join_tracks(act_track, track)) {
-				BKE_report(op->reports, RPT_ERROR, "Some selected tracks have got keyframed markers to the same frame");
-				return OPERATOR_CANCELLED;
-			}
-		}
-
-		track= track->next;
-	}
-
-	track= tracksbase->first;
-	while(track) {
 		next= track->next;
 
 		if(TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
