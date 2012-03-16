@@ -145,6 +145,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 
 PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len);
 int       BPy_BMElem_CheckHType(PyTypeObject *type, const char htype);
+char     *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32]);
 char     *BPy_BMElem_StringFromHType(const char htype);
 
 

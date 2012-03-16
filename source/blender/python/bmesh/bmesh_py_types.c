@@ -2097,6 +2097,9 @@ static struct PyMethodDef bpy_bmelemseq_methods[] = {
 /* Sequences
  * ========= */
 
+/* BMElemSeq / Iter
+ * ---------------- */
+
 static PyTypeObject *bpy_bm_itype_as_pytype(const char itype)
 {
 	/* should cover all types */
@@ -2305,6 +2308,23 @@ static int bpy_bmelemseq_contains(BPy_BMElemSeq *self, PyObject *value)
 	return 0;
 }
 
+/* BMElem (customdata)
+ * ------------------- */
+
+static PyObject *bpy_bmelem_subscript(BPy_BMElem *self, BPy_BMLayerItem *key)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	return BPy_BMLayerItem_GetItem(self, key);
+}
+
+static int bpy_bmelem_ass_subscript(BPy_BMElem *self, BPy_BMLayerItem *key, PyObject *value)
+{
+	BPY_BM_CHECK_INT(self);
+
+	return BPy_BMLayerItem_SetItem(self, key, value);
+}
+
 static PySequenceMethods bpy_bmelemseq_as_sequence = {
     (lenfunc)bpy_bmelemseq_length,                  /* sq_length */
     NULL,                                        /* sq_concat */
@@ -2322,6 +2342,13 @@ static PyMappingMethods bpy_bmelemseq_as_mapping = {
     (lenfunc)bpy_bmelemseq_length,                  /* mp_length */
     (binaryfunc)bpy_bmelemseq_subscript,            /* mp_subscript */
     (objobjargproc)NULL,                         /* mp_ass_subscript */
+};
+
+/* for customdata access */
+static PyMappingMethods bpy_bm_elem_as_mapping = {
+    (lenfunc)NULL,                           /* mp_length */ /* keep this empty, messes up 'if elem: ...' test */
+    (binaryfunc)bpy_bmelem_subscript,        /* mp_subscript */
+    (objobjargproc)bpy_bmelem_ass_subscript, /* mp_ass_subscript */
 };
 
 /* Iterator
@@ -2613,6 +2640,10 @@ void BPy_BM_init_types(void)
 
 	BPy_BMElemSeq_Type.tp_as_sequence = &bpy_bmelemseq_as_sequence;
 
+	BPy_BMVert_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
+	BPy_BMEdge_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
+	BPy_BMFace_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
+	BPy_BMLoop_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
 	BPy_BMElemSeq_Type.tp_as_mapping = &bpy_bmelemseq_as_mapping;
 
 	BPy_BMElemSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
@@ -3015,10 +3046,9 @@ int BPy_BMElem_CheckHType(PyTypeObject *type, const char htype)
  *
  * \return a sting like '(BMVert/BMEdge/BMFace/BMLoop)'
  */
-char *BPy_BMElem_StringFromHType(const char htype)
+char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 {
 	/* zero to ensure string is always NULL terminated */
-	static char ret[32];
 	char *ret_ptr = ret;
 	if (htype & BM_VERT) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
 	if (htype & BM_EDGE) ret_ptr += sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
@@ -3027,4 +3057,10 @@ char *BPy_BMElem_StringFromHType(const char htype)
 	ret[0]   = '(';
 	*ret_ptr = ')';
 	return ret;
+}
+char *BPy_BMElem_StringFromHType(const char htype)
+{
+	/* zero to ensure string is always NULL terminated */
+	static char ret[32];
+	return BPy_BMElem_StringFromHType_ex(htype, ret);
 }

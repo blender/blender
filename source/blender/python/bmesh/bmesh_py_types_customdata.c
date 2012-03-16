@@ -32,12 +32,19 @@
 
 #include <Python.h>
 
+#include "BLI_string.h"
+#include "BLI_math_vector.h"
+
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_customdata.h"
 
+#include "../mathutils/mathutils.h"
+
 #include "BKE_customdata.h"
+
+#include "DNA_meshdata_types.h"
 
 static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
 {
@@ -95,7 +102,7 @@ static PyGetSetDef bpy_bmlayeraccess_getseters[] = {
     {(char *)"color", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_MLOOPCOL},
 
     {(char *)"shape",        (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_SHAPEKEY},
-    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_SHAPEKEY},
+    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_BWEIGHT},
     {(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_CREASE},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
@@ -544,4 +551,253 @@ void BPy_BM_init_types_customdata(void)
 	PyType_Ready(&BPy_BMLayerAccess_Type);
 	PyType_Ready(&BPy_BMLayerCollection_Type);
 	PyType_Ready(&BPy_BMLayerItem_Type);
+}
+
+
+/* Per Element Get/Set
+ * ******************* */
+
+/**
+ * helper function for get/set, NULL return means the error is set
+*/
+static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
+{
+	void *value;
+	BMElem *ele = py_ele->ele;
+	CustomData *data;
+
+	/* error checking */
+	if (UNLIKELY(!BPy_BMLayerItem_Check(py_layer))) {
+		PyErr_SetString(PyExc_AttributeError,
+		                "BMElem[key]: invalid key, must be a BMLayerItem");
+		return NULL;
+	}
+	else if (UNLIKELY(py_ele->bm != py_layer->bm)) {
+		PyErr_SetString(PyExc_ValueError,
+		                "BMElem[layer]: layer is from another mesh");
+		return NULL;
+	}
+	else if (UNLIKELY(ele->head.htype != py_layer->htype)) {
+		char namestr_1[32], namestr_2[32];
+		PyErr_Format(PyExc_ValueError,
+		             "Layer/Element type mismatch, expected %.200s got layer type %.200s",
+		             BPy_BMElem_StringFromHType_ex(ele->head.htype, namestr_1),
+		             BPy_BMElem_StringFromHType_ex(py_layer->htype, namestr_2));
+		return NULL;
+	}
+
+	data = bpy_bm_customdata_get(py_layer->bm, py_layer->htype);
+
+	value = CustomData_bmesh_get_n(data, ele->head.data, py_layer->type, py_layer->index);
+
+	if (UNLIKELY(value == NULL)) {
+		/* this should be fairly unlikely but possible if layers move about after we get them */
+		PyErr_SetString(PyExc_KeyError,
+		             "BMElem[key]: layer not found");
+		return NULL;
+	}
+	else {
+		return value;
+	}
+}
+
+
+/**
+ *\brief BMElem.__getitem__()
+ *
+ * assume all error checks are done, eg:
+ *
+ *     uv = vert[uv_layer]
+ */
+PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
+{
+	void *value = bpy_bmlayeritem_ptr_get(py_ele, py_layer);
+	PyObject *ret;
+
+	if (UNLIKELY(value == NULL)) {
+		return NULL;
+	}
+
+	switch (py_layer->type) {
+		case CD_MDEFORMVERT:
+		{
+			ret = Py_NotImplemented; /* TODO */
+			Py_INCREF(ret);
+			break;
+		}
+		case CD_PROP_FLT:
+		{
+			ret = PyFloat_FromDouble(*(float *)value);
+			break;
+		}
+		case CD_PROP_INT:
+		{
+			ret = PyLong_FromSsize_t((Py_ssize_t)(*(int *)value));
+			break;
+		}
+		case CD_PROP_STR:
+		{
+			MStringProperty *mstring = value;
+			ret = PyBytes_FromStringAndSize(mstring->s, BLI_strnlen(mstring->s, sizeof(mstring->s)));
+			break;
+		}
+		case CD_MTEXPOLY:
+		{
+			ret = Py_NotImplemented; /* TODO */
+			Py_INCREF(ret);
+			break;
+		}
+		case CD_MLOOPUV:
+		{
+			ret = Py_NotImplemented; /* TODO */
+			Py_INCREF(ret);
+			break;
+		}
+		case CD_MLOOPCOL:
+		{
+			ret = Py_NotImplemented; /* TODO */
+			Py_INCREF(ret);
+			break;
+		}
+		case CD_SHAPEKEY:
+		{
+			ret = Vector_CreatePyObject((float *)value, 3, Py_WRAP, NULL);
+			break;
+		}
+		case CD_BWEIGHT:
+		{
+			ret = PyFloat_FromDouble(*(float *)value);
+			break;
+		}
+		case CD_CREASE:
+		{
+			ret = PyFloat_FromDouble(*(float *)value);
+			break;
+		}
+		default:
+		{
+			ret = Py_NotImplemented; /* TODO */
+			Py_INCREF(ret);
+			break;
+		}
+	}
+
+	return ret;
+}
+
+int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObject *py_value)
+{
+	int ret = 0;
+	void *value = bpy_bmlayeritem_ptr_get(py_ele, py_layer);
+
+	if (UNLIKELY(value == NULL)) {
+		return -1;
+	}
+
+	switch (py_layer->type) {
+		case CD_MDEFORMVERT:
+		{
+			PyErr_SetString(PyExc_AttributeError, "readonly"); /* could make this writeable later */
+			ret = -1;
+			break;
+		}
+		case CD_PROP_FLT:
+		{
+			float tmp_val = PyFloat_AsDouble(py_value);
+			if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
+				PyErr_Format(PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
+				ret = -1;
+			}
+			else {
+				*(float *)value = tmp_val;
+			}
+			break;
+		}
+		case CD_PROP_INT:
+		{
+			int tmp_val = PyLong_AsSsize_t(py_value);
+			if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
+				PyErr_Format(PyExc_TypeError, "expected an int, not a %.200s", Py_TYPE(py_value)->tp_name);
+				ret = -1;
+			}
+			else {
+				*(int *)value = tmp_val;
+			}
+			break;
+		}
+		case CD_PROP_STR:
+		{
+			MStringProperty *mstring = value;
+			const char *tmp_val = PyBytes_AsString(py_value);
+			if (UNLIKELY(tmp_val == NULL)) {
+				PyErr_Format(PyExc_TypeError, "expected bytes, not a %.200s", Py_TYPE(py_value)->tp_name);
+				ret = -1;
+			}
+			else {
+				BLI_strncpy(mstring->s, tmp_val, sizeof(mstring->s));
+			}
+			break;
+		}
+		case CD_MTEXPOLY:
+		{
+			PyErr_SetString(PyExc_AttributeError, "readonly"); /* could make this writeable later */
+			ret = -1;
+			break;
+		}
+		case CD_MLOOPUV:
+		{
+			PyErr_SetString(PyExc_AttributeError, "readonly"); /* could make this writeable later */
+			ret = -1;
+			break;
+		}
+		case CD_MLOOPCOL:
+		{
+			PyErr_SetString(PyExc_AttributeError, "readonly");
+			ret = -1;
+			break;
+		}
+		case CD_SHAPEKEY:
+		{
+			float tmp_val[3];
+			if (UNLIKELY(mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") == -1)) {
+				ret = -1;
+			}
+			else {
+				copy_v3_v3((float *)value,tmp_val);
+			}
+			break;
+		}
+		case CD_BWEIGHT:
+		{
+			float tmp_val = PyFloat_AsDouble(py_value);
+			if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
+				PyErr_Format(PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
+				ret = -1;
+			}
+			else {
+				*(float *)value = CLAMPIS(tmp_val, 0.0f, 1.0f);
+			}
+			break;
+		}
+		case CD_CREASE:
+		{
+			float tmp_val = PyFloat_AsDouble(py_value);
+			if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
+				PyErr_Format(PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
+				ret = -1;
+			}
+			else {
+				*(float *)value = CLAMPIS(tmp_val, 0.0f, 1.0f);
+			}
+			break;
+		}
+		default:
+		{
+			PyErr_SetString(PyExc_AttributeError, "readonly / unsupported type");
+			ret = -1;
+			break;
+		}
+	}
+
+	return ret;
 }

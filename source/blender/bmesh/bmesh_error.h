@@ -49,7 +49,7 @@ void BMO_error_clear(BMesh *bm);
  * errorcode is either the errorcode, or BMERR_ALL for any
  * error.*/
 
-/* not yet implimented.
+/* not yet implemented.
  * int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
  */
 
