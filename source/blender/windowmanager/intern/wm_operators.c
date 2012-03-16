@@ -146,16 +146,17 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
+	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
 	opfunc(ot);
 
 	if(ot->name==NULL) {
 		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
-		ot->name= IFACE_("Dummy Name");
+		ot->name= N_("Dummy Name");
 	}
 
 	// XXX All ops should have a description but for now allow them not to.
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:IFACE_("(undocumented operator)"));
-
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:N_("(undocumented operator)"));
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
@@ -167,8 +168,10 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
+	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
 	opfunc(ot, userdata);
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:IFACE_("(undocumented operator)"));
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:N_("(undocumented operator)"));
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
@@ -361,11 +364,12 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	ot->cancel= wm_macro_cancel;
 	ot->poll= NULL;
 
-	if(!ot->description)
-		ot->description= IFACE_("(undocumented operator)");
+	if(!ot->description) /* XXX All ops should have a description but for now allow them not to. */
+		ot->description= N_("(undocumented operator)");
 	
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description); // XXX All ops should have a description but for now allow them not to.
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
+	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 
@@ -387,8 +391,10 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 	ot->poll= NULL;
 
 	if(!ot->description)
-		ot->description= IFACE_("(undocumented operator)");
+		ot->description= N_("(undocumented operator)");
 
+	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
+	RNA_def_struct_translation_context(ot->srna, WM_OPERATOR_DEFAULT_I18NCONTEXT);
 	opfunc(ot, userdata);
 
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);

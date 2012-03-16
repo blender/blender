@@ -428,6 +428,8 @@ typedef struct wmTimer {
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
 
+/* Default context for operator names/labels. */
+#define WM_OPERATOR_DEFAULT_I18NCONTEXT "Operator"
 
 typedef struct wmOperatorType {
 	const char *name;		/* text for ui, undo */

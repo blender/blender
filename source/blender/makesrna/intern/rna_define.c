@@ -871,6 +871,11 @@ void RNA_def_struct_ui_icon(StructRNA *srna, int icon)
 	srna->icon = icon;
 }
 
+void RNA_def_struct_translation_context(StructRNA *srna, const char *context)
+{
+	srna->translation_context = context;
+}
+
 /* Property Definition */
 
 PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier, int type, int subtype)

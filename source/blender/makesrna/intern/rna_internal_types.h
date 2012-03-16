@@ -312,6 +312,8 @@ struct StructRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* context for translation */
+	const char *translation_context;
 	/* icon ID */
 	int icon;
 	

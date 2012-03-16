@@ -66,6 +66,8 @@ void RNA_def_struct_ui_icon(StructRNA *srna, int icon);
 void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *ext);
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
 
+void RNA_def_struct_translation_context(StructRNA *srna, const char *context);
+
 /* Compact Property Definitions */
 
 typedef void StructOrFunctionRNA;

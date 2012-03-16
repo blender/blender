@@ -2814,13 +2814,14 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 	uiBut *but;
 
 	if(!str) {
-		if(ot) str = ot->name;
+		if (ot && ot->srna)
+			str = RNA_struct_ui_name(ot->srna);
+		else
+			str = "";
 	}
-	
-	if ((!tip || tip[0]=='\0') && ot && ot->description) {
-		tip= ot->description;
 
-		tip = TIP_(tip);
+	if ((!tip || tip[0]=='\0') && ot && ot->srna) {
+		tip = RNA_struct_ui_description(ot->srna);
 	}
 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);

@@ -474,12 +474,7 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 			description = ((IDProperty*)prop)->name; /* XXX - not correct */
 	}
 
-#ifdef WITH_INTERNATIONAL
-	if (description && BLF_translate_tooltips())
-		description = BLF_gettext(description);
-#endif
-
-	return description;
+	return TIP_(description);
 }
 
 static const char *rna_ensure_property_name(PropertyRNA *prop)
@@ -491,16 +486,7 @@ static const char *rna_ensure_property_name(PropertyRNA *prop)
 	else
 		name = ((IDProperty*)prop)->name;
 
-#ifdef WITH_INTERNATIONAL
-	if (BLF_translate_iface()) {
-		if (prop->translation_context)
-			name = BLF_pgettext(prop->translation_context, name);
-		else
-			name = BLF_gettext(name);
-	}
-#endif
-
-	return name;
+	return CTX_IFACE_(prop->translation_context, name);
 }
 
 /* Structs */
@@ -523,7 +509,7 @@ const char *RNA_struct_identifier(StructRNA *type)
 
 const char *RNA_struct_ui_name(StructRNA *type)
 {
-	return type->name;
+	return CTX_IFACE_(type->translation_context, type->name);
 }
 
 int RNA_struct_ui_icon(StructRNA *type)
@@ -536,7 +522,7 @@ int RNA_struct_ui_icon(StructRNA *type)
 
 const char *RNA_struct_ui_description(StructRNA *type)
 {
-	return type->description;
+	return TIP_(type->description);
 }
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type)
@@ -1182,6 +1168,7 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
 
 #ifdef WITH_INTERNATIONAL
+	/* Note: keep directly using BLF_gettext here, has we have already done tests like BLF_translate_iface... */
 	if (BLF_translate_iface()) {
 		int i;
 		EnumPropertyItem *nitem;

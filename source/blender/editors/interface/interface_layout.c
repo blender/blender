@@ -639,7 +639,10 @@ PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *nam
 	int w;
 
 	if(!name) {
-		name= IFACE_(ot->name);
+		if (ot && ot->srna)
+			name = RNA_struct_ui_name(ot->srna);
+		else
+			name = "";
 	}
 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)

@@ -154,11 +154,15 @@ int BLF_translate_tooltips(void)
 #endif
 }
 
-const char *BLF_translate_do_iface(const char *msgid)
+const char *BLF_translate_do_iface(const char *context, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if (BLF_translate_iface())
-		return BLF_gettext(msgid);
+	if(BLF_translate_iface()) {
+		if (context)
+			return BLF_pgettext(context, msgid);
+		else
+			return BLF_gettext(msgid);
+	}
 	else
 		return msgid;
 #else
@@ -166,11 +170,15 @@ const char *BLF_translate_do_iface(const char *msgid)
 #endif
 }
 
-const char *BLF_translate_do_tooltip(const char *msgid)
+const char *BLF_translate_do_tooltip(const char *context, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if (BLF_translate_tooltips())
-		return BLF_gettext(msgid);
+	if(BLF_translate_tooltips()) {
+		if (context)
+			return BLF_pgettext(context, msgid);
+		else
+			return BLF_gettext(msgid);
+	}
 	else
 		return msgid;
 #else

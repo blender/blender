@@ -129,6 +129,16 @@ static int rna_Struct_name_length(PointerRNA *ptr)
 	return strlen(((StructRNA*)ptr->data)->name);
 }
 
+static void rna_Struct_translation_context_get(PointerRNA *ptr, char *value)
+{
+	strcpy(value, ((StructRNA*)ptr->data)->translation_context ? ((StructRNA*)ptr->data)->translation_context : "");
+}
+
+static int rna_Struct_translation_context_length(PointerRNA *ptr)
+{
+	return ((StructRNA*)ptr->data)->translation_context ? strlen(((StructRNA*)ptr->data)->translation_context) : 0;
+}
+
 static PointerRNA rna_Struct_base_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((StructRNA*)ptr->data)->base);
@@ -982,6 +992,11 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Struct_description_get", "rna_Struct_description_length", NULL);
 	RNA_def_property_ui_text(prop, "Description", "Description of the Struct's purpose");
 	
+	prop = RNA_def_property(srna, "translation_context", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Struct_translation_context_get", "rna_Struct_translation_context_length", NULL);
+	RNA_def_property_ui_text(prop, "Translation Context", "Translation context of the struct's name");
+	
 	prop = RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
@@ -1064,7 +1079,7 @@ static void rna_def_property(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "translation_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_translation_context_get", "rna_Property_translation_context_length", NULL);
-	RNA_def_property_ui_text(prop, "Translation Context", "Translation context of the property");
+	RNA_def_property_ui_text(prop, "Translation Context", "Translation context of the property's name");
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
