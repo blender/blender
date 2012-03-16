@@ -5164,13 +5164,15 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		ToolSettings *ts;
 		float zoomx, zoomy;
 		const float size= (float)brush_size(scene, brush);
-		const short use_zoom= get_imapaint_zoom(C, &zoomx, &zoomy);
+		short use_zoom;
 		float pixel_size;
 		float alpha= 0.5f;
 
 		ts = scene->toolsettings;
+		use_zoom= get_imapaint_zoom(C, &zoomx, &zoomy)
+			&& !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
 
-		if(use_zoom && !ts->use_uv_sculpt){
+		if(use_zoom){
 			pixel_size = MAX2(size * zoomx, size * zoomy);
 		}
 		else {
@@ -5190,7 +5192,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		glTranslatef((float)x, (float)y, 0.0f);
 
 		/* No need to scale for uv sculpting, on the contrary it might be useful to keep unscaled */
-		if(use_zoom && !ts->use_uv_sculpt)
+		if(use_zoom)
 			glScalef(zoomx, zoomy, 1.0f);
 
 		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
