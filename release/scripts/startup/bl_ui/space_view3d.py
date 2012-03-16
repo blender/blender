@@ -639,6 +639,7 @@ class VIEW3D_MT_select_edit_lattice(Menu):
         layout.separator()
 
         layout.operator("lattice.select_all", text="Select/Deselect All")
+        layout.operator("lattice.select_all", text="Inverse").action = 'INVERT'
 
 
 class VIEW3D_MT_select_edit_armature(Menu):
