@@ -49,7 +49,7 @@ typedef struct BPy_BMEditSelIter {
 	struct BMEditSelection *ese;
 } BPy_BMEditSelIter;
 
-void BPy_BM_init_select_types(void);
+void BPy_BM_init_types_select(void);
 
 PyObject *BPy_BMEditSel_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm);

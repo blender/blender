@@ -46,6 +46,7 @@
 
 #include "bmesh_py_types.h" /* own include */
 #include "bmesh_py_types_select.h"
+#include "bmesh_py_types_customdata.h"
 
 /* Common Flags
  * ************ */
@@ -483,6 +484,38 @@ static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self)
 	return BPy_BMLoop_CreatePyObject(self->bm, self->l->prev);
 }
 
+/* ElemSeq
+ * ^^^^^^^ */
+
+PyDoc_STRVAR(bpy_bmelemseq_layers_doc,
+"blah blah (read-only).\n\n:type: :class:`BMLayerAccess`"
+);
+static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self)
+{
+	char htype;
+	BPY_BM_CHECK_OBJ(self);
+
+	switch ((BMIterType)self->itype) {
+		case BM_VERTS_OF_MESH:
+			htype = BM_VERT;
+			break;
+		case BM_EDGES_OF_MESH:
+			htype = BM_EDGE;
+			break;
+		case BM_FACES_OF_MESH:
+			htype = BM_FACE;
+			break;
+
+			/* TODO - LOOPS */
+
+		default:
+			PyErr_SetString(PyExc_AttributeError, "layers attribute is only valid for vert/edge/face sequences");
+			return NULL;
+			break;
+	}
+
+	return BPy_BMLayerAccess_CreatePyObject(self->bm, htype);
+}
 
 static PyGetSetDef bpy_bmesh_getseters[] = {
     {(char *)"verts", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_verts_doc, (void *)BM_VERTS_OF_MESH},
@@ -591,6 +624,14 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
+
+static PyGetSetDef bpy_bmelemseq_getseters[] = {
+    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, NULL},
+
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+
 
 
 /* Methods
@@ -2549,7 +2590,7 @@ void BPy_BM_init_types(void)
 	BPy_BMEdge_Type.tp_getset    = bpy_bmedge_getseters;
 	BPy_BMFace_Type.tp_getset    = bpy_bmface_getseters;
 	BPy_BMLoop_Type.tp_getset    = bpy_bmloop_getseters;
-	BPy_BMElemSeq_Type.tp_getset = NULL;
+	BPy_BMElemSeq_Type.tp_getset = bpy_bmelemseq_getseters;
 	BPy_BMIter_Type.tp_getset    = NULL;
 
 
@@ -2649,6 +2690,9 @@ PyObject *BPyInit_bmesh_types(void)
 	mod_type_add(submodule, BPy_BMIter_Type);
 	mod_type_add(submodule, BPy_BMEditSelSeq_Type);
 	mod_type_add(submodule, BPy_BMEditSelIter_Type);
+	mod_type_add(submodule, BPy_BMLayerAccess_Type);
+	mod_type_add(submodule, BPy_BMLayerCollection_Type);
+	mod_type_add(submodule, BPy_BMLayerItem_Type);
 
 #undef mod_type_add
 

@@ -3927,7 +3927,7 @@ PyDoc_STRVAR(pyrna_prop_collection_keys_doc,
 "   (matching pythons dict.keys() functionality).\n"
 "\n"
 "   :return: the identifiers for each member of this collection.\n"
-"   :rtype: list of stings\n"
+"   :rtype: list of strings\n"
 );
 static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 {
