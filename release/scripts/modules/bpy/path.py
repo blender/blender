@@ -145,7 +145,10 @@ def display_name_from_filepath(name):
     ensured to be utf8 compatible.
     """
     name = _os.path.splitext(basename(name))[0]
-    return name.encode("utf8", "replace").decode("utf8")
+    if type(name) == bytes:
+        return name.decode("utf8", "replace")
+    else:
+        return name.encode("utf8", "replace").decode("utf8")
 
 
 def resolve_ncase(path):
