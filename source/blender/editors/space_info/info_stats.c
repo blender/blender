@@ -251,16 +251,6 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
 	}
 }
 
-static void stats_object_paint(Object *ob, SceneStats *stats)
-{
-	if(ob->type == OB_MESH) {
-		Mesh *me= ob->data;
-
-		stats->totface= me->totface;
-		stats->totvert= me->totvert;
-	}
-}
-
 static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 {
 	if(base->flag & SELECT) stats->totobjsel++;
@@ -334,10 +324,6 @@ static void stats_update(Scene *scene)
 	else if(ob && (ob->mode & OB_MODE_POSE)) {
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
-	}
-	else if(ob && (ob->mode & OB_MODE_ALL_PAINT)) {
-		/* Sculpt and Paint Mode */
-		stats_object_paint(ob, &stats);
 	}
 	else {
 		/* Objects */
