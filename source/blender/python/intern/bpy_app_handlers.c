@@ -256,10 +256,10 @@ void BPY_app_handlers_reset(const short do_all)
 
 			for (i = PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
 
-				if ( (PyFunction_Check((item = PyList_GET_ITEM(ls, i)))) &&
-				     (dict_ptr = _PyObject_GetDictPtr(item)) &&
-				     (*dict_ptr) &&
-				     (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
+				if ((PyFunction_Check((item = PyList_GET_ITEM(ls, i)))) &&
+				    (dict_ptr = _PyObject_GetDictPtr(item)) &&
+				    (*dict_ptr) &&
+				    (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
 				{
 					/* keep */
 				}
@@ -283,9 +283,9 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
 	if ((cb_list_len = PyList_GET_SIZE(cb_list)) > 0) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 
-		PyObject* args = PyTuple_New(1); // save python creating each call
-		PyObject* func;
-		PyObject* ret;
+		PyObject *args = PyTuple_New(1); // save python creating each call
+		PyObject *func;
+		PyObject *ret;
 		Py_ssize_t pos;
 
 		/* setup arguments */

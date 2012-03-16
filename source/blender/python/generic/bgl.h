@@ -44,10 +44,10 @@ PyObject *BPyInit_bgl(void);
 /*@ Create a buffer object */
 /*@ dimensions is an array of ndimensions integers representing the size of each dimension */
 /*@ initbuffer if not NULL holds a contiguous buffer with the correct format from which the buffer will be initialized */
-struct _Buffer *BGL_MakeBuffer( int type, int ndimensions, int *dimensions, void *initbuffer );
+struct _Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer);
 /*@ Return the size of buffer element, type must be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE */
 /*@ returns -1 otherwise */
-int BGL_typeSize( int type );
+int BGL_typeSize(int type);
 
 /*@ Buffer Object */
 /*@ For Python access to OpenGL functions requiring a pointer. */
@@ -312,23 +312,23 @@ extern PyTypeObject BGL_bufferType;
 #define ret_ret_void    return Py_INCREF(Py_None), Py_None
 
 #define ret_def_GLint   int ret_int
-#define ret_set_GLint   ret_int=
+#define ret_set_GLint   ret_int =
 #define ret_ret_GLint   return PyLong_FromLong(ret_int)
 
 #define ret_def_GLuint    unsigned int ret_uint
-#define ret_set_GLuint    ret_uint=
+#define ret_set_GLuint    ret_uint =
 #define ret_ret_GLuint    return PyLong_FromLong((long) ret_uint)
 
 #define ret_def_GLenum    unsigned int ret_uint
-#define ret_set_GLenum    ret_uint=
+#define ret_set_GLenum    ret_uint =
 #define ret_ret_GLenum    return PyLong_FromLong((long) ret_uint)
 
 #define ret_def_GLboolean unsigned char ret_bool
-#define ret_set_GLboolean ret_bool=
+#define ret_set_GLboolean ret_bool =
 #define ret_ret_GLboolean return PyLong_FromLong((long) ret_bool)
 
 #define ret_def_GLstring  const unsigned char *ret_str;
-#define ret_set_GLstring  ret_str=
+#define ret_set_GLstring  ret_str =
 
 #define ret_ret_GLstring                                                      \
 	if (ret_str) {                                                            \

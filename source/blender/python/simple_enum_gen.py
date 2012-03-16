@@ -40,7 +40,7 @@ defs = """
 """
 
 print '\tmod = PyModule_New("dummy");'
-print '\tPyModule_AddObject( submodule, "key", mod );'
+print '\tPyModule_AddObject(submodule, "key", mod);'
 
 for d in defs.split('\n'):
 
@@ -58,7 +58,7 @@ for d in defs.split('\n'):
     val = w[0]
     py_val = w[0]
 
-    print '\tPyModule_AddObject( mod, "%s", PyLong_FromSize_t(%s) );' % (val, py_val)
+    print '\tPyModule_AddObject(mod, "%s", PyLong_FromSize_t(%s));' % (val, py_val)
 
 
 

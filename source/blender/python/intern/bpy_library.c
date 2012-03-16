@@ -62,7 +62,7 @@
 #endif
 
 typedef struct {
-	PyObject_HEAD /* required python macro   */
+	PyObject_HEAD /* required python macro */
 	/* collection iterator specific parts */
 	char relpath[FILE_MAX];
 	char abspath[FILE_MAX]; /* absolute path */
@@ -186,7 +186,7 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 {
 	static const char *kwlist[] = {"filepath", "link", "relative", NULL};
 	BPy_Library *ret;
-	const char* filename = NULL;
+	const char *filename = NULL;
 	int is_rel = 0, is_link = 0;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|ii:load", (char **)kwlist, &filename, &is_link, &is_rel))
@@ -199,8 +199,8 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 	BLI_path_abs(ret->abspath, G.main->name);
 
 	ret->blo_handle = NULL;
-	ret->flag=	(is_link ? FILE_LINK : 0) |
-				(is_rel ? FILE_RELPATH : 0);
+	ret->flag = ((is_link ? FILE_LINK : 0) |
+	             (is_rel ? FILE_RELPATH : 0));
 
 	ret->dict = PyDict_New();
 

@@ -199,7 +199,7 @@ static float frand(void)
 /* Fills an array of length size with random numbers in the range (-1, 1)*/
 static void rand_vn(float *array_tar, const int size)
 {
-	float *array_pt = array_tar + (size-1);
+	float *array_pt = array_tar + (size - 1);
 	int i = size;
 	while (i--) { *(array_pt--) = 2.0f * frand() - 1.0f; }
 }
@@ -335,7 +335,7 @@ PyDoc_STRVAR(M_Noise_random_vector_doc,
 static PyObject *M_Noise_random_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
-	int size= 3;
+	int size = 3;
 
 	if (!PyArg_ParseTuple(args, "|i:random_vector", &size))
 		return NULL;
@@ -484,7 +484,7 @@ static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *arg
 	PyObject *value;
 	float vec[3], r_vec[3];
 	int oct, hd, nb = 1;
-	float as =0.5f, fs = 2.0f;
+	float as = 0.5f, fs = 2.0f;
 	if (!PyArg_ParseTuple(args, "Oii|iff:turbulence_vector", &value, &oct, &hd, &nb, &as, &fs))
 		return NULL;
 

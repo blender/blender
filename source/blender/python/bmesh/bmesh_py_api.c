@@ -137,11 +137,11 @@ PyObject *BPyInit_bmesh(void)
 	mod = PyModule_Create(&BPy_BM_module_def);
 
 	/* bmesh.types */
-	PyModule_AddObject(mod, "types", (submodule=BPyInit_bmesh_types()));
+	PyModule_AddObject(mod, "types", (submodule = BPyInit_bmesh_types()));
 	PyDict_SetItemString(sys_modules, "bmesh.types", submodule);
 	Py_INCREF(submodule);
 
-	PyModule_AddObject(mod, "utils", (submodule=BPyInit_bmesh_utils()));
+	PyModule_AddObject(mod, "utils", (submodule = BPyInit_bmesh_utils()));
 	PyDict_SetItemString(sys_modules, "bmesh.utils", submodule);
 	Py_INCREF(submodule);
 

@@ -244,7 +244,7 @@ PyDoc_STRVAR(bpy_bmlayercollection_get_doc,
 static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject *args)
 {
 	const char *key;
-	PyObject* def = Py_None;
+	PyObject *def = Py_None;
 
 	BPY_BM_CHECK_OBJ(self);
 

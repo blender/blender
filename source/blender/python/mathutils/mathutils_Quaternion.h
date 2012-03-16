@@ -48,7 +48,7 @@ typedef struct {
  * blender (stored in blend_data). This is an either/or struct not both */
 
 //prototypes
-PyObject *Quaternion_CreatePyObject( float *quat, int type, PyTypeObject *base_type);
+PyObject *Quaternion_CreatePyObject(float *quat, int type, PyTypeObject *base_type);
 PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif /* __MATHUTILS_QUATERNION_H__ */

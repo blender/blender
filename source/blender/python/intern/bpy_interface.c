@@ -238,7 +238,7 @@ void BPY_python_start(int argc, const char **argv)
 	Py_Initialize();
 
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
-	/* sigh, why do python guys not have a char** version anymore? :( */
+	/* sigh, why do python guys not have a (char **) version anymore? */
 	{
 		int i;
 		PyObject *py_argv = PyList_New(argc);

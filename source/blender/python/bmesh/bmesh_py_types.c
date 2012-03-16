@@ -721,8 +721,8 @@ PyDoc_STRVAR(bpy_bmesh_to_mesh_doc,
 );
 static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 {
-	PyObject  *py_mesh;
-	Mesh  *me;
+	PyObject *py_mesh;
+	Mesh *me;
 	BMesh *bm;
 
 	BPY_BM_CHECK_OBJ(self);
@@ -764,8 +764,8 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
 );
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 {
-	PyObject  *py_object;
-	Object  *ob;
+	PyObject *py_object;
+	Object *ob;
 	BMesh *bm;
 	int apply_modifiers = TRUE;
 	DerivedMesh *dm;
@@ -1659,7 +1659,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		edge_array = (BMEdge **)PyMem_MALLOC(vert_seq_len * sizeof(BMEdge **));
 
 		/* ensure edges */
-		for (i = vert_seq_len - 1, i_next = 0; i_next < vert_seq_len; (i=i_next++)) {
+		for (i = vert_seq_len - 1, i_next = 0; i_next < vert_seq_len; (i = i_next++)) {
 			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_next], NULL, TRUE);
 		}
 

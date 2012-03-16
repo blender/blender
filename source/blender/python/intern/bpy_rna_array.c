@@ -550,21 +550,21 @@ int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data,
 {
 	int ret;
 	switch (RNA_property_type(prop)) {
-	case PROP_FLOAT:
-		ret = py_to_array(py, ptr, prop, param_data, py_float_check, "float", sizeof(float),
-		                 py_to_float, (RNA_SetArrayFunc)RNA_property_float_set_array, error_prefix);
-		break;
-	case PROP_INT:
-		ret = py_to_array(py, ptr, prop, param_data, py_int_check, "int", sizeof(int),
-		                 py_to_int, (RNA_SetArrayFunc)RNA_property_int_set_array, error_prefix);
-		break;
-	case PROP_BOOLEAN:
-		ret = py_to_array(py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int),
-		                 py_to_bool, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError, "not an array type");
-		ret = -1;
+		case PROP_FLOAT:
+			ret = py_to_array(py, ptr, prop, param_data, py_float_check, "float", sizeof(float),
+			                  py_to_float, (RNA_SetArrayFunc)RNA_property_float_set_array, error_prefix);
+			break;
+		case PROP_INT:
+			ret = py_to_array(py, ptr, prop, param_data, py_int_check, "int", sizeof(int),
+			                  py_to_int, (RNA_SetArrayFunc)RNA_property_int_set_array, error_prefix);
+			break;
+		case PROP_BOOLEAN:
+			ret = py_to_array(py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int),
+			                  py_to_bool, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			ret = -1;
 	}
 
 	return ret;
@@ -575,21 +575,21 @@ int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, in
 {
 	int ret;
 	switch (RNA_property_type(prop)) {
-	case PROP_FLOAT:
-		ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
-		                       py_float_check, "float", py_to_float, float_set_index, error_prefix);
-		break;
-	case PROP_INT:
-		ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
-		                       py_int_check, "int", py_to_int, int_set_index, error_prefix);
-		break;
-	case PROP_BOOLEAN:
-		ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
-		                       py_bool_check, "boolean", py_to_bool, bool_set_index, error_prefix);
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError, "not an array type");
-		ret = -1;
+		case PROP_FLOAT:
+			ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+			                        py_float_check, "float", py_to_float, float_set_index, error_prefix);
+			break;
+		case PROP_INT:
+			ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+			                        py_int_check, "int", py_to_int, int_set_index, error_prefix);
+			break;
+		case PROP_BOOLEAN:
+			ret = py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+			                        py_bool_check, "boolean", py_to_bool, bool_set_index, error_prefix);
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			ret = -1;
 	}
 
 	return ret;
@@ -600,18 +600,18 @@ PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	PyObject *item;
 
 	switch (RNA_property_type(prop)) {
-	case PROP_FLOAT:
-		item = PyFloat_FromDouble(RNA_property_float_get_index(ptr, prop, index));
-		break;
-	case PROP_BOOLEAN:
-		item = PyBool_FromLong(RNA_property_boolean_get_index(ptr, prop, index));
-		break;
-	case PROP_INT:
-		item = PyLong_FromSsize_t(RNA_property_int_get_index(ptr, prop, index));
-		break;
-	default:
-		PyErr_SetString(PyExc_TypeError, "not an array type");
-		item = NULL;
+		case PROP_FLOAT:
+			item = PyFloat_FromDouble(RNA_property_float_get_index(ptr, prop, index));
+			break;
+		case PROP_BOOLEAN:
+			item = PyBool_FromLong(RNA_property_boolean_get_index(ptr, prop, index));
+			break;
+		case PROP_INT:
+			item = PyLong_FromSsize_t(RNA_property_int_get_index(ptr, prop, index));
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			item = NULL;
 	}
 
 	return item;

@@ -155,10 +155,10 @@ static void printf_func_error(PyObject *py_func)
 
 	/* use py style error */
 	fprintf(stderr, "File \"%s\", line %d, in %s\n",
-			_PyUnicode_AsString(f_code->co_filename),
-			f_code->co_firstlineno,
-			_PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
-			);
+	        _PyUnicode_AsString(f_code->co_filename),
+	        f_code->co_firstlineno,
+	        _PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
+	        );
 }
 
 /* operators and classes use this so it can store the args given but defer
@@ -1033,14 +1033,14 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 		item = PySequence_Fast_GET_ITEM(seq_fast, i);
 
-		if ( (PyTuple_CheckExact(item)) &&
-		     (item_size = PyTuple_GET_SIZE(item)) &&
-		     (item_size == 3 || item_size == 4) &&
-		     (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
-		     (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
-		     (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
-		     /* TODO, number isnt ensured to be unique from the script author */
-		     (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1))
+		if ((PyTuple_CheckExact(item)) &&
+		    (item_size = PyTuple_GET_SIZE(item)) &&
+		    (item_size == 3 || item_size == 4) &&
+		    (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+		    (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+		    (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
+		    /* TODO, number isnt ensured to be unique from the script author */
+		    (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1))
 		{
 			if (is_enum_flag) {
 				if (item_size < 4) {

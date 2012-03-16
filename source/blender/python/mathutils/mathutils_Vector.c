@@ -247,7 +247,7 @@ static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	step = (end - start)/(float)(size-1);
+	step = (end - start) / (float)(size - 1);
 
 	vec = PyMem_Malloc(size * sizeof(float));
 
@@ -734,19 +734,19 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 		}
 		else if (strlen(strack) == 1) {
 			switch (strack[0]) {
-			case '-':
-			case 'X':
-				track = 0;
-				break;
-			case 'Y':
-				track = 1;
-				break;
-			case 'Z':
-				track = 2;
-				break;
-			default:
-				PyErr_SetString(PyExc_ValueError, axis_err_msg);
-				return NULL;
+				case '-':
+				case 'X':
+					track = 0;
+					break;
+				case 'Y':
+					track = 1;
+					break;
+				case 'Z':
+					track = 2;
+					break;
+				default:
+					PyErr_SetString(PyExc_ValueError, axis_err_msg);
+					return NULL;
 			}
 		}
 		else {
@@ -759,18 +759,18 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 		const char *axis_err_msg = "only X, Y or Z for up axis";
 		if (strlen(sup) == 1) {
 			switch (*sup) {
-			case 'X':
-				up = 0;
-				break;
-			case 'Y':
-				up = 1;
-				break;
-			case 'Z':
-				up = 2;
-				break;
-			default:
-				PyErr_SetString(PyExc_ValueError, axis_err_msg);
-				return NULL;
+				case 'X':
+					up = 0;
+					break;
+				case 'Y':
+					up = 1;
+					break;
+				case 'Z':
+					up = 2;
+					break;
+				default:
+					PyErr_SetString(PyExc_ValueError, axis_err_msg);
+					return NULL;
 			}
 		}
 		else {
@@ -1259,10 +1259,10 @@ static int Vector_len(VectorObject *self)
 /* sequence accessor (get): vector[index] */
 static PyObject *vector_item_internal(VectorObject *self, int i, const int is_attr)
 {
-	if (i < 0)	i = self->size-i;
+	if (i < 0) i = self->size - i;
 
 	if (i < 0 || i >= self->size) {
-		if (is_attr)	{
+		if (is_attr) {
 			PyErr_Format(PyExc_AttributeError,
 			             "Vector.%c: unavailable on %dd vector",
 			             *(((char *)"xyzw") + i), self->size);
@@ -1295,7 +1295,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 		return -1;
 	}
 
-	if (i < 0)	i = self->size-i;
+	if (i < 0) i = self->size - i;
 
 	if (i < 0 || i >= self->size) {
 		if (is_attr) {
@@ -2246,9 +2246,9 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
 		size_from = axis_from;
 	}
-	else if ( (PyErr_Clear()), /* run but ignore the result */
-	          (size_from = mathutils_array_parse(vec_assign, 2, 4, value,
-	                                           "mathutils.Vector.**** = swizzle assignment")) == -1)
+	else if ((PyErr_Clear()), /* run but ignore the result */
+	         (size_from = mathutils_array_parse(vec_assign, 2, 4, value,
+	                                            "mathutils.Vector.**** = swizzle assignment")) == -1)
 	{
 		return -1;
 	}
@@ -2651,11 +2651,11 @@ while len(axises) >= 2:
 			if len(axises)>2:
 				for axis_2 in axises:
 					axis_2_pos = axis_pos[axis_2]
-					axis_dict[axis_0 + axis_1 + axis_2] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)))' % (axis_0_pos, axis_1_pos, axis_2_pos)
+					axis_dict[axis_0 + axis_1 + axis_2] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS * 2)))' % (axis_0_pos, axis_1_pos, axis_2_pos)
 					if len(axises)>3:
 						for axis_3 in axises:
 							axis_3_pos = axis_pos[axis_3]
-							axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
+							axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS * 3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
 
 	axises = axises[:-1]
 
@@ -2667,7 +2667,7 @@ unique = set()
 for key, val in items:
 	num = eval(val)
 	set_str = 'Vector_setSwizzle' if (len(set(key)) == len(key)) else 'NULL'
-	print '\t{"%s", %s(getter)Vector_getSwizzle, (setter)%s, NULL, SET_INT_IN_POINTER(%s)}, // %s' % (key, (' '*(4-len(key))), set_str, axis_dict[key], num)
+	print '\t{"%s", %s(getter)Vector_getSwizzle, (setter)%s, NULL, SET_INT_IN_POINTER(%s)}, // %s' % (key, (' '*(4 - len(key))), set_str, axis_dict[key], num)
 	unique.add(num)
 
 if len(unique) != len(items):

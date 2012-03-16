@@ -349,21 +349,21 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;

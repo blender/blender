@@ -159,21 +159,21 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -218,7 +218,7 @@ static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 		return -1;
 	}
 
-	if (i < 0) i= COLOR_SIZE - i;
+	if (i < 0) i = COLOR_SIZE - i;
 
 	if (i < 0 || i >= COLOR_SIZE) {
 		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: "

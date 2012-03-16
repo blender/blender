@@ -1601,28 +1601,28 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 		if (BaseMath_ReadCallback(matA) == -1 || BaseMath_ReadCallback(matB) == -1)
 			return NULL;
 
-		ok = (  (matA->num_row == matB->num_row) &&
-		        (matA->num_col == matB->num_col) &&
-		         EXPP_VectorsAreEqual(matA->matrix, matB->matrix, (matA->num_col * matA->num_row), 1)
-			) ? 0 : -1;
+		ok = ((matA->num_row == matB->num_row) &&
+		      (matA->num_col == matB->num_col) &&
+		      EXPP_VectorsAreEqual(matA->matrix, matB->matrix, (matA->num_col * matA->num_row), 1)
+		      ) ? 0 : -1;
 	}
 
 	switch (op) {
-	case Py_NE:
-		ok = !ok; /* pass through */
-	case Py_EQ:
-		res = ok ? Py_False : Py_True;
-		break;
+		case Py_NE:
+			ok = !ok; /* pass through */
+		case Py_EQ:
+			res = ok ? Py_False : Py_True;
+			break;
 
-	case Py_LT:
-	case Py_LE:
-	case Py_GT:
-	case Py_GE:
-		res = Py_NotImplemented;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
+		case Py_LT:
+		case Py_LE:
+		case Py_GT:
+		case Py_GE:
+			res = Py_NotImplemented;
+			break;
+		default:
+			PyErr_BadArgument();
+			return NULL;
 	}
 
 	return Py_INCREF(res), res;
@@ -1850,8 +1850,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 		PyErr_Format(PyExc_TypeError,
 		             "Matrix subtraction: (%s - %s) "
 		             "invalid type for this operation",
-		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name
-		             );
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 
