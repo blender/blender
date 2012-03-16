@@ -250,8 +250,25 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 /* this is event from ghost, or exit-blender op */
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
+	wmWindow *tmpwin;
 	bScreen *screen= win->screen;
 	
+	/* first check if we have any non-temp remaining windows */
+	if((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved){
+		if(wm->windows.first) {
+			for(tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next){
+				if(tmpwin == win)
+					continue;
+				if(tmpwin->screen->temp == 0)
+					break;
+			}
+			if(tmpwin == NULL){
+				if(!GHOST_confirmQuit(win->ghostwin))
+					return;
+			}
+		}
+	}
+
 	BLI_remlink(&wm->windows, win);
 	
 	wm_draw_window_clear(win);

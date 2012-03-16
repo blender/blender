@@ -366,3 +366,9 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window** window, const
 	}
 	return success;
 }
+
+
+int GHOST_System::confirmQuit(GHOST_IWindow * window) const
+{
+	return 1;
+}

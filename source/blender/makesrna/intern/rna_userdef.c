@@ -2369,6 +2369,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub Level Menu Open Delay",
 	                         "Time delay in 1/10 seconds before automatically opening sub level menus");
 
+	prop = RNA_def_property(srna, "quit_dialog", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_QUIT_PROMPT);
+	RNA_def_property_ui_text(prop, "Prompt Quit",
+	                         "Asks for confirmation when quitting through the window close button");
+
 	/* Toolbox click-hold delay */
 	prop = RNA_def_property(srna, "open_left_mouse_delay", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tb_leftmouse");

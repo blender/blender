@@ -842,6 +842,14 @@ extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
  */
 extern int GHOST_toggleConsole(int action);
 
+
+/**
+ * Confirms quitting he program when there is just one window left open
+ * in the application
+ */
+extern int GHOST_confirmQuit(GHOST_WindowHandle windowhandle);
+
+
 #ifdef __cplusplus
 }
 #endif
