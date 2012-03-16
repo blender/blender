@@ -209,17 +209,6 @@ ARGS = handle_args()
 BPY_LOGGER = logging.getLogger('bpy')
 BPY_LOGGER.setLevel(logging.DEBUG)
 
-if ARGS.log:
-    BPY_LOGFILE = os.path.join(ARGS.output_dir, ".bpy.log")
-    bpy_logfilehandler = logging.FileHandler(BPY_LOGFILE, mode="w")
-    bpy_logfilehandler.setLevel(logging.DEBUG)
-    BPY_LOGGER.addHandler(bpy_logfilehandler)
-
-    # using a FileHandler seems to disable the stdout, so we add a StreamHandler
-    bpy_log_stdout_handler = logging.StreamHandler(stream=sys.stdout)
-    bpy_log_stdout_handler.setLevel(logging.DEBUG)
-    BPY_LOGGER.addHandler(bpy_log_stdout_handler)
-
 """
 # for quick rebuilds
 rm -rf /b/doc/python_api/sphinx-* && \
@@ -1733,6 +1722,18 @@ def main():
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
 
+    # eventually, log in files
+    if ARGS.log:
+        bpy_logfile = os.path.join(ARGS.output_dir, ".bpy.log")
+        bpy_logfilehandler = logging.FileHandler(bpy_logfile, mode="w")
+        bpy_logfilehandler.setLevel(logging.DEBUG)
+        BPY_LOGGER.addHandler(bpy_logfilehandler)
+    
+        # using a FileHandler seems to disable the stdout, so we add a StreamHandler
+        bpy_log_stdout_handler = logging.StreamHandler(stream=sys.stdout)
+        bpy_log_stdout_handler.setLevel(logging.DEBUG)
+        BPY_LOGGER.addHandler(bpy_log_stdout_handler)
+
     # in case of out-of-source build, copy the needed dirs
     if ARGS.output_dir != SCRIPT_DIR:
         # examples dir
@@ -1820,7 +1821,9 @@ def main():
 
             # zip REFERENCE_PATH
             basename = os.path.join(ARGS.output_dir, REFERENCE_NAME)
-            tmp_path = shutil.make_archive(basename, 'zip', REFERENCE_PATH)
+            tmp_path = shutil.make_archive(basename, 'zip',
+                                           root_dir=ARGS.output_dir, 
+                                           base_dir=REFERENCE_NAME)
             final_path = os.path.join(REFERENCE_PATH, BLENDER_ZIP_FILENAME)
             os.rename(tmp_path, final_path)
 
