@@ -495,7 +495,6 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				BMVert *v1, *v2, *v3;
 				VertData *vd1, *vd2, *vd3;
 				float vec1[3], vec2[3], vec3[3], n1[3], n2[3], n3[3];
-				int s1, s2, s3;
 				
 				e1 = edges[(i + totedge - 1) % totedge];
 				e2 = edges[i];
@@ -517,21 +516,25 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				cross_v3_v3v3(n2, vec2, vec3);
 				cross_v3_v3v3(n3, vec1, vec3);
 
-				/* Other way to determine if two vectors approach are (nearly) parallel: the
-				 * cross product of the two vectors will approach zero */
-				s1 = (dot_v3v3(n1, n1) < (0.0f + FLT_EPSILON * 10));
-				s2 = (dot_v3v3(n2, n2) < (0.0f + FLT_EPSILON * 10));
-				s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON * 10));
-
-				normalize_v3(n1); normalize_v3(n2); normalize_v3(n3);
-
 				/* this case happens often enough and probably not worth bothering users with,
 				 * maybe enable for debugging code but not for everyday use - campbell */
 #if 0
-				if (s1 || s2 || s3) {
-					fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
+				/* Other way to determine if two vectors approach are (nearly) parallel: the
+				 * cross product of the two vectors will approach zero */
+				{
+					int s1, s2, s3;
+					s1 = (dot_v3v3(n1, n1) < (0.0f + FLT_EPSILON * 10));
+					s2 = (dot_v3v3(n2, n2) < (0.0f + FLT_EPSILON * 10));
+					s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON * 10));
+
+					if (s1 || s2 || s3) {
+						fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
+					}
 				}
 #endif
+
+				normalize_v3(n1); normalize_v3(n2); normalize_v3(n3);
+
 
 				if (dot_v3v3(n1, n2) < 0.0f) {
 					if (dot_v3v3(n1, n3) >= 0.0f + FLT_EPSILON * 10) {
@@ -1441,7 +1444,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 		/* done creating edges */
 	}
-	else {
+	else if (amount > 2) {
 		/* TODO, all these verts may be connected by edges.
 		 * we should check on this before assuming they are a random set of verts */
 
