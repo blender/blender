@@ -1572,7 +1572,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer);
 
-		if(*totquad < USHRT_MAX) {
+		if(gridsize * gridsize < USHRT_MAX) {
 			*index_type = GL_UNSIGNED_SHORT;
 			FILL_QUAD_BUFFER(unsigned short, *totquad, buffer);
 		}
@@ -1617,7 +1617,7 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 
-			if(totquad < USHRT_MAX) {
+			if(totgrid * gridsize * gridsize < USHRT_MAX) {
 				buffers->index_type = GL_UNSIGNED_SHORT;
 				FILL_QUAD_BUFFER(unsigned short, totquad, buffers->index_buf);
 			}
