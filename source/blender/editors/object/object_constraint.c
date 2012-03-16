@@ -142,6 +142,7 @@ bConstraint *get_active_constraint (Object *ob)
 }
 
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
+#ifdef WITH_PYTHON
 /* ------------- PyConstraints ------------------ */
 
 /* this callback sets the text-file to be used for selected menu item */
@@ -160,7 +161,6 @@ static void validate_pyconstraint_cb (void *arg1, void *arg2)
 	data->text = text;
 }
 
-#ifdef WITH_PYTHON
 /* this returns a string for the list of usable pyconstraint script names */
 static char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 {
