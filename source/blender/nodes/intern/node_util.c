@@ -36,6 +36,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_colortools.h"
 #include "BKE_node.h"
 
@@ -74,28 +76,28 @@ const char *node_blend_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(ramp_blend_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 const char *node_math_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(node_math_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 const char *node_vect_math_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(node_vec_math_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 const char *node_filter_label(bNode *node)
 {
 	const char *name;
 	RNA_enum_name(node_filter_items, node->custom1, &name);
-	return name;
+	return IFACE_(name);
 }
 
 ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)

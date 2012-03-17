@@ -40,6 +40,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
@@ -487,7 +489,7 @@ void node_group_remove_socket(bNodeTree *ngroup, bNodeSocket *gsock, int in_out)
 /* groups display their internal tree name as label */
 const char *node_group_label(bNode *node)
 {
-	return (node->id)? node->id->name+2: "Missing Datablock";
+	return (node->id)? node->id->name+2: IFACE_("Missing Datablock");
 }
 
 int node_group_valid(bNodeTree *ntree, bNodeTemplate *ntemp)

@@ -214,11 +214,11 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 		
 		/* XXX hack: negative numbers used for empty group types */
 		if (node_tree_has_type(ntree->type, NODE_GROUP))
-			uiItemV(layout, "New Group", 0, -NODE_GROUP);
+			uiItemV(layout, IFACE_("New Group"), 0, -NODE_GROUP);
 		if (node_tree_has_type(ntree->type, NODE_FORLOOP))
-			uiItemV(layout, "New For Loop", 0, -NODE_FORLOOP);
+			uiItemV(layout, IFACE_("New For Loop"), 0, -NODE_FORLOOP);
 		if (node_tree_has_type(ntree->type, NODE_WHILELOOP))
-			uiItemV(layout, "New While Loop", 0, -NODE_WHILELOOP);
+			uiItemV(layout, IFACE_("New While Loop"), 0, -NODE_WHILELOOP);
 		uiItemS(layout);
 		
 		for(ngroup=bmain->nodetree.first, event=0; ngroup; ngroup= ngroup->id.next, ++event) {
@@ -239,7 +239,7 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 		for (ntype=ntreeGetType(ntree->type)->node_types.first; ntype; ntype=ntype->next) {
 			if (ntype->nclass==nodeclass && ntype->name)
 				if (!compatibility || (ntype->compatibility & compatibility))
-					uiItemV(layout, ntype->name, 0, ntype->type);
+					uiItemV(layout, IFACE_(ntype->name), 0, ntype->type);
 		}
 	}
 }
@@ -247,7 +247,7 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 static void node_menu_add_foreach_cb(void *calldata, int nclass, const char *name)
 {
 	uiLayout *layout= calldata;
-	uiItemMenuF(layout, name, 0, node_add_menu, SET_INT_IN_POINTER(nclass));
+	uiItemMenuF(layout, IFACE_(name), 0, node_add_menu, SET_INT_IN_POINTER(nclass));
 }
 
 static void node_menu_add(const bContext *C, Menu *menu)

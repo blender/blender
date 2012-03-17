@@ -55,6 +55,8 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -65,8 +67,6 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_listbase.h"
 
 #include "RNA_access.h"
 
@@ -1658,7 +1658,7 @@ const char* nodeLabel(bNode *node)
 	else if (node->typeinfo->labelfunc)
 		return node->typeinfo->labelfunc(node);
 	else
-		return node->typeinfo->name;
+		return IFACE_(node->typeinfo->name);
 }
 
 struct bNodeTree *nodeGroupEditGet(struct bNode *node)

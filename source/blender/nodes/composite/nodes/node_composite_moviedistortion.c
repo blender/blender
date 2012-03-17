@@ -30,6 +30,8 @@
  *  \ingroup cmpnodes
  */
 
+#include "BLF_translation.h"
+
 
 #include "node_composite_util.h"
 
@@ -105,9 +107,9 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 static const char *label(bNode *node)
 {
 	if(node->custom1==0)
-		return "Undistortion";
+		return IFACE_("Undistortion");
 	else
-		return "Distortion";
+		return IFACE_("Distortion");
 }
 
 static void storage_free(bNode *node)
