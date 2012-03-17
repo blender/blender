@@ -2788,7 +2788,7 @@ static BLI_bitmap *ccgDM_getGridHidden(DerivedMesh *dm)
 	return ccgdm->gridHidden;
 }
 
-const static MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
+static const MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
 

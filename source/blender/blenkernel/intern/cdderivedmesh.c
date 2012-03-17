@@ -212,7 +212,7 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 	normal_short_to_float_v3(no_r, cddm->mvert[index].no);
 }
 
-const static MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
+static const MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
