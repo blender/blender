@@ -32,9 +32,20 @@
 
 extern PyTypeObject BPy_BMLoopUV_Type;
 
+#define BPy_BMLoopUV_Check(v)  (Py_TYPE(v) == &BPy_BMLoopUV_Type)
+
+typedef struct BPy_BMGenericMeshData {
+	PyObject_VAR_HEAD
+	void *data;
+} BPy_BMGenericMeshData;
+
 struct MLoopUV;
 
+int       BPy_BMLoopUV_AssignPyObject(struct MLoopUV *data, PyObject *value);
 PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *data);
+
+int       BPy_BMLoopColor_AssignPyObject(struct MLoopUV *data, PyObject *value);
+PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopUV *data);
 
 void BPy_BM_init_types_meshdata(void);
 

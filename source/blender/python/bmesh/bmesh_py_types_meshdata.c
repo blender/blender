@@ -42,6 +42,8 @@
 /* Mesh Loop UV
  * ************ */
 
+#define BPy_BMLoopUV_Check(v)  (Py_TYPE(v) == &BPy_BMLoopUV_Type)
+
 typedef struct BPy_BMLoopUV {
 	PyObject_VAR_HEAD
 	MLoopUV *data;
@@ -55,7 +57,7 @@ static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void *UNUSED(closure))
 static int bpy_bmloopuv_uv_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
 {
 	float tvec[2];
-	if (mathutils_array_parse(tvec, 2, 2, value, "BMLoop.uv") != -1) {
+	if (mathutils_array_parse(tvec, 2, 2, value, "BMLoopUV.uv") != -1) {
 		copy_v2_v2(self->data->uv, tvec);
 		return 0;
 	}
@@ -115,18 +117,134 @@ static void bm_init_types_bmloopuv(void)
 	PyType_Ready(&BPy_BMLoopUV_Type);
 }
 
-PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *data)
+int BPy_BMLoopUV_AssignPyObject(struct MLoopUV *mloopuv, PyObject *value)
+{
+	if (UNLIKELY(!BPy_BMLoopUV_Check(value))) {
+		PyErr_Format(PyExc_TypeError, "expected BMLoopUV, not a %.200s", Py_TYPE(value)->tp_name);
+		return -1;
+	}
+	else {
+		*((MLoopUV *)mloopuv) = *((MLoopUV *)((BPy_BMLoopUV *)value)->data);
+		return 0;
+	}
+}
+
+PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
 {
 	BPy_BMLoopUV *self = PyObject_New(BPy_BMLoopUV, &BPy_BMLoopUV_Type);
-	self->data = data;
+	self->data = mloopuv;
 	return (PyObject *)self;
 }
 
 /* --- End Mesh Loop UV --- */
+
+/* Mesh Loop Color
+ * *************** */
+
+/* This simply provices a color wrapper for
+ * color which uses mathutils callbacks for mathutils.Color
+ */
+
+#define MLOOPCOL_FROM_CAPSULE(color_capsule)  \
+	((MLoopCol *)PyCapsule_GetPointer(color_capsule, NULL))
+
+static void mloopcol_to_float(const MLoopCol *mloopcol, float col_r[3])
+{
+	col_r[0] = ((float)mloopcol->b) / 255.0f;
+	col_r[1] = ((float)mloopcol->g) / 255.0f;
+	col_r[2] = ((float)mloopcol->r) / 255.0f;
+}
+
+static void mloopcol_from_float(MLoopCol *mloopcol, const float col[3])
+{
+	mloopcol->b = FTOCHAR(col[0]);
+	mloopcol->g = FTOCHAR(col[1]);
+	mloopcol->r = FTOCHAR(col[2]);
+}
+
+static unsigned char mathutils_bmloopcol_cb_index = -1;
+
+static int mathutils_bmloopcol_check(BaseMathObject *UNUSED(bmo))
+{
+	/* always ok */
+	return 0;
+}
+
+static int mathutils_bmloopcol_get(BaseMathObject *bmo, int UNUSED(subtype))
+{
+	MLoopCol *mloopcol = MLOOPCOL_FROM_CAPSULE(bmo->cb_user);
+	mloopcol_to_float(mloopcol, bmo->data);
+	return 0;
+}
+
+static int mathutils_bmloopcol_set(BaseMathObject *bmo, int UNUSED(subtype))
+{
+	MLoopCol *mloopcol = MLOOPCOL_FROM_CAPSULE(bmo->cb_user);
+	mloopcol_from_float(mloopcol, bmo->data);
+	return 0;
+}
+
+static int mathutils_bmloopcol_get_index(BaseMathObject *bmo, int subtype, int UNUSED(index))
+{
+	/* lazy, avoid repeteing the case statement */
+	if(mathutils_bmloopcol_get(bmo, subtype) == -1)
+		return -1;
+	return 0;
+}
+
+static int mathutils_bmloopcol_set_index(BaseMathObject *bmo, int subtype, int index)
+{
+	const float f = bmo->data[index];
+
+	/* lazy, avoid repeteing the case statement */
+	if(mathutils_bmloopcol_get(bmo, subtype) == -1)
+		return -1;
+
+	bmo->data[index] = f;
+	return mathutils_bmloopcol_set(bmo, subtype);
+}
+
+Mathutils_Callback mathutils_bmloopcol_cb = {
+	mathutils_bmloopcol_check,
+	mathutils_bmloopcol_get,
+	mathutils_bmloopcol_set,
+	mathutils_bmloopcol_get_index,
+	mathutils_bmloopcol_set_index
+};
+
+static void bm_init_types_bmloopcol(void)
+{
+	/* pass */
+	mathutils_bmloopcol_cb_index = Mathutils_RegisterCallback(&mathutils_bmloopcol_cb);
+}
+
+int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
+{
+	float tvec[3];
+	if (mathutils_array_parse(tvec, 3, 3, value, "BMLoopCol") != -1) {
+		mloopcol_from_float(mloopcol, tvec);
+		return 0;
+	}
+	else {
+		return -1;
+	}
+}
+
+PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
+{
+	PyObject *color_capsule;
+	color_capsule = PyCapsule_New(data, NULL, NULL);
+	return Color_CreatePyObject_cb(color_capsule, mathutils_bmloopcol_cb_index, 0);
+}
+
+#undef MLOOPCOL_FROM_CAPSULE
+
+/* --- End Mesh Loop Color --- */
 
 
 /* call to init all types */
 void BPy_BM_init_types_meshdata(void)
 {
 	bm_init_types_bmloopuv();
+	bm_init_types_bmloopcol();
 }

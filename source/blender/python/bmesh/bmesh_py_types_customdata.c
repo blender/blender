@@ -134,7 +134,7 @@ PyDoc_STRVAR(bpy_bmlayercollection_keys_doc,
 );
 static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
 {
-	PyObject *ret = PyList_New(0);
+	PyObject *ret;
 	PyObject *item;
 	int index;
 	CustomData *data;
@@ -655,8 +655,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 		}
 		case CD_MLOOPCOL:
 		{
-			ret = Py_NotImplemented; /* TODO */
-			Py_INCREF(ret);
+			ret = BPy_BMLoopColor_CreatePyObject(value);
 			break;
 		}
 		case CD_SHAPEKEY:
@@ -746,14 +745,12 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 		}
 		case CD_MLOOPUV:
 		{
-			PyErr_SetString(PyExc_AttributeError, "readonly"); /* could make this writeable later */
-			ret = -1;
+			ret = BPy_BMLoopUV_AssignPyObject(value, py_value);
 			break;
 		}
 		case CD_MLOOPCOL:
 		{
-			PyErr_SetString(PyExc_AttributeError, "readonly");
-			ret = -1;
+			ret = BPy_BMLoopColor_AssignPyObject(value, py_value);
 			break;
 		}
 		case CD_SHAPEKEY:

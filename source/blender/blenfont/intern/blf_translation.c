@@ -166,6 +166,7 @@ const char *BLF_translate_do_iface(const char *context, const char *msgid)
 	else
 		return msgid;
 #else
+	(void)context;
 	return msgid;
 #endif
 }
@@ -182,6 +183,7 @@ const char *BLF_translate_do_tooltip(const char *context, const char *msgid)
 	else
 		return msgid;
 #else
+	(void)context;
 	return msgid;
 #endif
 }
