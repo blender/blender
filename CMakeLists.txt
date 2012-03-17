@@ -382,7 +382,7 @@ if(WITH_PYTHON)
 		message(WARNING "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
 						"This is an 'svn external', which are known not to work with bridges to other version "
 						"control systems: * CONTINUING WITHOUT ADDONS *")
-		set(WITH_INTERNATIONAL OFF)
+		set(WITH_PYTHON OFF)
 	endif()
 endif()
 

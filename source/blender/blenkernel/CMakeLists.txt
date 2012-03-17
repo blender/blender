@@ -386,6 +386,10 @@ if(WITH_FFTW3)
 	add_definitions(-DFFTW3=1)
 endif()
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 ## Warnings as errors, this is too strict!
 #if(MSVC)
 #	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")

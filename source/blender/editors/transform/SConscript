@@ -8,4 +8,9 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include'
 incs += ' ../../gpu ../../makesrna ../../blenloader ../../bmesh'
 
-env.BlenderLib ( 'bf_editors_transform', sources, Split(incs), [], libtype=['core'], priority=[40] )
+defs = []
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_transform', sources, Split(incs), defs, libtype=['core'], priority=[40] )

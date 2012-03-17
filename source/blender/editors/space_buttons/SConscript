@@ -9,4 +9,7 @@ incs += ' ../../bmesh ../../makesrna ../../render/extern/include ../../blenloade
 
 defs = []
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
 env.BlenderLib ( 'bf_editors_space_buttons', sources, Split(incs), defs, libtype=['core'], priority=[120] )
