@@ -2411,8 +2411,6 @@ static void ccgDM_release(DerivedMesh *dm)
 			MEM_freeN(ccgdm->gridHidden);
 		}
 		if(ccgdm->freeSS) ccgSubSurf_free(ccgdm->ss);
-		if(ccgdm->fmap) MEM_freeN(ccgdm->fmap);
-		if(ccgdm->fmap_mem) MEM_freeN(ccgdm->fmap_mem);
 		if(ccgdm->pmap) MEM_freeN(ccgdm->pmap);
 		if(ccgdm->pmap_mem) MEM_freeN(ccgdm->pmap_mem);
 		MEM_freeN(ccgdm->edgeFlags);
@@ -2790,7 +2788,7 @@ static BLI_bitmap *ccgDM_getGridHidden(DerivedMesh *dm)
 	return ccgdm->gridHidden;
 }
 
-static ListBase *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
+const static MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
 

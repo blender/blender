@@ -38,8 +38,7 @@ struct DMFlagMat;
 struct DMGridAdjacency;
 struct DMGridData;
 struct DerivedMesh;
-struct IndexNode;
-struct ListBase;
+struct MeshElemMap;
 struct Mesh;
 struct MPoly;
 struct MultiresSubsurf;
@@ -105,11 +104,9 @@ typedef struct CCGDerivedMesh {
 	int *reverseFaceMap;
 
 	struct PBVH *pbvh;
-	struct ListBase *fmap;
-	struct IndexNode *fmap_mem;
 
-	struct ListBase *pmap;
-	struct IndexNode *pmap_mem;
+	struct MeshElemMap *pmap;
+	int *pmap_mem;
 
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;

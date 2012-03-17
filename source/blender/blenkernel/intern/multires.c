@@ -691,9 +691,9 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 {
 	DerivedMesh *cddm, *dispdm, *origdm;
 	Mesh *me;
-	ListBase *pmap;
+	const MeshElemMap *pmap;
 	float (*origco)[3];
-	int i, j, offset, totlvl;
+	int i, j, k, offset, totlvl;
 
 	multires_force_update(ob);
 
@@ -727,22 +727,21 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 		copy_v3_v3(origco[i], me->mvert[i].co);
 
 	for (i = 0; i < me->totvert; ++i) {
-		IndexNode *n;
 		float avg_no[3] = {0,0,0}, center[3] = {0,0,0}, push[3];
 		float dist;
 		int tot;
 
 		/* don't adjust verts not used by at least one poly */
-		if (!pmap[i].first)
+		if (!pmap[i].count)
 			continue;
 
 		/* find center */
-		for (n = pmap[i].first, tot = 0; n; n = n->next) {
-			const MPoly *p = &me->mpoly[n->index];
+		for (j = 0; j < pmap[i].count; j++) {
+			const MPoly *p = &me->mpoly[pmap[i].indices[j]];
 			
 			/* this double counts, not sure if that's bad or good */
-			for (j = 0; j < p->totloop; ++j) {
-				int vndx = me->mloop[p->loopstart + j].v;
+			for (k = 0; k < p->totloop; ++k) {
+				int vndx = me->mloop[p->loopstart + k].v;
 				if (vndx != i) {
 					add_v3_v3(center, origco[vndx]);
 					++tot;
@@ -752,8 +751,8 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 		mul_v3_fl(center, 1.0f / tot);
 
 		/* find normal */
-		for (n = pmap[i].first; n; n = n->next) {
-			const MPoly *p = &me->mpoly[n->index];
+		for (j = 0; j < pmap[i].count; j++) {
+			const MPoly *p = &me->mpoly[pmap[i].indices[j]];
 			MPoly fake_poly;
 			MLoop *fake_loops;
 			float (*fake_co)[3];
@@ -766,15 +765,15 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 			fake_loops = MEM_mallocN(sizeof(MLoop) * p->totloop, "fake_loops");
 			fake_co = MEM_mallocN(sizeof(float) * 3 * p->totloop, "fake_co");
 			
-			for (j = 0; j < p->totloop; ++j) {
-				int vndx = me->mloop[p->loopstart + j].v;
+			for (k = 0; k < p->totloop; ++k) {
+				int vndx = me->mloop[p->loopstart + k].v;
 				
-				fake_loops[j].v = j;
+				fake_loops[k].v = k;
 				
 				if (vndx == i)
-					copy_v3_v3(fake_co[j], center);
+					copy_v3_v3(fake_co[k], center);
 				else
-					copy_v3_v3(fake_co[j], origco[vndx]);
+					copy_v3_v3(fake_co[k], origco[vndx]);
 			}
 			
 			mesh_calc_poly_normal_coords(&fake_poly, fake_loops,

@@ -251,13 +251,20 @@ UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
 
 /* Connectivity data */
+typedef struct MeshElemMap {
+	int *indices;
+	int count;
+} MeshElemMap;
+	
 typedef struct IndexNode {
 	struct IndexNode *next, *prev;
 	int index;
 } IndexNode;
-void create_vert_poly_map(struct ListBase **map, IndexNode **mem,
-                          struct MPoly *mface, struct MLoop *mloop,
-                          const int totvert, const int totface, const int totloop);
+
+void create_vert_poly_map(MeshElemMap **map, int **mem,
+                          const struct MPoly *mface, const struct MLoop *mloop,
+                          int totvert, int totface, int totloop);
+	
 void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,
                           const int totvert, const int totedge);
 

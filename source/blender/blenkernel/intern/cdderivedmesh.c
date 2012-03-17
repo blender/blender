@@ -91,11 +91,8 @@ typedef struct {
 	int pbvh_draw;
 
 	/* Mesh connectivity */
-	struct ListBase *fmap;
-	struct IndexNode *fmap_mem;
-
-	struct ListBase *pmap;
-	struct IndexNode *pmap_mem;
+	MeshElemMap *pmap;
+	int *pmap_mem;
 } CDDerivedMesh;
 
 /**************** DerivedMesh interface functions ****************/
@@ -215,7 +212,7 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 	normal_short_to_float_v3(no_r, cddm->mvert[index].no);
 }
 
-static ListBase *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
+const static MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
@@ -1530,9 +1527,6 @@ void CDDM_recalc_tessellation(DerivedMesh *dm)
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
 {
-	if(cddm->fmap) MEM_freeN(cddm->fmap);
-	if(cddm->fmap_mem) MEM_freeN(cddm->fmap_mem);
-
 	if(cddm->pmap) MEM_freeN(cddm->pmap);
 	if(cddm->pmap_mem) MEM_freeN(cddm->pmap_mem);
 }

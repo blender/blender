@@ -2189,25 +2189,49 @@ void free_uv_vert_map(UvVertMap *vmap)
 /* Generates a map where the key is the vertex and the value is a list
  * of polys that use that vertex as a corner. The lists are allocated
  * from one memory pool. */
-void create_vert_poly_map(ListBase **map, IndexNode **mem,
-                          MPoly *mpoly, MLoop *mloop,
-                          const int totvert, const int totpoly, const int totloop)
+void create_vert_poly_map(MeshElemMap **map, int **mem,
+                          const MPoly *mpoly, const MLoop *mloop,
+                          int totvert, int totpoly, int totloop)
 {
-	int i,j;
-	IndexNode *node = NULL;
-	MPoly *mp;
-	MLoop *ml;
+	int i, j;
+	int *indices;
 
-	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert face map");
-	(*mem) = MEM_callocN(sizeof(IndexNode) * totloop, "vert poly map mem");
-	node = *mem;
+	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
+	(*mem) = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
 
+	printf("pmap old=%f, new=%f\n",
+		   (sizeof(ListBase) * totvert +
+			sizeof(IndexNode) * totloop) / 1024.0f / 1024.0f,
+		   (sizeof(MeshElemMap) * totvert +
+			sizeof(int) * totloop) / 1024.0f / 1024.0f);
+
+	/* Count number of polys for each vertex */
+	for (i = 0; i < totpoly; i++) {
+		const MPoly *p = &mpoly[i];
+		
+		for (j = 0; j < p->totloop; j++)
+			(*map)[mloop[p->loopstart + j].v].count++;
+	}
+
+	/* Assign indices mem */
+	indices = (*mem);
+	for (i = 0; i < totvert; i++) {
+		(*map)[i].indices = indices;
+		indices += (*map)[i].count;
+
+		/* Reset 'count' for use as index in last loop */
+		(*map)[i].count = 0;
+	}
+		
 	/* Find the users */
-	for (i = 0, mp = mpoly; i < totpoly; ++i, ++mp) {
-		ml = &mloop[mp->loopstart];
-		for (j = 0; j < mp->totloop; ++j, ++node, ++ml) {
-			node->index = i;
-			BLI_addtail(&(*map)[ml->v], node);
+	for (i = 0; i < totpoly; i++) {
+		const MPoly *p = &mpoly[i];
+		
+		for (j = 0; j < p->totloop; j++) {
+			int v = mloop[p->loopstart + j].v;
+			
+			(*map)[v].indices[(*map)[v].count] = i;
+			(*map)[v].count++;
 		}
 	}
 }

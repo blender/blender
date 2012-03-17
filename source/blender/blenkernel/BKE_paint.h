@@ -34,6 +34,7 @@
 
 struct Brush;
 struct MDisps;
+struct MeshElemMap;
 struct MFace;
 struct MultireModifierData;
 struct MVert;
@@ -80,7 +81,7 @@ typedef struct SculptSession {
 	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
-	struct ListBase *pmap;
+	const struct MeshElemMap *pmap;
 
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;

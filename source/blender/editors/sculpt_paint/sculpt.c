@@ -904,28 +904,27 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
  * polygon.) */
 static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 {
-	const int ncount = BLI_countlist(&ss->pmap[vert]);
+	const MeshElemMap *vert_map = &ss->pmap[vert];
 	const MVert *mvert = ss->mvert;
 	float (*deform_co)[3] = ss->deform_cos;
 
 	zero_v3(avg);
 		
 	/* Don't modify corner vertices */
-	if(ncount != 1) {
-		IndexNode *node;
-		int total = 0;
+	if(vert_map->count > 1) {
+		int i, total = 0;
 
-		for(node = ss->pmap[vert].first; node; node = node->next) {
-			const MPoly *p= &ss->mpoly[node->index];
+		for(i = 0; i < vert_map->count; i++) {
+			const MPoly *p= &ss->mpoly[vert_map->indices[i]];
 			unsigned f_adj_v[3];
 
 			if(poly_get_adj_loops_from_vert(f_adj_v, p, ss->mloop, vert) != -1) {
-				int i;
+				int j;
 			
-				for (i = 0; i < 3; i++) {
-					if (ncount != 2 || BLI_countlist(&ss->pmap[f_adj_v[i]]) <= 2) {
-						add_v3_v3(avg, deform_co ? deform_co[f_adj_v[i]] :
-												       mvert[f_adj_v[i]].co);
+				for (j = 0; j < 3; j++) {
+					if (vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2) {
+						add_v3_v3(avg, deform_co ? deform_co[f_adj_v[j]] :
+								                   mvert[f_adj_v[j]].co);
 
 						total++;
 					}
