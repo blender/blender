@@ -2787,7 +2787,10 @@ PyObject *BPyInit_bmesh_types(void)
 	mod_type_add(submodule, BPy_BMEditSelSeq_Type);
 	mod_type_add(submodule, BPy_BMEditSelIter_Type);
 	/* bmesh_py_types_customdata.c */
-	mod_type_add(submodule, BPy_BMLayerAccess_Type);
+	mod_type_add(submodule, BPy_BMLayerAccessVert_Type);
+	mod_type_add(submodule, BPy_BMLayerAccessEdge_Type);
+	mod_type_add(submodule, BPy_BMLayerAccessFace_Type);
+	mod_type_add(submodule, BPy_BMLayerAccessLoop_Type);
 	mod_type_add(submodule, BPy_BMLayerCollection_Type);
 	mod_type_add(submodule, BPy_BMLayerItem_Type);
 	/* bmesh_py_types_meshdata.c */

@@ -81,6 +81,24 @@ static PyObject *bpy_bmlayeraccess_collection_get(BPy_BMLayerAccess *self, void 
 	return BPy_BMLayerCollection_CreatePyObject(self->bm, self->htype, type);
 }
 
+static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *UNUSED(flag))
+{
+	CustomData *data;
+	int index;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	data = bpy_bm_customdata_get(self->bm, self->htype);
+	index = CustomData_get_active_layer_index(data, self->type);
+
+	if (index != -1) {
+		return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
 static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void *UNUSED(flag))
 {
 	CustomDataLayer *layer;
@@ -91,20 +109,55 @@ static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void *UNUSED(fl
 	return PyUnicode_FromString(layer->name);
 }
 
-static PyGetSetDef bpy_bmlayeraccess_getseters[] = {
+static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
     {(char *)"deform", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_MDEFORMVERT},
 
     {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_FLT},
     {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_INT},
     {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_STR},
 
+    {(char *)"shape",        (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_SHAPEKEY},
+    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_BWEIGHT},
+
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
+    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_FLT},
+    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_INT},
+    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_STR},
+
+    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_BWEIGHT},
+    {(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_CREASE},
+
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
+    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_FLT},
+    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_INT},
+    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_STR},
+
     {(char *)"tex",   (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_MTEXPOLY},
+
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
+    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_FLT},
+    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_INT},
+    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_PROP_STR},
+
     {(char *)"uv",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_MLOOPUV},
     {(char *)"color", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_MLOOPCOL},
 
-    {(char *)"shape",        (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_SHAPEKEY},
-    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_BWEIGHT},
-    {(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)NULL, (void *)CD_CREASE},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+
+static PyGetSetDef bpy_bmlayercollection_getseters[] = {
+    /* BMESH_TODO, make writeable */
+    {(char *)"active", (getter)bpy_bmlayercollection_active_get, (setter)NULL, (char *)NULL, NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -474,14 +527,33 @@ static PyObject *bpy_bmlayercollection_iter(BPy_BMLayerCollection *self)
 	return iter;
 }
 
-PyTypeObject BPy_BMLayerAccess_Type     = {{{0}}}; /* bm.verts.layers */
-PyTypeObject BPy_BMLayerCollection_Type = {{{0}}}; /* bm.verts.layers.uv */
-PyTypeObject BPy_BMLayerItem_Type       = {{{0}}}; /* bm.verts.layers.uv["UVMap"] */
+PyTypeObject BPy_BMLayerAccessVert_Type     = {{{0}}}; /* bm.verts.layers */
+PyTypeObject BPy_BMLayerAccessEdge_Type     = {{{0}}}; /* bm.edges.layers */
+PyTypeObject BPy_BMLayerAccessFace_Type     = {{{0}}}; /* bm.faces.layers */
+PyTypeObject BPy_BMLayerAccessLoop_Type     = {{{0}}}; /* bm.loops.layers */
+PyTypeObject BPy_BMLayerCollection_Type     = {{{0}}}; /* bm.loops.layers.uv */
+PyTypeObject BPy_BMLayerItem_Type           = {{{0}}}; /* bm.loops.layers.uv["UVMap"] */
 
 
 PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, const char htype)
 {
-	BPy_BMLayerAccess *self = PyObject_New(BPy_BMLayerAccess, &BPy_BMLayerAccess_Type);
+	BPy_BMLayerAccess *self;
+	PyTypeObject *type;
+
+	switch (htype) {
+		case BM_VERT:  type = &BPy_BMLayerAccessVert_Type;  break;
+		case BM_EDGE:  type = &BPy_BMLayerAccessEdge_Type;  break;
+		case BM_FACE:  type = &BPy_BMLayerAccessFace_Type;  break;
+		case BM_LOOP:  type = &BPy_BMLayerAccessLoop_Type;  break;
+		default:
+		{
+			BLI_assert(0);
+			type = NULL;
+			break;
+		}
+	}
+
+	self = PyObject_New(BPy_BMLayerAccess, type);
 	self->bm = bm;
 	self->htype = htype;
 	return (PyObject *)self;
@@ -509,24 +581,40 @@ PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, const char htype, int type, 
 
 void BPy_BM_init_types_customdata(void)
 {
-	BPy_BMLayerAccess_Type.tp_basicsize     = sizeof(BPy_BMLayerAccess);
+	BPy_BMLayerAccessVert_Type.tp_basicsize = sizeof(BPy_BMLayerAccess);
+	BPy_BMLayerAccessEdge_Type.tp_basicsize = sizeof(BPy_BMLayerAccess);
+	BPy_BMLayerAccessFace_Type.tp_basicsize = sizeof(BPy_BMLayerAccess);
+	BPy_BMLayerAccessLoop_Type.tp_basicsize = sizeof(BPy_BMLayerAccess);
 	BPy_BMLayerCollection_Type.tp_basicsize = sizeof(BPy_BMLayerCollection);
 	BPy_BMLayerItem_Type.tp_basicsize       = sizeof(BPy_BMLayerItem);
 
-	BPy_BMLayerAccess_Type.tp_name     = "BMLayerAccess";
+	BPy_BMLayerAccessVert_Type.tp_name = "BMLayerAccessVert";
+	BPy_BMLayerAccessEdge_Type.tp_name = "BMLayerAccessEdge";
+	BPy_BMLayerAccessFace_Type.tp_name = "BMLayerAccessFace";
+	BPy_BMLayerAccessLoop_Type.tp_name = "BMLayerAccessLoop";
 	BPy_BMLayerCollection_Type.tp_name = "BMLayerCollection";
 	BPy_BMLayerItem_Type.tp_name       = "BMLayerItem";
 
-	BPy_BMLayerAccess_Type.tp_doc     = NULL; // todo
+	/* todo */
+	BPy_BMLayerAccessVert_Type.tp_doc = NULL;
+	BPy_BMLayerAccessEdge_Type.tp_doc = NULL;
+	BPy_BMLayerAccessFace_Type.tp_doc = NULL;
+	BPy_BMLayerAccessLoop_Type.tp_doc = NULL;
 	BPy_BMLayerCollection_Type.tp_doc = NULL;
 	BPy_BMLayerItem_Type.tp_doc       = NULL;
 
-	BPy_BMLayerAccess_Type.tp_repr  = (reprfunc)NULL;
+	BPy_BMLayerAccessVert_Type.tp_repr = (reprfunc)NULL;
+	BPy_BMLayerAccessEdge_Type.tp_repr = (reprfunc)NULL;
+	BPy_BMLayerAccessFace_Type.tp_repr = (reprfunc)NULL;
+	BPy_BMLayerAccessLoop_Type.tp_repr = (reprfunc)NULL;
 	BPy_BMLayerCollection_Type.tp_repr = (reprfunc)NULL;
 	BPy_BMLayerItem_Type.tp_repr = (reprfunc)NULL;
 
-	BPy_BMLayerAccess_Type.tp_getset     = bpy_bmlayeraccess_getseters;
-	BPy_BMLayerCollection_Type.tp_getset = NULL;
+	BPy_BMLayerAccessVert_Type.tp_getset = bpy_bmlayeraccess_vert_getseters;
+	BPy_BMLayerAccessEdge_Type.tp_getset = bpy_bmlayeraccess_edge_getseters;
+	BPy_BMLayerAccessFace_Type.tp_getset = bpy_bmlayeraccess_face_getseters;
+	BPy_BMLayerAccessLoop_Type.tp_getset = bpy_bmlayeraccess_loop_getseters;
+	BPy_BMLayerCollection_Type.tp_getset = bpy_bmlayercollection_getseters;
 	BPy_BMLayerItem_Type.tp_getset       = bpy_bmlayeritem_getseters;
 
 
@@ -539,17 +627,26 @@ void BPy_BM_init_types_customdata(void)
 
 	BPy_BMLayerCollection_Type.tp_iter = (getiterfunc)bpy_bmlayercollection_iter;
 
-	BPy_BMLayerAccess_Type.tp_dealloc     = NULL; //(destructor)bpy_bmeditselseq_dealloc;
-	BPy_BMLayerCollection_Type.tp_dealloc = NULL; //(destructor)bpy_bmvert_dealloc;
-	BPy_BMLayerItem_Type.tp_dealloc       = NULL; //(destructor)bpy_bmvert_dealloc;
+	BPy_BMLayerAccessVert_Type.tp_dealloc = NULL;
+	BPy_BMLayerAccessEdge_Type.tp_dealloc = NULL;
+	BPy_BMLayerAccessFace_Type.tp_dealloc = NULL;
+	BPy_BMLayerAccessLoop_Type.tp_dealloc = NULL;
+	BPy_BMLayerCollection_Type.tp_dealloc = NULL;
+	BPy_BMLayerItem_Type.tp_dealloc       = NULL;
 
 
 
-	BPy_BMLayerAccess_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
+	BPy_BMLayerAccessVert_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMLayerAccessEdge_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMLayerAccessFace_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMLayerAccessLoop_Type.tp_flags = Py_TPFLAGS_DEFAULT;
 	BPy_BMLayerCollection_Type.tp_flags = Py_TPFLAGS_DEFAULT;
 	BPy_BMLayerItem_Type.tp_flags       = Py_TPFLAGS_DEFAULT;
 
-	PyType_Ready(&BPy_BMLayerAccess_Type);
+	PyType_Ready(&BPy_BMLayerAccessVert_Type);
+	PyType_Ready(&BPy_BMLayerAccessEdge_Type);
+	PyType_Ready(&BPy_BMLayerAccessFace_Type);
+	PyType_Ready(&BPy_BMLayerAccessLoop_Type);
 	PyType_Ready(&BPy_BMLayerCollection_Type);
 	PyType_Ready(&BPy_BMLayerItem_Type);
 }

@@ -30,7 +30,12 @@
 #ifndef __BMESH_PY_TYPES_CUSTOMDATA_H__
 #define __BMESH_PY_TYPES_CUSTOMDATA_H__
 
-extern PyTypeObject BPy_BMLayerAccess_Type;
+/* all use BPy_BMLayerAccess struct */
+extern PyTypeObject BPy_BMLayerAccessVert_Type;
+extern PyTypeObject BPy_BMLayerAccessEdge_Type;
+extern PyTypeObject BPy_BMLayerAccessFace_Type;
+extern PyTypeObject BPy_BMLayerAccessLoop_Type;
+
 extern PyTypeObject BPy_BMLayerCollection_Type;
 extern PyTypeObject BPy_BMLayerItem_Type;
 
