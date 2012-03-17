@@ -1171,6 +1171,20 @@ static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
 	return IMB_PROXY_25;
 }
 
+static double seq_rendersize_to_scale_factor(int size)
+{
+	if (size >= 99) {
+		return 1.0;
+	}
+	if (size >= 75) {
+		return 0.75;
+	}
+	if (size >= 50) {
+		return 0.50;
+	}
+	return 0.25;
+}
+
 static void seq_open_anim_file(Sequence * seq)
 {
 	char name[FILE_MAX];
@@ -1688,6 +1702,13 @@ static ImBuf * input_preprocess(
 		StripTransform t= {0};
 		int sx,sy,dx,dy;
 
+		double f = seq_rendersize_to_scale_factor(
+			context.preview_render_size);
+
+		if (f != 1.0) {
+			IMB_scalefastImBuf(ibuf, ibuf->x / f, ibuf->y / f);
+		}
+
 		if(seq->flag & SEQ_USE_CROP && seq->strip->crop) {
 			c = *seq->strip->crop;
 		}
@@ -1728,29 +1749,7 @@ static ImBuf * input_preprocess(
 	}
 
 	if(seq->sat != 1.0f) {
-		/* inline for now, could become an imbuf function */
-		int i;
-		unsigned char *rct= (unsigned char *)ibuf->rect;
-		float *rctf= ibuf->rect_float;
-		const float sat= seq->sat;
-		float hsv[3];
-
-		if(rct) {
-			float rgb[3];
-			for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
-				rgb_uchar_to_float(rgb, rct);
-				rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb+1, rgb+2);
-				rgb_float_to_uchar(rct, rgb);
-			}
-		}
-
-		if(rctf) {
-			for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
-				rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv+1, hsv+2);
-				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf+1, rctf+2);
-			}
-		}
+		IMB_saturation(ibuf, seq->sat);
 	}
 
 	mul = seq->mul;

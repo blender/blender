@@ -750,3 +750,30 @@ void IMB_buffer_float_clamp(float *buf, int width, int height)
 		buf[i] = MIN2(1.0, buf[i]);
 	}
 }
+
+/**************************** alter saturation *****************************/
+
+void IMB_saturation(ImBuf * ibuf, float sat)
+{
+	int i;
+	unsigned char *rct= (unsigned char *)ibuf->rect;
+	float *rctf= ibuf->rect_float;
+	float hsv[3];
+
+	if(rct) {
+		float rgb[3];
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+			rgb_uchar_to_float(rgb, rct);
+			rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb+1, rgb+2);
+			rgb_float_to_uchar(rct, rgb);
+		}
+	}
+
+	if(rctf) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
+			rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv+1, hsv+2);
+			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf+1, rctf+2);
+		}
+	}
+}
