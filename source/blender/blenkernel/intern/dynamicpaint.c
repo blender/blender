@@ -1653,15 +1653,13 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 											/* mix surface color */
 											interp_v3_v3v3(c, c, &fcolor[v_index], fcolor[v_index+3]);
 
-											col[l_index].r = FTOCHAR(c[2]);
-											col[l_index].g = FTOCHAR(c[1]);
-											col[l_index].b = FTOCHAR(c[0]);
+											rgb_float_to_uchar((unsigned char *)&col[l_index].r, c);
 										}
 										else {
-											col[l_index].a = 255;
 											col[l_index].r =
 											col[l_index].g =
 											col[l_index].b = FTOCHAR(pPoint[v_index].wetness);
+											col[l_index].a = 255;
 										}
 									}
 								}
@@ -1681,10 +1679,8 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<totloop; i++) {
 								int index = mloop[i].v*4;
-								col[i].a = FTOCHAR(fcolor[index+3]);
-								col[i].r = FTOCHAR(fcolor[index+2]);
-								col[i].g = FTOCHAR(fcolor[index+1]);
-								col[i].b = FTOCHAR(fcolor[index]);
+								rgb_float_to_uchar((unsigned char *)&col[i].r, &fcolor[index]);
+								col[i].a = FTOCHAR(fcolor[index+3]); /* IS THIS NEEDED? */
 							}
 						}
 						
@@ -1700,10 +1696,10 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<totloop; i++) {
 								int index = mloop[i].v;
-								col[i].a = 255;
 								col[i].r =
 								col[i].g =
 								col[i].b = FTOCHAR(pPoint[index].wetness);
+								col[i].a = 255;
 							}
 						}
 					}

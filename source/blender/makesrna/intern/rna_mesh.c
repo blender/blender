@@ -432,18 +432,18 @@ static void rna_MeshLoopColor_color_get(PointerRNA *ptr, float *values)
 {
 	MLoopCol *mcol = (MLoopCol *)ptr->data;
 
-	values[2] = (&mcol->r)[0]/255.0f;
-	values[1] = (&mcol->r)[1]/255.0f;
-	values[0] = (&mcol->r)[2]/255.0f;
+	values[0] = (&mcol->r)[0] / 255.0f;
+	values[1] = (&mcol->r)[1] / 255.0f;
+	values[2] = (&mcol->r)[2] / 255.0f;
 }
 
 static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 {
 	MLoopCol *mcol = (MLoopCol *)ptr->data;
 
-	(&mcol->r)[2] = (char)(CLAMPIS(values[0]*255.0f, 0, 255));
-	(&mcol->r)[1] = (char)(CLAMPIS(values[1]*255.0f, 0, 255));
-	(&mcol->r)[0] = (char)(CLAMPIS(values[2]*255.0f, 0, 255));
+	(&mcol->r)[0] = (char)(CLAMPIS(values[0] * 255.0f, 0, 255));
+	(&mcol->r)[1] = (char)(CLAMPIS(values[1] * 255.0f, 0, 255));
+	(&mcol->r)[2] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
 }
 
 static int rna_Mesh_texspace_editable(PointerRNA *ptr)

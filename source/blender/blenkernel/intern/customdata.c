@@ -663,17 +663,17 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 		float weight = weights ? weights[i] : 1;
 		MLoopCol *src = sources[i];
 		if (sub_weights) {
-			col.a += src->a * (*sub_weight) * weight;
 			col.r += src->r * (*sub_weight) * weight;
 			col.g += src->g * (*sub_weight) * weight;
 			col.b += src->b * (*sub_weight) * weight;
+			col.a += src->a * (*sub_weight) * weight;
 			sub_weight++;
 		}
 		else {
-			col.a += src->a * weight;
 			col.r += src->r * weight;
 			col.g += src->g * weight;
 			col.b += src->b * weight;
+			col.a += src->a * weight;
 		}
 	}
 	
@@ -684,10 +684,10 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 	CLAMP(col.g, 0.0f, 255.0f);
 	CLAMP(col.b, 0.0f, 255.0f);
 	
-	mc->a = (int)col.a;
 	mc->r = (int)col.r;
 	mc->g = (int)col.g;
 	mc->b = (int)col.b;
+	mc->a = (int)col.a;
 }
 
 static void layerCopyValue_mloopuv(void *source, void *dest)

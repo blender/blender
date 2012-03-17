@@ -1942,11 +1942,11 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 		mloopcol = CustomData_get_n(&me->ldata, CD_MLOOPCOL, loopstart, i);
 		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
 
-		mloopcol->r = mcol[0].r; mloopcol->g = mcol[0].g; mloopcol->b = mcol[0].b; mloopcol->a = mcol[0].a; mloopcol++;
-		mloopcol->r = mcol[1].r; mloopcol->g = mcol[1].g; mloopcol->b = mcol[1].b; mloopcol->a = mcol[1].a; mloopcol++;
-		mloopcol->r = mcol[2].r; mloopcol->g = mcol[2].g; mloopcol->b = mcol[2].b; mloopcol->a = mcol[2].a; mloopcol++;
+		MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]); mloopcol++;
+		MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[1]); mloopcol++;
+		MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[2]); mloopcol++;
 		if (mf->v4) {
-			mloopcol->r = mcol[3].r; mloopcol->g = mcol[3].g; mloopcol->b = mcol[3].b; mloopcol->a = mcol[3].a; mloopcol++;
+			MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[3]); mloopcol++;
 		}
 	}
 	
@@ -2293,10 +2293,7 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 
 		for (j=0; j < mf_len; j++) {
 			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
+			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
 
@@ -2305,10 +2302,7 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 
 		for (j=0; j < mf_len; j++) {
 			mloopcol = CustomData_get(ldata, lindex[j], CD_WEIGHT_MLOOPCOL);
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
+			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
 

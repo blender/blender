@@ -150,16 +150,12 @@ PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
 
 static void mloopcol_to_float(const MLoopCol *mloopcol, float col_r[3])
 {
-	col_r[0] = ((float)mloopcol->b) / 255.0f;
-	col_r[1] = ((float)mloopcol->g) / 255.0f;
-	col_r[2] = ((float)mloopcol->r) / 255.0f;
+	rgb_uchar_to_float(col_r, (unsigned char *)&mloopcol->r);
 }
 
 static void mloopcol_from_float(MLoopCol *mloopcol, const float col[3])
 {
-	mloopcol->b = FTOCHAR(col[0]);
-	mloopcol->g = FTOCHAR(col[1]);
-	mloopcol->r = FTOCHAR(col[2]);
+	rgb_float_to_uchar((unsigned char *)&mloopcol->r, col);
 }
 
 static unsigned char mathutils_bmloopcol_cb_index = -1;

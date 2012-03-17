@@ -694,10 +694,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				lcol = &mloopcol[mp->loopstart];
 
 				for (j = 0; j <= totloop_clamp; j++, lcol++) {
-					tmp_mcol[j].a = lcol->a;
-					tmp_mcol[j].r = lcol->r;
-					tmp_mcol[j].g = lcol->g;
-					tmp_mcol[j].b = lcol->b;
+					MESH_MLOOPCOL_TO_MCOL(lcol, &tmp_mcol[j]);
 				}
 			}
 

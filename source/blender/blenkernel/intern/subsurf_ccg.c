@@ -2450,10 +2450,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 
 		for (j=0; j<4; j++, mloopcol++) {
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
+			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
 	
@@ -2462,10 +2459,7 @@ static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 		mcol = CustomData_get(fdata, findex, CD_WEIGHT_MCOL);
 
 		for (j=0; j<4; j++, mloopcol++) {
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
+			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
 

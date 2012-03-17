@@ -1763,10 +1763,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		for (j=0; j<3; j++) {
 			l = l3[j];
 			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
+			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
 
@@ -1776,10 +1773,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		for (j=0; j<3; j++) {
 			l = l3[j];
 			mloopcol = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_WEIGHT_MLOOPCOL);
-			mcol[j].r = mloopcol->r;
-			mcol[j].g = mloopcol->g;
-			mcol[j].b = mloopcol->b;
-			mcol[j].a = mloopcol->a;
+			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
 }

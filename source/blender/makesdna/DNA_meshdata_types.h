@@ -122,8 +122,29 @@ typedef struct MLoopUV {
 /* at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
 typedef struct MLoopCol {
-	char a, r, g, b;
+	char r, g, b, a;
 } MLoopCol;
+
+#define MESH_MLOOPCOL_FROM_MCOL(_mloopcol, _mcol) \
+{                                                 \
+	MLoopCol   *mloopcol__tmp = _mloopcol;        \
+	const MCol *mcol__tmp     = _mcol;            \
+	mloopcol__tmp->r = mcol__tmp->b;              \
+	mloopcol__tmp->g = mcol__tmp->g;              \
+	mloopcol__tmp->b = mcol__tmp->r;              \
+	mloopcol__tmp->a = mcol__tmp->a;              \
+} (void)0
+
+
+#define MESH_MLOOPCOL_TO_MCOL(_mloopcol, _mcol) \
+{                                               \
+	const MLoopCol *mloopcol__tmp = _mloopcol;  \
+	MCol           *mcol__tmp     = _mcol;      \
+	mcol__tmp->b = mloopcol__tmp->r;            \
+	mcol__tmp->g = mloopcol__tmp->g;            \
+	mcol__tmp->r = mloopcol__tmp->b;            \
+	mcol__tmp->a = mloopcol__tmp->a;            \
+} (void)0
 
 typedef struct MSticky {
 	float co[2];
