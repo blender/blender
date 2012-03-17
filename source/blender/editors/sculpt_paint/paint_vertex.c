@@ -184,39 +184,13 @@ static int *get_indexarray(Mesh *me)
 	return MEM_mallocN(sizeof(int)*(me->totpoly+1), "vertexpaint");
 }
 
-
-/* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
- * so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
-
-static unsigned int rgba_to_mcol(float r, float g, float b, float a)
-{
-	int ir, ig, ib, ia;
-	unsigned int col;
-	char *cp;
-	
-	ir= floor(255.0f * r);
-	if(ir<0) ir= 0; else if(ir>255) ir= 255;
-	ig= floor(255.0f * g);
-	if(ig<0) ig= 0; else if(ig>255) ig= 255;
-	ib= floor(255.0f * b);
-	if(ib<0) ib= 0; else if(ib>255) ib= 255;
-	ia= floor(255.0f * a);
-	if(ia<0) ia= 0; else if(ia>255) ia= 255;
-	
-	cp= (char *)&col;
-	cp[0]= ia;
-	cp[1]= ib;
-	cp[2]= ig;
-	cp[3]= ir;
-	
-	return col;
-	
-}
-
 unsigned int vpaint_get_current_col(VPaint *vp)
 {
 	Brush *brush = paint_brush(&vp->paint);
-	return rgba_to_mcol(brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f);
+	unsigned char col[4];
+	rgb_float_to_uchar(col, brush->rgb);
+	col[3] = 255; /* alpha isnt used, could even be removed to speedup paint a little */
+	return *(unsigned int *)col;
 }
 
 static void do_shared_vertex_tesscol(Mesh *me)
@@ -617,149 +591,169 @@ void vpaint_dogamma(Scene *scene)
 
 BM_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 {
-	char *cp1, *cp2, *cp;
+	unsigned char *cp1, *cp2, *cp;
 	int mfac;
-	unsigned int col=0;
-	
-	if(fac==0) return col1;
-	if(fac>=255) return col2;
+	unsigned int col = 0;
 
-	mfac= 255-fac;
-	
-	cp1= (char *)&col1;
-	cp2= (char *)&col2;
-	cp=  (char *)&col;
-	
-	cp[0]= 255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
-	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
-	
+	if (fac == 0) {
+		return col1;
+	}
+
+	if (fac >= 255) {
+		return col2;
+	}
+
+	mfac = 255 - fac;
+
+	cp1 = (unsigned char *)&col1;
+	cp2 = (unsigned char *)&col2;
+	cp  = (unsigned char *)&col;
+
+	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
+	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
+	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[3] = 255;
+
 	return col;
 }
 
 BM_INLINE unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 {
-	char *cp1, *cp2, *cp;
+	unsigned char *cp1, *cp2, *cp;
 	int temp;
-	unsigned int col=0;
-	
-	if(fac==0) return col1;
-	
-	cp1= (char *)&col1;
-	cp2= (char *)&col2;
-	cp=  (char *)&col;
-	
-	cp[0]= 255;
-	temp= cp1[1] + ((fac*cp2[1])/255);
-	if(temp>254) cp[1]= 255; else cp[1]= temp;
-	temp= cp1[2] + ((fac*cp2[2])/255);
-	if(temp>254) cp[2]= 255; else cp[2]= temp;
-	temp= cp1[3] + ((fac*cp2[3])/255);
-	if(temp>254) cp[3]= 255; else cp[3]= temp;
+	unsigned int col = 0;
+
+	if (fac == 0) {
+		return col1;
+	}
+
+	cp1 = (unsigned char *)&col1;
+	cp2 = (unsigned char *)&col2;
+	cp  = (unsigned char *)&col;
+
+	temp = cp1[0] + ((fac * cp2[0]) / 255);
+	cp[0] = (temp > 254) ? 255 : temp;
+	temp = cp1[1] + ((fac * cp2[1]) / 255);
+	cp[1] = (temp > 254) ? 255 : temp;
+	temp = cp1[2] + ((fac * cp2[2]) / 255);
+	cp[2] = (temp > 254) ? 255 : temp;
+	cp[3] = 255;
 	
 	return col;
 }
 
 BM_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 {
-	char *cp1, *cp2, *cp;
+	unsigned char *cp1, *cp2, *cp;
 	int temp;
-	unsigned int col=0;
-	
-	if(fac==0) return col1;
-	
-	cp1= (char *)&col1;
-	cp2= (char *)&col2;
-	cp=  (char *)&col;
-	
-	cp[0]= 255;
-	temp= cp1[1] - ((fac*cp2[1])/255);
-	if(temp<0) cp[1]= 0; else cp[1]= temp;
-	temp= cp1[2] - ((fac*cp2[2])/255);
-	if(temp<0) cp[2]= 0; else cp[2]= temp;
-	temp= cp1[3] - ((fac*cp2[3])/255);
-	if(temp<0) cp[3]= 0; else cp[3]= temp;
-	
+	unsigned int col = 0;
+
+	if (fac == 0) {
+		return col1;
+	}
+
+	cp1 = (unsigned char *)&col1;
+	cp2 = (unsigned char *)&col2;
+	cp  = (unsigned char *)&col;
+
+	temp = cp1[0] - ((fac * cp2[0]) / 255);
+	cp1[0] = (temp < 0) ? 0 : temp;
+	temp = cp1[1] - ((fac * cp2[1]) / 255);
+	cp1[1] = (temp < 0) ? 0 : temp;
+	temp = cp1[2] - ((fac * cp2[2]) / 255);
+	cp1[2] = (temp < 0) ? 0 : temp;
+	cp[3] = 255;
+
 	return col;
 }
 
 BM_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 {
-	char *cp1, *cp2, *cp;
+	unsigned char *cp1, *cp2, *cp;
 	int mfac;
-	unsigned int col=0;
-	
-	if(fac==0) return col1;
+	unsigned int col = 0;
 
-	mfac= 255-fac;
-	
-	cp1= (char *)&col1;
-	cp2= (char *)&col2;
-	cp=  (char *)&col;
-	
+	if (fac == 0) {
+		return col1;
+	}
+
+	mfac = 255 - fac;
+
+	cp1 = (unsigned char *)&col1;
+	cp2 = (unsigned char *)&col2;
+	cp  = (unsigned char *)&col;
+
 	/* first mul, then blend the fac */
-	cp[0]= 255;
-	cp[1]= (mfac*cp1[1] + fac*((cp2[1]*cp1[1])/255)  )/255;
-	cp[2]= (mfac*cp1[2] + fac*((cp2[2]*cp1[2])/255)  )/255;
-	cp[3]= (mfac*cp1[3] + fac*((cp2[3]*cp1[3])/255)  )/255;
+	cp[0] = (mfac * cp1[0] + fac * ((cp2[0] * cp1[0]) / 255)) / 255;
+	cp[1] = (mfac * cp1[1] + fac * ((cp2[1] * cp1[1]) / 255)) / 255;
+	cp[2] = (mfac * cp1[2] + fac * ((cp2[2] * cp1[2]) / 255)) / 255;
+	cp[3] = 255;
 
-	
 	return col;
 }
 
 BM_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
 {
-	char *cp1, *cp2, *cp;
+	unsigned char *cp1, *cp2, *cp;
 	int mfac;
-	unsigned int col=0;
-	
-	if(fac==0) return col1;
-	if(fac>=255) return col2;
+	unsigned int col = 0;
 
-	mfac= 255-fac;
-	
-	cp1= (char *)&col1;
-	cp2= (char *)&col2;
-	cp=  (char *)&col;
-	
-	/* See if are lighter, if so mix, else dont do anything.
-	 * if the paint col is darker then the original, then ignore */
-	if (cp1[1]+cp1[2]+cp1[3] > cp2[1]+cp2[2]+cp2[3])
+	if (fac == 0) {
 		return col1;
-	
-	cp[0]= 255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
-	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
-	
+	}
+	else if (fac >= 255) {
+		return col2;
+	}
+
+	mfac = 255 - fac;
+
+	cp1 = (unsigned char *)&col1;
+	cp2 = (unsigned char *)&col2;
+	cp  = (unsigned char *)&col;
+
+	/* See if are lighter, if so mix, else don't do anything.
+	 * if the paint col is darker then the original, then ignore */
+	if (rgb_to_grayscale_byte(cp1) > rgb_to_grayscale_byte(cp2)) {
+		return col1;
+	}
+
+	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
+	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
+	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[3] = 255;
+
 	return col;
 }
 
 BM_INLINE unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 {
-	char *cp1, *cp2, *cp;
+	unsigned char *cp1, *cp2, *cp;
 	int mfac;
-	unsigned int col=0;
-	
-	if(fac==0) return col1;
-	if(fac>=255) return col2;
+	unsigned int col = 0;
 
-	mfac= 255-fac;
-	
-	cp1= (char *)&col1;
-	cp2= (char *)&col2;
-	cp=  (char *)&col;
-	
-	/* See if were darker, if so mix, else dont do anything.
-	 * if the paint col is brighter then the original, then ignore */
-	if (cp1[1]+cp1[2]+cp1[3] < cp2[1]+cp2[2]+cp2[3])
+	if (fac == 0) {
 		return col1;
-	
-	cp[0]= 255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
-	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
+	}
+	else if (fac >= 255) {
+		return col2;
+	}
+
+	mfac = 255 - fac;
+
+	cp1 = (unsigned char *)&col1;
+	cp2 = (unsigned char *)&col2;
+	cp  = (unsigned char *)&col;
+
+	/* See if were darker, if so mix, else don't do anything.
+	 * if the paint col is brighter then the original, then ignore */
+	if (rgb_to_grayscale_byte(cp1) < rgb_to_grayscale_byte(cp2)) {
+		return col1;
+	}
+
+	cp[0] = (mfac * cp1[0] + fac * cp2[0]) / 255;
+	cp[1] = (mfac * cp1[1] + fac * cp2[1]) / 255;
+	cp[2] = (mfac * cp1[2] + fac * cp2[2]) / 255;
+	cp[3] = 255;
 	return col;
 }
 
