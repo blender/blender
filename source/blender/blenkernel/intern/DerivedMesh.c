@@ -924,8 +924,12 @@ static void weightpaint_color(unsigned char r_col[4], ColorBand *coba, const flo
 		weight_to_rgb(colf, input);
 	}
 
-	rgb_float_to_uchar(r_col, colf);
-	r_col[3] = 255; /* really redundant */
+	/* don't use rgb_float_to_uchar() here because
+	 * the resulting float doesn't need 0-1 clamp check */
+	r_col[0] = (unsigned char)(colf[0] * 255.0f);
+	r_col[1] = (unsigned char)(colf[1] * 255.0f);
+	r_col[2] = (unsigned char)(colf[2] * 255.0f);
+	r_col[3] = 255;
 }
 
 
