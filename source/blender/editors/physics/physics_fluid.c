@@ -654,6 +654,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 
 
 #define FLUID_SUFFIX_CONFIG		"fluidsim.cfg"
+#define FLUID_SUFFIX_CONFIG_TMP	(FLUID_SUFFIX_CONFIG ".tmp")
 #define FLUID_SUFFIX_SURFACE	"fluidsurface"
 
 static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetFile, char *debugStrBuffer)
@@ -663,7 +664,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	FILE *fileCfg;
 	int dirExist = 0;
 	char newSurfdataPath[FILE_MAX]; // modified output settings
-	const char *suffixConfig = FLUID_SUFFIX_CONFIG;
+	const char *suffixConfigTmp = FLUID_SUFFIX_CONFIG_TMP;
 	int outStringsChanged = 0;
 
 	// prepare names...
@@ -673,9 +674,8 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	BLI_strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR); /* if 0'd out below, this value is never used! */
 	BLI_path_abs(targetDir, relbase); // fixed #frame-no
 
-	BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfig);
 	/* .tmp: dont overwrite/delete original file */
-	strncat(targetFile, ".tmp", FILE_MAX);
+	BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
 
 	// make sure all directories exist
 	// as the bobjs use the same dir, this only needs to be checked
@@ -881,7 +881,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	int gridlevels = 0;
 	const char *relbase= modifier_path_relbase(fsDomain);
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
-	const char *suffixConfig = FLUID_SUFFIX_CONFIG;
+	const char *suffixConfigTmp = FLUID_SUFFIX_CONFIG_TMP;
 	const char *suffixSurface = FLUID_SUFFIX_SURFACE;
 
 	char targetDir[FILE_MAX];  // store & modify output settings
@@ -994,8 +994,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 
 	/* ********  start writing / exporting ******** */
 	// use .tmp, dont overwrite/delete original file
-	BLI_join_dirfile(targetFile, sizeof(targetFile), targetDir, suffixConfig);
-	strncat(targetFile, ".tmp", sizeof(targetFile));
+	BLI_join_dirfile(targetFile, sizeof(targetFile), targetDir, suffixConfigTmp);
 	
 	// make sure these directories exist as well
 	if(outStringsChanged) {
