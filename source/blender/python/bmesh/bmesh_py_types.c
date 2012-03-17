@@ -187,22 +187,42 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
  * ^^^^ */
 
 /* doc-strings for all uses of this funcion */
-PyDoc_STRVAR(bpy_bmesh_verts_doc,
-"This meshes vert sequence (read-only).\n\n:type: :class:`BMElemSeq`"
-);
-PyDoc_STRVAR(bpy_bmesh_edges_doc,
-"This meshes edge sequence (read-only).\n\n:type: :class:`BMElemSeq`"
-);
-PyDoc_STRVAR(bpy_bmesh_faces_doc,
-"This meshes face sequence (read-only).\n\n:type: :class:`BMElemSeq`"
-);
 
-static PyObject *bpy_bmelemseq_get(BPy_BMesh *self, void *itype)
+PyDoc_STRVAR(bpy_bmvertseq_doc,
+"This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"
+);
+static PyObject *bpy_bmvertseq_get(BPy_BMesh *self, void *UNUSED(closure))
 {
 	BPY_BM_CHECK_OBJ(self);
-	return BPy_BMElemSeq_CreatePyObject(self->bm, NULL, GET_INT_FROM_POINTER(itype));
+	return BPy_BMVertSeq_CreatePyObject(self->bm);
 }
 
+PyDoc_STRVAR(bpy_bmedgeseq_doc,
+"This meshes edge sequence (read-only).\n\n:type: :class:`BMEdgeSeq`"
+);
+static PyObject *bpy_bmedgeseq_get(BPy_BMesh *self, void *UNUSED(closure))
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMEdgeSeq_CreatePyObject(self->bm);
+}
+
+PyDoc_STRVAR(bpy_bmfaceseq_doc,
+"This meshes face sequence (read-only).\n\n:type: :class:`BMFaceSeq`"
+);
+static PyObject *bpy_bmfaceseq_get(BPy_BMesh *self, void *UNUSED(closure))
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMFaceSeq_CreatePyObject(self->bm);
+}
+
+PyDoc_STRVAR(bpy_bmloopseq_doc,
+"This meshes face sequence (read-only).\n\n:type: :class:`BMLoopSeq`"
+);
+static PyObject *bpy_bmloopseq_get(BPy_BMesh *self, void *UNUSED(closure))
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMLoopSeq_CreatePyObject(self->bm);
+}
 
 /* vert */
 PyDoc_STRVAR(bpy_bmvert_link_edges_doc,
@@ -487,40 +507,22 @@ static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self)
 /* ElemSeq
  * ^^^^^^^ */
 
+/* note: use for bmvert/edge/face/loop seq's use these, not bmelemseq directly */
 PyDoc_STRVAR(bpy_bmelemseq_layers_doc,
 "blah blah (read-only).\n\n:type: :class:`BMLayerAccess`"
 );
-static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self)
+static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 {
-	char htype;
 	BPY_BM_CHECK_OBJ(self);
 
-	switch ((BMIterType)self->itype) {
-		case BM_VERTS_OF_MESH:
-			htype = BM_VERT;
-			break;
-		case BM_EDGES_OF_MESH:
-			htype = BM_EDGE;
-			break;
-		case BM_FACES_OF_MESH:
-			htype = BM_FACE;
-			break;
-
-			/* TODO - LOOPS */
-
-		default:
-			PyErr_SetString(PyExc_AttributeError, "layers attribute is only valid for vert/edge/face sequences");
-			return NULL;
-			break;
-	}
-
-	return BPy_BMLayerAccess_CreatePyObject(self->bm, htype);
+	return BPy_BMLayerAccess_CreatePyObject(self->bm, GET_INT_FROM_POINTER(htype));
 }
 
 static PyGetSetDef bpy_bmesh_getseters[] = {
-    {(char *)"verts", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_verts_doc, (void *)BM_VERTS_OF_MESH},
-    {(char *)"edges", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_edges_doc, (void *)BM_EDGES_OF_MESH},
-    {(char *)"faces", (getter)bpy_bmelemseq_get, (setter)NULL, (char *)bpy_bmesh_faces_doc, (void *)BM_FACES_OF_MESH},
+    {(char *)"verts", (getter)bpy_bmvertseq_get, (setter)NULL, (char *)bpy_bmvertseq_doc, NULL},
+    {(char *)"edges", (getter)bpy_bmedgeseq_get, (setter)NULL, (char *)bpy_bmedgeseq_doc, NULL},
+    {(char *)"faces", (getter)bpy_bmfaceseq_get, (setter)NULL, (char *)bpy_bmfaceseq_doc, NULL},
+    {(char *)"loops", (getter)bpy_bmloopseq_get, (setter)NULL, (char *)bpy_bmloopseq_doc, NULL},
     {(char *)"select_mode", (getter)bpy_bmesh_select_mode_get, (setter)bpy_bmesh_select_mode_set, (char *)bpy_bmesh_select_mode_doc, NULL},
 
     {(char *)"select_history", (getter)bpy_bmesh_select_history_get, (setter)bpy_bmesh_select_history_set, (char *)bpy_bmesh_select_history_doc, NULL},
@@ -625,13 +627,22 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static PyGetSetDef bpy_bmelemseq_getseters[] = {
-    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, NULL},
-
+static PyGetSetDef bpy_bmvertseq_getseters[] = {
+    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_VERT},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
-
-
+static PyGetSetDef bpy_bmedgeseq_getseters[] = {
+    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_EDGE},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+static PyGetSetDef bpy_bmfaceseq_getseters[] = {
+    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_FACE},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+static PyGetSetDef bpy_bmloopseq_getseters[] = {
+    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_LOOP},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
 
 
 /* Methods
@@ -1500,7 +1511,18 @@ static PyObject *bpy_bmloop_calc_tangent(BPy_BMLoop *self)
 
 /* Vert Seq
  * -------- */
-
+PyDoc_STRVAR(bpy_bmvertseq_new_doc,
+".. method:: new(co=(0.0, 0.0, 0.0), example=None)\n"
+"\n"
+"   Create a new vertex.\n"
+"\n"
+"   :arg co: The initial location of the vertex (optional argument).\n"
+"   :type co: float triplet\n"
+"   :arg example: Existing vert to initialize settings.\n"
+"   :type example: :class:`BMVert`\n"
+"   :return: The newly created edge.\n"
+"   :rtype: :class:`BMVert`\n"
+);
 static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *py_co = NULL;
@@ -1546,7 +1568,18 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 /* Edge Seq
  * -------- */
-
+PyDoc_STRVAR(bpy_bmedgeseq_new_doc,
+".. method:: new(verts, example=None)\n"
+"\n"
+"   Create a new edge from a given pair of verts.\n"
+"\n"
+"   :arg verts: Vertex pair.\n"
+"   :type verts: pair of :class:`BMVert`\n"
+"   :arg example: Existing edge to initialize settings (optional argument).\n"
+"   :type example: :class:`BMEdge`\n"
+"   :return: The newly created edge.\n"
+"   :rtype: :class:`BMEdge`\n"
+);
 static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *vert_seq;
@@ -1608,7 +1641,18 @@ cleanup:
 
 /* Face Seq
  * -------- */
-
+PyDoc_STRVAR(bpy_bmfaceseq_new_doc,
+".. method:: new(verts, example=None)\n"
+"\n"
+"   Create a new face from a given set of verts.\n"
+"\n"
+"   :arg verts: Sequence of 3 or more verts.\n"
+"   :type verts: :class:`BMVert`\n"
+"   :arg example: Existing face to initialize settings (optional argument).\n"
+"   :type example: :class:`BMFace`\n"
+"   :return: The newly created face.\n"
+"   :rtype: :class:`BMFace`\n"
+);
 static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *vert_seq;
@@ -1688,60 +1732,11 @@ cleanup:
 /* Elem Seq
  * -------- */
 
-/* eek - 3 docstrings in 1!, we might need to split up this seq at some point */
-PyDoc_STRVAR(bpy_bmelemseq_new_doc,
-".. method:: new(co=(0.0, 0.0, 0.0), example=None)\n"
+PyDoc_STRVAR(bpy_bmvertseq_remove_doc,
+".. method:: remove(vert)\n"
 "\n"
-"   *Vertex Sequence*\n"
-"\n"
-"   :arg co: The initial location of the vertex (optional argument).\n"
-"   :type co: float triplet\n"
-"   :arg example: Existing vert to initialize settings.\n"
-"   :type example: :class:`BMVert`\n"
-"   :return: The newly created edge.\n"
-"   :rtype: :class:`BMVert`\n"
-"\n"
-"\n"
-".. method:: new(verts, example=None)\n"
-"\n"
-"   *Edge Sequence*\n"
-"\n"
-"   :arg verts: Vertex pair.\n"
-"   :type verts: pair of :class:`BMVert`\n"
-"   :arg example: Existing edge to initialize settings (optional argument).\n"
-"   :type example: :class:`BMEdge`\n"
-"   :return: The newly created edge.\n"
-"   :rtype: :class:`BMEdge`\n"
-"\n"
-".. method:: new(verts, example=None)\n"
-"\n"
-"   *Face Sequence*\n"
-"\n"
-"   Create a new vert/edge/face.\n"
-"\n"
-"   :arg verts: Sequence of 3 or more verts.\n"
-"   :type verts: :class:`BMVert`\n"
-"   :arg example: Existing face to initialize settings (optional argument).\n"
-"   :type example: :class:`BMFace`\n"
-"   :return: The newly created face.\n"
-"   :rtype: :class:`BMFace`\n"
+"   Remove a vert.\n"
 );
-static PyObject *bpy_bmelemseq_new(BPy_BMElemSeq *self, PyObject *args)
-{
-	switch ((BMIterType)self->itype) {
-		case BM_VERTS_OF_MESH:
-			return bpy_bmvertseq_new(self, args);
-		case BM_EDGES_OF_MESH:
-			return bpy_bmedgeseq_new(self, args);
-		case BM_FACES_OF_MESH:
-			return bpy_bmfaceseq_new(self, args);
-		default:
-			PyErr_SetString(PyExc_TypeError,
-			                ".new(...): function is not valid for this sequence");
-			return NULL;
-	}
-}
-
 static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -1756,7 +1751,7 @@ static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 
 		if (value->bm != bm) {
 			PyErr_SetString(PyExc_ValueError,
-			                "faces.remove(vert): vertex is from another mesh");
+			                "verts.remove(vert): vert is from another mesh");
 			return NULL;
 		}
 
@@ -1767,6 +1762,11 @@ static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 	}
 }
 
+PyDoc_STRVAR(bpy_bmedgeseq_remove_doc,
+".. method:: remove(edge)\n"
+"\n"
+"   Remove a edge.\n"
+);
 static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -1781,7 +1781,7 @@ static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 
 		if (value->bm != bm) {
 			PyErr_SetString(PyExc_ValueError,
-			                "faces.remove(vert): vertex is from another mesh");
+			                "edges.remove(edge): edge is from another mesh");
 			return NULL;
 		}
 
@@ -1792,6 +1792,11 @@ static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 	}
 }
 
+PyDoc_STRVAR(bpy_bmfaceseq_remove_doc,
+".. method:: remove(face)\n"
+"\n"
+"   Remove a face.\n"
+);
 static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 {
 	BPY_BM_CHECK_OBJ(self);
@@ -1806,7 +1811,7 @@ static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 
 		if (value->bm != bm) {
 			PyErr_SetString(PyExc_ValueError,
-			                "faces.remove(vert): vertex is from another mesh");
+			                "faces.remove(face): face is from another mesh");
 			return NULL;
 		}
 
@@ -1817,30 +1822,18 @@ static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 	}
 }
 
-
-PyDoc_STRVAR(bpy_bmelemseq_remove_doc,
-".. method:: remove(elem)\n"
+PyDoc_STRVAR(bpy_bmedgeseq_get__method_doc,
+".. method:: get(verts, fallback=None)\n"
 "\n"
-"   Remove a vert/edge/face.\n"
+"   Return a edge which uses the **verts** passed.\n"
+"\n"
+"   :arg verts: Sequence of verts.\n"
+"   :type verts: :class:`BMVert`\n"
+"   :arg fallback: Return this value if nothing is found.\n"
+"   :return: The edge found or None\n"
+"   :rtype: :class:`BMEdge`\n"
 );
-static PyObject *bpy_bmelemseq_remove(BPy_BMElemSeq *self, PyObject *value)
-{
-	switch ((BMIterType)self->itype) {
-		case BM_VERTS_OF_MESH:
-			return bpy_bmvertseq_remove(self, (BPy_BMVert *)value);
-		case BM_EDGES_OF_MESH:
-			return bpy_bmedgeseq_remove(self, (BPy_BMEdge *)value);
-		case BM_FACES_OF_MESH:
-			return bpy_bmfaceseq_remove(self, (BPy_BMFace *)value);
-		default:
-			PyErr_SetString(PyExc_TypeError,
-			                ".remove(item): function is not valid for this sequence");
-			return NULL;
-	}
-}
-
-
-static PyObject *bpy_bmedgeseq_get(BPy_BMElemSeq *self, PyObject *args)
+static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *vert_seq;
 	PyObject *fallback = Py_None; /* optional */
@@ -1881,8 +1874,18 @@ static PyObject *bpy_bmedgeseq_get(BPy_BMElemSeq *self, PyObject *args)
 	}
 }
 
-
-static PyObject *bpy_bmfaceseq_get(BPy_BMElemSeq *self, PyObject *args)
+PyDoc_STRVAR(bpy_bmfaceseq_get__method_doc,
+".. method:: get(verts, fallback=None)\n"
+"\n"
+"   Return a face which uses the **verts** passed.\n"
+"\n"
+"   :arg verts: Sequence of verts.\n"
+"   :type verts: :class:`BMVert`\n"
+"   :arg fallback: Return this value if nothing is found.\n"
+"   :return: The face found or None\n"
+"   :rtype: :class:`BMFace`\n"
+);
+static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 {
 	PyObject *vert_seq;
 	PyObject *fallback = Py_None; /* optional */
@@ -1922,31 +1925,6 @@ static PyObject *bpy_bmfaceseq_get(BPy_BMElemSeq *self, PyObject *args)
 		return ret;
 	}
 }
-
-
-PyDoc_STRVAR(bpy_bmelemseq_get__method_doc,
-".. method:: get(verts, fallback=None)\n"
-"\n"
-"   Return a face/edge which uses the **verts** passed.\n"
-"\n"
-"   :arg verts: Sequence of verts.\n"
-"   :type verts: :class:`BMVert`\n"
-"   :arg fallback: Return this value if nothing is found.\n"
-);
-static PyObject *bpy_bmelemseq_get__method(BPy_BMElemSeq *self, PyObject *args)
-{
-	switch ((BMIterType)self->itype) {
-		case BM_EDGES_OF_MESH:
-			return bpy_bmedgeseq_get(self, args);
-		case BM_FACES_OF_MESH:
-			return bpy_bmfaceseq_get(self, args);
-		default:
-			PyErr_SetString(PyExc_TypeError,
-			                ".get(item): function is not valid for this sequence");
-			return NULL;
-	}
-}
-
 
 PyDoc_STRVAR(bpy_bmelemseq_index_update_doc,
 ".. method:: index_update()\n"
@@ -2084,11 +2062,43 @@ static struct PyMethodDef bpy_bmloop_methods[] = {
 };
 
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
-    {"new",     (PyCFunction)bpy_bmelemseq_new,         METH_VARARGS, bpy_bmelemseq_new_doc},
-    {"remove",  (PyCFunction)bpy_bmelemseq_remove,      METH_O,       bpy_bmelemseq_remove_doc},
-    /* 'bpy_bmelemseq_get' for different purpose */
-    {"get",     (PyCFunction)bpy_bmelemseq_get__method, METH_VARARGS, bpy_bmelemseq_get__method_doc},
+    /* odd function, initializes index values */
+    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {NULL, NULL, 0, NULL}
+};
 
+static struct PyMethodDef bpy_bmvertseq_methods[] = {
+    {"new",     (PyCFunction)bpy_bmvertseq_new,         METH_VARARGS, bpy_bmvertseq_new_doc},
+    {"remove",  (PyCFunction)bpy_bmvertseq_remove,      METH_O,       bpy_bmvertseq_remove_doc},
+
+    /* odd function, initializes index values */
+    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyMethodDef bpy_bmedgeseq_methods[] = {
+    {"new",     (PyCFunction)bpy_bmedgeseq_new,         METH_VARARGS, bpy_bmedgeseq_new_doc},
+    {"remove",  (PyCFunction)bpy_bmedgeseq_remove,      METH_O,       bpy_bmedgeseq_remove_doc},
+    /* 'bpy_bmelemseq_get' for different purpose */
+    {"get",     (PyCFunction)bpy_bmedgeseq_get__method, METH_VARARGS, bpy_bmedgeseq_get__method_doc},
+
+    /* odd function, initializes index values */
+    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyMethodDef bpy_bmfaceseq_methods[] = {
+    {"new",     (PyCFunction)bpy_bmfaceseq_new,         METH_VARARGS, bpy_bmfaceseq_new_doc},
+    {"remove",  (PyCFunction)bpy_bmfaceseq_remove,      METH_O,       bpy_bmfaceseq_remove_doc},
+    /* 'bpy_bmelemseq_get' for different purpose */
+    {"get",     (PyCFunction)bpy_bmfaceseq_get__method, METH_VARARGS, bpy_bmfaceseq_get__method_doc},
+
+    /* odd function, initializes index values */
+    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyMethodDef bpy_bmloopseq_methods[] = {
     /* odd function, initializes index values */
     {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
     {NULL, NULL, 0, NULL}
@@ -2570,6 +2580,10 @@ PyTypeObject BPy_BMEdge_Type    = {{{0}}};
 PyTypeObject BPy_BMFace_Type    = {{{0}}};
 PyTypeObject BPy_BMLoop_Type    = {{{0}}};
 PyTypeObject BPy_BMElemSeq_Type = {{{0}}};
+PyTypeObject BPy_BMVertSeq_Type = {{{0}}};
+PyTypeObject BPy_BMEdgeSeq_Type = {{{0}}};
+PyTypeObject BPy_BMFaceSeq_Type = {{{0}}};
+PyTypeObject BPy_BMLoopSeq_Type = {{{0}}};
 PyTypeObject BPy_BMIter_Type    = {{{0}}};
 
 
@@ -2582,6 +2596,10 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_basicsize    = sizeof(BPy_BMFace);
 	BPy_BMLoop_Type.tp_basicsize    = sizeof(BPy_BMLoop);
 	BPy_BMElemSeq_Type.tp_basicsize = sizeof(BPy_BMElemSeq);
+	BPy_BMVertSeq_Type.tp_basicsize = sizeof(BPy_BMElemSeq);
+	BPy_BMEdgeSeq_Type.tp_basicsize = sizeof(BPy_BMElemSeq);
+	BPy_BMFaceSeq_Type.tp_basicsize = sizeof(BPy_BMElemSeq);
+	BPy_BMLoopSeq_Type.tp_basicsize = sizeof(BPy_BMElemSeq);
 	BPy_BMIter_Type.tp_basicsize    = sizeof(BPy_BMIter);
 
 
@@ -2591,6 +2609,10 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_name    = "BMFace";
 	BPy_BMLoop_Type.tp_name    = "BMLoop";
 	BPy_BMElemSeq_Type.tp_name = "BMElemSeq";
+	BPy_BMVertSeq_Type.tp_name = "BMVertSeq";
+	BPy_BMEdgeSeq_Type.tp_name = "BMEdgeSeq";
+	BPy_BMFaceSeq_Type.tp_name = "BMFaceSeq";
+	BPy_BMLoopSeq_Type.tp_name = "BMLoopSeq";
 	BPy_BMIter_Type.tp_name    = "BMIter";
 
 
@@ -2600,6 +2622,10 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_doc    = bpy_bmface_doc;
 	BPy_BMLoop_Type.tp_doc    = bpy_bmloop_doc;
 	BPy_BMElemSeq_Type.tp_doc = bpy_bmelemseq_doc;
+	BPy_BMVertSeq_Type.tp_doc = NULL;
+	BPy_BMEdgeSeq_Type.tp_doc = NULL;
+	BPy_BMFaceSeq_Type.tp_doc = NULL;
+	BPy_BMLoopSeq_Type.tp_doc = NULL;
 	BPy_BMIter_Type.tp_doc    = bpy_bmiter_doc;
 
 
@@ -2609,6 +2635,10 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_repr    = (reprfunc)bpy_bmface_repr;
 	BPy_BMLoop_Type.tp_repr    = (reprfunc)bpy_bmloop_repr;
 	BPy_BMElemSeq_Type.tp_repr = NULL;
+	BPy_BMVertSeq_Type.tp_repr = NULL;
+	BPy_BMEdgeSeq_Type.tp_repr = NULL;
+	BPy_BMFaceSeq_Type.tp_repr = NULL;
+	BPy_BMLoopSeq_Type.tp_repr = NULL;
 	BPy_BMIter_Type.tp_repr    = NULL;
 
 
@@ -2617,7 +2647,11 @@ void BPy_BM_init_types(void)
 	BPy_BMEdge_Type.tp_getset    = bpy_bmedge_getseters;
 	BPy_BMFace_Type.tp_getset    = bpy_bmface_getseters;
 	BPy_BMLoop_Type.tp_getset    = bpy_bmloop_getseters;
-	BPy_BMElemSeq_Type.tp_getset = bpy_bmelemseq_getseters;
+	BPy_BMElemSeq_Type.tp_getset = NULL;
+	BPy_BMVertSeq_Type.tp_getset = bpy_bmvertseq_getseters;
+	BPy_BMEdgeSeq_Type.tp_getset = bpy_bmedgeseq_getseters;
+	BPy_BMFaceSeq_Type.tp_getset = bpy_bmfaceseq_getseters;
+	BPy_BMLoopSeq_Type.tp_getset = bpy_bmloopseq_getseters;
 	BPy_BMIter_Type.tp_getset    = NULL;
 
 
@@ -2627,6 +2661,10 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_methods    = bpy_bmface_methods;
 	BPy_BMLoop_Type.tp_methods    = bpy_bmloop_methods;
 	BPy_BMElemSeq_Type.tp_methods = bpy_bmelemseq_methods;
+	BPy_BMVertSeq_Type.tp_methods = bpy_bmvertseq_methods;
+	BPy_BMEdgeSeq_Type.tp_methods = bpy_bmedgeseq_methods;
+	BPy_BMFaceSeq_Type.tp_methods = bpy_bmfaceseq_methods;
+	BPy_BMLoopSeq_Type.tp_methods = bpy_bmloopseq_methods;
 	BPy_BMIter_Type.tp_methods    = NULL;
 
 
@@ -2636,17 +2674,35 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_hash    = bpy_bm_elem_hash;
 	BPy_BMLoop_Type.tp_hash    = bpy_bm_elem_hash;
 	BPy_BMElemSeq_Type.tp_hash = NULL;
+	BPy_BMVertSeq_Type.tp_hash = NULL;
+	BPy_BMEdgeSeq_Type.tp_hash = NULL;
+	BPy_BMFaceSeq_Type.tp_hash = NULL;
+	BPy_BMLoopSeq_Type.tp_hash = NULL;
 	BPy_BMIter_Type.tp_hash    = NULL;
 
 	BPy_BMElemSeq_Type.tp_as_sequence = &bpy_bmelemseq_as_sequence;
+	BPy_BMVertSeq_Type.tp_as_sequence = &bpy_bmelemseq_as_sequence;
+	BPy_BMEdgeSeq_Type.tp_as_sequence = &bpy_bmelemseq_as_sequence;
+	BPy_BMFaceSeq_Type.tp_as_sequence = &bpy_bmelemseq_as_sequence;
+	BPy_BMLoopSeq_Type.tp_as_sequence = NULL; /* this is not a seq really, only for layer access */
 
+	BPy_BMElemSeq_Type.tp_as_mapping = &bpy_bmelemseq_as_mapping;
+	BPy_BMVertSeq_Type.tp_as_mapping = &bpy_bmelemseq_as_mapping;
+	BPy_BMEdgeSeq_Type.tp_as_mapping = &bpy_bmelemseq_as_mapping;
+	BPy_BMFaceSeq_Type.tp_as_mapping = &bpy_bmelemseq_as_mapping;
+	BPy_BMLoopSeq_Type.tp_as_mapping = NULL; /* this is not a seq really, only for layer access */
+
+	/* layer access */
 	BPy_BMVert_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
 	BPy_BMEdge_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
 	BPy_BMFace_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
 	BPy_BMLoop_Type.tp_as_mapping    = &bpy_bm_elem_as_mapping;
-	BPy_BMElemSeq_Type.tp_as_mapping = &bpy_bmelemseq_as_mapping;
 
 	BPy_BMElemSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
+	BPy_BMVertSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
+	BPy_BMEdgeSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
+	BPy_BMFaceSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
+	BPy_BMLoopSeq_Type.tp_iter = NULL; /* no mapping */
 
 	/* only 1 iteratir so far */
 	BPy_BMIter_Type.tp_iternext = (iternextfunc)bpy_bmiter_next;
@@ -2658,17 +2714,11 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_dealloc    = (destructor)bpy_bmface_dealloc;
 	BPy_BMLoop_Type.tp_dealloc    = (destructor)bpy_bmloop_dealloc;
 	BPy_BMElemSeq_Type.tp_dealloc = (destructor)bpy_bmelemseq_dealloc;
+	BPy_BMVertSeq_Type.tp_dealloc = (destructor)bpy_bmelemseq_dealloc;
+	BPy_BMEdgeSeq_Type.tp_dealloc = (destructor)bpy_bmelemseq_dealloc;
+	BPy_BMFaceSeq_Type.tp_dealloc = (destructor)bpy_bmelemseq_dealloc;
+	BPy_BMLoopSeq_Type.tp_dealloc = (destructor)bpy_bmelemseq_dealloc;
 	BPy_BMIter_Type.tp_dealloc    = NULL;
-
-	/*
-	 * BPy_BMesh_Type.
-	 * BPy_BMVert_Type.
-	 * BPy_BMEdge_Type.
-	 * BPy_BMFace_Type.
-	 * BPy_BMLoop_Type.
-	 * BPy_BMElemSeq_Type.
-	 * BPy_BMIter_Type.
-	 */
 
 	BPy_BMesh_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
 	BPy_BMVert_Type.tp_flags    = Py_TPFLAGS_DEFAULT;
@@ -2676,6 +2726,10 @@ void BPy_BM_init_types(void)
 	BPy_BMFace_Type.tp_flags    = Py_TPFLAGS_DEFAULT;
 	BPy_BMLoop_Type.tp_flags    = Py_TPFLAGS_DEFAULT;
 	BPy_BMElemSeq_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMVertSeq_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMEdgeSeq_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMFaceSeq_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	BPy_BMLoopSeq_Type.tp_flags = Py_TPFLAGS_DEFAULT;
 	BPy_BMIter_Type.tp_flags    = Py_TPFLAGS_DEFAULT;
 
 
@@ -2685,6 +2739,10 @@ void BPy_BM_init_types(void)
 	PyType_Ready(&BPy_BMFace_Type);
 	PyType_Ready(&BPy_BMLoop_Type);
 	PyType_Ready(&BPy_BMElemSeq_Type);
+	PyType_Ready(&BPy_BMVertSeq_Type);
+	PyType_Ready(&BPy_BMEdgeSeq_Type);
+	PyType_Ready(&BPy_BMFaceSeq_Type);
+	PyType_Ready(&BPy_BMLoopSeq_Type);
 	PyType_Ready(&BPy_BMIter_Type);
 }
 
@@ -2718,6 +2776,10 @@ PyObject *BPyInit_bmesh_types(void)
 	mod_type_add(submodule, BPy_BMFace_Type);
 	mod_type_add(submodule, BPy_BMLoop_Type);
 	mod_type_add(submodule, BPy_BMElemSeq_Type);
+	mod_type_add(submodule, BPy_BMVertSeq_Type);
+	mod_type_add(submodule, BPy_BMEdgeSeq_Type);
+	mod_type_add(submodule, BPy_BMFaceSeq_Type);
+	mod_type_add(submodule, BPy_BMLoopSeq_Type);
 	mod_type_add(submodule, BPy_BMIter_Type);
 	mod_type_add(submodule, BPy_BMEditSelSeq_Type);
 	mod_type_add(submodule, BPy_BMEditSelIter_Type);
@@ -2870,6 +2932,42 @@ PyObject *BPy_BMElemSeq_CreatePyObject(BMesh *bm, BPy_BMElem *py_ele, const char
 	self->py_ele = py_ele; /* can be NULL */
 	self->itype = itype;
 	Py_XINCREF(py_ele);
+	return (PyObject *)self;
+}
+
+PyObject *BPy_BMVertSeq_CreatePyObject(BMesh *bm)
+{
+	BPy_BMElemSeq *self = PyObject_New(BPy_BMElemSeq, &BPy_BMVertSeq_Type);
+	self->bm = bm;
+	self->py_ele = NULL; /* unused */
+	self->itype = BM_VERTS_OF_MESH;
+	return (PyObject *)self;
+}
+
+PyObject *BPy_BMEdgeSeq_CreatePyObject(BMesh *bm)
+{
+	BPy_BMElemSeq *self = PyObject_New(BPy_BMElemSeq, &BPy_BMEdgeSeq_Type);
+	self->bm = bm;
+	self->py_ele = NULL; /* unused */
+	self->itype = BM_EDGES_OF_MESH;
+	return (PyObject *)self;
+}
+
+PyObject *BPy_BMFaceSeq_CreatePyObject(BMesh *bm)
+{
+	BPy_BMElemSeq *self = PyObject_New(BPy_BMElemSeq, &BPy_BMFaceSeq_Type);
+	self->bm = bm;
+	self->py_ele = NULL; /* unused */
+	self->itype = BM_FACES_OF_MESH;
+	return (PyObject *)self;
+}
+
+PyObject *BPy_BMLoopSeq_CreatePyObject(BMesh *bm)
+{
+	BPy_BMElemSeq *self = PyObject_New(BPy_BMElemSeq, &BPy_BMLoopSeq_Type);
+	self->bm = bm;
+	self->py_ele = NULL; /* unused */
+	self->itype = 0; /* should never be passed to the iterator function */
 	return (PyObject *)self;
 }
 

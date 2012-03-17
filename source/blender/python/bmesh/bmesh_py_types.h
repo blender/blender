@@ -35,7 +35,13 @@ extern PyTypeObject BPy_BMVert_Type;
 extern PyTypeObject BPy_BMEdge_Type;
 extern PyTypeObject BPy_BMFace_Type;
 extern PyTypeObject BPy_BMLoop_Type;
+
 extern PyTypeObject BPy_BMElemSeq_Type;
+extern PyTypeObject BPy_BMVertSeq_Type;
+extern PyTypeObject BPy_BMEdgeSeq_Type;
+extern PyTypeObject BPy_BMFaceSeq_Type;
+extern PyTypeObject BPy_BMLoopSeq_Type;
+
 extern PyTypeObject BPy_BMIter_Type;
 
 #define BPy_BMesh_Check(v)      (Py_TYPE(v) == &BPy_BMesh_Type)
@@ -44,6 +50,10 @@ extern PyTypeObject BPy_BMIter_Type;
 #define BPy_BMFace_Check(v)     (Py_TYPE(v) == &BPy_BMFace_Type)
 #define BPy_BMLoop_Check(v)     (Py_TYPE(v) == &BPy_BMLoop_Type)
 #define BPy_BMElemSeq_Check(v)  (Py_TYPE(v) == &BPy_BMElemSeq_Type)
+#define BPy_BMVertSeq_Check(v)  (Py_TYPE(v) == &BPy_BMVertSeq_Type)
+#define BPy_BMEdgeSeq_Check(v)  (Py_TYPE(v) == &BPy_BMEdgeSeq_Type)
+#define BPy_BMFaceSeq_Check(v)  (Py_TYPE(v) == &BPy_BMFaceSeq_Type)
+#define BPy_BMLoopSeq_Check(v)  (Py_TYPE(v) == &BPy_BMLoopSeq_Type)
 #define BPy_BMIter_Check(v)     (Py_TYPE(v) == &BPy_BMIter_Type)
 
 /* cast from _any_ bmesh type - they all have BMesh first */
@@ -93,6 +103,13 @@ typedef struct BPy_BMLoop {
 
 /* iterators */
 
+/* used for ...
+ * - BPy_BMElemSeq_Type
+ * - BPy_BMVertSeq_Type
+ * - BPy_BMEdgeSeq_Type
+ * - BPy_BMFaceSeq_Type
+ * - BPy_BMLoopSeq_Type
+ */
 typedef struct BPy_BMElemSeq {
 	PyObject_VAR_HEAD
 	struct BMesh *bm; /* keep first */
@@ -131,6 +148,10 @@ PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e);
 PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f);
 PyObject *BPy_BMLoop_CreatePyObject(BMesh *bm, BMLoop *l);
 PyObject *BPy_BMElemSeq_CreatePyObject(BMesh *bm, BPy_BMElem *py_ele, const char itype);
+PyObject *BPy_BMVertSeq_CreatePyObject(BMesh *bm);
+PyObject *BPy_BMEdgeSeq_CreatePyObject(BMesh *bm);
+PyObject *BPy_BMFaceSeq_CreatePyObject(BMesh *bm);
+PyObject *BPy_BMLoopSeq_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMIter_CreatePyObject(BMesh *bm);
 
 PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele); /* just checks type and creates v/e/f/l */
