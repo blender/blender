@@ -47,6 +47,8 @@
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
@@ -1714,7 +1716,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 			}
 		}
 		else {
-			modifier_setError(&mmd->modifier, "Failed to find bind solution (increase precision?).");
+			modifier_setError(&mmd->modifier, TIP_("Failed to find bind solution (increase precision?)."));
 			error("Mesh Deform: failed to find bind solution.");
 			break;
 		}

@@ -1962,7 +1962,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	/* Float */
 	srna = RNA_def_struct(brna, "MeshFloatPropertyLayer", NULL);
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
-	RNA_def_struct_ui_text(srna, "Mesh Float Property Layer", "User defined layer of floating pointer number values");
+	RNA_def_struct_ui_text(srna, "Mesh Float Property Layer", "User defined layer of floating point number values");
 	RNA_def_struct_path_func(srna, "rna_MeshFloatPropertyLayer_path");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);

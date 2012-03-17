@@ -38,6 +38,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -155,7 +156,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if(result)
 			return result;
 		else
-			modifier_setError(md, "Can't execute boolean operation.");
+			modifier_setError(md, TIP_("Can't execute boolean operation."));
 	}
 	
 	return derivedData;

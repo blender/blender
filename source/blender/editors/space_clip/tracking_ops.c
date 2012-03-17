@@ -2935,7 +2935,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "position", position_items, 0, "Position", "Position to jumo to");
+	RNA_def_enum(ot->srna, "position", position_items, 0, "Position", "Position to jump to");
 }
 
 /********************** join tracks operator *********************/

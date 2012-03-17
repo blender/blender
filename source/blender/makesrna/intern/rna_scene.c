@@ -3529,7 +3529,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_color_unpremultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT_PREDIVIDE);
-	RNA_def_property_ui_text(prop, "Color Unpremultipy", "For premultiplied alpha render output, do color space conversion on colors without alpha, to avoid fringing on light backgrounds");
+	RNA_def_property_ui_text(prop, "Color Unpremultiply", "For premultiplied alpha render output, do color space conversion on colors without alpha, to avoid fringing on light backgrounds");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "use_file_extension", PROP_BOOLEAN, PROP_NONE);
