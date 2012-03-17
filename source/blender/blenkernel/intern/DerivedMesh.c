@@ -917,13 +917,15 @@ static void weightpaint_color(unsigned char r_col[4], ColorBand *coba, const flo
 {
 	float colf[4];
 
-	if(coba) do_colorband(coba, input, colf);
-	else     weight_to_rgb(colf, input);
+	if(coba) {
+		do_colorband(coba, input, colf);
+	}
+	else {
+		weight_to_rgb(colf, input);
+	}
 
-	r_col[3] = (unsigned char)(colf[0] * 255.0f);
-	r_col[2] = (unsigned char)(colf[1] * 255.0f);
-	r_col[1] = (unsigned char)(colf[2] * 255.0f);
-	r_col[0] = 255;
+	rgb_float_to_uchar(r_col, colf);
+	r_col[3] = 255; /* really redundant */
 }
 
 
