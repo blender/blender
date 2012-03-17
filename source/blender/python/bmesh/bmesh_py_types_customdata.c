@@ -39,6 +39,7 @@
 
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_customdata.h"
+#include "bmesh_py_types_meshdata.h"
 
 #include "../mathutils/mathutils.h"
 
@@ -649,8 +650,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 		}
 		case CD_MLOOPUV:
 		{
-			ret = Py_NotImplemented; /* TODO */
-			Py_INCREF(ret);
+			ret = BPy_BMLoopUV_CreatePyObject(value);
 			break;
 		}
 		case CD_MLOOPCOL:

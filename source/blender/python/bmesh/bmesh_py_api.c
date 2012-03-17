@@ -36,6 +36,7 @@
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_select.h"
 #include "bmesh_py_types_customdata.h"
+#include "bmesh_py_types_meshdata.h"
 
 #include "bmesh_py_utils.h"
 
@@ -133,6 +134,7 @@ PyObject *BPyInit_bmesh(void)
 	BPy_BM_init_types();
 	BPy_BM_init_types_select();
 	BPy_BM_init_types_customdata();
+	BPy_BM_init_types_meshdata();
 
 	mod = PyModule_Create(&BPy_BM_module_def);
 

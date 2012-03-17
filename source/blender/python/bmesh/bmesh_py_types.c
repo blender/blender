@@ -47,6 +47,7 @@
 #include "bmesh_py_types.h" /* own include */
 #include "bmesh_py_types_select.h"
 #include "bmesh_py_types_customdata.h"
+#include "bmesh_py_types_meshdata.h"
 
 /* Common Flags
  * ************ */
@@ -2770,6 +2771,7 @@ PyObject *BPyInit_bmesh_types(void)
 #define mod_type_add(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
 
+	/* bmesh_py_types.c */
 	mod_type_add(submodule, BPy_BMesh_Type);
 	mod_type_add(submodule, BPy_BMVert_Type);
 	mod_type_add(submodule, BPy_BMEdge_Type);
@@ -2781,11 +2783,15 @@ PyObject *BPyInit_bmesh_types(void)
 	mod_type_add(submodule, BPy_BMFaceSeq_Type);
 	mod_type_add(submodule, BPy_BMLoopSeq_Type);
 	mod_type_add(submodule, BPy_BMIter_Type);
+	/* bmesh_py_types_select.c */
 	mod_type_add(submodule, BPy_BMEditSelSeq_Type);
 	mod_type_add(submodule, BPy_BMEditSelIter_Type);
+	/* bmesh_py_types_customdata.c */
 	mod_type_add(submodule, BPy_BMLayerAccess_Type);
 	mod_type_add(submodule, BPy_BMLayerCollection_Type);
 	mod_type_add(submodule, BPy_BMLayerItem_Type);
+	/* bmesh_py_types_meshdata.c */
+	mod_type_add(submodule, BPy_BMLoopUV_Type);
 
 #undef mod_type_add
 
