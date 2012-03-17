@@ -199,8 +199,8 @@ static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void INFO_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)Select All";
-	ot->description= "(de)select all reports";
+	ot->name= "(De)select All";
+	ot->description= "Select or deselect all reports";
 	ot->idname= "INFO_OT_select_all_toggle";
 
 	/* api callbacks */

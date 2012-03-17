@@ -167,7 +167,7 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->description= "Change selection of all meta elements";
 	ot->idname= "MBALL_OT_select_all";
 

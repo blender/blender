@@ -427,7 +427,7 @@ class VIEW3D_MT_select_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("object.select_all").action = 'TOGGLE'
         layout.operator("object.select_all", text="Inverse").action = 'INVERT'
         layout.operator("object.select_random", text="Random")
         layout.operator("object.select_mirror", text="Mirror")
@@ -452,7 +452,7 @@ class VIEW3D_MT_select_pose(Menu):
 
         layout.separator()
 
-        layout.operator("pose.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("pose.select_all").action = 'TOGGLE'
         layout.operator("pose.select_all", text="Inverse").action = 'INVERT'
         layout.operator("pose.select_flip_active", text="Flip Active")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
@@ -489,7 +489,7 @@ class VIEW3D_MT_select_particle(Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("particle.select_all").action = 'TOGGLE'
         layout.operator("particle.select_linked")
         layout.operator("particle.select_all").action = 'INVERT'
 
@@ -515,7 +515,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("mesh.select_all").action = 'TOGGLE'
         layout.operator("mesh.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
@@ -566,7 +566,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
         layout.operator("curve.select_nth", text="Every Nth Number of Points")
@@ -595,7 +595,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
 
         layout.separator()
 
-        layout.operator("curve.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
         layout.operator("curve.select_nth", text="Every Nth Number of Points")
@@ -638,7 +638,7 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 
         layout.separator()
 
-        layout.operator("lattice.select_all", text="Select/Deselect All")
+        layout.operator("lattice.select_all")
         layout.operator("lattice.select_all", text="Inverse").action = 'INVERT'
 
 
@@ -652,7 +652,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
-        layout.operator("armature.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("armature.select_all").action = 'TOGGLE'
         layout.operator("armature.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()

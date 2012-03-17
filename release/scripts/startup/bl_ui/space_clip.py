@@ -985,7 +985,7 @@ class CLIP_MT_select(Menu):
 
         layout.separator()
 
-        props = layout.operator("clip.select_all", text="Select/Deselect all")
+        props = layout.operator("clip.select_all")
         props.action = 'TOGGLE'
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 

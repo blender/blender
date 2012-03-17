@@ -787,7 +787,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->description = "Change selection of all visible objects in scene";
 	ot->idname= "OBJECT_OT_select_all";
 	

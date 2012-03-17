@@ -398,8 +398,8 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select/Deselect All Files";
-	ot->description= "Select/deselect all files";
+	ot->name= "(De)select All Files";
+	ot->description= "Select or deselect all files";
 	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */

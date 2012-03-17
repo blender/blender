@@ -186,9 +186,9 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->idname= "NLA_OT_select_all_toggle";
-	ot->description= "(De)Select all NLA-Strips";
+	ot->description= "Select or deselect all NLA-Strips";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_deselectall_exec;

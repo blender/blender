@@ -1688,7 +1688,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 static void UV_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->description= "Change selection of all UV vertices";
 	ot->idname= "UV_OT_select_all";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

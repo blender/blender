@@ -187,7 +187,7 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Removed Active Keying Set";
+	ot->name= "Remove Active Keying Set";
 	ot->idname= "ANIM_OT_keying_set_remove";
 	ot->description= "Remove the active Keying Set";
 	

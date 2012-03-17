@@ -4013,7 +4013,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->idname= "ARMATURE_OT_select_all";
 	ot->description= "Toggle selection status of all bones";
 	
@@ -5077,7 +5077,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->idname= "POSE_OT_select_all";
 	ot->description= "Toggle selection status of all bones";
 	

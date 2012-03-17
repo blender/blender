@@ -1080,7 +1080,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void CLIP_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->description= "Change selection of all tracking markers";
 	ot->idname= "CLIP_OT_select_all";
 

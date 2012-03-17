@@ -240,7 +240,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 void LATTICE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "(De)select All";
 	ot->description= "Change selection of all UVW control points";
 	ot->idname= "LATTICE_OT_select_all";
 	

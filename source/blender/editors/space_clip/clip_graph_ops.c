@@ -444,7 +444,7 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
 void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select or Deselect All Markers";
+	ot->name = "(De)select All Markers";
 	ot->description = "Change selection of all markers of active track";
 	ot->idname = "CLIP_OT_graph_select_all_markers";
 
