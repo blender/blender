@@ -8,7 +8,7 @@ incs += ' ../../blenloader ../../windowmanager ../../makesrna ../../gpu'
 incs += ' ../../render/extern/include ../../bmesh'
 incs += ' #/intern/guardedalloc #/extern/glew/include'
 
-defs = ''
+defs = []
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
