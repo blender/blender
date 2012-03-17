@@ -166,7 +166,18 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 			e = v->e;
 			l1 = e->l;
 			l2 = l1->radial_next;
-			bmesh_jfke(bm, l1->f, l2->f, e);
+			if (l1->v == l2->v) {
+				/* faces have incompatible directions; need to reverse one */
+				if (!bmesh_loop_reverse(bm, l2->f)) {
+					BLI_assert(!"bevel dissolve disk cannot reverse loop");
+					return 0;
+				}
+				l2 = l1->radial_next;
+			}
+			if (!bmesh_jfke(bm, l1->f, l2->f, e)) {
+				BLI_assert(!"bevel dissolve disk cannot join faces");
+				return 0;
+			}
 		}
 
 		e = v->e;
@@ -178,6 +189,14 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 
 		l1 = elast->l;
 		l2 = l1->radial_next;
+		if (l1->v == l2->v) {
+			/* faces have incompatible directions */
+				if (!bmesh_loop_reverse(bm, l2->f)) {
+					BLI_assert(!"bevel dissolve disk cannot reverse loop");
+					return 0;
+				}
+				l2 = l1->radial_next;
+		}
 		bmesh_jfke(bm, l1->f, l2->f, elast);
 	}
 
