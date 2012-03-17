@@ -78,7 +78,7 @@ static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col
  * matrix row callbacks
  * this is so you can do matrix[i][j] = val OR matrix.row[i][j] = val */
 
-int mathutils_matrix_row_cb_index = -1;
+unsigned char mathutils_matrix_row_cb_index = -1;
 
 static int mathutils_matrix_row_check(BaseMathObject *bmo)
 {
@@ -162,7 +162,7 @@ Mathutils_Callback mathutils_matrix_row_cb = {
  * matrix row callbacks
  * this is so you can do matrix.col[i][j] = val */
 
-int mathutils_matrix_col_cb_index = -1;
+unsigned char mathutils_matrix_col_cb_index = -1;
 
 static int mathutils_matrix_col_check(BaseMathObject *bmo)
 {
@@ -255,7 +255,7 @@ Mathutils_Callback mathutils_matrix_col_cb = {
  * this is so you can do matrix.translation = val
  * note, this is _exactly like matrix.col except the 4th component is always omitted */
 
-int mathutils_matrix_translation_cb_index = -1;
+unsigned char mathutils_matrix_translation_cb_index = -1;
 
 static int mathutils_matrix_translation_check(BaseMathObject *bmo)
 {

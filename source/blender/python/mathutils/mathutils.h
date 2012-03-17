@@ -98,7 +98,7 @@ struct Mathutils_Callback {
 	BaseMathSetIndexFunc	set_index;
 };
 
-int Mathutils_RegisterCallback(Mathutils_Callback *cb);
+unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb);
 
 int _BaseMathObject_ReadCallback(BaseMathObject *self);
 int _BaseMathObject_WriteCallback(BaseMathObject *self);

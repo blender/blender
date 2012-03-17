@@ -372,7 +372,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
 
 /* bpyrna vector/euler/quat callbacks */
-static int mathutils_rna_array_cb_index = -1; /* index for our callbacks */
+static unsigned char mathutils_rna_array_cb_index = -1; /* index for our callbacks */
 
 /* subtype not used much yet */
 #define MATHUTILS_CB_SUBTYPE_EUL 0
@@ -517,7 +517,7 @@ static Mathutils_Callback mathutils_rna_array_cb = {
 
 
 /* bpyrna matrix callbacks */
-static int mathutils_rna_matrix_cb_index = -1; /* index for our callbacks */
+static unsigned char mathutils_rna_matrix_cb_index = -1; /* index for our callbacks */
 
 static int mathutils_rna_matrix_get(BaseMathObject *bmo, int UNUSED(subtype))
 {

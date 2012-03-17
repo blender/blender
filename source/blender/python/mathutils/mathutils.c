@@ -284,18 +284,21 @@ PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 /* Mathutils Callbacks */
 
 /* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
-static Mathutils_Callback *mathutils_callbacks[8] = {NULL};
+#define MATHUTILS_TOT_CB 8
+static Mathutils_Callback *mathutils_callbacks[MATHUTILS_TOT_CB] = {NULL};
 
-int Mathutils_RegisterCallback(Mathutils_Callback *cb)
+unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb)
 {
-	int i;
+	unsigned char i;
 	
 	/* find the first free slot */
 	for (i = 0; mathutils_callbacks[i]; i++) {
 		if (mathutils_callbacks[i] == cb) /* already registered? */
 			return i;
 	}
-	
+
+	BLI_assert(i < MATHUTILS_TOT_CB);
+
 	mathutils_callbacks[i] = cb;
 	return i;
 }

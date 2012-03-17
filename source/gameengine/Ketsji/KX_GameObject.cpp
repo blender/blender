@@ -1374,7 +1374,7 @@ void KX_GameObject::Relink(CTR_Map<CTR_HashedPtr, void*> *map_parameter)
 #define MATHUTILS_VEC_CB_ANGVEL_LOCAL 9
 #define MATHUTILS_VEC_CB_ANGVEL_GLOBAL 10
 
-static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
+static unsigned char mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
 
 static int mathutils_kxgameob_generic_check(BaseMathObject *bmo)
 {
@@ -1514,7 +1514,7 @@ Mathutils_Callback mathutils_kxgameob_vector_cb = {
 #define MATHUTILS_MAT_CB_ORI_LOCAL 1
 #define MATHUTILS_MAT_CB_ORI_GLOBAL 2
 
-static int mathutils_kxgameob_matrix_cb_index= -1; /* index for our callbacks */
+static unsigned char mathutils_kxgameob_matrix_cb_index= -1; /* index for our callbacks */
 
 static int mathutils_kxgameob_matrix_get(BaseMathObject *bmo, int subtype)
 {

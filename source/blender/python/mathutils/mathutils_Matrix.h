@@ -73,9 +73,9 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *user,
                                    const unsigned short num_col, const unsigned short num_row,
                                    int cb_type, int cb_subtype);
 
-extern int mathutils_matrix_row_cb_index; /* default */
-extern int mathutils_matrix_col_cb_index;
-extern int mathutils_matrix_translation_cb_index;
+extern unsigned char mathutils_matrix_row_cb_index; /* default */
+extern unsigned char mathutils_matrix_col_cb_index;
+extern unsigned char mathutils_matrix_translation_cb_index;
 
 extern struct Mathutils_Callback mathutils_matrix_row_cb; /* default */
 extern struct Mathutils_Callback mathutils_matrix_col_cb;

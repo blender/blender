@@ -385,7 +385,7 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 #define MATHUTILS_VEC_CB_LINV 1
 #define MATHUTILS_VEC_CB_ANGV 2
 
-static int mathutils_kxobactu_vector_cb_index= -1; /* index for our callbacks */
+static unsigned char mathutils_kxobactu_vector_cb_index = -1; /* index for our callbacks */
 
 static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 {
@@ -496,7 +496,7 @@ int KX_ObjectActuator::pyattr_set_angV(void *self_v, const KX_PYATTRIBUTE_DEF *a
 void KX_ObjectActuator_Mathutils_Callback_Init(void)
 {
 	// register mathutils callbacks, ok to run more then once.
-	mathutils_kxobactu_vector_cb_index= Mathutils_RegisterCallback(&mathutils_obactu_vector_cb);
+	mathutils_kxobactu_vector_cb_index = Mathutils_RegisterCallback(&mathutils_obactu_vector_cb);
 }
 
 #endif // USE_MATHUTILS

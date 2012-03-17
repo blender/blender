@@ -2913,15 +2913,15 @@ PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTy
 	return (PyObject *) self;
 }
 
-PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
+PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, unsigned char cb_type, unsigned char cb_subtype)
 {
 	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
 	VectorObject *self = (VectorObject *)Vector_CreatePyObject(dummy, size, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 
