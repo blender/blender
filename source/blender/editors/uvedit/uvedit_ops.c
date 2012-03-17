@@ -1131,7 +1131,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	MLoopUV *luv;
 	UvVertMap *vmap;
 	UvMapVert *vlist, *iterv, *startv;
-	int i, nverts, stacksize= 0, *stack;
+	int i, stacksize= 0, *stack;
 	unsigned int a;
 	char *flag;
 
@@ -1145,8 +1145,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	flag= MEM_callocN(sizeof(*flag)*em->bm->totface, "UvLinkFlag");
 
 	if(!hit) {
-		a = 0;
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_INDEX(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL, a) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			if(uvedit_face_visible(scene, ima, efa, tf)) { 
@@ -1163,7 +1162,6 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 				}
 			}
 		}
-		a++;
 	}
 	else {
 		a = 0;
@@ -1192,8 +1190,6 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 
 			j++;
 		}
-
-		nverts= efa->len;
 
 		i = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
