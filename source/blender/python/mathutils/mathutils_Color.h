@@ -49,6 +49,7 @@ typedef struct {
 
 //prototypes
 PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type);
-PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
+                                  unsigned char cb_type, unsigned char cb_subtype);
 
 #endif /* __MATHUTILS_COLOR_H__ */

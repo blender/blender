@@ -71,7 +71,7 @@ PyObject *Matrix_CreatePyObject(float *mat,
                                 int type, PyTypeObject *base_type);
 PyObject *Matrix_CreatePyObject_cb(PyObject *user,
                                    const unsigned short num_col, const unsigned short num_row,
-                                   int cb_type, int cb_subtype);
+                                   unsigned char cb_type, unsigned char cb_subtype);
 
 extern unsigned char mathutils_matrix_row_cb_index; /* default */
 extern unsigned char mathutils_matrix_col_cb_index;

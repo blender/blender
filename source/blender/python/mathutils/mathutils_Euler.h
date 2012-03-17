@@ -51,7 +51,8 @@ typedef struct {
 
 //prototypes
 PyObject *Euler_CreatePyObject(float *eul, short order, int type, PyTypeObject *base_type);
-PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype);
+PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order,
+                                  unsigned char cb_type, unsigned char cb_subtype);
 
 short euler_order_from_string(const char *str, const char *error_prefix);
 

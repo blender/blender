@@ -1739,8 +1739,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 	tuple = PyTuple_New(end - begin);
 	for (count = begin; count < end; count++) {
 		PyTuple_SET_ITEM(tuple, count - begin,
-				Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
-
+		                 Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
 	}
 
 	return tuple;
@@ -2399,14 +2398,14 @@ PyObject *Matrix_CreatePyObject(float *mat,
 
 PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
                                    const unsigned short num_col, const unsigned short num_row,
-                                   int cb_type, int cb_subtype)
+                                   unsigned char cb_type, unsigned char cb_subtype)
 {
 	MatrixObject *self = (MatrixObject *)Matrix_CreatePyObject(NULL, num_col, num_row, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 	return (PyObject *) self;

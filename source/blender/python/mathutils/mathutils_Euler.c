@@ -732,14 +732,15 @@ PyObject *Euler_CreatePyObject(float *eul, short order, int type, PyTypeObject *
 	return (PyObject *)self;
 }
 
-PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype)
+PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, short order,
+                                  unsigned char cb_type, unsigned char cb_subtype)
 {
 	EulerObject *self = (EulerObject *)Euler_CreatePyObject(NULL, order, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 

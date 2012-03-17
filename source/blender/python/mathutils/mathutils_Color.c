@@ -885,14 +885,15 @@ PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
 	return (PyObject *)self;
 }
 
-PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
+                                  unsigned char cb_type, unsigned char cb_subtype)
 {
 	ColorObject *self = (ColorObject *)Color_CreatePyObject(NULL, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
-		self->cb_user =			cb_user;
-		self->cb_type =			(unsigned char)cb_type;
-		self->cb_subtype =		(unsigned char)cb_subtype;
+		self->cb_user         = cb_user;
+		self->cb_type         = cb_type;
+		self->cb_subtype      = cb_subtype;
 		PyObject_GC_Track(self);
 	}
 
