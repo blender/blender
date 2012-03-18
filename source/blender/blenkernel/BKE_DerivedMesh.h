@@ -147,6 +147,11 @@ typedef enum DMDrawFlag {
 	DM_DRAW_ALWAYS_SMOOTH = 2
 } DMDrawFlag;
 
+typedef enum DMDirtyFlag {
+	/* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
+	DM_DIRTY_TESS_CDLAYERS = 1 << 0,
+} DMDirtyFlag;
+
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
@@ -158,6 +163,7 @@ struct DerivedMesh {
 	struct GPUDrawObject *drawObject;
 	DerivedMeshType type;
 	float auto_bump_scale;
+	DMDirtyFlag dirty;
 
 	/* calculate vert and face normals */
 	void (*calcNormals)(DerivedMesh *dm);
@@ -539,6 +545,8 @@ void DM_free_poly_data(struct DerivedMesh *dm, int index, int count);
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 void DM_ensure_tessface(DerivedMesh *dm);
+
+void DM_update_tessface_data(DerivedMesh *dm);
 
 /* interpolates vertex data from the vertices indexed by src_indices in the
  * source mesh using the given weights and stores the result in the vertex

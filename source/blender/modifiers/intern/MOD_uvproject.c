@@ -378,6 +378,10 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			}
 		}
 	}
+
+	/* Mark tessellated CD layers as dirty. */
+	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+
 	return dm;
 }
 

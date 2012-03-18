@@ -1612,12 +1612,14 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							MPoly *mp = CDDM_get_polys(result);
 							int totpoly = result->numPolyData;
 
+#if 0
 							/* XXX We have to create a CD_WEIGHT_MCOL, else it might sigsev
 							 *     (after a SubSurf mod, eg)... */
 							if(!result->getTessFaceDataArray(result, CD_WEIGHT_MCOL)) {
 								int numFaces = result->getNumTessFaces(result);
 								CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
 							}
+#endif
 
 							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
@@ -1702,6 +1704,9 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 								col[i].a = 255;
 							}
 						}
+
+						/* Mark tessellated CD layers as dirty. */
+						result->dirty |= DM_DIRTY_TESS_CDLAYERS;
 					}
 					/* vertex group paint */
 					else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
@@ -1712,7 +1717,8 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						/* viewport preview */
 						if (surface->flags & MOD_DPAINT_PREVIEW) {
 							/* Save preview results to weight layer to be
-							*   able to share same drawing methods */
+							 * able to share same drawing methods.
+							 * Note this func also sets DM_DIRTY_TESS_CDLAYERS flag! */
 							DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);
 						}
 

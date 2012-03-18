@@ -297,7 +297,7 @@ void BKE_mesh_tessface_calc(struct Mesh *mesh);
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
-/*convert a triangle of loop facedata to mface facedata*/
+/* Convert a triangle or quadrangle of loop/poly data to tessface data */
 void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
                                  struct CustomData *pdata, int lindex[4], int findex,
                                  const int polyindex, const int mf_len,

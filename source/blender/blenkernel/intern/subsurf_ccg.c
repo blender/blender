@@ -2888,7 +2888,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int *vertOrigIndex, *faceOrigIndex, *polyOrigIndex, *base_polyOrigIndex; /* *edgeOrigIndex - as yet, unused  */
 	short *edgeFlags;
 	DMFlagMat *faceFlags;
-	int *loopidx = NULL, *vertidx = NULL;
+	int *loopidx = NULL, *vertidx = NULL, *polyidx = NULL;
 	BLI_array_declare(loopidx);
 	BLI_array_declare(vertidx);
 	int loopindex, loopindex2;
@@ -2922,6 +2922,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	if (
 	        (numTex && CustomData_number_of_layers(&ccgdm->dm.faceData, CD_MTFACE) != numTex)  ||
 	        (numCol && CustomData_number_of_layers(&ccgdm->dm.faceData, CD_MCOL) != numCol)    ||
+	        (hasWCol && !CustomData_has_layer(&ccgdm->dm.faceData, CD_WEIGHT_MCOL))            ||
 	        (hasOrigSpace && !CustomData_has_layer(&ccgdm->dm.faceData, CD_ORIGSPACE)) )
 	{
 		CustomData_from_bmeshpoly(&ccgdm->dm.faceData,
@@ -2929,6 +2930,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		                          &ccgdm->dm.loopData,
 		                          ccgSubSurf_getNumFinalFaces(ss));
 	}
+
+	/* We absolutely need that layer, else it's no valid tesselated data! */
+	polyidx = CustomData_add_layer(&ccgdm->dm.faceData, CD_POLYINDEX, CD_CALLOC,
+	                               NULL, ccgSubSurf_getNumFinalFaces(ss));
 
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
 	ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
@@ -3207,6 +3212,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 					ccgdm->reverseFaceMap[faceNum] = index;
 
+					/* This is a simple one to one mapping, here... */
+					polyidx[faceNum] = faceNum;
+
 					faceNum++;
 				}
 			}
@@ -3296,6 +3304,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.numTessFaceData = faceNum;
 	ccgdm->dm.numLoopData = loopindex2;
 	ccgdm->dm.numPolyData = faceNum;
+
+	/* All tessellated CD layers were updated! */
+	ccgdm->dm.dirty &= ~DM_DIRTY_TESS_CDLAYERS;
 
 	BLI_array_free(vertidx);
 	BLI_array_free(loopidx);
