@@ -755,6 +755,9 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
 	BMIter iter;
 	BMElem *ele;
 	int i;
@@ -776,7 +779,7 @@ void BM_mesh_elem_flag_disable_all(BMesh *bm, const char htype, const char hflag
 	}
 	else {
 		for (i = 0; i < 3; i++) {
-			if (htype & iter_types[i]) {
+			if (htype & flag_types[i]) {
 				ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 				for ( ; ele; ele = BM_iter_step(&iter)) {
 					if (hflag & BM_ELEM_SELECT) {
@@ -794,6 +797,9 @@ void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
+
+	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
 	BMIter iter;
 	BMElem *ele;
 	int i;
@@ -807,7 +813,7 @@ void BM_mesh_elem_flag_enable_all(BMesh *bm, const char htype, const char hflag)
 	 * we could ofcourse check for no hiddent faces and then use quicker method but its not worth it. */
 
 	for (i = 0; i < 3; i++) {
-		if (htype & iter_types[i]) {
+		if (htype & flag_types[i]) {
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
 				if (hflag & BM_ELEM_SELECT) {
