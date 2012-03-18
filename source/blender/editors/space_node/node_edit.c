@@ -3429,8 +3429,6 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	Image *ima= NULL;
 	bNodeTemplate ntemp;
 
-	ntemp.type = -1;
-
 	/* check input variables */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
@@ -3458,12 +3456,20 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	
 	node_deselect_all(snode);
 	
-	if (snode->nodetree->type==NTREE_COMPOSIT)
-		ntemp.type = CMP_NODE_IMAGE;
-
-	if (ntemp.type < 0)
-		return OPERATOR_CANCELLED;
-		
+	switch (snode->nodetree->type) {
+		case NTREE_SHADER:
+			ntemp.type = SH_NODE_TEX_IMAGE;
+			break;
+		case NTREE_TEXTURE:
+			ntemp.type = TEX_NODE_IMAGE;
+			break;
+		case NTREE_COMPOSIT:
+			ntemp.type = CMP_NODE_IMAGE;
+			break;
+		default:
+			return OPERATOR_CANCELLED;
+	}
+	
 	ED_preview_kill_jobs(C);
 	
 	node = node_add_node(snode, bmain, scene, &ntemp, snode->mx, snode->my);
@@ -3504,9 +3510,9 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->idname= "NODE_OT_add_file";
 	
 	/* callbacks */
-	ot->exec= node_add_file_exec;
+    ot->exec= node_add_file_exec;
 	ot->invoke= node_add_file_invoke;
-	ot->poll= composite_node_active;
+    ot->poll= ED_operator_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
