@@ -1250,9 +1250,15 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 
 	/* basic useful info to help find where bmop formatting strings fail */
+	const char *err_reason = "Unknown";
 	int lineno = -1;
-#   define GOTO_ERROR { lineno = __LINE__; goto error; }
 
+#define GOTO_ERROR(reason)   \
+	{                        \
+		err_reason = reason; \
+		lineno = __LINE__;   \
+		goto error;          \
+	} (void)0
 
 	/* we muck around in here, so dup i */
 	fmt = ofmt = BLI_strdup(_fmt);
@@ -1293,11 +1299,15 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 			 * a little flexible, allowing "slot=%f",
 			 * "slot %f", "slot%f", and "slot\t%f". */
 			i = strcspn(fmt, "= \t%");
-			if (!fmt[i]) GOTO_ERROR;
+			if (!fmt[i]) {
+				GOTO_ERROR("could not match end of slot name");
+			}
 
 			fmt[i] = 0;
 
-			if (bmo_name_to_slotcode_check(def, fmt) < 0) GOTO_ERROR;
+			if (bmo_name_to_slotcode_check(def, fmt) < 0) {
+				GOTO_ERROR("name to slot code check failed");
+			}
 			
 			BLI_strncpy(slotname, fmt, sizeof(slotname));
 			
@@ -1317,9 +1327,9 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 					c = NEXT_CHAR(fmt);
 					fmt++;
 
-					if (c == '3') size = 3;
+					if      (c == '3') size = 3;
 					else if (c == '4') size = 4;
-					else GOTO_ERROR;
+					else GOTO_ERROR("matrix size was not 3 or 4");
 
 					BMO_slot_mat_set(op, slotname, va_arg(vlist, void *), size);
 					state = 1;
@@ -1416,9 +1426,24 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 error:
 
 	/* non urgent todo - explain exactly what is failing */
-	fprintf(stderr,
-	        "%s: error parsing formatting string, %d in '%s'\n    see - %s:%d\n",
-	        __func__, (int)(fmt - ofmt), _fmt, __FILE__, lineno);
+	fprintf(stderr, "%s: error parsing formatting string\n", __func__);
+
+	fprintf(stderr, "string: '%s', position %d\n", _fmt, (int)(fmt - ofmt));
+	fprintf(stderr, "         ");
+	{
+		int pos = (int)(fmt - ofmt);
+		int i;
+		for (i = 0; i < pos; i++) {
+			fprintf(stderr, " ");
+		}
+		fprintf(stderr, "^\n");
+	}
+
+	fprintf(stderr, "source code:  %s:%d\n", __FILE__, lineno);
+
+	fprintf(stderr, "reason: %s\n", err_reason);
+
+
 	MEM_freeN(ofmt);
 
 	BMO_op_finish(bm, op);
