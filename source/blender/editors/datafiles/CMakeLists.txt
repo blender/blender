@@ -74,6 +74,7 @@ if(WITH_BLENDER)
 			smooth.png.c
 			snake_hook.png.c
 			soften.png.c
+			claystrips.png.c
 			subtract.png.c
 			texdraw.png.c
 			thumb.png.c

@@ -2931,6 +2931,10 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 {
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
+	float mouse[2] = {
+		cache->mouse[0] - cache->vc->ar->winrct.xmin,
+		cache->mouse[1] - cache->vc->ar->winrct.ymin
+	};
 	int tool = brush->sculpt_tool;
 
 	if(ELEM5(tool,
@@ -2948,9 +2952,9 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 
 		/* compute 3d coordinate at same z from original location + mouse */
 		mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
-		initgrabz(cache->vc->rv3d, loc[0], loc[1], loc[2]);
+ 		initgrabz(cache->vc->rv3d, loc[0], loc[1], loc[2]);
 
-		ED_view3d_win_to_delta(cache->vc->ar, cache->mouse, grab_location);
+		ED_view3d_win_to_3d(cache->vc->ar, loc, mouse, grab_location);
 
 		/* compute delta to move verts by */
 		if(!cache->first_time) {
@@ -2964,12 +2968,17 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 				break;
 			case SCULPT_TOOL_CLAY_STRIPS:
 			case SCULPT_TOOL_NUDGE:
-				sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
-				invert_m4_m4(imat, ob->obmat);
-				mul_mat3_m4_v3(imat, cache->grab_delta);
-				break;
 			case SCULPT_TOOL_SNAKE_HOOK:
-				sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+				if(brush->flag & BRUSH_ANCHORED) {
+					float orig[3];
+					mul_v3_m4v3(orig, ob->obmat, cache->orig_grab_location);
+					sub_v3_v3v3(cache->grab_delta, grab_location, orig);
+				}
+				else {
+					sub_v3_v3v3(cache->grab_delta, grab_location,
+								cache->old_grab_location);
+				}
+				
 				invert_m4_m4(imat, ob->obmat);
 				mul_mat3_m4_v3(imat, cache->grab_delta);
 				break;

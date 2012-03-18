@@ -69,6 +69,9 @@ extern char datatoc_blur_png[];
 extern int datatoc_clay_png_size;
 extern char datatoc_clay_png[];
 
+extern int datatoc_claystrips_png_size;
+extern char datatoc_claystrips_png[];
+
 extern int datatoc_clone_png_size;
 extern char datatoc_clone_png[];
 
