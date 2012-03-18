@@ -151,8 +151,8 @@ static int rna_SculptCapabilities_has_pinch_factor_get(PointerRNA *ptr)
 static int rna_SculptCapabilities_has_plane_offset_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush*)ptr->data;
-	return ELEM4(br->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_FILL,
-				 SCULPT_TOOL_FLATTEN, SCULPT_TOOL_SCRAPE);
+	return ELEM5(br->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
+				 SCULPT_TOOL_FILL, SCULPT_TOOL_FLATTEN, SCULPT_TOOL_SCRAPE);
 }
 
 static int rna_SculptCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
@@ -175,10 +175,11 @@ static int rna_SculptCapabilities_has_sculpt_plane_get(PointerRNA *ptr)
 static int rna_SculptCapabilities_has_secondary_color_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush*)ptr->data;
-	return ELEM9(br->sculpt_tool,
-				 SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CREASE,
-				 SCULPT_TOOL_DRAW, SCULPT_TOOL_FILL, SCULPT_TOOL_FLATTEN,
-				 SCULPT_TOOL_INFLATE, SCULPT_TOOL_PINCH, SCULPT_TOOL_SCRAPE);
+	return ELEM10(br->sculpt_tool,
+				  SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
+				  SCULPT_TOOL_CREASE, SCULPT_TOOL_DRAW, SCULPT_TOOL_FILL,
+				  SCULPT_TOOL_FLATTEN, SCULPT_TOOL_INFLATE, SCULPT_TOOL_PINCH,
+				  SCULPT_TOOL_SCRAPE);
 }
 
 static int rna_SculptCapabilities_has_smooth_stroke_get(PointerRNA *ptr)

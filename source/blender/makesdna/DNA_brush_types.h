@@ -159,7 +159,7 @@ typedef enum BrushSculptTool {
 	
 	SCULPT_TOOL_CREASE = 16,
 	SCULPT_TOOL_BLOB = 17,
-	SCULPT_TOOL_CLAY_TUBES = 18
+	SCULPT_TOOL_CLAY_STRIPS = 18
 } BrushSculptTool;
 
 /* ImagePaintSettings.tool */
