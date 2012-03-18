@@ -491,7 +491,7 @@ class VIEW3D_MT_select_particle(Menu):
 
         layout.operator("particle.select_all").action = 'TOGGLE'
         layout.operator("particle.select_linked")
-        layout.operator("particle.select_all").action = 'INVERT'
+        layout.operator("particle.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
 
@@ -621,7 +621,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
         layout.separator()
 
         layout.operator("mball.select_all").action = 'TOGGLE'
-        layout.operator("mball.select_all").action = 'INVERT'
+        layout.operator("mball.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
 

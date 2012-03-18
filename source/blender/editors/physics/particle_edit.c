@@ -1360,7 +1360,7 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Selection of all particles";
+	ot->name= "(De)select All";
 	ot->idname= "PARTICLE_OT_select_all";
 	
 	/* api callbacks */
