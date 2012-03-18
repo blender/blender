@@ -1687,7 +1687,8 @@ int input_have_to_preprocess(
 }
 
 static ImBuf * input_preprocess(
-	SeqRenderData context, Sequence *seq, float UNUSED(cfra), ImBuf * ibuf)
+	SeqRenderData context, Sequence *seq, float UNUSED(cfra), ImBuf * ibuf,
+	int is_proxy_image, int is_preprocessed)
 {
 	float mul;
 
@@ -1701,12 +1702,17 @@ static ImBuf * input_preprocess(
 		StripCrop c= {0};
 		StripTransform t= {0};
 		int sx,sy,dx,dy;
+		double xscale = 1.0;
+		double yscale = 1.0;
 
-		double f = seq_rendersize_to_scale_factor(
-			context.preview_render_size);
+		if (is_proxy_image) {
+			double f = seq_rendersize_to_scale_factor(
+				context.preview_render_size);
 
-		if (f != 1.0) {
-			IMB_scalefastImBuf(ibuf, ibuf->x / f, ibuf->y / f);
+			if (f != 1.0) {
+				IMB_scalefastImBuf(
+					ibuf, ibuf->x / f, ibuf->y / f);
+			}
 		}
 
 		if(seq->flag & SEQ_USE_CROP && seq->strip->crop) {
@@ -1716,23 +1722,43 @@ static ImBuf * input_preprocess(
 			t = *seq->strip->transform;
 		}
 
+		xscale = context.scene->r.xsch ? 
+			((double) context.rectx / 
+			 (double) context.scene->r.xsch) : 1.0;
+		yscale = context.scene->r.ysch ? 
+			((double) context.recty / 
+			 (double) context.scene->r.ysch) : 1.0;
+
+		c.left *= xscale; c.right *= yscale;
+		c.top *= yscale; c.bottom *= yscale;
+
+		t.xofs *= xscale; t.yofs *= yscale;
+
 		sx = ibuf->x - c.left - c.right;
 		sy = ibuf->y - c.top - c.bottom;
 		dx = sx;
 		dy = sy;
 
 		if (seq->flag & SEQ_USE_TRANSFORM) {
-			dx = context.scene->r.xsch;
-			dy = context.scene->r.ysch;
+			if (is_preprocessed) {
+				dx = context.rectx;
+				dy = context.recty;
+			} else {
+				dx = context.scene->r.xsch;
+				dy = context.scene->r.ysch;
+			}
 		}
 
-		if (c.top + c.bottom >= ibuf->y || c.left + c.right >= ibuf->x ||
-				t.xofs >= dx || t.yofs >= dy) {
+		if (c.top+c.bottom >= ibuf->y || c.left+c.right >= ibuf->x ||
+		    t.xofs >= dx || t.yofs >= dy) {
 			make_black_ibuf(ibuf);
 		} else {
-			ImBuf * i = IMB_allocImBuf(dx, dy,32, ibuf->rect_float ? IB_rectfloat : IB_rect);
+			ImBuf * i = IMB_allocImBuf(
+				dx, dy, 32, 
+				ibuf->rect_float ? IB_rectfloat : IB_rect);
 
-			IMB_rectcpy(i, ibuf, t.xofs, t.yofs, c.left, c.bottom, sx, sy);
+			IMB_rectcpy(i, ibuf, 
+				    t.xofs, t.yofs, c.left, c.bottom, sx, sy);
 			
 			IMB_freeImBuf(ibuf);
 
@@ -2111,9 +2137,11 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 	ImBuf * ibuf = NULL;
 	char name[FILE_MAX];
 	int use_preprocess = input_have_to_preprocess(context, seq, cfra);
+	int is_proxy_image = FALSE;
 	float nr = give_stripelem_index(seq, cfra);
 	/* all effects are handled similarly with the exception of speed effect */
 	int type = (seq->type & SEQ_EFFECT && seq->type != SEQ_SPEED) ? SEQ_EFFECT : seq->type;
+	int is_preprocessed = !ELEM3(type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SCENE);
 
 	ibuf = seq_stripelem_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
@@ -2125,8 +2153,10 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 	if (ibuf == NULL)
 		ibuf = copy_from_ibuf_still(context, seq, nr);
 	
-	if (ibuf == NULL)
+	if (ibuf == NULL) {
 		ibuf = seq_proxy_fetch(context, seq, cfra);
+		is_proxy_image = (ibuf != NULL);
+	}
 
 	if(ibuf == NULL) switch(type) {
 		case SEQ_META:
@@ -2148,6 +2178,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 					ibuf = i;
 				}
 			}
+
 			break;
 		}
 		case SEQ_SPEED:
@@ -2253,7 +2284,8 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 		use_preprocess = TRUE;
 
 	if (use_preprocess)
-		ibuf = input_preprocess(context, seq, cfra, ibuf);
+		ibuf = input_preprocess(context, seq, cfra, ibuf, 
+					is_proxy_image, is_preprocessed);
 
 	seq_stripelem_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF, ibuf);
 
