@@ -13292,6 +13292,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		/* Default for old files is to save particle rotations to pointcache */
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next)
+			part->flag |= PART_ROTATIONS;
+	}
+
 	/* put compatibility code here until next subversion bump */
 	{
 

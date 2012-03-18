@@ -2684,6 +2684,12 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 {
 	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep;
 
+	if((part->flag & PART_ROTATIONS)==0) {
+		pa->state.rot[0]=1.0f;
+		pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0;
+		return;
+	}
+
 	if((part->flag & PART_ROT_DYN)==0) {
 		if(part->avemode==PART_AVE_SPIN) {
 			float angle;

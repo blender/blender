@@ -315,9 +315,10 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 		}
 	}
 
-	/* determine rotation from velocity */
+	/* default to no rotation */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vec_to_quat( pa->state.rot,pa->state.vel, OB_NEGX, OB_POSZ);
+		pa->state.rot[0]=1.0f;
+		pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0;
 	}
 }
 static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
@@ -815,12 +816,13 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 		pid->read_extra_data = ptcache_particle_extra_read;
 	}
 
-	if(psys->part->rotmode!=PART_ROT_VEL
-		|| psys->part->avemode!=PART_AVE_SPIN || psys->part->avefac!=0.0f)
-		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION);
-
-	if(psys->part->flag & PART_ROT_DYN)
+	if(psys->part->flag & PART_ROTATIONS) {
 		pid->data_types|= (1<<BPHYS_DATA_ROTATION);
+
+		if(psys->part->rotmode!=PART_ROT_VEL
+			|| psys->part->avemode!=PART_AVE_SPIN || psys->part->avefac!=0.0f)
+			pid->data_types|= (1<<BPHYS_DATA_AVELOCITY);
+	}
 
 	pid->info_types= (1<<BPHYS_DATA_TIMES);
 

@@ -380,6 +380,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
     bl_label = "Rotation"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -394,6 +395,15 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         else:
             return False
 
+    def draw_header(self, context):
+        psys = context.particle_system
+        if psys:
+            part = psys.settings
+        else:
+            part = context.space_data.pin_id
+
+        self.layout.prop(part, "use_rotations", text="")
+
     def draw(self, context):
         layout = self.layout
 
@@ -403,7 +413,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         else:
             part = context.space_data.pin_id
 
-        layout.enabled = particle_panel_enabled(context, psys)
+        layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
 
         layout.prop(part, "use_dynamic_rotation")
 
