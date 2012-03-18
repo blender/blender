@@ -601,7 +601,7 @@ Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *n
 	if (ima) {
 		ImBuf *ibuf;
 		
-		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* dont do this, this writes in ain invalid filepath! */
+		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* don't do this, this writes in ain invalid filepath! */
 		ima->gen_x= width;
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
@@ -1832,7 +1832,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 		break;
 	}
 	
-	/* dont use notifiers because they are not 100% sure to succeeded
+	/* don't use notifiers because they are not 100% sure to succeeded
 	 * this also makes sure all scenes are accounted for. */
 	{
 		Scene *scene;

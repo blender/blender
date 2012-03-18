@@ -504,7 +504,7 @@ void make_envmaps(Render *re)
 	
 	if (!(re->r.mode & R_ENVMAP)) return;
 	
-	/* we dont raytrace, disabling the flag will cause ray_transp render solid */
+	/* we don't raytrace, disabling the flag will cause ray_transp render solid */
 	trace= (re->r.mode & R_RAYTRACE);
 	re->r.mode &= ~R_RAYTRACE;
 

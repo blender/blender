@@ -59,7 +59,7 @@ static void rna_Operator_report(wmOperator *op, int type, const char *msg)
 	BKE_report(op->reports, type, msg);
 }
 
-/* since event isnt needed... */
+/* since event isn't needed... */
 static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 {
 	WM_enum_search_invoke(C, op, NULL);

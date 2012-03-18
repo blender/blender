@@ -224,7 +224,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 			/* half but found up odd value */
 			const int pntsu_half = (lt->pntsu / 2) + (lt->pntsu % 2);
 
-			/* currently editmode isnt supported by mesh so
+			/* currently editmode isn't supported by mesh so
 			 * ignore here for now too */
 
 			/* if(lt->editlatt) lt= lt->editlatt->latt; */

@@ -93,7 +93,7 @@
 /*
  * Vertex Smooth
  *
- * Smoothes vertices by using a basic vertex averaging scheme.
+ * Smooths vertices by using a basic vertex averaging scheme.
  */
 static BMOpDefine bmo_vertexsmooth_def = {
 	"vertexsmooth",
@@ -740,7 +740,7 @@ static BMOpDefine bmo_split_def = {
 	 {BMO_OP_SLOT_MAPPING, "boundarymap"},
 	 {BMO_OP_SLOT_MAPPING, "isovertmap"},
 	 {BMO_OP_SLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
-	 {BMO_OP_SLOT_BOOL, "use_only_faces"}, /* when enabled. dont duplicate loose verts/edges */
+	 {BMO_OP_SLOT_BOOL, "use_only_faces"}, /* when enabled. don't duplicate loose verts/edges */
 	 {0} /* null-terminating sentine */},
 	bmo_split_exec,
 	0

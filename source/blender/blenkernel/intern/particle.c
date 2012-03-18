@@ -1629,7 +1629,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 	totface = dm->getNumTessFaces(dm);
 	
 	if(osface==NULL || origindex==NULL) {
-		/* Assume we dont need osface data */
+		/* Assume we don't need osface data */
 		if (index <totface) {
 			//printf("\tNO CD_ORIGSPACE, assuming not needed\n");
 			return index;
@@ -4069,7 +4069,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			pind.cache = cached ? psys->pointcache : NULL;
 			pind.epoint = NULL;
 			pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-			/* pind.dm disabled in editmode means we dont get effectors taken into
+			/* pind.dm disabled in editmode means we don't get effectors taken into
 			 * account when subdividing for instance */
 			pind.dm = psys_in_edit_mode(sim->scene, psys) ? NULL : psys->hair_out_dm;
 			init_particle_interpolation(sim->ob, psys, pa, &pind);

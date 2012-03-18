@@ -1044,7 +1044,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	starttotf= 0;
 	uv_edge_tag_faces(em, iterv1, iterv2, &starttotf);
 
-	/* sorry, first edge isnt even ok */
+	/* sorry, first edge isn't even ok */
 	if(iterv1->flag==0 && iterv2->flag==0) looking= 0;
 	else looking= 1;
 
@@ -1462,7 +1462,7 @@ static void weld_align_uv(bContext *C, int tool)
 			/* walk over edges, building an array of verts in a line */
 			while (eve) {
 				BLI_array_append(eve_line, eve);
-				/* dont touch again */
+				/* don't touch again */
 				BM_elem_flag_disable(eve, BM_ELEM_TAG);
 
 				eve_next = NULL;
@@ -1737,7 +1737,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	NearestHit hit;
 	int i, select = 1, selectmode, sticky, sync, *hitv=NULL, nvert;
 	BLI_array_declare(hitv);
-	int flush = 0, hitlen=0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+	int flush = 0, hitlen=0; /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	float limit[2], **hituv = NULL;
 	BLI_array_declare(hituv);
 	float penalty[2];

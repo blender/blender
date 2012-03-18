@@ -59,7 +59,7 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 		copy_v3_v3(l_co, l->v->co);
 		copy_v3_v3(l_co_next, l->next->v->co);
 
-		/* calculate norma */
+		/* calculate normal */
 		sub_v3_v3v3(l_vec_prev, l_co_prev, l_co);
 		sub_v3_v3v3(l_vec_next, l_co_next, l_co);
 
@@ -551,7 +551,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				/* set edge lengths of cross edges as the average of the cross edges they're based o */
 				if (has_elens) {
-					/* angle happens not to be used. why? - not sure it just isnt - campbell.
+					/* angle happens not to be used. why? - not sure it just isn't - campbell.
 					 * leave this in in case we need to use it later */
 #if 0
 					float ang;

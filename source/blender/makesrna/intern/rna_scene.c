@@ -328,7 +328,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	/* this is similar to what object_add_type and add_object do */
 	base->lay = scene->lay;
 
-	/* when linking to an inactive scene dont touch the layer */
+	/* when linking to an inactive scene don't touch the layer */
 	if (scene == scene_act)
 		ob->lay = base->lay;
 

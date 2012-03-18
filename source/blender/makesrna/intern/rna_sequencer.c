@@ -84,7 +84,7 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
 		internal->link = NULL;
 
 		do {
-			seq = seq->tmp; /* XXX - seq's dont reference their parents! */
+			seq = seq->tmp; /* XXX - seq's don't reference their parents! */
 			if (seq && seq->next) {
 				internal->link = (Link*)seq->next;
 				break;
@@ -371,7 +371,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	
 	/* fix all the animation data which may link to this */
 
-	/* dont rename everywhere because these are per scene */
+	/* don't rename everywhere because these are per scene */
 	/* BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2); */
 	adt = BKE_animdata_from_id(&scene->id);
 	if (adt)

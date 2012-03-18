@@ -793,9 +793,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			}
 		} /* tessellation point for curve-typed objects */
 		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			/* some modifiers could work with pre-tesselated curves only */
+			/* some modifiers could work with pre-tessellated curves only */
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
-				/* add disabled pre-tesselated button, so users could have
+				/* add disabled pre-tessellated button, so users could have
 				 * message for this modifiers */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
 						TIP_("This modifier could be applied on splines' points only"));
@@ -1579,7 +1579,7 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 	CurveMapping *cumap = cumap_v;
 	float d, d1;
 
-	/* we allow 20 times zoom, but dont view outside clip */
+	/* we allow 20 times zoom, but don't view outside clip */
 	if( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
 		d= d1= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
 

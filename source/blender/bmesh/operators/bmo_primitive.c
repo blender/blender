@@ -432,7 +432,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMO_op_finish(bm, &bmop);
 	}
 
-	/* must transform after becayse of sphere subdivision */
+	/* must transform after because of sphere subdivision */
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			mul_m4_v3(mat, v->co);

@@ -79,7 +79,7 @@ typedef enum eDrawStrokeFlags {
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
 	GP_DRAWDATA_IEDITHACK	= (1<<4),	/* special hack for drawing strokes in Image Editor (weird coordinates) */
-	GP_DRAWDATA_NO_XRAY		= (1<<5),	/* dont draw xray in 3D view (which is default) */
+	GP_DRAWDATA_NO_XRAY		= (1<<5),	/* don't draw xray in 3D view (which is default) */
 } eDrawStrokeFlags;
 
 
@@ -298,7 +298,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 		
 		for (i=0, pt1=points, pt2=points+1; i < (totpoints-1); i++, pt1++, pt2++) {
 			float s0[2], s1[2];		/* segment 'center' points */
-			float t0[2], t1[2];		/* tesselated coordinates */
+			float t0[2], t1[2];		/* tessellated coordinates */
 			float m1[2], m2[2];		/* gradient and normal */
 			float mt[2], sc[2];		/* gradient for thickness, point for end-cap */
 			float pthick;			/* thickness at segment point */
@@ -513,7 +513,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 				glDepthMask(0);
 				glEnable(GL_DEPTH_TEST);
 				
-				/* first arg is normally rv3d->dist, but this isnt available here and seems to work quite well without */
+				/* first arg is normally rv3d->dist, but this isn't available here and seems to work quite well without */
 				bglPolygonOffset(1.0f, 1.0f);
 #if 0
 				glEnable(GL_POLYGON_OFFSET_LINE);
@@ -783,7 +783,7 @@ void draw_gpencil_view3d (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 	gpd= gpencil_data_get_active_v3d(scene); // XXX
 	if (gpd == NULL) return;
 
-	/* when rendering to the offscreen buffer we dont want to
+	/* when rendering to the offscreen buffer we don't want to
 	 * deal with the camera border, otherwise map the coords to the camera border. */
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;

@@ -421,7 +421,7 @@ void EDBM_select_more(BMEditMesh *em)
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
-	/* dont flush selection in edge/vertex mode  */
+	/* don't flush selection in edge/vertex mode  */
 	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
@@ -437,7 +437,7 @@ void EDBM_select_less(BMEditMesh *em)
 	             "regionextend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, TRUE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
-	/* dont flush selection in edge/vertex mode  */
+	/* don't flush selection in edge/vertex mode  */
 	BMO_slot_buffer_hflag_disable(em->bm, &bmop, "geomout", BM_ELEM_SELECT, BM_ALL, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 

@@ -58,7 +58,7 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
 #endif
 
-	/* allocate one flag pool that we dont get rid of. */
+	/* allocate one flag pool that we don't get rid of. */
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0);
 }
 
@@ -79,7 +79,7 @@ BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
 	/* allocate the memory pools for the mesh elements */
 	bm_mempool_init(bm, allocsize);
 
-	/* allocate one flag pool that we dont get rid of. */
+	/* allocate one flag pool that we don't get rid of. */
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 

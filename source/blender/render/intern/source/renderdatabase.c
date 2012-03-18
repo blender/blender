@@ -90,7 +90,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-/* More dynamic allocation of options for render vertices and faces, so we dont
+/* More dynamic allocation of options for render vertices and faces, so we don't
  * have to reserve this space inside vertices.
  * Important; vertices and faces, should have been created already (to get tables
  * checked) that's a reason why the calls demand VertRen/VlakRen * as arg, not

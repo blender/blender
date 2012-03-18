@@ -1050,7 +1050,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		return BLI_add_slash(filename); /* new strlen() */
 	}
 	else if (G.relbase_valid || lib) {
-		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
+		char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
 
 		BLI_split_file_part(blendfilename, file, sizeof(file));
 		i = strlen(file);
@@ -2546,7 +2546,7 @@ void BKE_ptcache_remove(void)
 				BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
 				BLI_delete(path_full, 0, 0);
 			} else {
-				rmdir = 0; /* unknown file, dont remove the dir */
+				rmdir = 0; /* unknown file, don't remove the dir */
 			}
 		}
 

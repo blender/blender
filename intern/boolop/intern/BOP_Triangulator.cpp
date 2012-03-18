@@ -173,7 +173,7 @@ void BOP_triangulateC(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face, BOP_Inde
 
 /**
  * Triangulates the face (v1,v2,v3) in five new faces by two inner points (v4,v5), where
- * v1 v4 v5 defines the nice triangle and v4 v5 v2 v3 defines the quad to be tesselated.
+ * v1 v4 v5 defines the nice triangle and v4 v5 v2 v3 defines the quad to be tessellated.
  * @param mesh mesh that contains the faces, edges and vertices
  * @param faces set of faces that contains face and will contains new faces
  * @param face input face to be triangulate

@@ -62,7 +62,7 @@ typedef struct BMwLoopWalker {
 	BMEdge *cur, *start;
 	BMVert *lastv, *startv;
 	BMFace *f_hub;
-	short is_boundry; /* boundry looping changes behavior */
+	short is_boundary; /* boundary looping changes behavior */
 	short is_single;  /* single means the edge verts are only connected to 1 face */
 } BMwLoopWalker;
 

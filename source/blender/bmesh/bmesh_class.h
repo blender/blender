@@ -55,7 +55,7 @@ struct Object;
  * hold several types of data
  *
  * 1: The type of the element (vert, edge, loop or face)
- * 2: Persistant "header" flags/markings (smooth, seam, select, hidden, ect)
+ * 2: Persistent "header" flags/markings (smooth, seam, select, hidden, ect)
  *     note that this is different from the "tool" flags.
  * 3: Unique ID in the bmesh.
  * 4: some elements for internal record keeping.
@@ -117,7 +117,7 @@ typedef struct BMLoop {
 	struct BMLoop *next, *prev; /* next/prev verts around the face */
 } BMLoop;
 
-/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these dont have a flag layer */
+/* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these don't have a flag layer */
 typedef struct BMElemF {
 	BMHeader head;
 	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
@@ -162,7 +162,7 @@ typedef struct BMesh {
 	/* flag index arrays as being dirty so we can check if they are clean and
 	 * avoid looping over the entire vert/edge/face array in those cases.
 	 * valid flags are - BM_VERT | BM_EDGE | BM_FACE.
-	 * BM_LOOP isnt handled so far. */
+	 * BM_LOOP isn't handled so far. */
 	char elem_index_dirty;
 	
 	/*element pools*/
@@ -181,7 +181,7 @@ typedef struct BMesh {
 
 	/* should be copy of scene select mode */
 	/* stored in BMEditMesh too, this is a bit confusing,
-	 * make sure the're in sync!
+	 * make sure they're in sync!
 	 * Only use when the edit mesh cant be accessed - campbell */
 	short selectmode;
 	

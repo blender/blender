@@ -34,7 +34,7 @@ enum {
  * Remove the EDGE_SEAM flag for edges we cant split
  *
  * un-tag edges not connected to other tagged edges,
- * unless they are on a boundry
+ * unless they are on a boundary
  */
 static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 {
@@ -49,7 +49,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 
 	vtouch = MEM_callocN(sizeof(char) * bm->totvert, __func__);
 
-	/* tag all boundry verts so as not to untag an edge which is inbetween only 2 faces [] */
+	/* tag all boundary verts so as not to untag an edge which is inbetween only 2 faces [] */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 
 		/* unrelated to flag assignment in this function - since this is the
@@ -60,7 +60,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
 			vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
 
-			/* while the boundry verts need to be tagged,
+			/* while the boundary verts need to be tagged,
 			 * the edge its self can't be split */
 			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
 		}
@@ -69,7 +69,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 	/* single marked edges unconnected to any other marked edges
 	 * are illegal, go through and unmark them */
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
-		/* lame, but we dont want the count to exceed 255,
+		/* lame, but we don't want the count to exceed 255,
 		 * so just count to 2, its all we need */
 		unsigned char *vt;
 		vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;

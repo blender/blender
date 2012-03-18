@@ -251,7 +251,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 			continue;
 		}
 
-		/* dont use 'i' since we may have skipped the face */
+		/* don't use 'i' since we may have skipped the face */
 		BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
 		/* transfer flag */

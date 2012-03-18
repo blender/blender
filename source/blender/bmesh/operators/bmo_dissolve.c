@@ -517,7 +517,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 				                                e->l->radial_next->f,
 				                                e); /* join faces */
 
-				/* there may be some errors, we dont mind, just move on */
+				/* there may be some errors, we don't mind, just move on */
 				if (nf == NULL) {
 					BMO_error_clear(bm);
 				}

@@ -91,7 +91,7 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 		}
 	}
 	else if (len == 2 && BM_vert_face_count(v) == 1) {
-		/* boundry vertex on a face */
+		/* boundary vertex on a face */
 		return (BM_vert_collapse_edge(bm, v->e, v, TRUE) != NULL);
 	}
 	else {
@@ -540,7 +540,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 	else {
 		/* single face or no faces */
 		/* same as BM_vert_collapse_edge() however we already
-		 * have vars to perform this operation so dont call. */
+		 * have vars to perform this operation so don't call. */
 		ne = bmesh_jekv(bm, ke, kv, TRUE);
 		/* ne = BM_edge_exists(tv, tv2); */ /* same as return above */
 
@@ -801,7 +801,7 @@ int BM_face_validate(BMesh *bm, BMFace *face, FILE *err)
  *
  * Examples:
  * - the newly formed edge already exists
- * - the new face would be degenerate (zero area / concav /  bow-tie)
+ * - the new face would be degenerate (zero area / concave /  bow-tie)
  * - may want to measure if the new edge gives improved results topology.
  *   over the old one, as with beauty fill.
  *
@@ -824,8 +824,8 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
 	BM_edge_ordered_verts(e, &v1, &v2);
 
 	/* we could swap the verts _or_ the faces, swapping faces
-	 * gives more predictable resuts since that way the next vert
-	 * just sitches from face fa / fb */
+	 * gives more predictable results since that way the next vert
+	 * just stitches from face fa / fb */
 	if (ccw) {
 		SWAP(BMFace *, fa, fb);
 	}
@@ -833,7 +833,7 @@ void BM_edge_rotate_calc(BMesh *bm, BMEdge *e, int ccw,
 	*r_l1 = BM_face_other_vert_loop(fb, v2, v1);
 	*r_l2 = BM_face_other_vert_loop(fa, v1, v2);
 
-	/* when assert isnt used */
+	/* when assert isn't used */
 	(void)bm;
 }
 
@@ -852,7 +852,7 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
 		la = BM_face_other_vert_loop(fa, e->v2, e->v1);
 		lb = BM_face_other_vert_loop(fb, e->v2, e->v1);
 
-		/* check that the next vert in both faces isnt the same
+		/* check that the next vert in both faces isn't the same
 		 * (ie - the next edge doesnt share the same faces).
 		 * since we can't rotate usefully in this case. */
 		if (la->v == lb->v) {
@@ -879,7 +879,7 @@ int BM_edge_rotate_check(BMesh *UNUSED(bm), BMEdge *e)
  *
  * Check 2 cases
  * 1) does the newly forms edge form a flipped face (compare with previous cross product)
- * 2) does the newly formed edge caise a zero area corner (or close enough to be almost zero)
+ * 2) does the newly formed edge cause a zero area corner (or close enough to be almost zero)
  *
  * \param l1,l2 are the loops of the proposed verts to rotate too and should
  * be the result of calling #BM_edge_rotate_calc
@@ -972,7 +972,7 @@ int BM_edge_rotate_check_degenerate(BMesh *bm, BMEdge *e,
 
 	return TRUE;
 
-	/* when assert isnt used */
+	/* when assert isn't used */
 	(void)bm;
 }
 
@@ -1070,9 +1070,9 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_
 		return NULL;
 	}
 	else {
-		/* we should reallty be able to know the faces some other way,
+		/* we should really be able to know the faces some other way,
 		 * rather then fetching them back from the edge, but this is predictable
-		 * where using the return values from face split isnt. - campbell */
+		 * where using the return values from face split isn't. - campbell */
 		BMFace *fa, *fb;
 		if (BM_edge_face_pair(e_new, &fa, &fb)) {
 			fa->head.hflag = f_hflag_prev_1;

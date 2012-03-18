@@ -400,7 +400,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		ed->v2 += numVerts;
 	}
 
-	/* note, copied vertex layers dont have flipped normals yet. do this after applying offset */
+	/* note, copied vertex layers don't have flipped normals yet. do this after applying offset */
 	if((smd->flag & MOD_SOLIDIFY_EVEN) == 0) {
 		/* no even thickness, very simple */
 		float scalar_short;

@@ -1119,7 +1119,7 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 		}
 		
 		/* add F-Curve to group */
-		/* WARNING: this func should only need to look at the stuff we initialised, if not, things may crash */
+		/* WARNING: this func should only need to look at the stuff we initialized, if not, things may crash */
 		action_groups_add_channel(&tmp_act, agrp, fcu);
 		
 		if (agrp->flag & AGRP_MUTED) /* flush down */

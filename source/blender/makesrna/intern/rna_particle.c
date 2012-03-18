@@ -2734,7 +2734,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	/* vertex groups */
 
 	/* note, internally store as ints, access as strings */
-#if 0 /* int access. works ok but isnt useful for the UI */
+#if 0 /* int access. works ok but isn't useful for the UI */
 	prop = RNA_def_property(srna, "vertex_group_density", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "vgroup[0]");
 	RNA_def_property_ui_text(prop, "Vertex Group Density", "Vertex group to control density");

@@ -332,7 +332,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
  * mloopcol and mcol) have the same relative active/render/clone/mask indices.
  *
  * note that for undo mesh data we want to skip 'ensure_tess_cd' call since
- * we dont want to store memory for tessface when its only used for older
+ * we don't want to store memory for tessface when its only used for older
  * versions of the mesh. - campbell*/
 static void mesh_update_linked_customdata(Mesh *me, const short do_ensure_tess_cd)
 {
@@ -2056,7 +2056,7 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 		bm_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
 	}
 
-	/* note, we dont convert FGons at all, these are not even real ngons,
+	/* note, we don't convert FGons at all, these are not even real ngons,
 	 * they have their own UV's, colors etc - its more an editing feature. */
 
 	mesh_update_customdata_pointers(mesh, TRUE);
@@ -2505,12 +2505,12 @@ int mesh_recalcTessellation(CustomData *fdata,
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
 
 	/* CD_POLYINDEX will contain an array of indices from tessfaces to the polygons
-	 * they are directly tesselated from */
+	 * they are directly tessellated from */
 	CustomData_add_layer(fdata, CD_POLYINDEX, CD_ASSIGN, mface_to_poly_map, totface);
 	if (mface_orig_index) {
-		/* If polys had a CD_ORIGINDEX layer, then the tesselated faces will get this
+		/* If polys had a CD_ORIGINDEX layer, then the tessellated faces will get this
 		 * layer as well, pointing to polys from the original mesh (not the polys
-		 * that just got tesselated) */
+		 * that just got tessellated) */
 		CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, mface_orig_index, totface);
 	}
 
@@ -3106,7 +3106,7 @@ void BKE_mesh_tessface_calc(Mesh *mesh)
 	mesh->totface = mesh_recalcTessellation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
 	                                       mesh->mvert,
 	                                       mesh->totface, mesh->totloop, mesh->totpoly,
-	                                       /* calc normals right after, dont copy from polys here */
+	                                       /* calc normals right after, don't copy from polys here */
 	                                       FALSE);
 
 	mesh_update_customdata_pointers(mesh, TRUE);

@@ -193,7 +193,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 	if ((vd->flag & V3D_ZBUF_SELECT) == 0)
 		return 1;
 
-	/* if its drawing textures with zbuf sel, then dont draw dots */
+	/* if its drawing textures with zbuf sel, then don't draw dots */
 	if (dt==OB_TEXTURE && vd->drawtype==OB_TEXTURE)
 		return 0;
 
@@ -2016,7 +2016,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 
 /* Note! - foreach funcs should be called while drawing or directly after
  * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
- * but would not give correct results with dupli's for eg. which dont
+ * but would not give correct results with dupli's for eg. which don't
  * use the object matrix in the usual way */
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
@@ -2721,7 +2721,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	UI_GetThemeColor4ubv(TH_WIRE, wireCol);
 	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, actCol);
 	
-	/* when sel only is used, dont render wire, only selected, this is used for
+	/* when sel only is used, don't render wire, only selected, this is used for
 	 * textured draw mode when the 'edges' option is disabled */
 	if (sel_only)
 		wireCol[3] = 0;
@@ -3084,7 +3084,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		/* dont draw unselected faces, only selected, this is MUCH nicer when texturing */
+		/* don't draw unselected faces, only selected, this is MUCH nicer when texturing */
 		if (CHECK_OB_DRAWTEXTURE(v3d, dt))
 			col1[3] = 0;
 		
@@ -3098,7 +3098,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		 * Make all other faces zero alpha except for the active
 		 * */
 		unsigned char col1[4], col2[4], col3[4];
-		col1[3] = col2[3] = 0; /* dont draw */
+		col1[3] = col2[3] = 0; /* don't draw */
 		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
 		
 		glEnable(GL_BLEND);
@@ -3113,7 +3113,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 	/* here starts all fancy draw-extra over */
 	if ((me->drawflag & ME_DRAWEDGES)==0 && CHECK_OB_DRAWTEXTURE(v3d, dt)) {
-		/* we are drawing textures and 'ME_DRAWEDGES' is disabled, dont draw any edges */
+		/* we are drawing textures and 'ME_DRAWEDGES' is disabled, don't draw any edges */
 		
 		/* only draw selected edges otherwise there is no way of telling if a face is selected */
 		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 1, eed_act);
@@ -3318,7 +3318,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 			GPU_disable_material();
 			
-			/* since we already draw wire as wp guide, dont draw over the top */
+			/* since we already draw wire as wp guide, don't draw over the top */
 			draw_wire= OBDRAW_WIRE_OFF;
 		}
 		else if (draw_flags & DRAW_MODIFIERS_PREVIEW) {
@@ -5135,7 +5135,7 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 	if (nu->type == CU_BEZIER) {
 
 #define TH_HANDLE_COL_TOT ((TH_HANDLE_SEL_FREE - TH_HANDLE_FREE) + 1)
-		/* use MIN2 when indexing to ensure newer files dont read outside the array */
+		/* use MIN2 when indexing to ensure newer files don't read outside the array */
 		unsigned char handle_cols[TH_HANDLE_COL_TOT][3];
 		const int basecol= sel ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
 
@@ -5510,7 +5510,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	/* direction vectors for 3d curve paths
-	 * when at its lowest, dont render normals */
+	 * when at its lowest, don't render normals */
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS)==0) {
 
 		UI_ThemeColor(TH_WIRE);
@@ -6945,7 +6945,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			if (dtx & OB_DRAWNAME) {
 				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
-				/* but, we also dont draw names for sets or duplicators */
+				/* but, we also don't draw names for sets or duplicators */
 				if (flag == 0) {
 					float zero[3]= {0,0,0};
 					float curcol[4];
@@ -6999,7 +6999,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
-			/* dont draw */
+			/* don't draw */
 		}
 		else if ((scene->basact)==base)
 			do_draw_center= ACTIVE;

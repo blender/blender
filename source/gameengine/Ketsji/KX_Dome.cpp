@@ -229,7 +229,7 @@ void KX_Dome::CalculateImageSize(void)
 {
 	/*
 	 * - determine the minimum buffer size
-	 * - reduce the buffer for better performace
+	 * - reduce the buffer for better performance
 	 * - create a power of 2 texture bigger than the buffer
 	 */
 	canvaswidth = m_canvas->GetWidth();
@@ -734,7 +734,7 @@ void KX_Dome::CreateMeshDome250(void)
 	 * verts_height is the exactly needed height of the cube faces (not always 1.0).
 	 * When we want some horizontal information (e.g. for horizontal 220deg domes) we don't need to create and tesselate the whole cube.
 	 * Therefore the lateral cube faces could be small, and the tesselate mesh would be completely used.
-	 * (if we always worked with verts_height = 1.0, we would be discarding a lot of the calculated and tesselated geometry).
+	 * (if we always worked with verts_height = 1.0, we would be discarding a lot of the calculated and tessellated geometry).
 	 *
 	 * So I came out with this formula:
 	 * verts_height = tan((rad_ang/2) - (MT_PI/2))*sqrt(2.0);

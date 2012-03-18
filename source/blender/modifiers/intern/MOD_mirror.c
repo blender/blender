@@ -162,7 +162,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	/* copy customdata to new geometry,
-	 * copy from its self becayse this data may have been created in the checks above */
+	 * copy from its self because this data may have been created in the checks above */
 	DM_copy_vert_data(result, result, 0, maxVerts, maxVerts);
 	DM_copy_edge_data(result, result, 0, maxEdges, maxEdges);
 	/* loops are copied later */

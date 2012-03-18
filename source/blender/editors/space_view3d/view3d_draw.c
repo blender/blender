@@ -541,7 +541,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	int mx, my, co[2];
 	int flag;
 	
-	/* we dont want the clipping for cursor */
+	/* we don't want the clipping for cursor */
 	flag= v3d->flag;
 	v3d->flag= 0;
 	project_int(ar, give_cursor(scene, v3d), co);
@@ -2097,7 +2097,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		}
 	}
 	
-	/* this isnt that nice, draw xray objects as if they are normal */
+	/* this isn't that nice, draw xray objects as if they are normal */
 	if (	v3d->afterdraw_transp.first ||
 			v3d->afterdraw_xray.first || 
 			v3d->afterdraw_xraytransp.first

@@ -98,7 +98,7 @@ struct PBVH;
 #define SUB_ELEMS_FACE 50
 
 /*
- * Note: all mface interfaces now officially operate on tesselated data.
+ * Note: all mface interfaces now officially operate on tessellated data.
  *       Also, the mface origindex layer indexes mpolys, not mfaces.
  */
 
@@ -174,7 +174,7 @@ struct DerivedMesh {
 	int (*getNumLoops)(DerivedMesh *dm);
 	int (*getNumPolys)(DerivedMesh *dm);
 
-	/* copy a single vert/edge/tesselated face from the derived mesh into
+	/* copy a single vert/edge/tessellated face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
 	 * elements (editmesh)

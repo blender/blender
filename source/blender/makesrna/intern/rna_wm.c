@@ -498,7 +498,7 @@ static int rna_Event_ascii_length(PointerRNA *ptr)
 
 static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
 {
-	/* utf8 buf isnt \0 terminated */
+	/* utf8 buf isn't \0 terminated */
 	wmEvent *event = (wmEvent*)ptr->data;
 	size_t len = 0;
 
@@ -517,7 +517,7 @@ static int rna_Event_unicode_length(PointerRNA *ptr)
 
 	wmEvent *event = (wmEvent*)ptr->data;
 	if (event->utf8_buf[0]) {
-		return BLI_str_utf8_size(event->utf8_buf); /* invalid value is checked on assignment so we dont need to account for this */
+		return BLI_str_utf8_size(event->utf8_buf); /* invalid value is checked on assignment so we don't need to account for this */
 	}
 	else {
 		return 0;

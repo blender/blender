@@ -30,10 +30,10 @@
  */
 
 /* TODO,
- * currently there are some cases we dont support.
+ * currently there are some cases we don't support.
  * - passing output paths to the visitor?, like render out.
  * - passing sequence strips with many images.
- * - passing directory paths - visitors dont know which path is a dir or a file.
+ * - passing directory paths - visitors don't know which path is a dir or a file.
  * */
 
 #include <sys/stat.h>
@@ -191,7 +191,7 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
-/* find this file recursively, use the biggest file so thumbnails dont get used by mistake
+/* find this file recursively, use the biggest file so thumbnails don't get used by mistake
  * - dir: subdir to search
  * - filename: set this filename
  * - filesize: filesize for the file
@@ -231,7 +231,7 @@ static int findFileRecursive(char *filename_new,
 		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 		if (stat(path, &status) != 0)
-			continue; /* cant stat, dont bother with this file, could print debug info here */
+			continue; /* cant stat, don't bother with this file, could print debug info here */
 
 		if (S_ISREG(status.st_mode)) { /* is file */
 			if (strncmp(filename, de->d_name, FILE_MAX) == 0) { /* name matches */

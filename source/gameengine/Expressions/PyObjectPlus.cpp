@@ -282,7 +282,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 	char* ptr = (attrdef->m_usePtr) ? (char*)BGE_PROXY_PTR(self_py) : (char*)ref;
 	if(ptr == NULL || (BGE_PROXY_PYREF(self_py) && (ref==NULL || !ref->py_is_valid()))) {
 		if(attrdef == attr_invalid)
-			Py_RETURN_TRUE; // dont bother running the function
+			Py_RETURN_TRUE; // don't bother running the function
 
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
@@ -698,7 +698,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		{
 			if ((*attrdef->m_checkFunction)(ref, attrdef) != 0)
 			{
-				// if the checing function didnt set an error then set a generic one here so we dont set an error with no exception
+				// if the checing function didnt set an error then set a generic one here so we don't set an error with no exception
 				if (PyErr_Occurred()==0)
 					PyErr_Format(PyExc_AttributeError, "type check error for attribute \"%s\", reasion unknown", attrdef->m_name);
 				

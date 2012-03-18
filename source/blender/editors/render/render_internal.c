@@ -609,7 +609,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 	ot->modal= screen_render_modal;
 	ot->exec= screen_render_exec;
 
-	/*ot->poll= ED_operator_screenactive;*/ /* this isnt needed, causes failer in background mode */
+	/*ot->poll= ED_operator_screenactive;*/ /* this isn't needed, causes failer in background mode */
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");

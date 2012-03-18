@@ -191,7 +191,7 @@ int anim_is_quicktime (const char *name)
 #endif
 	OSErr						err = noErr;
 			
-	// dont let quicktime movie import handle these
+	// don't let quicktime movie import handle these
 	if( BLI_testextensie(name, ".swf") ||
 		BLI_testextensie(name, ".txt") ||
 		BLI_testextensie(name, ".mpg") ||
@@ -579,7 +579,7 @@ int imb_is_a_quicktime (char *name)
 
 	if(QTIME_DEBUG) printf("qt: checking as image %s\n", name);
 
-	// dont let quicktime image import handle these
+	// don't let quicktime image import handle these
 	if( BLI_testextensie(name, ".swf") ||
 		BLI_testextensie(name, ".txt") ||
 		BLI_testextensie(name, ".mpg") ||

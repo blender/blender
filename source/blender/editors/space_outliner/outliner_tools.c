@@ -413,7 +413,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 				}
 				/* important to use 'scene_owner' not scene_act else deleting objects can crash.
 				 * only use 'scene_act' when 'scene_owner' is NULL, which can happen when the
-				 * outliner isnt showing scenes: Visible Layer draw mode for eg. */
+				 * outliner isn't showing scenes: Visible Layer draw mode for eg. */
 				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}

@@ -660,7 +660,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
 /* Warning: this function gets called during some rather unexpected times
  *	- this gets called when executing compositing updates (for threaded previews)
  *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
- *	- for scene duplication use ntreeSwapID() after so we dont have stale pointers.
+ *	- for scene duplication use ntreeSwapID() after so we don't have stale pointers.
  */
 bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
@@ -1146,7 +1146,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	bAction *action_backup= NULL, *tmpact_backup= NULL;
 	
 	/* Workaround for copying an action on each render!
-	 * set action to NULL so animdata actions dont get copied */
+	 * set action to NULL so animdata actions don't get copied */
 	AnimData *adt= BKE_animdata_from_id(&ntree->id);
 
 	if(adt) {

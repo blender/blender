@@ -963,7 +963,7 @@ void BKE_free_ocean_data(struct Ocean *oc)
 	if (oc->_fft_in)
 		MEM_freeN(oc->_fft_in);
 
-	/* check that ocean data has been initialised */
+	/* check that ocean data has been initialized */
 	if (oc->_htilda) {
 		MEM_freeN(oc->_htilda);
 		MEM_freeN(oc->_k);

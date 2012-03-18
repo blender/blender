@@ -2256,13 +2256,13 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 						/* if endpoints selected, then use them */
 						if (start_sel==0) {
 							start_rad = (nu->bezt+start_sel)->radius;
-							start_sel++; /* we dont want to edit the selected endpoint */
+							start_sel++; /* we don't want to edit the selected endpoint */
 						} else {
 							start_rad = (nu->bezt+start_sel-1)->radius;
 						}
 						if (end_sel==nu->pntsu-1) {
 							end_rad = (nu->bezt+end_sel)->radius;
-							end_sel--; /* we dont want to edit the selected endpoint */
+							end_sel--; /* we don't want to edit the selected endpoint */
 						} else {
 							end_rad = (nu->bezt+end_sel+1)->radius;
 						}
@@ -2318,13 +2318,13 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 						/* if endpoints selected, then use them */
 						if (start_sel==0) {
 							start_rad = (nu->bp+start_sel)->radius;
-							start_sel++; /* we dont want to edit the selected endpoint */
+							start_sel++; /* we don't want to edit the selected endpoint */
 						} else {
 							start_rad = (nu->bp+start_sel-1)->radius;
 						}
 						if (end_sel==nu->pntsu-1) {
 							end_rad = (nu->bp+end_sel)->radius;
-							end_sel--; /* we dont want to edit the selected endpoint */
+							end_sel--; /* we don't want to edit the selected endpoint */
 						} else {
 							end_rad = (nu->bp+end_sel+1)->radius;
 						}

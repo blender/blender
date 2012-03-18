@@ -65,7 +65,7 @@
 
 static int is_vd_res_ok(VoxelData *vd)
 {
-	/* arbitrary large value so corrupt headers dont break */
+	/* arbitrary large value so corrupt headers don't break */
 	const int min= 1, max= 100000;
 	return	(vd->resol[0] >= min && vd->resol[0] <= max) &&
 			(vd->resol[1] >= min && vd->resol[1] <= max) &&

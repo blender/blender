@@ -440,7 +440,7 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 	}
 	MEM_freeN(edge_face_count);
-	edge_face_count = NULL; /* dont re-use */
+	edge_face_count = NULL; /* don't re-use */
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BM_vert_is_manifold(bm, v)) {

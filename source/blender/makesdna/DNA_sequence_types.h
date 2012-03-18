@@ -292,7 +292,7 @@ typedef struct SpeedControlVars {
 /* convenience define for all selection flags */
 #define SEQ_ALLSEL	(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
 
-/* deprecated, dont use a flag anymore*/
+/* deprecated, don't use a flag anymore*/
 /*#define SEQ_ACTIVE                            1048576*/
 
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1

@@ -344,9 +344,9 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 {
 	GroupObject *go;
 	
-#if 0 /* warning, isnt clearing the recalc flag on the object which causes it to run all the time,
+#if 0 /* warning, isn't clearing the recalc flag on the object which causes it to run all the time,
 	   * not just on frame change.
-	   * This isnt working because the animation data is only re-evalyated on frame change so commenting for now
+	   * This isn't working because the animation data is only re-evalyated on frame change so commenting for now
 	   * but when its enabled at some point it will need to be changed so as not to update so much - campbell */
 
 	/* if animated group... */

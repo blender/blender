@@ -1615,7 +1615,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	find= -b;
 	stack= 0;
 	
-	/* Dont highlight backets if syntax HL is off or bracket in string or comment. */
+	/* Don't highlight backets if syntax HL is off or bracket in string or comment. */
 	if(!linep->format || linep->format[fc] == 'l' || linep->format[fc] == '#')
 		return;
 
@@ -1854,7 +1854,7 @@ void text_update_character_width(SpaceText *st)
 }
 
 /* Moves the view to the cursor location,
- * also used to make sure the view isnt outside the file */
+ * also used to make sure the view isn't outside the file */
 void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 {
 	Text *text;

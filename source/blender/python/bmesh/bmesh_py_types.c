@@ -1973,7 +1973,7 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 			}
 
 			if (htype & (BM_VERT | BM_EDGE | BM_FACE)) {
-				/* since this isnt the normal vert/edge/face loops,
+				/* since this isn't the normal vert/edge/face loops,
 				 * we're setting dirty values here. so tag as dirty. */
 				bm->elem_index_dirty |= htype;
 			}
@@ -2248,7 +2248,7 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t s
 
 static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 {
-	/* dont need error check here */
+	/* don't need error check here */
 	if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
 		if (i == -1 && PyErr_Occurred())
@@ -3104,7 +3104,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 					ok = FALSE;
 				}
 
-				/* ensure we dont leave this enabled */
+				/* ensure we don't leave this enabled */
 				BM_elem_flag_disable(alloc[i], BM_ELEM_INTERNAL_TAG);
 			}
 

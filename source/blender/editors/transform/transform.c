@@ -4665,7 +4665,7 @@ void projectSVData(TransInfo *t, int final)
 	
 	/* BMESH_TODO, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)
 	 * currently all vertex data is interpolated which is nice mostly
-	 * except for shape keys where you dont want to modify UVs for eg.
+	 * except for shape keys where you don't want to modify UVs for eg.
 	 * current BMesh code doesnt make it easy to pick which data we interpolate
 	 * - campbell */
 

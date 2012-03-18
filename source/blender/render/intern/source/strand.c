@@ -680,7 +680,7 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 			zbufclip4(re, &zspan[a], obi, index, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
 #endif
 			/* only render a line for now, which makes the shadow map more
-			 * similiar across frames, and so reduces flicker */
+			 * similar across frames, and so reduces flicker */
 			zbufsinglewire(&zspan[a], obi, index, hoco1, hoco2);
 		}
 	}

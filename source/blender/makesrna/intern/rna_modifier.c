@@ -1433,7 +1433,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Relative Offset", "Add an offset relative to the object's bounding box");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "relative_offset_displace", PROP_FLOAT, PROP_NONE); /* PROP_TRANSLATION causes units to be used which we dont want */
+	prop = RNA_def_property(srna, "relative_offset_displace", PROP_FLOAT, PROP_NONE); /* PROP_TRANSLATION causes units to be used which we don't want */
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_ui_text(prop, "Relative Offset Displacement", "The size of the geometry will determine the distance between arrayed items");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

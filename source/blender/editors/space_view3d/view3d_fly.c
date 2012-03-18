@@ -813,7 +813,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 		/* scale the mouse movement by this value - scales mouse movement to the view size
 		 * moffset[0]/(ar->winx-xmargin*2) - window size minus margin (same for y)
 		 *
-		 * the mouse moves isnt linear */
+		 * the mouse moves isn't linear */
 
 		if (moffset[0]) {
 			moffset[0] /= ar->winx - (xmargin * 2);
@@ -834,7 +834,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			float dvec_tmp[3];
 
 			/* time how fast it takes for us to redraw,
-			 * this is so simple scenes dont fly too fast */
+			 * this is so simple scenes don't fly too fast */
 			double time_current;
 			float time_redraw;
 			float time_redraw_clamped;
@@ -946,12 +946,12 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						fly->zlock_momentum += FLY_ZUP_CORRECT_ACCEL;
 					}
 					else {
-						fly->zlock = 1; /* dont check until the view rotates again */
+						fly->zlock = 1; /* don't check until the view rotates again */
 						fly->zlock_momentum = 0.0f;
 					}
 				}
 
-				if (fly->xlock == 2 && moffset[1] == 0) { /*only apply xcorrect when mouse isnt applying x rot*/
+				if (fly->xlock == 2 && moffset[1] == 0) { /*only apply xcorrect when mouse isn't applying x rot*/
 					upvec[0] = 0;
 					upvec[1] = 0;
 					upvec[2] = 1;

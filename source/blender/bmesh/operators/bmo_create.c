@@ -1257,7 +1257,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 }
 
 /* This is what runs when pressing the F key
- * doing the best thing here isnt always easy create vs dissolve, its nice to support
+ * doing the best thing here isn't always easy create vs dissolve, its nice to support
  * but it it _really_ gives issues we might have to not call dissolve. - campbell
  */
 void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)

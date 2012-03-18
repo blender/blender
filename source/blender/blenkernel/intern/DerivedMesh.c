@@ -1946,8 +1946,8 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 	/* --- */
 	/* BMESH_ONLY, ensure tessface's used for drawing,
-	 * but dont recalculate if the last modifier in the stack gives us tessfaces
-	 * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isnt essential
+	 * but don't recalculate if the last modifier in the stack gives us tessfaces
+	 * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
 	 * but quiets annoying error messages since tessfaces wont be created. */
 	if ((*final_r)->type != DM_TYPE_EDITBMESH) {
 		DM_ensure_tessface(*final_r);

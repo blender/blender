@@ -329,7 +329,7 @@ PyObject *PyC_ExceptionBuffer(void)
 		goto error_cleanup;
 	}
 
-	Py_INCREF(stdout_backup); // since these were borrowed we dont want them freed when replaced.
+	Py_INCREF(stdout_backup); // since these were borrowed we don't want them freed when replaced.
 	Py_INCREF(stderr_backup);
 
 	PySys_SetObject("stdout", string_io); // both of these are freed when restoring
@@ -449,7 +449,7 @@ void PyC_MainModule_Backup(PyObject **main_mod)
 {
 	PyInterpreterState *interp = PyThreadState_GET()->interp;
 	*main_mod = PyDict_GetItemString(interp->modules, "__main__");
-	Py_XINCREF(*main_mod); /* dont free */
+	Py_XINCREF(*main_mod); /* don't free */
 }
 
 void PyC_MainModule_Restore(PyObject *main_mod)
@@ -517,7 +517,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 		int i;
 
 		PyObject *py_dict = PyC_DefaultNameSpace(filepath);
-		PyObject *values = PyList_New(n / 2); /* namespace owns this, dont free */
+		PyObject *values = PyList_New(n / 2); /* namespace owns this, don't free */
 
 		PyObject *py_result, *ret;
 
@@ -580,7 +580,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
 			if (values && PyList_Check(values)) {
 
-				/* dont use the result */
+				/* don't use the result */
 				Py_DECREF(py_result);
 				py_result = NULL;
 

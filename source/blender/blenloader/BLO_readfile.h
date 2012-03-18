@@ -235,7 +235,7 @@ struct ID *BLO_library_append_named_part(struct Main *mainl, BlendHandle** bh, c
  * Link/Append a named datablock from an external blend file.
  * optionally instance the object in the scene when the flags are set.
  *
- * \param C The context, when NULL instancing object in the scene isnt done.
+ * \param C The context, when NULL instancing object in the scene isn't done.
  * \param mainl The main database to link from (not the active one).
  * \param bh The blender file handle.
  * \param idname The name of the datablock (without the 2 char ID prefix)

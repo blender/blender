@@ -1282,7 +1282,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if(dir2==0) if(dir1==UI_LEFT || dir1==UI_RIGHT) dir2= UI_DOWN;
 		if(dir2==0) if(dir1==UI_TOP || dir1==UI_DOWN) dir2= UI_LEFT;
 		
-		/* no space at all? dont change */
+		/* no space at all? don't change */
 		if(left || right) {
 			if(dir1==UI_LEFT && left==0) dir1= UI_RIGHT;
 			if(dir1==UI_RIGHT && right==0) dir1= UI_LEFT;

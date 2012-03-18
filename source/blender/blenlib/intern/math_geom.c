@@ -872,7 +872,7 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 	}
 }
 
-/* note: return normal isnt unit length */
+/* note: return normal isn't unit length */
 void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
                           const float plane_a_co[3], const float plane_a_no[3],
                           const float plane_b_co[3], const float plane_b_no[3])

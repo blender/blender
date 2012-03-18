@@ -80,7 +80,7 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
 	 * ibuf->rect is zero for compositor and render results after change 
-	 * convert to 32 bits always... drawing float rects isnt supported well (atis)
+	 * convert to 32 bits always... drawing float rects isn't supported well (atis)
 	 *
 	 * NOTE: if float buffer changes, we have to manually remove the rect
 	 */

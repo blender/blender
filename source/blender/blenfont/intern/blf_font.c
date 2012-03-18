@@ -260,7 +260,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 		}
 
 		if ((chx + g->width) >= 0 && chx < font->bw && (pen_y + g->height) >= 0 && pen_y < font->bh) {
-			/* dont draw beyond the buffer bounds */
+			/* don't draw beyond the buffer bounds */
 			int width_clip = g->width;
 			int height_clip = g->height;
 			int yb_start = g->pitch < 0 ? 0 : g->height-1;

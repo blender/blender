@@ -1054,7 +1054,7 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */
 /* exported to game engine */
-/* Note! this assumes both poses are aligned, this isnt always true when dealing with user poses */
+/* Note! this assumes both poses are aligned, this isn't always true when dealing with user poses */
 void extract_pose_from_pose(bPose *pose, const bPose *src)
 {
 	const bPoseChannel *schan;

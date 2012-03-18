@@ -2313,9 +2313,9 @@ void *CustomData_bmesh_get_layer_n(const CustomData *data, void *block, int n)
 	return (char *)block + data->layers[n].offset;
 }
 
-int CustomData_layer_has_math(struct CustomData *data, int layern)
+int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 {
-	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layern].type);
+	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layer_n].type);
 	
 	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
 	    typeInfo->initminmax && typeInfo->dominmax) return 1;

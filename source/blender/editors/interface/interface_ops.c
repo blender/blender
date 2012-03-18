@@ -307,7 +307,7 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	/* Since we dont want to undo _all_ edits to settings, eg window
+	/* Since we don't want to undo _all_ edits to settings, eg window
 	 * edits on the screen or on operator settings.
 	 * it might be better to move undo's inline - campbell */
 	if(success) {

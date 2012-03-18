@@ -841,7 +841,7 @@ void testhandles_fcurve (FCurve *fcu, const short use_handle)
 	for (a=0, bezt=fcu->bezt; a < fcu->totvert; a++, bezt++) {
 		short flag= 0;
 		
-		/* flag is initialised as selection status
+		/* flag is initialized as selection status
 		 * of beztriple control-points (labelled 0,1,2)
 		 */
 		if (bezt->f2 & SELECT) flag |= (1<<1); // == 2
@@ -1446,7 +1446,7 @@ void driver_change_variable_type (DriverVar *dvar, int type)
 		/* store the flags */
 		dtar->flag = flags;
 		
-		/* object ID types only, or idtype not yet initialised*/
+		/* object ID types only, or idtype not yet initialized*/
 		if ((flags & DTAR_FLAG_ID_OB_ONLY) || (dtar->idtype == 0))
 			dtar->idtype= ID_OB;
 	}

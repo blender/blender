@@ -372,7 +372,7 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 
 /* Function that sets RNA, NOTE - self is NULL when called from python,
  * but being abused from C so we can pass the srna along.
- * This isnt incorrect since its a python object - but be careful */
+ * This isn't incorrect since its a python object - but be careful */
 PyDoc_STRVAR(BPy_BoolProperty_doc,
 ".. function:: BoolProperty(name=\"\", "
                            "description=\"\", "
@@ -1039,7 +1039,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		    (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
 		    (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
 		    (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
-		    /* TODO, number isnt ensured to be unique from the script author */
+		    /* TODO, number isn't ensured to be unique from the script author */
 		    (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1))
 		{
 			if (is_enum_flag) {
@@ -1260,7 +1260,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		}
 
 		/* items can be a list or a callable */
-		if (PyFunction_Check(items)) { /* dont use PyCallable_Check because we need the function code for errors */
+		if (PyFunction_Check(items)) { /* don't use PyCallable_Check because we need the function code for errors */
 			PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(items);
 			if (f_code->co_argcount != 2) {
 				PyErr_Format(PyExc_ValueError,

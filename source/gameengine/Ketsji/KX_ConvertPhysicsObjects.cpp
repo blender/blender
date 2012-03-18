@@ -543,7 +543,7 @@ bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *fro
 	CcdShapeConstructionInfo	*shapeInfo;
 
 	/* if this is the child of a compound shape this can happen
-	 * dont support compound shapes for now */
+	 * don't support compound shapes for now */
 	if(spc==NULL)
 		return false;
 	

@@ -504,7 +504,7 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
 
 	/* make sure v1 is always the vector */
 	if (color1 && color2) {
-		/* col * col, dont support yet! */
+		/* col * col, don't support yet! */
 	}
 	else if (color1) {
 		if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* COLOR * FLOAT */

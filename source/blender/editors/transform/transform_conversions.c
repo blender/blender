@@ -1585,7 +1585,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 				calc_distanceCurveVerts(head, tail-1);
 
 			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
-			 * but for now just dont change handle types */
+			 * but for now just don't change handle types */
 			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0) {
 				/* sets the handles based on their selection, do this after the data is copied to the TransData */
 				testhandlesNurb(nu);
@@ -2337,7 +2337,7 @@ void flushTransSeq(TransInfo *t)
 			if(seq->depth==0) {
 				/* Calculate this strip and all nested strips
 				 * children are ALWAYS transformed first
-				 * so we dont need to do this in another loop. */
+				 * so we don't need to do this in another loop. */
 				calc_sequence(t->scene, seq);
 			}
 			else {
@@ -3838,7 +3838,7 @@ void flushTransGraphData(TransInfo *t)
 /* ******************* Sequencer Transform data ******************* */
 
 /* This function applies the rules for transforming a strip so duplicate
- * checks dont need to be added in multiple places.
+ * checks don't need to be added in multiple places.
  *
  * recursive, count and flag MUST be set.
  *
@@ -3918,7 +3918,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 				/* Recursive */
 
 				if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
-					/* if any handles are selected, dont recurse */
+					/* if any handles are selected, don't recurse */
 					*recursive = 1;
 				}
 				else {
@@ -3936,8 +3936,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 #else
 			if (seq->type == SEQ_META) {
 				/* Meta's can only directly be moved between channels since they
-				 * dont have their start and length set directly (children affect that)
-				 * since this Meta is nested we dont need any of its data infact.
+				 * don't have their start and length set directly (children affect that)
+				 * since this Meta is nested we don't need any of its data infact.
 				 * calc_sequence() will update its settings when run on the toplevel meta */
 				*flag= 0;
 				*count= 0;
@@ -4732,7 +4732,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		float cfra= (float)CFRA;
 		short flag= 0;
 		
-		/* flag is initialised from UserPref keyframing settings
+		/* flag is initialized from UserPref keyframing settings
 		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
 		 * 	  visual keyframes even if flag not set, as it's not that useful otherwise
 		 *	  (for quick animation recording)
@@ -5255,7 +5255,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* recalculating the frame positions means we loose our original transform if its not auto-keyed [#24451]
 			 * this hack re-applies it, which is annoying, only alternatives are...
-			 * - dont recalc paths.
+			 * - don't recalc paths.
 			 * - have an object_handle_update() which gives is the new transform without touching the objects.
 			 * - only recalc paths on auto-keying.
 			 * - ED_objects_recalculate_paths could backup/restore transforms.
@@ -5991,7 +5991,7 @@ void createTransData(bContext *C, TransInfo *t)
 		 * transform ops redo clears sculpt/project undo stack.
 		 *
 		 * Could use 'OB_MODE_ALL_PAINT' since there are key conflicts,
-		 * transform + paint isnt well supported. */
+		 * transform + paint isn't well supported. */
 	}
 	else {
 		createTransObject(C, t);

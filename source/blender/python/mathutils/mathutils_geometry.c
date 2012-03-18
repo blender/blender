@@ -1063,7 +1063,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		}
 
 		len_polypoints = PySequence_Size(polyLine);
-		if (len_polypoints > 0) { /* dont bother adding edges as polylines */
+		if (len_polypoints > 0) { /* don't bother adding edges as polylines */
 #if 0
 			if (EXPP_check_sequence_consistency(polyLine, &vector_Type) != 1) {
 				freedisplist(&dispbase);
@@ -1141,7 +1141,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		freedisplist(&dispbase);
 	}
 	else {
-		/* no points, do this so scripts dont barf */
+		/* no points, do this so scripts don't barf */
 		freedisplist(&dispbase); /* possible some dl was allocated */
 		tri_list = PyList_New(0);
 	}

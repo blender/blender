@@ -2168,7 +2168,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			newnode = nodeCopyNode(ntree, node);
 			
 			if(newnode->id) {
-				/* simple id user adjustment, node internal functions dont touch this
+				/* simple id user adjustment, node internal functions don't touch this
 				 * but operators and readfile.c do. */
 				id_us_plus(newnode->id);
 				/* to ensure redraws or rerenders happen */

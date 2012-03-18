@@ -220,7 +220,7 @@ LIBEXPORT void de_interlace(struct ImBuf *ib)
 /* stuff from plugin.h                                                        */ 
 /* -------------------------------------------------------------------------- */
 
-/* These three need to be defined in the plugion itself. The plugin
+/* These three need to be defined in the plugin itself. The plugin
  * loader looks for these functions to check whether it can use the
  * plugin. For sequences, something similar exists. */
 /*  int plugin_tex_getversion(void); */

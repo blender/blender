@@ -70,7 +70,7 @@ int bpy_pydriver_create_dict(void)
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
-		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - don't overwrite existing values */
 		Py_DECREF(mod);
 	}
 
@@ -159,14 +159,14 @@ static void pydriver_error(ChannelDriver *driver)
 /* This evals py driver expressions, 'expr' is a Python expression that
  * should evaluate to a float number, which is returned.
  *
- * (old)note: PyGILState_Ensure() isnt always called because python can call
+ * (old)note: PyGILState_Ensure() isn't always called because python can call
  * the bake operator which intern starts a thread which calls scene update
  * which does a driver update. to avoid a deadlock check PYC_INTERPRETER_ACTIVE
  * if PyGILState_Ensure() is needed - see [#27683]
  *
  * (new)note: checking if python is running is not threadsafe [#28114]
  * now release the GIL on python operator execution instead, using
- * PyEval_SaveThread() / PyEval_RestoreThread() so we dont lock up blender.
+ * PyEval_SaveThread() / PyEval_RestoreThread() so we don't lock up blender.
  */
 float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 {

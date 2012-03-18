@@ -41,7 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 /* extracts the thumbnail from between the 'REND' and the 'GLOB'
- * chunks of the header, dont use typical blend loader because its too slow */
+ * chunks of the header, don't use typical blend loader because its too slow */
 
 static ImBuf *loadblend_thumb(gzFile gzfile)
 {

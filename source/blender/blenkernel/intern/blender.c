@@ -373,7 +373,7 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 	BlendFileData *bfd;
 	int retval= BKE_READ_FILE_OK;
 
-	if(strstr(filepath, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
+	if(strstr(filepath, BLENDER_STARTUP_FILE)==NULL) /* don't print user-pref loading */
 		printf("read blend: %s\n", filepath);
 
 	bfd= BLO_read_from_file(filepath, reports);

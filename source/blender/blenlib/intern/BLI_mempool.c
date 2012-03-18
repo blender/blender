@@ -45,7 +45,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* note: copied from BKE_utildefines.h, dont use here because we're in BLI */
+/* note: copied from BKE_utildefines.h, don't use here because we're in BLI */
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
 #  define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
@@ -237,7 +237,7 @@ void *BLI_mempool_calloc(BLI_mempool *pool)
 	return retval;
 }
 
-/* doesnt protect against double frees, dont be stupid! */
+/* doesnt protect against double frees, don't be stupid! */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
 	BLI_freenode *newhead = addr;

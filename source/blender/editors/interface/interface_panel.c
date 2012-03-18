@@ -617,7 +617,7 @@ static int get_panel_size_y(Panel *pa)
 	return PNL_HEADER + pa->sizey;
 }
 
-/* this function is needed because uiBlock and Panel itself dont
+/* this function is needed because uiBlock and Panel itself don't
  * change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
 {
@@ -1001,7 +1001,7 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 
 
 /* this function is supposed to call general window drawing too */
-/* also it supposes a block has panel, and isnt a menu */
+/* also it supposes a block has panel, and isn't a menu */
 static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event)
 {
 	ScrArea *sa= CTX_wm_area(C);

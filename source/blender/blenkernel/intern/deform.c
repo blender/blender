@@ -416,7 +416,7 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
 /* if strip_number: removes number extensions
- * note: dont use sizeof() for 'name' or 'from_name' */
+ * note: don't use sizeof() for 'name' or 'from_name' */
 void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number)
 {
 	int     len;
@@ -540,8 +540,8 @@ float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
 }
 
 /* take care with this the rationale is:
- * - if the object has no vertex group. act like vertex group isnt set and return 1.0,
- * - if the vertex group exists but the 'defgroup' isnt found on this vertex, _still_ return 0.0
+ * - if the object has no vertex group. act like vertex group isn't set and return 1.0,
+ * - if the vertex group exists but the 'defgroup' isn't found on this vertex, _still_ return 0.0
  *
  * This is a bit confusing, just saves some checks from the caller.
  */
@@ -645,7 +645,7 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		if (dvert->totweight) {
 			dw_new = MEM_mallocN(sizeof(MDeformWeight)*(dvert->totweight), __func__);
 			if (dvert->dw) {
-#if 1			/* since we dont care about order, swap this with the last, save a memcpy */
+#if 1			/* since we don't care about order, swap this with the last, save a memcpy */
 				if (i != dvert->totweight) {
 					dvert->dw[i]= dvert->dw[dvert->totweight];
 				}

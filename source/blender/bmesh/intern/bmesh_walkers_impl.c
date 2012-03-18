@@ -349,7 +349,7 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 
 	l = BM_iter_new(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
 	for ( ; l; l = BM_iter_step(&liter)) {
-		/* could skip loop here too, but dont add unless we need it */
+		/* could skip loop here too, but don't add unless we need it */
 		if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, l->e, walker->mask_edge)) {
 			continue;
 		}
@@ -395,11 +395,11 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
-	lwalk->is_boundry = BM_edge_is_boundary(e);
+	lwalk->is_boundary = BM_edge_is_boundary(e);
 	lwalk->is_single = (vert_edge_count[0] == 2 && vert_edge_count[1] == 2);
 
 	/* could also check that vertex*/
-	if ((lwalk->is_boundry == FALSE) &&
+	if ((lwalk->is_boundary == FALSE) &&
 	    (vert_edge_count[0] == 3 || vert_edge_count[1] == 3))
 	{
 		BMIter iter;
@@ -472,7 +472,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
                 lwalk->cur = nexte;
                 lwalk->lastv = v;
 
-                lwalk->is_boundry = owalk.is_boundry;
+                lwalk->is_boundary = owalk.is_boundary;
                 lwalk->is_single = owalk.is_single;
                 lwalk->f_hub = owalk.f_hub;
 
@@ -492,19 +492,19 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 			/* typical loopiong over edges in the middle of a mesh */
 			/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
-			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundry == FALSE) ||
+			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundary == FALSE) ||
 
-			/* walk over boundry of faces but stop at corners */
-			(owalk.is_boundry == TRUE && owalk.is_single  == FALSE && vert_edge_tot > 2) ||
+			/* walk over boundary of faces but stop at corners */
+			(owalk.is_boundary == TRUE && owalk.is_single  == FALSE && vert_edge_tot > 2) ||
 
-			/* initial edge was a boundry, so is this edge and vertex is only apart of this face
-			 * this lets us walk over the the boundry of an ngon which is handy */
-			(owalk.is_boundry == TRUE && owalk.is_single == TRUE && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
+			 * this lets us walk over the the boundary of an ngon which is handy */
+			(owalk.is_boundary == TRUE && owalk.is_single == TRUE && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
 		{
 			i = 0;
 			stopi = vert_edge_tot / 2;
 			while (1) {
-				if ((owalk.is_boundry == FALSE) && (i == stopi)) {
+				if ((owalk.is_boundary == FALSE) && (i == stopi)) {
 					break;
 				}
 
@@ -530,12 +530,12 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 		if (l != NULL) {
 			if (l != e->l && !BLI_ghash_haskey(walker->visithash, l->e)) {
-				if (!(owalk.is_boundry == FALSE && i != stopi)) {
+				if (!(owalk.is_boundary == FALSE && i != stopi)) {
 					lwalk = BMW_state_add(walker);
 					lwalk->cur = l->e;
 					lwalk->lastv = v;
 
-					lwalk->is_boundry = owalk.is_boundry;
+					lwalk->is_boundary = owalk.is_boundary;
 					lwalk->is_single = owalk.is_single;
 					lwalk->f_hub = owalk.f_hub;
 
@@ -557,7 +557,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 					lwalk->cur = nexte;
 					lwalk->lastv = v;
 
-					lwalk->is_boundry = owalk.is_boundry;
+					lwalk->is_boundary = owalk.is_boundary;
 					lwalk->is_single = owalk.is_single;
 					lwalk->f_hub = owalk.f_hub;
 

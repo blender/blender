@@ -92,7 +92,7 @@ static void blend_color_mul(char *cp, char *cp1, char *cp2, int fac)
 
 static void blend_color_lighten(char *cp, char *cp1, char *cp2, int fac)
 {
-	/* See if are lighter, if so mix, else dont do anything.
+	/* See if are lighter, if so mix, else don't do anything.
 	 * if the paint col is darker then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
@@ -105,7 +105,7 @@ static void blend_color_lighten(char *cp, char *cp1, char *cp2, int fac)
 
 static void blend_color_darken(char *cp, char *cp1, char *cp2, int fac)
 {
-	/* See if were darker, if so mix, else dont do anything.
+	/* See if were darker, if so mix, else don't do anything.
 	 * if the paint col is brighter then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
@@ -201,7 +201,7 @@ static void blend_color_mul_float(float *cp, float *cp1, float *cp2, float fac)
 
 static void blend_color_lighten_float(float *cp, float *cp1, float *cp2, float fac)
 {
-	/* See if are lighter, if so mix, else dont do anything.
+	/* See if are lighter, if so mix, else don't do anything.
 	 * if the pafloat col is darker then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];
@@ -214,7 +214,7 @@ static void blend_color_lighten_float(float *cp, float *cp1, float *cp2, float f
 
 static void blend_color_darken_float(float *cp, float *cp1, float *cp2, float fac)
 {
-	/* See if were darker, if so mix, else dont do anything.
+	/* See if were darker, if so mix, else don't do anything.
 	 * if the pafloat col is brighter then the original, then ignore */
 	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
 		cp[0]= cp1[0];

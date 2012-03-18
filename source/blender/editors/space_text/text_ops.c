@@ -598,7 +598,7 @@ static int text_run_script(bContext *C, ReportList *reports)
 		return OPERATOR_FINISHED;
 	}
 
-	/* Dont report error messages while live editing */
+	/* Don't report error messages while live editing */
 	if(!is_live) {
 		if(text->curl != curl_prev || curc_prev != text->curc) {
 			text_update_cursor_moved(C);
@@ -1109,7 +1109,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 		for(a=0; a < strlen(text_check_line); a++) { //foreach char in line
 			if(text_check_line[a] == '\t') { //checking for tabs
 				//get the number of spaces this tabs is showing
-				//i dont like doing it this way but will look into it later
+				//i don't like doing it this way but will look into it later
 				new_line[j] = '\0';
 				number = flatten_string(st, &fs, new_line);
 				flatten_string_free(&fs);

@@ -247,7 +247,7 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self, Py_ssi
 
 static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *key)
 {
-	/* dont need error check here */
+	/* don't need error check here */
 	if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
 		if (i == -1 && PyErr_Occurred())

@@ -1038,7 +1038,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
 			/* This gives errors with -debug-fpe
-			 * the normals dont seem to be unit length.
+			 * the normals don't seem to be unit length.
 			 * this is most likely caused by edges with no
 			 * faces which are now zerod out, see comment in:
 			 * ccgSubSurf__calcVertNormals(), - campbell */
@@ -3064,7 +3064,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 #if 0
 	/* this is not in trunk, can gives problems because colors initialize
-	 * as black, just dont do it!, it works fine - campbell */
+	 * as black, just don't do it!, it works fine - campbell */
 	if (!CustomData_has_layer(&ccgdm->dm.faceData, CD_MCOL))
 		DM_add_tessface_layer(&ccgdm->dm, CD_MCOL, CD_CALLOC, NULL);
 	mcol = DM_get_tessface_data_layer(&ccgdm->dm, CD_MCOL);
@@ -3190,7 +3190,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					/*copy over poly data, e.g. mtexpoly*/
 					CustomData_copy_data(&dm->polyData, &ccgdm->dm.polyData, origIndex, faceNum, 1);
 
-					/*generate tesselated face data used for drawing*/
+					/*generate tessellated face data used for drawing*/
 					ccg_loops_to_corners(&ccgdm->dm.faceData, &ccgdm->dm.loopData,
 					                     &ccgdm->dm.polyData, loopindex2-4, faceNum, faceNum,
 					                     numTex, numCol, hasWCol, hasOrigSpace);

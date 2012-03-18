@@ -370,7 +370,7 @@ Render *RE_NewRender(const char *name)
 }
 
 /* called for new renders and when finishing rendering so
- * we calways have valid callbacks on a render */
+ * we always have valid callbacks on a render */
 void RE_InitRenderCB(Render *re)
 {
 	/* set default empty callbacks */
@@ -1637,7 +1637,7 @@ static void do_render_seq(Render * re)
 	re->i.cfra= cfra;
 
 	if(recurs_depth==0) {
-		/* otherwise sequencer animation isnt updated */
+		/* otherwise sequencer animation isn't updated */
 		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_curframe(re->scene)
 	}
 
@@ -2332,7 +2332,7 @@ void RE_init_threadcount(Render *re)
 }
 
 /* loads in image into a result, size must match
- * x/y offsets are only used on a partial copy when dimensions dont match */
+ * x/y offsets are only used on a partial copy when dimensions don't match */
 void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
 	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);

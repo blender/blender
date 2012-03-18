@@ -741,13 +741,13 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 		shi.osatex= origshi->osatex;
 		shi.depth= origshi->depth + 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
-		//shi.sample= 0; // memset above, so dont need this
+		//shi.sample= 0; // memset above, so don't need this
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
 		shi.lay= origshi->lay;
 		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
-		//shi.do_preview= 0; // memset above, so dont need this
+		//shi.do_preview= 0; // memset above, so don't need this
 		shi.light_override= origshi->light_override;
 		shi.mat_override= origshi->mat_override;
 		

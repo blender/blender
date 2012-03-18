@@ -416,7 +416,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 	BLI_addtail(&ot->macro, otmacro);
 
 	{
-		/* operator should always be found but in the event its not. dont segfault */
+		/* operator should always be found but in the event its not. don't segfault */
 		wmOperatorType *otsub = WM_operatortype_find(idname, 0);
 		if(otsub) {
 			RNA_def_pointer_runtime(ot->srna, otsub->idname, otsub->srna,
@@ -559,7 +559,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 				buf_default= RNA_property_as_string(C, &opptr_default, prop_default);
 
 				if(strcmp(buf, buf_default)==0)
-					ok= 0; /* values match, dont bother printing */
+					ok= 0; /* values match, don't bother printing */
 
 				MEM_freeN(buf_default);
 			}
@@ -773,7 +773,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
-	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
+	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isn't so easy...
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
@@ -1250,7 +1250,7 @@ static int wm_resource_check_prev(void)
 
 #if 0 /* ignore the local folder */
 	if(res == NULL) {
-		/* with a local dir, copying old files isnt useful since local dir get priority for config */
+		/* with a local dir, copying old files isn't useful since local dir get priority for config */
 		res= BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, TRUE);
 	}
 #endif
@@ -2530,7 +2530,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case GESTURE_MODAL_CANCEL:
 		case GESTURE_MODAL_CONFIRM:
 			wm_gesture_end(C, op);
-			return OPERATOR_FINISHED; /* use finish or we dont get an undo */
+			return OPERATOR_FINISHED; /* use finish or we don't get an undo */
 		}
 	}
 //	// Allow view navigation???

@@ -1788,7 +1788,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		int set= 0;
 		
 		/* as CValue */
-		if(attr_str && PyObject_TypeCheck(val, &PyObjectPlus::Type)==0) /* dont allow GameObjects for eg to be assigned to CValue props */
+		if(attr_str && PyObject_TypeCheck(val, &PyObjectPlus::Type)==0) /* don't allow GameObjects for eg to be assigned to CValue props */
 		{
 			CValue* vallie = self->ConvertPythonToValue(val, ""); /* error unused */
 			

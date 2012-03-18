@@ -409,7 +409,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 					handsize = seq->handsize;
 					displen = (float)abs(seq->startdisp - seq->enddisp);
 					
-					if (displen / pixelx > 16) { /* dont even try to grab the handles of small strips */
+					if (displen / pixelx > 16) { /* don't even try to grab the handles of small strips */
 						/* Set the max value to handle to 1/3 of the total len when its less then 28.
 						 * This is important because otherwise selecting handles happens even when you click in the middle */
 						
@@ -1051,7 +1051,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	}
 
 	/* test for effects and overlap
-	 * dont use SEQP_BEGIN since that would be recursive */
+	 * don't use SEQP_BEGIN since that would be recursive */
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
@@ -1729,7 +1729,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
 	while (seq) {
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
-			/* remove seq so overlap tests dont conflict,
+			/* remove seq so overlap tests don't conflict,
 			 * see seq_free_sequence below for the real free'ing */
 			BLI_remlink(ed->seqbasep, seq);
 			/* if(seq->ipo) seq->ipo->id.us--; */
@@ -1981,7 +1981,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
 
 	/* test for effects and overlap
-	 * dont use SEQP_BEGIN since that would be recursive */
+	 * don't use SEQP_BEGIN since that would be recursive */
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
@@ -2871,7 +2871,7 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 
 	update_changed_seq_and_deps(scene, seq, 0, 1);
 
-	/* important else we dont get the imbuf cache flushed */
+	/* important else we don't get the imbuf cache flushed */
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
@@ -2931,7 +2931,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 	/* update */
 	update_changed_seq_and_deps(scene, seq, 0, 1);
 
-	/* important else we dont get the imbuf cache flushed */
+	/* important else we don't get the imbuf cache flushed */
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
@@ -2997,13 +2997,13 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		/* reset these else we wont see all the images */
 		seq->anim_startofs= seq->anim_endofs= 0;
 
-		/* correct start/end frames so we dont move
+		/* correct start/end frames so we don't move
 		 * important not to set seq->len= len; allow the function to handle it */
 		reload_sequence_new_file(scene, seq, TRUE);
 
 		calc_sequence(scene, seq);
 
-		/* important else we dont get the imbuf cache flushed */
+		/* important else we don't get the imbuf cache flushed */
 		free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 	}
 	else {

@@ -351,7 +351,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			/* load sound */
 			PackedFile* pf = sound->packedfile;
 
-			/* dont modify soundact->sound->name, only change a copy */
+			/* don't modify soundact->sound->name, only change a copy */
 			BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
 			BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 

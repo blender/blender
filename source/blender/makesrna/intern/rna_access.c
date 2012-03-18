@@ -1405,7 +1405,7 @@ int RNA_property_animated(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
 
 
 /* this function is to check if its possible to create a valid path from the ID
- * its slow so dont call in a loop */
+ * its slow so don't call in a loop */
 int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
 {
 	char *path = RNA_path_from_ID_to_property(ptr, prop);
@@ -1466,7 +1466,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 
 /* must keep in sync with 'rna_property_update'
  * note, its possible this returns a false positive in the case of PROP_CONTEXT_UPDATE
- * but this isnt likely to be a performance problem. */
+ * but this isn't likely to be a performance problem. */
 int RNA_property_update_check(PropertyRNA *prop)
 {
 	return (prop->magic != RNA_MAGIC || prop->update || prop->noteflag);
@@ -4567,7 +4567,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 	}
 	case PROP_ENUM:
 	{
-		/* string arrays dont exist */
+		/* string arrays don't exist */
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 

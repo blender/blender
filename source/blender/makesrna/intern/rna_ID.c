@@ -302,7 +302,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 
 void rna_ID_user_clear(ID *id)
 {
-	id->us = 0; /* dont save */
+	id->us = 0; /* don't save */
 	id->flag &= ~LIB_FAKEUSER;
 }
 
@@ -416,7 +416,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
 	/* important so python types can have their name used in list views
-	 * however this isnt prefect because it overrides how python would set the name
+	 * however this isn't prefect because it overrides how python would set the name
 	 * when we only really want this so RNA_def_struct_name_property() is set to something useful */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);

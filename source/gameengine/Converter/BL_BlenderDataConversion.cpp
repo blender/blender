@@ -636,7 +636,7 @@ bool ConvertMaterial(
 							}
 						}
 					}
-#if 0				/* this flag isnt used anymore */
+#if 0				/* this flag isn't used anymore */
 					material->flag[i] |= (BKE_animdata_from_id(mat->id) != NULL) ? HASIPO : 0;
 #endif
 					/// --------------------------------

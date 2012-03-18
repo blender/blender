@@ -333,7 +333,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		rect[0]= ibuf->rect_float + channels*(height-1)*width;
 		rect[1]= rect[0]+1;
 		rect[2]= rect[0]+2;
-		rect[3]= (channels >= 4)? rect[0]+3:rect[0]; /* red as alpha, is this needed since alpha isnt written? */
+		rect[3]= (channels >= 4)? rect[0]+3:rect[0]; /* red as alpha, is this needed since alpha isn't written? */
 
 		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
@@ -488,7 +488,7 @@ int IMB_exr_begin_write(void *handle, const char *filename, int width, int heigh
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.55.1 and newer"));
 
-	/* avoid crash/abort when we dont have permission to write here */
+	/* avoid crash/abort when we don't have permission to write here */
 	try {
 		data->ofile = new OutputFile(filename, header);
 	}

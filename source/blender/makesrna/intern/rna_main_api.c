@@ -118,7 +118,7 @@ Scene *rna_Main_scenes_new(Main *UNUSED(bmain), const char *name)
 }
 void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struct Scene *scene)
 {
-	/* dont call free_libblock(...) directly */
+	/* don't call free_libblock(...) directly */
 	Scene *newscene;
 
 	if (scene->id.prev)

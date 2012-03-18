@@ -72,7 +72,7 @@
 #define SEQ_RIGHTHANDLE	2
 
 
-/* Note, Dont use SEQ_BEGIN/SEQ_END while drawing!
+/* Note, Don't use SEQ_BEGIN/SEQ_END while drawing!
  * it messes up transform, - Campbell */
 static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, float x2, float y2);
 

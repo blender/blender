@@ -74,7 +74,7 @@ IDProperty *IDP_NewIDPArray(const char *name)
 
 IDProperty *IDP_CopyIDPArray(IDProperty *array)
 {
-	/* dont use MEM_dupallocN because this may be part of an array */
+	/* don't use MEM_dupallocN because this may be part of an array */
 	IDProperty *narray = MEM_mallocN(sizeof(IDProperty), "IDP_CopyIDPArray"), *tmp;
 	int i;
 
@@ -608,9 +608,9 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 		if (create_if_needed) {
 			id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
 			id->properties->type = IDP_GROUP;
-			/* dont overwrite the data's name and type
+			/* don't overwrite the data's name and type
 			 * some functions might need this if they
-			 * dont have a real ID, should be named elsewhere - Campbell */
+			 * don't have a real ID, should be named elsewhere - Campbell */
 			/* strcpy(id->name, "top_level_group");*/
 		}
 		return id->properties;
@@ -671,7 +671,7 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 	return 1;
 }
 
-/* 'val' is never NULL, dont check */
+/* 'val' is never NULL, don't check */
 IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name)
 {
 	IDProperty *prop=NULL;

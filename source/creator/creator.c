@@ -1196,7 +1196,7 @@ int main(int argc, const char **argv)
 	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 
-	/* Initialiaze ffmpeg if built in, also needed for bg mode if videos are
+	/* Initialize ffmpeg if built in, also needed for bg mode if videos are
 	 * rendered via ffmpeg */
 	sound_init_once();
 	

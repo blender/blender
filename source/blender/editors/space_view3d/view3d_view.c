@@ -145,7 +145,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 	 * we may be changing the view 'as if' there is no active camera, but infact
 	 * there is an active camera which is locked to the view.
 	 *
-	 * In the case where smooth view is moving _to_ a camera we dont want that
+	 * In the case where smooth view is moving _to_ a camera we don't want that
 	 * camera to be moved or changed, so only when the camera is not being set should
 	 * we allow camera option locking to initialize the view settings from the camera.
 	 */
@@ -1075,7 +1075,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	float bmat[4][4];
 	float tmat[3][3];
 	
-	rv3d->view= RV3D_VIEW_USER; /* dont show the grid */
+	rv3d->view= RV3D_VIEW_USER; /* don't show the grid */
 	
 	copy_m4_m4(bmat, ob->obmat);
 	normalize_m4(bmat);
@@ -1150,7 +1150,7 @@ int ED_view3d_lock(RegionView3D *rv3d)
 	return TRUE;
 }
 
-/* dont set windows active in here, is used by renderwin too */
+/* don't set windows active in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp==RV3D_CAMOB) {	    /* obs/camera */

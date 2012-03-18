@@ -206,7 +206,7 @@ typedef struct Material {
 /* maximum number of materials per material array.
  * (on object, mesh, lamp, etc.). limited by
  * short mat_nr in verts, faces.
- * -1 becayse for active material we store the index + 1 */
+ * -1 because for active material we store the index + 1 */
 #define MAXMAT			(32767-1)
 
 /* material_type */

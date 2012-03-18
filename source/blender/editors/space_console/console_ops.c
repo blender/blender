@@ -614,7 +614,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ConsoleLine *ci= console_history_verify(C);
-	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
+	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, don't free */
 	int cursor= RNA_int_get(op->ptr, "current_character");
 	short rem_dupes= RNA_boolean_get(op->ptr, "remove_duplicates");
 	int prev_len= ci->len;
@@ -671,7 +671,7 @@ static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	ConsoleLine *ci;
 	
-	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
+	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, don't free */
 	int type= RNA_enum_get(op->ptr, "type");
 
 	console_history_verify(C);

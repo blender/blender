@@ -536,7 +536,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip");
-	/* for animation this is an enum but atm having an enum isnt useful for us */
+	/* for animation this is an enum but atm having an enum isn't useful for us */
 	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "Select based on the current frame side the cursor is on");
 	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time");
 }

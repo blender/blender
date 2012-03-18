@@ -1538,7 +1538,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_MeshPolygon_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
-	/* Faked, actually access to loop vertex values, dont this way because manually setting up
+	/* Faked, actually access to loop vertex values, don't this way because manually setting up
 	 * vertex/edge per loop is very low level.
 	 * Instead we setup poly sizes, assign indices, then calc edges automatic when creating
 	 * meshes from rna/py. */

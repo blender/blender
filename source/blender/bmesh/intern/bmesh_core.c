@@ -1161,7 +1161,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 #endif
 
 	/* validate both loop */
-	/* I dont know how many loops are supposed to be in each face at this point! FIXME */
+	/* I don't know how many loops are supposed to be in each face at this point! FIXME */
 
 	/* go through all of f2's loops and make sure they point to it properly */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f2);

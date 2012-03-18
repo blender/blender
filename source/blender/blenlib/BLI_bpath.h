@@ -28,7 +28,7 @@
 /** \file BLI_bpath.h
  *  \ingroup bli
  *  \attention Based on ghash, difference is ghash is not a fixed size,
- *   so for BPath we dont need to malloc
+ *   so for BPath we don't need to malloc
  */
 
 #ifndef __BLI_BPATH_H__

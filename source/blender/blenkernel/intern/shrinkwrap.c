@@ -360,7 +360,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 			hit.index = -1;
-			hit.dist = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
+			hit.dist = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that
 
 			//Project over positive direction of axis
 			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR)

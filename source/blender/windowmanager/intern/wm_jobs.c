@@ -258,7 +258,7 @@ static void *do_job_thread(void *job_v)
 	return NULL;
 }
 
-/* dont allow same startjob to be executed twice */
+/* don't allow same startjob to be executed twice */
 static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 {
 	wmJob *steve;

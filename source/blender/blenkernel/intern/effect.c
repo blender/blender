@@ -787,7 +787,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 		tex_co[2] += nabla;
 		multitex_ext(eff->pd->tex, tex_co, NULL, NULL, 0, result+3);
 
-		if(mode == PFIELD_TEX_GRAD || !hasrgb) { /* if we dont have rgb fall back to grad */
+		if(mode == PFIELD_TEX_GRAD || !hasrgb) { /* if we don't have rgb fall back to grad */
 			force[0] = (result[0].tin - result[1].tin) * strength;
 			force[1] = (result[0].tin - result[2].tin) * strength;
 			force[2] = (result[0].tin - result[3].tin) * strength;

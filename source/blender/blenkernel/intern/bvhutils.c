@@ -545,7 +545,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 					/* Insert BMesh-tessellation triangles into the bvh tree, unless they are hidden
 					 * and/or selected. Even if the faces themselves are not selected for the snapped
-					 * transform, having a vertex selected means the face (and thus it's tesselated
+					 * transform, having a vertex selected means the face (and thus it's tessellated
 					 * triangles) will be moving and will not be a good snap targets.*/
 					for (i = 0; i < em->tottri; i++) {
 						BMLoop **tri = em->looptris[i];
@@ -554,12 +554,12 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 						BMIter iter;
 						int insert;
 
-						/* Each loop of the triangle points back to the BMFace it was tesselated from.
+						/* Each loop of the triangle points back to the BMFace it was tessellated from.
 						 * All three should point to the same face, so just use the face from the first
 						 * loop.*/
 						f = tri[0]->f;
 
-						/* If the looptris is ordered such that all triangles tesselated from a single
+						/* If the looptris is ordered such that all triangles tessellated from a single
 						 * faces are consecutive elements in the array, then we could speed up the tests
 						 * below by using the insert value from the previous iteration.*/
 
@@ -567,14 +567,14 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 						insert = 1;
 
 						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-							/* Don't insert triangles tesselated from faces that are hidden
+							/* Don't insert triangles tessellated from faces that are hidden
 							 * or selected*/
 							insert = 0;
 						}
 						else {
 							BM_ITER(v, &iter, em->bm, BM_VERTS_OF_FACE, f) {
 								if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-									/* Don't insert triangles tesselated from faces that have
+									/* Don't insert triangles tessellated from faces that have
 									 * any selected verts.*/
 									insert = 0;
 								}

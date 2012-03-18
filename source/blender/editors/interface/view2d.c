@@ -161,7 +161,7 @@ static void view2d_masks(View2D *v2d)
  *	- for some of these presets, it is expected that the region will have defined some
  * 	  additional settings necessary for the customisation of the 2D viewport to its requirements
  *	- this function should only be called from region init() callbacks, where it is expected that
- *	  this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialised. 
+ *	  this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialized. 
  */
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
@@ -170,7 +170,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
 	/* initialize data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
-		/* set initialised flag so that View2D doesn't get reinitialised next time again */
+		/* set initialized flag so that View2D doesn't get reinitialised next time again */
 		v2d->flag |= V2D_IS_INITIALISED;
 
 		init= 1;

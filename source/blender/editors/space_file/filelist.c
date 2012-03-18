@@ -677,7 +677,7 @@ int filelist_find(struct FileList* filelist, const char *filename)
 
 	
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if ( strcmp(filelist->filelist[i].relname, filename) == 0) { /* not dealing with user input so dont need BLI_path_cmp */
+		if ( strcmp(filelist->filelist[i].relname, filename) == 0) { /* not dealing with user input so don't need BLI_path_cmp */
 			index = i;
 			break;
 		}

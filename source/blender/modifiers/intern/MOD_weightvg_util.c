@@ -109,7 +109,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
  * Return values are in org_w.
  * If indices is not NULL, it must be a table of same length as org_w and new_w, mapping to the real
  * vertex index (in case the weight tables do not cover the whole vertices...).
- * XXX The standard “factor” value is assumed in [0.0, 1.0] range. Else, weird results might appear.
+ * XXX The standard "factor" value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
 void weightvg_do_mask(int num, const int *indices, float *org_w, const float *new_w,
                       Object *ob, DerivedMesh *dm, float fact, const char defgrp_name[MAX_VGROUP_NAME],

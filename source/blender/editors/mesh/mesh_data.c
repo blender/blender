@@ -288,7 +288,7 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 		fuvs += len;
 	}
 
-	/* BMESH_TODO: Copy poly UVs onto CD_MTFACE layer for tesselated faces */
+	/* BMESH_TODO: Copy poly UVs onto CD_MTFACE layer for tessellated faces */
 
 	BLI_array_free(uvs);
 	BLI_array_free(polylengths);
@@ -762,7 +762,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	if(mesh->totface > 0 && mesh->totpoly == 0) {
 		convert_mfaces_to_mpolys(mesh);
 
-		/* would only be converting back again, dont bother */
+		/* would only be converting back again, don't bother */
 		tessface_input = TRUE;
 
 		/* it also happens that converting the faces calculates edges, skip this */
@@ -787,8 +787,8 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	 * calculate normals only for the mvert's. - campbell */
 #ifdef USE_BMESH_MPOLY_NORMALS
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
-	/* add a normals layer for tesselated faces, a tessface normal will
-	 * contain the normal of the poly the face was tesselated from. */
+	/* add a normals layer for tessellated faces, a tessface normal will
+	 * contain the normal of the poly the face was tessellated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
 	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
@@ -870,7 +870,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->edata, mesh->totedge);
 	mesh->edata= edata;
-	mesh_update_customdata_pointers(mesh, FALSE); /* new edges dont change tessellation */
+	mesh_update_customdata_pointers(mesh, FALSE); /* new edges don't change tessellation */
 
 	/* set default flags */
 	medge= &mesh->medge[mesh->totedge];

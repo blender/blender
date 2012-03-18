@@ -529,7 +529,7 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if (extend == 0 && select)
 		EDBM_flag_disable_all(vc->em, BM_ELEM_SELECT);
 
-	 /* for non zbuf projections, dont change the GL state */
+	 /* for non zbuf projections, don't change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
@@ -1086,7 +1086,7 @@ static EnumPropertyItem *object_select_menu_enum_itemf(bContext *C, PointerRNA *
 	int totitem= 0;
 	int i= 0;
 
-	/* dont need context but avoid docgen using this */
+	/* don't need context but avoid docgen using this */
 	if (C == NULL || object_mouse_select_menu_data[i].idname[0] == '\0') {
 		return DummyRNA_NULL_items;
 	}
@@ -1800,7 +1800,7 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	if (extend == 0 && select)
 		EDBM_flag_disable_all(vc->em, BM_ELEM_SELECT);
 
-	/* for non zbuf projections, dont change the GL state */
+	/* for non zbuf projections, don't change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);

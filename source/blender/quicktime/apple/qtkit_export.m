@@ -243,7 +243,7 @@ void filepath_qt(char *string, RenderData *rd)
 	BLI_make_existing_file(string);
 	
 	if (!BLI_testextensie(string, ".mov")) {
-		/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
+		/* if we don't have any #'s to insert numbers into, use 4 numbers by default */
 		if (strchr(string, '#')==NULL)
 			strcat(string, "####"); /* 4 numbers */
 

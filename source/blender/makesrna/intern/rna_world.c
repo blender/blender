@@ -449,7 +449,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "starsize");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Size", "Average screen dimension of stars");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update"); /* use normal update since this isnt visualized */
+	RNA_def_property_update(prop, 0, "rna_World_draw_update"); /* use normal update since this isn't visualized */
 
 	prop = RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "starmindist");

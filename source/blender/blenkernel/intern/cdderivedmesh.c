@@ -1193,7 +1193,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							}
 						}
 						else {
-							/* if the buffer was set, dont use it again.
+							/* if the buffer was set, don't use it again.
 							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
 							/* prevdraw= 0; */ /* UNUSED */
 							buffer= NULL;

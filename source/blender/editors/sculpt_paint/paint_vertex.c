@@ -103,7 +103,7 @@ static int vertex_paint_use_fast_update_check(Object *ob)
 }
 
 /* if the polygons from the mesh and the 'derivedFinal' match
- * we can assume that no modifiers are applied and that its worth adding tesselated faces
+ * we can assume that no modifiers are applied and that its worth adding tessellated faces
  * so 'vertex_paint_use_fast_update_check()' returns TRUE */
 static int vertex_paint_use_tessface_check(Object *ob)
 {
@@ -189,7 +189,7 @@ unsigned int vpaint_get_current_col(VPaint *vp)
 	Brush *brush = paint_brush(&vp->paint);
 	unsigned char col[4];
 	rgb_float_to_uchar(col, brush->rgb);
-	col[3] = 255; /* alpha isnt used, could even be removed to speedup paint a little */
+	col[3] = 255; /* alpha isn't used, could even be removed to speedup paint a little */
 	return *(unsigned int *)col;
 }
 
@@ -2177,7 +2177,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		ED_vgroup_add(ob);
 	}
 
-	/* ensure we dont try paint onto an invalid group */
+	/* ensure we don't try paint onto an invalid group */
 	if (ob->actdef <= 0) {
 		BKE_report(op->reports, RPT_WARNING, "No active vertex group for painting, aborting");
 		return FALSE;
@@ -2251,7 +2251,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	const float brush_alpha_value = brush_alpha(scene, brush);
 	const float brush_alpha_pressure = brush_alpha_value * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
-	/* intentionally dont initialize as NULL, make sure we initialize all members below */
+	/* intentionally don't initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
 
 	/* cannot paint if there is no stroke data */
@@ -2415,7 +2415,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* *** free wpi members */
 	MEM_freeN((void *)wpi.defbase_sel);
-	/* *** dont freeing wpi members */
+	/* *** don't freeing wpi members */
 
 
 	swap_m4m4(vc->rv3d->persmat, mat);

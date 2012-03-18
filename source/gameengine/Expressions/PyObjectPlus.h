@@ -106,7 +106,7 @@ typedef struct PyObjectPlus_Proxy {
 #  define BGE_PROXY_WKREF(_self) (((PyObjectPlus_Proxy *)_self)->in_weakreflist)
 #endif
 
-/* Note, sometimes we dont care what BGE type this is as long as its a proxy */
+/* Note, sometimes we don't care what BGE type this is as long as its a proxy */
 #define BGE_PROXY_CHECK_TYPE(_type) ((_type)->tp_dealloc == PyObjectPlus::py_base_dealloc)
 
 /* Opposite of BGE_PROXY_REF */

@@ -155,7 +155,7 @@ void bmo_edgerotate_exec(BMesh *bm, BMOperator *op)
 
 					BMO_elem_flag_enable(bm, e2, EDGE_OUT);
 
-					/* dont touch again */
+					/* don't touch again */
 					BMO_elem_flag_enable(bm, fa, FACE_TAINT);
 					BMO_elem_flag_enable(bm, fb, FACE_TAINT);
 				}
@@ -702,7 +702,7 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 	BMIter	fiter;
 	BMFace	*f, *f_prev = NULL;
 
-	/* first edge faces, dont account for 3+ */
+	/* first edge faces, don't account for 3+ */
 
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
 		if (f_prev == NULL) {

@@ -123,7 +123,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 	
 	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mval_v2d[0], &mval_v2d[1]);
 
-	/* effect strips dont need a channel initialized from the mouse */
+	/* effect strips don't need a channel initialized from the mouse */
 	if(!(flag & SEQPROP_NOCHAN)) {
 		RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
 	}
@@ -149,7 +149,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	seq_load->end_frame=	seq_load->start_frame; /* un-set */
 
 	seq_load->channel=		RNA_int_get(op->ptr, "channel");
-	seq_load->len=			1; // images only, if endframe isnt set!
+	seq_load->len=			1; // images only, if endframe isn't set!
 
 	if(RNA_struct_find_property(op->ptr, "filepath")) {
 		RNA_string_get(op->ptr, "filepath", seq_load->path); /* full path, file is set by the caller */

@@ -1703,7 +1703,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 	ar->v2d.keepzoom |= V2D_KEEPZOOM;
 
-		// correctly initialised User-Prefs?
+		// correctly initialized User-Prefs?
 	if(!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
 		ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	

@@ -89,7 +89,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	{
 		int i;
 		// The video subsystem is required for joystick input to work. However,
-		// when GHOST is running under SDL, video is initialised elsewhere.
+		// when GHOST is running under SDL, video is initialized elsewhere.
 		// Do this once only.
 #  ifdef WITH_GHOST_SDL
 		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ){

@@ -4575,7 +4575,7 @@ void copy_constraints (ListBase *dst, const ListBase *src, int do_extern)
 			if (cti->copy_data)
 				cti->copy_data(con, srccon);
 			
-			/* for proxies we dont want to make extern */
+			/* for proxies we don't want to make extern */
 			if (do_extern) {
 				/* go over used ID-links for this constraint to ensure that they are valid for proxies */
 				if (cti->id_looper)

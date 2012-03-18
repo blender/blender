@@ -635,7 +635,7 @@ enum FileSortTypeE {
 
 /* filesel types */
 #define FILE_UNIX			8
-#define FILE_BLENDER		8 /* dont display relative paths */
+#define FILE_BLENDER		8 /* don't display relative paths */
 #define FILE_SPECIAL		9
 
 #define FILE_LOADLIB		1
@@ -693,7 +693,7 @@ enum FileSortTypeE {
 
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
- * also, sticky loc is the default mode so this means we dont need to 'do_versons' */
+ * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
 #define SI_STICKY_LOC		0
 #define SI_STICKY_DISABLE	1
 #define SI_STICKY_VERTEX	2

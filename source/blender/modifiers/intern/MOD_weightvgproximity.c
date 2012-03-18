@@ -183,7 +183,7 @@ static float get_ob2ob_distance(const Object* ob, const Object* obr)
 }
 
 /**
- * Maps distances to weights, with an optionnal “smoothing” mapping.
+ * Maps distances to weights, with an optionnal "smoothing" mapping.
  */
 void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
 {

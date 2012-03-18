@@ -1238,7 +1238,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	/* note: combinations work but dont flip so arnt that useful */
+	/* note: combinations work but don't flip so arnt that useful */
 	static EnumPropertyItem bgpic_axis_items[] = {
 		{0, "", 0, "X Axis", ""},
 		{(1<<RV3D_VIEW_LEFT), "LEFT", 0, "Left", "Show background image while looking to the left"},

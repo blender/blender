@@ -1889,7 +1889,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	other->GetLightList()->ReleaseAndRemoveAll();
 
 #ifdef USE_BULLET
-	if(env) /* bullet scene? - dummy scenes dont need touching */
+	if(env) /* bullet scene? - dummy scenes don't need touching */
 		env->MergeEnvironment(env_other);
 #endif
 	
@@ -1910,7 +1910,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 			if(evtmgr_other) /* unlikely but possible one scene has a joystick and not the other */
 				evtmgr_other->Replace_LogicManager(logicmgr);
 
-			/* when merging objects sensors are moved across into the new manager, dont need to do this here */
+			/* when merging objects sensors are moved across into the new manager, don't need to do this here */
 		}
 
 		/* grab any timer properties from the other scene */
@@ -2271,7 +2271,7 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
 	
 	// release here because AddReplicaObject AddRef's
-	// the object is added to the scene so we dont want python to own a reference
+	// the object is added to the scene so we don't want python to own a reference
 	replica->Release();
 	return replica->GetProxy();
 }

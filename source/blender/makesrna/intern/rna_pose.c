@@ -125,7 +125,7 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 			memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 		}
 		else {
-			/* init custom colors with a generic multi-color rgb set, if not initialised already (for custom color set) */
+			/* init custom colors with a generic multi-color rgb set, if not initialized already (for custom color set) */
 			if (grp->cs.solid[0] == 0) {
 				/* define for setting colors in theme below */
 				#define SETCOL(col, r, g, b, a)  col[0] = r; col[1] = g; col[2] = b; col[3] = a;

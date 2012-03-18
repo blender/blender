@@ -1712,7 +1712,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 #ifdef USE_BMESH_SAVE_WITHOUT_MFACE
 				Mesh backup_mesh = {{0}};
-				/* cache only - dont write */
+				/* cache only - don't write */
 				backup_mesh.mface = mesh->mface;
 				mesh->mface = NULL;
 				/* -- */
@@ -1737,7 +1737,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
 
 #ifdef USE_BMESH_SAVE_WITHOUT_MFACE
-				/* cache only - dont write */
+				/* cache only - don't write */
 				mesh->mface = backup_mesh.mface;
 				/* -- */
 				mesh->totface = backup_mesh.totface;
@@ -2912,7 +2912,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				/* blend may not have been saved before. Tn this case
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
-				 * print an error, dont try make the absolute in this case. */
+				 * print an error, don't try make the absolute in this case. */
 				makeFilesAbsolute(mainvar, G.main->name, NULL);
 			}
 		}

@@ -894,7 +894,7 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 			else
 				isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], w, ps->is_ortho);
 
-			/* Note, if isect_ret==-1 then we dont want to test the other side of the quad */
+			/* Note, if isect_ret==-1 then we don't want to test the other side of the quad */
 			if (isect_ret==0 && mf->v4) {
 				if(do_clip)
 					isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], 1);
@@ -1352,7 +1352,7 @@ static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const 
 		
 }
 
-/* run this outside project_paint_uvpixel_init since pixels with mask 0 dont need init */
+/* run this outside project_paint_uvpixel_init since pixels with mask 0 don't need init */
 static float project_paint_uvpixel_mask(
 		const ProjPaintState *ps,
 		const int face_index,
@@ -1452,7 +1452,7 @@ static float project_paint_uvpixel_mask(
 	}
 	
 	// This only works when the opacity dosnt change while painting, stylus pressure messes with this
-	// so dont use it.
+	// so don't use it.
 	// if (ps->is_airbrush==0) mask *= brush_alpha(ps->brush);
 	
 	return mask;
@@ -1506,7 +1506,7 @@ static ProjPixel *project_paint_uvpixel_init(
 		projPixel->origColor.uint = projPixel->newColor.uint = *projPixel->pixel.uint_pt;
 	}
 	
-	/* screenspace unclamped, we could keep its z and w values but dont need them at the moment */
+	/* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
 	copy_v2_v2(projPixel->projCoSS, pixelScreenCo);
 	
 	projPixel->x_px = x_px;
@@ -1745,7 +1745,7 @@ static int line_clip_rect2f(
 
 /* scale the quad & tri about its center
  * scaling by PROJ_FACE_SCALE_SEAM (0.99x) is used for getting fake UV pixel coords that are on the
- * edge of the face but slightly inside it occlusion tests dont return hits on adjacent faces */
+ * edge of the face but slightly inside it occlusion tests don't return hits on adjacent faces */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 static void scale_quad(float insetCos[4][3], float *origCos[4], const float inset)
 {
@@ -1984,7 +1984,7 @@ static void project_bucket_clip_face(
 	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v3coSS[0], v3coSS[1])		<< 2;
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
-		/* all screenspace points are inside the bucket bounding box, this means we dont need to clip and can simply return the UVs */
+		/* all screenspace points are inside the bucket bounding box, this means we don't need to clip and can simply return the UVs */
 		if (flip) { /* facing the back? */
 			copy_v2_v2(bucket_bounds_uv[0], uv3co);
 			copy_v2_v2(bucket_bounds_uv[1], uv2co);
@@ -2641,7 +2641,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 												else {
 													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv_close, w);
 												}
-#else											/* this is buggy with quads, dont use for now */
+#else											/* this is buggy with quads, don't use for now */
 
 												/* Cheat, we know where we are along the edge so work out the weights from that */
 												fac = fac1 + (fac * (fac2-fac1));
@@ -2852,7 +2852,7 @@ static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucke
 	return 0;
 }
 
-/* Add faces to the bucket but dont initialize its pixels
+/* Add faces to the bucket but don't initialize its pixels
  * TODO - when painting occluded, sort the faces on their min-Z and only add faces that faces that are not occluded */
 static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf, const int face_index)
 {
@@ -3509,7 +3509,7 @@ static void project_paint_end(ProjPaintState *ps)
 	if(ps->dm->type != DM_TYPE_CDDM) {
 		if(ps->dm_mvert) MEM_freeN(ps->dm_mvert);
 		if(ps->dm_mface) MEM_freeN(ps->dm_mface);
-		/* looks like these dont need copying */
+		/* looks like these don't need copying */
 #if 0
 		if(ps->dm_mtface) MEM_freeN(ps->dm_mtface);
 		if(ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
@@ -3593,7 +3593,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 		float min_brush[2], max_brush[2];
 		const float radius = (float)brush_size(ps->scene, ps->brush);
 
-		/* so we dont have a bucket bounds that is way too small to paint into */
+		/* so we don't have a bucket bounds that is way too small to paint into */
 		// if (radius < 1.0f) radius = 1.0f; // this doesn't work yet :/
 
 		min_brush[0] = mval_f[0] - radius;
@@ -3964,12 +3964,12 @@ static void *do_projectpaint_thread(void *ph_v)
 							case PAINT_TOOL_CLONE:
 								if (is_floatbuf) {
 									if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-										do_projectpaint_clone_f(ps, projPixel, alpha, mask); /* rgba isnt used for cloning, only alpha */
+										do_projectpaint_clone_f(ps, projPixel, alpha, mask); /* rgba isn't used for cloning, only alpha */
 									}
 								}
 								else {
 									if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
-										do_projectpaint_clone(ps, projPixel, alpha, mask); /* rgba isnt used for cloning, only alpha */
+										do_projectpaint_clone(ps, projPixel, alpha, mask); /* rgba isn't used for cloning, only alpha */
 									}
 								}
 								break;
@@ -4711,7 +4711,7 @@ typedef struct PaintOperation {
 
 	int first;
 	int prevmouse[2];
-	float prev_pressure; /* need this since we dont get tablet events for pressure change */
+	float prev_pressure; /* need this since we don't get tablet events for pressure change */
 	int orig_brush_size;
 	double starttime;
 
@@ -4880,7 +4880,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		if (pop->ps.ob==NULL || !(pop->ps.ob->lay & pop->ps.v3d->lay))
 			return 0;
 
-		/* Dont allow brush size below 2 */
+		/* Don't allow brush size below 2 */
 		if (brush_size(scene, brush) < 2)
 			brush_set_size(scene, brush, 2);
 

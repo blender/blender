@@ -658,14 +658,14 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 {
 	char str[FILE_MAX];
 	int prev_startdisp=0, prev_enddisp=0;
-	/* note: dont rename the strip, will break animation curves */
+	/* note: don't rename the strip, will break animation curves */
 
 	if (ELEM5(seq->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_SCENE, SEQ_META)==0) {
 		return;
 	}
 
 	if(lock_range) {
-		/* keep so we dont have to move the actual start and end points (only the data) */
+		/* keep so we don't have to move the actual start and end points (only the data) */
 		calc_sequence_disp(scene, seq);
 		prev_startdisp= seq->startdisp;
 		prev_enddisp= seq->enddisp;
@@ -1998,7 +1998,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	int have_seq= FALSE;
 	Scene *scene;
 
-	/* dont refer to seq->scene above this point!, it can be NULL */
+	/* don't refer to seq->scene above this point!, it can be NULL */
 	if(seq->scene == NULL) {
 		return NULL;
 	}
@@ -3008,7 +3008,7 @@ int seqbase_isolated_sel_check(ListBase *seqbase)
 	return TRUE;
 }
 
-/* use to impose limits when dragging/extending - so impossible situations dont happen
+/* use to impose limits when dragging/extending - so impossible situations don't happen
  * Cant use the SEQ_LEFTSEL and SEQ_LEFTSEL directly because the strip may be in a metastrip */
 void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
@@ -3163,7 +3163,7 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test, Scene *evil_scene)
 			break;
 		}
 		test->machine++;
-		calc_sequence(evil_scene, test); // XXX - I dont think this is needed since were only moving vertically, Campbell.
+		calc_sequence(evil_scene, test); // XXX - I don't think this is needed since were only moving vertically, Campbell.
 	}
 
 	
@@ -3413,7 +3413,7 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 
 	SWAP(Sequence, *seq_a, *seq_b);
 
-	/* swap back names so animation fcurves dont get swapped */
+	/* swap back names so animation fcurves don't get swapped */
 	BLI_strncpy(name, seq_a->name+2, sizeof(name));
 	BLI_strncpy(seq_a->name+2, seq_b->name+2, sizeof(seq_b->name)-2);
 	BLI_strncpy(seq_b->name+2, name, sizeof(seq_b->name)-2);

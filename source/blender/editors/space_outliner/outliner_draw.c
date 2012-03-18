@@ -1217,7 +1217,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 			(*offsx) += UI_UNIT_X;
 		}
 		
-		/* this tree element always has same amount of branches, so dont draw */
+		/* this tree element always has same amount of branches, so don't draw */
 		if(tselem->type!=TSE_R_LAYER)
 			outliner_draw_iconrow(C, block, scene, soops, &te->subtree, level+1, xmax, offsx, ys);
 	}
@@ -1251,7 +1251,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 	if(*starty+2*UI_UNIT_Y >= ar->v2d.cur.ymin && *starty<= ar->v2d.cur.ymax) {
 		int xmax= ar->v2d.cur.xmax;
 		
-		/* icons can be ui buts, we dont want it to overlap with restrict */
+		/* icons can be ui buts, we don't want it to overlap with restrict */
 		if((soops->flag & SO_HIDE_RESTRICTCOLS)==0)
 			xmax-= OL_TOGW+UI_UNIT_X;
 		
@@ -1393,7 +1393,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		if(!TSELEM_OPEN(tselem,soops)) {
 			if(te->subtree.first) {
 				if(tselem->type==0 && te->idcode==ID_SCE);
-				else if(tselem->type!=TSE_R_LAYER) { /* this tree element always has same amount of branches, so dont draw */
+				else if(tselem->type!=TSE_R_LAYER) { /* this tree element always has same amount of branches, so don't draw */
 					int tempx= startx+offsx;
 					
 					// divider

@@ -1096,7 +1096,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		
 		dm= CDDM_from_mesh((Mesh*)ob->data, ob);
 
-		/* BMESH ONLY, for verts we dont care about tessfaces */
+		/* BMESH ONLY, for verts we don't care about tessfaces */
 		if (from != PART_FROM_VERT) {
 			DM_ensure_tessface(dm);
 		}
@@ -1515,7 +1515,7 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
 	pa->hair_index = 0;
 	/* we can't reset to -1 anymore since we've figured out correct index in distribute_particles */
 	/* usage other than straight after distribute has to handle this index by itself - jahka*/
-	//pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we dont have a derived mesh face */
+	//pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we don't have a derived mesh face */
 }
 static void initialize_all_particles(ParticleSimulationData *sim)
 {

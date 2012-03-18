@@ -184,7 +184,7 @@ char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 {
 	char *dst_r= dst;
 
-	/* note: currently we dont attempt to deal with invalid utf8 chars */
+	/* note: currently we don't attempt to deal with invalid utf8 chars */
 	BLI_STR_UTF8_CPY(dst, src, maxncpy)
 
 	return dst_r;
@@ -210,7 +210,7 @@ char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
 size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy)
 {
 	size_t len = 0;
-	while(*src && len < maxcpy) { /* XXX can still run over the buffer because utf8 size isnt known :| */
+	while(*src && len < maxcpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
 		len += BLI_str_utf8_from_unicode(*src++, dst+len);
 	}
 
@@ -284,7 +284,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 /* copied from glib's gutf8.c */
 
 /* note, glib uses unsigned int for unicode, best we do the same,
- * though we dont typedef it - campbell */
+ * though we don't typedef it - campbell */
 
 #define UTF8_COMPUTE(Char, Mask, Len)                                         \
 	if (Char < 128) {                                                         \

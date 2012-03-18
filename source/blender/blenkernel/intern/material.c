@@ -533,7 +533,7 @@ static void data_delete_material_index_id(ID *id, short index)
 		curve_delete_material_index((Curve *)id, index);
 		break;
 	case ID_MB:
-		/* meta-elems dont have materials atm */
+		/* meta-elems don't have materials atm */
 		break;
 	}
 }

@@ -674,7 +674,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	BLI_strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR); /* if 0'd out below, this value is never used! */
 	BLI_path_abs(targetDir, relbase); // fixed #frame-no
 
-	/* .tmp: dont overwrite/delete original file */
+	/* .tmp: don't overwrite/delete original file */
 	BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
 
 	// make sure all directories exist
@@ -993,7 +993,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	}
 
 	/* ********  start writing / exporting ******** */
-	// use .tmp, dont overwrite/delete original file
+	// use .tmp, don't overwrite/delete original file
 	BLI_join_dirfile(targetFile, sizeof(targetFile), targetDir, suffixConfigTmp);
 	
 	// make sure these directories exist as well

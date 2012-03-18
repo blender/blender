@@ -561,7 +561,7 @@ static short mirror_gpf_xaxis (bGPDframe *gpf, Scene *scene)
 static short mirror_gpf_marker (bGPDframe *gpf, Scene *scene)
 {
 	static TimeMarker *marker;
-	static short initialised = 0;
+	static short initialized = 0;
 	int diff;
 	
 	/* In order for this mirror function to work without
@@ -581,16 +581,16 @@ static short mirror_gpf_marker (bGPDframe *gpf, Scene *scene)
 	}
 	else {
 		/* initialization time */
-		if (initialised) {
+		if (initialized) {
 			/* reset everything for safety */
 			marker = NULL;
-			initialised = 0;
+			initialized = 0;
 		}
 		else {
 			/* try to find a marker */
 			marker= ED_markers_get_first_selected(&scene->markers);
 			if(marker) {
-				initialised= 1;
+				initialized= 1;
 			}
 		}
 	}

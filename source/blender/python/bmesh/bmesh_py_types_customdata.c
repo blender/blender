@@ -413,7 +413,7 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
 
 static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, PyObject *key)
 {
-	/* dont need error check here */
+	/* don't need error check here */
 	if (PyUnicode_Check(key)) {
 		return bpy_bmlayercollection_subscript_str(self, _PyUnicode_AsString(key));
 	}

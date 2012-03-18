@@ -1055,7 +1055,7 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
@@ -1126,7 +1126,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
@@ -1221,7 +1221,7 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
@@ -1449,7 +1449,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 						(aabbmin[0] > ccdm->bbmax[0]) ||
 						(aabbmin[1] > ccdm->bbmax[1]) ||
 						(aabbmin[2] > ccdm->bbmax[2]) ) {
-						/* boxes dont intersect */
+						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
 					}
@@ -2217,7 +2217,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				compare = (obp->colball + bp->colball);
 				sub_v3_v3v3(def, bp->pos, obp->pos);
 				/* rather check the AABBoxes before ever calulating the real distance */
-				/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
+				/* mathematically it is completly nuts, but performance is pretty much (3) times faster */
 				if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
 				distance = normalize_v3(def);
 				if (distance < compare ) {
@@ -2588,7 +2588,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					sub_v3_v3v3(def, bp->pos, obp->pos);
 
 					/* rather check the AABBoxes before ever calulating the real distance */
-					/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
+					/* mathematically it is completly nuts, but performance is pretty much (3) times faster */
 					if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
 
 					distance = normalize_v3(def);

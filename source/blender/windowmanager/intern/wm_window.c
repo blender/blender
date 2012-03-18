@@ -210,7 +210,7 @@ static int find_free_winid(wmWindowManager *wm)
 	return id;
 }
 
-/* dont change context itself */
+/* don't change context itself */
 wmWindow *wm_window_new(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1126,7 +1126,7 @@ void wm_window_get_size(wmWindow *win, int *width_r, int *height_r)
 }
 
 /* exceptional case: - splash is called before events are processed
- * this means we dont actually know the window size so get this from GHOST */
+ * this means we don't actually know the window size so get this from GHOST */
 void wm_window_get_size_ghost(wmWindow *win, int *width_r, int *height_r)
 {
 	GHOST_RectangleHandle bounds= GHOST_GetClientBounds(win->ghostwin);

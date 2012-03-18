@@ -1509,7 +1509,7 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
 	array= (IDProperty*) prop->data.pointer;
 	
 	/* note!, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
-	 * theres not really anything we can do to correct this, at least dont crash */
+	 * theres not really anything we can do to correct this, at least don't crash */
 	if(array==NULL) {
 		prop->len= 0;
 		prop->totallen= 0;
@@ -10110,7 +10110,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
 			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;
-			sce->r.fg_stamp[3] = 1.0f; /* dont use text alpha yet */
+			sce->r.fg_stamp[3] = 1.0f; /* don't use text alpha yet */
 			sce->r.bg_stamp[3] = 0.25f; /* make sure the background has full alpha */
 		}
 	}
@@ -14679,7 +14679,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		if(scene) {
 			const short is_link= (flag & FILE_LINK) != 0;
 			if(idcode==ID_SCE) {
-				/* dont instance anything when linking in scenes, assume the scene its self instances the data */
+				/* don't instance anything when linking in scenes, assume the scene its self instances the data */
 			}
 			else {
 				give_base_to_objects(mainvar, scene, curlib, idcode, is_link);

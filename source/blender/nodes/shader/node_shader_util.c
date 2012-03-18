@@ -132,7 +132,7 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 		Material *ma= (Material *)node->id;
 		int a;
 		
-		/* hrmf, case in loop isnt super fast, but we dont edit 100s of material at same time either! */
+		/* hrmf, case in loop isn't super fast, but we don't edit 100s of material at same time either! */
 		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
 			if(!nodeSocketIsHidden(sock)) {
 				if(copyto) {

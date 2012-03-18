@@ -1064,7 +1064,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	DAG_ids_flush_tagged(bmain);
 
 	/* Following 2 functions are recursive
-	 * so dont call within 'scene_update_tagged_recursive' */
+	 * so don't call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,

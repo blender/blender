@@ -76,7 +76,7 @@ struct DerivedMesh *CDDM_copy_from_tessface(struct DerivedMesh *dm);
 
 /* creates a CDDerivedMesh with the same layer stack configuration as the
  * given DerivedMesh and containing the requested numbers of elements.
- * elements are initialised to all zeros
+ * elements are initialized to all zeros
  */
 struct DerivedMesh *CDDM_from_template(struct DerivedMesh *source,
                                   int numVerts, int numEdges, int numFaces,
@@ -103,7 +103,7 @@ void CDDM_calc_normals_tessface(struct DerivedMesh *dm);
 
 /* calculates edges for a CDDerivedMesh (from face data)
  * this completely replaces the current edge data in the DerivedMesh
- * builds edges from the tesselated face data.
+ * builds edges from the tessellated face data.
  */
 void CDDM_calc_edges_tessface(struct DerivedMesh *dm);
 

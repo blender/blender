@@ -1924,7 +1924,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		m_triFaceArray.resize(tot_bt_tris*3);
 		int *tri_pt= &m_triFaceArray[0];
 
-		/* cant be used for anything useful in this case, since we dont rely on the original mesh
+		/* cant be used for anything useful in this case, since we don't rely on the original mesh
 		 * will just be an array like pythons range(tot_bt_tris) */
 		m_polygonIndexArray.resize(tot_bt_tris);
 
@@ -1986,7 +1986,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 	/* force recreation of the m_unscaledShape.
 	 * If this has multiple users we cant delete */
 	if(m_unscaledShape) {
-		// dont free now so it can re-allocate under the same location and not break pointers.
+		// don't free now so it can re-allocate under the same location and not break pointers.
 		// DeleteBulletShape(m_unscaledShape); 
 		m_forceReInstance= true;
 	}

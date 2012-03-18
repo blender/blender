@@ -1547,7 +1547,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			if ( ((vsm->scroller=='h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
 				 ((vsm->scroller=='v') && (v2d->keepofs & V2D_LOCKOFS_Y)) )
 			{
-				/* free customdata initialised */
+				/* free customdata initialized */
 				scroller_activate_exit(C, op);
 				
 				/* can't catch this event for ourselves, so let it go to someone else? */
@@ -1559,7 +1559,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if ( ((vsm->scroller=='h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_HORIZONTAL_FULLR))) ||
 			 ((vsm->scroller=='v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE|V2D_SCROLL_VERTICAL_FULLR))) )
 		{
-			/* free customdata initialised */
+			/* free customdata initialized */
 			scroller_activate_exit(C, op);
 				
 			/* can't catch this event for ourselves, so let it go to someone else? */

@@ -4175,7 +4175,7 @@ static void foreach_attr_type(BPy_PropertyRNA *self, const char *attr,
 	*attr_tot = 0;
 	*attr_signed = FALSE;
 
-	/* note: this is fail with zero length lists, so dont let this get caled in that case */
+	/* note: this is fail with zero length lists, so don't let this get caled in that case */
 	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
 		prop = RNA_struct_find_property(&itemptr, attr);
 		*raw_type = RNA_property_raw_type(prop);
@@ -4236,7 +4236,7 @@ static int foreach_parse_args(
 #endif
 	}
 
-	/* check 'attr_tot' otherwise we dont know if any values were set
+	/* check 'attr_tot' otherwise we don't know if any values were set
 	 * this isn't ideal because it means running on an empty list may fail silently when its not compatible. */
 	if (*size == 0 && *attr_tot != 0) {
 		PyErr_SetString(PyExc_AttributeError, "attribute does not support foreach method");
@@ -4993,7 +4993,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 	/* Check if we gave args that don't exist in the function
 	 * printing the error is slow but it should only happen when developing.
 	 * the if below is quick, checking if it passed less keyword args then we gave.
-	 * (Dont overwrite the error if we have one, otherwise can skip important messages and confuse with args)
+	 * (Don't overwrite the error if we have one, otherwise can skip important messages and confuse with args)
 	 */
 	if (err == 0 && kw && (pykw_len > kw_tot)) {
 		PyObject *key, *value;
@@ -6606,7 +6606,7 @@ static int pyrna_deferred_register_class_recursive(StructRNA *srna, PyTypeObject
 
 int pyrna_deferred_register_class(StructRNA *srna, PyObject *py_class)
 {
-	/* Panels and Menus dont need this
+	/* Panels and Menus don't need this
 	 * save some time and skip the checks here */
 	if (!RNA_struct_idprops_register_check(srna))
 		return 0;
@@ -6704,7 +6704,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 
 			func_arg_count = rna_function_arg_count(func);
 
-			if (func_arg_count >= 0) { /* -1 if we dont care*/
+			if (func_arg_count >= 0) { /* -1 if we don't care*/
 				arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
 				/* note, the number of args we check for and the number of args we give to

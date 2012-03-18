@@ -349,7 +349,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 		else if(but->drawstr[0]) str= but->drawstr;
 		else str= but->tip;
 
-		/* fallback, else we dont get an undo! */
+		/* fallback, else we don't get an undo! */
 		if(str == NULL || str[0] == '\0') {
 			str= "Unknown Action";
 		}
@@ -1647,7 +1647,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 			int strip= BLI_utf8_invalid_strip(but->editstr, strlen(but->editstr));
 			/* not a file?, strip non utf-8 chars */
 			if(strip) {
-				/* wont happen often so isnt that annoying to keep it here for a while */
+				/* wont happen often so isn't that annoying to keep it here for a while */
 				printf("%s: invalid utf8 - stripped chars %d\n", __func__, strip);
 			}
 		}

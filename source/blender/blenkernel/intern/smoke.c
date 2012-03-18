@@ -817,7 +817,7 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->flow->vel_multi = smd->flow->vel_multi;
 	} else if (tsmd->coll) {
 		;
-		/* leave it as initialised, collision settings is mostly caches */
+		/* leave it as initialized, collision settings is mostly caches */
 	}
 }
 

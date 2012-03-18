@@ -515,7 +515,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
  * NOTE: this needs to be at the start of the stack to be of use, as it needs to know the extents of the
  * keyframes/sample-data.
  *
- * Possible TODO - store length of cycle information that can be initialised from the extents of the
+ * Possible TODO - store length of cycle information that can be initialized from the extents of the
  * keyframes/sample-data, and adjusted as appropriate.
  */
 

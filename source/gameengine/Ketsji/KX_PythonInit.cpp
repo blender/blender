@@ -1757,7 +1757,7 @@ static void initPySysObjects__append(PyObject *sys_path, const char *filename)
 	
 	BLI_split_dir_part(filename, expanded, sizeof(expanded)); /* get the dir part of filename only */
 	BLI_path_abs(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
-	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Dont use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
+	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Don't use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
 	item= PyUnicode_DecodeFSDefault(expanded);
 	
 //	printf("SysPath - '%s', '%s', '%s'\n", expanded, filename, gp_GamePythonPath);
@@ -1831,7 +1831,7 @@ static struct _inittab bge_internal_modules[]= {
 };
 
 /**
- * Python is not initialised.
+ * Python is not initialized.
  * see bpy_interface.c's BPY_python_start() which shares the same functionality in blender.
  */
 PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
@@ -1859,7 +1859,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 
 	Py_Initialize();
 	
-	if(argv && first_time) { /* browser plugins dont currently set this */
+	if(argv && first_time) { /* browser plugins don't currently set this */
 		// Until python support ascii again, we use our own.
 		// PySys_SetArgv(argc, argv);
 		int i;
@@ -1874,14 +1874,14 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 
 	bpy_import_init(PyEval_GetBuiltins());
 
-	/* mathutils types are used by the BGE even if we dont import them */
+	/* mathutils types are used by the BGE even if we don't import them */
 	{
 		PyObject *mod= PyImport_ImportModuleLevel((char *)"mathutils", NULL, NULL, NULL, 0);
 		Py_DECREF(mod);
 	}
 
 #ifdef WITH_AUDASPACE
-	/* accessing a SoundActuator's sound results in a crash if aud is not initialised... */
+	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
 	{
 		PyObject *mod= PyImport_ImportModuleLevel((char *)"aud", NULL, NULL, NULL, 0);
 		Py_DECREF(mod);
@@ -1933,7 +1933,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_FrozenFlag=1;
 
 #ifdef WITH_AUDASPACE
-	/* accessing a SoundActuator's sound results in a crash if aud is not initialised... */
+	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
 	{
 		PyObject *mod= PyImport_ImportModuleLevel((char *)"aud", NULL, NULL, NULL, 0);
 		Py_DECREF(mod);

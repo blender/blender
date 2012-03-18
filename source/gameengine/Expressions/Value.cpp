@@ -585,7 +585,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	{
 		vallie = new CStringValue(_PyUnicode_AsString(pyobj),"");
 	} else
-	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
+	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, don't let these get assigned to GameObject props, must check elsewhere */
 	{
 		vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
 	} else

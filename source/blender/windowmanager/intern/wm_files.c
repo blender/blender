@@ -398,7 +398,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		
 		if (retval != BKE_READ_FILE_FAIL) {
 			G.relbase_valid = 1;
-			if(!G.background) /* assume automated tasks with background, dont write recent file list */
+			if(!G.background) /* assume automated tasks with background, don't write recent file list */
 				write_history();
 		}
 
@@ -748,7 +748,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
  
 	BLI_strncpy(filepath, target, FILE_MAX);
 	BLI_replace_extension(filepath, FILE_MAX, ".blend");
-	/* dont use 'target' anymore */
+	/* don't use 'target' anymore */
 	
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {

@@ -476,7 +476,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 		ED_view3d_win_to_vector(vod->ar, mval_f, vod->mousevec);
 	}
 
-	/* lookup, we dont pass on v3d to prevent confusement */
+	/* lookup, we don't pass on v3d to prevent confusement */
 	vod->grid= vod->v3d->grid;
 	vod->far= vod->v3d->far;
 
@@ -2202,7 +2202,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 	size= MAX3(afm[0], afm[1], afm[2]);
 
 	if (!rv3d->is_persp) {
-		if (size < 0.0001f) { /* if its a sinble point. dont even re-scale */
+		if (size < 0.0001f) { /* if its a sinble point. don't even re-scale */
 			ok_dist= 0;
 		}
 		else {
@@ -2813,7 +2813,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 						}
 					}
 
-					/* if the camera isnt found, check a number of options */
+					/* if the camera isn't found, check a number of options */
 					if (v3d->camera==NULL && ob && ob->type==OB_CAMERA)
 						v3d->camera= ob;
 					
@@ -2824,7 +2824,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 					if (v3d->camera==NULL)
 						return OPERATOR_CANCELLED;
 					
-					/* important these dont get out of sync for locked scenes */
+					/* important these don't get out of sync for locked scenes */
 					if (v3d->scenelock)
 						scene->camera= v3d->camera;
 

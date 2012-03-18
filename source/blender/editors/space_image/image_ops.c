@@ -1069,7 +1069,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			simopts->im_format.depth= imtype_best_depth(ibuf, simopts->im_format.imtype);
 		}
 
-		/* some formats dont use quality so fallback to scenes quality */
+		/* some formats don't use quality so fallback to scenes quality */
 		if (simopts->im_format.quality == 0) {
 			simopts->im_format.quality= scene->r.im_format.quality;
 		}

@@ -1284,7 +1284,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 				tp->te= te;
 				tp->name= te->name;
 				tp->idcode= te->idcode;
-				if(tselem->type && tselem->type!=TSE_DEFGROUP) tp->idcode= 0;	// dont sort this
+				if(tselem->type && tselem->type!=TSE_DEFGROUP) tp->idcode= 0;	// don't sort this
 				tp->id= tselem->id;
 			}
 			/* keep beginning of list */

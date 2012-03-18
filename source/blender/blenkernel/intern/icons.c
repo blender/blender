@@ -91,7 +91,7 @@ static int get_next_free_id(void)
 	while (BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(startId)) && startId>=gFirstIconId) 
 		startId++;
 
-	/* if we found a suitable one that isnt used yet, return it */
+	/* if we found a suitable one that isn't used yet, return it */
 	if (startId>=gFirstIconId)
 		return startId;
 

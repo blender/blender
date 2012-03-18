@@ -1160,7 +1160,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	/* force depsgraph to get recalculated since relationships removed */
 	DAG_scene_sort(bmain, scene);		/* sort order of objects */	
 	
-	/* note, calling BIK_clear_data() isnt needed here */
+	/* note, calling BIK_clear_data() isn't needed here */
 
 	/* do updates */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

@@ -431,7 +431,7 @@ int bpy_lib_init(PyObject *mod_par)
 
 	PyModule_AddObject(mod_par, "_library_load", PyCFunction_New(&load_meth, NULL));
 
-	/* some compilers dont like accessing this directly, delay assignment */
+	/* some compilers don't like accessing this directly, delay assignment */
 	bpy_lib_Type.tp_getattro = PyObject_GenericGetAttr;
 
 	if (PyType_Ready(&bpy_lib_Type) < 0)
