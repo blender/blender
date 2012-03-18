@@ -1,11 +1,11 @@
 /*
- * 
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,7 +19,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Arystanbek Dyussenov
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -83,7 +83,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		else {
 			/* temp swap out the color */
 			const unsigned char imb_planes_back = ibuf->planes;
-			const float dither_back = ibuf->dither; 
+			const float dither_back = ibuf->dither;
 			ibuf->planes = scene->r.im_format.planes;
 			ibuf->dither = scene->r.dither_intensity;
 			if (!BKE_write_ibuf(ibuf, path, &scene->r.im_format)) {
@@ -207,7 +207,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)mag);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect); 
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 		error = (int)glGetError();
 	}
 

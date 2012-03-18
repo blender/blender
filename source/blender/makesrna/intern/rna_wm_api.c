@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -82,7 +82,8 @@ void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 	WM_event_remove_timer(wm, timer->win, timer);
 }
 
-static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, const char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, const char *idname, int type, int value,
+                                         int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
 {
 /*	wmWindowManager *wm = CTX_wm_manager(C); */
 	char idname_bl[OP_MAX_TYPENAME];
@@ -106,7 +107,9 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, cons
 	return WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
 }
 
-static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, ReportList *reports, const char *propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, ReportList *reports, const char *propvalue_str,
+                                               int type, int value, int any, int shift, int ctrl, int alt,
+                                               int oskey, int keymodifier)
 {
 	int modifier = 0;
 	int propvalue = 0;
@@ -198,8 +201,8 @@ void RNA_api_wm(StructRNA *srna)
 
 	func = RNA_def_function(srna, "fileselect_add", "WM_event_add_fileselect");
 	RNA_def_function_ui_description(func, "Opens a file selector with an operator. "
-	                                "The string properties 'filepath', 'filename', 'directory' and a 'files' collection "
-	                                "are assigned when present in the operator");
+	                                "The string properties 'filepath', 'filename', 'directory' and a 'files' "
+	                                "collection are assigned when present in the operator");
 	rna_generic_op_invoke(func, 0);
 
 	func = RNA_def_function(srna, "modal_handler_add", "rna_event_modal_handler_add");
@@ -279,7 +282,8 @@ void RNA_api_operator(StructRNA *srna)
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); /* better name? */
+		/* better name? */
+	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 
 	/* check */
@@ -301,7 +305,8 @@ void RNA_api_operator(StructRNA *srna)
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); /* better name? */
+		/* better name? */
+	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "modal", NULL); /* same as invoke */
@@ -312,7 +317,8 @@ void RNA_api_operator(StructRNA *srna)
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); /* better name? */
+		/* better name? */
+	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 
 	/* draw */
@@ -329,7 +335,8 @@ void RNA_api_operator(StructRNA *srna)
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); /* better name? */
+		/* better name? */
+	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 }
 

@@ -647,8 +647,8 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 
 				for (; surface; surface = surface->next) {
 					if (surface->effector_weights == ew)
-						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"].effector_weights",
-							md->name, surface->name);
+						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
+						                    ".effector_weights", md->name, surface->name);
 				}
 			}
 		}
@@ -734,7 +734,8 @@ static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Point Caches", "Collection of point caches");
 
 	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get", "rna_Cache_active_point_cache_index_set",
+	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get",
+	                           "rna_Cache_active_point_cache_index_set",
 	                           "rna_Cache_active_point_cache_index_range");
 	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
@@ -838,7 +839,8 @@ static void rna_def_pointcache(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next",
-	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+	                                  NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
 	rna_def_ptcache_point_caches(brna, prop);
@@ -1062,12 +1064,14 @@ static void rna_def_field(BlenderRNA *brna)
 		{0, "NONE", 0, "None", ""},
 		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", "Radial field toward the center of object"},
 		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", "Constant force along the force object's local Z axis"},
-		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", "Spiraling force that twists the force object's local Z axis"},
+		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex",
+		                "Spiraling force that twists the force object's local Z axis"},
 		{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", "Forcefield depends on the speed of the particles"},
 		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic",
 		                  "The source of this force field is the zero point of a harmonic oscillator"},
 		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge",
-		                "Spherical forcefield based on the charge of particles, only influences other charge force fields"},
+		                "Spherical forcefield based on the charge of particles, "
+		                "only influences other charge force fields"},
 		{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones",
 		                  "Forcefield based on the Lennard-Jones potential"},
 		{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", "Forcefield based on a texture"},
@@ -1243,7 +1247,8 @@ static void rna_def_field(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "texture_nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "tex_nabla");
 	RNA_def_property_range(prop, 0.0001f, 1.0f);
-	RNA_def_property_ui_text(prop, "Nabla", "Defines size of derivative offset used for calculating gradient and curl");
+	RNA_def_property_ui_text(prop, "Nabla",
+	                         "Defines size of derivative offset used for calculating gradient and curl");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop = RNA_def_property(srna, "noise", PROP_FLOAT, PROP_NONE);
@@ -1410,7 +1415,8 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "GameSoftBodySettings", NULL);
 	RNA_def_struct_sdna(srna, "BulletSoftBody");
-	RNA_def_struct_ui_text(srna, "Game Soft Body Settings", "Soft body simulation settings for an object in the game engine");
+	RNA_def_struct_ui_text(srna, "Game Soft Body Settings",
+	                       "Soft body simulation settings for an object in the game engine");
 	
 	/* Floats */
 	
@@ -1432,7 +1438,8 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0.01f, 1.0f);
-	RNA_def_property_ui_text(prop, "Margin", "Collision margin for soft body. Small value makes the algorithm unstable");
+	RNA_def_property_ui_text(prop, "Margin",
+	                         "Collision margin for soft body. Small value makes the algorithm unstable");
 	
 	prop = RNA_def_property(srna, "weld_threshold", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "welding");
@@ -1536,7 +1543,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "vertex_group_goal", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vertgroup");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not impossible .. but not supported yet */
-	RNA_def_property_string_funcs(prop, "rna_SoftBodySettings_goal_vgroup_get", "rna_SoftBodySettings_goal_vgroup_length",
+	RNA_def_property_string_funcs(prop, "rna_SoftBodySettings_goal_vgroup_get",
+	                              "rna_SoftBodySettings_goal_vgroup_length",
 	                              "rna_SoftBodySettings_goal_vgroup_set");
 	RNA_def_property_ui_text(prop, "Goal Vertex Group", "Control point weight values");
 	
@@ -1556,7 +1564,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "defgoal");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Goal Default", "Default Goal (vertex target position) value, when no Vertex Group used");
+	RNA_def_property_ui_text(prop, "Goal Default",
+	                         "Default Goal (vertex target position) value, when no Vertex Group used");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "goal_spring", PROP_FLOAT, PROP_NONE);
@@ -1660,7 +1669,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rklimit");
 	RNA_def_property_range(prop, 0.001f, 10.0f);
 	RNA_def_property_ui_text(prop, "Error Limit",
-	                         "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+	                         "The Runge-Kutta ODE solver error limit, low value gives more precision, "
+	                         "high values speed");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "step_min", PROP_INT, PROP_NONE);
@@ -1685,7 +1695,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "fuzzyness");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Fuzzy",
-	                         "Fuzziness while on collision, high values make collision handling faster but less stable");
+	                         "Fuzziness while on collision, high values make collision handling faster "
+	                         "but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);
@@ -1739,18 +1750,21 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "use_stiff_quads", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_stiff_quads_get", "rna_SoftBodySettings_stiff_quads_set");
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_stiff_quads_get",
+	                               "rna_SoftBodySettings_stiff_quads_set");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Stiff Quads", "Add diagonal springs on 4-gons");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "use_edge_collision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_edge_collision_get", "rna_SoftBodySettings_edge_collision_set");
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_edge_collision_get",
+	                               "rna_SoftBodySettings_edge_collision_set");
 	RNA_def_property_ui_text(prop, "Edge Collision", "Edges collide too");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "use_face_collision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_face_collision_get", "rna_SoftBodySettings_face_collision_set");
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_face_collision_get",
+	                               "rna_SoftBodySettings_face_collision_set");
 	RNA_def_property_ui_text(prop, "Face Collision", "Faces collide too, can be very slow");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
@@ -1761,7 +1775,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "use_self_collision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_self_collision_get", "rna_SoftBodySettings_self_collision_set");
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_self_collision_get",
+	                               "rna_SoftBodySettings_self_collision_set");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Self Collision", "Enable naive vertex ball self collision");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");

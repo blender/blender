@@ -176,7 +176,8 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, texco_items);
-	RNA_def_property_ui_text(prop, "Texture Coordinates", "Texture coordinates used to map the texture onto the background");
+	RNA_def_property_ui_text(prop, "Texture Coordinates",
+	                         "Texture coordinates used to map the texture onto the background");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
@@ -246,7 +247,8 @@ static void rna_def_lighting(BlenderRNA *brna)
 	/* ambient occlusion */
 	prop = RNA_def_property(srna, "use_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_AMB_OCC);
-	RNA_def_property_ui_text(prop, "Use Ambient Occlusion", "Use Ambient Occlusion to add shadowing based on distance between objects");
+	RNA_def_property_ui_text(prop, "Use Ambient Occlusion",
+	                         "Use Ambient Occlusion to add shadowing based on distance between objects");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "ao_factor", PROP_FLOAT, PROP_FACTOR);
@@ -314,30 +316,39 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "aodist");
-	RNA_def_property_ui_text(prop, "Distance", "Length of rays, defines how far away other faces give occlusion effect");
+	RNA_def_property_ui_text(prop, "Distance",
+	                         "Length of rays, defines how far away other faces give occlusion effect");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "falloff_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
-	RNA_def_property_ui_text(prop, "Strength", "Attenuation falloff strength, the higher, the less influence distant objects have");
+	RNA_def_property_ui_text(prop, "Strength",
+	                         "Attenuation falloff strength, the higher, the less influence distant objects have");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aobias");
 	RNA_def_property_range(prop, 0, 0.5);
-	RNA_def_property_ui_text(prop, "Bias", "Bias (in radians) to prevent smoothed faces from showing banding (for Raytrace Constant Jittered)");
+	RNA_def_property_ui_text(prop, "Bias",
+	                         "Bias (in radians) to prevent smoothed faces from showing banding "
+	                         "(for Raytrace Constant Jittered)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_adapt_thresh");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Threshold", "Samples below this threshold will be considered fully shadowed/unshadowed and skipped (for Raytrace Adaptive QMC)");
+	RNA_def_property_ui_text(prop, "Threshold",
+	                         "Samples below this threshold will be considered fully shadowed/unshadowed and skipped "
+	                         "(for Raytrace Adaptive QMC)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "adapt_to_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_adapt_speed_fac");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Adapt To Speed", "Use the speed vector pass to reduce AO samples in fast moving pixels. Higher values result in more aggressive sample reduction. Requires Vec pass enabled (for Raytrace Adaptive QMC)");
+	RNA_def_property_ui_text(prop, "Adapt To Speed",
+	                         "Use the speed vector pass to reduce AO samples in fast moving pixels - "
+	                         "higher values result in more aggressive sample reduction "
+	                         "(requires Vec pass enabled, for Raytrace Adaptive QMC)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "error_threshold", PROP_FLOAT, PROP_NONE);
@@ -360,13 +371,15 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "aomode", WO_AOCACHE);
-	RNA_def_property_ui_text(prop, "Pixel Cache", "Cache AO results in pixels and interpolate over neighboring pixels for speedup");
+	RNA_def_property_ui_text(prop, "Pixel Cache",
+	                         "Cache AO results in pixels and interpolate over neighboring pixels for speedup");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "aosamp");
 	RNA_def_property_range(prop, 1, 128);
-	RNA_def_property_ui_text(prop, "Samples", "Amount of ray samples. Higher values give smoother results and longer rendering times");
+	RNA_def_property_ui_text(prop, "Samples",
+	                         "Amount of ray samples. Higher values give smoother results and longer rendering times");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "sample_method", PROP_ENUM, PROP_NONE);
@@ -487,7 +500,8 @@ void RNA_def_world(BlenderRNA *brna)
 #endif
 
 	srna = RNA_def_struct(brna, "World", "ID");
-	RNA_def_struct_ui_text(srna, "World", "World datablock describing the environment and ambient lighting of a scene");
+	RNA_def_struct_ui_text(srna, "World",
+	                       "World datablock describing the environment and ambient lighting of a scene");
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);

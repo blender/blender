@@ -143,7 +143,8 @@ static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
+                                            StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine = {NULL};
@@ -160,7 +161,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 
 	if (strlen(identifier) >= sizeof(dummyet.idname)) {
 		BKE_reportf(reports, RPT_ERROR, "registering render engine class: '%s' is too long, maximum length is %d",
-		                                identifier, (int)sizeof(dummyet.idname));
+		            identifier, (int)sizeof(dummyet.idname));
 		return NULL;
 	}
 
@@ -177,7 +178,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	et = MEM_callocN(sizeof(RenderEngineType), "python render engine");
 	memcpy(et, &dummyet, sizeof(dummyet));
 
-	et->ext.srna = RNA_def_struct(&BLENDER_RNA, et->idname, "RenderEngine"); 
+	et->ext.srna = RNA_def_struct(&BLENDER_RNA, et->idname, "RenderEngine");
 	et->ext.data = data;
 	et->ext.call = call;
 	et->ext.free = free;
@@ -273,7 +274,8 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "RenderEngine");
 	RNA_def_struct_ui_text(srna, "Render Engine", "Render engine");
 	RNA_def_struct_refine_func(srna, "rna_RenderEngine_refine");
-	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister", "rna_RenderEngine_instance");
+	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister",
+	                              "rna_RenderEngine_instance");
 
 	/* final render callbacks */
 	func = RNA_def_function(srna, "update", NULL);
@@ -392,7 +394,8 @@ static void rna_def_render_result(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string_file_name(func, "filename", "", FILE_MAX, "File Name",
-	                               "Filename to load into this render tile, must be no smaller than the render result");
+	                               "Filename to load into this render tile, must be no smaller than "
+	                               "the render result");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0);
@@ -407,7 +410,9 @@ static void rna_def_render_result(BlenderRNA *brna)
 
 	parm = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(parm, "RenderLayer");
-	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+	                                  NULL, NULL, NULL, NULL);
 
 	RNA_define_verify_sdna(1);
 }
@@ -438,7 +443,9 @@ static void rna_def_render_layer(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "passes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RenderPass");
-	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+	                                  NULL, NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "rect", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
@@ -524,4 +531,3 @@ void RNA_def_render(BlenderRNA *brna)
 }
 
 #endif /* RNA_RUNTIME */
-

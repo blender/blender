@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -38,7 +38,9 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int emboss, int index)
+static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon,
+                        int expand, int slider, int toggle, int icon_only, int event, int full_event,
+                        int emboss, int index)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	int flag = 0;
@@ -134,13 +136,17 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "row", "uiLayoutRow");
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
-	RNA_def_function_ui_description(func, "Sub-layout. Items placed in this sublayout are placed next to each other in a row");
+	RNA_def_function_ui_description(func,
+	                                "Sub-layout. Items placed in this sublayout are placed next to each other "
+	                                "in a row");
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other");
 	
 	func = RNA_def_function(srna, "column", "uiLayoutColumn");
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
-	RNA_def_function_ui_description(func, "Sub-layout. Items placed in this sublayout are placed under each other in a column");
+	RNA_def_function_ui_description(func,
+	                                "Sub-layout. Items placed in this sublayout are placed under each other "
+	                                "in a column");
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other");
 
 	func = RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
@@ -428,9 +434,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_pointer(func, "active_data", "AnyType", "", "Data from which to take property for the active element");
+	parm = RNA_def_pointer(func, "active_data", "AnyType", "",
+	                       "Data from which to take property for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
-	parm = RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element");
+	parm = RNA_def_string(func, "active_property", "", 0, "",
+	                      "Identifier of property in data, for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_string(func, "prop_list", "", 0, "",
 	               "Identifier of a string property in each data member, specifying which "
@@ -482,5 +490,5 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_string(func, "string", "", 1024*1024, "Descr", "DESCR");
 	RNA_def_function_return(func, parm);
 }
-#endif
 
+#endif

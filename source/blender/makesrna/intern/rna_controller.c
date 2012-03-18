@@ -195,7 +195,8 @@ void RNA_def_controller(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Controller", NULL);
 	RNA_def_struct_sdna(srna, "bController");
 	RNA_def_struct_refine_func(srna, "rna_Controller_refine");
-	RNA_def_struct_ui_text(srna, "Controller", "Game engine logic brick to process events, connecting sensors to actuators");
+	RNA_def_struct_ui_text(srna, "Controller",
+	                       "Game engine logic brick to process events, connecting sensors to actuators");
 
 	RNA_api_controller(srna);
 
@@ -215,12 +216,14 @@ void RNA_def_controller(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set controller expanded in the user interface");
-	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);	
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "use_priority", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_PRIO);
-	RNA_def_property_ui_text(prop, "Priority", "Mark controller for execution before all non-marked controllers (good for startup scripts)");
+	RNA_def_property_ui_text(prop, "Priority",
+	                         "Mark controller for execution before all non-marked controllers "
+	                         "(good for startup scripts)");
 	RNA_def_property_ui_icon(prop, ICON_BOOKMARKS, 1);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -228,7 +231,9 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "links", NULL);
 	RNA_def_property_struct_type(prop, "Actuator");
 	RNA_def_property_ui_text(prop, "Actuators", "The list containing the actuators connected to the controller");
-	RNA_def_property_collection_funcs(prop, "rna_Controller_actuators_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", "rna_Controller_actuators_length", NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_Controller_actuators_begin", "rna_iterator_array_next",
+	                                  "rna_iterator_array_end", "rna_iterator_array_dereference_get",
+	                                  "rna_Controller_actuators_length", NULL, NULL, NULL);
 
 	/* State */
 	
@@ -251,7 +256,8 @@ void RNA_def_controller(BlenderRNA *brna)
 	/* Expression Controller */
 	srna = RNA_def_struct(brna, "ExpressionController", "Controller");
 	RNA_def_struct_sdna_from(srna, "bExpressionCont", "data");
-	RNA_def_struct_ui_text(srna, "Expression Controller", "Controller passing on events based on the evaluation of an expression");
+	RNA_def_struct_ui_text(srna, "Expression Controller",
+	                       "Controller passing on events based on the evaluation of an expression");
 
 	prop = RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "str");
@@ -276,12 +282,16 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Module", "Module name and function to run, e.g. \"someModule.main\" (internal texts and external python files can be used)");
+	RNA_def_property_ui_text(prop, "Module",
+	                         "Module name and function to run, e.g. \"someModule.main\" "
+	                         "(internal texts and external python files can be used)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "use_debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_PY_DEBUG);
-	RNA_def_property_ui_text(prop, "D", "Continuously reload the module from disk for editing external modules without restarting");
+	RNA_def_property_ui_text(prop, "D",
+	                         "Continuously reload the module from disk for editing external modules "
+	                         "without restarting");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* Other Controllers */
@@ -305,4 +315,3 @@ void RNA_def_controller(BlenderRNA *brna)
 }
 
 #endif
-

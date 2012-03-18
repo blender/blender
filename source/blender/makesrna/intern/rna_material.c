@@ -49,7 +49,8 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 {TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
 {TEXCO_NORM, "NORMAL", 0, "Normal", "Use normal vector as texture coordinates"},
 {TEXCO_REFL, "REFLECTION", 0, "Reflection", "Use reflection vector as texture coordinates"},
-{TEXCO_STRESS, "STRESS", 0, "Stress", "Use the difference of edge lengths compared to original coordinates of the mesh"},
+{TEXCO_STRESS, "STRESS", 0, "Stress",
+               "Use the difference of edge lengths compared to original coordinates of the mesh"},
 {TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Use the optional tangent vector as texture coordinates"},
 {0, NULL, 0, NULL, NULL}};
 
@@ -70,8 +71,8 @@ EnumPropertyItem ramp_blend_items[] = {
 {MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
 {MA_RAMP_VAL, "VALUE", 0, "Value", ""},
 {MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
-{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
+{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""},
+{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""},
 {0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -419,8 +420,9 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{MTEX_COMPAT_BUMP, "BUMP_COMPATIBLE", 0, "Compatible", ""},
 		{MTEX_3TAP_BUMP, "BUMP_LOW_QUALITY", 0, "Low Quality", "Use 3 tap filtering"},
 		{MTEX_5TAP_BUMP, "BUMP_MEDIUM_QUALITY", 0, "Medium Quality", "Use 5 tap filtering"},
-		{MTEX_BICUBIC_BUMP, "BUMP_BEST_QUALITY", 0, "Best Quality", "Use bicubic filtering (requires OpenGL 3.0+, "
-		                                            "it will fall back on medium setting for other systems)"},
+		{MTEX_BICUBIC_BUMP, "BUMP_BEST_QUALITY", 0,
+		                    "Best Quality", "Use bicubic filtering (requires OpenGL 3.0+, it will fall back on "
+		                    "medium setting for other systems)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_bump_space_items[] = {
@@ -455,7 +457,8 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_from_dupli", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_DUPLI_MAPTO);
 	RNA_def_property_ui_text(prop, "From Dupli",
-	                         "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent");
+	                         "Dupli's instanced from verts, faces or particles, inherit texture coordinate "
+	                         "from their parent");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop = RNA_def_property(srna, "use_from_original", PROP_BOOLEAN, PROP_NONE);
@@ -756,15 +759,17 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 		{GEMAT_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
 		{GEMAT_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
 		{GEMAT_CLIP, "CLIP", 0, "Alpha Clip", "Use the image alpha values clipped with no blending (binary alpha)"},
-		{GEMAT_ALPHA, "ALPHA", 0, "Alpha Blend", "Render polygon transparent, depending on alpha channel of the texture"},
-		{GEMAT_ALPHA_SORT, "ALPHA_SORT", 0, "Alpha Sort", "Sort faces for correct alpha drawing (slow, use Alpha Clip instead when possible)"},		
+		{GEMAT_ALPHA, "ALPHA", 0, "Alpha Blend",
+		              "Render polygon transparent, depending on alpha channel of the texture"},
+		{GEMAT_ALPHA_SORT, "ALPHA_SORT", 0, "Alpha Sort",
+		                   "Sort faces for correct alpha drawing (slow, use Alpha Clip instead when possible)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_face_orientation_items[] = {
 		{GEMAT_NORMAL,"NORMAL",0,"Normal","No tranformation"},
 		{GEMAT_HALO, "HALO", 0, "Halo", "Screen aligned billboard"},
 		{GEMAT_BILLBOARD, "BILLBOARD", 0, "Billboard", "Billboard with Z-axis constraint"},
-		{GEMAT_SHADOW, "SHADOW", 0, "Shadow", "Faces are used for shadow"},		
+		{GEMAT_SHADOW, "SHADOW", 0, "Shadow", "Faces are used for shadow"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "MaterialGameSettings", NULL);
@@ -1012,7 +1017,8 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "aniso_gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Anisotropy",
-	                         "The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent");
+	                         "The shape of the reflection, from 0.0 (circular) to 1.0 "
+	                         "(fully stretched along the tangent");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 		
 	prop = RNA_def_property(srna, "gloss_samples", PROP_INT, PROP_NONE);
@@ -1060,7 +1066,8 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialRaytraceTransparency", NULL);
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Raytrace Transparency", "Raytraced refraction settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Raytrace Transparency",
+	                       "Raytraced refraction settings for a Material datablock");
 
 	prop = RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ang");
@@ -1170,7 +1177,8 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "light_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shade_type");
 	RNA_def_property_enum_items(prop, prop_lighting_items);
-	RNA_def_property_ui_text(prop, "Lighting Mode", "Method of shading, attenuating, and scattering light through the volume");
+	RNA_def_property_ui_text(prop, "Lighting Mode",
+	                         "Method of shading, attenuating, and scattering light through the volume");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop = RNA_def_property(srna, "use_external_shadows", PROP_BOOLEAN, PROP_NONE);
@@ -1189,7 +1197,8 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "precache_resolution");
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Resolution",
-	                         "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory");
+	                         "Resolution of the voxel grid, low resolutions are faster, "
+	                         "high resolutions use more memory");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop = RNA_def_property(srna, "ms_diffusion", PROP_FLOAT, PROP_NONE);
@@ -1279,7 +1288,8 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "asymmetry", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "asymmetry");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Asymmetry", "Back scattering (-1.0) to Forward scattering (1.0) and the range in between");
+	RNA_def_property_ui_text(prop, "Asymmetry",
+	                         "Back scattering (-1.0) to Forward scattering (1.0) and the range in between");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
@@ -1638,7 +1648,8 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_fh_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dynamode", MA_FH_NOR);
 	RNA_def_property_ui_text(prop, "Align to Normal",
-	                         "Align dynamic game objects along the surface normal, when inside the physics distance area");
+	                         "Align dynamic game objects along the surface normal, "
+	                         "when inside the physics distance area");
 
 	prop = RNA_def_property(srna, "fh_force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fh");
@@ -1784,7 +1795,8 @@ void RNA_def_material(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_light_group_exclusive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_GROUP_NOLAY);
 	RNA_def_property_ui_text(prop, "Light Group Exclusive",
-	                         "Material uses the light group exclusively - these lamps are excluded from other scene lighting");
+	                         "Material uses the light group exclusively - these lamps are excluded "
+	                         "from other scene lighting");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop = RNA_def_property(srna, "use_raytrace", PROP_BOOLEAN, PROP_NONE);
@@ -1817,7 +1829,8 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "invert_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZINV);
-	RNA_def_property_ui_text(prop, "Invert Z Depth", "Render material's faces with an inverted Z buffer (scanline only)");
+	RNA_def_property_ui_text(prop, "Invert Z Depth",
+	                         "Render material's faces with an inverted Z buffer (scanline only)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop = RNA_def_property(srna, "offset_z", PROP_FLOAT, PROP_NONE);
@@ -1876,7 +1889,8 @@ void RNA_def_material(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_ray_shadow_bias", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYBIAS);
 	RNA_def_property_ui_text(prop, "Ray Shadow Bias",
-	                         "Prevent raytraced shadow errors on surfaces with smooth shaded normals (terminator problem)");
+	                         "Prevent raytraced shadow errors on surfaces with smooth shaded normals "
+	                         "(terminator problem)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop = RNA_def_property(srna, "use_full_oversampling", PROP_BOOLEAN, PROP_NONE);
@@ -2005,7 +2019,8 @@ void RNA_def_material(BlenderRNA *brna)
 }
 
 
-static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const char *structname, const char *structname_slots)
+static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const char *structname,
+                                  const char *structname_slots)
 {
 	StructRNA *srna;
 
@@ -2045,7 +2060,8 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
 	/* mtex */
 	prop = RNA_def_property(srna, "texture_slots", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end",
+	                                  "rna_iterator_array_dereference_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures");
 	rna_def_texture_slots(brna, prop, structname, structname_slots);
 
@@ -2066,5 +2082,3 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
 }
 
 #endif
-
-

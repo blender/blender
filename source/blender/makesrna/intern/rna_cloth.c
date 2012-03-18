@@ -222,19 +222,22 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mingoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Goal Minimum", "Goal minimum, vertex group weights are scaled to match this range");
+	RNA_def_property_ui_text(prop, "Goal Minimum",
+	                         "Goal minimum, vertex group weights are scaled to match this range");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "goal_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxgoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Goal Maximum", "Goal maximum, vertex group weights are scaled to match this range");
+	RNA_def_property_ui_text(prop, "Goal Maximum",
+	                         "Goal maximum, vertex group weights are scaled to match this range");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "goal_default", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "defgoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Goal Default", "Default Goal (vertex target position) value, when no Vertex Group used");
+	RNA_def_property_ui_text(prop, "Goal Default",
+	                         "Default Goal (vertex target position) value, when no Vertex Group used");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 	
 	prop = RNA_def_property(srna, "goal_spring", PROP_FLOAT, PROP_NONE);
@@ -328,7 +331,8 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "spring_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "Cdis");
 	RNA_def_property_range(prop, 0.0f, 50.0f);
-	RNA_def_property_ui_text(prop, "Spring Damping", "Damping of cloth velocity (higher = more smooth, less jiggling)");
+	RNA_def_property_ui_text(prop, "Spring Damping",
+	                         "Damping of cloth velocity (higher = more smooth, less jiggling)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 	
 	prop = RNA_def_property(srna, "structural_stiffness", PROP_FLOAT, PROP_NONE);
@@ -345,7 +349,8 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "vertex_group_structural_stiffness", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_ClothSettings_struct_vgroup_get", "rna_ClothSettings_struct_vgroup_length",
+	RNA_def_property_string_funcs(prop, "rna_ClothSettings_struct_vgroup_get",
+	                              "rna_ClothSettings_struct_vgroup_length",
 	                              "rna_ClothSettings_struct_vgroup_set");
 	RNA_def_property_ui_text(prop, "Structural Stiffness Vertex Group",
 	                         "Vertex group for fine control over structural stiffness");
@@ -354,7 +359,8 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bending_stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bending");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
-	RNA_def_property_ui_text(prop, "Bending Stiffness", "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
+	RNA_def_property_ui_text(prop, "Bending Stiffness",
+	                         "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "bending_stiffness_max", PROP_FLOAT, PROP_NONE);
@@ -367,7 +373,8 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "vertex_group_bending", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_bend_vgroup_get", "rna_ClothSettings_bend_vgroup_length",
 	                              "rna_ClothSettings_bend_vgroup_set");
-	RNA_def_property_ui_text(prop, "Bending Stiffness Vertex Group", "Vertex group for fine control over bending stiffness");
+	RNA_def_property_ui_text(prop, "Bending Stiffness Vertex Group",
+	                         "Vertex group for fine control over bending stiffness");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
@@ -501,7 +508,8 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "self_loop_count");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Self Collision Quality",
-	                         "How many self collision iterations should be done (higher is better quality but slower)");
+	                         "How many self collision iterations should be done "
+	                         "(higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
@@ -517,4 +525,3 @@ void RNA_def_cloth(BlenderRNA *brna)
 }
 
 #endif
-

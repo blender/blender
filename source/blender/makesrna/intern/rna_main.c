@@ -291,12 +291,14 @@ void RNA_def_main(BlenderRNA *brna)
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks", RNA_def_main_scenes},
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks", RNA_def_main_objects},
 		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks", RNA_def_main_materials},
-		{"node_groups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks", RNA_def_main_node_groups},
+		{"node_groups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks",
+		                RNA_def_main_node_groups},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks", RNA_def_main_meshes},
 		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks", RNA_def_main_lamps},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks", RNA_def_main_libraries},
 		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks", RNA_def_main_screens},
-		{"window_managers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks", RNA_def_main_window_managers},
+		{"window_managers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks",
+		                    RNA_def_main_window_managers},
 		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks", RNA_def_main_images},
 		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks", RNA_def_main_lattices},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks", RNA_def_main_curves} ,
@@ -311,17 +313,22 @@ void RNA_def_main(BlenderRNA *brna)
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks", RNA_def_main_texts},
 		{"speakers", "Speaker", "rna_Main_speaker_begin", "Speakers", "Speaker datablocks", RNA_def_main_speakers},
 		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound datablocks", RNA_def_main_sounds},
-		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks", RNA_def_main_armatures},
+		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks",
+		              RNA_def_main_armatures},
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks", RNA_def_main_actions},
-		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks", RNA_def_main_particles},
-		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks", RNA_def_main_gpencil},
-		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks", RNA_def_main_movieclips},
+		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks",
+		              RNA_def_main_particles},
+		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks",
+		                  RNA_def_main_gpencil},
+		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks",
+		               RNA_def_main_movieclips},
 		{NULL, NULL, NULL, NULL, NULL, NULL}};
 
 	int i;
 	
 	srna = RNA_def_struct(brna, "BlendData", NULL);
-	RNA_def_struct_ui_text(srna, "Blendfile Data", "Main data structure representing a .blend file and all its datablocks");
+	RNA_def_struct_ui_text(srna, "Blendfile Data",
+	                       "Main data structure representing a .blend file and all its datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_BLENDER);
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
@@ -344,7 +351,9 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop = RNA_def_property(srna, lists[i].identifier, PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i].type);
-		RNA_def_property_collection_funcs(prop, lists[i].iter_begin, "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
+		RNA_def_property_collection_funcs(prop, lists[i].iter_begin, "rna_iterator_listbase_next",
+		                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+		                                  NULL, NULL, NULL, NULL);
 		RNA_def_property_ui_text(prop, lists[i].name, lists[i].description);
 
 		/* collection functions */
@@ -369,4 +378,3 @@ void RNA_def_main(BlenderRNA *brna)
 }
 
 #endif
-

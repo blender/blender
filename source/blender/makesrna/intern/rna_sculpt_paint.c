@@ -246,7 +246,8 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_int_default(prop, 1);
 	RNA_def_property_range(prop, 1, 64);
 	RNA_def_property_ui_range(prop, 0, 32, 1, 1);
-	RNA_def_property_ui_text(prop, "Radial Symmetry Count X Axis", "Number of times to copy strokes across the surface");
+	RNA_def_property_ui_text(prop, "Radial Symmetry Count X Axis",
+	                         "Number of times to copy strokes across the surface");
 
 	prop = RNA_def_property(srna, "use_symmetry_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_X);
@@ -279,7 +280,8 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "use_threaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_USE_OPENMP);
-	RNA_def_property_ui_text(prop, "Use OpenMP", "Take advantage of multiple CPU cores to improve sculpting performance");
+	RNA_def_property_ui_text(prop, "Use OpenMP",
+	                         "Take advantage of multiple CPU cores to improve sculpting performance");
 
 	prop = RNA_def_property(srna, "use_deform_only", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_ONLY_DEFORM);
@@ -340,7 +342,8 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	/* booleans */
 	prop = RNA_def_property(srna, "use_projection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_DISABLE);
-	RNA_def_property_ui_text(prop, "Project Paint", "Use projection painting for improved consistency in the brush strokes");
+	RNA_def_property_ui_text(prop, "Project Paint",
+	                         "Use projection painting for improved consistency in the brush strokes");
 	
 	prop = RNA_def_property(srna, "use_occlude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_XRAY);
@@ -565,4 +568,3 @@ void RNA_def_sculpt_paint(BlenderRNA *brna)
 }
 
 #endif
-

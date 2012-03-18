@@ -49,20 +49,28 @@
 EnumPropertyItem boidrule_type_items[] = {
 	{eBoidRuleType_Goal, "GOAL", 0, "Goal", "Go to assigned object or loudest assigned signal source"},
 	{eBoidRuleType_Avoid, "AVOID", 0, "Avoid", "Get away from assigned object or loudest assigned signal source"},
-	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision", "Manoeuvre to avoid collisions with other boids and deflector objects in near future"},
+	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision",
+	                               "Manoeuvre to avoid collisions with other boids and deflector objects in "
+	                               "near future"},
 	{eBoidRuleType_Separate, "SEPARATE", 0, "Separate", "Keep from going through other boids"},
 	{eBoidRuleType_Flock, "FLOCK", 0, "Flock", "Move to center of neighbors and match their velocity"},
 	{eBoidRuleType_FollowLeader, "FOLLOW_LEADER", 0, "Follow Leader", "Follow a boid or assigned object"},
 	{eBoidRuleType_AverageSpeed, "AVERAGE_SPEED", 0, "Average Speed", "Maintain speed, flight level or wander"},
 	{eBoidRuleType_Fight, "FIGHT", 0, "Fight", "Go to closest enemy and attack when in range"},
-	/*{eBoidRuleType_Protect, "PROTECT", 0, "Protect", "Go to enemy closest to target and attack when in range"}, */
-	/*{eBoidRuleType_Hide, "HIDE", 0, "Hide", "Find a deflector move to it's other side from closest enemy"}, */
-	/*{eBoidRuleType_FollowPath, "FOLLOW_PATH", 0, "Follow Path", "Move along a assigned curve or closest curve in a group"}, */
-	/*{eBoidRuleType_FollowWall, "FOLLOW_WALL", 0, "Follow Wall", "Move next to a deflector object's in direction of it's tangent"}, */
+#if 0
+	{eBoidRuleType_Protect, "PROTECT", 0, "Protect", "Go to enemy closest to target and attack when in range"},
+	{eBoidRuleType_Hide, "HIDE", 0, "Hide", "Find a deflector move to it's other side from closest enemy"},
+	{eBoidRuleType_FollowPath, "FOLLOW_PATH", 0, "Follow Path",
+	                           "Move along a assigned curve or closest curve in a group"},
+	{eBoidRuleType_FollowWall, "FOLLOW_WALL", 0, "Follow Wall",
+	                           "Move next to a deflector object's in direction of it's tangent"},
+#endif
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem boidruleset_type_items[] = {
-	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy", "Rules are gone through top to bottom. Only the first rule that effect above fuzziness threshold is evaluated"},
+	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy",
+	                         "Rules are gone through top to bottom (only the first rule which effect is above "
+	                         "fuzziness threshold is evaluated)"},
 	{eBoidRulesetType_Random, "RANDOM", 0, "Random", "A random rule is selected for each boid"},
 	{eBoidRulesetType_Average, "AVERAGE", 0, "Average", "All rules are averaged"},
 	{0, NULL, 0, NULL, NULL}};
@@ -464,7 +472,9 @@ static void rna_def_boidstate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Boid Rule", "");
 
 	prop = RNA_def_property(srna, "active_boid_rule_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_BoidState_active_boid_rule_index_get", "rna_BoidState_active_boid_rule_index_set", "rna_BoidState_active_boid_rule_index_range");
+	RNA_def_property_int_funcs(prop, "rna_BoidState_active_boid_rule_index_get",
+	                           "rna_BoidState_active_boid_rule_index_set",
+	                           "rna_BoidState_active_boid_rule_index_range");
 	RNA_def_property_ui_text(prop, "Active Boid Rule Index", "");
 
 	prop = RNA_def_property(srna, "rule_fuzzy", PROP_FLOAT, PROP_NONE);
@@ -526,7 +536,9 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Boid Rule", "");
 
 	prop = RNA_def_property(srna, "active_boid_state_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_BoidSettings_active_boid_state_index_get", "rna_BoidSettings_active_boid_state_index_set", "rna_BoidSettings_active_boid_state_index_range");
+	RNA_def_property_int_funcs(prop, "rna_BoidSettings_active_boid_state_index_get",
+	                           "rna_BoidSettings_active_boid_state_index_set",
+	                           "rna_BoidSettings_active_boid_state_index_range");
 	RNA_def_property_ui_text(prop, "Active Boid State Index", "");
 
 	/* character properties */
@@ -577,7 +589,8 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "air_ave_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "air_max_ave");
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Max Air Angular Velocity", "Maximum angular velocity in air (relative to 180 degrees)");
+	RNA_def_property_ui_text(prop, "Max Air Angular Velocity",
+	                         "Maximum angular velocity in air (relative to 180 degrees)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop = RNA_def_property(srna, "air_personal_space", PROP_FLOAT, PROP_NONE);
@@ -599,18 +612,21 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "land_acc_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "land_max_acc");
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Max Land Acceleration", "Maximum acceleration on land (relative to maximum speed)");
+	RNA_def_property_ui_text(prop, "Max Land Acceleration",
+	                         "Maximum acceleration on land (relative to maximum speed)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop = RNA_def_property(srna, "land_ave_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "land_max_ave");
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Max Land Angular Velocity", "Maximum angular velocity on land (relative to 180 degrees)");
+	RNA_def_property_ui_text(prop, "Max Land Angular Velocity",
+	                         "Maximum angular velocity on land (relative to 180 degrees)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop = RNA_def_property(srna, "land_personal_space", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 10.0);
-	RNA_def_property_ui_text(prop, "Land Personal Space", "Radius of boids personal space on land (% of particle size)");
+	RNA_def_property_ui_text(prop, "Land Personal Space",
+	                         "Radius of boids personal space on land (% of particle size)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop = RNA_def_property(srna, "land_stick_force", PROP_FLOAT, PROP_NONE);

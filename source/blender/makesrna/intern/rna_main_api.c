@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -531,7 +531,8 @@ MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, con
 	clip = BKE_add_movieclip_file(filepath);
 
 	if (!clip)
-		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unable to load movie clip");
+		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath,
+		            errno ? strerror(errno) : "Unable to load movie clip");
 
 	return clip;
 }
@@ -1523,4 +1524,3 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 }
 
 #endif
-

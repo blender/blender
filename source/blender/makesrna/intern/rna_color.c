@@ -140,11 +140,11 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 		ID *id = ptr->id.data;
 		
 		switch (GS(id->name)) {
-			case ID_MA:	/* material has 2 cases - diffuse and specular */ 
+			case ID_MA:	/* material has 2 cases - diffuse and specular */
 			{
 				Material *ma = (Material*)id;
 				
-				if (ptr->data == ma->ramp_col) 
+				if (ptr->data == ma->ramp_col)
 					return BLI_strdup("diffuse_ramp");
 				else if (ptr->data == ma->ramp_spec)
 					return BLI_strdup("specular_ramp");
@@ -164,18 +164,18 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 	char *path = NULL;
 	int index;
 	
-	/* helper macro for use here to try and get the path 
+	/* helper macro for use here to try and get the path
 	 *	- this calls the standard code for getting a path to a texture...
 	 */
 
 #define COLRAMP_GETPATH                                                       \
 {                                                                             \
-	prop = RNA_struct_find_property(&ramp_ptr, "elements");                    \
+	prop = RNA_struct_find_property(&ramp_ptr, "elements");                   \
 	if (prop) {                                                               \
-		index = RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr);    \
+		index = RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr);   \
 		if (index >= 0) {                                                     \
-			char *texture_path = rna_ColorRamp_path(&ramp_ptr);                \
-			path = BLI_sprintfN("%s.elements[%d]", texture_path, index);       \
+			char *texture_path = rna_ColorRamp_path(&ramp_ptr);               \
+			path = BLI_sprintfN("%s.elements[%d]", texture_path, index);      \
 			MEM_freeN(texture_path);                                          \
 		}                                                                     \
 	}                                                                         \
@@ -205,7 +205,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 				break;
 				
 				/* TODO: node trees need special attention */
-			case ID_NT: 
+			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
 				bNode *node;
@@ -372,7 +372,9 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "CurveMapping", NULL);
-	RNA_def_struct_ui_text(srna, "CurveMapping", "Curve mapping to map color, vector and scalar values to other values using a user defined curve");
+	RNA_def_struct_ui_text(srna, "CurveMapping",
+	                       "Curve mapping to map color, vector and scalar values to other values using "
+	                       "a user defined curve");
 	
 	prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
@@ -404,7 +406,9 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxy_range");
 
 	prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_CurveMapping_curves_length", NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next",
+	                                  "rna_iterator_array_end", "rna_iterator_array_get",
+	                                  "rna_CurveMapping_curves_length", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "CurveMap");
 	RNA_def_property_ui_text(prop, "Curves", "");
 
@@ -520,7 +524,8 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	prop = RNA_def_float(func, "position", 1.0f, 0.0f, 1.0f, "Position", "Evaluate ColorRamp at position", 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	/* return */
-	prop = RNA_def_float_color(func, "color", 4, NULL, -FLT_MAX, FLT_MAX, "Color", "Color at given position", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float_color(func, "color", 4, NULL, -FLT_MAX, FLT_MAX, "Color", "Color at given position",
+	                           -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 	RNA_def_function_output(func, prop);
 }
@@ -611,4 +616,3 @@ void RNA_def_color(BlenderRNA *brna)
 }
 
 #endif
-

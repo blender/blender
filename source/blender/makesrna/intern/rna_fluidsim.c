@@ -218,9 +218,13 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem slip_items[] = {
-		{OB_FSBND_NOSLIP, "NOSLIP", 0, "No Slip", "Obstacle causes zero normal and tangential velocity (=sticky), default for all (only option for moving objects)"},
-		{OB_FSBND_PARTSLIP, "PARTIALSLIP", 0, "Partial Slip", "Mix between no-slip and free-slip (non moving objects only!)"},
-		{OB_FSBND_FREESLIP, "FREESLIP", 0, "Free Slip", "Obstacle only causes zero normal velocity (=not sticky, non moving objects only!)"},
+		{OB_FSBND_NOSLIP, "NOSLIP", 0, "No Slip",
+		                  "Obstacle causes zero normal and tangential velocity (=sticky), default for all "
+		                  "(only option for moving objects)"},
+		{OB_FSBND_PARTSLIP, "PARTIALSLIP", 0, "Partial Slip",
+		                    "Mix between no-slip and free-slip (non moving objects only!)"},
+		{OB_FSBND_FREESLIP, "FREESLIP", 0, "Free Slip",
+		                    "Obstacle only causes zero normal velocity (=not sticky, non moving objects only!)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	prop = RNA_def_property(srna, "slip_type", PROP_ENUM, PROP_NONE);
@@ -232,7 +236,8 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 	prop = RNA_def_property(srna, "partial_slip_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "partSlipValue");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Partial Slip Amount", "Amount of mixing between no- and free-slip, 0 is no slip and 1 is free slip");
+	RNA_def_property_ui_text(prop, "Partial Slip Amount",
+	                         "Amount of mixing between no- and free-slip, 0 is no slip and 1 is free slip");
 }
 
 static void rna_def_fluid_mesh_vertices(BlenderRNA *brna)
@@ -273,7 +278,8 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "DomainFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Domain Fluid Simulation Settings", "Fluid simulation settings for the domain of a fluid simulation");
+	RNA_def_struct_ui_text(srna, "Domain Fluid Simulation Settings",
+	                       "Fluid simulation settings for the domain of a fluid simulation");
 
 	/* standard settings */
 
@@ -306,12 +312,14 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, FILE_MAX);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
-	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store baked fluid simulation files in");
+	RNA_def_property_ui_text(prop, "Path",
+	                         "Directory (and/or filename prefix) to store baked fluid simulation files in");
 	RNA_def_property_update(prop, 0, "rna_fluid_update");
 
 	prop = RNA_def_property(srna, "memory_estimate", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_string_funcs(prop, "rna_DomainFluidSettings_memory_estimate_get", "rna_DomainFluidSettings_memory_estimate_length", NULL);
+	RNA_def_property_string_funcs(prop, "rna_DomainFluidSettings_memory_estimate_get",
+	                              "rna_DomainFluidSettings_memory_estimate_length", NULL);
 	RNA_def_property_ui_text(prop, "Memory Estimate", "Estimated amount of memory needed for baking the domain");
 
 	/* advanced settings */
@@ -323,7 +331,8 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_time_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_OVERRIDE_TIME);
-	RNA_def_property_ui_text(prop, "Override Time", "Use a custom start and end time (in seconds) instead of the scene's timeline");
+	RNA_def_property_ui_text(prop, "Override Time",
+	                         "Use a custom start and end time (in seconds) instead of the scene's timeline");
 	
 	prop = RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animStart");
@@ -353,17 +362,21 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "viscosity_preset", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "viscosityMode");
 	RNA_def_property_enum_items(prop, viscosity_items);
-	RNA_def_property_ui_text(prop, "Viscosity Preset", "Set viscosity of the fluid to a preset value, or use manual input");
+	RNA_def_property_ui_text(prop, "Viscosity Preset",
+	                         "Set viscosity of the fluid to a preset value, or use manual input");
 
 	prop = RNA_def_property(srna, "viscosity_base", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viscosityValue");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Viscosity Base", "Viscosity setting: value that is multiplied by 10 to the power of (exponent*-1)");
+	RNA_def_property_ui_text(prop, "Viscosity Base",
+	                         "Viscosity setting: value that is multiplied by 10 to the power of (exponent*-1)");
 
 	prop = RNA_def_property(srna, "viscosity_exponent", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "viscosityExponent");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Viscosity Exponent", "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6)");
+	RNA_def_property_ui_text(prop, "Viscosity Exponent",
+	                         "Negative exponent for the viscosity value (to simplify entering small values "
+	                         "e.g. 5*10^-6)");
 
 	prop = RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxRefine");
@@ -375,7 +388,9 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "gstar");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.001, 0.1);
-	RNA_def_property_ui_text(prop, "Compressibility", "Allowed compressibility due to gravitational force for standing fluid (directly affects simulation step size)");
+	RNA_def_property_ui_text(prop, "Compressibility",
+	                         "Allowed compressibility due to gravitational force for standing fluid "
+	                         "(directly affects simulation step size)");
 
 	/* domain boundary settings */
 
@@ -385,13 +400,17 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "surfaceSmoothing");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, 5.0);
-	RNA_def_property_ui_text(prop, "Surface Smoothing", "Amount of surface smoothing (a value of 0 is off, 1 is normal smoothing and more than 1 is extra smoothing)");
+	RNA_def_property_ui_text(prop, "Surface Smoothing",
+	                         "Amount of surface smoothing (a value of 0 is off, 1 is normal smoothing and "
+	                         "more than 1 is extra smoothing)");
 
 	prop = RNA_def_property(srna, "surface_subdivisions", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "surfaceSubdivs");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 5);
-	RNA_def_property_ui_text(prop, "Surface Subdivisions", "Number of isosurface subdivisions (this is necessary for the inclusion of particles into the surface generation - WARNING: can lead to longer computation times !)");
+	RNA_def_property_ui_text(prop, "Surface Subdivisions",
+	                         "Number of isosurface subdivisions (this is necessary for the inclusion of particles "
+	                         "into the surface generation - WARNING: can lead to longer computation times !)");
 
 	prop = RNA_def_property(srna, "use_speed_vectors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "domainNovecgen", 0);
@@ -422,7 +441,9 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "fluid_mesh_vertices", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FluidMeshVertex");
 	RNA_def_property_ui_text(prop, "Fluid Mesh Vertices", "Vertices of the fluid mesh generated by simulation");
-	RNA_def_property_collection_funcs(prop, "rna_FluidMeshVertex_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_FluidMeshVertex_data_length", NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_FluidMeshVertex_data_begin", "rna_iterator_array_next",
+	                                  "rna_iterator_array_end", "rna_iterator_array_get",
+	                                  "rna_FluidMeshVertex_data_length", NULL, NULL, NULL);
 	rna_def_fluid_mesh_vertices(brna);
 }
 
@@ -445,7 +466,9 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_animated_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "domainNovecgen", 0);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Export Animated Mesh", "Export this mesh as an animated one (slower, only use if really necessary [e.g. armatures or parented objects], animated pos/rot/scale F-Curves do not require it)");
+	RNA_def_property_ui_text(prop, "Export Animated Mesh",
+	                         "Export this mesh as an animated one (slower, only use if really necessary [e.g. "
+	                         "armatures or parented objects], animated pos/rot/scale F-Curves do not require it)");
 }
 
 static void rna_def_fluidsim_active(StructRNA *srna)
@@ -464,7 +487,8 @@ static void rna_def_fluidsim_fluid(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "FluidFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Fluid Fluid Simulation Settings", "Fluid simulation settings for the fluid in the simulation");
+	RNA_def_struct_ui_text(srna, "Fluid Fluid Simulation Settings",
+	                       "Fluid simulation settings for the fluid in the simulation");
 
 	rna_def_fluidsim_active(srna);
 	rna_def_fluidsim_volume(srna);
@@ -483,7 +507,8 @@ static void rna_def_fluidsim_obstacle(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ObstacleFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Obstacle Fluid Simulation Settings", "Fluid simulation settings for obstacles in the simulation");
+	RNA_def_struct_ui_text(srna, "Obstacle Fluid Simulation Settings",
+	                       "Fluid simulation settings for obstacles in the simulation");
 
 	rna_def_fluidsim_active(srna);
 	rna_def_fluidsim_volume(srna);
@@ -493,7 +518,10 @@ static void rna_def_fluidsim_obstacle(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "surfaceSmoothing");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, -2.0, 10.0);
-	RNA_def_property_ui_text(prop, "Impact Factor", "This is an unphysical value for moving objects - it controls the impact an obstacle has on the fluid, =0 behaves a bit like outflow (deleting fluid), =1 is default, while >1 results in high forces (can be used to tweak total mass)");
+	RNA_def_property_ui_text(prop, "Impact Factor",
+	                         "This is an unphysical value for moving objects - it controls the impact an obstacle "
+	                         "has on the fluid, =0 behaves a bit like outflow (deleting fluid), =1 is default, "
+	                         "while >1 results in high forces (can be used to tweak total mass)");
 }
 
 static void rna_def_fluidsim_inflow(BlenderRNA *brna)
@@ -503,7 +531,8 @@ static void rna_def_fluidsim_inflow(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "InflowFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Inflow Fluid Simulation Settings", "Fluid simulation settings for objects adding fluids in the simulation");
+	RNA_def_struct_ui_text(srna, "Inflow Fluid Simulation Settings",
+	                       "Fluid simulation settings for objects adding fluids in the simulation");
 
 	rna_def_fluidsim_active(srna);
 	rna_def_fluidsim_volume(srna);
@@ -517,7 +546,8 @@ static void rna_def_fluidsim_inflow(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_local_coords", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSINFLOW_LOCALCOORD);
-	RNA_def_property_ui_text(prop, "Local Coordinates", "Use local coordinates for inflow (e.g. for rotating objects)");
+	RNA_def_property_ui_text(prop, "Local Coordinates",
+	                         "Use local coordinates for inflow (e.g. for rotating objects)");
 }
 
 static void rna_def_fluidsim_outflow(BlenderRNA *brna)
@@ -526,7 +556,8 @@ static void rna_def_fluidsim_outflow(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "OutflowFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Outflow Fluid Simulation Settings", "Fluid simulation settings for objects removing fluids from the simulation");
+	RNA_def_struct_ui_text(srna, "Outflow Fluid Simulation Settings",
+	                       "Fluid simulation settings for objects removing fluids from the simulation");
 
 	rna_def_fluidsim_active(srna);
 	rna_def_fluidsim_volume(srna);
@@ -539,7 +570,9 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ParticleFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Particle Fluid Simulation Settings", "Fluid simulation settings for objects storing fluid particles generated by the simulation");
+	RNA_def_struct_ui_text(srna, "Particle Fluid Simulation Settings",
+	                       "Fluid simulation settings for objects storing fluid particles generated"
+	                       " by the simulation");
 
 	prop = RNA_def_property(srna, "use_drops", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_DROP);
@@ -556,12 +589,16 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "particle_influence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "particleInfSize");
 	RNA_def_property_range(prop, 0.0, 2.0);
-	RNA_def_property_ui_text(prop, "Particle Influence", "Amount of particle size scaling: 0=off (all same size), 1=full (range 0.2-2.0), >1=stronger");
+	RNA_def_property_ui_text(prop, "Particle Influence",
+	                         "Amount of particle size scaling: 0=off (all same size), 1=full (range 0.2-2.0), "
+	                         ">1=stronger");
 
 	prop = RNA_def_property(srna, "alpha_influence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "particleInfAlpha");
 	RNA_def_property_range(prop, 0.0, 2.0);
-	RNA_def_property_ui_text(prop, "Alpha Influence", "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full (large particles get lower alphas, smaller ones higher values)");
+	RNA_def_property_ui_text(prop, "Alpha Influence",
+	                         "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), "
+	                         "1=full (large particles get lower alphas, smaller ones higher values)");
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, FILE_MAX);
@@ -577,7 +614,8 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ControlFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_ui_text(srna, "Control Fluid Simulation Settings", "Fluid simulation settings for objects controlling the motion of fluid in the simulation");
+	RNA_def_struct_ui_text(srna, "Control Fluid Simulation Settings",
+	                       "Fluid simulation settings for objects controlling the motion of fluid in the simulation");
 
 	rna_def_fluidsim_active(srna);
 	
@@ -594,7 +632,8 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "attraction_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "attractforceStrength");
 	RNA_def_property_range(prop, -10.0, 10.0);
-	RNA_def_property_ui_text(prop, "Attraction Strength", "Force strength for directional attraction towards the control object");
+	RNA_def_property_ui_text(prop, "Attraction Strength",
+	                         "Force strength for directional attraction towards the control object");
 
 	prop = RNA_def_property(srna, "attraction_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "attractforceRadius");
@@ -604,7 +643,9 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "velocity_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "velocityforceStrength");
 	RNA_def_property_range(prop, 0.0, 10.0);
-	RNA_def_property_ui_text(prop, "Velocity Strength", "Force strength of how much of the control object's velocity is influencing the fluid velocity");
+	RNA_def_property_ui_text(prop, "Velocity Strength",
+	                         "Force strength of how much of the control object's velocity is influencing the "
+	                         "fluid velocity");
 
 	prop = RNA_def_property(srna, "velocity_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "velocityforceRadius");
@@ -615,7 +656,8 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cpsQuality");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 5.0, 100.0);
-	RNA_def_property_ui_text(prop, "Quality", "Quality which is used for object sampling (higher = better but slower)");
+	RNA_def_property_ui_text(prop, "Quality",
+	                         "Quality which is used for object sampling (higher = better but slower)");
 
 	prop = RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_REVERSE);
@@ -631,13 +673,18 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_fluid_type_items[] = {
 		{OB_FLUIDSIM_ENABLE, "NONE", 0, "None", ""},
-		{OB_FLUIDSIM_DOMAIN, "DOMAIN", 0, "Domain", "Bounding box of this object represents the computational domain of the fluid simulation"},
+		{OB_FLUIDSIM_DOMAIN, "DOMAIN", 0, "Domain",
+		                     "Bounding box of this object represents the computational domain of the "
+		                     "fluid simulation"},
 		{OB_FLUIDSIM_FLUID, "FLUID", 0, "Fluid", "Object represents a volume of fluid in the simulation"},
 		{OB_FLUIDSIM_OBSTACLE, "OBSTACLE", 0, "Obstacle", "Object is a fixed obstacle"},
 		{OB_FLUIDSIM_INFLOW, "INFLOW", 0, "Inflow", "Object adds fluid to the simulation"},
 		{OB_FLUIDSIM_OUTFLOW, "OUTFLOW", 0, "Outflow", "Object removes fluid from the simulation"},
-		{OB_FLUIDSIM_PARTICLE, "PARTICLE", 0, "Particle", "Object is made a particle system to display particles generated by a fluidsim domain object"},
-		{OB_FLUIDSIM_CONTROL, "CONTROL", 0, "Control", "Object is made a fluid control mesh, which influences the fluid"},
+		{OB_FLUIDSIM_PARTICLE, "PARTICLE", 0, "Particle",
+		                       "Object is made a particle system to display particles generated by a "
+		                       "fluidsim domain object"},
+		{OB_FLUIDSIM_CONTROL, "CONTROL", 0, "Control",
+		                      "Object is made a fluid control mesh, which influences the fluid"},
 		{0, NULL, 0, NULL, NULL}};
 
 
@@ -645,7 +692,8 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
 	RNA_def_struct_refine_func(srna, "rna_FluidSettings_refine");
 	RNA_def_struct_path_func(srna, "rna_FluidSettings_path");
-	RNA_def_struct_ui_text(srna, "Fluid Simulation Settings", "Fluid simulation settings for an object taking part in the simulation");
+	RNA_def_struct_ui_text(srna, "Fluid Simulation Settings",
+	                       "Fluid simulation settings for an object taking part in the simulation");
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");

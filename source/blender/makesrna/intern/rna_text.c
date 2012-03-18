@@ -203,7 +203,8 @@ static void rna_def_text(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_module", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
-	RNA_def_property_ui_text(prop, "Register", "Register this text as a module on loading, Text name must end with \".py\"");
+	RNA_def_property_ui_text(prop, "Register",
+	                         "Register this text as a module on loading, Text name must end with \".py\"");
 
 	prop = RNA_def_property(srna, "use_tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_TABSTOSPACES);
@@ -223,7 +224,9 @@ static void rna_def_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "current_character", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "curc");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Current Character", "Index of current character in current line, and also start index of character in selection if one exists");
+	RNA_def_property_ui_text(prop, "Current Character",
+	                         "Index of current character in current line, and also start index of "
+	                         "character in selection if one exists");
 	
 	prop = RNA_def_property(srna, "select_end_line", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -235,7 +238,8 @@ static void rna_def_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "select_end_character", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "selc");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Selection End Character", "Index of character after end of selection in the selection end line");
+	RNA_def_property_ui_text(prop, "Selection End Character",
+	                         "Index of character after end of selection in the selection end line");
 	
 	prop = RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TextMarker");

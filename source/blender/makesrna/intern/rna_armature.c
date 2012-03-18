@@ -494,7 +494,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	
 	prop = RNA_def_property(srna, "use_cyclic_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_CYCLICOFFSET);
-	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it receives cyclic offset effects");
+	RNA_def_property_ui_text(prop, "Cyclic Offset",
+	                         "When bone doesn't have a parent, it receives cyclic offset effects");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
@@ -520,7 +521,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_float_sdna(prop, NULL, "rad_head");
-	/*RNA_def_property_range(prop, 0, 1000);   *//* XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid); */
+		/* XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid); */
+	/*RNA_def_property_range(prop, 0, 1000); */
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
 	
@@ -528,7 +530,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_float_sdna(prop, NULL, "rad_tail");
-	/*RNA_def_property_range(prop, 0, 1000);   *//* XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid); */
+		/* XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid); */
+	/*RNA_def_property_range(prop, 0, 1000); */
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Tail Radius", "Radius of tail of bone (for Envelope deform only)");
 	
@@ -592,10 +595,12 @@ static void rna_def_bone(BlenderRNA *brna)
 
 	rna_def_bone_common(srna, 0);
 
-		/* XXX should we define this in PoseChannel wrapping code instead? but PoseChannels directly get some of their flags from here... */
+		/* XXX should we define this in PoseChannel wrapping code instead?
+		 *     But PoseChannels directly get some of their flags from here... */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HIDDEN_P);
-	RNA_def_property_ui_text(prop, "Hide", "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)");
+	RNA_def_property_ui_text(prop, "Hide",
+	                         "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
@@ -736,7 +741,8 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */
 	RNA_def_property_ui_text(prop, "Editbone Matrix", "Read-only matrix calculated from the roll (armature space)");
-	RNA_def_property_float_funcs(prop, "rna_EditBone_matrix_get", NULL, NULL); /* TODO - this could be made writable also */
+		/* TODO - this could be made writable also */
+	RNA_def_property_float_funcs(prop, "rna_EditBone_matrix_get", NULL, NULL);
 
 	RNA_api_armature_edit_bone(srna);
 
@@ -824,7 +830,8 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)"},
 		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots"},
 		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Display bones as boxes, showing subdivision and B-Splines"},
-		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Display bones as extruded spheres, showing deformation influence volume"},
+		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope",
+		               "Display bones as extruded spheres, showing deformation influence volume"},
 		{ARM_WIRE, "WIRE", 0, "Wire", "Display bones as thin wires, showing subdivision and B-Splines"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_vdeformer[] = {
@@ -911,7 +918,8 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "layer_protected", 1);
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_ui_text(prop, "Layer Proxy Protection",
-	                         "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo");
+	                         "Protected layers in Proxy Instances are restored to Proxy settings "
+	                         "on file reload and undo");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 		
 		/* flag */
@@ -978,11 +986,14 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Dual Quaternion Deformation", "Enable deform rotation with Quaternions");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	/*prop= RNA_def_property(srna, "deform_invert_vertexgroups", PROP_BOOLEAN, PROP_NONE); */
-	/*RNA_def_property_boolean_negative_sdna(prop, NULL, "deformflag", ARM_DEF_INVERT_VGROUP); */
-	/*RNA_def_property_ui_text(prop, "Invert Vertex Group Influence", "Invert Vertex Group influence (only for Modifiers)"); */
-	/*RNA_def_property_update(prop, 0, "rna_Armature_update_data"); */
-	
+#if 0
+	prop = RNA_def_property(srna, "deform_invert_vertexgroups", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "deformflag", ARM_DEF_INVERT_VGROUP);
+	RNA_def_property_ui_text(prop, "Invert Vertex Group Influence",
+	                         "Invert Vertex Group influence (only for Modifiers)");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+#endif
+
 	/* Number fields */
 /* XXX depreceated ....... old animviz for armatures only */
 		/* ghost/onionskining settings */
@@ -1016,10 +1027,11 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "ghostef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting End Frame",
-	                         "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");
+	                         "End frame of range of Ghosts to display "
+	                         "(not for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-/* XXX depreceated ....... old animviz for armatures only	 */
+/* XXX depreceated ....... old animviz for armatures only */
 }
 
 void RNA_def_armature(BlenderRNA *brna)

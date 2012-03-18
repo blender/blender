@@ -188,7 +188,9 @@ void rna_def_animviz_common(struct StructRNA *srna);
 void rna_def_motionpath_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct BlenderRNA *brna, struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *activeeditable, const char *structname, const char *structname_slots, const char *update);
+void rna_def_mtex_common(struct BlenderRNA *brna, struct StructRNA *srna, const char *begin, const char *activeget,
+                         const char *activeset, const char *activeeditable, const char *structname,
+                         const char *structname_slots, const char *update);
 void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
@@ -199,7 +201,9 @@ struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
 struct IDProperty *rna_PropertyGroup_idprops(struct PointerRNA *ptr, int create);
 void rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
-struct StructRNA *rna_PropertyGroup_register(struct Main *bmain, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+struct StructRNA *rna_PropertyGroup_register(struct Main *bmain, struct ReportList *reports, void *data,
+                                             const char *identifier, StructValidateFunc validate,
+                                             StructCallbackFunc call, StructFreeFunc free);
 struct StructRNA* rna_PropertyGroup_refine(struct PointerRNA *ptr);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
@@ -341,7 +345,8 @@ typedef struct ArrayIterator {
 	void *free_ptr; /* will be freed if set */
 	int itemsize;
 
-	/* array length with no skip functins applied, take care not to compare against index from animsys or python indices */
+	/* array length with no skip functins applied, take care not to compare against index from animsys
+	 * or python indices */
 	int length;
 
 	/* optional skip function, when set the array as viewed by rna can contain only a subset of the members.
@@ -349,7 +354,8 @@ typedef struct ArrayIterator {
 	IteratorSkipFunc skip;
 } ArrayIterator;
 
-void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, int free_ptr, IteratorSkipFunc skip);
+void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length,
+                              int free_ptr, IteratorSkipFunc skip);
 void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter);

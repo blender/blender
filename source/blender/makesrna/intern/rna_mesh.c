@@ -861,7 +861,7 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 	if (id) {
 		/* special exception here, individual faces don't count
 		 * as reference, but we do ensure the refcount is not zero */
-		if(id->us == 0)
+		if (id->us == 0)
 			id_us_plus(id);
 		else
 			id_lib_extern(id);
@@ -1183,7 +1183,7 @@ static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bCo
 {
 	PointerRNA ptr;
 	CustomData *fdata;
-	CustomDataLayer *cdl= NULL;
+	CustomDataLayer *cdl = NULL;
 	int index;
 
 	if (me->edit_btmesh) {
@@ -1198,7 +1198,7 @@ static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bCo
 
 	index = ED_mesh_color_add(C, NULL, NULL, me, name, FALSE);
 
-	if(index != -1) {
+	if (index != -1) {
 		fdata = rna_mesh_fdata_helper(me);
 		cdl = &fdata->layers[CustomData_get_layer_index_n(fdata, CD_MCOL, index)];
 	}
@@ -1276,7 +1276,7 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bCont
 {
 	PointerRNA ptr;
 	CustomData *fdata;
-	CustomDataLayer *cdl= NULL;
+	CustomDataLayer *cdl = NULL;
 	int index;
 
 	if (me->edit_btmesh) {
@@ -1291,7 +1291,7 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bCont
 
 	index = ED_mesh_uv_texture_add(C, me, name, FALSE);
 
-	if(index != -1) {
+	if (index != -1) {
 		fdata = rna_mesh_fdata_helper(me);
 		cdl = &fdata->layers[CustomData_get_layer_index_n(fdata, CD_MTFACE, index)];
 	}
@@ -2404,11 +2404,11 @@ static void rna_def_tessface_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "UV Maps", "Collection of UV maps for tessellated faces");
 
 	/* eventually deprecate this */
-	func= RNA_def_function(srna, "new", "rna_Mesh_tessface_uv_texture_new");
+	func = RNA_def_function(srna, "new", "rna_Mesh_tessface_uv_texture_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a UV tessface-texture layer to Mesh (only for meshes with no polygons)");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
-	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
+	parm = RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
 	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 

@@ -120,7 +120,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	static EnumPropertyItem prop_noise_type_items[] = {
 				{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
 #ifdef WITH_FFTW3
-				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, 
+				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""},
 #endif
 			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */
 				{0, NULL, 0, NULL, NULL}};
@@ -132,7 +132,8 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem smoke_domain_colli_items[] = {
 		{SM_BORDER_OPEN, "BORDEROPEN", 0, "Open", "Smoke doesn't collide with any border"},
-		{SM_BORDER_VERTICAL, "BORDERVERTICAL", 0, "Vertically Open", "Smoke doesn't collide with top and bottom sides"},
+		{SM_BORDER_VERTICAL, "BORDERVERTICAL", 0, "Vertically Open",
+		                     "Smoke doesn't collide with top and bottom sides"},
 		{SM_BORDER_CLOSED, "BORDERCLOSED", 0, "Collide All", "Smoke collides with every side"},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -175,14 +176,16 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Density", "How much density affects smoke motion (higher value results in faster rising smoke)");
+	RNA_def_property_ui_text(prop, "Density",
+	                         "How much density affects smoke motion (higher value results in faster rising smoke)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Heat", "How much heat affects smoke motion (higher value results in faster rising smoke)");
+	RNA_def_property_ui_text(prop, "Heat",
+	                         "How much heat affects smoke motion (higher value results in faster rising smoke)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
@@ -243,7 +246,8 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_extents", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "border_collisions");
 	RNA_def_property_enum_items(prop, smoke_domain_colli_items);
-	RNA_def_property_ui_text(prop, "Border Collisions", "Select which domain border will be treated as collision object");
+	RNA_def_property_ui_text(prop, "Border Collisions",
+	                         "Select which domain border will be treated as collision object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
@@ -344,4 +348,3 @@ void RNA_def_smoke(BlenderRNA *brna)
 }
 
 #endif
-

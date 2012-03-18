@@ -159,7 +159,7 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, PropertyRN
 			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ARMATURE);
 		}
 	}
-	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_COLLISION);	
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_COLLISION);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_DELAY);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_JOYSTICK);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_KEYBOARD);
@@ -314,7 +314,9 @@ static void rna_def_sensor(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_level", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "level", 1);
-	RNA_def_property_ui_text(prop, "Level", "Level detector, trigger controllers of new states(only applicable upon logic state transition)");
+	RNA_def_property_ui_text(prop, "Level",
+	                         "Level detector, trigger controllers of new states "
+	                         "(only applicable upon logic state transition)");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_level_set");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -337,14 +339,17 @@ static void rna_def_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_tap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tap", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_tap_set");
-	RNA_def_property_ui_text(prop, "Tap", "Trigger controllers only for an instant, even while the sensor remains true");
+	RNA_def_property_ui_text(prop, "Tap",
+	                         "Trigger controllers only for an instant, even while the sensor remains true");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "links", NULL);
 	RNA_def_property_struct_type(prop, "Controller");
 	RNA_def_property_ui_text(prop, "Controllers", "The list containing the controllers connected to the sensor");
-	RNA_def_property_collection_funcs(prop, "rna_Sensor_controllers_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", "rna_Sensor_controllers_length", NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_Sensor_controllers_begin", "rna_iterator_array_next",
+	                                  "rna_iterator_array_end", "rna_iterator_array_dereference_get",
+	                                  "rna_Sensor_controllers_length", NULL, NULL, NULL);
 
 
 	RNA_api_sensor(srna);
@@ -583,18 +588,23 @@ static void rna_def_delay_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bDelaySensor", "data");
 
 	prop = RNA_def_property(srna, "delay", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Delay", "Delay in number of logic tics before the positive trigger (default 60 per second)");
+	RNA_def_property_ui_text(prop, "Delay",
+	                         "Delay in number of logic tics before the positive trigger (default 60 per second)");
 	RNA_def_property_range(prop, 0, 5000);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "duration", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Duration", "If >0, delay in number of logic tics before the negative trigger following the positive trigger");
+	RNA_def_property_ui_text(prop, "Duration",
+	                         "If >0, delay in number of logic tics before the negative trigger following "
+	                         "the positive trigger");
 	RNA_def_property_range(prop, 0, 5000);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "use_repeat", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_DELAY_REPEAT);
-	RNA_def_property_ui_text(prop, "Repeat", "Toggle repeat option (if selected, the sensor restarts after Delay+Duration logic tics)");
+	RNA_def_property_ui_text(prop, "Repeat",
+	                         "Toggle repeat option (if selected, the sensor restarts after Delay+Duration "
+	                         "logic tics)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -604,7 +614,9 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "CollisionSensor", "Sensor");
-	RNA_def_struct_ui_text(srna, "Collision Sensor", "Sensor to detect objects colliding with the current object, with more settings than the Touch sensor");
+	RNA_def_struct_ui_text(srna, "Collision Sensor",
+	                       "Sensor to detect objects colliding with the current object, with more settings than "
+	                       "the Touch sensor");
 	RNA_def_struct_sdna_from(srna, "bCollisionSensor", "data");
 
 	prop = RNA_def_property(srna, "use_pulse", PROP_BOOLEAN, PROP_NONE);
@@ -653,7 +665,8 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "RadarSensor", "Sensor");
-	RNA_def_struct_ui_text(srna, "Radar Sensor", "Sensor to detect objects in a cone shaped radar emanating from the current object");
+	RNA_def_struct_ui_text(srna, "Radar Sensor",
+	                       "Sensor to detect objects in a cone shaped radar emanating from the current object");
 	RNA_def_struct_sdna_from(srna, "bRadarSensor", "data");
 
 	prop = RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -713,7 +726,8 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "RaySensor", "Sensor");
-	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect intersections with a ray emanating from the current object");
+	RNA_def_struct_ui_text(srna, "Ray Sensor",
+	                       "Sensor to detect intersections with a ray emanating from the current object");
 	RNA_def_struct_sdna_from(srna, "bRaySensor", "data");
 	
 	prop = RNA_def_property(srna, "ray_type", PROP_ENUM, PROP_NONE);
@@ -744,7 +758,8 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_RAY_XRAY);
-	RNA_def_property_ui_text(prop, "X-Ray Mode", "Toggle X-Ray option (see through objects that don't have the property)");
+	RNA_def_property_ui_text(prop, "X-Ray Mode",
+	                         "Toggle X-Ray option (see through objects that don't have the property)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
@@ -769,7 +784,9 @@ static void rna_def_message_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bMessageSensor", "data");
 
 	prop = RNA_def_property(srna, "subject", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Subject", "Optional subject filter: only accept messages with this subject, or empty to accept all");
+	RNA_def_property_ui_text(prop, "Subject",
+	                         "Optional subject filter: only accept messages with this subject, "
+	                         "or empty to accept all");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -822,7 +839,8 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_all_events", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_JOY_ANY_EVENT);
-	RNA_def_property_ui_text(prop, "All Events", "Triggered by all events on this joystick's current type (axis/button/hat)");
+	RNA_def_property_ui_text(prop, "All Events",
+	                         "Triggered by all events on this joystick's current type (axis/button/hat)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* Button */
@@ -894,4 +912,3 @@ void RNA_def_sensor(BlenderRNA *brna)
 }
 
 #endif
-

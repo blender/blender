@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,7 +43,8 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
-void save_envmap(struct EnvMap *env, bContext *C, ReportList *reports, const char* filepath, struct Scene *scene, float layout[12])
+void save_envmap(struct EnvMap *env, bContext *C, ReportList *reports, const char* filepath,
+                 struct Scene *scene, float layout[12])
 {
 	if (scene == NULL) {
 		scene = CTX_data_scene(C);

@@ -113,7 +113,8 @@ void RNA_def_group(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Group", "ID");
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
-	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT); /* this is done on save/load in readfile.c, removed if no objects are in the group */
+		/* this is done on save/load in readfile.c, removed if no objects are in the group */
+	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
 	prop = RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
@@ -137,4 +138,3 @@ void RNA_def_group(BlenderRNA *brna)
 }
 
 #endif
-

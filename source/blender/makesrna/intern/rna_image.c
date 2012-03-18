@@ -152,7 +152,8 @@ char *rna_ImageUser_path(PointerRNA *ptr)
 	return BLI_strdup("");
 }
 
-static EnumPropertyItem *rna_Image_source_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Image_source_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                PropertyRNA *UNUSED(prop), int *free)
 {
 	Image *ima = (Image*)ptr->data;
 	EnumPropertyItem *item = NULL;
@@ -361,7 +362,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "ImageUser", NULL);
-	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock");
+	RNA_def_struct_ui_text(srna, "Image User",
+	                       "Parameters defining how an Image datablock is used by another datablock");
 	RNA_def_struct_path_func(srna, "rna_ImageUser_path");
 
 	prop = RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
@@ -390,7 +392,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Start Frame", "Global starting frame of the movie/sequence, assuming first picture has a #1");
+	RNA_def_property_ui_text(prop, "Start Frame",
+	                         "Global starting frame of the movie/sequence, assuming first picture has a #1");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop = RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
@@ -489,7 +492,9 @@ static void rna_def_image(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_color_unpremultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_CM_PREDIVIDE);
-	RNA_def_property_ui_text(prop, "Color Unpremultiply", "For premultiplied alpha images, do color space conversion on colors without alpha, to avoid fringing for images with light backgrounds");
+	RNA_def_property_ui_text(prop, "Color Unpremultiply",
+	                         "For premultiplied alpha images, do color space conversion on colors without alpha, "
+	                         "to avoid fringing for images with light backgrounds");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_free_update");
 
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
@@ -560,7 +565,8 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_tiles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
-	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces)");
+	RNA_def_property_ui_text(prop, "Tiles",
+	                         "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces)");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "tiles_x", PROP_INT, PROP_NONE);
@@ -605,7 +611,8 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Image bit depth");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" , "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
+	prop = RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" ,
+	                          "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
 	RNA_def_property_int_funcs(prop, "rna_Image_size_get" , NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -629,4 +636,3 @@ void RNA_def_image(BlenderRNA *brna)
 }
 
 #endif
-

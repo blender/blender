@@ -300,7 +300,8 @@ static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 	brush->unprojected_radius = value;
 }
 
-static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
+static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                   PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	static EnumPropertyItem prop_default_items[] = {
 		{0, NULL, 0, NULL, NULL}};
@@ -593,14 +594,16 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0);
 	RNA_def_property_range(prop, -2.0f, 2.0f);
 	RNA_def_property_ui_range(prop, -0.5f, 0.5f, 0.001, 0.001);
-	RNA_def_property_ui_text(prop, "Plane Offset", "Adjust plane on which the brush acts towards or away from the object surface");
+	RNA_def_property_ui_text(prop, "Plane Offset",
+	                         "Adjust plane on which the brush acts towards or away from the object surface");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "plane_trim", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "plane_trim");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0, 1.0f);
-	RNA_def_property_ui_text(prop, "Plane Trim", "If a vertex is further away from offset plane than this, then it is not affected");
+	RNA_def_property_ui_text(prop, "Plane Trim",
+	                         "If a vertex is further away from offset plane than this, then it is not affected");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
@@ -647,7 +650,8 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_original_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ORIGINAL_NORMAL);
-	RNA_def_property_ui_text(prop, "Original Normal", "When locked keep using normal of surface where stroke was initiated");
+	RNA_def_property_ui_text(prop, "Original Normal",
+	                         "When locked keep using normal of surface where stroke was initiated");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop = RNA_def_property(srna, "use_wrap", PROP_BOOLEAN, PROP_NONE);
@@ -738,18 +742,22 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_space_attenuation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE_ATTEN);
-	RNA_def_property_ui_text(prop, "Use Automatic Strength Adjustment", "Automatically adjust strength to give consistent results for different spacings");
+	RNA_def_property_ui_text(prop, "Use Automatic Strength Adjustment",
+	                         "Automatically adjust strength to give consistent results for different spacings");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	/* adaptive space is not implemented yet */
 	prop = RNA_def_property(srna, "use_adaptive_space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ADAPTIVE_SPACE);
-	RNA_def_property_ui_text(prop, "Adaptive Spacing", "Space daubs according to surface orientation instead of screen space");
+	RNA_def_property_ui_text(prop, "Adaptive Spacing",
+	                         "Space daubs according to surface orientation instead of screen space");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_locked_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_LOCK_SIZE);
-	RNA_def_property_ui_text(prop, "Use Blender Units", "When locked brush stays same size relative to object; when unlocked brush size is given in pixels");
+	RNA_def_property_ui_text(prop, "Use Blender Units",
+	                         "When locked brush stays same size relative to object; when unlocked brush size is "
+	                         "given in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_texture_overlay", PROP_BOOLEAN, PROP_NONE);
@@ -794,11 +802,11 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_paint_weight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_WEIGHT_PAINT);
-	RNA_def_property_ui_text(prop, "Use Weight", "Use this brush in weight paint mode");	
+	RNA_def_property_ui_text(prop, "Use Weight", "Use this brush in weight paint mode");
 
 	prop = RNA_def_property(srna, "use_paint_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_TEXTURE_PAINT);
-	RNA_def_property_ui_text(prop, "Use Texture", "Use this brush in texture paint mode");	
+	RNA_def_property_ui_text(prop, "Use Texture", "Use this brush in texture paint mode");
 
 	/* texture */
 	prop = RNA_def_property(srna, "texture_slot", PROP_POINTER, PROP_NONE);
@@ -919,7 +927,8 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	/* XXX: Tool (this will be for pressing a modifier key for a different brush,
 			e.g. switching to a Smooth brush in the middle of the stroke */
 
-	/* XXX: i don't think blender currently supports the ability to properly do a remappable modifier in the middle of a stroke */
+	/* XXX: i don't think blender currently supports the ability to properly do a remappable modifier
+	 *      in the middle of a stroke */
 }
 
 void RNA_def_brush(BlenderRNA *brna)

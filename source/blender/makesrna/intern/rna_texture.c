@@ -91,8 +91,8 @@ EnumPropertyItem blend_type_items[] = {
 	{MTEX_BLEND_SAT, "SATURATION", 0, "Saturation", ""},
 	{MTEX_BLEND_VAL, "VALUE", 0, "Value", ""},
 	{MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
-	{MTEX_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
-	{MTEX_LIN_LIGHT    , "LINEAR_LIGHT", 0, "Linear Light", ""}, 
+	{MTEX_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
+	{MTEX_LIN_LIGHT    , "LINEAR_LIGHT", 0, "Linear Light", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -117,7 +117,7 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 
 	switch (tex->type) {
 		case TEX_BLEND:
-			return &RNA_BlendTexture; 
+			return &RNA_BlendTexture;
 		case TEX_CLOUDS:
 			return &RNA_CloudsTexture;
 		case TEX_DISTNOISE:
@@ -224,17 +224,17 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 	DAG_id_tag_update(id, 0);
 
 	switch (GS(id->name)) {
-		case ID_MA: 
+		case ID_MA:
 			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
 			WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
 			break;
-		case ID_WO: 
+		case ID_WO:
 			WM_main_add_notifier(NC_WORLD, id);
 			break;
-		case ID_LA: 
+		case ID_LA:
 			WM_main_add_notifier(NC_LAMP|ND_LIGHTING, id);
 			break;
-		case ID_BR: 
+		case ID_BR:
 			WM_main_add_notifier(NC_BRUSH, id);
 			break;
 		case ID_PA:
@@ -330,7 +330,8 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr,
+                                                           PropertyRNA *UNUSED(prop), int *free)
 {
 	MTex *mtex = ptr->data;
 	Tex *tex = mtex->tex;
@@ -472,7 +473,8 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_mapping_update");
 	
-	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER); /* Not PROP_XYZ, this is now in radians, no more degrees */
+		/* Not PROP_XYZ, this is now in radians, no more degrees */
+	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_mapping_update");
@@ -649,7 +651,8 @@ static void rna_def_mtex(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
-	RNA_def_property_ui_text(prop, "Default Value", "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
+	RNA_def_property_ui_text(prop, "Default Value",
+	                         "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 	
 	prop = RNA_def_property(srna, "output_node", PROP_ENUM, PROP_NONE);
@@ -660,7 +663,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 }
 
-static void rna_def_filter_common(StructRNA *srna) 
+static void rna_def_filter_common(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -685,14 +688,16 @@ static void rna_def_filter_common(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Filter Probes",
-	                         "Maximum number of samples (higher gives less blur at distant/oblique angles, but is also slower)");
+	                         "Maximum number of samples (higher gives less blur at distant/oblique angles, "
+	                         "but is also slower)");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop = RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Filter Eccentricity",
-	                         "Maximum eccentricity (higher gives less blur at distant/oblique angles, but is also slower)");
+	                         "Maximum eccentricity (higher gives less blur at distant/oblique angles, "
+	                         "but is also slower)");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "use_filter_size_min", PROP_BOOLEAN, PROP_NONE);
@@ -726,7 +731,8 @@ static void rna_def_environment_map(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "EnvironmentMap", NULL);
 	RNA_def_struct_sdna(srna, "EnvMap");
-	RNA_def_struct_ui_text(srna, "EnvironmentMap", "Environment map created by the renderer and cached for subsequent renders");
+	RNA_def_struct_ui_text(srna, "EnvironmentMap",
+	                       "Environment map created by the renderer and cached for subsequent renders");
 	
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
@@ -770,7 +776,8 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "layers_ignore", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "notlay", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Ignore Layers", "Hide objects on these layers when generating the Environment Map");
+	RNA_def_property_ui_text(prop, "Ignore Layers",
+	                         "Hide objects on these layers when generating the Environment Map");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_UNSIGNED);
@@ -1050,7 +1057,8 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 		{TEX_EASE, "EASING", 0, "Easing", "Create a progression easing from one step to the next"},
 		{TEX_DIAG, "DIAGONAL", 0, "Diagonal", "Create a diagonal progression"},
 		{TEX_SPHERE, "SPHERICAL", 0, "Spherical", "Create a spherical progression"},
-		{TEX_HALO, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Create a quadratic progression in the shape of a sphere"},
+		{TEX_HALO, "QUADRATIC_SPHERE", 0, "Quadratic sphere",
+		           "Create a quadratic progression in the shape of a sphere"},
 		{TEX_RAD, "RADIAL", 0, "Radial", "Create a radial progression"},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -1228,7 +1236,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 #if 0
 
 	/* XXX: did this as an array, but needs better descriptions than "1 2 3 4"
-	perhaps a new subtype could be added? 
+	perhaps a new subtype could be added?
 	--I actually used single values for this, maybe change later with a RNA_Rect thing? */
 	prop = RNA_def_property(srna, "crop_rectangle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropxmin");
@@ -1276,7 +1284,8 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
-	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_ui_text(prop, "Image User",
+	                         "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* Normal Map */
@@ -1321,7 +1330,8 @@ static void rna_def_texture_environment_map(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
-	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_ui_text(prop, "Image User",
+	                         "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	rna_def_filter_common(srna);
@@ -1481,7 +1491,8 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vn_distm");
 	RNA_def_property_enum_items(prop, prop_distance_metric_items);
-	RNA_def_property_ui_text(prop, "Distance Metric", "Algorithm used to calculate distance of sample points to feature points");
+	RNA_def_property_ui_text(prop, "Distance Metric",
+	                         "Algorithm used to calculate distance of sample points to feature points");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
@@ -1593,8 +1604,10 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem turbulence_influence_items[] = {
-		{TEX_PD_NOISE_STATIC, "STATIC", 0, "Static", "Noise patterns will remain unchanged, faster and suitable for stills"},
-		{TEX_PD_NOISE_VEL, "PARTICLE_VELOCITY", 0, "Particle Velocity", "Turbulent noise driven by particle velocity"},
+		{TEX_PD_NOISE_STATIC, "STATIC", 0, "Static",
+		                      "Noise patterns will remain unchanged, faster and suitable for stills"},
+		{TEX_PD_NOISE_VEL, "PARTICLE_VELOCITY", 0, "Particle Velocity",
+		                   "Turbulent noise driven by particle velocity"},
 		{TEX_PD_NOISE_AGE, "PARTICLE_AGE", 0, "Particle Age",
 		                   "Turbulent noise driven by the particle's age between birth and death"},
 		{TEX_PD_NOISE_TIME, "GLOBAL_TIME", 0, "Global Time", "Turbulent noise driven by the global current frame"},
@@ -1743,18 +1756,21 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem interpolation_type_items[] = {
-		{TEX_VD_NEARESTNEIGHBOR, "NEREASTNEIGHBOR", 0, "Nearest Neighbor", "No interpolation, fast but blocky and low quality"},
+		{TEX_VD_NEARESTNEIGHBOR, "NEREASTNEIGHBOR", 0, "Nearest Neighbor",
+		                         "No interpolation, fast but blocky and low quality"},
 		{TEX_VD_LINEAR, "TRILINEAR", 0, "Linear", "Good smoothness and speed"},
 		{TEX_VD_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Mid-range quality and speed"},
 		{TEX_VD_TRICUBIC_CATROM, "TRICUBIC_CATROM", 0, "Cubic Catmull-Rom", "High quality interpolation, but slower"},
-		{TEX_VD_TRICUBIC_BSPLINE, "TRICUBIC_BSPLINE", 0, "Cubic B-Spline", "Smoothed high quality interpolation, but slower"},
+		{TEX_VD_TRICUBIC_BSPLINE, "TRICUBIC_BSPLINE", 0, "Cubic B-Spline",
+		                          "Smoothed high quality interpolation, but slower"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem file_format_items[] = {
 		{TEX_VD_BLENDERVOXEL, "BLENDER_VOXEL", 0, "Blender Voxel", "Default binary voxel file format"},
 		{TEX_VD_RAW_8BIT, "RAW_8BIT", 0, "8 bit RAW", "8 bit greyscale binary data"},
 		/*{TEX_VD_RAW_16BIT, "RAW_16BIT", 0, "16 bit RAW", ""}, */
-		{TEX_VD_IMAGE_SEQUENCE, "IMAGE_SEQUENCE", 0, "Image Sequence", "Generate voxels from a sequence of image slices"},
+		{TEX_VD_IMAGE_SEQUENCE, "IMAGE_SEQUENCE", 0, "Image Sequence",
+		                        "Generate voxels from a sequence of image slices"},
 		{TEX_VD_SMOKE, "SMOKE", 0, "Smoke", "Render voxels from a Blender smoke simulation"},
 		{0, NULL, 0, NULL, NULL}};
 	
@@ -1853,7 +1869,8 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
-	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_ui_text(prop, "Image User",
+	                         "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 }
 

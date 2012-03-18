@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -184,7 +184,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 	case OB_SURF:
 	case OB_FONT:
 	case OB_CURVE:
-		tmpmesh->totcol = tmpcu->totcol;		
+		tmpmesh->totcol = tmpcu->totcol;
 		
 		/* free old material list (if it exists) and adjust user counts */
 		if ( tmpcu->mat ) {
@@ -326,7 +326,8 @@ void rna_Object_free_duplilist(Object *ob)
 	}
 }
 
-static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)
+static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports,
+                                           const char *name, int from_mix)
 {
 	Scene *scene = CTX_data_scene(C);
 	KeyBlock *kb = NULL;
@@ -351,7 +352,8 @@ int rna_Object_is_visible(Object *ob, Scene *sce)
 }
 
 #if 0
-static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
+static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex,
+                                           float weight, int assignmode)
 {
 	if (ob->type != OB_MESH) {
 		BKE_report(reports, RPT_ERROR, "Object should be of MESH type");
@@ -371,7 +373,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	/* makes a set of dVerts corresponding to the mVerts */
-	if (!me->dvert) 
+	if (!me->dvert)
 		create_dverts(&me->id);
 
 	/* loop list adding verts to group  */
@@ -386,7 +388,8 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 }
 #endif
 
-void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3], float r_location[3], float r_normal[3], int *index)
+void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
+                         float r_location[3], float r_normal[3], int *index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	
@@ -410,7 +413,8 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 		dist = hit.dist = normalize_v3(ray_nor);
 		hit.index = -1;
 		
-		if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1) {
+		if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit,
+		                         treeData.raycast_callback, &treeData) != -1) {
 			if (hit.dist <= dist) {
 				copy_v3_v3(r_location, hit.co);
 				copy_v3_v3(r_normal, hit.no);
@@ -425,12 +429,14 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	*index = -1;
 }
 
-void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float max_dist, float n_location[3], float n_normal[3], int *index)
+void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float max_dist,
+                                      float n_location[3], float n_normal[3], int *index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	
 	if (ob->derivedFinal == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for finding nearest point", ob->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for finding nearest point",
+		            ob->id.name+2);
 		return;
 	}
 
@@ -438,7 +444,8 @@ void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float poi
 	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
 	if (treeData.tree == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for finding nearest point", ob->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for finding nearest point",
+		            ob->id.name+2);
 		return;
 	}
 	else {
@@ -542,7 +549,8 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export");
+	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
+	                       "Mesh created from object, remove it if it is only used for export");
 	RNA_def_function_return(func, parm);
 
 	/* duplis */
@@ -585,10 +593,12 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* return location and normal */
-	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The hit location of this ray cast", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
+	                            "The hit location of this ray cast", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
-	parm = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "The face normal at the ray cast hit location", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal",
+	                            "The face normal at the ray cast hit location", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 	
@@ -607,10 +617,12 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_float(func, "max_dist", 1.844674352395373e+19, 0.0, FLT_MAX, "", "", 0.0, FLT_MAX);
 
 	/* return location and normal */
-	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The location on the object closest to the point", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
+	                            "The location on the object closest to the point", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
-	parm = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "The face normal at the closest point", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal",
+	                            "The face normal at the closest point", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
@@ -657,7 +669,8 @@ void RNA_api_object_base(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func = RNA_def_function(srna, "layers_from_view", "rna_ObjectBase_layers_from_view");
-	RNA_def_function_ui_description(func, "Sets the object layers from a 3D View (use when adding an object in local view)");
+	RNA_def_function_ui_description(func,
+	                                "Sets the object layers from a 3D View (use when adding an object in local view)");
 	parm = RNA_def_pointer(func, "view", "SpaceView3D", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
