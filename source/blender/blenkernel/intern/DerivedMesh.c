@@ -1699,6 +1699,19 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		/* Need to watch this, it can cause issues, see bug [#29338]             */
 		/* take care with this block, we really need testing frameworks          */
 		/* --------------------------------------------------------------------- */
+
+
+		/* without this, drawing ngon tri's faces will show ugly tessellated face
+		 * normals and will also have to calculate normals on the fly, try avoid
+		 * this where possible since calculating polygon normals isn't fast,
+		 * note that this isn't a problem for subsurf (only quads) or editmode
+		 * which deals with drawing differently.
+		 *
+		 * Never calc vertex normals because other code ensures these are up to date.
+		 */
+		if ((finaldm->type == DM_TYPE_CDDM) && (CustomData_has_layer(&finaldm->faceData, CD_NORMAL) == FALSE)) {
+			CDDM_calc_normals_mapping_ex(finaldm, TRUE);
+		}
 	}
 
 

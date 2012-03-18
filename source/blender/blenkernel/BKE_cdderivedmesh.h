@@ -96,6 +96,7 @@ void CDDM_apply_vert_normals(struct DerivedMesh *cddm, short (*vertNormals)[3]);
 
 /* recalculates vertex and face normals for a CDDerivedMesh
  */
+void CDDM_calc_normals_mapping_ex(struct DerivedMesh *dm, const short only_face_normals);
 void CDDM_calc_normals_mapping(struct DerivedMesh *dm);
 void CDDM_calc_normals(struct DerivedMesh *dm);
 void CDDM_calc_normals_tessface(struct DerivedMesh *dm);
