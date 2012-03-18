@@ -102,58 +102,65 @@ typedef struct Brush {
 } Brush;
 
 /* Brush.flag */
-#define BRUSH_AIRBRUSH		(1<<0)
-#define BRUSH_TORUS		(1<<1)
-#define BRUSH_ALPHA_PRESSURE	(1<<2)
-#define BRUSH_SIZE_PRESSURE	(1<<3)
-#define BRUSH_JITTER_PRESSURE	(1<<4) /* was BRUSH_RAD_PRESSURE */
-#define BRUSH_SPACING_PRESSURE	(1<<5)
-#define BRUSH_FIXED_TEX		(1<<6)
-#define BRUSH_RAKE		(1<<7)
-#define BRUSH_ANCHORED		(1<<8)
-#define BRUSH_DIR_IN		(1<<9)
-#define BRUSH_SPACE		(1<<10)
-#define BRUSH_SMOOTH_STROKE	(1<<11)
-#define BRUSH_PERSISTENT	(1<<12)
-#define BRUSH_ACCUMULATE	(1<<13)
-#define BRUSH_LOCK_ALPHA	(1<<14)
-#define BRUSH_ORIGINAL_NORMAL	(1<<15)
-#define BRUSH_OFFSET_PRESSURE	(1<<16)
-#define BRUSH_SPACE_ATTEN	(1<<18)
-#define BRUSH_ADAPTIVE_SPACE	(1<<19)
-#define BRUSH_LOCK_SIZE		(1<<20)
-#define BRUSH_TEXTURE_OVERLAY	(1<<21)
-#define BRUSH_EDGE_TO_EDGE	(1<<22)
-#define BRUSH_RESTORE_MESH	(1<<23)
-#define BRUSH_INVERSE_SMOOTH_PRESSURE (1<<24)
-#define BRUSH_RANDOM_ROTATION (1<<25)
-#define BRUSH_PLANE_TRIM (1<<26)
-#define BRUSH_FRONTFACE (1<<27)
-#define BRUSH_CUSTOM_ICON (1<<28)
+typedef enum BrushFlags {
+	BRUSH_AIRBRUSH = (1<<0),
+	BRUSH_TORUS = (1<<1),
+	BRUSH_ALPHA_PRESSURE = (1<<2),
+	BRUSH_SIZE_PRESSURE = (1<<3),
+	BRUSH_JITTER_PRESSURE = (1<<4),
+	BRUSH_SPACING_PRESSURE = (1<<5),
+	BRUSH_FIXED_TEX = (1<<6),
+	BRUSH_RAKE = (1<<7),
+	BRUSH_ANCHORED = (1<<8),
+	BRUSH_DIR_IN = (1<<9),
+	BRUSH_SPACE = (1<<10),
+	BRUSH_SMOOTH_STROKE = (1<<11),
+	BRUSH_PERSISTENT = (1<<12),
+	BRUSH_ACCUMULATE = (1<<13),
+	BRUSH_LOCK_ALPHA = (1<<14),
+	BRUSH_ORIGINAL_NORMAL = (1<<15),
+	BRUSH_OFFSET_PRESSURE = (1<<16),
+	BRUSH_SPACE_ATTEN = (1<<18),
+	BRUSH_ADAPTIVE_SPACE = (1<<19),
+	BRUSH_LOCK_SIZE = (1<<20),
+	BRUSH_TEXTURE_OVERLAY = (1<<21),
+	BRUSH_EDGE_TO_EDGE = (1<<22),
+	BRUSH_RESTORE_MESH = (1<<23),
+	BRUSH_INVERSE_SMOOTH_PRESSURE = (1<<24),
+	BRUSH_RANDOM_ROTATION = (1<<25),
+	BRUSH_PLANE_TRIM = (1<<26),
+	BRUSH_FRONTFACE = (1<<27),
+	BRUSH_CUSTOM_ICON = (1<<28),
 
-/* temporary flag which sets up automatically for correct
- * brush drawing when inverted modal operator is running */
-#define BRUSH_INVERTED (1<<29)
+	/* temporary flag which sets up automatically for correct brush
+	 * drawing when inverted modal operator is running */
+	BRUSH_INVERTED = (1<<29)
+} BrushFlags;
 
 /* Brush.sculpt_tool */
-#define SCULPT_TOOL_DRAW        1
-#define SCULPT_TOOL_SMOOTH      2
-#define SCULPT_TOOL_PINCH       3
-#define SCULPT_TOOL_INFLATE     4
-#define SCULPT_TOOL_GRAB        5
-#define SCULPT_TOOL_LAYER       6
-#define SCULPT_TOOL_FLATTEN     7
-#define SCULPT_TOOL_CLAY        8
-#define SCULPT_TOOL_FILL        9
-#define SCULPT_TOOL_SCRAPE     10
-#define SCULPT_TOOL_NUDGE      11
-#define SCULPT_TOOL_THUMB      12
-#define SCULPT_TOOL_SNAKE_HOOK 13
-#define SCULPT_TOOL_ROTATE     14
-//#define SCULPT_TOOL_WAX        15 // XXX: reuse this slot later
-#define SCULPT_TOOL_CREASE     16
-#define SCULPT_TOOL_BLOB       17
-#define SCULPT_TOOL_CLAY_TUBES 18
+typedef enum BrushSculptTool {
+	SCULPT_TOOL_DRAW = 1,
+	SCULPT_TOOL_SMOOTH = 2,
+	SCULPT_TOOL_PINCH = 3,
+	SCULPT_TOOL_INFLATE = 4,
+	SCULPT_TOOL_GRAB = 5,
+	SCULPT_TOOL_LAYER = 6,
+	SCULPT_TOOL_FLATTEN = 7,
+	SCULPT_TOOL_CLAY = 8,
+	SCULPT_TOOL_FILL = 9,
+	SCULPT_TOOL_SCRAPE = 10,
+	SCULPT_TOOL_NUDGE = 11,
+	SCULPT_TOOL_THUMB = 12,
+	SCULPT_TOOL_SNAKE_HOOK = 13,
+	SCULPT_TOOL_ROTATE = 14,
+	
+	/* slot 15 is free for use */
+	/* SCULPT_TOOL_ = 15, */
+	
+	SCULPT_TOOL_CREASE = 16,
+	SCULPT_TOOL_BLOB = 17,
+	SCULPT_TOOL_CLAY_TUBES = 18
+} BrushSculptTool;
 
 /* ImagePaintSettings.tool */
 #define PAINT_TOOL_DRAW		0
