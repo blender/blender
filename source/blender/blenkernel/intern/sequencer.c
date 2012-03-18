@@ -1729,7 +1729,7 @@ static ImBuf * input_preprocess(
 			((double) context.recty / 
 			 (double) context.scene->r.ysch) : 1.0;
 
-		c.left *= xscale; c.right *= yscale;
+		c.left *= xscale; c.right *= xscale;
 		c.top *= yscale; c.bottom *= yscale;
 
 		t.xofs *= xscale; t.yofs *= yscale;
