@@ -2915,13 +2915,12 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		}
 		else {
 			if (sync) {
-				int step = floor(wt->duration * FPS);
+				int step = floor((wt->duration - sad->last_duration) * FPS);
 				/* skip frames */
 				if (sad->flag & ANIMPLAY_FLAG_REVERSE)
 					scene->r.cfra -= step;
 				else
 					scene->r.cfra += step;
-				wt->duration -= ((double)step)/FPS;
 			}
 			else {
 				/* one frame +/- */
@@ -2932,6 +2931,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			}
 		}
 		
+		sad->last_duration = wt->duration;
+
 		/* reset 'jumped' flag before checking if we need to jump... */
 		sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
 		
