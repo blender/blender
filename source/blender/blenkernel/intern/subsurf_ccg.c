@@ -409,22 +409,22 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 					float *c = faceGridData[(y + 1)*gridSize + x + 1];
 					float *d = faceGridData[(y + 1)*gridSize + x + 0];
 
-					if (tface) {
-						tf->uv[0][0] = a[0]; tf->uv[0][1] = a[1];
-						tf->uv[1][0] = d[0]; tf->uv[1][1] = d[1];
-						tf->uv[2][0] = c[0]; tf->uv[2][1] = c[1];
-						tf->uv[3][0] = b[0]; tf->uv[3][1] = b[1];
+					if (tf) {
+						copy_v2_v2(tf->uv[0], a);
+						copy_v2_v2(tf->uv[1], d);
+						copy_v2_v2(tf->uv[2], c);
+						copy_v2_v2(tf->uv[3], b);
+						tf++;
 					}
 
-					if (mloopuv) {
-						mluv[0].uv[0] = a[0]; mluv[0].uv[1] = a[1];
-						mluv[1].uv[0] = d[0]; mluv[1].uv[1] = d[1];
-						mluv[2].uv[0] = c[0]; mluv[2].uv[1] = c[1];
-						mluv[3].uv[0] = b[0]; mluv[3].uv[1] = b[1];
+					if (mluv) {
+						copy_v2_v2(mluv[0].uv, a);
+						copy_v2_v2(mluv[1].uv, d);
+						copy_v2_v2(mluv[2].uv, c);
+						copy_v2_v2(mluv[3].uv, b);
+						mluv += 4;
 					}
 
-					tf++;
-					mluv+=4;
 				}
 			}
 		}

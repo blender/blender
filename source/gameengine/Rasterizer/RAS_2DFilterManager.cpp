@@ -103,9 +103,10 @@ void RAS_2DFilterManager::PrintShaderErrors(unsigned int shader, const char *tas
 		c = pos+1;
 		line++;
 	}
-	printf("%s", c);
 
-	printf("%s\n", log);
+	puts(c);
+	puts(log);
+	puts("\n");
 }
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)

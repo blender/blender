@@ -3362,8 +3362,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			}
 			if(ms) {
 				float *sticky= RE_vertren_get_sticky(obr, ver, 1);
-				sticky[0]= ms->co[0];
-				sticky[1]= ms->co[1];
+				copy_v2_v2(sticky, ms->co);
 				ms++;
 			}
 		}

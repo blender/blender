@@ -1674,7 +1674,7 @@ void txt_print_undo(Text *text)
 					uc= uc+(text->undo_buf[i]<<24); i++;
 					c_len= BLI_str_utf8_from_unicode(uc, c);
 					c[c_len]= '\0';
-					printf ("%s", c);
+					puts(c);
 				}
 			}
 		} else if (op==UNDO_STO || op==UNDO_CTO) {

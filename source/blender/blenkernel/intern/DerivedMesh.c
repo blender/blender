@@ -3024,7 +3024,7 @@ char *DM_debug_info(DerivedMesh *dm)
 void DM_debug_print(DerivedMesh *dm)
 {
 	char *str = DM_debug_info(dm);
-	printf("%s", str);
+	puts(str);
 	fflush(stdout);
 	MEM_freeN(str);
 }

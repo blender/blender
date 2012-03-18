@@ -2312,8 +2312,7 @@ void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
 
 		for (j=0; j < mf_len; j++) {
 			lof = CustomData_get(ldata, lindex[j], CD_ORIGSPACE_MLOOP);
-			of->uv[j][0] = lof->uv[0];
-			of->uv[j][1] = lof->uv[1];
+			copy_v2_v2(of->uv[j], lof->uv);
 		}
 	}
 }
