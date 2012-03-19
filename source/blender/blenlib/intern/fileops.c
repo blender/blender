@@ -363,13 +363,12 @@ static char *strip_last_slash(const char *dir)
 static int recursive_operation(const char *startfrom, const char *startto, recursiveOp_Callback callback_dir_pre,
                                recursiveOp_Callback callback_file, recursiveOp_Callback callback_dir_post)
 {
-	DIR *dir;
-	struct dirent *dirent;
+	struct dirent **dirlist;
 	struct stat st;
 	char *from = NULL, *to = NULL;
 	char *from_path = NULL, *to_path = NULL;
 	size_t from_alloc_len = -1, to_alloc_len = -1;
-	int ret = 0;
+	int i, n, ret = 0;
 
 	/* ensure there's no trailing slash in file path */
 	from = strip_last_slash(startfrom);
@@ -398,6 +397,18 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 		return ret;
 	}
 
+
+	n = scandir(startfrom, &dirlist, 0, alphasort);
+	if (n < 0) {
+		/* error opening directory for listing */
+		perror("scandir");
+
+		MEM_freeN(from);
+		if(to) MEM_freeN(to);
+
+		return -1;
+	}
+
 	if(callback_dir_pre) {
 		/* call pre-recursive walking directory callback */
 		ret = callback_dir_pre(from, to);
@@ -415,21 +426,13 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 		}
 	}
 
-	dir = opendir(startfrom);
+	for (i = 0; i < n; i++) {
+		struct dirent *dirent = dirlist[i];
 
-	if(!dir) {
-		/* error opening directory for listing */
-		perror("opendir");
-
-		MEM_freeN(from);
-		if(to) MEM_freeN(to);
-
-		return -1;
-	}
-
-	while((dirent = readdir((dir)))) {
-		if(!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, ".."))
+		if(!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, "..")) {
+			free(dirent);
 			continue;
+		}
 
 		join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
 
@@ -447,11 +450,14 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 				ret = -1;
 		}
 
-		if(ret != 0)
+		if(ret != 0) {
+			while (i < n)
+				free(dirlist[i]);
 			break;
+		}
 	}
 
-	closedir(dir);
+	free(dirlist);
 
 	if(ret == 0) {
 		if(callback_dir_post) {

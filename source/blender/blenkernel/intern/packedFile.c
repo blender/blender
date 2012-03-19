@@ -497,7 +497,7 @@ int unpackImage(ReportList *reports, Image *ima, int how)
 	char *newname;
 	int ret_value = RET_ERROR;
 	
-	if (ima != NULL) {
+	if (ima != NULL && ima->name[0]) {
 		BLI_strncpy(localname, ima->name, sizeof(localname));
 		BLI_splitdirstring(localname, fi);
 		BLI_snprintf(localname, sizeof(localname), "//textures/%s", fi);
