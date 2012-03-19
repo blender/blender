@@ -2199,12 +2199,6 @@ void create_vert_poly_map(MeshElemMap **map, int **mem,
 	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
 	(*mem) = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
 
-	printf("pmap old=%f, new=%f\n",
-		   (sizeof(ListBase) * totvert +
-			sizeof(IndexNode) * totloop) / 1024.0f / 1024.0f,
-		   (sizeof(MeshElemMap) * totvert +
-			sizeof(int) * totloop) / 1024.0f / 1024.0f);
-
 	/* Count number of polys for each vertex */
 	for (i = 0; i < totpoly; i++) {
 		const MPoly *p = &mpoly[i];
