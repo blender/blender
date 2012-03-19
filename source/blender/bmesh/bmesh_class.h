@@ -110,6 +110,8 @@ typedef struct BMLoop {
 	struct BMEdge *e; /* edge, using verts (v, next->v) */
 	struct BMFace *f;
 
+	/* circular linked list of loops which all use the same edge as this one '->e',
+	 * but not necessarily the same vertex (can be either v1 or v2 of our own '->e') */
 	struct BMLoop *radial_next, *radial_prev;
 
 	/* these were originally commented as private but are used all over the code */
