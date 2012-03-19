@@ -531,7 +531,7 @@ static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent
 
 
 	/* drag drop has set the names */
-	if(RNA_collection_length(op->ptr, "files")) {
+	if(RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) {
 		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_ENDFRAME|SEQPROP_NOPATHS);
 		return sequencer_add_image_strip_exec(C, op);
 	}
