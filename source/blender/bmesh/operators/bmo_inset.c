@@ -56,9 +56,6 @@ static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
  * - separate these edges and tag vertices, set their index to point to the original edge.
  * - build faces between old/new edges.
  * - inset the new edges into their faces.
- *
- * TODO
- * - close tares when 2 corners touch.
  */
 
 void bmo_inset_exec(BMesh *bm, BMOperator *op)
@@ -174,7 +171,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 			/* comment the first part because we know this verts in a tagged face */
 			if (/* v->e && */BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				BMVert **vout;
-				int r_vout_len = 0;
+				int r_vout_len;
+				BMVert *v_glue = NULL;
+
+				/* disable touching twice, this _will_ happen if the flags not disabled */
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
 
 				bmesh_vert_separate(bm, v, &vout, &r_vout_len);
 				v = NULL; /* don't use again */
@@ -183,25 +184,20 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 					BMVert *v_split = vout[k]; /* only to avoid vout[k] all over */
 
 					/* need to check if this vertex is from a */
-					BMIter itersub;
 					int vert_edge_tag_tot = 0;
 					int vecpair[2];
 
 					/* find adjacent */
-					BM_ITER(e, &itersub, bm, BM_EDGES_OF_VERT, v_split) {
+					BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v_split) {
 						if (BM_edge_is_boundary(e) && /* this will be true because bmesh_edge_separate() has run */
 						    BM_elem_flag_test(e, BM_ELEM_TAG) &&
 						    BM_elem_flag_test(e->l->f, BM_ELEM_TAG))
 						{
-							/* disable touching twice, this _will_ happen if the flags not disabled */
-							BM_elem_flag_disable(v_split, BM_ELEM_TAG);
-
 							if (vert_edge_tag_tot < 2) {
 								vecpair[vert_edge_tag_tot] = BM_elem_index_get(e);
 								BLI_assert(vecpair[vert_edge_tag_tot] != -1);
 							}
 
-							// BM_elem_flag_disable(e, BM_ELEM_SMOOTH); // testing only
 							vert_edge_tag_tot++;
 						}
 					}
@@ -311,6 +307,29 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 						/* apply the offset */
 						madd_v3_v3fl(v_split->co, tvec, thickness);
 					}
+
+					/* this saves expensive/slow glue check for common cases */
+					if (r_vout_len > 2) {
+						int ok = TRUE;
+						/* last step, NULL this vertex if has a tagged face */
+						BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, v_split) {
+							if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+								ok = FALSE;
+								break;
+							}
+						}
+
+						if (ok) {
+							if (v_glue == NULL) {
+								v_glue = v_split;
+							}
+							else {
+								BM_vert_splice(bm, v_split, v_glue);
+							}
+						}
+					}
+					/* end glue */
+
 				}
 				MEM_freeN(vout);
 			}

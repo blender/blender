@@ -1704,7 +1704,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  *
  * \return Success
  */
-static int bm_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
+int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
 	BMEdge *e;
 	BMLoop *l;
@@ -2006,7 +2006,7 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 
 			/* And then glue the rest back together */
 			for (i = 1; i < len - 1; i++) {
-				bm_vert_splice(bm, vtar[i], vtar[0]);
+				BM_vert_splice(bm, vtar[i], vtar[0]);
 			}
 		}
 	}
