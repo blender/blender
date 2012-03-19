@@ -60,6 +60,7 @@ static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
 
 void bmo_inset_exec(BMesh *bm, BMOperator *op)
 {
+	const int use_boundary        = BMO_slot_bool_get(op, "use_boundary");
 	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
 	const int use_even_boundry    = use_even_offset; /* could make own option */
 	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
@@ -83,8 +84,13 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	/* fill in array and initialize tagging */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMLoop *la, *lb;
-		if ((BM_edge_loop_pair(e, &la, &lb)) &&
-		    (BM_elem_flag_test(la->f, BM_ELEM_TAG) != BM_elem_flag_test(lb->f, BM_ELEM_TAG)))
+
+		if (
+		    /* tag if boundary is enabled */
+		    (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
+
+		    /* tag if edge is an interior edge inbetween a tagged and untagged face */
+		    ((BM_edge_loop_pair(e, &la, &lb)) && (BM_elem_flag_test(la->f, BM_ELEM_TAG) != BM_elem_flag_test(lb->f, BM_ELEM_TAG))))
 		{
 			/* tag */
 			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
@@ -122,8 +128,13 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
 		BMLoop *l, *la, *lb;
 
-		BM_edge_loop_pair(es->e_old, &la, &lb); /* we know this will succeed, already checked above */
-		l = BM_elem_flag_test(la->f, BM_ELEM_TAG) ? la : lb;
+		if (BM_edge_loop_pair(es->e_old, &la, &lb)) {
+			l = BM_elem_flag_test(la->f, BM_ELEM_TAG) ? la : lb;
+		}
+		else {
+			l = es->e_old->l; /* must be a boundary */
+		}
+
 
 		/* run the separate arg */
 		bmesh_edge_separate(bm, es->e_old, l);
@@ -131,6 +142,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		/* calc edge-split info */
 		es->e_new = l->e;
 		edge_loop_tangent(es->e_new, l, es->no);
+
+
+		if (es->e_new == es->e_old) { /* happens on boundary edges */
+			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, FALSE);
+		}
 
 		/* store index back to original in 'edge_info' */
 		BM_elem_index_set(es->e_new, i);

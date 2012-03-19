@@ -1085,8 +1085,9 @@ static BMOpDefine bmo_inset_def = {
 	"inset",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},   /* input faces */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
-	 {BMO_OP_SLOT_BOOL, "use_even_offset"}, /* type of thickness calculation */
-	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},            /* type of thickness calculation */
+	 {BMO_OP_SLOT_BOOL, "use_boundary"},
+	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
+	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
 	 {BMO_OP_SLOT_FLT, "thickness"},
 	 {0} /* null-terminating sentine */},
 	bmo_inset_exec,

@@ -4578,12 +4578,14 @@ static int mesh_inset_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
+	const int use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
 	const int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
 	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const float thickness = RNA_float_get(op->ptr, "thickness");
 
-	EDBM_InitOpf(em, &bmop, op, "inset faces=%hf use_even_offset=%b use_relative_offset=%b thickness=%f",
-	             BM_ELEM_SELECT, use_even_offset, use_relative_offset, thickness);
+	EDBM_InitOpf(em, &bmop, op,
+	             "inset faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b thickness=%f",
+	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, thickness);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -4620,8 +4622,9 @@ void MESH_OT_inset(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE, "Even",      "Scale the offset to give more even thickness");
-	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Relative", "Scale the offset by surrounding geometry");
+	RNA_def_boolean(ot->srna, "use_boundary",        TRUE, "Boundary",  "Inset face boundries");
+	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE, "Offset Even",      "Scale the offset to give more even thickness");
+	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Offset Relative", "Scale the offset by surrounding geometry");
 
 	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
