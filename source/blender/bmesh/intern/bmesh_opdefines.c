@@ -1076,6 +1076,23 @@ static BMOpDefine bmo_solidify_def = {
 	0
 };
 
+/*
+ * Face Inset
+ *
+ * Extrudes faces individually.
+ */
+static BMOpDefine bmo_inset_def = {
+	"inset",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},   /* input faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
+	 {BMO_OP_SLOT_BOOL, "use_even_offset"}, /* type of thickness calculation */
+	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},            /* type of thickness calculation */
+	 {BMO_OP_SLOT_FLT, "thickness"},
+	 {0} /* null-terminating sentine */},
+	bmo_inset_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&bmo_split_def,
 	&bmo_spin_def,
@@ -1142,6 +1159,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_triangle_fill_def,
 	&bmo_bridge_loops_def,
 	&bmo_solidify_def,
+	&bmo_inset_def,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));

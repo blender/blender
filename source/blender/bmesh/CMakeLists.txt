@@ -41,6 +41,7 @@ set(SRC
 	operators/bmo_dupe.c
 	operators/bmo_edgesplit.c
 	operators/bmo_extrude.c
+	operators/bmo_inset.c
 	operators/bmo_join_triangles.c
 	operators/bmo_mesh_conv.c
 	operators/bmo_mirror.c

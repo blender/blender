@@ -4570,3 +4570,60 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	
 	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
+
+
+
+static int mesh_inset_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+	const int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
+	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const float thickness = RNA_float_get(op->ptr, "thickness");
+
+	EDBM_InitOpf(em, &bmop, op, "inset faces=%hf use_even_offset=%b use_relative_offset=%b thickness=%f",
+	             BM_ELEM_SELECT, use_even_offset, use_relative_offset, thickness);
+
+	BMO_op_exec(em->bm, &bmop);
+
+	/* deselect original verts */
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ELEM_SELECT, BM_FACE, TRUE);
+
+	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		DAG_id_tag_update(obedit->data, 0);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_inset(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Inset Faces";
+	ot->idname = "MESH_OT_inset";
+
+	/* api callbacks */
+	ot->exec = mesh_inset_exec;
+	ot->poll = ED_operator_editmesh;
+	ot->description = "";
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE, "Even",      "Scale the offset to give more even thickness");
+	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Relative", "Scale the offset by surrounding geometry");
+
+	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "thickness", "", 0.0f, 10.0f);
+	/* use 1 rather then 10 for max else dragging the button moves too far */
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+}
