@@ -259,6 +259,14 @@ BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 }
 
 /**
+ * Returms edge length
+ */
+float BM_edge_length_calc(BMEdge *e)
+{
+	return len_v3v3(e->v1->co, e->v2->co);
+}
+
+/**
  * Utility function, since enough times we have an edge
  * and want to access 2 connected faces.
  *
@@ -279,6 +287,31 @@ int BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb)
 	else {
 		*r_fa = NULL;
 		*r_fb = NULL;
+		return FALSE;
+	}
+}
+
+/**
+ * Utility function, since enough times we have an edge
+ * and want to access 2 connected loops.
+ *
+ * \return TRUE when only 2 faces are found.
+ */
+int BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
+{
+	BMLoop *la, *lb;
+
+	if ((la = e->l) &&
+	    (lb = la->radial_next) &&
+	    (lb->radial_next == la))
+	{
+		*r_la = la;
+		*r_lb = lb;
+		return TRUE;
+	}
+	else {
+		*r_la = NULL;
+		*r_lb = NULL;
 		return FALSE;
 	}
 }
@@ -599,11 +632,14 @@ BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
  * BM_face_create_ngon() on an arbitrary array of verts,
  * though be sure to pick an edge which has a face.
  */
-void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
+                              BMLoop *edge_loop)
 {
-	if ((edge->l == NULL) ||
-	    (((edge->l->prev->v == edge->v1) && (edge->l->v == edge->v2)) ||
-	     ((edge->l->v == edge->v1) && (edge->l->next->v == edge->v2)))
+	BLI_assert(edge_loop->e == edge);
+
+	if ((edge_loop == NULL) ||
+	    (((edge_loop->prev->v == edge->v1) && (edge_loop->v == edge->v2)) ||
+	     ((edge_loop->v == edge->v1) && (edge_loop->next->v == edge->v2)))
 	    )
 	{
 		*r_v1 = edge->v1;
@@ -613,6 +649,11 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 		*r_v1 = edge->v2;
 		*r_v2 = edge->v1;
 	}
+}
+
+void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+{
+	BM_edge_ordered_verts_ex(edge, r_v1, r_v2, edge->l);
 }
 
 /**
