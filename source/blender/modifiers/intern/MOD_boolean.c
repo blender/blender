@@ -156,7 +156,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if(result)
 			return result;
 		else
-			modifier_setError(md, TIP_("Can't execute boolean operation."));
+			modifier_setError(md, "%s", TIP_("Can't execute boolean operation."));
 	}
 	
 	return derivedData;

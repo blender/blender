@@ -829,7 +829,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		clmd->clothObject->edgehash = NULL;
 	}
 	else if (!clmd->clothObject) {
-		modifier_setError(&(clmd->modifier), TIP_("Out of memory on allocating clmd->clothObject."));
+		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject."));
 		return 0;
 	}
 
@@ -894,7 +894,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if ( !cloth_build_springs ( clmd, dm ) )
 	{
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), TIP_("Can't build springs."));
+		modifier_setError(&(clmd->modifier), "%s", TIP_("Can't build springs."));
 		printf("cloth_free_modifier cloth_build_springs\n");
 		return 0;
 	}
@@ -940,7 +940,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 	if ( clmd->clothObject->verts == NULL )
 	{
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), TIP_("Out of memory on allocating clmd->clothObject->verts."));
+		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject->verts."));
 		printf("cloth_free_modifier clmd->clothObject->verts\n");
 		return;
 	}
@@ -951,7 +951,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 	if ( clmd->clothObject->mfaces == NULL )
 	{
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), TIP_("Out of memory on allocating clmd->clothObject->mfaces."));
+		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject->mfaces."));
 		printf("cloth_free_modifier clmd->clothObject->mfaces\n");
 		return;
 	}

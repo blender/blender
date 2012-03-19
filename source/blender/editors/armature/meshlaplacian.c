@@ -1716,7 +1716,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 			}
 		}
 		else {
-			modifier_setError(&mmd->modifier, TIP_("Failed to find bind solution (increase precision?)."));
+			modifier_setError(&mmd->modifier, "%s", TIP_("Failed to find bind solution (increase precision?)."));
 			error("Mesh Deform: failed to find bind solution.");
 			break;
 		}

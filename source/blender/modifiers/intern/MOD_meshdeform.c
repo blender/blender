@@ -218,7 +218,7 @@ static void meshdeformModifier_do(
 	}
 	
 	if(!cagedm) {
-		modifier_setError(md, TIP_("Can't get mesh from cage object."));
+		modifier_setError(md, "%s", TIP_("Can't get mesh from cage object."));
 		return;
 	}
 
@@ -255,7 +255,7 @@ static void meshdeformModifier_do(
 		cagedm->release(cagedm);
 		return;
 	} else if (mmd->bindcagecos == NULL) {
-		modifier_setError(md, TIP_("Bind data missing."));
+		modifier_setError(md, "%s", TIP_("Bind data missing."));
 		cagedm->release(cagedm);
 		return;
 	}
