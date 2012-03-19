@@ -273,6 +273,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_SELECT:
 					buttons_area_redraw(sa, BCONTEXT_BONE);
 					buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
+					buttons_area_redraw(sa, BCONTEXT_DATA);
 					break;
 				case ND_MODIFIER:
 					if(wmn->action == NA_RENAME)
