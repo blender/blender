@@ -111,7 +111,13 @@ float rng_getFloat(RNG *rng)
 void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 {
 	int i = numElems;
-	void *temp = malloc(elemSize);
+	void *temp;
+
+	if (numElems <= 0) {
+		return;
+	}
+
+	temp = malloc(elemSize);
 
 	while (--i) {
 		int j = rng_getInt(rng)%numElems;
