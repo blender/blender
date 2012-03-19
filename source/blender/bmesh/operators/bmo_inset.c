@@ -49,7 +49,7 @@ static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
 }
 
 /**
- * functionality is as follows
+ * implementation is as follows...
  *
  * - set all faces as tagged/untagged based on selection.
  * - find all edges that have 1 tagged, 1 untagged face.
@@ -166,7 +166,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
 		for (j = 0; j < 2; j++) {
 			v = (j == 0) ? es->e_new->v1 : es->e_new->v2;
-			/* end confusinug part - just pretend this is a typical loop on verts */
+			/* end confusing part - just pretend this is a typical loop on verts */
 
 
 			/* only split of tagged verts - used by separated edges */
@@ -234,24 +234,24 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 								/* This case where only one edge attached to v_split
 								 * is used - ei - the face to inset is on a boundary.
 								 *
-                                 *                  We want the inset to align flush with the
-                                 *                  boundary edge, not the normal of the interior
-                                 *             <--- edge which would give an unsligtly bump.
-                                 * --+-------------------------+---------------+--
-                                 *   |^v_other    ^e_other    /^v_split        |
-                                 *   |                       /                 |
-                                 *   |                      /                  |
-                                 *   |                     / <- tag split edge |
-                                 *   |                    /                    |
-                                 *   |                   /                     |
-                                 *   |                  /                      |
-                                 * --+-----------------+-----------------------+--
-                                 *   |                                         |
-                                 *   |                                         |
-                                 *
-                                 * note, the fact we are doing location comparisons on verts that are moved about
-                                 * doesnt matter becaise the direction will remain the same in this case.
-                                 */
+								 *                  We want the inset to align flush with the
+								 *                  boundary edge, not the normal of the interior
+								 *             <--- edge which would give an unsightly bump.
+								 * --+-------------------------+---------------+--
+								 *   |^v_other    ^e_other    /^v_split        |
+								 *   |                       /                 |
+								 *   |                      /                  |
+								 *   |                     / <- tag split edge |
+								 *   |                    /                    |
+								 *   |                   /                     |
+								 *   |                  /                      |
+								 * --+-----------------+-----------------------+--
+								 *   |                                         |
+								 *   |                                         |
+								 *
+								 * note, the fact we are doing location comparisons on verts that are moved about
+								 * doesn’t matter because the direction will remain the same in this case.
+								 */
 
 								BMEdge *e_other;
 								BMVert *v_other;
@@ -308,6 +308,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 							zero_v3(tvec);
 						}
 
+						/* apply the offset */
 						madd_v3_v3fl(v_split->co, tvec, thickness);
 					}
 				}
@@ -317,8 +318,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* create faces */
-	es = edge_info;
-	for (j = 0; j < edge_info_len; j++) {
+	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
 		BMVert *v1, *v2, *v3, *v4;
 
 		/* get the verts in the correct order */
@@ -332,12 +332,10 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 			v4 = es->e_old->v2;
 		}
 
-		/* no need to check doubles, we KNOW there wont be any */
-		/* yes - reverse face is correct in fhis case */
+		/* no need to check doubles, we KNOW there won't be any */
+		/* yes - reverse face is correct in this case */
 		f = BM_face_create_quad_tri(bm, v4, v3, v2, v1, es->e_new->l->f, FALSE);
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
-
-		es++;
 	}
 
 	MEM_freeN(edge_info);
