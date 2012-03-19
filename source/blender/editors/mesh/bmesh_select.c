@@ -712,7 +712,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ELEM_SELECT, BM_ALL, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
@@ -753,7 +753,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ELEM_SELECT, BM_ALL, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ALL, BM_ELEM_SELECT, TRUE);
 	EDBM_selectmode_flush(em);
 
 	/* finish the operator */
@@ -796,7 +796,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ELEM_SELECT, BM_ALL, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
@@ -1542,7 +1542,7 @@ static void EDBM_strip_selections(BMEditMesh *em)
 	}
 }
 
-/* when switching select mode, makes sure selection is consistant for editing */
+/* when switching select mode, makes sure selection is consistent for editing */
 /* also for paranoia checks to make sure edge or face mode works */
 void EDBM_selectmode_set(BMEditMesh *em)
 {

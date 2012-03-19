@@ -110,7 +110,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(edges);
 
 	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
-	BMO_slot_buffer_from_flag(bm, op, "faceout", EXT_KEEP, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
 }
 
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
@@ -162,7 +162,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_flag(bm, op, "geomout", EXT_KEEP, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_ALL, EXT_KEEP);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
@@ -181,8 +181,8 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "vertout", EXT_KEEP, BM_VERT);
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "vertout", BM_VERT, EXT_KEEP);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EXT_KEEP);
 }
 
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
@@ -199,7 +199,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, "dupe");
 	
-	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", BM_EDGE|BM_FACE, EXT_INPUT);
 	
 	/* if one flagged face is bordered by an un-flagged face, then we delete
 	 * original geometry unless caller explicitly asked to keep it. */
@@ -614,7 +614,7 @@ void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &extrudeop);
 
 	/* Push the verts of the extruded faces inward to create thickness */
-	BMO_slot_buffer_flag_enable(bm, &extrudeop, "geomout", FACE_MARK, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, &extrudeop, "geomout", BM_FACE, FACE_MARK);
 	calc_solidify_normals(bm);
 	solidify_add_thickness(bm, thickness);
 

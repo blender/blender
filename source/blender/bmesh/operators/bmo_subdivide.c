@@ -685,7 +685,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	int beauty, cornertype, singleedge, gridfill;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
-	BMO_slot_buffer_flag_enable(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bmesh, op, "edges", BM_EDGE, SUBD_SPLIT);
 	
 	numcuts = BMO_slot_int_get(op, "numcuts");
 	seed = BMO_slot_int_get(op, "seed");
@@ -740,7 +740,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	}
 
 	/* first go through and tag edge */
-	BMO_slot_buffer_from_flag(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
+	BMO_slot_buffer_from_flag(bmesh, op, "edges", BM_EDGE, SUBD_SPLIT);
 
 	params.numcuts = numcuts;
 	params.op = op;
@@ -754,10 +754,10 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	params.off[2] = (float)BLI_drand() * 200.0f;
 	
 	BMO_slot_map_to_flag(bmesh, op, "custompatterns",
-	                     FACE_CUSTOMFILL, BM_FACE);
+	                     BM_FACE, FACE_CUSTOMFILL);
 
 	BMO_slot_map_to_flag(bmesh, op, "edgepercents",
-	                     EDGE_PERCENT, BM_EDGE);
+	                     BM_EDGE, EDGE_PERCENT);
 
 	for (face = BM_iter_new(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face;
@@ -1005,10 +1005,10 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 	BLI_array_free(splits);
 	BLI_array_free(loops);
 
-	BMO_slot_buffer_from_flag(bmesh, op, "outinner", ELE_INNER, BM_ALL);
-	BMO_slot_buffer_from_flag(bmesh, op, "outsplit", ELE_SPLIT, BM_ALL);
+	BMO_slot_buffer_from_flag(bmesh, op, "outinner", BM_ALL, ELE_INNER);
+	BMO_slot_buffer_from_flag(bmesh, op, "outsplit", BM_ALL, ELE_SPLIT);
 	
-	BMO_slot_buffer_from_flag(bmesh, op, "geomout", ELE_INNER|ELE_SPLIT|SUBD_SPLIT, BM_ALL);
+	BMO_slot_buffer_from_flag(bmesh, op, "geomout", BM_ALL, ELE_INNER|ELE_SPLIT|SUBD_SPLIT);
 }
 
 /* editmesh-emulating functio */
@@ -1096,7 +1096,7 @@ void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "outsplit", ELE_SPLIT, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, op, "outsplit", BM_ALL, ELE_SPLIT);
 
 	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
 }

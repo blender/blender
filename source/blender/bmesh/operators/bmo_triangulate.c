@@ -72,8 +72,8 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", EDGE_NEW, BM_EDGE);
-	BMO_slot_buffer_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, EDGE_NEW);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
 	
 	BLI_array_free(projectverts);
 	BLI_array_free(newfaces);
@@ -87,7 +87,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	int stop = 0;
 	
-	BMO_slot_buffer_flag_enable(bm, op, "constrain_edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "constrain_edges", BM_EDGE, EDGE_MARK);
 	
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		if (f->len == 3) {
@@ -152,7 +152,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_flag(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_EDGE|BM_FACE, ELE_NEW);
 }
 
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
@@ -213,8 +213,8 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	/* clean up fill */
 	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
 	BMO_op_exec(bm, &bmop);
-	BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_FACE|BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &bmop);
 	
-	BMO_slot_buffer_from_flag(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "geomout", BM_EDGE|BM_FACE, ELE_NEW);
 }

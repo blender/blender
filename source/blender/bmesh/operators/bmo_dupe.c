@@ -325,7 +325,7 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
 		bm2 = bm;
 
 	/* flag inpu */
-	BMO_slot_buffer_flag_enable(bm, dupeop, "geom", DUPE_INPUT, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, dupeop, "geom", BM_ALL, DUPE_INPUT);
 
 	/* use the internal copy function */
 	copy_mesh(dupeop, bm, bm2);
@@ -335,7 +335,7 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(dupeop, dupeop, "geom", "origout");
 
 	/* Now alloc the new output buffers */
-	BMO_slot_buffer_from_flag(bm, dupeop, "newout", DUPE_NEW, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, dupeop, "newout", BM_ALL, DUPE_NEW);
 }
 
 #if 0 /* UNUSED */
@@ -343,12 +343,12 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
  * type flag etypeflag and header flag flag to it.  note,
  * to get more useful information (such as the mapping from
  * original to new elements) you should run the dupe op manually */
-void BMO_dupe_from_flag(BMesh *bm, int etypeflag, const char hflag)
+void BMO_dupe_from_flag(BMesh *bm, int htype, const char hflag)
 {
 	BMOperator dupeop;
 
 	BMO_op_init(bm, &dupeop, "dupe");
-	BMO_slot_buffer_from_hflag(bm, &dupeop, "geom", hflag, etypeflag);
+	BMO_slot_buffer_from_hflag(bm, &dupeop, "geom", htype, hflag);
 
 	BMO_op_exec(bm, &dupeop);
 	BMO_op_finish(bm, &dupeop);
@@ -388,7 +388,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(splitop, &dupeop, "geom", "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag_enable(bm, splitop, "geom", SPLIT_INPUT, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, splitop, "geom", BM_ALL, SPLIT_INPUT);
 
 	if (use_only_faces) {
 		BMVert *v;
@@ -429,7 +429,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 
 	/* connect outputs of dupe to delete, exluding keep geometry */
 	BMO_slot_int_set(&delop, "context", DEL_FACES);
-	BMO_slot_buffer_from_flag(bm, &delop, "geom", SPLIT_INPUT, BM_ALL);
+	BMO_slot_buffer_from_flag(bm, &delop, "geom", BM_ALL, SPLIT_INPUT);
 	
 	BMO_op_exec(bm, &delop);
 
@@ -453,7 +453,7 @@ void bmo_del_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/* Mark Buffer */
-	BMO_slot_buffer_flag_enable(bm, delop, "geom", DEL_INPUT, BM_ALL);
+	BMO_slot_buffer_flag_enable(bm, delop, "geom", BM_ALL, DEL_INPUT);
 
 	BMO_remove_tagged_context(bm, DEL_INPUT, BMO_slot_int_get(op, "context"));
 

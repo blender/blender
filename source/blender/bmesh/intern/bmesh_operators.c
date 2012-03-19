@@ -455,7 +455,7 @@ void BMO_slot_vec_get(BMOperator *op, const char *slotname, float r_vec[3])
  *
  */
 
-int BMO_mesh_flag_count(BMesh *bm, const short oflag, const char htype)
+int BMO_mesh_flag_count(BMesh *bm, const char htype, const short oflag)
 {
 	BMIter elements;
 	int count = 0;
@@ -596,7 +596,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slotcode, int totadd)
 #endif
 
 void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                          const short oflag, const char htype)
+                          const char htype, const short oflag)
 {
 	GHashIterator it;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
@@ -679,7 +679,7 @@ static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot
  * into a slot for an operator.
  */
 void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
-                                const char hflag, const char htype)
+                                const char htype, const char hflag)
 {
 	BMIter elements;
 	BMElem *ele;
@@ -730,11 +730,11 @@ void BMO_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slotname,
  * into an output slot for an operator.
  */
 void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
-                               const short oflag, const char htype)
+                               const char htype, const short oflag)
 {
 	BMIter elements;
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
-	int totelement = BMO_mesh_flag_count(bm, oflag, htype), i = 0;
+	int totelement = BMO_mesh_flag_count(bm, htype, oflag), i = 0;
 
 	BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
@@ -785,7 +785,7 @@ void BMO_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slotname,
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const char hflag, const char htype, const char do_flush)
+                                  const char htype, const char hflag, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
@@ -818,7 +818,7 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slotnam
  * using the selection API where appropriate.
  */
 void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                   const char hflag, const char htype, const char do_flush)
+                                   const char htype, const char hflag, const char do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMElem **data =  slot->data.p;
@@ -869,7 +869,7 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  * Flags elements in a slots buffer
  */
 void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname,
-                                 const short oflag, const char htype)
+                                 const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -891,7 +891,7 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slotname
  * Removes flags from elements in a slots buffer
  */
 void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slotname,
-                                  const short oflag, const char htype)
+                                  const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BMHeader **data =  slot->data.p;
@@ -1245,7 +1245,8 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt;
 	char slotname[64] = {0};
-	int i /*, n = strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state;
+	int i /*, n = strlen(fmt) */, stop /*, slotcode = -1 */, type, state;
+	char htype;
 	int noslot = 0;
 
 
@@ -1380,13 +1381,13 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 						BMO_slot_float_set(op, slotname, va_arg(vlist, double));
 					}
 					else {
-						ret = 0;
+						htype = 0;
 						stop = 0;
 						while (1) {
 							switch (NEXT_CHAR(fmt)) {
-								case 'f': ret |= BM_FACE; break;
-								case 'e': ret |= BM_EDGE; break;
-								case 'v': ret |= BM_VERT; break;
+								case 'f': htype |= BM_FACE; break;
+								case 'e': htype |= BM_EDGE; break;
+								case 'v': htype |= BM_VERT; break;
 								default:
 									stop = 1;
 									break;
@@ -1399,13 +1400,13 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 						}
 
 						if (type == 'h') {
-							BMO_slot_buffer_from_hflag(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_buffer_from_hflag(bm, op, slotname, htype, va_arg(vlist, int));
 						}
 						else if (type == 'a') {
-							BMO_slot_buffer_from_all(bm, op, slotname, ret);
+							BMO_slot_buffer_from_all(bm, op, slotname, htype);
 						}
 						else {
-							BMO_slot_buffer_from_flag(bm, op, slotname, va_arg(vlist, int), ret);
+							BMO_slot_buffer_from_flag(bm, op, slotname, htype, va_arg(vlist, int));
 						}
 					}
 

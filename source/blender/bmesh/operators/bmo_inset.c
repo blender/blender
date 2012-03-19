@@ -80,7 +80,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	int i, j, k;
 
 	BM_mesh_elem_flag_disable_all(bm, BM_FACE, BM_ELEM_TAG);
-	BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_ELEM_TAG, BM_FACE, FALSE);
+	BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 
 	/* first count all inset edges we will split */
 	/* fill in array and initialize tagging */
@@ -343,5 +343,5 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(edge_info);
 
 	/* we could flag new edges/verts too, is it useful? */
-	BMO_slot_buffer_from_flag(bm, op, "faceout", ELE_NEW, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
 }

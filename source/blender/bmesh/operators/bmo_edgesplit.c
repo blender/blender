@@ -91,7 +91,7 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMEdge *e;
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_SEAM, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_SEAM);
 
 	bm_edgesplit_validate_seams(bm, op);
 
@@ -119,5 +119,5 @@ void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_hflag(bm, op, "edgeout", BM_ELEM_INTERNAL_TAG, BM_EDGE);
+	BMO_slot_buffer_from_hflag(bm, op, "edgeout", BM_EDGE, BM_ELEM_INTERNAL_TAG);
 }

@@ -904,8 +904,8 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	edata = MEM_callocN(sizeof(EdgeData) * bm->totedge, "EdgeData");
 	vdata = MEM_callocN(sizeof(VertData) * bm->totvert, "VertData");
 	
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
-	BMO_slot_buffer_flag_enable(bm, op, "excludefaces", FACE_IGNORE, BM_FACE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_flag_enable(bm, op, "excludefaces", BM_FACE, FACE_IGNORE);
 	
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -1053,7 +1053,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edge_free_path(pathbase, path);
 	}
 
-	BMO_slot_buffer_from_flag(bm, op, "faceout", FACE_NEW, BM_FACE);
+	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, FACE_NEW);
 
 	BLI_array_free(edges);
 	BLI_array_free(verts);
@@ -1093,7 +1093,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 	int ok = 1;
 	int i, count;
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 	
 	/* validate that each edge has at most one other tagged edge in the
 	 * disk cycle around each of it's vertices */
@@ -1250,7 +1250,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_flag(bm, op, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_slot_buffer_from_flag(bm, op, "edgeout", BM_EDGE, ELE_NEW);
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);
@@ -1354,7 +1354,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* call edgenet prepare op so additional face creation cases wore */
 	BMO_op_initf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
-	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
+	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &op2);
 
 	BMO_op_initf(bm, &op2, "edgenet_fill edges=%fe use_fill_check=%b", ELE_NEW, TRUE);
