@@ -203,10 +203,9 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 	}
 	else if(md->type == eModifierType_Multires) {
 		int ok= 1;
-		Mesh *me= ob->data;
 		ModifierData *tmpmd;
 
-		/* ensure MDISPS CustomData layer is't used by another multires modifiers */
+		/* ensure MDISPS CustomData layer isn't used by another multires modifiers */
 		for(tmpmd= ob->modifiers.first; tmpmd; tmpmd= tmpmd->next)
 			if(tmpmd!=md && tmpmd->type == eModifierType_Multires) {
 				ok= 0;
@@ -214,16 +213,7 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 			}
 
 		if(ok) {
-			if(me->edit_btmesh) {
-				BMEditMesh *em= me->edit_btmesh;
-				/* CustomData_external_remove is used here only to mark layer as non-external
-				 * for further free-ing, so zero element count looks safer than em->totface */
-				CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
-				BM_data_layer_free(em->bm, &em->bm->ldata, CD_MDISPS);
-			} else {
-				CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
-				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
-			}
+			multires_customdata_delete(ob->data);
 		}
 	}
 
@@ -536,10 +526,8 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 
 			dm->release(dm);
 
-			if(md->type == eModifierType_Multires) {
-				CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
-				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
-			}
+			if(md->type == eModifierType_Multires)
+				multires_customdata_delete(me);
 		}
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {

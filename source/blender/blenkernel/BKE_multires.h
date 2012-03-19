@@ -44,6 +44,9 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 
+/* Delete mesh mdisps */
+void multires_customdata_delete(struct Mesh *me);
+
 void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
 
 void multires_force_update(struct Object *ob);
