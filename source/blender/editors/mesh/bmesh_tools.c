@@ -4581,11 +4581,12 @@ static int mesh_inset_exec(bContext *C, wmOperator *op)
 	const int use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
 	const int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
 	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
-	const float thickness = RNA_float_get(op->ptr, "thickness");
+	const float thickness         = RNA_float_get(op->ptr, "thickness");
+	const int use_outset          = RNA_boolean_get(op->ptr, "use_outset");
 
 	EDBM_InitOpf(em, &bmop, op,
-	             "inset faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b thickness=%f",
-	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, thickness);
+	             "inset faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b thickness=%f use_outset=%b",
+	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, thickness, use_outset);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -4629,4 +4630,6 @@ void MESH_OT_inset(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+
+	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset",  "outset rather then inset");
 }

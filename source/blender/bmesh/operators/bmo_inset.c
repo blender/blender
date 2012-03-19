@@ -60,7 +60,8 @@ static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
 
 void bmo_inset_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_boundary        = BMO_slot_bool_get(op, "use_boundary");
+	const int use_outset          = BMO_slot_bool_get(op, "use_outset");
+	const int use_boundary        = BMO_slot_bool_get(op, "use_boundary") && (use_outset == FALSE);
 	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
 	const int use_even_boundry    = use_even_offset; /* could make own option */
 	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
@@ -77,8 +78,14 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	int i, j, k;
 
-	BM_mesh_elem_flag_disable_all(bm, BM_FACE, BM_ELEM_TAG);
-	BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+	if (use_outset == FALSE) {
+		BM_mesh_elem_flag_disable_all(bm, BM_FACE, BM_ELEM_TAG);
+		BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+	}
+	else {
+		BM_mesh_elem_flag_enable_all(bm, BM_FACE, BM_ELEM_TAG);
+		BMO_slot_buffer_hflag_disable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+	}
 
 	/* first count all inset edges we will split */
 	/* fill in array and initialize tagging */

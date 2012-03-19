@@ -1089,6 +1089,7 @@ static BMOpDefine bmo_inset_def = {
 	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
 	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
 	 {BMO_OP_SLOT_FLT, "thickness"},
+	 {BMO_OP_SLOT_BOOL, "use_outset"},
 	 {0} /* null-terminating sentine */},
 	bmo_inset_exec,
 	0
