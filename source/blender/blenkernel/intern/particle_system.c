@@ -1814,6 +1814,8 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		}
 		ob = sim->ob;
 		where_is_object_time(sim->scene, ob, pa->time);
+
+		psys->flag |= PSYS_OB_ANIM_RESTORE;
 	}
 
 	psys_get_birth_coordinates(sim, pa, &pa->state, dtime, cfra);
@@ -4438,6 +4440,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
+	/* to verify if we need to restore object afterwards */
+	psys->flag &= ~PSYS_OB_ANIM_RESTORE;
+
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
 
@@ -4550,14 +4555,16 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		}
 	}
 
-	if(psys->cfra < cfra) {
-		/* make sure emitter is left at correct time (particle emission can change this) */
+	/* make sure emitter is left at correct time (particle emission can change this) */
+	if(psys->flag & PSYS_OB_ANIM_RESTORE) {
 		while(ob) {
 			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
 			ob = ob->parent;
 		}
 		ob = sim.ob;
 		where_is_object_time(scene, ob, cfra);
+
+		psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 	}
 
 	psys->cfra = cfra;

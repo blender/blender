@@ -498,7 +498,8 @@ typedef struct ParticleSystem
 #define PSYS_KEYED			1024
 #define PSYS_EDITED			2048
 //#define PSYS_PROTECT_CACHE	4096 /* deprecated */
-#define PSYS_DISABLED		8192
+#define PSYS_DISABLED			8192
+#define PSYS_OB_ANIM_RESTORE	16384 /* runtime flag */
 
 /* pars->flag */
 #define PARS_UNEXIST		1
