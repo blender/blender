@@ -90,7 +90,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
             #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
             row.column().label(text="Not for Axis-Angle")
         else:
-            row.column().prop(ob, "delta_rotation_euler", text="Delat Rotation")
+            row.column().prop(ob, "delta_rotation_euler", text="Delta Rotation")
 
         row.column().prop(ob, "delta_scale")
 
