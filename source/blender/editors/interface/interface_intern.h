@@ -68,6 +68,7 @@ typedef enum {
 	UI_WTYPE_NUMBER,
 	UI_WTYPE_SLIDER,
 	UI_WTYPE_EXEC,
+	UI_WTYPE_TOOLTIP,
 	
 	/* strings */
 	UI_WTYPE_NAME,
@@ -84,7 +85,7 @@ typedef enum {
 	UI_WTYPE_PULLDOWN,
 	UI_WTYPE_MENU_ITEM,
 	UI_WTYPE_MENU_BACK,
-	
+
 	/* specials */
 	UI_WTYPE_ICON,
 	UI_WTYPE_SWATCH,
@@ -465,6 +466,7 @@ extern int ui_button_is_active(struct ARegion *ar);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+void ui_draw_tooltip(uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol);
 void ui_draw_link_bezier(rcti *rect);

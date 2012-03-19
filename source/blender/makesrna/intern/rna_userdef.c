@@ -698,6 +698,10 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Menu Backdrop Colors", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	prop = RNA_def_property(srna, "wcol_tooltip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Tooltip Colors", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "wcol_menu_item", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);

@@ -325,7 +325,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	rcti bbox= data->bbox;
 	int a;
 	
-	ui_draw_menu_back(UI_GetStyle(), NULL, &data->bbox);
+	ui_draw_tooltip(UI_GetStyle(), NULL, &data->bbox);
 	
 	/* draw text */
 	uiStyleFontSet(&data->fstyle);

@@ -1390,6 +1390,19 @@ static struct uiWidgetColors wcol_menu_back= {
 	25, -20
 };
 
+/* tooltip colour */
+static struct uiWidgetColors wcol_tooltip= {
+	{0, 0, 0, 255},
+	{25, 25, 25, 230},
+	{45, 45, 45, 230},
+	{100, 100, 100, 255},
+
+	{160, 160, 160, 255},
+	{255, 255, 255, 255},
+
+	0,
+	25, -20
+};
 
 static struct uiWidgetColors wcol_radio= {
 	{0, 0, 0, 255},
@@ -1524,6 +1537,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_menu= wcol_menu;
 	tui->wcol_pulldown= wcol_pulldown;
 	tui->wcol_menu_back= wcol_menu_back;
+	tui->wcol_tooltip = wcol_tooltip;
 	tui->wcol_menu_item= wcol_menu_item;
 	tui->wcol_box= wcol_box;
 	tui->wcol_scroll= wcol_scroll;
@@ -2838,6 +2852,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_tool;
 			wt.draw= widget_roundbut;
 			break;
+
+		case UI_WTYPE_TOOLTIP:
+			wt.wcol_theme = &btheme->tui.wcol_tooltip;
+			wt.draw = widget_menu_back;
+			break;
 			
 			
 			/* strings */
@@ -3205,6 +3224,14 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 			UI_DrawTriIcon((rect->xmax+rect->xmin)/2, rect->ymin+10, 'v');
 		}
 	}	
+}
+
+void ui_draw_tooltip(uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)
+{
+	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
+	wt->state(wt, 0);
+	/* wt->draw ends up using same function to draw the tooltip as menu_back */
+	wt->draw(&wt->wcol, rect, 0, 0);
 }
 
 void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
