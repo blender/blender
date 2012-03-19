@@ -265,8 +265,10 @@ BuildHeap(
 	// load in edge pointers to the heap
 
 	std::vector<LOD_Edge> & edge_set= m_mesh.EdgeSet();
-	std::vector<LOD_Edge>::const_iterator edge_end = edge_set.end();
-	std::vector<LOD_Edge>::iterator edge_start = edge_set.begin();
+
+	// UNUSED
+	// std::vector<LOD_Edge>::const_iterator edge_end = edge_set.end();
+	// std::vector<LOD_Edge>::iterator edge_start = edge_set.begin();
 
 	std::vector<int> & heap_vector = m_heap->HeapVector();
 

@@ -300,6 +300,9 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 	float maxfactor, scale, len, dis, vec1[3], vec2[3], t_up_vec[3];
 	int is_edge, forward, is_split_vert;
 
+	/* ov, vtd2, and is_split_vert are set but UNUSED */
+	(void)ov, (void)vtd2, (void)is_split_vert;
+
 	if (l == NULL) {
 		/* what you call operator overloading in C :)
 		 * I wanted to use the same function for both wire edges and poly loops
@@ -646,7 +649,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 static BMLoop *BME_bevel_vert(BMesh *bm, BMLoop *l, float value, int UNUSED(options), float *up_vec, BME_TransData_Head *td)
 {
 	BMVert *v1, *v2;
-	BMFace *f;
+	/* BMFace *f; */ /* UNUSED */
 
 	/* get/make the first vert to be used in SFME */
 	/* may need to split the previous edge */
@@ -659,7 +662,7 @@ static BMLoop *BME_bevel_vert(BMesh *bm, BMLoop *l, float value, int UNUSED(opti
 	l = l->next->next;
 
 	/* "cut off" this corner */
-	f = BM_face_split(bm, l->f, v2, v1, NULL, l->e, FALSE);
+	/* f = */ BM_face_split(bm, l->f, v2, v1, NULL, l->e, FALSE);
 
 	return l;
 }

@@ -2837,12 +2837,15 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 
 	return but;
 }
+
+#if 0 /* UNUSED */
 static uiBut *UNUSED_FUNCTION(ui_def_but_operator)(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0);
 	if (str == NULL && ot == NULL) str = opname;
 	return ui_def_but_operator_ptr(block, type, ot, opcontext, str, x1, y1, x2, y2, tip);
 }
+#endif
 
 static uiBut *ui_def_but_operator_text(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
 {

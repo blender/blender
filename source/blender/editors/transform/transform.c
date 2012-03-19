@@ -4361,7 +4361,7 @@ static int createSlideVerts(TransInfo *t)
 	BMEditMesh *em = me->edit_btmesh;
 	BMesh *bm = em->bm;
 	BMIter iter, iter2;
-	BMEdge *e, *e1, *ee, *le;
+	BMEdge *e, *e1 /*, *ee, *le */ /* UNUSED */;
 	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
 	TransDataSlideVert *tempsv;
@@ -4373,7 +4373,7 @@ static int createSlideVerts(TransInfo *t)
 	ARegion *ar = t->ar;
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, dir[3], end[3] = {0.0f, 0.0f, 0.0f};
-	float vec[3], vec2[3], lastvec[3], size, dis=0.0, z;
+	float vec[3], vec2[3], lastvec[3] /*, size, dis=0.0, z */ /* UNUSED */;
 	int numsel, i, j;
 
 	if (!v3d) {
@@ -4547,10 +4547,10 @@ static int createSlideVerts(TransInfo *t)
 	sld->totsv = j;
 	
 	/*find mouse vector*/
-	dis = z = -1.0f;
-	size = 50.0;
+	/* dis = z = -1.0f; */ /* UNUSED */
+	/* size = 50.0; */ /* UNUSED */
 	zero_v3(lastvec); zero_v3(dir);
-	ee = le = NULL;
+	/* ee = le = NULL; */ /* UNUSED */
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
@@ -4588,8 +4588,8 @@ static int createSlideVerts(TransInfo *t)
 					d = dist_to_line_segment_v2(mval, vec1, vec2);
 					if (dis2 == -1.0f || d < dis2) {
 						dis2 = d;
-						ee = e2;
-						size = len_v3v3(vec1, vec2);
+						/* ee = e2; */ /* UNUSED */
+						/* size = len_v3v3(vec1, vec2); */ /* UNUSED */
 						sub_v3_v3v3(dir, vec1, vec2);
 					}
 				}
@@ -4680,7 +4680,7 @@ void projectSVData(TransInfo *t, int final)
 			BMIter liter2;
 			BMFace *copyf, *copyf2;
 			BMLoop *l2;
-			int sel, hide, do_vdata;
+			int sel, hide /*, do_vdata */ /* UNUSED */;
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;
@@ -4698,12 +4698,12 @@ void projectSVData(TransInfo *t, int final)
 			/*project onto copied projection face*/
 			BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_FACE, f) {
 				copyf = copyf2;
-				do_vdata = l2->v==tempsv->v;
+				/* do_vdata = l2->v==tempsv->v; */ /* UNUSED */
 				
 				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {
 					BMLoop *l3 = l2;
 					
-					do_vdata = 1;
+					/* do_vdata = 1; */ /* UNUSED */
 					
 					if (!BM_elem_flag_test(l2->e, BM_ELEM_SELECT))
 						l3 = l3->prev;

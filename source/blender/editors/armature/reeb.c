@@ -115,6 +115,7 @@ void flipArcBuckets(ReebArc *arc);
 
 /***************************************** UTILS **********************************************/
 
+#if 0 /* UNUSED */
 static VertexData *allocVertexData(EditMesh *em)
 {
 	VertexData *data;
@@ -159,6 +160,8 @@ static void nodeSetData(EditVert *eve, ReebNode *n)
 {
 	((VertexData*)eve->tmp.p)->n = n;
 }
+
+#endif
 
 void REEB_freeArc(BArc *barc)
 {
@@ -232,6 +235,7 @@ void BIF_flagMultiArcs(ReebGraph *rg, int flag)
 	}
 }
 
+#if 0 /* UNUSED */
 static ReebNode * addNode(ReebGraph *rg, EditVert *eve)
 {
 	float weight;
@@ -300,6 +304,7 @@ static void relinkNodes(ReebGraph *low_rg, ReebGraph *high_rg)
 		}
 	}
 }
+#endif 
 
 ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node)
 {
@@ -321,6 +326,7 @@ ReebNode *BIF_lowestLevelNode(ReebNode *node)
 	return node;
 }
 
+#if 0 /* UNUSED */
 static ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
 {
 	ReebArc *cp_arc;
@@ -395,6 +401,7 @@ static ReebGraph * copyReebGraph(ReebGraph *rg, int level)
 	
 	return cp_rg;
 }
+#endif
 
 ReebGraph *BIF_graphForMultiNode(ReebGraph *rg, ReebNode *node)
 {
@@ -408,6 +415,7 @@ ReebGraph *BIF_graphForMultiNode(ReebGraph *rg, ReebNode *node)
 	return multi_rg;
 }
 
+#if 0 /* UNUSED */
 static ReebEdge * copyEdge(ReebEdge *edge)
 {
 	ReebEdge *newEdge = NULL;
@@ -954,6 +962,7 @@ static void calculateGraphLength(ReebGraph *rg)
 		calculateArcLength(arc);
 	}
 }
+#endif
 
 /**************************************** SYMMETRY HANDLING ******************************************/
 
@@ -1160,6 +1169,7 @@ void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BAr
 
 /****************************************** SMOOTHING **************************************************/
 
+#if 0 /* UNUSED */
 void postprocessGraph(ReebGraph *rg, char mode)
 {
 	ReebArc *arc;
@@ -3138,6 +3148,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 	
 	return 1;
 }
+#endif
 
 /****************************************** BUCKET ITERATOR **************************************************/
 

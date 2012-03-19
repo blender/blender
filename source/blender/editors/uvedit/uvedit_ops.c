@@ -767,7 +767,7 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BMLoop *l;
 	MLoopUV *luv;
 	BMIter iter;
-	float m[3], v1[3], v2[3], c1, c2, *uv1, *uv2, *uv3;
+	float m[3], v1[3], v2[3], c1, c2, *uv1, /* *uv2, */ /* UNUSED */ *uv3;
 	int id1, id2, i;
 
 	id1= (id+efa->len-1)%efa->len;
@@ -783,7 +783,7 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 		if (i == id1)
 			uv1 = luv->uv;
 		else if (i == id)
-			uv2 = luv->uv;
+			; /* uv2 = luv->uv; */ /* UNUSED */
 		else if (i == id2)
 			uv3 = luv->uv;
 
@@ -2005,7 +2005,9 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 			else if(flush==-1)	EDBM_deselect_flush(em);
 		}
 	}
-
+#else
+	(void)flush; /* flush is otherwise UNUSED */
+	(void)sync; /* sync is otherwise UNUSED */
 #endif
 
 	DAG_id_tag_update(obedit->data, 0);
