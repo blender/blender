@@ -427,6 +427,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 
 			if (wm_init_state.override_flag & WIN_OVERRIDE_WINSTATE) {
 				win->windowstate = wm_init_state.windowstate;
+				wm_init_state.override_flag &= ~WIN_OVERRIDE_WINSTATE;
 			}
 
 			wm_window_add_ghostwindow("Blender", win);
