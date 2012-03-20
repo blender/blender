@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_group_types.h"
+#include "DNA_lattice_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -398,6 +399,12 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				return OPERATOR_CANCELLED;
 			}
 		}
+		else if (ob->type == OB_LATTICE) {
+			if(ID_REAL_USERS(ob->data) > 1) {
+				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user lattice, doing nothing");
+				return OPERATOR_CANCELLED;
+			}
+		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu;
 
@@ -486,6 +493,16 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		}
 		else if (ob->type==OB_ARMATURE) {
 			ED_armature_apply_transform(ob, mat);
+		}
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = ob->data;
+			BPoint *bp = lt->def;
+			int a = lt->pntsu * lt->pntsv * lt->pntsw;
+			
+			while (a--) {
+				mul_m4_v3(mat, bp->vec);
+				bp++;
+			}
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= ob->data;
