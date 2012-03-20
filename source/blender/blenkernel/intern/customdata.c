@@ -490,6 +490,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 		}
 		else {
 			d[i].disps = NULL;
+			d[i].hidden = NULL;
 			d[i].totdisp = 0;
 			d[i].level = 0;
 		}
