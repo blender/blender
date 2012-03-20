@@ -749,7 +749,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 	for (i = 0; i < me->totvert; ++i) {
 		float avg_no[3] = {0,0,0}, center[3] = {0,0,0}, push[3];
 		float dist;
-		int tot;
+		int tot = 0;
 
 		/* don't adjust verts not used by at least one poly */
 		if (!pmap[i].count)
