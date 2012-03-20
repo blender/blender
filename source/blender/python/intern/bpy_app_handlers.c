@@ -279,8 +279,7 @@ void BPY_app_handlers_reset(const short do_all)
 void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *arg)
 {
 	PyObject *cb_list = py_cb_array[GET_INT_FROM_POINTER(arg)];
-	Py_ssize_t cb_list_len;
-	if ((cb_list_len = PyList_GET_SIZE(cb_list)) > 0) {
+	if (PyList_GET_SIZE(cb_list) > 0) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 
 		PyObject *args = PyTuple_New(1); // save python creating each call
@@ -299,8 +298,9 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
 			Py_INCREF(Py_None);
 		}
 
-		// Iterate the list and run the callbacks
-		for (pos = 0; pos < cb_list_len; pos++) {
+		/* Iterate the list and run the callbacks
+		 * note: don't store the list size since the scripts may remove themselves */
+		for (pos = 0; pos < PyList_GET_SIZE(cb_list); pos++) {
 			func = PyList_GET_ITEM(cb_list, pos);
 			ret = PyObject_Call(func, args, NULL);
 			if (ret == NULL) {
