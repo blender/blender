@@ -4911,7 +4911,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			cd=cdata;
 			pd=pdata;
 			for (i=0, point=edit->points; i<totpoint; i++, point++) {
-				if (point->flag & PEP_HIDE)
+				if (point->flag & PEP_HIDE || point->totkey == 0)
 					continue;
 
 				if (point->keys->flag & PEK_USE_WCO)
@@ -4931,7 +4931,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		}
 		else if (pset->selectmode == SCE_SELECT_END) {
 			for (i=0, point=edit->points; i<totpoint; i++, point++) {
-				if ((point->flag & PEP_HIDE)==0) {
+				if ((point->flag & PEP_HIDE)==0 && point->totkey) {
 					key = point->keys + point->totkey - 1;
 					if (key->flag & PEK_SELECT)
 						glColor3fv(sel_col);

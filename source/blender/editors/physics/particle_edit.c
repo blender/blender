@@ -1969,7 +1969,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= rekey_exec;
 	ot->invoke= WM_operator_props_popup;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2298,7 +2298,7 @@ void PARTICLE_OT_subdivide(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= subdivide_exec;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2386,7 +2386,7 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= remove_doubles_exec;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2436,7 +2436,7 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= weight_set_exec;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2699,7 +2699,7 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= mirror_exec;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
