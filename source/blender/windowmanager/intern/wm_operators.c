@@ -512,68 +512,29 @@ void WM_operator_bl_idname(char *to, const char *from)
  */
 char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, int all_args)
 {
-	const char *arg_name= NULL;
 	char idname_py[OP_MAX_TYPENAME];
-
-	PropertyRNA *prop, *iterprop;
 
 	/* for building the string */
 	DynStr *dynstr= BLI_dynstr_new();
-	char *cstring, *buf;
-	int first_iter=1, ok= 1;
-
+	char *cstring;
+	char *cstring_args;
 
 	/* only to get the orginal props for comparisons */
 	PointerRNA opptr_default;
-	PropertyRNA *prop_default;
-	char *buf_default;
-	if(all_args==0 || opptr==NULL) {
+
+	if (all_args==0 || opptr==NULL) {
 		WM_operator_properties_create_ptr(&opptr_default, ot);
 
 		if(opptr==NULL)
 			opptr = &opptr_default;
 	}
 
-
 	WM_operator_py_idname(idname_py, ot->idname);
 	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
-	iterprop= RNA_struct_iterator_property(opptr->type);
-
-	RNA_PROP_BEGIN(opptr, propptr, iterprop) {
-		prop= propptr.data;
-		arg_name= RNA_property_identifier(prop);
-
-		if (strcmp(arg_name, "rna_type")==0) continue;
-
-		buf= RNA_property_as_string(C, opptr, prop);
-		
-		ok= 1;
-
-		if(!all_args) {
-			/* not verbose, so only add in attributes that use non-default values
-			 * slow but good for tooltips */
-			prop_default= RNA_struct_find_property(&opptr_default, arg_name);
-
-			if(prop_default) {
-				buf_default= RNA_property_as_string(C, &opptr_default, prop_default);
-
-				if(strcmp(buf, buf_default)==0)
-					ok= 0; /* values match, don't bother printing */
-
-				MEM_freeN(buf_default);
-			}
-
-		}
-		if(ok) {
-			BLI_dynstr_appendf(dynstr, first_iter?"%s=%s":", %s=%s", arg_name, buf);
-			first_iter = 0;
-		}
-
-		MEM_freeN(buf);
-
-	}
-	RNA_PROP_END;
+	cstring_args = RNA_pointer_as_string_keywords(C, opptr, &opptr_default, FALSE, all_args);
+	BLI_dynstr_append(dynstr, cstring_args);
+	MEM_freeN(cstring_args);
 
 	if(all_args==0 || opptr==&opptr_default )
 		WM_operator_properties_free(&opptr_default);

@@ -951,6 +951,13 @@ int RNA_property_is_idprop(PropertyRNA *prop);
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
+char *RNA_pointer_as_string_keywords_ex(struct bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
+                                        const short skip_optional_value, const short all_args,
+                                        PropertyRNA *iterprop);
+char *RNA_pointer_as_string_keywords(struct bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
+                                     const short skip_optional_value, const short all_args);
+char *RNA_function_as_string_keywords(struct bContext *C, FunctionRNA *func, PointerRNA *ptr_default,
+                                     const short as_function, const short all_args);
 
 /* Function */
 

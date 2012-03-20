@@ -3938,6 +3938,12 @@ static PyGetSetDef pyrna_struct_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
+static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *closure);
+
+static PyGetSetDef pyrna_func_getseters[] = {
+	{(char *)"__doc__", (getter)pyrna_func_doc_get, (setter)NULL, NULL, NULL},
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
 
 PyDoc_STRVAR(pyrna_prop_collection_keys_doc,
 ".. method:: keys()\n"
@@ -5150,6 +5156,22 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 	Py_RETURN_NONE;
 }
 
+static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *UNUSED(closure))
+{
+	PyObject *ret;
+	char *args;
+
+	args = RNA_function_as_string_keywords(NULL, self->func, NULL, TRUE, TRUE);
+
+	ret = PyUnicode_FromFormat("%.200s.%.200s(%.200s)\n%s",
+	                           RNA_struct_identifier(self->ptr.type),
+	                           RNA_function_identifier(self->func),
+	                           args, RNA_function_ui_description(self->func));
+
+	MEM_freeN(args);
+
+	return ret;
+}
 
 /* subclasses of pyrna_struct_Type which support idprop definitions use this as a metaclass */
 /* note: tp_base member is set to &PyType_Type on init */
@@ -5726,7 +5748,7 @@ PyTypeObject pyrna_func_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	NULL,                       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	pyrna_func_getseters,       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
