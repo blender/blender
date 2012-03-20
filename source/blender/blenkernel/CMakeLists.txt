@@ -144,7 +144,6 @@ set(SRC
 	intern/unit.c
 	intern/world.c
 	intern/writeavi.c
-	intern/writeffmpeg.c
 	intern/writeframeserver.c
 	
 	BKE_DerivedMesh.h
@@ -230,7 +229,6 @@ set(SRC
 	BKE_utildefines.h
 	BKE_world.h
 	BKE_writeavi.h
-	BKE_writeffmpeg.h
 	BKE_writeframeserver.h
 	depsgraph_private.h
 	nla_private.h
@@ -299,6 +297,10 @@ if(WITH_CODEC_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+	list(APPEND SRC
+		intern/writeffmpeg.c
+		BKE_writeffmpeg.h
+	)
 	list(APPEND INC
 		../../../intern/ffmpeg
 	)
