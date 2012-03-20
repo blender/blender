@@ -354,9 +354,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 	// create a new DerivedMesh
 	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements, 0, 0);
-	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~CD_MASK_NORMAL,
 					  CD_DEFAULT, face_it->num_elements); 
-	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~CD_MASK_NORMAL,
 					  CD_DEFAULT, face_it->num_elements); 
 
 	// step through the vertex iterators:
@@ -466,6 +466,17 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	CDDM_calc_edges_tessface(result);
 
 	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
+
+	/* this fixes shading issues but SHOULD NOT.
+	 * TODO, find out why face normals are wrong & flicker - campbell */
+#if 0
+	DM_debug_print(result);
+
+	CustomData_free(&result->faceData, result->numTessFaceData);
+	result->numTessFaceData = 0;
+	DM_ensure_tessface(result);
+#endif
+
 	CDDM_calc_normals(result);
 
 	return result;
