@@ -41,39 +41,39 @@
  * ghash or a mapping slot to do it. */
 
 /* flags 15 and 16 (1 << 14 and 1 << 15) are reserved for bmesh api use */
-BM_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
     return oflags[bm->stackdepth - 1].f & oflag;
 }
 
-BM_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
 	oflags[bm->stackdepth - 1].f |= oflag;
 }
 
-BM_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
 	oflags[bm->stackdepth - 1].f &= ~oflag;
 }
 
-BM_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
+BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
 {
 	if (val) oflags[bm->stackdepth - 1].f |= oflag;
 	else     oflags[bm->stackdepth - 1].f &= ~oflag;
 }
 
-BM_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
 	oflags[bm->stackdepth - 1].f ^= oflag;
 }
 
-BM_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,
+BLI_INLINE void BMO_slot_map_int_insert(BMesh *bm, BMOperator *op, const char *slotname,
                                        void *element, int val)
 {
 	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(int));
 }
 
-BM_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *slotname,
+BLI_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *slotname,
                                          void *element, float val)
 {
 	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(float));
@@ -85,13 +85,13 @@ BM_INLINE void BMO_slot_map_float_insert(BMesh *bm, BMOperator *op, const char *
  * do NOT use these for non-operator-api-allocated memory! instead
  * use BMO_slot_map_data_get and BMO_slot_map_insert, which copies the data. */
 
-BM_INLINE void BMO_slot_map_ptr_insert(BMesh *bm, BMOperator *op, const char *slotname,
+BLI_INLINE void BMO_slot_map_ptr_insert(BMesh *bm, BMOperator *op, const char *slotname,
                                        void *element, void *val)
 {
 	BMO_slot_map_insert(bm, op, slotname, element, &val, sizeof(void *));
 }
 
-BM_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, void *element)
+BLI_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, void *element)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slotname);
 	BLI_assert(slot->slottype == BMO_OP_SLOT_MAPPING);
@@ -102,7 +102,7 @@ BM_INLINE int BMO_slot_map_contains(BMesh *UNUSED(bm), BMOperator *op, const cha
 	return BLI_ghash_haskey(slot->data.ghash, element);
 }
 
-BM_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
+BLI_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
                                       void *element)
 {
 	BMOElemMapping *mapping;
@@ -119,7 +119,7 @@ BM_INLINE void *BMO_slot_map_data_get(BMesh *UNUSED(bm), BMOperator *op, const c
 	return mapping + 1;
 }
 
-BM_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *slotname,
+BLI_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *slotname,
                                        void *element)
 {
 	float *val = (float *) BMO_slot_map_data_get(bm, op, slotname, element);
@@ -128,7 +128,7 @@ BM_INLINE float BMO_slot_map_float_get(BMesh *bm, BMOperator *op, const char *sl
 	return 0.0f;
 }
 
-BM_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotname,
+BLI_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotname,
                                    void *element)
 {
 	int *val = (int *) BMO_slot_map_data_get(bm, op, slotname, element);
@@ -137,7 +137,7 @@ BM_INLINE int BMO_slot_map_int_get(BMesh *bm, BMOperator *op, const char *slotna
 	return 0;
 }
 
-BM_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slotname,
+BLI_INLINE void *BMO_slot_map_ptr_get(BMesh *bm, BMOperator *op, const char *slotname,
                                      void *element)
 {
 	void **val = (void **) BMO_slot_map_data_get(bm, op, slotname, element);

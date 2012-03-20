@@ -74,7 +74,7 @@
 /************************ poll ***************************/
 
 
-BM_INLINE int text_pixel_x_to_index(SpaceText *st, const int x)
+BLI_INLINE int text_pixel_x_to_index(SpaceText *st, const int x)
 {
 	/* add half the char width so mouse cursor selection is inbetween letters */
 	return (x + (st->cwidth / 2)) / st->cwidth;

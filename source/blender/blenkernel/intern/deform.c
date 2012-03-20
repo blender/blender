@@ -437,7 +437,7 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 	BLI_uniquename_cb(defgroup_unique_check, &data, "Group", '.', dg->name, sizeof(dg->name));
 }
 
-BM_INLINE int is_char_sep(const char c)
+BLI_INLINE int is_char_sep(const char c)
 {
 	return ELEM4(c, '.', ' ', '-', '_');
 }

@@ -76,7 +76,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code * */
 
-BM_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
+BLI_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
 {
 	return 	v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
 	                                 &(((EdgeData *)e_data)->v2_disk_link) ;
@@ -866,7 +866,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e)
 	return i;
 }
 
-BM_INLINE void vote_on_winding(BMEdge *edge, EPathNode *node, unsigned int winding[2])
+BLI_INLINE void vote_on_winding(BMEdge *edge, EPathNode *node, unsigned int winding[2])
 {
 	BMVert *test_v1, *test_v2;
 	/* we want to use the reverse winding to the existing order */

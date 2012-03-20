@@ -240,7 +240,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
  * only create the face, since this calloc's the length is initialized to 0,
  * leave adding loops to the caller.
  */
-BM_INLINE BMFace *bm_face_create__internal(BMesh *bm)
+BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 {
 	BMFace *f;
 

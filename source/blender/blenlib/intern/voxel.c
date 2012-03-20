@@ -35,7 +35,7 @@
 
 
 
-BM_INLINE float D(float *data, const int res[3], int x, int y, int z)
+BLI_INLINE float D(float *data, const int res[3], int x, int y, int z)
 {
 	CLAMP(x, 0, res[0]-1);
 	CLAMP(y, 0, res[1]-1);
@@ -57,7 +57,7 @@ float voxel_sample_nearest(float *data, const int res[3], const float co[3])
 }
 
 // returns highest integer <= x as integer (slightly faster than floor())
-BM_INLINE int FLOORI(float x)
+BLI_INLINE int FLOORI(float x)
 {
 	const int r = (int)x;
 	return ((x >= 0.f) || (float)r == x) ? r : (r - 1);
@@ -65,7 +65,7 @@ BM_INLINE int FLOORI(float x)
 
 // clamp function, cannot use the CLAMPIS macro, it sometimes returns unwanted results apparently related to gcc optimization flag -fstrict-overflow which is enabled at -O2
 // this causes the test (x + 2) < 0 with int x == 2147483647 to return false (x being an integer, x + 2 should wrap around to -2147483647 so the test < 0 should return true, which it doesn't)
-BM_INLINE int _clamp(int a, int b, int c)
+BLI_INLINE int _clamp(int a, int b, int c)
 {
 	return (a < b) ? b : ((a > c) ? c : a);
 }

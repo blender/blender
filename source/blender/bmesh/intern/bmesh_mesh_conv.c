@@ -407,7 +407,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
-BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
+BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
 	/* this is a cheap way to set the edge draw, its not precise and will
 	 * pick the first 2 faces an edge uses */

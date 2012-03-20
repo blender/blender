@@ -251,12 +251,12 @@
 
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
-#  define BM_INLINE static __forceinline
+#  define BLI_INLINE static __forceinline
 #elif defined(__GNUC__)
-#  define BM_INLINE static inline __attribute((always_inline))
+#  define BLI_INLINE static inline __attribute((always_inline))
 #else
 /* #warning "MSC/GNUC defines not found, inline non-functional" */
-#  define BM_INLINE static
+#  define BLI_INLINE static
 #endif
 
 

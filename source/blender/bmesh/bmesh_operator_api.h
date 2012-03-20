@@ -81,11 +81,11 @@ struct GHashIterator;
 #define BMO_elem_flag_set(    bm, ele, oflag, val) _bmo_elem_flag_set     (bm, (ele)->oflags, oflag, val)
 #define BMO_elem_flag_toggle( bm, ele, oflag)      _bmo_elem_flag_toggle  (bm, (ele)->oflags, oflag)
 
-BM_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BM_INLINE void  _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BM_INLINE void  _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
-BM_INLINE void  _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
-BM_INLINE void  _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag);
+BLI_INLINE void  _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val);
+BLI_INLINE void  _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag);
 
 /* slot type arrays are terminated by the last member
  * having a slot type of 0.*/

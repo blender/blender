@@ -69,7 +69,7 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* luminance rec. 709 */
-BM_INLINE float luminance(const float col[3])
+BLI_INLINE float luminance(const float col[3])
 {
 	return (0.212671f*col[0] + 0.71516f*col[1] + 0.072169f*col[2]);
 }

@@ -44,12 +44,12 @@
 
 #include "recast-capi.h"
 
-BM_INLINE float area2(const float* a, const float* b, const float* c)
+BLI_INLINE float area2(const float* a, const float* b, const float* c)
 {
 	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
 }
 
-BM_INLINE int left(const float* a, const float* b, const float* c)
+BLI_INLINE int left(const float* a, const float* b, const float* c)
 {
 	return area2(a, b, c) < 0;
 }

@@ -589,7 +589,7 @@ void vpaint_dogamma(Scene *scene)
 }
 #endif
 
-BM_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
+BLI_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 {
 	unsigned char *cp1, *cp2, *cp;
 	int mfac;
@@ -617,7 +617,7 @@ BM_INLINE unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-BM_INLINE unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
+BLI_INLINE unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 {
 	unsigned char *cp1, *cp2, *cp;
 	int temp;
@@ -642,7 +642,7 @@ BM_INLINE unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-BM_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
+BLI_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 {
 	unsigned char *cp1, *cp2, *cp;
 	int temp;
@@ -667,7 +667,7 @@ BM_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-BM_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
+BLI_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 {
 	unsigned char *cp1, *cp2, *cp;
 	int mfac;
@@ -692,7 +692,7 @@ BM_INLINE unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-BM_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
+BLI_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
 {
 	unsigned char *cp1, *cp2, *cp;
 	int mfac;
@@ -725,7 +725,7 @@ BM_INLINE unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fa
 	return col;
 }
 
-BM_INLINE unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
+BLI_INLINE unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 {
 	unsigned char *cp1, *cp2, *cp;
 	int mfac;
@@ -904,27 +904,27 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
 }
 
 
-BM_INLINE float wval_blend(const float weight, const float paintval, const float alpha)
+BLI_INLINE float wval_blend(const float weight, const float paintval, const float alpha)
 {
 	return (paintval * alpha) + (weight * (1.0f - alpha));
 }
-BM_INLINE float wval_add(const float weight, const float paintval, const float alpha)
+BLI_INLINE float wval_add(const float weight, const float paintval, const float alpha)
 {
 	return weight + (paintval * alpha);
 }
-BM_INLINE float wval_sub(const float weight, const float paintval, const float alpha)
+BLI_INLINE float wval_sub(const float weight, const float paintval, const float alpha)
 {
 	return weight - (paintval * alpha);
 }
-BM_INLINE float wval_mul(const float weight, const float paintval, const float alpha)
+BLI_INLINE float wval_mul(const float weight, const float paintval, const float alpha)
 {	/* first mul, then blend the fac */
 	return ((1.0f - alpha) + (alpha * paintval)) * weight;
 }
-BM_INLINE float wval_lighten(const float weight, const float paintval, const float alpha)
+BLI_INLINE float wval_lighten(const float weight, const float paintval, const float alpha)
 {
 	return (weight < paintval) ? wval_blend(weight, paintval, alpha) : weight;
 }
-BM_INLINE float wval_darken(const float weight, const float paintval, const float alpha)
+BLI_INLINE float wval_darken(const float weight, const float paintval, const float alpha)
 {
 	return (weight > paintval) ? wval_blend(weight, paintval, alpha) : weight;
 }

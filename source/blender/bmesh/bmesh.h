@@ -219,12 +219,12 @@ extern "C" {
 #define BM_elem_flag_toggle( ele, hflag)      _bm_elem_flag_toggle  (&(ele)->head, hflag)
 #define BM_elem_flag_merge(  ele_a, ele_b)    _bm_elem_flag_merge   (&(ele_a)->head, &(ele_b)->head)
 
-BM_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val);
-BM_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag);
-BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
+BLI_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag);
+BLI_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag);
+BLI_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag);
+BLI_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val);
+BLI_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag);
+BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
 
 /* notes on BM_elem_index_set(...) usage,
  * Set index is sometimes abused as temp storage, other times we cant be
@@ -257,8 +257,8 @@ BM_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b);
 
 #define BM_elem_index_get(ele)           _bm_elem_index_get(&(ele)->head)
 #define BM_elem_index_set(ele, index)    _bm_elem_index_set(&(ele)->head, index)
-BM_INLINE int  _bm_elem_index_get(const BMHeader *ele);
-BM_INLINE void _bm_elem_index_set(BMHeader *ele, const int index);
+BLI_INLINE int  _bm_elem_index_get(const BMHeader *ele);
+BLI_INLINE void _bm_elem_index_set(BMHeader *ele, const int index);
 
 #ifdef USE_BMESH_HOLES
 #  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)

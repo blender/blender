@@ -2854,12 +2854,12 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
  */
 
 
-BM_INLINE int navmesh_bit(int a, int b)
+BLI_INLINE int navmesh_bit(int a, int b)
 {
 	return (a & (1 << b)) >> b;
 }
 
-BM_INLINE void navmesh_intToCol(int i, float col[3])
+BLI_INLINE void navmesh_intToCol(int i, float col[3])
 {
 	int	r = navmesh_bit(i, 0) + navmesh_bit(i, 3) * 2 + 1;
 	int	g = navmesh_bit(i, 1) + navmesh_bit(i, 4) * 2 + 1;
