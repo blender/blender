@@ -309,6 +309,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			copy_m4_m4(scs->mat, ob->obmat);
 			copy_m4_m4(scs->mat_old, ob->obmat);
 
+			DM_ensure_tessface(dm);
 			fill_scs_points(ob, dm, scs);
 		}
 
