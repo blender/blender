@@ -1570,6 +1570,45 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 		}
 	}
 }
+
+static void get_angular_velocity_vector(short avemode, ParticleKey *state, float *vec)
+{
+	switch(avemode) {
+		case PART_AVE_VELOCITY:
+			copy_v3_v3(vec, state->vel);
+			break;	
+		case PART_AVE_HORIZONTAL:
+		{
+			float zvec[3];
+			zvec[0] = zvec[1] = 0;
+			zvec[2] = 1.f;
+			cross_v3_v3v3(vec, state->vel, zvec);
+			break;
+		}
+		case PART_AVE_VERTICAL:
+		{
+			float zvec[3], temp[3];
+			zvec[0] = zvec[1] = 0;
+			zvec[2] = 1.f;
+			cross_v3_v3v3(temp, state->vel, zvec);
+			cross_v3_v3v3(vec, temp, state->vel);
+			break;
+		}
+		case PART_AVE_GLOBAL_X:
+			vec[0] = 1.f;
+			vec[1] = vec[2] = 0;
+			break;
+		case PART_AVE_GLOBAL_Y:
+			vec[1] = 1.f;
+			vec[0] = vec[2] = 0;
+			break;
+		case PART_AVE_GLOBAL_Z:
+			vec[2] = 1.f;
+			vec[0] = vec[1] = 0;
+			break;
+	}
+}
+
 void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, float dtime, float cfra)
 {
 	Object *ob = sim->ob;
@@ -1782,14 +1821,11 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 		zero_v3(state->ave);
 
 		if(part->avemode) {
-			switch(part->avemode) {
-				case PART_AVE_SPIN:
-					copy_v3_v3(state->ave, vel);
-					break;
-				case PART_AVE_RAND:
-					copy_v3_v3(state->ave, r_ave);
-					break;
-			}
+			if(part->avemode == PART_AVE_RAND)
+				copy_v3_v3(state->ave, r_ave);
+			else
+				get_angular_velocity_vector(part->avemode, state, state->ave);
+
 			normalize_v3(state->ave);
 			mul_v3_fl(state->ave, part->avefac);
 		}
@@ -2692,26 +2728,26 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 		return;
 	}
 
-	if((part->flag & PART_ROT_DYN)==0) {
-		if(part->avemode==PART_AVE_SPIN) {
-			float angle;
-			float len1 = len_v3(pa->prev_state.vel);
-			float len2 = len_v3(pa->state.vel);
+	if((part->flag & PART_ROT_DYN)==0 && ELEM3(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL)) {
+		float angle;
+		float len1 = len_v3(pa->prev_state.vel);
+		float len2 = len_v3(pa->state.vel);
+		float vec[3];
 
-			if(len1==0.0f || len2==0.0f)
-				pa->state.ave[0]=pa->state.ave[1]=pa->state.ave[2]=0.0f;
-			else{
-				cross_v3_v3v3(pa->state.ave,pa->prev_state.vel,pa->state.vel);
-				normalize_v3(pa->state.ave);
-				angle=dot_v3v3(pa->prev_state.vel,pa->state.vel)/(len1*len2);
-				mul_v3_fl(pa->state.ave,saacos(angle)/dtime);
-			}
-
-			axis_angle_to_quat(rot2,pa->state.vel,dtime*part->avefac);
+		if(len1==0.0f || len2==0.0f)
+			pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
+		else{
+			cross_v3_v3v3(pa->state.ave, pa->prev_state.vel, pa->state.vel);
+			normalize_v3(pa->state.ave);
+			angle = dot_v3v3(pa->prev_state.vel, pa->state.vel) / (len1 * len2);
+			mul_v3_fl(pa->state.ave, saacos(angle) / dtime);
 		}
+
+		get_angular_velocity_vector(part->avemode, &pa->state, vec);
+		axis_angle_to_quat(rot2, vec, dtime*part->avefac);
 	}
 
-	rotfac=len_v3(pa->state.ave);
+	rotfac = len_v3(pa->state.ave);
 	if(rotfac == 0.0f) { /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
 		rot1[0]=1.0f;
 		rot1[1]=rot1[2]=rot1[3]=0;

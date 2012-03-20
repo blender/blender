@@ -463,8 +463,13 @@ typedef struct ParticleSystem
 #define PART_ROT_OB_Z		8
 
 /* part->avemode */
-#define PART_AVE_SPIN		1
+#define PART_AVE_VELOCITY	1
 #define PART_AVE_RAND		2
+#define PART_AVE_HORIZONTAL	3
+#define PART_AVE_VERTICAL	4
+#define PART_AVE_GLOBAL_X	5
+#define PART_AVE_GLOBAL_Y	6
+#define PART_AVE_GLOBAL_Z	7
 
 /* part->reactevent */
 #define PART_EVENT_DEATH	0

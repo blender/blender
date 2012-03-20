@@ -415,12 +415,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
 
         layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
 
-        layout.prop(part, "use_dynamic_rotation")
-
-        if part.use_dynamic_rotation:
-            layout.label(text="Initial Rotation Axis:")
-        else:
-            layout.label(text="Rotation Axis:")
+        layout.label(text="Initial Orientation:")
 
         split = layout.split()
 
@@ -433,16 +428,17 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         col.prop(part, "phase_factor_random", text="Random", slider=True)
 
         if part.type != 'HAIR':
-            col = layout.column()
-            if part.use_dynamic_rotation:
-                col.label(text="Initial Angular Velocity:")
-            else:
-                col.label(text="Angular Velocity:")
-            sub = col.row(align=True)
-            sub.prop(part, "angular_velocity_mode", text="")
-            subsub = sub.column()
-            subsub.active = part.angular_velocity_mode != 'NONE'
-            subsub.prop(part, "angular_velocity_factor", text="")
+            layout.label(text="Angular Velocity:")
+
+            split = layout.split()
+            col = split.column(align=True)
+            col.prop(part, "angular_velocity_mode", text="")
+            sub = col.column()
+            sub.active = part.angular_velocity_mode != 'NONE'
+            sub.prop(part, "angular_velocity_factor", text="")
+
+            col = split.column()
+            col.prop(part, "use_dynamic_rotation")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):

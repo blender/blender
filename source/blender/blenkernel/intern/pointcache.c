@@ -820,7 +820,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 		pid->data_types|= (1<<BPHYS_DATA_ROTATION);
 
 		if(psys->part->rotmode!=PART_ROT_VEL
-			|| psys->part->avemode!=PART_AVE_SPIN || psys->part->avefac!=0.0f)
+			|| psys->part->avemode==PART_AVE_RAND || psys->part->avefac!=0.0f)
 			pid->data_types|= (1<<BPHYS_DATA_AVELOCITY);
 	}
 

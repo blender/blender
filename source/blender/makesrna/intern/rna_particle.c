@@ -1510,7 +1510,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem ave_mode_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PART_AVE_SPIN, "SPIN", 0, "Spin", ""},
+		{PART_AVE_VELOCITY, "VELOCITY", 0, "Velocity", ""},
+		{PART_AVE_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", ""},
+		{PART_AVE_VERTICAL, "VERTICAL", 0, "Vertical", ""},
+		{PART_AVE_GLOBAL_X, "GLOBAL_X", 0, "Global X", ""},
+		{PART_AVE_GLOBAL_Y, "GLOBAL_Y", 0, "Global Y", ""},
+		{PART_AVE_GLOBAL_Z, "GLOBAL_Z", 0, "Global Z", ""},
 		{PART_AVE_RAND, "RAND", 0, "Random", ""} ,
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -1670,7 +1675,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_dynamic_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ROT_DYN);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Dynamic", "Set rotation to dynamic/constant");
+	RNA_def_property_ui_text(prop, "Dynamic", "Particle rotations are effected by collisions and effectors");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "use_multiply_size_mass", PROP_BOOLEAN, PROP_NONE);
@@ -1761,14 +1766,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
-	RNA_def_property_ui_text(prop, "Rotation", "Particle rotation axis");
+	RNA_def_property_ui_text(prop, "Orientation axis", "Particle orientation axis (does not effect eplode modifier results)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "angular_velocity_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "avemode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ave_mode_items);
-	RNA_def_property_ui_text(prop, "Angular Velocity Mode", "Particle angular velocity mode");
+	RNA_def_property_ui_text(prop, "Angular Velocity Axis", "What axis is used to change particle rotation with time");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "react_event", PROP_ENUM, PROP_NONE);
@@ -2238,25 +2243,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "avefac");
 	RNA_def_property_range(prop, -200.0f, 200.0f);
 	RNA_def_property_ui_range(prop, -100, 100, 10, 3);
-	RNA_def_property_ui_text(prop, "Angular Velocity", "Angular velocity amount");
+	RNA_def_property_ui_text(prop, "Angular Velocity", "Angular velocity amount (in radians per second)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "phase_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "phasefac");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Phase", "Initial rotation phase");
+	RNA_def_property_ui_text(prop, "Phase", "Rotation around the chosen orientation axis");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "rotation_factor_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randrotfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Random Rotation", "Randomize rotation");
+	RNA_def_property_ui_text(prop, "Random Orientation", "Randomize particle orientation");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "phase_factor_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randphasefac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Random Phase", "Randomize rotation phase");
+	RNA_def_property_ui_text(prop, "Random Phase", "Randomize rotation around the chosen orientation axis");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "hair_length", PROP_FLOAT, PROP_NONE);

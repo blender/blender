@@ -3557,7 +3557,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->childsize=1.0;
 
 	part->rotmode = PART_ROT_VEL;
-	part->avemode = PART_AVE_SPIN;
+	part->avemode = PART_AVE_VELOCITY;
 
 	part->child_nbr=10;
 	part->ren_child_nbr=100;
