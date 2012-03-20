@@ -2429,7 +2429,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	VlakRen *vlr, *vlr1;
 	Material *ma;
 	float *data, *nors, *orco=NULL, mat[4][4], imat[3][3], xn, yn, zn;
-	int a, need_orco, vlakindex, *index;
+	int a, need_orco, vlakindex, *index, is_negative;
 	ListBase dispbase= {NULL, NULL};
 
 	if (ob!=find_basis_mball(re->scene, ob))
@@ -2462,6 +2462,8 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		}
 	}
 
+	is_negative = is_negative_m4(re->viewmat);
+
 	for(a=0; a<dl->nr; a++, data+=3, nors+=3) {
 
 		ver= RE_findOrAddVert(obr, obr->totvert++);
@@ -2478,7 +2480,8 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		normalize_v3(ver->n);
-		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
+		if(is_negative)
+			negate_v3(ver->n);
 		
 		if(need_orco) {
 			ver->orco= orco;
