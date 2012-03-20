@@ -4149,7 +4149,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-	RNA_def_property_ui_text(prop, "Layers", "Layers visible when rendering the scene");
+	RNA_def_property_ui_text(prop, "Layers", "Visible layers - Shift-Click to select multiple layers");
 	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 
 	/* active layer */

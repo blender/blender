@@ -455,9 +455,9 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 
 		row= uiLayoutRow(layout, 1);
 		block= uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select - Shift-Click for multiple modes");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select - Shift-Click for multiple modes");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select - Shift-Click for multiple modes");
 	}
 }
 
@@ -538,11 +538,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		block= uiLayoutGetBlock(row);
 		
 		if (v3d->twflag & V3D_USE_MANIPULATOR) {
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator mode"));
+			but= uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Translate manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator mode"));
+			but= uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Rotate manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-			but= uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Scale manipulator mode"));
+			but= uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, TIP_("Scale manipulator - Shift-Click for multiple modes"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 		}
 			
