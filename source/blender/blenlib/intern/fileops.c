@@ -202,12 +202,12 @@ int BLI_file_touch(const char *file)
 
 static char str[MAXPATHLEN+12];
 
-FILE * BLI_fopen(const char * filename, const char * mode)
+FILE *BLI_fopen(const char *filename, const char *mode)
 {
 	return ufopen(filename, mode);
 }
 
-gzFile BLI_gzopen(const char * filename, const char * mode)
+gzFile BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
 	int fi;
@@ -550,12 +550,12 @@ static int delete_single_file(const char *from, const char *UNUSED(to))
 	return recursiveOp_Callback_OK;
 }
 
-FILE * BLI_fopen(const char * filename, const char * mode)
+FILE *BLI_fopen(const char *filename, const char *mode)
 {
 	return fopen(filename, mode);
 }
 
-gzFile BLI_gzopen(const char * filename, const char * mode)
+void *BLI_gzopen(const char *filename, const char *mode)
 {
 	return gzopen(filename, mode);
 }

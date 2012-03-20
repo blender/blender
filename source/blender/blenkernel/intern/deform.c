@@ -262,23 +262,24 @@ void defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_le
 
 void defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip_map_len)
 {
-	MDeformWeight *dw, *copydw;
+	MDeformWeight *dw, *dw_cpy;
 	float weight;
 	int i, totweight = dvert->totweight;
 
 	/* copy weights */
-	for (dw= dvert->dw, i=0; i<totweight; dw++, i++) {
+	for (dw = dvert->dw, i=0; i < totweight; dw++, i++) {
 		if (dw->def_nr < flip_map_len) {
 			if (flip_map[dw->def_nr] >= 0) {
-				copydw= defvert_verify_index(dvert, flip_map[dw->def_nr]);
-				dw= &dvert->dw[i]; /* in case array got realloced */
+				/* error checkers complain of this but we'll never get NULL return */
+				dw_cpy = defvert_verify_index(dvert, flip_map[dw->def_nr]);
+				dw = &dvert->dw[i]; /* in case array got realloced */
 
 				/* distribute weights: if only one of the vertex groups was
-				   assigned this will halve the weights, otherwise it gets
-				   evened out. this keeps it proportional to other groups */
-				weight = 0.5f*(copydw->weight + dw->weight);
-				copydw->weight= weight;
-				dw->weight= weight;
+				 * assigned this will halve the weights, otherwise it gets
+				 * evened out. this keeps it proportional to other groups */
+				weight = 0.5f * (dw_cpy->weight + dw->weight);
+				dw_cpy->weight = weight;
+				dw->weight = weight;
 			}
 		}
 	}
