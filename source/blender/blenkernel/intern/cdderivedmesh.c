@@ -2581,6 +2581,15 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 #if 0
 	/* ensure we have all the edges we need */
 	CDDM_calc_edges_tessface(dm);
+#else
+#  ifndef NDEBUG
+	{
+		/* ensure we have correct edges on non release builds */
+		i = cddm->dm.numEdgeData;
+		CDDM_calc_edges_tessface(dm);
+		BLI_assert(cddm->dm.numEdgeData == i);
+	}
+#  endif
 #endif
 
 	/*build edge hash*/
@@ -2620,7 +2629,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 		mp = cddm->mpoly;
 		ml = cddm->mloop;
 		l = 0;
-		for (i=0; i<cddm->dm.numTessFaceData; i++, mf++, mp++) {
+		for (i=0; i<cddm->dm.numTessFaceData; i++, mf++, mp++, polyindex++) {
 			mp->flag = mf->flag;
 			mp->loopstart = l;
 			mp->mat_nr = mf->mat_nr;
