@@ -113,6 +113,54 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
 }
 
+static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e, BMEdge *newedge)
+{
+	BMIter iter;
+	BMLoop *l, *l2;
+
+	/* copy attribute */
+	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for ( ; l; l = BM_iter_step(&iter)) {
+
+		if (l->e != e && l->e != newedge) {
+			continue;
+		}
+
+		l2 = l->radial_next;
+		
+		if (l2 == l) {
+			l2 = newedge->l;
+
+			if(l2 != l) {
+				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
+
+				BM_elem_attrs_copy(bm, bm, l2, l);
+				l2 = l2->next;
+				l = l->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+			}
+		}
+		else {
+			BM_elem_attrs_copy(bm, bm, l2->f, l->f);
+
+			/* copy dat */
+			if (l2->v == l->v) {
+				BM_elem_attrs_copy(bm, bm, l2, l);
+				l2 = l2->next;
+				l = l->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+			}
+			else {
+				l2 = l2->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+				l2 = l2->prev;
+				l = l->next;
+				BM_elem_attrs_copy(bm, bm, l2, l);
+			}
+		}
+	}
+}
+
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
@@ -149,6 +197,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 		}
 		/* not sure what to do about example face, pass NULL for now */
 		f = BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
+		bm_extrude_copy_face_loop_attributes(bm, f, e, e2);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
 			e = e2;
@@ -191,7 +240,6 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter, fiter, viter;
 	BMEdge *e, *newedge;
-	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
 	int found, fwd, delorig = FALSE;
@@ -331,45 +379,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 		/* not sure what to do about example face, pass NULL for now */
 		f = BM_face_create_quad_tri_v(bm, verts, 4, NULL, FALSE);
-
-		/* copy attribute */
-		l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
-		for ( ; l; l = BM_iter_step(&iter)) {
-
-			if (l->e != e && l->e != newedge) {
-				continue;
-			}
-
-			l2 = l->radial_next;
-			
-			if (l2 == l) {
-				l2 = newedge->l;
-				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
-
-				BM_elem_attrs_copy(bm, bm, l2, l);
-				l2 = l2->next;
-				l = l->next;
-				BM_elem_attrs_copy(bm, bm, l2, l);
-			}
-			else {
-				BM_elem_attrs_copy(bm, bm, l2->f, l->f);
-
-				/* copy dat */
-				if (l2->v == l->v) {
-					BM_elem_attrs_copy(bm, bm, l2, l);
-					l2 = l2->next;
-					l = l->next;
-					BM_elem_attrs_copy(bm, bm, l2, l);
-				}
-				else {
-					l2 = l2->next;
-					BM_elem_attrs_copy(bm, bm, l2, l);
-					l2 = l2->prev;
-					l = l->next;
-					BM_elem_attrs_copy(bm, bm, l2, l);
-				}
-			}
-		}
+		bm_extrude_copy_face_loop_attributes(bm, f, e, newedge);
 	}
 
 	/* link isolated vert */
