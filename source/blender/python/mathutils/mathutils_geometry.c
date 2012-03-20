@@ -1023,8 +1023,8 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 }
 
 
-PyDoc_STRVAR(M_Geometry_tesselate_polygon_doc,
-".. function:: tesselate_polygon(veclist_list)\n"
+PyDoc_STRVAR(M_Geometry_tessellate_polygon_doc,
+".. function:: tessellate_polygon(veclist_list)\n"
 "\n"
 "   Takes a list of polylines (each point a vector) and returns the point indices for a polyline filled with triangles.\n"
 "\n"
@@ -1032,7 +1032,7 @@ PyDoc_STRVAR(M_Geometry_tesselate_polygon_doc,
 "   :rtype: list\n"
 );
 /* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
-static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *polyLineSeq)
+static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject *polyLineSeq)
 {
 	PyObject *tri_list; /*return this list of tri's */
 	PyObject *polyLine, *polyVec;
@@ -1280,7 +1280,7 @@ static PyMethodDef M_Geometry_methods[] = {
 	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
 #ifndef MATH_STANDALONE
 	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
-	{"tesselate_polygon", (PyCFunction) M_Geometry_tesselate_polygon, METH_O, M_Geometry_tesselate_polygon_doc},
+	{"tessellate_polygon", (PyCFunction) M_Geometry_tessellate_polygon, METH_O, M_Geometry_tessellate_polygon_doc},
 	{"box_pack_2d", (PyCFunction) M_Geometry_box_pack_2d, METH_O, M_Geometry_box_pack_2d_doc},
 #endif
 	{NULL, NULL, 0, NULL}

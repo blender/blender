@@ -85,7 +85,7 @@ typedef struct BMEditMesh {
 #define BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
 
 void BMEdit_RecalcTessellation(BMEditMesh *tm);
-BMEditMesh *BMEdit_Create(BMesh *bm, int do_tesselate);
+BMEditMesh *BMEdit_Create(BMesh *bm, int do_tessellate);
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm);
 BMEditMesh *BMEdit_FromObject(struct Object *ob);
 void BMEdit_Free(BMEditMesh *em);

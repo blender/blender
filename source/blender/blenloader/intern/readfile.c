@@ -3694,7 +3694,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			}
 			
 			/*
-			 * Re-tesselate, even if the polys were just created from tessfaces, this
+			 * Re-tessellate, even if the polys were just created from tessfaces, this
 			 * is important because it:
 			 *  - fill the CD_POLYINDEX layer
 			 *  - gives consistency of tessface between loading from a file and

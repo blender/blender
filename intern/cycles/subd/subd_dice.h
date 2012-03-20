@@ -19,8 +19,8 @@
 #ifndef __SUBD_DICE_H__
 #define __SUBD_DICE_H__
 
-/* DX11 like EdgeDice implementation, with different tesselation factors for
- * each edge for watertight tesselation, with subpatch remapping to work with
+/* DX11 like EdgeDice implementation, with different tessellation factors for
+ * each edge for watertight tessellation, with subpatch remapping to work with
  * DiagSplit. For more algorithm details, see the DiagSplit paper or the
  * ARB_tessellation_shader OpenGL extension, Section 2.X.2. */
 
@@ -59,7 +59,7 @@ public:
 
 /* Quad EdgeDice
  *
- * Edge tesselation factors and subpatch coordinates are as follows:
+ * Edge tessellation factors and subpatch coordinates are as follows:
  *
  *            tu1
  *     P01 --------- P11 
@@ -115,7 +115,7 @@ public:
 
 /* Triangle EdgeDice
  *
- * Edge tesselation factors and subpatch coordinates are as follows:
+ * Edge tessellation factors and subpatch coordinates are as follows:
  *
  *        Pw
  *        /\

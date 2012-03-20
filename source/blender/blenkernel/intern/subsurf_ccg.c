@@ -2931,7 +2931,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		                          ccgSubSurf_getNumFinalFaces(ss));
 	}
 
-	/* We absolutely need that layer, else it's no valid tesselated data! */
+	/* We absolutely need that layer, else it's no valid tessellated data! */
 	polyidx = CustomData_add_layer(&ccgdm->dm.faceData, CD_POLYINDEX, CD_CALLOC,
 	                               NULL, ccgSubSurf_getNumFinalFaces(ss));
 

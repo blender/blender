@@ -455,7 +455,7 @@ int DM_release(DerivedMesh *dm);
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob);
 
 struct BMEditMesh *DM_to_editbmesh(struct DerivedMesh *dm,
-                                   struct BMEditMesh *existing, int do_tesselate);
+                                   struct BMEditMesh *existing, int do_tessellate);
 
 /* conversion to bmesh only */
 void          DM_to_bmesh_ex(struct DerivedMesh *dm, struct BMesh *bm);

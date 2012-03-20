@@ -384,8 +384,8 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	}
 }
 
-/* Update tessface CD data from loop/poly ones. Needed when not retesselating after modstack evaluation. */
-/* NOTE: Assumes dm has valid tesselated data! */
+/* Update tessface CD data from loop/poly ones. Needed when not retessellating after modstack evaluation. */
+/* NOTE: Assumes dm has valid tessellated data! */
 void DM_update_tessface_data(DerivedMesh *dm)
 {
 	MFace *mf = dm->getTessFaceArray(dm);
@@ -522,7 +522,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 		}
 	}
 
-	/* yes, must be before _and_ after tesselate */
+	/* yes, must be before _and_ after tessellate */
 	mesh_update_customdata_pointers(&tmp, TRUE);
 
 	BKE_mesh_tessface_calc(&tmp);
@@ -1350,7 +1350,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md, *previewmd = NULL;
 	LinkNode *datamasks, *curr;
-	/* XXX Always copying POLYINDEX, else tesselated data are no more valid! */
+	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
 	CustomDataMask mask, nextmask, append_mask = CD_MASK_POLYINDEX;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm=NULL, *orcodm, *clothorcodm, *finaldm;
@@ -1780,10 +1780,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		{
 			finaldm->recalcTessellation(finaldm);
 		}
-		/* Even if tesselation is not needed, some modifiers migh have modified CD layers
+		/* Even if tessellation is not needed, some modifiers migh have modified CD layers
 		 * (like mloopcol or mloopuv), hence we have to update those. */
 		else if (finaldm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-			/* A tesselation already exists, it should always have a CD_POLYINDEX. */
+			/* A tessellation already exists, it should always have a CD_POLYINDEX. */
 			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_POLYINDEX));
 			DM_update_tessface_data(finaldm);
 		}

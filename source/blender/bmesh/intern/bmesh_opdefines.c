@@ -700,7 +700,7 @@ static BMOpDefine bmo_esubd_def = {
 
 	 {BMO_OP_SLOT_INT,  "quadcornertype"}, //quad corner type, see bmesh_operators.h
 	 {BMO_OP_SLOT_BOOL, "gridfill"}, //fill in fully-selected faces with a grid
-	 {BMO_OP_SLOT_BOOL, "singleedge"}, //tesselate the case of one edge selected in a quad or triangle
+	 {BMO_OP_SLOT_BOOL, "singleedge"}, //tessellate the case of one edge selected in a quad or triangle
 
 	 {0} /* null-terminating sentine */,
 	},

@@ -732,8 +732,8 @@ void KX_Dome::CreateMeshDome250(void)
 	m_radangle = m_angle * M_PI/180.0;//calculates the radians angle, used for flattening
 	/*
 	 * verts_height is the exactly needed height of the cube faces (not always 1.0).
-	 * When we want some horizontal information (e.g. for horizontal 220deg domes) we don't need to create and tesselate the whole cube.
-	 * Therefore the lateral cube faces could be small, and the tesselate mesh would be completely used.
+	 * When we want some horizontal information (e.g. for horizontal 220deg domes) we don't need to create and tessellate the whole cube.
+	 * Therefore the lateral cube faces could be small, and the tessellate mesh would be completely used.
 	 * (if we always worked with verts_height = 1.0, we would be discarding a lot of the calculated and tessellated geometry).
 	 *
 	 * So I came out with this formula:

@@ -217,7 +217,7 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 	dsplit.camera = NULL;
 	dsplit.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
 
-	sdmesh.tesselate(&dsplit, false, mesh, used_shaders[0], true);
+	sdmesh.tessellate(&dsplit, false, mesh, used_shaders[0], true);
 }
 
 /* Sync */

@@ -69,12 +69,12 @@
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 
-BMEditMesh *BMEdit_Create(BMesh *bm, int do_tesselate)
+BMEditMesh *BMEdit_Create(BMesh *bm, int do_tessellate)
 {
 	BMEditMesh *tm = MEM_callocN(sizeof(BMEditMesh), __func__);
 
 	tm->bm = bm;
-	if (do_tesselate) {
+	if (do_tessellate) {
 		BMEdit_RecalcTessellation(tm);
 	}
 
