@@ -1105,7 +1105,8 @@ static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObjec
 static void quat__axis_angle_sanitize(float axis[3], float *angle)
 {
 	if (axis) {
-		if (!finite(axis[0]) ||
+		if (is_zero_v3(axis) ||
+		    !finite(axis[0]) ||
 		    !finite(axis[1]) ||
 		    !finite(axis[2]))
 		{
