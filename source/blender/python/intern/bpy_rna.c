@@ -3282,25 +3282,42 @@ static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 	return pyrna_struct_CreatePyObject(&r_ptr);
 }
 
+static void pyrna_dir_members_py__add_keys(PyObject *list, PyObject *dict)
+{
+	PyObject *list_tmp;
+
+	list_tmp = PyDict_Keys(dict);
+	PyList_SetSlice(list, INT_MAX, INT_MAX, list_tmp);
+	Py_DECREF(list_tmp);
+}
+
 static void pyrna_dir_members_py(PyObject *list, PyObject *self)
 {
 	PyObject *dict;
 	PyObject **dict_ptr;
-	PyObject *list_tmp;
 
 	dict_ptr = _PyObject_GetDictPtr((PyObject *)self);
 
 	if (dict_ptr && (dict = *dict_ptr)) {
-		list_tmp = PyDict_Keys(dict);
-		PyList_SetSlice(list, INT_MAX, INT_MAX, list_tmp);
-		Py_DECREF(list_tmp);
+		pyrna_dir_members_py__add_keys(list, dict);
 	}
 
 	dict = ((PyTypeObject *)Py_TYPE(self))->tp_dict;
 	if (dict) {
-		list_tmp = PyDict_Keys(dict);
-		PyList_SetSlice(list, INT_MAX, INT_MAX, list_tmp);
-		Py_DECREF(list_tmp);
+		pyrna_dir_members_py__add_keys(list, dict);
+	}
+
+	/* since this is least common case, handle it last */
+	if (BPy_PropertyRNA_Check(self)) {
+		BPy_PropertyRNA *self_prop = (BPy_PropertyRNA *)self;
+		PointerRNA r_ptr;
+
+		if (RNA_property_collection_type_get(&self_prop->ptr, self_prop->prop, &r_ptr)) {
+			PyObject *cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
+			dict = ((PyTypeObject *)cls)->tp_dict;
+			pyrna_dir_members_py__add_keys(list, dict);
+			Py_DECREF(cls);
+		}
 	}
 }
 
@@ -3770,8 +3787,10 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 				PyErr_Fetch(&error_type, &error_value, &error_traceback);
 				PyErr_Clear();
 
-				cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
+				cls = pyrna_struct_Subtype(&r_ptr);
 				ret = PyObject_GenericGetAttr(cls, pyname);
+				Py_DECREF(cls);
+
 				/* restore the original error */
 				if (ret == NULL) {
 					PyErr_Restore(error_type, error_value, error_traceback);
