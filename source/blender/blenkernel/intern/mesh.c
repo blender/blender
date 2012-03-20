@@ -1155,7 +1155,8 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 {
 	DispList *dl;
 	MVert *mvert;
-	MFace *mface;
+	MLoop *mloop, *allloop;
+	MPoly *mpoly;
 	float *nors, *verts;
 	int a, *index;
 	
@@ -1163,13 +1164,14 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 	if (dl==NULL) return;
 
 	if (dl->type==DL_INDEX4) {
-		me->totvert= dl->nr;
-		me->totface= dl->parts;
-		
 		mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, dl->nr);
-		mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, dl->parts);
+		allloop= mloop= CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, NULL, dl->parts * 4);
+		mpoly= CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, NULL, dl->parts);
 		me->mvert= mvert;
-		me->mface= mface;
+		me->mloop= mloop;
+		me->mpoly= mpoly;
+		me->totvert= dl->nr;
+		me->totpoly= dl->parts;
 
 		a= dl->nr;
 		nors= dl->nors;
@@ -1185,25 +1187,30 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		a= dl->parts;
 		index= dl->index;
 		while (a--) {
-			mface->v1= index[0];
-			mface->v2= index[1];
-			mface->v3= index[2];
-			mface->v4= index[3];
-			mface->flag= ME_SMOOTH;
+			int count= index[2] != index[3] ? 4 : 3;
 
-			test_index_face(mface, NULL, 0, (mface->v3==mface->v4)? 3: 4);
+			mloop[0].v= index[0];
+			mloop[1].v= index[1];
+			mloop[2].v= index[2];
+			if (count == 4)
+				mloop[3].v= index[3];
 
-			mface++;
+			mpoly->totloop= count;
+			mpoly->loopstart= (int)(mloop - allloop);
+			mpoly->flag= ME_SMOOTH;
+
+
+			mpoly++;
+			mloop+= count;
+			me->totloop+= count;
 			index+= 4;
 		}
 
-		make_edges(me, 0);	// all edges
-
-
-		/* BMESH_TODO - low priority, should make polygons instead */
-		convert_mfaces_to_mpolys(me);
-
 		mesh_update_customdata_pointers(me, TRUE);
+
+		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+
+		BKE_mesh_calc_edges(me, TRUE);
 	}
 }
 
