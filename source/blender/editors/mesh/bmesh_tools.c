@@ -120,6 +120,8 @@ static EnumPropertyItem prop_mesh_cornervert_types[] = {
 
 void MESH_OT_subdivide(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Subdivide";
 	ot->description = "Subdivide selected edges";
@@ -133,7 +135,10 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
 	/* BMESH_TODO, this currently does nothing, just add to stop UI from erroring out! */
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor (BMESH TODO)", 0.0f, 1.0f);
 
@@ -1240,6 +1245,8 @@ static int editbmesh_edge_split(bContext *C, wmOperator *op)
 
 void MESH_OT_edge_split(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Edge Split";
 	ot->idname = "MESH_OT_edge_split";
@@ -1251,7 +1258,10 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+
+	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /****************** add duplicate operator ***************/

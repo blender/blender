@@ -564,6 +564,8 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 
 void MESH_OT_loopcut (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* description */
 	ot->name= "Loop Cut";
 	ot->idname= "MESH_OT_loopcut";
@@ -579,5 +581,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
