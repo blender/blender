@@ -98,6 +98,7 @@ endif()
 		ge_player_ghost 
 		ge_player_common 
 		bf_intern_string 
+		bf_intern_utfconv
 		bf_intern_ghost
 		bf_rna
 		bf_bmesh
