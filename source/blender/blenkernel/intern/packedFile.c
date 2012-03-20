@@ -186,7 +186,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	// open the file
 	// and create a PackedFile structure
 
-	file= open(name, O_BINARY|O_RDONLY);
+	file= BLI_open(name, O_BINARY|O_RDONLY,0);
 	if (file <= 0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path not found: \"%s\"", name);
 	} else {
@@ -292,7 +292,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 	// make sure the path to the file exists...
 	BLI_make_existing_file(name);
 	
-	file = open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
+	file = BLI_open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file >= 0) {
 		if (write(file, pf->data, pf->size) != pf->size) {
 			BKE_reportf(reports, RPT_ERROR, "Error writing file: %s", name);
@@ -347,7 +347,7 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	} else {
 		// we'll have to compare the two...
 		
-		file = open(name, O_BINARY | O_RDONLY);
+		file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 		if (file < 0) {
 			ret_val = PF_NOFILE;
 		} else {

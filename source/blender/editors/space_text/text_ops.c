@@ -460,7 +460,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 	BLI_strncpy(filepath, text->name, FILE_MAX);
 	BLI_path_abs(filepath, G.main->name);
 	
-	fp= fopen(filepath, "w");
+	fp= BLI_fopen(filepath, "w");
 	if(fp==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to save \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error writing file");
 		return;

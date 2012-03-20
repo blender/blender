@@ -233,7 +233,7 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	FSMenuEntry *fsme= NULL;
 	int nskip= 0;
 
-	FILE *fp = fopen(filename, "w");
+	FILE *fp = BLI_fopen(filename, "w");
 	if (!fp) return;
 	
 	fprintf(fp, "[Bookmarks]\n");
@@ -262,7 +262,7 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
 	FILE *fp;
 
-	fp = fopen(filename, "r");
+	fp = BLI_fopen(filename, "r");
 	if (!fp) return;
 
 	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */

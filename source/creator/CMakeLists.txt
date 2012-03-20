@@ -40,6 +40,10 @@ blender_include_dirs(
 	../blender/windowmanager
 )
 
+if(WIN32)
+	blender_include_dirs(../../intern/utfconv)
+endif()
+
 if(WITH_LIBMV)
 	blender_include_dirs(../../extern/libmv)
 	add_definitions(-DWITH_LIBMV)
@@ -823,6 +827,7 @@ endif()
 		bf_intern_memutil
 		bf_intern_guardedalloc
 		bf_intern_ctr
+		bf_intern_utfconv
 		ge_blen_routines
 		ge_converter
 		ge_phys_dummy

@@ -340,6 +340,7 @@ def creator(env):
 
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
         incs.append(env['BF_PTHREADS_INC'])
+        incs.append('#/intern/utfconv')
 
     env.Append(CPPDEFINES=defs)
     env.Append(CPPPATH=incs)

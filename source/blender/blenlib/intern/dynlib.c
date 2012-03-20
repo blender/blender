@@ -44,11 +44,17 @@ struct DynamicLibrary {
 #ifdef WIN32
 
 #include <windows.h>
+#include "utf_winfunc.h"
+#include "utfconv.h"
 
 DynamicLibrary *BLI_dynlib_open(char *name)
 {
 	DynamicLibrary *lib;
-	void *handle= LoadLibrary(name);
+	void *handle;
+
+	UTF16_ENCODE(name);
+	handle= LoadLibraryW(name_16);
+	UTF16_UN_ENCODE(name);
 
 	if(!handle)
 		return NULL;

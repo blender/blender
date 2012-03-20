@@ -990,7 +990,7 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 {
 	gzFile gzfile;
 	errno= 0;
-	gzfile= gzopen(filepath, "rb");
+	gzfile= BLI_gzopen(filepath, "rb");
 
 	if (gzfile == (gzFile)Z_NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error reading file");

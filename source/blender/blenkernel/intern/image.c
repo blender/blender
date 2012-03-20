@@ -521,7 +521,7 @@ Image *BKE_add_image_file(const char *name)
 	BLI_path_abs(str, G.main->name);
 	
 	/* exists? */
-	file= open(str, O_BINARY|O_RDONLY);
+	file= BLI_open(str, O_BINARY|O_RDONLY, 0);
 	if(file== -1) return NULL;
 	close(file);
 	

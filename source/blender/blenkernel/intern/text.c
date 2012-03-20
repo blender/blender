@@ -44,6 +44,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops.h"
 
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
@@ -291,7 +292,7 @@ int reopen_text(Text *text)
 	BLI_strncpy(str, text->name, FILE_MAX);
 	BLI_path_abs(str, G.main->name);
 	
-	fp= fopen(str, "r");
+	fp= BLI_fopen(str, "r");
 	if(fp==NULL) return 0;
 
 	/* free memory: */
@@ -387,7 +388,7 @@ Text *add_text(const char *file, const char *relpath)
 	if (relpath) /* can be NULL (bg mode) */
 		BLI_path_abs(str, relpath);
 	
-	fp= fopen(str, "r");
+	fp= BLI_fopen(str, "r");
 	if(fp==NULL) return NULL;
 	
 	ta= alloc_libblock(&bmain->text, ID_TXT, BLI_path_basename(str));

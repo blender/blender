@@ -38,6 +38,7 @@
 #include <string.h>			 /* memset */
 
 #include "BLI_utildefines.h"
+#include "BLI_fileops.h"
 
 #include "cin_debug_stuff.h"
 #include "logmemfile.h"
@@ -523,7 +524,7 @@ cineonOpen(const char* filename) {
 	cineon->memcursor = 0;
 	cineon->membuffersize = 0;
 	
-	cineon->file = fopen(filename, "rb");
+	cineon->file = BLI_fopen(filename, "rb");
 	if (cineon->file == 0) {
 		if (verbose) d_printf("Failed to open file \"%s\".\n", filename);
 		cineonClose(cineon);
@@ -727,7 +728,7 @@ cineonCreate(const char* filename, int width, int height, int depth) {
 	cineon->lineBuffer = 0;
 	cineon->pixelBuffer = 0;
 
-	cineon->file = fopen(filename, "wb");
+	cineon->file = BLI_fopen(filename, "wb");
 	if (cineon->file == 0) {
 		if (verbose) d_printf("Couldn't open file %s\n", filename);
 		cineonClose(cineon);

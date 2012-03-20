@@ -159,7 +159,7 @@ static int IMB_ispic_name(const char *name)
 	if(((st.st_mode) & S_IFMT) != S_IFREG)
 		return FALSE;
 
-	if((fp = open(name,O_BINARY|O_RDONLY)) < 0)
+	if((fp = BLI_open(name,O_BINARY|O_RDONLY, 0)) < 0)
 		return FALSE;
 
 	if(read(fp, buf, 32) != 32) {

@@ -124,7 +124,7 @@ struct dirent {
 
 typedef struct _DIR {
 	HANDLE handle;
-	WIN32_FIND_DATA data;
+	WIN32_FIND_DATAW data;
 	char path[MAX_PATH];
 	long dd_loc;
 	long dd_size;

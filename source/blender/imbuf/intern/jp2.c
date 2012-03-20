@@ -731,7 +731,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 		codestream_length = cio_tell(cio);
 
 		/* write the buffer to disk */
-		f = fopen(name, "wb");
+		f = BLI_fopen(name, "wb");
 		
 		if (!f) {
 			fprintf(stderr, "failed to open %s for writing\n", name);

@@ -160,4 +160,10 @@ if(WITH_XDG_USER_DIRS)
 	add_definitions(-DWITH_XDG_USER_DIRS)
 endif()
 
+if(WIN32)
+	list(APPEND INC
+		../../../intern/utfconv
+	)
+endif()
+
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")

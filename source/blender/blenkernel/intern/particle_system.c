@@ -4073,7 +4073,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
 
-			gzf = gzopen(filename, "rb");
+			gzf = BLI_gzopen(filename, "rb");
 			if (!gzf) {
 				BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer),"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
 				// XXX bad level call elbeemDebugOut(debugStrBuffer);

@@ -47,13 +47,16 @@
 #define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
 
- /* FILE_MAX */
+#include "utf_winfunc.h"
+#include "utfconv.h"
+
+ /* FILE_MAXDIR + FILE_MAXFILE */
 
 int BLI_getInstallationDir( char * str )
 {
 	char dir[FILE_MAXDIR];
 	int a;
-	
+	/*change to utf support*/
 	GetModuleFileName(NULL,str,FILE_MAX);
 	BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
 	a = strlen(dir);
@@ -169,7 +172,9 @@ void RegisterBlendExtension(void)
 
 DIR *opendir (const char *path)
 {
-	if (GetFileAttributes(path) & FILE_ATTRIBUTE_DIRECTORY) {
+	wchar_t * path_16 = alloc_utf16_from_8(path, 0);
+
+	if (GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) {
 		DIR *newd= MEM_mallocN(sizeof(DIR), "opendir");
 
 		newd->handle = INVALID_HANDLE_VALUE;
@@ -180,29 +185,56 @@ DIR *opendir (const char *path)
 		newd->direntry.d_reclen= 0;
 		newd->direntry.d_name= NULL;
 		
+		free(path_16);
 		return newd;
 	} else {
+		free(path_16);
 		return NULL;
 	}
 }
 
-struct dirent *readdir(DIR *dp)
+static char * BLI_alloc_utf_8_from_16(wchar_t * in16, size_t add)
 {
+	size_t bsize = count_utf_8_from_16(in16);
+	char * out8 = NULL;
+	if(!bsize) return NULL;
+	out8 = (char*)MEM_mallocN(sizeof(char) * (bsize + add),"UTF-8 String");
+	conv_utf_16_to_8(in16,out8, bsize);
+	return out8;
+}
+
+static wchar_t * BLI_alloc_utf16_from_8(char * in8, size_t add)
+{
+	size_t bsize = count_utf_16_from_8(in8);
+	wchar_t * out16 = NULL;
+	if(!bsize) return NULL;
+	out16 =(wchar_t*) MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
+	conv_utf_8_to_16(in8,out16, bsize);
+	return out16;
+}
+
+
+
+struct dirent *readdir(DIR *dp) {
+	char * FileName;
+	size_t size;
 	if (dp->direntry.d_name) {
 		MEM_freeN(dp->direntry.d_name);
 		dp->direntry.d_name= NULL;
 	}
 		
 	if (dp->handle==INVALID_HANDLE_VALUE) {
-		dp->handle= FindFirstFile(dp->path, &(dp->data));
+		wchar_t * path_16 = alloc_utf16_from_8(dp->path, 0);
+		dp->handle= FindFirstFileW(path_16, &(dp->data));
+		free(path_16);
 		if (dp->handle==INVALID_HANDLE_VALUE)
 			return NULL;
 			
-		dp->direntry.d_name= BLI_strdup(dp->data.cFileName);
-
+		dp->direntry.d_name= BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
+		
 		return &dp->direntry;
-	} else if (FindNextFile (dp->handle, &(dp->data))) {
-		dp->direntry.d_name= BLI_strdup(dp->data.cFileName);
+	} else if (FindNextFileW (dp->handle, &(dp->data))) {
+		dp->direntry.d_name= BLI_alloc_utf_8_from_16(dp->data.cFileName,0);
 
 		return &dp->direntry;
 	} else {

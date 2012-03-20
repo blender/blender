@@ -68,7 +68,7 @@ static int handle_read_msb_int(int handle)
 
 int BLO_is_a_runtime(const char *path)
 {
-	int res= 0, fd= open(path, O_BINARY|O_RDONLY, 0);
+	int res= 0, fd= BLI_open(path, O_BINARY|O_RDONLY, 0);
 	int datastart;
 	char buf[8];
 
@@ -102,7 +102,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 	int fd, datastart;
 	char buf[8];
 
-	fd= open(path, O_BINARY|O_RDONLY, 0);
+	fd= BLI_open(path, O_BINARY|O_RDONLY, 0);
 
 	if(fd==-1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", path, strerror(errno));

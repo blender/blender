@@ -1144,13 +1144,13 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 		if (!BLI_exists(filename)) {
 			return NULL;
 		}
-		fp = fopen(filename, "rb");
+		fp = BLI_fopen(filename, "rb");
 	} else if (mode==PTCACHE_FILE_WRITE) {
 		BLI_make_existing_file(filename); /* will create the dir if needs be, same as //textures is created */
-		fp = fopen(filename, "wb");
+		fp = BLI_fopen(filename, "wb");
 	} else if (mode==PTCACHE_FILE_UPDATE) {
 		BLI_make_existing_file(filename);
-		fp = fopen(filename, "rb+");
+		fp = BLI_fopen(filename, "rb+");
 	}
 
 	if (!fp)

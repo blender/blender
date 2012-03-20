@@ -35,6 +35,7 @@
 #define _WIN32_IE 0x0501
 #endif
 #include <shlobj.h>
+#include "utfconv.h"
 
 #if defined(__MINGW32__) || defined(__CYGWIN__)
 
@@ -70,11 +71,14 @@ GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32()
 
 const GHOST_TUns8* GHOST_SystemPathsWin32::getSystemDir() const
 {
-	static char knownpath[MAX_PATH];
-	HRESULT hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath);
+	static char knownpath[MAX_PATH*3] = {0}; /* 1 utf-16 might translante into 3 utf-8. 2 utf-16 translates into 4 utf-8*/
+	wchar_t knownpath_16[MAX_PATH];
+
+	HRESULT hResult = SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath_16);
 
 	if (hResult == S_OK)
 	{
+		conv_utf_16_to_8(knownpath_16,knownpath,MAX_PATH*3);
 		return (GHOST_TUns8*)knownpath;
 	}
 
@@ -83,11 +87,14 @@ const GHOST_TUns8* GHOST_SystemPathsWin32::getSystemDir() const
 
 const GHOST_TUns8* GHOST_SystemPathsWin32::getUserDir() const
 {
-	static char knownpath[MAX_PATH];
-	HRESULT hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath);
+	static char knownpath[MAX_PATH*3] = {0};
+	wchar_t  knownpath_16[MAX_PATH];
+
+	HRESULT hResult = SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath_16);
 
 	if (hResult == S_OK)
 	{
+		conv_utf_16_to_8(knownpath_16,knownpath,MAX_PATH*3);
 		return (GHOST_TUns8*)knownpath;
 	}
 
@@ -96,8 +103,11 @@ const GHOST_TUns8* GHOST_SystemPathsWin32::getUserDir() const
 
 const GHOST_TUns8* GHOST_SystemPathsWin32::getBinaryDir() const
 {
-	static char fullname[MAX_PATH];
-	if(GetModuleFileName(0, fullname, MAX_PATH)) {
+	static char fullname[MAX_PATH*3] = {0};
+	wchar_t  fullname_16[MAX_PATH*3];
+
+	if(GetModuleFileNameW(0, fullname_16, MAX_PATH)) {
+		conv_utf_16_to_8(fullname_16,fullname,MAX_PATH*3);
 		return (GHOST_TUns8*)fullname;
 	}
 
@@ -107,5 +117,7 @@ const GHOST_TUns8* GHOST_SystemPathsWin32::getBinaryDir() const
 void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char* filename) const
 {
 	/* SHARD_PATH resolves to SHARD_PATHA for non-UNICODE build */
-	SHAddToRecentDocs(SHARD_PATH,filename);
+	UTF16_ENCODE(filename)
+	SHAddToRecentDocs(SHARD_PATHW,filename_16);
+	UTF16_UN_ENCODE(filename)
 }

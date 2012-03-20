@@ -674,7 +674,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	int rlebuflen, goodwrite;
 
 	goodwrite = 1;
-	outf = fopen(name, "wb");
+	outf = BLI_fopen(name, "wb");
 	if(!outf) return 0;
 
 	tablen = ysize*zsize*sizeof(int);

@@ -2887,7 +2887,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
-	file = open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = BLI_open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;

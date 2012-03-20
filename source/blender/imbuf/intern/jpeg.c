@@ -608,7 +608,7 @@ static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return 0;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 75;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);
@@ -642,7 +642,7 @@ static int save_vidjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return 0;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 90;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);
@@ -712,7 +712,7 @@ static int save_maxjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return 0;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 100;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);

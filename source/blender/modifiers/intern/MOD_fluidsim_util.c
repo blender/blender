@@ -184,7 +184,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	// ------------------------------------------------
 	// get numverts + numfaces first
 	// ------------------------------------------------
-	gzf = gzopen(filename, "rb");
+	gzf = BLI_gzopen(filename, "rb");
 	if (!gzf)
 	{
 		return NULL;
@@ -216,7 +216,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 	if(!numfaces || !numverts || !gotBytes)
 		return NULL;
 
-	gzf = gzopen(filename, "rb");
+	gzf = BLI_gzopen(filename, "rb");
 	if (!gzf)
 	{
 		return NULL;
@@ -409,7 +409,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 	filename[len-5] = 'e';
 	filename[len-4] = 'l';
 
-	gzf = gzopen(filename, "rb");
+	gzf = BLI_gzopen(filename, "rb");
 	if (!gzf)
 	{
 		MEM_freeN(fss->meshVelocities);

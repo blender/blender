@@ -62,6 +62,7 @@
 #endif
 
 #ifdef WIN32
+#include "utf_winfunc.h"
 #  include <io.h>
 #  ifdef _WIN32_IE
 #    undef _WIN32_IE
@@ -825,10 +826,8 @@ const char *BLI_getDefaultDocumentFolder(void)
 		HRESULT hResult;
 
 		/* Check for %HOME% env var */
-
-		ret = getenv("HOME");
-		if(ret) {
-			if (BLI_is_dir(ret)) return ret;
+		if(uput_getenv("HOME",documentfolder,MAXPATHLEN)) {
+			if (BLI_is_dir(documentfolder)) return documentfolder;
 		}
 				
 		/* add user profile support for WIN 2K / NT.
@@ -1186,7 +1185,9 @@ void BLI_setenv(const char *env, const char*val)
 
 	/* non-free windows */
 #elif (defined(WIN32) || defined(WIN64)) /* not free windows */
-	_putenv_s(env, val);
+	uputenv(env, val);
+
+
 #else
 	/* linux/osx/bsd */
 	setenv(env, val, 1);
@@ -1774,17 +1775,23 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 #endif
 
 #ifdef _WIN32
-	if(GetModuleFileName(0, fullname, maxlen)) {
+	wchar_t * fullname_16 = MEM_mallocN(maxlen*sizeof(wchar_t), "ProgramPath");
+	if(GetModuleFileNameW(0, fullname_16, maxlen)) {
+		conv_utf_16_to_8(fullname_16,fullname, maxlen);
 		if(!BLI_exists(fullname)) {
 			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
 			MessageBox(NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
 		}
+		MEM_freeN(fullname_16);
 		return;
 	}
+
+	MEM_freeN(fullname_16);
 #endif
 
 	/* unix and non linux */
 	if (name && name[0]) {
+
 		BLI_strncpy(fullname, name, maxlen);
 		if (name[0] == '.') {
 			char wdir[FILE_MAX]= "";

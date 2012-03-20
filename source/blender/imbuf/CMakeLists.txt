@@ -180,4 +180,10 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
+if(WIN32)
+	list(APPEND INC
+		../../../intern/utfconv
+	)
+endif()
+
 blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}")

@@ -348,7 +348,7 @@ static int paste_file(bContext *C, ReportList *reports, const char *filename)
 	int filelen;
 	char *strp;
 
-	fp= fopen(filename, "r");
+	fp= BLI_fopen(filename, "r");
 
 	if(!fp) {
 		if(reports)

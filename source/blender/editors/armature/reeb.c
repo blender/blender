@@ -2051,7 +2051,7 @@ void REEB_exportGraph(ReebGraph *rg, int count)
 	else {
 		sprintf(filename, "test%05i.txt", count);
 	}
-	f = fopen(filename, "w");
+	f = BLI_fopen(filename, "w");
 
 	for(arc = rg->arcs.first; arc; arc = arc->next)
 	{

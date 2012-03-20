@@ -216,7 +216,7 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
 
 	data = (uchar *) ibuf->rect;
-	ofile = fopen(name,"wb");
+	ofile = BLI_fopen(name,"wb");
 		if (!ofile) return 0;
 
 	putShortLSB(19778,ofile); /* "BM" */

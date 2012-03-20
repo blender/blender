@@ -279,7 +279,7 @@ int cdf_read_open(CDataFile *cdf, const char *filename)
 {
 	FILE *f;
 
-	f= fopen(filename, "rb");
+	f= BLI_fopen(filename, "rb");
 	if(!f)
 		return 0;
 	
@@ -350,7 +350,7 @@ int cdf_write_open(CDataFile *cdf, const char *filename)
 	CDataFileMeshHeader *mesh;
 	FILE *f;
 
-	f= fopen(filename, "wb");
+	f= BLI_fopen(filename, "wb");
 	if(!f)
 		return 0;
 	

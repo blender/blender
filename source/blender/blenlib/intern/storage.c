@@ -78,6 +78,7 @@
 #include <io.h>
 #include <direct.h>
 #include "BLI_winstuff.h"
+#include "utfconv.h"
 #endif
 
 
@@ -86,10 +87,13 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_fileops.h"
+
+#include "BLI_fileops_types.h"
 #include "BLI_string.h"
+#include "BLI_fileops.h"
 
 #include "BKE_utildefines.h"
 
@@ -210,13 +214,22 @@ static void bli_builddir(const char *dirname, const char *relname)
 		buf[rellen]='/';
 		rellen++;
 	}
-
+#ifndef WIN32
 	if (chdir(dirname) == -1) {
 		perror(dirname);
 		return;
 	}
+#else
+	UTF16_ENCODE(dirname)
+	if(!SetCurrentDirectoryW(dirname_16)){
+		perror(dirname);
+		free(dirname_16);
+		return;
+	}
+	UTF16_UN_ENCODE(dirname)
 
-	if ( (dir = (DIR *)opendir(".")) ) {
+#endif
+	if ( (dir = (DIR *)opendir(".")) ){
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 			if (dlink) {
@@ -250,11 +263,16 @@ static void bli_builddir(const char *dirname, const char *relname)
 					files[actnum].relname = dlink->name;
 					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
-// Excluding other than current MSVC compiler until able to test.
+// Excluding other than current MSVC compiler until able to test
+#ifdef WIN32
+					{wchar_t * name_16 = alloc_utf16_from_8(dlink->name,0);
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
-					_stat64(dlink->name,&files[actnum].s);
+					_wstat64(name_16,&files[actnum].s);
 #elif defined(__MINGW32__)
 					_stati64(dlink->name,&files[actnum].s);
+#endif
+					free(name_16);};
+
 #else
 					stat(dlink->name,&files[actnum].s);
 #endif
@@ -423,13 +441,13 @@ size_t BLI_file_descriptor_size(int file)
 	struct stat buf;
 
 	if (file <= 0) return (-1);
-	fstat(file, &buf);
+	fstat(file, &buf);//CHANGE
 	return (buf.st_size);
 }
 
 size_t BLI_file_size(const char *path)
 {
-	int size, file = open(path, O_BINARY|O_RDONLY);
+	int size, file = BLI_open(path, O_BINARY|O_RDONLY, 0);
 	
 	if (file == -1)
 		return -1;
@@ -442,27 +460,26 @@ size_t BLI_file_size(const char *path)
 
 int BLI_exists(const char *name)
 {
-#if defined(WIN32) && !defined(__MINGW32__)
+#if defined(WIN32) 
+#ifndef __MINGW32__
 	struct _stat64i32 st;
-	/* in Windows stat doesn't recognize dir ending on a slash 
-	 * To not break code where the ending slash is expected we
-	 * don't mess with the argument name directly here - elubie */
-	char tmp[FILE_MAX];
-	int len, res;
-	BLI_strncpy(tmp, name, FILE_MAX);
-	len = strlen(tmp);
-	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
-	res = _stat(tmp, &st);
-	if (res == -1) return(0);
-#elif defined(__MINGW32__)
+#else
 	struct _stati64 st;
-	char tmp[FILE_MAX];
+#endif
+	/*  in Windows stat doesn't recognize dir ending on a slash 
+		To not break code where the ending slash is expected we
+		don't mess with the argument name directly here - elubie */
+	wchar_t * tmp_16 = alloc_utf16_from_8(name, 0);
 	int len, res;
-	BLI_strncpy(tmp, name, FILE_MAX);
-	len = strlen(tmp);
-	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
-	res = _stati64(tmp, &st);
-	if (res) return(0);
+	len = wcslen(tmp_16);
+	if (len > 3 && ( tmp_16[len-1]==L'\\' || tmp_16[len-1]==L'/') ) tmp_16[len-1] = '\0';
+#ifndef __MINGW32__
+	res = _wstat(tmp_16, &st);
+#else
+	res = _wstati64(tmp_16, &st);
+#endif
+	free(tmp_16);
+	if (res == -1) return(0);
 #else
 	struct stat st;
 	if (stat(name,&st)) return(0);	
@@ -484,7 +501,7 @@ int BLI_is_file(const char *path)
 
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
-	FILE *fp= fopen(name, "r");
+	FILE *fp= BLI_fopen(name, "r");
 	LinkNode *lines= NULL;
 	char *buf;
 	size_t size;
@@ -530,11 +547,23 @@ void BLI_file_free_lines(LinkNode *lines)
 
 int BLI_file_older(const char *file1, const char *file2)
 {
+#if WIN32
+	struct _stat st1, st2;
+
+	UTF16_ENCODE(file1)
+	UTF16_ENCODE(file2)
+	
+	if(_wstat(file1_16, &st1)) return 0;
+	if(_wstat(file2_16, &st2)) return 0;
+
+	UTF16_UN_ENCODE(file2)
+	UTF16_UN_ENCODE(file1)
+#else
 	struct stat st1, st2;
 
 	if(stat(file1, &st1)) return 0;
 	if(stat(file2, &st2)) return 0;
-
+#endif
 	return (st1.st_mtime < st2.st_mtime);
 }
 

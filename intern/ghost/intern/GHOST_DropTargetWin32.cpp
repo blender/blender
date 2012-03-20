@@ -34,6 +34,9 @@
 #include "GHOST_DropTargetWin32.h"
 #include <ShellApi.h>
 
+#include "utf_winfunc.h"
+#include "utfconv.h"
+
 #ifdef GHOST_DEBUG
 // utility
 void printLastError(void);
@@ -267,20 +270,12 @@ void * GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject * pDataObject)
 			{
 				if ( ::DragQueryFileW ( hdrop, nfile, fpath, MAX_PATH ) > 0 )
 				{
-					if ( !WideCharToANSI(fpath, temp_path) )
+					if ( !(temp_path = alloc_utf_8_from_16(fpath, 0)) )
 					{
 						continue;
 					} 
 					// Just ignore paths that could not be converted verbatim.
-					if (strpbrk(temp_path, "?"))
-					{
-#ifdef GHOST_DEBUG
-						::printf("\ndiscarding path that contains illegal characters: %s", temp_path);
-#endif // GHOST_DEBUG
-						::free(temp_path);
-						temp_path = NULL;
-						continue;
-					}
+
 					strArray->strings[nvalid] = (GHOST_TUns8*) temp_path;
 					strArray->count = nvalid+1;
 					nvalid++;
@@ -309,7 +304,7 @@ void * GHOST_DropTargetWin32::getDropDataAsString(IDataObject * pDataObject)
 		if(pDataObject->GetData(&fmtetc, &stgmed) == S_OK)
 		{
 			LPCWSTR wstr = (LPCWSTR)::GlobalLock(stgmed.hGlobal);
-			if ( !WideCharToANSI(wstr, tmp_string) )
+			if ( !(tmp_string = alloc_utf_8_from_16((wchar_t*)wstr, 0)) )
 			{
 				::GlobalUnlock(stgmed.hGlobal);
 				return NULL;

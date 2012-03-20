@@ -332,7 +332,7 @@ static void writeHeader(FILE *file, int width, int height)
 
 int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 {
-	FILE* file = fopen(name, "wb");
+	FILE* file = BLI_fopen(name, "wb");
 	float *fp= NULL;
 	int y, width=ibuf->x, height=ibuf->y;
 	unsigned char *cp= NULL;

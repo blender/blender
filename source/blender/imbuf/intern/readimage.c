@@ -126,7 +126,7 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags)
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
-	file = open(filepath_tx, O_BINARY|O_RDONLY);
+	file = BLI_open(filepath_tx, O_BINARY|O_RDONLY, 0);
 	if(file < 0) return NULL;
 
 	ibuf= IMB_loadifffile(file, flags, filepath_tx);
@@ -152,7 +152,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
-	file = open(filepath_tx,O_BINARY|O_RDONLY);
+	file = BLI_open(filepath_tx,O_BINARY|O_RDONLY,0);
 	if(file < 0) return NULL;
 
 	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer, filepath_tx);
@@ -195,7 +195,7 @@ void imb_loadtile(ImBuf *ibuf, int tx, int ty, unsigned int *rect)
 {
 	int file;
 
-	file = open(ibuf->cachename, O_BINARY|O_RDONLY);
+	file = BLI_open(ibuf->cachename, O_BINARY|O_RDONLY, 0);
 	if(file < 0) return;
 
 	imb_loadtilefile(ibuf, file, tx, ty, rect);

@@ -195,7 +195,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 		                 Flush);
 	}
 	else {
-		fp = fopen(name, "wb");
+		fp = BLI_fopen(name, "wb");
 		if (!fp) {
 			png_destroy_write_struct(&png_ptr, &info_ptr);
 			MEM_freeN(pixels);

@@ -38,6 +38,7 @@
 #include <string.h>			 /* memset */
 #include "cin_debug_stuff.h"
 #include "logmemfile.h"
+#include "BLI_fileops.h"
 
 static void
 fillDpxChannelInfo(DpxFile* dpx, DpxChannelInformation* chan, int des) {
@@ -401,7 +402,7 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 
 	if (mode == LFREALFILE) {
 		filename = bytestuff;
-		dpx->file = fopen(filename, "rb");
+		dpx->file = BLI_fopen(filename, "rb");
 		if (dpx->file == 0) {	
 			if (verbose) d_printf("Failed to open file \"%s\".\n", filename);
 			dpxClose(dpx);
@@ -589,7 +590,7 @@ dpxCreate(const char* filename, int width, int height, int depth) {
 	dpx->lineBuffer = 0;
 	dpx->pixelBuffer = 0;
 
-	dpx->file = fopen(filename, "wb");
+	dpx->file = BLI_fopen(filename, "wb");
 	if (dpx->file == 0) {
 		if (verbose) d_printf("Couldn't open file %s\n", filename);
 		dpxClose(dpx);
@@ -687,7 +688,7 @@ dpxDump(const char* filename) {
 	DpxMainHeader header;
 	FILE* file;
 
-	file = fopen(filename, "rb");
+	file = BLI_fopen(filename, "rb");
 	if (file == 0) {
 		d_printf("Failed to open file \"%s\".\n", filename);
 		return;

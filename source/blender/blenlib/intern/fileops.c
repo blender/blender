@@ -45,6 +45,8 @@
 #include <io.h>
 #include "BLI_winstuff.h"
 #include "BLI_callbacks.h"
+#include "utf_winfunc.h"
+#include "utfconv.h"
 #else
 #include <unistd.h> // for read close
 #include <sys/param.h>
@@ -77,11 +79,10 @@ int BLI_file_gzip(const char *from, const char *to)
 
 	/* level 1 is very close to 3 (the default) in terms of file size,
 	 * but about twice as fast, best use for speedy saving - campbell */
-	gzfile = gzopen(to, "wb1");
+	gzfile = BLI_gzopen(to, "wb1");
 	if(gzfile == NULL)
 		return -1;
-	
-	file = open(from, O_BINARY|O_RDONLY);
+	file = BLI_open(from, O_BINARY|O_RDONLY,0);
 	if(file < 0)
 		return -2;
 
@@ -121,8 +122,7 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 
 	size= 0;
 
-	gzfile = gzopen( from_file, "rb" );
-
+	gzfile = BLI_gzopen( from_file, "rb" );
 	for(;;) {
 		if(mem==NULL) {
 			mem= MEM_callocN(chunk_size, "BLI_ungzip_to_mem");
@@ -158,12 +158,12 @@ int BLI_file_is_writable(const char *filename)
 	int file;
 	
 	/* first try to open without creating */
-	file = open(filename, O_BINARY | O_RDWR, 0666);
+	file = BLI_open(filename, O_BINARY | O_RDWR, 0666);
 	
 	if (file < 0) {
 		/* now try to open and create. a test without actually
 		 * creating a file would be nice, but how? */
-		file = open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
+		file = BLI_open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
 		
 		if(file < 0) {
 			return 0;
@@ -183,13 +183,13 @@ int BLI_file_is_writable(const char *filename)
 
 int BLI_file_touch(const char *file)
 {
-	FILE *f = fopen(file,"r+b");
+	FILE *f = BLI_fopen(file,"r+b");
 	if (f != NULL) {
 		char c = getc(f);
 		rewind(f);
 		putc(c,f);
 	} else {
-		f = fopen(file,"wb");
+		f = BLI_fopen(file,"wb");
 	}
 	if (f) {
 		fclose(f);
@@ -202,20 +202,62 @@ int BLI_file_touch(const char *file)
 
 static char str[MAXPATHLEN+12];
 
+FILE * BLI_fopen(const char * filename, const char * mode)
+{
+	return ufopen(filename, mode);
+}
+
+gzFile BLI_gzopen(const char * filename, const char * mode)
+{
+	gzFile gzfile;
+	int fi;
+
+	if(!filename || !mode) {return 0;}
+	else
+
+	{
+			
+		wchar_t short_name_16 [256];
+		char short_name [256];
+		int i=0;
+		UTF16_ENCODE(filename);
+
+		GetShortPathNameW(filename_16,short_name_16,256);
+
+		for(i=0;i<256;i++) {short_name[i]=short_name_16[i];};
+
+
+		gzfile = gzopen(short_name,mode);
+
+		UTF16_UN_ENCODE(filename);
+
+	}
+	return gzfile;
+}
+
+int   BLI_open(const char *filename, int oflag, int pmode)
+{
+	return uopen(filename, oflag, pmode);
+}
+
 int BLI_delete(const char *file, int dir, int recursive)
 {
 	int err;
+	
+	UTF16_ENCODE(file)
 
 	if (recursive) {
 		callLocalErrorCallBack("Recursive delete is unsupported on Windows");
 		err= 1;
 	} else if (dir) {
-		err= !RemoveDirectory(file);
+		err= !RemoveDirectoryW(file_16);
 		if (err) printf ("Unable to remove directory");
 	} else {
-		err= !DeleteFile(file);
+		err= !DeleteFileW(file_16);
 		if (err) callLocalErrorCallBack("Unable to delete file");
 	}
+
+	UTF16_UN_ENCODE(file)
 
 	return err;
 }
@@ -235,8 +277,13 @@ int BLI_move(const char *file, const char *to)
 			strcat(str, BLI_last_slash(file) + 1);
 		}
 	}
+	
+	UTF16_ENCODE(file)
+	UTF16_ENCODE(str)
+	err= !MoveFileW(file_16, str_16);
+	UTF16_UN_ENCODE(str)
+	UTF16_UN_ENCODE(file)
 
-	err= !MoveFile(file, str);
 	if (err) {
 		callLocalErrorCallBack("Unable to move file");
 		printf(" Move from '%s' to '%s' failed\n", file, str);
@@ -262,8 +309,12 @@ int BLI_copy(const char *file, const char *to)
 		}
 	}
 
-	err= !CopyFile(file,str,FALSE);
-	
+	UTF16_ENCODE(file)
+	UTF16_ENCODE(str)
+	err= !CopyFileW(file_16,str_16,FALSE);
+	UTF16_UN_ENCODE(str)
+	UTF16_UN_ENCODE(file)
+
 	if (err) {
 		callLocalErrorCallBack("Unable to copy file!");
 		printf(" Copy from '%s' to '%s' failed\n", file, str);
@@ -292,7 +343,7 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
 	lslash= BLI_last_slash(tmp);
-
+	
 	if (lslash == tmp + strlen(tmp) - 1) {
 		*lslash = 0;
 	}
@@ -307,8 +358,8 @@ void BLI_dir_create_recursive(const char *dirname)
 	}
 	
 	if(dirname[0]) /* patch, this recursive loop tries to create a nameless directory */
-		if (!CreateDirectory(dirname, NULL))
-			callLocalErrorCallBack("Unable to create directory\n");
+		if (umkdir(dirname)==-1)
+			printf("Unable to create directory %s\n",dirname);
 }
 
 int BLI_rename(const char *from, const char *to)
@@ -318,8 +369,8 @@ int BLI_rename(const char *from, const char *to)
 	/* make sure the filenames are different (case insensitive) before removing */
 	if (BLI_exists(to) && BLI_strcasecmp(from, to))
 		if(BLI_delete(to, 0, 0)) return 1;
-
-	return rename(from, to);
+	
+	return urename(from, to);
 }
 
 #else /* The UNIX world */
@@ -497,6 +548,21 @@ static int delete_single_file(const char *from, const char *UNUSED(to))
 	}
 
 	return recursiveOp_Callback_OK;
+}
+
+FILE * BLI_fopen(const char * filename, const char * mode)
+{
+	return fopen(filename, mode);
+}
+
+gzFile BLI_gzopen(const char * filename, const char * mode)
+{
+	return gzopen(filename, mode);
+}
+
+int BLI_open(const char *filename, int oflag, int pmode)
+{
+	return open(filename, oflag, pmode);
 }
 
 int BLI_delete(const char *file, int dir, int recursive) 

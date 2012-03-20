@@ -52,6 +52,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_path_util.h"
+#include "BLI_fileops.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -388,7 +389,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 
 	}
 	else {
-		FILE *fp = fopen(fn, "r");
+		FILE *fp = BLI_fopen(fn, "r");
 
 		if (fp) {
 			py_dict = PyC_DefaultNameSpace(fn);

@@ -304,6 +304,7 @@ static void wm_init_userdef(bContext *C)
 #define BKE_READ_EXOTIC_OK_BLEND		 0 /* .blend file */
 #define BKE_READ_EXOTIC_OK_OTHER		 1 /* other supported formats */
 
+
 /* intended to check for non-blender formats but for now it only reads blends */
 static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 {
@@ -319,8 +320,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 		retval= BKE_READ_EXOTIC_FAIL_PATH;
 	}
 	else {
-		gzfile = gzopen(name,"rb");
-
+		gzfile = BLI_gzopen(name,"rb");
 		if (gzfile == NULL) {
 			retval= BKE_READ_EXOTIC_FAIL_OPEN;
 		}
@@ -627,7 +627,7 @@ static void write_history(void)
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
 	if(!(recent) || (BLI_path_cmp(recent->filepath, G.main->name)!=0)) {
-		fp= fopen(name, "w");
+		fp= BLI_fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");

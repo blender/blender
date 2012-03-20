@@ -36,6 +36,7 @@
 #include <netinet/in.h>	 /* htonl() */
 #endif
 #include <string.h>			 /* memset */
+#include "BLI_fileops.h"
 
 #define MIN_GAMMA 0.01
 #define MAX_GAMMA 99.9
@@ -154,7 +155,7 @@ logImageDump(const char* filename)
 
 	U32 magic;
 
-	FILE* foo = fopen(filename, "rb");
+	FILE* foo = BLI_fopen(filename, "rb");
 	if (foo == 0) {
 		return;
 	}

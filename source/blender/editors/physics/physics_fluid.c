@@ -684,7 +684,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	
 	// check selected directory
 	// simply try to open cfg file for writing to test validity of settings
-	fileCfg = fopen(targetFile, "w");
+	fileCfg = BLI_fopen(targetFile, "w");
 	if(fileCfg) { 
 		dirExist = 1; fclose(fileCfg); 
 		// remove cfg dummy from  directory test

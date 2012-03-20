@@ -268,7 +268,7 @@ int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 	if (ibuf->planes==32) {
 		buf[17] |= 0x08;
 	}
-	fildes = fopen(name,"wb");
+	fildes = BLI_fopen(name,"wb");
 		if (!fildes) return 0;
 
 	if (fwrite(buf, 1, 18,fildes) != 18) {

@@ -40,6 +40,11 @@
 #include <xmmintrin.h>
 #endif
 
+#ifdef WIN32
+#include <Windows.h>
+#include "utfconv.h"
+#endif
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -1109,11 +1114,27 @@ char **environ = NULL;
 
 #endif
 
+
+#ifdef WIN32
+int main(int argc, const char **argv_c) /*Do not mess with const*/
+#else
 int main(int argc, const char **argv)
+#endif
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
 	bArgs *ba;
+
+#ifdef WIN32
+	wchar_t ** argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
+	int argci = 0;
+	char ** argv = MEM_mallocN(argc * sizeof(char*),"argv array");
+	for(argci=0; argci<argc; argci++)
+	{
+		argv[argci] = alloc_utf_8_from_16(argv_16[argci],0);
+	}
+	LocalFree(argv_16);
+#endif	
 
 #ifdef WITH_PYTHON_MODULE
 #ifdef __APPLE__
@@ -1123,6 +1144,8 @@ int main(int argc, const char **argv)
 #undef main
 	evil_C= C;
 #endif
+
+
 
 #ifdef WITH_BINRELOC
 	br_init( NULL );
@@ -1244,6 +1267,15 @@ int main(int argc, const char **argv)
 	BLI_argsParse(ba, 4, load_file, C);
 
 	BLI_argsFree(ba);
+
+#ifdef WIN32
+	while(argci)
+	{
+		free(argv[--argci]);
+	}
+	MEM_freeN(argv);
+	argv = NULL;
+#endif
 
 #ifdef WITH_PYTHON_MODULE
 	return 0; /* keep blender in background mode running */

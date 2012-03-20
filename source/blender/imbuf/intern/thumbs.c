@@ -61,6 +61,7 @@
 #include <process.h> /* getpid */
 #include <direct.h> /* chdir */
 #include "BLI_winstuff.h"
+#include "utfconv.h"
 #else
 #include <unistd.h>
 #endif
@@ -70,8 +71,12 @@
 static int get_thumb_dir( char* dir , ThumbSize size)
 {
 #ifdef WIN32
+	wchar_t dir_16 [MAX_PATH];
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
-	SHGetSpecialFolderPath(0, dir, CSIDL_PROFILE, 0);
+	SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
+	conv_utf_16_to_8(dir_16,dir,FILE_MAX);
+
+
 #else
 	const char* home = getenv("HOME");
 	if (!home) return 0;

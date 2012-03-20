@@ -3,6 +3,7 @@ Import ('env')
 
 SConscript(['audaspace/SConscript',
             'string/SConscript',
+			'utfconv/SConscript',
             'ghost/SConscript',
             'guardedalloc/SConscript',
             'moto/SConscript',

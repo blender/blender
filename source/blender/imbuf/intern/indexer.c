@@ -81,7 +81,7 @@ anim_index_builder * IMB_index_builder_create(const char * name)
 
 	BLI_make_existing_file(rv->temp_name);
 
-	rv->fp = fopen(rv->temp_name, "wb");
+	rv->fp = BLI_fopen(rv->temp_name, "wb");
 
 	if (!rv->fp) {
 		fprintf(stderr, "Couldn't open index target: %s! "
@@ -140,7 +140,7 @@ void IMB_index_builder_finish(anim_index_builder * fp, int rollback)
 		unlink(fp->temp_name);
 	} else {
 		unlink(fp->name);
-		rename(fp->temp_name, fp->name);
+		BLI_rename(fp->temp_name, fp->name);
 	}
 
 	MEM_freeN(fp);
@@ -150,7 +150,7 @@ struct anim_index * IMB_indexer_open(const char * name)
 {
 	char header[13];
 	struct anim_index * idx;
-	FILE * fp = fopen(name, "rb");
+	FILE * fp = BLI_fopen(name, "rb");
 	int i;
 
 	if (!fp) {
@@ -690,7 +690,7 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 		get_proxy_filename(ctx->anim, ctx->proxy_size, 
 		                   fname, FALSE);
 		unlink(fname);
-		rename(fname_tmp, fname);
+		BLI_rename(fname_tmp, fname);
 	}
 	
 	MEM_freeN(ctx);
