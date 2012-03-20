@@ -130,13 +130,9 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 			 * (for custom color set) */
 			if (grp->cs.solid[0] == 0) {
 				/* define for setting colors in theme below */
-				#define SETCOL(col, r, g, b, a)  col[0] = r; col[1] = g; col[2] = b; col[3] = a;
-				
-				SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
-				SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
-				SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
-				
-				#undef SETCOL
+				rgba_char_args_set(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+				rgba_char_args_set(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+				rgba_char_args_set(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
 			}
 		}
 	}

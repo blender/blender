@@ -193,4 +193,25 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }
 
+/* color macros for themes */
+#define rgba_char_args_set_fl(col, r, g, b, a)  rgba_char_args_set(col, r * 255, g * 255, b * 255, a * 255)
+
+MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a)
+{
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
+	col[3] = a;
+}
+
+MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a)
+{
+	if (col[3] == 0) {
+		col[0] = r;
+		col[1] = g;
+		col[2] = b;
+		col[3] = a;
+	}
+}
+
 #endif /* __MATH_COLOR_INLINE_C__ */
