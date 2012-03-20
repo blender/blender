@@ -199,6 +199,9 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 
 		for(sock_prev=node_prev->inputs.first; sock_prev; sock_prev=sock_prev->next) {
 			for(sock_from=node_from->inputs.first; sock_from; sock_from=sock_from->next) {
+				if (nodeCountSocketLinks(ntree, sock_from) >= sock_from->limit)
+					continue;
+				
 				if(strcmp(sock_prev->name, sock_from->name) == 0 && sock_prev->type == sock_from->type) {
 					bNodeLink *link = sock_prev->link;
 
