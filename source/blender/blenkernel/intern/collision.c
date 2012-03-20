@@ -2131,7 +2131,7 @@ static int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierDa
 }
 #endif
 
-static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned int *maxobj, Object *ob, Object *self, int level)
+static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned int *maxobj, Object *ob, Object *self, int level, unsigned int modifier_type)
 {
 	CollisionModifierData *cmd= NULL;
 
@@ -2139,8 +2139,8 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 		return;
 
 	/* only get objects with collision modifier */
-	if(ob->pd && ob->pd->deflect)
-		cmd= (CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+	if(((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
+		cmd= (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
 	
 	if(cmd) {	
 		/* extend array */
@@ -2160,13 +2160,13 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 
 		/* add objects */
 		for(go= group->gobject.first; go; go= go->next)
-			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1);
+			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1, modifier_type);
 	}	
 }
 
 // return all collision objects in scene
 // collision object will exclude self 
-Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj)
+Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type)
 {
 	Base *base;
 	Object **objs;
@@ -2179,14 +2179,14 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 	if(group) {
 		/* use specified group */
 		for(go= group->gobject.first; go; go= go->next)
-			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0);
+			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0, modifier_type);
 	}
 	else {
 		Scene *sce_iter;
 		/* add objects in same layer in scene */
 		for(SETLOOPER(scene, sce_iter, base)) {
 			if(base->lay & self->lay)
-				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0);
+				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0, modifier_type);
 
 		}
 	}
@@ -2385,7 +2385,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj);
+	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	
 	if(!collobjs)
 		return 0;

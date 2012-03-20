@@ -142,7 +142,7 @@ void collision_move_object(struct CollisionModifierData *collmd, float step, flo
 /////////////////////////////////////////////////
 // used in effect.c
 /////////////////////////////////////////////////
-struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj);
+struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj, unsigned int modifier_type);
 
 typedef struct ColliderCache {
 	struct ColliderCache *next, *prev;
