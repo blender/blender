@@ -329,8 +329,8 @@ int BM_vert_edge_count_nonwire(BMVert *v)
 	int count = 0;
 	BMIter eiter;
 	BMEdge *edge;
-	BM_ITER(edge, &eiter, NULL, BM_EDGES_OF_VERT, v){
-		if(edge->l) {
+	BM_ITER(edge, &eiter, NULL, BM_EDGES_OF_VERT, v) {
+		if (edge->l) {
 			count++;
 		}
 	}

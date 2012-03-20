@@ -2943,7 +2943,7 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 	int  i;
 	
 	//threshold = 0.000001; /* tolerance for vertex intersection */
-	// XXX	threshold = scene->toolsettings->select_thresh / 100;
+	// XXX threshold = scene->toolsettings->select_thresh / 100;
 	
 	/* Get screen coords of verts */
 	scr = BLI_ghash_lookup(gh, e->v1);

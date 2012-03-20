@@ -467,7 +467,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			l = BM_face_other_vert_loop(owalk.f_hub, lwalk->lastv, v);
 			nexte = BM_edge_exists(v, l->v);
 
-            if(!BLI_ghash_haskey(walker->visithash, nexte)){
+            if (!BLI_ghash_haskey(walker->visithash, nexte)) {
                 lwalk = BMW_state_add(walker);
                 lwalk->cur = nexte;
                 lwalk->lastv = v;

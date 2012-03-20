@@ -560,7 +560,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 
 static void free_undo(void *umv)
 {
-	if (((Mesh *)umv)->key)	{
+	if (((Mesh *)umv)->key) {
 		free_key(((Mesh *)umv)->key);
 		MEM_freeN(((Mesh *)umv)->key);
 	}

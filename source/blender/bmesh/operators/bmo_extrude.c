@@ -147,7 +147,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 			v3 = e->v2;
 			v4 = e->v1;
 		}
-		/* not sure what to do about example face, pass	 NULL for now */
+		/* not sure what to do about example face, pass NULL for now */
 		f = BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))

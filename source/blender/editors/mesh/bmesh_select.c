@@ -1170,17 +1170,13 @@ static void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *e, int val
 	case EDGE_MODE_TAG_CREASE:
 	 {
 		float *crease = CustomData_bmesh_get(&em->bm->edata, e->head.data, CD_CREASE);
-		
-		if (val)		*crease = 1.0f;
-		else			*crease = 0.0f;
+		*crease = (val) ? 1.0f : 0.0f;
 		break;
 	 }
 	case EDGE_MODE_TAG_BEVEL:
 	 {
 		float *bweight = CustomData_bmesh_get(&em->bm->edata, e->head.data, CD_BWEIGHT);
-
-		if (val)		*bweight = 1.0f;
-		else			*bweight = 0.0f;
+		*bweight = (val) ? 1.0f : 0.0f;
 		break;
 	 }
 	}

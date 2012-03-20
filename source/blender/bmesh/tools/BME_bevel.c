@@ -1005,7 +1005,7 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 				if(l2->f->len > 3)
 					BM_face_split(bm, l2->f, l2->next->v, l2->prev->v, &l, l2->e, FALSE); /* clip this corner off */
 				curedge = bmesh_disk_edge_next(curedge, v);
-			} while(curedge != v->e);
+			} while (curedge != v->e);
 			BME_Bevel_Dissolve_Disk(bm, v);
 		}
 	}

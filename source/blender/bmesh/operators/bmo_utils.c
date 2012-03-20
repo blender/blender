@@ -466,11 +466,11 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
  */
 static float ngon_perimeter(BMesh *bm, BMFace *f)
 {
-	BMIter	liter;
-	BMLoop	*l;
-	int		num_verts = 0;
-	float	v[3], sv[3];
-	float	perimeter = 0.0f;
+	BMIter  liter;
+	BMLoop *l;
+	int     num_verts = 0;
+	float   v[3], sv[3];
+	float   perimeter = 0.0f;
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if (num_verts == 0) {
@@ -498,11 +498,11 @@ static float ngon_perimeter(BMesh *bm, BMFace *f)
  */
 static float ngon_fake_area(BMesh *bm, BMFace *f)
 {
-	BMIter	liter;
-	BMLoop	*l;
-	int		num_verts = 0;
-	float	v[3], sv[3], c[3];
-	float	area = 0.0f;
+	BMIter  liter;
+	BMLoop *l;
+	int     num_verts = 0;
+	float   v[3], sv[3], c[3];
+	float   area = 0.0f;
 
 	BM_face_center_mean_calc(bm, f, c);
 
@@ -528,13 +528,13 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
  * extra face data (computed data)
  */
 typedef struct SimSel_FaceExt {
-	BMFace		*f;			/* the face */
-	float	c[3];			/* center */
+	BMFace  *f;             /* the face */
+	float    c[3];          /* center */
 	union {
-		float	area;		/* area */
-		float	perim;		/* perimeter */
-		float	d;			/* 4th component of plane (the first three being the normal) */
-		struct Image	*t;	/* image pointer */
+		float   area;       /* area */
+		float   perim;      /* perimeter */
+		float   d;          /* 4th component of plane (the first three being the normal) */
+		struct Image *t;    /* image pointer */
 	};
 } SimSel_FaceExt;
 
@@ -572,7 +572,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected faces indices and for all temporary faces */
-	indices	= (int *)MEM_callocN(sizeof(int) * num_sels, "face indices util.c");
+	indices = (int *)MEM_callocN(sizeof(int) * num_sels, "face indices util.c");
 	f_ext = (SimSel_FaceExt *)MEM_callocN(sizeof(SimSel_FaceExt) * num_total, "f_ext util.c");
 
 	/* loop through all the faces and fill the faces/indices structure */
@@ -692,15 +692,15 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 /**************************************************************************** *
  * Similar Edges
  **************************************************************************** */
-#define EDGE_MARK	1
+#define EDGE_MARK 1
 
 /*
  * compute the angle of an edge (i.e. the angle between two faces)
  */
 static float edge_angle(BMesh *bm, BMEdge *e)
 {
-	BMIter	fiter;
-	BMFace	*f, *f_prev = NULL;
+	BMIter fiter;
+	BMFace *f, *f_prev = NULL;
 
 	/* first edge faces, don't account for 3+ */
 
@@ -719,15 +719,15 @@ static float edge_angle(BMesh *bm, BMEdge *e)
  * extra edge information
  */
 typedef struct SimSel_EdgeExt {
-	BMEdge		*e;
+	BMEdge *e;
 	union {
-		float		dir[3];
-		float		angle;			/* angle between the face */
+		float dir[3];
+		float angle;            /* angle between the face */
 	};
 
 	union {
-		float		length;			/* edge length */
-		int			faces;			/* faces count */
+		float length;           /* edge length */
+		int   faces;            /* faces count */
 	};
 } SimSel_EdgeExt;
 
@@ -738,9 +738,9 @@ typedef struct SimSel_EdgeExt {
 void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter es_iter;	/* selected edges iterator */
-	BMIter	e_iter;		/* mesh edges iterator */
-	BMEdge	*es;		/* selected edge */
-	BMEdge	*e;		/* mesh edge */
+	BMIter e_iter;		/* mesh edges iterator */
+	BMEdge *es;		/* selected edge */
+	BMEdge *e;		/* mesh edge */
 	int idx = 0, i = 0 /* , f = 0 */;
 	int *indices = NULL;
 	SimSel_EdgeExt *e_ext = NULL;
@@ -760,7 +760,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected edges indices and for all temporary edges */
-	indices	= (int *)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
+	indices = (int *)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
 	e_ext = (SimSel_EdgeExt *)MEM_callocN(sizeof(SimSel_EdgeExt) * num_total, "e_ext util.c");
 
 	/* loop through all the edges and fill the edges/indices structure */
@@ -778,7 +778,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 		for (i = 0; i < num_total; i++) {
 			switch (type) {
 				case SIMEDGE_LENGTH:	/* compute the length of the edge */
-					e_ext[i].length	= len_v3v3(e_ext[i].e->v1->co, e_ext[i].e->v2->co);
+					e_ext[i].length = len_v3v3(e_ext[i].e->v1->co, e_ext[i].e->v2->co);
 					break;
 
 				case SIMEDGE_DIR:		/* compute the direction */
@@ -786,11 +786,11 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMEDGE_FACE:		/* count the faces around the edge */
-					e_ext[i].faces	= BM_edge_face_count(e_ext[i].e);
+					e_ext[i].faces = BM_edge_face_count(e_ext[i].e);
 					break;
 
 				case SIMEDGE_FACE_ANGLE:
-					e_ext[i].faces	= BM_edge_face_count(e_ext[i].e);
+					e_ext[i].faces = BM_edge_face_count(e_ext[i].e);
 					if (e_ext[i].faces == 2)
 						e_ext[i].angle = edge_angle(bm, e_ext[i].e);
 					break;
@@ -924,7 +924,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected vertices indices and for all temporary vertices */
-	indices	= (int *)MEM_mallocN(sizeof(int) * num_sels, "vertex indices");
+	indices = (int *)MEM_mallocN(sizeof(int) * num_sels, "vertex indices");
 	v_ext = (SimSel_VertExt *)MEM_mallocN(sizeof(SimSel_VertExt) * num_total, "vertex extra");
 
 	/* loop through all the vertices and fill the vertices/indices structure */
@@ -938,7 +938,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 		switch (type) {
 			case SIMVERT_FACE:
 				/* calling BM_vert_face_count every time is time consumming, so call it only once per vertex */
-				v_ext[i].num_faces	= BM_vert_face_count(v);
+				v_ext[i].num_faces = BM_vert_face_count(v);
 				break;
 
 			case SIMVERT_VGROUP:

@@ -116,7 +116,7 @@ static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 
 	BPY_BM_CHECK_OBJ(value);
 
-	if (self->bm != value->bm)	{
+	if (self->bm != value->bm) {
 		PyErr_SetString(PyExc_ValueError,
 		                "Element is not from this mesh");
 		return NULL;

@@ -657,7 +657,7 @@ static SubDPattern *patterns[] = {
 	NULL,
 };
 
-#define PLEN	(sizeof(patterns) / sizeof(void *))
+#define PLEN  (sizeof(patterns) / sizeof(void *))
 
 typedef struct SubDFaceData {
 	BMVert *start; SubDPattern *pat;

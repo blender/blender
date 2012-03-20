@@ -220,7 +220,7 @@ void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
 		float lock_iweight = 1.0f;
 
 		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
-			if(dw->def_nr != def_nr_lock) {
+			if (dw->def_nr != def_nr_lock) {
 				tot_weight += dw->weight;
 			}
 			else {
@@ -235,7 +235,7 @@ void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
 
 			float scalar = (1.0f / tot_weight) * lock_iweight;
 			for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
-				if(dw != dw_lock) {
+				if (dw != dw_lock) {
 					dw->weight *= scalar;
 
 					/* in case of division errors with very low weights */
@@ -638,7 +638,7 @@ void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weig
 		return;
 
 	dw_new = MEM_callocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "defvert_add_to group, new deformWeight");
-	if(dvert->dw) {
+	if (dvert->dw) {
 		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
 		MEM_freeN(dvert->dw);
 	}
@@ -659,7 +659,7 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		int i = dw - dvert->dw;
 
 		/* Security check! */
-		if(i < 0 || i >= dvert->totweight) {
+		if (i < 0 || i >= dvert->totweight) {
 			return;
 		}
 
