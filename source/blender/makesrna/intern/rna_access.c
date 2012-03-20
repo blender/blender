@@ -4698,27 +4698,33 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 
 		if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
 			/* represent as a python set */
-			EnumPropertyItem *item = NULL;
-			int free;
+			if (val) {
+				EnumPropertyItem *item = NULL;
+				int free;
 
-			BLI_dynstr_append(dynstr, "{");
+				BLI_dynstr_append(dynstr, "{");
 
-			RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
-			if (item) {
-				short is_first = TRUE;
-				for (; item->identifier; item++) {
-					if (item->identifier[0] && item->value & val) {
-						BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
-						is_first = FALSE;
+				RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+				if (item) {
+					short is_first = TRUE;
+					for (; item->identifier; item++) {
+						if (item->identifier[0] && item->value & val) {
+							BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
+							is_first = FALSE;
+						}
+					}
+
+					if (free) {
+						MEM_freeN(item);
 					}
 				}
 
-				if (free) {
-					MEM_freeN(item);
-				}
+				BLI_dynstr_append(dynstr, "}");
 			}
-
-			BLI_dynstr_append(dynstr, "}");
+			else {
+				/* annoying exception, don't confuse with dictionary syntax above: {} */
+				BLI_dynstr_append(dynstr, "set()");
+			}
 		}
 		else if (RNA_property_enum_identifier(C, ptr, prop, val, &identifier)) {
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
