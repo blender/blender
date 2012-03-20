@@ -2576,9 +2576,12 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	MEdge *me;
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, totloop;
-	
-	/*ensure we have all the edges we need*/
+
+	/* ... on second thaughts, better comment this and assume caller knows edge state. */
+#if 0
+	/* ensure we have all the edges we need */
 	CDDM_calc_edges_tessface(dm);
+#endif
 
 	/*build edge hash*/
 	me = cddm->medge;

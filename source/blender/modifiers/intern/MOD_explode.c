@@ -774,6 +774,7 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	MEM_freeN(facesplit);
 	MEM_freeN(vertpa);
 
+	CDDM_calc_edges_tessface(splitdm);
 	CDDM_tessfaces_to_faces(splitdm); /*builds ngon faces from tess (mface) faces*/
 
 	return splitdm;
