@@ -1543,13 +1543,13 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
 	bNode *node;
 	
-	/* set the bNodeSocket->link pointers */
-	if (ntree->update & NTREE_UPDATE_LINKS)
+	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES)) {
+		/* set the bNodeSocket->link pointers */
 		ntree_update_link_pointers(ntree);
-	
-	/* update the node level from link dependencies */
-	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES))
+		
+		/* update the node level from link dependencies */
 		ntree_update_node_level(ntree);
+	}
 	
 	/* update individual nodes */
 	for (node=ntree->nodes.first; node; node=node->next) {
