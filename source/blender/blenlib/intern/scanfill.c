@@ -872,30 +872,29 @@ int BLI_edgefill(short mat_nr)
 	/* just use the first three different vertices */
 	
 	/* THIS PART STILL IS PRETTY WEAK! (ton) */
-	
+
 	eve= fillvertbase.last;
 	len= 0.0;
 	v1= eve->co;
 	v2= 0;
 	eve= fillvertbase.first;
-	limit = a < 5 ? FLT_EPSILON*200 : M_PI/24.0;
+	limit = 1e-8f;
+
 	while(eve) {
 		if(v2) {
-			if( compare_v3v3(v2, eve->co, COMPLIMIT)==0) {
+			if(!compare_v3v3(v2, eve->co, COMPLIMIT)) {
 				float inner = angle_v3v3v3(v1, v2, eve->co);
-				
-				if (fabsf(inner-M_PI) < limit || fabsf(inner) < limit) {
-					eve = eve->next;
-					continue;
-				}
+				inner = MIN2(fabsf(inner), fabsf(M_PI - inner));
 
-				len= normal_tri_v3( norm,v1, v2, eve->co);
-				if(len != 0.0f) break;
+				if(inner > limit) {
+					limit = inner;
+					len= normal_tri_v3(norm, v1, v2, eve->co);
+				}
 			}
 		}
-		else if(compare_v3v3(v1, eve->co, COMPLIMIT)==0) {
+		else if(!compare_v3v3(v1, eve->co, COMPLIMIT))
 			v2= eve->co;
-		}
+
 		eve= eve->next;
 	}
 
