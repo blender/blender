@@ -146,10 +146,10 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	ray->dP.dy = make_float3(0.0f, 0.0f, 0.0f);
 
 	Pcamera = transform(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
-	ray->dD.dx = equirectangular_to_direction(Pcamera.x, Pcamera.y) - ray->D;
+	ray->dD.dx = normalize(transform_direction(&cameratoworld, equirectangular_to_direction(Pcamera.x, Pcamera.y))) - ray->D;
 
 	Pcamera = transform(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
-	ray->dD.dy = equirectangular_to_direction(Pcamera.x, Pcamera.y) - ray->D;
+	ray->dD.dy = normalize(transform_direction(&cameratoworld, equirectangular_to_direction(Pcamera.x, Pcamera.y))) - ray->D;
 #endif
 
 #ifdef __CAMERA_CLIPPING__
