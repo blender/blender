@@ -206,8 +206,10 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(bone, "show_wire", text="Wireframe")
             col.prop(bone, "hide", text="Hide")
+            sub = col.column()
+            sub.active = bool(pchan.custom_shape)
+            sub.prop(bone, "show_wire", text="Wireframe")
 
             if pchan:
                 col = split.column()
