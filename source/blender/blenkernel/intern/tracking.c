@@ -497,12 +497,58 @@ void BKE_tracking_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack 
 		} else {
 			if((src_track->markers[a].flag&MARKER_DISABLED)==0) {
 				if((dst_track->markers[b].flag&MARKER_DISABLED)==0) {
-					/* both tracks are enabled on this frame, use their average position
-					 * can be improved further if tracks will be storing tracking score */
+					/* both tracks are enabled on this frame, so find the whole segment
+					 * on which tracks are intersecting and blend tracks using linear
+					 * interpolation to prevent jumps */
 
-					markers[i]= dst_track->markers[b];
-					add_v2_v2(markers[i].pos, src_track->markers[a].pos);
-					mul_v2_fl(markers[i].pos, 0.5f);
+					MovieTrackingMarker *marker_a, *marker_b;
+					int start_a = a, start_b = b, len = 0, frame = src_track->markers[a].framenr;
+					int j, inverse = 0;
+
+					inverse = (b == 0) ||
+					          (dst_track->markers[b-1].flag & MARKER_DISABLED) ||
+					          (dst_track->markers[b-1].framenr != frame - 1);
+
+					while (a < src_track->markersnr && b < dst_track->markersnr) {
+						marker_a = &src_track->markers[a];
+						marker_b = &dst_track->markers[b];
+
+						if (marker_a->flag & MARKER_DISABLED || marker_b->flag & MARKER_DISABLED)
+							break;
+
+						if (marker_a->framenr != frame || marker_b->framenr != frame)
+							break;
+
+						frame++;
+						len++;
+						a++;
+						b++;
+					}
+
+					a = start_a;
+					b = start_b;
+
+					for (j = 0; j < len; j++) {
+						float fac = 0.5f;
+
+						if (len > 1)
+							fac = 1.0f / (len - 1) * j;
+
+						if (inverse)
+							fac = 1.0f - fac;
+
+						marker_a = &src_track->markers[a];
+						marker_b = &dst_track->markers[b];
+
+						markers[i]= dst_track->markers[b];
+						interp_v2_v2v2(markers[i].pos, marker_b->pos, marker_a->pos, fac);
+						a++;
+						b++;
+						i++;
+					}
+
+					/* this values will be incremented at the end of the loop cycle */
+					a--; b--; i--;
 				}
 				else markers[i]= src_track->markers[a];
 			}
