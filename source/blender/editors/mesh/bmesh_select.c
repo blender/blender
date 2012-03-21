@@ -699,8 +699,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
-
-	float thresh = CTX_data_tool_settings(C)->select_thresh;
+	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_InitOpf(em, &bmop, op, "similarfaces faces=%hf type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
@@ -740,8 +739,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
-
-	float thresh = CTX_data_tool_settings(C)->select_thresh;
+	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_InitOpf(em, &bmop, op, "similaredges edges=%he type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
@@ -784,7 +782,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
-	float thresh = CTX_data_tool_settings(C)->select_thresh;
+	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_InitOpf(em, &bmop, op, "similarverts verts=%hv type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
@@ -815,14 +813,21 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 static int select_similar_exec(bContext *C, wmOperator *op)
 {
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "threshold");
+
 	int type = RNA_enum_get(op->ptr, "type");
 
-	if (type < 100)
-		return similar_vert_select_exec(C, op);
-	else if (type < 200)
-		return similar_edge_select_exec(C, op);
-	else
-		return similar_face_select_exec(C, op);
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_float_set(op->ptr, prop, ts->select_thresh);
+	}
+	else {
+		ts->select_thresh = RNA_property_float_get(op->ptr, prop);
+	}
+
+	if      (type < 100) return similar_vert_select_exec(C, op);
+	else if (type < 200) return similar_edge_select_exec(C, op);
+	else                 return similar_face_select_exec(C, op);
 }
 
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
@@ -880,6 +885,8 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	/* properties */
 	prop = ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
+
+	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.01, 1.0);
 }
 
 /* ***************************************************** */
