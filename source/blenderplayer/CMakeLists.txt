@@ -98,7 +98,6 @@ endif()
 		ge_player_ghost 
 		ge_player_common 
 		bf_intern_string 
-		bf_intern_utfconv
 		bf_intern_ghost
 		bf_rna
 		bf_bmesh
@@ -137,6 +136,7 @@ endif()
 		bf_python_mathutils
 		bf_python_bmesh
 		bf_blenlib 
+		bf_intern_utfconv
 		bf_imbuf_cineon
 		bf_imbuf_openexr 
 		extern_openjpeg
