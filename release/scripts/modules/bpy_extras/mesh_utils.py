@@ -24,7 +24,7 @@ __all__ = (
     "edge_face_count",
     "edge_loops_from_faces",
     "edge_loops_from_edges",
-    "ngon_tesselate",
+    "ngon_tessellate",
     "face_random_points",
     )
 
@@ -256,7 +256,7 @@ def edge_loops_from_edges(mesh, edges=None):
     return line_polys
 
 
-def ngon_tesselate(from_data, indices, fix_loops=True):
+def ngon_tessellate(from_data, indices, fix_loops=True):
     '''
     Takes a polyline of indices (fgon) and returns a list of face
     indicie lists. Designed to be used for importers that need indices for an
@@ -269,7 +269,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
        polylines are delt with correctly.
     '''
 
-    from mathutils.geometry import tesselate_polygon
+    from mathutils.geometry import tessellate_polygon
     from mathutils import Vector
     vector_to_tuple = Vector.to_tuple
 
@@ -303,7 +303,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
             if verts[i][1] == verts[i - 1][0]:
                 verts.pop(i - 1)
 
-        fill = tesselate_polygon([verts])
+        fill = tessellate_polygon([verts])
 
     else:
         '''
@@ -411,7 +411,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
                     vert_map[i + ii] = vert[2]
                 ii += len(verts)
 
-        fill = tesselate_polygon([[v[0] for v in loop] for loop in loop_list])
+        fill = tessellate_polygon([[v[0] for v in loop] for loop in loop_list])
         #draw_loops(loop_list)
         #raise 'done loop'
         # map to original indices
