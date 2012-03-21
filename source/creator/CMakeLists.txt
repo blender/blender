@@ -230,7 +230,7 @@ set(BLENDER_TEXT_FILES
 
 
 # -----------------------------------------------------------------------------
-# Platform Spesific Var: TARGETDIR_VER
+# Platform Specific Var: TARGETDIR_VER
 
 if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)

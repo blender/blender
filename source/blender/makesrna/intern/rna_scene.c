@@ -2785,7 +2785,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Preview", "When rendering animations, save JPG preview images in same directory");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
-	/* format spesific */
+	/* format specific */
 
 #ifdef WITH_OPENEXR
 	/* OpenEXR */

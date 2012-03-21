@@ -30,10 +30,19 @@ For an overview of BMesh data types and how they reference each other see:
    *Campbell Barton, 13, March 2012*
 
 
-.. todo::
+.. warning::
+
+   TODO Items Are
 
    * add access to BMesh **walkers**
    * add a way to re-tessellate an editmode bmesh.
+   * add deform vert custom-data access.
+
+
+Example Script
+--------------
+
+.. literalinclude:: ../../../release/scripts/templates/bmesh_simple.py
 
 
 Stand-Alone Module
@@ -66,6 +75,35 @@ its good practice to call :class:`bmesh.types.BMesh.free` which will remove all 
 further access.
 
 
+CustomData Access
+-----------------
+
+BMesh has a unified way to access mesh attributes such as UV's vertex colors, shape keys, edge crease etc.
+
+This works by having a **layers** property on bmesh data sequences to access the custom data layers which can then be
+used to access the actual data on each vert/edge/face/loop.
+
+Here are some examples ...
+
+.. code-block:: python
+
+   uv_lay = bm.loops.layers.uv.active
+
+   for face in bm.faces:
+       for loop in f.loops:
+           uv = loop[uv_lay]
+           print("Loop UV: %f, %f" % (uv.x, uv.y))
+
+
+.. code-block:: python
+
+   shape_lay = bm.verts.layers.shape["Key.001"]
+
+   for vert in bm.verts:
+		shape = vert[shape_lay]
+        print("Vert Shape: %f, %f, %f" % (shape.x, shape.y, shape.z))
+
+
 Keeping a Correct State
 -----------------------
 
@@ -90,12 +128,6 @@ Selection / Flushing
 As mentioned above, it is possible to create an invalid selection state
 (by selecting a state and then de-selecting one of its vertices's for example), mostly the best way to solve this is to
 flush the selection after performing a series of edits. this validates the selection state.
-
-
-Example Script
---------------
-
-.. literalinclude:: ../../../release/scripts/templates/bmesh_simple.py
 
 
 Module Functions

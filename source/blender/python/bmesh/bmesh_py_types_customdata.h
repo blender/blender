@@ -58,7 +58,7 @@ typedef struct BPy_BMLayerCollection {
 	int  type; /* customdata type - CD_XXX */
 } BPy_BMLayerCollection;
 
-/* access a spesific layer directly */
+/* access a specific layer directly */
 typedef struct BPy_BMLayerItem {
 	PyObject_VAR_HEAD
 	struct BMesh *bm; /* keep first */

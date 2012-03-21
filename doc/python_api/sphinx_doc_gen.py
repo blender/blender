@@ -312,6 +312,36 @@ RNA_BLACKLIST = {
     "UserPreferencesSystem": {"language", }
     }
 
+MODULE_GROUPING = {
+    "bmesh.types": (
+                    ("Base Mesh Type", '-'),
+                    "BMesh",
+                    ("Mesh Elements", '-'),
+                    "BMVert",
+                    "BMEdge",
+                    "BMFace",
+                    "BMLoop",
+                    ("Sequence Accessors", '-'),
+                    "BMElemSeq",
+                    "BMVertSeq",
+                    "BMEdgeSeq",
+                    "BMFaceSeq",
+                    "BMLoopSeq",
+                    "BMIter",
+                    ("Selection History", '-'),
+                    "BMEditSelSeq",
+                    "BMEditSelIter",
+                    ("Custom-Data Layer Access", '-'),
+                    "BMLayerAccessVert",
+                    "BMLayerAccessEdge",
+                    "BMLayerAccessFace",
+                    "BMLayerAccessLoop",
+                    "BMLayerCollection",
+                    "BMLayerItem",
+                    ("Custom-Data Layer Types", '-'),
+                    "BMLoopUV"
+                    )
+    }
 
 # --------------------configure compile time options----------------------------
 
@@ -656,6 +686,29 @@ def pymodule2sphinx(basepath, module_name, module, title):
     if module_all:
         module_dir = module_all
 
+    # TODO - currently only used for classes
+    # grouping support
+    module_grouping = MODULE_GROUPING.get(module_name)
+    def module_grouping_index(name):
+        if module_grouping is not None:
+            try:
+                return module_grouping.index(name)
+            except ValueError:
+                pass
+        return -1
+
+    def module_grouping_heading(name):
+        if module_grouping is not None:
+            i = module_grouping_index(name) - 1
+            if i >= 0 and type(module_grouping[i]) == tuple:
+                return module_grouping[i]
+        return None, None
+        
+    def module_grouping_sort_key(name):
+        return module_grouping_index(name)
+    # done grouping support
+    
+
     file = open(filepath, "w", encoding="utf-8")
 
     fw = file.write
@@ -805,8 +858,17 @@ def pymodule2sphinx(basepath, module_name, module, title):
         fw("\n")
     '''
 
+    if module_grouping is not None:
+        classes.sort(key=lambda pair: module_grouping_sort_key(pair[0]))
+
     # write collected classes now
     for (type_name, value) in classes:
+        
+        if module_grouping is not None:
+            heading, heading_char = module_grouping_heading(type_name)
+            if heading:
+                fw(title_string(heading, heading_char))
+
         # May need to be its own function
         fw(".. class:: %s\n\n" % type_name)
         if value.__doc__:
@@ -1412,7 +1474,7 @@ def write_rst_contents(basepath):
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
 
-    app_modules = [
+    app_modules = (
         "bpy.context",  # note: not actually a module
         "bpy.data",     # note: not actually a module
         "bpy.ops",
@@ -1425,8 +1487,9 @@ def write_rst_contents(basepath):
         "bpy.app.handlers",
 
         # C modules
-        "bpy.props"
-    ]
+        "bpy.props",
+        )
+
     for mod in app_modules:
         if mod not in EXCLUDE_MODULES:
             fw("   %s\n\n" % mod)
@@ -1435,14 +1498,15 @@ def write_rst_contents(basepath):
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
 
-    standalone_modules = [
+    standalone_modules = (
         # mathutils
         "mathutils", "mathutils.geometry", "mathutils.noise",
         # misc
         "bgl", "blf", "gpu", "aud", "bpy_extras",
         # bmesh
-        "bmesh", "bmesh.types", "bmesh.utils"
-    ]
+        "bmesh", "bmesh.types", "bmesh.utils",
+        )
+
     for mod in standalone_modules:
         if mod not in EXCLUDE_MODULES:
             fw("   %s\n\n" % mod)

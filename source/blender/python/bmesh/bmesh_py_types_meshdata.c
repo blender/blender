@@ -49,6 +49,9 @@ typedef struct BPy_BMLoopUV {
 	MLoopUV *data;
 } BPy_BMLoopUV;
 
+PyDoc_STRVAR(bpy_bmloopuv_uv_doc,
+"Loops UV (as a 2D Vector).\n\n:type: :class:`mathutils.Vector`"
+);
 static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void *UNUSED(closure))
 {
 	return Vector_CreatePyObject(self->data->uv, 2, Py_WRAP, NULL);
@@ -65,6 +68,17 @@ static int bpy_bmloopuv_uv_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED
 		return -1;
 	}
 }
+
+PyDoc_STRVAR(bpy_bmloopuv_flag__pin_uv_doc,
+"UV pin state.\n\n:type: boolean"
+);
+PyDoc_STRVAR(bpy_bmloopuv_flag__select_doc,
+"UV select state.\n\n:type: boolean"
+);
+PyDoc_STRVAR(bpy_bmloopuv_flag__select_edge_doc,
+"UV edge select state.\n\n:type: boolean"
+);
+
 
 static PyObject *bpy_bmloopuv_flag_get(BPy_BMLoopUV *self, void *flag_p)
 {
@@ -92,10 +106,10 @@ static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag
 
 static PyGetSetDef bpy_bmloopuv_getseters[] = {
     /* attributes match rna_def_mloopuv  */
-    {(char *)"uv",          (getter)bpy_bmloopuv_uv_get,   (setter)bpy_bmloopuv_uv_set,   (char *)NULL, NULL},
-    {(char *)"pin_uv",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)NULL, (void *)MLOOPUV_PINNED},
-    {(char *)"select",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)NULL, (void *)MLOOPUV_VERTSEL},
-    {(char *)"select_edge", (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)NULL, (void *)MLOOPUV_EDGESEL},
+    {(char *)"uv",          (getter)bpy_bmloopuv_uv_get,   (setter)bpy_bmloopuv_uv_set,   (char *)bpy_bmloopuv_uv_doc, NULL},
+    {(char *)"pin_uv",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__pin_uv_doc, (void *)MLOOPUV_PINNED},
+    {(char *)"select",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__select_doc, (void *)MLOOPUV_VERTSEL},
+    {(char *)"select_edge", (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__select_edge_doc, (void *)MLOOPUV_EDGESEL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

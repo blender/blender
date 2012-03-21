@@ -180,7 +180,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 	}
 }
 
-/* type spesific get/sets
+/* type specific get/sets
  * ---------------------- */
 
 

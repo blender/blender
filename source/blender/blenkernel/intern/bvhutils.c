@@ -523,7 +523,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 		int i;
 		int numFaces= mesh->getNumTessFaces(mesh);
 
-		/* BMESH spesific check that we have tessfaces,
+		/* BMESH specific check that we have tessfaces,
 		 * we _could_ tessellate here but rather not - campbell
 		 *
 		 * this assert checks we have tessfaces,
