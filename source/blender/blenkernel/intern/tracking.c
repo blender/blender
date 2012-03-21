@@ -2922,6 +2922,8 @@ MovieTrackingObject *BKE_tracking_new_object(MovieTracking *tracking, const char
 	tracking->tot_object++;
 	tracking->objectnr= BLI_countlist(&tracking->objects) - 1;
 
+	object->scale= 1.0f;
+
 	BKE_tracking_object_unique_name(tracking, object);
 
 	return object;
