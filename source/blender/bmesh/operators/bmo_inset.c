@@ -49,6 +49,45 @@ static void edge_loop_tangent(BMEdge *e, BMLoop *e_loop, float r_no[3])
 }
 
 /**
+ * return the tag loop where there is...
+ * - only 1 tagged face attached to this edge.
+ * - 1 or more untagged faces.
+ *
+ * \note this function looks to be expensive
+ * but in most cases it will only do 2 iterations.
+ */
+static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
+{
+	if (LIKELY(l != NULL)) {
+		int tot_tag = 0;
+		int tot_untag = 0;
+		BMLoop *l_iter;
+		BMLoop *l_tag = NULL;
+		l_iter = l;
+		do {
+			if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG)) {
+				/* more then one tagged face - bail out early! */
+				if (tot_tag == 1) {
+					return NULL;
+				}
+				l_tag = l_iter;
+				tot_tag++;
+			}
+			else {
+				tot_untag++;
+			}
+
+		} while ((l_iter = l_iter->radial_next) != l);
+
+		return ((tot_tag == 1) && (tot_untag >= 1)) ? l_tag : NULL;
+	}
+	else {
+		return NULL;
+	}
+}
+
+
+/**
  * implementation is as follows...
  *
  * - set all faces as tagged/untagged based on selection.
@@ -90,14 +129,12 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	/* first count all inset edges we will split */
 	/* fill in array and initialize tagging */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BMLoop *la, *lb;
-
 		if (
 		    /* tag if boundary is enabled */
 		    (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
 
 		    /* tag if edge is an interior edge inbetween a tagged and untagged face */
-		    ((BM_edge_loop_pair(e, &la, &lb)) && (BM_elem_flag_test(la->f, BM_ELEM_TAG) != BM_elem_flag_test(lb->f, BM_ELEM_TAG))))
+		    (bm_edge_is_mixed_face_tag(e->l)))
 		{
 			/* tag */
 			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
@@ -133,10 +170,10 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
-		BMLoop *l, *la, *lb;
+		BMLoop *l;
 
-		if (BM_edge_loop_pair(es->e_old, &la, &lb)) {
-			l = BM_elem_flag_test(la->f, BM_ELEM_TAG) ? la : lb;
+		if ((l = bm_edge_is_mixed_face_tag(es->e_old->l))) {
+			/* do nothing */
 		}
 		else {
 			l = es->e_old->l; /* must be a boundary */
