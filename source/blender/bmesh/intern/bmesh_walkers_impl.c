@@ -412,9 +412,15 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 			}
 		}
 
-		/* only use hub selection for 5+ sides else this could
-		 * conflict with normal edge loop selection. */
-		lwalk->f_hub = f_best->len > 4 ? f_best : NULL;
+		if (f_best) {
+			/* only use hub selection for 5+ sides else this could
+			 * conflict with normal edge loop selection. */
+			lwalk->f_hub = f_best->len > 4 ? f_best : NULL;
+		}
+		else {
+			/* edge doesn't have any faces connected to it */
+			lwalk->f_hub = NULL;
+		}
 	}
 	else {
 		lwalk->f_hub = NULL;
