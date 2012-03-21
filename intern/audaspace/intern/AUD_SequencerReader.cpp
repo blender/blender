@@ -49,6 +49,9 @@ bool AUD_SequencerReader::isSeekable() const
 
 void AUD_SequencerReader::seek(int position)
 {
+	if(position < 0)
+		return;
+
 	m_position = position;
 
 	for(AUD_HandleIterator it = m_handles.begin(); it != m_handles.end(); it++)
