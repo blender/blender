@@ -235,4 +235,24 @@ enum {
                                      * not have functions clobber them */
 };
 
+/* defines */
+
+/*forward declarations*/
+
+#ifdef USE_BMESH_HOLES
+#  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)
+#else
+#  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
+#endif
+
+/* size to use for static arrays when dealing with NGons,
+ * alloc after this limit is reached.
+ * this value is rather arbitrary */
+#define BM_NGON_STACK_SIZE 32
+
+/* avoid inf loop, this value is arbitrary
+ * but should not error on valid cases */
+#define BM_LOOP_RADIAL_MAX 10000
+#define BM_NGON_MAX 100000
+
 #endif /* __BMESH_CLASS_H__ */

@@ -87,12 +87,13 @@ set(SRC
 	intern/bmesh_walkers_impl.c
 	intern/bmesh_walkers_private.h
 
+	intern/bmesh_operator_api.h
+	intern/bmesh_error.h
+
 	tools/BME_bevel.c
 
 	bmesh.h
 	bmesh_class.h
-	bmesh_error.h
-	bmesh_operator_api.h
 )
 
 if(MSVC)
