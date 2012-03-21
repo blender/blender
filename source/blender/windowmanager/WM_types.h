@@ -466,6 +466,9 @@ typedef struct wmOperatorType {
 	/* rna for properties */
 	struct StructRNA *srna;
 
+	/* previous settings - for initializing on re-use */
+	struct IDProperty *last_properties;
+
 	/* rna property to use for generic invoke functions.
 	 * menus, enum search... etc */
 	PropertyRNA *prop;

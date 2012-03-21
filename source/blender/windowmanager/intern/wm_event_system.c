@@ -585,10 +585,17 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED) && repeat == 0)
 		wm_operator_reports(C, op, retval, FALSE);
 	
-	if(retval & OPERATOR_FINISHED)
+	if(retval & OPERATOR_FINISHED) {
+		if (repeat) {
+			if (wm->op_undo_depth == 0) { /* not called by py script */
+				WM_operator_last_properties_store(op);
+			}
+		}
 		wm_operator_finished(C, op, repeat);
-	else if(repeat==0)
+	}
+	else if(repeat==0) {
 		WM_operator_free(op);
+	}
 	
 	return retval | OPERATOR_HANDLED;
 	
@@ -738,19 +745,11 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
+int WM_operator_last_properties_init(wmOperator *op)
 {
 	int change= FALSE;
-	wmOperator *lastop;
 
-	for(lastop= wm->operators.last; lastop; lastop= lastop->prev) {
-		/* equality check is a bit paranoid but just in case */
-		if((op != lastop) && (op->type == (lastop->type))) {
-			break;
-		}
-	}
-
-	if (lastop && op != lastop) {
+	if (op->type->last_properties) {
 		PropertyRNA *iterprop;
 		iterprop= RNA_struct_iterator_property(op->type->srna);
 
@@ -759,7 +758,7 @@ static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
 			if((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
 				if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
 					const char *identifier= RNA_property_identifier(prop);
-					IDProperty *idp_src= IDP_GetPropertyFromGroup(lastop->properties, identifier);
+					IDProperty *idp_src= IDP_GetPropertyFromGroup(op->type->last_properties, identifier);
 					if(idp_src) {
 						IDProperty *idp_dst = IDP_CopyProperty(idp_src);
 
@@ -779,6 +778,23 @@ static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
 	return change;
 }
 
+int WM_operator_last_properties_store(wmOperator *op)
+{
+	if (op->type->last_properties) {
+		IDP_FreeProperty(op->type->last_properties);
+		MEM_freeN(op->type->last_properties);
+		op->type->last_properties = NULL;
+	}
+
+	if (op->properties) {
+		op->type->last_properties = IDP_CopyProperty(op->properties);
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -792,8 +808,8 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
 		
 		/* initialize setting from previous run */
-		if(wm->op_undo_depth == 0 && (ot->flag & OPTYPE_REGISTER)) { /* not called by py script */
-			wm_operator_init_from_last(wm, op);
+		if(wm->op_undo_depth == 0) { /* not called by py script */
+			WM_operator_last_properties_init(op);
 		}
 
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
@@ -836,6 +852,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
 		else if(retval & OPERATOR_FINISHED) {
+			if (wm->op_undo_depth == 0) { /* not called by py script */
+				WM_operator_last_properties_store(op);
+			}
 			wm_operator_finished(C, op, 0);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
@@ -1533,6 +1552,10 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							CTX_wm_window_set(C, win_prev);
 							CTX_wm_area_set(C, area_prev);
 							CTX_wm_region_set(C, ar_prev);
+						}
+
+						if (retval & OPERATOR_FINISHED) {
+							WM_operator_last_properties_store(handler->op);
 						}
 
 						WM_operator_free(handler->op);

@@ -449,7 +449,12 @@ int WM_operatortype_remove(const char *idname)
 		return 0;
 	
 	RNA_struct_free(&BLENDER_RNA, ot->srna);
-	
+
+	if (ot->last_properties) {
+		IDP_FreeProperty(ot->last_properties);
+		MEM_freeN(ot->last_properties);
+	}
+
 	if(ot->macro.first)
 		wm_operatortype_free_macro(ot);
 
@@ -3618,6 +3623,11 @@ static void WM_OT_ndof_sensitivity_change(wmOperatorType *ot)
 
 static void operatortype_ghash_free_cb(wmOperatorType *ot)
 {
+	if (ot->last_properties) {
+		IDP_FreeProperty(ot->last_properties);
+		MEM_freeN(ot->last_properties);
+	}
+
 	if(ot->macro.first)
 		wm_operatortype_free_macro(ot);
 

@@ -214,6 +214,9 @@ void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 int         WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 
+int         WM_operator_last_properties_init(struct wmOperator *op);
+int         WM_operator_last_properties_store(struct wmOperator *op);
+
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0
 #define	SEL_SELECT		1
