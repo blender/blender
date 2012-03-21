@@ -39,6 +39,7 @@
 #include "MEM_CacheLimiterC-Api.h"
 
 #include "DNA_sequence_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -57,6 +58,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
+#include "BKE_movieclip.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
@@ -126,16 +128,6 @@ int seq_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), vo
 /* **********************************************************************
  * alloc / free functions
  * ********************************************************************** */
-
-
-
-void new_tstripdata(Sequence *seq)
-{
-	if(seq->strip) {
-		seq->strip->len= seq->len;
-	}
-}
-
 
 /* free */
 
@@ -621,11 +613,6 @@ void calc_sequence(Scene *scene, Sequence *seq)
 		else {
 			calc_sequence_disp(scene, seq);
 		}
-
-		if(seq->strip && seq->len!=seq->strip->len) {
-			new_tstripdata(seq);
-		}
-
 	}
 	else {
 		if(seq->type==SEQ_META) {
@@ -642,10 +629,6 @@ void calc_sequence(Scene *scene, Sequence *seq)
 				seq->len = max-min;
 				seq->len -= seq->anim_startofs;
 				seq->len -= seq->anim_endofs;
-
-				if(seq->strip && seq->len!=seq->strip->len) {
-					new_tstripdata(seq);
-				}
 			}
 			seq_update_sound_bounds_recursive(scene, seq);
 		}
@@ -671,14 +654,6 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		prev_enddisp= seq->enddisp;
 	}
 
-
-	new_tstripdata(seq);
-
-	if (ELEM3(seq->type, SEQ_SCENE, SEQ_META, SEQ_IMAGE)==0) {
-		BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
-		BLI_path_abs(str, G.main->name);
-	}
-
 	switch(seq->type) {
 	case SEQ_IMAGE:
 	{
@@ -691,10 +666,13 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		if (seq->len < 0) {
 			seq->len = 0;
 		}
-		seq->strip->len = seq->len;
 		break;
 	}
 	case SEQ_MOVIE:
+		BLI_join_dirfile(str, sizeof(str), seq->strip->dir, 
+				 seq->strip->stripdata->name);
+		BLI_path_abs(str, G.main->name);
+
 		if(seq->anim) IMB_free_anim(seq->anim);
 		seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex);
 
@@ -714,7 +692,6 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		if (seq->len < 0) {
 			seq->len = 0;
 		}
-		seq->strip->len = seq->len;
 		break;
 	case SEQ_SOUND:
 #ifdef WITH_AUDASPACE
@@ -726,36 +703,18 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		if (seq->len < 0) {
 			seq->len = 0;
 		}
-		seq->strip->len = seq->len;
 #else
 		return;
 #endif
 		break;
 	case SEQ_SCENE:
 	{
-		/* 'seq->scenenr' should be replaced with something more reliable */
-		Scene * sce = G.main->scene.first;
-		int nr = 1;
-		
-		while(sce) {
-			if(nr == seq->scenenr) {
-				break;
-			}
-			nr++;
-			sce= sce->id.next;
-		}
-
-		if (sce) {
-			seq->scene = sce;
-		}
-
 		seq->len= (seq->scene)? seq->scene->r.efra - seq->scene->r.sfra + 1: 0;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
 			seq->len = 0;
 		}
-		seq->strip->len = seq->len;
 		break;
 	}
 	}
@@ -904,6 +863,7 @@ static const char *give_seqname_by_type(int type)
 	case SEQ_IMAGE:      return "Image";
 	case SEQ_SCENE:      return "Scene";
 	case SEQ_MOVIE:      return "Movie";
+	case SEQ_MOVIECLIP:  return "Clip";
 	case SEQ_SOUND:      return "Audio";
 	case SEQ_CROSS:      return "Cross";
 	case SEQ_GAMCROSS:   return "Gamma Cross";
@@ -1642,7 +1602,7 @@ static void color_balance(Sequence * seq, ImBuf* ibuf, float mul)
 }
 
 /*
- *  input preprocessing for SEQ_IMAGE, SEQ_MOVIE and SEQ_SCENE
+ *  input preprocessing for SEQ_IMAGE, SEQ_MOVIE, SEQ_MOVIECLIP and SEQ_SCENE
  *
  *  Do all the things you can't really do afterwards using sequence effects
  *  (read: before rescaling to render resolution has been done)
@@ -1694,7 +1654,8 @@ static ImBuf * input_preprocess(
 
 	ibuf = IMB_makeSingleUser(ibuf);
 
-	if((seq->flag & SEQ_FILTERY) && seq->type != SEQ_MOVIE) {
+	if((seq->flag & SEQ_FILTERY) 
+	   && !ELEM(seq->type, SEQ_MOVIE, SEQ_MOVIECLIP)) {
 		IMB_filtery(ibuf);
 	}
 
@@ -1977,12 +1938,62 @@ static ImBuf* seq_render_effect_strip_impl(
 	return out;
 }
 
-
-static ImBuf * seq_render_scene_strip_impl(
+static ImBuf * seq_render_movieclip_strip(
 	SeqRenderData context, Sequence * seq, float nr)
 {
 	ImBuf * ibuf = NULL;
-	float frame= seq->sfra + nr + seq->anim_startofs;
+	MovieClipUser user;
+	float tloc[2], tscale, tangle;
+
+	if(!seq->clip) {
+		return NULL;
+	}
+
+	memset(&user, 0, sizeof(MovieClipUser));
+	
+	BKE_movieclip_user_set_frame(&user, nr + seq->anim_startofs);
+
+	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
+
+	switch (seq_rendersize_to_proxysize(context.preview_render_size)) {
+	case IMB_PROXY_NONE:
+		user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
+		break;
+	case IMB_PROXY_100:
+		user.render_size = MCLIP_PROXY_RENDER_SIZE_100;
+		break;
+	case IMB_PROXY_75:
+		user.render_size = MCLIP_PROXY_RENDER_SIZE_75;
+		break;
+	case IMB_PROXY_50:
+		user.render_size = MCLIP_PROXY_RENDER_SIZE_50;
+		break;
+	case IMB_PROXY_25:
+		user.render_size = MCLIP_PROXY_RENDER_SIZE_25;
+		break;
+	}
+
+	if (seq->clip_flag & SEQ_MOVIECLIP_RENDER_UNDISTORTED) {
+		user.render_flag = MCLIP_PROXY_RENDER_UNDISTORT;
+	}
+
+	if (seq->clip_flag & SEQ_MOVIECLIP_RENDER_STABILIZED) {
+		ibuf = BKE_movieclip_get_stable_ibuf(
+			seq->clip, &user, tloc, &tscale, &tangle, 
+			0);
+	} else {
+		ibuf = BKE_movieclip_get_ibuf_flag(
+			seq->clip, &user, 0, MOVIECLIP_CACHE_SKIP);
+	}
+
+	return ibuf;
+}
+
+static ImBuf * seq_render_scene_strip(
+	SeqRenderData context, Sequence * seq, float nr)
+{
+	ImBuf * ibuf = NULL;
+	float frame;
 	float oldcfra;
 	Object *camera;
 	ListBase oldmarkers;
@@ -2030,6 +2041,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	}
 
 	scene= seq->scene;
+	frame= scene->r.sfra + nr + seq->anim_startofs;
 
 	have_seq= (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
 
@@ -2071,7 +2083,7 @@ static ImBuf * seq_render_scene_strip_impl(
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
 		                           IB_rect, context.scene->r.seq_prev_type, TRUE, err_out);
 		if(ibuf == NULL) {
-			fprintf(stderr, "seq_render_scene_strip_impl failed to get opengl buffer: %s\n", err_out);
+			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}
 	}
 	else {
@@ -2153,7 +2165,8 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 	if (ibuf == NULL)
 		ibuf = copy_from_ibuf_still(context, seq, nr);
 	
-	if (ibuf == NULL) {
+	/* MOVIECLIPs have their own proxy management */
+	if (ibuf == NULL && seq->type != SEQ_MOVIECLIP) {
 		ibuf = seq_proxy_fetch(context, seq, cfra);
 		is_proxy_image = (ibuf != NULL);
 	}
@@ -2267,10 +2280,25 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 		}
 		case SEQ_SCENE:
 		{	// scene can be NULL after deletions
-			ibuf = seq_render_scene_strip_impl(context, seq, nr);
+			ibuf = seq_render_scene_strip(context, seq, nr);
 
 			/* Scene strips update all animation, so we need to restore original state.*/
 			BKE_animsys_evaluate_all_animation(context.bmain, context.scene, cfra);
+
+			copy_to_ibuf_still(context, seq, nr, ibuf);
+			break;
+		}
+		case SEQ_MOVIECLIP:
+		{
+			ibuf = seq_render_movieclip_strip(context, seq, nr);
+
+			if(ibuf && use_preprocess) {
+				struct ImBuf * i = IMB_dupImBuf(ibuf);
+
+				IMB_freeImBuf(ibuf);
+
+				ibuf = i;
+			}
 
 			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
@@ -3677,7 +3705,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 
-	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
+	seq->len = seq_load->len ? seq_load->len : 1;
 	strip->us= 1;
 	strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	BLI_strncpy(strip->dir, seq_load->path, sizeof(strip->dir));
@@ -3727,7 +3755,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = ceil(info.length * FPS);
+	seq->len = ceil(info.length * FPS);
 	strip->us= 1;
 
 	/* we only need 1 element to store the filename */
@@ -3735,7 +3763,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	BLI_split_dirfile(seq_load->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
-	seq->scene_sound = sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
+	seq->scene_sound = sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + seq->len, 0);
 
 	calc_sequence_disp(scene, seq);
 
@@ -3786,7 +3814,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
+	seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
 	strip->us= 1;
 
 	/* we only need 1 element for MOVIE strips */

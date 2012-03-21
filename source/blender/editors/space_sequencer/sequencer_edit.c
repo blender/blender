@@ -660,7 +660,6 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 	
 	reload_sequence_new_file(scene, seq, FALSE);
 	calc_sequence(scene, seq);
-	new_tstripdata(seq); 
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -701,7 +700,6 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		
 		reload_sequence_new_file(scene, seqn, FALSE);
 		calc_sequence(scene, seqn);
-		new_tstripdata(seqn);
 	}
 	return seqn;
 }
@@ -754,7 +752,6 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 	}
 	
 	calc_sequence(scene, seq);
-	new_tstripdata(seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -790,7 +787,6 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 		}
 		
 		calc_sequence(scene, seqn);
-		new_tstripdata(seqn);
 	}
 	return seqn;
 }
@@ -1632,7 +1628,6 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* free parent metas */
 	ms= ed->metastack.last;
 	while(ms) {
-		ms->parseq->strip->len= 0;		/* force new alloc */
 		calc_sequence(scene, ms->parseq);
 		ms= ms->prev;
 	}
@@ -1752,7 +1747,6 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
 				/* new strip */
 				strip_new= seq_new->strip;
-				strip_new->len= 1;
 				strip_new->us= 1;
 
 				/* new stripdata */
@@ -1912,7 +1906,6 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	calc_sequence(scene, seqm);
 
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
-	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
 	
 	seq_active_set(scene, seqm);

@@ -93,6 +93,10 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 	case SEQ_MOVIE:
 		UI_GetThemeColor3ubv(TH_SEQ_MOVIE, col);
 		break;
+
+	case SEQ_MOVIECLIP:
+		UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, col);
+		break;
 		
 	case SEQ_SCENE:
 		UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
@@ -529,6 +533,14 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 			} else {
 				BLI_snprintf(str, sizeof(str), "%d | %s: %s", seq->len, name, seq->scene->id.name+2);
 			}
+		}
+		else {
+			BLI_snprintf(str, sizeof(str), "%d | %s", seq->len, name);
+		}
+	}
+	else if(seq->type == SEQ_MOVIECLIP) {
+		if(seq->clip && strcmp(name, seq->clip->id.name+2) != 0) {
+			BLI_snprintf(str, sizeof(str), "%d | %s: %s", seq->len, name, seq->clip->id.name+2);
 		}
 		else {
 			BLI_snprintf(str, sizeof(str), "%d | %s", seq->len, name);

@@ -4818,6 +4818,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->scene_sound = sound_scene_add_scene_sound_defaults(sce, seq);
 					}
 				}
+				if(seq->clip) {
+					seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
+				}
 				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if(seq->sound) {
 					seq->scene_sound = NULL;

@@ -185,6 +185,12 @@ class SEQUENCER_MT_add(Menu):
         else:
             layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
 
+        if len(bpy.data.movieclips) > 10:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("sequencer.movieclip_strip_add", text="Clips...")
+        else:
+            layout.operator_menu_enum("sequencer.movieclip_strip_add", "clip", text="Clip...")
+
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
@@ -534,7 +540,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META',
+        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'META',
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
@@ -697,7 +703,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META',
+        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'META',
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
@@ -713,6 +719,15 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.label(text="Video:")
         col.prop(strip, "strobe")
 
+        if strip.type == 'MOVIECLIP':
+            col = layout.column()
+            col.label(text="Tracker:")
+            col.prop(strip, "stabilize2d")
+
+            col = layout.column()
+            col.label(text="Distortion:")
+            col.prop(strip, "undistort")
+   
         row = layout.row()
         row.label(text="Flip:")
         row.prop(strip, "use_flip_x", text="X")

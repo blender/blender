@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"
@@ -392,6 +393,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_SceneSequence;
 		case SEQ_MOVIE:
 			return &RNA_MovieSequence;
+		case SEQ_MOVIECLIP:
+			return &RNA_MovieClipSequence;
 		case SEQ_SOUND:
 			return &RNA_SoundSequence;
 		case SEQ_CROSS:
@@ -950,6 +953,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_META, "META", 0, "Meta", ""},
 		{SEQ_SCENE, "SCENE", 0, "Scene", ""},
 		{SEQ_MOVIE, "MOVIE", 0, "Movie", ""},
+		{SEQ_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
 		{SEQ_SOUND, "SOUND", 0, "Sound", ""},
 		{SEQ_CROSS, "CROSS", 0, "Cross", ""},
 		{SEQ_ADD, "ADD", 0, "Add", ""},
@@ -1462,6 +1466,30 @@ static void rna_def_movie(BlenderRNA *brna)
 	rna_def_input(srna);
 }
 
+static void rna_def_movieclip(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "MovieClipSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "MovieClip Sequence", "Sequence strip to load a video from the clip editor");
+	RNA_def_struct_sdna(srna, "Sequence");
+
+	prop = RNA_def_property(srna, "undistort", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "clip_flag", SEQ_MOVIECLIP_RENDER_UNDISTORTED);
+	RNA_def_property_ui_text(prop, "Undistort Clip", "Use the undistorted version of the clip");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop = RNA_def_property(srna, "stabilize2d", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "clip_flag", SEQ_MOVIECLIP_RENDER_STABILIZED);
+	RNA_def_property_ui_text(prop, "Stabilize 2D Clip", "Use the 2D stabilized version of the clip");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	rna_def_filter_video(srna);
+	rna_def_input(srna);
+}
+
+
 static void rna_def_sound(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1811,6 +1839,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_meta(brna);
 	rna_def_scene(brna);
 	rna_def_movie(brna);
+	rna_def_movieclip(brna);
 	rna_def_sound(brna);
 	rna_def_effect(brna);
 	rna_def_multicam(brna);

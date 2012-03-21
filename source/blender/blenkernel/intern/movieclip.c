@@ -861,6 +861,11 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 	}
 }
 
+int BKE_movieclip_get_duration(struct MovieClip *clip)
+{
+	return IMB_anim_get_duration(clip->anim, clip->proxy.tc);
+}
+
 void BKE_movieclip_aspect(MovieClip *clip, float *aspx, float *aspy)
 {
 	*aspx= *aspy= 1.0;

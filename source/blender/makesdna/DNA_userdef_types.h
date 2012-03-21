@@ -205,7 +205,7 @@ typedef struct ThemeSpace {
 	char grid[4]; 
 	
 	char wire[4], select[4];
-	char lamp[4], speaker[4], pad2[4];
+	char lamp[4], speaker[4];
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
@@ -236,7 +236,7 @@ typedef struct ThemeSpace {
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
 	
-	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
+	char movie[4], movieclip[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
 	char editmesh_active[4]; 
 

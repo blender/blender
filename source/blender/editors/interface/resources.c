@@ -364,6 +364,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 
 			case TH_SEQ_MOVIE:
 				cp= ts->movie; break;
+			case TH_SEQ_MOVIECLIP:
+				cp= ts->movieclip; break;
 			case TH_SEQ_IMAGE:
 				cp= ts->image; break;
 			case TH_SEQ_SCENE:
@@ -754,6 +756,7 @@ void ui_theme_init_default(void)
 	btheme->tseq= btheme->tv3d;
 	rgba_char_args_set(btheme->tseq.back, 	116, 116, 116, 255);
 	rgba_char_args_set(btheme->tseq.movie, 	81, 105, 135, 255);
+	rgba_char_args_set(btheme->tseq.movieclip,  32, 32, 143, 255);
 	rgba_char_args_set(btheme->tseq.image, 	109, 88, 129, 255);
 	rgba_char_args_set(btheme->tseq.scene, 	78, 152, 62, 255);
 	rgba_char_args_set(btheme->tseq.audio, 	46, 143, 143, 255);
