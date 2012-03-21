@@ -2875,6 +2875,8 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void TEXT_OT_insert(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Insert";
 	ot->idname= "TEXT_OT_insert";
@@ -2886,7 +2888,8 @@ void TEXT_OT_insert(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
+	prop = RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /******************* find operator *********************/

@@ -411,6 +411,8 @@ static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void CONSOLE_OT_insert(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Insert";
 	ot->description= "Insert text at cursor position";
@@ -422,7 +424,8 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
+	prop = RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 
