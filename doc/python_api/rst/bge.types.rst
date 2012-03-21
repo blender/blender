@@ -1807,7 +1807,7 @@ Game Types (bge.types)
 
       for mesh in object.meshes:
          for m_index in range(len(mesh.materials)):
-            for v_index in range(mesh.getVertexArrayLength(mat)):
+            for v_index in range(mesh.getVertexArrayLength(m_index)):
                vertex = mesh.getVertex(m_index, v_index)
                # Do something with vertex here...
                # ... eg: colour the vertex red.
