@@ -86,7 +86,8 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 	walker->mask_face = mask_face;
 
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
-	
+	walker->secvisithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers sec 1");
+
 	if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
 		fprintf(stderr,
 		        "Invalid walker type in BMW_init; type: %d, "
@@ -125,6 +126,7 @@ void BMW_end(BMWalker *walker)
 {
 	BLI_mempool_destroy(walker->worklist);
 	BLI_ghash_free(walker->visithash, NULL, NULL);
+	BLI_ghash_free(walker->secvisithash, NULL, NULL);
 }
 
 
@@ -251,5 +253,7 @@ void BMW_reset(BMWalker *walker)
 	}
 	walker->depth = 0;
 	BLI_ghash_free(walker->visithash, NULL, NULL);
+	BLI_ghash_free(walker->secvisithash, NULL, NULL);
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
+	walker->secvisithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers sec 1");
 }

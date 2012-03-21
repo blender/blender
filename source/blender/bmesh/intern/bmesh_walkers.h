@@ -61,6 +61,7 @@ typedef struct BMWalker {
 	short mask_face;
 
 	GHash *visithash;
+	GHash *secvisithash;
 	int depth;
 } BMWalker;
 
