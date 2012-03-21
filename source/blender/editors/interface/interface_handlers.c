@@ -3237,7 +3237,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (event->type == DELKEY && event->val == KM_PRESS) {
+		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
 			if (but->a1==UI_GRAD_V_ALT){
 				int len;
 				
@@ -3420,7 +3420,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (event->type == DELKEY && event->val == KM_PRESS) {
+		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
 			int len;
 			
 			/* reset only saturation */
@@ -3848,7 +3848,7 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (event->type == DELKEY && event->val == KM_PRESS) {
+		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
 			Histogram *hist = (Histogram *)but->poin;
 			hist->ymax = 1.f;
 			
@@ -3931,7 +3931,7 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (event->type == DELKEY && event->val == KM_PRESS) {
+		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
 			Scopes *scopes = (Scopes *)but->poin;
 			scopes->wavefrm_yfac = 1.f;
 
