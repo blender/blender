@@ -20,7 +20,7 @@
 
 import bpy
 from bpy.types import Menu, Operator
-
+from bpy.props import StringProperty, BoolProperty
 
 class AddPresetBase():
     '''Base preset class, only for subclassing
@@ -31,13 +31,13 @@ class AddPresetBase():
     # bl_label = "Add a Python Preset"
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
-    name = bpy.props.StringProperty(
+    name = StringProperty(
             name="Name",
             description="Name of the preset, used to make the path name",
             maxlen=64,
             options={'SKIP_SAVE'},
             )
-    remove_active = bpy.props.BoolProperty(
+    remove_active = BoolProperty(
             default=False,
             options={'HIDDEN', 'SKIP_SAVE'},
             )
@@ -166,12 +166,10 @@ class ExecutePreset(Operator):
     bl_idname = "script.execute_preset"
     bl_label = "Execute a Python Preset"
 
-    filepath = bpy.props.StringProperty(
-            name="Path",
-            description="Path of the Python file to execute",
-            maxlen=512,
+    filepath = StringProperty(
+            subtype='FILE_PATH',
             )
-    menu_idname = bpy.props.StringProperty(
+    menu_idname = StringProperty(
             name="Menu ID Name",
             description="ID name of the menu this was called from",
             )
@@ -456,7 +454,7 @@ class AddPresetOperator(AddPresetBase, Operator):
     bl_label = "Operator Preset"
     preset_menu = "WM_MT_operator_presets"
 
-    operator = bpy.props.StringProperty(
+    operator = StringProperty(
             name="Operator",
             maxlen=64,
             options={'HIDDEN'},

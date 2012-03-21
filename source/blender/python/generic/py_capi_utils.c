@@ -437,8 +437,10 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	PyDict_SetItemString(interp->modules, "__main__", mod_main);
 	Py_DECREF(mod_main); /* sys.modules owns now */
 	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
-	if (filename)
-		PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
+	if (filename) {
+		/* __file__ mainly for nice UI'ness */
+		PyModule_AddObject(mod_main, "__file__", PyUnicode_DecodeFSDefault(filename));
+	}
 	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
 	Py_INCREF(interp->builtins); /* AddObject steals a reference */
 	return PyModule_GetDict(mod_main);

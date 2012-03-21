@@ -71,12 +71,17 @@ PyDoc_STRVAR(bpy_script_paths_doc,
 static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret = PyTuple_New(2);
+	PyObject *item;
 	char *path;
 
 	path = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
-	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
+	item = PyUnicode_DecodeFSDefault(path ? path : "");
+	BLI_assert(item != NULL);
+	PyTuple_SET_ITEM(ret, 0, item);
 	path = BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
-	PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
+	item = PyUnicode_DecodeFSDefault(path ? path : "");
+	BLI_assert(item != NULL);
+	PyTuple_SET_ITEM(ret, 1, item);
 
 	return ret;
 }
@@ -200,7 +205,7 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 
 	path = BLI_get_folder_version(folder_id, (major * 100) + minor, FALSE);
 
-	return PyUnicode_DecodeFSDefault(path);
+	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
 static PyMethodDef meth_bpy_script_paths =
