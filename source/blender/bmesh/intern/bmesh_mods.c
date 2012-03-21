@@ -429,7 +429,7 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
 
 			/* interpolate the loop data for the loops with v==newv, using orig face */
 			for (j = 0; j < 2; j++) {
-				BMEdge *e_iter = (j==0)? e : newe;
+				BMEdge *e_iter = (j == 0) ? e : newe;
 				BMLoop *l_iter = e_iter->l;
 				do {
 					if (l_iter->v == newv) {

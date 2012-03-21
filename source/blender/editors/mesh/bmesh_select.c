@@ -189,7 +189,7 @@ int EDBM_init_backbuf_border(ViewContext *vc, short xmin, short ymin, short xmax
 	/* build selection lookup */
 	selbuf = MEM_callocN(bm_vertoffs + 1, "selbuf");
 	
-	a = (xmax - xmin + 1) * (ymax-ymin + 1);
+	a = (xmax - xmin + 1) * (ymax - ymin + 1);
 	while (a--) {
 		if (*dr > 0 && *dr <= bm_vertoffs)
 			selbuf[*dr] = 1;
@@ -499,7 +499,7 @@ BMEdge *EDBM_findnearestedge(ViewContext *vc, int *dist)
 		
 		view3d_validate_backbuf(vc);
 		
-		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance,0, NULL, NULL);
+		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
 		eed = BM_edge_at_index(vc->em->bm, index - 1);
 		
 		if (eed && distance < *dist) {
@@ -649,7 +649,7 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 	if (em->selectmode & SCE_SELECT_FACE)
 		*r_efa = EDBM_findnearestface(vc, &dist);
 
-	dist-= 20;	/* since edges select lines, we give dots advantage of 20 pix */
+	dist -= 20;	/* since edges select lines, we give dots advantage of 20 pix */
 	if (em->selectmode & SCE_SELECT_EDGE)
 		*r_eed = EDBM_findnearestedge(vc, &dist);
 
@@ -933,7 +933,7 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	}
 
 	
-	edarray = MEM_mallocN(sizeof(BMEdge *)*totedgesel,"edge array");
+	edarray = MEM_mallocN(sizeof(BMEdge *) * totedgesel, "edge array");
 	edindex = 0;
 	
 	for (eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
@@ -2398,7 +2398,7 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMFace *efa;
 	BMIter iter;
-	float randfac =  RNA_float_get(op->ptr, "percent")/100.0f;
+	float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
 
 	BLI_srand(BLI_rand()); /* random seed */
 	

@@ -486,11 +486,12 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	phi = BMO_slot_float_get(op, "ang") * (float)M_PI / (360.0f * steps);
 	do_dupli = BMO_slot_bool_get(op, "do_dupli");
 
+	/* BMESH_TODO - can replace this with BLI_math? */
 	si = (float)sin(phi);
 	q[0] = (float)cos(phi);
-	q[1] = axis[0]*si;
-	q[2] = axis[1]*si;
-	q[3] = axis[2]*si;
+	q[1] = axis[0] * si;
+	q[2] = axis[1] * si;
+	q[3] = axis[2] * si;
 	quat_to_mat3(rmat, q);
 
 	BMO_slot_copy(op, op, "geom", "lastout");

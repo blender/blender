@@ -466,7 +466,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				copy_v3_v3(cent, v->co);
 
 				for (j = 0; j < 3; j++) {
-					float fac = (BLI_frand() - 0.5f)*size;
+					float fac = (BLI_frand() - 0.5f) * size;
 					cent[j] += fac;
 				}
 				

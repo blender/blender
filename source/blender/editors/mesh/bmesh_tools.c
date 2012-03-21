@@ -80,9 +80,9 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	int cuts = RNA_int_get(op->ptr,"number_cuts");
+	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
-	float fractal = RNA_float_get(op->ptr, "fractal")/2.5;
+	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
 	int flag = 0;
 
 	if (smooth != 0.0f)
@@ -378,9 +378,9 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		
-	int steps = RNA_int_get(op->ptr,"steps");
+	int steps = RNA_int_get(op->ptr, "steps");
 	
-	float offs = RNA_float_get(op->ptr,"offset");
+	float offs = RNA_float_get(op->ptr, "offset");
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3] = {0.0, 0.0, 0.0};
 	short a;
 
@@ -972,14 +972,14 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
-	{7, "DISSOLVE",         0, "Dissolve", ""},
-	{12, "COLLAPSE", 0, "Collapse", ""},
-	{10,"VERT",		0, "Vertices", ""},
-	{1, "EDGE",		0, "Edges", ""},
-	{2, "FACE",		0, "Faces", ""},
+	{7,  "DISSOLVE",  0, "Dissolve", ""},
+	{12, "COLLAPSE",  0, "Collapse", ""},
+	{10, "VERT",      0, "Vertices", ""},
+	{1,  "EDGE",      0, "Edges", ""},
+	{2,  "FACE",      0, "Faces", ""},
 	{11, "EDGE_LOOP", 0, "Edge Loop", ""},
-	{4, "EDGE_FACE", 0, "Edges & Faces", ""},
-	{5, "ONLY_FACE", 0, "Only Faces", ""},
+	{4,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{5,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1227,7 +1227,7 @@ static int editbmesh_edge_split(bContext *C, wmOperator *op)
 	int len = 0;
 	
 	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he numcuts=%i",
-	                  BM_ELEM_SELECT, RNA_int_get(op->ptr,"number_cuts")))
+	                  BM_ELEM_SELECT, RNA_int_get(op->ptr, "number_cuts")))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -1635,7 +1635,7 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 		}
 	}
 
-	repeat = RNA_int_get(op->ptr,"repeat");
+	repeat = RNA_int_get(op->ptr, "repeat");
 	if (!repeat)
 		repeat = 1;
 	
@@ -4061,7 +4061,7 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 	em = vc.em;
 
 	amount = em->bm->totvert;
-	sortblock = MEM_callocN(sizeof(xvertsort) * amount,"xsort");
+	sortblock = MEM_callocN(sizeof(xvertsort) * amount, "xsort");
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
 			sortblock[i].v1 = eve;
@@ -4221,7 +4221,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 
 		for (i = 0; i < me->totpoly; i++, mp++) {
 			if (event == 3) {
-				face_sort_floats[i] = ((float)mp->mat_nr)*reverse;
+				face_sort_floats[i] = ((float)mp->mat_nr) * reverse;
 			}
 			else if (event == 4) {
 				/* selected first */
@@ -4314,7 +4314,7 @@ static void hashvert_flag(EditMesh *em, int flag)
 	if (amount == 0) return;
 
 	/* allocate memory */
-	sb = sortblock = (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
+	sb = sortblock = (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort) * amount, "sortremovedoub");
 	eve = em->verts.first;
 	while (eve) {
 		if (eve->f & flag) {

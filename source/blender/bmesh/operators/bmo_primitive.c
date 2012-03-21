@@ -445,7 +445,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *eve;
-	BMVert **tv = MEM_mallocN(sizeof(*tv)*monkeynv * 2, "tv");
+	BMVert **tv = MEM_mallocN(sizeof(*tv) * monkeynv * 2, "tv");
 	float mat[4][4];
 	int i;
 

@@ -75,7 +75,7 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 
 	/* this isn't the best thing in the world.  it doesn't handle cases where there's
 	 * multiple faces yet.  that might require a convexity test to figure out which
-	 * face is "best," and who knows what for non-manifold conditions. */
+	 * face is "best" and who knows what for non-manifold conditions. */
 	for (face = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); face; face = BM_iter_step(&iter)) {
 		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, face); v; v = BM_iter_step(&iter2)) {
 			if (v == v2) {
@@ -290,7 +290,7 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 		add = 2;
 		for (i = 0; i < numcuts; i++) {
 			connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
-			if (i == numcuts/2) {
+			if (i == numcuts / 2) {
 				add -= 1;
 				connect_smallest_face(bm, verts[i], verts[numcuts + add], &nf);
 			}
@@ -487,8 +487,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		BMO_elem_flag_enable(bm, nf, ELE_INNER);
 
 		
-		v1 = lines[(i + 1)*s] = verts[a];
-		v2 = lines[(i + 1)*s + s - 1] = verts[b];
+		v1 = lines[(i + 1) * s] = verts[a];
+		v2 = lines[(i + 1) * s + s - 1] = verts[b];
 		
 		temp = *e;
 		for (a = 0; a < numcuts; a++) {
@@ -949,7 +949,7 @@ void bmo_esubd_exec(BMesh *bmesh, BMOperator *op)
 				a = (a + 1) % vlen;
 			}
 			
-			//BM_face_legal_splits(bmesh, face, splits, BLI_array_count(splits)/2);
+			//BM_face_legal_splits(bmesh, face, splits, BLI_array_count(splits) / 2);
 
 			for (j = 0; j < BLI_array_count(splits) / 2; j++) {
 				if (splits[j * 2]) {

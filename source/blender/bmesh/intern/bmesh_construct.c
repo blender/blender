@@ -76,6 +76,27 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	BMFace *f = NULL;
 	int is_overlap = FALSE;
 
+	/* sanity check - debug mode only */
+	if (len == 3) {
+		BLI_assert(verts[0] != verts[1]);
+		BLI_assert(verts[0] != verts[2]);
+		BLI_assert(verts[1] != verts[2]);
+	}
+	else if (len == 4) {
+		BLI_assert(verts[0] != verts[1]);
+		BLI_assert(verts[0] != verts[2]);
+		BLI_assert(verts[0] != verts[3]);
+
+		BLI_assert(verts[1] != verts[2]);
+		BLI_assert(verts[1] != verts[3]);
+
+		BLI_assert(verts[2] != verts[3]);
+	}
+	else {
+		BLI_assert(0);
+	}
+
+
 	if (nodouble) {
 		/* check if face exists or overlaps */
 		is_overlap = BM_face_exists(bm, verts, len, &f);
@@ -320,14 +341,14 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 	/* get the center point and collect vector array since we loop over these a lot */
 	zero_v3(cent);
-	for (i = 0; i < totv; ++i) {
+	for (i = 0; i < totv; i++) {
 		madd_v3_v3fl(cent, vert_arr[i]->co, totv_inv);
 	}
 
 
 	/* find the far point from cent */
 	far_best = 0.0f;
-	for (i = 0; i < totv; ++i) {
+	for (i = 0; i < totv; i++) {
 		far_dist = len_squared_v3v3(vert_arr[i]->co, cent);
 		if (far_dist > far_best || far == NULL) {
 			far = vert_arr[i]->co;
@@ -342,7 +363,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 	/* find a point 90deg about to compare with */
 	far_cross_best = 0.0f;
-	for (i = 0; i < totv; ++i) {
+	for (i = 0; i < totv; i++) {
 
 		if (far == vert_arr[i]->co) {
 			continue;
@@ -379,7 +400,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 	/* now calcualte every points angle around the normal (signed) */
 	vang = MEM_mallocN(sizeof(AngleIndexPair) * totv, __func__);
 
-	for (i = 0; i < totv; ++i) {
+	for (i = 0; i < totv; i++) {
 		float co[3];
 		float proj_vec[3];
 		float angle;
@@ -411,13 +432,13 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 	vert_arr_map = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
 	edge_arr = MEM_mallocN(sizeof(BMEdge **) * totv, __func__);
 
-	for (i = 0; i < totv; ++i) {
+	for (i = 0; i < totv; i++) {
 		vert_arr_map[i] = vert_arr[vang[i].index];
 	}
 	MEM_freeN(vang);
 
 	i_prev = totv - 1;
-	for (i = 0; i < totv; ++i) {
+	for (i = 0; i < totv; i++) {
 		edge_arr[i] = BM_edge_create(bm, vert_arr_map[i_prev], vert_arr_map[i], NULL, TRUE);
 
 		/* the edge may exist already and be attached to a face

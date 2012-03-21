@@ -912,7 +912,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				ret = -1;
 			}
 			else {
-				copy_v3_v3((float *)value,tmp_val);
+				copy_v3_v3((float *)value, tmp_val);
 			}
 			break;
 		}

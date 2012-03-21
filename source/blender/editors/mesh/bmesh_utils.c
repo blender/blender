@@ -623,8 +623,8 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 		return NULL;
 	}
 
-	vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert)*totverts, "UvMapVert_pt");
-	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+	vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
+	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
 		free_uv_vert_map(vmap);
@@ -748,7 +748,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 	totverts = em->bm->totvert;
 	totuv = 0;
 
-	island_number = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_number_face");
+	island_number = MEM_mallocN(sizeof(*stack) * em->bm->totface, "uv_island_number_face");
 	if (!island_number) {
 		return NULL;
 	}
@@ -848,9 +848,9 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 
 	if (do_islands) {
 		/* map holds the map from current vmap->buf to the new, sorted map */
-		map = MEM_mallocN(sizeof(*map)*totuv, "uvelement_remap");
-		stack = MEM_mallocN(sizeof(*stack)*em->bm->totface, "uv_island_face_stack");
-		islandbuf = MEM_callocN(sizeof(*islandbuf)*totuv, "uvelement_island_buffer");
+		map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
+		stack = MEM_mallocN(sizeof(*stack) * em->bm->totface, "uv_island_face_stack");
+		islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
 
 		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
 		for (i = 0; i < totuv; i++) {
@@ -907,7 +907,7 @@ UvElementMap *EDBM_make_uv_element_map(BMEditMesh *em, int selected, int do_isla
 				element_map->vert[i] = &islandbuf[map[element_map->vert[i] - element_map->buf]];
 		}
 
-		element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices)*nislands,"UvElementMap_island_indices");
+		element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands, "UvElementMap_island_indices");
 		if (!element_map->islandIndices) {
 			MEM_freeN(islandbuf);
 			MEM_freeN(stack);
