@@ -806,9 +806,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 
 	if(WM_operator_poll(C, ot)) {
 		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
+		const short is_nested_call = (wm->op_undo_depth != 0);
 		
 		/* initialize setting from previous run */
-		if(wm->op_undo_depth == 0) { /* not called by py script */
+		if(!is_nested_call) { /* not called by py script */
 			WM_operator_last_properties_init(op);
 		}
 
@@ -852,7 +853,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
 		else if(retval & OPERATOR_FINISHED) {
-			if (wm->op_undo_depth == 0) { /* not called by py script */
+			if (!is_nested_call) { /* not called by py script */
 				WM_operator_last_properties_store(op);
 			}
 			wm_operator_finished(C, op, 0);
