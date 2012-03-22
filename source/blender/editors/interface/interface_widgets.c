@@ -3252,7 +3252,12 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	}	
 }
 
-void ui_draw_tooltip(uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)
+uiWidgetColors* ui_tooltip_get_theme(void){
+	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
+	return wt->wcol_theme;
+}
+
+void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)
 {
 	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
 	wt->state(wt, 0);

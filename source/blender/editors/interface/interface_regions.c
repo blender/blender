@@ -308,34 +308,90 @@ static void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 
 /************************* Creating Tooltips **********************/
 
-#define MAX_TOOLTIP_LINES 8
+typedef enum {
+	UI_TIP_LC_MAIN,
+	UI_TIP_LC_NORMAL,
+	UI_TIP_LC_PYTHON,
+	UI_TIP_LC_ALERT,
+	UI_TIP_LC_SUBMENU
+} uiTooltipLineColor;
+#define UI_TIP_LC_MAX 5
 
+#define MAX_TOOLTIP_LINES 8
 typedef struct uiTooltipData {
 	rcti bbox;
 	uiFontStyle fstyle;
 	char lines[MAX_TOOLTIP_LINES][512];
-	unsigned int color[MAX_TOOLTIP_LINES];
+	uiTooltipLineColor color_id[MAX_TOOLTIP_LINES];
 	int totline;
 	int toth, spaceh, lineh;
 } uiTooltipData;
 
+static void rgb_tint(float col[3],
+                     float h, float h_strength,
+                     float v, float v_strength)
+{
+	float col_hsv_from[3];
+	float col_hsv_to[3];
+
+	rgb_to_hsv(col[0], col[1], col[2],    col_hsv_from + 0, col_hsv_from + 1, col_hsv_from + 2);
+
+	col_hsv_to[0] = h;
+	col_hsv_to[1] = h_strength;
+	col_hsv_to[2] = (col_hsv_from[2] * (1.0f - v_strength)) + (v * v_strength);
+
+	hsv_to_rgb(col_hsv_to[0], col_hsv_to[1], col_hsv_to[2], col + 0, col + 1, col + 2);
+}
+
 static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 {
 	uiTooltipData *data= ar->regiondata;
+	uiWidgetColors* theme = ui_tooltip_get_theme();
 	rcti bbox= data->bbox;
-	int a;
+	float tip_colors[UI_TIP_LC_MAX][3];
+
+	float *main_color    = tip_colors[UI_TIP_LC_MAIN]; /* the color from the theme */
+	float *normal_color  = tip_colors[UI_TIP_LC_NORMAL];
+	float *python_color  = tip_colors[UI_TIP_LC_PYTHON];
+	float *alert_color   = tip_colors[UI_TIP_LC_ALERT];
+	float *submenu_color = tip_colors[UI_TIP_LC_SUBMENU];
+
+	float background_color[3];
+	float tone_bg;
+	int i;
+
+	/* draw background */
+	ui_draw_tooltip_background(UI_GetStyle(), NULL, &bbox);
+
+	/* set background_color */
+	rgb_uchar_to_float(background_color, (const unsigned char *)theme->inner);
+
+	/* calculate normal_color */
+	rgb_uchar_to_float(main_color, (const unsigned char *)theme->text);
+	copy_v3_v3(normal_color, main_color);
+	copy_v3_v3(python_color, main_color);
+	copy_v3_v3(alert_color, main_color);
+	copy_v3_v3(submenu_color, main_color);
+
+	/* find the brightness difference between background and text colors */
 	
-	ui_draw_tooltip(UI_GetStyle(), NULL, &data->bbox);
-	
+	tone_bg = rgb_to_grayscale(background_color);
+	/* tone_fg = rgb_to_grayscale(main_color); */
+
+	rgb_tint(normal_color, 0.0f, 0.0f, tone_bg, 0.3f);   /* a shade darker (to bg) */
+	rgb_tint(python_color, 0.666f, 0.25f, tone_bg, 0.3f); /* blue */
+	rgb_tint(alert_color, 0.0f, 0.8f, tone_bg, 0.1f);    /* bright red */
+	rgb_tint(submenu_color, 0.0f, 0.0f, tone_bg, 0.3f);  /* a shade darker (to bg) */
+
 	/* draw text */
 	uiStyleFontSet(&data->fstyle);
 
 	bbox.ymax= bbox.ymax - 0.5f*((bbox.ymax - bbox.ymin) - data->toth);
 	bbox.ymin= bbox.ymax - data->lineh;
 
-	for(a=0; a<data->totline; a++) {
-		cpack(data->color[a]);
-		uiStyleFontDraw(&data->fstyle, &bbox, data->lines[a]);
+	for (i = 0; i < data->totline; i++) {
+		glColor3fv(tip_colors[data->color_id[i]]);
+		uiStyleFontDraw(&data->fstyle, &bbox, data->lines[i]);
 		bbox.ymin -= data->lineh + data->spaceh;
 		bbox.ymax -= data->lineh + data->spaceh;
 	}
@@ -373,7 +429,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		const char *descr= RNA_property_description(but->rnaprop);
 		if(descr && descr[0]) {
 			BLI_strncpy(data->lines[data->totline], descr, sizeof(data->lines[0]));
-			data->color[data->totline]= 0xFFFFFF;
+			data->color_id[data->totline] = UI_TIP_LC_MAIN;
 			data->totline++;
 		}
 
@@ -388,7 +444,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				if(item[i].identifier[0] && item[i].value == value) {
 					if(item[i].description && item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
-						data->color[data->totline]= 0xDDDDDD;
+                        data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
 						data->totline++;
 					}
 					break;
@@ -403,7 +459,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	if(but->tip && but->tip[0] != '\0') {
 		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
-		data->color[data->totline]= 0xFFFFFF;
+		data->color_id[data->totline] = UI_TIP_LC_MAIN;
 		data->totline++;
 	}
 
@@ -415,7 +471,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		                                buf, sizeof(buf)))
 		{
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
-			data->color[data->totline]= 0x888888;
+			data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 			data->totline++;
 		}
 	}
@@ -425,7 +481,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		ui_get_but_string(but, buf, sizeof(buf));
 		if(buf[0]) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Value: %s"), buf);
-			data->color[data->totline]= 0x888888;
+			data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 			data->totline++;
 		}
 	}
@@ -437,7 +493,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
 				float value= RNA_property_array_check(but->rnaprop) ? RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex) : RNA_property_float_get(&but->rnapoin, but->rnaprop);
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Radians: %f"), value);
-				data->color[data->totline]= 0x888888;
+				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 				data->totline++;
 			}
 		}
@@ -446,7 +502,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Expression: %s"), buf);
-				data->color[data->totline]= 0x888888;
+				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 				data->totline++;
 			}
 		}
@@ -454,7 +510,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* rna info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s.%s"), RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
-			data->color[data->totline]= 0x888888;
+			data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 			data->totline++;
 		}
 		
@@ -462,7 +518,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			ID *id= but->rnapoin.id.data;
 			if(id->lib && id->lib->name) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Library: %s"), id->lib->name);
-				data->color[data->totline]= 0x888888;
+				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 				data->totline++;
 			}
 		}
@@ -477,7 +533,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* operator info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), str);
-			data->color[data->totline]= 0x888888;
+			data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 			data->totline++;
 		}
 
@@ -491,7 +547,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			poll_msg= CTX_wm_operator_poll_msg_get(C);
 			if(poll_msg) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), poll_msg);
-				data->color[data->totline]= 0x6666ff; /* alert */
+				data->color_id[data->totline] = UI_TIP_LC_ALERT; /* alert */
 				data->totline++;			
 			}
 		}
@@ -501,7 +557,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			MenuType *mt= uiButGetMenuType(but);
 			if (mt) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), mt->idname);
-				data->color[data->totline]= 0x888888;
+				data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 				data->totline++;
 			}
 		}

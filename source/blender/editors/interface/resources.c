@@ -1753,6 +1753,9 @@ void init_userdef_do_versions(void)
 			if (btheme->tui.wcol_tooltip.inner[3] == 0) {
 				btheme->tui.wcol_tooltip = btheme->tui.wcol_menu_back;
 			}
+			if (btheme->tui.wcol_tooltip.text[0] == 160) { /* hrmf */
+				rgba_char_args_set(btheme->tui.wcol_tooltip.text, 255, 255, 255, 255);
+			}
 		}
 	}
 
