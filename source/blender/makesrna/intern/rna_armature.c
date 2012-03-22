@@ -238,7 +238,7 @@ static void rna_Armature_ghost_start_frame_set(PointerRNA *ptr, int value)
 	data->ghostsf = value;
 
 	if (data->ghostsf >= data->ghostef) {
-		data->ghostef = MIN2(data->ghostsf + 1, (int)(MAXFRAMEF/2));
+		data->ghostef = MIN2(data->ghostsf, (int)(MAXFRAMEF/2));
 	}
 }
 
@@ -249,7 +249,7 @@ static void rna_Armature_ghost_end_frame_set(PointerRNA *ptr, int value)
 	data->ghostef = value;
 
 	if (data->ghostsf >= data->ghostef) {
-		data->ghostsf = MAX2(data->ghostef - 1, 1);
+		data->ghostsf = MAX2(data->ghostef, 1);
 	}
 }
 /* XXX depreceated... old armature only animviz */

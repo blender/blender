@@ -56,16 +56,19 @@ static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	frame= CFRA;
-	/* if 'end frame' (Preview Range or Actual) is less than 'frame', 
-	 * clamp 'frame' to 'end frame'
-	 */
-	if (PEFRA < frame) frame= PEFRA;
-		
+
 	/* if Preview Range is defined, set the 'start' frame for that */
 	if (PRVRANGEON)
 		scene->r.psfra= frame;
 	else
 		scene->r.sfra= frame;
+	
+	if (PEFRA < frame) {
+		if (PRVRANGEON)
+			scene->r.pefra= frame;
+		else
+			scene->r.efra= frame;
+	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	
@@ -98,16 +101,18 @@ static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 
 	frame= CFRA;
 
-	/* if 'start frame' (Preview Range or Actual) is greater than 'frame', 
-	 * clamp 'frame' to 'end frame'
-	 */
-	if (PSFRA > frame) frame= PSFRA;
-		
 	/* if Preview Range is defined, set the 'end' frame for that */
 	if (PRVRANGEON)
 		scene->r.pefra= frame;
 	else
 		scene->r.efra= frame;
+
+	if (PSFRA > frame) {
+		if (PRVRANGEON)
+			scene->r.psfra= frame;
+		else
+			scene->r.sfra= frame;
+	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	

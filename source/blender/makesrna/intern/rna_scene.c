@@ -487,7 +487,7 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 	data->r.sfra = value;
 
 	if (data->r.sfra >= data->r.efra) {
-		data->r.efra = MIN2(data->r.sfra + 1, MAXFRAME);
+		data->r.efra = MIN2(data->r.sfra, MAXFRAME);
 	}
 }
 
@@ -498,7 +498,7 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 	data->r.efra = value;
 
 	if (data->r.sfra >= data->r.efra) {
-		data->r.sfra = MAX2(data->r.efra - 1, MINFRAME);
+		data->r.sfra = MAX2(data->r.efra, MINFRAME);
 	}
 }
 
