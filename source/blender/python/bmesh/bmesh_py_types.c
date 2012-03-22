@@ -33,6 +33,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_customdata.h"
@@ -455,6 +456,40 @@ static int bpy_bmface_normal_set(BPy_BMFace *self, PyObject *value)
 	}
 }
 
+PyDoc_STRVAR(bpy_bmface_material_index_doc,
+"The faces material index.\n\n:type: int"
+);
+static PyObject *bpy_bmface_material_index_get(BPy_BMFace *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyLong_FromLong(self->f->mat_nr);
+}
+
+static int bpy_bmface_material_index_set(BPy_BMFace *self, PyObject *value)
+{
+	int param;
+
+	BPY_BM_CHECK_INT(self);
+
+	param = PyLong_AsLong(value);
+
+	if (param == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError,
+		                "expected an int type");
+		return -1;
+	}
+	else if ((param < 0) || (param > MAXMAT)) {
+		/* normally we clamp but in this case raise an error */
+		PyErr_SetString(PyExc_ValueError,
+		                "material index outside of usable range (0 - 32766)");
+		return -1;
+	}
+	else {
+		self->f->mat_nr = (short)param;
+		return 0;
+	}
+}
+
 /* Loop
  * ^^^^ */
 
@@ -593,6 +628,8 @@ static PyGetSetDef bpy_bmface_getseters[] = {
     {(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
 
     {(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
+
+    {(char *)"material_index",  (getter)bpy_bmface_material_index_get, (setter)bpy_bmface_material_index_set, (char *)bpy_bmface_material_index_doc,  NULL},
 
     /* connectivity data */
     {(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_verts_doc, (void *)BM_VERTS_OF_FACE},
