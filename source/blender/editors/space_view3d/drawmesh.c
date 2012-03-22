@@ -461,7 +461,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 	MFace *mface = dm->getTessFaceArray(dm);
 	MCol *finalCol;
 	int i,j;
-	MCol *mcol = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
+	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
 	if (!mcol)
 		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
 

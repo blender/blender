@@ -267,7 +267,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	if(wmd->mask_tex_mapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
-	/* No need to ask for CD_WEIGHT_MCOL... */
+	/* No need to ask for CD_PREVIEW_MLOOPCOL... */
 
 	return dataMask;
 }

@@ -3227,7 +3227,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 	/* Check to draw dynamic paint colors (or weights from WeightVG modifiers).
 	 * Note: Last "preview-active" modifier in stack will win! */
-	if (DM_get_tessface_data_layer(dm, CD_WEIGHT_MCOL) && modifiers_isPreview(ob))
+	if (DM_get_tessface_data_layer(dm, CD_PREVIEW_MCOL) && modifiers_isPreview(ob))
 		draw_flags |= DRAW_MODIFIERS_PREVIEW;
 
 	/* Unwanted combination */

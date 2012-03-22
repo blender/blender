@@ -612,7 +612,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	int i, j, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 	int startFace = 0 /*, lastFlag = 0xdeadbeef */ /* UNUSED */;
-	MCol *mcol = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
+	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
 	if(!mcol)
 		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
 
@@ -811,7 +811,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 
 	mc = DM_get_tessface_data_layer(dm, CD_ID_MCOL);
 	if(!mc)
-		mc = DM_get_tessface_data_layer(dm, CD_WEIGHT_MCOL);
+		mc = DM_get_tessface_data_layer(dm, CD_PREVIEW_MCOL);
 	if(!mc)
 		mc = DM_get_tessface_data_layer(dm, CD_MCOL);
 
@@ -1742,7 +1742,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
-	int i, j, hasWCol = CustomData_has_layer(&bm->ldata, CD_WEIGHT_MLOOPCOL);
+	int i, j, hasPCol = CustomData_has_layer(&bm->ldata, CD_PREVIEW_MLOOPCOL);
 
 	for (i=0; i < numTex; i++) {
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
@@ -1767,12 +1767,12 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		}
 	}
 
-	if (hasWCol) {
-		mcol = CustomData_get(facedata, cdindex, CD_WEIGHT_MCOL);
+	if (hasPCol) {
+		mcol = CustomData_get(facedata, cdindex, CD_PREVIEW_MCOL);
 
 		for (j=0; j<3; j++) {
 			l = l3[j];
-			mloopcol = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_WEIGHT_MLOOPCOL);
+			mloopcol = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PREVIEW_MLOOPCOL);
 			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}

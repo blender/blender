@@ -812,7 +812,7 @@ static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(i
 }
 
 /* get the DerivedMesh's MCols; choose (in decreasing order of
-   preference) from CD_ID_MCOL, CD_WEIGHT_MCOL, or CD_MCOL */
+   preference) from CD_ID_MCOL, CD_PREVIEW_MCOL, or CD_MCOL */
 static MCol *gpu_buffer_color_type(DerivedMesh *dm)
 {
 	MCol *c;
@@ -821,7 +821,7 @@ static MCol *gpu_buffer_color_type(DerivedMesh *dm)
 	type = CD_ID_MCOL;
 	c = DM_get_tessface_data_layer(dm, type);
 	if(!c) {
-		type = CD_WEIGHT_MCOL;
+		type = CD_PREVIEW_MCOL;
 		c = DM_get_tessface_data_layer(dm, type);
 		if(!c) {
 			type = CD_MCOL;

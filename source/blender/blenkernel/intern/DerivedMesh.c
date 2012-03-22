@@ -398,7 +398,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
-	const int hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
+	const int hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const int hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 
 	int *polyindex = CustomData_get_layer(fdata, CD_POLYINDEX);
@@ -442,7 +442,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 		mesh_loops_to_mface_corners(fdata, ldata, pdata,
 		                            ml_idx, mf_idx, polyindex[mf_idx],
 		                            mf_len,
-		                            numTex, numCol, hasWCol, hasOrigSpace);
+		                            numTex, numCol, hasPCol, hasOrigSpace);
 	}
 
 	if (G.f & G_DEBUG)
@@ -1124,9 +1124,9 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 
 	unsigned char *wtcol_v;
 #if 0 /* See coment below. */
-	unsigned char *wtcol_f = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
+	unsigned char *wtcol_f = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
 #endif
-	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_WEIGHT_MLOOPCOL);
+	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
 #if 0 /* See coment below. */
 	MFace *mf = dm->getTessFaceArray(dm);
 #endif
@@ -1140,17 +1140,17 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	int i, j;
 
 #if 0 /* See comment below */
-	/* If no CD_WEIGHT_MCOL existed yet, add a new one! */
+	/* If no CD_PREVIEW_MCOL existed yet, add a new one! */
 	if (!wtcol_f)
-		wtcol_f = CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+		wtcol_f = CustomData_add_layer(&dm->faceData, CD_PREVIEW_MCOL, CD_CALLOC, NULL, numFaces);
 
 	if (wtcol_f) {
 		unsigned char *wtcol_f_step = wtcol_f;
 # else
 #if 0
-	/* XXX We have to create a CD_WEIGHT_MCOL, else it might sigsev (after a SubSurf mod, eg)... */
-	if(!dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL))
-		CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+	/* XXX We have to create a CD_PREVIEW_MCOL, else it might sigsev (after a SubSurf mod, eg)... */
+	if(!dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL))
+		CustomData_add_layer(&dm->faceData, CD_PREVIEW_MCOL, CD_CALLOC, NULL, numFaces);
 #endif
 
 	{
@@ -1208,7 +1208,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 		}
 #endif
 		/*now add to loops, so the data can be passed through the modifier stack*/
-		/* If no CD_WEIGHT_MLOOPCOL existed yet, we have to add a new one! */
+		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
 			BLI_array_declare(wtcol_l);
 			totloop = 0;
@@ -1221,7 +1221,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 					                (char *)&wtcol_v[4 * ml->v]);
 				}
 			}
-			CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
+			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
 		}
 		else {
 			totloop = 0;
@@ -1370,7 +1370,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	const int do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
 	const int do_final_wmcol = FALSE;
-	int do_init_wmcol = ((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
+	int do_init_wmcol = ((dataMask & CD_MASK_PREVIEW_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
 	const int do_mod_wmcol = do_init_wmcol;
 
@@ -1659,11 +1659,11 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			/* in case of dynamic paint, make sure preview mask remains for following modifiers */
 			/* XXX Temp and hackish solution! */
 			if (md->type == eModifierType_DynamicPaint)
-				append_mask |= CD_MASK_WEIGHT_MLOOPCOL;
+				append_mask |= CD_MASK_PREVIEW_MLOOPCOL;
 			/* In case of active preview modifier, make sure preview mask remains for following modifiers. */
 			else if ((md == previewmd) && (do_mod_wmcol)) {
 				DM_update_weight_mcol(ob, dm, draw_flag, NULL, 0, NULL);
-				append_mask |= CD_MASK_WEIGHT_MLOOPCOL;
+				append_mask |= CD_MASK_PREVIEW_MLOOPCOL;
 			}
 		}
 
@@ -1693,7 +1693,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_calc_normals(finaldm);
 
 #if 0 /* For later nice mod preview! */
-		/* In case we need modified weights in CD_WEIGHT_MCOL, we have to re-compute it. */
+		/* In case we need modified weights in CD_PREVIEW_MCOL, we have to re-compute it. */
 		if(do_final_wmcol)
 			DM_update_weight_mcol(ob, finaldm, draw_flag, NULL, 0, NULL);
 #endif
@@ -1701,7 +1701,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		finaldm = dm;
 
 #if 0 /* For later nice mod preview! */
-		/* In case we need modified weights in CD_WEIGHT_MCOL, we have to re-compute it. */
+		/* In case we need modified weights in CD_PREVIEW_MCOL, we have to re-compute it. */
 		if(do_final_wmcol)
 			DM_update_weight_mcol(ob, finaldm, draw_flag, NULL, 0, NULL);
 #endif

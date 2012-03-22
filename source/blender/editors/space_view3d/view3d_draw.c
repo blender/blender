@@ -2301,7 +2301,7 @@ CustomDataMask ED_view3d_object_datamask(Scene *scene)
 		}
 
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-			mask |= CD_MASK_WEIGHT_MCOL;
+			mask |= CD_MASK_PREVIEW_MCOL;
 		}
 	}
 

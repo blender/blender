@@ -1613,18 +1613,20 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							int totpoly = result->numPolyData;
 
 #if 0
-							/* XXX We have to create a CD_WEIGHT_MCOL, else it might sigsev
+							/* XXX We have to create a CD_PREVIEW_MCOL, else it might sigsev
 							 *     (after a SubSurf mod, eg)... */
-							if(!result->getTessFaceDataArray(result, CD_WEIGHT_MCOL)) {
+							if(!result->getTessFaceDataArray(result, CD_PREVIEW_MCOL)) {
 								int numFaces = result->getNumTessFaces(result);
-								CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numFaces);
+								CustomData_add_layer(&result->faceData, CD_PREVIEW_MCOL, CD_CALLOC, NULL, numFaces);
 							}
 #endif
 
 							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
-							col = CustomData_get_layer(&result->loopData, CD_WEIGHT_MLOOPCOL);
-							if (!col) col = CustomData_add_layer(&result->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
+							col = CustomData_get_layer(&result->loopData, CD_PREVIEW_MLOOPCOL);
+							if (!col)
+								col = CustomData_add_layer(&result->loopData, CD_PREVIEW_MLOOPCOL, CD_CALLOC,
+								                           NULL, totloop);
 
 							if (col) {
 								#pragma omp parallel for schedule(static)
