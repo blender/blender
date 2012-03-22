@@ -493,7 +493,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* go through and split edge */
 	for (i = 0, tot_found = 0; i < einput->len; i++) {
 		BMEdge *e = ((BMEdge **)einput->data.p)[i];
-		const float angle = BM_edge_face_angle(bm, e);
+		const float angle = BM_edge_face_angle(e);
 
 		if (angle < angle_limit) {
 			weight_elems[i].ele = (BMHeader *)e;
@@ -512,7 +512,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 		for (i = 0; i < tot_found; i++) {
 			BMEdge *e = (BMEdge *)weight_elems[i].ele;
 			/* check twice because cumulative effect could disolve over angle limit */
-			if (BM_edge_face_angle(bm, e) < angle_limit) {
+			if (BM_edge_face_angle(e) < angle_limit) {
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,
 				                                e); /* join faces */
@@ -528,7 +528,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	/* --- second verts --- */
 	for (i = 0, tot_found = 0; i < vinput->len; i++) {
 		BMVert *v = ((BMVert **)vinput->data.p)[i];
-		const float angle = BM_vert_edge_angle(bm, v);
+		const float angle = BM_vert_edge_angle(v);
 
 		if (angle < angle_limit) {
 			weight_elems[i].ele = (BMHeader *)v;
@@ -547,7 +547,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 		for (i = 0; i < tot_found; i++) {
 			BMVert *v = (BMVert *)weight_elems[i].ele;
 			/* check twice because cumulative effect could disolve over angle limit */
-			if (BM_vert_edge_angle(bm, v) < angle_limit) {
+			if (BM_vert_edge_angle(v) < angle_limit) {
 				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 			}
 		}

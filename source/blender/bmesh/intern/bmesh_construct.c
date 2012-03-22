@@ -966,7 +966,7 @@ short BM_edge_flag_to_mflag(BMEdge *eed)
 	         ((hflag & BM_ELEM_SEAM)         ? ME_SEAM   : 0) |
 	         ((hflag & BM_ELEM_SMOOTH) == 0  ? ME_SHARP  : 0) |
 	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE   : 0) |
-	         ((BM_edge_is_wire(NULL, eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
+	         ((BM_edge_is_wire(eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
 	         (ME_EDGEDRAW | ME_EDGERENDER)
 	         );
 }

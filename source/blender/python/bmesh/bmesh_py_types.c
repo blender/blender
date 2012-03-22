@@ -384,7 +384,7 @@ PyDoc_STRVAR(bpy_bmvert_is_manifold_doc,
 static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyBool_FromLong(BM_vert_is_manifold(self->bm, self->v));
+	return PyBool_FromLong(BM_vert_is_manifold(self->v));
 }
 
 
@@ -394,7 +394,7 @@ PyDoc_STRVAR(bpy_bmvert_is_wire_doc,
 static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyBool_FromLong(BM_vert_is_wire(self->bm, self->v));
+	return PyBool_FromLong(BM_vert_is_wire(self->v));
 }
 
 
@@ -407,7 +407,7 @@ PyDoc_STRVAR(bpy_bmedge_is_manifold_doc,
 static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyBool_FromLong(BM_edge_is_manifold(self->bm, self->e));
+	return PyBool_FromLong(BM_edge_is_manifold(self->e));
 }
 
 
@@ -417,7 +417,7 @@ PyDoc_STRVAR(bpy_bmedge_is_wire_doc,
 static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyBool_FromLong(BM_edge_is_wire(self->bm, self->e));
+	return PyBool_FromLong(BM_edge_is_wire(self->e));
 }
 
 
@@ -1160,7 +1160,7 @@ PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
 static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_vert_edge_angle(self->bm, self->v));
+	return PyFloat_FromDouble(BM_vert_edge_angle(self->v));
 }
 
 
@@ -1203,7 +1203,7 @@ PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
 static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_edge_face_angle(self->bm, self->e));
+	return PyFloat_FromDouble(BM_edge_face_angle(self->e));
 }
 
 
@@ -1473,7 +1473,7 @@ PyDoc_STRVAR(bpy_bmloop_calc_angle_doc,
 static PyObject *bpy_bmloop_calc_angle(BPy_BMLoop *self)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_loop_face_angle(self->bm, self->l));
+	return PyFloat_FromDouble(BM_loop_face_angle(self->l));
 }
 
 PyDoc_STRVAR(bpy_bmloop_calc_normal_doc,
@@ -1489,7 +1489,7 @@ static PyObject *bpy_bmloop_calc_normal(BPy_BMLoop *self)
 {
 	float vec[3];
 	BPY_BM_CHECK_OBJ(self);
-	BM_loop_face_normal(self->bm, self->l, vec);
+	BM_loop_face_normal(self->l, vec);
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 
@@ -1506,7 +1506,7 @@ static PyObject *bpy_bmloop_calc_tangent(BPy_BMLoop *self)
 {
 	float vec[3];
 	BPY_BM_CHECK_OBJ(self);
-	BM_loop_face_tangent(self->bm, self->l, vec);
+	BM_loop_face_tangent(self->l, vec);
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 

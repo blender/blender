@@ -151,7 +151,7 @@ static int BME_Bevel_Dissolve_Disk(BMesh *bm, BMVert *v)
 	BMEdge *e, *elast;
 	BMLoop *l1, *l2;
 
-	if (!BM_vert_is_manifold(bm, v)) {
+	if (!BM_vert_is_manifold(v)) {
 		return 0;
 	}
 
@@ -888,13 +888,13 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 		BMO_elem_flag_enable(bm, v, BME_BEVEL_ORIG);
 		if(v->e) {
 			BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL);
-			if (!BM_vert_is_manifold(bm, v)) {
+			if (!BM_vert_is_manifold(v)) {
 				BMO_elem_flag_enable(bm, v, BME_BEVEL_NONMAN);
 			}
 
 			/* test wire ver */
 			len = BM_vert_edge_count(v);
-			if (len == 2 && BM_vert_is_wire(bm, v))
+			if (len == 2 && BM_vert_is_wire(v))
 				BMO_elem_flag_disable(bm, v, BME_BEVEL_NONMAN);
 		}
 		else {
@@ -904,7 +904,7 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int UNUSED(defgrp_ind
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMO_elem_flag_enable(bm, e, BME_BEVEL_ORIG);
-		if (!BM_edge_is_manifold(bm, e)) {
+		if (!BM_edge_is_manifold(e)) {
 			BMO_elem_flag_enable(bm, e->v1, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e->v2, BME_BEVEL_NONMAN);
 			BMO_elem_flag_enable(bm, e, BME_BEVEL_NONMAN);

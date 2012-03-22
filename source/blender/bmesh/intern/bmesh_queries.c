@@ -389,7 +389,7 @@ int BM_vert_face_count(BMVert *v)
  * Tests whether or not the vertex is part of a wire edge.
  * (ie: has no faces attached to it)
  */
-int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_wire(BMVert *v)
 {
 	BMEdge *curedge;
 
@@ -413,7 +413,7 @@ int BM_vert_is_wire(BMesh *UNUSED(bm), BMVert *v)
  * Tests whether or not the edge is part of a wire.
  * (ie: has no faces attached to it)
  */
-int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_wire(BMEdge *e)
 {
 	return (e->l) ? FALSE : TRUE;
 }
@@ -425,7 +425,7 @@ int BM_edge_is_wire(BMesh *UNUSED(bm), BMEdge *e)
  * 3: Is part of a non-manifold edge (edge with more than 2 faces)
  * 4: Is part of a wire edge
  */
-int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
+int BM_vert_is_manifold(BMVert *v)
 {
 	BMEdge *e, *oe;
 	BMLoop *l;
@@ -491,14 +491,14 @@ int BM_vert_is_manifold(BMesh *UNUSED(bm), BMVert *v)
  */
 
 #if 1 /* fast path for checking manifold */
-int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_manifold(BMEdge *e)
 {
 	const BMLoop *l = e->l;
 	return (l && ((l->radial_next == l) ||              /* 1 face user  */
 	              (l->radial_next->radial_next == l))); /* 2 face users */
 }
 #else
-int BM_edge_is_manifold(BMesh *UNUSED(bm), BMEdge *e)
+int BM_edge_is_manifold(BMEdge *e)
 {
 	int count = BM_edge_face_count(e);
 	if (count == 2 || count == 1) {
@@ -662,7 +662,7 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
  *
  * \return angle in radians
  */
-float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
+float BM_loop_face_angle(BMLoop *l)
 {
 	return angle_v3v3v3(l->prev->v->co,
 	                    l->v->co,
@@ -678,7 +678,7 @@ float BM_loop_face_angle(BMesh *UNUSED(bm), BMLoop *l)
  * \param l The loop to calculate the normal at
  * \param r_normal Resulting normal
  */
-void BM_loop_face_normal(BMesh *UNUSED(bm), BMLoop *l, float r_normal[3])
+void BM_loop_face_normal(BMLoop *l, float r_normal[3])
 {
 	if (normal_tri_v3(r_normal,
 	                  l->prev->v->co,
@@ -702,7 +702,7 @@ void BM_loop_face_normal(BMesh *UNUSED(bm), BMLoop *l, float r_normal[3])
  * \param l The loop to calculate the tangent at
  * \param r_tangent Resulting tangent
  */
-void BM_loop_face_tangent(BMesh *UNUSED(bm), BMLoop *l, float r_tangent[3])
+void BM_loop_face_tangent(BMLoop *l, float r_tangent[3])
 {
 	float v_prev[3];
 	float v_next[3];
@@ -736,7 +736,7 @@ void BM_loop_face_tangent(BMesh *UNUSED(bm), BMLoop *l, float r_tangent[3])
  *
  * \return angle in radians
  */
-float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
+float BM_edge_face_angle(BMEdge *e)
 {
 	if (BM_edge_face_count(e) == 2) {
 		BMLoop *l1 = e->l;
@@ -755,7 +755,7 @@ float BM_edge_face_angle(BMesh *UNUSED(bm), BMEdge *e)
  *
  * \returns the angle in radians
  */
-float BM_vert_edge_angle(BMesh *UNUSED(bm), BMVert *v)
+float BM_vert_edge_angle(BMVert *v)
 {
 	BMEdge *e1, *e2;
 

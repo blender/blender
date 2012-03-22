@@ -71,7 +71,7 @@ int BM_vert_dissolve(BMesh *bm, BMVert *v)
 		BM_vert_kill(bm, v); /* will kill edges too */
 		return TRUE;
 	}
-	else if (!BM_vert_is_manifold(bm, v)) {
+	else if (!BM_vert_is_manifold(v)) {
 		if (!v->e) {
 			BM_vert_kill(bm, v);
 			return TRUE;
@@ -108,7 +108,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 	BMEdge *e, *keepedge = NULL, *baseedge = NULL;
 	int len = 0;
 
-	if (!BM_vert_is_manifold(bm, v)) {
+	if (!BM_vert_is_manifold(v)) {
 		return FALSE;
 	}
 	

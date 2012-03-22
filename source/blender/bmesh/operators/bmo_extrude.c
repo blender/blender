@@ -341,7 +341,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	for ( ; e; e = BMO_iter_step(&siter)) {
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
-		if (BM_edge_is_wire(bm, e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
+		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
 			/* The original edge was excluded,
 			 * this would result in a standalone wire edge - see [#30399] */
 			BM_edge_kill(bm, e);
@@ -453,7 +453,7 @@ static void calc_solidify_normals(BMesh *bm)
 	edge_face_count = NULL; /* don't re-use */
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_vert_is_manifold(bm, v)) {
+		if (!BM_vert_is_manifold(v)) {
 			BMO_elem_flag_enable(bm, v, VERT_NONMAN);
 			continue;
 		}
