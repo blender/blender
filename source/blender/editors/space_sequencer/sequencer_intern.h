@@ -117,6 +117,8 @@ void SEQUENCER_OT_paste(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_rebuild_proxy(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_update_strip_length(struct wmOperatorType *ot);
+
 /* preview specific operators */
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 

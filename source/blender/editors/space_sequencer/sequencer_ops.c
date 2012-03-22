@@ -113,6 +113,8 @@ void sequencer_operatortypes(void)
 
 	WM_operatortype_append(SEQUENCER_OT_copy);
 	WM_operatortype_append(SEQUENCER_OT_paste);
+
+	WM_operatortype_append(SEQUENCER_OT_update_strip_length);
 }
 
 
