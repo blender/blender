@@ -467,7 +467,9 @@ static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent
 	}
 
 	/* This is for drag and drop */
-	if(RNA_collection_length(op->ptr, "files") || RNA_struct_property_is_set(op->ptr, "filepath")) {
+	if((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
+	    RNA_struct_property_is_set(op->ptr, "filepath"))
+	{
 		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_NOPATHS);
 		return sequencer_add_movie_strip_exec(C, op);
 	}
@@ -519,7 +521,9 @@ static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent
 	}
 	
 	/* This is for drag and drop */
-	if(RNA_collection_length(op->ptr, "files") || RNA_struct_property_is_set(op->ptr, "filepath")) {
+	if((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
+	   RNA_struct_property_is_set(op->ptr, "filepath"))
+	{
 		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_NOPATHS);
 		return sequencer_add_sound_strip_exec(C, op);
 	}
