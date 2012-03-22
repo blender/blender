@@ -76,6 +76,17 @@ GHOST_SystemSDL::createWindow(const STR_String& title,
 	window= new GHOST_WindowSDL (this, title, left, top, width, height, state, parentWindow, type, stereoVisual, 1);
 
 	if (window) {
+		if (GHOST_kWindowStateFullScreen == state) {
+			SDL_Window *sdl_win = window->getSDLWindow();
+			SDL_DisplayMode mode;
+
+			static_cast<GHOST_DisplayManagerSDL *> (m_displayManager)->getCurrentDisplayModeSDL(mode);
+
+			SDL_SetWindowDisplayMode(sdl_win, &mode);
+			SDL_ShowWindow(sdl_win);
+			SDL_SetWindowFullscreen(sdl_win, SDL_TRUE);
+		}
+
 		if (window->getValid()) {
 			m_windowManager->addWindow(window);
 			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));

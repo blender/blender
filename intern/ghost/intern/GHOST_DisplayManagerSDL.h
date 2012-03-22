@@ -62,11 +62,15 @@ public:
 	                         GHOST_DisplaySetting& setting) const;
 
 	GHOST_TSuccess
+	getCurrentDisplayModeSDL(SDL_DisplayMode &mode) const;
+
+	GHOST_TSuccess
 	setCurrentDisplaySetting(GHOST_TUns8 display,
 	                         const GHOST_DisplaySetting& setting);
 
 private :
 	GHOST_SystemSDL * m_system;
+	SDL_DisplayMode m_mode;
 };
 
 #endif /* __GHOST_DISPLAYMANAGERSDL_H__ */
