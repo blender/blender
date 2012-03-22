@@ -2645,10 +2645,12 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			newpa->fuv[2]= pa->fuv[0];
 			newpa->fuv[3]= pa->fuv[3];
 			while(rotation-- > 0)
-				if(me->mface[pa->num].v4)
-					SHIFT4(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2], newpa->fuv[3])
-				else
-					SHIFT3(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2])
+				if (me->mface[pa->num].v4) {
+					SHIFT4(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2], newpa->fuv[3]);
+				}
+				else {
+					SHIFT3(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2]);
+				}
 
 			/* assign face inddex */
 			newpa->num= mirrorfaces[pa->num*2];
@@ -3105,9 +3107,9 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 			DO_MINMAX(v1,min,max);
 			DO_MINMAX(v2,min,max);
 			DO_MINMAX(v3,min,max);
-			if(mface->v4)
-				DO_MINMAX(v4,min,max)
-			if(isect_aabb_aabb_v3(min,max,p_min,p_max)==0)
+			if (mface->v4)
+				DO_MINMAX(v4, min, max);
+			if (isect_aabb_aabb_v3(min,max,p_min,p_max)==0)
 				continue;
 		}
 		else{

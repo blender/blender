@@ -328,8 +328,9 @@ int cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
 	if(cdf->switchendian) {
 		fdata= data;
 
-		for(a=0; a<size/sizeof(float); a++)
-			SWITCH_INT(fdata[a])
+		for (a=0; a<size/sizeof(float); a++) {
+			SWITCH_INT(fdata[a]);
+		}
 	}
 
 	return 1;

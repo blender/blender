@@ -4489,20 +4489,20 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 				if(mmd->bindoffsets)
 					for(a=0; a<mmd->totvert+1; a++)
-						SWITCH_INT(mmd->bindoffsets[a])
+						SWITCH_INT(mmd->bindoffsets[a]);
 				if(mmd->bindcagecos)
 					for(a=0; a<mmd->totcagevert*3; a++)
-						SWITCH_INT(mmd->bindcagecos[a])
+						SWITCH_INT(mmd->bindcagecos[a]);
 				if(mmd->dynverts)
 					for(a=0; a<mmd->totvert; a++)
-						SWITCH_INT(mmd->dynverts[a])
+						SWITCH_INT(mmd->dynverts[a]);
 
 				if(mmd->bindweights)
 					for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
-						SWITCH_INT(mmd->bindweights[a])
+						SWITCH_INT(mmd->bindweights[a]);
 				if(mmd->bindcos)
 					for(a=0; a<mmd->totcagevert*3; a++)
-						SWITCH_INT(mmd->bindcos[a])
+						SWITCH_INT(mmd->bindcos[a]);
 			}
 		}
 		else if (md->type==eModifierType_Ocean) {

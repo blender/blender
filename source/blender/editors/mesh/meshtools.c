@@ -801,8 +801,9 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			BMIter iter;
 			BMVert *eve;
 			
-			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-				DO_MINMAX(eve->co, min, max)
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				DO_MINMAX(eve->co, min, max);
+			}
 		}
 		else {		
 			MVert *mvert;

@@ -403,8 +403,9 @@ static int occ_find_bbox_axis(OcclusionTree *tree, int begin, int end, float *mi
 
 	INIT_MINMAX(min, max);
 
-	for(a=begin; a<end; a++)
-		DO_MINMAX(tree->co[a], min, max)
+	for (a = begin; a < end; a++) {
+		DO_MINMAX(tree->co[a], min, max);
+	}
 
 	for(a=0; a<3; a++) {
 		len= max[a] - min[a];
