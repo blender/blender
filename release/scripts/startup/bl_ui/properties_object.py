@@ -211,8 +211,11 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         col = split.column()
         col.prop(ob, "show_name", text="Name")
         col.prop(ob, "show_axis", text="Axis")
-        col.prop(ob, "show_wire", text="Wire")
-        col.prop(ob, "color", text="Object Color")
+        if ob.type in {"MESH", "CURVE", "SURFACE", "META", "FONT"}:
+            # Makes no sense for cameras, armtures, etc.!
+            col.prop(ob, "show_wire", text="Wire")
+            # Only useful with object having faces/materials...
+            col.prop(ob, "color", text="Object Color")
 
         col = split.column()
         col.prop(ob, "show_texture_space", text="Texture Space")

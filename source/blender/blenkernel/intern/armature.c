@@ -2599,3 +2599,54 @@ int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_tot)
 
 	return dg_flags_sel_tot;
 }
+
+/************** Bounding box ********************/
+int minmax_armature(Object *ob, float min[3], float max[3])
+{
+	bPoseChannel *pchan;
+
+	/* For now, we assume where_is_pose has already been called (hence we have valid data in pachan). */
+	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+		DO_MINMAX(pchan->pose_head, min, max);
+		DO_MINMAX(pchan->pose_tail, min, max);
+	}
+
+	return (ob->pose->chanbase.first != NULL);
+}
+
+void boundbox_armature(Object *ob, float *loc, float *size)
+{
+	BoundBox *bb;
+	float min[3], max[3];
+	float mloc[3], msize[3];
+
+	if (ob->bb == NULL)
+		ob->bb = MEM_callocN(sizeof(BoundBox), "Armature boundbox");
+	bb = ob->bb;
+
+	if (!loc)
+		loc = mloc;
+	if (!size)
+		size = msize;
+
+	INIT_MINMAX(min, max);
+	if (!minmax_armature(ob, min, max)) {
+		min[0] = min[1] = min[2] = -1.0f;
+		max[0] = max[1] = max[2] = 1.0f;
+	}
+
+	mid_v3_v3v3(loc, min, max);
+
+	size[0] = (max[0] - min[0]) / 2.0f;
+	size[1] = (max[1] - min[1]) / 2.0f;
+	size[2] = (max[2] - min[2]) / 2.0f;
+
+	boundbox_set_from_min_max(bb, min, max);
+}
+
+BoundBox *BKE_armature_get_bb(Object *ob)
+{
+	boundbox_armature(ob, NULL, NULL);
+
+	return ob->bb;
+}
