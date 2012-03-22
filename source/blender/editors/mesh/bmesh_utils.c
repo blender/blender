@@ -527,6 +527,8 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 #endif
 
+	/* BM_mesh_validate(em->bm); */ /* for troubleshooting */
+
 	BMO_op_callf(em->bm, "bmesh_to_mesh mesh=%p notessellation=%b", &um->me, TRUE);
 	um->selectmode = em->selectmode;
 
