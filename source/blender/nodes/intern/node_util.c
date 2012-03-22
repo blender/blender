@@ -102,11 +102,10 @@ const char *node_filter_label(bNode *node)
 
 ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 {
-	static int types[] = { SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA };
-	bNodeLink *link;
-	bNodeSocket *fromsock, *tosock;
 	ListBase ret;
-	int in, out, i;
+	bNodeSocket *fromsock_first=NULL, *tosock_first=NULL;	/* used for fallback link if no other reconnections are found */
+	int datatype;
+	int num_links_in = 0, num_links_out = 0, num_reconnect = 0;
 
 	ret.first = ret.last = NULL;
 
@@ -114,31 +113,58 @@ ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 	if(!ntree)
 		return ret;
 
-	/* Connect the first input of each type with first output of the same type. */
-
-	for (i=0; i < 3; ++i) {
-		/* find input socket */
-		for (in=0, fromsock=node->inputs.first; fromsock; in++, fromsock=fromsock->next) {
-			if (fromsock->type==types[i] && nodeCountSocketLinks(ntree, fromsock) > 0)
+	for (datatype=0; datatype < NUM_SOCKET_TYPES; ++datatype) {
+		bNodeSocket *fromsock=NULL, *tosock=NULL;
+		bNodeLink *link;
+		
+		/* Connect the first input of each type with outputs of the same type. */
+		
+		for (link=ntree->links.first; link; link=link->next) {
+			if (link->tonode == node && link->tosock->type == datatype) {
+				fromsock = link->tosock;
+				++num_links_in;
+				if (!fromsock_first)
+					fromsock_first = fromsock;
 				break;
-		}
-		if (fromsock) {
-			for (out=0, tosock=node->outputs.first; tosock; out++, tosock=tosock->next) {
-				if (tosock->type==types[i] && (nodeCountSocketLinks(ntree, tosock) > 0))
-					break;
 			}
-			if (tosock) {
-				link = MEM_callocN(sizeof(bNodeLink), "internal node link");
-				link->fromnode = node;
-				link->fromsock = fromsock;
-				link->tonode = node;
-				link->tosock = tosock;
-				/* internal link is always valid */
-				link->flag |= NODE_LINK_VALID;
-				BLI_addtail(&ret, link);
+		}
+		
+		for (link=ntree->links.first; link; link=link->next) {
+			if (link->fromnode == node && link->fromsock->type == datatype) {
+				tosock = link->fromsock;
+				++num_links_out;
+				if (!tosock_first)
+					tosock_first = tosock;
+				
+				if (fromsock) {
+					bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
+					ilink->fromnode = node;
+					ilink->fromsock = fromsock;
+					ilink->tonode = node;
+					ilink->tosock = tosock;
+					/* internal link is always valid */
+					ilink->flag |= NODE_LINK_VALID;
+					BLI_addtail(&ret, ilink);
+					
+					++num_reconnect;
+				}
 			}
 		}
 	}
-
+	
+	/* if there is one input and one output link, but no reconnections by type,
+	 * simply connect those two sockets.
+	 */
+	if (num_reconnect==0 && num_links_in==1 && num_links_out==1) {
+		bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
+		ilink->fromnode = node;
+		ilink->fromsock = fromsock_first;
+		ilink->tonode = node;
+		ilink->tosock = tosock_first;
+		/* internal link is always valid */
+		ilink->flag |= NODE_LINK_VALID;
+		BLI_addtail(&ret, ilink);
+	}
+	
 	return ret;
 }
