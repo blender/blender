@@ -239,7 +239,15 @@ void DocumentImporter::finish()
 
 void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW::Node *par = NULL, Object *parob = NULL)
 {
-	if (par && par->getType() == COLLADAFW::Node::JOINT) {
+
+	// The split in #29246, rootmap must point at actual root when
+	// calculating bones in apply_curves_as_matrix.
+	// This has to do with inverse bind poses being world space
+	// (the sources for skinned bones' restposes) and the way
+	// non-skinning nodes have their "restpose" recursively calculated.
+	// XXX TODO: design issue, how to support unrelated joints taking
+	// part in skinning.
+	if (par) { // && par->getType() == COLLADAFW::Node::JOINT) {
 		// par is root if there's no corresp. key in root_map
 		if (root_map.find(par->getUniqueId()) == root_map.end())
 			root_map[node->getUniqueId()] = par;
@@ -319,6 +327,8 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 
 Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
 {
+	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
+
 	Object *obn = copy_object(source_ob);
 	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 	scene_add_base(sce, obn);
@@ -429,7 +439,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		while (inst_done < inst_node.getCount()) {
 			const COLLADAFW::UniqueId& node_id = inst_node[inst_done]->getInstanciatedObjectId();
 			if (object_map.find(node_id) == object_map.end()) {
-				fprintf(stderr, "Cannot find node to instanciate.\n");
+				fprintf(stderr, "Cannot find object for node referenced by <instance_node name=\"%s\">.\n", inst_node[inst_done]->getName().c_str());
 				ob = NULL;
 			}
 			else {
