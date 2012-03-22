@@ -380,14 +380,14 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 		{CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	ot->name= "Preset";
-	ot->description= "Set brush shape";
-	ot->idname= "BRUSH_OT_curve_preset";
+	ot->name = "Preset";
+	ot->description = "Set brush shape";
+	ot->idname = "BRUSH_OT_curve_preset";
 
-	ot->exec= brush_curve_preset_exec;
-	ot->poll= brush_curve_preset_poll;
+	ot->exec = brush_curve_preset_exec;
+	ot->poll = brush_curve_preset_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
 }
@@ -403,14 +403,14 @@ static int paint_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_linked(wmOperatorType *ot)
 {
-	ot->name= "Select Linked";
-	ot->description= "Select linked faces";
-	ot->idname= "PAINT_OT_face_select_linked";
+	ot->name = "Select Linked";
+	ot->description = "Select linked faces";
+	ot->idname = "PAINT_OT_face_select_linked";
 
-	ot->exec= paint_select_linked_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = paint_select_linked_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -423,14 +423,14 @@ static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent 
 
 void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 {
-	ot->name= "Select Linked Pick";
-	ot->description= "Select linked faces";
-	ot->idname= "PAINT_OT_face_select_linked_pick";
+	ot->name = "Select Linked Pick";
+	ot->description = "Select linked faces";
+	ot->idname = "PAINT_OT_face_select_linked_pick";
 
-	ot->invoke= paint_select_linked_pick_invoke;
-	ot->poll= facemask_paint_poll;
+	ot->invoke = paint_select_linked_pick_invoke;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
@@ -447,14 +447,14 @@ static int face_select_all_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
-	ot->name= "Face Selection";
-	ot->description= "Change selection for all faces";
-	ot->idname= "PAINT_OT_face_select_all";
+	ot->name = "Face Selection";
+	ot->description = "Change selection for all faces";
+	ot->idname = "PAINT_OT_face_select_all";
 
-	ot->exec= face_select_all_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_all_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -471,14 +471,14 @@ static int vert_select_all_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_vert_select_all(wmOperatorType *ot)
 {
-	ot->name= "Vertex Selection";
-	ot->description= "Change selection for all vertices";
-	ot->idname= "PAINT_OT_vert_select_all";
+	ot->name = "Vertex Selection";
+	ot->description = "Change selection for all vertices";
+	ot->idname = "PAINT_OT_vert_select_all";
 
-	ot->exec= vert_select_all_exec;
-	ot->poll= vert_paint_poll;
+	ot->exec = vert_select_all_exec;
+	ot->poll = vert_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -493,14 +493,14 @@ static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
 {
-	ot->name= "Vertex Select Invert";
-	ot->description= "Invert selection of vertices";
-	ot->idname= "PAINT_OT_vert_select_inverse";
+	ot->name = "Vertex Select Invert";
+	ot->description = "Invert selection of vertices";
+	ot->idname = "PAINT_OT_vert_select_inverse";
 
-	ot->exec= vert_select_inverse_exec;
-	ot->poll= vert_paint_poll;
+	ot->exec = vert_select_inverse_exec;
+	ot->poll = vert_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -513,14 +513,14 @@ static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_inverse(wmOperatorType *ot)
 {
-	ot->name= "Face Select Invert";
-	ot->description= "Invert selection of faces";
-	ot->idname= "PAINT_OT_face_select_inverse";
+	ot->name = "Face Select Invert";
+	ot->description = "Invert selection of faces";
+	ot->idname = "PAINT_OT_face_select_inverse";
 
-	ot->exec= face_select_inverse_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_inverse_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)
@@ -534,14 +534,14 @@ static int face_select_hide_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_face_select_hide(wmOperatorType *ot)
 {
-	ot->name= "Face Select Hide";
-	ot->description= "Hide selected faces";
-	ot->idname= "PAINT_OT_face_select_hide";
+	ot->name = "Face Select Hide";
+	ot->description = "Hide selected faces";
+	ot->idname = "PAINT_OT_face_select_hide";
 
-	ot->exec= face_select_hide_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_hide_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
@@ -556,14 +556,14 @@ static int face_select_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_reveal(wmOperatorType *ot)
 {
-	ot->name= "Face Select Reveal";
-	ot->description= "Reveal hidden faces";
-	ot->idname= "PAINT_OT_face_select_reveal";
+	ot->name = "Face Select Reveal";
+	ot->description = "Reveal hidden faces";
+	ot->idname = "PAINT_OT_face_select_reveal";
 
-	ot->exec= face_select_reveal_exec;
-	ot->poll= facemask_paint_poll;
+	ot->exec = face_select_reveal_exec;
+	ot->poll = facemask_paint_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }

@@ -165,21 +165,21 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select By Type";
+	ot->name = "Select By Type";
 	ot->description = "Select all visible objects that are of a type";
-	ot->idname= "OBJECT_OT_select_by_type";
+	ot->idname = "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_by_type_exec;
-	ot->poll= objects_selectable_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_by_type_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop= RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
 }
 
 /*********************** Selection by Links *********************/
@@ -347,21 +347,21 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
+	ot->name = "Select Linked";
 	ot->description = "Select all visible objects that are linked";
-	ot->idname= "OBJECT_OT_select_linked";
+	ot->idname = "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_linked_exec;
-	ot->poll= objects_selectable_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_linked_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 }
 
 /*********************** Selected Grouped ********************/
@@ -673,21 +673,21 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_grouped(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Grouped";
+	ot->name = "Select Grouped";
 	ot->description = "Select all visible objects grouped by various properties";
-	ot->idname= "OBJECT_OT_select_grouped";
+	ot->idname = "OBJECT_OT_select_grouped";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_grouped_exec;
-	ot->poll= objects_selectable_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_grouped_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
 /************************* Select by Layer **********************/
@@ -722,17 +722,17 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select by Layer";
+	ot->name = "Select by Layer";
 	ot->description = "Select all visible objects on a layer";
-	ot->idname= "OBJECT_OT_select_by_layer";
+	ot->idname = "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
 	/*ot->invoke = XXX - need a int grid popup*/
-	ot->exec= object_select_by_layer_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_by_layer_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
@@ -787,16 +787,16 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "(De)select All";
+	ot->name = "(De)select All";
 	ot->description = "Change selection of all visible objects in scene";
-	ot->idname= "OBJECT_OT_select_all";
+	ot->idname = "OBJECT_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= object_select_all_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_all_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -836,16 +836,16 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Same Group";
+	ot->name = "Select Same Group";
 	ot->description = "Select object in the same group";
-	ot->idname= "OBJECT_OT_select_same_group";
+	ot->idname = "OBJECT_OT_select_same_group";
 	
 	/* api callbacks */
-	ot->exec= object_select_same_group_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_same_group_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_string(ot->srna, "group", "", MAX_ID_NAME, "Group", "Name of the group to select");
 }
@@ -889,16 +889,16 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Mirror";
+	ot->name = "Select Mirror";
 	ot->description = "Select the Mirror objects of the selected object eg. L.sword -> R.sword";
-	ot->idname= "OBJECT_OT_select_mirror";
+	ot->idname = "OBJECT_OT_select_mirror";
 	
 	/* api callbacks */
-	ot->exec= object_select_mirror_exec;
-	ot->poll= objects_selectable_poll;
+	ot->exec = object_select_mirror_exec;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 }
@@ -936,17 +936,17 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Random";
+	ot->name = "Select Random";
 	ot->description = "Set select on random visible objects";
-	ot->idname= "OBJECT_OT_select_random";
+	ot->idname = "OBJECT_OT_select_random";
 	
 	/* api callbacks */
-	/*ot->invoke= object_select_random_invoke XXX - need a number popup ;*/
+	/*ot->invoke = object_select_random_invoke XXX - need a number popup ;*/
 	ot->exec = object_select_random_exec;
-	ot->poll= objects_selectable_poll;
+	ot->poll = objects_selectable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);

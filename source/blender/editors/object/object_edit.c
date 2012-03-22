@@ -161,16 +161,16 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Restrict View";
+	ot->name = "Clear Restrict View";
 	ot->description = "Reveal the object by setting the hide flag";
-	ot->idname= "OBJECT_OT_hide_view_clear";
+	ot->idname = "OBJECT_OT_hide_view_clear";
 	
 	/* api callbacks */
-	ot->exec= object_hide_view_clear_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = object_hide_view_clear_exec;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)
@@ -215,16 +215,16 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Restrict View";
+	ot->name = "Set Restrict View";
 	ot->description = "Hide the object by setting the hide flag";
-	ot->idname= "OBJECT_OT_hide_view_set";
+	ot->idname = "OBJECT_OT_hide_view_set";
 	
 	/* api callbacks */
-	ot->exec= object_hide_view_set_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = object_hide_view_set_exec;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 	
@@ -254,16 +254,16 @@ void OBJECT_OT_hide_render_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Restrict Render";
+	ot->name = "Clear Restrict Render";
 	ot->description = "Reveal the render object by setting the hide render flag";
-	ot->idname= "OBJECT_OT_hide_render_clear";
+	ot->idname = "OBJECT_OT_hide_render_clear";
 
 	/* api callbacks */
-	ot->exec= object_hide_render_clear_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = object_hide_render_clear_exec;
+	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_hide_render_set_exec(bContext *C, wmOperator *op)
@@ -290,16 +290,16 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Restrict Render";
+	ot->name = "Set Restrict Render";
 	ot->description = "Hide the render object by setting the hide render flag";
-	ot->idname= "OBJECT_OT_hide_render_set";
+	ot->idname = "OBJECT_OT_hide_render_set";
 
 	/* api callbacks */
-	ot->exec= object_hide_render_set_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = object_hide_render_set_exec;
+	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
@@ -547,17 +547,17 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Toggle Editmode";
+	ot->name = "Toggle Editmode";
 	ot->description = "Toggle object's editmode";
-	ot->idname= "OBJECT_OT_editmode_toggle";
+	ot->idname = "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
-	ot->exec= editmode_toggle_exec;
+	ot->exec = editmode_toggle_exec;
 	
-	ot->poll= editmode_toggle_poll;
+	ot->poll = editmode_toggle_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *************************** */
@@ -585,16 +585,16 @@ static int posemode_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_posemode_toggle(wmOperatorType *ot) 
 {
 	/* identifiers */
-	ot->name= "Toggle Pose Mode";
-	ot->idname= "OBJECT_OT_posemode_toggle";
-	ot->description= "Enable or disable posing/selecting bones";
+	ot->name = "Toggle Pose Mode";
+	ot->idname = "OBJECT_OT_posemode_toggle";
+	ot->description = "Enable or disable posing/selecting bones";
 	
 	/* api callbacks */
-	ot->exec= posemode_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = posemode_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flag */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
@@ -1071,16 +1071,16 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Toggle Force Field";
+	ot->name = "Toggle Force Field";
 	ot->description = "Toggle object's force field";
-	ot->idname= "OBJECT_OT_forcefield_toggle";
+	ot->idname = "OBJECT_OT_forcefield_toggle";
 	
 	/* api callbacks */
-	ot->exec= forcefield_toggle_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = forcefield_toggle_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************************************** */
@@ -1137,16 +1137,16 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *op)
 void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Calculate Object Paths";
-	ot->idname= "OBJECT_OT_paths_calculate";
-	ot->description= "Calculate paths for the selected bones";
+	ot->name = "Calculate Object Paths";
+	ot->idname = "OBJECT_OT_paths_calculate";
+	ot->description = "Calculate paths for the selected bones";
 	
 	/* api callbacks */
-	ot->exec= object_calculate_paths_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = object_calculate_paths_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------- */
@@ -1181,13 +1181,13 @@ static int object_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_paths_clear (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Object Paths";
-	ot->idname= "OBJECT_OT_paths_clear";
-	ot->description= "Clear path caches for selected bones";
+	ot->name = "Clear Object Paths";
+	ot->idname = "OBJECT_OT_paths_clear";
+	ot->description = "Clear path caches for selected bones";
 	
 	/* api callbacks */
-	ot->exec= object_clear_paths_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = object_clear_paths_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1240,31 +1240,31 @@ static int shade_poll(bContext *C)
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Flat";
-	ot->description= "Display faces 'flat'";
-	ot->idname= "OBJECT_OT_shade_flat";
+	ot->name = "Shade Flat";
+	ot->description = "Display faces 'flat'";
+	ot->idname = "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
-	ot->poll= shade_poll;
-	ot->exec= shade_smooth_exec;
+	ot->poll = shade_poll;
+	ot->exec = shade_smooth_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Smooth";
-	ot->description= "Display faces 'smooth' (using vertex normals)";
-	ot->idname= "OBJECT_OT_shade_smooth";
+	ot->name = "Shade Smooth";
+	ot->description = "Display faces 'smooth' (using vertex normals)";
+	ot->idname = "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->poll= shade_poll;
-	ot->exec= shade_smooth_exec;
+	ot->poll = shade_poll;
+	ot->exec = shade_smooth_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************** */
@@ -1450,17 +1450,17 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Set Object Mode";
+	ot->name = "Set Object Mode";
 	ot->description = "Sets the object interaction mode";
-	ot->idname= "OBJECT_OT_mode_set";
+	ot->idname = "OBJECT_OT_mode_set";
 	
 	/* api callbacks */
-	ot->exec= object_mode_set_exec;
+	ot->exec = object_mode_set_exec;
 	
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= 0; /* no register/undo here, leave it to operators being called */
+	ot->flag = 0; /* no register/undo here, leave it to operators being called */
 	
 	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
@@ -1515,16 +1515,16 @@ static int game_property_new(bContext *C, wmOperator *op)
 void OBJECT_OT_game_property_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Game Property";
-	ot->description= "Create a new property available to the game engine";
-	ot->idname= "OBJECT_OT_game_property_new";
+	ot->name = "New Game Property";
+	ot->description = "Create a new property available to the game engine";
+	ot->idname = "OBJECT_OT_game_property_new";
 
 	/* api callbacks */
-	ot->exec= game_property_new;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = game_property_new;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", gameproperty_type_items, GPROP_FLOAT, "Type", "Type of game property to add");
 	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the game property to add");
@@ -1556,16 +1556,16 @@ static int game_property_remove(bContext *C, wmOperator *op)
 void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Game Property";
-	ot->description= "Remove game property";
-	ot->idname= "OBJECT_OT_game_property_remove";
+	ot->name = "Remove Game Property";
+	ot->description = "Remove game property";
+	ot->idname = "OBJECT_OT_game_property_remove";
 
 	/* api callbacks */
-	ot->exec= game_property_remove;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = game_property_remove;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
 }
@@ -1647,20 +1647,20 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	/* identifiers */
-	ot->name= "Copy Game Property";
-	ot->idname= "OBJECT_OT_game_property_copy";
+	ot->name = "Copy Game Property";
+	ot->idname = "OBJECT_OT_game_property_copy";
 
 	/* api callbacks */
-	ot->exec= game_property_copy_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = game_property_copy_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "operation", game_properties_copy_operations, 3, "Operation", "");
 	prop=RNA_def_enum(ot->srna, "property", gameprops_items, 0, "Property", "Properties to copy");
 	RNA_def_enum_funcs(prop, gameprops_itemf);
-	ot->prop=prop;
+	ot->prop = prop;
 }
 
 static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1676,15 +1676,15 @@ static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Game Property";
-	ot->idname= "OBJECT_OT_game_property_clear";
+	ot->name = "Clear Game Property";
+	ot->idname = "OBJECT_OT_game_property_clear";
 
 	/* api callbacks */
-	ot->exec= game_property_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = game_property_clear_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ Copy Logic Bricks ***********************/
@@ -1733,16 +1733,16 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_logic_bricks_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Logic Bricks to Selected";
+	ot->name = "Copy Logic Bricks to Selected";
 	ot->description = "Copy logic bricks to other selected objects";
-	ot->idname= "OBJECT_OT_logic_bricks_copy";
+	ot->idname = "OBJECT_OT_logic_bricks_copy";
 
 	/* api callbacks */
-	ot->exec= logicbricks_copy_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = logicbricks_copy_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1781,14 +1781,14 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_game_physics_copy(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Game Physics Properties to Selected";
+	ot->name = "Copy Game Physics Properties to Selected";
 	ot->description = "Copy game physics properties to other selected objects";
-	ot->idname= "OBJECT_OT_game_physics_copy";
+	ot->idname = "OBJECT_OT_game_physics_copy";
 	
 	/* api callbacks */
-	ot->exec= game_physics_copy_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = game_physics_copy_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

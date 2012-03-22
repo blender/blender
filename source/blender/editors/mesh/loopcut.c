@@ -546,16 +546,16 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_edgering_select (wmOperatorType *ot)
 {
 	/* description */
-	ot->name= "Edge Ring Select";
-	ot->idname= "MESH_OT_edgering_select";
-	ot->description= "Select an edge ring";
+	ot->name = "Edge Ring Select";
+	ot->idname = "MESH_OT_edgering_select";
+	ot->description = "Select an edge ring";
 	
 	/* callbacks */
-	ot->invoke= ringsel_invoke;
-	ot->poll= ED_operator_editmesh_region_view3d; 
+	ot->invoke = ringsel_invoke;
+	ot->poll = ED_operator_editmesh_region_view3d; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
@@ -567,18 +567,18 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* description */
-	ot->name= "Loop Cut";
-	ot->idname= "MESH_OT_loopcut";
-	ot->description= "Add a new loop between existing loops";
+	ot->name = "Loop Cut";
+	ot->idname = "MESH_OT_loopcut";
+	ot->description = "Add a new loop between existing loops";
 	
 	/* callbacks */
-	ot->invoke= ringcut_invoke;
-	ot->modal= loopcut_modal;
-	ot->cancel= ringcut_cancel;
-	ot->poll= ED_operator_editmesh_region_view3d;
+	ot->invoke = ringcut_invoke;
+	ot->modal = loopcut_modal;
+	ot->cancel = ringcut_cancel;
+	ot->poll = ED_operator_editmesh_region_view3d;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);

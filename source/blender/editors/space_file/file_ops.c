@@ -300,16 +300,16 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select File";
-	ot->description= "Activate/select the file(s) contained in the border";
-	ot->idname= "FILE_OT_select_border";
+	ot->name = "Activate/Select File";
+	ot->description = "Activate/select the file(s) contained in the border";
+	ot->idname = "FILE_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= file_border_select_exec;
-	ot->modal= file_border_select_modal;
-	ot->poll= ED_operator_file_active;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = file_border_select_exec;
+	ot->modal = file_border_select_modal;
+	ot->poll = ED_operator_file_active;
+	ot->cancel = WM_border_select_cancel;
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 1);
@@ -351,13 +351,13 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void FILE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select File";
-	ot->description= "Activate/select file";
-	ot->idname= "FILE_OT_select";
+	ot->name = "Activate/Select File";
+	ot->description = "Activate/select file";
+	ot->idname = "FILE_OT_select";
 	
 	/* api callbacks */
-	ot->invoke= file_select_invoke;
-	ot->poll= ED_operator_file_active;
+	ot->invoke = file_select_invoke;
+	ot->poll = ED_operator_file_active;
 
 	/* rna */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
@@ -398,13 +398,13 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All Files";
-	ot->description= "Select or deselect all files";
-	ot->idname= "FILE_OT_select_all_toggle";
+	ot->name = "(De)select All Files";
+	ot->description = "Select or deselect all files";
+	ot->idname = "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
-	ot->exec= file_select_all_exec;
-	ot->poll= ED_operator_file_active;
+	ot->exec = file_select_all_exec;
+	ot->poll = ED_operator_file_active;
 
 	/* rna */
 
@@ -435,13 +435,13 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Directory";
-	ot->description= "Select a bookmarked directory";
-	ot->idname= "FILE_OT_select_bookmark";
+	ot->name = "Select Directory";
+	ot->description = "Select a bookmarked directory";
+	ot->idname = "FILE_OT_select_bookmark";
 	
 	/* api callbacks */
-	ot->exec= bookmark_select_exec;
-	ot->poll= ED_operator_file_active;
+	ot->exec = bookmark_select_exec;
+	ot->poll = ED_operator_file_active;
 
 	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
 }
@@ -468,13 +468,13 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_bookmark_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bookmark";
-	ot->description= "Add a bookmark for the selected/active directory";
-	ot->idname= "FILE_OT_bookmark_add";
+	ot->name = "Add Bookmark";
+	ot->description = "Add a bookmark for the selected/active directory";
+	ot->idname = "FILE_OT_bookmark_add";
 	
 	/* api callbacks */
-	ot->exec= bookmark_add_exec;
-	ot->poll= ED_operator_file_active;
+	ot->exec = bookmark_add_exec;
+	ot->poll = ED_operator_file_active;
 }
 
 static int bookmark_delete_exec(bContext *C, wmOperator *op)
@@ -501,13 +501,13 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Bookmark";
-	ot->description= "Delete selected bookmark";
-	ot->idname= "FILE_OT_delete_bookmark";
+	ot->name = "Delete Bookmark";
+	ot->description = "Delete selected bookmark";
+	ot->idname = "FILE_OT_delete_bookmark";
 	
 	/* api callbacks */
-	ot->exec= bookmark_delete_exec;
-	ot->poll= ED_operator_file_active;
+	ot->exec = bookmark_delete_exec;
+	ot->poll = ED_operator_file_active;
 
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
 }
@@ -563,13 +563,13 @@ static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 void FILE_OT_highlight(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Highlight File";
-	ot->description= "Highlight selected file(s)";
-	ot->idname= "FILE_OT_highlight";
+	ot->name = "Highlight File";
+	ot->description = "Highlight selected file(s)";
+	ot->idname = "FILE_OT_highlight";
 	
 	/* api callbacks */
-	ot->invoke= file_highlight_invoke;
-	ot->poll= ED_operator_file_active;
+	ot->invoke = file_highlight_invoke;
+	ot->poll = ED_operator_file_active;
 }
 
 int file_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
@@ -597,13 +597,13 @@ static int file_operator_poll(bContext *C)
 void FILE_OT_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cancel File Load";
-	ot->description= "Cancel loading of selected file";
-	ot->idname= "FILE_OT_cancel";
+	ot->name = "Cancel File Load";
+	ot->description = "Cancel loading of selected file";
+	ot->idname = "FILE_OT_cancel";
 	
 	/* api callbacks */
-	ot->exec= file_cancel_exec;
-	ot->poll= file_operator_poll;
+	ot->exec = file_cancel_exec;
+	ot->poll = file_operator_poll;
 }
 
 
@@ -767,13 +767,13 @@ int file_exec(bContext *C, wmOperator *exec_op)
 void FILE_OT_execute(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Execute File Window";
-	ot->description= "Execute selected file";
-	ot->idname= "FILE_OT_execute";
+	ot->name = "Execute File Window";
+	ot->description = "Execute selected file";
+	ot->idname = "FILE_OT_execute";
 	
 	/* api callbacks */
-	ot->exec= file_exec;
-	ot->poll= file_operator_poll; 
+	ot->exec = file_exec;
+	ot->poll = file_operator_poll; 
 	
 	RNA_def_boolean(ot->srna, "need_active", 0, "Need Active", "Only execute if there's an active selected file in the file list");
 }
@@ -800,13 +800,13 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Parent File";
-	ot->description= "Move to parent directory";
-	ot->idname= "FILE_OT_parent";
+	ot->name = "Parent File";
+	ot->description = "Move to parent directory";
+	ot->idname = "FILE_OT_parent";
 	
 	/* api callbacks */
-	ot->exec= file_parent_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_parent_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 
@@ -825,13 +825,13 @@ static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_previous(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Previous Folder";
-	ot->description= "Move to previous folder";
-	ot->idname= "FILE_OT_previous";
+	ot->name = "Previous Folder";
+	ot->description = "Move to previous folder";
+	ot->idname = "FILE_OT_previous";
 	
 	/* api callbacks */
-	ot->exec= file_previous_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_previous_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 int file_previous_exec(bContext *C, wmOperator *UNUSED(unused))
@@ -856,13 +856,13 @@ int file_previous_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_next(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Next Folder";
-	ot->description= "Move to next folder";
-	ot->idname= "FILE_OT_next";
+	ot->name = "Next Folder";
+	ot->description = "Move to next folder";
+	ot->idname = "FILE_OT_next";
 	
 	/* api callbacks */
-	ot->exec= file_next_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_next_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
@@ -983,14 +983,14 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Smooth Scroll";
-	ot->idname= "FILE_OT_smoothscroll";
-	ot->description="Smooth scroll to make editable file visible";
+	ot->name = "Smooth Scroll";
+	ot->idname = "FILE_OT_smoothscroll";
+	ot->description = "Smooth scroll to make editable file visible";
 	
 	/* api callbacks */
-	ot->invoke= file_smoothscroll_invoke;
+	ot->invoke = file_smoothscroll_invoke;
 	
-	ot->poll= ED_operator_file_active;
+	ot->poll = ED_operator_file_active;
 }
 
 
@@ -1070,14 +1070,14 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create New Directory";
-	ot->description= "Create a new directory";
-	ot->idname= "FILE_OT_directory_new";
+	ot->name = "Create New Directory";
+	ot->description = "Create a new directory";
+	ot->idname = "FILE_OT_directory_new";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= file_directory_new_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = file_directory_new_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
 
@@ -1192,26 +1192,26 @@ static int file_directory_poll(bContext *C)
 void FILE_OT_directory(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Enter Directory Name";
-	ot->description= "Enter a directory name";
-	ot->idname= "FILE_OT_directory";
+	ot->name = "Enter Directory Name";
+	ot->description = "Enter a directory name";
+	ot->idname = "FILE_OT_directory";
 	
 	/* api callbacks */
-	ot->invoke= file_directory_invoke;
-	ot->exec= file_directory_exec;
-	ot->poll= file_directory_poll; /* <- important, handler is on window level */
+	ot->invoke = file_directory_invoke;
+	ot->exec = file_directory_exec;
+	ot->poll = file_directory_poll; /* <- important, handler is on window level */
 }
 
 void FILE_OT_refresh(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Refresh Filelist";
-	ot->description= "Refresh the file list";
-	ot->idname= "FILE_OT_refresh";
+	ot->name = "Refresh Filelist";
+	ot->description = "Refresh the file list";
+	ot->idname = "FILE_OT_refresh";
 	
 	/* api callbacks */
-	ot->exec= file_refresh_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_refresh_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
@@ -1231,13 +1231,13 @@ static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_hidedot(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Hide Dot Files";
-	ot->description= "Toggle hide hidden dot files";
-	ot->idname= "FILE_OT_hidedot";
+	ot->name = "Toggle Hide Dot Files";
+	ot->description = "Toggle hide hidden dot files";
+	ot->idname = "FILE_OT_hidedot";
 	
 	/* api callbacks */
-	ot->exec= file_hidedot_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_hidedot_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 struct ARegion *file_buttons_region(struct ScrArea *sa)
@@ -1281,13 +1281,13 @@ static int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Bookmarks";
-	ot->description= "Toggle bookmarks display";
-	ot->idname= "FILE_OT_bookmark_toggle";
+	ot->name = "Toggle Bookmarks";
+	ot->description = "Toggle bookmarks display";
+	ot->idname = "FILE_OT_bookmark_toggle";
 	
 	/* api callbacks */
-	ot->exec= file_bookmark_toggle_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_bookmark_toggle_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 
@@ -1311,13 +1311,13 @@ static int file_filenum_exec(bContext *C, wmOperator *op)
 void FILE_OT_filenum(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Increment Number in Filename";
-	ot->description= "Increment number in filename";
-	ot->idname= "FILE_OT_filenum";
+	ot->name = "Increment Number in Filename";
+	ot->description = "Increment number in filename";
+	ot->idname = "FILE_OT_filenum";
 	
 	/* api callbacks */
-	ot->exec= file_filenum_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->exec = file_filenum_exec;
+	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
 	/* props */
 	RNA_def_int(ot->srna, "increment", 1, -100, 100, "Increment", "", -100,100);
@@ -1365,13 +1365,13 @@ static int file_rename_poll(bContext *C)
 void FILE_OT_rename(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Rename File or Directory";
-	ot->description= "Rename file or file directory";
-	ot->idname= "FILE_OT_rename";
+	ot->name = "Rename File or Directory";
+	ot->description = "Rename file or file directory";
+	ot->idname = "FILE_OT_rename";
 	
 	/* api callbacks */
-	ot->exec= file_rename_exec;
-	ot->poll= file_rename_poll; 
+	ot->exec = file_rename_exec;
+	ot->poll = file_rename_poll; 
 
 }
 
@@ -1417,14 +1417,14 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_delete(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete File";
-	ot->description= "Delete selected file";
-	ot->idname= "FILE_OT_delete";
+	ot->name = "Delete File";
+	ot->description = "Delete selected file";
+	ot->idname = "FILE_OT_delete";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= file_delete_exec;
-	ot->poll= file_delete_poll; /* <- important, handler is on window level */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = file_delete_exec;
+	ot->poll = file_delete_poll; /* <- important, handler is on window level */
 }
 
 

@@ -258,16 +258,16 @@ static int sensor_remove_exec(bContext *C, wmOperator *op)
 
 static void LOGIC_OT_sensor_remove(wmOperatorType *ot)
 {
-	ot->name= "Remove Sensor";
-	ot->description= "Remove a sensor from the active object";
-	ot->idname= "LOGIC_OT_sensor_remove";
+	ot->name = "Remove Sensor";
+	ot->description = "Remove a sensor from the active object";
+	ot->idname = "LOGIC_OT_sensor_remove";
 	
-	ot->invoke= sensor_remove_invoke;
-	ot->exec= sensor_remove_exec;
-	ot->poll= edit_sensor_poll;
+	ot->invoke = sensor_remove_invoke;
+	ot->exec = sensor_remove_exec;
+	ot->poll = edit_sensor_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_sensor_properties(ot);
 }
 
@@ -313,20 +313,20 @@ static void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add Sensor";
+	ot->name = "Add Sensor";
 	ot->description = "Add a sensor to the active object";
-	ot->idname= "LOGIC_OT_sensor_add";
+	ot->idname = "LOGIC_OT_sensor_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= sensor_add_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = sensor_add_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
+	ot->prop = prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
 	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
 	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Sensor to add");
 	RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Sensor to");
@@ -361,16 +361,16 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 
 static void LOGIC_OT_controller_remove(wmOperatorType *ot)
 {
-	ot->name= "Remove Controller";
-	ot->description= "Remove a controller from the active object";
-	ot->idname= "LOGIC_OT_controller_remove";
+	ot->name = "Remove Controller";
+	ot->description = "Remove a controller from the active object";
+	ot->idname = "LOGIC_OT_controller_remove";
 	
-	ot->invoke= controller_remove_invoke;
-	ot->exec= controller_remove_exec;
-	ot->poll= edit_controller_poll;
+	ot->invoke = controller_remove_invoke;
+	ot->exec = controller_remove_exec;
+	ot->poll = edit_controller_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_controller_properties(ot);
 }
 
@@ -428,20 +428,20 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 static void LOGIC_OT_controller_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Controller";
+	ot->name = "Add Controller";
 	ot->description = "Add a controller to the active object";
-	ot->idname= "LOGIC_OT_controller_add";
+	ot->idname = "LOGIC_OT_controller_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= controller_add_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = controller_add_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
+	ot->prop = RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
 	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Controller to add");
 	RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Controller to");
 }
@@ -475,16 +475,16 @@ static int actuator_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 
 static void LOGIC_OT_actuator_remove(wmOperatorType *ot)
 {
-	ot->name= "Remove Actuator";
-	ot->description= "Remove an actuator from the active object";
-	ot->idname= "LOGIC_OT_actuator_remove";
+	ot->name = "Remove Actuator";
+	ot->description = "Remove an actuator from the active object";
+	ot->idname = "LOGIC_OT_actuator_remove";
 	
-	ot->invoke= actuator_remove_invoke;
-	ot->exec= actuator_remove_exec;
-	ot->poll= edit_actuator_poll;
+	ot->invoke = actuator_remove_invoke;
+	ot->exec = actuator_remove_exec;
+	ot->poll = edit_actuator_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_actuator_properties(ot);
 }
 
@@ -530,20 +530,20 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add Actuator";
+	ot->name = "Add Actuator";
 	ot->description = "Add an actuator to the active object";
-	ot->idname= "LOGIC_OT_actuator_add";
+	ot->idname = "LOGIC_OT_actuator_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= actuator_add_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = actuator_add_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
+	ot->prop = prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
 	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
 	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Actuator to add");
 	RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Actuator to");
@@ -584,17 +584,17 @@ static int sensor_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event
 static void LOGIC_OT_sensor_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Sensor";
+	ot->name = "Move Sensor";
 	ot->description = "Move Sensor";
-	ot->idname= "LOGIC_OT_sensor_move";
+	ot->idname = "LOGIC_OT_sensor_move";
 	
 	/* api callbacks */
-	ot->invoke= sensor_move_invoke;
-	ot->exec= sensor_move_exec;
-	ot->poll= edit_sensor_poll;
+	ot->invoke = sensor_move_invoke;
+	ot->exec = sensor_move_exec;
+	ot->poll = edit_sensor_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	edit_sensor_properties(ot);
@@ -629,17 +629,17 @@ static int controller_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 static void LOGIC_OT_controller_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Controller";
+	ot->name = "Move Controller";
 	ot->description = "Move Controller";
-	ot->idname= "LOGIC_OT_controller_move";
+	ot->idname = "LOGIC_OT_controller_move";
 	
 	/* api callbacks */
-	ot->invoke= controller_move_invoke;
-	ot->exec= controller_move_exec;
-	ot->poll= edit_controller_poll;
+	ot->invoke = controller_move_invoke;
+	ot->exec = controller_move_exec;
+	ot->poll = edit_controller_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	edit_controller_properties(ot);
@@ -674,17 +674,17 @@ static int actuator_move_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 static void LOGIC_OT_actuator_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Actuator";
+	ot->name = "Move Actuator";
 	ot->description = "Move Actuator";
-	ot->idname= "LOGIC_OT_actuator_move";
+	ot->idname = "LOGIC_OT_actuator_move";
 	
 	/* api callbacks */
-	ot->invoke= actuator_move_invoke;
-	ot->exec= actuator_move_exec;
-	ot->poll= edit_actuator_poll;
+	ot->invoke = actuator_move_invoke;
+	ot->exec = actuator_move_exec;
+	ot->poll = edit_actuator_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	edit_actuator_properties(ot);
@@ -708,17 +708,17 @@ static int texface_convert_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
  static void LOGIC_OT_texface_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "TexFace to Material Converter";
+	ot->name = "TexFace to Material Converter";
 	ot->description = "Convert old texface settings into material. It may create new materials if needed";
-	ot->idname= "LOGIC_OT_texface_convert";
+	ot->idname = "LOGIC_OT_texface_convert";
 
 	/* api callbacks */
-	ot->invoke= texface_convert_invoke;
-	ot->exec= texface_convert_exec;
-//	ot->poll= texface_convert_poll;
+	ot->invoke = texface_convert_invoke;
+	ot->exec = texface_convert_exec;
+//	ot->poll = texface_convert_poll;
  
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 

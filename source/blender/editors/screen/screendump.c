@@ -218,15 +218,15 @@ static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
-	ot->name= "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
-	ot->idname= "SCREEN_OT_screenshot";
+	ot->name = "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
+	ot->idname = "SCREEN_OT_screenshot";
 	
-	ot->invoke= screenshot_invoke;
-	ot->exec= screenshot_exec;
-	ot->poll= WM_operator_winactive;
-	ot->cancel= screenshot_cancel;
+	ot->invoke = screenshot_invoke;
+	ot->exec = screenshot_exec;
+	ot->poll = WM_operator_winactive;
+	ot->cancel = screenshot_cancel;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
@@ -392,14 +392,14 @@ static int screencast_exec(bContext *C, wmOperator *op)
 
 void SCREEN_OT_screencast(wmOperatorType *ot)
 {
-	ot->name= "Make Screencast";
-	ot->idname= "SCREEN_OT_screencast";
+	ot->name = "Make Screencast";
+	ot->idname = "SCREEN_OT_screencast";
 	
-	ot->invoke= WM_operator_confirm;
-	ot->exec= screencast_exec;
-	ot->poll= WM_operator_winactive;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = screencast_exec;
+	ot->poll = WM_operator_winactive;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 	
 	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");

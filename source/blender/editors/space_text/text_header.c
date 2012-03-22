@@ -117,13 +117,13 @@ static int text_properties_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Properties";
-	ot->description= "Toggle text properties panel";
-	ot->idname= "TEXT_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggle text properties panel";
+	ot->idname = "TEXT_OT_properties";
 	
 	/* api callbacks */
-	ot->exec= text_properties_exec;
-	ot->poll= text_properties_poll;
+	ot->exec = text_properties_exec;
+	ot->poll = text_properties_poll;
 }
 
 /******************** XXX popup menus *******************/

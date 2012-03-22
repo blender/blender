@@ -5113,18 +5113,18 @@ static int paint_cancel(bContext *C, wmOperator *op)
 void PAINT_OT_image_paint(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Image Paint";
-	ot->idname= "PAINT_OT_image_paint";
+	ot->name = "Image Paint";
+	ot->idname = "PAINT_OT_image_paint";
 	
 	/* api callbacks */
-	ot->exec= paint_exec;
-	ot->invoke= paint_invoke;
-	ot->modal= paint_modal;
-	ot->cancel= paint_cancel;
-	ot->poll= image_paint_poll;
+	ot->exec = paint_exec;
+	ot->invoke = paint_invoke;
+	ot->modal = paint_modal;
+	ot->cancel = paint_cancel;
+	ot->poll = image_paint_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -5340,18 +5340,18 @@ static int grab_clone_cancel(bContext *UNUSED(C), wmOperator *op)
 void PAINT_OT_grab_clone(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grab Clone";
-	ot->idname= "PAINT_OT_grab_clone";
+	ot->name = "Grab Clone";
+	ot->idname = "PAINT_OT_grab_clone";
 	
 	/* api callbacks */
-	ot->exec= grab_clone_exec;
-	ot->invoke= grab_clone_invoke;
-	ot->modal= grab_clone_modal;
-	ot->cancel= grab_clone_cancel;
-	ot->poll= image_paint_2d_clone_poll;
+	ot->exec = grab_clone_exec;
+	ot->invoke = grab_clone_invoke;
+	ot->modal = grab_clone_modal;
+	ot->cancel = grab_clone_cancel;
+	ot->poll = image_paint_2d_clone_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates", -1.0f, 1.0f);
@@ -5422,17 +5422,17 @@ static int image_paint_sample_color_poll(bContext *C)
 void PAINT_OT_sample_color(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample Color";
-	ot->idname= "PAINT_OT_sample_color";
+	ot->name = "Sample Color";
+	ot->idname = "PAINT_OT_sample_color";
 	
 	/* api callbacks */
-	ot->exec= sample_color_exec;
-	ot->invoke= sample_color_invoke;
-	ot->modal= sample_color_modal;
-	ot->poll= image_paint_sample_color_poll;
+	ot->exec = sample_color_exec;
+	ot->invoke = sample_color_invoke;
+	ot->modal = sample_color_modal;
+	ot->poll = image_paint_sample_color_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "Cursor location in region coordinates", 0, 16384);
@@ -5473,16 +5473,16 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Clone Cursor";
-	ot->idname= "PAINT_OT_clone_cursor_set";
+	ot->name = "Set Clone Cursor";
+	ot->idname = "PAINT_OT_clone_cursor_set";
 	
 	/* api callbacks */
-	ot->exec= set_clone_cursor_exec;
-	ot->invoke= set_clone_cursor_invoke;
-	ot->poll= image_paint_3d_poll;
+	ot->exec = set_clone_cursor_exec;
+	ot->invoke = set_clone_cursor_invoke;
+	ot->poll = image_paint_3d_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates", -10000.0f, 10000.0f);
@@ -5555,15 +5555,15 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Texture Paint Toggle";
-	ot->idname= "PAINT_OT_texture_paint_toggle";
+	ot->name = "Texture Paint Toggle";
+	ot->idname = "PAINT_OT_texture_paint_toggle";
 	
 	/* api callbacks */
-	ot->exec= texture_paint_toggle_exec;
-	ot->poll= texture_paint_toggle_poll;
+	ot->exec = texture_paint_toggle_exec;
+	ot->poll = texture_paint_toggle_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int texture_paint_poll(bContext *C)
@@ -5705,20 +5705,20 @@ void PAINT_OT_project_image(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Project Image";
-	ot->idname= "PAINT_OT_project_image";
-	ot->description= "Project an edited render from the active camera back onto the object";
+	ot->name = "Project Image";
+	ot->idname = "PAINT_OT_project_image";
+	ot->description = "Project an edited render from the active camera back onto the object";
 
 	/* api callbacks */
-	ot->invoke= WM_enum_search_invoke;
-	ot->exec= texture_paint_camera_project_exec;
+	ot->invoke = WM_enum_search_invoke;
+	ot->exec = texture_paint_camera_project_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	prop= RNA_def_enum(ot->srna, "image", DummyRNA_NULL_items, 0, "Image", "");
 	RNA_def_enum_funcs(prop, RNA_image_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
@@ -5784,16 +5784,16 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 void PAINT_OT_image_from_view(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Image from View";
-	ot->idname= "PAINT_OT_image_from_view";
-	ot->description= "Make an image from the current 3D view for re-projection";
+	ot->name = "Image from View";
+	ot->idname = "PAINT_OT_image_from_view";
+	ot->description = "Make an image from the current 3D view for re-projection";
 
 	/* api callbacks */
-	ot->exec= texture_paint_image_from_view_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->exec = texture_paint_image_from_view_exec;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 
 	RNA_def_string_file_name(ot->srna, "filepath", "", FILE_MAX, "File Path", "Name of the file");
 }

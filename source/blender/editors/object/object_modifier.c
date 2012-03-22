@@ -687,22 +687,22 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Modifier";
+	ot->name = "Add Modifier";
 	ot->description = "Add a modifier to the active object";
-	ot->idname= "OBJECT_OT_modifier_add";
+	ot->idname = "OBJECT_OT_modifier_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= modifier_add_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = modifier_add_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", modifier_type_items, eModifierType_Subsurf, "Type", "");
 	RNA_def_enum_funcs(prop, modifier_add_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 /************************ generic functions for operators using mod names and data context *********************/
@@ -794,16 +794,16 @@ static int modifier_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 
 void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 {
-	ot->name= "Remove Modifier";
-	ot->description= "Remove a modifier from the active object";
-	ot->idname= "OBJECT_OT_modifier_remove";
+	ot->name = "Remove Modifier";
+	ot->description = "Remove a modifier from the active object";
+	ot->idname = "OBJECT_OT_modifier_remove";
 
-	ot->invoke= modifier_remove_invoke;
-	ot->exec= modifier_remove_exec;
-	ot->poll= edit_modifier_poll;
+	ot->invoke = modifier_remove_invoke;
+	ot->exec = modifier_remove_exec;
+	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -833,16 +833,16 @@ static int modifier_move_up_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 
 void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 {
-	ot->name= "Move Up Modifier";
-	ot->description= "Move modifier up in the stack";
-	ot->idname= "OBJECT_OT_modifier_move_up";
+	ot->name = "Move Up Modifier";
+	ot->description = "Move modifier up in the stack";
+	ot->idname = "OBJECT_OT_modifier_move_up";
 
-	ot->invoke= modifier_move_up_invoke;
-	ot->exec= modifier_move_up_exec;
-	ot->poll= edit_modifier_poll;
+	ot->invoke = modifier_move_up_invoke;
+	ot->exec = modifier_move_up_exec;
+	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -872,16 +872,16 @@ static int modifier_move_down_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 
 void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 {
-	ot->name= "Move Down Modifier";
-	ot->description= "Move modifier down in the stack";
-	ot->idname= "OBJECT_OT_modifier_move_down";
+	ot->name = "Move Down Modifier";
+	ot->description = "Move modifier down in the stack";
+	ot->idname = "OBJECT_OT_modifier_move_down";
 
-	ot->invoke= modifier_move_down_invoke;
-	ot->exec= modifier_move_down_exec;
-	ot->poll= edit_modifier_poll;
+	ot->invoke = modifier_move_down_invoke;
+	ot->exec = modifier_move_down_exec;
+	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -919,16 +919,16 @@ static EnumPropertyItem modifier_apply_as_items[] = {
 
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
-	ot->name= "Apply Modifier";
-	ot->description= "Apply modifier and remove from the stack";
-	ot->idname= "OBJECT_OT_modifier_apply";
+	ot->name = "Apply Modifier";
+	ot->description = "Apply modifier and remove from the stack";
+	ot->idname = "OBJECT_OT_modifier_apply";
 
-	ot->invoke= modifier_apply_invoke;
-	ot->exec= modifier_apply_exec;
-	ot->poll= edit_modifier_poll;
+	ot->invoke = modifier_apply_invoke;
+	ot->exec = modifier_apply_exec;
+	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "apply_as", modifier_apply_as_items, MODIFIER_APPLY_DATA, "Apply as", "How to apply the modifier to the geometry");
 	edit_modifier_properties(ot);
@@ -962,16 +962,16 @@ static int modifier_convert_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 
 void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 {
-	ot->name= "Convert Modifier";
-	ot->description= "Convert particles to a mesh object";
-	ot->idname= "OBJECT_OT_modifier_convert";
+	ot->name = "Convert Modifier";
+	ot->description = "Convert particles to a mesh object";
+	ot->idname = "OBJECT_OT_modifier_convert";
 
-	ot->invoke= modifier_convert_invoke;
-	ot->exec= modifier_convert_exec;
-	ot->poll= edit_modifier_poll;
+	ot->invoke = modifier_convert_invoke;
+	ot->exec = modifier_convert_exec;
+	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1001,16 +1001,16 @@ static int modifier_copy_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 {
-	ot->name= "Copy Modifier";
-	ot->description= "Duplicate modifier at the same position in the stack";
-	ot->idname= "OBJECT_OT_modifier_copy";
+	ot->name = "Copy Modifier";
+	ot->description = "Duplicate modifier at the same position in the stack";
+	ot->idname = "OBJECT_OT_modifier_copy";
 
-	ot->invoke= modifier_copy_invoke;
-	ot->exec= modifier_copy_exec;
-	ot->poll= edit_modifier_poll;
+	ot->invoke = modifier_copy_invoke;
+	ot->exec = modifier_copy_exec;
+	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1046,16 +1046,16 @@ static int multires_higher_levels_delete_invoke(bContext *C, wmOperator *op, wmE
 
 void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 {
-	ot->name= "Delete Higher Levels";
-	ot->description= "Deletes the higher resolution mesh, potential loss of detail";
-	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
+	ot->name = "Delete Higher Levels";
+	ot->description = "Deletes the higher resolution mesh, potential loss of detail";
+	ot->idname = "OBJECT_OT_multires_higher_levels_delete";
 
-	ot->poll= multires_poll;
-	ot->invoke= multires_higher_levels_delete_invoke;
-	ot->exec= multires_higher_levels_delete_exec;
+	ot->poll = multires_poll;
+	ot->invoke = multires_higher_levels_delete_invoke;
+	ot->exec = multires_higher_levels_delete_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1087,16 +1087,16 @@ static int multires_subdivide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 {
-	ot->name= "Multires Subdivide";
-	ot->description= "Add a new level of subdivision";
-	ot->idname= "OBJECT_OT_multires_subdivide";
+	ot->name = "Multires Subdivide";
+	ot->description = "Add a new level of subdivision";
+	ot->idname = "OBJECT_OT_multires_subdivide";
 
-	ot->poll= multires_poll;
-	ot->invoke= multires_subdivide_invoke;
-	ot->exec= multires_subdivide_exec;
+	ot->poll = multires_poll;
+	ot->invoke = multires_subdivide_invoke;
+	ot->exec = multires_subdivide_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1150,16 +1150,16 @@ static int multires_reshape_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 
 void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 {
-	ot->name= "Multires Reshape";
-	ot->description= "Copy vertex coordinates from other object";
-	ot->idname= "OBJECT_OT_multires_reshape";
+	ot->name = "Multires Reshape";
+	ot->description = "Copy vertex coordinates from other object";
+	ot->idname = "OBJECT_OT_multires_reshape";
 
-	ot->poll= multires_poll;
-	ot->invoke= multires_reshape_invoke;
-	ot->exec= multires_reshape_exec;
+	ot->poll = multires_poll;
+	ot->invoke = multires_reshape_invoke;
+	ot->exec = multires_reshape_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1224,17 +1224,17 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *U
 
 void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 {
-	ot->name= "Multires Save External";
-	ot->description= "Save displacements to an external file";
-	ot->idname= "OBJECT_OT_multires_external_save";
+	ot->name = "Multires Save External";
+	ot->description = "Save displacements to an external file";
+	ot->idname = "OBJECT_OT_multires_external_save";
 
-	// XXX modifier no longer in context after file browser .. ot->poll= multires_poll;
-	ot->exec= multires_external_save_exec;
-	ot->invoke= multires_external_save_invoke;
-	ot->poll= multires_poll;
+	// XXX modifier no longer in context after file browser .. ot->poll = multires_poll;
+	ot->exec = multires_external_save_exec;
+	ot->invoke = multires_external_save_invoke;
+	ot->poll = multires_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 	edit_modifier_properties(ot);
@@ -1258,15 +1258,15 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 
 void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
 {
-	ot->name= "Multires Pack External";
-	ot->description= "Pack displacements from an external file";
-	ot->idname= "OBJECT_OT_multires_external_pack";
+	ot->name = "Multires Pack External";
+	ot->description = "Pack displacements from an external file";
+	ot->idname = "OBJECT_OT_multires_external_pack";
 
-	ot->poll= multires_poll;
-	ot->exec= multires_external_pack_exec;
+	ot->poll = multires_poll;
+	ot->exec = multires_external_pack_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* multires apply base ***********************/
@@ -1297,16 +1297,16 @@ static int multires_base_apply_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
 {
-	ot->name= "Multires Apply Base";
-	ot->description= "Modify the base mesh to conform to the displaced mesh";
-	ot->idname= "OBJECT_OT_multires_base_apply";
+	ot->name = "Multires Apply Base";
+	ot->description = "Modify the base mesh to conform to the displaced mesh";
+	ot->idname = "OBJECT_OT_multires_base_apply";
 
-	ot->poll= multires_poll;
-	ot->invoke= multires_base_apply_invoke;
-	ot->exec= multires_base_apply_exec;
+	ot->poll = multires_poll;
+	ot->invoke = multires_base_apply_invoke;
+	ot->exec = multires_base_apply_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1391,17 +1391,17 @@ static int meshdeform_bind_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mesh Deform Bind";
+	ot->name = "Mesh Deform Bind";
 	ot->description = "Bind mesh to cage in mesh deform modifier";
-	ot->idname= "OBJECT_OT_meshdeform_bind";
+	ot->idname = "OBJECT_OT_meshdeform_bind";
 	
 	/* api callbacks */
-	ot->poll= meshdeform_poll;
-	ot->invoke= meshdeform_bind_invoke;
-	ot->exec= meshdeform_bind_exec;
+	ot->poll = meshdeform_poll;
+	ot->invoke = meshdeform_bind_invoke;
+	ot->exec = meshdeform_bind_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1439,16 +1439,16 @@ static int explode_refresh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 
 void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 {
-	ot->name= "Explode Refresh";
-	ot->description= "Refresh data in the Explode modifier";
-	ot->idname= "OBJECT_OT_explode_refresh";
+	ot->name = "Explode Refresh";
+	ot->description = "Refresh data in the Explode modifier";
+	ot->idname = "OBJECT_OT_explode_refresh";
 
-	ot->poll= explode_poll;
-	ot->invoke= explode_refresh_invoke;
-	ot->exec= explode_refresh_exec;
+	ot->poll = explode_poll;
+	ot->invoke = explode_refresh_invoke;
+	ot->exec = explode_refresh_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1654,16 +1654,16 @@ static int ocean_bake_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 
 void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 {
-	ot->name= "Bake Ocean";
-	ot->description= "Bake an image sequence of ocean data";
-	ot->idname= "OBJECT_OT_ocean_bake";
+	ot->name = "Bake Ocean";
+	ot->description = "Bake an image sequence of ocean data";
+	ot->idname = "OBJECT_OT_ocean_bake";
 	
-	ot->poll= ocean_bake_poll;
-	ot->invoke= ocean_bake_invoke;
-	ot->exec= ocean_bake_exec;
+	ot->poll = ocean_bake_poll;
+	ot->invoke = ocean_bake_invoke;
+	ot->exec = ocean_bake_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 	
 	RNA_def_boolean(ot->srna, "free", FALSE, "Free", "Free the bake, rather than generating it");

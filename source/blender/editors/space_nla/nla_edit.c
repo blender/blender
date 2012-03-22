@@ -158,16 +158,16 @@ static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
 void NLA_OT_tweakmode_enter (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Enter Tweak Mode";
-	ot->idname= "NLA_OT_tweakmode_enter";
-	ot->description= "Enter tweaking mode for the action referenced by the active strip";
+	ot->name = "Enter Tweak Mode";
+	ot->idname = "NLA_OT_tweakmode_enter";
+	ot->description = "Enter tweaking mode for the action referenced by the active strip";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_enable_tweakmode_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_enable_tweakmode_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ------------- */
@@ -223,16 +223,16 @@ static int nlaedit_disable_tweakmode_exec (bContext *C, wmOperator *op)
 void NLA_OT_tweakmode_exit (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Exit Tweak Mode";
-	ot->idname= "NLA_OT_tweakmode_exit";
-	ot->description= "Exit tweaking mode for the action referenced by the active strip";
+	ot->name = "Exit Tweak Mode";
+	ot->idname = "NLA_OT_tweakmode_exit";
+	ot->description = "Exit tweaking mode for the action referenced by the active strip";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_disable_tweakmode_exec;
-	ot->poll= nlaop_poll_tweakmode_on;
+	ot->exec = nlaedit_disable_tweakmode_exec;
+	ot->poll = nlaop_poll_tweakmode_on;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */
@@ -338,31 +338,31 @@ static int nlaedit_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "NLA_OT_view_all";
-	ot->description= "Reset viewable area to show full strips range";
+	ot->name = "View All";
+	ot->idname = "NLA_OT_view_all";
+	ot->description = "Reset viewable area to show full strips range";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_viewall_exec;
-	ot->poll= ED_operator_nla_active;
+	ot->exec = nlaedit_viewall_exec;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void NLA_OT_view_selected (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Selected";
-	ot->idname= "NLA_OT_view_selected";
-	ot->description= "Reset viewable area to show selected strips range";
+	ot->name = "View Selected";
+	ot->idname = "NLA_OT_view_selected";
+	ot->description = "Reset viewable area to show selected strips range";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_viewsel_exec;
-	ot->poll= ED_operator_nla_active;
+	ot->exec = nlaedit_viewsel_exec;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */
@@ -473,23 +473,23 @@ void NLA_OT_actionclip_add (wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Action Strip";
-	ot->idname= "NLA_OT_actionclip_add";
-	ot->description= "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track";
+	ot->name = "Add Action Strip";
+	ot->idname = "NLA_OT_actionclip_add";
+	ot->description = "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track";
 	
 	/* api callbacks */
-	ot->invoke= WM_enum_search_invoke;
-	ot->exec= nlaedit_add_actionclip_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->invoke = WM_enum_search_invoke;
+	ot->exec = nlaedit_add_actionclip_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		// TODO: this would be nicer as an ID-pointer...
 	prop= RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
 	RNA_def_enum_funcs(prop, RNA_action_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 /* ******************** Add Transition Operator ***************************** */
@@ -598,16 +598,16 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 void NLA_OT_transition_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Transition";
-	ot->idname= "NLA_OT_transition_add";
-	ot->description= "Add a transition strip between two adjacent selected strips";
+	ot->name = "Add Transition";
+	ot->idname = "NLA_OT_transition_add";
+	ot->description = "Add a transition strip between two adjacent selected strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_add_transition_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_add_transition_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Add Sound Clip Operator ***************************** */
@@ -683,16 +683,16 @@ static int nlaedit_add_sound_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_soundclip_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Sound Clip";
-	ot->idname= "NLA_OT_soundclip_add";
-	ot->description= "Add a strip for controlling when speaker plays its sound clip";
+	ot->name = "Add Sound Clip";
+	ot->idname = "NLA_OT_soundclip_add";
+	ot->description = "Add a strip for controlling when speaker plays its sound clip";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_add_sound_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_add_sound_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Add Meta-Strip Operator ***************************** */
@@ -745,16 +745,16 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_meta_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Meta-Strips";
-	ot->idname= "NLA_OT_meta_add";
-	ot->description= "Add new meta-strips incorporating the selected strips";
+	ot->name = "Add Meta-Strips";
+	ot->idname = "NLA_OT_meta_add";
+	ot->description = "Add new meta-strips incorporating the selected strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_add_meta_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_add_meta_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Remove Meta-Strip Operator ***************************** */
@@ -797,16 +797,16 @@ static int nlaedit_remove_meta_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_meta_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Meta-Strips";
-	ot->idname= "NLA_OT_meta_remove";
-	ot->description= "Separate out the strips held by the selected meta-strips";
+	ot->name = "Remove Meta-Strips";
+	ot->idname = "NLA_OT_meta_remove";
+	ot->description = "Separate out the strips held by the selected meta-strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_remove_meta_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_remove_meta_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Duplicate Strips Operator ************************** */
@@ -900,17 +900,17 @@ static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 void NLA_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Strips";
-	ot->idname= "NLA_OT_duplicate";
-	ot->description= "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals";
+	ot->name = "Duplicate Strips";
+	ot->idname = "NLA_OT_duplicate";
+	ot->description = "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals";
 	
 	/* api callbacks */
-	ot->invoke= nlaedit_duplicate_invoke;
-	ot->exec= nlaedit_duplicate_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->invoke = nlaedit_duplicate_invoke;
+	ot->exec = nlaedit_duplicate_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -975,16 +975,16 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Strips";
-	ot->idname= "NLA_OT_delete";
-	ot->description= "Delete selected strips";
+	ot->name = "Delete Strips";
+	ot->idname = "NLA_OT_delete";
+	ot->description = "Delete selected strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_delete_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_delete_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Split Strips Operator ***************************** */
@@ -1120,16 +1120,16 @@ static int nlaedit_split_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_split (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Split Strips";
-	ot->idname= "NLA_OT_split";
-	ot->description= "Split selected strips at their midpoints";
+	ot->name = "Split Strips";
+	ot->idname = "NLA_OT_split";
+	ot->description = "Split selected strips at their midpoints";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_split_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_split_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Bake Strips Operator ***************************** */
@@ -1173,16 +1173,16 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_bake (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake Strips";
-	ot->idname= "NLA_OT_bake";
-	ot->description= "Bake all strips of selected AnimData blocks";
+	ot->name = "Bake Strips";
+	ot->idname = "NLA_OT_bake";
+	ot->description = "Bake all strips of selected AnimData blocks";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_bake_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_bake_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */
@@ -1235,16 +1235,16 @@ static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_mute_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Muting";
-	ot->idname= "NLA_OT_mute_toggle";
-	ot->description= "Mute or un-mute selected strips";
+	ot->name = "Toggle Muting";
+	ot->idname = "NLA_OT_mute_toggle";
+	ot->description = "Mute or un-mute selected strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_toggle_mute_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_toggle_mute_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Swap Strips Operator ************************** */
@@ -1392,16 +1392,16 @@ static int nlaedit_swap_exec (bContext *C, wmOperator *op)
 void NLA_OT_swap (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Swap Strips";
-	ot->idname= "NLA_OT_swap";
-	ot->description= "Swap order of selected strips within tracks";
+	ot->name = "Swap Strips";
+	ot->idname = "NLA_OT_swap";
+	ot->description = "Swap order of selected strips within tracks";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_swap_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_swap_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Move Strips Up Operator ************************** */
@@ -1466,16 +1466,16 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_move_up (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Strips Up";
-	ot->idname= "NLA_OT_move_up";
-	ot->description= "Move selected strips up a track if there's room";
+	ot->name = "Move Strips Up";
+	ot->idname = "NLA_OT_move_up";
+	ot->description = "Move selected strips up a track if there's room";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_move_up_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_move_up_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Move Strips Down Operator ************************** */
@@ -1540,16 +1540,16 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_move_down (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Strips Down";
-	ot->idname= "NLA_OT_move_down";
-	ot->description= "Move selected strips down a track if there's room";
+	ot->name = "Move Strips Down";
+	ot->idname = "NLA_OT_move_down";
+	ot->description = "Move selected strips down a track if there's room";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_move_down_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_move_down_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Sync Action Length Operator ***************************** */
@@ -1616,19 +1616,19 @@ static int nlaedit_sync_actlen_exec (bContext *C, wmOperator *op)
 void NLA_OT_action_sync_length (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sync Action Length";
-	ot->idname= "NLA_OT_action_sync_length";
-	ot->description= "Synchronize the length of the referenced Action with the length used in the strip";
+	ot->name = "Sync Action Length";
+	ot->idname = "NLA_OT_action_sync_length";
+	ot->description = "Synchronize the length of the referenced Action with the length used in the strip";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_sync_actlen_exec;
-	ot->poll= ED_operator_nla_active; // XXX: is this satisfactory... probably requires a check for active strip...
+	ot->exec = nlaedit_sync_actlen_exec;
+	ot->poll = ED_operator_nla_active; // XXX: is this satisfactory... probably requires a check for active strip...
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip");
+	ot->prop = RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip");
 }
 
 /* ******************** Apply Scale Operator ***************************** */
@@ -1716,16 +1716,16 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_apply_scale (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Scale";
-	ot->idname= "NLA_OT_apply_scale";
-	ot->description= "Apply scaling of selected strips to their referenced Actions";
+	ot->name = "Apply Scale";
+	ot->idname = "NLA_OT_apply_scale";
+	ot->description = "Apply scaling of selected strips to their referenced Actions";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_apply_scale_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_apply_scale_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Clear Scale Operator ***************************** */
@@ -1779,16 +1779,16 @@ static int nlaedit_clear_scale_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_clear_scale (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Scale";
-	ot->idname= "NLA_OT_clear_scale";
-	ot->description= "Reset scaling of selected strips";
+	ot->name = "Clear Scale";
+	ot->idname = "NLA_OT_clear_scale";
+	ot->description = "Reset scaling of selected strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_clear_scale_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_clear_scale_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Snap Strips Operator ************************** */
@@ -1920,20 +1920,20 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 void NLA_OT_snap (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Strips";
-	ot->idname= "NLA_OT_snap";
-	ot->description= "Move start of strips to specified time";
+	ot->name = "Snap Strips";
+	ot->idname = "NLA_OT_snap";
+	ot->description = "Move start of strips to specified time";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= nlaedit_snap_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = nlaedit_snap_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_nlaedit_snap_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_nlaedit_snap_types, 0, "Type", "");
 }
 
 /* *********************************************** */
@@ -2039,20 +2039,20 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 void NLA_OT_fmodifier_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add F-Modifier";
-	ot->idname= "NLA_OT_fmodifier_add";
-	ot->description= "Add a F-Modifier of the specified type to the selected NLA-Strips";
+	ot->name = "Add F-Modifier";
+	ot->idname = "NLA_OT_fmodifier_add";
+	ot->description = "Add a F-Modifier of the specified type to the selected NLA-Strips";
 	
 	/* api callbacks */
-	ot->invoke= nla_fmodifier_add_invoke;
-	ot->exec= nla_fmodifier_add_exec;
-	ot->poll= nlaop_poll_tweakmode_off; 
+	ot->invoke = nla_fmodifier_add_invoke;
+	ot->exec = nla_fmodifier_add_exec;
+	ot->poll = nlaop_poll_tweakmode_off; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add a F-Modifier of the specified type to the active strip");
 }
 
@@ -2103,16 +2103,16 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 void NLA_OT_fmodifier_copy (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy F-Modifiers";
-	ot->idname= "NLA_OT_fmodifier_copy";
-	ot->description= "Copy the F-Modifier(s) of the active NLA-Strip";
+	ot->name = "Copy F-Modifiers";
+	ot->idname = "NLA_OT_fmodifier_copy";
+	ot->description = "Copy the F-Modifier(s) of the active NLA-Strip";
 	
 	/* api callbacks */
-	ot->exec= nla_fmodifier_copy_exec;
-	ot->poll= nlaop_poll_tweakmode_off; 
+	ot->exec = nla_fmodifier_copy_exec;
+	ot->poll = nlaop_poll_tweakmode_off; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	//ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
@@ -2165,16 +2165,16 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 void NLA_OT_fmodifier_paste (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste F-Modifiers";
-	ot->idname= "NLA_OT_fmodifier_paste";
-	ot->description= "Add copied F-Modifiers to the selected NLA-Strips";
+	ot->name = "Paste F-Modifiers";
+	ot->idname = "NLA_OT_fmodifier_paste";
+	ot->description = "Add copied F-Modifiers to the selected NLA-Strips";
 	
 	/* api callbacks */
-	ot->exec= nla_fmodifier_paste_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nla_fmodifier_paste_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */

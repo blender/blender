@@ -729,16 +729,16 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 void POSE_OT_armature_apply (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Pose as Rest Pose";
-	ot->idname= "POSE_OT_armature_apply";
-	ot->description= "Apply the current pose as the new rest pose";
+	ot->name = "Apply Pose as Rest Pose";
+	ot->idname = "POSE_OT_armature_apply";
+	ot->description = "Apply the current pose as the new rest pose";
 	
 	/* callbacks */
-	ot->exec= apply_armature_pose2bones_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = apply_armature_pose2bones_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -780,16 +780,16 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 void POSE_OT_visual_transform_apply (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Visual Transform to Pose";
-	ot->idname= "POSE_OT_visual_transform_apply";
-	ot->description= "Apply final constrained position of pose bones to their transform";
+	ot->name = "Apply Visual Transform to Pose";
+	ot->idname = "POSE_OT_visual_transform_apply";
+	ot->description = "Apply final constrained position of pose bones to their transform";
 	
 	/* callbacks */
-	ot->exec= pose_visual_transform_apply_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_visual_transform_apply_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ---------------------- */
@@ -1243,17 +1243,17 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_separate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate Bones";
-	ot->idname= "ARMATURE_OT_separate";
-	ot->description= "Isolate selected bones into a separate armature";
+	ot->name = "Separate Bones";
+	ot->idname = "ARMATURE_OT_separate";
+	ot->description = "Isolate selected bones into a separate armature";
 	
 	/* callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= separate_armature_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = separate_armature_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************** END tools on Editmode Armature **************** */
@@ -1467,17 +1467,17 @@ static int pose_select_linked_poll(bContext *C)
 void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Connected";
-	ot->idname= "POSE_OT_select_linked";
-	ot->description= "Select bones related to selected ones by parent/child relationships";
+	ot->name = "Select Connected";
+	ot->idname = "POSE_OT_select_linked";
+	ot->description = "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
-	ot->exec= NULL;
-	ot->invoke= pose_select_connected_invoke;
-	ot->poll= pose_select_linked_poll;
+	ot->exec = NULL;
+	ot->invoke = pose_select_connected_invoke;
+	ot->poll = pose_select_linked_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
@@ -1561,17 +1561,17 @@ static int armature_select_linked_poll(bContext *C)
 void ARMATURE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Connected";
-	ot->idname= "ARMATURE_OT_select_linked";
-	ot->description= "Select bones related to selected ones by parent/child relationships";
+	ot->name = "Select Connected";
+	ot->idname = "ARMATURE_OT_select_linked";
+	ot->description = "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
-	ot->exec= NULL;
-	ot->invoke= armature_select_linked_invoke;
-	ot->poll= armature_select_linked_poll;
+	ot->exec = NULL;
+	ot->invoke = armature_select_linked_invoke;
+	ot->poll = armature_select_linked_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties s*/
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
@@ -1746,9 +1746,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Selected Bone(s)";
-	ot->idname= "ARMATURE_OT_delete";
-	ot->description= "Remove selected bones from the armature";
+	ot->name = "Delete Selected Bone(s)";
+	ot->idname = "ARMATURE_OT_delete";
+	ot->description = "Remove selected bones from the armature";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -1756,7 +1756,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* toggle==0: deselect
@@ -2101,9 +2101,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Recalculate Roll";
-	ot->idname= "ARMATURE_OT_calculate_roll";
-	ot->description= "Automatically fix alignment of select bones' axes";
+	ot->name = "Recalculate Roll";
+	ot->idname = "ARMATURE_OT_calculate_roll";
+	ot->description = "Automatically fix alignment of select bones' axes";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2111,10 +2111,10 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
 	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align");
 }
@@ -2408,9 +2408,9 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Click-Extrude";
-	ot->idname= "ARMATURE_OT_click_extrude";
-	ot->description= "Create a new bone going from the last selected joint to the mouse position";
+	ot->name = "Click-Extrude";
+	ot->idname = "ARMATURE_OT_click_extrude";
+	ot->description = "Create a new bone going from the last selected joint to the mouse position";
 	
 	/* api callbacks */
 	ot->invoke = armature_click_extrude_invoke;
@@ -2418,7 +2418,7 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 }
@@ -2676,16 +2676,16 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Selected Bone(s)";
-	ot->idname= "ARMATURE_OT_duplicate";
-	ot->description= "Make copies of the selected bones within the same armature";
+	ot->name = "Duplicate Selected Bone(s)";
+	ot->idname = "ARMATURE_OT_duplicate";
+	ot->description = "Make copies of the selected bones within the same armature";
 	
 	/* api callbacks */
 	ot->exec = armature_duplicate_selected_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -2950,16 +2950,16 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_fill (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fill Between Joints";
-	ot->idname= "ARMATURE_OT_fill";
-	ot->description= "Add bone between selected joint(s) and/or 3D-Cursor";
+	ot->name = "Fill Between Joints";
+	ot->idname = "ARMATURE_OT_fill";
+	ot->description = "Add bone between selected joint(s) and/or 3D-Cursor";
 	
 	/* callbacks */
-	ot->exec= armature_fill_bones_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_fill_bones_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------------------- */
@@ -3134,20 +3134,20 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Merge Bones";
-	ot->idname= "ARMATURE_OT_merge";
-	ot->description= "Merge continuous chains of selected bones";
+	ot->name = "Merge Bones";
+	ot->idname = "ARMATURE_OT_merge";
+	ot->description = "Merge continuous chains of selected bones";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= armature_merge_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_merge_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
 }
 
 /* ************** END Add/Remove stuff in editmode ************ */
@@ -3183,16 +3183,16 @@ static int armature_hide_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected Bones";
-	ot->idname= "ARMATURE_OT_hide";
-	ot->description= "Tag selected bones to not be visible in Edit Mode";
+	ot->name = "Hide Selected Bones";
+	ot->idname = "ARMATURE_OT_hide";
+	ot->description = "Tag selected bones to not be visible in Edit Mode";
 	
 	/* api callbacks */
-	ot->exec= armature_hide_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_hide_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -3223,16 +3223,16 @@ static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal Bones";
-	ot->idname= "ARMATURE_OT_reveal";
-	ot->description= "Unhide all bones that have been tagged to be hidden in Edit Mode";
+	ot->name = "Reveal Bones";
+	ot->idname = "ARMATURE_OT_reveal";
+	ot->description = "Unhide all bones that have been tagged to be hidden in Edit Mode";
 	
 	/* api callbacks */
-	ot->exec= armature_reveal_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_reveal_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 }
 #if 0 // remove this?
@@ -3432,16 +3432,16 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Extrude";
-	ot->idname= "ARMATURE_OT_extrude";
-	ot->description= "Create new bones from the selected joints";
+	ot->name = "Extrude";
+	ot->idname = "ARMATURE_OT_extrude";
+	ot->description = "Create new bones from the selected joints";
 	
 	/* api callbacks */
-	ot->exec= armature_extrude_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_extrude_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
@@ -3495,16 +3495,16 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bone";
-	ot->idname= "ARMATURE_OT_bone_primitive_add";
-	ot->description= "Add a new bone located at the 3D-Cursor";
+	ot->name = "Add Bone";
+	ot->idname = "ARMATURE_OT_bone_primitive_add";
+	ot->description = "Add a new bone located at the 3D-Cursor";
 	
 	/* api callbacks */
 	ot->exec = armature_bone_primitive_add_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_string(ot->srna, "name", "Bone", MAXBONENAME, "Name", "Name of the newly created bone");
 	
@@ -3587,16 +3587,16 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Subdivide Multi";
-	ot->idname= "ARMATURE_OT_subdivide";
-	ot->description= "Break selected bones into chains of smaller bones";
+	ot->name = "Subdivide Multi";
+	ot->idname = "ARMATURE_OT_subdivide";
+	ot->description = "Break selected bones into chains of smaller bones";
 	
 	/* api callbacks */
 	ot->exec = armature_subdivide_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* Properties */
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
@@ -3691,16 +3691,16 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Switch Direction";
-	ot->idname= "ARMATURE_OT_switch_direction";
-	ot->description= "Change the direction that a chain of bones points in (head <-> tail swap)";
+	ot->name = "Switch Direction";
+	ot->idname = "ARMATURE_OT_switch_direction";
+	ot->description = "Change the direction that a chain of bones points in (head <-> tail swap)";
 	
 	/* api callbacks */
 	ot->exec = armature_switch_direction_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* ***************** Parenting *********************** */
 
@@ -3866,9 +3866,9 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 void ARMATURE_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Parent";
-	ot->idname= "ARMATURE_OT_parent_set";
-	ot->description= "Set the active bone as the parent of the selected bones";
+	ot->name = "Make Parent";
+	ot->idname = "ARMATURE_OT_parent_set";
+	ot->description = "Set the active bone as the parent of the selected bones";
 	
 	/* api callbacks */
 	ot->invoke = armature_parent_set_invoke;
@@ -3876,7 +3876,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type of parenting");
 }
@@ -3920,9 +3920,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Parent";
-	ot->idname= "ARMATURE_OT_parent_clear";
-	ot->description= "Remove the parent-child relationship between selected bones and their parents";
+	ot->name = "Clear Parent";
+	ot->idname = "ARMATURE_OT_parent_clear";
+	ot->description = "Remove the parent-child relationship between selected bones and their parents";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -3930,9 +3930,9 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
 
 /* ****************  Selections  ******************/
@@ -3957,16 +3957,16 @@ static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "ARMATURE_OT_select_inverse";
-	ot->description= "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
+	ot->name = "Select Inverse";
+	ot->idname = "ARMATURE_OT_select_inverse";
+	ot->description = "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
 	
 	/* api callbacks */
-	ot->exec= armature_select_inverse_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_select_inverse_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
@@ -4017,16 +4017,16 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->idname= "ARMATURE_OT_select_all";
-	ot->description= "Toggle selection status of all bones";
+	ot->name = "(De)select All";
+	ot->idname = "ARMATURE_OT_select_all";
+	ot->description = "Toggle selection status of all bones";
 	
 	/* api callbacks */
-	ot->exec= armature_de_select_all_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_de_select_all_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_select_all(ot);
 }
@@ -4098,16 +4098,16 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "Select Hierarchy";
-	ot->idname= "ARMATURE_OT_select_hierarchy";
-	ot->description= "Select immediate parent/children of selected bones";
+	ot->name = "Select Hierarchy";
+	ot->idname = "ARMATURE_OT_select_hierarchy";
+	ot->description = "Select immediate parent/children of selected bones";
 	
 	/* api callbacks */
-	ot->exec= armature_select_hierarchy_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_select_hierarchy_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
@@ -4237,9 +4237,9 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_align(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Align Bones";
-	ot->idname= "ARMATURE_OT_align";
-	ot->description= "Align selected bones to the active bone (or to their parent)";
+	ot->name = "Align Bones";
+	ot->idname = "ARMATURE_OT_align";
+	ot->description = "Align selected bones to the active bone (or to their parent)";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -4247,7 +4247,7 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** Pose tools ********************* */
@@ -4957,8 +4957,8 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 void POSE_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Scale";
-	ot->idname= "POSE_OT_scale_clear";
+	ot->name = "Clear Pose Scale";
+	ot->idname = "POSE_OT_scale_clear";
 	ot->description = "Reset scaling of selected bones to their default values";
 	
 	/* api callbacks */
@@ -4966,7 +4966,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4978,8 +4978,8 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 void POSE_OT_rot_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Rotation";
-	ot->idname= "POSE_OT_rot_clear";
+	ot->name = "Clear Pose Rotation";
+	ot->idname = "POSE_OT_rot_clear";
 	ot->description = "Reset rotations of selected bones to their default values";
 	
 	/* api callbacks */
@@ -4987,7 +4987,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4999,8 +4999,8 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 void POSE_OT_loc_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Location";
-	ot->idname= "POSE_OT_loc_clear";
+	ot->name = "Clear Pose Location";
+	ot->idname = "POSE_OT_loc_clear";
 	ot->description = "Reset locations of selected bones to their default values";
 	
 	/* api callbacks */
@@ -5008,7 +5008,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -5020,8 +5020,8 @@ static int pose_clear_transforms_exec(bContext *C, wmOperator *op)
 void POSE_OT_transforms_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Transforms";
-	ot->idname= "POSE_OT_transforms_clear";
+	ot->name = "Clear Pose Transforms";
+	ot->idname = "POSE_OT_transforms_clear";
 	ot->description = "Reset location, rotation, and scaling of selected bones to their default values";
 	
 	/* api callbacks */
@@ -5029,7 +5029,7 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** selections ********************** */
@@ -5081,16 +5081,16 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->idname= "POSE_OT_select_all";
-	ot->description= "Toggle selection status of all bones";
+	ot->name = "(De)select All";
+	ot->idname = "POSE_OT_select_all";
+	ot->description = "Toggle selection status of all bones";
 	
 	/* api callbacks */
-	ot->exec= pose_de_select_all_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_de_select_all_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_select_all(ot);
 }
@@ -5125,16 +5125,16 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_select_parent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Parent Bone";
-	ot->idname= "POSE_OT_select_parent";
-	ot->description= "Select bones that are parents of the currently selected bones";
+	ot->name = "Select Parent Bone";
+	ot->idname = "POSE_OT_select_parent";
+	ot->description = "Select bones that are parents of the currently selected bones";
 
 	/* api callbacks */
-	ot->exec= pose_select_parent_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_select_parent_exec;
+	ot->poll = ED_operator_posemode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 
@@ -5190,16 +5190,16 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 void POSE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
-	ot->idname= "POSE_OT_hide";
-	ot->description= "Tag selected bones to not be visible in Pose Mode";
+	ot->name = "Hide Selected";
+	ot->idname = "POSE_OT_hide";
+	ot->description = "Tag selected bones to not be visible in Pose Mode";
 	
 	/* api callbacks */
-	ot->exec= pose_hide_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_hide_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "");
@@ -5236,16 +5236,16 @@ static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal Selected";
-	ot->idname= "POSE_OT_reveal";
-	ot->description= "Unhide all bones that have been tagged to be hidden in Pose Mode";
+	ot->name = "Reveal Selected";
+	ot->idname = "POSE_OT_reveal";
+	ot->description = "Unhide all bones that have been tagged to be hidden in Pose Mode";
 	
 	/* api callbacks */
-	ot->exec= pose_reveal_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_reveal_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************* RENAMING DISASTERS ************ */
@@ -5451,16 +5451,16 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_flip_names (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Flip Names";
-	ot->idname= "ARMATURE_OT_flip_names";
-	ot->description= "Flips (and corrects) the axis suffixes of the names of selected bones";
+	ot->name = "Flip Names";
+	ot->idname = "ARMATURE_OT_flip_names";
+	ot->description = "Flips (and corrects) the axis suffixes of the names of selected bones";
 	
 	/* api callbacks */
-	ot->exec= armature_flip_names_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->exec = armature_flip_names_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -5503,20 +5503,20 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
-	ot->name= "AutoName by Axis";
-	ot->idname= "ARMATURE_OT_autoside_names";
-	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on";
+	ot->name = "AutoName by Axis";
+	ot->idname = "ARMATURE_OT_autoside_names";
+	ot->description = "Automatically renames the selected bones according to which side of the target axis they fall on";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= armature_autoside_names_exec;
-	ot->poll= ED_operator_editarmature;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_autoside_names_exec;
+	ot->poll = ED_operator_editarmature;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
+	ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
 }
 
 

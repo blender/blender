@@ -341,13 +341,13 @@ static int console_move_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Cursor";
-	ot->description= "Move cursor position";
-	ot->idname= "CONSOLE_OT_move";
+	ot->name = "Move Cursor";
+	ot->description = "Move cursor position";
+	ot->idname = "CONSOLE_OT_move";
 	
 	/* api callbacks */
-	ot->exec= console_move_exec;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_move_exec;
+	ot->poll = ED_operator_console_active;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", console_move_type_items, LINE_BEGIN, "Type", "Where to move cursor to");
@@ -414,14 +414,14 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Insert";
-	ot->description= "Insert text at cursor position";
-	ot->idname= "CONSOLE_OT_insert";
+	ot->name = "Insert";
+	ot->description = "Insert text at cursor position";
+	ot->idname = "CONSOLE_OT_insert";
 	
 	/* api callbacks */
-	ot->exec= console_insert_exec;
-	ot->invoke= console_insert_invoke;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_insert_exec;
+	ot->invoke = console_insert_invoke;
+	ot->poll = ED_operator_console_active;
 
 	/* properties */
 	prop = RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
@@ -486,13 +486,13 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description= "Delete text by cursor position";
-	ot->idname= "CONSOLE_OT_delete";
+	ot->name = "Delete";
+	ot->description = "Delete text by cursor position";
+	ot->idname = "CONSOLE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec= console_delete_exec;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_delete_exec;
+	ot->poll = ED_operator_console_active;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", console_delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
@@ -529,13 +529,13 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear";
-	ot->description= "Clear text by type";
-	ot->idname= "CONSOLE_OT_clear";
+	ot->name = "Clear";
+	ot->description = "Clear text by type";
+	ot->idname = "CONSOLE_OT_clear";
 	
 	/* api callbacks */
-	ot->exec= console_clear_exec;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_clear_exec;
+	ot->poll = ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "scrollback", 1, "Scrollback", "Clear the scrollback history");
@@ -597,13 +597,13 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "History Cycle";
-	ot->description= "Cycle through history";
-	ot->idname= "CONSOLE_OT_history_cycle";
+	ot->name = "History Cycle";
+	ot->description = "Cycle through history";
+	ot->idname = "CONSOLE_OT_history_cycle";
 	
 	/* api callbacks */
-	ot->exec= console_history_cycle_exec;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_history_cycle_exec;
+	ot->poll = ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "Reverse cycle history");
@@ -652,13 +652,13 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_history_append(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "History Append";
-	ot->description= "Append history at cursor position";
-	ot->idname= "CONSOLE_OT_history_append";
+	ot->name = "History Append";
+	ot->description = "Append history at cursor position";
+	ot->idname = "CONSOLE_OT_history_append";
 	
 	/* api callbacks */
-	ot->exec= console_history_append_exec;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_history_append_exec;
+	ot->poll = ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");	
@@ -706,13 +706,13 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Scrollback Append";
-	ot->description= "Append scrollback text by type";
-	ot->idname= "CONSOLE_OT_scrollback_append";
+	ot->name = "Scrollback Append";
+	ot->description = "Append scrollback text by type";
+	ot->idname = "CONSOLE_OT_scrollback_append";
 	
 	/* api callbacks */
-	ot->exec= console_scrollback_append_exec;
-	ot->poll= ED_operator_console_active;
+	ot->exec = console_scrollback_append_exec;
+	ot->poll = ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
@@ -789,13 +789,13 @@ static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void CONSOLE_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy to Clipboard";
-	ot->description= "Copy selected text to clipboard";
-	ot->idname= "CONSOLE_OT_copy";
+	ot->name = "Copy to Clipboard";
+	ot->description = "Copy selected text to clipboard";
+	ot->idname = "CONSOLE_OT_copy";
 
 	/* api callbacks */
-	ot->poll= ED_operator_console_active;
-	ot->exec= console_copy_exec;
+	ot->poll = ED_operator_console_active;
+	ot->exec = console_copy_exec;
 
 	/* properties */
 }
@@ -842,13 +842,13 @@ static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
 void CONSOLE_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste from Clipboard";
-	ot->description= "Paste text from clipboard";
-	ot->idname= "CONSOLE_OT_paste";
+	ot->name = "Paste from Clipboard";
+	ot->description = "Paste text from clipboard";
+	ot->idname = "CONSOLE_OT_paste";
 
 	/* api callbacks */
-	ot->poll= ED_operator_console_active;
-	ot->exec= console_paste_exec;
+	ot->poll = ED_operator_console_active;
+	ot->exec = console_paste_exec;
 
 	/* properties */
 }
@@ -967,13 +967,13 @@ static int console_modal_select_cancel(bContext *C, wmOperator *op)
 void CONSOLE_OT_select_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Selection";
-	ot->idname= "CONSOLE_OT_select_set";
-	ot->description= "Set the console selection";
+	ot->name = "Set Selection";
+	ot->idname = "CONSOLE_OT_select_set";
+	ot->description = "Set the console selection";
 
 	/* api callbacks */
-	ot->invoke= console_modal_select_invoke;
-	ot->modal= console_modal_select;
-	ot->cancel= console_modal_select_cancel;
-	ot->poll= ED_operator_console_active;
+	ot->invoke = console_modal_select_invoke;
+	ot->modal = console_modal_select;
+	ot->cancel = console_modal_select_cancel;
+	ot->poll = ED_operator_console_active;
 }

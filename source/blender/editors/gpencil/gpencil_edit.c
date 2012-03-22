@@ -213,14 +213,14 @@ static int gp_data_add_exec (bContext *C, wmOperator *op)
 void GPENCIL_OT_data_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grease Pencil Add New";
-	ot->idname= "GPENCIL_OT_data_add";
-	ot->description= "Add new Grease Pencil datablock";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Grease Pencil Add New";
+	ot->idname = "GPENCIL_OT_data_add";
+	ot->description = "Add new Grease Pencil datablock";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
-	ot->exec= gp_data_add_exec;
-	ot->poll= gp_add_poll;
+	ot->exec = gp_data_add_exec;
+	ot->poll = gp_add_poll;
 }
 
 /* ******************* Unlink Data ************************ */
@@ -261,14 +261,14 @@ static int gp_data_unlink_exec (bContext *C, wmOperator *op)
 void GPENCIL_OT_data_unlink (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grease Pencil Unlink";
-	ot->idname= "GPENCIL_OT_data_unlink";
-	ot->description= "Unlink active Grease Pencil datablock";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Grease Pencil Unlink";
+	ot->idname = "GPENCIL_OT_data_unlink";
+	ot->description = "Unlink active Grease Pencil datablock";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
-	ot->exec= gp_data_unlink_exec;
-	ot->poll= gp_data_unlink_poll;
+	ot->exec = gp_data_unlink_exec;
+	ot->poll = gp_data_unlink_poll;
 }
 
 /* ******************* Add New Layer ************************ */
@@ -298,14 +298,14 @@ static int gp_layer_add_exec (bContext *C, wmOperator *op)
 void GPENCIL_OT_layer_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add New Layer";
-	ot->idname= "GPENCIL_OT_layer_add";
-	ot->description= "Add new Grease Pencil layer for the active Grease Pencil datablock";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Add New Layer";
+	ot->idname = "GPENCIL_OT_layer_add";
+	ot->description = "Add new Grease Pencil layer for the active Grease Pencil datablock";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
-	ot->exec= gp_layer_add_exec;
-	ot->poll= gp_add_poll;
+	ot->exec = gp_layer_add_exec;
+	ot->poll = gp_add_poll;
 }
 
 /* ******************* Delete Active Frame ************************ */
@@ -349,14 +349,14 @@ static int gp_actframe_delete_exec (bContext *C, wmOperator *op)
 void GPENCIL_OT_active_frame_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Active Frame";
-	ot->idname= "GPENCIL_OT_active_frame_delete";
-	ot->description= "Delete the active frame for the active Grease Pencil datablock";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Delete Active Frame";
+	ot->idname = "GPENCIL_OT_active_frame_delete";
+	ot->description = "Delete the active frame for the active Grease Pencil datablock";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
-	ot->exec= gp_actframe_delete_exec;
-	ot->poll= gp_actframe_delete_poll;
+	ot->exec = gp_actframe_delete_exec;
+	ot->poll = gp_actframe_delete_poll;
 }
 
 /* ************************************************ */
@@ -632,21 +632,21 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 void GPENCIL_OT_convert (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Convert Grease Pencil";
-	ot->idname= "GPENCIL_OT_convert";
-	ot->description= "Convert the active Grease Pencil layer to a new Object";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Convert Grease Pencil";
+	ot->idname = "GPENCIL_OT_convert";
+	ot->description = "Convert the active Grease Pencil layer to a new Object";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= gp_convert_layer_exec;
-	ot->poll= gp_convert_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = gp_convert_layer_exec;
+	ot->poll = gp_convert_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "");
 }
 
 /* ************************************************ */

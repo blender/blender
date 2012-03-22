@@ -296,16 +296,16 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_add";
-	ot->description= "Add shape key to the object";
+	ot->name = "Add Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_add";
+	ot->description = "Add shape key to the object";
 	
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_add_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys");
@@ -324,16 +324,16 @@ static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_remove";
-	ot->description= "Remove shape key from the object";
+	ot->name = "Remove Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_remove";
+	ot->description = "Remove shape key from the object";
 	
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_remove_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_remove_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -357,16 +357,16 @@ static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Shape Keys";
-	ot->description= "Clear weights for all shape keys";
-	ot->idname= "OBJECT_OT_shape_key_clear";
+	ot->name = "Clear Shape Keys";
+	ot->description = "Clear weights for all shape keys";
+	ot->idname = "OBJECT_OT_shape_key_clear";
 	
 	/* api callbacks */
-	ot->poll= shape_key_poll;
-	ot->exec= shape_key_clear_exec;
+	ot->poll = shape_key_poll;
+	ot->exec = shape_key_clear_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
@@ -382,15 +382,15 @@ static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_mirror";
+	ot->name = "Mirror Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_mirror";
 
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_mirror_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_mirror_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -451,15 +451,15 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Move Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_move";
+	ot->name = "Move Shape Key";
+	ot->idname = "OBJECT_OT_shape_key_move";
 
 	/* api callbacks */
-	ot->poll= shape_key_mode_poll;
-	ot->exec= shape_key_move_exec;
+	ot->poll = shape_key_mode_poll;
+	ot->exec = shape_key_move_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }

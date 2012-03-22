@@ -1360,15 +1360,15 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->idname= "PARTICLE_OT_select_all";
+	ot->name = "(De)select All";
+	ot->idname = "PARTICLE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= pe_select_all_exec;
-	ot->poll= PE_poll;
+	ot->exec = pe_select_all_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -1434,15 +1434,15 @@ static int select_roots_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_roots(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Roots";
-	ot->idname= "PARTICLE_OT_select_roots";
+	ot->name = "Select Roots";
+	ot->idname = "PARTICLE_OT_select_roots";
 	
 	/* api callbacks */
-	ot->exec= select_roots_exec;
-	ot->poll= PE_poll;
+	ot->exec = select_roots_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ select last operator ************************/
@@ -1474,15 +1474,15 @@ static int select_tips_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_tips(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Tips";
-	ot->idname= "PARTICLE_OT_select_tips";
+	ot->name = "Select Tips";
+	ot->idname = "PARTICLE_OT_select_tips";
 	
 	/* api callbacks */
-	ot->exec= select_tips_exec;
-	ot->poll= PE_poll;
+	ot->exec = select_tips_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ select linked operator ************************/
@@ -1518,16 +1518,16 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void PARTICLE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
-	ot->idname= "PARTICLE_OT_select_linked";
+	ot->name = "Select Linked";
+	ot->idname = "PARTICLE_OT_select_linked";
 	
 	/* api callbacks */
-	ot->exec= select_linked_exec;
-	ot->invoke= select_linked_invoke;
-	ot->poll= PE_poll_view3d;
+	ot->exec = select_linked_exec;
+	ot->invoke = select_linked_invoke;
+	ot->poll = PE_poll_view3d;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked keys rather than selecting them");
@@ -1706,15 +1706,15 @@ static int hide_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
-	ot->idname= "PARTICLE_OT_hide";
+	ot->name = "Hide Selected";
+	ot->idname = "PARTICLE_OT_hide";
 	
 	/* api callbacks */
-	ot->exec= hide_exec;
-	ot->poll= PE_poll;
+	ot->exec = hide_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -1748,15 +1748,15 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal";
-	ot->idname= "PARTICLE_OT_reveal";
+	ot->name = "Reveal";
+	ot->idname = "PARTICLE_OT_reveal";
 	
 	/* api callbacks */
-	ot->exec= reveal_exec;
-	ot->poll= PE_poll;
+	ot->exec = reveal_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ select less operator ************************/
@@ -1806,15 +1806,15 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Less";
-	ot->idname= "PARTICLE_OT_select_less";
+	ot->name = "Select Less";
+	ot->idname = "PARTICLE_OT_select_less";
 	
 	/* api callbacks */
-	ot->exec= select_less_exec;
-	ot->poll= PE_poll;
+	ot->exec = select_less_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ select more operator ************************/
@@ -1867,15 +1867,15 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select More";
-	ot->idname= "PARTICLE_OT_select_more";
+	ot->name = "Select More";
+	ot->idname = "PARTICLE_OT_select_more";
 	
 	/* api callbacks */
-	ot->exec= select_more_exec;
-	ot->poll= PE_poll;
+	ot->exec = select_more_exec;
+	ot->poll = PE_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ rekey operator ************************/
@@ -1963,16 +1963,16 @@ static int rekey_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_rekey(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Rekey";
-	ot->idname= "PARTICLE_OT_rekey";
+	ot->name = "Rekey";
+	ot->idname = "PARTICLE_OT_rekey";
 	
 	/* api callbacks */
-	ot->exec= rekey_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= PE_hair_poll;
+	ot->exec = rekey_exec;
+	ot->invoke = WM_operator_props_popup;
+	ot->poll = PE_hair_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
@@ -2293,15 +2293,15 @@ static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Subdivide";
-	ot->idname= "PARTICLE_OT_subdivide";
+	ot->name = "Subdivide";
+	ot->idname = "PARTICLE_OT_subdivide";
 	
 	/* api callbacks */
-	ot->exec= subdivide_exec;
-	ot->poll= PE_hair_poll;
+	ot->exec = subdivide_exec;
+	ot->poll = PE_hair_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ remove doubles opertor *********************/
@@ -2381,15 +2381,15 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Doubles";
-	ot->idname= "PARTICLE_OT_remove_doubles";
+	ot->name = "Remove Doubles";
+	ot->idname = "PARTICLE_OT_remove_doubles";
 	
 	/* api callbacks */
-	ot->exec= remove_doubles_exec;
-	ot->poll= PE_hair_poll;
+	ot->exec = remove_doubles_exec;
+	ot->poll = PE_hair_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, "Threshold", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
@@ -2431,15 +2431,15 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Weight Set";
-	ot->idname= "PARTICLE_OT_weight_set";
+	ot->name = "Weight Set";
+	ot->idname = "PARTICLE_OT_weight_set";
 
 	/* api callbacks */
-	ot->exec= weight_set_exec;
-	ot->poll= PE_hair_poll;
+	ot->exec = weight_set_exec;
+	ot->poll = PE_hair_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "factor", 1, 0, 1, "Factor", "", 0, 1);
 }
@@ -2534,19 +2534,19 @@ static int delete_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->idname= "PARTICLE_OT_delete";
+	ot->name = "Delete";
+	ot->idname = "PARTICLE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec= delete_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= PE_hair_poll;
+	ot->exec = delete_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->poll = PE_hair_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PARTICLE, "Type", "Delete a full particle or only keys");
+	ot->prop = RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PARTICLE, "Type", "Delete a full particle or only keys");
 }
 
 /*************************** mirror operator **************************/
@@ -2696,15 +2696,15 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror";
-	ot->idname= "PARTICLE_OT_mirror";
+	ot->name = "Mirror";
+	ot->idname = "PARTICLE_OT_mirror";
 	
 	/* api callbacks */
-	ot->exec= mirror_exec;
-	ot->poll= PE_hair_poll;
+	ot->exec = mirror_exec;
+	ot->poll = PE_hair_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************* brush edit callbacks ********************/
@@ -3725,18 +3725,18 @@ static int brush_edit_cancel(bContext *UNUSED(C), wmOperator *op)
 void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Brush Edit";
-	ot->idname= "PARTICLE_OT_brush_edit";
+	ot->name = "Brush Edit";
+	ot->idname = "PARTICLE_OT_brush_edit";
 	
 	/* api callbacks */
-	ot->exec= brush_edit_exec;
-	ot->invoke= brush_edit_invoke;
-	ot->modal= brush_edit_modal;
-	ot->cancel= brush_edit_cancel;
-	ot->poll= PE_poll_view3d;
+	ot->exec = brush_edit_exec;
+	ot->invoke = brush_edit_invoke;
+	ot->modal = brush_edit_modal;
+	ot->cancel = brush_edit_cancel;
+	ot->poll = PE_poll_view3d;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -4215,15 +4215,15 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_particle_edit_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Particle Edit Toggle";
-	ot->idname= "PARTICLE_OT_particle_edit_toggle";
+	ot->name = "Particle Edit Toggle";
+	ot->idname = "PARTICLE_OT_particle_edit_toggle";
 	
 	/* api callbacks */
-	ot->exec= particle_edit_toggle_exec;
-	ot->poll= particle_edit_toggle_poll;
+	ot->exec = particle_edit_toggle_exec;
+	ot->poll = particle_edit_toggle_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4264,14 +4264,14 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Edited";
-	ot->idname= "PARTICLE_OT_edited_clear";
+	ot->name = "Clear Edited";
+	ot->idname = "PARTICLE_OT_edited_clear";
 	
 	/* api callbacks */
-	ot->exec= clear_edited_exec;
-	ot->poll= particle_edit_toggle_poll;
+	ot->exec = clear_edited_exec;
+	ot->poll = particle_edit_toggle_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

@@ -639,17 +639,17 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 void RENDER_OT_opengl(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "OpenGL Render";
-	ot->description= "OpenGL render active viewport";
-	ot->idname= "RENDER_OT_opengl";
+	ot->name = "OpenGL Render";
+	ot->description = "OpenGL render active viewport";
+	ot->idname = "RENDER_OT_opengl";
 
 	/* api callbacks */
-	ot->invoke= screen_opengl_render_invoke;
-	ot->exec= screen_opengl_render_exec; /* blocking */
-	ot->modal= screen_opengl_render_modal;
-	ot->cancel= screen_opengl_render_cancel;
+	ot->invoke = screen_opengl_render_invoke;
+	ot->exec = screen_opengl_render_exec; /* blocking */
+	ot->modal = screen_opengl_render_modal;
+	ot->cancel = screen_opengl_render_cancel;
 
-	ot->poll= ED_operator_screenactive;
+	ot->poll = ED_operator_screenactive;
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");

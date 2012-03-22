@@ -893,20 +893,20 @@ int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Change codec";
-	ot->description= "Change Quicktime codec Settings";
-	ot->idname= "SCENE_OT_render_data_set_quicktime_codec";
+	ot->name = "Change codec";
+	ot->description = "Change Quicktime codec Settings";
+	ot->idname = "SCENE_OT_render_data_set_quicktime_codec";
 	
 	/* api callbacks */
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 	ot->exec = cocoa_request_qtcodec_settings;
 #else
-	ot->exec= request_qtcodec_settings;
+	ot->exec = request_qtcodec_settings;
 #endif
-	ot->poll= ED_operator_setqtcodec;
+	ot->poll = ED_operator_setqtcodec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 #endif /* USE_QTKIT */

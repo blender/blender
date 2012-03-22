@@ -3563,18 +3563,18 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Sculpt Mode";
-	ot->idname= "SCULPT_OT_brush_stroke";
+	ot->name = "Sculpt Mode";
+	ot->idname = "SCULPT_OT_brush_stroke";
 	
 	/* api callbacks */
-	ot->invoke= sculpt_brush_stroke_invoke;
-	ot->modal= paint_stroke_modal;
-	ot->exec= sculpt_brush_stroke_exec;
-	ot->poll= sculpt_poll;
-	ot->cancel= sculpt_brush_stroke_cancel;
+	ot->invoke = sculpt_brush_stroke_invoke;
+	ot->modal = paint_stroke_modal;
+	ot->exec = sculpt_brush_stroke_exec;
+	ot->poll = sculpt_poll;
+	ot->cancel = sculpt_brush_stroke_cancel;
 
 	/* flags (sculpt does own undo? (ton) */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 
 	/* properties */
 
@@ -3608,14 +3608,14 @@ static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
 static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Persistent Base";
-	ot->idname= "SCULPT_OT_set_persistent_base";
+	ot->name = "Set Persistent Base";
+	ot->idname = "SCULPT_OT_set_persistent_base";
 	
 	/* api callbacks */
-	ot->exec= sculpt_set_persistent_base;
-	ot->poll= sculpt_mode_poll;
+	ot->exec = sculpt_set_persistent_base;
+	ot->poll = sculpt_mode_poll;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -3686,14 +3686,14 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sculpt Mode";
-	ot->idname= "SCULPT_OT_sculptmode_toggle";
+	ot->name = "Sculpt Mode";
+	ot->idname = "SCULPT_OT_sculptmode_toggle";
 	
 	/* api callbacks */
-	ot->exec= sculpt_toggle_mode;
-	ot->poll= ED_operator_object_active_editable_mesh;
+	ot->exec = sculpt_toggle_mode;
+	ot->poll = ED_operator_object_active_editable_mesh;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void ED_operatortypes_sculpt(void)

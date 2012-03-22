@@ -997,18 +997,18 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
-	ot->name= "Lasso Select";
-	ot->description= "Select items using lasso selection";
-	ot->idname= "VIEW3D_OT_select_lasso";
+	ot->name = "Lasso Select";
+	ot->description = "Select items using lasso selection";
+	ot->idname = "VIEW3D_OT_select_lasso";
 	
-	ot->invoke= WM_gesture_lasso_invoke;
-	ot->modal= WM_gesture_lasso_modal;
-	ot->exec= view3d_lasso_select_exec;
-	ot->poll= view3d_selectable_data;
-	ot->cancel= WM_gesture_lasso_cancel;
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = view3d_lasso_select_exec;
+	ot->poll = view3d_selectable_data;
+	ot->cancel = WM_gesture_lasso_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
@@ -1150,22 +1150,22 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Select Menu";
+	ot->name = "Select Menu";
 	ot->description = "Menu object selection";
-	ot->idname= "VIEW3D_OT_select_menu";
+	ot->idname = "VIEW3D_OT_select_menu";
 
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_select_menu_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_select_menu_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "name", DummyRNA_NULL_items, 0, "Object Name", "");
 	RNA_def_enum_funcs(prop, object_select_menu_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	ot->prop= prop;
+	ot->prop = prop;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 }
@@ -2136,19 +2136,19 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->description= "Select items using border selection";
-	ot->idname= "VIEW3D_OT_select_border";
+	ot->name = "Border Select";
+	ot->description = "Select items using border selection";
+	ot->idname = "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= view3d_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->poll= view3d_selectable_data;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = view3d_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->poll = view3d_selectable_data;
+	ot->cancel = WM_border_select_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
@@ -2269,16 +2269,16 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void VIEW3D_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select";
-	ot->description= "Activate/select item(s)";
-	ot->idname= "VIEW3D_OT_select";
+	ot->name = "Activate/Select";
+	ot->description = "Activate/select item(s)";
+	ot->idname = "VIEW3D_OT_select";
 	
 	/* api callbacks */
-	ot->invoke= view3d_select_invoke;
-	ot->poll= ED_operator_view3d_active;
+	ot->invoke = view3d_select_invoke;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
@@ -2726,18 +2726,18 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
-	ot->name= "Circle Select";
-	ot->description= "Select items using circle selection";
-	ot->idname= "VIEW3D_OT_select_circle";
+	ot->name = "Circle Select";
+	ot->description = "Select items using circle selection";
+	ot->idname = "VIEW3D_OT_select_circle";
 	
-	ot->invoke= WM_gesture_circle_invoke;
-	ot->modal= WM_gesture_circle_modal;
-	ot->exec= view3d_circle_select_exec;
-	ot->poll= view3d_selectable_data;
-	ot->cancel= WM_gesture_circle_cancel;
+	ot->invoke = WM_gesture_circle_invoke;
+	ot->modal = WM_gesture_circle_modal;
+	ot->exec = view3d_circle_select_exec;
+	ot->poll = view3d_selectable_data;
+	ot->cancel = WM_gesture_circle_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);

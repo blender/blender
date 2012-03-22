@@ -524,16 +524,16 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void NODE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select";
-	ot->idname= "NODE_OT_select";
-	ot->description= "Select the node under the cursor";
+	ot->name = "Select";
+	ot->idname = "NODE_OT_select";
+	ot->description = "Select the node under the cursor";
 	
 	/* api callbacks */
-	ot->invoke= node_select_invoke;
-	ot->poll= ED_operator_node_active;
+	ot->invoke = node_select_invoke;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
@@ -603,20 +603,20 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 void NODE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "NODE_OT_select_border";
-	ot->description= "Use box selection to select nodes";
+	ot->name = "Border Select";
+	ot->idname = "NODE_OT_select_border";
+	ot->description = "Use box selection to select nodes";
 	
 	/* api callbacks */
-	ot->invoke= node_border_select_invoke;
-	ot->exec= node_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = node_border_select_invoke;
+	ot->exec = node_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= ED_operator_node_active;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);

@@ -241,10 +241,10 @@ void POSELIB_OT_new (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = poselib_new_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ------------------------------------------------ */
@@ -276,10 +276,10 @@ void POSELIB_OT_unlink (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = poselib_unlink_exec;
-	ot->poll= has_poselib_pose_data_poll;
+	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************* */
@@ -365,7 +365,7 @@ void POSELIB_OT_action_sanitise (wmOperatorType *ot)
 	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ------------------------------------------ */
@@ -486,17 +486,17 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_pose_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "PoseLib Add Pose";
-	ot->idname= "POSELIB_OT_pose_add";
-	ot->description= "Add the current Pose to the active Pose Library";
+	ot->name = "PoseLib Add Pose";
+	ot->idname = "POSELIB_OT_pose_add";
+	ot->description = "Add the current Pose to the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= poselib_add_menu_invoke;
-	ot->exec= poselib_add_exec;
-	ot->poll= ED_operator_posemode;
+	ot->invoke = poselib_add_menu_invoke;
+	ot->exec = poselib_add_exec;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_int(ot->srna, "frame", 1, 0, INT_MAX, "Frame", "Frame to store pose on", 0, INT_MAX);
@@ -592,22 +592,22 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "PoseLib Remove Pose";
-	ot->idname= "POSELIB_OT_pose_remove";
-	ot->description= "Remove nth pose from the active Pose Library";
+	ot->name = "PoseLib Remove Pose";
+	ot->idname = "POSELIB_OT_pose_remove";
+	ot->description = "Remove nth pose from the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= poselib_remove_exec;
-	ot->poll= has_poselib_pose_data_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = poselib_remove_exec;
+	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
 		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
@@ -682,21 +682,21 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "PoseLib Rename Pose";
-	ot->idname= "POSELIB_OT_pose_rename";
-	ot->description= "Rename specified pose from the active Pose Library";
+	ot->name = "PoseLib Rename Pose";
+	ot->idname = "POSELIB_OT_pose_rename";
+	ot->description = "Rename specified pose from the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= poselib_rename_invoke;
-	ot->exec= poselib_rename_exec;
-	ot->poll= has_poselib_pose_data_poll;
+	ot->invoke = poselib_rename_invoke;
+	ot->exec = poselib_rename_exec;
+	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 		/* NOTE: name not pose is the operator's "main" property, so that it will get activated in the popup for easy renaming */
-	ot->prop= RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
+	ot->prop = RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to rename");
 		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 }
@@ -1613,23 +1613,23 @@ static int poselib_preview_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "PoseLib Browse Poses";
-	ot->idname= "POSELIB_OT_browse_interactive";
-	ot->description= "Interactively browse poses in 3D-View";
+	ot->name = "PoseLib Browse Poses";
+	ot->idname = "POSELIB_OT_browse_interactive";
+	ot->description = "Interactively browse poses in 3D-View";
 	
 	/* callbacks */
-	ot->invoke= poselib_preview_invoke;
-	ot->modal= poselib_preview_modal;
-	ot->cancel= poselib_preview_cancel;
-	ot->exec= poselib_preview_exec;
-	ot->poll= has_poselib_pose_data_poll;
+	ot->invoke = poselib_preview_invoke;
+	ot->modal = poselib_preview_modal;
+	ot->cancel = poselib_preview_cancel;
+	ot->exec = poselib_preview_exec;
+	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* properties */	
 		// TODO: make the pose_index into a proper enum instead of a cryptic int...
-	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+	ot->prop = RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 	
 	// XXX: percentage vs factor?
 	/* not used yet */
@@ -1644,13 +1644,13 @@ void POSELIB_OT_apply_pose (wmOperatorType *ot)
 	ot->description = "Apply specified Pose Library pose to the rig";
 	
 	/* callbacks */
-	ot->exec= poselib_preview_exec;
-	ot->poll= has_poselib_pose_data_poll;
+	ot->exec = poselib_preview_exec;
+	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */	
 		// TODO: make the pose_index into a proper enum instead of a cryptic int...
-	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+	ot->prop = RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 }

@@ -714,7 +714,7 @@ void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	
 	if(ot)
-		ot->modalkeymap= km;
+		ot->modalkeymap = km;
 	else
 		printf("error: modalkeymap_assign, unknown operator %s\n", opname);
 }

@@ -276,23 +276,23 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add Scene Strip";
-	ot->idname= "SEQUENCER_OT_scene_strip_add";
-	ot->description= "Add a strip to the sequencer using a blender scene as a source";
+	ot->name = "Add Scene Strip";
+	ot->idname = "SEQUENCER_OT_scene_strip_add";
+	ot->description = "Add a strip to the sequencer using a blender scene as a source";
 
 	/* api callbacks */
-	ot->invoke= sequencer_add_scene_strip_invoke;
-	ot->exec= sequencer_add_scene_strip_exec;
+	ot->invoke = sequencer_add_scene_strip_invoke;
+	ot->exec = sequencer_add_scene_strip_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 /* add movieclip operator */
@@ -372,23 +372,23 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add MovieClip Strip";
-	ot->idname= "SEQUENCER_OT_movieclip_strip_add";
-	ot->description= "Add a movieclip strip to the sequencer";
+	ot->name = "Add MovieClip Strip";
+	ot->idname = "SEQUENCER_OT_movieclip_strip_add";
+	ot->description = "Add a movieclip strip to the sequencer";
 
 	/* api callbacks */
-	ot->invoke= sequencer_add_movieclip_strip_invoke;
-	ot->exec= sequencer_add_movieclip_strip_exec;
+	ot->invoke = sequencer_add_movieclip_strip_invoke;
+	ot->exec = sequencer_add_movieclip_strip_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	prop= RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
 	RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 
@@ -485,18 +485,18 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Movie Strip";
-	ot->idname= "SEQUENCER_OT_movie_strip_add";
-	ot->description= "Add a movie strip to the sequencer";
+	ot->name = "Add Movie Strip";
+	ot->idname = "SEQUENCER_OT_movie_strip_add";
+	ot->description = "Add a movie strip to the sequencer";
 
 	/* api callbacks */
-	ot->invoke= sequencer_add_movie_strip_invoke;
-	ot->exec= sequencer_add_movie_strip_exec;
+	ot->invoke = sequencer_add_movie_strip_invoke;
+	ot->exec = sequencer_add_movie_strip_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
@@ -537,18 +537,18 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Sound Strip";
-	ot->idname= "SEQUENCER_OT_sound_strip_add";
-	ot->description= "Add a sound strip to the sequencer";
+	ot->name = "Add Sound Strip";
+	ot->idname = "SEQUENCER_OT_sound_strip_add";
+	ot->description = "Add a sound strip to the sequencer";
 
 	/* api callbacks */
-	ot->invoke= sequencer_add_sound_strip_invoke;
-	ot->exec= sequencer_add_sound_strip_exec;
+	ot->invoke = sequencer_add_sound_strip_invoke;
+	ot->exec = sequencer_add_sound_strip_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
@@ -641,18 +641,18 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Image Strip";
-	ot->idname= "SEQUENCER_OT_image_strip_add";
-	ot->description= "Add an image or image sequence to the sequencer";
+	ot->name = "Add Image Strip";
+	ot->idname = "SEQUENCER_OT_image_strip_add";
+	ot->description = "Add an image or image sequence to the sequencer";
 
 	/* api callbacks */
-	ot->invoke= sequencer_add_image_strip_invoke;
-	ot->exec= sequencer_add_image_strip_exec;
+	ot->invoke = sequencer_add_image_strip_invoke;
+	ot->exec = sequencer_add_image_strip_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH|WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
@@ -815,18 +815,18 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Effect Strip";
-	ot->idname= "SEQUENCER_OT_effect_strip_add";
-	ot->description= "Add an effect to the sequencer, most are applied on top of existing strips";
+	ot->name = "Add Effect Strip";
+	ot->idname = "SEQUENCER_OT_effect_strip_add";
+	ot->description = "Add an effect to the sequencer, most are applied on top of existing strips";
 
 	/* api callbacks */
-	ot->invoke= sequencer_add_effect_strip_invoke;
-	ot->exec= sequencer_add_effect_strip_exec;
+	ot->invoke = sequencer_add_effect_strip_invoke;
+	ot->exec = sequencer_add_effect_strip_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);

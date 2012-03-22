@@ -173,17 +173,17 @@ static int sound_open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Sound";
-	ot->description= "Load a sound file";
-	ot->idname= "SOUND_OT_open";
+	ot->name = "Open Sound";
+	ot->description = "Load a sound file";
+	ot->idname = "SOUND_OT_open";
 
 	/* api callbacks */
-	ot->exec= sound_open_exec;
-	ot->invoke= sound_open_invoke;
-	ot->cancel= sound_open_cancel;
+	ot->exec = sound_open_exec;
+	ot->invoke = sound_open_invoke;
+	ot->cancel = sound_open_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -194,17 +194,17 @@ static void SOUND_OT_open(wmOperatorType *ot)
 static void SOUND_OT_open_mono(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Sound Mono";
-	ot->description= "Load a sound file as mono";
-	ot->idname= "SOUND_OT_open_mono";
+	ot->name = "Open Sound Mono";
+	ot->description = "Load a sound file as mono";
+	ot->idname = "SOUND_OT_open_mono";
 
 	/* api callbacks */
-	ot->exec= sound_open_exec;
-	ot->invoke= sound_open_invoke;
-	ot->cancel= sound_open_cancel;
+	ot->exec = sound_open_exec;
+	ot->invoke = sound_open_invoke;
+	ot->cancel = sound_open_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -261,15 +261,15 @@ static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 	 */
 
 	/* identifiers */
-	ot->name= "Update animation";
-	ot->description= "Update animation flags";
-	ot->idname= "SOUND_OT_update_animation_flags";
+	ot->name = "Update animation";
+	ot->description = "Update animation flags";
+	ot->idname = "SOUND_OT_update_animation_flags";
 
 	/* api callbacks */
-	ot->exec= sound_update_animation_flags_exec;
+	ot->exec = sound_update_animation_flags_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /* ******************************************************* */
@@ -298,15 +298,15 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 static void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Update animation cache";
-	ot->description= "Update the audio animation cache";
-	ot->idname= "SOUND_OT_bake_animation";
+	ot->name = "Update animation cache";
+	ot->description = "Update the audio animation cache";
+	ot->idname = "SOUND_OT_bake_animation";
 
 	/* api callbacks */
-	ot->exec= sound_bake_animation_exec;
+	ot->exec = sound_bake_animation_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 
@@ -571,19 +571,19 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 #endif // WITH_AUDASPACE
 
 	/* identifiers */
-	ot->name= "Mixdown";
-	ot->description= "Mixes the scene's audio to a sound file";
-	ot->idname= "SOUND_OT_mixdown";
+	ot->name = "Mixdown";
+	ot->description = "Mixes the scene's audio to a sound file";
+	ot->idname = "SOUND_OT_mixdown";
 
 	/* api callbacks */
-	ot->exec= sound_mixdown_exec;
-	ot->invoke= sound_mixdown_invoke;
+	ot->exec = sound_mixdown_exec;
+	ot->invoke = sound_mixdown_invoke;
 
 #ifdef WITH_AUDASPACE
-	ot->ui= sound_mixdown_draw;
+	ot->ui = sound_mixdown_draw;
 #endif
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
@@ -632,16 +632,16 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
 static void SOUND_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack Sound";
-	ot->description= "Pack the sound into the current blend file";
-	ot->idname= "SOUND_OT_pack";
+	ot->name = "Pack Sound";
+	ot->description = "Pack the sound into the current blend file";
+	ot->idname = "SOUND_OT_pack";
 
 	/* api callbacks */
-	ot->exec= sound_pack_exec;
-	ot->poll= sound_poll;
+	ot->exec = sound_pack_exec;
+	ot->poll = sound_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* unpack operator *********************/
@@ -696,17 +696,17 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 static void SOUND_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Unpack Sound";
-	ot->description= "Unpack the sound to the samples filename";
-	ot->idname= "SOUND_OT_unpack";
+	ot->name = "Unpack Sound";
+	ot->description = "Unpack the sound to the samples filename";
+	ot->idname = "SOUND_OT_unpack";
 
 	/* api callbacks */
-	ot->exec= sound_unpack_exec;
-	ot->invoke= sound_unpack_invoke;
-	ot->poll= sound_poll;
+	ot->exec = sound_unpack_exec;
+	ot->invoke = sound_unpack_invoke;
+	ot->poll = sound_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");

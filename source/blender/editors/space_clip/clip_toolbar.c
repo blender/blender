@@ -101,13 +101,13 @@ static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Properties";
-	ot->description= "Toggle clip properties panel";
-	ot->idname= "CLIP_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggle clip properties panel";
+	ot->idname = "CLIP_OT_properties";
 
 	/* api callbacks */
-	ot->exec= properties_exec;
-	ot->poll= properties_poll;
+	ot->exec = properties_exec;
+	ot->poll = properties_poll;
 }
 
 /************************** tools ******************************/
@@ -175,13 +175,13 @@ static int tools_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_tools(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Tools";
-	ot->description= "Toggle clip tools panel";
-	ot->idname= "CLIP_OT_tools";
+	ot->name = "Tools";
+	ot->description = "Toggle clip tools panel";
+	ot->idname = "CLIP_OT_tools";
 
 	/* api callbacks */
-	ot->exec= tools_exec;
-	ot->poll= tools_poll;
+	ot->exec = tools_exec;
+	ot->poll = tools_poll;
 }
 
 /************************** redo panel ******************************/

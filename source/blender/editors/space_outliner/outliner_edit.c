@@ -205,13 +205,13 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, wmEvent *event)
 
 void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 {
-	ot->name= "Open/Close Item";
-	ot->idname= "OUTLINER_OT_item_openclose";
-	ot->description= "Toggle whether item under cursor is enabled or closed";
+	ot->name = "Open/Close Item";
+	ot->idname = "OUTLINER_OT_item_openclose";
+	ot->description = "Toggle whether item under cursor is enabled or closed";
 	
-	ot->invoke= outliner_item_openclose;
+	ot->invoke = outliner_item_openclose;
 	
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 	
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items");
 }
@@ -291,13 +291,13 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
-	ot->name= "Rename Item";
-	ot->idname= "OUTLINER_OT_item_rename";
-	ot->description= "Rename item under cursor";
+	ot->name = "Rename Item";
+	ot->idname = "OUTLINER_OT_item_rename";
+	ot->description = "Rename item under cursor";
 	
-	ot->invoke= outliner_item_rename;
+	ot->invoke = outliner_item_rename;
 	
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 }
 
 /* ************************************************************** */
@@ -417,15 +417,15 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visibility";
-	ot->idname= "OUTLINER_OT_visibility_toggle";
-	ot->description= "Toggle the visibility of selected items";
+	ot->name = "Toggle Visibility";
+	ot->idname = "OUTLINER_OT_visibility_toggle";
+	ot->description = "Toggle the visibility of selected items";
 	
 	/* callbacks */
-	ot->exec= outliner_toggle_visibility_exec;
-	ot->poll= ED_operator_outliner_active_no_editobject;
+	ot->exec = outliner_toggle_visibility_exec;
+	ot->poll = ED_operator_outliner_active_no_editobject;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* Toggle Selectability ---------------------------------------- */
@@ -463,15 +463,15 @@ static int outliner_toggle_selectability_exec(bContext *C, wmOperator *UNUSED(op
 void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Selectability";
-	ot->idname= "OUTLINER_OT_selectability_toggle";
-	ot->description= "Toggle the selectability";
+	ot->name = "Toggle Selectability";
+	ot->idname = "OUTLINER_OT_selectability_toggle";
+	ot->description = "Toggle the selectability";
 	
 	/* callbacks */
-	ot->exec= outliner_toggle_selectability_exec;
-	ot->poll= ED_operator_outliner_active_no_editobject;
+	ot->exec = outliner_toggle_selectability_exec;
+	ot->poll = ED_operator_outliner_active_no_editobject;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* Toggle Renderability ---------------------------------------- */
@@ -507,15 +507,15 @@ static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op
 void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Renderability";
-	ot->idname= "OUTLINER_OT_renderability_toggle";
-	ot->description= "Toggle the renderability of selected items";
+	ot->name = "Toggle Renderability";
+	ot->idname = "OUTLINER_OT_renderability_toggle";
+	ot->description = "Toggle the renderability of selected items";
 	
 	/* callbacks */
-	ot->exec= outliner_toggle_renderability_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->exec = outliner_toggle_renderability_exec;
+	ot->poll = ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* =============================================== */
@@ -541,13 +541,13 @@ static int outliner_toggle_expanded_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Expand/Collapse All";
-	ot->idname= "OUTLINER_OT_expanded_toggle";
-	ot->description= "Expand/Collapse all items";
+	ot->name = "Expand/Collapse All";
+	ot->idname = "OUTLINER_OT_expanded_toggle";
+	ot->description = "Expand/Collapse all items";
 	
 	/* callbacks */
-	ot->exec= outliner_toggle_expanded_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->exec = outliner_toggle_expanded_exec;
+	ot->poll = ED_operator_outliner_active;
 	
 	/* no undo or registry, UI option */
 }
@@ -576,13 +576,13 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Selected";
-	ot->idname= "OUTLINER_OT_selected_toggle";
-	ot->description= "Toggle the Outliner selection of items";
+	ot->name = "Toggle Selected";
+	ot->idname = "OUTLINER_OT_selected_toggle";
+	ot->description = "Toggle the Outliner selection of items";
 	
 	/* callbacks */
-	ot->exec= outliner_toggle_selected_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->exec = outliner_toggle_selected_exec;
+	ot->poll = ED_operator_outliner_active;
 	
 	/* no undo or registry, UI option */
 }
@@ -631,13 +631,13 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_show_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Active";
-	ot->idname= "OUTLINER_OT_show_active";
-	ot->description= "Adjust the view so that the active Object is shown centered";
+	ot->name = "Show Active";
+	ot->idname = "OUTLINER_OT_show_active";
+	ot->description = "Adjust the view so that the active Object is shown centered";
 	
 	/* callbacks */
-	ot->exec= outliner_show_active_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->exec = outliner_show_active_exec;
+	ot->poll = ED_operator_outliner_active;
 }
 
 /* View Panning --------------------------------------------------- */
@@ -664,13 +664,13 @@ static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Page";
-	ot->idname= "OUTLINER_OT_scroll_page";
-	ot->description= "Scroll page up or down";
+	ot->name = "Scroll Page";
+	ot->idname = "OUTLINER_OT_scroll_page";
+	ot->description = "Scroll page up or down";
 	
 	/* callbacks */
-	ot->exec= outliner_scroll_page_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->exec = outliner_scroll_page_exec;
+	ot->poll = ED_operator_outliner_active;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page");
@@ -862,13 +862,13 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show/Hide One Level";
-	ot->idname= "OUTLINER_OT_show_one_level";
-	ot->description= "Expand/collapse all entries by one level";
+	ot->name = "Show/Hide One Level";
+	ot->idname = "OUTLINER_OT_show_one_level";
+	ot->description = "Expand/collapse all entries by one level";
 	
 	/* callbacks */
-	ot->exec= outliner_one_level_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->exec = outliner_one_level_exec;
+	ot->poll = ED_operator_outliner_active;
 	
 	/* no undo or registry, UI option */
 	
@@ -936,13 +936,13 @@ static int outliner_show_hierarchy_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Hierarchy";
-	ot->idname= "OUTLINER_OT_show_hierarchy";
-	ot->description= "Open all object entries and close all others";
+	ot->name = "Show Hierarchy";
+	ot->idname = "OUTLINER_OT_show_hierarchy";
+	ot->description = "Open all object entries and close all others";
 	
 	/* callbacks */
-	ot->exec= outliner_show_hierarchy_exec;
-	ot->poll= ED_operator_outliner_active; //  TODO: shouldn't be allowed in RNA views...
+	ot->exec = outliner_show_hierarchy_exec;
+	ot->poll = ED_operator_outliner_active; //  TODO: shouldn't be allowed in RNA views...
 	
 	/* no undo or registry, UI option */
 }
@@ -1206,13 +1206,13 @@ static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 {
 	/* api callbacks */
-	ot->idname= "OUTLINER_OT_drivers_add_selected";
-	ot->name= "Add Drivers for Selected";
-	ot->description= "Add drivers to selected items";
+	ot->idname = "OUTLINER_OT_drivers_add_selected";
+	ot->name = "Add Drivers for Selected";
+	ot->description = "Add drivers to selected items";
 	
 	/* api callbacks */
-	ot->exec= outliner_drivers_addsel_exec;
-	ot->poll= ed_operator_outliner_datablocks_active;
+	ot->exec = outliner_drivers_addsel_exec;
+	ot->poll = ed_operator_outliner_datablocks_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1241,13 +1241,13 @@ static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->idname= "OUTLINER_OT_drivers_delete_selected";
-	ot->name= "Delete Drivers for Selected";
-	ot->description= "Delete drivers assigned to selected items";
+	ot->idname = "OUTLINER_OT_drivers_delete_selected";
+	ot->name = "Delete Drivers for Selected";
+	ot->description = "Delete drivers assigned to selected items";
 	
 	/* api callbacks */
-	ot->exec= outliner_drivers_deletesel_exec;
-	ot->poll= ed_operator_outliner_datablocks_active;
+	ot->exec = outliner_drivers_deletesel_exec;
+	ot->poll = ed_operator_outliner_datablocks_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1380,13 +1380,13 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->idname= "OUTLINER_OT_keyingset_add_selected";
-	ot->name= "Keying Set Add Selected";
-	ot->description= "Add selected items (blue-grey rows) to active Keying Set";
+	ot->idname = "OUTLINER_OT_keyingset_add_selected";
+	ot->name = "Keying Set Add Selected";
+	ot->description = "Add selected items (blue-grey rows) to active Keying Set";
 	
 	/* api callbacks */
-	ot->exec= outliner_keyingset_additems_exec;
-	ot->poll= ed_operator_outliner_datablocks_active;
+	ot->exec = outliner_keyingset_additems_exec;
+	ot->poll = ed_operator_outliner_datablocks_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1417,13 +1417,13 @@ static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *UNUSED(o
 void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->idname= "OUTLINER_OT_keyingset_remove_selected";
-	ot->name= "Keying Set Remove Selected";
+	ot->idname = "OUTLINER_OT_keyingset_remove_selected";
+	ot->name = "Keying Set Remove Selected";
 	ot->description = "Remove selected items (blue-grey rows) from active Keying Set";
 	
 	/* api callbacks */
-	ot->exec= outliner_keyingset_removeitems_exec;
-	ot->poll= ed_operator_outliner_datablocks_active;
+	ot->exec = outliner_keyingset_removeitems_exec;
+	ot->poll = ed_operator_outliner_datablocks_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1624,18 +1624,18 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Drop to Set Parent";
+	ot->name = "Drop to Set Parent";
 	ot->description = "Drag to parent in Outliner";
-	ot->idname= "OUTLINER_OT_parent_drop";
+	ot->idname = "OUTLINER_OT_parent_drop";
 
 	/* api callbacks */
-	ot->invoke= parent_drop_invoke;
-	ot->exec= parent_drop_exec;
+	ot->invoke = parent_drop_invoke;
+	ot->exec = parent_drop_exec;
 
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
@@ -1702,17 +1702,17 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Drop to Clear Parent";
+	ot->name = "Drop to Clear Parent";
 	ot->description = "Drag to clear parent in Outliner";
-	ot->idname= "OUTLINER_OT_parent_clear";
+	ot->idname = "OUTLINER_OT_parent_clear";
 
 	/* api callbacks */
-	ot->invoke= parent_clear_invoke;
+	ot->invoke = parent_clear_invoke;
 
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_string(ot->srna, "dragged_obj", "Object", MAX_ID_NAME, "Child", "Child Object");

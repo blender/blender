@@ -1919,19 +1919,19 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grease Pencil Draw";
-	ot->idname= "GPENCIL_OT_draw";
-	ot->description= "Make annotations on the active data";
+	ot->name = "Grease Pencil Draw";
+	ot->idname = "GPENCIL_OT_draw";
+	ot->description = "Make annotations on the active data";
 	
 	/* api callbacks */
-	ot->exec= gpencil_draw_exec;
-	ot->invoke= gpencil_draw_invoke;
-	ot->modal= gpencil_draw_modal;
-	ot->cancel= gpencil_draw_cancel;
-	ot->poll= gpencil_draw_poll;
+	ot->exec = gpencil_draw_exec;
+	ot->invoke = gpencil_draw_invoke;
+	ot->modal = gpencil_draw_modal;
+	ot->cancel = gpencil_draw_cancel;
+	ot->poll = gpencil_draw_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
 	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to interpret mouse movements");

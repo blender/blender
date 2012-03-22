@@ -515,16 +515,16 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_driver_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Driver";
-	ot->idname= "ANIM_OT_driver_button_add";
-	ot->description= "Add driver(s) for the property(s) connected represented by the highlighted button";
+	ot->name = "Add Driver";
+	ot->idname = "ANIM_OT_driver_button_add";
+	ot->description = "Add driver(s) for the property(s) connected represented by the highlighted button";
 	
 	/* callbacks */
-	ot->exec= add_driver_button_exec; 
+	ot->exec = add_driver_button_exec; 
 	//op->poll= ??? // TODO: need to have some animatable property to do this
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array");
@@ -567,16 +567,16 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Driver";
-	ot->idname= "ANIM_OT_driver_button_remove";
-	ot->description= "Remove the driver(s) for the property(s) connected represented by the highlighted button";
+	ot->name = "Remove Driver";
+	ot->idname = "ANIM_OT_driver_button_remove";
+	ot->description = "Remove the driver(s) for the property(s) connected represented by the highlighted button";
 	
 	/* callbacks */
-	ot->exec= remove_driver_button_exec; 
+	ot->exec = remove_driver_button_exec; 
 	//op->poll= ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array");
@@ -614,16 +614,16 @@ static int copy_driver_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_copy_driver_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Driver";
-	ot->idname= "ANIM_OT_copy_driver_button";
-	ot->description= "Copy the driver for the highlighted button";
+	ot->name = "Copy Driver";
+	ot->idname = "ANIM_OT_copy_driver_button";
+	ot->description = "Copy the driver for the highlighted button";
 	
 	/* callbacks */
-	ot->exec= copy_driver_button_exec; 
+	ot->exec = copy_driver_button_exec; 
 	//op->poll= ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* Paste Driver Button Operator ------------------------ */
@@ -658,16 +658,16 @@ static int paste_driver_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_paste_driver_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Driver";
-	ot->idname= "ANIM_OT_paste_driver_button";
-	ot->description= "Paste the driver in the copy/paste buffer for the highlighted button";
+	ot->name = "Paste Driver";
+	ot->idname = "ANIM_OT_paste_driver_button";
+	ot->description = "Paste the driver in the copy/paste buffer for the highlighted button";
 	
 	/* callbacks */
-	ot->exec= paste_driver_button_exec; 
+	ot->exec = paste_driver_button_exec; 
 	//op->poll= ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************** */

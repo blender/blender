@@ -1077,15 +1077,15 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void PAINT_OT_weight_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Weight Paint Sample Weight";
-	ot->idname= "PAINT_OT_weight_sample";
+	ot->name = "Weight Paint Sample Weight";
+	ot->idname = "PAINT_OT_weight_sample";
 
 	/* api callbacks */
-	ot->invoke= weight_sample_invoke;
-	ot->poll= weight_paint_mode_poll;
+	ot->invoke = weight_sample_invoke;
+	ot->poll = weight_paint_mode_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 }
 
 /* samples cursor location, and gives menu with vertex groups to activate */
@@ -1178,21 +1178,21 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 	PropertyRNA *prop= NULL;
 
 	/* identifiers */
-	ot->name= "Weight Paint Sample Group";
-	ot->idname= "PAINT_OT_weight_sample_group";
+	ot->name = "Weight Paint Sample Group";
+	ot->idname = "PAINT_OT_weight_sample_group";
 
 	/* api callbacks */
-	ot->exec= weight_sample_group_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= weight_paint_mode_poll;
+	ot->exec = weight_sample_group_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->poll = weight_paint_mode_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
 	RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 static void do_weight_paint_normalize_all(MDeformVert *dvert, const int defbase_tot, const char *vgroup_validmap)
@@ -2039,15 +2039,15 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Weight Paint Mode";
-	ot->idname= "PAINT_OT_weight_paint_toggle";
+	ot->name = "Weight Paint Mode";
+	ot->idname = "PAINT_OT_weight_paint_toggle";
 	
 	/* api callbacks */
-	ot->exec= set_wpaint;
-	ot->poll= paint_poll_test;
+	ot->exec = set_wpaint;
+	ot->poll = paint_poll_test;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 
@@ -2491,18 +2491,18 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Weight Paint";
-	ot->idname= "PAINT_OT_weight_paint";
+	ot->name = "Weight Paint";
+	ot->idname = "PAINT_OT_weight_paint";
 	
 	/* api callbacks */
-	ot->invoke= wpaint_invoke;
-	ot->modal= paint_stroke_modal;
-	/* ot->exec= vpaint_exec; <-- needs stroke property */
-	ot->poll= weight_paint_poll;
-	ot->cancel= wpaint_cancel;
+	ot->invoke = wpaint_invoke;
+	ot->modal = paint_stroke_modal;
+	/* ot->exec = vpaint_exec; <-- needs stroke property */
+	ot->poll = weight_paint_poll;
+	ot->cancel = wpaint_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
@@ -2520,15 +2520,15 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 void PAINT_OT_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Weight";
-	ot->idname= "PAINT_OT_weight_set";
+	ot->name = "Set Weight";
+	ot->idname = "PAINT_OT_weight_set";
 
 	/* api callbacks */
-	ot->exec= weight_paint_set_exec;
-	ot->poll= mask_paint_poll; /* it was facemask_paint_poll */
+	ot->exec = weight_paint_set_exec;
+	ot->poll = mask_paint_poll; /* it was facemask_paint_poll */
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************ set / clear vertex paint mode ********** */
@@ -2582,15 +2582,15 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Vertex Paint Mode";
-	ot->idname= "PAINT_OT_vertex_paint_toggle";
+	ot->name = "Vertex Paint Mode";
+	ot->idname = "PAINT_OT_vertex_paint_toggle";
 	
 	/* api callbacks */
-	ot->exec= set_vpaint;
-	ot->poll= paint_poll_test;
+	ot->exec = set_vpaint;
+	ot->poll = paint_poll_test;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -2992,18 +2992,18 @@ static int vpaint_cancel(bContext *C, wmOperator *op)
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Vertex Paint";
-	ot->idname= "PAINT_OT_vertex_paint";
+	ot->name = "Vertex Paint";
+	ot->idname = "PAINT_OT_vertex_paint";
 	
 	/* api callbacks */
-	ot->invoke= vpaint_invoke;
-	ot->modal= paint_stroke_modal;
-	/* ot->exec= vpaint_exec; <-- needs stroke property */
-	ot->poll= vertex_paint_poll;
-	ot->cancel= vpaint_cancel;
+	ot->invoke = vpaint_invoke;
+	ot->modal = paint_stroke_modal;
+	/* ot->exec = vpaint_exec; <-- needs stroke property */
+	ot->poll = vertex_paint_poll;
+	ot->cancel = vpaint_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
@@ -3041,17 +3041,17 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Weight from Bones";
-	ot->idname= "PAINT_OT_weight_from_bones";
+	ot->name = "Weight from Bones";
+	ot->idname = "PAINT_OT_weight_from_bones";
 	
 	/* api callbacks */
-	ot->exec= weight_from_bones_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= weight_from_bones_poll;
+	ot->exec = weight_from_bones_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->poll = weight_from_bones_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Method to use for assigning weights");
+	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Method to use for assigning weights");
 }

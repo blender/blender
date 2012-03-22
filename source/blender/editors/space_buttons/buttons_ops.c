@@ -81,13 +81,13 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 void BUTTONS_OT_toolbox(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toolbox";
-	ot->description="Display button panel toolbox";
-	ot->idname= "BUTTONS_OT_toolbox";
+	ot->name = "Toolbox";
+	ot->description = "Display button panel toolbox";
+	ot->idname = "BUTTONS_OT_toolbox";
 	
 	/* api callbacks */
-	ot->invoke= toolbox_invoke;
-	ot->poll= ED_operator_buttons_active;
+	ot->invoke = toolbox_invoke;
+	ot->poll = ED_operator_buttons_active;
 }
 
 /********************** filebrowse operator *********************/
@@ -220,14 +220,14 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Accept";
-	ot->description="Open a file browser, Hold Shift to open the file, Alt to browse containing directory";
-	ot->idname= "BUTTONS_OT_file_browse";
+	ot->name = "Accept";
+	ot->description = "Open a file browser, Hold Shift to open the file, Alt to browse containing directory";
+	ot->idname = "BUTTONS_OT_file_browse";
 	
 	/* api callbacks */
-	ot->invoke= file_browse_invoke;
-	ot->exec= file_browse_exec;
-	ot->cancel= file_browse_cancel;
+	ot->invoke = file_browse_invoke;
+	ot->exec = file_browse_exec;
+	ot->cancel = file_browse_cancel;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -237,14 +237,14 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 void BUTTONS_OT_directory_browse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Accept";
-	ot->description="Open a directory browser, Hold Shift to open the file, Alt to browse containing directory";
-	ot->idname= "BUTTONS_OT_directory_browse";
+	ot->name = "Accept";
+	ot->description = "Open a directory browser, Hold Shift to open the file, Alt to browse containing directory";
+	ot->idname = "BUTTONS_OT_directory_browse";
 
 	/* api callbacks */
-	ot->invoke= file_browse_invoke;
-	ot->exec= file_browse_exec;
-	ot->cancel= file_browse_cancel;
+	ot->invoke = file_browse_invoke;
+	ot->exec = file_browse_exec;
+	ot->cancel = file_browse_cancel;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);

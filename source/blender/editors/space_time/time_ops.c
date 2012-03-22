@@ -75,16 +75,16 @@ static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_start_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Start Frame";
-	ot->idname= "TIME_OT_start_frame_set";
-	ot->description="Set the start frame";
+	ot->name = "Set Start Frame";
+	ot->idname = "TIME_OT_start_frame_set";
+	ot->description = "Set the start frame";
 	
 	/* api callbacks */
-	ot->exec= time_set_sfra_exec;
-	ot->poll= ED_operator_timeline_active;
+	ot->exec = time_set_sfra_exec;
+	ot->poll = ED_operator_timeline_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }	
 
 
@@ -117,16 +117,16 @@ static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_end_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set End Frame";
-	ot->idname= "TIME_OT_end_frame_set";
-	ot->description="Set the end frame";
+	ot->name = "Set End Frame";
+	ot->idname = "TIME_OT_end_frame_set";
+	ot->description = "Set the end frame";
 	
 	/* api callbacks */
-	ot->exec= time_set_efra_exec;
-	ot->poll= ED_operator_timeline_active;
+	ot->exec = time_set_efra_exec;
+	ot->poll = ED_operator_timeline_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************ View All Operator *******************************/
@@ -159,16 +159,16 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "TIME_OT_view_all";
-	ot->description= "Show the entire playable frame range";
+	ot->name = "View All";
+	ot->idname = "TIME_OT_view_all";
+	ot->description = "Show the entire playable frame range";
 	
 	/* api callbacks */
-	ot->exec= time_view_all_exec;
-	ot->poll= ED_operator_timeline_active;
+	ot->exec = time_view_all_exec;
+	ot->poll = ED_operator_timeline_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************** registration **********************************/

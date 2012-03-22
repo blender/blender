@@ -240,16 +240,16 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 void LATTICE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->description= "Change selection of all UVW control points";
-	ot->idname= "LATTICE_OT_select_all";
+	ot->name = "(De)select All";
+	ot->description = "Change selection of all UVW control points";
+	ot->idname = "LATTICE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= lattice_select_all_exec;
-	ot->poll= ED_operator_editlattice;
+	ot->exec = lattice_select_all_exec;
+	ot->poll = ED_operator_editlattice;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -288,16 +288,16 @@ static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 void LATTICE_OT_make_regular(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Regular";
-	ot->description= "Set UVW control points a uniform distance apart";
-	ot->idname= "LATTICE_OT_make_regular";
+	ot->name = "Make Regular";
+	ot->description = "Set UVW control points a uniform distance apart";
+	ot->idname = "LATTICE_OT_make_regular";
 	
 	/* api callbacks */
-	ot->exec= make_regular_exec;
-	ot->poll= make_regular_poll;
+	ot->exec = make_regular_exec;
+	ot->poll = make_regular_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /****************************** Mouse Selection *************************/

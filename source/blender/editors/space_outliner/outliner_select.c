@@ -863,13 +863,13 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
 {
-	ot->name= "Activate Item";
-	ot->idname= "OUTLINER_OT_item_activate";
-	ot->description= "Handle mouse clicks to activate/select items";
+	ot->name = "Activate Item";
+	ot->idname = "OUTLINER_OT_item_activate";
+	ot->description = "Handle mouse clicks to activate/select items";
 	
-	ot->invoke= outliner_item_activate;
+	ot->invoke = outliner_item_activate;
 	
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 	
 	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation");
 }
@@ -930,20 +930,20 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "OUTLINER_OT_select_border";
-	ot->description= "Use box selection to select tree elements";
+	ot->name = "Border Select";
+	ot->idname = "OUTLINER_OT_select_border";
+	ot->description = "Use box selection to select tree elements";
 
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= outliner_border_select_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = outliner_border_select_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);

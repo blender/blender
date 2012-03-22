@@ -189,19 +189,19 @@ static int eyedropper_poll(bContext *C)
 static void UI_OT_eyedropper(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Eyedropper";
-	ot->idname= "UI_OT_eyedropper";
-	ot->description= "Sample a color from the Blender Window to store in a property";
+	ot->name = "Eyedropper";
+	ot->idname = "UI_OT_eyedropper";
+	ot->description = "Sample a color from the Blender Window to store in a property";
 	
 	/* api callbacks */
-	ot->invoke= eyedropper_invoke;
-	ot->modal= eyedropper_modal;
-	ot->cancel= eyedropper_cancel;
-	ot->exec= eyedropper_exec;
-	ot->poll= eyedropper_poll;
+	ot->invoke = eyedropper_invoke;
+	ot->modal = eyedropper_modal;
+	ot->cancel = eyedropper_cancel;
+	ot->exec = eyedropper_exec;
+	ot->poll = eyedropper_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 	
 	/* properties */
 }
@@ -219,15 +219,15 @@ static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_reset_default_theme(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset to Default Theme";
-	ot->idname= "UI_OT_reset_default_theme";
-	ot->description= "Reset to the default theme colors";
+	ot->name = "Reset to Default Theme";
+	ot->idname = "UI_OT_reset_default_theme";
+	ot->description = "Reset to the default theme colors";
 	
 	/* callbacks */
-	ot->exec= reset_default_theme_exec;
+	ot->exec = reset_default_theme_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /* Copy Data Path Operator ------------------------ */
@@ -259,16 +259,16 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Data Path";
-	ot->idname= "UI_OT_copy_data_path_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard";
+	ot->name = "Copy Data Path";
+	ot->idname = "UI_OT_copy_data_path_button";
+	ot->description = "Copy the RNA data path for this property to the clipboard";
 
 	/* callbacks */
-	ot->exec= copy_data_path_button_exec;
+	ot->exec = copy_data_path_button_exec;
 	//op->poll= ??? // TODO: need to have some valid property before this can be done
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /* Reset to Default Values Button Operator ------------------------ */
@@ -327,16 +327,16 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_reset_default_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset to Default Value";
-	ot->idname= "UI_OT_reset_default_button";
-	ot->description= "Reset this property's value to its default value";
+	ot->name = "Reset to Default Value";
+	ot->idname = "UI_OT_reset_default_button";
+	ot->description = "Reset this property's value to its default value";
 
 	/* callbacks */
-	ot->poll= reset_default_button_poll;
-	ot->exec= reset_default_button_exec;
+	ot->poll = reset_default_button_poll;
+	ot->exec = reset_default_button_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
@@ -419,16 +419,16 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy To Selected";
-	ot->idname= "UI_OT_copy_to_selected_button";
-	ot->description= "Copy property from this object to selected objects or bones";
+	ot->name = "Copy To Selected";
+	ot->idname = "UI_OT_copy_to_selected_button";
+	ot->description = "Copy property from this object to selected objects or bones";
 
 	/* callbacks */
-	ot->poll= copy_to_selected_button_poll;
-	ot->exec= copy_to_selected_button_exec;
+	ot->poll = copy_to_selected_button_poll;
+	ot->exec = copy_to_selected_button_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
@@ -474,13 +474,13 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reports to Text Block";
-	ot->idname= "UI_OT_reports_to_textblock";
-	ot->description= "Write the reports ";
+	ot->name = "Reports to Text Block";
+	ot->idname = "UI_OT_reports_to_textblock";
+	ot->description = "Write the reports ";
 	
 	/* callbacks */
-	ot->poll= reports_to_text_poll;
-	ot->exec= reports_to_text_exec;
+	ot->poll = reports_to_text_poll;
+	ot->exec = reports_to_text_exec;
 }
 
 #ifdef WITH_PYTHON
@@ -693,12 +693,12 @@ static int editsource_exec(bContext *C, wmOperator *op)
 static void UI_OT_editsource(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reports to Text Block";
-	ot->idname= "UI_OT_editsource";
-	ot->description= "Edit source code for a button";
+	ot->name = "Reports to Text Block";
+	ot->idname = "UI_OT_editsource";
+	ot->description = "Edit source code for a button";
 
 	/* callbacks */
-	ot->exec= editsource_exec;
+	ot->exec = editsource_exec;
 }
 
 #endif /* WITH_PYTHON */

@@ -75,15 +75,15 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 static void BRUSH_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Brush";
-	ot->description= "Add brush by mode type";
-	ot->idname= "BRUSH_OT_add";
+	ot->name = "Add Brush";
+	ot->description = "Add brush by mode type";
+	ot->idname = "BRUSH_OT_add";
 	
 	/* api callbacks */
-	ot->exec= brush_add_exec;
+	ot->exec = brush_add_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -131,15 +131,15 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 static void BRUSH_OT_scale_size(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scale Sculpt/Paint Brush Size";
-	ot->description= "Change brush size by a scalar";
-	ot->idname= "BRUSH_OT_scale_size";
+	ot->name = "Scale Sculpt/Paint Brush Size";
+	ot->description = "Change brush size by a scalar";
+	ot->idname = "BRUSH_OT_scale_size";
 	
 	/* api callbacks */
-	ot->exec= brush_scale_size_exec;
+	ot->exec = brush_scale_size_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "scalar", 1, 0, 2, "Scalar", "Factor to scale brush size by", 0, 2);
 }
@@ -158,15 +158,15 @@ static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
 static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Vertex Colors";
-	ot->idname= "PAINT_OT_vertex_color_set";
+	ot->name = "Set Vertex Colors";
+	ot->idname = "PAINT_OT_vertex_color_set";
 	
 	/* api callbacks */
-	ot->exec= vertex_color_set_exec;
-	ot->poll= vertex_paint_mode_poll;
+	ot->exec = vertex_color_set_exec;
+	ot->poll = vertex_paint_mode_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
@@ -187,15 +187,15 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 static void BRUSH_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset Brush";
-	ot->description= "Return brush to defaults based on current tool";
-	ot->idname= "BRUSH_OT_reset";
+	ot->name = "Reset Brush";
+	ot->description = "Return brush to defaults based on current tool";
+	ot->idname = "BRUSH_OT_reset";
 	
 	/* api callbacks */
-	ot->exec= brush_reset_exec;
+	ot->exec = brush_reset_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int brush_tool(const Brush *brush, size_t tool_offset)
@@ -302,15 +302,15 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Brush Select";
-	ot->description= "Select a paint mode's brush by tool type";
-	ot->idname= "PAINT_OT_brush_select";
+	ot->name = "Brush Select";
+	ot->description = "Select a paint mode's brush by tool type";
+	ot->idname = "PAINT_OT_brush_select";
 
 	/* api callbacks */
-	ot->exec= brush_select_exec;
+	ot->exec = brush_select_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
 	RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, OB_MODE_ACTIVE, "Paint Mode", "");

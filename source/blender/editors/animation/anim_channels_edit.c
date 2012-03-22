@@ -1104,19 +1104,19 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_channels_move (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Channels";
-	ot->idname= "ANIM_OT_channels_move";
+	ot->name = "Move Channels";
+	ot->idname = "ANIM_OT_channels_move";
 	ot->description = "Rearrange selected animation channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_rearrange_exec;
-	ot->poll= animedit_poll_channels_nla_tweakmode_off;
+	ot->exec = animchannels_rearrange_exec;
+	ot->poll = animedit_poll_channels_nla_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, "Direction", "");
+	ot->prop = RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, "Direction", "");
 }
 
 /* ******************** Delete Channel Operator *********************** */
@@ -1220,16 +1220,16 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Channels";
-	ot->idname= "ANIM_OT_channels_delete";
-	ot->description= "Delete all selected animation channels";
+	ot->name = "Delete Channels";
+	ot->idname = "ANIM_OT_channels_delete";
+	ot->description = "Delete all selected animation channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_delete_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->exec = animchannels_delete_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Set Channel Visibility Operator *********************** */
@@ -1312,16 +1312,16 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Visibility";
-	ot->idname= "ANIM_OT_channels_visibility_set";
-	ot->description= "Make only the selected animation channels visible in the Graph Editor";
+	ot->name = "Set Visibility";
+	ot->idname = "ANIM_OT_channels_visibility_set";
+	ot->description = "Make only the selected animation channels visible in the Graph Editor";
 	
 	/* api callbacks */
-	ot->exec= animchannels_visibility_set_exec;
-	ot->poll= ED_operator_graphedit_active;
+	ot->exec = animchannels_visibility_set_exec;
+	ot->poll = ED_operator_graphedit_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -1389,16 +1389,16 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 static void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visibility";
-	ot->idname= "ANIM_OT_channels_visibility_toggle";
-	ot->description= "Toggle visibility in Graph Editor of all selected animation channels";
+	ot->name = "Toggle Visibility";
+	ot->idname = "ANIM_OT_channels_visibility_toggle";
+	ot->description = "Toggle visibility in Graph Editor of all selected animation channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_visibility_toggle_exec;
-	ot->poll= ED_operator_graphedit_active;
+	ot->exec = animchannels_visibility_toggle_exec;
+	ot->poll = ED_operator_graphedit_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************** Set Flags Operator *********************** */
@@ -1532,82 +1532,82 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Enable Channel Setting";
-	ot->idname= "ANIM_OT_channels_setting_enable";
-	ot->description= "Enable specified setting on all selected animation channels";
+	ot->name = "Enable Channel Setting";
+	ot->idname = "ANIM_OT_channels_setting_enable";
+	ot->description = "Enable specified setting on all selected animation channels";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= animchannels_setflag_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = animchannels_setflag_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_ADD, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 /* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
 static void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Disable Channel Setting";
-	ot->idname= "ANIM_OT_channels_setting_disable";
-	ot->description= "Disable specified setting on all selected animation channels";
+	ot->name = "Disable Channel Setting";
+	ot->idname = "ANIM_OT_channels_setting_disable";
+	ot->description = "Disable specified setting on all selected animation channels";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= animchannels_setflag_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = animchannels_setflag_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Channel Setting";
-	ot->idname= "ANIM_OT_channels_setting_toggle";
-	ot->description= "Toggle specified setting on all selected animation channels";
+	ot->name = "Toggle Channel Setting";
+	ot->idname = "ANIM_OT_channels_setting_toggle";
+	ot->description = "Toggle specified setting on all selected animation channels";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= animchannels_setflag_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = animchannels_setflag_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Channel Editability";
-	ot->idname= "ANIM_OT_channels_editable_toggle";
-	ot->description= "Toggle editability of selected channels";
+	ot->name = "Toggle Channel Editability";
+	ot->idname = "ANIM_OT_channels_editable_toggle";
+	ot->description = "Toggle editability of selected channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_setflag_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->exec = animchannels_setflag_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
@@ -1643,19 +1643,19 @@ static int animchannels_expand_exec (bContext *C, wmOperator *op)
 static void ANIM_OT_channels_expand (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Expand Channels";
-	ot->idname= "ANIM_OT_channels_expand";
-	ot->description= "Expand (i.e. open) all selected expandable animation channels";
+	ot->name = "Expand Channels";
+	ot->idname = "ANIM_OT_channels_expand";
+	ot->description = "Expand (i.e. open) all selected expandable animation channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_expand_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->exec = animchannels_expand_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
+	ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
 }
 
 /* ********************** Collapse Channels Operator *********************** */
@@ -1685,19 +1685,19 @@ static int animchannels_collapse_exec (bContext *C, wmOperator *op)
 static void ANIM_OT_channels_collapse (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Collapse Channels";
-	ot->idname= "ANIM_OT_channels_collapse";
-	ot->description= "Collapse (i.e. close) all selected expandable animation channels";
+	ot->name = "Collapse Channels";
+	ot->idname = "ANIM_OT_channels_collapse";
+	ot->description = "Collapse (i.e. close) all selected expandable animation channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_collapse_exec;
-	ot->poll= animedit_poll_channels_active;
+	ot->exec = animchannels_collapse_exec;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
+	ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ******************* Reenable Disabled Operator ******************* */
@@ -1761,16 +1761,16 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_fcurves_enable (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Revive Disabled F-Curves";
-	ot->idname= "ANIM_OT_channels_fcurves_enable";
-	ot->description= "Clears 'disabled' tag from all F-Curves to get broken F-Curves working again";
+	ot->name = "Revive Disabled F-Curves";
+	ot->idname = "ANIM_OT_channels_fcurves_enable";
+	ot->description = "Clears 'disabled' tag from all F-Curves to get broken F-Curves working again";
 	
 	/* api callbacks */
-	ot->exec= animchannels_enable_exec;
-	ot->poll= animchannels_enable_poll;
+	ot->exec = animchannels_enable_exec;
+	ot->poll = animchannels_enable_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************** Select All Operator *********************** */
@@ -1798,19 +1798,19 @@ static int animchannels_deselectall_exec (bContext *C, wmOperator *op)
 static void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
-	ot->idname= "ANIM_OT_channels_select_all_toggle";
-	ot->description= "Toggle selection of all animation channels";
+	ot->name = "Select All";
+	ot->idname = "ANIM_OT_channels_select_all_toggle";
+	ot->description = "Toggle selection of all animation channels";
 	
 	/* api callbacks */
-	ot->exec= animchannels_deselectall_exec;
-	ot->poll= animedit_poll_channels_nla_tweakmode_off;
+	ot->exec = animchannels_deselectall_exec;
+	ot->poll = animedit_poll_channels_nla_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Borderselect Operator *********************** */
@@ -1929,20 +1929,20 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "ANIM_OT_channels_select_border";
-	ot->description= "Select all animation channels within the specified region";
+	ot->name = "Border Select";
+	ot->idname = "ANIM_OT_channels_select_border";
+	ot->description = "Select all animation channels within the specified region";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= animchannels_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = animchannels_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= animedit_poll_channels_nla_tweakmode_off;
+	ot->poll = animedit_poll_channels_nla_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
@@ -2040,13 +2040,13 @@ static int animchannels_rename_invoke (bContext *C, wmOperator *UNUSED(op), wmEv
 static void ANIM_OT_channels_rename (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Rename Channels";
-	ot->idname= "ANIM_OT_channels_rename";
-	ot->description= "Rename animation channel under mouse";
+	ot->name = "Rename Channels";
+	ot->idname = "ANIM_OT_channels_rename";
+	ot->description = "Rename animation channel under mouse";
 	
 	/* api callbacks */
-	ot->invoke= animchannels_rename_invoke;
-	ot->poll= animedit_poll_channels_active;
+	ot->invoke = animchannels_rename_invoke;
+	ot->poll = animedit_poll_channels_active;
 }
 
 /* ******************** Mouse-Click Operator *********************** */
@@ -2349,16 +2349,16 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 static void ANIM_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Click on Channels";
-	ot->idname= "ANIM_OT_channels_click";
-	ot->description= "Handle mouse-clicks over animation channels";
+	ot->name = "Mouse Click on Channels";
+	ot->idname = "ANIM_OT_channels_click";
+	ot->description = "Handle mouse-clicks over animation channels";
 	
 	/* api callbacks */
-	ot->invoke= animchannels_mouseclick_invoke;
-	ot->poll= animedit_poll_channels_active;
+	ot->invoke = animchannels_mouseclick_invoke;
+	ot->poll = animedit_poll_channels_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

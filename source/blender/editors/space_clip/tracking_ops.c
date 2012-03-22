@@ -149,17 +149,17 @@ static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_add_marker(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Marker";
-	ot->idname= "CLIP_OT_add_marker";
-	ot->description= "Place new marker at specified location";
+	ot->name = "Add Marker";
+	ot->idname = "CLIP_OT_add_marker";
+	ot->description = "Place new marker at specified location";
 
 	/* api callbacks */
-	ot->invoke= add_marker_invoke;
-	ot->exec= add_marker_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->invoke = add_marker_invoke;
+	ot->exec = add_marker_exec;
+	ot->poll = space_clip_frame_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
@@ -194,17 +194,17 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_delete_track(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Track";
-	ot->idname= "CLIP_OT_delete_track";
-	ot->description= "Delete selected tracks";
+	ot->name = "Delete Track";
+	ot->idname = "CLIP_OT_delete_track";
+	ot->description = "Delete selected tracks";
 
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_track_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = delete_track_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** delete marker operator *********************/
@@ -245,17 +245,17 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_delete_marker(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Marker";
-	ot->idname= "CLIP_OT_delete_marker";
-	ot->description= "Delete marker for current frame from selected tracks";
+	ot->name = "Delete Marker";
+	ot->idname = "CLIP_OT_delete_marker";
+	ot->description = "Delete marker for current frame from selected tracks";
 
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_marker_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = delete_marker_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** slide marker operator *********************/
@@ -621,17 +621,17 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_slide_marker(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Slide Marker";
-	ot->description= "Slide marker areas";
-	ot->idname= "CLIP_OT_slide_marker";
+	ot->name = "Slide Marker";
+	ot->description = "Slide marker areas";
+	ot->idname = "CLIP_OT_slide_marker";
 
 	/* api callbacks */
-	ot->poll= space_clip_frame_poll;
-	ot->invoke= slide_marker_invoke;
-	ot->modal= slide_marker_modal;
+	ot->poll = space_clip_frame_poll;
+	ot->invoke = slide_marker_invoke;
+	ot->modal = slide_marker_modal;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -827,17 +827,17 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select";
-	ot->description= "Select tracking markers";
-	ot->idname= "CLIP_OT_select";
+	ot->name = "Select";
+	ot->description = "Select tracking markers";
+	ot->idname = "CLIP_OT_select";
 
 	/* api callbacks */
-	ot->exec= select_exec;
-	ot->invoke= select_invoke;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = select_exec;
+	ot->invoke = select_invoke;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -903,18 +903,18 @@ static int border_select_exec(bContext *C, wmOperator *op)
 void CLIP_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->description= "Select markers using border selection";
-	ot->idname= "CLIP_OT_select_border";
+	ot->name = "Border Select";
+	ot->description = "Select markers using border selection";
+	ot->idname = "CLIP_OT_select_border";
 
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= border_select_exec;
-	ot->modal= WM_border_select_modal;
-	ot->poll= ED_space_clip_poll;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = border_select_exec;
+	ot->modal = WM_border_select_modal;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_gesture_border(ot, TRUE);
@@ -987,18 +987,18 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 void CLIP_OT_select_circle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Circle Select";
-	ot->description= "Select markers using circle selection";
-	ot->idname= "CLIP_OT_select_circle";
+	ot->name = "Circle Select";
+	ot->description = "Select markers using circle selection";
+	ot->idname = "CLIP_OT_select_circle";
 
 	/* api callbacks */
-	ot->invoke= WM_gesture_circle_invoke;
-	ot->modal= WM_gesture_circle_modal;
-	ot->exec= circle_select_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->invoke = WM_gesture_circle_invoke;
+	ot->modal = WM_gesture_circle_modal;
+	ot->exec = circle_select_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
@@ -1080,16 +1080,16 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void CLIP_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->description= "Change selection of all tracking markers";
-	ot->idname= "CLIP_OT_select_all";
+	ot->name = "(De)select All";
+	ot->description = "Change selection of all tracking markers";
+	ot->idname = "CLIP_OT_select_all";
 
 	/* api callbacks */
-	ot->exec= select_all_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = select_all_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -1169,16 +1169,16 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Select Grouped";
-	ot->description= "Select all tracks from specified group";
-	ot->idname= "CLIP_OT_select_grouped";
+	ot->name = "Select Grouped";
+	ot->description = "Select all tracks from specified group";
+	ot->idname = "CLIP_OT_select_grouped";
 
 	/* api callbacks */
-	ot->exec= select_groped_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->exec = select_groped_exec;
+	ot->poll = space_clip_frame_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* proeprties */
 	RNA_def_enum(ot->srna, "group", select_group_items, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
@@ -1531,18 +1531,18 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 void CLIP_OT_track_markers(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Track Markers";
-	ot->description= "Track selected markers";
-	ot->idname= "CLIP_OT_track_markers";
+	ot->name = "Track Markers";
+	ot->description = "Track selected markers";
+	ot->idname = "CLIP_OT_track_markers";
 
 	/* api callbacks */
-	ot->exec= track_markers_exec;
-	ot->invoke= track_markers_invoke;
-	ot->poll= space_clip_frame_poll;
-	ot->modal= track_markers_modal;
+	ot->exec = track_markers_exec;
+	ot->invoke = track_markers_invoke;
+	ot->poll = space_clip_frame_poll;
+	ot->modal = track_markers_modal;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tracking");
@@ -1753,18 +1753,18 @@ static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 void CLIP_OT_solve_camera(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Solve Camera";
-	ot->description= "Solve camera motion from tracks";
-	ot->idname= "CLIP_OT_solve_camera";
+	ot->name = "Solve Camera";
+	ot->description = "Solve camera motion from tracks";
+	ot->idname = "CLIP_OT_solve_camera";
 
 	/* api callbacks */
-	ot->exec= solve_camera_exec;
-	ot->invoke= solve_camera_invoke;
-	ot->modal= solve_camera_modal;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = solve_camera_exec;
+	ot->invoke = solve_camera_invoke;
+	ot->modal = solve_camera_modal;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** clear solution operator *********************/
@@ -1803,16 +1803,16 @@ static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_clear_solution(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Solution";
-	ot->description= "Clear all calculated data";
-	ot->idname= "CLIP_OT_clear_solution";
+	ot->name = "Clear Solution";
+	ot->description = "Clear all calculated data";
+	ot->idname = "CLIP_OT_clear_solution";
 
 	/* api callbacks */
-	ot->exec= clear_solution_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = clear_solution_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** clear track operator *********************/
@@ -1855,16 +1855,16 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Clear Track Path";
-	ot->description= "Clear tracks after/before current position or clear the whole track";
-	ot->idname= "CLIP_OT_clear_track_path";
+	ot->name = "Clear Track Path";
+	ot->description = "Clear tracks after/before current position or clear the whole track";
+	ot->idname = "CLIP_OT_clear_track_path";
 
 	/* api callbacks */
-	ot->exec= clear_track_path_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = clear_track_path_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* proeprties */
 	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
@@ -1911,16 +1911,16 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Disable Markers";
-	ot->description= "Disable/enable selected markers";
-	ot->idname= "CLIP_OT_disable_markers";
+	ot->name = "Disable Markers";
+	ot->description = "Disable/enable selected markers";
+	ot->idname = "CLIP_OT_disable_markers";
 
 	/* api callbacks */
-	ot->exec= disable_markers_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = disable_markers_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");
@@ -2131,16 +2131,16 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 void CLIP_OT_set_origin(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Origin";
-	ot->description= "Set active marker as origin by moving camera (or it's parent if present) in 3D space";
-	ot->idname= "CLIP_OT_set_origin";
+	ot->name = "Set Origin";
+	ot->description = "Set active marker as origin by moving camera (or it's parent if present) in 3D space";
+	ot->idname = "CLIP_OT_set_origin";
 
 	/* api callbacks */
-	ot->exec= set_origin_exec;
-	ot->poll= set_orientation_poll;
+	ot->exec = set_origin_exec;
+	ot->poll = set_orientation_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "use_median", 0, "Use Median", "Set origin to median point of selected bundles");
@@ -2377,16 +2377,16 @@ void CLIP_OT_set_plane(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Set Plane";
-	ot->description= "Set plane based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
-	ot->idname= "CLIP_OT_set_plane";
+	ot->name = "Set Plane";
+	ot->description = "Set plane based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
+	ot->idname = "CLIP_OT_set_plane";
 
 	/* api callbacks */
-	ot->exec= set_plane_exec;
-	ot->poll= set_orientation_poll;
+	ot->exec = set_plane_exec;
+	ot->poll = set_orientation_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "plane", plane_items, 0, "Plane", "Plane to be sued for orientation");
@@ -2449,16 +2449,16 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Set Axis";
-	ot->description= "Set direction of scene axis rotating camera (or it's parent if present) and assuming selected track lies on real axis joining it with the origin";
-	ot->idname= "CLIP_OT_set_axis";
+	ot->name = "Set Axis";
+	ot->description = "Set direction of scene axis rotating camera (or it's parent if present) and assuming selected track lies on real axis joining it with the origin";
+	ot->idname = "CLIP_OT_set_axis";
 
 	/* api callbacks */
-	ot->exec= set_axis_exec;
-	ot->poll= set_orientation_poll;
+	ot->exec = set_axis_exec;
+	ot->poll = set_orientation_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "axis", axis_actions, 0, "Axis", "Axis to use to align bundle along");
@@ -2561,17 +2561,17 @@ static int set_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CLIP_OT_set_scale(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Scale";
-	ot->description= "Set scale of scene by scaling camera (or it's parent if present)";
-	ot->idname= "CLIP_OT_set_scale";
+	ot->name = "Set Scale";
+	ot->description = "Set scale of scene by scaling camera (or it's parent if present)";
+	ot->idname = "CLIP_OT_set_scale";
 
 	/* api callbacks */
-	ot->exec= set_scale_exec;
-	ot->invoke= set_scale_invoke;
-	ot->poll= set_orientation_poll;
+	ot->exec = set_scale_exec;
+	ot->invoke = set_scale_invoke;
+	ot->poll = set_orientation_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
@@ -2613,17 +2613,17 @@ static int set_solution_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void CLIP_OT_set_solution_scale(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Solution Scale";
-	ot->description= "Set object solution scale using distance between two selected tracks";
-	ot->idname= "CLIP_OT_set_solution_scale";
+	ot->name = "Set Solution Scale";
+	ot->description = "Set object solution scale using distance between two selected tracks";
+	ot->idname = "CLIP_OT_set_solution_scale";
 
 	/* api callbacks */
-	ot->exec= set_solution_scale_exec;
-	ot->invoke= set_solution_scale_invoke;
-	ot->poll= set_solution_scale_poll;
+	ot->exec = set_solution_scale_exec;
+	ot->invoke = set_solution_scale_invoke;
+	ot->poll = set_solution_scale_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
@@ -2654,16 +2654,16 @@ static int set_center_principal_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_set_center_principal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Principal to Center";
-	ot->description= "Set optical center to center of footage";
-	ot->idname= "CLIP_OT_set_center_principal";
+	ot->name = "Set Principal to Center";
+	ot->description = "Set optical center to center of footage";
+	ot->idname = "CLIP_OT_set_center_principal";
 
 	/* api callbacks */
-	ot->exec= set_center_principal_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = set_center_principal_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** hide tracks operator *********************/
@@ -2707,16 +2707,16 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 void CLIP_OT_hide_tracks(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Tracks";
-	ot->description= "Hide selected tracks";
-	ot->idname= "CLIP_OT_hide_tracks";
+	ot->name = "Hide Tracks";
+	ot->description = "Hide selected tracks";
+	ot->idname = "CLIP_OT_hide_tracks";
 
 	/* api callbacks */
-	ot->exec= hide_tracks_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = hide_tracks_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected tracks");
@@ -2746,16 +2746,16 @@ static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Tracks Clear";
-	ot->description= "Clear hide selected tracks";
-	ot->idname= "CLIP_OT_hide_tracks_clear";
+	ot->name = "Hide Tracks Clear";
+	ot->description = "Clear hide selected tracks";
+	ot->idname = "CLIP_OT_hide_tracks_clear";
 
 	/* api callbacks */
-	ot->exec= hide_tracks_clear_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = hide_tracks_clear_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** detect features operator *********************/
@@ -2828,16 +2828,16 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Detect Features";
-	ot->description= "Automatically detect features and place markers to track";
-	ot->idname= "CLIP_OT_detect_features";
+	ot->name = "Detect Features";
+	ot->description = "Automatically detect features and place markers to track";
+	ot->idname = "CLIP_OT_detect_features";
 
 	/* api callbacks */
-	ot->exec= detect_features_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->exec = detect_features_exec;
+	ot->poll = space_clip_frame_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "placement", placement_items, 0, "Placement", "Placement for detected features");
@@ -2923,16 +2923,16 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Jump to Frame";
-	ot->description= "Jump to special frame";
-	ot->idname= "CLIP_OT_frame_jump";
+	ot->name = "Jump to Frame";
+	ot->description = "Jump to special frame";
+	ot->idname = "CLIP_OT_frame_jump";
 
 	/* api callbacks */
-	ot->exec= frame_jump_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->exec = frame_jump_exec;
+	ot->poll = space_clip_frame_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "position", position_items, 0, "Position", "Position to jump to");
@@ -2980,16 +2980,16 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 void CLIP_OT_join_tracks(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Join Tracks";
-	ot->description= "Join selected tracks";
-	ot->idname= "CLIP_OT_join_tracks";
+	ot->name = "Join Tracks";
+	ot->description = "Join selected tracks";
+	ot->idname = "CLIP_OT_join_tracks";
 
 	/* api callbacks */
-	ot->exec= join_tracks_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->exec = join_tracks_exec;
+	ot->poll = space_clip_frame_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** lock tracks operator *********************/
@@ -3028,16 +3028,16 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Lock Tracks";
-	ot->description= "Lock/unlock selected tracks";
-	ot->idname= "CLIP_OT_lock_tracks";
+	ot->name = "Lock Tracks";
+	ot->description = "Lock/unlock selected tracks";
+	ot->idname = "CLIP_OT_lock_tracks";
 
 	/* api callbacks */
-	ot->exec= lock_tracks_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = lock_tracks_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Lock action to execute");
@@ -3078,16 +3078,16 @@ static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_track_copy_color(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Color";
-	ot->description= "Copy color to all selected tracks";
-	ot->idname= "CLIP_OT_track_copy_color";
+	ot->name = "Copy Color";
+	ot->description = "Copy color to all selected tracks";
+	ot->idname = "CLIP_OT_track_copy_color";
 
 	/* api callbacks */
-	ot->exec= track_copy_color_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = track_copy_color_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** add 2d stabilization tracks operator *********************/
@@ -3127,16 +3127,16 @@ static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Stabilization Tracks";
-	ot->description= "Add selected tracks to 2D stabilization tool";
-	ot->idname= "CLIP_OT_stabilize_2d_add";
+	ot->name = "Add Stabilization Tracks";
+	ot->description = "Add selected tracks to 2D stabilization tool";
+	ot->idname = "CLIP_OT_stabilize_2d_add";
 
 	/* api callbacks */
-	ot->exec= stabilize_2d_add_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = stabilize_2d_add_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** remove 2d stabilization tracks operator *********************/
@@ -3187,16 +3187,16 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Stabilization Track";
-	ot->description= "Remove selected track from stabilization";
-	ot->idname= "CLIP_OT_stabilize_2d_remove";
+	ot->name = "Remove Stabilization Track";
+	ot->description = "Remove selected track from stabilization";
+	ot->idname = "CLIP_OT_stabilize_2d_remove";
 
 	/* api callbacks */
-	ot->exec= stabilize_2d_remove_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = stabilize_2d_remove_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** select 2d stabilization tracks operator *********************/
@@ -3230,16 +3230,16 @@ static int stabilize_2d_select_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Stabilization Tracks";
-	ot->description= "Select track which are used for stabilization";
-	ot->idname= "CLIP_OT_stabilize_2d_select";
+	ot->name = "Select Stabilization Tracks";
+	ot->description = "Select track which are used for stabilization";
+	ot->idname = "CLIP_OT_stabilize_2d_select";
 
 	/* api callbacks */
-	ot->exec= stabilize_2d_select_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = stabilize_2d_select_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** set 2d stabilization rotation track operator *********************/
@@ -3267,16 +3267,16 @@ static int stabilize_2d_set_rotation_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Rotation Track";
-	ot->description= "Use active track to compensate rotation when doing 2D stabilization";
-	ot->idname= "CLIP_OT_stabilize_2d_set_rotation";
+	ot->name = "Set Rotation Track";
+	ot->description = "Use active track to compensate rotation when doing 2D stabilization";
+	ot->idname = "CLIP_OT_stabilize_2d_set_rotation";
 
 	/* api callbacks */
-	ot->exec= stabilize_2d_set_rotation_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = stabilize_2d_set_rotation_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** clean tracks operator *********************/
@@ -3457,17 +3457,17 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Clean Tracks";
-	ot->description= "Clean tracks with high error values or few frames";
-	ot->idname= "CLIP_OT_clean_tracks";
+	ot->name = "Clean Tracks";
+	ot->description = "Clean tracks with high error values or few frames";
+	ot->idname = "CLIP_OT_clean_tracks";
 
 	/* api callbacks */
-	ot->exec= clean_tracks_exec;
-	ot->invoke= clean_tracks_invoke;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = clean_tracks_exec;
+	ot->invoke = clean_tracks_invoke;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Effect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
@@ -3493,16 +3493,16 @@ static int tracking_object_new_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_tracking_object_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Tracking Object";
-	ot->description= "Add new object for tracking";
-	ot->idname= "CLIP_OT_tracking_object_new";
+	ot->name = "Add Tracking Object";
+	ot->description = "Add new object for tracking";
+	ot->idname = "CLIP_OT_tracking_object_new";
 
 	/* api callbacks */
-	ot->exec= tracking_object_new_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = tracking_object_new_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** remove tracking object *********************/
@@ -3531,16 +3531,16 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Movie Tracking Object";
-	ot->description= "Remove object for tracking";
-	ot->idname= "CLIP_OT_tracking_object_remove";
+	ot->name = "Movie Tracking Object";
+	ot->description = "Remove object for tracking";
+	ot->idname = "CLIP_OT_tracking_object_remove";
 
 	/* api callbacks */
-	ot->exec= tracking_object_remove_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = tracking_object_remove_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** copy tracks to clipboard operator *********************/
@@ -3571,7 +3571,7 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
 	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /********************** paste tracks from clipboard operator *********************/
@@ -3611,5 +3611,5 @@ void CLIP_OT_paste_tracks(wmOperatorType *ot)
 	ot->poll = paste_tracks_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

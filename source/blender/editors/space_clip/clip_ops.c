@@ -221,17 +221,17 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CLIP_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Clip";
-	ot->description= "Load a sequence of frames or a movie file";
-	ot->idname= "CLIP_OT_open";
+	ot->name = "Open Clip";
+	ot->description = "Load a sequence of frames or a movie file";
+	ot->idname = "CLIP_OT_open";
 
 	/* api callbacks */
-	ot->exec= open_exec;
-	ot->invoke= open_invoke;
-	ot->cancel= open_cancel;
+	ot->exec = open_exec;
+	ot->invoke = open_invoke;
+	ot->cancel = open_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -256,12 +256,12 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload Clip";
-	ot->description= "Reload clip";
-	ot->idname= "CLIP_OT_reload";
+	ot->name = "Reload Clip";
+	ot->description = "Reload clip";
+	ot->idname = "CLIP_OT_reload";
 
 	/* api callbacks */
-	ot->exec= reload_exec;
+	ot->exec = reload_exec;
 }
 
 /********************** view pan operator *********************/
@@ -390,18 +390,18 @@ static int view_pan_cancel(bContext *C, wmOperator *op)
 void CLIP_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Pan";
-	ot->idname= "CLIP_OT_view_pan";
+	ot->name = "View Pan";
+	ot->idname = "CLIP_OT_view_pan";
 
 	/* api callbacks */
-	ot->exec= view_pan_exec;
-	ot->invoke= view_pan_invoke;
-	ot->modal= view_pan_modal;
-	ot->cancel= view_pan_cancel;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_pan_exec;
+	ot->invoke = view_pan_invoke;
+	ot->modal = view_pan_modal;
+	ot->cancel = view_pan_cancel;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -514,18 +514,18 @@ static int view_zoom_cancel(bContext *C, wmOperator *op)
 void CLIP_OT_view_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom";
-	ot->idname= "CLIP_OT_view_zoom";
+	ot->name = "View Zoom";
+	ot->idname = "CLIP_OT_view_zoom";
 
 	/* api callbacks */
-	ot->exec= view_zoom_exec;
-	ot->invoke= view_zoom_invoke;
-	ot->modal= view_zoom_modal;
-	ot->cancel= view_zoom_cancel;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_zoom_exec;
+	ot->invoke = view_zoom_invoke;
+	ot->modal = view_zoom_modal;
+	ot->cancel = view_zoom_cancel;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
@@ -562,13 +562,13 @@ static int view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom In";
-	ot->idname= "CLIP_OT_view_zoom_in";
+	ot->name = "View Zoom In";
+	ot->idname = "CLIP_OT_view_zoom_in";
 
 	/* api callbacks */
-	ot->exec= view_zoom_in_exec;
-	ot->invoke= view_zoom_in_invoke;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_zoom_in_exec;
+	ot->invoke = view_zoom_in_invoke;
+	ot->poll = ED_space_clip_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
@@ -602,13 +602,13 @@ static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom Out";
-	ot->idname= "CLIP_OT_view_zoom_out";
+	ot->name = "View Zoom Out";
+	ot->idname = "CLIP_OT_view_zoom_out";
 
 	/* api callbacks */
-	ot->exec= view_zoom_out_exec;
-	ot->invoke= view_zoom_out_invoke;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_zoom_out_exec;
+	ot->invoke = view_zoom_out_invoke;
+	ot->poll = ED_space_clip_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
@@ -635,12 +635,12 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom Ratio";
-	ot->idname= "CLIP_OT_view_zoom_ratio";
+	ot->name = "View Zoom Ratio";
+	ot->idname = "CLIP_OT_view_zoom_ratio";
 
 	/* api callbacks */
-	ot->exec= view_zoom_ratio_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_zoom_ratio_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
@@ -702,12 +702,12 @@ static int view_all_exec(bContext *C, wmOperator *op)
 void CLIP_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "CLIP_OT_view_all";
+	ot->name = "View All";
+	ot->idname = "CLIP_OT_view_all";
 
 	/* api callbacks */
-	ot->exec= view_all_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_all_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
@@ -732,12 +732,12 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Selected";
-	ot->idname= "CLIP_OT_view_selected";
+	ot->name = "View Selected";
+	ot->idname = "CLIP_OT_view_selected";
 
 	/* api callbacks */
-	ot->exec= view_selected_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = view_selected_exec;
+	ot->poll = ED_space_clip_poll;
 }
 
 /********************** change frame operator *********************/
@@ -836,18 +836,18 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Change frame";
-	ot->idname= "CLIP_OT_change_frame";
-	ot->description= "Interactively change the current frame number";
+	ot->name = "Change frame";
+	ot->idname = "CLIP_OT_change_frame";
+	ot->description = "Interactively change the current frame number";
 
 	/* api callbacks */
-	ot->exec= change_frame_exec;
-	ot->invoke= change_frame_invoke;
-	ot->modal= change_frame_modal;
-	ot->poll= change_frame_poll;
+	ot->exec = change_frame_exec;
+	ot->invoke = change_frame_invoke;
+	ot->modal = change_frame_modal;
+	ot->poll = change_frame_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
@@ -1002,16 +1002,16 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Rebuild Proxy and Timecode Indices";
-	ot->idname= "CLIP_OT_rebuild_proxy";
-	ot->description= "Rebuild all selected proxies and timecode indices in the background";
+	ot->name = "Rebuild Proxy and Timecode Indices";
+	ot->idname = "CLIP_OT_rebuild_proxy";
+	ot->description = "Rebuild all selected proxies and timecode indices in the background";
 
 	/* api callbacks */
-	ot->exec= clip_rebuild_proxy_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->exec = clip_rebuild_proxy_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag = OPTYPE_REGISTER;
 }
 
 /********************** mode set operator *********************/
@@ -1044,14 +1044,14 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
 
 
 	/* identifiers */
-	ot->name= "Set Clip Mode";
+	ot->name = "Set Clip Mode";
 	ot->description = "Set the clip interaction mode";
-	ot->idname= "CLIP_OT_mode_set";
+	ot->idname = "CLIP_OT_mode_set";
 
 	/* api callbacks */
-	ot->exec= mode_set_exec;
+	ot->exec = mode_set_exec;
 
-	ot->poll= ED_space_clip_poll;
+	ot->poll = ED_space_clip_poll;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "mode", mode_items, SC_MODE_TRACKING, "Mode", "");

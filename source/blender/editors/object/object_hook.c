@@ -505,16 +505,16 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hook to Selected Object";
-	ot->description= "Hook selected vertices to the first selected Object";
-	ot->idname= "OBJECT_OT_hook_add_selob";
+	ot->name = "Hook to Selected Object";
+	ot->description = "Hook selected vertices to the first selected Object";
+	ot->idname = "OBJECT_OT_hook_add_selob";
 	
 	/* api callbacks */
-	ot->exec= object_add_hook_selob_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_add_hook_selob_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
@@ -533,16 +533,16 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hook to New Object";
-	ot->description= "Hook selected vertices to the first selected Object";
-	ot->idname= "OBJECT_OT_hook_add_newob";
+	ot->name = "Hook to New Object";
+	ot->description = "Hook selected vertices to the first selected Object";
+	ot->idname = "OBJECT_OT_hook_add_newob";
 	
 	/* api callbacks */
-	ot->exec= object_add_hook_newob_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_add_hook_newob_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_hook_remove_exec(bContext *C, wmOperator *op)
@@ -602,24 +602,24 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Remove Hook";
-	ot->idname= "OBJECT_OT_hook_remove";
-	ot->description= "Remove a hook from the active object";
+	ot->name = "Remove Hook";
+	ot->idname = "OBJECT_OT_hook_remove";
+	ot->description = "Remove a hook from the active object";
 	
 	/* api callbacks */
-	ot->exec= object_hook_remove_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_remove_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
 	/* this operator removes modifier which isn't stored in local undo stack,
 	 * so redoing it from redo panel gives totally weird results  */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 static int object_hook_reset_exec(bContext *C, wmOperator *op)
@@ -672,16 +672,16 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Reset Hook";
-	ot->description= "Recalculate and clear offset transformation";
-	ot->idname= "OBJECT_OT_hook_reset";
+	ot->name = "Reset Hook";
+	ot->description = "Recalculate and clear offset transformation";
+	ot->idname = "OBJECT_OT_hook_reset";
 	
 	/* callbacks */
-	ot->exec= object_hook_reset_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_reset_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
@@ -728,16 +728,16 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Recenter Hook";
-	ot->description= "Set hook center to cursor position";
-	ot->idname= "OBJECT_OT_hook_recenter";
+	ot->name = "Recenter Hook";
+	ot->description = "Set hook center to cursor position";
+	ot->idname = "OBJECT_OT_hook_recenter";
 	
 	/* callbacks */
-	ot->exec= object_hook_recenter_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_recenter_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
@@ -792,18 +792,18 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Assign to Hook";
-	ot->description= "Assign the selected vertices to a hook";
-	ot->idname= "OBJECT_OT_hook_assign";
+	ot->name = "Assign to Hook";
+	ot->description = "Assign the selected vertices to a hook";
+	ot->idname = "OBJECT_OT_hook_assign";
 	
 	/* callbacks */
-	ot->exec= object_hook_assign_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_assign_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
 	/* this operator changes data stored in modifier which doesn't get pushed to undo stack,
 	 * so redoing it from redo panel gives totally weird results  */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
@@ -843,16 +843,16 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Select Hook";
-	ot->description= "Select affected vertices on mesh";
-	ot->idname= "OBJECT_OT_hook_select";
+	ot->name = "Select Hook";
+	ot->description = "Select affected vertices on mesh";
+	ot->idname = "OBJECT_OT_hook_select";
 	
 	/* callbacks */
-	ot->exec= object_hook_select_exec;
-	ot->poll= hook_op_edit_poll;
+	ot->exec = object_hook_select_exec;
+	ot->poll = hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");

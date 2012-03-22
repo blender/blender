@@ -313,26 +313,26 @@ static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
 void ED_OT_undo(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Undo";
-	ot->description= "Undo previous action";
-	ot->idname= "ED_OT_undo";
+	ot->name = "Undo";
+	ot->description = "Undo previous action";
+	ot->idname = "ED_OT_undo";
 	
 	/* api callbacks */
-	ot->exec= ed_undo_exec;
-	ot->poll= ED_operator_screenactive;
+	ot->exec = ed_undo_exec;
+	ot->poll = ED_operator_screenactive;
 }
 
 void ED_OT_undo_push(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Undo Push";
-	ot->description= "Add an undo state (internal use only)";
-	ot->idname= "ED_OT_undo_push";
+	ot->name = "Undo Push";
+	ot->description = "Add an undo state (internal use only)";
+	ot->idname = "ED_OT_undo_push";
 	
 	/* api callbacks */
-	ot->exec= ed_undo_push_exec;
+	ot->exec = ed_undo_push_exec;
 
-	ot->flag= OPTYPE_INTERNAL;
+	ot->flag = OPTYPE_INTERNAL;
 
 	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", MAXUNDONAME, "Undo Message", "");
 }
@@ -340,13 +340,13 @@ void ED_OT_undo_push(wmOperatorType *ot)
 void ED_OT_redo(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Redo";
-	ot->description= "Redo previous action";
-	ot->idname= "ED_OT_redo";
+	ot->name = "Redo";
+	ot->description = "Redo previous action";
+	ot->idname = "ED_OT_redo";
 	
 	/* api callbacks */
-	ot->exec= ed_redo_exec;
-	ot->poll= ED_operator_screenactive;
+	ot->exec = ed_redo_exec;
+	ot->poll = ED_operator_screenactive;
 }
 
 
@@ -549,14 +549,14 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 void ED_OT_undo_history(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Undo History";
-	ot->description= "Redo specific action in history";
-	ot->idname= "ED_OT_undo_history";
+	ot->name = "Undo History";
+	ot->description = "Redo specific action in history";
+	ot->idname = "ED_OT_undo_history";
 	
 	/* api callbacks */
-	ot->invoke= undo_history_invoke;
-	ot->exec= undo_history_exec;
-	ot->poll= ED_operator_screenactive;
+	ot->invoke = undo_history_invoke;
+	ot->exec = undo_history_exec;
+	ot->poll = ED_operator_screenactive;
 	
 	RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
 

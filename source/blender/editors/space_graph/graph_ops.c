@@ -164,18 +164,18 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Cursor";
-	ot->idname= "GRAPH_OT_cursor_set";
-	ot->description= "Interactively set the current frame number and value cursor";
+	ot->name = "Set Cursor";
+	ot->idname = "GRAPH_OT_cursor_set";
+	ot->description = "Interactively set the current frame number and value cursor";
 	
 	/* api callbacks */
-	ot->exec= graphview_cursor_exec;
-	ot->invoke= graphview_cursor_invoke;
-	ot->modal= graphview_cursor_modal;
-	ot->poll= ED_operator_graphedit_active;
+	ot->exec = graphview_cursor_exec;
+	ot->invoke = graphview_cursor_invoke;
+	ot->modal = graphview_cursor_modal;
+	ot->poll = ED_operator_graphedit_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
@@ -243,7 +243,7 @@ void ED_operatormacros_graph(void)
 	
 	ot= WM_operatortype_append_macro("GRAPH_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if (ot) {
-		ot->description= "Make a copy of all selected keyframes and move them";
+		ot->description = "Make a copy of all selected keyframes and move them";
 		WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
 		RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);

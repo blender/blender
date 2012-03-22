@@ -2073,15 +2073,15 @@ static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_add";
+	ot->name = "Add Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_add";
 	
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_add_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_remove_exec(bContext *C, wmOperator *op)
@@ -2103,18 +2103,18 @@ static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_remove";
+	ot->name = "Remove Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_remove";
 	
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_remove_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_remove_exec;
 
 	/* flags */
 	/* redo operator will fail in this case because vertex groups aren't stored
 	 * in local edit mode stack and toggling "all" property will lead to
 	 * all groups deleted without way to restore them (see [#29527], sergey) */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
@@ -2138,18 +2138,18 @@ static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_assign";
+	ot->name = "Assign Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_assign";
 	
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
-	ot->exec= vertex_group_assign_exec;
+	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->exec = vertex_group_assign_exec;
 
 	/* flags */
 	/* redo operator will fail in this case because vertex group assignment
 	 * isn't stored in local edit mode stack and toggling "new" property will
 	 * lead to creating plenty of new vertex groups (see [#29527], sergey) */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "new", 0, "New", "Assign vertex to new vertex group");
@@ -2180,18 +2180,18 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove from Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_remove_from";
+	ot->name = "Remove from Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_remove_from";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
-	ot->exec= vertex_group_remove_from_exec;
+	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->exec = vertex_group_remove_from_exec;
 
 	/* flags */
 	/* redo operator will fail in this case because vertex groups assignment
 	 * isn't stored in local edit mode stack and toggling "all" property will lead to
 	 * removing vertices from all groups (see [#29527], sergey) */
-	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
+	ot->flag = /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
@@ -2213,15 +2213,15 @@ static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_select";
+	ot->name = "Select Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_select";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
-	ot->exec= vertex_group_select_exec;
+	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->exec = vertex_group_select_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2237,15 +2237,15 @@ static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Deselect Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_deselect";
+	ot->name = "Deselect Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_deselect";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
-	ot->exec= vertex_group_deselect_exec;
+	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
+	ot->exec = vertex_group_deselect_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2263,15 +2263,15 @@ static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_copy";
+	ot->name = "Copy Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_copy";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_copy_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_copy_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_levels_exec(bContext *C, wmOperator *op)
@@ -2293,15 +2293,15 @@ static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Vertex Group Levels";
-	ot->idname= "OBJECT_OT_vertex_group_levels";
+	ot->name = "Vertex Group Levels";
+	ot->idname = "OBJECT_OT_vertex_group_levels";
 	
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_levels_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_levels_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights", -1.0f, 1.f);
 	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by", 0.0f, 10.f);
@@ -2323,15 +2323,15 @@ static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Normalize Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_normalize";
+	ot->name = "Normalize Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_normalize";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_normalize_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_normalize_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
@@ -2351,15 +2351,15 @@ static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Normalize All Vertex Groups";
-	ot->idname= "OBJECT_OT_vertex_group_normalize_all";
+	ot->name = "Normalize All Vertex Groups";
+	ot->idname = "OBJECT_OT_vertex_group_normalize_all";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_normalize_all_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_normalize_all_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active",
 	                "Keep the values of the active group while normalizing others");
@@ -2398,17 +2398,17 @@ static int vertex_group_fix_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fix Vertex Group Deform";
-	ot->idname= "OBJECT_OT_vertex_group_fix";
-	ot->description= "Modify the position of selected vertices by changing only their respective "
+	ot->name = "Fix Vertex Group Deform";
+	ot->idname = "OBJECT_OT_vertex_group_fix";
+	ot->description = "Modify the position of selected vertices by changing only their respective "
 	                 "groups' weights (this tool may be slow for many vertices)";
 	
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_fix_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_fix_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to", -10.0f, 10.0f);
 	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength",
 	              "The distance moved can be changed by this multiplier", -2.0f, 2.0f);
@@ -2431,15 +2431,15 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Change the Lock On Vertex Groups";
-	ot->idname= "OBJECT_OT_vertex_group_lock";
+	ot->name = "Change the Lock On Vertex Groups";
+	ot->idname = "OBJECT_OT_vertex_group_lock";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_lock_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_lock_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -2461,15 +2461,15 @@ static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Invert Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_invert";
+	ot->name = "Invert Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_invert";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_invert_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_invert_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "auto_assign", TRUE, "Add Weights",
 	                "Add verts from groups that have zero weight before inverting");
@@ -2494,16 +2494,16 @@ static int vertex_group_blend_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Blend Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_blend";
-	ot->description= "";
+	ot->name = "Blend Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_blend";
+	ot->description = "";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit; /* TODO - add object mode support */
-	ot->exec= vertex_group_blend_exec;
+	ot->poll = vertex_group_poll_edit; /* TODO - add object mode support */
+	ot->exec = vertex_group_blend_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -2528,16 +2528,16 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clean Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_clean";
-	ot->description= "Remove Vertex Group assignments which aren't required";
+	ot->name = "Clean Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_clean";
+	ot->description = "Remove Vertex Group assignments which aren't required";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_clean_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_clean_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, 1.0, "Limit", "Remove weights under this limit", 0.001f, 0.99f);
 	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Clean all vertex groups");
@@ -2565,17 +2565,17 @@ static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_mirror";
-	ot->description= "Mirror all vertex groups, flip weights and/or names, editing only selected vertices, "
+	ot->name = "Mirror Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_mirror";
+	ot->description = "Mirror all vertex groups, flip weights and/or names, editing only selected vertices, "
 	                 "flipping when both sides are selected otherwise copy from unselected";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_mirror_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_mirror_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights");
@@ -2613,16 +2613,16 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Groups to Linked";
-	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
-	ot->description= "Copy Vertex Groups to all users of the same Geometry data";
+	ot->name = "Copy Vertex Groups to Linked";
+	ot->idname = "OBJECT_OT_vertex_group_copy_to_linked";
+	ot->description = "Copy Vertex Groups to all users of the same Geometry data";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_copy_to_linked_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_copy_to_linked_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
@@ -2653,16 +2653,16 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Group to Selected";
-	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected";
-	ot->description= "Copy Vertex Groups to other selected objects with matching indices";
+	ot->name = "Copy Vertex Group to Selected";
+	ot->idname = "OBJECT_OT_vertex_group_copy_to_selected";
+	ot->description = "Copy Vertex Groups to other selected objects with matching indices";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_copy_to_selected_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_copy_to_selected_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static EnumPropertyItem vgroup_items[]= {
@@ -2712,22 +2712,22 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Set Active Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_set_active";
-	ot->description= "Set the active vertex group";
+	ot->name = "Set Active Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_set_active";
+	ot->description = "Set the active vertex group";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= set_active_group_exec;
-	ot->invoke= WM_menu_invoke;
+	ot->poll = vertex_group_poll;
+	ot->exec = set_active_group_exec;
+	ot->invoke = WM_menu_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 /* creates the name_array parameter for vgroup_do_remap, call this before fiddling
@@ -2851,16 +2851,16 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
-	ot->name= "Sort Vertex Groups";
-	ot->idname= "OBJECT_OT_vertex_group_sort";
-	ot->description= "Sorts vertex groups alphabetically";
+	ot->name = "Sort Vertex Groups";
+	ot->idname = "OBJECT_OT_vertex_group_sort";
+	ot->description = "Sorts vertex groups alphabetically";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_sort_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_sort_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vgroup_move_exec(bContext *C, wmOperator *op)
@@ -2910,15 +2910,15 @@ void OBJECT_OT_vertex_group_move(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Move Vertex Group";
-	ot->idname= "OBJECT_OT_vertex_group_move";
+	ot->name = "Move Vertex Group";
+	ot->idname = "OBJECT_OT_vertex_group_move";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vgroup_move_exec;
+	ot->poll = vertex_group_poll;
+	ot->exec = vgroup_move_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "direction", vgroup_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
 }

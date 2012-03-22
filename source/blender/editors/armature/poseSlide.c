@@ -762,19 +762,19 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 void POSE_OT_push (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Push Pose";
-	ot->idname= "POSE_OT_push";
-	ot->description= "Exaggerate the current pose";
+	ot->name = "Push Pose";
+	ot->idname = "POSE_OT_push";
+	ot->description = "Exaggerate the current pose";
 	
 	/* callbacks */
-	ot->exec= pose_slide_push_exec;
-	ot->invoke= pose_slide_push_invoke;
-	ot->modal= pose_slide_modal;
-	ot->cancel= pose_slide_cancel;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_slide_push_exec;
+	ot->invoke = pose_slide_push_invoke;
+	ot->modal = pose_slide_modal;
+	ot->cancel = pose_slide_cancel;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -819,19 +819,19 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 void POSE_OT_relax (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Relax Pose";
-	ot->idname= "POSE_OT_relax";
-	ot->description= "Make the current pose more similar to its surrounding ones";
+	ot->name = "Relax Pose";
+	ot->idname = "POSE_OT_relax";
+	ot->description = "Make the current pose more similar to its surrounding ones";
 	
 	/* callbacks */
-	ot->exec= pose_slide_relax_exec;
-	ot->invoke= pose_slide_relax_invoke;
-	ot->modal= pose_slide_modal;
-	ot->cancel= pose_slide_cancel;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_slide_relax_exec;
+	ot->invoke = pose_slide_relax_invoke;
+	ot->modal = pose_slide_modal;
+	ot->cancel = pose_slide_cancel;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -876,19 +876,19 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 void POSE_OT_breakdown (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pose Breakdowner";
-	ot->idname= "POSE_OT_breakdown";
-	ot->description= "Create a suitable breakdown pose on the current frame";
+	ot->name = "Pose Breakdowner";
+	ot->idname = "POSE_OT_breakdown";
+	ot->description = "Create a suitable breakdown pose on the current frame";
 	
 	/* callbacks */
-	ot->exec= pose_slide_breakdown_exec;
-	ot->invoke= pose_slide_breakdown_invoke;
-	ot->modal= pose_slide_modal;
-	ot->cancel= pose_slide_cancel;
-	ot->poll= ED_operator_posemode;
+	ot->exec = pose_slide_breakdown_exec;
+	ot->invoke = pose_slide_breakdown_invoke;
+	ot->modal = pose_slide_modal;
+	ot->cancel = pose_slide_cancel;
+	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -1240,20 +1240,20 @@ void POSE_OT_propagate (wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* identifiers */
-	ot->name= "Propagate Pose";
-	ot->idname= "POSE_OT_propagate";
-	ot->description= "Copy selected aspects of the current pose to subsequent poses already keyframed";
+	ot->name = "Propagate Pose";
+	ot->idname = "POSE_OT_propagate";
+	ot->description = "Copy selected aspects of the current pose to subsequent poses already keyframed";
 	
 	/* callbacks */
-	ot->exec= pose_propagate_exec;
-	ot->poll= ED_operator_posemode; // XXX: needs selected bones!
+	ot->exec = pose_propagate_exec;
+	ot->poll = ED_operator_posemode; // XXX: needs selected bones!
 	
 	/* flag */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	// TODO: add "fade out" control for tapering off amount of propagation as time goes by?
-	ot->prop= RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
+	ot->prop = RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
 	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to (for 'Before Frame' mode)", 1.0, 250.0);
 }
 

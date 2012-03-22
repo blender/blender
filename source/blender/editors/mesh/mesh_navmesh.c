@@ -470,15 +470,15 @@ static int create_navmesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_navmesh_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create navigation mesh";
-	ot->description= "Create navigation mesh for selected objects";
-	ot->idname= "MESH_OT_navmesh_make";
+	ot->name = "Create navigation mesh";
+	ot->description = "Create navigation mesh for selected objects";
+	ot->idname = "MESH_OT_navmesh_make";
 
 	/* api callbacks */
-	ot->exec= create_navmesh_exec;
+	ot->exec = create_navmesh_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
@@ -520,16 +520,16 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "NavMesh Copy Face Index";
-	ot->description= "Copy the index from the active face";
-	ot->idname= "MESH_OT_navmesh_face_copy";
+	ot->name = "NavMesh Copy Face Index";
+	ot->description = "Copy the index from the active face";
+	ot->idname = "MESH_OT_navmesh_face_copy";
 
 	/* api callbacks */
-	ot->poll= ED_operator_editmesh;
-	ot->exec= navmesh_face_copy_exec;
+	ot->poll = ED_operator_editmesh;
+	ot->exec = navmesh_face_copy_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int compare(const void * a, const void * b)
@@ -601,16 +601,16 @@ static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_navmesh_face_add(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "NavMesh New Face Index";
-	ot->description= "Add a new index and assign it to selected faces";
-	ot->idname= "MESH_OT_navmesh_face_add";
+	ot->name = "NavMesh New Face Index";
+	ot->description = "Add a new index and assign it to selected faces";
+	ot->idname = "MESH_OT_navmesh_face_add";
 
 	/* api callbacks */
-	ot->poll= ED_operator_editmesh;
-	ot->exec= navmesh_face_add_exec;
+	ot->poll = ED_operator_editmesh;
+	ot->exec = navmesh_face_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int navmesh_obmode_data_poll(bContext *C)
@@ -650,16 +650,16 @@ static int navmesh_reset_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_navmesh_reset(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "NavMesh Reset Index Values";
-	ot->description= "Assign a new index to every face";
-	ot->idname= "MESH_OT_navmesh_reset";
+	ot->name = "NavMesh Reset Index Values";
+	ot->description = "Assign a new index to every face";
+	ot->idname = "MESH_OT_navmesh_reset";
 
 	/* api callbacks */
-	ot->poll= navmesh_obmode_poll;
-	ot->exec= navmesh_reset_exec;
+	ot->poll = navmesh_obmode_poll;
+	ot->exec = navmesh_reset_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int navmesh_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -678,14 +678,14 @@ static int navmesh_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_navmesh_clear(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "NavMesh Clear Data";
-	ot->description= "Remove navmesh data from this mesh";
-	ot->idname= "MESH_OT_navmesh_clear";
+	ot->name = "NavMesh Clear Data";
+	ot->description = "Remove navmesh data from this mesh";
+	ot->idname = "MESH_OT_navmesh_clear";
 
 	/* api callbacks */
-	ot->poll= navmesh_obmode_data_poll;
-	ot->exec= navmesh_clear_exec;
+	ot->poll = navmesh_obmode_data_poll;
+	ot->exec = navmesh_clear_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

@@ -1400,15 +1400,15 @@ static int separate_exec(bContext *C, wmOperator *op)
 void CURVE_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate";
-	ot->idname= "CURVE_OT_separate";
+	ot->name = "Separate";
+	ot->idname = "CURVE_OT_separate";
 	
 	/* api callbacks */
-	ot->exec= separate_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = separate_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************* FLAGS ********************* */
@@ -2008,16 +2008,16 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Switch Direction";
-	ot->description= "Switch direction of selected splines";
-	ot->idname= "CURVE_OT_switch_direction";
+	ot->name = "Switch Direction";
+	ot->description = "Switch direction of selected splines";
+	ot->idname = "CURVE_OT_switch_direction";
 	
 	/* api callbacks */
-	ot->exec= switch_direction_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = switch_direction_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /****************** set weight operator *******************/
@@ -2056,17 +2056,17 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Goal Weight";
-	ot->description= "Set softbody goal weight for selected points";
-	ot->idname= "CURVE_OT_spline_weight_set";
+	ot->name = "Set Goal Weight";
+	ot->description = "Set softbody goal weight for selected points";
+	ot->idname = "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
-	ot->exec= set_goal_weight_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = set_goal_weight_exec;
+	ot->invoke = WM_operator_props_popup;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
@@ -2108,17 +2108,17 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 void CURVE_OT_radius_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Curve Radius";
-	ot->description= "Set per-point radius which is used for bevel tapering";
-	ot->idname= "CURVE_OT_radius_set";
+	ot->name = "Set Curve Radius";
+	ot->description = "Set per-point radius which is used for bevel tapering";
+	ot->idname = "CURVE_OT_radius_set";
 	
 	/* api callbacks */
-	ot->exec= set_radius_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = set_radius_exec;
+	ot->invoke = WM_operator_props_popup;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius", "", 0.0001f, 10.0f);
@@ -2184,16 +2184,16 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth";
-	ot->description= "Flatten angles of selected points";
-	ot->idname= "CURVE_OT_smooth";
+	ot->name = "Smooth";
+	ot->description = "Flatten angles of selected points";
+	ot->idname = "CURVE_OT_smooth";
 	
 	/* api callbacks */
-	ot->exec= smooth_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = smooth_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /**************** smooth curve radius operator *************/
@@ -2350,16 +2350,16 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth Curve Radius";
-	ot->description= "Flatten radiuses of selected points";
-	ot->idname= "CURVE_OT_smooth_radius";
+	ot->name = "Smooth Curve Radius";
+	ot->description = "Flatten radiuses of selected points";
+	ot->idname = "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */
-	ot->exec= smooth_radius_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = smooth_radius_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /***************** selection utility *************************/
@@ -2502,15 +2502,15 @@ static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_de_select_first(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select First";
-	ot->idname= "CURVE_OT_de_select_first";
+	ot->name = "(De)select First";
+	ot->idname = "CURVE_OT_de_select_first";
 	
 	/* api cfirstbacks */
-	ot->exec= de_select_first_exec;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = de_select_first_exec;
+	ot->poll = ED_operator_editcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2526,15 +2526,15 @@ static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_de_select_last(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select Last";
-	ot->idname= "CURVE_OT_de_select_last";
+	ot->name = "(De)select Last";
+	ot->idname = "CURVE_OT_de_select_last";
 	
 	/* api clastbacks */
-	ot->exec= de_select_last_exec;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = de_select_last_exec;
+	ot->poll = ED_operator_editcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /******************* de select all operator ***************/
@@ -2604,15 +2604,15 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->idname= "CURVE_OT_select_all";
+	ot->name = "(De)select All";
+	ot->idname = "CURVE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= de_select_all_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = de_select_all_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_select_all(ot);
@@ -2678,15 +2678,15 @@ static int hide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
-	ot->idname= "CURVE_OT_hide";
+	ot->name = "Hide Selected";
+	ot->idname = "CURVE_OT_hide";
 	
 	/* api callbacks */
-	ot->exec= hide_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = hide_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -2738,15 +2738,15 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal Hidden";
-	ot->idname= "CURVE_OT_reveal";
+	ot->name = "Reveal Hidden";
+	ot->idname = "CURVE_OT_reveal";
 	
 	/* api callbacks */
-	ot->exec= reveal_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = reveal_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** subdivide operator *********************/
@@ -3174,16 +3174,16 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Subdivide";
-	ot->description= "Subdivide selected segments";
-	ot->idname= "CURVE_OT_subdivide";
+	ot->name = "Subdivide";
+	ot->description = "Subdivide selected segments";
+	ot->idname = "CURVE_OT_subdivide";
 	
 	/* api callbacks */
-	ot->exec= subdivide_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = subdivide_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of cuts", "", 1, 10);
 	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
@@ -3502,20 +3502,20 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Set Spline Type";
+	ot->name = "Set Spline Type";
 	ot->description = "Set type of active spline";
-	ot->idname= "CURVE_OT_spline_type_set";
+	ot->idname = "CURVE_OT_spline_type_set";
 	
 	/* api callbacks */
-	ot->exec= set_spline_type_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = set_spline_type_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->poll = ED_operator_editcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
+	ot->prop = RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
 }
 
 /***************** set handle type operator *******************/
@@ -3545,20 +3545,20 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Set Handle Type";
+	ot->name = "Set Handle Type";
 	ot->description = "Set type of handles for selected control points";
-	ot->idname= "CURVE_OT_handle_type_set";
+	ot->idname = "CURVE_OT_handle_type_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= set_handle_type_exec;
-	ot->poll= ED_operator_editcurve;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = set_handle_type_exec;
+	ot->poll = ED_operator_editcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
+	ot->prop = RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
 }
 
 /***************** make segment operator **********************/
@@ -4080,15 +4080,15 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 void CURVE_OT_make_segment(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Segment";
-	ot->idname= "CURVE_OT_make_segment";
+	ot->name = "Make Segment";
+	ot->idname = "CURVE_OT_make_segment";
 	
 	/* api callbacks */
-	ot->exec= make_segment_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = make_segment_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /***************** pick select from 3d view **********************/
@@ -4310,16 +4310,16 @@ static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_spin(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Spin";
-	ot->idname= "CURVE_OT_spin";
+	ot->name = "Spin";
+	ot->idname = "CURVE_OT_spin";
 	
 	/* api callbacks */
-	ot->exec= spin_exec;
+	ot->exec = spin_exec;
 	ot->invoke = spin_invoke;
-	ot->poll= ED_operator_editsurf;
+	ot->poll = ED_operator_editsurf;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
@@ -4619,16 +4619,16 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CURVE_OT_vertex_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Vertex";
-	ot->idname= "CURVE_OT_vertex_add";
+	ot->name = "Add Vertex";
+	ot->idname = "CURVE_OT_vertex_add";
 	
 	/* api callbacks */
-	ot->exec= add_vertex_exec;
-	ot->invoke= add_vertex_invoke;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = add_vertex_exec;
+	ot->invoke = add_vertex_invoke;
+	ot->poll = ED_operator_editcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at", -1e4, 1e4);
@@ -4667,16 +4667,16 @@ static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Extrude";
+	ot->name = "Extrude";
 	ot->description = "Extrude selected control point(s) and move";
-	ot->idname= "CURVE_OT_extrude";
+	ot->idname = "CURVE_OT_extrude";
 	
 	/* api callbacks */
-	ot->exec= extrude_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = extrude_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -4795,17 +4795,17 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Toggle Cyclic";
+	ot->name = "Toggle Cyclic";
 	ot->description = "Make active spline closed/opened loop";
-	ot->idname= "CURVE_OT_cyclic_toggle";
+	ot->idname = "CURVE_OT_cyclic_toggle";
 	
 	/* api callbacks */
-	ot->exec= toggle_cyclic_exec;
-	ot->invoke= toggle_cyclic_invoke;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = toggle_cyclic_exec;
+	ot->invoke = toggle_cyclic_invoke;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in");
@@ -4872,16 +4872,16 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void CURVE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked All";
-	ot->idname= "CURVE_OT_select_linked";
+	ot->name = "Select Linked All";
+	ot->idname = "CURVE_OT_select_linked";
 
 	/* api callbacks */
-	ot->exec= select_linked_exec;
-	ot->invoke= select_linked_invoke;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = select_linked_exec;
+	ot->invoke = select_linked_invoke;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 }
@@ -4932,15 +4932,15 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
-	ot->idname= "CURVE_OT_select_linked_pick";
+	ot->name = "Select Linked";
+	ot->idname = "CURVE_OT_select_linked_pick";
 
 	/* api callbacks */
-	ot->invoke= select_linked_pick_invoke;
-	ot->poll= ED_operator_editsurfcurve_region_view3d;
+	ot->invoke = select_linked_pick_invoke;
+	ot->poll = ED_operator_editsurfcurve_region_view3d;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them");
@@ -5010,15 +5010,15 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_row(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Control Point Row";
-	ot->idname= "CURVE_OT_select_row";
+	ot->name = "Select Control Point Row";
+	ot->idname = "CURVE_OT_select_row";
 	
 	/* api callbacks */
-	ot->exec= select_row_exec;
-	ot->poll= ED_operator_editsurf;
+	ot->exec = select_row_exec;
+	ot->poll = ED_operator_editsurf;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /***************** select next operator **********************/
@@ -5037,15 +5037,15 @@ static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_next(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Next";
-	ot->idname= "CURVE_OT_select_next";
+	ot->name = "Select Next";
+	ot->idname = "CURVE_OT_select_next";
 	
 	/* api callbacks */
-	ot->exec= select_next_exec;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = select_next_exec;
+	ot->poll = ED_operator_editcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /***************** select previous operator **********************/
@@ -5064,15 +5064,15 @@ static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_previous(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Previous";
-	ot->idname= "CURVE_OT_select_previous";
+	ot->name = "Select Previous";
+	ot->idname = "CURVE_OT_select_previous";
 	
 	/* api callbacks */
-	ot->exec= select_previous_exec;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = select_previous_exec;
+	ot->poll = ED_operator_editcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /***************** select more operator **********************/
@@ -5151,15 +5151,15 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select More";
-	ot->idname= "CURVE_OT_select_more";
+	ot->name = "Select More";
+	ot->idname = "CURVE_OT_select_more";
 	
 	/* api callbacks */
-	ot->exec= select_more_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = select_more_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /******************** select less operator *****************/
@@ -5312,15 +5312,15 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Less";
-	ot->idname= "CURVE_OT_select_less";
+	ot->name = "Select Less";
+	ot->idname = "CURVE_OT_select_less";
 	
 	/* api callbacks */
-	ot->exec= select_less_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = select_less_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** select random *********************/
@@ -5375,15 +5375,15 @@ static int select_random_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Random";
-	ot->idname= "CURVE_OT_select_random";
+	ot->name = "Select Random";
+	ot->idname = "CURVE_OT_select_random";
 	
 	/* api callbacks */
-	ot->exec= select_random_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = select_random_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
@@ -5508,16 +5508,16 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Nth";
-	ot->description= "";
-	ot->idname= "CURVE_OT_select_nth";
+	ot->name = "Select Nth";
+	ot->description = "";
+	ot->idname = "CURVE_OT_select_nth";
 
 	/* api callbacks */
-	ot->exec= select_nth_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = select_nth_exec;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
 }
@@ -5537,16 +5537,16 @@ static int duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Curve";
+	ot->name = "Duplicate Curve";
 	ot->description = "Duplicate selected control points and segments between them";
-	ot->idname= "CURVE_OT_duplicate";
+	ot->idname = "CURVE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->exec= duplicate_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = duplicate_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** delete operator *********************/
@@ -5912,17 +5912,17 @@ void CURVE_OT_delete(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Delete";
+	ot->name = "Delete";
 	ot->description = "Delete selected control points or segments";
-	ot->idname= "CURVE_OT_delete";
+	ot->idname = "CURVE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec= delete_exec;
-	ot->invoke= delete_invoke;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = delete_exec;
+	ot->invoke = delete_invoke;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete");
@@ -5956,29 +5956,29 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Smooth";
-	ot->idname= "CURVE_OT_shade_smooth";
+	ot->name = "Shade Smooth";
+	ot->idname = "CURVE_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->exec= shade_smooth_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = shade_smooth_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void CURVE_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Flat";
-	ot->idname= "CURVE_OT_shade_flat";
+	ot->name = "Shade Flat";
+	ot->idname = "CURVE_OT_shade_flat";
 	
 	/* api callbacks */
-	ot->exec= shade_smooth_exec;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->exec = shade_smooth_exec;
+	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************** join operator, to be used externally? ****************/
@@ -6554,17 +6554,17 @@ static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bezier";
-	ot->description= "Construct a Bezier Curve";
-	ot->idname= "CURVE_OT_primitive_bezier_curve_add";
+	ot->name = "Add Bezier";
+	ot->description = "Construct a Bezier Curve";
+	ot->idname = "CURVE_OT_primitive_bezier_curve_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_bezier_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_bezier_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6577,17 +6577,17 @@ static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bezier Circle";
-	ot->description= "Construct a Bezier Circle";
-	ot->idname= "CURVE_OT_primitive_bezier_circle_add";
+	ot->name = "Add Bezier Circle";
+	ot->description = "Construct a Bezier Circle";
+	ot->idname = "CURVE_OT_primitive_bezier_circle_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_bezier_circle_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_bezier_circle_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6600,17 +6600,17 @@ static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Nurbs Curve";
-	ot->description= "Construct a Nurbs Curve";
-	ot->idname= "CURVE_OT_primitive_nurbs_curve_add";
+	ot->name = "Add Nurbs Curve";
+	ot->description = "Construct a Nurbs Curve";
+	ot->idname = "CURVE_OT_primitive_nurbs_curve_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_curve_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_curve_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6623,17 +6623,17 @@ static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Nurbs Circle";
-	ot->description= "Construct a Nurbs Circle";
-	ot->idname= "CURVE_OT_primitive_nurbs_circle_add";
+	ot->name = "Add Nurbs Circle";
+	ot->description = "Construct a Nurbs Circle";
+	ot->idname = "CURVE_OT_primitive_nurbs_circle_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_circle_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_circle_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6646,17 +6646,17 @@ static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Path";
-	ot->description= "Construct a Path";
-	ot->idname= "CURVE_OT_primitive_nurbs_path_add";
+	ot->name = "Add Path";
+	ot->description = "Construct a Path";
+	ot->idname = "CURVE_OT_primitive_nurbs_path_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_curve_path_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_curve_path_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6670,17 +6670,17 @@ static int add_primitive_nurbs_surface_curve_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Curve";
-	ot->description= "Construct a Nurbs surface Curve";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_curve_add";
+	ot->name = "Add Surface Curve";
+	ot->description = "Construct a Nurbs surface Curve";
+	ot->idname = "SURFACE_OT_primitive_nurbs_surface_curve_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_curve_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_surface_curve_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6693,17 +6693,17 @@ static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Circle";
-	ot->description= "Construct a Nurbs surface Circle";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_circle_add";
+	ot->name = "Add Surface Circle";
+	ot->description = "Construct a Nurbs surface Circle";
+	ot->idname = "SURFACE_OT_primitive_nurbs_surface_circle_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_circle_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_surface_circle_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6716,17 +6716,17 @@ static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Patch";
-	ot->description= "Construct a Nurbs surface Patch";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_surface_add";
+	ot->name = "Add Surface Patch";
+	ot->description = "Construct a Nurbs surface Patch";
+	ot->idname = "SURFACE_OT_primitive_nurbs_surface_surface_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_surface_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_surface_surface_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6739,17 +6739,17 @@ static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op
 void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Cylinder";
-	ot->description= "Construct a Nurbs surface Cylinder";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
+	ot->name = "Add Surface Cylinder";
+	ot->description = "Construct a Nurbs surface Cylinder";
+	ot->idname = "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_cylinder_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_surface_cylinder_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6762,17 +6762,17 @@ static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Sphere";
-	ot->description= "Construct a Nurbs surface Sphere";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_sphere_add";
+	ot->name = "Add Surface Sphere";
+	ot->description = "Construct a Nurbs surface Sphere";
+	ot->idname = "SURFACE_OT_primitive_nurbs_surface_sphere_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_sphere_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_surface_sphere_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6785,17 +6785,17 @@ static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Torus";
-	ot->description= "Construct a Nurbs surface Torus";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_torus_add";
+	ot->name = "Add Surface Torus";
+	ot->description = "Construct a Nurbs surface Torus";
+	ot->idname = "SURFACE_OT_primitive_nurbs_surface_torus_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_torus_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_nurbs_surface_torus_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -6840,15 +6840,15 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_tilt_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Tilt";
-	ot->idname= "CURVE_OT_tilt_clear";
+	ot->name = "Clear Tilt";
+	ot->idname = "CURVE_OT_tilt_clear";
 	
 	/* api callbacks */
-	ot->exec= clear_tilt_exec;
-	ot->poll= ED_operator_editcurve;
+	ot->exec = clear_tilt_exec;
+	ot->poll = ED_operator_editcurve;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /****************** undo for curves ****************/

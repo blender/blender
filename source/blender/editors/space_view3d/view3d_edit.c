@@ -948,18 +948,18 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Rotate view";
+	ot->name = "Rotate view";
 	ot->description = "Rotate the view";
-	ot->idname= "VIEW3D_OT_rotate";
+	ot->idname = "VIEW3D_OT_rotate";
 
 	/* api callbacks */
-	ot->invoke= viewrotate_invoke;
-	ot->modal= viewrotate_modal;
-	ot->poll= ED_operator_region_view3d_active;
-	ot->cancel= viewrotate_cancel;
+	ot->invoke = viewrotate_invoke;
+	ot->modal = viewrotate_modal;
+	ot->poll = ED_operator_region_view3d_active;
+	ot->cancel = viewrotate_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 /* NDOF utility functions
@@ -1375,18 +1375,18 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Move view";
+	ot->name = "Move view";
 	ot->description = "Move the view";
-	ot->idname= "VIEW3D_OT_move";
+	ot->idname = "VIEW3D_OT_move";
 
 	/* api callbacks */
-	ot->invoke= viewmove_invoke;
-	ot->modal= viewmove_modal;
-	ot->poll= ED_operator_view3d_active;
-	ot->cancel= viewmove_cancel;
+	ot->invoke = viewmove_invoke;
+	ot->modal = viewmove_modal;
+	ot->poll = ED_operator_view3d_active;
+	ot->cancel = viewmove_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 /* ************************ viewzoom ******************************** */
@@ -1758,19 +1758,19 @@ static int viewzoom_cancel(bContext *C, wmOperator *op)
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom View";
+	ot->name = "Zoom View";
 	ot->description = "Zoom in/out in the view";
-	ot->idname= "VIEW3D_OT_zoom";
+	ot->idname = "VIEW3D_OT_zoom";
 
 	/* api callbacks */
-	ot->invoke= viewzoom_invoke;
-	ot->exec= viewzoom_exec;
-	ot->modal= viewzoom_modal;
-	ot->poll= ED_operator_region_view3d_active;
-	ot->cancel= viewzoom_cancel;
+	ot->invoke = viewzoom_invoke;
+	ot->exec = viewzoom_exec;
+	ot->modal = viewzoom_modal;
+	ot->poll = ED_operator_region_view3d_active;
+	ot->cancel = viewzoom_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
@@ -1991,19 +1991,19 @@ static int viewdolly_cancel(bContext *C, wmOperator *op)
 void VIEW3D_OT_dolly(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Dolly view";
+	ot->name = "Dolly view";
 	ot->description = "Dolly in/out in the view";
-	ot->idname= "VIEW3D_OT_dolly";
+	ot->idname = "VIEW3D_OT_dolly";
 
 	/* api callbacks */
-	ot->invoke= viewdolly_invoke;
-	ot->exec= viewdolly_exec;
-	ot->modal= viewdolly_modal;
-	ot->poll= viewdolly_poll;
-	ot->cancel= viewdolly_cancel;
+	ot->invoke = viewdolly_invoke;
+	ot->exec = viewdolly_exec;
+	ot->modal = viewdolly_modal;
+	ot->poll = viewdolly_poll;
+	ot->cancel = viewdolly_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
@@ -2100,16 +2100,16 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
+	ot->name = "View All";
 	ot->description = "View all objects in scene";
-	ot->idname= "VIEW3D_OT_view_all";
+	ot->idname = "VIEW3D_OT_view_all";
 
 	/* api callbacks */
-	ot->exec= view3d_all_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->exec = view3d_all_exec;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
@@ -2247,16 +2247,16 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "View Selected";
+	ot->name = "View Selected";
 	ot->description = "Move the view to the selection center";
-	ot->idname= "VIEW3D_OT_view_selected";
+	ot->idname = "VIEW3D_OT_view_selected";
 
 	/* api callbacks */
-	ot->exec= viewselected_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->exec = viewselected_exec;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2282,16 +2282,16 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Center View to Cursor";
-	ot->description= "Center the view so that the cursor is in the middle of the view";
-	ot->idname= "VIEW3D_OT_view_center_cursor";
+	ot->name = "Center View to Cursor";
+	ot->description = "Center the view so that the cursor is in the middle of the view";
+	ot->idname = "VIEW3D_OT_view_center_cursor";
 	
 	/* api callbacks */
-	ot->exec= viewcenter_cursor_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->exec = viewcenter_cursor_exec;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
@@ -2327,16 +2327,16 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Camera Center";
+	ot->name = "View Camera Center";
 	ot->description = "Center the camera view";
-	ot->idname= "VIEW3D_OT_view_center_camera";
+	ot->idname = "VIEW3D_OT_view_center_camera";
 
 	/* api callbacks */
-	ot->exec= view3d_center_camera_exec;
-	ot->poll= view3d_camera_user_poll;
+	ot->exec = view3d_center_camera_exec;
+	ot->poll = view3d_camera_user_poll;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 /* ********************* Set render border operator ****************** */
@@ -2393,20 +2393,20 @@ static int render_border_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Render Border";
+	ot->name = "Set Render Border";
 	ot->description = "Set the boundaries of the border render and enables border render";
-	ot->idname= "VIEW3D_OT_render_border";
+	ot->idname = "VIEW3D_OT_render_border";
 
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= render_border_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = render_border_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 
-	ot->poll= view3d_camera_active_poll;
+	ot->poll = view3d_camera_active_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -2559,20 +2559,20 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event
 void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Zoom";
+	ot->name = "Border Zoom";
 	ot->description = "Zoom in the view to the nearest object contained in the border";
-	ot->idname= "VIEW3D_OT_zoom_border";
+	ot->idname = "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
-	ot->invoke= view3d_zoom_border_invoke;
-	ot->exec= view3d_zoom_border_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = view3d_zoom_border_invoke;
+	ot->exec = view3d_zoom_border_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 
 	/* rna */
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -2615,16 +2615,16 @@ static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom Camera 1:1";
+	ot->name = "Zoom Camera 1:1";
 	ot->description = "Match the camera to 1:1 to the render output";
-	ot->idname= "VIEW3D_OT_zoom_camera_1_to_1";
+	ot->idname = "VIEW3D_OT_zoom_camera_1_to_1";
 
 	/* api callbacks */
-	ot->exec= view3d_zoom_1_to_1_camera_exec;
-	ot->poll= view3d_camera_user_poll;
+	ot->exec = view3d_zoom_1_to_1_camera_exec;
+	ot->poll = view3d_camera_user_poll;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 /* ********************* Changing view operator ****************** */
@@ -2856,16 +2856,16 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View numpad";
+	ot->name = "View numpad";
 	ot->description = "Set the view";
-	ot->idname= "VIEW3D_OT_viewnumpad";
+	ot->idname = "VIEW3D_OT_viewnumpad";
 
 	/* api callbacks */
-	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_rv3d_user_region_poll;
+	ot->exec = viewnumpad_exec;
+	ot->poll = ED_operator_rv3d_user_region_poll;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 
 	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
 	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
@@ -2929,16 +2929,16 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Orbit";
+	ot->name = "View Orbit";
 	ot->description = "Orbit the view";
-	ot->idname= "VIEW3D_OT_view_orbit";
+	ot->idname = "VIEW3D_OT_view_orbit";
 
 	/* api callbacks */
-	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_rv3d_user_region_poll;
+	ot->exec = vieworbit_exec;
+	ot->poll = ED_operator_rv3d_user_region_poll;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 	RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
 }
 
@@ -2977,16 +2977,16 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Pan";
+	ot->name = "View Pan";
 	ot->description = "Pan the view";
-	ot->idname= "VIEW3D_OT_view_pan";
+	ot->idname = "VIEW3D_OT_view_pan";
 
 	/* api callbacks */
-	ot->exec= viewpan_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->exec = viewpan_exec;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 	RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
 }
 
@@ -3014,16 +3014,16 @@ static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Persp/Ortho";
+	ot->name = "View Persp/Ortho";
 	ot->description = "Switch the current view from perspective/orthographic";
-	ot->idname= "VIEW3D_OT_view_persportho";
+	ot->idname = "VIEW3D_OT_view_persportho";
 
 	/* api callbacks */
-	ot->exec= viewpersportho_exec;
-	ot->poll= ED_operator_rv3d_user_region_poll;
+	ot->exec = viewpersportho_exec;
+	ot->poll = ED_operator_rv3d_user_region_poll;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 
@@ -3083,7 +3083,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Add Background Image";
-	ot->description= "Add a new background image";
+	ot->description = "Add a new background image";
 	ot->idname = "VIEW3D_OT_background_image_add";
 
 	/* api callbacks */
@@ -3122,7 +3122,7 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Remove Background Image";
-	ot->description= "Remove a background image from the 3D view";
+	ot->description = "Remove a background image from the 3D view";
 	ot->idname = "VIEW3D_OT_background_image_remove";
 
 	/* api callbacks */
@@ -3220,20 +3220,20 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clipping Border";
+	ot->name = "Clipping Border";
 	ot->description = "Set the view clipping border";
-	ot->idname= "VIEW3D_OT_clip_border";
+	ot->idname = "VIEW3D_OT_clip_border";
 
 	/* api callbacks */
-	ot->invoke= view3d_clipping_invoke;
-	ot->exec= view3d_clipping_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = view3d_clipping_invoke;
+	ot->exec = view3d_clipping_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 
 	/* rna */
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -3314,17 +3314,17 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Set 3D Cursor";
+	ot->name = "Set 3D Cursor";
 	ot->description = "Set the location of the 3D cursor";
-	ot->idname= "VIEW3D_OT_cursor3d";
+	ot->idname = "VIEW3D_OT_cursor3d";
 
 	/* api callbacks */
-	ot->invoke= set_3dcursor_invoke;
+	ot->invoke = set_3dcursor_invoke;
 
-	ot->poll= ED_operator_view3d_active;
+	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+//	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* rna later */
 
@@ -3356,14 +3356,14 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "3D Manipulator";
+	ot->name = "3D Manipulator";
 	ot->description = "Manipulate selected item by axis";
-	ot->idname= "VIEW3D_OT_manipulator";
+	ot->idname = "VIEW3D_OT_manipulator";
 
 	/* api callbacks */
-	ot->invoke= manipulator_invoke;
+	ot->invoke = manipulator_invoke;
 
-	ot->poll= ED_operator_view3d_active;
+	ot->poll = ED_operator_view3d_active;
 
 	/* properties to pass to transform */
 	Transform_Properties(ot, P_CONSTRAINT);
@@ -3390,13 +3390,13 @@ static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Enable 3D Manipulator";
+	ot->name = "Enable 3D Manipulator";
 	ot->description = "Enable the transform manipulator for use";
-	ot->idname= "VIEW3D_OT_enable_manipulator";
+	ot->idname = "VIEW3D_OT_enable_manipulator";
 	
 	/* api callbacks */
-	ot->invoke= enable_manipulator_invoke;
-	ot->poll= ED_operator_view3d_active;
+	ot->invoke = enable_manipulator_invoke;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* rna later */
 	RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");

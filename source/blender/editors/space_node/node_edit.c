@@ -1279,18 +1279,18 @@ static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
 void NODE_OT_backimage_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Background Image Move";
+	ot->name = "Background Image Move";
 	ot->description = "Move Node backdrop";
-	ot->idname= "NODE_OT_backimage_move";
+	ot->idname = "NODE_OT_backimage_move";
 	
 	/* api callbacks */
-	ot->invoke= snode_bg_viewmove_invoke;
-	ot->modal= snode_bg_viewmove_modal;
-	ot->poll= composite_node_active;
-	ot->cancel= snode_bg_viewmove_cancel;
+	ot->invoke = snode_bg_viewmove_invoke;
+	ot->modal = snode_bg_viewmove_modal;
+	ot->poll = composite_node_active;
+	ot->cancel = snode_bg_viewmove_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 static int backimage_zoom(bContext *C, wmOperator *op)
@@ -1310,15 +1310,15 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Background Image Zoom";
-	ot->idname= "NODE_OT_backimage_zoom";
+	ot->name = "Background Image Zoom";
+	ot->idname = "NODE_OT_backimage_zoom";
 	
 	/* api callbacks */
-	ot->exec= backimage_zoom;
-	ot->poll= composite_node_active;
+	ot->exec = backimage_zoom;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 
 	/* internal */
 	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
@@ -1476,17 +1476,17 @@ static int sample_cancel(bContext *C, wmOperator *op)
 void NODE_OT_backimage_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Backimage Sample";
-	ot->idname= "NODE_OT_backimage_sample";
+	ot->name = "Backimage Sample";
+	ot->idname = "NODE_OT_backimage_sample";
 	
 	/* api callbacks */
-	ot->invoke= sample_invoke;
-	ot->modal= sample_modal;
-	ot->cancel= sample_cancel;
-	ot->poll= ED_operator_node_active;
+	ot->invoke = sample_invoke;
+	ot->modal = sample_modal;
+	ot->cancel = sample_cancel;
+	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 }
 
 /* ********************** size widget operator ******************** */
@@ -1587,17 +1587,17 @@ static int node_resize_cancel(bContext *UNUSED(C), wmOperator *op)
 void NODE_OT_resize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Resize Node";
-	ot->idname= "NODE_OT_resize";
+	ot->name = "Resize Node";
+	ot->idname = "NODE_OT_resize";
 	
 	/* api callbacks */
-	ot->invoke= node_resize_invoke;
-	ot->modal= node_resize_modal;
-	ot->poll= ED_operator_node_active;
-	ot->cancel= node_resize_cancel;
+	ot->invoke = node_resize_invoke;
+	ot->modal = node_resize_modal;
+	ot->poll = ED_operator_node_active;
+	ot->cancel = node_resize_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 }
 
 
@@ -1757,16 +1757,16 @@ static int node_active_link_viewer(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_link_viewer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Link to Viewer Node";
+	ot->name = "Link to Viewer Node";
 	ot->description = "Link to viewer node";
-	ot->idname= "NODE_OT_link_viewer";
+	ot->idname = "NODE_OT_link_viewer";
 	
 	/* api callbacks */
-	ot->exec= node_active_link_viewer;
-	ot->poll= composite_node_active;
+	ot->exec = node_active_link_viewer;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -2240,16 +2240,16 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Nodes";
+	ot->name = "Duplicate Nodes";
 	ot->description = "Duplicate selected nodes";
-	ot->idname= "NODE_OT_duplicate";
+	ot->idname = "NODE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->exec= node_duplicate_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_duplicate_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "keep_inputs", 0, "Keep Inputs", "Keep the input links to duplicated nodes");
 }
@@ -2564,18 +2564,18 @@ static int node_link_cancel(bContext *C, wmOperator *op)
 void NODE_OT_link(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Link Nodes";
-	ot->idname= "NODE_OT_link";
+	ot->name = "Link Nodes";
+	ot->idname = "NODE_OT_link";
 	
 	/* api callbacks */
-	ot->invoke= node_link_invoke;
-	ot->modal= node_link_modal;
-//	ot->exec= node_link_exec;
-	ot->poll= ED_operator_node_active;
-	ot->cancel= node_link_cancel;
+	ot->invoke = node_link_invoke;
+	ot->modal = node_link_modal;
+//	ot->exec = node_link_exec;
+	ot->poll = ED_operator_node_active;
+	ot->cancel = node_link_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /* ********************** Make Link operator ***************** */
@@ -2604,16 +2604,16 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 void NODE_OT_link_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Links";
-	ot->description= "Makes a link between selected output in input sockets";
-	ot->idname= "NODE_OT_link_make";
+	ot->name = "Make Links";
+	ot->description = "Makes a link between selected output in input sockets";
+	ot->idname = "NODE_OT_link_make";
 	
 	/* callbacks */
-	ot->exec= node_make_link_exec;
-	ot->poll= ED_operator_node_active; // XXX we need a special poll which checks that there are selected input/output sockets
+	ot->exec = node_make_link_exec;
+	ot->poll = ED_operator_node_active; // XXX we need a special poll which checks that there are selected input/output sockets
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "replace", 0, "Replace", "Replace socket connections with the new links");
 }
@@ -2682,18 +2682,18 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Cut links";
-	ot->idname= "NODE_OT_links_cut";
+	ot->name = "Cut links";
+	ot->idname = "NODE_OT_links_cut";
 	
-	ot->invoke= WM_gesture_lines_invoke;
-	ot->modal= WM_gesture_lines_modal;
-	ot->exec= cut_links_exec;
-	ot->cancel= WM_gesture_lines_cancel;
+	ot->invoke = WM_gesture_lines_invoke;
+	ot->modal = WM_gesture_lines_modal;
+	ot->exec = cut_links_exec;
+	ot->cancel = WM_gesture_lines_cancel;
 	
-	ot->poll= ED_operator_node_active;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
@@ -2727,14 +2727,14 @@ static int detach_links_exec(bContext *C, wmOperator *UNUSED(op))
 
 void NODE_OT_links_detach(wmOperatorType *ot)
 {
-	ot->name= "Detach Links";
-	ot->idname= "NODE_OT_links_detach";
+	ot->name = "Detach Links";
+	ot->idname = "NODE_OT_links_detach";
 	
-	ot->exec= detach_links_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = detach_links_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************  automatic node insert on dragging ******************* */
@@ -2921,15 +2921,15 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_read_renderlayers(wmOperatorType *ot)
 {
 	
-	ot->name= "Read Render Layers";
-	ot->idname= "NODE_OT_read_renderlayers";
+	ot->name = "Read Render Layers";
+	ot->idname = "NODE_OT_read_renderlayers";
 	
-	ot->exec= node_read_renderlayers_exec;
+	ot->exec = node_read_renderlayers_exec;
 	
-	ot->poll= composite_node_active;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2954,15 +2954,15 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 {
 	
-	ot->name= "Read Full Sample Layers";
-	ot->idname= "NODE_OT_read_fullsamplelayers";
+	ot->name = "Read Full Sample Layers";
+	ot->idname = "NODE_OT_read_fullsamplelayers";
 	
-	ot->exec= node_read_fullsamplelayers_exec;
+	ot->exec = node_read_fullsamplelayers_exec;
 	
-	ot->poll= composite_node_active;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3002,15 +3002,15 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_render_changed(wmOperatorType *ot)
 {
 	
-	ot->name= "Render Changed Layer";
-	ot->idname= "NODE_OT_render_changed";
+	ot->name = "Render Changed Layer";
+	ot->idname = "NODE_OT_render_changed";
 	
-	ot->exec= node_render_changed_exec;
+	ot->exec = node_render_changed_exec;
 	
-	ot->poll= composite_node_active;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 
@@ -3142,16 +3142,16 @@ static int node_hide_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_hide_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide";
-	ot->description= "Toggle hiding of selected nodes";
-	ot->idname= "NODE_OT_hide_toggle";
+	ot->name = "Hide";
+	ot->description = "Toggle hiding of selected nodes";
+	ot->idname = "NODE_OT_hide_toggle";
 	
 	/* callbacks */
-	ot->exec= node_hide_toggle_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_hide_toggle_exec;
+	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int node_preview_toggle_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3174,16 +3174,16 @@ static int node_preview_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_preview_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Node Preview";
-	ot->description= "Toggle preview display for selected nodes";
-	ot->idname= "NODE_OT_preview_toggle";
+	ot->name = "Toggle Node Preview";
+	ot->description = "Toggle preview display for selected nodes";
+	ot->idname = "NODE_OT_preview_toggle";
 
 	/* callbacks */
-	ot->exec= node_preview_toggle_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_preview_toggle_exec;
+	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int node_options_toggle_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3204,16 +3204,16 @@ static int node_options_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_options_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Node Options";
-	ot->description= "Toggle option buttons display for selected nodes";
-	ot->idname= "NODE_OT_options_toggle";
+	ot->name = "Toggle Node Options";
+	ot->description = "Toggle option buttons display for selected nodes";
+	ot->idname = "NODE_OT_options_toggle";
 
 	/* callbacks */
-	ot->exec= node_options_toggle_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_options_toggle_exec;
+	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3255,16 +3255,16 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Hidden Node Sockets";
-	ot->description= "Toggle unused node socket display";
-	ot->idname= "NODE_OT_hide_socket_toggle";
+	ot->name = "Toggle Hidden Node Sockets";
+	ot->description = "Toggle unused node socket display";
+	ot->idname = "NODE_OT_hide_socket_toggle";
 
 	/* callbacks */
-	ot->exec= node_socket_toggle_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_socket_toggle_exec;
+	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** Mute operator *********************** */
@@ -3293,16 +3293,16 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_mute_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Node Mute";
-	ot->description= "Toggle muting of the nodes";
-	ot->idname= "NODE_OT_mute_toggle";
+	ot->name = "Toggle Node Mute";
+	ot->description = "Toggle muting of the nodes";
+	ot->idname = "NODE_OT_mute_toggle";
 	
 	/* callbacks */
-	ot->exec= node_mute_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_mute_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** Delete operator ******************* */
@@ -3335,16 +3335,16 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
+	ot->name = "Delete";
 	ot->description = "Delete selected nodes";
-	ot->idname= "NODE_OT_delete";
+	ot->idname = "NODE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec= node_delete_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_delete_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** Delete with reconnect ******************* */
@@ -3378,16 +3378,16 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_delete_reconnect(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete with reconnect";
+	ot->name = "Delete with reconnect";
 	ot->description = "Delete nodes; will reconnect nodes as if deletion was muted";
-	ot->idname= "NODE_OT_delete_reconnect";
+	ot->idname = "NODE_OT_delete_reconnect";
 
 	/* api callbacks */
-	ot->exec= node_delete_reconnect_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_delete_reconnect_exec;
+	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** Show Cyclic Dependencies Operator  ******************* */
@@ -3406,16 +3406,16 @@ static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Cyclic Dependencies";
-	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes";
-	ot->idname= "NODE_OT_show_cyclic_dependencies";
+	ot->name = "Show Cyclic Dependencies";
+	ot->description = "Sort the nodes and show the cyclic dependencies between the nodes";
+	ot->idname = "NODE_OT_show_cyclic_dependencies";
 	
 	/* callbacks */
-	ot->exec= node_show_cycles_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_show_cycles_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** Add File Node Operator  ******************* */
@@ -3505,17 +3505,17 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void NODE_OT_add_file(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add File Node";
-	ot->description= "Add a file node to the current node editor";
-	ot->idname= "NODE_OT_add_file";
+	ot->name = "Add File Node";
+	ot->description = "Add a file node to the current node editor";
+	ot->idname = "NODE_OT_add_file";
 	
 	/* callbacks */
-    ot->exec= node_add_file_exec;
-	ot->invoke= node_add_file_invoke;
-    ot->poll= ED_operator_node_active;
+    ot->exec = node_add_file_exec;
+	ot->invoke = node_add_file_invoke;
+    ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME-2, "Name", "Datablock name to assign");
@@ -3572,15 +3572,15 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 void NODE_OT_new_node_tree(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New node tree";
-	ot->idname= "NODE_OT_new_node_tree";
+	ot->name = "New node tree";
+	ot->idname = "NODE_OT_new_node_tree";
 	
 	/* api callbacks */
-	ot->exec= new_node_tree_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = new_node_tree_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", nodetree_type_items, NTREE_COMPOSIT, "Tree Type", "");
 	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME-2, "Name", "");
@@ -3610,16 +3610,16 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add File Node Socket";
-	ot->description= "Add a new input to a file output node";
-	ot->idname= "NODE_OT_output_file_add_socket";
+	ot->name = "Add File Node Socket";
+	ot->description = "Add a new input to a file output node";
+	ot->idname = "NODE_OT_output_file_add_socket";
 	
 	/* callbacks */
-	ot->exec= node_output_file_add_socket_exec;
-	ot->poll= composite_node_active;
+	ot->exec = node_output_file_add_socket_exec;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_string(ot->srna, "file_path", "Image", MAX_NAME, "File Path", "Sub-path of the output file");
 }
@@ -3646,14 +3646,14 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *U
 void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove File Node Socket";
-	ot->description= "Remove active input from a file output node";
-	ot->idname= "NODE_OT_output_file_remove_active_socket";
+	ot->name = "Remove File Node Socket";
+	ot->description = "Remove active input from a file output node";
+	ot->idname = "NODE_OT_output_file_remove_active_socket";
 	
 	/* callbacks */
-	ot->exec= node_output_file_remove_active_socket_exec;
-	ot->poll= composite_node_active;
+	ot->exec = node_output_file_remove_active_socket_exec;
+	ot->poll = composite_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

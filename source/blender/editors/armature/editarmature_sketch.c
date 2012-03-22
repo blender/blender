@@ -2839,130 +2839,130 @@ int ED_operator_sketch_mode(const bContext *C)
 void SKETCH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->idname= "SKETCH_OT_delete";
+	ot->name = "Delete";
+	ot->idname = "SKETCH_OT_delete";
 
 	/* api callbacks */
-	ot->invoke= sketch_delete;
+	ot->invoke = sketch_delete;
 
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll = ED_operator_sketch_full_mode;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select";
-	ot->idname= "SKETCH_OT_select";
+	ot->name = "Select";
+	ot->idname = "SKETCH_OT_select";
 
 	/* api callbacks */
-	ot->invoke= sketch_select;
+	ot->invoke = sketch_select;
 
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll = ED_operator_sketch_full_mode;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cancel Stroke";
-	ot->idname= "SKETCH_OT_cancel_stroke";
+	ot->name = "Cancel Stroke";
+	ot->idname = "SKETCH_OT_cancel_stroke";
 
 	/* api callbacks */
-	ot->invoke= sketch_cancel;
+	ot->invoke = sketch_cancel;
 
-	ot->poll= ED_operator_sketch_mode_active_stroke;
+	ot->poll = ED_operator_sketch_mode_active_stroke;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Convert";
-	ot->idname= "SKETCH_OT_convert";
+	ot->name = "Convert";
+	ot->idname = "SKETCH_OT_convert";
 
 	/* api callbacks */
-	ot->invoke= sketch_convert;
+	ot->invoke = sketch_convert;
 
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll = ED_operator_sketch_full_mode;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "End Stroke";
-	ot->idname= "SKETCH_OT_finish_stroke";
+	ot->name = "End Stroke";
+	ot->idname = "SKETCH_OT_finish_stroke";
 
 	/* api callbacks */
-	ot->invoke= sketch_finish;
+	ot->invoke = sketch_finish;
 
-	ot->poll= ED_operator_sketch_mode_active_stroke;
+	ot->poll = ED_operator_sketch_mode_active_stroke;
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+//	ot->flag = OPTYPE_UNDO;
 }
 
 void SKETCH_OT_draw_preview(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Draw Preview";
-	ot->idname= "SKETCH_OT_draw_preview";
+	ot->name = "Draw Preview";
+	ot->idname = "SKETCH_OT_draw_preview";
 
 	/* api callbacks */
-	ot->invoke= sketch_draw_preview;
+	ot->invoke = sketch_draw_preview;
 
-	ot->poll= ED_operator_sketch_mode_active_stroke;
+	ot->poll = ED_operator_sketch_mode_active_stroke;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+//	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Draw Stroke";
-	ot->idname= "SKETCH_OT_draw_stroke";
+	ot->name = "Draw Stroke";
+	ot->idname = "SKETCH_OT_draw_stroke";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_stroke;
 	ot->modal  = sketch_draw_stroke_modal;
 	ot->cancel = sketch_draw_stroke_cancel;
 
-	ot->poll= (int (*)(bContext *))ED_operator_sketch_mode;
+	ot->poll = (int (*)(bContext *))ED_operator_sketch_mode;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
+	ot->flag = OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
 }
 
 void SKETCH_OT_gesture(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Gesture";
-	ot->idname= "SKETCH_OT_gesture";
+	ot->name = "Gesture";
+	ot->idname = "SKETCH_OT_gesture";
 
 	/* api callbacks */
 	ot->invoke = sketch_draw_gesture;
 	ot->modal  = sketch_draw_gesture_modal;
 	ot->cancel = sketch_draw_gesture_cancel;
 
-	ot->poll= ED_operator_sketch_mode_gesture;
+	ot->poll = ED_operator_sketch_mode_gesture;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING; // OPTYPE_UNDO
+	ot->flag = OPTYPE_BLOCKING; // OPTYPE_UNDO
 }
 

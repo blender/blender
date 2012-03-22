@@ -105,15 +105,15 @@ static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void FILE_OT_pack_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack All";
-	ot->idname= "FILE_OT_pack_all";
+	ot->name = "Pack All";
+	ot->idname = "FILE_OT_pack_all";
 	
 	/* api callbacks */
-	ot->exec= pack_all_exec;
-	ot->invoke= pack_all_invoke;
+	ot->exec = pack_all_exec;
+	ot->invoke = pack_all_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* unpack all operator *********************/
@@ -173,15 +173,15 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 void FILE_OT_unpack_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Unpack All";
-	ot->idname= "FILE_OT_unpack_all";
+	ot->name = "Unpack All";
+	ot->idname = "FILE_OT_unpack_all";
 	
 	/* api callbacks */
-	ot->exec= unpack_all_exec;
-	ot->invoke= unpack_all_invoke;
+	ot->exec = unpack_all_exec;
+	ot->invoke = unpack_all_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_all_method_items, PF_USE_LOCAL, "Method", "How to unpack");
@@ -209,14 +209,14 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_relative(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make All Paths Relative";
-	ot->idname= "FILE_OT_make_paths_relative";
+	ot->name = "Make All Paths Relative";
+	ot->idname = "FILE_OT_make_paths_relative";
 	
 	/* api callbacks */
-	ot->exec= make_paths_relative_exec;
+	ot->exec = make_paths_relative_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* make paths absolute operator *********************/
@@ -241,14 +241,14 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make All Paths Absolute";
-	ot->idname= "FILE_OT_make_paths_absolute";
+	ot->name = "Make All Paths Absolute";
+	ot->idname = "FILE_OT_make_paths_absolute";
 	
 	/* api callbacks */
-	ot->exec= make_paths_absolute_exec;
+	ot->exec = make_paths_absolute_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* report missing files operator *********************/
@@ -266,14 +266,14 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 void FILE_OT_report_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Report Missing Files";
-	ot->idname= "FILE_OT_report_missing_files";
+	ot->name = "Report Missing Files";
+	ot->idname = "FILE_OT_report_missing_files";
 	
 	/* api callbacks */
-	ot->exec= report_missing_files_exec;
+	ot->exec = report_missing_files_exec;
 
 	/* flags */
-	ot->flag= 0; /* only reports so no need to undo/register */
+	ot->flag = 0; /* only reports so no need to undo/register */
 }
 
 /********************* find missing files operator *********************/
@@ -298,15 +298,15 @@ static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void FILE_OT_find_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Find Missing Files";
-	ot->idname= "FILE_OT_find_missing_files";
+	ot->name = "Find Missing Files";
+	ot->idname = "FILE_OT_find_missing_files";
 	
 	/* api callbacks */
-	ot->exec= find_missing_files_exec;
-	ot->invoke= find_missing_files_invoke;
+	ot->exec = find_missing_files_exec;
+	ot->invoke = find_missing_files_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
@@ -409,14 +409,14 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 void INFO_OT_reports_display_update(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Update Reports Display";
-	ot->idname= "INFO_OT_reports_display_update";
+	ot->name = "Update Reports Display";
+	ot->idname = "INFO_OT_reports_display_update";
 	
 	/* api callbacks */
-	ot->invoke= update_reports_display_invoke;
+	ot->invoke = update_reports_display_invoke;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 	
 	/* properties */
 }

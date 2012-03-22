@@ -94,16 +94,16 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 void GROUP_OT_objects_add_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Selected To Active Group";
+	ot->name = "Add Selected To Active Group";
 	ot->description = "Add the object to an object group that contains the active object";
-	ot->idname= "GROUP_OT_objects_add_active";
+	ot->idname = "GROUP_OT_objects_add_active";
 	
 	/* api callbacks */
-	ot->exec= objects_add_active_exec;	
-	ot->poll= ED_operator_objectmode;
+	ot->exec = objects_add_active_exec;	
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int objects_remove_active_exec(bContext *C, wmOperator *op)
@@ -141,16 +141,16 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Selected From Active Group";
+	ot->name = "Remove Selected From Active Group";
 	ot->description = "Remove the object from an object group that contains the active object";
-	ot->idname= "GROUP_OT_objects_remove_active";
+	ot->idname = "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
-	ot->exec= objects_remove_active_exec;	
-	ot->poll= ED_operator_objectmode;
+	ot->exec = objects_remove_active_exec;	
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int group_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
@@ -175,16 +175,16 @@ static int group_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void GROUP_OT_objects_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove From Groups";
+	ot->name = "Remove From Groups";
 	ot->description = "Remove selected objects from all groups";
-	ot->idname= "GROUP_OT_objects_remove";
+	ot->idname = "GROUP_OT_objects_remove";
 	
 	/* api callbacks */
-	ot->exec= group_objects_remove_exec;	
-	ot->poll= ED_operator_objectmode;
+	ot->exec = group_objects_remove_exec;	
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int group_create_exec(bContext *C, wmOperator *op)
@@ -212,16 +212,16 @@ static int group_create_exec(bContext *C, wmOperator *op)
 void GROUP_OT_create(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create New Group";
+	ot->name = "Create New Group";
 	ot->description = "Create an object group from selected objects";
-	ot->idname= "GROUP_OT_create";
+	ot->idname = "GROUP_OT_create";
 	
 	/* api callbacks */
-	ot->exec= group_create_exec;	
-	ot->poll= ED_operator_objectmode;
+	ot->exec = group_create_exec;	
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_string(ot->srna, "name", "Group", MAX_ID_NAME-2, "Name", "Name of the new group");
 }
@@ -248,15 +248,15 @@ static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_group_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add to Group";
-	ot->idname= "OBJECT_OT_group_add";
+	ot->name = "Add to Group";
+	ot->idname = "OBJECT_OT_group_add";
 	ot->description = "Add an object to a new group";
 	
 	/* api callbacks */
-	ot->exec= group_add_exec;
+	ot->exec = group_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int group_link_exec(bContext *C, wmOperator *op)
@@ -280,21 +280,21 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Link to Group";
-	ot->idname= "OBJECT_OT_group_link";
+	ot->name = "Link to Group";
+	ot->idname = "OBJECT_OT_group_link";
 	ot->description = "Add an object to an existing group";
 	
 	/* api callbacks */
-	ot->exec= group_link_exec;
-	ot->invoke= WM_enum_search_invoke;
+	ot->exec = group_link_exec;
+	ot->invoke = WM_enum_search_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
 	RNA_def_enum_funcs(prop, RNA_group_local_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
@@ -316,13 +316,13 @@ static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_group_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Group";
-	ot->idname= "OBJECT_OT_group_remove";
+	ot->name = "Remove Group";
+	ot->idname = "OBJECT_OT_group_remove";
 	
 	/* api callbacks */
-	ot->exec= group_remove_exec;
+	ot->exec = group_remove_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

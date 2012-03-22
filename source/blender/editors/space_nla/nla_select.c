@@ -186,16 +186,16 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->idname= "NLA_OT_select_all_toggle";
-	ot->description= "Select or deselect all NLA-Strips";
+	ot->name = "(De)select All";
+	ot->idname = "NLA_OT_select_all_toggle";
+	ot->description = "Select or deselect all NLA-Strips";
 	
 	/* api callbacks */
-	ot->exec= nlaedit_deselectall_exec;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->exec = nlaedit_deselectall_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
@@ -331,20 +331,20 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "NLA_OT_select_border";
-	ot->description= "Use box selection to grab NLA-Strips";
+	ot->name = "Border Select";
+	ot->idname = "NLA_OT_select_border";
+	ot->description = "Use box selection to grab NLA-Strips";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= nlaedit_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = nlaedit_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->poll = nlaop_poll_tweakmode_off;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 1);
@@ -484,20 +484,20 @@ static int nlaedit_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 void NLA_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Left/Right";
-	ot->idname= "NLA_OT_select_leftright";
-	ot->description= "Select strips to the left or the right of the current frame";
+	ot->name = "Select Left/Right";
+	ot->idname = "NLA_OT_select_leftright";
+	ot->description = "Select strips to the left or the right of the current frame";
 	
 	/* api callbacks  */
-	ot->invoke= nlaedit_select_leftright_invoke;
-	ot->exec= nlaedit_select_leftright_exec;
-	ot->poll= ED_operator_nla_active;
+	ot->invoke = nlaedit_select_leftright_invoke;
+	ot->exec = nlaedit_select_leftright_exec;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
@@ -646,16 +646,16 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 void NLA_OT_click_select (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Select";
-	ot->idname= "NLA_OT_click_select";
-	ot->description= "Handle clicks to select NLA Strips";
+	ot->name = "Mouse Select";
+	ot->idname = "NLA_OT_click_select";
+	ot->description = "Handle clicks to select NLA Strips";
 	
 	/* api callbacks - absolutely no exec() this yet... */
-	ot->invoke= nlaedit_clickselect_invoke;
-	ot->poll= ED_operator_nla_active;
+	ot->invoke = nlaedit_clickselect_invoke;
+	ot->poll = ED_operator_nla_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

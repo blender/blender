@@ -287,17 +287,17 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_graph_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select";
-	ot->description= "Select graph curves";
-	ot->idname= "CLIP_OT_graph_select";
+	ot->name = "Select";
+	ot->description = "Select graph curves";
+	ot->idname = "CLIP_OT_graph_select";
 
 	/* api callbacks */
-	ot->exec= select_exec;
-	ot->invoke= select_invoke;
-	ot->poll= ED_space_clip_graph_poll;
+	ot->exec = select_exec;
+	ot->invoke = select_invoke;
+	ot->poll = ED_space_clip_graph_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -453,7 +453,7 @@ void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 	ot->poll = ED_space_clip_graph_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -477,17 +477,17 @@ static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Curve";
-	ot->description= "Delete selected curves";
-	ot->idname= "CLIP_OT_graph_delete_curve";
+	ot->name = "Delete Curve";
+	ot->description = "Delete selected curves";
+	ot->idname = "CLIP_OT_graph_delete_curve";
 
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_curve_exec;
-	ot->poll= ED_space_clip_poll;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = delete_curve_exec;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /******************** delete knot operator ********************/
@@ -519,16 +519,16 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_graph_delete_knot(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Knot";
-	ot->description= "Delete curve knots";
-	ot->idname= "CLIP_OT_graph_delete_knot";
+	ot->name = "Delete Knot";
+	ot->description = "Delete curve knots";
+	ot->idname = "CLIP_OT_graph_delete_knot";
 
 	/* api callbacks */
-	ot->exec= delete_knot_exec;
-	ot->poll= ED_space_clip_graph_poll;
+	ot->exec = delete_knot_exec;
+	ot->poll = ED_space_clip_graph_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /******************** view all operator ********************/

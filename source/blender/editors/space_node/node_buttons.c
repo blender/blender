@@ -202,13 +202,13 @@ static int node_properties_poll(bContext *C)
 
 void NODE_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->description= "Toggles the properties panel display";
-	ot->idname= "NODE_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggles the properties panel display";
+	ot->idname = "NODE_OT_properties";
 	
-	ot->exec= node_properties;
-	ot->poll= node_properties_poll;
+	ot->exec = node_properties;
+	ot->poll = node_properties_poll;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }

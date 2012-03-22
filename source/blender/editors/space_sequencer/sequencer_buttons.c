@@ -107,14 +107,14 @@ static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
 
 void SEQUENCER_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->idname= "SEQUENCER_OT_properties";
-	ot->description= "Open sequencer properties panel";
+	ot->name = "Properties";
+	ot->idname = "SEQUENCER_OT_properties";
+	ot->description = "Open sequencer properties panel";
 	
-	ot->exec= sequencer_properties;
-	ot->poll= ED_operator_sequencer_active;
+	ot->exec = sequencer_properties;
+	ot->poll = ED_operator_sequencer_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 

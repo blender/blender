@@ -619,18 +619,18 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_object_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Object Operation";
-	ot->idname= "OUTLINER_OT_object_operation";
-	ot->description= "";
+	ot->name = "Outliner Object Operation";
+	ot->idname = "OUTLINER_OT_object_operation";
+	ot->description = "";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= outliner_object_operation_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_object_operation_exec;
+	ot->poll = ED_operator_outliner_active;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
 }
 
 /* **************************************** */
@@ -699,18 +699,18 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_group_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Group Operation";
-	ot->idname= "OUTLINER_OT_group_operation";
-	ot->description= "";
+	ot->name = "Outliner Group Operation";
+	ot->idname = "OUTLINER_OT_group_operation";
+	ot->description = "";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= outliner_group_operation_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_group_operation_exec;
+	ot->poll = ED_operator_outliner_active;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
 }
 
 /* **************************************** */
@@ -869,18 +869,18 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_id_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner ID data Operation";
-	ot->idname= "OUTLINER_OT_id_operation";
-	ot->description= "";
+	ot->name = "Outliner ID data Operation";
+	ot->idname = "OUTLINER_OT_id_operation";
+	ot->description = "";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= outliner_id_operation_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_id_operation_exec;
+	ot->poll = ED_operator_outliner_active;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
 }
 
 /* **************************************** */
@@ -972,23 +972,23 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Outliner Set Action";
-	ot->idname= "OUTLINER_OT_action_set";
-	ot->description= "Change the active action used";
+	ot->name = "Outliner Set Action";
+	ot->idname = "OUTLINER_OT_action_set";
+	ot->description = "Change the active action used";
 	
 	/* api callbacks */
-	ot->invoke= WM_enum_search_invoke;
-	ot->exec= outliner_action_set_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->invoke = WM_enum_search_invoke;
+	ot->exec = outliner_action_set_exec;
+	ot->poll = ED_operator_outliner_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 	
 	/* props */
 		// TODO: this would be nicer as an ID-pointer...
 	prop= RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
 	RNA_def_enum_funcs(prop, RNA_action_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 /* **************************************** */
@@ -1087,18 +1087,18 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_animdata_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Animation Data Operation";
-	ot->idname= "OUTLINER_OT_animdata_operation";
-	ot->description= "";
+	ot->name = "Outliner Animation Data Operation";
+	ot->idname = "OUTLINER_OT_animdata_operation";
+	ot->description = "";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= outliner_animdata_operation_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_animdata_operation_exec;
+	ot->poll = ED_operator_outliner_active;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animdata_op_types, 0, "Animation Operation", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_animdata_op_types, 0, "Animation Operation", "");
 }
 
 /* **************************************** */
@@ -1158,18 +1158,18 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_data_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Data Operation";
-	ot->idname= "OUTLINER_OT_data_operation";
-	ot->description= "";
+	ot->name = "Outliner Data Operation";
+	ot->idname = "OUTLINER_OT_data_operation";
+	ot->description = "";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= outliner_data_operation_exec;
-	ot->poll= ED_operator_outliner_active;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_data_operation_exec;
+	ot->poll = ED_operator_outliner_active;
 	
-	ot->flag= 0;
+	ot->flag = 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
 }
 
 
@@ -1259,13 +1259,13 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 /* Menu only! Calls other operators */
 void OUTLINER_OT_operation(wmOperatorType *ot)
 {
-	ot->name= "Execute Operation";
-	ot->idname= "OUTLINER_OT_operation";
-	ot->description= "Context menu for item operations";
+	ot->name = "Execute Operation";
+	ot->idname = "OUTLINER_OT_operation";
+	ot->description = "Context menu for item operations";
 	
-	ot->invoke= outliner_operation;
+	ot->invoke = outliner_operation;
 	
-	ot->poll= ED_operator_outliner_active;
+	ot->poll = ED_operator_outliner_active;
 }
 
 /* ****************************************************** */

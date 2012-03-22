@@ -1159,13 +1159,13 @@ static int fluid_bake_exec(bContext *C, wmOperator *op)
 void FLUID_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fluid Simulation Bake";
-	ot->description= "Bake fluid simulation";
-	ot->idname= "FLUID_OT_bake";
+	ot->name = "Fluid Simulation Bake";
+	ot->description = "Bake fluid simulation";
+	ot->idname = "FLUID_OT_bake";
 	
 	/* api callbacks */
-	ot->invoke= fluid_bake_invoke;
-	ot->exec= fluid_bake_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->invoke = fluid_bake_invoke;
+	ot->exec = fluid_bake_exec;
+	ot->poll = ED_operator_object_active_editable;
 }
 

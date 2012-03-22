@@ -260,16 +260,16 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Location";
+	ot->name = "Clear Location";
 	ot->description = "Clear the object's location";
-	ot->idname= "OBJECT_OT_location_clear";
+	ot->idname = "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
-	ot->exec= object_location_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_location_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
@@ -280,16 +280,16 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Rotation";
+	ot->name = "Clear Rotation";
 	ot->description = "Clear the object's rotation";
-	ot->idname= "OBJECT_OT_rotation_clear";
+	ot->idname = "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
-	ot->exec= object_rotation_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_rotation_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
@@ -300,16 +300,16 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Scale";
+	ot->name = "Clear Scale";
 	ot->description = "Clear the object's scale";
-	ot->idname= "OBJECT_OT_scale_clear";
+	ot->idname = "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
-	ot->exec= object_scale_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_scale_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------------- */
@@ -346,16 +346,16 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Origin";
+	ot->name = "Clear Origin";
 	ot->description = "Clear the object's origin";
-	ot->idname= "OBJECT_OT_origin_clear";
+	ot->idname = "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
-	ot->exec= object_origin_clear_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = object_origin_clear_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /*************************** Apply Transformation ****************************/
@@ -591,16 +591,16 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Visual Transform";
+	ot->name = "Apply Visual Transform";
 	ot->description = "Apply the object's visual transformation to its data";
-	ot->idname= "OBJECT_OT_visual_transform_apply";
+	ot->idname = "OBJECT_OT_visual_transform_apply";
 	
 	/* api callbacks */
-	ot->exec= visual_transform_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec = visual_transform_apply_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_transform_apply_exec(bContext *C, wmOperator *op)
@@ -620,16 +620,16 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Object Transform";
+	ot->name = "Apply Object Transform";
 	ot->description = "Apply the object's transformation to its data";
-	ot->idname= "OBJECT_OT_transform_apply";
+	ot->idname = "OBJECT_OT_transform_apply";
 
 	/* api callbacks */
-	ot->exec= object_transform_apply_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->exec = object_transform_apply_exec;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
 	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
@@ -957,20 +957,20 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "Set Origin";
+	ot->name = "Set Origin";
 	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
-	ot->idname= "OBJECT_OT_origin_set";
+	ot->idname = "OBJECT_OT_origin_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_origin_set_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_origin_set_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
 }
 

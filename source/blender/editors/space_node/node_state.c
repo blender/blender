@@ -120,14 +120,14 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "NODE_OT_view_all";
-	ot->description= "Resize view so you can see all nodes";
+	ot->name = "View All";
+	ot->idname = "NODE_OT_view_all";
+	ot->description = "Resize view so you can see all nodes";
 	
 	/* api callbacks */
-	ot->exec= node_view_all_exec;
-	ot->poll= ED_operator_node_active;
+	ot->exec = node_view_all_exec;
+	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

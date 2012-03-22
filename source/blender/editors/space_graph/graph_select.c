@@ -169,19 +169,19 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
-	ot->idname= "GRAPH_OT_select_all_toggle";
-	ot->description= "Toggle selection of all keyframes";
+	ot->name = "Select All";
+	ot->idname = "GRAPH_OT_select_all_toggle";
+	ot->description = "Toggle selection of all keyframes";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_deselectall_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_deselectall_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -348,25 +348,25 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "GRAPH_OT_select_border";
-	ot->description= "Select all keyframes within the specified region";
+	ot->name = "Border Select";
+	ot->idname = "GRAPH_OT_select_border";
+	ot->description = "Select all keyframes within the specified region";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= graphkeys_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = graphkeys_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
 	
-	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
 }
 
@@ -538,19 +538,19 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
-	ot->idname= "GRAPH_OT_select_column";
-	ot->description= "Select all keyframes on the specified frame(s)";
+	ot->name = "Select All";
+	ot->idname = "GRAPH_OT_select_column";
+	ot->description = "Select all keyframes on the specified frame(s)";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_columnselect_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_columnselect_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
 /* ******************** Select Linked Operator *********************** */
@@ -597,15 +597,15 @@ void GRAPH_OT_select_linked (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked";
-	ot->idname= "GRAPH_OT_select_linked";
+	ot->idname = "GRAPH_OT_select_linked";
 	ot->description = "Select keyframes occurring in the same F-Curves as selected ones";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_select_linked_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_select_linked_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ******************** Select More/Less Operators *********************** */
@@ -675,15 +675,15 @@ void GRAPH_OT_select_more (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select More";
-	ot->idname= "GRAPH_OT_select_more";
+	ot->idname = "GRAPH_OT_select_more";
 	ot->description = "Select keyframes beside already selected ones";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_select_more_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_select_more_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ----------------- */
@@ -709,15 +709,15 @@ void GRAPH_OT_select_less (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Less";
-	ot->idname= "GRAPH_OT_select_less";
+	ot->idname = "GRAPH_OT_select_less";
 	ot->description = "Deselect keyframes on ends of selection islands";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_select_less_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_select_less_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ******************** Select Left/Right Operator ************************* */
@@ -849,20 +849,20 @@ static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEve
 void GRAPH_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Left/Right";
-	ot->idname= "GRAPH_OT_select_leftright";
-	ot->description= "Select keyframes to the left or the right of the current frame";
+	ot->name = "Select Left/Right";
+	ot->idname = "GRAPH_OT_select_leftright";
+	ot->description = "Select keyframes to the left or the right of the current frame";
 	
 	/* api callbacks  */
 	ot->invoke=	graphkeys_select_leftright_invoke;
-	ot->exec= graphkeys_select_leftright_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->exec = graphkeys_select_leftright_exec;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
@@ -1334,13 +1334,13 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 void GRAPH_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Select Keys";
-	ot->idname= "GRAPH_OT_clickselect";
-	ot->description= "Select keyframes by clicking on them";
+	ot->name = "Mouse Select Keys";
+	ot->idname = "GRAPH_OT_clickselect";
+	ot->description = "Select keyframes by clicking on them";
 	
 	/* api callbacks */
-	ot->invoke= graphkeys_clickselect_invoke;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->invoke = graphkeys_clickselect_invoke;
+	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY

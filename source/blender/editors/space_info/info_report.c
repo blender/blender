@@ -95,16 +95,16 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 void INFO_OT_report_replay(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Replay Operators";
-	ot->description= "Replay selected reports";
-	ot->idname= "INFO_OT_report_replay";
+	ot->name = "Replay Operators";
+	ot->description = "Replay selected reports";
+	ot->idname = "INFO_OT_report_replay";
 
 	/* api callbacks */
-	ot->poll= ED_operator_info_active;
-	ot->exec= report_replay_exec;
+	ot->poll = ED_operator_info_active;
+	ot->exec = report_replay_exec;
 
 	/* flags */
-	/* ot->flag= OPTYPE_REGISTER; */
+	/* ot->flag = OPTYPE_REGISTER; */
 
 	/* properties */
 }
@@ -145,17 +145,17 @@ static int select_report_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void INFO_OT_select_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select report";
-	ot->description= "Select reports by index";
-	ot->idname= "INFO_OT_select_pick";
+	ot->name = "Select report";
+	ot->description = "Select reports by index";
+	ot->idname = "INFO_OT_select_pick";
 
 	/* api callbacks */
-	ot->poll= ED_operator_info_active;
-	ot->invoke= select_report_pick_invoke;
-	ot->exec= select_report_pick_exec;
+	ot->poll = ED_operator_info_active;
+	ot->invoke = select_report_pick_invoke;
+	ot->exec = select_report_pick_exec;
 
 	/* flags */
-	/* ot->flag= OPTYPE_REGISTER; */
+	/* ot->flag = OPTYPE_REGISTER; */
 
 	/* properties */
 	RNA_def_int(ot->srna, "report_index", 0, 0, INT_MAX, "Report", "Index of the report", 0, INT_MAX);
@@ -199,16 +199,16 @@ static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void INFO_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->description= "Select or deselect all reports";
-	ot->idname= "INFO_OT_select_all_toggle";
+	ot->name = "(De)select All";
+	ot->description = "Select or deselect all reports";
+	ot->idname = "INFO_OT_select_all_toggle";
 
 	/* api callbacks */
-	ot->poll= ED_operator_info_active;
-	ot->exec= report_select_all_toggle_exec;
+	ot->poll = ED_operator_info_active;
+	ot->exec = report_select_all_toggle_exec;
 
 	/* flags */
-	/*ot->flag= OPTYPE_REGISTER;*/
+	/*ot->flag = OPTYPE_REGISTER;*/
 
 	/* properties */
 }
@@ -303,20 +303,20 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 void INFO_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->description= "Toggle border selection";
-	ot->idname= "INFO_OT_select_border";
+	ot->name = "Border Select";
+	ot->description = "Toggle border selection";
+	ot->idname = "INFO_OT_select_border";
 
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 
-	ot->poll= ED_operator_info_active;
+	ot->poll = ED_operator_info_active;
 
 	/* flags */
-	/* ot->flag= OPTYPE_REGISTER; */
+	/* ot->flag = OPTYPE_REGISTER; */
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
@@ -354,16 +354,16 @@ static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void INFO_OT_report_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Reports";
-	ot->description= "Delete selected reports";
-	ot->idname= "INFO_OT_report_delete";
+	ot->name = "Delete Reports";
+	ot->description = "Delete selected reports";
+	ot->idname = "INFO_OT_report_delete";
 
 	/* api callbacks */
-	ot->poll= ED_operator_info_active;
-	ot->exec= report_delete_exec;
+	ot->poll = ED_operator_info_active;
+	ot->exec = report_delete_exec;
 
 	/* flags */
-	/*ot->flag= OPTYPE_REGISTER;*/
+	/*ot->flag = OPTYPE_REGISTER;*/
 
 	/* properties */
 }
@@ -399,16 +399,16 @@ static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void INFO_OT_report_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Reports to Clipboard";
-	ot->description= "Copy selected reports to Clipboard";
-	ot->idname= "INFO_OT_report_copy";
+	ot->name = "Copy Reports to Clipboard";
+	ot->description = "Copy selected reports to Clipboard";
+	ot->idname = "INFO_OT_report_copy";
 
 	/* api callbacks */
-	ot->poll= ED_operator_info_active;
-	ot->exec= report_copy_exec;
+	ot->poll = ED_operator_info_active;
+	ot->exec = report_copy_exec;
 
 	/* flags */
-	/*ot->flag= OPTYPE_REGISTER;*/
+	/*ot->flag = OPTYPE_REGISTER;*/
 
 	/* properties */
 }

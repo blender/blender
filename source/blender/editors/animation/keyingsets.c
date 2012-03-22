@@ -140,13 +140,13 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 void ANIM_OT_keying_set_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Empty Keying Set";
-	ot->idname= "ANIM_OT_keying_set_add";
-	ot->description= "Add a new (empty) Keying Set to the active Scene";
+	ot->name = "Add Empty Keying Set";
+	ot->idname = "ANIM_OT_keying_set_add";
+	ot->description = "Add a new (empty) Keying Set to the active Scene";
 	
 	/* callbacks */
-	ot->exec= add_default_keyingset_exec;
-	ot->poll= keyingset_poll_default_add;
+	ot->exec = add_default_keyingset_exec;
+	ot->poll = keyingset_poll_default_add;
 }
 
 /* Remove 'Active' Keying Set ------------------------- */
@@ -187,13 +187,13 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Active Keying Set";
-	ot->idname= "ANIM_OT_keying_set_remove";
-	ot->description= "Remove the active Keying Set";
+	ot->name = "Remove Active Keying Set";
+	ot->idname = "ANIM_OT_keying_set_remove";
+	ot->description = "Remove the active Keying Set";
 	
 	/* callbacks */
-	ot->exec= remove_active_keyingset_exec;
-	ot->poll= keyingset_poll_active_edit;
+	ot->exec = remove_active_keyingset_exec;
+	ot->poll = keyingset_poll_active_edit;
 }
 
 /* Add Empty Keying Set Path ------------------------- */
@@ -230,13 +230,13 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_path_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Empty Keying Set Path";
-	ot->idname= "ANIM_OT_keying_set_path_add";
-	ot->description= "Add empty path to active Keying Set";
+	ot->name = "Add Empty Keying Set Path";
+	ot->idname = "ANIM_OT_keying_set_path_add";
+	ot->description = "Add empty path to active Keying Set";
 	
 	/* callbacks */
-	ot->exec= add_empty_ks_path_exec;
-	ot->poll= keyingset_poll_active_edit;
+	ot->exec = add_empty_ks_path_exec;
+	ot->poll = keyingset_poll_active_edit;
 }
 
 /* Remove Active Keying Set Path ------------------------- */
@@ -273,13 +273,13 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Active Keying Set Path";
-	ot->idname= "ANIM_OT_keying_set_path_remove";
-	ot->description= "Remove active Path from active Keying Set";
+	ot->name = "Remove Active Keying Set Path";
+	ot->idname = "ANIM_OT_keying_set_path_remove";
+	ot->description = "Remove active Path from active Keying Set";
 	
 	/* callbacks */
-	ot->exec= remove_active_ks_path_exec;
-	ot->poll= keyingset_poll_activePath_edit;
+	ot->exec = remove_active_ks_path_exec;
+	ot->poll = keyingset_poll_activePath_edit;
 }
 
 /* ************************************************** */
@@ -371,15 +371,15 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add to Keying Set";
-	ot->idname= "ANIM_OT_keyingset_button_add";
+	ot->name = "Add to Keying Set";
+	ot->idname = "ANIM_OT_keyingset_button_add";
 	
 	/* callbacks */
-	ot->exec= add_keyingset_button_exec; 
+	ot->exec = add_keyingset_button_exec; 
 	//op->poll= ???
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set");
@@ -450,15 +450,15 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove from Keying Set";
-	ot->idname= "ANIM_OT_keyingset_button_remove";
+	ot->name = "Remove from Keying Set";
+	ot->idname = "ANIM_OT_keyingset_button_remove";
 	
 	/* callbacks */
-	ot->exec= remove_keyingset_button_exec; 
+	ot->exec = remove_keyingset_button_exec; 
 	//op->poll= ???
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************************************* */
@@ -499,16 +499,16 @@ void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Set Active Keying Set";
-	ot->idname= "ANIM_OT_keying_set_active_set";
+	ot->name = "Set Active Keying Set";
+	ot->idname = "ANIM_OT_keying_set_active_set";
 	
 	/* callbacks */
-	ot->invoke= keyingset_active_menu_invoke;
-	ot->exec= keyingset_active_menu_exec; 
-	ot->poll= ED_operator_areaactive;
+	ot->invoke = keyingset_active_menu_invoke;
+	ot->exec = keyingset_active_menu_exec; 
+	ot->poll = ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");

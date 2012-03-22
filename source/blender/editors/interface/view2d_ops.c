@@ -291,18 +291,18 @@ static int view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 static void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pan View";
-	ot->description= "Pan the view";
-	ot->idname= "VIEW2D_OT_pan";
+	ot->name = "Pan View";
+	ot->description = "Pan the view";
+	ot->idname = "VIEW2D_OT_pan";
 	
 	/* api callbacks */
-	ot->exec= view_pan_exec;
-	ot->invoke= view_pan_invoke;
-	ot->modal= view_pan_modal;
-	ot->cancel= view_pan_cancel;
+	ot->exec = view_pan_exec;
+	ot->invoke = view_pan_invoke;
+	ot->modal = view_pan_modal;
+	ot->cancel = view_pan_cancel;
 	
 	/* operator is modal */
-	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -341,12 +341,12 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Right";
-	ot->description= "Scroll the view right";
-	ot->idname= "VIEW2D_OT_scroll_right";
+	ot->name = "Scroll Right";
+	ot->description = "Scroll the view right";
+	ot->idname = "VIEW2D_OT_scroll_right";
 	
 	/* api callbacks */
-	ot->exec= view_scrollright_exec;
+	ot->exec = view_scrollright_exec;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -385,12 +385,12 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Left";
-	ot->description= "Scroll the view left";
-	ot->idname= "VIEW2D_OT_scroll_left";
+	ot->name = "Scroll Left";
+	ot->description = "Scroll the view left";
+	ot->idname = "VIEW2D_OT_scroll_left";
 	
 	/* api callbacks */
-	ot->exec= view_scrollleft_exec;
+	ot->exec = view_scrollleft_exec;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -433,12 +433,12 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Down";
-	ot->description= "Scroll the view down";
-	ot->idname= "VIEW2D_OT_scroll_down";
+	ot->name = "Scroll Down";
+	ot->description = "Scroll the view down";
+	ot->idname = "VIEW2D_OT_scroll_down";
 	
 	/* api callbacks */
-	ot->exec= view_scrolldown_exec;
+	ot->exec = view_scrolldown_exec;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -483,12 +483,12 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Up";
-	ot->description= "Scroll the view up";
-	ot->idname= "VIEW2D_OT_scroll_up";
+	ot->name = "Scroll Up";
+	ot->description = "Scroll the view up";
+	ot->idname = "VIEW2D_OT_scroll_up";
 	
 	/* api callbacks */
-	ot->exec= view_scrollup_exec;
+	ot->exec = view_scrollup_exec;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -711,14 +711,14 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom In";
-	ot->description= "Zoom in the view";
-	ot->idname= "VIEW2D_OT_zoom_in";
+	ot->name = "Zoom In";
+	ot->description = "Zoom in the view";
+	ot->idname = "VIEW2D_OT_zoom_in";
 	
 	/* api callbacks */
-	ot->invoke= view_zoomin_invoke;
-//	ot->exec= view_zoomin_exec;  // XXX, needs view_zoomdrag_init called first.
-	ot->poll= view_zoom_poll;
+	ot->invoke = view_zoomin_invoke;
+//	ot->exec = view_zoomin_exec;  // XXX, needs view_zoomdrag_init called first.
+	ot->poll = view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
@@ -768,14 +768,14 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom Out";
-	ot->description= "Zoom out the view";
-	ot->idname= "VIEW2D_OT_zoom_out";
+	ot->name = "Zoom Out";
+	ot->description = "Zoom out the view";
+	ot->idname = "VIEW2D_OT_zoom_out";
 	
 	/* api callbacks */
-	ot->invoke= view_zoomout_invoke;
-//	ot->exec= view_zoomout_exec; // XXX, needs view_zoomdrag_init called first.
-	ot->poll= view_zoom_poll;
+	ot->invoke = view_zoomout_invoke;
+//	ot->exec = view_zoomout_exec; // XXX, needs view_zoomdrag_init called first.
+	ot->poll = view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
@@ -1063,20 +1063,20 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom 2D View";
-	ot->description= "Zoom in/out the view";
-	ot->idname= "VIEW2D_OT_zoom";
+	ot->name = "Zoom 2D View";
+	ot->description = "Zoom in/out the view";
+	ot->idname = "VIEW2D_OT_zoom";
 	
 	/* api callbacks */
-	ot->exec= view_zoomdrag_exec;
-	ot->invoke= view_zoomdrag_invoke;
-	ot->modal= view_zoomdrag_modal;
-	ot->cancel= view_zoomdrag_cancel;
+	ot->exec = view_zoomdrag_exec;
+	ot->invoke = view_zoomdrag_invoke;
+	ot->modal = view_zoomdrag_modal;
+	ot->cancel = view_zoomdrag_cancel;
 	
-	ot->poll= view_zoom_poll;
+	ot->poll = view_zoom_poll;
 	
 	/* operator is repeatable */
-	// ot->flag= OPTYPE_BLOCKING;
+	// ot->flag = OPTYPE_BLOCKING;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
@@ -1164,17 +1164,17 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom to Border";
-	ot->description= "Zoom in the view to the nearest item contained in the border";
-	ot->idname= "VIEW2D_OT_zoom_border";
+	ot->name = "Zoom to Border";
+	ot->description = "Zoom in the view to the nearest item contained in the border";
+	ot->idname = "VIEW2D_OT_zoom_border";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= view_borderzoom_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = view_borderzoom_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= view_zoom_poll;
+	ot->poll = view_zoom_poll;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
@@ -1587,19 +1587,19 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroller Activate";
-	ot->description= "Scroll view by mouse click and drag";
-	ot->idname= "VIEW2D_OT_scroller_activate";
+	ot->name = "Scroller Activate";
+	ot->description = "Scroll view by mouse click and drag";
+	ot->idname = "VIEW2D_OT_scroller_activate";
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 	
 	/* api callbacks */
-	ot->invoke= scroller_activate_invoke;
-	ot->modal= scroller_activate_modal;
-	ot->cancel= scroller_activate_cancel;
+	ot->invoke = scroller_activate_invoke;
+	ot->modal = scroller_activate_modal;
+	ot->cancel = scroller_activate_cancel;
 
-	ot->poll= view2d_poll;
+	ot->poll = view2d_poll;
 }
 
 /* ********************************************************* */
@@ -1655,13 +1655,13 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 static void VIEW2D_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset View";
-	ot->description= "Reset the view";
-	ot->idname= "VIEW2D_OT_reset";
+	ot->name = "Reset View";
+	ot->description = "Reset the view";
+	ot->idname = "VIEW2D_OT_reset";
 	
 	/* api callbacks */
-	ot->exec= reset_exec;
-	ot->poll= view2d_poll;
+	ot->exec = reset_exec;
+	ot->poll = view2d_poll;
 }
  
 /* ********************************************************* */

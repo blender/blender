@@ -259,16 +259,16 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->idname= "SEQUENCER_OT_select_all";
-	ot->description="Select or deselect all strips";
+	ot->name = "(De)select All";
+	ot->idname = "SEQUENCER_OT_select_all";
+	ot->description = "Select or deselect all strips";
 	
 	/* api callbacks */
-	ot->exec= sequencer_de_select_all_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_de_select_all_exec;
+	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -299,16 +299,16 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "SEQUENCER_OT_select_inverse";
-	ot->description="Select unselected strips";
+	ot->name = "Select Inverse";
+	ot->idname = "SEQUENCER_OT_select_inverse";
+	ot->description = "Select unselected strips";
 	
 	/* api callbacks */
-	ot->exec= sequencer_select_inverse_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_select_inverse_exec;
+	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -522,16 +522,16 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select";
-	ot->idname= "SEQUENCER_OT_select";
-	ot->description="Select a strip (last selected becomes the \"active strip\")";
+	ot->name = "Activate/Select";
+	ot->idname = "SEQUENCER_OT_select";
+	ot->description = "Select a strip (last selected becomes the \"active strip\")";
 	
 	/* api callbacks */
-	ot->invoke= sequencer_select_invoke;
-	ot->poll= ED_operator_sequencer_active;
+	ot->invoke = sequencer_select_invoke;
+	ot->poll = ED_operator_sequencer_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
@@ -612,16 +612,16 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select More";
-	ot->idname= "SEQUENCER_OT_select_more";
-	ot->description="Select more strips adjacent to the current selection";
+	ot->name = "Select More";
+	ot->idname = "SEQUENCER_OT_select_more";
+	ot->description = "Select more strips adjacent to the current selection";
 	
 	/* api callbacks */
-	ot->exec= sequencer_select_more_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_select_more_exec;
+	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 }
@@ -643,16 +643,16 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Less";
-	ot->idname= "SEQUENCER_OT_select_less";
-	ot->description="Shrink the current selection of adjacent selected strips";
+	ot->name = "Select Less";
+	ot->idname = "SEQUENCER_OT_select_less";
+	ot->description = "Shrink the current selection of adjacent selected strips";
 	
 	/* api callbacks */
-	ot->exec= sequencer_select_less_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_select_less_exec;
+	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 }
@@ -693,16 +693,16 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select pick linked";
-	ot->idname= "SEQUENCER_OT_select_linked_pick";
-	ot->description="Select a chain of linked strips nearest to the mouse pointer";
+	ot->name = "Select pick linked";
+	ot->idname = "SEQUENCER_OT_select_linked_pick";
+	ot->description = "Select a chain of linked strips nearest to the mouse pointer";
 	
 	/* api callbacks */
-	ot->invoke= sequencer_select_linked_pick_invoke;
-	ot->poll= ED_operator_sequencer_active;
+	ot->invoke = sequencer_select_linked_pick_invoke;
+	ot->poll = ED_operator_sequencer_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
@@ -728,16 +728,16 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select linked";
-	ot->idname= "SEQUENCER_OT_select_linked";
-	ot->description="Select all strips adjacent to the current selection";
+	ot->name = "Select linked";
+	ot->idname = "SEQUENCER_OT_select_linked";
+	ot->description = "Select all strips adjacent to the current selection";
 	
 	/* api callbacks */
-	ot->exec= sequencer_select_linked_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_select_linked_exec;
+	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 }
@@ -778,16 +778,16 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Handles";
-	ot->idname= "SEQUENCER_OT_select_handles";
-	ot->description="Select manipulator handles on the sides of the selected strip";
+	ot->name = "Select Handles";
+	ot->idname = "SEQUENCER_OT_select_handles";
+	ot->description = "Select manipulator handles on the sides of the selected strip";
 	
 	/* api callbacks */
-	ot->exec= sequencer_select_handles_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_select_handles_exec;
+	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
@@ -815,16 +815,16 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Active Side";
-	ot->idname= "SEQUENCER_OT_select_active_side";
-	ot->description="Select strips on the nominated side of the active strip";
+	ot->name = "Select Active Side";
+	ot->idname = "SEQUENCER_OT_select_active_side";
+	ot->description = "Select strips on the nominated side of the active strip";
 	
 	/* api callbacks */
-	ot->exec= sequencer_select_active_side_exec;
-	ot->poll= sequencer_edit_poll;
+	ot->exec = sequencer_select_active_side_exec;
+	ot->poll = sequencer_edit_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
@@ -884,20 +884,20 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "SEQUENCER_OT_select_border";
-	ot->description="Enable border select mode";
+	ot->name = "Border Select";
+	ot->idname = "SEQUENCER_OT_select_border";
+	ot->description = "Enable border select mode";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= sequencer_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	ot->cancel= WM_border_select_cancel;
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = sequencer_borderselect_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
 	
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll = ED_operator_sequencer_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);

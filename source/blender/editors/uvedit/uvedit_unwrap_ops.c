@@ -684,17 +684,17 @@ static int minimize_stretch_cancel(bContext *C, wmOperator *op)
 void UV_OT_minimize_stretch(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Minimize Stretch";
-	ot->idname= "UV_OT_minimize_stretch";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
-	ot->description="Reduce UV stretching by relaxing angles";
+	ot->name = "Minimize Stretch";
+	ot->idname = "UV_OT_minimize_stretch";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
+	ot->description = "Reduce UV stretching by relaxing angles";
 	
 	/* api callbacks */
-	ot->exec= minimize_stretch_exec;
-	ot->invoke= minimize_stretch_invoke;
-	ot->modal= minimize_stretch_modal;
-	ot->cancel= minimize_stretch_cancel;
-	ot->poll= ED_operator_uvedit;
+	ot->exec = minimize_stretch_exec;
+	ot->invoke = minimize_stretch_invoke;
+	ot->modal = minimize_stretch_modal;
+	ot->cancel = minimize_stretch_cancel;
+	ot->poll = ED_operator_uvedit;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
@@ -737,13 +737,13 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 void UV_OT_pack_islands(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack Islands";
-	ot->idname= "UV_OT_pack_islands";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Pack Islands";
+	ot->idname = "UV_OT_pack_islands";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= pack_islands_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->exec = pack_islands_exec;
+	ot->poll = ED_operator_uvedit;
 
 	/* properties */
 	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
@@ -777,13 +777,13 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 void UV_OT_average_islands_scale(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Average Islands Scale";
-	ot->idname= "UV_OT_average_islands_scale";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Average Islands Scale";
+	ot->idname = "UV_OT_average_islands_scale";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= average_islands_scale_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->exec = average_islands_scale_exec;
+	ot->poll = ED_operator_uvedit;
 }
 
 /**************** Live Unwrap *****************/
@@ -1191,14 +1191,14 @@ void UV_OT_unwrap(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Unwrap";
-	ot->description= "Unwrap the mesh of the object being edited";
-	ot->idname= "UV_OT_unwrap";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Unwrap";
+	ot->description = "Unwrap the mesh of the object being edited";
+	ot->idname = "UV_OT_unwrap";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= unwrap_exec;
-	ot->poll= ED_operator_uvmap;
+	ot->exec = unwrap_exec;
+	ot->poll = ED_operator_uvmap;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", method_items, 0, "Method",
@@ -1304,13 +1304,13 @@ static int uv_from_view_poll(bContext *C)
 void UV_OT_from_view(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Project From View";
-	ot->idname= "UV_OT_project_from_view";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Project From View";
+	ot->idname = "UV_OT_project_from_view";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= uv_from_view_exec;
-	ot->poll= uv_from_view_poll;
+	ot->exec = uv_from_view_exec;
+	ot->poll = uv_from_view_poll;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection");
@@ -1343,13 +1343,13 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 void UV_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset";
-	ot->idname= "UV_OT_reset";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Reset";
+	ot->idname = "UV_OT_reset";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= reset_exec;
-	ot->poll= ED_operator_uvmap;
+	ot->exec = reset_exec;
+	ot->poll = ED_operator_uvmap;
 }
 
 /****************** Sphere Project operator ***************/
@@ -1444,13 +1444,13 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 void UV_OT_sphere_project(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sphere Projection";
-	ot->idname= "UV_OT_sphere_project";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Sphere Projection";
+	ot->idname = "UV_OT_sphere_project";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= sphere_project_exec;
-	ot->poll= ED_operator_uvmap;
+	ot->exec = sphere_project_exec;
+	ot->poll = ED_operator_uvmap;
 
 	/* properties */
 	uv_transform_properties(ot, 0);
@@ -1517,13 +1517,13 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 void UV_OT_cylinder_project(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cylinder Projection";
-	ot->idname= "UV_OT_cylinder_project";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Cylinder Projection";
+	ot->idname = "UV_OT_cylinder_project";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= cylinder_project_exec;
-	ot->poll= ED_operator_uvmap;
+	ot->exec = cylinder_project_exec;
+	ot->poll = ED_operator_uvmap;
 
 	/* properties */
 	uv_transform_properties(ot, 1);
@@ -1595,13 +1595,13 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 void UV_OT_cube_project(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cube Projection";
-	ot->idname= "UV_OT_cube_project";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->name = "Cube Projection";
+	ot->idname = "UV_OT_cube_project";
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= cube_project_exec;
-	ot->poll= ED_operator_uvmap;
+	ot->exec = cube_project_exec;
+	ot->poll = ED_operator_uvmap;
 
 	/* properties */
 	RNA_def_float(ot->srna, "cube_size", 1.0f, 0.0f, FLT_MAX, "Cube Size", "Size of the cube to project on", 0.001f, 100.0f);

@@ -158,17 +158,17 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Plane";
-	ot->description= "Construct a filled planar mesh with 4 vertices";
-	ot->idname= "MESH_OT_primitive_plane_add";
+	ot->name = "Add Plane";
+	ot->description = "Construct a filled planar mesh with 4 vertices";
+	ot->idname = "MESH_OT_primitive_plane_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_plane_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_plane_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -203,17 +203,17 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Cube";
-	ot->description= "Construct a cube mesh";
-	ot->idname= "MESH_OT_primitive_cube_add";
+	ot->name = "Add Cube";
+	ot->description = "Construct a cube mesh";
+	ot->idname = "MESH_OT_primitive_cube_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_cube_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_cube_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -262,17 +262,17 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Circle";
-	ot->description= "Construct a circle mesh";
-	ot->idname= "MESH_OT_primitive_circle_add";
+	ot->name = "Add Circle";
+	ot->description = "Construct a circle mesh";
+	ot->idname = "MESH_OT_primitive_circle_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_circle_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_circle_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
@@ -325,17 +325,17 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Cylinder";
-	ot->description= "Construct a cylinder mesh";
-	ot->idname= "MESH_OT_primitive_cylinder_add";
+	ot->name = "Add Cylinder";
+	ot->description = "Construct a cylinder mesh";
+	ot->idname = "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_cylinder_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_cylinder_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
@@ -387,17 +387,17 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Cone";
-	ot->description= "Construct a conic mesh";
-	ot->idname= "MESH_OT_primitive_cone_add";
+	ot->name = "Add Cone";
+	ot->description = "Construct a conic mesh";
+	ot->idname = "MESH_OT_primitive_cone_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_cone_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_cone_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
@@ -447,17 +447,17 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Grid";
-	ot->description= "Construct a grid mesh";
-	ot->idname= "MESH_OT_primitive_grid_add";
+	ot->name = "Add Grid";
+	ot->description = "Construct a grid mesh";
+	ot->idname = "MESH_OT_primitive_grid_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_grid_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_grid_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
@@ -499,17 +499,17 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Monkey";
-	ot->description= "Construct a Suzanne mesh";
-	ot->idname= "MESH_OT_primitive_monkey_add";
+	ot->name = "Add Monkey";
+	ot->description = "Construct a Suzanne mesh";
+	ot->idname = "MESH_OT_primitive_monkey_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_monkey_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_monkey_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -549,17 +549,17 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add UV Sphere";
-	ot->description= "Construct a UV sphere mesh";
-	ot->idname= "MESH_OT_primitive_uv_sphere_add";
+	ot->name = "Add UV Sphere";
+	ot->description = "Construct a UV sphere mesh";
+	ot->idname = "MESH_OT_primitive_uv_sphere_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_uvsphere_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_uvsphere_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, 3, INT_MAX, "Segments", "", 3, 500);
@@ -606,17 +606,17 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Ico Sphere";
-	ot->description= "Construct an Icosphere mesh";
-	ot->idname= "MESH_OT_primitive_ico_sphere_add";
+	ot->name = "Add Ico Sphere";
+	ot->description = "Construct an Icosphere mesh";
+	ot->idname = "MESH_OT_primitive_ico_sphere_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_icosphere_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = add_primitive_icosphere_exec;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "subdivisions", 2, 1, INT_MAX, "Subdivisions", "", 1, 8);

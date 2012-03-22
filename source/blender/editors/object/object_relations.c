@@ -260,17 +260,17 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Vertex Parent";
+	ot->name = "Make Vertex Parent";
 	ot->description = "Parent selected objects to the selected vertices";
-	ot->idname= "OBJECT_OT_vertex_parent_set";
+	ot->idname = "OBJECT_OT_vertex_parent_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->poll= vertex_parent_set_poll;
-	ot->exec= vertex_parent_set_exec;
+	ot->invoke = WM_operator_confirm;
+	ot->poll = vertex_parent_set_poll;
+	ot->exec = vertex_parent_set_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** Make Proxy Operator *************************/
@@ -396,22 +396,22 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Make Proxy";
-	ot->idname= "OBJECT_OT_proxy_make";
-	ot->description= "Add empty object to become local replacement data of a library-linked object";
+	ot->name = "Make Proxy";
+	ot->idname = "OBJECT_OT_proxy_make";
+	ot->description = "Add empty object to become local replacement data of a library-linked object";
 	
 	/* callbacks */
-	ot->invoke= make_proxy_invoke;
-	ot->exec= make_proxy_exec;
-	ot->poll= ED_operator_object_active;
+	ot->invoke = make_proxy_invoke;
+	ot->exec = make_proxy_exec;
+	ot->poll = ED_operator_object_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "object", DummyRNA_DEFAULT_items, 0, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 /********************** Clear Parent Operator ******************* */
@@ -464,20 +464,20 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Parent";
+	ot->name = "Clear Parent";
 	ot->description = "Clear the object's parenting";
-	ot->idname= "OBJECT_OT_parent_clear";
+	ot->idname = "OBJECT_OT_parent_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= parent_clear_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = parent_clear_exec;
 	
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
 /* ******************** Make Parent Operator *********************** */
@@ -730,18 +730,18 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Parent";
+	ot->name = "Make Parent";
 	ot->description = "Set the object's parenting";
-	ot->idname= "OBJECT_OT_parent_set";
+	ot->idname = "OBJECT_OT_parent_set";
 	
 	/* api callbacks */
-	ot->invoke= parent_set_invoke;
-	ot->exec= parent_set_exec;
+	ot->invoke = parent_set_invoke;
+	ot->exec = parent_set_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll = ED_operator_object_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
@@ -787,17 +787,17 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Parent without Inverse";
+	ot->name = "Make Parent without Inverse";
 	ot->description = "Set the object's parenting without setting the inverse parent correction";
-	ot->idname= "OBJECT_OT_parent_no_inverse_set";
+	ot->idname = "OBJECT_OT_parent_no_inverse_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= parent_noinv_set_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = parent_noinv_set_exec;
+	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ Clear Slow Parent Operator *********************/
@@ -829,17 +829,17 @@ void OBJECT_OT_slow_parent_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Slow Parent";
+	ot->name = "Clear Slow Parent";
 	ot->description = "Clear the object's slow parent";
-	ot->idname= "OBJECT_OT_slow_parent_clear";
+	ot->idname = "OBJECT_OT_slow_parent_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= object_slow_parent_clear_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = object_slow_parent_clear_exec;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** Make Slow Parent Operator *********************/
@@ -868,17 +868,17 @@ void OBJECT_OT_slow_parent_set(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Set Slow Parent";
+	ot->name = "Set Slow Parent";
 	ot->description = "Set the object's slow parent";
-	ot->idname= "OBJECT_OT_slow_parent_set";
+	ot->idname = "OBJECT_OT_slow_parent_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= object_slow_parent_set_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = object_slow_parent_set_exec;
+	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Clear Track Operator ******************* */
@@ -929,20 +929,20 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_track_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear track";
+	ot->name = "Clear track";
 	ot->description = "Clear tracking constraint or flag from object";
-	ot->idname= "OBJECT_OT_track_clear";
+	ot->idname = "OBJECT_OT_track_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_track_clear_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_track_clear_exec;
 	
-	ot->poll= ED_operator_objectmode;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
 
 /************************** Make Track Operator *****************************/
@@ -1034,21 +1034,21 @@ static int track_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_track_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Track";
+	ot->name = "Make Track";
 	ot->description = "Make the object track another object, either by constraint or old way or locked track";
-	ot->idname= "OBJECT_OT_track_set";
+	ot->idname = "OBJECT_OT_track_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= track_set_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = track_set_exec;
 	
-	ot->poll= ED_operator_objectmode;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
 }
 
 /************************** Move to Layer Operator *****************************/
@@ -1145,17 +1145,17 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move to Layer";
+	ot->name = "Move to Layer";
 	ot->description = "Move the object to different layers";
-	ot->idname= "OBJECT_OT_move_to_layer";
+	ot->idname = "OBJECT_OT_move_to_layer";
 	
 	/* api callbacks */
-	ot->invoke= move_to_layer_invoke;
-	ot->exec= move_to_layer_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = move_to_layer_invoke;
+	ot->exec = move_to_layer_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
@@ -1323,22 +1323,22 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Link Objects to Scene";
+	ot->name = "Link Objects to Scene";
 	ot->description = "Link selection to another scene";
-	ot->idname= "OBJECT_OT_make_links_scene";
+	ot->idname = "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
-	ot->invoke= WM_enum_search_invoke;
-	ot->exec= make_links_scene_exec;
+	ot->invoke = WM_enum_search_invoke;
+	ot->exec = make_links_scene_exec;
 	/* better not run the poll check */
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 }
 
 void OBJECT_OT_make_links_data(wmOperatorType *ot)
@@ -1352,19 +1352,19 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Link Data";
+	ot->name = "Link Data";
 	ot->description = "Make links from the active object to other selected objects";
-	ot->idname= "OBJECT_OT_make_links_data";
+	ot->idname = "OBJECT_OT_make_links_data";
 
 	/* api callbacks */
-	ot->exec= make_links_data_exec;
-	ot->poll= ED_operator_object_active;
+	ot->exec = make_links_data_exec;
+	ot->poll = ED_operator_object_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
 }
 
 
@@ -1812,20 +1812,20 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Make Local";
+	ot->name = "Make Local";
 	ot->description = "Make library linked datablocks local to this file";
-	ot->idname= "OBJECT_OT_make_local";
+	ot->idname = "OBJECT_OT_make_local";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= make_local_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = make_local_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 static int make_single_user_exec(bContext *C, wmOperator *op)
@@ -1865,20 +1865,20 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Make Single User";
+	ot->name = "Make Single User";
 	ot->description = "Make linked data local to each object";
-	ot->idname= "OBJECT_OT_make_single_user";
+	ot->idname = "OBJECT_OT_make_single_user";
 
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= make_single_user_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = make_single_user_exec;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, SELECT, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", type_items, SELECT, "Type", "");
 
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
 	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
@@ -1913,16 +1913,16 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Drop Named Material on Object";
+	ot->name = "Drop Named Material on Object";
 	ot->description = "";
-	ot->idname= "OBJECT_OT_drop_named_material";
+	ot->idname = "OBJECT_OT_drop_named_material";
 	
 	/* api callbacks */
-	ot->invoke= drop_named_material_invoke;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = drop_named_material_invoke;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Material", MAX_ID_NAME-2, "Name", "Material name to assign");

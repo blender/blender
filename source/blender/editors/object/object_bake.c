@@ -1536,12 +1536,12 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_bake_image(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake";
-	ot->description= "Bake image textures of selected objects";
-	ot->idname= "OBJECT_OT_bake_image";
+	ot->name = "Bake";
+	ot->description = "Bake image textures of selected objects";
+	ot->idname = "OBJECT_OT_bake_image";
 
 	/* api callbacks */
-	ot->exec= bake_image_exec;
-	ot->invoke= objects_bake_render_invoke;
-	ot->modal= objects_bake_render_modal;
+	ot->exec = bake_image_exec;
+	ot->invoke = objects_bake_render_invoke;
+	ot->modal = objects_bake_render_modal;
 }

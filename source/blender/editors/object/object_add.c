@@ -365,18 +365,18 @@ static int object_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Object";
+	ot->name = "Add Object";
 	ot->description = "Add an object to the scene";
-	ot->idname= "OBJECT_OT_add";
+	ot->idname = "OBJECT_OT_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= object_add_exec;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = object_add_exec;
 	
-	ot->poll= ED_operator_objectmode;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", object_type_items, 0, "Type", "");
 
@@ -457,20 +457,20 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_effector_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Effector";
+	ot->name = "Add Effector";
 	ot->description = "Add an empty object with a physics effector to the scene";
-	ot->idname= "OBJECT_OT_effector_add";
+	ot->idname = "OBJECT_OT_effector_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= effector_add_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = effector_add_exec;
 	
-	ot->poll= ED_operator_objectmode;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -512,16 +512,16 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add Camera";
+	ot->name = "Add Camera";
 	ot->description = "Add a camera object to the scene";
-	ot->idname= "OBJECT_OT_camera_add";
+	ot->idname = "OBJECT_OT_camera_add";
 	
 	/* api callbacks */
-	ot->exec= object_camera_add_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->exec = object_camera_add_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 		
 	ED_object_add_generic_props(ot, TRUE);
 	
@@ -590,17 +590,17 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Metaball";
-	ot->description= "Add an metaball object to the scene";
-	ot->idname= "OBJECT_OT_metaball_add";
+	ot->name = "Add Metaball";
+	ot->description = "Add an metaball object to the scene";
+	ot->idname = "OBJECT_OT_metaball_add";
 
 	/* api callbacks */
-	ot->invoke= object_metaball_add_invoke;
-	ot->exec= object_metaball_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->invoke = object_metaball_add_invoke;
+	ot->exec = object_metaball_add_exec;
+	ot->poll = ED_operator_scene_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
@@ -630,17 +630,17 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Text";
+	ot->name = "Add Text";
 	ot->description = "Add a text object to the scene";
-	ot->idname= "OBJECT_OT_text_add";
+	ot->idname = "OBJECT_OT_text_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= object_add_text_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = object_add_text_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -685,17 +685,17 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Add Armature";
+	ot->name = "Add Armature";
 	ot->description = "Add an armature object to the scene";
-	ot->idname= "OBJECT_OT_armature_add";
+	ot->idname = "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= object_armature_add_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = ED_object_add_generic_invoke;
+	ot->exec = object_armature_add_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -752,20 +752,20 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Add Lamp";
+	ot->name = "Add Lamp";
 	ot->description = "Add a lamp object to the scene";
-	ot->idname= "OBJECT_OT_lamp_add";
+	ot->idname = "OBJECT_OT_lamp_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_lamp_add_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_lamp_add_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -843,16 +843,16 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_speaker_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Speaker";
+	ot->name = "Add Speaker";
 	ot->description = "Add a speaker object to the scene";
-	ot->idname= "OBJECT_OT_speaker_add";
+	ot->idname = "OBJECT_OT_speaker_add";
 
 	/* api callbacks */
-	ot->exec= object_speaker_add_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->exec = object_speaker_add_exec;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -863,23 +863,23 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Group Instance";
+	ot->name = "Add Group Instance";
 	ot->description = "Add a dupligroup instance";
-	ot->idname= "OBJECT_OT_group_instance_add";
+	ot->idname = "OBJECT_OT_group_instance_add";
 
 	/* api callbacks */
-	ot->invoke= WM_enum_search_invoke;
-	ot->exec= group_instance_add_exec;
+	ot->invoke = WM_enum_search_invoke;
+	ot->exec = group_instance_add_exec;
 
-	ot->poll= ED_operator_objectmode;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
 	RNA_def_enum_funcs(prop, RNA_group_itemf);
-	ot->prop= prop;
+	ot->prop = prop;
 	ED_object_add_generic_props(ot, FALSE);
 }
 
@@ -946,17 +946,17 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
+	ot->name = "Delete";
 	ot->description = "Delete selected objects";
-	ot->idname= "OBJECT_OT_delete";
+	ot->idname = "OBJECT_OT_delete";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
-	ot->exec= object_delete_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->invoke = WM_operator_confirm;
+	ot->exec = object_delete_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "use_global", 0, "Delete Globally", "Remove object from all scenes");
 }
@@ -1209,17 +1209,17 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Make Duplicates Real";
+	ot->name = "Make Duplicates Real";
 	ot->description = "Make dupli objects attached to this object real";
-	ot->idname= "OBJECT_OT_duplicates_make_real";
+	ot->idname = "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
-	ot->exec= object_duplicates_make_real_exec;
+	ot->exec = object_duplicates_make_real_exec;
 	
-	ot->poll= ED_operator_objectmode;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "use_base_parent", 0, "Parent", "Parent newly created objects to the original duplicator");
 	RNA_def_boolean(ot->srna, "use_hierarchy", 0, "Keep Hierarchy", "Maintain parent child relationships");
@@ -1580,20 +1580,20 @@ static int convert_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Convert to";
+	ot->name = "Convert to";
 	ot->description = "Convert selected objects to another type";
-	ot->idname= "OBJECT_OT_convert";
+	ot->idname = "OBJECT_OT_convert";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= convert_exec;
-	ot->poll= convert_poll;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = convert_exec;
+	ot->poll = convert_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
+	ot->prop = RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
 	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them");
 }
 
@@ -1910,16 +1910,16 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Duplicate Objects";
+	ot->name = "Duplicate Objects";
 	ot->description = "Duplicate selected objects";
-	ot->idname= "OBJECT_OT_duplicate";
+	ot->idname = "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
-	ot->exec= duplicate_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->exec = duplicate_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
@@ -1981,16 +1981,16 @@ static int add_named_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_add_named(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Named Object";
+	ot->name = "Add Named Object";
 	ot->description = "Add named object";
-	ot->idname= "OBJECT_OT_add_named";
+	ot->idname = "OBJECT_OT_add_named";
 	
 	/* api callbacks */
-	ot->exec= add_named_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->exec = add_named_exec;
+	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
 	RNA_def_string(ot->srna, "name", "Cube", MAX_ID_NAME-2, "Name", "Object name to add");
@@ -2039,16 +2039,16 @@ static int join_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Join";
+	ot->name = "Join";
 	ot->description = "Join selected objects into active object";
-	ot->idname= "OBJECT_OT_join";
+	ot->idname = "OBJECT_OT_join";
 	
 	/* api callbacks */
-	ot->exec= join_exec;
-	ot->poll= join_poll;
+	ot->exec = join_exec;
+	ot->poll = join_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /**************************** Join as Shape Key*************************/
@@ -2088,14 +2088,14 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_join_shapes(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Join as Shapes";
+	ot->name = "Join as Shapes";
 	ot->description = "Merge selected objects to shapes of active object";
-	ot->idname= "OBJECT_OT_join_shapes";
+	ot->idname = "OBJECT_OT_join_shapes";
 	
 	/* api callbacks */
-	ot->exec= join_shapes_exec;
-	ot->poll= join_shapes_poll;
+	ot->exec = join_shapes_exec;
+	ot->poll = join_shapes_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

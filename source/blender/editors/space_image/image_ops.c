@@ -331,18 +331,18 @@ static int image_view_pan_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Pan";
-	ot->idname= "IMAGE_OT_view_pan";
+	ot->name = "View Pan";
+	ot->idname = "IMAGE_OT_view_pan";
 	
 	/* api callbacks */
-	ot->exec= image_view_pan_exec;
-	ot->invoke= image_view_pan_invoke;
-	ot->modal= image_view_pan_modal;
-	ot->cancel= image_view_pan_cancel;
-	ot->poll= space_image_main_area_poll;
+	ot->exec = image_view_pan_exec;
+	ot->invoke = image_view_pan_invoke;
+	ot->modal = image_view_pan_modal;
+	ot->cancel = image_view_pan_cancel;
+	ot->poll = space_image_main_area_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 	
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -468,18 +468,18 @@ static int image_view_zoom_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_view_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom";
-	ot->idname= "IMAGE_OT_view_zoom";
+	ot->name = "View Zoom";
+	ot->idname = "IMAGE_OT_view_zoom";
 	
 	/* api callbacks */
-	ot->exec= image_view_zoom_exec;
-	ot->invoke= image_view_zoom_invoke;
-	ot->modal= image_view_zoom_modal;
-	ot->cancel= image_view_zoom_cancel;
-	ot->poll= space_image_main_area_poll;
+	ot->exec = image_view_zoom_exec;
+	ot->invoke = image_view_zoom_invoke;
+	ot->modal = image_view_zoom_modal;
+	ot->cancel = image_view_zoom_cancel;
+	ot->poll = space_image_main_area_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
@@ -536,11 +536,11 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 void IMAGE_OT_view_ndof(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "NDOF Pan/Zoom";
-	ot->idname= "IMAGE_OT_view_ndof";
+	ot->name = "NDOF Pan/Zoom";
+	ot->idname = "IMAGE_OT_view_ndof";
 	
 	/* api callbacks */
-	ot->invoke= image_view_ndof_invoke;
+	ot->invoke = image_view_ndof_invoke;
 }
 
 /********************** view all operator *********************/
@@ -589,12 +589,12 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->idname= "IMAGE_OT_view_all";
+	ot->name = "View All";
+	ot->idname = "IMAGE_OT_view_all";
 	
 	/* api callbacks */
-	ot->exec= image_view_all_exec;
-	ot->poll= space_image_main_area_poll;
+	ot->exec = image_view_all_exec;
+	ot->poll = space_image_main_area_poll;
 }
 
 /********************** view selected operator *********************/
@@ -650,12 +650,12 @@ static int image_view_selected_poll(bContext *C)
 void IMAGE_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Center";
-	ot->idname= "IMAGE_OT_view_selected";
+	ot->name = "View Center";
+	ot->idname = "IMAGE_OT_view_selected";
 	
 	/* api callbacks */
-	ot->exec= image_view_selected_exec;
-	ot->poll= image_view_selected_poll;
+	ot->exec = image_view_selected_exec;
+	ot->poll = image_view_selected_poll;
 }
 
 /********************** view zoom in/out operator *********************/
@@ -689,13 +689,13 @@ static int image_view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event
 void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom In";
-	ot->idname= "IMAGE_OT_view_zoom_in";
+	ot->name = "View Zoom In";
+	ot->idname = "IMAGE_OT_view_zoom_in";
 	
 	/* api callbacks */
-	ot->invoke= image_view_zoom_in_invoke;
-	ot->exec= image_view_zoom_in_exec;
-	ot->poll= space_image_main_area_poll;
+	ot->invoke = image_view_zoom_in_invoke;
+	ot->exec = image_view_zoom_in_exec;
+	ot->poll = space_image_main_area_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
@@ -730,13 +730,13 @@ static int image_view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *even
 void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom Out";
-	ot->idname= "IMAGE_OT_view_zoom_out";
+	ot->name = "View Zoom Out";
+	ot->idname = "IMAGE_OT_view_zoom_out";
 	
 	/* api callbacks */
-	ot->invoke= image_view_zoom_out_invoke;
-	ot->exec= image_view_zoom_out_exec;
-	ot->poll= space_image_main_area_poll;
+	ot->invoke = image_view_zoom_out_invoke;
+	ot->exec = image_view_zoom_out_exec;
+	ot->poll = space_image_main_area_poll;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
@@ -772,12 +772,12 @@ static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Zoom Ratio";
-	ot->idname= "IMAGE_OT_view_zoom_ratio";
+	ot->name = "View Zoom Ratio";
+	ot->idname = "IMAGE_OT_view_zoom_ratio";
 	
 	/* api callbacks */
-	ot->exec= image_view_zoom_ratio_exec;
-	ot->poll= space_image_main_area_poll;
+	ot->exec = image_view_zoom_ratio_exec;
+	ot->poll = space_image_main_area_poll;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
@@ -909,17 +909,17 @@ static int image_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Image";
-	ot->description= "Open image";
-	ot->idname= "IMAGE_OT_open";
+	ot->name = "Open Image";
+	ot->description = "Open image";
+	ot->idname = "IMAGE_OT_open";
 	
 	/* api callbacks */
-	ot->exec= image_open_exec;
-	ot->invoke= image_open_invoke;
-	ot->cancel= image_open_cancel;
+	ot->exec = image_open_exec;
+	ot->invoke = image_open_invoke;
+	ot->cancel = image_open_cancel;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -975,16 +975,16 @@ static int image_replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void IMAGE_OT_replace(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Replace Image";
-	ot->idname= "IMAGE_OT_replace";
+	ot->name = "Replace Image";
+	ot->idname = "IMAGE_OT_replace";
 	
 	/* api callbacks */
-	ot->exec= image_replace_exec;
-	ot->invoke= image_replace_invoke;
-	ot->poll= space_image_poll;
+	ot->exec = image_replace_exec;
+	ot->invoke = image_replace_invoke;
+	ot->poll = space_image_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -1320,19 +1320,19 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 //	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Save As Image";
-	ot->idname= "IMAGE_OT_save_as";
+	ot->name = "Save As Image";
+	ot->idname = "IMAGE_OT_save_as";
 	
 	/* api callbacks */
-	ot->exec= image_save_as_exec;
-	ot->check= image_save_as_check;
-	ot->invoke= image_save_as_invoke;
-	ot->cancel= image_save_as_cancel;
-	ot->ui= image_save_as_draw;
-	ot->poll= space_image_buffer_exists_poll;
+	ot->exec = image_save_as_exec;
+	ot->check = image_save_as_check;
+	ot->invoke = image_save_as_invoke;
+	ot->cancel = image_save_as_cancel;
+	ot->ui = image_save_as_draw;
+	ot->poll = space_image_buffer_exists_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "copy", 0, "Copy", "Create a new image file without modifying the current image in blender");
@@ -1366,15 +1366,15 @@ static int image_save_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_save(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Save Image";
-	ot->idname= "IMAGE_OT_save";
+	ot->name = "Save Image";
+	ot->idname = "IMAGE_OT_save";
 	
 	/* api callbacks */
-	ot->exec= image_save_exec;
-	ot->poll= space_image_file_exists_poll;
+	ot->exec = image_save_exec;
+	ot->poll = space_image_file_exists_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /******************* save sequence operator ********************/
@@ -1443,15 +1443,15 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_save_sequence(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Save Sequence";
-	ot->idname= "IMAGE_OT_save_sequence";
+	ot->name = "Save Sequence";
+	ot->idname = "IMAGE_OT_save_sequence";
 	
 	/* api callbacks */
-	ot->exec= image_save_sequence_exec;
-	ot->poll= space_image_buffer_exists_poll;
+	ot->exec = image_save_sequence_exec;
+	ot->poll = space_image_buffer_exists_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /******************** reload image operator ********************/
@@ -1478,14 +1478,14 @@ static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload Image";
-	ot->idname= "IMAGE_OT_reload";
+	ot->name = "Reload Image";
+	ot->idname = "IMAGE_OT_reload";
 	
 	/* api callbacks */
-	ot->exec= image_reload_exec;
+	ot->exec = image_reload_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo, image buffer is not handled by undo */
+	ot->flag = OPTYPE_REGISTER; /* no undo, image buffer is not handled by undo */
 }
 
 /********************** new image operator *********************/
@@ -1560,16 +1560,16 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	static float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 	
 	/* identifiers */
-	ot->name= "New Image";
-	ot->description= "Create a new image";
-	ot->idname= "IMAGE_OT_new";
+	ot->name = "New Image";
+	ot->description = "Create a new image";
+	ot->idname = "IMAGE_OT_new";
 	
 	/* api callbacks */
-	ot->exec= image_new_exec;
-	ot->invoke= image_new_invoke;
+	ot->exec = image_new_exec;
+	ot->invoke = image_new_invoke;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, "Name", "Image datablock name");
@@ -1650,12 +1650,12 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_invert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Invert Channels";
-	ot->idname= "IMAGE_OT_invert";
+	ot->name = "Invert Channels";
+	ot->idname = "IMAGE_OT_invert";
 	
 	/* api callbacks */
-	ot->exec= image_invert_exec;
-	ot->poll= image_invert_poll;
+	ot->exec = image_invert_exec;
+	ot->poll = image_invert_poll;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
@@ -1664,7 +1664,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* pack operator *********************/
@@ -1738,16 +1738,16 @@ static int image_pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 void IMAGE_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack Image";
-	ot->description= "Pack an image as embedded data into the .blend file"; 
-	ot->idname= "IMAGE_OT_pack";
+	ot->name = "Pack Image";
+	ot->description = "Pack an image as embedded data into the .blend file"; 
+	ot->idname = "IMAGE_OT_pack";
 	
 	/* api callbacks */
-	ot->exec= image_pack_exec;
-	ot->invoke= image_pack_invoke;
+	ot->exec = image_pack_exec;
+	ot->invoke = image_pack_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "as_png", 0, "Pack As PNG", "Pack image as lossless PNG");
@@ -1815,16 +1815,16 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 void IMAGE_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Unpack Image";
-	ot->description= "Save an image packed in the .blend file to disk"; 
-	ot->idname= "IMAGE_OT_unpack";
+	ot->name = "Unpack Image";
+	ot->description = "Save an image packed in the .blend file to disk"; 
+	ot->idname = "IMAGE_OT_unpack";
 	
 	/* api callbacks */
-	ot->exec= image_unpack_exec;
-	ot->invoke= image_unpack_invoke;
+	ot->exec = image_unpack_exec;
+	ot->invoke = image_unpack_invoke;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
@@ -2025,17 +2025,17 @@ static int image_sample_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample Color";
-	ot->idname= "IMAGE_OT_sample";
+	ot->name = "Sample Color";
+	ot->idname = "IMAGE_OT_sample";
 	
 	/* api callbacks */
-	ot->invoke= image_sample_invoke;
-	ot->modal= image_sample_modal;
-	ot->cancel= image_sample_cancel;
-	ot->poll= space_image_image_sample_poll;
+	ot->invoke = image_sample_invoke;
+	ot->modal = image_sample_modal;
+	ot->cancel = image_sample_cancel;
+	ot->poll = space_image_image_sample_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING;
 }
 
 /******************** sample line operator ********************/
@@ -2133,18 +2133,18 @@ static int image_sample_line_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void IMAGE_OT_sample_line(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample Line";
-	ot->idname= "IMAGE_OT_sample_line";
+	ot->name = "Sample Line";
+	ot->idname = "IMAGE_OT_sample_line";
 	
 	/* api callbacks */
-	ot->invoke= image_sample_line_invoke;
-	ot->modal= WM_gesture_straightline_modal;
-	ot->exec= image_sample_line_exec;
-	ot->poll= space_image_main_area_poll;
-	ot->cancel= WM_gesture_straightline_cancel;
+	ot->invoke = image_sample_line_invoke;
+	ot->modal = WM_gesture_straightline_modal;
+	ot->exec = image_sample_line_exec;
+	ot->poll = space_image_main_area_poll;
+	ot->cancel = WM_gesture_straightline_cancel;
 	
 	/* flags */
-	ot->flag= 0; /* no undo/register since this operates on the space */
+	ot->flag = 0; /* no undo/register since this operates on the space */
 	
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
 }
@@ -2159,17 +2159,17 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Set Curves Point";
-	ot->idname= "IMAGE_OT_curves_point_set";
+	ot->name = "Set Curves Point";
+	ot->idname = "IMAGE_OT_curves_point_set";
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->invoke= image_sample_invoke;
-	ot->modal= image_sample_modal;
-	ot->cancel= image_sample_cancel;
-	ot->poll= space_image_main_area_not_uv_brush_poll;
+	ot->invoke = image_sample_invoke;
+	ot->modal = image_sample_modal;
+	ot->cancel = image_sample_cancel;
+	ot->poll = space_image_main_area_not_uv_brush_poll;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves");
@@ -2313,15 +2313,15 @@ static int image_record_composite_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_record_composite(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Record Composite";
-	ot->idname= "IMAGE_OT_record_composite";
+	ot->name = "Record Composite";
+	ot->idname = "IMAGE_OT_record_composite";
 	
 	/* api callbacks */
-	ot->exec= image_record_composite_exec;
-	ot->invoke= image_record_composite_invoke;
-	ot->modal= image_record_composite_modal;
-	ot->cancel= image_record_composite_cancel;
-	ot->poll= space_image_buffer_exists_poll;
+	ot->exec = image_record_composite_exec;
+	ot->invoke = image_record_composite_invoke;
+	ot->modal = image_record_composite_modal;
+	ot->cancel = image_record_composite_cancel;
+	ot->poll = space_image_buffer_exists_poll;
 }
 
 /********************* cycle render slot operator *********************/
@@ -2368,15 +2368,15 @@ static int image_cycle_render_slot_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cycle Render Slot";
-	ot->idname= "IMAGE_OT_cycle_render_slot";
+	ot->name = "Cycle Render Slot";
+	ot->idname = "IMAGE_OT_cycle_render_slot";
 	
 	/* api callbacks */
-	ot->exec= image_cycle_render_slot_exec;
-	ot->poll= image_cycle_render_slot_poll;
+	ot->exec = image_cycle_render_slot_exec;
+	ot->poll = image_cycle_render_slot_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
 }

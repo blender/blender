@@ -1451,7 +1451,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 	ot->modal = stitch_modal;
 	ot->exec = stitch_exec;
 	ot->cancel = stitch_cancel;
-	ot->poll= ED_operator_uvedit;
+	ot->poll = ED_operator_uvedit;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "use_limit", 0, "Use Limit", "Stitch UVs within a specified limit distance");

@@ -254,17 +254,17 @@ static int view3d_layers_poll(bContext *C)
 void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Layers";
-	ot->description= "Toggle layer(s) visibility";
-	ot->idname= "VIEW3D_OT_layers";
+	ot->name = "Layers";
+	ot->description = "Toggle layer(s) visibility";
+	ot->idname = "VIEW3D_OT_layers";
 	
 	/* api callbacks */
-	ot->invoke= view3d_layers_invoke;
-	ot->exec= view3d_layers_exec;
-	ot->poll= view3d_layers_poll;
+	ot->invoke = view3d_layers_invoke;
+	ot->exec = view3d_layers_exec;
+	ot->poll = view3d_layers_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");

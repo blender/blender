@@ -108,16 +108,16 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_add";
-	ot->description="Add a new material slot";
+	ot->name = "Add Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_add";
+	ot->description = "Add a new material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_add_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = material_slot_add_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_remove_exec(bContext *C, wmOperator *op)
@@ -144,16 +144,16 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_remove";
-	ot->description="Remove the selected material slot";
+	ot->name = "Remove Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_remove";
+	ot->description = "Remove the selected material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_remove_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = material_slot_remove_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
@@ -206,16 +206,16 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_assign";
-	ot->description="Assign the material in the selected material slot to the selected vertices";
+	ot->name = "Assign Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_assign";
+	ot->description = "Assign the material in the selected material slot to the selected vertices";
 	
 	/* api callbacks */
-	ot->exec= material_slot_assign_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->exec = material_slot_assign_exec;
+	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_de_select(bContext *C, int select)
@@ -290,15 +290,15 @@ static int material_slot_select_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_select";
-	ot->description="Select vertices assigned to the selected material slot";
+	ot->name = "Select Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_select";
+	ot->description = "Select vertices assigned to the selected material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_select_exec;
+	ot->exec = material_slot_select_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int material_slot_deselect_exec(bContext *C, wmOperator *UNUSED(op))
@@ -309,15 +309,15 @@ static int material_slot_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Deselect Material Slot";
-	ot->idname= "OBJECT_OT_material_slot_deselect";
-	ot->description="Deselect vertices assigned to the selected material slot";
+	ot->name = "Deselect Material Slot";
+	ot->idname = "OBJECT_OT_material_slot_deselect";
+	ot->description = "Deselect vertices assigned to the selected material slot";
 	
 	/* api callbacks */
-	ot->exec= material_slot_deselect_exec;
+	ot->exec = material_slot_deselect_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -349,15 +349,15 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Material to Others";
-	ot->idname= "OBJECT_OT_material_slot_copy";
-	ot->description="Copies materials to other selected objects";
+	ot->name = "Copy Material to Others";
+	ot->idname = "OBJECT_OT_material_slot_copy";
+	ot->description = "Copies materials to other selected objects";
 
 	/* api callbacks */
-	ot->exec= material_slot_copy_exec;
+	ot->exec = material_slot_copy_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** new material operator *********************/
@@ -403,15 +403,15 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 void MATERIAL_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Material";
-	ot->idname= "MATERIAL_OT_new";
-	ot->description="Add a new material";
+	ot->name = "New Material";
+	ot->idname = "MATERIAL_OT_new";
+	ot->description = "Add a new material";
 	
 	/* api callbacks */
-	ot->exec= new_material_exec;
+	ot->exec = new_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** new texture operator *********************/
@@ -449,15 +449,15 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXTURE_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Texture";
-	ot->idname= "TEXTURE_OT_new";
-	ot->description="Add a new texture";
+	ot->name = "New Texture";
+	ot->idname = "TEXTURE_OT_new";
+	ot->description = "Add a new texture";
 	
 	/* api callbacks */
-	ot->exec= new_texture_exec;
+	ot->exec = new_texture_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** new world operator *********************/
@@ -503,15 +503,15 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 void WORLD_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New World";
-	ot->idname= "WORLD_OT_new";
-	ot->description= "Add a new world";
+	ot->name = "New World";
+	ot->idname = "WORLD_OT_new";
+	ot->description = "Add a new world";
 	
 	/* api callbacks */
-	ot->exec= new_world_exec;
+	ot->exec = new_world_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** render layer operators *********************/
@@ -531,15 +531,15 @@ static int render_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 void SCENE_OT_render_layer_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Render Layer";
-	ot->idname= "SCENE_OT_render_layer_add";
-	ot->description="Add a render layer";
+	ot->name = "Add Render Layer";
+	ot->idname = "SCENE_OT_render_layer_add";
+	ot->description = "Add a render layer";
 	
 	/* api callbacks */
-	ot->exec= render_layer_add_exec;
+	ot->exec = render_layer_add_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
@@ -558,15 +558,15 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Render Layer";
-	ot->idname= "SCENE_OT_render_layer_remove";
-	ot->description="Remove the selected render layer";
+	ot->name = "Remove Render Layer";
+	ot->idname = "SCENE_OT_render_layer_remove";
+	ot->description = "Remove the selected render layer";
 	
 	/* api callbacks */
-	ot->exec= render_layer_remove_exec;
+	ot->exec = render_layer_remove_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int texture_slot_move(bContext *C, wmOperator *op)
@@ -642,15 +642,15 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Move Texture Slot";
-	ot->idname= "TEXTURE_OT_slot_move";
-	ot->description="Move texture slots up and down";
+	ot->name = "Move Texture Slot";
+	ot->idname = "TEXTURE_OT_slot_move";
+	ot->description = "Move texture slots up and down";
 
 	/* api callbacks */
-	ot->exec= texture_slot_move;
+	ot->exec = texture_slot_move;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
@@ -733,17 +733,17 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	/* identifiers */
-	ot->name= "Save Environment Map";
-	ot->idname= "TEXTURE_OT_envmap_save";
-	ot->description="Save the current generated Environment map to an image file";
+	ot->name = "Save Environment Map";
+	ot->idname = "TEXTURE_OT_envmap_save";
+	ot->description = "Save the current generated Environment map to an image file";
 	
 	/* api callbacks */
-	ot->exec= envmap_save_exec;
-	ot->invoke= envmap_save_invoke;
-	ot->poll= envmap_save_poll;
+	ot->exec = envmap_save_exec;
+	ot->invoke = envmap_save_invoke;
+	ot->poll = envmap_save_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo since this doesnt modify the env-map */
+	ot->flag = OPTYPE_REGISTER; /* no undo since this doesnt modify the env-map */
 	
 	/* properties */
 	prop= RNA_def_float_array(ot->srna, "layout", 12, default_envmap_layout, 0.0f, 0.0f, "File layout", "Flat array describing the X,Y position of each cube face in the output image, where 1 is the size of a face - order is [+Z -Z +Y -X -Y +X] (use -1 to skip a face)", 0.0f, 0.0f);
@@ -780,16 +780,16 @@ static int envmap_clear_poll(bContext *C)
 void TEXTURE_OT_envmap_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Environment Map";
-	ot->idname= "TEXTURE_OT_envmap_clear";
-	ot->description="Discard the environment map and free it from memory";
+	ot->name = "Clear Environment Map";
+	ot->idname = "TEXTURE_OT_envmap_clear";
+	ot->description = "Discard the environment map and free it from memory";
 	
 	/* api callbacks */
-	ot->exec= envmap_clear_exec;
-	ot->poll= envmap_clear_poll;
+	ot->exec = envmap_clear_exec;
+	ot->poll = envmap_clear_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int envmap_clear_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -809,16 +809,16 @@ static int envmap_clear_all_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXTURE_OT_envmap_clear_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear All Environment Maps";
-	ot->idname= "TEXTURE_OT_envmap_clear_all";
-	ot->description="Discard all environment maps in the .blend file and free them from memory";
+	ot->name = "Clear All Environment Maps";
+	ot->idname = "TEXTURE_OT_envmap_clear_all";
+	ot->description = "Discard all environment maps in the .blend file and free them from memory";
 	
 	/* api callbacks */
-	ot->exec= envmap_clear_all_exec;
-	ot->poll= envmap_clear_poll;
+	ot->exec = envmap_clear_all_exec;
+	ot->poll = envmap_clear_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** material operators *********************/
@@ -839,15 +839,15 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 void MATERIAL_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Material";
-	ot->idname= "MATERIAL_OT_copy";
-	ot->description="Copy the material settings and nodes";
+	ot->name = "Copy Material";
+	ot->idname = "MATERIAL_OT_copy";
+	ot->description = "Copy the material settings and nodes";
 
 	/* api callbacks */
-	ot->exec= copy_material_exec;
+	ot->exec = copy_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo needed since no changes are made to the material */
+	ot->flag = OPTYPE_REGISTER; /* no undo needed since no changes are made to the material */
 }
 
 static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
@@ -867,15 +867,15 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 void MATERIAL_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Material";
-	ot->idname= "MATERIAL_OT_paste";
-	ot->description="Paste the material settings and nodes";
+	ot->name = "Paste Material";
+	ot->idname = "MATERIAL_OT_paste";
+	ot->description = "Paste the material settings and nodes";
 
 	/* api callbacks */
-	ot->exec= paste_material_exec;
+	ot->exec = paste_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -984,16 +984,16 @@ static int copy_mtex_poll(bContext *C)
 void TEXTURE_OT_slot_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Texture Slot Settings";
-	ot->idname= "TEXTURE_OT_slot_copy";
-	ot->description="Copy the material texture settings and nodes";
+	ot->name = "Copy Texture Slot Settings";
+	ot->idname = "TEXTURE_OT_slot_copy";
+	ot->description = "Copy the material texture settings and nodes";
 
 	/* api callbacks */
-	ot->exec= copy_mtex_exec;
-	ot->poll= copy_mtex_poll;
+	ot->exec = copy_mtex_exec;
+	ot->poll = copy_mtex_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER; /* no undo needed since no changes are made to the mtex */
+	ot->flag = OPTYPE_REGISTER; /* no undo needed since no changes are made to the mtex */
 }
 
 static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1029,14 +1029,14 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXTURE_OT_slot_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Texture Slot Settings";
-	ot->idname= "TEXTURE_OT_slot_paste";
-	ot->description="Copy the texture settings and nodes";
+	ot->name = "Paste Texture Slot Settings";
+	ot->idname = "TEXTURE_OT_slot_paste";
+	ot->description = "Copy the texture settings and nodes";
 
 	/* api callbacks */
-	ot->exec= paste_mtex_exec;
+	ot->exec = paste_mtex_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

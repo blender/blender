@@ -116,15 +116,15 @@ static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 
 void LOGIC_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->description= "Toggle display properties panel";
-	ot->idname= "LOGIC_OT_properties";
+	ot->name = "Properties";
+	ot->description = "Toggle display properties panel";
+	ot->idname = "LOGIC_OT_properties";
 	
-	ot->exec= logic_properties;
-	ot->poll= ED_operator_logic_active;
+	ot->exec = logic_properties;
+	ot->poll = ED_operator_logic_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 /* Remove Logic Bricks Connections */
@@ -197,19 +197,19 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Cut links";
-	ot->idname= "LOGIC_OT_links_cut";
-	ot->description= "Remove logic brick connections";
+	ot->name = "Cut links";
+	ot->idname = "LOGIC_OT_links_cut";
+	ot->description = "Remove logic brick connections";
 	
-	ot->invoke= WM_gesture_lines_invoke;
-	ot->modal= WM_gesture_lines_modal;
-	ot->exec= cut_links_exec;
-	ot->cancel= WM_gesture_lines_cancel;
+	ot->invoke = WM_gesture_lines_invoke;
+	ot->modal = WM_gesture_lines_modal;
+	ot->exec = cut_links_exec;
+	ot->cancel = WM_gesture_lines_cancel;
 	
-	ot->poll= ED_operator_logic_active;
+	ot->poll = ED_operator_logic_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);

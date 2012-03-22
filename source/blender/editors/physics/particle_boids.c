@@ -90,18 +90,18 @@ static int rule_add_exec(bContext *C, wmOperator *op)
 void BOID_OT_rule_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Boid Rule";
+	ot->name = "Add Boid Rule";
 	ot->description = "Add a boid rule to the current boid state";
-	ot->idname= "BOID_OT_rule_add";
+	ot->idname = "BOID_OT_rule_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= rule_add_exec;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = rule_add_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", boidrule_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", boidrule_type_items, 0, "Type", "");
 }
 static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -143,14 +143,14 @@ static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 void BOID_OT_rule_del(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Boid Rule";
-	ot->idname= "BOID_OT_rule_del";
+	ot->name = "Remove Boid Rule";
+	ot->idname = "BOID_OT_rule_del";
 	
 	/* api callbacks */
-	ot->exec= rule_del_exec;
+	ot->exec = rule_del_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ move up/down boid rule operators *********************/
@@ -182,14 +182,14 @@ static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
 void BOID_OT_rule_move_up(wmOperatorType *ot)
 {
-	ot->name= "Move Up Boid Rule";
-	ot->description= "Move boid rule up in the list";
-	ot->idname= "BOID_OT_rule_move_up";
+	ot->name = "Move Up Boid Rule";
+	ot->description = "Move boid rule up in the list";
+	ot->idname = "BOID_OT_rule_move_up";
 
-	ot->exec= rule_move_up_exec;
+	ot->exec = rule_move_up_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
@@ -220,14 +220,14 @@ static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 
 void BOID_OT_rule_move_down(wmOperatorType *ot)
 {
-	ot->name= "Move Down Boid Rule";
-	ot->description= "Move boid rule down in the list";
-	ot->idname= "BOID_OT_rule_move_down";
+	ot->name = "Move Down Boid Rule";
+	ot->description = "Move boid rule down in the list";
+	ot->idname = "BOID_OT_rule_move_down";
 
-	ot->exec= rule_move_down_exec;
+	ot->exec = rule_move_down_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -261,15 +261,15 @@ static int state_add_exec(bContext *C, wmOperator *UNUSED(op))
 void BOID_OT_state_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Boid State";
+	ot->name = "Add Boid State";
 	ot->description = "Add a boid state to the particle system";
-	ot->idname= "BOID_OT_state_add";
+	ot->idname = "BOID_OT_state_add";
 	
 	/* api callbacks */
-	ot->exec= state_add_exec;
+	ot->exec = state_add_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -316,14 +316,14 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 void BOID_OT_state_del(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Boid State";
-	ot->idname= "BOID_OT_state_del";
+	ot->name = "Remove Boid State";
+	ot->idname = "BOID_OT_state_del";
 	
 	/* api callbacks */
-	ot->exec= state_del_exec;
+	ot->exec = state_del_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ move up/down boid state operators *********************/
@@ -354,14 +354,14 @@ static int state_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
 void BOID_OT_state_move_up(wmOperatorType *ot)
 {
-	ot->name= "Move Up Boid State";
-	ot->description= "Move boid state up in the list";
-	ot->idname= "BOID_OT_state_move_up";
+	ot->name = "Move Up Boid State";
+	ot->description = "Move boid state up in the list";
+	ot->idname = "BOID_OT_state_move_up";
 
-	ot->exec= state_move_up_exec;
+	ot->exec = state_move_up_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
@@ -390,13 +390,13 @@ static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 
 void BOID_OT_state_move_down(wmOperatorType *ot)
 {
-	ot->name= "Move Down Boid State";
-	ot->description= "Move boid state down in the list";
-	ot->idname= "BOID_OT_state_move_down";
+	ot->name = "Move Down Boid State";
+	ot->description = "Move boid state down in the list";
+	ot->idname = "BOID_OT_state_move_down";
 
-	ot->exec= state_move_down_exec;
+	ot->exec = state_move_down_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

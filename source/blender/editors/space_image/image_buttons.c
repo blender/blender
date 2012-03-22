@@ -917,15 +917,15 @@ static int image_properties(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->idname= "IMAGE_OT_properties";
-	ot->description= "Toggle display properties panel";
+	ot->name = "Properties";
+	ot->idname = "IMAGE_OT_properties";
+	ot->description = "Toggle display properties panel";
 	
-	ot->exec= image_properties;
-	ot->poll= ED_operator_image_active;
+	ot->exec = image_properties;
+	ot->poll = ED_operator_image_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 
 static int image_scopes(bContext *C, wmOperator *UNUSED(op))
@@ -941,14 +941,14 @@ static int image_scopes(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_scopes(wmOperatorType *ot)
 {
-	ot->name= "Scopes";
-	ot->idname= "IMAGE_OT_scopes";
-	ot->description= "Toggle display scopes panel";
+	ot->name = "Scopes";
+	ot->idname = "IMAGE_OT_scopes";
+	ot->description = "Toggle display scopes panel";
 	
-	ot->exec= image_scopes;
-	ot->poll= ED_operator_image_active;
+	ot->exec = image_scopes;
+	ot->poll = ED_operator_image_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag = 0;
 }
 

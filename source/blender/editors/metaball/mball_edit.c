@@ -167,16 +167,16 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select All";
-	ot->description= "Change selection of all meta elements";
-	ot->idname= "MBALL_OT_select_all";
+	ot->name = "(De)select All";
+	ot->description = "Change selection of all meta elements";
+	ot->idname = "MBALL_OT_select_all";
 
 	/* callback functions */
-	ot->exec= mball_select_all_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = mball_select_all_exec;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -215,17 +215,17 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random...";
-	ot->description= "Randomly select metaelements";
-	ot->idname= "MBALL_OT_select_random_metaelems";
+	ot->name = "Random...";
+	ot->description = "Randomly select metaelements";
+	ot->idname = "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
-	ot->exec= select_random_metaelems_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= ED_operator_editmball;
+	ot->exec = select_random_metaelems_exec;
+	ot->invoke = WM_operator_props_popup;
+	ot->poll = ED_operator_editmball;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of metaelems to select randomly", 0.0001f, 1.0f);
@@ -274,17 +274,17 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Metaelements";
-	ot->description= "Delete selected metaelement(s)";
-	ot->idname= "MBALL_OT_duplicate_metaelems";
+	ot->name = "Duplicate Metaelements";
+	ot->description = "Delete selected metaelement(s)";
+	ot->idname = "MBALL_OT_duplicate_metaelems";
 
 	/* callback functions */
-	ot->exec= duplicate_metaelems_exec;
-	ot->invoke= duplicate_metaelems_invoke;
-	ot->poll= ED_operator_editmball;
+	ot->exec = duplicate_metaelems_exec;
+	ot->invoke = duplicate_metaelems_invoke;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -320,16 +320,16 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description= "Delete selected metaelement(s)";
-	ot->idname= "MBALL_OT_delete_metaelems";
+	ot->name = "Delete";
+	ot->description = "Delete selected metaelement(s)";
+	ot->idname = "MBALL_OT_delete_metaelems";
 
 	/* callback functions */
-	ot->exec= delete_metaelems_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = delete_metaelems_exec;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;	
 }
 
 /***************************** Hide operator *****************************/
@@ -360,16 +360,16 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide";
-	ot->description= "Hide (un)selected metaelement(s)";
-	ot->idname= "MBALL_OT_hide_metaelems";
+	ot->name = "Hide";
+	ot->description = "Hide (un)selected metaelement(s)";
+	ot->idname = "MBALL_OT_hide_metaelems";
 
 	/* callback functions */
-	ot->exec= hide_metaelems_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = hide_metaelems_exec;
+	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -401,16 +401,16 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal";
-	ot->description= "Reveal all hidden metaelements";
-	ot->idname= "MBALL_OT_reveal_metaelems";
+	ot->name = "Reveal";
+	ot->description = "Reveal all hidden metaelements";
+	ot->idname = "MBALL_OT_reveal_metaelems";
 	
 	/* callback functions */
-	ot->exec= reveal_metaelems_exec;
-	ot->poll= ED_operator_editmball;
+	ot->exec = reveal_metaelems_exec;
+	ot->poll = ED_operator_editmball;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;	
 }
 
 /* Select MetaElement with mouse click (user can select radius circle or
