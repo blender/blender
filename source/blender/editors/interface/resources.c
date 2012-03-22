@@ -1203,7 +1203,11 @@ void init_userdef_do_versions(void)
 	}
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
-
+	/* graph editor - unselected F-Curve visibility */
+	if (U.fcu_inactive_alpha == 0) {
+		U.fcu_inactive_alpha = 0.25f;
+	}
+	
 	/* signal for derivedmesh to use colorband */
 	/* run in case this was on and is now off in the user prefs [#28096] */
 	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);

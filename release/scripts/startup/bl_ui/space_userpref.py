@@ -304,6 +304,11 @@ class USERPREF_PT_edit(Panel):
         col.separator()
         col.label(text="Playback:")
         col.prop(edit, "use_negative_frames")
+        col.separator()
+        col.separator()
+        col.separator()
+        col.label(text="Animation Editors:")
+        col.prop(edit, "fcurve_unselected_alpha", text="F-Curve Visibility")
 
         row.separator()
         row.separator()

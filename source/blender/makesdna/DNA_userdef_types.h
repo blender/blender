@@ -422,6 +422,9 @@ typedef struct UserDef {
 
 	int compute_device_type;
 	int compute_device_id;
+	
+	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
+	float pad;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
