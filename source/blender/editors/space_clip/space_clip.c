@@ -411,7 +411,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
 	RNA_boolean_set(kmi->ptr, "sequence", FALSE);
-	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
+	RNA_boolean_set(kmi->ptr, "sequence", FALSE);
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
