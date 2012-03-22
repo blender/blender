@@ -751,7 +751,10 @@ int WM_operator_last_properties_init(wmOperator *op)
 
 	if (op->type->last_properties) {
 		PropertyRNA *iterprop;
-		iterprop= RNA_struct_iterator_property(op->type->srna);
+
+		if (G.f & G_DEBUG) printf("%s: loading previous properties for '%s'\n", __func__, op->type->idname);
+
+		iterprop = RNA_struct_iterator_property(op->type->srna);
 
 		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
 			PropertyRNA *prop= itemptr.data;
@@ -787,6 +790,7 @@ int WM_operator_last_properties_store(wmOperator *op)
 	}
 
 	if (op->properties) {
+		if (G.f & G_DEBUG) printf("%s: storing properties for '%s'\n", __func__, op->type->idname);
 		op->type->last_properties = IDP_CopyProperty(op->properties);
 		return TRUE;
 	}
@@ -1073,8 +1077,18 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 #endif
 
-	retval= wm_operator_call_internal(C, ot, properties, reports, context, FALSE);
+	/* not especially nice using undo depth here, its used so py never
+	 * triggers undo or stores operators last used state.
+	 *
+	 * we could have some more obvious way of doing this like passing a flag.
+	 */
+	wmWindowManager *wm = CTX_wm_manager(C);
+	if (wm) wm->op_undo_depth++;
+
+	retval = wm_operator_call_internal(C, ot, properties, reports, context, FALSE);
 	
+	if (wm == CTX_wm_manager(C)) wm->op_undo_depth--;
+
 	/* keep the reports around if needed later */
 	if (	(retval & OPERATOR_RUNNING_MODAL) ||
 			((retval & OPERATOR_FINISHED) && wm_operator_register_check(CTX_wm_manager(C), ot))
