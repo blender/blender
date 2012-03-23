@@ -245,6 +245,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->lamp; break;
 			case TH_SPEAKER:
 				cp= ts->speaker; break;
+			case TH_CAMERA:
+				cp= ts->camera; break;
+			case TH_EMPTY:
+				cp= ts->empty; break;
 			case TH_SELECT:
 				cp= ts->select; break;
 			case TH_ACTIVE:
@@ -636,6 +640,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	rgba_char_args_set(btheme->tv3d.lamp,       0, 0, 0, 40);
 	rgba_char_args_set(btheme->tv3d.speaker,    0, 0, 0, 255);
+	rgba_char_args_set(btheme->tv3d.camera,    0, 0, 0, 255);
+	rgba_char_args_set(btheme->tv3d.empty,    0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.select, 241, 88, 0, 255);
 	rgba_char_args_set(btheme->tv3d.active, 255, 170, 64, 255);
 	rgba_char_args_set(btheme->tv3d.group,      8, 48, 8, 255);

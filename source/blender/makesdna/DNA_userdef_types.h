@@ -205,7 +205,7 @@ typedef struct ThemeSpace {
 	char grid[4]; 
 	
 	char wire[4], select[4];
-	char lamp[4], speaker[4];
+	char lamp[4], speaker[4], empty[4],camera[4], pad[8];
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];

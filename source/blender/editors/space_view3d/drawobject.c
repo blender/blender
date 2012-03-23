@@ -5877,7 +5877,7 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 		if (ob==OBACT) curcol= TH_ACTIVE;
 		else curcol= TH_SELECT;
 	}
-	else curcol= TH_WIRE;
+	else curcol= TH_EMPTY;
 	
 	/* scale size of circle etc with the empty drawsize */
 	if (ob->type == OB_EMPTY) size = ob->empty_drawsize;
@@ -6475,6 +6475,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					else {
 						if (ob->type==OB_LAMP) theme_id= TH_LAMP;
 						else if (ob->type==OB_SPEAKER) theme_id= TH_SPEAKER;
+						else if (ob->type==OB_CAMERA) theme_id= TH_CAMERA;
+						else if (ob->type==OB_EMPTY) theme_id= TH_EMPTY;
 						/* fallback to TH_WIRE */
 					}
 				}
