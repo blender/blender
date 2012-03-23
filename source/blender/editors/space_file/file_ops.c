@@ -766,6 +766,8 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 void FILE_OT_execute(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Execute File Window";
 	ot->description = "Execute selected file";
@@ -775,7 +777,9 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	ot->exec = file_exec;
 	ot->poll = file_operator_poll; 
 	
-	RNA_def_boolean(ot->srna, "need_active", 0, "Need Active", "Only execute if there's an active selected file in the file list");
+	prop = RNA_def_boolean(ot->srna, "need_active", 0, "Need Active",
+	                       "Only execute if there's an active selected file in the file list");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 
