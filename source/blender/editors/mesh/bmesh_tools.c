@@ -1218,7 +1218,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int editbmesh_edge_split(bContext *C, wmOperator *op)
+static int editbmesh_edge_split_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -1226,13 +1226,13 @@ static int editbmesh_edge_split(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	int len = 0;
 	
-	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he numcuts=%i",
-	                  BM_ELEM_SELECT, RNA_int_get(op->ptr, "number_cuts")))
+	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he",
+	                  BM_ELEM_SELECT))
 	{
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &bmop);
-	len = BMO_slot_get(&bmop, "outsplit")->len;
+	len = BMO_slot_get(&bmop, "edgeout")->len;
 	if (!EDBM_FinishOp(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -1245,23 +1245,16 @@ static int editbmesh_edge_split(bContext *C, wmOperator *op)
 
 void MESH_OT_edge_split(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Edge Split";
 	ot->idname = "MESH_OT_edge_split";
 	
 	/* api callbacks */
-	ot->exec = editbmesh_edge_split;
+	ot->exec = editbmesh_edge_split_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
-
-	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /****************** add duplicate operator ***************/
@@ -4567,7 +4560,7 @@ static int bridge_edge_loops(bContext *C, wmOperator *op)
 void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Bridge edge loops";
+	ot->name = "Bridge Two Edge Loops";
 	ot->description = "Make faces between two edge loops";
 	ot->idname = "MESH_OT_bridge_edge_loops";
 	

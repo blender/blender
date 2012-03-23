@@ -1731,7 +1731,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.bridge_edge_loops", text="Bridge Two Edge Loops")
+        layout.operator("mesh.edge_split")
+        layout.operator("mesh.bridge_edge_loops")
 
         layout.separator()
 
