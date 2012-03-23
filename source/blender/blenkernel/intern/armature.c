@@ -1513,8 +1513,11 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 	 *
 	 * was 0.00001, causes bug [#27675], with 0.00000495,
 	 * so a value inbetween these is needed.
+	 *
+	 * was 0.000001, causes bug [#30438] (which is same as [#27675, imho).
+	 * Reseting it to org value seems to cause no more [#23954]...
 	 */
-	if (dot_v3v3(axis,axis) > 0.000001f) {
+	if (dot_v3v3(axis,axis) > 1.0e-13f) {
 		/* if nor is *not* a multiple of target ... */
 		normalize_v3(axis);
 
