@@ -73,10 +73,10 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		*N= get_float3(v->normal());
 
 	/* create faces */
-	BL::Mesh::faces_iterator f;
+	BL::Mesh::tessfaces_iterator f;
 	vector<int> nverts;
 
-	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
+	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n = (vi[3] == 0)? 3: 4;
 		int mi = clamp(f->material_index(), 0, used_shaders.size()-1);
@@ -196,9 +196,9 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 		sdmesh.add_vert(get_float3(v->co()));
 
 	/* create faces */
-	BL::Mesh::faces_iterator f;
+	BL::Mesh::tessfaces_iterator f;
 
-	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
+	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n= (vi[3] == 0)? 3: 4;
 		//int shader = used_shaders[f->material_index()];

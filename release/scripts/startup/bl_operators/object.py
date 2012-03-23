@@ -367,6 +367,7 @@ class ShapeTransfer(Operator):
                                     (orig_shape_coords[i] - orig_coords[i]))
 
             elif mode == 'RELATIVE_FACE':
+                # BMESH TODO - use .polygons
                 for face in me.faces:
                     i1, i2, i3, i4 = face.vertices_raw
                     if i4 != 0:
@@ -539,6 +540,7 @@ class JoinUVs(Operator):
                         "Object: %s, Mesh: '%s' has no UVs"
                         % (obj.name, mesh.name))
         else:
+            # BMESH_TODO - use polygons
             len_faces = len(mesh.faces)
 
             # seems to be the fastest way to create an array

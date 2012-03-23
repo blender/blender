@@ -82,6 +82,7 @@ class MeshMirrorUV(Operator):
                     for uv in fuvs]
 
         # as a list
+        # BMESH_TODO - use polygons
         faces = mesh.faces[:]
 
         fuvsel = [(False not in uv.select_uv) for uv in active_uv_layer]
