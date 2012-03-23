@@ -190,6 +190,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 			               TIP_(overwrite_alert ?N_("File name, overwrite existing") : N_("File name")));
 			uiButSetCompleteFunc(but, autocomplete_file, NULL);
 			uiButSetFlag(but, UI_BUT_NO_UTF8);
+			uiButClearFlag(but, UI_BUT_UNDO); /* operator button above does this automatic */
 
 			/* check if this overrides a file and if the operator option is used */
 			if(overwrite_alert) {
@@ -526,6 +527,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
+			uiButClearFlag(but, UI_BUT_UNDO);
 			if ( 0 == uiButActiveOnly(C, block, but)) {
 				file->selflag &= ~EDITING_FILE;
 			}
