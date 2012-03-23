@@ -384,6 +384,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->transition; break;
 			case TH_SEQ_META:
 				cp= ts->meta; break;
+			case TH_SEQ_PREVIEW:
+				cp= ts->preview_back; break;
 				
 			case TH_CONSOLE_OUTPUT:
 				cp= ts->console_output; break;
@@ -770,7 +772,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tseq.plugin, 	126, 126, 80, 255);
 	rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
 	rgba_char_args_set(btheme->tseq.meta, 	109, 145, 131, 255);
-	
+	rgba_char_args_set(btheme->tseq.preview_back, 	0, 0, 0, 255);
 
 	/* space image */
 	btheme->tima= btheme->tv3d;

@@ -778,6 +778,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	float viewrectx, viewrecty;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
+	float col[3];
 	GLuint texid;
 	GLuint last_texid;
 	SeqRenderData context;
@@ -805,8 +806,8 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	if(frame_ofs == 0) {
-		/* XXX TODO: take color from theme */
-		glClearColor(0.0, 0.0, 0.0, 0.0);
+		UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
+		glClearColor(col[0], col[1], col[2], 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
