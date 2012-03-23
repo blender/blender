@@ -1743,6 +1743,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
  * vertex for each region. returns an array of all resulting vertices.
  *
  * \note this is a low level function, bm_edge_separate needs to run on edges first
+ * or, the faces sharing verts must not be sharing edges for them to split at least.
  *
  * \return Success
  */
