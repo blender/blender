@@ -639,14 +639,6 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
-{
-	if (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel)
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	else 
-		EDBM_flag_enable_all(em, BM_ELEM_SELECT);
-}
-
 static int edbm_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -655,7 +647,7 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 	
 	switch (action) {
 	case SEL_TOGGLE:
-		EDBM_toggle_select_all(em);
+		EDBM_select_toggle_all(em);
 		break;
 	case SEL_SELECT:
 		EDBM_flag_enable_all(em, BM_ELEM_SELECT);
@@ -1426,38 +1418,6 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
 }
 
-/* swap is 0 or 1, if 1 it hides not selected */
-void EDBM_hide_mesh(BMEditMesh *em, int swap)
-{
-	BMIter iter;
-	BMElem *ele;
-	int itermode;
-
-	if (em == NULL) return;
-	
-	if (em->selectmode & SCE_SELECT_VERTEX)
-		itermode = BM_VERTS_OF_MESH;
-	else if (em->selectmode & SCE_SELECT_EDGE)
-		itermode = BM_EDGES_OF_MESH;
-	else
-		itermode = BM_FACES_OF_MESH;
-
-	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
-		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
-			BM_elem_hide_set(em->bm, ele, TRUE);
-	}
-
-	EDBM_selectmode_flush(em);
-
-	/* original hide flushing comment (OUTDATED):
-	 * hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
-	/* - vertex hidden, always means edge is hidden too
-	 * - edge hidden, always means face is hidden too
-	 * - face hidden, only set face hide
-	 * - then only flush back down what's absolute hidden
-	 */
-
-}
 
 static int edbm_hide_exec(bContext *C, wmOperator *op)
 {
@@ -1488,49 +1448,6 @@ void MESH_OT_hide(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
-}
-
-
-void EDBM_reveal_mesh(BMEditMesh *em)
-{
-	const char iter_types[3] = {BM_VERTS_OF_MESH,
-	                            BM_EDGES_OF_MESH,
-	                            BM_FACES_OF_MESH};
-
-	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
-	               (em->selectmode & SCE_SELECT_EDGE),
-	               (em->selectmode & SCE_SELECT_FACE),
-	              };
-
-	BMIter iter;
-    BMElem *ele;
-	int i;
-
-	/* Use tag flag to remember what was hidden before all is revealed.
-	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
-	for (i = 0; i < 3; i++) {
-		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
-			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
-		}
-	}
-
-	/* Reveal everything */
-	EDBM_flag_disable_all(em, BM_ELEM_HIDDEN);
-
-	/* Select relevant just-revealed elements */
-	for (i = 0; i < 3; i++) {
-		if (!sels[i]) {
-			continue;
-		}
-
-		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
-			if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
-				BM_elem_select_set(em->bm, ele, TRUE);
-			}
-		}
-	}
-
-	EDBM_selectmode_flush(em);
 }
 
 static int edbm_reveal_exec(bContext *C, wmOperator *UNUSED(op))

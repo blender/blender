@@ -1151,3 +1151,119 @@ void EDBM_ApplyMirrorCache(BMEditMesh *em, const int sel_from, const int sel_to)
 		}
 	}
 }
+
+
+/* swap is 0 or 1, if 1 it hides not selected */
+void EDBM_hide_mesh(BMEditMesh *em, int swap)
+{
+	BMIter iter;
+	BMElem *ele;
+	int itermode;
+
+	if (em == NULL) return;
+
+	if (em->selectmode & SCE_SELECT_VERTEX)
+		itermode = BM_VERTS_OF_MESH;
+	else if (em->selectmode & SCE_SELECT_EDGE)
+		itermode = BM_EDGES_OF_MESH;
+	else
+		itermode = BM_FACES_OF_MESH;
+
+	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
+		if (BM_elem_flag_test(ele, BM_ELEM_SELECT) ^ swap)
+			BM_elem_hide_set(em->bm, ele, TRUE);
+	}
+
+	EDBM_selectmode_flush(em);
+
+	/* original hide flushing comment (OUTDATED):
+	 * hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
+	/* - vertex hidden, always means edge is hidden too
+	 * - edge hidden, always means face is hidden too
+	 * - face hidden, only set face hide
+	 * - then only flush back down what's absolute hidden
+	 */
+}
+
+
+void EDBM_reveal_mesh(BMEditMesh *em)
+{
+	const char iter_types[3] = {BM_VERTS_OF_MESH,
+	                            BM_EDGES_OF_MESH,
+	                            BM_FACES_OF_MESH};
+
+	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
+	               (em->selectmode & SCE_SELECT_EDGE),
+	               (em->selectmode & SCE_SELECT_FACE),
+	              };
+
+	BMIter iter;
+	BMElem *ele;
+	int i;
+
+	/* Use tag flag to remember what was hidden before all is revealed.
+	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
+	for (i = 0; i < 3; i++) {
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
+		}
+	}
+
+	/* Reveal everything */
+	EDBM_flag_disable_all(em, BM_ELEM_HIDDEN);
+
+	/* Select relevant just-revealed elements */
+	for (i = 0; i < 3; i++) {
+		if (!sels[i]) {
+			continue;
+		}
+
+		BM_ITER(ele, &iter, em->bm, iter_types[i], NULL) {
+			if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
+				BM_elem_select_set(em->bm, ele, TRUE);
+			}
+		}
+	}
+
+	EDBM_selectmode_flush(em);
+}
+
+/* * Selection History ***************************************************** */
+/* these wrap equivalent bmesh functions.  I'm in two minds of it we should
+ * just use the bm functions directly; on the one hand, there's no real
+ * need (at the moment) to wrap them, but on the other hand having these
+ * wrapped avoids a confusing mess of mixing BM_ and EDBM_ namespaces. */
+
+void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
+{
+	BM_editselection_center(em->bm, center, ese);
+}
+
+void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
+{
+	BM_editselection_normal(normal, ese);
+}
+
+/* Calculate a plane that is rightangles to the edge/vert/faces normal
+ * also make the plane run along an axis that is related to the geometry,
+ * because this is used for the manipulators Y axis. */
+void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
+{
+	BM_editselection_plane(em->bm, plane, ese);
+}
+
+void EDBM_remove_selection(BMEditMesh *em, BMElem *ele)
+{
+	BM_select_history_remove(em->bm, ele);
+}
+
+void EDBM_store_selection(BMEditMesh *em, BMElem *ele)
+{
+	BM_select_history_store(em->bm, ele);
+}
+
+void EDBM_validate_selections(BMEditMesh *em)
+{
+	BM_select_history_validate(em->bm);
+}
+/* end select history */

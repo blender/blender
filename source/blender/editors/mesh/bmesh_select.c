@@ -1662,6 +1662,13 @@ void EDBM_deselect_by_material(BMEditMesh *em, const short index, const short se
 	}
 }
 
+void EDBM_select_toggle_all(BMEditMesh *em) /* exported for UV */
+{
+	if (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel)
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	else
+		EDBM_flag_enable_all(em, BM_ELEM_SELECT);
+}
 
 void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 {

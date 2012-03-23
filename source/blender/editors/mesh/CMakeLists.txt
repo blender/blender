@@ -39,7 +39,6 @@ set(INC_SYS
 
 set(SRC
 	bmesh_select.c
-	bmesh_selecthistory.c
 	bmesh_tools.c
 	bmesh_utils.c
 	editface.c

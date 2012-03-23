@@ -1610,7 +1610,7 @@ static void select_all_perform(bContext *C, int action)
 
 		switch (action) {
 		case SEL_TOGGLE:
-			EDBM_toggle_select_all(BMEdit_FromObject(obedit));
+			EDBM_select_toggle_all(BMEdit_FromObject(obedit));
 			break;
 		case SEL_SELECT:
 			EDBM_flag_enable_all(em, BM_ELEM_SELECT);
