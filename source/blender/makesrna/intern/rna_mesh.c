@@ -1443,7 +1443,7 @@ static void rna_def_mface(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshTessFace", NULL);
 	RNA_def_struct_sdna(srna, "MFace");
-	RNA_def_struct_ui_text(srna, "Mesh Face", "Face in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh TessFace", "TessFace in a Mesh datablock");
 	RNA_def_struct_path_func(srna, "rna_MeshTessFace_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
@@ -2494,13 +2494,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "tessfaces", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mface", "totface");
 	RNA_def_property_struct_type(prop, "MeshTessFace");
-	RNA_def_property_ui_text(prop, "Faces", "Faces of the mesh");
+	RNA_def_property_ui_text(prop, "TessFaces", "Tessellation faces of the mesh (derived from polygons)");
 	rna_def_mesh_faces(brna, prop);
 
 	prop = RNA_def_property(srna, "loops", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mloop", "totloop");
 	RNA_def_property_struct_type(prop, "MeshLoop");
-	RNA_def_property_ui_text(prop, "Loops", "Loops of the mesh");
+	RNA_def_property_ui_text(prop, "Loops", "Loops of the mesh (polygon corners)");
 	rna_def_mesh_loops(brna, prop);
 
 	prop = RNA_def_property(srna, "polygons", PROP_COLLECTION, PROP_NONE);
