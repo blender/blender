@@ -909,77 +909,13 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "rotate_source", 1, "Rotate Source", "Rotate initial selection giving better shape");
 }
 
-static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, Scene *UNUSED(scene))
-{
-	BMEditMesh *bem = BMEdit_FromObject(obedit);
-	
-	if (event < 1) return OPERATOR_CANCELLED;
-
-	if (event == 10) {
-		//"Erase Vertices";
-
-		if (!EDBM_CallOpf(bem, op, "del geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS))
-			return OPERATOR_CANCELLED;
-	} 
-	else if (event == 11) {
-		//"Edge Loop"
-		if (!EDBM_CallOpf(bem, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
-			return OPERATOR_CANCELLED;
-	}
-	else if (event == 7) {
-		int use_verts = RNA_boolean_get(op->ptr, "use_verts");
-		//"Dissolve"
-		if (bem->selectmode & SCE_SELECT_FACE) {
-			if (!EDBM_CallOpf(bem, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
-				return OPERATOR_CANCELLED;
-		}
-		else if (bem->selectmode & SCE_SELECT_EDGE) {
-			if (!EDBM_CallOpf(bem, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
-				return OPERATOR_CANCELLED;
-		}
-		else if (bem->selectmode & SCE_SELECT_VERTEX) {
-			if (!EDBM_CallOpf(bem, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
-				return OPERATOR_CANCELLED;
-		}
-	}
-	else if (event == 4) {
-		//Edges and Faces
-		if (!EDBM_CallOpf(bem, op, "del geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES))
-			return OPERATOR_CANCELLED;
-	} 
-	else if (event == 1) {
-		//"Erase Edges"
-		if (!EDBM_CallOpf(bem, op, "del geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES))
-			return OPERATOR_CANCELLED;
-	}
-	else if (event == 2) {
-		//"Erase Faces";
-		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES))
-			return OPERATOR_CANCELLED;
-	}
-	else if (event == 5) {
-		//"Erase Only Faces";
-		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i",
-		                  BM_ELEM_SELECT, DEL_ONLYFACES))
-			return OPERATOR_CANCELLED;
-	}
-	
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	return OPERATOR_FINISHED;
-}
-
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
-	{7,  "DISSOLVE",  0, "Dissolve", ""},
-	{12, "COLLAPSE",  0, "Collapse", ""},
-	{10, "VERT",      0, "Vertices", ""},
+	{0, "VERT",      0, "Vertices", ""},
 	{1,  "EDGE",      0, "Edges", ""},
 	{2,  "FACE",      0, "Faces", ""},
-	{11, "EDGE_LOOP", 0, "Edge Loop", ""},
-	{4,  "EDGE_FACE", 0, "Edges & Faces", ""},
-	{5,  "ONLY_FACE", 0, "Only Faces", ""},
+	{3,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{4,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -987,19 +923,36 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-	Scene *scene = CTX_data_scene(C);
 	int type = RNA_enum_get(op->ptr, "type");
-	
-	if (type != 12) {
-		if (delete_mesh(C, obedit, op, type, scene) == OPERATOR_CANCELLED)
+
+	BMEditMesh *bem = BMEdit_FromObject(obedit);
+
+	if (type == 0) {
+		if (!EDBM_CallOpf(bem, op, "del geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) /* Erase Vertices */
 			return OPERATOR_CANCELLED;
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	}
-	else {
-		if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
+	else if (type == 1) {
+		if (!EDBM_CallOpf(bem, op, "del geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) /* Erase Edges */
 			return OPERATOR_CANCELLED;
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	}
+	else if (type == 2) {
+		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) /* Erase Faces */
+			return OPERATOR_CANCELLED;
+	}
+	else if (type == 3) {
+		if (!EDBM_CallOpf(bem, op, "del geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) /* Edges and Faces */
+			return OPERATOR_CANCELLED;
+	}
+	else if (type == 4) {
+		//"Erase Only Faces";
+		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i",
+		                  BM_ELEM_SELECT, DEL_ONLYFACES))
+			return OPERATOR_CANCELLED;
+	}
+
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
 	
@@ -1023,13 +976,66 @@ void MESH_OT_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
-
-	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
-	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
-	                "When dissolving faces/edges, also dissolve remaining vertices");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 0, "Type", "Method used for deleting mesh data");
 }
 
+static int mesh_collapse_edge_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+
+	if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
+		return OPERATOR_CANCELLED;
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_edge_collapse(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Edge Collapse";
+	ot->description = "Collapse selected edges";
+	ot->idname = "MESH_OT_edge_collapse";
+
+	/* api callbacks */
+	ot->exec = mesh_collapse_edge_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int mesh_collapse_edge_loop_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+
+	if (!EDBM_CallOpf(em, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
+		return OPERATOR_CANCELLED;
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_edge_collapse_loop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Edge Collapse Loop";
+	ot->description = "Collapse selected edge loops";
+	ot->idname = "MESH_OT_edge_collapse_loop";
+
+	/* api callbacks */
+	ot->exec = mesh_collapse_edge_loop_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 {
@@ -3564,6 +3570,52 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
 	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
 	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+}
+
+static int mesh_dissolve_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+
+	int use_verts = RNA_boolean_get(op->ptr, "use_verts");
+
+	if (em->selectmode & SCE_SELECT_FACE) {
+		if (!EDBM_CallOpf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+			return OPERATOR_CANCELLED;
+	}
+	else if (em->selectmode & SCE_SELECT_EDGE) {
+		if (!EDBM_CallOpf(em, op, "dissolve_edges edges=%he use_verts=%b", BM_ELEM_SELECT, use_verts))
+			return OPERATOR_CANCELLED;
+	}
+	else if (em->selectmode & SCE_SELECT_VERTEX) {
+		if (!EDBM_CallOpf(em, op, "dissolve_verts verts=%hv", BM_ELEM_SELECT))
+			return OPERATOR_CANCELLED;
+	}
+
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_dissolve(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve";
+	ot->description = "Dissolve geometry";
+	ot->idname = "MESH_OT_dissolve";
+
+	/* api callbacks */
+	ot->exec = mesh_dissolve_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* TODO, move dissolve into its own operator so this doesnt confuse non-dissolve options */
+	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
+	                "When dissolving faces/edges, also dissolve remaining vertices");
 }
 
 static int dissolve_limited_exec(bContext *C, wmOperator *op)

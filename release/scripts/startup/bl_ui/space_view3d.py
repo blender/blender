@@ -1568,7 +1568,8 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.duplicate_move")
-        layout.operator("mesh.delete", text="Delete...")
+        layout.menu("VIEW3D_MT_edit_mesh_delete")
+        layout.menu("VIEW3D_MT_edit_mesh_dissolve")
 
         layout.separator()
 
@@ -1803,6 +1804,42 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.separator()
 
         layout.operator("mesh.flip_normals")
+
+
+class VIEW3D_MT_edit_mesh_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, context):
+        layout = self.layout
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_enum("mesh.delete", "type")
+
+        layout.separator()
+
+        layout.operator("mesh.edge_collapse")
+
+
+class VIEW3D_MT_edit_mesh_dissolve(Menu):
+    bl_label = "Dissolve"
+
+    def draw(self, context):
+        layout = self.layout
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.dissolve")
+
+        layout.separator()
+
+        layout.operator_enum("mesh.dissolve", "type")
+
+        layout.separator()
+
+        layout.operator("mesh.dissolve_limited")
 
 
 class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):

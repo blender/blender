@@ -114,12 +114,15 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_beautify_fill);
 	WM_operatortype_append(MESH_OT_quads_convert_to_tris);
 	WM_operatortype_append(MESH_OT_tris_convert_to_quads);
+	WM_operatortype_append(MESH_OT_dissolve);
 	WM_operatortype_append(MESH_OT_dissolve_limited);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);
 	WM_operatortype_append(MESH_OT_sort_faces);
 
 	WM_operatortype_append(MESH_OT_delete);
+	WM_operatortype_append(MESH_OT_edge_collapse);
+	WM_operatortype_append(MESH_OT_edge_collapse_loop);
 
 	WM_operatortype_append(MESH_OT_separate);
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
@@ -338,8 +341,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_SHIFT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "rotate_source", FALSE);
 
-	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_dissolve", DKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knifetool", KKEY, KM_PRESS, 0, 0);
 	//RNA_enum_set(WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_SHIFT, KKEY)->ptr, "type", 2/*KNIFE_MIDPOINT*/);

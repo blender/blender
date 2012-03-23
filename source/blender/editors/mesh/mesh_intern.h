@@ -155,6 +155,7 @@ void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
+void MESH_OT_dissolve(struct wmOperatorType *ot);
 void MESH_OT_dissolve_limited(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(struct wmOperatorType *ot);
@@ -175,6 +176,8 @@ void MESH_OT_colors_rotate(struct wmOperatorType *ot);
 void MESH_OT_colors_reverse(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse(struct wmOperatorType *ot);
+void MESH_OT_edge_collapse_loop(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
