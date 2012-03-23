@@ -1784,7 +1784,6 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 
 		maxindex++;
 	}
-	BLI_array_free(stack);
 
 	/* Make enough verts to split v for each group */
 	verts = MEM_callocN(sizeof(BMVert *) * maxindex, __func__);
@@ -1794,6 +1793,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	}
 
 	/* Replace v with the new verts in each group */
+#if 0
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
 		/* call first since its faster then a hash lookup */
 		if (l->v != v) {
@@ -1810,8 +1810,28 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 		 * towards vertex v, and another for the loop heading out from
 		 * vertex v. Only need to swap the vertex on one of those times,
 		 * on the outgoing loop. */
+
+		/* XXX - because this clobbers the iterator, this *whole* block is commented, see below */
 		l->v = verts[i];
 	}
+#else
+	/* note: this is the same as the commented code above *except* that it doesnt break iterator
+	 * by modifying data it loops over [#30632], this re-uses the 'stack' variable which is a bit
+	 * bad practice but save alloc'ing a new array - note, the comment above is useful, keep it
+	 * if you are tidying up code - campbell */
+	BLI_array_empty(stack);
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		if ((l->v == v) && (i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e)))) {
+			BM_elem_index_set(l, i); /* would be nice to assign vert here but cant, so assign the vert index */
+			BLI_array_append(stack, (BMEdge *)l);
+		}
+	}
+	while ((l = (BMLoop *)(BLI_array_pop(stack)))) {
+		l->v = verts[BM_elem_index_get(l)];
+	}
+#endif
+
+	BLI_array_free(stack);
 
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, e));
