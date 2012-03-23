@@ -42,10 +42,12 @@ set(INC_SYS
 
 # XXX - FIXME
 # this is a momentary hack to find unwind.h in 10.6.sdk
-if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.6")
-	list(APPEND INC_SYS
-		${CMAKE_OSX_SYSROOT}/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin10/4.2.1/include
-	)
+if(APPLE)
+	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.6")
+		list(APPEND INC_SYS
+			${CMAKE_OSX_SYSROOT}/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin10/4.2.1/include
+		)
+	endif()	
 endif()
 # XXX - END
 
