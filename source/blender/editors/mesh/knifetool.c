@@ -2759,6 +2759,10 @@ static int knifetool_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	kcd->vc.mval[0] = evt->mval[0];
 	kcd->vc.mval[1] = evt->mval[1];
 
+	ED_area_headerprint(CTX_wm_area(C),
+		"LMB: define cut lines, Return or RMB: confirm, E: new cut, Ctrl: midpoint snap,"
+		" Shift: ignore snap, C: angle constrain, Turn off limit selection to visibile: cut through");
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -2834,6 +2838,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 	obedit = CTX_data_edit_object(C);
 	if (!obedit || obedit->type != OB_MESH || BMEdit_FromObject(obedit) != kcd->em) {
 		knifetool_exit(C, op);
+		ED_area_headerprint(CTX_wm_area(C), NULL);
 		return OPERATOR_FINISHED;
 	}
 
@@ -2850,6 +2855,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 				ED_region_tag_redraw(kcd->ar);
 
 				knifetool_exit(C, op);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 
 				return OPERATOR_CANCELLED;
 			case KNF_MODAL_CONFIRM:
@@ -2858,6 +2864,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 				knifetool_finish(C, op);
 				knifetool_exit(C, op);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 
 				return OPERATOR_FINISHED;
 			case KNF_MODAL_MIDPOINT_ON:
