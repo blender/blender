@@ -127,7 +127,7 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
     :arg mesh: the mesh used to get edge loops from.
     :type mesh: :class:`bpy.types.Mesh`
     :arg faces: optional face list to only use some of the meshes faces.
-    :type faces: :class:`bpy.types.MeshFaces`, sequence or or NoneType
+    :type faces: :class:`bpy.types.MeshTessFace`, sequence or or NoneType
     :return: return a list of edge vertex index lists.
     :rtype: list
     """
@@ -449,7 +449,7 @@ def face_random_points(num_points, faces):
     :arg num_points: the number of random points to generate on each face.
     :type int:
     :arg faces: list of the faces to generate points on.
-    :type faces: :class:`bpy.types.MeshFaces`, sequence
+    :type faces: :class:`bpy.types.MeshTessFace`, sequence
     :return: list of random points over all faces.
     :rtype: list
     """

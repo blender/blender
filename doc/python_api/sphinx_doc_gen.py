@@ -270,6 +270,9 @@ else:
     import fnmatch
     m = None
     EXCLUDE_MODULES = tuple([m for m in EXCLUDE_MODULES if not fnmatch.fnmatchcase(m, ARGS.partial)])
+
+    EXCLUDE_INFO_DOCS = (not fnmatch.fnmatchcase("info", ARGS.partial))
+
     del m
     del fnmatch
 
