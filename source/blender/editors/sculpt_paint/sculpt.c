@@ -357,7 +357,11 @@ static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float loca
 	local_co[2] = fabs(local_co[2]);
 
 	if (local_co[0] <= side && local_co[1] <= side && local_co[2] <= side) {
-		test->dist = MAX3(local_co[0], local_co[1], local_co[2]) / side;
+		float p = 4;
+		
+		test->dist = ((powf(local_co[0], p) +
+					   powf(local_co[1], p) +
+					   powf(local_co[2], p)) / pow(side, p));
 
 		return 1;
 	}
