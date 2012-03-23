@@ -110,10 +110,10 @@ Keeping a Correct State
 When modeling in blender there are certain assumptions made about the state of the mesh.
 
 * hidden geometry isn't selected.
-* when an edge is selected, its vertices's are selected too.
-* when a face is selected, its edges and vertices's are selected.
+* when an edge is selected, its vertices are selected too.
+* when a face is selected, its edges and vertices are selected.
 * duplicate edges / faces don't exist.
-* faces have at least 3 vertices's.
+* faces have at least 3 vertices.
 
 To give developers flexibility these conventions are not enforced,
 however tools must leave the mesh in a valid state else other tools may behave incorrectly.

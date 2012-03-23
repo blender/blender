@@ -155,7 +155,7 @@ Support Overview
 +==============+==============================+================================+================================+
 |Import/Create |Bad (inflexible)              |Fine (supported as upgrade path)|Best                            |
 +--------------+------------------------------+--------------------------------+--------------------------------+
-|Manipulate    |Bad (inflexible)              |Bad (looses ngons)              |Best                            |
+|Manipulate    |Bad (inflexible)              |Bad (loses ngons)               |Best                            |
 +--------------+------------------------------+--------------------------------+--------------------------------+
 |Export/Output |Good (ngons)                  |Good (When ngons can't be used) |Good (ngons, memory overhead)   |
 +--------------+------------------------------+--------------------------------+--------------------------------+
@@ -188,7 +188,7 @@ Editing is where the 3 data types vary most.
 Exporting
 ---------
 
-All 3 data types can be used for exporting, the choice mostly depends on weather the target format supports ngons or not.
+All 3 data types can be used for exporting, the choice mostly depends on whether the target format supports ngons or not.
 
 * polygons are the most direct & efficient way to export providing they convert into the output format easily enough.
 * tessfaces work well for exporting to formats which dont support ngons, in fact this is the only place where their use is encouraged.
