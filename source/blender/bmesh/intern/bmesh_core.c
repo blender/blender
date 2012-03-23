@@ -1784,6 +1784,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 
 		maxindex++;
 	}
+	BLI_array_free(stack);
 
 	/* Make enough verts to split v for each group */
 	verts = MEM_callocN(sizeof(BMVert *) * maxindex, __func__);
@@ -1794,6 +1795,10 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 
 	/* Replace v with the new verts in each group */
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		/* call first since its faster then a hash lookup */
+		if (l->v != v) {
+			continue;
+		}
 		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e));
 		if (i == 0) {
 			continue;
@@ -1805,9 +1810,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 		 * towards vertex v, and another for the loop heading out from
 		 * vertex v. Only need to swap the vertex on one of those times,
 		 * on the outgoing loop. */
-		if (l->v == v) {
-			l->v = verts[i];
-		}
+		l->v = verts[i];
 	}
 
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
@@ -1823,7 +1826,6 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	}
 
 	BLI_ghash_free(visithash, NULL, NULL);
-	BLI_array_free(stack);
 
 	for (i = 0; i < maxindex; i++) {
 		BM_CHECK_ELEMENT(bm, verts[i]);
