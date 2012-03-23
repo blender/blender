@@ -322,7 +322,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 	BMO_op_exec(bm, &extop);
 
-	nor[0] = nor[1] = nor[2] = 0.0f;
+	zero_v3(nor);
 	
 	BMO_ITER(ele, &siter, bm, &extop, "geomout", BM_ALL) {
 		BM_elem_select_set(bm, ele, TRUE);
@@ -337,11 +337,11 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 	BMO_op_finish(bm, &extop);
 
-	if (nor[0] == 0.0f && nor[1] == 0.0f && nor[2] == 0.0f) return 'g'; // grab
-	return 'n'; // normal constraint 
-
+	/* grab / normal constraint */
+	return is_zero_v3(nor) ? 'g' : 'n';
 }
-static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag, float *nor)
+
+static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag, float nor[3])
 {
 	BMIter iter;
 	BMEdge *eed;
@@ -435,7 +435,7 @@ static int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 	float stacknor[3] = {0.0f, 0.0f, 0.0f};
 	float *nor = norin ? norin : stacknor;
 
-	nor[0] = nor[1] = nor[2] = 0.0f;
+	zero_v3(nor);
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		if (em->bm->totvertsel == 0) nr = 0;
@@ -482,12 +482,12 @@ static int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 	}
 	else {
 		
-			/* We need to force immediate calculation here because 
-			 * transform may use derived objects (which are now stale).
-			 *
-			 * This shouldn't be necessary, derived queries should be
-			 * automatically building this data if invalid. Or something.
-			 */
+		/* We need to force immediate calculation here because
+		 * transform may use derived objects (which are now stale).
+		 *
+		 * This shouldn't be necessary, derived queries should be
+		 * automatically building this data if invalid. Or something.
+		 */
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		object_handle_update(scene, obedit);
 

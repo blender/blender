@@ -314,7 +314,7 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 #ifdef NDOF_FLY_DRAW_TOOMUCH
 	fly->redraw= 1;
 #endif
-	fly->dvec_prev[0] = fly->dvec_prev[1] = fly->dvec_prev[2] = 0.0f;
+	zero_v3(fly->dvec_prev);
 
 	fly->timer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, 0.01f);
 

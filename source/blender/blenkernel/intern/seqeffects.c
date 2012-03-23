@@ -2205,8 +2205,8 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 		for (x=0;x<halfWidth;x++) {
 			index=(x+y*width)*4;
 			fx=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
-			curColor2[0]=curColor2[1]=curColor2[2]=0;
+			zero_v3(curColor);
+			zero_v3(curColor2);
 
 			for (i=x-halfWidth;i<x+halfWidth;i++) {
 				if ((i>=0)&&(i<width)) {
@@ -2236,7 +2236,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 		for (x=halfWidth;x<width-halfWidth;x++) {
 			index=(x+y*width)*4;
 			fx=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
+			zero_v3(curColor);
 			for (i=x-halfWidth;i<x+halfWidth;i++) {
 				curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
 				curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
@@ -2259,8 +2259,8 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 		for (y=0;y<halfWidth;y++) {
 			index=(x+y*width)*4;
 			fy=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
-			curColor2[0]=curColor2[1]=curColor2[2]=0;
+			zero_v3(curColor);
+			zero_v3(curColor2);
 			for (i=y-halfWidth;i<y+halfWidth;i++) {
 				if ((i>=0)&&(i<height)) {
 					/*	Bottom */
@@ -2289,7 +2289,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 		for (y=halfWidth;y<height-halfWidth;y++) {
 			index=(x+y*width)*4;
 			fy=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
+			zero_v3(curColor);
 			for (i=y-halfWidth;i<y+halfWidth;i++) {
 				curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
 				curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
@@ -2406,7 +2406,7 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 		for (x=halfWidth;x<width-halfWidth;x++) {
 			index=(x+y*width)*4;
 			fx=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
+			zero_v3(curColor);
 			for (i=x-halfWidth;i<x+halfWidth;i++) {
 				curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
 				curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
@@ -2429,8 +2429,8 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 		for (y=0;y<halfWidth;y++) {
 			index=(x+y*width)*4;
 			fy=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
-			curColor2[0]=curColor2[1]=curColor2[2]=0;
+			zero_v3(curColor);
+			zero_v3(curColor2);
 			for (i=y-halfWidth;i<y+halfWidth;i++) {
 				if ((i>=0)&&(i<height)) {
 					/*	Bottom */
@@ -2459,7 +2459,7 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 		for (y=halfWidth;y<height-halfWidth;y++) {
 			index=(x+y*width)*4;
 			fy=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
+			zero_v3(curColor);
 			for (i=y-halfWidth;i<y+halfWidth;i++) {
 				curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
 				curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];

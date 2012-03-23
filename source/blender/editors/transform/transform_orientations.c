@@ -699,7 +699,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 				else if (em->bm->totvertsel > 3) {
 					BMIter iter;
-					normal[0] = normal[1] = normal[2] = 0.0f;
+
+					zero_v3(normal);
 
 					BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {

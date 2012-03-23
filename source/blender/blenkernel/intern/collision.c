@@ -486,10 +486,10 @@ static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3
 
 DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 )
 {
-	to[0] = to[1] = to[2] = 0;
-	VECADDMUL ( to, v1, w1 );
-	VECADDMUL ( to, v2, w2 );
-	VECADDMUL ( to, v3, w3 );
+	zero_v3(to);
+	VECADDMUL(to, v1, w1);
+	VECADDMUL(to, v2, w2);
+	VECADDMUL(to, v3, w3);
 }
 
 #ifndef WITH_ELTOPO

@@ -70,7 +70,7 @@ static void initData(ModifierData *md)
 	 */
 	amd->start_cap = amd->end_cap = amd->curve_ob = amd->offset_ob = NULL;
 	amd->count = 2;
-	amd->offset[0] = amd->offset[1] = amd->offset[2] = 0;
+	zero_v3(amd->offset);
 	amd->scale[0] = 1;
 	amd->scale[1] = amd->scale[2] = 0;
 	amd->length = 0;

@@ -287,8 +287,8 @@ int calc_manipulator_stats(const bContext *C)
 	rv3d->twdrawflag= 0xFFFF;
 
 	/* transform widget centroid/center */
-	scene->twcent[0]= scene->twcent[1]= scene->twcent[2]= 0.0f;
 	INIT_MINMAX(scene->twmin, scene->twmax);
+	zero_v3(scene->twcent);
 
 	if(obedit) {
 		ob= obedit;
@@ -1104,20 +1104,19 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 static void drawsolidcube(float size)
 {
 	static float cube[8][3] = {
-	{-1.0, -1.0, -1.0},
-	{-1.0, -1.0,  1.0},
-	{-1.0,  1.0,  1.0},
-	{-1.0,  1.0, -1.0},
-	{ 1.0, -1.0, -1.0},
-	{ 1.0, -1.0,  1.0},
-	{ 1.0,  1.0,  1.0},
-	{ 1.0,  1.0, -1.0},	};
-	float n[3];
+	    {-1.0, -1.0, -1.0},
+	    {-1.0, -1.0,  1.0},
+	    {-1.0,  1.0,  1.0},
+	    {-1.0,  1.0, -1.0},
+	    { 1.0, -1.0, -1.0},
+	    { 1.0, -1.0,  1.0},
+	    { 1.0,  1.0,  1.0},
+	    { 1.0,  1.0, -1.0}, };
+	float n[3] = {0.0f};
 
 	glPushMatrix();
 	glScalef(size, size, size);
 
-	n[0]=0; n[1]=0; n[2]=0;
 	glBegin(GL_QUADS);
 	n[0]= -1.0;
 	glNormal3fv(n);

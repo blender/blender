@@ -807,7 +807,7 @@ void ED_view3d_project_float_v3(ARegion *ar, const float vec[3], float adr[3], f
 		adr[2] = vec4[2]/vec4[3];
 	}
 	else {
-		adr[0] = adr[1] = adr[2] = 0.0f;
+		zero_v3(adr);
 	}
 }
 

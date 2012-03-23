@@ -1250,7 +1250,8 @@ static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 		}
 	}
 	else {
-		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
+		zero_v3(min_r);
+		zero_v3(max_r);
 	}
 }
 static int emDM_getNumVerts(DerivedMesh *dm)

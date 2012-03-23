@@ -226,7 +226,7 @@ typedef struct bPoseChannel {
 	float		pose_head[3];		/* actually pose_mat[3] */
 	float		pose_tail[3];		/* also used for drawing help lines... */
 	
-	float		limitmin[3], limitmax[3];	/* DOF constraint */
+	float		limitmin[3], limitmax[3];	/* DOF constraint, note! - these are stored in degrees, not radians */
 	float		stiffness[3];				/* DOF stiffness */
 	float		ikstretch;
 	float		ikrotweight;		/* weight of joint rotation constraint */

@@ -155,9 +155,8 @@ Curve *add_curve(const char *name, int type)
 {
 	Curve *cu;
 
-	cu= alloc_libblock(&G.main->curve, ID_CU, name);
-	
-	cu->size[0]= cu->size[1]= cu->size[2]= 1.0;
+	cu = alloc_libblock(&G.main->curve, ID_CU, name);
+	copy_v3_fl(cu->size, 1.0f);
 	cu->flag= CU_FRONT|CU_BACK|CU_DEFORM_BOUNDS_OFF|CU_PATH_RADIUS;
 	cu->pathlen= 100;
 	cu->resolu= cu->resolv= (type == OB_SURF) ? 4 : 12;
@@ -392,7 +391,7 @@ void tex_space_curve(Curve *cu)
 		cu->size[1]= (max[1]-min[1])/2.0f;
 		cu->size[2]= (max[2]-min[2])/2.0f;
 
-		cu->rot[0]= cu->rot[1]= cu->rot[2]= 0.0f;
+		zero_v3(cu->rot);
 
 		if(cu->size[0]==0.0f) cu->size[0]= 1.0f;
 		else if(cu->size[0]>0.0f && cu->size[0]<0.00001f) cu->size[0]= 0.00001f;

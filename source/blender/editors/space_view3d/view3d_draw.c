@@ -1599,7 +1599,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 				asp= ( (float)ibuf->y)/(float)ibuf->x;
 
-				vec[0] = vec[1] = vec[2] = 0.0;
+				zero_v3(vec);
 				ED_view3d_project_float_v2(ar, vec, sco, rv3d->persmat);
 				cx = sco[0];
 				cy = sco[1];

@@ -178,7 +178,7 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
 	*tot= totvert;
 	nr= 0;
-	cent[0]= cent[1]= cent[2]= 0.0;
+	zero_v3(cent);
 	
 	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
 	bp= editlatt->def;
@@ -251,7 +251,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
 	*tot= totvert;
 	nr= 0;
-	cent[0]= cent[1]= cent[2]= 0.0;
+	zero_v3(cent);
 	
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {

@@ -2878,7 +2878,7 @@ static void minmax_new_data (void *cdata)
 	
 	data->minmaxflag = TRACK_Z;
 	data->offset = 0.0f;
-	data->cache[0] = data->cache[1] = data->cache[2] = 0.0f;
+	zero_v3(data->cache);
 	data->flag = 0;
 }
 
@@ -3535,10 +3535,9 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			
 			target->release(target);
 			
-			if(fail == TRUE)
-			{
+			if (fail == TRUE) {
 				/* Don't move the point */
-				co[0] = co[1] = co[2] = 0.0f;
+				zero_v3(co);
 			}
 			
 			/* co is in local object coordinates, change it to global and update target position */

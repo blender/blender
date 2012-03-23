@@ -225,7 +225,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	tottrans= 0; // global!
 	
 	INIT_MINMAX(min, max);
-	centroid[0]=centroid[1]=centroid[2]= 0.0;
+	zero_v3(centroid);
 	
 	if (obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
@@ -874,7 +874,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 
 	count= 0;
 	INIT_MINMAX(min, max);
-	centroid[0]= centroid[1]= centroid[2]= 0.0;
+	zero_v3(centroid);
 
 	if (obedit) {
 		tottrans=0;
