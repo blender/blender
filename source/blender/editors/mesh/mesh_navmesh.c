@@ -422,7 +422,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	return obedit;
 }
 
-static int create_navmesh_exec(bContext *C, wmOperator *op)
+static int navmesh_create_exec(bContext *C, wmOperator *op)
 {
 	Scene* scene= CTX_data_scene(C);
 	LinkNode* obs= NULL;
@@ -475,7 +475,7 @@ void MESH_OT_navmesh_make(wmOperatorType *ot)
 	ot->idname = "MESH_OT_navmesh_make";
 
 	/* api callbacks */
-	ot->exec = create_navmesh_exec;
+	ot->exec = navmesh_create_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -811,7 +811,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int select_similar_exec(bContext *C, wmOperator *op)
+static int edbm_select_similar_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "threshold");
@@ -875,7 +875,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
-	ot->exec = select_similar_exec;
+	ot->exec = edbm_select_similar_exec;
 	ot->poll = ED_operator_editmesh;
 	ot->description = "Select similar vertices, edges or faces by property types";
 	
@@ -912,7 +912,7 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMW_end(&walker);
 }
 
-static int loop_multiselect(bContext *C, wmOperator *op)
+static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -976,7 +976,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	ot->idname = "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
-	ot->exec = loop_multiselect;
+	ot->exec = edbm_loop_multiselect_exec;
 	ot->poll = ED_operator_editmesh;
 	ot->description = "Select a loop of connected edges by connection type";
 	
@@ -1062,7 +1062,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 	}
 }
 
-static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -1082,7 +1082,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	ot->description = "Select a loop";
 	
 	/* api callbacks */
-	ot->invoke = mesh_select_loop_invoke;
+	ot->invoke = edbm_select_loop_invoke;
 	ot->poll = ED_operator_editmesh_region_view3d;
 	ot->description = "Select a loop of connected edges";
 	
@@ -1102,7 +1102,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
 	ot->description = "Select an edge ring";
 	
 	/* callbacks */
-	ot->invoke = mesh_select_loop_invoke;
+	ot->invoke = edbm_select_loop_invoke;
 	ot->poll = ED_operator_editmesh_region_view3d;
 	
 	/* flags */
@@ -1417,7 +1417,7 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 }
 
 
-static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -1434,7 +1434,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	ot->idname = "MESH_OT_select_shortest_path";
 	
 	/* api callbacks */
-	ot->invoke = mesh_shortest_path_select_invoke;
+	ot->invoke = edbm_shortest_path_select_invoke;
 	ot->poll = ED_operator_editmesh;
 	ot->description = "Select shortest path between two selections";
 	
@@ -1739,7 +1739,7 @@ static void linked_limit_default(bContext *C, wmOperator *op)
 	}
 }
 
-static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;
@@ -1838,7 +1838,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	ot->idname = "MESH_OT_select_linked_pick";
 	
 	/* api callbacks */
-	ot->invoke = select_linked_pick_invoke;
+	ot->invoke = edbm_select_linked_pick_invoke;
 	ot->poll = ED_operator_editmesh;
 	ot->description = "(De)select all vertices linked to the edge under the mouse cursor";
 	
@@ -1850,7 +1850,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 }
 
 
-static int select_linked_exec(bContext *C, wmOperator *op)
+static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -1933,7 +1933,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	ot->idname = "MESH_OT_select_linked";
 	
 	/* api callbacks */
-	ot->exec = select_linked_exec;
+	ot->exec = edbm_select_linked_exec;
 	ot->poll = ED_operator_editmesh;
 	ot->description = "Select all vertices linked to the active mesh";
 	
@@ -1945,7 +1945,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 
 /* ******************** **************** */
 
-static int select_more(bContext *C, wmOperator *UNUSED(op))
+static int edbm_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -1964,14 +1964,14 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	ot->description = "Select more vertices, edges or faces connected to initial selection";
 
 	/* api callbacks */
-	ot->exec = select_more;
+	ot->exec = edbm_select_more_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int select_less(bContext *C, wmOperator *UNUSED(op))
+static int edbm_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -1990,7 +1990,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->description = "Deselect vertices, edges or faces at the boundary of each selection region";
 
 	/* api callbacks */
-	ot->exec = select_less;
+	ot->exec = edbm_select_less_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -2145,7 +2145,7 @@ static int EM_deselect_nth(BMEditMesh *em, int nth, int offset)
 	return 0;
 }
 
-static int mesh_select_nth_exec(bContext *C, wmOperator *op)
+static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2174,7 +2174,7 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	ot->idname = "MESH_OT_select_nth";
 
 	/* api callbacks */
-	ot->exec = mesh_select_nth_exec;
+	ot->exec = edbm_select_nth_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
@@ -2203,7 +2203,7 @@ int EM_view3d_poll(bContext *C)
 }
 
 
-static int select_sharp_edges_exec(bContext *C, wmOperator *op)
+static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 {
 	/* Find edges that have exactly two neighboring faces,
 	 * check the angle between those faces, and if angle is
@@ -2250,7 +2250,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 	ot->idname = "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
-	ot->exec = select_sharp_edges_exec;
+	ot->exec = edbm_select_sharp_edges_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -2260,7 +2260,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "sharpness", 1.0f, 0.01f, FLT_MAX, "sharpness", "", 1.0f, 180.0f);
 }
 
-static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
+static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2331,7 +2331,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 	ot->idname = "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
-	ot->exec = select_linked_flat_faces_exec;
+	ot->exec = edbm_select_linked_flat_faces_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -2341,7 +2341,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "sharpness", 1.0f, 0.01f, FLT_MAX, "sharpness", "", 1.0f, 180.0f);
 }
 
-static int select_non_manifold_exec(bContext *C, wmOperator *op)
+static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2383,14 +2383,14 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	ot->idname = "MESH_OT_select_non_manifold";
 	
 	/* api callbacks */
-	ot->exec = select_non_manifold_exec;
+	ot->exec = edbm_select_non_manifold_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_select_random_exec(bContext *C, wmOperator *op)
+static int edbm_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2443,7 +2443,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->idname = "MESH_OT_select_random";
 
 	/* api callbacks */
-	ot->exec = mesh_select_random_exec;
+	ot->exec = edbm_select_random_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
@@ -2456,7 +2456,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	                "Extend Selection", "Extend selection instead of deselecting everything first");
 }
 
-static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
+static int edbm_select_next_loop_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2498,7 +2498,7 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 	ot->description = "";
 
 	/* api callbacks */
-	ot->exec = select_next_loop;
+	ot->exec = edbm_select_next_loop_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -2506,7 +2506,7 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 }
 
 
-static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
+static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2565,7 +2565,7 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 	ot->idname = "MESH_OT_region_to_loop";
 
 	/* api callbacks */
-	ot->exec = region_to_loop;
+	ot->exec = edbm_region_to_loop_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
@@ -2710,7 +2710,7 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 	return count;
 }
 
-static int loop_to_region(bContext *C, wmOperator *op)
+static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2746,7 +2746,7 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 	ot->idname = "MESH_OT_loop_to_region";
 
 	/* api callbacks */
-	ot->exec = loop_to_region;
+	ot->exec = edbm_loop_to_region_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */

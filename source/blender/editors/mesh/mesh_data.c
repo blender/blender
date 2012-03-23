@@ -487,7 +487,7 @@ static int layers_poll(bContext *C)
 	return (ob && !ob->id.lib && ob->type==OB_MESH && data && !data->lib);
 }
 
-static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
@@ -507,7 +507,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->poll = layers_poll;
-	ot->exec = uv_texture_add_exec;
+	ot->exec = mesh_uv_texture_add_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -600,7 +600,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 
-static int uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
@@ -620,7 +620,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->poll = layers_poll;
-	ot->exec = uv_texture_remove_exec;
+	ot->exec = mesh_uv_texture_remove_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -628,7 +628,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 
 /*********************** vertex color operators ************************/
 
-static int vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_context(C);
@@ -649,13 +649,13 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->poll = layers_poll;
-	ot->exec = vertex_color_add_exec;
+	ot->exec = mesh_vertex_color_add_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
@@ -674,7 +674,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 	ot->idname = "MESH_OT_vertex_color_remove";
 	
 	/* api callbacks */
-	ot->exec = vertex_color_remove_exec;
+	ot->exec = mesh_vertex_color_remove_exec;
 	ot->poll = layers_poll;
 
 	/* flags */
@@ -683,7 +683,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 /*********************** sticky operators ************************/
 
-static int sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -713,13 +713,13 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->poll = layers_poll;
-	ot->exec = sticky_add_exec;
+	ot->exec = mesh_sticky_add_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int sticky_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_sticky_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
@@ -745,7 +745,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->poll = layers_poll;
-	ot->exec = sticky_remove_exec;
+	ot->exec = mesh_sticky_remove_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
