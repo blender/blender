@@ -3589,10 +3589,15 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", FALSE);
 	
-	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", UPARROWKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "next", FALSE);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", UPARROWKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", DOWNARROWKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", FALSE);
 	
-	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIALAST, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIALAST, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIAFIRST, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "next", FALSE);
 	
