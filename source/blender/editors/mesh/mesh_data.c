@@ -83,14 +83,26 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	int type= layer->type;
 	int index;
 	int i, actindex, rndindex, cloneindex, stencilindex, tot;
-	
+
 	if (layer->type == CD_MLOOPCOL || layer->type == CD_MLOOPUV) {
-		data = (me->edit_btmesh)? &me->edit_btmesh->bm->ldata: &me->ldata;
-		tot = me->totloop;
+		if (me->edit_btmesh) {
+			data = &me->edit_btmesh->bm->ldata;
+			tot = me->edit_btmesh->bm->totloop;
+		}
+		else {
+			data = &me->ldata;
+			tot = me->totloop;
+		}
 	}
 	else {
-		data = (me->edit_btmesh)? &me->edit_btmesh->bm->pdata: &me->pdata;
-		tot = me->totpoly;
+		if (me->edit_btmesh) {
+			data = &me->edit_btmesh->bm->pdata;
+			tot = me->edit_btmesh->bm->totface;
+		}
+		else {
+			data = &me->pdata;
+			tot = me->totpoly;
+		}
 	}
 	
 	index = CustomData_get_layer_index(data, type);
@@ -405,12 +417,12 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 			return -1;
 		}
 
-		BM_data_layer_add(em->bm, &em->bm->pdata, CD_MLOOPCOL);
+		BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPCOL);
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
 
 		/* copy data from active vertex color layer */
 		if (layernum) {
-			copy_editface_active_customdata(em, CD_MCOL, layernum);
+			copy_editface_active_customdata(em, CD_MLOOPCOL, layernum);
 		}
 
 		if (active_set || layernum == 0) {
